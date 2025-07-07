@@ -56,12 +56,3 @@ const handleConfigUpdate = async (type: string, updates: any) => {
     </template>
   </SmartsheetDashboardWidgetsCommonConfig>
 </template>
-
-<style scoped lang="scss">
-.nc-number-config {
-  background: white;
-  border-left: 1px solid var(--nc-content-gray-300);
-  width: 320px;
-  min-height: 100%;
-}
-</style>

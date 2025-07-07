@@ -196,20 +196,18 @@ onMounted(() => {
   </NcModal>
 </template>
 
-<style scoped lang="scss">
-.ant-form-item {
-  @apply mb-0;
-}
-
-.nc-input-text-area {
-  padding-block: 8px !important;
-}
-</style>
-
 <style lang="scss">
 .nc-modal-wrapper.nc-modal-dashboard-create-wrapper {
   .ant-modal-content {
     @apply !rounded-5;
+  }
+
+  .ant-form-item {
+    @apply mb-0;
+  }
+
+  .nc-input-text-area {
+    padding-block: 8px !important;
   }
 }
 </style>

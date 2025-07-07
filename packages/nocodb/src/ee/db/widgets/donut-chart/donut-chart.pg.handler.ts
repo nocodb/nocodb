@@ -1,5 +1,10 @@
-import { ChartTypes, formatAggregation } from 'nocodb-sdk';
-import type { NcRequest, WidgetType, WidgetTypes } from 'nocodb-sdk';
+import { formatAggregation } from 'nocodb-sdk';
+import type {
+  ChartTypes,
+  ChartWidgetType,
+  NcRequest,
+  Widget,
+} from 'nocodb-sdk';
 import { DonutChartCommonHandler } from '~/db/widgets/donut-chart/donut-chart.common.handler';
 import { Column, Filter, Model, Source, View } from '~/models';
 import applyAggregation from '~/db/aggregation';
@@ -8,16 +13,12 @@ import { getColumnNameQuery } from '~/db/getColumnNameQuery';
 import conditionV2 from '~/db/conditionV2';
 export class DonutChartPgHandler extends DonutChartCommonHandler {
   async getWidgetData(params: {
-    widget: WidgetType<WidgetTypes.CHART>;
+    widget: Widget<ChartWidgetType, ChartTypes.DONUT>;
     req: NcRequest;
   }) {
     const { widget, req } = params;
     const context = req.context;
     const { config } = widget;
-
-    if (!config.chartType || config.chartType !== ChartTypes.DONUT) {
-      return { data: [] };
-    }
 
     const { dataSource, data: chartData } = config;
 
@@ -98,14 +99,12 @@ export class DonutChartPgHandler extends DonutChartCommonHandler {
         baseModelSqlv2: baseModel,
         aggregation: chartData.value.aggregation as unknown as string,
         column: aggregationColumn,
-        alias: aggregationAlias,
       });
 
-      subQuery.select(baseModel.dbDriver.raw(aggSql));
-
-      // Extract the expression part (everything before 'AS')
-      const aggParts = aggSql.split(' AS ');
-      aggregationExpression = aggParts[0];
+      subQuery.select(
+        baseModel.dbDriver.raw('(??) as ??', [aggSql, aggregationAlias]),
+      );
+      aggregationExpression = aggSql;
     }
 
     // Add row number for ranking
@@ -124,9 +123,9 @@ export class DonutChartPgHandler extends DonutChartCommonHandler {
     } else {
       // Default: order by aggregation expression DESC
       subQuery.select(
-        baseModel.dbDriver.raw(
-          `ROW_NUMBER() OVER (ORDER BY ${aggregationExpression} DESC) as rn`,
-        ),
+        baseModel.dbDriver.raw(`ROW_NUMBER() OVER (ORDER BY ?? DESC) as rn`, [
+          aggregationExpression,
+        ]),
       );
     }
 
@@ -142,20 +141,26 @@ export class DonutChartPgHandler extends DonutChartCommonHandler {
       `),
       )
       .select(
-        baseModel.dbDriver.raw(`
+        baseModel.dbDriver.raw(
+          `
         CASE 
-          WHEN rn <= 20 THEN ${aggregationAlias}
+          WHEN rn <= 20 THEN ??
           ELSE 0
         END as final_value
-      `),
+      `,
+          [aggregationAlias],
+        ),
       )
       .select(
-        baseModel.dbDriver.raw(`
+        baseModel.dbDriver.raw(
+          `
         CASE 
-          WHEN rn > 20 THEN ${aggregationAlias}
+          WHEN rn > 20 THEN ??
           ELSE 0
         END as others_value
-      `),
+      `,
+          [aggregationAlias],
+        ),
       )
       .select(
         baseModel.dbDriver.raw(`
@@ -173,7 +178,9 @@ export class DonutChartPgHandler extends DonutChartCommonHandler {
         END as others_count
       `),
       )
-      .from(baseModel.dbDriver.raw(`(${subQuery.toString()}) as ranked_data`));
+      .from(
+        baseModel.dbDriver.raw(`(??) as ranked_data`, [subQuery.toString()]),
+      );
 
     // Final aggregation
     const finalQuery = baseModel.dbDriver
@@ -185,7 +192,9 @@ export class DonutChartPgHandler extends DonutChartCommonHandler {
         baseModel.dbDriver.raw('SUM(final_count) + SUM(others_count) as count'),
       )
       .from(
-        baseModel.dbDriver.raw(`(${mainQuery.toString()}) as categorized_data`),
+        baseModel.dbDriver.raw(`(??) as categorized_data`, [
+          mainQuery.toString(),
+        ]),
       )
       .groupBy('final_category')
       .having(

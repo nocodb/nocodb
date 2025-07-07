@@ -172,7 +172,7 @@ onMounted(async () => {
               class="w-full"
               :widget-id="selectedWidget!.id"
               :widget="true"
-              :auto-save="true"
+              auto-save
               data-testid="nc-filter-menu"
               :show-loading="false"
               @update:filters-length="isConditionDropdownOpen = $event > 0"

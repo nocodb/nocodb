@@ -70,7 +70,7 @@ const { isUIAllowed } = useRoles()
       <NcTable
         :columns="columns"
         sticky-first-column
-        :data="[...activeBaseDashboards]"
+        :data="activeBaseDashboards"
         :custom-row="customRow"
         :bordered="false"
         class="nc-base-view-all-table-list flex-1"

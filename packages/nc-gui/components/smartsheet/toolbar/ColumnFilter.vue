@@ -915,7 +915,7 @@ defineExpose({
                   <SmartsheetToolbarFieldListAutoCompleteDropdown
                     v-if="showFilterInput(filter)"
                     v-model="filter.fk_value_col_id"
-                    :disable-smartsheet="widget"
+                    :disable-smartsheet="!!widget"
                     class="nc-filter-field-select min-w-32 w-full max-h-8"
                     :columns="dynamicColumns(filter)"
                     :meta="rootMeta"

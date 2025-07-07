@@ -6,7 +6,7 @@ import DonutChartWidgetConfig from './widgets/donutchart/config/index.vue'
 const widgetStore = useWidgetStore()
 const { selectedWidget } = storeToRefs(widgetStore)
 
-const getConfigComponent = () => {
+const configComponent = computed(() => {
   if (!selectedWidget.value) return null
 
   switch (selectedWidget.value.type) {
@@ -24,7 +24,7 @@ const getConfigComponent = () => {
     default:
       return null
   }
-}
+})
 </script>
 
 <template>
@@ -32,7 +32,7 @@ const getConfigComponent = () => {
     v-if="selectedWidget"
     class="widget-editor-panel w-80 bg-white border-l border-nc-content-gray-300 h-full overflow-hidden flex flex-col"
   >
-    <component :is="getConfigComponent()" :widget="selectedWidget" />
+    <component :is="configComponent" :widget="selectedWidget" />
   </div>
 </template>
 

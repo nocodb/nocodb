@@ -63,5 +63,3 @@ const onDelete = async () => {
     </template>
   </NcDropdown>
 </template>
-
-<style scoped lang="scss"></style>

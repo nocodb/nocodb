@@ -31,5 +31,3 @@ const onExpand = async () => {
     <DashboardTreeViewDashboardList v-if="isExpanded" :base-id="baseId!" />
   </div>
 </template>
-
-<style scoped lang="scss"></style>

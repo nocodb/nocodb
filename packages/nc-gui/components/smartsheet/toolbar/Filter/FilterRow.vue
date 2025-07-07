@@ -417,7 +417,7 @@ const onChangeToDynamic = async () => {
     <template v-if="!slotHasChildren('fieldInaccessibleError')">
       <SmartsheetToolbarFieldListAutoCompleteDropdown
         :value="vModel.fk_column_id"
-        :disable-smartsheet="widget"
+        :disable-smartsheet="!!widget"
         v-bind="columnSelectProps"
         class="nc-filter-field-select min-w-32 max-h-8"
         :class="{

@@ -161,7 +161,7 @@ function validate(dashboard: DashboardType) {
 
 async function onRename(dashboard: DashboardType, originalTitle?: string, undo = false) {
   try {
-    await updateDashboard(dashboard.base_id, dashboard.id, {
+    await updateDashboard(dashboard.base_id, dashboard.id!, {
       title: dashboard.title,
       order: dashboard.order,
     })
@@ -200,7 +200,7 @@ function openDeleteDialog(dashboard: DashboardType) {
     'modelValue': isOpen,
     'dashboard': dashboard,
     'onUpdate:modelValue': closeDialog,
-    'onDeleted': async () => {
+    'onDeleted': () => {
       closeDialog()
     },
   })
@@ -219,7 +219,6 @@ const initSortable = (el: HTMLElement) => {
   if (isMobileMode.value) return
 
   sortable = new Sortable(el, {
-    // handle: '.nc-drag-icon',
     ghostClass: 'ghost',
     onStart: onSortStart,
     onEnd: onSortEnd,

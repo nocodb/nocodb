@@ -15,9 +15,11 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const dashboard = toRef(props, 'dashboard')
 
-const { updateDashboard } = useDashboardStore()
+const dashboardStore = useDashboardStore()
 
-const dashboards = computed(() => dashboards.value.get(dashboard.value.base_id) || [])
+const { activeBaseDashboards } = storeToRefs(dashboardStore)
+
+const { updateDashboard } = dashboardStore
 
 const { $e } = useNuxtApp()
 
@@ -41,7 +43,7 @@ const validators = computed(() => {
         validator: (_: any, value: any) => {
           // validate duplicate alias
           return new Promise((resolve, reject) => {
-            if ((dashboards.value || []).some((t) => t.title === (value || ''))) {
+            if ((activeBaseDashboards.value || []).some((t) => t.title === (value || ''))) {
               return reject(new Error('Duplicate dashboard name'))
             }
             return resolve(true)
@@ -79,8 +81,9 @@ const renameDashboard = async (undo = false, disableTitleDiffCheck?: boolean | u
 
   if (formState.title === dashboard.value.title && !disableTitleDiffCheck) return
 
-  loading.value = true
   try {
+    loading.value = true
+
     await updateDashboard(dashboard.value.base_id, dashboard.value.id as string, {
       title: formState.title,
     })
@@ -112,9 +115,9 @@ const renameDashboard = async (undo = false, disableTitleDiffCheck?: boolean | u
     dialogShow.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    loading.value = false
   }
-
-  loading.value = false
 }
 </script>
 
@@ -136,7 +139,7 @@ const renameDashboard = async (undo = false, disableTitleDiffCheck?: boolean | u
             hide-details
             size="small"
             :placeholder="$t('msg.info.enterDashboardName')"
-            @keydown.enter="() => renameDashboard()"
+            @keydown.enter="renameDashboard"
           />
         </a-form-item>
       </a-form>
@@ -151,7 +154,7 @@ const renameDashboard = async (undo = false, disableTitleDiffCheck?: boolean | u
           label="Rename Dashboard"
           loading-label="Renaming Dashboard"
           :loading="loading"
-          @click="() => renameDashboard()"
+          @click="renameDashboard"
         >
           {{ $t('title.renameDashboard') }}
           <template #loading> {{ $t('title.renamingDashboard') }}</template>

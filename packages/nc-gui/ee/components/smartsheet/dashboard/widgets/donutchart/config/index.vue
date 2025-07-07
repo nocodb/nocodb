@@ -93,5 +93,3 @@ const handleConfigUpdate = async (type: string, updates: any) => {
     </template>
   </SmartsheetDashboardWidgetsCommonConfig>
 </template>
-
-<style scoped lang="scss"></style>

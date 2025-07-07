@@ -4,7 +4,7 @@ import MetricWidget from './widgets/metrics/index.vue'
 import DonutChartWidget from './widgets/donutchart/index.vue'
 import PieChartWidget from './widgets/piechart/index.vue'
 import PlaceholderImage from '~/assets/img/dashboards/placeholder.svg'
-// Stores
+
 const dashboardStore = useDashboardStore()
 const widgetStore = useWidgetStore()
 
@@ -101,6 +101,11 @@ const handleResized = (i: string, newH: number, newW: number) => {
     })
   }
 }
+
+const onWidgetClick = (item: string) => {
+  const widget = activeDashboardWidgets.value.find((w) => w.id === item)
+  if (widget && isEditingDashboard.value) handleWidgetClick(widget)
+}
 </script>
 
 <template>
@@ -129,10 +134,10 @@ const handleResized = (i: string, newH: number, newW: number) => {
         :w="item.w"
         :h="item.h"
         :i="item.i"
-        @move="(i, x, y) => handleMove(i, x, y)"
-        @moved="(i, x, y) => handleMoved(i, x, y)"
-        @resize="(i, h, w) => handleResize(i, h, w)"
-        @resized="(i, h, w) => handleResized(i, h, w)"
+        @move="handleMove"
+        @moved="handleMoved"
+        @resize="handleResize"
+        @resized="handleResized"
       >
         <div
           class="widget-container h-full w-full"
@@ -140,12 +145,7 @@ const handleResized = (i: string, newH: number, newW: number) => {
             'cursor-pointer': isEditingDashboard,
             'selected': selectedWidget?.id === item.i,
           }"
-          @click.stop="
-            () => {
-              const widget = activeDashboardWidgets.find((w) => w.id === item.i)
-              if (widget) handleWidgetClick(widget)
-            }
-          "
+          @click.stop="onWidgetClick(item.i)"
         >
           <component
             :is="getWidgetComponent(activeDashboardWidgets.find(w => w.id === item.i)!)"

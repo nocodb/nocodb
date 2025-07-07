@@ -23,27 +23,9 @@ const inputEl = ref<ComponentPublicInstance>()
 
 const loading = ref(false)
 
-const useForm = Form.useForm
-
 const formState = reactive({
   description: '',
 })
-
-const validators = computed(() => {
-  return {
-    description: [
-      {
-        validator: (_: any, _value: any) => {
-          return new Promise<void>((resolve, _reject) => {
-            resolve()
-          })
-        },
-      },
-    ],
-  }
-})
-
-const { validateInfos } = useForm(formState, validators)
 
 watchEffect(
   () => {
@@ -122,7 +104,7 @@ const updateDescription = async (undo = false) => {
     </template>
     <div class="mt-1">
       <a-form layout="vertical" :model="formState" name="create-new-table-form">
-        <a-form-item :label="$t('labels.description')" v-bind="validateInfos.description">
+        <a-form-item :label="$t('labels.description')">
           <a-textarea
             ref="inputEl"
             v-model:value="formState.description"
@@ -137,16 +119,7 @@ const updateDescription = async (undo = false) => {
       <div class="flex flex-row justify-end gap-x-2 mt-5">
         <NcButton type="secondary" size="small" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
 
-        <NcButton
-          key="submit"
-          type="primary"
-          size="small"
-          :disabled="
-            validateInfos?.description?.validateStatus === 'error' || formState.description?.trim() === dashboard?.description
-          "
-          :loading="loading"
-          @click="() => updateDescription()"
-        >
+        <NcButton key="submit" type="primary" size="small" :loading="loading" @click="() => updateDescription()">
           {{ $t('general.save') }}
         </NcButton>
       </div>

@@ -92,9 +92,9 @@ const handleFilterChange = async (filter) => {
     logical: filter.logical_op,
     comparison: filter.comparison_op,
     comparison_sub_op: filter.comparison_sub_op,
-    link: !!props.link.value,
-    widget: !!props.widget.value,
-    webHook: !!props.webHook.value,
+    link: !!props.link,
+    widget: !!props.widget,
+    webHook: !!props.webHook,
   })
 }
 // #endregion

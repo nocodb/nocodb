@@ -4,7 +4,6 @@ import { NcErrorV3 } from './ncErrorV3';
 import type { ErrorObject } from 'ajv';
 import type {
   BaseType,
-  NcContext,
   NcErrorArgs,
   PlanLimitExceededDetailsType,
   SourceType,
@@ -17,7 +16,7 @@ export class NcError {
   static _V3 = new NcErrorV3();
 
   // return ncError based on api version
-  static get(context?: NcContext) {
+  static get(context?: { api_version: NcApiVersion }) {
     if (context?.api_version === NcApiVersion.V3) {
       return NcError._V3;
     }

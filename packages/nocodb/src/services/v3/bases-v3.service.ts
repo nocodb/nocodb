@@ -103,7 +103,7 @@ export class BasesV3Service {
       true,
       {
         api_version: NcApiVersion.V3,
-      } as any,
+      },
     );
     const meta = param.base.meta as unknown as Record<string, unknown>;
 
@@ -114,7 +114,7 @@ export class BasesV3Service {
     if (meta) {
       const metaParsed = BaseMetaProps.safeParse(meta);
       if (metaParsed.error) {
-        NcError.get({ api_version: NcApiVersion.V3 } as any).zodError({
+        NcError.get({ api_version: NcApiVersion.V3 }).zodError({
           message: `'meta' property invalid`,
           errors: metaParsed.error,
         });
@@ -140,7 +140,7 @@ export class BasesV3Service {
       true,
       {
         api_version: NcApiVersion.V3,
-      } as any,
+      },
     );
 
     const base = {
@@ -158,7 +158,7 @@ export class BasesV3Service {
     if (meta) {
       const metaParsed = BaseMetaProps.safeParse(meta);
       if (metaParsed.error) {
-        NcError.get({ api_version: NcApiVersion.V3 } as any).zodError({
+        NcError.get({ api_version: NcApiVersion.V3 }).zodError({
           message: `'meta' property invalid`,
           errors: metaParsed.error,
         });

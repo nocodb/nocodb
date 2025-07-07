@@ -90,7 +90,7 @@ export class BasesService {
       'swagger.json#/components/schemas/ProjectUpdateReq',
       param.base,
       false,
-      { api_version: param.apiVersion } as any,
+      { api_version: param.apiVersion },
     );
 
     const base = await Base.getWithInfo(context, param.baseId);
@@ -204,7 +204,7 @@ export class BasesService {
       false,
       {
         api_version: param?.apiVersion,
-      } as any,
+      },
     );
 
     const baseId = await this.metaService.genNanoid(MetaTable.PROJECT);

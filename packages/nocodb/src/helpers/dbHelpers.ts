@@ -621,32 +621,34 @@ export const validateFuncOnColumn = async ({
 };
 
 export const isFilterValueConsistOf = (
-  filterValue: any,
+  filterValue: string[] | string,
   needle: string,
   option?: {
     replace?: string;
   },
-) => {
+): { exists: boolean; value?: string } => {
   const evalNeedle = needle.toLowerCase().trim();
   if (Array.isArray(filterValue)) {
-    const result = filterValue.find(
+    const result = (filterValue as string[]).some(
       (k) => k.toLowerCase().trim() === evalNeedle,
     );
     if (result && option?.replace) {
-      filterValue.map((k) => k.replace(evalNeedle, option.replace));
+      filterValue = filterValue.map((k) =>
+        k.replace(evalNeedle, option.replace),
+      );
     }
-    return { exists: result, value: filterValue };
+    return { exists: result, value: filterValue as string };
   } else if (typeof filterValue === 'string') {
     const result = filterValue
       .split(',')
-      .find((k) => k.toLowerCase().trim() === evalNeedle);
+      .some((k) => k.toLowerCase().trim() === evalNeedle);
     if (result && option?.replace) {
       filterValue = filterValue
         .split(',')
         .map((k) => k.replace(evalNeedle, option.replace))
         .join(',');
     }
-    return { exists: result, value: filterValue };
+    return { exists: result, value: filterValue as string };
   }
   return { exists: false };
 };

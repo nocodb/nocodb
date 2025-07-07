@@ -78,10 +78,10 @@ export const checkForCurrentUserFilters = async ({
 }: {
   context: NcContext;
   filters: Filter[];
-}) => {
+}): Promise<boolean> => {
   for (const filter of filters) {
     if (filter.is_group && filter.children && filter.children.length > 0) {
-      const childResult = checkForCurrentUserFilters({
+      const childResult = await checkForCurrentUserFilters({
         context,
         filters: filter.children,
       });

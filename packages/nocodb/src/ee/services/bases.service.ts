@@ -75,7 +75,7 @@ export class BasesService extends BasesServiceCE {
       false,
       {
         api_version: param.apiVersion,
-      } as any,
+      },
     );
 
     let workspace: Workspace;

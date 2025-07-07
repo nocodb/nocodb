@@ -2,7 +2,7 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import type { ErrorObject } from 'ajv';
 import type { NextFunction, Request, Response } from 'express';
-import type { NcContext } from 'nocodb-sdk';
+import type { NcApiVersion } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import swagger, { swaggerV3 } from '~/schema';
 
@@ -43,7 +43,7 @@ export const validatePayload = (
   schema: string,
   payload: any,
   humanReadableError = false,
-  context: NcContext = undefined,
+  context: { api_version: NcApiVersion } = undefined,
 ) => {
   const validate = ajv.getSchema(schema);
   // Validate the request body against the schema

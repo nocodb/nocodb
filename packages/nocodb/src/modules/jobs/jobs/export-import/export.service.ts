@@ -667,6 +667,9 @@ export class ExportService {
           .map((c) => c.title)
       : model.columns.filter((c) => !isLinksOrLTAR(c)).map((c) => c.title);
 
+    const refView = view ?? (await View.getDefaultView(context, model.id));
+
+    const viewCols = await refView.getColumns(context);
     if (dataExportMode) {
       const hideSystemFields = view.show_system_fields
         ? []

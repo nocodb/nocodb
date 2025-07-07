@@ -23,12 +23,14 @@ export default defineNuxtPlugin(() => {
         }
 
         const userId = user.value?.id as string
+        const identity_hash = (user.value as any)?.identity_hash as string
         const baseId = params?.baseId as string
         const workspaceId = params?.typeOrId as string
 
         window.$chatwoot.setUser(userId, {
           email,
           name: user.value?.display_name || '',
+          identifier_hash: identity_hash,
         })
 
         window.$chatwoot.setConversationCustomAttributes({

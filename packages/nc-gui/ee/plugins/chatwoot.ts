@@ -2,7 +2,7 @@ import { defineNuxtPlugin } from '#app'
 
 export default defineNuxtPlugin(() => {
   const chatwoot = useChatWoot()
-  const { user } = useGlobal()
+  const { user, appInfo } = useGlobal()
   const router = useRouter()
   const { activeWorkspace } = storeToRefs(useWorkspace())
   const route = router.currentRoute
@@ -37,6 +37,8 @@ export default defineNuxtPlugin(() => {
           base_id: baseId || '',
           workspace_id: workspaceId || '',
           workspace_plan: activeWorkspace.value?.plan,
+          is_cloud: `${appInfo.value.isCloud}`,
+          is_onprem: `${appInfo.value.isOnPrem}`,
         })
 
         window.$chatwoot.toggleBubbleVisibility('show')
@@ -58,6 +60,8 @@ export default defineNuxtPlugin(() => {
         base_id: to.params?.baseId as string,
         workspace_id: to.params?.typeOrId as string,
         workspace_plan: activeWorkspace.value?.plan,
+        is_cloud: `${appInfo.value.isCloud}`,
+        is_onprem: `${appInfo.value.isOnPrem}`,
       })
 
       window.$chatwoot.toggleBubbleVisibility('show')

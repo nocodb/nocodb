@@ -27,6 +27,10 @@ export default defineNuxtPlugin(() => {
         const baseId = params?.baseId as string
         const workspaceId = params?.typeOrId as string
 
+        if (!userId || !identity_hash) {
+          window.$chatwoot.toggleBubbleVisibility('hide')
+        }
+
         window.$chatwoot.setUser(userId, {
           email,
           name: user.value?.display_name || '',
@@ -56,12 +60,22 @@ export default defineNuxtPlugin(() => {
         return
       }
 
+      const userId = user.value?.id as string
+      const email = user.value.email as string
+      const identity_hash = (user.value as any)?.identity_hash as string
+
+      window.$chatwoot.setUser(userId, {
+        email,
+        name: user.value?.display_name || '',
+        identifier_hash: identity_hash,
+      })
+
       window.$chatwoot.setConversationCustomAttributes({
-        user_id: String(user.value.id),
-        email: user.value.email,
+        user_id: userId,
+        email,
         base_id: to.params?.baseId as string,
         workspace_id: to.params?.typeOrId as string,
-        workspace_plan: activeWorkspace.value?.plan,
+        workspace_plan: activeWorkspace.value?.payment?.plan?.title ?? 'free',
         is_cloud: `${appInfo.value.isCloud}`,
         is_onprem: `${appInfo.value.isOnPrem}`,
       })

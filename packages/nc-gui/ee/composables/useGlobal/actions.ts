@@ -39,6 +39,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       // clear token and user data
       state.token.value = null
       state.user.value = null
+      window.$chatwoot?.reset?.()
     }
 
     // clear amplify session if configured

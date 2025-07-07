@@ -113,11 +113,15 @@ export default async function applyAggregation({
     NcError.get(context).notImplemented(
       `Aggregation ${aggregation} is not implemented yet`,
     );
+    return;
   }
 
   // If the aggregation is not available for the column type, we throw an error.
   if (aggType === 'unknown') {
-    NcError.get(context).notImplemented(`Aggregation ${aggregation} is not implemented yet`);
+    NcError.get(context).notImplemented(
+      `Aggregation ${aggregation} is not implemented yet`,
+    );
+    return;
   }
 
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.

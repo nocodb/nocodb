@@ -146,6 +146,9 @@ const ORDER_STEP_INCREMENT = 1;
 
 const MAX_RECURSION_DEPTH = 2;
 
+const SELECT_REGEX = /^(\(|)select/i;
+const INSERT_REGEX = /^(\(|)insert/i;
+
 /**
  * Base class for models
  *
@@ -5217,9 +5220,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (this.isPg || this.isSnowflake) {
       return (await trx.raw(query))?.rows;
-    } else if (/^(\(|)select/i.test(query)) {
+    } else if (SELECT_REGEX.test(query)) {
       return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
-    } else if (this.isMySQL && /^(\(|)insert/i.test(query)) {
+    } else if (this.isMySQL && INSERT_REGEX.test(query)) {
       const res = await trx.raw(query);
       if (res && res[0] && res[0].insertId) {
         return res[0].insertId;
@@ -5353,9 +5356,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     const idToAliasMap: Record<string, string> = {};
-    const idToAliasPromiseMap: Record<string, Promise<string>> = {};
     const ltarMap: Record<string, boolean> = {};
+    const missingColumnIds = new Set<string>();
 
+    // Build initial maps and collect missing column IDs
     for (let col of modelColumns) {
       if (aliasColumns && col.id in aliasColumns) {
         aliasColumns[col.id].id = col.id;
@@ -5364,101 +5368,126 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       idToAliasMap[col.id] = col.title;
-      if ([UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(col.uidt)) {
+
+      const isLtarColumn = [
+        UITypes.LinkToAnotherRecord,
+        UITypes.Lookup,
+      ].includes(col.uidt);
+      if (isLtarColumn) {
         if (col.uidt === UITypes.Lookup) {
           const nestedCol = await this.getNestedColumn(col);
           if (nestedCol?.uidt !== UITypes.LinkToAnotherRecord) {
+            ltarMap[col.id] = false;
             continue;
           }
         }
 
         ltarMap[col.id] = true;
-        const linkData = Object.values(data).find(
+
+        // Find any data that contains this column and collect missing column IDs
+        const linkData = data.find(
           (d) =>
             d[col.id] &&
-            // we need this check because Object.keys of array exists with 0 length
-            // so if it's an array we need to check if it contains item
-            ((!Array.isArray(d[col.id]) && Object.keys(d[col.id])) ||
+            ((!Array.isArray(d[col.id]) && Object.keys(d[col.id]).length > 0) ||
               (Array.isArray(d[col.id]) && d[col.id].length > 0)),
         );
-        if (linkData) {
-          if (typeof linkData[col.id] === 'object') {
-            for (const k of Object.keys(
-              Array.isArray(linkData[col.id])
-                ? linkData[col.id][0] || {}
-                : linkData[col.id],
-            )) {
-              const linkAlias = idToAliasMap[k];
-              if (!linkAlias) {
-                idToAliasPromiseMap[k] = Column.get(this.context, {
-                  colId: k,
-                })
-                  .then((col) => {
-                    return col?.title;
-                  })
-                  .catch((e) => {
-                    return Promise.resolve(e);
-                  });
-              }
+
+        if (linkData && typeof linkData[col.id] === 'object') {
+          const sampleData = Array.isArray(linkData[col.id])
+            ? linkData[col.id][0] || {}
+            : linkData[col.id];
+
+          Object.keys(sampleData).forEach((k) => {
+            if (!idToAliasMap[k]) {
+              missingColumnIds.add(k);
             }
-          } else {
-            // Has Many BT
-            const linkAlias = idToAliasMap[col.id];
-            if (!linkAlias) {
-              idToAliasPromiseMap[col.id] = Column.get(this.context, {
-                colId: col.id,
-              })
-                .then((col) => {
-                  return col?.title;
-                })
-                .catch((e) => {
-                  return Promise.resolve(e);
-                });
-            }
-          }
+          });
         }
       } else {
         ltarMap[col.id] = false;
       }
     }
-    for (const k of Object.keys(idToAliasPromiseMap)) {
-      idToAliasMap[k] = await idToAliasPromiseMap[k];
-      if ((idToAliasMap[k] as unknown) instanceof Error) {
-        throw idToAliasMap[k];
-      }
-    }
-    data.forEach((item) => {
-      Object.entries(item).forEach(([key, value]) => {
-        const alias = idToAliasMap[key];
-        if (alias) {
-          if (ltarMap[key]) {
-            // Handle LTAR/Lookup columns
-            if (
-              ncIsArray(value) &&
-              value.length > 0 &&
-              ncIsObject(value.filter((k) => k)[0])
-            ) {
-              // Transform array of objects
-              item[alias] = value.map((arrVal) =>
-                transformObject(arrVal, idToAliasMap),
-              );
-            } else if (ncIsObject(value) && !ncIsArray(value)) {
-              // Transform non-array objects
-              item[alias] = transformObject(value, idToAliasMap);
-            } else {
-              // Directly assign arrays of primitives or primitive values
-              item[alias] = value;
-            }
-          } else {
-            // Non-LTAR/Lookup columns: direct assignment
-            item[alias] = value;
-          }
-          delete item[key];
+
+    // Fetch all missing column aliases concurrently
+    if (missingColumnIds.size > 0) {
+      const columnPromises = Array.from(missingColumnIds).map(async (k) => {
+        try {
+          const col = await Column.get(this.context, { colId: k });
+          return { id: k, title: col?.title };
+        } catch (e) {
+          throw e;
         }
       });
-    });
 
-    return data;
+      const columnResults = await Promise.all(columnPromises);
+
+      // Update the alias map with fetched columns
+      columnResults.forEach(({ id, title }) => {
+        if (title) {
+          idToAliasMap[id] = title;
+        }
+      });
+    }
+
+    // Transform data in a single pass
+    return data.map((item) => {
+      const transformedItem = {};
+
+      Object.entries(item).forEach(([key, value]) => {
+        const alias = idToAliasMap[key];
+        const targetKey = alias || key;
+
+        if (alias && ltarMap[key]) {
+          // Handle LTAR/Lookup columns
+          if (
+            Array.isArray(value) &&
+            value.length > 0 &&
+            value[0] &&
+            typeof value[0] === 'object' &&
+            !Array.isArray(value[0])
+          ) {
+            // Transform array of objects
+            transformedItem[targetKey] = value.map((arrVal) => {
+              if (!arrVal || typeof arrVal !== 'object') return arrVal;
+              return this.transformObjectKeys(arrVal, idToAliasMap);
+            });
+          } else if (
+            value &&
+            typeof value === 'object' &&
+            !Array.isArray(value)
+          ) {
+            // Transform non-array objects
+            transformedItem[targetKey] = this.transformObjectKeys(
+              value,
+              idToAliasMap,
+            );
+          } else {
+            // Directly assign arrays of primitives or primitive values
+            transformedItem[targetKey] = value;
+          }
+        } else {
+          // Non-LTAR/Lookup columns or unmapped columns: direct assignment
+          transformedItem[targetKey] = value;
+        }
+      });
+
+      return transformedItem;
+    });
+  }
+
+  // Helper method to transform object keys using the alias map
+  private transformObjectKeys(
+    obj: Record<string, any>,
+    aliasMap: Record<string, string>,
+  ): Record<string, any> {
+    if (!obj || typeof obj !== 'object') return obj;
+
+    const result = {};
+    Object.entries(obj).forEach(([key, value]) => {
+      const alias = aliasMap[key];
+      result[alias || key] = value;
+    });
+    return result;
   }
 
   protected async convertUserFormat(

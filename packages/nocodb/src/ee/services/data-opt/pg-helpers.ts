@@ -8,6 +8,7 @@ import {
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
+import { nanoid } from 'nanoid';
 import { Logger } from '@nestjs/common';
 import { NcApiVersion } from 'nocodb-sdk';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from 'src/constants';
@@ -206,7 +207,10 @@ export async function extractColumn({
           nested: true,
         });
 
-        const aliasColObjMap = await relatedModel.getAliasColObjMap(refContext);
+        const aliasColObjMap = await relatedModel.getAliasColObjMap(
+          refContext,
+          relatedModel.columns,
+        );
 
         // todo: check if fields are allowed
         let fields = [
@@ -1270,19 +1274,6 @@ export async function extractColumn({
   return result;
 }
 
-// generate a unique placeholder which is not present in the string
-function getUniquePlaceholders(
-  searchWithin: string,
-  initialVal = '__nc_placeholder__',
-) {
-  let placeholder = initialVal;
-  let i = 0;
-  while (searchWithin.includes(placeholder)) {
-    placeholder = initialVal + ++i;
-  }
-  return placeholder;
-}
-
 export async function singleQueryRead(
   context: NcContext,
   ctx: {
@@ -1363,7 +1354,7 @@ export async function singleQueryRead(
     }, {}),
   );
 
-  const aliasColObjMap = await ctx.model.getAliasColObjMap(context);
+  const aliasColObjMap = await ctx.model.getAliasColObjMap(context, columns);
   // let sorts = extractSortsObject(listArgs?.sort, aliasColObjMap);
   const { filters: queryFilterObj } = extractFilterFromXwhere(
     context,
@@ -1442,7 +1433,7 @@ export async function singleQueryRead(
   const { sql, bindings } = finalQb.toSQL();
 
   // get unique placeholder which is not present in the query
-  const idPlaceholder = getUniquePlaceholders(finalQb.toQuery());
+  const idPlaceholder = nanoid();
 
   // // take care of composite primary key
   // const idPlaceholders = ctx.model.primaryKeys.map(() => idPlaceholder);
@@ -1622,7 +1613,7 @@ export async function singleQueryList(
     });
   }
 
-  const aliasColObjMap = await ctx.model.getAliasColObjMap(context);
+  const aliasColObjMap = await ctx.model.getAliasColObjMap(context, columns);
   let sorts = extractSortsObject(
     context,
     listArgs?.sort,
@@ -1779,7 +1770,7 @@ export async function singleQueryList(
     const { sql, bindings } = finalQb.toSQL();
 
     // get unique placeholder for limit and offset which is not present in query
-    const placeholder = getUniquePlaceholders(finalQb.toQuery());
+    const placeholder = nanoid();
 
     // bind all params and replace limit and offset with placeholders
     // and in generated sql replace placeholders with bindings

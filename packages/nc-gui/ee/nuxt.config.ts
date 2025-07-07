@@ -19,7 +19,16 @@ export default defineNuxtConfig({
   alias: {
     '@': resolve(__dirname),
   },
-
+  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
+  chatwoot: {
+    init: {
+      websiteToken: '7xDVJY3V6c39okWeAp5uEkg3',
+      baseUrl: 'https://app.chatwoot.com',
+    },
+    settings: {
+      darkMode: 'light',
+    },
+  },
   ssr: false,
   router: {
     options: {

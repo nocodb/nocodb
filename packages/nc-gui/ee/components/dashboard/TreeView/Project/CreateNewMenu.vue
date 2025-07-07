@@ -46,11 +46,11 @@ const showBaseOption = (source: SourceType) => {
             :source="source"
             variant="large"
             class="nc-sub-menu-item-icon-only"
-            title-class="!p-0 hover:bg-brand-50 !h-8"
+            title-class="!p-0 hover:bg-brand-50 group"
             show-noco-db-import
           >
             <template #title>
-              <div class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer">
+              <div class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer group-hover:text-nc-content-brand">
                 <GeneralIcon icon="ncChevronRight" />
               </div>
             </template>
@@ -62,22 +62,6 @@ const showBaseOption = (source: SourceType) => {
             </template>
           </DashboardTreeViewBaseOptions>
         </template>
-
-        <!-- <NcSubMenu variant="medium" class="nc-sub-menu-item-icon-only" title-class="!p-0 hover:bg-brand-50" @click.stop>
-          <template #title>
-            <div class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer">
-              <GeneralIcon icon="ncChevronRight" />
-            </div>
-          </template>
-          <template #expandIcon> </template>
-          <NcMenuItemLabel>
-            <span class="normal-case"> Import Options </span>
-          </NcMenuItemLabel>
-          <NcMenuItem inner-class="w-full !opacity-100" data-testid="create-new-dashboard">
-            <GeneralIcon icon="ncImport" class="!w-4 !h-4" />
-            Import from CSV
-          </NcMenuItem>
-        </NcSubMenu> -->
       </div>
     </NcMenuItem>
 
@@ -118,10 +102,6 @@ const showBaseOption = (source: SourceType) => {
 
   .ant-dropdown-menu-submenu-title {
     @apply !px-0 !w-8 children:w-8 flex items-center !justify-center;
-
-    .nc-submenu-title {
-      @apply !min-h-8;
-    }
   }
 }
 </style>

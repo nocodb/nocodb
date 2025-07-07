@@ -78,8 +78,7 @@ export function generateNestedRowSelectQuery({
   );
 }
 
-const SKIP_COUNT_CACHE_VALUE = '__nc_skip__';
-const COUNT_QUERY_TIMEOUT = 3000;
+
 const logger = new Logger('pg-single-query');
 
 export async function extractColumns({
@@ -1841,30 +1840,12 @@ const getDataWithCountCache = async (params: {
       await NocoCache.set(params.countCacheKey, params.countQuery);
     }
 
-    let resolved = false;
-    return await Promise.race<number | undefined>([
-      new Promise<undefined>((resolve) => {
-        // if count query takes more than 3 seconds then skip it
-        setTimeout(() => {
-          if (resolved) return;
-          resolve(undefined);
-          NocoCache.set(params.countCacheKey, SKIP_COUNT_CACHE_VALUE).catch(
-            (e) => {
-              // ignore
-              logger.error(e);
-            },
-          );
-        }, COUNT_QUERY_TIMEOUT);
-      }),
-      (async (): Promise<number> => {
-        const r = await params.baseModel.execAndParse(params.countQuery, null, {
-          skipDateConversion: true,
-          first: true,
-        });
-        resolved = true;
-        return +r?.count || 0;
-      })(),
-    ]);
+    const r = await params.baseModel.execAndParse(params.countQuery, null, {
+      skipDateConversion: true,
+      first: true,
+    });
+
+    return +r?.count || 0;
   };
   const dataHandler = async () => {
     if (params.skipCache) {

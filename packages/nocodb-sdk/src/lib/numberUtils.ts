@@ -1,5 +1,5 @@
 import type { ColumnType } from '~/lib/Api';
-import { parseProp } from '~/lib/helperFunctions';
+import { parseProp, roundUpToPrecision } from '~/lib/helperFunctions';
 
 export const numberize = (value?: string | number) => {
   if (value === undefined || value === null) {
@@ -29,6 +29,7 @@ export const getCurrencyValue = (
   const currencyMeta = {
     currency_locale: 'en-US',
     currency_code: 'USD',
+    precision: 2,
     ...parseProp(col.meta),
   };
   try {
@@ -41,10 +42,18 @@ export const getCurrencyValue = (
         ? ''
         : (modelValue as string);
     }
+
+    const roundedValue = roundUpToPrecision(
+      Number(modelValue),
+      currencyMeta.precision ?? 2
+    );
+
     return new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
       style: 'currency',
       currency: currencyMeta.currency_code || 'USD',
-    }).format(+modelValue);
+      minimumFractionDigits: currencyMeta.precision ?? 2,
+      maximumFractionDigits: currencyMeta.precision ?? 2,
+    }).format(+roundedValue);
   } catch (e) {
     return modelValue as string;
   }

@@ -57,7 +57,7 @@ const showBaseOption = (source: SourceType) => {
             <template #expandIcon> </template>
             <template #label>
               <NcMenuItemLabel>
-                <span class="normal-case"> Import Options </span>
+                <span class="normal-case min-w-[180px]"> Import Options </span>
               </NcMenuItemLabel>
             </template>
           </DashboardTreeViewBaseOptions>

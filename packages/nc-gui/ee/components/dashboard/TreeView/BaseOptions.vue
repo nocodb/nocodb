@@ -7,14 +7,14 @@ const props = withDefaults(
     base: BaseType
     variant?: 'small' | 'medium' | 'large'
     titleClass?: string
-    class?: string
+    submenuClass?: string
     showLabel?: boolean
     showNocoDbImport?: boolean
   }>(),
   {
     variant: 'small',
     titleClass: '',
-    class: '',
+    submenuClass: '',
     showLabel: false,
     showNocoDbImport: false,
   },
@@ -190,7 +190,7 @@ const isNocoDbImportAllowed = computed(() => {
       ) || isNocoDbImportAllowed
     "
     class="py-0"
-    :class="class"
+    :class="submenuClass"
     data-testid="nc-sidebar-base-import"
     :variant="variant"
     :title-class="titleClass"

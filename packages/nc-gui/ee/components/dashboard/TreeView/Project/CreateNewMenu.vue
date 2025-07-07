@@ -45,7 +45,7 @@ const showBaseOption = (source: SourceType) => {
             v-model:base="base"
             :source="source"
             variant="large"
-            class="nc-sub-menu-item-icon-only"
+            submenu-class="nc-sub-menu-item-icon-only"
             title-class="!p-0 hover:bg-brand-50 group"
             show-noco-db-import
           >

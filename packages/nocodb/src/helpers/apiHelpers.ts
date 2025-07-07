@@ -2,9 +2,9 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import type { ErrorObject } from 'ajv';
 import type { NextFunction, Request, Response } from 'express';
-import { swaggerV3 } from '~/schema';
-import swagger from '~/schema';
+import type { NcContext } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
+import swagger, { swaggerV3 } from '~/schema';
 
 export function parseHrtimeToMilliSeconds(hrtime) {
   const milliseconds = (hrtime[0] * 1000 + hrtime[1] / 1e6).toFixed(3);
@@ -43,6 +43,7 @@ export const validatePayload = (
   schema: string,
   payload: any,
   humanReadableError = false,
+  context: NcContext = undefined,
 ) => {
   const validate = ajv.getSchema(schema);
   // Validate the request body against the schema
@@ -70,7 +71,7 @@ export const validatePayload = (
     }
 
     // If the request body is invalid, throw error with error message  and errors
-    NcError.ajvValidationError({
+    NcError.get(context).ajvValidationError({
       message: 'Invalid request body',
       errors,
       humanReadableError,

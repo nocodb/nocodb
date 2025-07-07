@@ -17,8 +17,8 @@ export class NcError {
   static _V3 = new NcErrorV3();
 
   // return ncError based on api version
-  static get(context: NcContext) {
-    if (context.api_version === NcApiVersion.V3) {
+  static get(context?: NcContext) {
+    if (context?.api_version === NcApiVersion.V3) {
       return NcError._V3;
     }
     return NcError._;

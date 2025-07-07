@@ -28,7 +28,7 @@ const base = useVModel(props, 'base', emits)
 
 const { isUIAllowed } = useRoles()
 
-const baseRole = computed(() => base.project_role || base.workspace_role)
+const baseRole = computed(() => base.value?.project_role || base.value?.workspace_role)
 
 const { $e } = useNuxtApp()
 
@@ -126,7 +126,7 @@ function openQuickImportDialog(type: string) {
   }
 }
 
-async function openNocoDbImportDialog(baseId?: string) {
+function openNocoDbImportDialog(baseId?: string) {
   if (!baseId) return
 
   $e('a:actions:import-nocodb')

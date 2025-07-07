@@ -295,11 +295,15 @@ const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isGrid = inject(IsGridInj, ref(false))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
-
+const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 onMounted(() => {
   if (isGrid.value && isCanvasInjected && !isExpandedForm.value && !isEditColumn.value && !isUnderLookup.value) {
     forcedNextTick(() => {
       onFocus()
+      const key = canvasCellEventData.keyboardKey
+      if (key && isSinglePrintableKey(key)) {
+        searchVal.value = key
+      }
     })
   }
 })
@@ -394,6 +398,7 @@ onMounted(() => {
         isInFilter ? '!min-w-256px nc-dropdown-user-select-cell-filter' : '!min-w-156px'
       }  ${isOpen ? 'active' : ''}`"
       :filter-option="filterOption"
+      :search-value="searchVal ?? ''"
       @search="search"
       @focus="onFocus"
       @blur="isOpen = false"

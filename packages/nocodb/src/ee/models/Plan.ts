@@ -278,7 +278,6 @@ const legacyLimitAndFeatures = {
   [PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER]: true,
   [PlanFeatureTypes.FEATURE_ROW_COLOUR]: true,
   [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]: true,
-  [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: true,
 };
 
 export const FreePlan = Plan.prepare({

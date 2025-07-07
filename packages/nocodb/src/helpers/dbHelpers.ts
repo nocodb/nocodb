@@ -639,7 +639,7 @@ export const isFilterValueConsistOf = (
   } else if (typeof filterValue === 'string') {
     const result = filterValue
       .split(',')
-      .find((k) => k.toLowerCase().trim() === evalNeedle);
+      .some((k) => k.toLowerCase().trim() === evalNeedle);
     if (result && option?.replace) {
       filterValue = filterValue
         .split(',')

@@ -676,9 +676,13 @@ export const dataWrapper = (data: any) => {
       id: string;
       title: string;
     }) => {
-      return (
-        data?.[column.column_name] ?? data?.[column.title] ?? data?.[column.id]
-      );
+      return data?.[column.column_name] !== undefined
+        ? data?.[column.column_name]
+        : data?.[column.title] !== undefined
+        ? data?.[column.title]
+        : data?.[column.id] !== undefined
+        ? data?.[column.id]
+        : undefined;
     },
     getColumnKeyName: (column: {
       column_name: string;

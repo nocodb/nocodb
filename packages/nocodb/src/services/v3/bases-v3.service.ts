@@ -7,6 +7,7 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { BaseMetaProps } from '~/types/metaProps/base-meta-props';
 import { NcError } from '~/helpers/catchError';
 import { Base, BaseUser, Source } from '~/models';
 import { BasesService } from '~/services/bases.service';
@@ -110,6 +111,15 @@ export class BasesV3Service {
       meta.iconColor = meta.icon_color;
       delete meta.icon_color;
     }
+    if (meta) {
+      const metaParsed = BaseMetaProps.safeParse(meta);
+      if (metaParsed.error) {
+        NcError.get({ api_version: NcApiVersion.V3 } as any).zodError({
+          message: `'meta' property invalid`,
+          errors: metaParsed.error,
+        });
+      }
+    }
 
     await this.basesService.baseUpdate(context, {
       ...param,
@@ -144,6 +154,15 @@ export class BasesV3Service {
     if (meta?.icon_color) {
       meta.iconColor = meta.icon_color;
       delete meta.icon_color;
+    }
+    if (meta) {
+      const metaParsed = BaseMetaProps.safeParse(meta);
+      if (metaParsed.error) {
+        NcError.get({ api_version: NcApiVersion.V3 } as any).zodError({
+          message: `'meta' property invalid`,
+          errors: metaParsed.error,
+        });
+      }
     }
 
     const res = await this.basesService.baseCreate({

@@ -1,16 +1,19 @@
+import { expect } from 'chai';
+import request from 'supertest';
+
 // Generated: 2024-12-19T10:30:00Z
 import { UITypes } from 'nocodb-sdk';
+import { Model } from '../../../src/models';
+import Base from '../../../src/models/Base';
 import { createProject } from '../factory/base';
 import {
   createLookupColumn,
-  createLtarColumn,
+  createLtarColumn2,
   customColumns,
 } from '../factory/column';
 import { createBulkRows } from '../factory/row';
 import { createTable } from '../factory/table';
 import init from '../init';
-import Base from '../../../src/models/Base';
-import { Model } from '../../../src/models';
 
 export interface ITestContext {
   context: Awaited<ReturnType<typeof init>>;
@@ -19,6 +22,31 @@ export interface ITestContext {
     base_id: any;
   };
   base: Base;
+}
+async function ncAxiosLinkAdd({
+  context,
+  urlParams,
+  body = {},
+  status = 200,
+  msg,
+}: {
+  context: { context: any; base: any };
+  urlParams: { tableId: string; linkId: string; rowId: string };
+  body?: any;
+  status?: number;
+  msg?: string;
+}) {
+  const url = `/api/v3/data/${context.base.id}/${urlParams.tableId}/links/${urlParams.linkId}/${urlParams.rowId}`;
+  const response = await request(context.context.app)
+    .post(url)
+    .set('xc-auth', context.context.token)
+    .send(body);
+
+  expect(response.status).to.equal(status);
+  if (msg) {
+    expect(response.body.message || response.body.msg).to.equal(msg);
+  }
+  return response;
 }
 
 const getRows = (tableName: string) => {
@@ -86,13 +114,13 @@ export async function initInitialModel() {
   });
 
   // Create links
-  const t3_HM_t2_Ltar = await createLtarColumn(context, {
+  const t3_HM_t2_Ltar = await createLtarColumn2(context, {
     title: 'T2s',
     parentTable: table3,
     childTable: table2,
     type: 'hm',
   });
-  const t2_HM_t1_Ltar = await createLtarColumn(context, {
+  const t2_HM_t1_Ltar = await createLtarColumn2(context, {
     title: 'T1s',
     parentTable: table2,
     childTable: table1,
@@ -136,6 +164,43 @@ export async function initInitialModel() {
     relatedTableColumnTitle: 'T1s',
     relationColumnId: t3_HM_t2_Ltar.id,
   });
+
+  const linkTo_t2_HM_t1_Ltar = (rowId: string, body: any[]) => {
+    ncAxiosLinkAdd({
+      context: {
+        context,
+        base,
+      },
+      urlParams: {
+        tableId: table2.id,
+        linkId: t2_HM_t1_Ltar.id,
+        rowId: rowId,
+      },
+      body: body,
+      status: 200,
+    });
+  };
+  const linkTo_t3_HM_t2_Ltar = (rowId: string, body: any[]) => {
+    ncAxiosLinkAdd({
+      context: {
+        context,
+        base,
+      },
+      urlParams: {
+        tableId: table3.id,
+        linkId: t3_HM_t2_Ltar.id,
+        rowId: rowId,
+      },
+      body: body,
+      status: 200,
+    });
+  };
+  await linkTo_t2_HM_t1_Ltar('1', [{ id: 1 }, { id: 2 }, { id: 3 }]);
+  await linkTo_t2_HM_t1_Ltar('2', [{ id: 4 }, { id: 5 }, { id: 6 }]);
+  await linkTo_t2_HM_t1_Ltar('3', [{ id: 7 }]);
+  await linkTo_t3_HM_t2_Ltar('1', [{ id: 1 }, { id: 2 }]);
+  await linkTo_t3_HM_t2_Ltar('2', [{ id: 3 }]);
+
   return {
     context,
     ctx,

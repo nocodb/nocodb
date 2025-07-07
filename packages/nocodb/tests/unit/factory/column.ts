@@ -1134,6 +1134,31 @@ const createLtarColumn = async (
 
   return ltarColumn;
 };
+const createLtarColumn2 = async (
+  context,
+  {
+    title,
+    parentTable,
+    childTable,
+    type,
+  }: {
+    title: string;
+    parentTable: Model;
+    childTable: Model;
+    type: string;
+  },
+) => {
+  const ltarColumn = await createColumn(context, parentTable, {
+    title: title,
+    column_name: title,
+    uidt: UITypes.LinkToAnotherRecord,
+    parentId: parentTable.id,
+    childId: childTable.id,
+    type: type,
+  });
+
+  return ltarColumn;
+};
 
 const updateGridViewColumn = async (
   context,
@@ -1230,6 +1255,7 @@ export {
   createRollupColumn,
   createLookupColumn,
   createLtarColumn,
+  createLtarColumn2,
   updateGridViewColumn,
   updateViewColumn,
   updateColumn,

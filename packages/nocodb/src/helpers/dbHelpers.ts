@@ -668,9 +668,6 @@ export function generateRecursiveCTE(_params: {
 
 export const dataWrapper = (data: any) => {
   return {
-    getByTitleOrId: (column: { id: string; title: string }) => {
-      return data?.[column.title] ?? data?.[column.id];
-    },
     getByColumnNameTitleOrId: (column: {
       column_name: string;
       id: string;

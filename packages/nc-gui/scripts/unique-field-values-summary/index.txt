@@ -1,0 +1,60 @@
+// Prompt user to select a table and a field
+let table = await input.tableAsync("Select a table");
+let field = await input.fieldAsync("Select a field", table);
+
+// Start query with pageSize
+let queryResult = await table.selectRecordsAsync({
+    fields: [field],
+    pageSize: 100,
+});
+
+// Create a Map to store value -> count
+let valueCounts = new Map();
+let totalRecordsProcessed = 0;
+
+// Helper function to process a batch of records
+function processRecords(records) {
+    totalRecordsProcessed += records.length;
+
+    for (let record of records) {
+        let value = record.getCellValue(field);
+
+        // Normalize the value
+        let normalizedValues = [];
+        if (Array.isArray(value)) {
+            normalizedValues = value.map(v => v?.name ?? v);
+        } else if (value && typeof value === 'object') {
+            normalizedValues = [value.name ?? JSON.stringify(value)];
+        } else {
+            normalizedValues = [value];
+        }
+
+        for (let val of normalizedValues) {
+            let key = val === null ? "null" : String(val);
+            valueCounts.set(key, (valueCounts.get(key) || 0) + 1);
+        }
+    }
+}
+
+// Process first page
+processRecords(queryResult.records);
+
+// Keep loading more pages if available
+while (queryResult.hasMoreRecords) {
+    await queryResult.loadMoreRecords();
+    processRecords(queryResult.records.slice(-100)); // Only process newly loaded records
+}
+
+// Convert to array of objects for output.table()
+let resultTable = Array.from(valueCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([value, count]) => ({
+        Value: value,
+        Count: count
+    }));
+
+output.markdown("### Unique Values with Counts");
+output.table(resultTable);
+
+// Output total number of records processed
+output.markdown(`**Total records processed:** ${totalRecordsProcessed}`);

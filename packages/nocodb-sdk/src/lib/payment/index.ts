@@ -111,7 +111,7 @@ export const PlanMeta = {
     color: '#FAF5FF',
     accent: '#FEB0E8',
     primary: '#972377',
-    bgLight: '#FAF5FF',
+    bgLight: '#FFEEFB',
     bgDark: '#FED8F4',
     border: '#FEB0E8',
     chartFillColor: '#972377',

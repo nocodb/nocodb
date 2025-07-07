@@ -425,15 +425,6 @@ export const lookupOrLtarBuilder =
                 ]);
             }
 
-            selectQb.join(
-              knex.raw(`?? as ??`, [
-                parentBaseModel.getTnPath(parentModel.table_name),
-                nestedAlias,
-              ]),
-              `${nestedAlias}.${parentColumn.column_name}`,
-              `${prevAlias}.${childColumn.column_name}`,
-            );
-
             if (isArray) {
               const qb = selectQb;
               selectQb = (fn) =>
@@ -442,7 +433,7 @@ export const lookupOrLtarBuilder =
                     getAggregateFn(fn)({
                       qb,
                       knex,
-                      cn: lookupColumn.column_name,
+                      cn: cn ?? lookupColumn.column_name,
                     }),
                   )
                   .wrap('(', ')');

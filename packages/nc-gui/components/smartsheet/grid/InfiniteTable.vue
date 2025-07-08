@@ -150,9 +150,7 @@ const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLta
 
 const { loadViewAggregate } = useViewAggregateOrThrow()
 
-const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { isAiFeaturesEnabled, generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
 const {
   showRecordPlanLimitExceededModal,
@@ -1239,7 +1237,7 @@ const bulkExecuteScript = async () => {
   }
 }
 
-const isAIFillMode = computed(() => metaKey.value && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
+const isAIFillMode = computed(() => metaKey.value && isAiFeaturesEnabled.value)
 
 const generateAIBulk = async () => {
   if (!isSelectedOnlyAI.value.enabled || !meta?.value?.id || !meta.value.columns) return

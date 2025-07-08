@@ -120,10 +120,7 @@ async function registerIntegrations(EE = false) {
       );
     }
   } catch (e) {
-    console.log(
-      'Local integrations directory not found or not accessible:',
-      e.message,
-    );
+    console.log('Local integrations directory not found skipping...');
   }
 
   // Generate index.ts content for standard integrations

@@ -81,3 +81,5 @@ export enum DriverClient {
   SNOWFLAKE = 'snowflake',
   DATABRICKS = 'databricks',
 }
+
+export const CHATWOOT_IDENTITY_KEY = process.env.CHATWOOT_IDENTITY_KEY;

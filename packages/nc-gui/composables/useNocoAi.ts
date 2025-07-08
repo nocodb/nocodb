@@ -11,6 +11,12 @@ export const useNocoAi = createSharedComposable(() => {
 
   const { activeProjectId } = storeToRefs(basesStore)
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const isAiFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
+
+  const isAiBetaFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_BETA_FEATURES))
+
   const aiLoading = ref(false)
 
   const aiError = ref<string>('')
@@ -389,5 +395,7 @@ export const useNocoAi = createSharedComposable(() => {
     predictViews,
     aiIntegrations,
     completeScript,
+    isAiFeaturesEnabled,
+    isAiBetaFeaturesEnabled,
   }
 })

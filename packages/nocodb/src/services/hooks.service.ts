@@ -233,6 +233,7 @@ export class HooksService {
         newData: row,
         user: param.req.user,
         context,
+        hookName: 'manual.trigger',
       });
     } catch (e) {
       throw e;

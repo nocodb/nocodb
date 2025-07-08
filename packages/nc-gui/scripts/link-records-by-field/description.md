@@ -1,16 +1,15 @@
 
-### 🔗 Link Records by Field  
-  
 This script links records between two NocoDB tables by matching values in selected fields. It allows users to:
 
 1. Select a **source table** and a **target table**.
 2. Choose a **matching field** from each table.
 3. Choose a **linked record field** in the source table that connects to the target.  
-  
+
+<br>
   
 For each record in the source table, the script searches for a record in the target table with a **matching value**. If a match is found, the linked record field in the source table is updated to point to that record in the target table.
 
----
+<br>
 
 ### ⚠️ Behavior in Edge Cases  
   
@@ -29,4 +28,3 @@ For each record in the source table, the script searches for a record in the tar
 * **Blank or Null Values:**
   Records with empty or missing values in the matching field are skipped.
 
----

@@ -65,7 +65,7 @@ export class AuthController extends AuthControllerCE {
     const user = await super.me(req);
 
     let identity_hash = null;
-    if (CHATWOOT_IDENTITY_KEY) {
+    if (CHATWOOT_IDENTITY_KEY && user?.id) {
       identity_hash = createHmac('sha256', CHATWOOT_IDENTITY_KEY)
         .update(user.id)
         .digest('hex');

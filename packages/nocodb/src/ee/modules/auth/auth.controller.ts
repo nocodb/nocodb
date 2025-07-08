@@ -1,3 +1,4 @@
+import { createHmac } from 'crypto';
 import {
   Controller,
   Get,
@@ -24,7 +25,7 @@ import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
 import SSOClient from '~/models/SSOClient';
-
+import { CHATWOOT_IDENTITY_KEY } from '~/utils/nc-config';
 const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
 
 @Controller()
@@ -61,8 +62,18 @@ export class AuthController extends AuthControllerCE {
       .filter((f) => f)
       .reduce((acc, f) => ({ ...acc, [f]: true }), {});
 
+    const user = await super.me(req);
+
+    let identity_hash = null;
+    if (CHATWOOT_IDENTITY_KEY) {
+      identity_hash = createHmac('sha256', CHATWOOT_IDENTITY_KEY)
+        .update(user.id)
+        .digest('hex');
+    }
+
     return {
-      ...(await super.me(req)),
+      ...user,
+      identity_hash,
       featureFlags,
     };
   }

@@ -7,14 +7,14 @@ const props = withDefaults(
     base: BaseType
     variant?: 'small' | 'medium' | 'large'
     titleClass?: string
-    class?: string
+    submenuClass?: string
     showLabel?: boolean
     showNocoDbImport?: boolean
   }>(),
   {
     variant: 'small',
     titleClass: '',
-    class: '',
+    submenuClass: '',
     showLabel: false,
     showNocoDbImport: false,
   },
@@ -76,7 +76,7 @@ function openQuickImportDialog(type: string) {
 
 <template>
   <!-- Quick Import From -->
-  <NcSubMenu class="py-0" data-testid="nc-sidebar-base-import" variant="small">
+  <NcSubMenu class="py-0" :class="submenuClass" data-testid="nc-sidebar-base-import" :variant="variant" :title-class="titleClass">
     <template #title>
       <GeneralIcon icon="download" class="opacity-80" />
       {{ $t('labels.importData') }}

@@ -5532,20 +5532,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     // Fetch users and sign meta icons in parallel
-    const [baseUsers] = await Promise.all([
-      BaseUser.getUsersList(this.context, {
-        base_id: this.model.base_id,
-        include_internal_user: true,
-      }),
-      // Note: PresignedUrl.signMetaIconImage will be called after fetching users
-    ]);
+    const baseUsers = await BaseUser.getUsersList(this.context, {
+      base_id: this.model.base_id,
+      include_internal_user: true,
+    });
 
     await PresignedUrl.signMetaIconImage(baseUsers);
 
     if (Array.isArray(data)) {
+      const userMap = new Map(baseUsers.map((user) => [user.id, user]));
       return Promise.all(
         data.map((d) =>
-          this._convertUserFormat(allUserColumns, baseUsers, d, apiVersion),
+          this._convertUserFormat(
+            allUserColumns,
+            baseUsers,
+            d,
+            apiVersion,
+            userMap,
+          ),
         ),
       );
     } else {
@@ -5563,10 +5567,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     baseUsers: Partial<User>[],
     d: Record<string, any>,
     apiVersion?: NcApiVersion,
+    userMapInit?: Map<string, Partial<User> & BaseUser>,
   ) {
     try {
       if (d && baseUsers.length) {
-        const userMap = new Map(baseUsers.map((user) => [user.id, user]));
+        const userMap =
+          userMapInit || new Map(baseUsers.map((user) => [user.id, user]));
 
         const availableUserColumns = userColumns.filter(
           (col) => d[col.id] && d[col.id].length,
@@ -5671,7 +5677,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      const batchSize = 15;
+      const batchSize = 10;
 
       // Process attachments in batches
       for (let i = 0; i < allAttachments.length; i += batchSize) {

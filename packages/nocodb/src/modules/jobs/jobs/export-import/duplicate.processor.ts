@@ -682,6 +682,8 @@ export class DuplicateProcessor {
       req,
     } = param;
 
+    // TODO: [duplicate column optimization] - maybe can only get data related with duplicated column id
+
     let handledLinks = [];
 
     let error = null;

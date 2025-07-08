@@ -43,6 +43,7 @@ export interface AppInfo {
   isOnPrem: boolean
   stripePublishableKey?: string
   marketingRootUrl?: string
+  openReplayKey?: string | null
 }
 
 export interface StoredState {

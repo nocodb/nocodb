@@ -28,6 +28,8 @@ const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_
 const showBaseOption = (source: SourceType) => {
   return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
 }
+
+const showScriptByNocoDB = false
 </script>
 
 <template>
@@ -81,9 +83,9 @@ const showBaseOption = (source: SourceType) => {
       </NcMenuItemLabel>
       <NcMenuItem inner-class="w-full" data-testid="create-new-script" @click="emits('emptyScript')">
         <GeneralIcon icon="ncScript" />
-        Empty Script
+        Script
       </NcMenuItem>
-      <NcMenuItem inner-class="w-full" data-testid="create-new-script" @click="isMarketVisible = true">
+      <NcMenuItem v-if="showScriptByNocoDB" inner-class="w-full" data-testid="create-new-script" @click="isMarketVisible = true">
         <GeneralIcon icon="ncScript" />
         Script by NocoDB
       </NcMenuItem>

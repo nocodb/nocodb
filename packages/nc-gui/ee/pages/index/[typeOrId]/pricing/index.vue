@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanTitles } from 'nocodb-sdk'
+import { PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 
 const { $e } = useNuxtApp()
 
@@ -11,7 +11,7 @@ const route = useRoute()
 
 useStripe()
 
-const { navigateToBilling } = useEeConfig()
+const { navigateToBilling, getStatLimit } = useEeConfig()
 
 const {
   activeWorkspace,
@@ -127,11 +127,35 @@ const embedPage = computed(() => {
     page = 'loyalty-pricing'
   }
 
-  return `${appInfo.value.marketingRootUrl}/${page}?inApp=true&workspace=${activeWorkspace.value?.title}&plan=${
-    activePlan.value?.title
-  }&paymentMode=${paymentMode.value}&isLoyaltyWorkspace=${isLoyaltyDiscountAvailable.value}${
-    route.query?.activeBtn ? `&CTA=${route.query?.activeBtn}` : ''
-  }`
+  const searchQuery = new URLSearchParams()
+
+  searchQuery.set('inApp', 'true')
+
+  if (activeWorkspace.value?.title) {
+    searchQuery.set('workspace', activeWorkspace.value?.title)
+  }
+
+  if (activePlan.value?.title) {
+    searchQuery.set('plan', activePlan.value?.title)
+  }
+
+  if (paymentMode.value) {
+    searchQuery.set('paymentMode', paymentMode.value)
+  }
+
+  searchQuery.set('isLoyaltyWorkspace', `${isLoyaltyDiscountAvailable.value}`)
+
+  if (route.query?.activeBtn) {
+    searchQuery.set('CTA', route.query?.activeBtn as string)
+  }
+
+  const hasExternal = getStatLimit(PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE) > 0
+
+  if (hasExternal) {
+    searchQuery.set('hasExternal', 'true')
+  }
+
+  return `${appInfo.value.marketingRootUrl}/${page}?${searchQuery.toString()}`
 })
 </script>
 

@@ -4,7 +4,7 @@ import type { MetaService } from '~/meta/meta.service';
 import type { Filter, View } from '~/models';
 import Noco from '~/Noco';
 
-type GetRowColorConditionsResult = {
+export type GetRowColorConditionsResult = {
   view: View;
   rowColoringConditions: {
     record: RowColorCondition;

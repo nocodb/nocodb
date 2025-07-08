@@ -326,7 +326,7 @@ const showCreateNewAsDropdown = computed(() => {
               icon-position="right"
             >
               <template #icon>
-                <GeneralIcon icon="chevronDown" class="flex-none"/>
+                <GeneralIcon icon="chevronDown" class="flex-none" />
               </template>
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncPlusCircleSolid" />
@@ -339,7 +339,7 @@ const showCreateNewAsDropdown = computed(() => {
               <DashboardTreeViewProjectCreateNewMenu
                 v-model:visible="isVisibleCreateNew"
                 @new-table="addNewProjectChildEntity"
-                @new-script="openNewScriptModal({ baseId: base.id })"
+                @empty-script="openNewScriptModal({ baseId: base.id })"
               />
             </template>
           </NcDropdown>

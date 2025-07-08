@@ -7,7 +7,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits(['@update:visible', 'newTable', 'newScript'])
+const emits = defineEmits(['@update:visible', 'newTable', 'emptyScript', 'scriptByNocoDB'])
 
 const vVisible = useVModel(props, 'visible', emits)
 
@@ -77,11 +77,13 @@ const showBaseOption = (source: SourceType) => {
       <NcMenuItemLabel>
         <span class="normal-case"> Automations </span>
       </NcMenuItemLabel>
-      <NcMenuItem inner-class="w-full" data-testid="create-new-script" @click="emits('newScript')">
+      <NcMenuItem inner-class="w-full" data-testid="create-new-script" @click="emits('emptyScript')">
         <GeneralIcon icon="ncScript" />
-        New Script
-        <div class="flex-1 w-full" />
-        <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Beta </NcBadge>
+        Empty Script
+      </NcMenuItem>
+      <NcMenuItem inner-class="w-full" data-testid="create-new-script" @click="emits('scriptByNocoDB')">
+        <GeneralIcon icon="ncScript" />
+        Script by NocoDB
       </NcMenuItem>
       <NcMenuItem inner-class="w-full" data-testid="create-new-automation" disabled>
         <GeneralIcon icon="ncAutomation" />

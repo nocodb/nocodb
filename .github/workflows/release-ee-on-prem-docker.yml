@@ -98,6 +98,7 @@ jobs:
       - name: build nc-gui and copy to nocodb
         env:
           NC_ON_PREM: true
+          NUXT_CHATWOOT_WEBSITE_TOKEN: ${{ secrets.NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM }}
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           # generate static build of nc-gui

@@ -1,5 +1,4 @@
 import { promisify } from 'util';
-import { BasesService as BasesServiceCE } from 'src/services/bases.service';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
@@ -10,29 +9,32 @@ import {
   PlanFeatureTypes,
   ProjectRoles,
 } from 'nocodb-sdk';
+import { BasesService as BasesServiceCE } from 'src/services/bases.service';
 import type {
+  NcApiVersion,
   ProjectReqType,
   ProjectUpdateReqType,
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { BaseMetaProps } from '~/types/metaProps/base-meta-props';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import syncMigration from '~/helpers/syncMigration';
-import { Base, BaseUser, Integration, Workspace } from '~/models';
-import Noco from '~/Noco';
-import { getToolDir } from '~/utils/nc-config';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { MetaService } from '~/meta/meta.service';
-import { MetaTable } from '~/utils/globals';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { TablesService } from '~/services/tables.service';
 import { getFeature, getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
-import { DataReflectionService } from '~/services/data-reflection.service';
+import syncMigration from '~/helpers/syncMigration';
+import { MetaService } from '~/meta/meta.service';
+import { Base, BaseUser, Integration, Workspace } from '~/models';
 import { PaymentService } from '~/modules/payment/payment.service';
+import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ColumnsService } from '~/services/columns.service';
+import { DataReflectionService } from '~/services/data-reflection.service';
+import { TablesService } from '~/services/tables.service';
 import { isEE } from '~/utils';
 import { getWorkspaceDbServer } from '~/utils/cloudDb';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { MetaTable } from '~/utils/globals';
+import { getToolDir } from '~/utils/nc-config';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -61,8 +63,20 @@ export class BasesService extends BasesServiceCE {
     return bases;
   }
 
-  async baseCreate(param: { base: ProjectReqType; user: any; req: any }) {
-    validatePayload('swagger.json#/components/schemas/ProjectReq', param.base);
+  async baseCreate(param: {
+    base: ProjectReqType;
+    user: any;
+    req: any;
+    apiVersion?: NcApiVersion;
+  }) {
+    validatePayload(
+      'swagger.json#/components/schemas/ProjectReq',
+      param.base,
+      false,
+      {
+        api_version: param.apiVersion,
+      },
+    );
 
     let workspace: Workspace;
 
@@ -367,11 +381,14 @@ export class BasesService extends BasesServiceCE {
       base: ProjectUpdateReqType;
       user: UserType;
       req: NcRequest;
+      apiVersion?: NcApiVersion;
     },
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUpdateReq',
       param.base,
+      false,
+      context,
     );
 
     await this.validateDefaultRoleFeature(context, param);

@@ -1,5 +1,23 @@
-import { NcErrorType } from 'nocodb-sdk';
+import { NcBaseErrorv2, NcErrorType } from 'nocodb-sdk';
 import { NcErrorV1 } from './NcErrorV1';
+import type { ErrorObject } from 'ajv';
+
+export class AjvErrorV3 extends NcBaseErrorv2 {
+  humanReadableError: boolean;
+  constructor(param: {
+    message: string;
+    errors: ErrorObject[];
+    humanReadableError?: boolean;
+  }) {
+    super(param.message, 400, NcErrorType.INVALID_REQUEST_BODY, {
+      details: param.errors,
+    });
+    this.errors = param.errors;
+    this.humanReadableError = param.humanReadableError || false;
+  }
+
+  errors: ErrorObject[];
+}
 
 export class NcErrorV3 extends NcErrorV1 {
   constructor() {
@@ -26,5 +44,13 @@ export class NcErrorV3 extends NcErrorV1 {
         code: 422,
       },
     });
+  }
+
+  override ajvValidationError(param: {
+    message: string;
+    errors: ErrorObject[];
+    humanReadableError: boolean;
+  }): never {
+    throw new AjvErrorV3(param);
   }
 }

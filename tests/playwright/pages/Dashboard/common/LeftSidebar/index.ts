@@ -62,8 +62,10 @@ export class LeftSidebarPage extends BasePage {
     title = isEE() ? title : `nc-${context.workerId}-${title}`;
     await this.btn_newProject.click();
 
-    await this.rootPage.locator('.nc-create-base').waitFor();
-    await this.rootPage.locator('.nc-create-base').click();
+    if (isEE()) {
+      await this.rootPage.locator('.nc-create-base').waitFor();
+      await this.rootPage.locator('.nc-create-base').click();
+    }
 
     await this.rootPage.locator('.ant-modal-content:has-text(" Create Base")').waitFor();
     await this.rootPage.locator('.ant-modal-content:has-text(" Create Base")').locator('input').fill(title);

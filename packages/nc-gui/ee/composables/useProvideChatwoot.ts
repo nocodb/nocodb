@@ -5,15 +5,15 @@ export function useProvideChatwoot() {
   const { activeWorkspace } = storeToRefs(useWorkspace())
   const route = router.currentRoute
 
-  let chatwootReady = false
+  const chatwootReady = ref(false)
 
   const chatwootInit = () => {
-    chatwootReady = true
+    chatwootReady.value = true
   }
 
   watch(
-    [() => chatwootReady, () => user.value?.email, () => route.value?.params],
-    ([email, params]) => {
+    [() => chatwootReady.value, () => user.value?.email, () => route.value?.params],
+    ([chatwootReady, email, params]) => {
       if (!chatwootReady || !chatwoot || !window.$chatwoot) return
 
       if (ncIsPlaywright()) {
@@ -57,7 +57,7 @@ export function useProvideChatwoot() {
   )
 
   router.afterEach((to) => {
-    if (!chatwootReady || !chatwoot || !window.$chatwoot) return
+    if (!chatwootReady.value || !chatwoot || !window.$chatwoot) return
 
     if (ncIsPlaywright()) {
       window.$chatwoot.toggleBubbleVisibility('hide')

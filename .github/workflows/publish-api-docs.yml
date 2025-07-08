@@ -30,30 +30,6 @@ jobs:
           user_name: 'o1lab'
           commit_message: 'Autorelease from github.com/nocodb/nocodb'
 
-      - name: Pushes swagger file to data-apis-v2
-        uses: dmnemec/copy_file_to_another_repo_action@1b29cbd9a323185f20b175dc6d5f8f31be5c0658
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
-        with:
-          source_file: 'packages/nocodb/src/schema/swagger-v2.json'
-          destination_repo: 'nocodb/noco-apis-doc'
-          destination_folder: 'data-apis-v2'
-          user_email: 'oof1lab@gmail.com'
-          user_name: 'o1lab'
-          commit_message: 'Autorelease from github.com/nocodb/nocodb'
-
-      - name: Pushes swagger file to data-apis-v3
-        uses: dmnemec/copy_file_to_another_repo_action@1b29cbd9a323185f20b175dc6d5f8f31be5c0658
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
-        with:
-          source_file: 'packages/nocodb/src/schema/swagger-v3.json'
-          destination_repo: 'nocodb/noco-apis-doc'
-          destination_folder: 'data-apis-v3'
-          user_email: 'oof1lab@gmail.com'
-          user_name: 'o1lab'
-          commit_message: 'Autorelease from github.com/nocodb/nocodb'
-
       - name: Pushes swagger file to meta-apis-v1
         uses: dmnemec/copy_file_to_another_repo_action@1b29cbd9a323185f20b175dc6d5f8f31be5c0658
         env:
@@ -66,26 +42,26 @@ jobs:
           user_name: 'o1lab'
           commit_message: 'Autorelease from github.com/nocodb/nocodb'
 
-      - name: Pushes swagger file to meta-apis-v2
-        uses: dmnemec/copy_file_to_another_repo_action@1b29cbd9a323185f20b175dc6d5f8f31be5c0658
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
-        with:
-          source_file: 'packages/nocodb/src/schema/swagger-v2.json'
-          destination_repo: 'nocodb/noco-apis-doc'
-          destination_folder: 'meta-apis-v2'
-          user_email: 'oof1lab@gmail.com'
-          user_name: 'o1lab'
-          commit_message: 'Autorelease from github.com/nocodb/nocodb'
-
-      - name: Pushes swagger file to meta-apis-v3
+      - name: Pushes swagger file to apis-v3
         uses: dmnemec/copy_file_to_another_repo_action@1b29cbd9a323185f20b175dc6d5f8f31be5c0658
         env:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
         with:
           source_file: 'packages/nocodb/src/schema/swagger-v3.json'
-          destination_repo: 'nocodb/noco-apis-doc'
-          destination_folder: 'meta-apis-v3'
+          destination_repo: 'nocodb/xc-app-2'
+          destination_folder: 'website/src/public/apis/v3'
+          user_email: 'oof1lab@gmail.com'
+          user_name: 'o1lab'
+          commit_message: 'Autorelease from github.com/nocodb/nocodb'
+
+      - name: Pushes swagger file to apis-v2
+        uses: dmnemec/copy_file_to_another_repo_action@1b29cbd9a323185f20b175dc6d5f8f31be5c0658
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN }}
+        with:
+          source_file: 'packages/nocodb/src/schema/swagger-v2.json'
+          destination_repo: 'nocodb/xc-app-2'
+          destination_folder: 'website/src/public/apis/v2'
           user_email: 'oof1lab@gmail.com'
           user_name: 'o1lab'
           commit_message: 'Autorelease from github.com/nocodb/nocodb'

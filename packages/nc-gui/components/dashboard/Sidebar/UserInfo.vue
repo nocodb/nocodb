@@ -132,7 +132,7 @@ const accountUrl = computed(() => {
           </div>
         </NcTooltip>
         <template #overlay>
-          <NcMenu data-testid="nc-sidebar-userinfo" variant="small">
+          <NcMenu data-testid="nc-sidebar-userinfo" variant="medium">
             <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
               <div v-e="['c:user:logout']" class="flex gap-2 items-center">
                 <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
@@ -251,6 +251,24 @@ const accountUrl = computed(() => {
                 <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
               </nuxt-link>
             </template>
+            <NcDivider />
+
+            <NcMenuItemLabel>
+              <div class="w-full flex-none flex flex-col text-small1 normal-case font-normal">
+                <div v-if="name" class="capitalize text-nc-content-gray font-bold truncate">
+                  {{ name }}
+                </div>
+                <div
+                  class="truncate"
+                  :class="{
+                    'text-xs text-nc-content-gray-muted': name,
+                    'text-nc-content-gray font-semibold': !name,
+                  }"
+                >
+                  {{ user?.email }}
+                </div>
+              </div>
+            </NcMenuItemLabel>
           </NcMenu>
         </template>
       </NcDropdown>

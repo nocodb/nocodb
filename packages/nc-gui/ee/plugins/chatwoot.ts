@@ -47,7 +47,7 @@ export default defineNuxtPlugin(() => {
           email,
           base_id: baseId || '',
           workspace_id: workspaceId || '',
-          workspace_plan: activeWorkspace.value?.plan,
+          workspace_plan: activeWorkspace.value?.plan?.title ?? 'free',
           is_cloud: `${appInfo.value.isCloud}`,
           is_onprem: `${appInfo.value.isOnPrem}`,
         })

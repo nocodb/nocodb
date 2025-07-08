@@ -7,7 +7,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits(['@update:visible', 'newTable', 'emptyScript', 'scriptByNocoDB'])
+const emits = defineEmits(['@update:visible', 'newTable', 'emptyScript'])
 
 const vVisible = useVModel(props, 'visible', emits)
 
@@ -18,6 +18,8 @@ const source = computed(() => {
 })
 
 const { isUIAllowed } = useRoles()
+
+const { isMarketVisible } = storeToRefs(useAutomationStore())
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -81,7 +83,7 @@ const showBaseOption = (source: SourceType) => {
         <GeneralIcon icon="ncScript" />
         Empty Script
       </NcMenuItem>
-      <NcMenuItem inner-class="w-full" data-testid="create-new-script" @click="emits('scriptByNocoDB')">
+      <NcMenuItem inner-class="w-full" data-testid="create-new-script" @click="isMarketVisible = true">
         <GeneralIcon icon="ncScript" />
         Script by NocoDB
       </NcMenuItem>

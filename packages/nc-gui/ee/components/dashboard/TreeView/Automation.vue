@@ -17,7 +17,8 @@ const automationStore = useAutomationStore()
 
 const { loadAutomations } = automationStore
 
-const { activeAutomationId, activeAutomation, automations } = storeToRefs(automationStore)
+const { isMarketVisible, isDetailsVisible, detailsScriptId, activeAutomationId, activeAutomation, automations } =
+  storeToRefs(automationStore)
 
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 const bases = useBases()
@@ -191,5 +192,8 @@ watch(activeAutomationId, () => {
       />
     </div>
     <DashboardTreeViewAutomationList v-if="isExpanded" :base-id="baseId!" />
+
+    <ScriptsMarket v-model:model-value="isMarketVisible" />
+    <ScriptsDetails v-if="isDetailsVisible && detailsScriptId" v-model="isDetailsVisible" :script-id="detailsScriptId" />
   </div>
 </template>

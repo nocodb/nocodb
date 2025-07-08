@@ -188,16 +188,14 @@ const accountUrl = computed(() => {
                 placement="rightBottom"
                 overlay-class-name="nc-lang-menu-overlay !z-1050"
               >
-                <NcMenuItem>
-                  <div v-e="['c:translate:open']" class="flex gap-2 items-center">
+                <NcMenuItem inner-class="w-full">
+                  <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
                     <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
                     {{ $t('labels.language') }}
                     <div class="flex items-center text-gray-400 text-xs">{{ $t('labels.community.communityTranslated') }}</div>
                     <div class="flex-1" />
 
-                    <MaterialSymbolsChevronRightRounded
-                      class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                    />
+                    <GeneralIcon icon="ncChevronRight" class="flex-none !text-gray-500" />
                   </div>
                 </NcMenuItem>
 
@@ -248,28 +246,25 @@ const accountUrl = computed(() => {
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
               <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl" @click="auditsStore.handleReset">
-                <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
+                <NcMenuItem>
+                  <GeneralIcon icon="ncSettings" class="menu-icon" />
+                  <div class="flex-1 flex flex-col">
+                    <div>
+                      {{ $t('title.accountSettings') }}
+                    </div>
+                    <NcTooltip
+                      v-if="isMiniSidebar"
+                      show-on-truncate-only
+                      class="truncate text-bodySm text-nc-content-gray-muted max-w-68"
+                    >
+                      <template #title>
+                        {{ user?.email }}
+                      </template>
+                      {{ user?.email }}
+                    </NcTooltip>
+                  </div>
+                </NcMenuItem>
               </nuxt-link>
-            </template>
-            <template v-if="isMiniSidebar">
-              <NcDivider />
-
-              <NcMenuItemLabel>
-                <div class="w-full flex-none flex flex-col text-small1 normal-case font-normal">
-                  <div v-if="name" class="capitalize text-nc-content-gray font-bold truncate">
-                    {{ name }}
-                  </div>
-                  <div
-                    class="truncate"
-                    :class="{
-                      'text-xs text-nc-content-gray-muted': name,
-                      'text-nc-content-gray font-semibold': !name,
-                    }"
-                  >
-                    {{ user?.email }}
-                  </div>
-                </div>
-              </NcMenuItemLabel>
             </template>
           </NcMenu>
         </template>

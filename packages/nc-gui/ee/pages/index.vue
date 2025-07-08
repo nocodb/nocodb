@@ -17,6 +17,8 @@ const { populateWorkspace } = workspaceStore
 const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId, activeWorkspace, isWorkspacesLoading } =
   storeToRefs(workspaceStore)
 
+useProvideChatwoot()
+
 const { isSharedBase, isSharedErd } = storeToRefs(useBase())
 
 const basesStore = useBases()

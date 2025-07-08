@@ -206,7 +206,7 @@ onMounted(() => {
         </template>
         <a-tab-pane v-if="!isAdminPanel && isOverviewTabVisible" key="overview" class="nc-project-overview-tab-content">
           <template #tab>
-            <div class="tab-title" data-testid="proj-view-tab__all-tables">
+            <div class="tab-title" data-testid="proj-view-tab__overview">
               <GeneralIcon icon="ncMultiCircle" />
               <div>{{ $t('general.overview') }}</div>
             </div>

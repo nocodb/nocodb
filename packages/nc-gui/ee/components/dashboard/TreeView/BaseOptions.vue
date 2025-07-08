@@ -10,6 +10,7 @@ const props = withDefaults(
     submenuClass?: string
     showLabel?: boolean
     showNocoDbImport?: boolean
+    popupOffset?: [number, number]
   }>(),
   {
     variant: 'small',
@@ -194,6 +195,7 @@ const isNocoDbImportAllowed = computed(() => {
     data-testid="nc-sidebar-base-import"
     :variant="variant"
     :title-class="titleClass"
+    :popup-offset="popupOffset"
     @click.stop
   >
     <template #title>

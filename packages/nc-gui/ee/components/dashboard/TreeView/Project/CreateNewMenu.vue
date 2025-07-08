@@ -48,6 +48,7 @@ const showBaseOption = (source: SourceType) => {
             submenu-class="nc-sub-menu-item-icon-only"
             title-class="!p-0 hover:bg-brand-50 group"
             show-noco-db-import
+            :popup-offset="[8, -2]"
           >
             <template #title>
               <div class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer group-hover:text-nc-content-brand">

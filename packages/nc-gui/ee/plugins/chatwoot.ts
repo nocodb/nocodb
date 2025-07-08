@@ -32,7 +32,7 @@ export default defineNuxtPlugin(() => {
         const baseId = params?.baseId as string
         const workspaceId = params?.typeOrId as string
 
-        if (!userId || !identity_hash) {
+        if (!userId) {
           window.$chatwoot.toggleBubbleVisibility('hide')
         }
 

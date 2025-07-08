@@ -259,6 +259,13 @@ const permissionScopes = {
 
     'manageSnapshots',
 
+    // Extensions
+    'extensionList',
+    'extensionRead',
+    'extensionCreate',
+    'extensionUpdate',
+    'extensionDelete',
+
     // Scripts
     'createScript',
     'updateScript',
@@ -469,6 +476,12 @@ const rolePermissions:
       swaggerJson: true,
 
       baseUserList: true,
+
+      extensionList: true,
+      extensionRead: true,
+      extensionCreate: true,
+      extensionUpdate: true,
+      extensionDelete: true,
 
       jobList: true,
       commentList: true,

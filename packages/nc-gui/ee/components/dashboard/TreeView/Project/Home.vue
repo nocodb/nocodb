@@ -326,7 +326,7 @@ const showCreateNewAsDropdown = computed(() => {
               icon-position="right"
             >
               <template #icon>
-                <GeneralIcon icon="chevronDown" />
+                <GeneralIcon icon="chevronDown" class="flex-none"/>
               </template>
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncPlusCircleSolid" />

@@ -251,24 +251,26 @@ const accountUrl = computed(() => {
                 <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
               </nuxt-link>
             </template>
-            <NcDivider />
+            <template v-if="isMiniSidebar">
+              <NcDivider />
 
-            <NcMenuItemLabel>
-              <div class="w-full flex-none flex flex-col text-small1 normal-case font-normal">
-                <div v-if="name" class="capitalize text-nc-content-gray font-bold truncate">
-                  {{ name }}
+              <NcMenuItemLabel>
+                <div class="w-full flex-none flex flex-col text-small1 normal-case font-normal">
+                  <div v-if="name" class="capitalize text-nc-content-gray font-bold truncate">
+                    {{ name }}
+                  </div>
+                  <div
+                    class="truncate"
+                    :class="{
+                      'text-xs text-nc-content-gray-muted': name,
+                      'text-nc-content-gray font-semibold': !name,
+                    }"
+                  >
+                    {{ user?.email }}
+                  </div>
                 </div>
-                <div
-                  class="truncate"
-                  :class="{
-                    'text-xs text-nc-content-gray-muted': name,
-                    'text-nc-content-gray font-semibold': !name,
-                  }"
-                >
-                  {{ user?.email }}
-                </div>
-              </div>
-            </NcMenuItemLabel>
+              </NcMenuItemLabel>
+            </template>
           </NcMenu>
         </template>
       </NcDropdown>

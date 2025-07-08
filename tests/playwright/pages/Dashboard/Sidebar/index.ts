@@ -6,6 +6,7 @@ import { DocsSidebarPage } from './DocsSidebar';
 import { SidebarUserMenuObject } from './UserMenu';
 import { SidebarProjectNodeObject } from './ProjectNode';
 import { SidebarTableNodeObject } from './TableNode';
+import { isEE } from '../../../setup/db';
 
 export class SidebarPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -76,8 +77,11 @@ export class SidebarPage extends BasePage {
     if (type === ProjectTypes.DOCUMENTATION) {
       await this.dashboard.get().locator('.nc-create-base-btn-docs').click();
     }
-    await this.rootPage.locator('.nc-create-base').waitFor();
-    await this.rootPage.locator('.nc-create-base').click();
+
+    if (isEE()) {
+      await this.rootPage.locator('.nc-create-base').waitFor();
+      await this.rootPage.locator('.nc-create-base').click();
+    }
 
     await this.dashboard.get().locator('.nc-metadb-base-name').clear();
     await this.dashboard.get().locator('.nc-metadb-base-name').fill(title);

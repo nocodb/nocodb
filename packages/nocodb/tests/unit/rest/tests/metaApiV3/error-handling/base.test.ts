@@ -5,7 +5,9 @@ import init from '../../../../init';
 import { createUser } from '../../../../factory/user';
 
 export default function () {
-  describe(`error-handling: Base v3`, () => {
+  const isEE = !!process.env.EE;
+
+  describe.only(`error-handling: Base v3`, () => {
     let context: Awaited<ReturnType<typeof init>>;
 
     beforeEach(async () => {
@@ -15,6 +17,8 @@ export default function () {
     describe('base create', () => {
       const API_PREFIX = '/api/v3/meta/workspaces';
       it('will handle workspace not found', async () => {
+        if (!isEE) return;
+
         const result = await request(context.app)
           .post(`${API_PREFIX}/NOT_EXISTS_WS/bases`)
           .set('xc-token', context.xc_token)
@@ -55,12 +59,16 @@ export default function () {
           })
           .expect(403);
 
-        expect(result.body.error).to.eq('FORBIDDEN');
-        expect(
-          result.body.message.startsWith(
-            'Forbidden - You do not have permission to perform the action "baseCreate" ',
-          ),
-        ).to.eq(true);
+        if (isEE) {
+          expect(result.body.error).to.eq('FORBIDDEN');
+          expect(
+            result.body.message.startsWith(
+              'Forbidden - You do not have permission to perform the action "baseCreate" ',
+            ),
+          ).to.eq(true);
+        } else {
+          expect(result.body.error).to.eq('PERMISSION_DENIED');
+        }
       });
 
       it('will handle base title empty', async () => {

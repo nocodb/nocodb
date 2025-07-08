@@ -7,6 +7,7 @@ import {
   isLinksOrLTAR,
   isVirtualCol,
   RelationTypes,
+  UITypes,
 } from 'nocodb-sdk';
 import { Injectable, NotImplementedException } from '@nestjs/common';
 import type { Job } from 'bull';
@@ -448,7 +449,6 @@ export class DuplicateProcessor {
 
   async duplicateColumn(job: Job<DuplicateColumnJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateColumn})`);
-
     const hrTime = initTime();
 
     const { context, sourceId, columnId, extra, req, options } = job.data;
@@ -494,6 +494,7 @@ export class DuplicateProcessor {
         excludeData,
         excludeHooks: true,
         excludeViews: true,
+        excludeRowColorConditions: true,
       })
     )[0];
 
@@ -546,7 +547,18 @@ export class DuplicateProcessor {
         throw new Error(`Import failed for model '${sourceModel.id}'`);
       }
 
-      if (!excludeData) {
+      if (
+        !excludeData &&
+        // ignore data if replaced column is derivative types
+        ![
+          UITypes.Button,
+          UITypes.Formula,
+          UITypes.Barcode,
+          UITypes.QrCode,
+          UITypes.Rollup,
+          UITypes.Lookup,
+        ].includes(replacedColumn.uidt)
+      ) {
         const fields: Record<string, string[]> = {};
 
         fields[sourceModel.id] = [sourceModel.primaryKey.id];
@@ -569,7 +581,6 @@ export class DuplicateProcessor {
             fields[md.id].push(...bts);
           }
         }
-
         await this.importModelsData(context, context, {
           idMap,
           sourceProject: base,
@@ -670,6 +681,8 @@ export class DuplicateProcessor {
       options,
       req,
     } = param;
+
+    // TODO: [duplicate column optimization] - maybe can only get data related with duplicated column id
 
     let handledLinks = [];
 

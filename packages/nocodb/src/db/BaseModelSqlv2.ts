@@ -3720,6 +3720,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       return response;
     } catch (e) {
+      await trx?.rollback();
       throw e;
     }
   }

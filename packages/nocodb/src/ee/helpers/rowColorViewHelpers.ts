@@ -6,7 +6,7 @@ import type { Filter, View } from '~/models';
 import { MetaTable } from '~/cli';
 import Noco from '~/Noco';
 
-type GetRowColorConditionsResult = {
+export type GetRowColorConditionsResult = {
   view: View;
   rowColoringConditions: {
     record: RowColorCondition;
@@ -80,6 +80,9 @@ export class RowColorViewHelpers extends RowColorViewHelpersCE {
   ): Promise<GetRowColorConditionsResult> {
     const context = this.context;
     const { ncMeta } = this.props;
+    if (views.length === 0) {
+      return [];
+    }
     const viewIds = views.map((k) => k.id);
     const rowColoringConditions = await ncMeta.metaList2(
       context.workspace_id,

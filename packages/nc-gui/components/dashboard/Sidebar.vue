@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 const workspaceStore = useWorkspace()
 
-const { isWorkspaceLoading } = storeToRefs(workspaceStore)
+const { isWorkspaceLoading, upgradeWsDlg, upgradeWsJobId } = storeToRefs(workspaceStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -87,6 +87,8 @@ onUnmounted(() => {
         <DashboardSidebarVersion v-if="appInfo.isOnPrem" />
       </div>
     </template>
+
+    <DlgUpgradeWs v-if="upgradeWsJobId" v-model="upgradeWsDlg" :job-id="upgradeWsJobId" />
   </div>
 </template>
 

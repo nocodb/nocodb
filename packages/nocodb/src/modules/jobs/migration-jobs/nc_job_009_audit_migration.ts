@@ -16,6 +16,16 @@ export class AuditMigration {
       const batchSize = 1000;
       const fallbackTimestamp = new Date('2020-01-01T00:00:00.000Z').getTime();
 
+      const haveColumn = await ncMeta.knexConnection.schema.hasColumn(
+        MetaTable.AUDIT,
+        'old_id',
+      );
+
+      if (!haveColumn) {
+        this.logger.log('Audit table already migrated');
+        return true;
+      }
+
       const lastMigratedRecord = await ncMeta
         .knexConnection(MetaTable.AUDIT)
         .whereNotNull('old_id')

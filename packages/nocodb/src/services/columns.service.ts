@@ -4072,38 +4072,7 @@ export class ColumnsService implements IColumnsService {
         };
       }
 
-      savedColumn = await Column.insert(refContext, {
-        title: getUniqueColumnAliasName(
-          await refTable.getColumns(refContext),
-          pluralize(table.title),
-        ),
-        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
-        type: 'mm',
-
-        // ref_db_alias
-        fk_model_id: refTable.id,
-        // db_type:
-
-        fk_child_column_id: refPrimaryKey.id,
-        fk_parent_column_id: primaryKey.id,
-        // Adding view ID here applies the view filter in reverse also
-        fk_target_view_id: null,
-        fk_mm_model_id: assocModel.id,
-        fk_mm_child_column_id: childCol.id,
-        fk_mm_parent_column_id: parentCol.id,
-        fk_related_model_id: table.id,
-        virtual: (param.column as LinkToAnotherColumnReqType).virtual,
-        meta: {
-          plural: pluralize(table.title),
-          singular: singularize(table.title),
-        },
-        // if self referencing treat it as system field to hide from ui
-        system: table.id === refTable.id,
-        // include cross base link props
-        ...refCrossBaseLinkProps,
-      });
-
-      const parentRelCol = await Column.insert(context, {
+      savedColumn = await Column.insert(context, {
         title: getUniqueColumnAliasName(
           await table.getColumns(context),
           param.column.title ?? pluralize(refTable.title),
@@ -4136,22 +4105,57 @@ export class ColumnsService implements IColumnsService {
         ...crossBaseLinkProps,
       });
 
-      this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
-        table: table,
-        column: parentRelCol,
-        columnId: parentRelCol.id,
-        req: param.req,
-        context,
-        columns: await table.getCachedColumns(context),
+      const parentRelCol = await Column.insert(refContext, {
+        title: getUniqueColumnAliasName(
+          [
+            ...(await refTable.getColumns(refContext)),
+            // if self ref include saved column
+            ...(table.id === refTable.id ? [savedColumn] : []),
+          ],
+          pluralize(table.title),
+        ),
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
+        type: 'mm',
+
+        // ref_db_alias
+        fk_model_id: refTable.id,
+        // db_type:
+
+        fk_child_column_id: refPrimaryKey.id,
+        fk_parent_column_id: primaryKey.id,
+        // Adding view ID here applies the view filter in reverse also
+        fk_target_view_id: null,
+        fk_mm_model_id: assocModel.id,
+        fk_mm_child_column_id: childCol.id,
+        fk_mm_parent_column_id: parentCol.id,
+        fk_related_model_id: table.id,
+        virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+        meta: {
+          plural: pluralize(table.title),
+          singular: singularize(table.title),
+        },
+        // if self referencing treat it as system field to hide from ui
+        system: table.id === refTable.id,
+        // include cross base link props
+        ...refCrossBaseLinkProps,
       });
 
       this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
         table: refTable,
-        column: savedColumn,
-        columnId: savedColumn.id,
+        column: parentRelCol,
+        columnId: parentRelCol.id,
         req: param.req,
         context: refContext,
         columns: await refTable.getCachedColumns(context),
+      });
+
+      this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
+        table: table,
+        column: savedColumn,
+        columnId: savedColumn.id,
+        req: param.req,
+        context,
+        columns: await table.getCachedColumns(context),
       });
 
       // todo: create index for virtual relations as well

@@ -290,7 +290,7 @@ export default class Model implements TableType {
       source_id,
     }: {
       base_id: string;
-      source_id: string;
+      source_id?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model[]> {

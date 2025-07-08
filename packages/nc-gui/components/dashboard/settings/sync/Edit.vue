@@ -31,18 +31,8 @@ const tabs = ref([
 ])
 
 // Create a new integration configs store instance for this component
-const {
-  integrationConfigs,
-  isLoading,
-  loadConfig,
-  syncConfigEditForm,
-  editMode,
-  editModeSync,
-  syncConfigEditFormChanged,
-  triggerSync,
-  readSync,
-  editTab,
-} = useProvideSyncStore(activeWorkspaceId, props.baseId!)
+const { integrationConfigs, isLoading, loadConfig, syncConfigEditForm, editMode, editModeSync, triggerSync, readSync, editTab } =
+  useProvideSyncStore(activeWorkspaceId, props.baseId!)
 
 editMode.value = true
 

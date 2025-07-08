@@ -5677,7 +5677,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      const batchSize = 10;
+      const batchSize = 15;
 
       // Process attachments in batches
       for (let i = 0; i < allAttachments.length; i += batchSize) {
@@ -5999,6 +5999,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       : null;
 
     // Pre-compile regex patterns to avoid repeated compilation
+    // the pre-compiled patterns have mutable `lastIndex` property that we use below, so it cannot be made global to avoid race condition
     const isoRegex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g;
     const datetimeRegex =
       /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g;

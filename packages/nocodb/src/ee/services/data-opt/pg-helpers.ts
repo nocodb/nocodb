@@ -1322,7 +1322,6 @@ export async function singleQueryRead(
           .toQuery(),
         null,
         {
-          skipDateConversion: true,
           skipSubstitutingColumnIds:
             context.api_version === NcApiVersion.V3 &&
             ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
@@ -1468,7 +1467,6 @@ export async function singleQueryRead(
       .toQuery(),
     null,
     {
-      skipDateConversion: true,
       first: true,
       skipSubstitutingColumnIds:
         context.api_version === NcApiVersion.V3 &&
@@ -1851,7 +1849,6 @@ const getDataWithCountCache = async (params: {
     }
 
     const r = await params.baseModel.execAndParse(params.countQuery, null, {
-      skipDateConversion: true,
       first: true,
     });
 
@@ -1861,7 +1858,6 @@ const getDataWithCountCache = async (params: {
     if (params.skipCache) {
       const startTime = process.hrtime();
       const result = await params.baseModel.execAndParse(params.query, null, {
-        skipDateConversion: true,
         skipSubstitutingColumnIds: params.skipSubstitutingColumnIds,
       });
       params?.recordQueryTime(
@@ -1875,7 +1871,6 @@ const getDataWithCountCache = async (params: {
         null,
         // unsure why params.apiVersion only used when fetching from cache
         {
-          skipDateConversion: true,
           skipSubstitutingColumnIds: params.skipSubstitutingColumnIds,
           apiVersion: params.apiVersion,
         },

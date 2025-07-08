@@ -43,7 +43,7 @@ export const validatePayload = (
   schema: string,
   payload: any,
   humanReadableError = false,
-  context: { api_version: NcApiVersion } = undefined,
+  context: { api_version?: NcApiVersion } = undefined,
 ) => {
   const validate = ajv.getSchema(schema);
   // Validate the request body against the schema

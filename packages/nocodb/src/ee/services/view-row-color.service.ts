@@ -25,6 +25,7 @@ import { View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()
 export class ViewRowColorService extends ViewRowColorServiceCE {
@@ -164,10 +165,10 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       );
     }
 
-    const transaction = await ncMeta.startTransaction();
+    const ncMetaTrans = await ncMeta.startTransaction();
 
     try {
-      const rowColoringCondition = await ncMeta.metaInsert2(
+      const rowColoringCondition = await ncMetaTrans.metaInsert2(
         params.context.workspace_id,
         params.context.base_id,
         MetaTable.ROW_COLOR_CONDITIONS,
@@ -183,11 +184,21 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       const rowColoringConditionId = rowColoringCondition.id;
 
       const filterToInsert = {
-        ...params.filter,
+        ...extractProps(params.filter as any, [
+          'comparison_op',
+          'comparison_sub_op',
+          'value',
+          'fk_parent_id',
+          'is_group',
+          'logical_op',
+          'base_id',
+          'source_id',
+          'order',
+        ]),
         fk_row_color_condition_id: rowColoringConditionId,
       } as Filter;
 
-      await ncMeta.metaInsert2(
+      await ncMetaTrans.metaInsert2(
         params.context.workspace_id,
         params.context.base_id,
         MetaTable.FILTER_EXP,
@@ -195,7 +206,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       );
 
       if (!view.row_coloring_mode) {
-        await ncMeta.metaUpdate(
+        await ncMetaTrans.metaUpdate(
           params.context.workspace_id,
           params.context.base_id,
           MetaTable.VIEWS,
@@ -206,13 +217,13 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         );
         await this.clearCache(view);
       }
-      await transaction.commit();
+      await ncMetaTrans.commit();
       return {
         id: rowColoringCondition.id,
         info: await this.getByViewId({ ...params }),
       };
     } catch (e) {
-      await transaction.rollback(e);
+      await ncMetaTrans.rollback(e);
       throw e;
     }
   }
@@ -356,11 +367,11 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         view.id,
       );
 
-      const transaction = await ncMeta.startTransaction();
+      const ncMetaTrans = await ncMeta.startTransaction();
 
       try {
         for (const rowColorCondition of rowColorConditions) {
-          await ncMeta.metaDelete(
+          await ncMetaTrans.metaDelete(
             params.context.workspace_id,
             params.context.base_id,
             MetaTable.FILTER_EXP,
@@ -368,14 +379,14 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
               fk_row_color_condition_id: rowColorCondition.id,
             },
           );
-          await ncMeta.metaDelete(
+          await ncMetaTrans.metaDelete(
             params.context.workspace_id,
             params.context.base_id,
             MetaTable.ROW_COLOR_CONDITIONS,
             rowColorCondition.id,
           );
         }
-        await ncMeta.metaUpdate(
+        await ncMetaTrans.metaUpdate(
           params.context.workspace_id,
           params.context.base_id,
           MetaTable.VIEWS,
@@ -384,9 +395,9 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           },
           view.id,
         );
-        await transaction.commit();
+        await ncMetaTrans.commit();
       } catch (e) {
-        await transaction.rollback(e);
+        await ncMetaTrans.rollback(e);
         throw e;
       }
     } else if (view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {

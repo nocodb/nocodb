@@ -17,6 +17,8 @@ import type { LookupType, RollupType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
+import type RowColorCondition from '~/models/RowColorCondition';
+import type { GetRowColorConditionsResult } from '~/helpers/rowColorViewHelpers';
 import { NcError } from '~/helpers/catchError';
 import {
   getViewAndModelByAliasOrId,
@@ -73,6 +75,7 @@ export class ExportService {
       modelIds: string[];
       excludeViews?: boolean;
       excludeHooks?: boolean;
+      excludeRowColorConditions?: boolean;
       excludeData?: boolean;
       excludeComments?: boolean;
       compatibilityMode?: boolean;
@@ -83,6 +86,7 @@ export class ExportService {
     const excludeData = param?.excludeData || false;
     const excludeViews = param?.excludeViews || false;
     const excludeHooks = param?.excludeHooks || false;
+    const excludeRowColorConditions = param?.excludeRowColorConditions || false;
     const excludeComments =
       param?.excludeComments || param?.excludeData || false;
 
@@ -405,14 +409,24 @@ export class ExportService {
         }
       }
 
-      const serializedRowColorConditions =
-        await RowColorViewHelpers.withContext(
+      let serializedRowColorConditions: {
+        result: GetRowColorConditionsResult;
+        filters: Filter[];
+        rowColorConditions: RowColorCondition[];
+      } = {
+        result: [],
+        filters: [],
+        rowColorConditions: [],
+      };
+      if (!excludeRowColorConditions) {
+        serializedRowColorConditions = await RowColorViewHelpers.withContext(
           context,
         ).getDuplicateRowColorConditions({
           views: model.views,
           idMap,
           mapColumnId: true,
         });
+      }
 
       const serializedHooks = [];
 

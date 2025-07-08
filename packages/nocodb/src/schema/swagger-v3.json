@@ -5031,7 +5031,7 @@
             "description": "Description of the field."
           },
           "default_value": {
-            "type": "string",
+            "type": ["string", "boolean", "number"],
             "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
           }
         },

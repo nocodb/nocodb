@@ -622,7 +622,7 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
     }
 
     if (data.uidt === UITypes.Checkbox) {
-      const { icon, ..._ } = data.meta as Record<string, any>;
+      const { icon, ..._ } = data.meta ?? ({} as Record<string, any>);
 
       if (icon) {
         const iconIdx = checkboxIconList.findIndex((ic) => ic.label === icon);

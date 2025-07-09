@@ -130,6 +130,28 @@ export default class ModelStat {
     }
   }
 
+  public static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const models = await Model.list(
+      context,
+      {
+        base_id: baseId,
+      },
+      ncMeta,
+    );
+
+    for (const model of models) {
+      await this.delete(context, context.workspace_id, model.id, ncMeta);
+    }
+
+    await NocoCache.del(`${CacheScope.MODEL_STAT}:${context.workspace_id}:sum`);
+
+    return true;
+  }
+
   public static async getWorkspaceSum(
     workspaceId: string,
     ncMeta = Noco.ncMeta,

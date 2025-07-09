@@ -18,6 +18,7 @@ import {
   CustomUrl,
   DataReflection,
   MCPToken,
+  ModelStat,
   Permission,
   Source,
 } from '~/models';
@@ -443,6 +444,8 @@ export default class Base extends BaseCE {
     });
 
     await MCPToken.bulkDelete({ base_id: baseId }, ncMeta);
+
+    await ModelStat.deleteByBaseId(context, baseId, ncMeta);
 
     // set meta
     return await ncMeta.metaUpdate(

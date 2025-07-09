@@ -923,7 +923,7 @@ export const useEeConfig = createSharedComposable(() => {
       content: t('upgrade.upgradeToAddMoreAttachmentsInCellSubtitle', {
         plan: PlanTitles.PLUS,
         limit: maxAttachmentsAllowedInCell.value,
-        filePlural: maxAttachmentsAllowedInCell.value === 1 ? t('general.file') : t('general.files'),
+        filePlural: maxAttachmentsAllowedInCell.value === 1 ? t('objects.file') : t('objects.files'),
       }),
       callback,
       limitOrFeature: PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL,

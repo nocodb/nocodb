@@ -28,6 +28,10 @@ export class UpdateStatsProcessor {
 
     const model = await Model.get(context, fk_model_id);
 
+    if (!model || model.mm == true) {
+      return true;
+    }
+
     if (row_count === undefined) {
       const source = await Source.get(context, model.source_id);
 
@@ -97,7 +101,7 @@ export class UpdateStatsProcessor {
           fk_model_id,
         );
 
-        if (!model) {
+        if (!model || model.mm == true) {
           continue;
         }
 

@@ -4036,16 +4036,26 @@
             }
           }
         },
-        "QRCode": {
-          "title": "QRCode",
+        "Year": {
+          "title": "Year",
           "properties": {
             "type": {
               "enum": [
-                "QRCode"
+                "Year"
+              ]
+            }
+          }
+        },
+        "QrCode": {
+          "title": "QrCode",
+          "properties": {
+            "type": {
+              "enum": [
+                "QrCode"
               ]
             },
             "options": {
-              "$ref": "#/components/schemas/FieldOptions_QRCode"
+              "$ref": "#/components/schemas/FieldOptions_QrCode"
             }
           }
         },
@@ -4179,6 +4189,9 @@
                 "$ref": "#/components/schemas/FieldOptions/Time"
               },
               {
+                "$ref": "#/components/schemas/FieldOptions/Year"
+              },
+              {
                 "$ref": "#/components/schemas/FieldOptions/SingleSelect"
               },
               {
@@ -4218,7 +4231,7 @@
                 "$ref": "#/components/schemas/FieldOptions/Barcode"
               },
               {
-                "$ref": "#/components/schemas/FieldOptions/QRCode"
+                "$ref": "#/components/schemas/FieldOptions/QrCode"
               },
               {
                 "$ref": "#/components/schemas/FieldOptions/CreatedAt"
@@ -5469,7 +5482,7 @@
         },
         "additionalProperties": false
       },
-      "FieldOptions_QRCode": {
+      "FieldOptions_QrCode": {
         "type": "object",
         "properties": {
           "qrcode_value_field_id": {

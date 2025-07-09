@@ -502,7 +502,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
 export const columnOptionsV3ToV2Builder = builderGenerator({
   allowed: [
     'formula',
-    'qr_value_field_id',
+    'qrcode_value_field_id',
     'barcode_value_field_id',
     'relation_type',
     'related_table_id',

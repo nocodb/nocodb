@@ -620,36 +620,45 @@ export const validateFuncOnColumn = async ({
   }
 };
 
-export const isFilterValueConsistOf = (
-  filterValue: string[] | string,
+export const isFilterValueConsistOf = <T extends string | string[]>(
+  filterValue: T,
   needle: string,
   option?: {
     replace?: string;
   },
-): { exists: boolean; value?: string } => {
+): { exists: boolean; value?: T } => {
   const evalNeedle = needle.toLowerCase().trim();
+
   if (Array.isArray(filterValue)) {
-    const result = (filterValue as string[]).some(
-      (k) => k.toLowerCase().trim() === evalNeedle,
-    );
+    const arr = filterValue as string[];
+    const result = arr.some((k) => k.toLowerCase().trim() === evalNeedle);
+
     if (result && option?.replace) {
-      filterValue = filterValue.map((k) =>
-        k.replace(evalNeedle, option.replace),
+      const replaced = arr.map((k) =>
+        k.toLowerCase().trim() === evalNeedle ? option.replace! : k,
       );
+      return { exists: true, value: replaced as T };
     }
-    return { exists: result, value: filterValue as unknown as string };
-  } else if (typeof filterValue === 'string') {
-    const result = filterValue
-      .split(',')
-      .some((k) => k.toLowerCase().trim() === evalNeedle);
-    if (result && option?.replace) {
-      filterValue = filterValue
-        .split(',')
-        .map((k) => k.replace(evalNeedle, option.replace))
-        .join(',');
-    }
-    return { exists: result, value: filterValue as unknown as string };
+
+    return { exists: result, value: filterValue };
   }
+
+  if (typeof filterValue === 'string') {
+    const parts = filterValue.split(',');
+    const result = parts.some((k) => k.toLowerCase().trim() === evalNeedle);
+
+    if (result && option?.replace) {
+      const replaced = parts
+        .map((k) =>
+          k.toLowerCase().trim() === evalNeedle ? option.replace! : k,
+        )
+        .join(',');
+      return { exists: true, value: replaced as T };
+    }
+
+    return { exists: result, value: filterValue };
+  }
+
   return { exists: false };
 };
 

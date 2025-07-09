@@ -870,6 +870,19 @@ const metaToLocal = () => {
       ...c,
     }
   })
+
+  if (activeField.value?.id) {
+    const field = fields.value.find((c) => c.id === activeField.value?.id)
+    if (field) {
+      changeField(field)
+      changingField.value = true
+
+      nextTick(() => {
+        activeField.value = field
+        changingField.value = false
+      })
+    }
+  }
 }
 
 const saveChanges = async () => {

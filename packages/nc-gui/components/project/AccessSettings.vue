@@ -357,7 +357,7 @@ watch(projectPageTab, () => {
             {{ $t('title.privateBaseAlertDescription') }}
           </template>
 
-          <template #action v-if="isUIAllowed('manageBaseType')">
+          <template v-if="isUIAllowed('manageBaseType')" #action>
             <NcButton
               type="secondary"
               size="small"

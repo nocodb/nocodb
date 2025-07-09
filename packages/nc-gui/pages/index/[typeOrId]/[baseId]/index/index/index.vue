@@ -12,6 +12,8 @@ const tablesStore = useTablesStore()
 const { openTable } = tablesStore
 const { activeTables } = storeToRefs(tablesStore)
 
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+
 const { isMobileMode } = useGlobal()
 
 const { files, reset } = useFileDialog()
@@ -127,7 +129,9 @@ const hideProjectViewPage = computed(() => {
 })
 
 const showProjectViewPage = computed(() => {
-  return activeTables.value.length === 0 || !!route.value.query.page || isUIAllowed('projectOverviewTab')
+  return (
+    activeTables.value.length === 0 || !!route.value.query.page || isUIAllowed('projectOverviewTab') || !isNewSidebarEnabled.value
+  )
 })
 
 watch(
@@ -138,8 +142,8 @@ watch(
     () => route.value.query.page,
   ],
   ([newIsSharedBase, newActiveTablesLength, isOverviewTabVisible, newPage]) => {
-    // If no tables are active then return
-    if (!newActiveTablesLength || !activeTables.value[0]?.base_id) return
+    // If no tables are active or if new sidebar is not enabled then return
+    if (!newActiveTablesLength || !activeTables.value[0]?.base_id || !isNewSidebarEnabled.value) return
 
     // If page is defined or overview tab is visible then return
     if (!newIsSharedBase && (newPage || isOverviewTabVisible)) return

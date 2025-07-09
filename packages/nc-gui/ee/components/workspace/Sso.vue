@@ -66,7 +66,7 @@ const updateProviderStatus = async (client: { enabled: boolean; id: string }) =>
 }
 
 watch(
-  () => samlDialogShow.value,
+  () => samlDialogShow.value || oidcDialogShow.value || googleDialogShow.value,
   async (v) => {
     if (!v) {
       isEdit.value = false
@@ -84,17 +84,6 @@ watch(isCopied.value, (v) => {
     }, 2000)
   }
 })
-
-watch(
-  () => oidcDialogShow.value,
-  async (v) => {
-    if (!v) {
-      isEdit.value = false
-      providerProp.value = undefined
-      await fetchProviders()
-    }
-  },
-)
 
 const duplicateProvider = async (id: string) => {
   const provider = providers.value.find((p) => p.id === id)
@@ -184,7 +173,7 @@ onMounted(async () => {
                     <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
                   </div>
                 </NcMenuItem>
-                <template v-if="googleProvider.id">
+                <template v-if="googleProvider?.id">
                   <NcDivider />
                   <NcMenuItem data-test-id="nc-google-delete" @click="deleteProvider(googleProvider.id)">
                     <div class="text-red-500">

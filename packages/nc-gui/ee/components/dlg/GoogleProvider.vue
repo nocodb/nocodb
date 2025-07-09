@@ -70,6 +70,7 @@ const saveGoogleProvider = async () => {
     }
     await addProvider({
       title: 'google',
+      type: 'google',
       config: {
         clientId: form.clientId,
         clientSecret: form.clientSecret,

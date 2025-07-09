@@ -212,6 +212,7 @@ export const GenericLimits = {
   [PlanLimitTypes.LIMIT_FILTER_PER_VIEW]: 50,
   [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 10,
   [PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE]: 500,
+  [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 10,
 } as const;
 
 export const GenericFeatures = {

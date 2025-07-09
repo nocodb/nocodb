@@ -23,6 +23,7 @@ export enum PlanLimitTypes {
   LIMIT_VIEW_PER_TABLE = 'limit_view_per_table',
   LIMIT_FILTER_PER_VIEW = 'limit_filter_per_view',
   LIMIT_SORT_PER_VIEW = 'limit_sort_per_view',
+  LIMIT_ATTACHMENTS_IN_CELL = 'limit_attachments_in_cell',
 }
 
 export enum PlanFeatureTypes {
@@ -186,6 +187,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_VIEW_PER_TABLE]: 'to add more views in a table.',
   [PlanLimitTypes.LIMIT_FILTER_PER_VIEW]: 'to add more filters in a view.',
   [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 'to add more sort rules in a view.',
+  [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 'to add more attachments in a cell.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {

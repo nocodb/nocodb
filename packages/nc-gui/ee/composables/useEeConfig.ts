@@ -178,6 +178,15 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
+  const maxAttachmentsAllowedInCell = computed(() => {
+    // Keeping 50 to keep backward fallback compatibility
+    const defaultLimit = Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50) || 50
+
+    if (!isPaymentEnabled.value) return defaultLimit
+
+    return getLimit(PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL) || defaultLimit
+  })
+
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
     // TODO: calculate price when tiers_mode is `volume`
     let remainingSeats = seatCount
@@ -871,6 +880,45 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const getIsAttachmentsInCellLimitReached = (totalAttachments: number) => {
+    return totalAttachments > maxAttachmentsAllowedInCell.value
+  }
+
+  const showUpgradeToAddMoreAttachmentsInCell = ({
+    callback,
+    totalAttachments,
+  }: {
+    callback?: (type: 'ok' | 'cancel') => void
+    totalAttachments: number
+  }) => {
+    if (!getIsAttachmentsInCellLimitReached(totalAttachments)) return
+
+    // All paid plan has same limit so just show toast message
+    // Or if payment is not enabled then show toast message
+    if (activePlanTitle.value !== PlanTitles.FREE || !isPaymentEnabled.value) {
+      message.error(
+        `You can only upload at most ${maxAttachmentsAllowedInCell.value} file${
+          maxAttachmentsAllowedInCell.value > 1 ? 's' : ''
+        } to this cell.`,
+      )
+
+      return true
+    }
+
+    // If active plan is free then show upgrade to higher plan modal
+    handleUpgradePlan({
+      content: t('upgrade.upgradeToAddMoreAttachmentsInCellSubtitle', {
+        plan: PlanTitles.PLUS,
+        limit: maxAttachmentsAllowedInCell.value,
+        filePlural: maxAttachmentsAllowedInCell.value === 1 ? t('general.file') : t('general.files'),
+      }),
+      callback,
+      limitOrFeature: PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     calculatePrice,
@@ -927,5 +975,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockPrivateBases,
     showUpgradeToUsePrivateBases,
     showUserMayChargeAlert,
+    maxAttachmentsAllowedInCell,
+    showUpgradeToAddMoreAttachmentsInCell,
   }
 })

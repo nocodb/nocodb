@@ -23,7 +23,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const { fetchSharedViewAttachment } = useSharedView()
 
-    const { showStoragePlanLimitExceededModal } = useEeConfig()
+    const { showStoragePlanLimitExceededModal, maxAttachmentsAllowedInCell, showUpgradeToAddMoreAttachmentsInCell } =
+      useEeConfig()
 
     const isReadonly = inject(ReadonlyInj, ref(false))
 
@@ -72,7 +73,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const defaultAttachmentMeta = {
       ...(appInfo.value.ee && {
         // Maximum Number of Attachments per cell
-        maxNumberOfAttachments: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50) || 50,
+        maxNumberOfAttachments: maxAttachmentsAllowedInCell.value,
         // Maximum File Size per file
         maxAttachmentSize: Math.max(1, +appInfo.value.ncAttachmentFieldSize || 20) || 20,
         supportedAttachmentMimeTypes: ['*'],
@@ -134,14 +135,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         if (appInfo.value.ee) {
           // verify number of files
           if (
-            visibleItems.value.length + (selectedFiles.length || selectedFileUrls?.length || 0) >
-            attachmentMeta.maxNumberOfAttachments
+            showUpgradeToAddMoreAttachmentsInCell({
+              totalAttachments: visibleItems.value.length + (selectedFiles.length || selectedFileUrls?.length || 0),
+            })
           ) {
-            message.error(
-              `You can only upload at most ${attachmentMeta.maxNumberOfAttachments} file${
-                attachmentMeta.maxNumberOfAttachments > 1 ? 's' : ''
-              } to this cell.`,
-            )
             return
           }
 

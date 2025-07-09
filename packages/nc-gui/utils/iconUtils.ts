@@ -562,6 +562,7 @@ import NcVerticalAlignCenter from '~icons/nc-icons/align-vertical-center.svg'
 import NcVerticalAlignBottom from '~icons/nc-icons/align-vertical-bottom.svg'
 import NcAngleRotateCw from '~icons/nc-icons/angle-rotate-cw.svg'
 import NcCheckCircle2 from '~icons/nc-icons/check-2.svg'
+import NcMessageCircleFilled from '~icons/nc-icons-v2/message-circle-filled.svg'
 
 import NcSlash1 from '~icons/nc-icons/slash1'
 
@@ -1605,6 +1606,7 @@ export const iconMap = {
   'ncQuote': NcQuote,
   'ncAutomation': AutomationIcon,
   'ncWebhook': NcWebhook,
+  'ncMessageCircleFilled': NcMessageCircleFilled,
   'ncLogoAsanaColored': h(NcLogoAsanaColored, { stroke: 'transparent' }),
   'ncLogoAsana': h(NcLogoAsana, { stroke: 'transparent' }),
   'ncLogoBitbucketColored': h(NcLogoBitbucketColored, { stroke: 'transparent' }),

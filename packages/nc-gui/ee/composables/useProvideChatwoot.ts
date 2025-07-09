@@ -1,5 +1,5 @@
 export function useProvideChatwoot() {
-  const chatwoot = useChatWoot()
+  const {toggleBubbleVisibility, setUser, setConversationCustomAttributes} = useChatWoot()
   const { user, appInfo } = useGlobal()
   const router = useRouter()
   const { activeWorkspace } = storeToRefs(useWorkspace())
@@ -8,64 +8,43 @@ export function useProvideChatwoot() {
   const chatwootReady = ref(false)
 
   const chatwootInit = () => {
+    toggleBubbleVisibility('hide')
     chatwootReady.value = true
   }
 
   watch(
     [() => chatwootReady.value, () => user.value?.email, () => route.value?.params],
     ([chatwootReady, email, params]) => {
-      if (!chatwootReady || !chatwoot || !window.$chatwoot) return
-
-      if (ncIsPlaywright()) {
-        window.$chatwoot.toggleBubbleVisibility('hide')
-        return
-      }
-
-      if (!email) {
-        window.$chatwoot.toggleBubbleVisibility('hide')
-        return
-      }
+      if (!chatwootReady || !window.$chatwoot) return
 
       const userId = user.value?.id as string
       const identity_hash = (user.value as any)?.identity_hash as string
       const baseId = params?.baseId as string
       const workspaceId = params?.typeOrId as string
 
-      if (!userId) {
-        window.$chatwoot.toggleBubbleVisibility('hide')
-      }
-
-      window.$chatwoot.setUser(userId, {
+      setUser(userId, {
         email,
         name: user.value?.display_name || '',
         identifier_hash: identity_hash,
       })
 
-      window.$chatwoot.setConversationCustomAttributes({
+      setConversationCustomAttributes({
         user_id: String(userId),
-        email,
+        email: email || '',
         base_id: baseId || '',
         workspace_id: workspaceId || '',
-        workspace_plan: activeWorkspace.value?.plan?.title ?? 'free',
+        workspace_plan: activeWorkspace.value?.payment?.plan?.title ?? 'free',
         is_cloud: `${appInfo.value.isCloud}`,
         is_onprem: `${appInfo.value.isOnPrem}`,
       })
-
-      window.$chatwoot.toggleBubbleVisibility('show')
     },
     { immediate: true },
   )
 
   router.afterEach((to) => {
-    if (!chatwootReady.value || !chatwoot || !window.$chatwoot) return
+    if (!chatwootReady.value || !window.$chatwoot) return
 
-    if (ncIsPlaywright()) {
-      window.$chatwoot.toggleBubbleVisibility('hide')
-      return
-    }
-
-    if (!user?.value) {
-      window.$chatwoot.toggleBubbleVisibility('hide')
+    if (ncIsPlaywright() || !user.value) {
       return
     }
 
@@ -73,13 +52,13 @@ export function useProvideChatwoot() {
     const email = user.value.email as string
     const identity_hash = (user.value as any)?.identity_hash as string
 
-    window.$chatwoot.setUser(userId, {
+    setUser(userId, {
       email,
       name: user.value?.display_name || '',
       identifier_hash: identity_hash,
     })
 
-    window.$chatwoot.setConversationCustomAttributes({
+    setConversationCustomAttributes({
       user_id: userId,
       email,
       base_id: to.params?.baseId as string,
@@ -89,7 +68,6 @@ export function useProvideChatwoot() {
       is_onprem: `${appInfo.value.isOnPrem}`,
     })
 
-    window.$chatwoot.toggleBubbleVisibility('show')
   })
 
   onMounted(() => {

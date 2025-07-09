@@ -73,6 +73,7 @@ export async function getChRecordAudit(
 
   const queryParams: Record<string, any> = {
     workspace_id: context.workspace_id,
+    base_id: context.base_id,
     model_id: fk_model_id,
     row_id: row_id,
     limit: limit,
@@ -81,6 +82,7 @@ export async function getChRecordAudit(
   let query = `
     SELECT * FROM ${clickhouseAuditTable}
     WHERE fk_workspace_id = {workspace_id: String}
+    AND base_id = {base_id: String}
     AND fk_model_id = {model_id: String}
     AND row_id = {row_id: String}`;
 
@@ -100,6 +102,18 @@ export async function getChRecordAudit(
   });
 
   const result = await clickhouseResult.json();
+
+  // pg 2025-07-09 10:21:11+00:00
+  // ch 2025-07-09 10:21:11.000
+  // normalize the time to pg format
+  result.data.forEach((item: { created_at: string; updated_at: string }) => {
+    item.created_at = dayjs(item.created_at).format(
+      'YYYY-MM-DD HH:mm:ss+00:00',
+    );
+    item.updated_at = dayjs(item.updated_at).format(
+      'YYYY-MM-DD HH:mm:ss+00:00',
+    );
+  });
 
   return result.data ?? [];
 }

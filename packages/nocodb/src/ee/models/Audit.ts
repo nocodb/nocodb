@@ -64,6 +64,12 @@ export default class Audit extends AuditCE {
 
     const newLimit = this.limit - audits.length;
 
+    // update cursor to the last audit
+    const lastAudit = audits[audits.length - 1];
+    if (lastAudit) {
+      cursor = `${lastAudit.id}|${lastAudit.created_at}`;
+    }
+
     const clickhouseData = (await getChRecordAudit(context, {
       fk_model_id,
       row_id,

@@ -741,11 +741,12 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
       column.label = colOptions?.label
       column.color = colOptions?.color
       column.fk_webhook_id = colOptions?.fk_webhook_id
+      column.fk_script_id = colOptions?.fk_script_id
       column.icon = colOptions?.icon
-      column.formula_raw = column.colOptions?.formula_raw
+      column.formula_raw = colOptions?.formula_raw || ''
 
       if (column.type === ButtonActionsType.Ai) {
-        column.output_column_ids = colOptions?.output_column_ids
+        column.output_column_ids = colOptions?.output_column_ids || ''
         column.fk_integration_id = colOptions?.fk_integration_id
       }
     } else {
@@ -756,6 +757,7 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
         column.label = column.label || 'Generate data'
         column.color = column.color || 'purple'
         column.icon = column.icon || 'ncAutoAwesome'
+        column.output_column_ids = column?.output_column_ids || ''
       } else {
         column.theme = column.theme || 'solid'
         column.label = column.label || 'Button'
@@ -868,6 +870,19 @@ const metaToLocal = () => {
       ...c,
     }
   })
+
+  if (activeField.value?.id) {
+    const field = fields.value.find((c) => c.id === activeField.value?.id)
+    if (field) {
+      changeField(field)
+      changingField.value = true
+
+      nextTick(() => {
+        activeField.value = field
+        changingField.value = false
+      })
+    }
+  }
 }
 
 const saveChanges = async () => {

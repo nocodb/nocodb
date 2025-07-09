@@ -29,12 +29,15 @@ const showBaseOption = (source: SourceType) => {
   return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
 }
 
-const showScriptByNocoDB = false
+const openMarketPlace = () => {
+  vVisible.value = false
+  isMarketVisible.value = true
+}
 </script>
 
 <template>
   <NcMenu variant="large" @click="vVisible = false">
-    <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-dashboard" @click="emits('newTable')">
+    <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-table" @click="emits('newTable')">
       <div class="w-full flex items-center">
         <div class="flex-1 flex items-center gap-2 cursor-pointer">
           <GeneralIcon icon="table" class="!w-4 !h-4" />
@@ -81,13 +84,44 @@ const showScriptByNocoDB = false
       <NcMenuItemLabel>
         <span class="normal-case"> Automations </span>
       </NcMenuItemLabel>
-      <NcMenuItem inner-class="w-full" data-testid="create-new-script" @click="emits('emptyScript')">
-        <GeneralIcon icon="ncScript" />
-        Script
-      </NcMenuItem>
-      <NcMenuItem v-if="showScriptByNocoDB" inner-class="w-full" data-testid="create-new-script" @click="isMarketVisible = true">
-        <GeneralIcon icon="ncScript" />
-        Script by NocoDB
+      <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-script" @click="emits('emptyScript')">
+        <div class="w-full flex items-center">
+          <div class="flex-1 flex items-center gap-2 cursor-pointer">
+            <GeneralIcon icon="ncScript" />
+            Script
+          </div>
+
+          <div class="px-1 cursor-default flex items-center h-9 -my-2" @click.stop>
+            <div class="h-7 w-px flex-none bg-nc-border-gray-medium" />
+          </div>
+
+          <NcSubMenu
+            variant="large"
+            class="nc-sub-menu-item-icon-only"
+            title-class="!p-0 hover:bg-brand-50 group"
+            :popup-offset="[8, -2]"
+            @click.stop
+          >
+            <template #title>
+              <div class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer group-hover:text-nc-content-brand">
+                <GeneralIcon icon="ncChevronRight" />
+              </div>
+            </template>
+            <template #expandIcon> </template>
+
+            <NcMenuItemLabel>
+              <span class="normal-case min-w-[180px]"> New Script </span>
+            </NcMenuItemLabel>
+            <NcMenuItem @click="emits('emptyScript')">
+              <GeneralIcon icon="ncScript" class="w-4 h-4 text-brand-500" />
+              Empty Script
+            </NcMenuItem>
+            <NcMenuItem @click="openMarketPlace">
+              <GeneralIcon icon="ncScript" class="w-4 h-4 text-nc-content-maroon-dark" />
+              Script by NocoDB
+            </NcMenuItem>
+          </NcSubMenu>
+        </div>
       </NcMenuItem>
       <NcMenuItem inner-class="w-full" data-testid="create-new-automation" disabled>
         <GeneralIcon icon="ncAutomation" />

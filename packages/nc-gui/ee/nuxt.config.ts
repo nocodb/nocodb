@@ -22,7 +22,7 @@ export default defineNuxtConfig({
   modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
   chatwoot: {
     init: {
-      websiteToken: process.env.NUXT_CHATWOOT_WEBSITE_TOKEN || 'UwznCaupL62Kq9Bzip3Jet4J',
+      websiteToken: process.env.NUXT_CHATWOOT_WEBSITE_TOKEN,
       baseUrl: 'https://app.chatwoot.com',
     },
     settings: {

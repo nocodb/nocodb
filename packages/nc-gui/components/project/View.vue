@@ -40,7 +40,7 @@ const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 const router = useRouter()
 const route = router.currentRoute
 
-const { isUIAllowed, baseRoles } = useRoles()
+const { isUIAllowed, baseRoles, isBaseRolesLoaded } = useRoles()
 
 const { base } = storeToRefs(useBase())
 
@@ -79,10 +79,14 @@ const projectPageTab = computed({
 })
 
 watch(
-  [() => route.value.query?.page, () => isOverviewTabVisible.value],
-  ([newVal, isOverviewTabVisible], [oldVal, _isOverviewTabVisible]) => {
+  () => route.value.query?.page,
+  async (newVal, oldVal) => {
     if (!('baseId' in route.value.params)) return
     // if (route.value.name !== 'index-typeOrId-baseId-index-index') return
+
+    // Wait for base roles to be loaded before checking if the overview tab is visible
+    await until(() => isBaseRolesLoaded.value).toBeTruthy()
+
     if (newVal && newVal !== oldVal) {
       if (newVal === 'syncs') {
         projectPageTab.value = 'syncs'

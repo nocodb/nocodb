@@ -231,7 +231,17 @@ export const useBase = defineStore('baseStore', () => {
     sharedProject.value = baseVal
   }
 
-  const baseUrl = ({ id, type: _type, isSharedBase }: { id: string; type: 'database'; isSharedBase?: boolean }) => {
+  const baseUrl = ({
+    id,
+    type: _type,
+    isSharedBase,
+    projectPage,
+  }: {
+    id: string
+    type: 'database'
+    isSharedBase?: boolean
+    projectPage?: ProjectPageType
+  }) => {
     if (isSharedBase) {
       const typeOrId = route.value.params.typeOrId as string
       const baseId = route.value.params.baseId as string
@@ -239,7 +249,9 @@ export const useBase = defineStore('baseStore', () => {
       return `/${typeOrId}/${baseId}`
     }
 
-    return `/nc/${id}`
+    const basUrl = `/nc/${id}`
+
+    return `${basUrl}${projectPage ? `?page=${projectPage}` : ''}`
   }
 
   watch(

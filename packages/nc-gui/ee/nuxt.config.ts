@@ -27,6 +27,7 @@ export default defineNuxtConfig({
     },
     settings: {
       darkMode: 'light',
+      hideMessageBubble: true,
     },
   },
   ssr: false,

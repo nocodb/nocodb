@@ -1,9 +1,9 @@
 <script setup lang="ts">
 
-const {isModalVisible, toggle} = useChatWoot()
+const {isModalVisible, toggle } = useChatWoot()
 
 const toggleVisibility = () => {
-  toggle(isModalVisible.value ? 'close' : 'open')
+    toggle(isModalVisible.value ? 'close' : 'open')
 }
 </script>
 

@@ -122,6 +122,7 @@ export function useCopyPaste({
   const { isSqlView } = useSmartsheetStoreOrThrow()
   const { isAllowed } = usePermissions()
   const { maxAttachmentsAllowedInCell, showUpgradeToAddMoreAttachmentsInCell } = useEeConfig()
+  const { batchUploadFiles } = useAttachment()
 
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const isPublic = inject(IsPublicInj, ref(false))
@@ -335,6 +336,8 @@ export function useCopyPaste({
         const newRows: Row[] = []
         const propsToPaste: string[] = []
         let isInfoShown = false
+        // We can use this if we want to avoid same info multiple times per column
+        const isColInfoShown = {} as Record<string, boolean>
 
         for (let i = 0; i < selectionRowCount; i++) {
           const clipboardRowIndex = i % clipboardMatrix.length
@@ -381,10 +384,12 @@ export function useCopyPaste({
                     oldValue: column.uidt === UITypes.Attachment ? targetRow.row[column.title!] : undefined,
                     maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
                     showUpgradeToAddMoreAttachmentsInCell,
+                    isInfoShown: isColInfoShown[column.title!],
                   },
                   isMysql(meta.value?.source_id),
                   true,
                 )
+                isColInfoShown[column.title!] = true
                 validateColumnValue(column, pasteValue)
               } catch (ex) {
                 if (ex instanceof ComputedTypePasteError) {
@@ -687,6 +692,8 @@ export function useCopyPaste({
 
           let pasteValue
           let isInfoShown = false
+          // We can use this if we want to avoid same info multiple times per column
+          const isColInfoShown = {} as Record<string, boolean>
 
           const files = e.clipboardData?.files
 
@@ -719,10 +726,12 @@ export function useCopyPaste({
                       oldValue: row.row[col.title],
                       maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
                       showUpgradeToAddMoreAttachmentsInCell,
+                      isInfoShown: isColInfoShown[col.title!],
                     },
                     isMysql(meta.value?.source_id),
                     true,
                   )
+                  isColInfoShown[col.title!] = true
 
                   if (fileUploadPayload?.length) {
                     const newAttachments = await handleFileUploadAndGetCellValue(fileUploadPayload, col.id!, row.row[col.title!])
@@ -741,10 +750,12 @@ export function useCopyPaste({
                       oldValue: row.row[col.title],
                       maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
                       showUpgradeToAddMoreAttachmentsInCell,
+                      isInfoShown: isColInfoShown[col.title!],
                     },
                     isMysql(meta.value?.source_id),
                     true,
                   )
+                  isColInfoShown[col.title!] = true
                   validateColumnValue(col, pasteValue)
                 } catch (ex) {
                   if (ex instanceof ComputedTypePasteError) {
@@ -786,14 +797,7 @@ export function useCopyPaste({
     const newAttachments: AttachmentType[] = []
 
     try {
-      const data = await $api.storage.upload(
-        {
-          path: [NOCO, base.value.id, meta.value?.id, columnId].join('/'),
-        },
-        {
-          files,
-        },
-      )
+      const data = await batchUploadFiles(files, [NOCO, base.value.id, meta.value?.id, columnId].join('/'))
 
       // add suffix in duplicate file title
       for (const uploadedFile of data) {

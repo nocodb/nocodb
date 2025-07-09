@@ -887,20 +887,33 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToAddMoreAttachmentsInCell = ({
     callback,
     totalAttachments,
+    forceShowToastMessage = false,
   }: {
     callback?: (type: 'ok' | 'cancel') => void
     totalAttachments: number
+    /**
+     * This is useful when we copy pasting in multiple cells
+     */
+    forceShowToastMessage?: boolean
   }) => {
     if (!getIsAttachmentsInCellLimitReached(totalAttachments)) return
 
     // All paid plan has same limit so just show toast message
     // Or if payment is not enabled then show toast message
-    if (activePlanTitle.value !== PlanTitles.FREE || !isPaymentEnabled.value) {
-      message.error(
-        `You can only upload at most ${maxAttachmentsAllowedInCell.value} file${
+    if (activePlanTitle.value !== PlanTitles.FREE || !isPaymentEnabled.value || forceShowToastMessage) {
+      message.error({
+        ...(activePlanTitle.value === PlanTitles.FREE
+          ? {
+              title: t('title.upgradeToPlan', {
+                plan: PlanTitles.PLUS,
+              }),
+            }
+          : {}),
+
+        content: `You can only upload at most ${maxAttachmentsAllowedInCell.value} file${
           maxAttachmentsAllowedInCell.value > 1 ? 's' : ''
         } to this cell.`,
-      )
+      })
 
       return true
     }

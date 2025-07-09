@@ -26,6 +26,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const { showStoragePlanLimitExceededModal, maxAttachmentsAllowedInCell, showUpgradeToAddMoreAttachmentsInCell } =
       useEeConfig()
 
+    const { batchUploadFiles } = useAttachment()
+
     const isReadonly = inject(ReadonlyInj, ref(false))
 
     const { t } = useI18n()
@@ -111,43 +113,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         selectedVisibleItems.value.splice(i, 1)
 
         updateModelValue(attachments.value)
-      }
-    }
-
-    async function batchUploadFiles(
-      files: FileList | File[],
-      path: string = [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'),
-    ) {
-      if (!files.length) return []
-
-      const chunkSize = 10
-
-      // Convert FileList to Array if necessary
-      let fileArray: File[] = ncIsArray(files) ? files : Array.from(files)
-
-      const uploadedFiles: AttachmentType[] = []
-
-      try {
-        while (fileArray.length) {
-          const chunk = fileArray.splice(0, chunkSize)
-
-          const uploadedFilesChunk = await api.storage.upload(
-            {
-              path,
-            },
-            {
-              files: chunk,
-            },
-          )
-
-          uploadedFiles.push(...uploadedFilesChunk)
-        }
-
-        return uploadedFiles
-      } catch (e: any) {
-        message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
-
-        return []
       }
     }
 
@@ -261,7 +226,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
       if (files.length) {
         try {
-          const data = await batchUploadFiles(files)
+          const data = await batchUploadFiles(files, [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'))
 
           // add suffix in duplicate file title
           for (const uploadedFile of data) {

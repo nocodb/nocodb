@@ -415,8 +415,12 @@ END`,
   },
   ARRAYSORT: async (args: MapFnArgs) => {
     const { fn, knex, pt } = args;
-    const source = (await fn({ ...pt.arguments[0], fnName: 'ARRAY_AGG' }))
-      .builder;
+    const source = (
+      await fn({
+        ...pt.arguments[0],
+        fnName: 'ARRAY_AGG',
+      })
+    ).builder;
     const direction = pt.arguments[1]
       ? knex.raw(pt.arguments[1]?.value ?? (await fn(pt.arguments[1])).builder)
       : knex.raw('asc');
@@ -425,6 +429,18 @@ END`,
         source,
         direction,
       ]),
+    };
+  },
+  ARRAYUNIQUE: async (args: MapFnArgs) => {
+    const { fn, knex, pt } = args;
+    const source = (
+      await fn({
+        ...pt.arguments[0],
+        fnName: 'ARRAY_AGG',
+      })
+    ).builder;
+    return {
+      builder: knex.raw(`ARRAY(SELECT DISTINCT UNNEST(??))`, [source]),
     };
   },
 };

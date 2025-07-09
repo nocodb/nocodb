@@ -208,7 +208,7 @@ const detailsBody = computed(() => {
 
 <style lang="scss" scoped>
 .script-details {
-  @apply flex w-full h-[calc(100%_-_75px)];
+  @apply flex w-full h-[calc(100%_-_71px)];
 
   .script-details-left {
     @apply p-6 flex-1 flex flex-col gap-6 nc-scrollbar-thin;

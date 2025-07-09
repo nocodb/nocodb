@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ViewLockType, ViewTypes, type ViewType } from 'nocodb-sdk'
+import { ViewLockType, type ViewType, ViewTypes } from 'nocodb-sdk'
 import { useViewsStore } from '~/store/views'
 
 const { isViewToolbar } = defineProps<{
@@ -94,8 +94,8 @@ watch(showShareModal, (val) => {
             <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
           </div>
           <component
-            v-if="!isViewSharingRestricted"
             :is="viewLockIcons[view.lock_type].icon"
+            v-if="!isViewSharingRestricted"
             class="flex-none"
             :class="{
               'w-4 h-4': view?.lock_type === ViewLockType.Locked,

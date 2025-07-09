@@ -276,15 +276,6 @@ const hasTableCreatePermission = computed(() => {
     source: base.value?.sources?.[0],
   })
 })
-
-/**
- * Show create new dropdown only if their is more than one entity enabled (table, scripts, dashboard)
- */
-const showCreateNewAsDropdown = computed(() => {
-  if (!isAutomationEnabled.value) return false
-
-  return true
-})
 </script>
 
 <template>
@@ -312,11 +303,11 @@ const showCreateNewAsDropdown = computed(() => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <DashboardTreeViewProjectHomeSearchInput :placeholder="`Search table, view${showCreateNewAsDropdown ? ', script' : ''}`" />
+      <DashboardTreeViewProjectHomeSearchInput :placeholder="`Search table, view${isAutomationEnabled ? ', script' : ''}`" />
 
       <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 xs:hidden flex flex-col gap-2">
-        <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
-          <NcDropdown v-if="showCreateNewAsDropdown" v-model:visible="isVisibleCreateNew">
+        <div v-if="hasTableCreatePermission" class="flex items-center w-full">
+          <NcDropdown v-model:visible="isVisibleCreateNew">
             <NcButton
               type="text"
               size="small"
@@ -343,24 +334,6 @@ const showCreateNewAsDropdown = computed(() => {
               />
             </template>
           </NcDropdown>
-          <NcButton
-            v-else
-            type="text"
-            size="small"
-            full-width
-            class="nc-home-create-new-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden w-full !px-3"
-            @click="addNewProjectChildEntity"
-          >
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="ncPlusCircleSolid" />
-
-              {{
-                $t('general.createEntity', {
-                  entity: $t('objects.table'),
-                })
-              }}
-            </div>
-          </NcButton>
         </div>
 
         <NcButton
@@ -406,7 +379,7 @@ const showCreateNewAsDropdown = computed(() => {
                   <DashboardTreeViewTableList
                     :base="base"
                     :source-index="0"
-                    :show-create-table-btn="showCreateNewAsDropdown && hasTableCreatePermission"
+                    :show-create-table-btn="hasTableCreatePermission"
                     @create-table="addNewProjectChildEntity"
                   />
                 </div>

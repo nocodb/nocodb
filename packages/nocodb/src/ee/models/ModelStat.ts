@@ -147,8 +147,6 @@ export default class ModelStat {
       await this.delete(context, context.workspace_id, model.id, ncMeta);
     }
 
-    await NocoCache.del(`${CacheScope.MODEL_STAT}:${context.workspace_id}:sum`);
-
     return true;
   }
 

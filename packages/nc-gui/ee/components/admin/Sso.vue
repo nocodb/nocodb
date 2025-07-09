@@ -54,17 +54,6 @@ const updateProviderStatus = async (client: { enabled: boolean; id: string }) =>
   await updateProvider(client.id, { enabled: client.enabled })
 }
 
-watch(
-  () => samlDialogShow.value,
-  async (v) => {
-    if (!v) {
-      isEdit.value = false
-      providerProp.value = undefined
-      await fetchProviders()
-    }
-  },
-)
-
 watch(isCopied.value, (v) => {
   if (v.signIn) {
     console.log('copied')
@@ -75,7 +64,7 @@ watch(isCopied.value, (v) => {
 })
 
 watch(
-  () => oidcDialogShow.value,
+  () => oidcDialogShow.value || samlDialogShow.value,
   async (v) => {
     if (!v) {
       isEdit.value = false

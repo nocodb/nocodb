@@ -18,6 +18,7 @@ import Plan, {
   GraceLimits,
   LegacyFreePlan,
 } from '~/models/Plan';
+import { isCloud } from '~/utils';
 
 async function getLimit(
   type: PlanLimitTypes,
@@ -348,7 +349,7 @@ export async function checkIfWorkspaceSSOAvail(
   workspaceId: string,
   throwError = true,
 ) {
-  if (process.env.NC_CLOUD !== 'true') {
+  if (!isCloud) {
     if (throwError)
       NcError.forbidden('This feature is not available in self-hosted version');
     else return false;

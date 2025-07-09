@@ -77,7 +77,7 @@ jobs:
           pnpm run dev &
       - name: run unit tests
         working-directory: ./packages/nocodb
-        run: pnpm run test:unit:pg:ee
+        run: pnpm run test:unit:pg:ee --forbid-only
 
   pre-build-for-playwright:
     if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || inputs.force == true }}

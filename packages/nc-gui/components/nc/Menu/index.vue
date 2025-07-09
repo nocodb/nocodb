@@ -58,7 +58,7 @@ const selectable = computed(() => props.selectable ?? false)
     &.nc-variant-large {
       .ant-dropdown-menu-item,
       .nc-ant-dropdown-menu-item-label {
-        @apply min-h-9;
+        @apply min-h-9 text-captionDropdownDefault;
       }
     }
 

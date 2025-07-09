@@ -6,13 +6,15 @@ const props = defineProps<{
   modelValue: boolean
   isEdit: boolean
   google?: SSOClientType
+  isOrg?: boolean
+  isWorkspace?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const { addProvider, updateProvider, getRedirectUrl } = useAuthentication()
+const { addProvider, updateProvider, getRedirectUrl } = useAuthentication(props.isOrg, props.isWorkspace)
 
 const form = reactive<{ clientId: string; clientSecret: string }>({
   clientId: (props.google?.config as GoogleClientConfigType)?.clientId ?? '',

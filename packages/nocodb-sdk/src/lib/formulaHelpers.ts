@@ -338,6 +338,7 @@ export enum FormulaDataTypes {
   STRING = 'string',
   DATE = 'date',
   LOGICAL = 'logical',
+  ARRAY = 'array',
   COND_EXP = 'conditional_expression',
   NULL = 'null',
   BOOLEAN = 'boolean',
@@ -1311,6 +1312,36 @@ export const formulas: Record<string, FormulaMeta> = {
       'https://docs.nocodb.com/fields/field-types/formula/logical-functions#false',
   },
 
+  ARRAYUNIQUE: {
+    validation: {
+      args: {
+        rqd: 1,
+        type: FormulaDataTypes.ARRAY,
+      },
+    },
+    description: 'Distinct an array result',
+    syntax: 'ARRAYUNIQUE(value)',
+    examples: ['ARRAYUNIQUE({column}, "desc")'],
+    returnType: FormulaDataTypes.ARRAY,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/array-functions#array_unique',
+  },
+
+  ARRAYSORT: {
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+      },
+    },
+    description: 'Sort an array result',
+    syntax: 'ARRAYSORT(value, [direction])',
+    examples: ['ARRAYSORT({column}, "desc")'],
+    returnType: FormulaDataTypes.ARRAY,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/array-functions#array_sort',
+  },
+
   REGEX_MATCH: {
     validation: {
       args: {
@@ -1720,6 +1751,9 @@ async function extractColumnIdentifierType({
       break;
     // not supported
     case UITypes.Lookup:
+    case UITypes.LinkToAnotherRecord:
+      res.dataType = FormulaDataTypes.ARRAY;
+      break;
     case UITypes.Barcode:
     case UITypes.Button:
     case UITypes.Collaborator:

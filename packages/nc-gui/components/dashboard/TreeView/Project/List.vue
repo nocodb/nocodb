@@ -490,6 +490,7 @@ watch(isProjectsLoaded, () => {
               <div v-else class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No Bases</div>
             </div>
           </div>
+          <slot name="footer"> </slot>
         </div>
       </Transition>
       <!-- Slide in Project Home -->

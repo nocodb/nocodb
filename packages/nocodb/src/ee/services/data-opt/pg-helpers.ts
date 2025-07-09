@@ -78,7 +78,6 @@ export function generateNestedRowSelectQuery({
   );
 }
 
-
 const logger = new Logger('pg-single-query');
 
 export async function extractColumns({

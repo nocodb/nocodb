@@ -43,7 +43,7 @@ watch(tab, (newValue) => {
         <template #tab>
           <div v-e="['c:row-expand:audit']" class="flex items-center gap-2">
             <GeneralIcon icon="audit" class="w-4 h-4" />
-            <span class="<lg:hidden"> {{ $t('title.audits') }} </span>
+            <span class="<lg:hidden"> {{ $t('labels.revisionHistory') }} </span>
           </div>
         </template>
         <SmartsheetExpandedFormSidebarAudits />

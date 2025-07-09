@@ -22,8 +22,6 @@ const { isMobileMode } = useGlobal()
 
 const route = useRoute()
 
-const { blockPrivateBases } = useEeConfig()
-
 const meta = computed<TableType | undefined>(() => {
   const viewId = route.params.viewId as string
   return viewId && metas.value[viewId]

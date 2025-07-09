@@ -97,11 +97,6 @@ export class SyncModuleSyncDataProcessor {
         toInsert.push(dataRecord);
         toInsertMap.set(record.RemoteId, true);
       } else {
-        // If the remote is not updated, skip
-        if (dataRecord.RemoteRaw === existingRecord.RemoteRaw) {
-          continue;
-        }
-
         toUpdate.push(
           Object.assign(dataRecord, {
             Id: existingRecord.Id,
@@ -769,19 +764,22 @@ export class SyncModuleSyncDataProcessor {
 
               // Process deletions for records that no longer exist in the source
               // Use the syncRunId to identify records that weren't updated in this sync
-              for (const [modelId, _] of modelSyncTargetMap.entries()) {
-                const model = modelSyncTargetMap.get(modelId);
+              // Only delete records for full syncs as we can't do diff for incremental syncs
+              if (syncConfig.sync_type === SyncType.Full) {
+                for (const [modelId, _] of modelSyncTargetMap.entries()) {
+                  const model = modelSyncTargetMap.get(modelId);
 
-                // If there was an error, skip deleting records
-                if (model && !streamError) {
-                  await this.deleteStaleRecords(
-                    context,
-                    syncConfig,
-                    model,
-                    syncRunId,
-                    req,
-                    model.mmChildColumn,
-                  );
+                  // If there was an error, skip deleting records
+                  if (model && !streamError) {
+                    await this.deleteStaleRecords(
+                      context,
+                      syncConfig,
+                      model,
+                      syncRunId,
+                      req,
+                      model.mmChildColumn,
+                    );
+                  }
                 }
               }
 

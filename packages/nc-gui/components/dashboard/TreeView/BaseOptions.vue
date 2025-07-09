@@ -9,12 +9,14 @@ const props = withDefaults(
     titleClass?: string
     class?: string
     showLabel?: boolean
+    showNocoDbImport?: boolean
   }>(),
   {
     variant: 'small',
     titleClass: '',
     class: '',
     showLabel: false,
+    showNocoDbImport: false,
   },
 )
 

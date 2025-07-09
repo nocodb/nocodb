@@ -86,7 +86,7 @@ onMounted(() => {
         tableId: parentTableValue || '',
       }
     } else if (item.type === 'text' || item.type === 'number' || item.type === 'select') {
-      configValue.value[item.key] = configValue.value[item.key]
+      configValue.value[item.key] = configValue.value[item.key] || undefined
     }
   })
 })

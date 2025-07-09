@@ -2,10 +2,12 @@
 const props = withDefaults(
   defineProps<{
     popupOffset?: number[]
-    variant?: 'default' | 'small' | 'medium'
+    variant?: 'default' | 'small' | 'medium' | 'large'
+    titleClass?: string
   }>(),
   {
     variant: 'default',
+    titleClass: '',
   },
 )
 </script>
@@ -18,7 +20,7 @@ const props = withDefaults(
     :popup-class-name="`nc-variant-${variant} nc-submenu-popup`"
   >
     <template #title>
-      <div class="nc-submenu-title flex flex-row items-center gap-x-1.5 py-1.75 justify-between group">
+      <div class="nc-submenu-title flex flex-row items-center gap-x-1.5 py-1.75 justify-between group" :class="titleClass">
         <div class="flex flex-row items-center gap-x-2">
           <slot name="title" />
         </div>
@@ -66,6 +68,10 @@ const props = withDefaults(
 
     &.nc-variant-medium .nc-submenu-title {
       @apply min-h-8;
+    }
+
+    &.nc-variant-large .nc-submenu-title {
+      @apply min-h-9;
     }
 
     &:not(.ant-dropdown-menu-submenu-disabled) {

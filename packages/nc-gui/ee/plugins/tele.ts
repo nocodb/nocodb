@@ -1,6 +1,6 @@
 import { useDebounceFn } from '@vueuse/core'
-import type { PostHog } from 'posthog-js'
-import posthog from 'posthog-js'
+// import type { PostHog } from 'posthog-js'
+// import posthog from 'posthog-js'
 // @ts-expect-error - nc-analytics is not typed
 import { init } from 'nc-analytics'
 import type { NuxtApp } from '#app'
@@ -30,7 +30,7 @@ try {
   }
 } catch (e) {}
 
-function initPostHog(clientId: string) {
+function initPostHog(_clientId: string) {
   try {
     if (!isTeleEnabled) return
     // todo: remove posthog session recording

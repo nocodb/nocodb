@@ -114,6 +114,43 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
     }
 
+    async function batchUploadFiles(
+      files: FileList | File[],
+      path: string = [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'),
+    ) {
+      if (!files.length) return []
+
+      const chunkSize = 10
+
+      // Convert FileList to Array if necessary
+      let fileArray: File[] = ncIsArray(files) ? files : Array.from(files)
+
+      const uploadedFiles: AttachmentType[] = []
+
+      try {
+        while (fileArray.length) {
+          const chunk = fileArray.splice(0, chunkSize)
+
+          const uploadedFilesChunk = await api.storage.upload(
+            {
+              path,
+            },
+            {
+              files: chunk,
+            },
+          )
+
+          uploadedFiles.push(...uploadedFilesChunk)
+        }
+
+        return uploadedFiles
+      } catch (e: any) {
+        message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
+
+        return []
+      }
+    }
+
     /** save a file on select / drop, either locally (in-memory) or in the db */
     async function onFileSelect(selectedFiles: FileList | File[], selectedFileUrls?: AttachmentReqType[]) {
       if (!selectedFiles.length && !selectedFileUrls?.length) return
@@ -224,14 +261,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
       if (files.length) {
         try {
-          const data = await api.storage.upload(
-            {
-              path: [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'),
-            },
-            {
-              files,
-            },
-          )
+          const data = await batchUploadFiles(files)
+
           // add suffix in duplicate file title
           for (const uploadedFile of data) {
             newAttachments.push({
@@ -247,7 +278,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
         }
       } else if (imageUrls.length) {
-        const data = uploadViaUrl(imageUrls)
+        const data = await uploadViaUrl(imageUrls)
         if (!data) return
         newAttachments.push(...data)
       }

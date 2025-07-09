@@ -135,7 +135,7 @@ jobs:
 
       - name: Run Playwright Tests
         working-directory: ./tests/playwright
-        run: E2E_DB_TYPE=${{ inputs.db }} pnpm run ci:test:shard:${{ inputs.shard }}
+        run: E2E_DB_TYPE=${{ inputs.db }} pnpm run ci:test:shard:${{ inputs.shard }} --forbid-only
         timeout-minutes: 60
 
       - name: Fetch develop branch

@@ -132,9 +132,9 @@ const accountUrl = computed(() => {
           </div>
         </NcTooltip>
         <template #overlay>
-          <NcMenu data-testid="nc-sidebar-userinfo" variant="small">
+          <NcMenu data-testid="nc-sidebar-userinfo" variant="medium">
             <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
-              <div v-e="['c:user:logout']" class="flex gap-2 items-center">
+              <div v-e="['c:user:logout']" class="flex gap-2 items-center min-w-40 md:min-w-70">
                 <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
                 <GeneralIcon v-else icon="signout" class="menu-icon" />
                 <span class="menu-btn"> {{ $t('general.logout') }}</span>
@@ -188,16 +188,14 @@ const accountUrl = computed(() => {
                 placement="rightBottom"
                 overlay-class-name="nc-lang-menu-overlay !z-1050"
               >
-                <NcMenuItem>
-                  <div v-e="['c:translate:open']" class="flex gap-2 items-center">
+                <NcMenuItem inner-class="w-full">
+                  <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
                     <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
                     {{ $t('labels.language') }}
                     <div class="flex items-center text-gray-400 text-xs">{{ $t('labels.community.communityTranslated') }}</div>
                     <div class="flex-1" />
 
-                    <MaterialSymbolsChevronRightRounded
-                      class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                    />
+                    <GeneralIcon icon="ncChevronRight" class="flex-none !text-gray-500" />
                   </div>
                 </NcMenuItem>
 
@@ -248,7 +246,24 @@ const accountUrl = computed(() => {
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
               <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl" @click="auditsStore.handleReset">
-                <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
+                <NcMenuItem>
+                  <GeneralIcon icon="ncSettings" class="menu-icon" />
+                  <div class="flex-1 flex flex-col">
+                    <div>
+                      {{ $t('title.accountSettings') }}
+                    </div>
+                    <NcTooltip
+                      v-if="isMiniSidebar"
+                      show-on-truncate-only
+                      class="truncate text-bodySm text-nc-content-gray-muted max-w-68"
+                    >
+                      <template #title>
+                        {{ user?.email }}
+                      </template>
+                      {{ user?.email }}
+                    </NcTooltip>
+                  </div>
+                </NcMenuItem>
               </nuxt-link>
             </template>
           </NcMenu>

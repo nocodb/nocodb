@@ -41,7 +41,7 @@ const openMarketPlace = () => {
       <div class="w-full flex items-center">
         <div class="flex-1 flex items-center gap-2 cursor-pointer">
           <GeneralIcon icon="table" class="!w-4 !h-4" />
-          Table
+          {{ $t('objects.table') }}
         </div>
         <template v-if="source && showBaseOption(source)">
           <div class="px-1 cursor-default flex items-center h-9 -my-2" @click.stop>
@@ -65,7 +65,7 @@ const openMarketPlace = () => {
             <template #expandIcon> </template>
             <template #label>
               <NcMenuItemLabel>
-                <span class="normal-case min-w-[180px]"> Import Options </span>
+                <span class="normal-case min-w-[180px]"> {{ $t('labels.importOptions') }} </span>
               </NcMenuItemLabel>
             </template>
           </DashboardTreeViewBaseOptions>
@@ -75,20 +75,20 @@ const openMarketPlace = () => {
 
     <NcMenuItem inner-class="w-full" disabled data-testid="create-new-dashboard">
       <GeneralIcon icon="ncLayout" class="w-4 h-4" />
-      Dashboard
+      {{ $t('labels.dashboard') }}
       <div class="flex-1 w-full" />
       <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Soon </NcBadge>
     </NcMenuItem>
 
     <template v-if="isAutomationEnabled">
       <NcMenuItemLabel>
-        <span class="normal-case"> Automations </span>
+        <span class="normal-case"> {{ $t('general.automations') }} </span>
       </NcMenuItemLabel>
       <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-script" @click="emits('emptyScript')">
         <div class="w-full flex items-center">
           <div class="flex-1 flex items-center gap-2 cursor-pointer">
             <GeneralIcon icon="ncScript" />
-            Script
+            {{ $t('objects.script') }}
           </div>
 
           <div class="px-1 cursor-default flex items-center h-9 -my-2" @click.stop>
@@ -110,22 +110,22 @@ const openMarketPlace = () => {
             <template #expandIcon> </template>
 
             <NcMenuItemLabel>
-              <span class="normal-case min-w-[180px]"> New Script </span>
+              <span class="normal-case min-w-[180px]"> {{ $t('labels.newScript') }} </span>
             </NcMenuItemLabel>
             <NcMenuItem @click="emits('emptyScript')">
               <GeneralIcon icon="ncScript" class="w-4 h-4 text-brand-500" />
-              Empty Script
+              {{ $t('labels.emptyScript') }}
             </NcMenuItem>
             <NcMenuItem @click="openMarketPlace">
               <GeneralIcon icon="ncScript" class="w-4 h-4 text-nc-content-maroon-dark" />
-              Script by NocoDB
+              {{ $t('labels.scriptByNocoDB') }}
             </NcMenuItem>
           </NcSubMenu>
         </div>
       </NcMenuItem>
       <NcMenuItem inner-class="w-full" data-testid="create-new-automation" disabled>
         <GeneralIcon icon="ncAutomation" />
-        Automation
+        {{ $t('general.automation') }}
         <div class="flex-1 w-full" />
         <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Soon </NcBadge>
       </NcMenuItem>

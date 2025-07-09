@@ -65,7 +65,7 @@ app.post('/api/v1/migrate', async (req, res) => {
         return res.status(400).json({ error: 'Invalid destination connection: please provide valid connection details for your destination data' });
     }
     
-    if (!Array.isArray(schemas) || schemas.length === 0) {
+    if (!Array.isArray(schemas)) {
         return res.status(400).json({ error: 'Invalid data sections: please specify which data sections to transfer' });
     }
 
@@ -215,16 +215,18 @@ async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
         
         addJobStep(jobId, 'Target resource set up successfully');
 
-        updateJobStatus(jobId, 'running', 40, 'Starting direct data migration to your upgraded workspace...');
-        addJobStep(jobId, 'Starting direct data migration to your upgraded workspace...');
+        if (schemas.length > 0) {
+          updateJobStatus(jobId, 'running', 40, 'Starting direct data migration to your upgraded workspace...');
+          addJobStep(jobId, 'Starting direct data migration to your upgraded workspace...');
 
-        // Use piped approach for faster migration (no intermediate file)
-        const schemaArgs = schemas.map(s => `--schema="${s}"`).join(' ');
-        const pipedMigrationCommand = `pg_dump ${schemaArgs} --no-owner --no-privileges --format=plain "${sourceUrl}" | psql "${targetUrl}"`;
-        
-        await executeCommand(pipedMigrationCommand, jobId, sourceUrl, targetUrl);
-        
-        addJobStep(jobId, 'Data migration to your upgraded workspace completed successfully');
+          // Use piped approach for faster migration (no intermediate file)
+          const schemaArgs = schemas.map(s => `--schema="${s}"`).join(' ');
+          const pipedMigrationCommand = `pg_dump ${schemaArgs} --no-owner --no-privileges --format=plain "${sourceUrl}" | psql "${targetUrl}"`;
+          
+          await executeCommand(pipedMigrationCommand, jobId, sourceUrl, targetUrl);
+          
+          addJobStep(jobId, 'Data migration to your upgraded workspace completed successfully');
+        }
 
         updateJobStatus(jobId, 'running', 90, 'Finalizing migration...');
 

@@ -7,7 +7,7 @@ import { createUser } from '../../../../factory/user';
 export default function () {
   const isEE = !!process.env.EE;
 
-  describe.only(`error-handling: Base v3`, () => {
+  describe(`error-handling: Base v3`, () => {
     let context: Awaited<ReturnType<typeof init>>;
 
     beforeEach(async () => {

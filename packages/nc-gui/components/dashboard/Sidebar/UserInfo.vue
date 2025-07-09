@@ -180,7 +180,7 @@ const accountUrl = computed(() => {
                 <span class="menu-btn"> {{ $t('labels.twitter') }} </span>
               </NcMenuItem>
             </a>
-            <template v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || appInfo.isOnPrem">
+            <template>
               <NcDivider />
               <a-popover
                 key="language"

@@ -443,7 +443,7 @@ const copyCustomUrl = async (custUrl = '') => {
           </div>
         </div>
 
-        <template v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || appInfo.isOnPrem">
+        <template>
           <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
             <div class="flex flex-row items-center justify-between">
               <div class="flex text-black">

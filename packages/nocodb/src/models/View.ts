@@ -1389,6 +1389,7 @@ export default class View implements ViewType {
       expanded_record_mode?: ExpandedFormModeType;
       attachment_mode_column_id?: string;
       fk_custom_url_id?: string;
+      row_coloring_mode?: ROW_COLORING_MODE;
     },
     includeCreatedByAndUpdateBy = false,
     ncMeta = Noco.ncMeta,
@@ -1402,6 +1403,7 @@ export default class View implements ViewType {
       'password',
       'meta',
       'uuid',
+      'row_coloring_mode',
       ...(isEE ? ['fk_custom_url_id'] : []),
       ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : []),
       ...(isEE ? ['expanded_record_mode', 'attachment_mode_column_id'] : []),

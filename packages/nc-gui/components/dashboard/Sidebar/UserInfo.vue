@@ -134,7 +134,7 @@ const accountUrl = computed(() => {
         <template #overlay>
           <NcMenu data-testid="nc-sidebar-userinfo" variant="medium">
             <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
-              <div v-e="['c:user:logout']" class="flex gap-2 items-center">
+              <div v-e="['c:user:logout']" class="flex gap-2 items-center min-w-40 md:min-w-70">
                 <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
                 <GeneralIcon v-else icon="signout" class="menu-icon" />
                 <span class="menu-btn"> {{ $t('general.logout') }}</span>

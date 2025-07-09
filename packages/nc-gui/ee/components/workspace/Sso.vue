@@ -12,8 +12,21 @@ const oidcProviders = computed(() => {
   return [...providers.value].filter((provider: SSOClientType) => provider.type === 'oidc' && !provider.deleted)
 })
 
+const googleProvider = computed(() => {
+  const provider = [...providers.value].filter((provider: SSOClientType) => provider.type === 'google' && !provider.deleted)
+  if (provider.length > 0) {
+    return provider[0]
+  } else {
+    return {
+      enabled: false,
+      type: 'google',
+    }
+  }
+})
+
 const samlDialogShow = ref(false)
 const oidcDialogShow = ref(false)
+const googleDialogShow = ref(false)
 
 const isEdit = ref(false)
 
@@ -43,7 +56,7 @@ const copySigninUrl = async () => {
 
 const updateProviderStatus = async (client: { enabled: boolean; id: string }) => {
   if (!client.id) {
-    // googleDialogShow.value = true
+    googleDialogShow.value = true
     isEdit.value = true
     providerProp.value = await getPrePopulatedProvider('google')
     return
@@ -99,6 +112,13 @@ const enableEdit = async (provider: SSOClientType) => {
   } else if (provider.type === 'oidc') {
     providerProp.value = provider
     oidcDialogShow.value = true
+  } else if (provider.type === 'google') {
+    googleDialogShow.value = true
+    if (!provider.id) {
+      providerProp.value = await getPrePopulatedProvider('google')
+    } else {
+      providerProp.value = provider
+    }
   }
 }
 
@@ -130,6 +150,52 @@ onMounted(async () => {
               </NcButton>
             </div>
           </div>
+        </div>
+
+        <div
+          class="flex mt-5 rounded-2xl flex-row justify-between nc-google-provider w-full items-center p-4 hover:bg-gray-50 border-1 cursor-pointer group text-gray-600"
+          data-test-id="nc-google-provider"
+          @click="enableEdit(googleProvider)"
+        >
+          <div class="nc-google-enable nc-google-google-enable flex items-center" @click.stop>
+            <NcSwitch
+              :checked="!!googleProvider.enabled"
+              class="min-w-4"
+              size="small"
+              @change="updateProviderStatus(googleProvider)"
+            />
+            <span class="text-base font-bold ml-2 group-hover:text-black capitalize" data-test-id="nc-saml-title"> Google </span>
+          </div>
+
+          <NcDropdown :trigger="['click']" placement="bottomRight" @click.stop>
+            <NcButton
+              class="!text-gray-500 !hover:text-gray-800 nc-google-more-option"
+              data-test-id="nc-google-more-option"
+              size="xsmall"
+              type="text"
+            >
+              <GeneralIcon class="text-inherit" icon="threeDotVertical" />
+            </NcButton>
+            <template #overlay>
+              <NcMenu variant="small">
+                <NcMenuItem data-test-id="nc-google-edit" @click="enableEdit(googleProvider)">
+                  <div class="flex flex-row items-center">
+                    <component :is="iconMap.edit" class="text-gray-800" />
+                    <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
+                  </div>
+                </NcMenuItem>
+                <template v-if="googleProvider.id">
+                  <NcDivider />
+                  <NcMenuItem data-test-id="nc-google-delete" @click="deleteProvider(googleProvider.id)">
+                    <div class="text-red-500">
+                      <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
+                      {{ $t('general.delete') }}
+                    </div>
+                  </NcMenuItem>
+                </template>
+              </NcMenu>
+            </template>
+          </NcDropdown>
         </div>
 
         <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6">
@@ -277,13 +343,13 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <!--    <DlgGoogleProvider
-      v-if="googleDialogShow"
-      v-model:model-value="googleDialogShow"
-      is-workspace
-      :google="providerProp"
-      :is-edit="isEdit"
-    /> -->
+      <DlgGoogleProvider
+        v-if="googleDialogShow"
+        v-model:model-value="googleDialogShow"
+        is-workspace
+        :google="providerProp"
+        :is-edit="isEdit"
+      />
       <DlgSAMLProvider
         v-if="samlDialogShow"
         v-model:model-value="samlDialogShow"

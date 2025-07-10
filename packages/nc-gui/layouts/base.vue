@@ -70,7 +70,7 @@ hooks.hook('page:finish', () => {
         <LazyGeneralReleaseInfo />
 
         <a-tooltip placement="bottom" :mouse-enter-delay="1" class="mr-4">
-          <template #title>{{ $t('title.switchLanguage') }}</template>
+          <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
           <div class="flex items-center">
             <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
@@ -128,7 +128,7 @@ hooks.hook('page:finish', () => {
       </a-layout-header>
 
       <NcTooltip placement="bottom">
-        <template #title>{{ $t('title.switchLanguage') }}</template>
+        <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
         <LazyGeneralLanguage v-if="!signedIn && !route.params.baseId && !route.params.erdUuid" class="nc-lang-btn" />
       </NcTooltip>

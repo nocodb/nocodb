@@ -149,10 +149,10 @@ export const predictScriptCompletion = (
 
           /**
            * Creates multiple records.
-           * @param {Array<Object>} data - Array of record data objects.
+           * @param {Array<{fields: {string: unknown}}>} data - Array of record data objects.
            * @returns {Promise<Array<string>>} Array of created record IDs.
            * @example
-           * const ids = await table.createRecordsAsync([{ Title: 'Project 1' }, { Title: 'Project 2' }]);
+           * const ids = await table.createRecordsAsync([{ fields: { Title: 'Project 1' }, { fields: { Title: 'Project 2' }]);
            */
           async createRecordsAsync(data) {}
 

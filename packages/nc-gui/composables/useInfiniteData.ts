@@ -1523,7 +1523,6 @@ export function useInfiniteData(args: {
         currentUser: user.value,
       },
     )
-
     const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
     if (newRow) newRow.rowMeta.isValidationFailed = isValidationFailed
 

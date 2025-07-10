@@ -133,7 +133,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <DashboardMiniSidebarItemWrapper>
           <NcTooltip placement="right" hide-on-click :arrow="false">
             <template #title>
-              <div class="flex items-center gap-1"> {{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
+              <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
             </template>
             <div
               v-e="['c:quick-actions']"
@@ -150,7 +150,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <DashboardMiniSidebarItemWrapper>
           <NcTooltip placement="right" hide-on-click :arrow="false">
             <template #title>
-              <div class="flex items-center gap-1"> {{ $t('labels.recentViews') }} {{ renderCmdOrCtrlKey(true) }} L</div>
+              <div class="flex items-center gap-1">{{ $t('labels.recentViews') }} {{ renderCmdOrCtrlKey(true) }} L</div>
             </template>
             <div
               v-e="['c:quick-actions']"
@@ -167,7 +167,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <DashboardMiniSidebarItemWrapper>
           <NcTooltip placement="right" hide-on-click :arrow="false">
             <template #title>
-              <div class="flex items-center gap-1"> {{ $t('labels.searchDocumentation') }} {{ renderCmdOrCtrlKey(true) }} J</div>
+              <div class="flex items-center gap-1">{{ $t('labels.searchDocumentation') }} {{ renderCmdOrCtrlKey(true) }} J</div>
             </template>
             <div
               v-e="['c:quick-actions']"
@@ -185,7 +185,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           <NcDivider class="!my-0 !border-nc-border-gray-dark" />
         </div>
         <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')">
-          <NcTooltip :title="`${$t('objects.workspace')} ${$t('labels.settings')}`" placement="right" hide-on-click :arrow="false">
+          <NcTooltip
+            :title="`${$t('objects.workspace')} ${$t('labels.settings')}`"
+            placement="right"
+            hide-on-click
+            :arrow="false"
+          >
             <div
               v-e="['c:team:settings']"
               class="nc-mini-sidebar-btn-full-width"
@@ -204,7 +209,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
         <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings')">
-          <NcTooltip :title="`${$t('objects.workspace')} ${$t('general.integrations')}`" placement="right" hide-on-click :arrow="false">
+          <NcTooltip
+            :title="`${$t('objects.workspace')} ${$t('general.integrations')}`"
+            placement="right"
+            hide-on-click
+            :arrow="false"
+          >
             <div
               v-e="['c:integrations']"
               class="nc-mini-sidebar-btn-full-width"
@@ -252,14 +262,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
         <DashboardMiniSidebarItemWrapper>
-          <NcTooltip
-            :title="`${$t('labels.chatWithNocoDBSupport')}!`"
-            placement="right"
-            hide-on-click
-            :arrow="false"
-          >
-          <DashboardSidebarChatSupport />
-        </NcTooltip>
+          <NcTooltip :title="`${$t('labels.chatWithNocoDBSupport')}!`" placement="right" hide-on-click :arrow="false">
+            <DashboardSidebarChatSupport />
+          </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
         <div class="px-2 w-full">
           <NcDivider class="!my-2 !border-nc-border-gray-dark" />

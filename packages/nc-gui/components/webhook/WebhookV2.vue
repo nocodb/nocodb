@@ -449,19 +449,19 @@ const toggleSamplePayload = () => {
 const supportedDocs = [
   {
     title: 'Getting started',
-    href: 'https://docs.nocodb.com/automation/webhook/create-webhook/',
+    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook/',
   },
   {
     title: 'Create webhook',
-    href: 'https://docs.nocodb.com/automation/webhook/webhook-overview',
+    href: 'https://nocodb.com/docs/product-docs/automation/webhook',
   },
   {
     title: 'Custom payload',
-    href: 'https://docs.nocodb.com/automation/webhook/create-webhook#webhook-with-custom-payload-',
+    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook#webhook-with-custom-payload-',
   },
   {
     title: 'Trigger on condition',
-    href: 'https://docs.nocodb.com/automation/webhook/create-webhook#webhook-with-conditions',
+    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook#webhook-with-conditions',
   },
 ]
 

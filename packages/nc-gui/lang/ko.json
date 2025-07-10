@@ -877,6 +877,13 @@
     "thisPrivateBaseHasBeenLockedSubtext": "잠금을 해제하려면 {plan} 플랜으로 업그레이드하거나 이 베이스를 공유 베이스로 전환하십시오."
   },
   "labels": {
+    "chatWithNocoDBSupport": "Chat with NocoDB Support",
+    "revisionHistory": "Revision History",
+    "myNotifications": "My Notifications",
+    "quickSearch": "Quick Search",
+    "recentViews": "Recent Views",
+    "searchDocumentation": "Search Documentation",
+    "baseList": "Base List",
     "crossBase": "외부 베이스에 대한 링크",
     "mcpSetup": "MCP 설정",
     "mcpTokenVisibilityInfo": "MCP 클라이언트 구성 저장",
@@ -1242,7 +1249,7 @@
       "joinCommunity": "NocoDB 커뮤니티 참여",
       "joinReddit": "NocoDB 레딧 참여",
       "followNocodb": "NocoDB 팔로우",
-      "communityTranslated": "(커뮤니티/AI 번역)"
+      "communityTranslated": "AI Generated Translations"
     },
     "twitter": "트위터",
     "docReference": "참조 문서",

@@ -2096,7 +2096,7 @@ declare interface Table {
    * Field values can be referenced by either field name or ID.
    * This action is asynchronous.
    *
-   * @param data - Array of record data
+   * @param data - Array of record data with field values
    * @returns Array of created record IDs
    */
   createRecordsAsync(data: Array<{ [key: string]: unknown }>): Promise<string[]>
@@ -3140,7 +3140,7 @@ declare interface ConfigItem {}
       'Field values can be referenced by either field name or ID.',
       'This action is asynchronous.',
       '',
-      '@param data - Array of record data',
+      '@param data - Array of record data with field values',
       '@returns Array of created record IDs',
     ])
     this.write(`createRecordsAsync(data: Array<${generateFieldKeysType(table.fields, true)}>): Promise<string[]>`)

@@ -20,7 +20,6 @@ import type {
   WorkspaceType,
 } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
-import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Workspace from '~/models/Workspace';
@@ -183,23 +182,6 @@ export class WorkspacesService implements OnApplicationBootstrap {
     workspaces: WorkspaceType | WorkspaceType[];
     req: NcRequest;
   }) {
-    const userFreeWorkspacesCount = await Workspace.count({
-      fk_user_id: param.user.id,
-      plan: WorkspacePlan.FREE,
-    });
-
-    const { limit } = await getLimit(PlanLimitTypes.LIMIT_FREE_WORKSPACE);
-
-    if (userFreeWorkspacesCount >= limit) {
-      NcError.planLimitExceeded(
-        'You have reached the limit of free workspaces',
-        {
-          limit: limit,
-          current: userFreeWorkspacesCount,
-        },
-      );
-    }
-
     const workspacePayloads = Array.isArray(param.workspaces)
       ? param.workspaces
       : [param.workspaces];

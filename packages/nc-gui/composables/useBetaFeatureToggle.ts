@@ -101,7 +101,7 @@ const FEATURES = [
     title: 'OSS to Enterprise migration',
     description: 'Enable import from NocoDB OSS instance to Enterprise Edition.',
     enabled: true,
-    version: 1,
+    version: 2,
     isEE: true,
   },
   {

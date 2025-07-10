@@ -17,12 +17,20 @@ export class DateGeneralHandler extends DateTimeGeneralHandler {
       metaService?: MetaService;
     };
   }): Promise<{ value: any }> {
+    // Allow null/undefined values
+    if (
+      ncIsUndefined(params.value) ||
+      params.value === null ||
+      params.value === ''
+    ) {
+      return { value: params.value };
+    }
+
     let dayjsUtcValue: dayjs.Dayjs;
     if (
-      !ncIsUndefined(params.value) &&
-      (params.value instanceof Date ||
-        typeof params.value === 'number' ||
-        typeof params.value === 'string')
+      params.value instanceof Date ||
+      typeof params.value === 'number' ||
+      typeof params.value === 'string'
     ) {
       if (params.value instanceof Date) {
         dayjsUtcValue = dayjs(params.value).utc();
@@ -38,7 +46,7 @@ export class DateGeneralHandler extends DateTimeGeneralHandler {
         dayjsUtcValue = dayjs.unix(params.value).utc();
       }
     }
-    if (!dayjsUtcValue.isValid()) {
+    if (!dayjsUtcValue || !dayjsUtcValue.isValid()) {
       NcError.invalidValueForField({
         value: params.value,
         column: params.column.title,

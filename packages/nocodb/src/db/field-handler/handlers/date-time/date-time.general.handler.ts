@@ -78,12 +78,20 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
       metaService?: MetaService;
     };
   }) {
+    // Allow null/undefined/empty values
+    if (
+      params.value === null ||
+      params.value === undefined ||
+      params.value === ''
+    ) {
+      return { value: null };
+    }
+
     let dayjsUtcValue: dayjs.Dayjs;
     if (
-      params.value &&
-      (params.value instanceof Date ||
-        typeof params.value === 'string' ||
-        typeof params.value === 'number')
+      params.value instanceof Date ||
+      typeof params.value === 'string' ||
+      typeof params.value === 'number'
     ) {
       if (params.value instanceof Date) {
         dayjsUtcValue = dayjs(params.value).utc();
@@ -106,7 +114,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
         dayjsUtcValue = dayjs.unix(params.value).utc();
       }
     }
-    if (!dayjsUtcValue.isValid()) {
+    if (!dayjsUtcValue || !dayjsUtcValue.isValid()) {
       NcError.invalidValueForField({
         value: params.value,
         column: params.column.title,

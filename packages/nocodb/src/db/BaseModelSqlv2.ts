@@ -5599,13 +5599,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           for (const lookedUpAttachment of Array.isArray(attachment)
             ? attachment
             : [attachment]) {
-              const thumbnails =
-                this.prepareAttachmentForSigning(lookedUpAttachment);
-              if (
-                lookedUpAttachment &&
-                (lookedUpAttachment.path || lookedUpAttachment.url)
-              ) {
-                allAttachments.push(lookedUpAttachment);
+            const thumbnails =
+              this.prepareAttachmentForSigning(lookedUpAttachment);
+            if (
+              lookedUpAttachment &&
+              (lookedUpAttachment.path || lookedUpAttachment.url)
+            ) {
+              allAttachments.push(lookedUpAttachment);
               allThumbnails.push(...thumbnails);
             }
           }
@@ -6010,7 +6010,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (col.uidt === UITypes.Date) {
         const dateFormat = col.meta?.date_format;
         if (dateFormat) {
-          d[col.title] = dayjs(d[col.title], dateFormat).format(dateFormat);
+          d[col.id] = dayjs(d[col.id]).format(dateFormat);
         }
         continue;
       }

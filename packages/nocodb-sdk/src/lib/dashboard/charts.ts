@@ -43,7 +43,7 @@ interface PieChartAppearanceConfig {
   }[];
 }
 
-interface PieChatPermissionConfig {
+interface ChartPermissionConfig {
   allowUserToPrint: boolean;
   allowUsersToViewRecords: boolean;
 }
@@ -53,7 +53,7 @@ export interface PieChartConfig extends BaseChartConfig {
   dataSource?: WidgetDataSourceTypes;
   data: PieChartDataConfig;
   appearance: PieChartAppearanceConfig;
-  permissions: PieChatPermissionConfig;
+  permissions: ChartPermissionConfig;
 }
 
 export interface DonutChartConfig extends BaseChartConfig {
@@ -61,12 +61,45 @@ export interface DonutChartConfig extends BaseChartConfig {
   dataSource?: WidgetDataSourceTypes;
   data: PieChartDataConfig;
   appearance: PieChartAppearanceConfig;
-  permissions: PieChatPermissionConfig;
+  permissions: ChartPermissionConfig;
+}
+
+export interface BarChartDataConfig {
+  xAxis: {
+    column_id: string;
+    sortBy: 'xAxis' | 'yAxis';
+    orderBy?: 'default' | 'asc' | 'desc';
+    includeEmptyRecords?: boolean;
+  };
+  yAxis: {
+    startAtZero: boolean;
+    fields: Array<{
+      column_id: string;
+      aggregation: typeof AllAggregations;
+    }>;
+    groupBy?: string;
+  };
+}
+
+export interface BarChartAppearanceConfig {
+  size: 'small' | 'medium' | 'large';
+  smoothLines: boolean;
+  plotDataPoints: boolean;
+  showCountInLegend: boolean;
+  showPercentageOnChart: boolean;
+  legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
+  colorSchema: 'default' | 'custom';
+  customColorSchema: {
+    color: string;
+    label: string;
+  }[];
 }
 
 export interface BarChartConfig extends BaseChartConfig {
   chartType: ChartTypes.BAR;
   dataSource?: WidgetDataSourceTypes;
+  data: BarChartDataConfig;
+  permission: ChartPermissionConfig;
 }
 
 export interface LineChartConfig extends BaseChartConfig {

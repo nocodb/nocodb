@@ -1,0 +1,105 @@
+<script setup lang="ts">
+import GroupedSettings from '~/components/smartsheet/dashboard/widgets/common/GroupedSettings.vue'
+
+const emit = defineEmits<{
+  'update:xAxis': [xAxis: any]
+}>()
+
+const { selectedWidget } = storeToRefs(useWidgetStore())
+
+const selectedFieldId = ref(selectedWidget.value?.config?.data?.xAxis?.column_id)
+
+const selectedSortValue = ref(selectedWidget.value?.config?.data?.xAxis?.sortBy || 'xAxis')
+
+const selectedOrderValue = ref(selectedWidget.value?.config?.data?.xAxis?.orderBy || 'default')
+
+const includeEmptyRecords = ref(selectedWidget.value?.config?.data?.xAxis?.includeEmptyRecords || false)
+
+const modelId = computed(() => selectedWidget.value?.fk_model_id || null)
+
+const handleChange = (type: 'field' | 'sort' | 'order' | 'includeEmptyRecords') => {
+  const xAxis = {
+    includeEmptyRecords: includeEmptyRecords.value,
+  }
+
+  if (type === 'field') {
+    xAxis.column_id = selectedFieldId.value
+    xAxis.sortBy = 'xAxis'
+    xAxis.orderBy = 'default'
+  } else if (type === 'sort') {
+    xAxis.sortBy = selectedSortValue.value
+    xAxis.orderBy = selectedOrderValue.value
+  } else if (type === 'order') {
+    xAxis.orderBy = selectedOrderValue.value
+    xAxis.sortBy = selectedSortValue.value
+  }
+
+  emit('update:xAxis', xAxis)
+}
+
+const fieldOrderOptions = [
+  { value: 'default', label: 'Default field order' },
+  { value: 'asc', label: 'Ascending' },
+  { value: 'desc', label: 'Descending' },
+]
+
+const sortOrderOptions = [
+  { value: 'xAxis', label: 'xAxis Value' },
+  { value: 'yAxis', label: 'yAxis Value' },
+]
+</script>
+
+<template>
+  <GroupedSettings title="X-axis">
+    <div class="flex flex-col gap-2 flex-1 min-w-0">
+      <label>Field</label>
+      <NSelectField
+        :key="modelId!"
+        v-model:value="selectedFieldId"
+        :disabled="!modelId"
+        :table-id="modelId!"
+        @update:value="handleChange('field')"
+      />
+    </div>
+
+    <div class="flex gap-2 flex-1 min-w-0">
+      <div class="flex flex-col gap-2 flex-1 min-w-0">
+        <label>Sort By</label>
+        <a-select
+          v-model:value="selectedSortValue"
+          :options="sortOrderOptions"
+          class="nc-select-shadow"
+          placeholder="Sort by"
+          @update:value="handleChange('sort')"
+        >
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
+        </a-select>
+      </div>
+      <div class="flex flex-col gap-2 flex-1 min-w-0">
+        <label>Order</label>
+        <a-select
+          v-model:value="selectedOrderValue"
+          :disabled="!selectedFieldId"
+          :options="fieldOrderOptions"
+          class="nc-select-shadow"
+          placeholder="Order by"
+          @update:value="handleChange('order')"
+        >
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
+        </a-select>
+      </div>
+    </div>
+
+    <div>
+      <NcSwitch v-model:checked="includeEmptyRecords" @change="handleChange('includeEmptyRecords')">
+        <span class="text-caption text-nc-content-gray select-none">Include empty records</span>
+      </NcSwitch>
+    </div>
+  </GroupedSettings>
+</template>
+
+<style scoped lang="scss"></style>

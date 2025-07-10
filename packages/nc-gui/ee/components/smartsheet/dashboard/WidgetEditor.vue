@@ -3,6 +3,7 @@ import { ChartTypes, type ChartWidgetConfig, WidgetTypes } from 'nocodb-sdk'
 import MetricsWidgetConfig from './widgets/metrics/config/index.vue'
 import PieChartWidgetConfig from './widgets/piechart/config/index.vue'
 import DonutChartWidgetConfig from './widgets/donutchart/config/index.vue'
+import BarChartWidgetConfig from './widgets/barchart/config/index.vue'
 const widgetStore = useWidgetStore()
 const { selectedWidget } = storeToRefs(widgetStore)
 
@@ -18,6 +19,8 @@ const configComponent = computed(() => {
           return PieChartWidgetConfig
         case ChartTypes.DONUT:
           return DonutChartWidgetConfig
+        case ChartTypes.BAR:
+          return BarChartWidgetConfig
         default:
           return null
       }

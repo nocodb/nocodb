@@ -267,14 +267,11 @@ onMounted(() => {
 
               <LazyGeneralReleaseInfo />
 
-              <NcTooltip
-                placement="bottom"
-                class="mr-4"
-              >
+              <NcTooltip placement="bottom" class="mr-4">
                 <template #title> Switch language</template>
 
                 <div class="flex items-center">
-                  <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-gray-800" />
+                  <LazyGeneralLanguage button class="cursor-pointer text-2xl hover:text-gray-800" />
                 </div>
               </NcTooltip>
 

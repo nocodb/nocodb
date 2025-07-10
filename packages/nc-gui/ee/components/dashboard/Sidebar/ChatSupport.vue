@@ -1,19 +1,14 @@
 <script setup lang="ts">
-
-const {isModalVisible } = useChatWoot()
+const { isModalVisible } = useChatWoot()
 
 const toggleVisibility = () => {
   const toggleText = (isModalVisible.value ? 'hide' : 'show') as any
-  window.$chatwoot.toggle(toggleText) 
+  window.$chatwoot.toggle(toggleText)
 }
 </script>
 
 <template>
-   <div
-    v-e="['c:nocodb:chat-support']"
-    class="nc-mini-sidebar-btn-full-width"
-    data-testid="nc-sidebar-chat-support"
-  >
+  <div v-e="['c:nocodb:chat-support']" class="nc-mini-sidebar-btn-full-width" data-testid="nc-sidebar-chat-support">
     <div
       class="nc-mini-sidebar-btn relative"
       :class="{

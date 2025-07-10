@@ -1,7 +1,7 @@
 export const useProvideChatwoot = () => {
-    const chatwootInit = () => {}
+  const chatwootInit = () => {}
 
-    return {
-        chatwootInit,
-    }
+  return {
+    chatwootInit,
+  }
 }

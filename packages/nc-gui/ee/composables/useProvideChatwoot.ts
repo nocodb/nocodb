@@ -1,5 +1,5 @@
 export const useProvideChatwoot = () => {
-  const {setUser, setConversationCustomAttributes } = useChatWoot()
+  const { setUser, setConversationCustomAttributes } = useChatWoot()
   const { user, appInfo } = useGlobal()
   const router = useRouter()
   const { activeWorkspace } = storeToRefs(useWorkspace())
@@ -7,8 +7,7 @@ export const useProvideChatwoot = () => {
 
   const chatwootReady = ref(false)
 
-
-  const initUserCustomerAttributes  = () => {
+  const initUserCustomerAttributes = () => {
     const baseId = route.value?.params?.baseId as string
     const workspaceId = route.value?.params?.typeOrId as string
 

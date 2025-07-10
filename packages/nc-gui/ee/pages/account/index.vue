@@ -268,7 +268,7 @@ onMounted(() => {
               <LazyGeneralReleaseInfo />
 
               <NcTooltip placement="bottom" class="mr-4">
-                <template #title> Switch language</template>
+                <template #title> {{ $t('labels.community.communityTranslated') }}</template>
 
                 <div class="flex items-center">
                   <LazyGeneralLanguage button class="cursor-pointer text-2xl hover:text-gray-800" />

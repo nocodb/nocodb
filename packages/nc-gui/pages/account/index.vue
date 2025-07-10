@@ -217,7 +217,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
               <LazyGeneralReleaseInfo />
 
               <NcTooltip placement="bottom" class="mr-4">
-                <template #title>{{ $t('title.switchLanguage') }}</template>
+                <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
                 <div class="flex items-center">
                   <LazyGeneralLanguage button class="cursor-pointer text-2xl hover:text-gray-800" />

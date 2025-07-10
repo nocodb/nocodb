@@ -8,6 +8,10 @@ export const useProvideChatwoot = () => {
   const chatwootReady = ref(false)
 
   const initUserCustomerAttributes = () => {
+    if (!chatwootReady.value || ncIsPlaywright() || !user.value) {
+      return
+    }
+
     const baseId = route.value?.params?.baseId as string
     const workspaceId = route.value?.params?.typeOrId as string
 
@@ -37,18 +41,12 @@ export const useProvideChatwoot = () => {
   watch(
     [() => user.value?.email],
     () => {
-      if (!chatwootReady.value || ncIsPlaywright() || !user.value) {
-        return
-      }
       initUserCustomerAttributes()
     },
-    { immediate: true, deep: true },
+    { immediate: true },
   )
 
-  router.afterEach((to) => {
-    if (!chatwootReady.value || ncIsPlaywright() || !user.value) {
-      return
-    }
+  router.afterEach(() => {
     initUserCustomerAttributes()
   })
 

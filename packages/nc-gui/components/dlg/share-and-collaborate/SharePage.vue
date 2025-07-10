@@ -443,36 +443,34 @@ const copyCustomUrl = async (custUrl = '') => {
           </div>
         </div>
 
-        <template>
-          <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
-            <div class="flex flex-row items-center justify-between">
-              <div class="flex text-black">
-                {{ $t('labels.language') }}
-              </div>
-              <a-switch
-                v-e="['c:share:view:language:toggle']"
-                :checked="languageSet"
-                :loading="isUpdating.language"
-                class="share-language-toggle !mt-0.25"
-                data-testid="share-language-toggle"
-                size="small"
+        <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
+          <div class="flex flex-row items-center justify-between">
+            <div class="flex text-black">
+              {{ $t('labels.language') }}
+            </div>
+            <a-switch
+              v-e="['c:share:view:language:toggle']"
+              :checked="languageSet"
+              :loading="isUpdating.language"
+              class="share-language-toggle !mt-0.25"
+              data-testid="share-language-toggle"
+              size="small"
+              :disabled="isReadOnly"
+              @click="toggleLanguageSet"
+            />
+          </div>
+          <Transition mode="out-in" name="layout">
+            <div v-if="languageSet" class="flex gap-2 mt-2 w-2/3">
+              <NcSelect
+                v-model:value="withLanguage"
+                data-testid="nc-modal-share-view__Language"
+                :options="languageOptions"
+                class="nc-modal-share-view-language-select w-full nc-select-shadow"
                 :disabled="isReadOnly"
-                @click="toggleLanguageSet"
               />
             </div>
-            <Transition mode="out-in" name="layout">
-              <div v-if="languageSet" class="flex gap-2 mt-2 w-2/3">
-                <NcSelect
-                  v-model:value="withLanguage"
-                  data-testid="nc-modal-share-view__Language"
-                  :options="languageOptions"
-                  class="nc-modal-share-view-language-select w-full nc-select-shadow"
-                  :disabled="isReadOnly"
-                />
-              </div>
-            </Transition>
-          </div>
-        </template>
+          </Transition>
+        </div>
 
         <div
           v-if="activeView?.type === ViewTypes.FORM"

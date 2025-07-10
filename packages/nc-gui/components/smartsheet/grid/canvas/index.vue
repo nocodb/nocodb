@@ -2490,6 +2490,24 @@ defineExpose({
   scrollToRow: scrollToCell,
   openColumnCreate,
 })
+
+const routeQuery = computed(() => route.query as Record<string, string>)
+
+// Automatically expand the first row if the route query has expand=true and no rowId is specified
+watch(
+  [() => cachedRows.value.size, () => routeQuery.value.expand, () => routeQuery.value.rowId],
+  ([size, expand, rowId]) => {
+    if (expand === 'true' && !rowId && !isGroupBy.value && size > 0) {
+      const firstKey = cachedRows.value.keys().next().value
+      const firstRow = cachedRows.value?.get(firstKey)
+      if (firstRow) {
+        // expand the row using expandForm method
+        expandForm(firstRow, undefined, undefined, Array.isArray(firstRow.rowMeta?.path) ? firstRow.rowMeta.path : [])
+      }
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

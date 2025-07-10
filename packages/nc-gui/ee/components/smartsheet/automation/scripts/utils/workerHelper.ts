@@ -1740,15 +1740,17 @@ Object.freeze(UITypes);
       }
       
       for(const record of data) {
-        const recordData = {};
+        const recordData = {
+          fields: {}
+        };
         for (const field of this.fields) {
-          if (record[field.name]) {
-            recordData[field.name] = record[field.name];
-          } else if (record[field.id]) {
-            recordData[field.name] = record[field.id];
+          if (record.fields[field.name]) {
+            recordData.fields[field.name] = record.fields[field.name];
+          } else if (record.fields[field.id]) {
+            recordData.fields[field.name] = record.fields[field.id];
           }
         }
-        insertObjs.push({ fields: recordData });
+        insertObjs.push(recordData);
       }
       
       try {

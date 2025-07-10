@@ -9,17 +9,16 @@ export const useProvideChatwoot = () => {
 
 
   const initUserCustomerAttributes  = () => {
-    const userId = user.value?.id as string
-    const identity_hash = (user.value as any)?.identity_hash as string
     const baseId = route.value?.params?.baseId as string
     const workspaceId = route.value?.params?.typeOrId as string
 
+    const userId = user.value?.id as string
+    const identity_hash = (user.value as any)?.identity_hash as string
     setUser(userId, {
       email: user.value?.email,
       name: user.value?.display_name || '',
       identifier_hash: identity_hash,
     })
-
     setConversationCustomAttributes({
       user_id: String(userId),
       email: user.value?.email || '',
@@ -37,29 +36,24 @@ export const useProvideChatwoot = () => {
   }
 
   watch(
-    [user, chatwootReady],
+    [() => user.value?.email],
     () => {
       if (!chatwootReady.value || ncIsPlaywright() || !user.value) {
         return
       }
       initUserCustomerAttributes()
     },
-    { immediate: true },
+    { immediate: true, deep: true },
   )
 
   router.afterEach((to) => {
     if (!chatwootReady.value || ncIsPlaywright() || !user.value) {
       return
     }
-
     initUserCustomerAttributes()
   })
 
-  onMounted(() => {
-    window.addEventListener('chatwoot:ready', chatwootInit)
-  })
-
-  onBeforeUnmount(() => {
-    window.removeEventListener('chatwoot:ready', chatwootInit)
-  })
+  return {
+    chatwootInit,
+  }
 }

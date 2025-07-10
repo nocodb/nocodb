@@ -26,7 +26,7 @@ function formulaQrBarcodeTests() {
   });
 
   it('will create a formula referencing qr_code correctly', async () => {
-    const formulaColumn = await createColumn(
+    const _formulaColumn = await createColumn(
       _context,
       _tables.table1,
       {
@@ -41,7 +41,7 @@ function formulaQrBarcodeTests() {
     expect(rows[0].FormulaQrCode).to.eq(rows[0].Title);
   });
   it('will create a formula referencing barcode correctly', async () => {
-    const formulaColumn = await createColumn(
+    const _formulaColumn = await createColumn(
       _context,
       _tables.table1,
       {
@@ -54,6 +54,21 @@ function formulaQrBarcodeTests() {
     );
     const rows = await listRow({ base: _base, table: _tables.table1 });
     expect(rows[0].FormulaBarcode).to.eq(rows[0].Title);
+  });
+  it('will create a formula referencing lookup to barcode correctly', async () => {
+    const _formulaColumn = await createColumn(
+      _context,
+      _tables.table2,
+      {
+        title: 'FormulaT1Barcode',
+        uidt: UITypes.Formula,
+        formula: '{table1Barcode}',
+        formula_raw: '{table1Barcode}',
+      },
+      { throwError: true },
+    );
+    const rows = await listRow({ base: _base, table: _tables.table2 });
+    expect(rows[0].FormulaT1Barcode).to.eq('T1_001, T1_002, T1_003');
   });
 }
 

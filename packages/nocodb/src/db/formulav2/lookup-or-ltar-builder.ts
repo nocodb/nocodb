@@ -7,9 +7,11 @@ import type {
   TAliasToColumnParam,
 } from '~/db/formulav2/formula-query-builder.types';
 import type {
+  BarcodeColumn,
   FormulaColumn,
   LinkToAnotherRecordColumn,
   LookupColumn,
+  QrCodeColumn,
   RollupColumn,
 } from '~/models';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
@@ -273,7 +275,6 @@ export const lookupOrLtarBuilder =
         lookupColumn = await nestedLookup.getLookupColumn(refContext);
         prevAlias = nestedAlias;
       }
-
       switch (lookupColumn.uidt) {
         case UITypes.Links:
         case UITypes.Rollup:
@@ -485,6 +486,31 @@ export const lookupOrLtarBuilder =
             }
           }
           break;
+        case UITypes.Barcode:
+        case UITypes.QrCode: {
+          const referenceColumn = await (
+            await lookupColumn.getColOptions<BarcodeColumn | QrCodeColumn>(
+              refContext,
+            )
+          ).getValueColumn(refContext);
+
+          if (isArray) {
+            const qb = selectQb;
+            selectQb = (fn) =>
+              knex
+                .raw(
+                  getAggregateFn(fn)({
+                    qb,
+                    knex,
+                    cn: `${prevAlias}.${referenceColumn.column_name}`,
+                  }),
+                )
+                .wrap('(', ')');
+          } else {
+            selectQb.select(`${prevAlias}.${referenceColumn.column_name}`);
+          }
+          break;
+        }
         default:
           {
             if (isArray) {

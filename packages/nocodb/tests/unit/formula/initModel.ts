@@ -268,8 +268,9 @@ export async function initInitialModel() {
 
 export async function initQrBarcodeColumns(context: ITestContext) {
   const table1 = context.tables.table1;
+  const table2 = context.tables.table2;
   await createColumn(context.context, table1, {
-    title: 'QR Code',
+    title: 'QRCode',
     column_name: 'qrcode',
     uidt: UITypes.QrCode,
     fk_qr_value_column_id: (
@@ -283,5 +284,34 @@ export async function initQrBarcodeColumns(context: ITestContext) {
     fk_barcode_value_column_id: (
       await table1.getColumns(context.ctx)
     ).find((k) => k.title === 'Title').id,
+  });
+
+  const t2_HM_t1_Ltar = (await table2.getColumns(context.ctx)).find(
+    (col) => col.title === 'T1s',
+  );
+  const source = (await context.base.getSources())[0];
+  await createLookupColumn(context.context, {
+    base: context.base,
+    title: 'table1Qr',
+    table: await Model.getByIdOrName(context.ctx, {
+      base_id: context.base.id,
+      source_id: source.id!,
+      id: context.tables.table2.id,
+    }),
+    relatedTableName: table1.table_name,
+    relatedTableColumnTitle: 'QRCode',
+    relationColumnId: t2_HM_t1_Ltar.id,
+  });
+  await createLookupColumn(context.context, {
+    base: context.base,
+    title: 'table1Barcode',
+    table: await Model.getByIdOrName(context.ctx, {
+      base_id: context.base.id,
+      source_id: source.id!,
+      id: context.tables.table2.id,
+    }),
+    relatedTableName: table1.table_name,
+    relatedTableColumnTitle: 'Barcode',
+    relationColumnId: t2_HM_t1_Ltar.id,
   });
 }

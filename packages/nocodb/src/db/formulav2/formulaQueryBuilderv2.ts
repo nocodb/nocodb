@@ -20,7 +20,7 @@ import {
 } from './parsed-tree-builder';
 import type { LiteralNode } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { User } from '~/models';
+import type { BarcodeColumn, QrCodeColumn, User } from '~/models';
 import type Column from '~/models/Column';
 import type RollupColumn from '~/models/RollupColumn';
 import type {
@@ -306,26 +306,11 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         }
         break;
       }
+      case UITypes.QrCode:
       case UITypes.Barcode: {
-        const referencedColumnId = col.colOptions.fk_barcode_value_column_id;
-        const referencedColumn = columns.find(
-          (col) => col.id == referencedColumnId,
-        );
-        aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
-          Promise.resolve({
-            builder: knex.raw(`??`, [
-              `${tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)}.${
-                referencedColumn.column_name
-              }`,
-            ]),
-          });
-        break;
-      }
-      case UITypes.QrCode: {
-        const referencedColumnId = col.colOptions.fk_qr_value_column_id;
-        const referencedColumn = columns.find(
-          (col) => col.id == referencedColumnId,
-        );
+        const referencedColumn = await (
+          await col.getColOptions<BarcodeColumn | QrCodeColumn>(context)
+        ).getValueColumn(context);
         aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
           Promise.resolve({
             builder: knex.raw(`??`, [

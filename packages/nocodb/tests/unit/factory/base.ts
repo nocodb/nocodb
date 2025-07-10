@@ -104,7 +104,7 @@ const createProject = async (
   )) as Base;
 };
 
-const listBase = async (workspaceId?: string) => {
+const listBase = (workspaceId?: string) => {
   return Base.list(workspaceId);
 };
 

@@ -1524,6 +1524,8 @@ export function useInfiniteData(args: {
       },
     )
 
+    console.log('isValidationFailed', [...allFilters.value, ...computedWhereFilter.value])
+
     const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
     if (newRow) newRow.rowMeta.isValidationFailed = isValidationFailed
 

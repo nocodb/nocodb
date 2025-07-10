@@ -90,6 +90,7 @@ import {
   isPrimitiveType,
   nanoidv2,
   populatePk,
+  transformObjectKeys,
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
@@ -5362,7 +5363,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           const col = await Column.get(this.context, { colId: k });
           return { id: k, title: col?.title };
         } catch (e) {
-          throw e;
+          // ignore error to avoid breaking the entire response
+          return {};
         }
       });
 
@@ -5396,7 +5398,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             // Transform array of objects
             transformedItem[targetKey] = value.map((arrVal) => {
               if (!arrVal || typeof arrVal !== 'object') return arrVal;
-              return this.transformObjectKeys(arrVal, idToAliasMap);
+              return transformObjectKeys(arrVal, idToAliasMap);
             });
           } else if (
             value &&
@@ -5404,7 +5406,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             !Array.isArray(value)
           ) {
             // Transform non-array objects
-            transformedItem[targetKey] = this.transformObjectKeys(
+            transformedItem[targetKey] = transformObjectKeys(
               value,
               idToAliasMap,
             );
@@ -5420,21 +5422,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       return transformedItem;
     });
-  }
-
-  // Helper method to transform object keys using the alias map
-  private transformObjectKeys(
-    obj: Record<string, any>,
-    aliasMap: Record<string, string>,
-  ): Record<string, any> {
-    if (!obj || typeof obj !== 'object') return obj;
-
-    const result = {};
-    Object.entries(obj).forEach(([key, value]) => {
-      const alias = aliasMap[key];
-      result[alias || key] = value;
-    });
-    return result;
   }
 
   protected async convertUserFormat(
@@ -5609,8 +5596,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           const attachment = d[col.id][i];
 
           // Handle array of arrays (lookup case)
-          if (Array.isArray(attachment)) {
-            for (const lookedUpAttachment of attachment) {
+          for (const lookedUpAttachment of Array.isArray(attachment)
+            ? attachment
+            : [attachment]) {
               const thumbnails =
                 this.prepareAttachmentForSigning(lookedUpAttachment);
               if (
@@ -5618,13 +5606,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 (lookedUpAttachment.path || lookedUpAttachment.url)
               ) {
                 allAttachments.push(lookedUpAttachment);
-                allThumbnails.push(...thumbnails);
-              }
-            }
-          } else {
-            const thumbnails = this.prepareAttachmentForSigning(attachment);
-            if (attachment && (attachment.path || attachment.url)) {
-              allAttachments.push(attachment);
               allThumbnails.push(...thumbnails);
             }
           }

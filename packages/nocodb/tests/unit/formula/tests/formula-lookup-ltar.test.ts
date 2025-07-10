@@ -245,5 +245,5 @@ function formulaLookupLtarTests() {
 }
 
 export function formulaLookupLtarTest() {
-  describe('BaseModelSql', formulaLookupLtarTests);
+  describe('FormulaLookupLtarTests', formulaLookupLtarTests);
 }

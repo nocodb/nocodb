@@ -22,7 +22,7 @@ async function changeLanguage(lang: string) {
 <template>
   <a-menu-item class="group rounded-md !my-0.5">
     <a
-      href="https://docs.nocodb.com/engineering/translation/#how-to-contribute--for-community-members"
+      href="https://nocodb.com/docs/product-docs/engineering/translation#how-to-contribute--for-community-members"
       target="_blank"
       class="caption nc-base-menu-item rounded-md underline hover:!text-primary"
       rel="noopener"

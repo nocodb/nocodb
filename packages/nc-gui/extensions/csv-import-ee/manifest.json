@@ -19,7 +19,7 @@
   "links": [
     {
       "title": "Documentation",
-      "href": "https://docs.nocodb.com/extensions/import-csv"
+      "href": "https://nocodb.com/docs/product-docs/extensions/upload-data-from-csv"
     }
   ],
   "config": {

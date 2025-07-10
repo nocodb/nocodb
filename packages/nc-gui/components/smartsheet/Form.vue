@@ -1978,7 +1978,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               <div class="text-small leading-[18px] text-gray-400 pl-3">
                                 Use {record_id} to get ID of the newly created record.
                                 <a
-                                  href="https://docs.nocodb.com/views/view-types/form/#redirect-url"
+                                  href="https://nocodb.com/docs/product-docs/views/view-types/form#redirect-url"
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   class="!no-underline !hover:underline"

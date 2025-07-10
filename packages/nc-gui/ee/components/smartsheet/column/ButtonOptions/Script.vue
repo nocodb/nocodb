@@ -59,7 +59,7 @@ watch(isScriptModal, (newVal) => {
       {{ $t('objects.script') }}
       <a
         class="font-medium"
-        href="https://docs.nocodb.com/fields/field-types/custom-types/button#create-a-button-field"
+        href="https://nocodb.com/docs/product-docs/fields/field-types/custom-types/button#create-a-button-field"
         target="_blank"
       >
         Docs

@@ -30,7 +30,7 @@ defineProps<{
       <a
         v-if="!isSqlView"
         class="!text-current"
-        href="https://docs.nocodb.com/data-sources/connect-to-data-source#configuring-permissions"
+        href="https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source#configuring-permissions"
         target="_blank"
       >
         Learn more

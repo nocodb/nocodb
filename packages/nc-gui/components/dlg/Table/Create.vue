@@ -430,10 +430,6 @@ const handleRefreshOnError = () => {
           <GeneralIcon icon="table" class="!text-gray-600 w-5 h-5" />
           {{ aiMode ? $t('activity.createTable(s)') : $t('activity.createTable') }}
         </div>
-        <!-- <a href="https://docs.nocodb.com/tables/create-table" target="_blank" class="text-[13px]">
-          {{ $t('title.docs') }}
-        </a> -->
-
         <AiToggleButton
           v-if="isAiFeaturesEnabled"
           :ai-mode="aiMode"

@@ -67,7 +67,7 @@ onMounted(async () => await fetchReleaseInfo())
             no-prefetch
             rel="noopener"
             class="!text-primary !no-underline"
-            to="https://docs.nocodb.com/getting-started/self-hosted/upgrading"
+            to="https://nocodb.com/docs/self-hosting/upgrading"
             target="_blank"
           >
             <div class="nc-menu-item">

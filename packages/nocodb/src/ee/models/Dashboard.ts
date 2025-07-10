@@ -195,8 +195,6 @@ export default class Dashboard implements DashboardType {
       `${CacheScope.DASHBOARD}:${dashboardId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-
-    await NocoCache.del([`${CacheScope.DASHBOARD}:${dashboardId}`]);
   }
 
   async getWidgets(

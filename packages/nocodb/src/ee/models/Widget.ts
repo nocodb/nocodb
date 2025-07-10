@@ -104,12 +104,12 @@ export default class Widget implements IWidget {
       for (let widget of widgetsList) {
         widget = prepareForResponse(widget, ['config', 'meta', 'position']);
       }
+      await NocoCache.setList(CacheScope.WIDGET, [dashboardId], widgetsList);
       widgetsList.sort(
         (a, b) =>
           (a.order != null ? a.order : Infinity) -
           (b.order != null ? b.order : Infinity),
       );
-      await NocoCache.setList(CacheScope.WIDGET, [dashboardId], widgetsList);
     }
 
     if (!widgetsList.length) {
@@ -219,7 +219,5 @@ export default class Widget implements IWidget {
       `${CacheScope.WIDGET}:${widgetId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-
-    await NocoCache.del([`${CacheScope.WIDGET}:${widgetId}`]);
   }
 }

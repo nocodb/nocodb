@@ -318,8 +318,7 @@ async function getActivePlanAndSubscription(
   ncMeta = Noco.ncMeta,
 ) {
   const subscription = await Subscription.getByWorkspaceOrOrg(
-    // workspace.fk_org_id || workspace.id,
-    workspace.id,
+    workspace.fk_org_id || workspace.id,
     ncMeta,
   );
 

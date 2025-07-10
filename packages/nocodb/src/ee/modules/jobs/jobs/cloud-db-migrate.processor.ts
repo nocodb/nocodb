@@ -4,7 +4,7 @@ import axios from 'axios';
 import type { Job } from 'bull';
 import type { DbConfig } from '~/utils/nc-config';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
-import { Base, DbServer, Workspace } from '~/models';
+import { Base, DbServer, Org, Workspace } from '~/models';
 import { TelemetryService } from '~/services/telemetry.service';
 import { metaUrlToDbConfig } from '~/utils/nc-config';
 
@@ -23,7 +23,7 @@ export class CloudDbMigrateProcessor {
   async job(job: Job) {
     this.debugLog(`job started for ${job.id}`);
 
-    const { workspaceId, conditions = {} } = job.data;
+    const { workspaceOrOrgId, conditions = {}, targetOrgId = null } = job.data;
 
     const logBasic = (log) => {
       this.jobsLogService.sendLog(job, { message: log });
@@ -35,18 +35,36 @@ export class CloudDbMigrateProcessor {
       return;
     }
 
-    let workspace;
+    let workspaceOrOrg: {
+      id?: string;
+      title?: string;
+      fk_db_instance_id?: string;
+      entity: 'workspace' | 'org';
+    };
+
+    let workspaces = [];
+
     try {
-      workspace = await Workspace.get(workspaceId);
-      if (!workspace) {
-        logBasic('Workspace not found');
-        return;
+      const workspace = await Workspace.get(workspaceOrOrgId);
+      if (workspace) {
+        workspaceOrOrg = {
+          ...workspace,
+          entity: 'workspace',
+        };
+      } else {
+        const org = await Org.get(workspaceOrOrgId);
+        if (org) {
+          workspaceOrOrg = {
+            ...org,
+            entity: 'org',
+          };
+        } else {
+          logBasic('Workspace or Org not found');
+          return;
+        }
       }
 
-      if (workspace.fk_db_instance_id) {
-        logBasic('Workspace already has a db server');
-        return;
-      }
+      const targetOrg = targetOrgId ? await Org.get(targetOrgId) : null;
 
       const dbServers = await DbServer.list({});
 
@@ -57,46 +75,56 @@ export class CloudDbMigrateProcessor {
 
       const useDbServers: DbServer[] = [];
 
-      const matchingDbServers = dbServers
-        .filter((dbServer) => {
-          if (
-            // 0 or null means no limit
-            dbServer.max_tenant_count &&
-            dbServer.current_tenant_count >= dbServer.max_tenant_count
-          ) {
-            return false;
-          }
-
-          return true;
-        })
-        .filter((dbServer) => {
-          // if dbServer has no conditions, skip
-          if (!dbServer.conditions) return false;
-
-          // check if required conditions are met
-          return Object.keys(conditions).every(
-            (key) => conditions[key] === dbServer.conditions[key],
-          );
-        });
-
-      if (matchingDbServers.length > 0) {
-        useDbServers.push(...matchingDbServers);
+      if (targetOrg) {
+        const dbServer = await DbServer.get(targetOrg.fk_db_instance_id);
+        if (dbServer) {
+          useDbServers.push(dbServer);
+        } else {
+          logBasic('Target Org has no db server');
+          return;
+        }
       } else {
-        // check if there is available dbServer with no conditions
-        const availableDbServers = dbServers.filter((dbServer) => {
-          if (
-            dbServer.max_tenant_count &&
-            dbServer.current_tenant_count >= dbServer.max_tenant_count
-          ) {
-            return false;
+        const matchingDbServers = dbServers
+          .filter((dbServer) => {
+            if (
+              // 0 or null means no limit
+              dbServer.max_tenant_count &&
+              dbServer.current_tenant_count >= dbServer.max_tenant_count
+            ) {
+              return false;
+            }
+
+            return true;
+          })
+          .filter((dbServer) => {
+            // if dbServer has no conditions, skip
+            if (!dbServer.conditions) return false;
+
+            // check if required conditions are met
+            return Object.keys(conditions).every(
+              (key) => conditions[key] === dbServer.conditions[key],
+            );
+          });
+
+        if (matchingDbServers.length > 0) {
+          useDbServers.push(...matchingDbServers);
+        } else {
+          // check if there is available dbServer with no conditions
+          const availableDbServers = dbServers.filter((dbServer) => {
+            if (
+              dbServer.max_tenant_count &&
+              dbServer.current_tenant_count >= dbServer.max_tenant_count
+            ) {
+              return false;
+            }
+
+            // check if server has no conditions
+            return !dbServer.conditions;
+          });
+
+          if (availableDbServers.length > 0) {
+            useDbServers.push(...availableDbServers);
           }
-
-          // check if server has no conditions
-          return !dbServer.conditions;
-        });
-
-        if (availableDbServers.length > 0) {
-          useDbServers.push(...availableDbServers);
         }
       }
 
@@ -110,32 +138,60 @@ export class CloudDbMigrateProcessor {
         (a, b) => a.current_tenant_count - b.current_tenant_count,
       )[0];
 
+      let oldDbServer;
+
       if (!dbServer) {
         logBasic('DbServer not found');
         return;
       }
 
+      if (workspaceOrOrg.fk_db_instance_id === dbServer.id) {
+        logBasic('Workspace already has the same db server');
+        return;
+      }
+
+      if (workspaceOrOrg.fk_db_instance_id) {
+        oldDbServer = await DbServer.getWithConfig(
+          workspaceOrOrg.fk_db_instance_id,
+        );
+      }
+
       dbServer = await DbServer.getWithConfig(dbServer.id);
 
-      await Workspace.update(workspaceId, {
-        db_job_id: `${job.id}`,
-      });
+      workspaces =
+        workspaceOrOrg.entity === 'workspace'
+          ? [workspaceOrOrg]
+          : await Workspace.listByOrgId({
+              orgId: workspaceOrOrgId,
+            });
 
-      const bases = await Base.listByWorkspace(workspaceId);
+      const schemas = [];
 
-      const schemas = bases.map((base) => base.id);
+      for (const workspace of workspaces) {
+        await Workspace.update(workspace.id, {
+          db_job_id: `${job.id}`,
+        });
 
-      const dataDbConfig = await metaUrlToDbConfig(NC_DATA_DB);
+        const bases = await Base.listByWorkspace(workspace.id);
+
+        schemas.push(...bases.map((base) => base.id));
+      }
+
+      const dataDbConfig =
+        oldDbServer?.config || (await metaUrlToDbConfig(NC_DATA_DB));
       const targetDbConfig = dbServer.config as DbConfig;
 
       const dataDbUrl = this.dbConfigToJdbcUrl(dataDbConfig);
-      const targetDbUrl = this.dbConfigToJdbcUrl(targetDbConfig, workspaceId);
+      const targetDbUrl = this.dbConfigToJdbcUrl(
+        targetDbConfig,
+        targetOrg?.id || workspaceOrOrgId,
+      );
 
       await this.telemetryService.sendSystemEvent({
         event_type: 'payment_alert',
         payment_type: 'migration_started',
-        message: `Database migration started for workspace ${workspace.title}`,
-        workspace: { id: workspace.id, title: workspace.title },
+        message: `Database migration started for workspace ${workspaceOrOrg.title}`,
+        workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
         extra: {
           job_id: job.id,
           db_server_id: dbServer.id,
@@ -148,6 +204,7 @@ export class CloudDbMigrateProcessor {
         sourceUrl: dataDbUrl,
         targetUrl: targetDbUrl,
         schemas,
+        skipCreateDb: targetOrg ? true : false,
       });
 
       const { jobId } = response.data;
@@ -171,16 +228,31 @@ export class CloudDbMigrateProcessor {
           if (status === 'completed') {
             await DbServer.incrementTenantCount(dbServer.id);
 
-            await Workspace.update(workspaceId, {
-              fk_db_instance_id: dbServer.id,
-              db_job_id: null,
-            });
+            if (workspaceOrOrg.entity === 'org') {
+              await Org.update(workspaceOrOrgId, {
+                fk_db_instance_id: dbServer.id,
+              });
+            }
+
+            for (const workspace of workspaces) {
+              if (workspaceOrOrg.entity === 'workspace') {
+                await Workspace.update(workspace.id, {
+                  fk_db_instance_id: dbServer.id,
+                  db_job_id: null,
+                });
+              } else {
+                await Workspace.update(workspace.id, {
+                  fk_db_instance_id: null,
+                  db_job_id: null,
+                });
+              }
+            }
 
             await this.telemetryService.sendSystemEvent({
               event_type: 'payment_alert',
               payment_type: 'migration_completed',
-              message: `Database migration completed successfully for workspace ${workspace.title}`,
-              workspace: { id: workspace.id, title: workspace.title },
+              message: `Database migration completed successfully for workspace ${workspaceOrOrg.title}`,
+              workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
               extra: {
                 job_id: job.id,
                 migrator_job_id: jobId,
@@ -191,16 +263,18 @@ export class CloudDbMigrateProcessor {
 
             resolve(true);
           } else if (status === 'failed') {
-            await Workspace.update(workspaceId, {
-              db_job_id: null,
-            });
+            for (const workspace of workspaces) {
+              await Workspace.update(workspace.id, {
+                db_job_id: null,
+              });
+            }
 
             // Send upgrade_failed notification
             await this.telemetryService.sendSystemEvent({
               event_type: 'payment_alert',
               payment_type: 'migration_failed',
-              message: `Database migration failed for workspace ${workspace.title}`,
-              workspace: { id: workspace.id, title: workspace.title },
+              message: `Database migration failed for workspace ${workspaceOrOrg.title}`,
+              workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
               extra: {
                 job_id: job.id,
                 migrator_job_id: jobId,
@@ -218,8 +292,8 @@ export class CloudDbMigrateProcessor {
           await this.telemetryService.sendSystemEvent({
             event_type: 'payment_alert',
             payment_type: 'migration_n_failed',
-            message: `Database migration status check failed for workspace ${workspace.title}: ${statusError.message}`,
-            workspace: { id: workspace.id, title: workspace.title },
+            message: `Database migration status check failed for workspace ${workspaceOrOrg.title}: ${statusError.message}`,
+            workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
             extra: {
               job_id: job.id,
               migrator_job_id: jobId,
@@ -233,17 +307,19 @@ export class CloudDbMigrateProcessor {
 
       return new Promise(getStatus);
     } catch (error) {
-      await Workspace.update(workspaceId, {
-        db_job_id: null,
-      });
+      for (const workspace of workspaces) {
+        await Workspace.update(workspace.id, {
+          db_job_id: null,
+        });
+      }
 
       // Send upgrade_failed notification for general errors
-      if (workspace) {
+      if (workspaceOrOrg) {
         await this.telemetryService.sendSystemEvent({
           event_type: 'payment_alert',
           payment_type: 'migration_failed',
-          message: `Database migration failed for workspace ${workspace.title}: ${error.message}`,
-          workspace: { id: workspace.id, title: workspace.title },
+          message: `Database migration failed for workspace ${workspaceOrOrg.title}: ${error.message}`,
+          workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
           extra: {
             job_id: job.id,
             error_message: error.message,

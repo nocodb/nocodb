@@ -10,7 +10,7 @@ const emit = defineEmits(['update:modelValue', 'success'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { createWorkspace, moveToOrg } = useWorkspace()
+const { createWorkspace } = useWorkspace()
 
 const workspace = ref({})
 const isCreating = ref(false)
@@ -55,12 +55,11 @@ const _createWorkspace = async () => {
   isCreating.value = true
 
   try {
-    const workspaceRes = await createWorkspace(workspace.value)
+    const workspaceRes = props.orgId
+      ? await createWorkspace({ ...workspace.value, fk_org_id: props.orgId })
+      : await createWorkspace(workspace.value)
     if (workspaceRes) {
       emit('success', workspaceRes)
-    }
-    if (props.orgId) {
-      await moveToOrg(workspaceRes.id, props.orgId)
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

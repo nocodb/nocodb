@@ -112,6 +112,10 @@ export const nocoModuleEeMetadata = {
     /* Workspaces */
     WorkspacesService,
     WorkspaceUsersService,
+
+    /* Orgs */
+    OrgsService,
+    OrgWorkspacesService,
   ],
 };
 

@@ -52,7 +52,7 @@ function validateDbUrl(url) {
 }
 
 app.post('/api/v1/migrate', async (req, res) => {
-    const { sourceUrl, targetUrl, schemas } = req.body;
+    const { sourceUrl, targetUrl, schemas, skipCreateDb } = req.body;
 
     // Enhanced validation
     if (!validateDbUrl(sourceUrl)) {
@@ -85,7 +85,8 @@ app.post('/api/v1/migrate', async (req, res) => {
         error: null,
         // Store additional info for cleanup
         targetDbName: null,
-        databaseCreated: false
+        databaseCreated: false,
+        skipCreateDb: skipCreateDb
     });
 
     res.json({ 
@@ -95,7 +96,7 @@ app.post('/api/v1/migrate', async (req, res) => {
     });
 
     // Start async migration
-    startMigration(sourceUrl, targetUrl, schemas, jobId).catch(error => {
+    startMigration(sourceUrl, targetUrl, schemas, jobId, skipCreateDb).catch(error => {
         const sanitizedMessage = logAndSanitizeError(error, sourceUrl, targetUrl);
         updateJobStatus(jobId, 'failed', 100, `Data transfer failed: ${sanitizedMessage}`, sanitizedMessage);
     });
@@ -168,7 +169,7 @@ function addJobStep(jobId, step) {
     }
 }
 
-async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
+async function startMigration(sourceUrl, targetUrl, schemas, jobId, skipCreateDb) {
     // remove -pooler suffix from any neon url if it exists
     sourceUrl = sourceUrl.replace(/-pooler(\.[^.]+\.neon\.tech)/, '$1');
     targetUrl = targetUrl.replace(/-pooler(\.[^.]+\.neon\.tech)/, '$1');
@@ -201,16 +202,19 @@ async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
         addJobStep(jobId, `Setting up target resource`);
         updateJobStatus(jobId, 'running', 20, `Setting up target resource...`);
 
-        // Create database using connection URL (connect to maintenance database first)
-        createDbUrl = buildCreateDbUrl(targetUrl, targetDbName);
+        if (!skipCreateDb) {
+          // Create database using connection URL (connect to maintenance database first)
+          createDbUrl = buildCreateDbUrl(targetUrl, targetDbName);
+          
+          const createDbCommand = `createdb --maintenance-db="${createDbUrl}" "${targetDbName}"`;
+          await executeCommand(createDbCommand, jobId, sourceUrl, targetUrl);
+
+          databaseCreated = true; // Mark that we successfully created the database
         
-        const createDbCommand = `createdb --maintenance-db="${createDbUrl}" "${targetDbName}"`;
-        await executeCommand(createDbCommand, jobId, sourceUrl, targetUrl);
-        databaseCreated = true; // Mark that we successfully created the database
-        
-        // Update job tracking
-        if (job) {
-            job.databaseCreated = true;
+          // Update job tracking
+          if (job) {
+              job.databaseCreated = true;
+          }
         }
         
         addJobStep(jobId, 'Target resource set up successfully');
@@ -252,7 +256,7 @@ async function startMigration(sourceUrl, targetUrl, schemas, jobId) {
         const cleanupPromises = [];
 
         // Cleanup target database if we created it
-        if (databaseCreated && targetDbName && createDbUrl) {
+        if (databaseCreated && targetDbName && createDbUrl && !skipCreateDb) {
             cleanupPromises.push(
                 cleanupTargetDatabase(targetDbName, createDbUrl, jobId, sourceUrl, targetUrl)
             );

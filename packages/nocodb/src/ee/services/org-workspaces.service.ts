@@ -5,22 +5,27 @@ import {
   parseProp,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
-import { parseMetaProp } from 'src/utils/modelUtils';
 import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { User } from '~/models';
+import { JobTypes } from '~/interface/Jobs';
+import { parseMetaProp } from '~/utils/modelUtils';
 import { OrgUser, PresignedUrl, Workspace, WorkspaceUser } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import Org from '~/models/Org';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
+import { NocoJobsService } from '~/services/noco-jobs.service';
 
 const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
 
 @Injectable()
 export class OrgWorkspacesService {
-  constructor(protected readonly appHooksService: AppHooksService) {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly nocoJobsService: NocoJobsService,
+  ) {}
 
   async listWorkspaces(param: {
     user: UserType | User;
@@ -122,6 +127,14 @@ export class OrgWorkspacesService {
     await Workspace.updateOrgId({
       id: param.workspaceId,
       orgId: org.id,
+    });
+
+    await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
+      workspaceOrOrgId: param.workspaceId,
+      conditions: {
+        fk_org_id: org.id,
+      },
+      targetOrgId: org.id,
     });
 
     return org;

@@ -1,6 +1,7 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
+  CloudOrgUserRoles,
   IconType,
   IntegrationsType,
   ProjectRoles,
@@ -31,6 +32,8 @@ import {
   DataReflection,
   Domain,
   Integration,
+  Org,
+  OrgUser,
   PresignedUrl,
   Subscription,
   User,
@@ -190,6 +193,23 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     for (const workspacePayload of workspacePayloads) {
       validateParams(['title'], workspacePayload);
+
+      if (workspacePayload.fk_org_id) {
+        const org = await Org.get(workspacePayload.fk_org_id);
+        if (!org) {
+          NcError.notFound('Org not found');
+        }
+
+        // check org user table and validate the permission
+        const orgUser = await OrgUser.get(
+          workspacePayload.fk_org_id,
+          param.user.id,
+        );
+
+        if (orgUser.roles !== CloudOrgUserRoles.OWNER) {
+          NcError.forbidden('You are not the owner of the organization');
+        }
+      }
     }
 
     const workspaces = [];
@@ -197,7 +217,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     for (const workspacePayload of workspacePayloads) {
       const prepopulatedWorkspace = await this.getRandomPrepopulatedWorkspace();
 
-      if (prepopulatedWorkspace) {
+      if (prepopulatedWorkspace && !workspacePayload.fk_org_id) {
         const transferred = await this.transferOwnership({
           user: param.user,
           workspace: prepopulatedWorkspace,
@@ -222,7 +242,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
         fk_user_id: param.user.id,
         status: WorkspaceStatus.CREATED,
         plan: WorkspacePlan.FREE,
-        fk_org_id: param.user.extra?.org_id,
+        fk_org_id: workspacePayload.fk_org_id || param.user.extra?.org_id,
       });
 
       // todo: error handling

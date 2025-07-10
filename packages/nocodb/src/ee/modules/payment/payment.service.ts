@@ -12,7 +12,14 @@ import {
 import { JobTypes } from 'src/interface/Jobs';
 import type { PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { Org, Plan, Subscription, Workspace, WorkspaceUser } from '~/models';
+import {
+  Org,
+  Plan,
+  Subscription,
+  User,
+  Workspace,
+  WorkspaceUser,
+} from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import {
@@ -82,10 +89,6 @@ export class PaymentService {
       expand: ['data.tiers'],
     });
 
-    if (!prices.data.length) {
-      throw new Error('No prices found for the product');
-    }
-
     const plan = {
       title: title as PlanTitles,
       description,
@@ -121,10 +124,6 @@ export class PaymentService {
       active: true,
       expand: ['data.tiers'],
     });
-
-    if (!prices.data.length) {
-      throw new Error('No prices found for the product');
-    }
 
     Object.assign(plan, {
       title,
@@ -176,14 +175,95 @@ export class PaymentService {
       {
         invoice_settings: {
           custom_fields: [
-            { name: 'NocoDB Workspace ID', value: workspaceOrOrg.id },
-            { name: 'NocoDB Workspace Title', value: workspaceOrOrg.title },
+            {
+              name: `NocoDB ${
+                workspaceOrOrg.entity === 'org' ? 'Org' : 'Workspace'
+              } ID`,
+              value: workspaceOrOrg.id,
+            },
+            {
+              name: `NocoDB ${
+                workspaceOrOrg.entity === 'org' ? 'Org' : 'Workspace'
+              } Title`,
+              value: workspaceOrOrg.title,
+            },
           ],
         },
       },
     );
 
     return customer;
+  }
+
+  async createStripeCustomer(
+    workspaceOrOrgId: string,
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
+
+    if (!workspaceOrOrg) {
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+    }
+
+    const user = await User.get(userId, ncMeta);
+
+    if (!user) {
+      NcError.genericNotFound('User', userId);
+    }
+
+    if (!workspaceOrOrg.stripe_customer_id) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          ...(workspaceOrOrg.entity === 'workspace'
+            ? { fk_workspace_id: workspaceOrOrg.id }
+            : { fk_org_id: workspaceOrOrg.id }),
+          fk_user_id: user.id,
+          entity: `${workspaceOrOrg.entity}_${workspaceOrOrg.id}`,
+        },
+        invoice_settings: {
+          custom_fields: [
+            {
+              name: `NocoDB ${
+                workspaceOrOrg.entity === 'org' ? 'Org' : 'Workspace'
+              } ID`,
+              value: workspaceOrOrg.id,
+            },
+            {
+              name: `NocoDB ${
+                workspaceOrOrg.entity === 'org' ? 'Org' : 'Workspace'
+              } Title`,
+              value: workspaceOrOrg.title,
+            },
+          ],
+        },
+      });
+
+      if (workspaceOrOrg.entity === 'workspace') {
+        await Workspace.update(
+          workspaceOrOrg.id,
+          {
+            stripe_customer_id: customer.id,
+          },
+          ncMeta,
+        );
+
+        workspaceOrOrg.stripe_customer_id = customer.id;
+      } else {
+        await Org.update(
+          workspaceOrOrg.id,
+          {
+            stripe_customer_id: customer.id,
+          },
+          ncMeta,
+        );
+
+        workspaceOrOrg.stripe_customer_id = customer.id;
+      }
+    }
+
+    return workspaceOrOrg.stripe_customer_id;
   }
 
   async createSubscriptionForm(
@@ -272,9 +352,10 @@ export class PaymentService {
       if (customerSubscription.data.length) {
         const subscription = customerSubscription.data.find(
           (s) =>
-            // TODO: add org support
-            s.metadata.fk_workspace_id &&
-            s.metadata.fk_workspace_id === workspaceOrOrg.id &&
+            ((s.metadata.fk_org_id &&
+              s.metadata.fk_org_id === workspaceOrOrg.id) ||
+              (s.metadata.fk_workspace_id &&
+                s.metadata.fk_workspace_id === workspaceOrOrg.id)) &&
             ['active', 'trialing', 'incomplete'].includes(s.status),
         );
 
@@ -299,8 +380,18 @@ export class PaymentService {
         },
         invoice_settings: {
           custom_fields: [
-            { name: 'NocoDB Workspace ID', value: workspaceOrOrg.id },
-            { name: 'NocoDB Workspace Title', value: workspaceOrOrg.title },
+            {
+              name: `NocoDB ${
+                workspaceOrOrg.entity === 'org' ? 'Org' : 'Workspace'
+              } ID`,
+              value: workspaceOrOrg.id,
+            },
+            {
+              name: `NocoDB ${
+                workspaceOrOrg.entity === 'org' ? 'Org' : 'Workspace'
+              } Title`,
+              value: workspaceOrOrg.title,
+            },
           ],
         },
       });
@@ -747,7 +838,7 @@ export class PaymentService {
         await this.schedulePlanChange(
           workspaceOrOrgId,
           stripePrice,
-          await Plan.get(existingSub.schedule_fk_plan_id, ncMeta),
+          await Plan.get(existingSub.schedule_fk_plan_id, ncMeta, true),
           {
             scheduleType: existingSub.schedule_type,
           },
@@ -1129,9 +1220,9 @@ export class PaymentService {
 
     const subscriptionData = subscriptions.data.find(
       (s) =>
-        // TODO: add org support
-        s.metadata.fk_workspace_id &&
-        s.metadata.fk_workspace_id === workspaceOrOrg.id &&
+        ((s.metadata.fk_org_id && s.metadata.fk_org_id === workspaceOrOrg.id) ||
+          (s.metadata.fk_workspace_id &&
+            s.metadata.fk_workspace_id === workspaceOrOrg.id)) &&
         ['active', 'trialing', 'incomplete'].includes(s.status),
     );
 
@@ -1139,7 +1230,11 @@ export class PaymentService {
       NcError.genericNotFound('Subscription', workspaceOrOrgId);
     }
 
-    const plan = await Plan.get(subscriptionData.metadata.fk_plan_id, ncMeta);
+    const plan = await Plan.get(
+      subscriptionData.metadata.fk_plan_id,
+      ncMeta,
+      true,
+    );
 
     if (!plan) {
       NcError.genericNotFound('Plan', subscriptionData.metadata.fk_plan_id);
@@ -1152,6 +1247,8 @@ export class PaymentService {
     if (!price) {
       NcError.genericNotFound('Price', subscriptionData.items.data[0].price.id);
     }
+
+    console.log('subscriptionData', subscriptionData, workspaceOrOrg);
 
     const subscription = await Subscription.insert({
       fk_workspace_id:
@@ -1171,7 +1268,7 @@ export class PaymentService {
     });
 
     await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
-      workspaceId: workspaceOrOrg.id,
+      workspaceOrOrgId: workspaceOrOrg.id,
       conditions: {
         plan: plan.title,
       },
@@ -1315,7 +1412,7 @@ export class PaymentService {
     );
     if (!existing) NcError.genericNotFound('Subscription', workspaceOrOrgId);
 
-    const plan = await Plan.get(existing.fk_plan_id, ncMeta);
+    const plan = await Plan.get(existing.fk_plan_id, ncMeta, true);
     if (!plan) NcError.genericNotFound('Plan', existing.fk_plan_id);
 
     // find the loyalty vs. normal pair
@@ -1364,7 +1461,7 @@ export class PaymentService {
       );
     }
 
-    const existingPlan = await Plan.get(existing.fk_plan_id, ncMeta);
+    const existingPlan = await Plan.get(existing.fk_plan_id, ncMeta, true);
 
     const existingPrice = existingPlan.prices.find(
       (p) => p.id === existing.stripe_price_id,
@@ -1400,7 +1497,7 @@ export class PaymentService {
       if (!plan) NcError.genericNotFound('Plan', subRec.fk_plan_id);
 
       await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
-        workspaceId: workspaceOrOrgId,
+        workspaceOrOrgId,
         conditions: {
           plan: plan.title,
         },
@@ -1551,8 +1648,7 @@ export class PaymentService {
 
           if (!subRec) NcError.genericNotFound('Subscription', subscriptionId);
 
-          // TODO: add org support
-          const workspaceOrOrgId = subRec.fk_workspace_id;
+          const workspaceOrOrgId = subRec.fk_org_id || subRec.fk_workspace_id;
           const workspaceOrOrg = await getWorkspaceOrOrg(
             workspaceOrOrgId,
             Noco.ncMeta,
@@ -1562,7 +1658,7 @@ export class PaymentService {
 
           await this.updateNextInvoice(
             subRec.id,
-            await this.getNextInvoice(subRec.fk_workspace_id),
+            await this.getNextInvoice(workspaceOrOrgId),
           );
 
           if (workspaceOrOrg) {
@@ -1600,8 +1696,7 @@ export class PaymentService {
           );
           if (!subRec) NcError.genericNotFound('Subscription', subscriptionId);
 
-          // TODO: add org support
-          const wid = subRec.fk_workspace_id;
+          const wid = subRec.fk_org_id || subRec.fk_workspace_id;
           const workspaceOrOrg = await getWorkspaceOrOrg(wid, Noco.ncMeta);
 
           // Send upgrade_failed notification for payment failure
@@ -1630,8 +1725,8 @@ export class PaymentService {
           const stripeSub = obj as Stripe.Subscription;
           const planId = stripeSub.metadata.fk_plan_id;
 
-          // TODO: add org support
-          const workspaceOrOrgId = stripeSub.metadata.fk_workspace_id;
+          const workspaceOrOrgId =
+            stripeSub.metadata.fk_org_id || stripeSub.metadata.fk_workspace_id;
           const workspaceOrOrg = await getWorkspaceOrOrg(
             workspaceOrOrgId,
             Noco.ncMeta,
@@ -1709,8 +1804,7 @@ export class PaymentService {
           );
           if (!subRec) NcError.genericNotFound('Subscription', stripeSub.id);
 
-          // TODO: add org support
-          const workspaceOrOrgId = subRec.fk_workspace_id;
+          const workspaceOrOrgId = subRec.fk_org_id || subRec.fk_workspace_id;
           const workspaceOrOrg = await getWorkspaceOrOrg(
             workspaceOrOrgId,
             Noco.ncMeta,
@@ -1817,8 +1911,10 @@ export class PaymentService {
             this.logger.warn(`No Subscription found for schedule ${sched.id}`);
             break;
           }
-          // TODO: add org support
-          await this.clearScheduledDowngrade(subRec.fk_workspace_id, false);
+          await this.clearScheduledDowngrade(
+            subRec.fk_org_id || subRec.fk_workspace_id,
+            false,
+          );
           break;
         }
 

@@ -1,5 +1,5 @@
 import { XKnex } from '~/db/CustomKnex';
-import { DbServer, Workspace } from '~/models';
+import { DbServer, Org, Workspace } from '~/models';
 import SimpleLRUCache from '~/utils/cache';
 
 const DB_SERVER_CACHE = new SimpleLRUCache(1000);
@@ -9,17 +9,25 @@ export const getWorkspaceDbServer = async (
   workspaceId: string,
 ): Promise<DbServer | null> => {
   return await DB_SERVER_CACHE.get(workspaceId, async () => {
+    let org: Org | null = null;
+
     const workspace = await Workspace.get(workspaceId);
     if (!workspace) {
       throw new Error('Workspace not found');
     }
-    if (workspace.fk_db_instance_id) {
+
+    // if workspace is org workspace, use org db server
+    if (workspace.fk_org_id) {
+      org = await Org.get(workspace.fk_org_id);
+    }
+
+    if (org?.fk_db_instance_id || workspace.fk_db_instance_id) {
       const dbServer = await DbServer.getWithConfig(
-        workspace.fk_db_instance_id,
+        org?.fk_db_instance_id || workspace.fk_db_instance_id,
       );
 
       if (dbServer) {
-        dbServer.config.connection.database = workspace.id;
+        dbServer.config.connection.database = org?.id || workspace.id;
       }
 
       return dbServer;

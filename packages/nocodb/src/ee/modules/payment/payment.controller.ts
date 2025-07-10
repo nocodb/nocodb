@@ -126,6 +126,24 @@ export class PaymentController {
   }
 
   @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/payment/:workspaceOrOrgId/create-customer')
+  async createCustomer(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Body() payload: { userId: string },
+  ) {
+    return this.paymentService.createStripeCustomer(
+      workspaceOrOrgId,
+      payload.userId,
+    );
+  }
+
+  @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/payment/:workspaceOrOrgId/recover')
+  async syncSubscription(@Param('workspaceOrOrgId') workspaceOrOrgId: string) {
+    return this.paymentService.recoverSubscription(workspaceOrOrgId);
+  }
+
+  @UseGuards(AuthGuard('basic'))
   @Get('/api/internal/payment/plan')
   async getAllPlans() {
     return this.paymentService.getPlans();

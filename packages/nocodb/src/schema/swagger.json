@@ -22305,6 +22305,10 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Column"
           },
+          "fk_widget_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Widget"
+          },
           "fk_parent_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Belong to which filter ID"

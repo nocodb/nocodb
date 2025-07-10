@@ -1091,4 +1091,12 @@ export default class Filter implements FilterType {
 
     return parentData;
   }
+
+  static async rootFilterListByWidget(
+    _context: NcContext,
+    _params: any,
+    _ncMeta = Noco.ncMeta,
+  ) {
+    return [];
+  }
 }

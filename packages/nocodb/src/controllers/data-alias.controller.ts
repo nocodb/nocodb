@@ -12,7 +12,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { query, Response } from 'express';
+import { Response } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';

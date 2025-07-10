@@ -176,12 +176,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
               @click="setActiveCmdView('cmd-j')"
             >
               <div class="nc-mini-sidebar-btn">
-                <GeneralIcon icon="ncFileSearch" class="h-4 w-4" />
+                <GeneralIcon icon="ncFile" class="h-4 w-4" />
               </div>
             </div>
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
-        <div v-if="isUIAllowed('workspaceSettings')" class="px-2 w-full">
+        <div v-if="isUIAllowed('workspaceSettings')" class="px-2 my-2 w-full">
           <NcDivider class="!my-0 !border-nc-border-gray-dark" />
         </div>
         <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')">
@@ -224,7 +224,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </DashboardMiniSidebarItemWrapper>
 
         <div class="px-2 w-full">
-          <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+          <NcDivider class="!my-0 !border-nc-border-gray-dark !my-2" />
         </div>
         <DashboardMiniSidebarItemWrapper>
           <NcTooltip :title="$t('labels.myNotifications')" placement="right" hide-on-click :arrow="false">
@@ -253,7 +253,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </DashboardMiniSidebarItemWrapper>
 
         <div class="px-2 w-full">
-          <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+          <NcDivider class="!my-2 !border-nc-border-gray-dark" />
         </div>
         <DashboardMiniSidebarItemWrapper>
           <NcTooltip v-if="!isSharedBase" :title="$t('labels.createNew')" placement="right" hide-on-click :arrow="false">
@@ -262,7 +262,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </DashboardMiniSidebarItemWrapper>
       </template>
       <div v-else class="px-2 w-full">
-        <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+        <NcDivider class="!my-2 !border-nc-border-gray-dark" />
       </div>
 
       <DashboardSidebarUserInfo />

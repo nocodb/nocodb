@@ -146,15 +146,6 @@ const FEATURES = [
     isEngineering: true,
   },
   {
-    id: 'language',
-    title: 'Language',
-    description: 'Community/AI Translated',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-    isEE: true,
-  },
-  {
     id: 'cross_base_link',
     title: 'Cross Base Link',
     description: 'Enables link creation between tables in different bases.',

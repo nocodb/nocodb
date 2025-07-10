@@ -127,11 +127,11 @@ hooks.hook('page:finish', () => {
         </template>
       </a-layout-header>
 
-      <a-tooltip v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || appInfo.isOnPrem" placement="bottom">
+      <NcTooltip placement="bottom">
         <template #title>{{ $t('title.switchLanguage') }}</template>
 
         <LazyGeneralLanguage v-if="!signedIn && !route.params.baseId && !route.params.erdUuid" class="nc-lang-btn" />
-      </a-tooltip>
+      </NcTooltip>
 
       <div class="w-full h-full overflow-hidden nc-layout-base-inner">
         <slot />

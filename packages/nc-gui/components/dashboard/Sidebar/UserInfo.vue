@@ -224,7 +224,7 @@ const accountUrl = computed(() => {
 
                 <a
                   v-e="['c:nocodb:docs-open']"
-                  href="https://docs.nocodb.com"
+                  href="https://nocodb.com/docs/product-docs"
                   target="_blank"
                   class="!underline-transparent"
                   rel="noopener"

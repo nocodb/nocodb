@@ -85,25 +85,6 @@ onBeforeMount(async () => {
       'flex items-center justify-center': !hookLogs.length && !isLoading,
     }"
   >
-    <!--    <a-card class="!mb-[20px]" :body-style="{ padding: '10px' }">
-      <span v-if="appInfo.automationLogLevel === AutomationLogLevel.OFF">
-        The NC_AUTOMATION_LOG_LEVEL is set to “OFF”, no logs will be displayed.
-      </span>
-      <span v-if="appInfo.automationLogLevel === AutomationLogLevel.ERROR">
-        The NC_AUTOMATION_LOG_LEVEL is set to “ERROR”, only error logs will be displayed.
-      </span>
-      <span v-if="appInfo.automationLogLevel === AutomationLogLevel.ALL">
-        <span v-if="appInfo.ee">
-          The NC_AUTOMATION_LOG_LEVEL is set to “ALL”, both error and success logs will be displayed.
-        </span>
-        <span v-else> Upgrade to Enterprise Edition to show all the logs. </span>
-      </span>
-      <span>
-        For additional configuration options, please refer the documentation
-        <a href="https://docs.nocodb.com/developer-resources/webhooks#call-log" target="_blank" rel="noopener">here</a>.
-      </span>
-    </a-card> -->
-
     <template v-if="showLogs">
       <a-empty v-if="!hookLogs.length && !isLoading" />
       <div v-else class="flex h-full">

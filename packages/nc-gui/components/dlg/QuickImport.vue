@@ -704,7 +704,7 @@ watch(
         <GeneralIcon :icon="importMeta.icon" class="w-6 h-6" />
         {{ importMeta.header }}
         <a
-          href="https://docs.nocodb.com/tables/create-table-via-import/"
+          href="https://nocodb.com/docs/product-docs/tables/create-table-via-import"
           class="!text-nc-content-gray-subtle2 text-sm font-weight-500 ml-auto"
           target="_blank"
           rel="noopener"

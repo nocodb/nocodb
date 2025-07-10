@@ -60,7 +60,7 @@
   ],
   "servers": [
     {
-      "url": "http://localhost:8080"
+      "url": "https://app.nocodb.com"
     }
   ],
   "paths": {
@@ -16260,7 +16260,7 @@
                       "teleEnabled": false,
                       "errorReportingEnabled": true,
                       "auditEnabled": true,
-                      "ncSiteUrl": "http://localhost:8080",
+                      "ncSiteUrl": "https://app.nocodb.com",
                       "ee": false,
                       "ncAttachmentFieldSize": 20971520,
                       "ncMaxAttachmentsAllowed": 10
@@ -16358,7 +16358,7 @@
                       "teleEnabled": false,
                       "errorReportingEnabled": true,
                       "auditEnabled": true,
-                      "ncSiteUrl": "http://localhost:8080",
+                      "ncSiteUrl": "https://app.nocodb.com",
                       "ee": false,
                       "ncAttachmentFieldSize": 20971520,
                       "ncMaxAttachmentsAllowed": 10,

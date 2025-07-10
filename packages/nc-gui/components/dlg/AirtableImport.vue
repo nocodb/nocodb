@@ -312,7 +312,7 @@ const collapseKey = ref('')
 
       <template v-if="step === 1">
         <a
-          href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
+          href="https://nocodb.com/docs/product-docs/bases/import-base-from-airtable#get-airtable-credentials"
           class="!text-nc-content-gray-subtle2 text-sm font-weight-500 ml-auto"
           target="_blank"
           rel="noopener"
@@ -346,7 +346,7 @@ const collapseKey = ref('')
           <div class="flex items-end">
             <label class="text-nc-content-gray text-sm"> {{ $t('labels.personalAccessToken') }} </label>
             <a
-              href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
+              href="https://nocodb.com/docs/product-docs/bases/import-base-from-airtable#get-airtable-credentials"
               class="!text-brand text-sm ml-auto"
               target="_blank"
               rel="noopener"

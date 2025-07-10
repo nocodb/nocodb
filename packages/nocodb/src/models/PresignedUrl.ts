@@ -297,11 +297,11 @@ export default class PresignedUrl {
   ) {
     if (!data) return;
 
-    const promises = [];
+    const allItems = [];
 
     try {
       for (const d of Array.isArray(data) ? data : [data]) {
-        if (!ncIsObject(d)) {
+        if (!ncIsObject(d) || !d.meta) {
           continue;
         }
 
@@ -312,15 +312,20 @@ export default class PresignedUrl {
           (d.meta as Record<string, any>).icon &&
           (d.meta as Record<string, any>).iconType === IconType.IMAGE
         ) {
-          promises.push(
-            PresignedUrl.signAttachment({
-              attachment: (d.meta as Record<string, any>).icon,
-            }),
-          );
+          allItems.push({
+            attachment: (d.meta as Record<string, any>).icon,
+          });
         }
       }
 
-      await Promise.all(promises);
+      const batchSize = 15;
+      for (let i = 0; i < allItems.length; i += batchSize) {
+        const batch = allItems.slice(i, i + batchSize);
+        const batchPromises = batch.map(
+          (item) => PresignedUrl.signAttachment(item).catch(() => {}), // Ignore individual failures
+        );
+        await Promise.all(batchPromises);
+      }
     } catch (e) {
       logger.error('Error signing meta icon image', e);
     }

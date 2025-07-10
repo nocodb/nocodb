@@ -91,3 +91,13 @@ watch(tab, (newValue) => {
   }
 }
 </style>
+
+
+<style lang="scss">
+.ant-tabs-dropdown {
+  @apply overflow-hidden;
+  .ant-tabs-dropdown-content {
+    @apply !rounded-lg overflow-hidden border-1 border-nc-border-gray-medium;
+  }
+}
+</style>

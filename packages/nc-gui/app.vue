@@ -19,6 +19,17 @@ const { cmdK, cmdL, setActiveCmdView } = useCommand()
 
 applyNonSelectable()
 
+const { chatwootInit } = useProvideChatwoot()
+
+onMounted(() => {
+  window.addEventListener('chatwoot:ready', chatwootInit)
+})
+
+
+onBeforeUnmount(() => {
+  window.removeEventListener('chatwoot:ready', chatwootInit)
+})
+
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     if (cmdOrCtrl) {

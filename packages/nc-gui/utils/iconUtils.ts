@@ -763,6 +763,7 @@ import MdiCloudKeyOutline from '~icons/mdi/cloud-key-outline'
 import NcDiscordForum from '~icons/nc-icons/discord-forum'
 import NcCrown from '~icons/nc-icons-v2/crown'
 import NcMultiCircle from '~icons/nc-icons-v2/multi-circle'
+import NcChatwoot from '~icons/nc-icons-v2/chatwoot'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1231,6 +1232,7 @@ export const iconMap = {
   'asana': NcAsana,
   'box': NcBox,
   'githubSolid': NcGithubSolid,
+  'chatwoot': h(NcChatwoot, { stroke: 'transparent' }),
   'linear': NcLinear,
   'gitlab': NcGitlab,
   'googleCalendar': NcGoogleCalendar,

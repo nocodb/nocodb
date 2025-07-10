@@ -1,0 +1,70 @@
+import { ChartTypes, WidgetTypes } from 'nocodb-sdk';
+import type { NcRequest, WidgetType } from 'nocodb-sdk';
+import { MetricCommonHandler } from '~/db/widgets/metric/metric.common.handler';
+import { PieChartPgHandler } from '~/db/widgets/pie-chart/pie-chart.pg.handler';
+import { DonutChartPgHandler } from '~/db/widgets/donut-chart/donut-chart.pg.handler';
+import { NcError } from '~/helpers/ncError';
+import { Model, Source } from '~/models';
+
+async function getWidgetHandler(params: {
+  widget: WidgetType;
+  req: NcRequest;
+}) {
+  const { widget, req } = params;
+  const context = req.context;
+
+  const model = await Model.getByIdOrName(context, {
+    id: widget.fk_model_id,
+  });
+
+  const source = await Source.get(context, model.source_id);
+
+  if (!['pg', 'mysql'].includes(source.type)) {
+    NcError.notImplemented('Widget');
+  }
+
+  switch (widget.type) {
+    case WidgetTypes.METRIC:
+      return new MetricCommonHandler();
+    case WidgetTypes.CHART:
+      switch (widget.config.chartType) {
+        case ChartTypes.PIE:
+          if (source.type !== 'pg') {
+            NcError.notImplemented('Widget');
+          }
+          return new PieChartPgHandler();
+        case ChartTypes.DONUT:
+          if (source.type !== 'pg') {
+            NcError.notImplemented('Widget');
+          }
+          return new DonutChartPgHandler();
+        default:
+          NcError.notImplemented('Chart widget');
+      }
+      break;
+    default:
+      NcError.badRequest(
+        `Widget type ${widget.type} is not supported for data retrieval`,
+      );
+  }
+}
+
+export async function getWidgetData(params: {
+  widget: WidgetType;
+  req: NcRequest;
+}) {
+  const { widget, req } = params;
+
+  const handler = await getWidgetHandler({ widget, req });
+
+  const errors = await handler.validateWidgetData(req.context, widget as any);
+
+  if (errors?.length > 0) {
+    NcError.badRequest('Widget validation failed');
+  }
+
+  return await handler.getWidgetData({
+    widget: widget as any,
+    req,
+  });
+}

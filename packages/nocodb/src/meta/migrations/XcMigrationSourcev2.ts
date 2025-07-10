@@ -72,6 +72,7 @@ import * as nc_082_row_color_conditions from '~/meta/migrations/v2/nc_082_row_co
 import * as nc_083_permissions from '~/meta/migrations/v2/nc_083_permissions';
 import * as nc_084_hook_trigger_fields from '~/meta/migrations/v2/nc_084_hook_trigger_fields';
 import * as nc_085_base_default_role from '~/meta/migrations/v2/nc_085_base_default_role';
+import * as nc_086_dashboards_widgets from '~/meta/migrations/v2/nc_086_dashboards_widgets';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -155,6 +156,7 @@ export default class XcMigrationSourcev2 {
       'nc_083_permissions',
       'nc_084_hook_trigger_fields',
       'nc_085_base_default_role',
+      'nc_086_dashboards_widgets',
     ]);
   }
 
@@ -312,6 +314,8 @@ export default class XcMigrationSourcev2 {
         return nc_084_hook_trigger_fields;
       case 'nc_085_base_default_role':
         return nc_085_base_default_role;
+      case 'nc_086_dashboards_widgets':
+        return nc_086_dashboards_widgets;
     }
   }
 }

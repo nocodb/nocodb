@@ -52,6 +52,37 @@ export class FiltersController extends FiltersControllerCE {
     return filter;
   }
 
+  @Post(['/api/v2/meta/widgets/:widgetId/filters'])
+  @HttpCode(200)
+  @Acl('widgetFilterCreate')
+  async widgetFilterCreate(
+    @TenantContext() context: NcContext,
+    @Param('widgetId') widgetId: string,
+    @Body() body: FilterReqType,
+    @Req() req: NcRequest,
+  ) {
+    const filter = await this.filtersService.widgetFilterCreate(context, {
+      filter: body,
+      widgetId,
+      user: req.user,
+      req,
+    });
+    return filter;
+  }
+
+  @Get(['/api/v2/meta/widgets/:widgetId/filters'])
+  @Acl('widgetFilterList')
+  async widgetFilterList(
+    @TenantContext() context: NcContext,
+    @Param('widgetId') widgetId: string,
+  ) {
+    return new PagedResponseImpl(
+      await this.filtersService.widgetFilterList(context, {
+        widgetId: widgetId,
+      }),
+    );
+  }
+
   @Post(['/api/v1/db/meta/row-color-conditions/:rowColorConditionId/filters'])
   @HttpCode(200)
   @Acl('rowColorConditionsFilterCreate')

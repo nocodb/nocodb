@@ -255,3 +255,42 @@ export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
     },
   };
 }
+
+export const getDateTimeValue = (
+  modelValue: string | null,
+  col: ColumnType,
+  isXcdbBase?: boolean
+) => {
+  if (!modelValue || !dayjs(modelValue).isValid()) {
+    return '';
+  }
+
+  const dateFormat = parseProp(col?.meta)?.date_format ?? dateFormats[0];
+  const timeFormat = parseProp(col?.meta)?.time_format ?? timeFormats[0];
+  const dateTimeFormat = `${dateFormat} ${timeFormat}`;
+
+  if (!isXcdbBase) {
+    return dayjs(
+      /^\d+$/.test(modelValue) ? +modelValue : modelValue,
+      dateTimeFormat
+    ).format(dateTimeFormat);
+  }
+
+  return dayjs(modelValue).utc().local().format(dateTimeFormat);
+};
+
+export const getDateValue = (
+  modelValue: string | null | number,
+  col: ColumnType,
+  isSystemCol?: boolean
+) => {
+  const dateFormat = !isSystemCol
+    ? parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD'
+    : 'YYYY-MM-DD HH:mm:ss';
+  if (!modelValue || !dayjs(modelValue).isValid()) {
+    return '';
+  }
+  return dayjs(
+    /^\d+$/.test(String(modelValue)) ? +modelValue : modelValue
+  ).format(dateFormat);
+};

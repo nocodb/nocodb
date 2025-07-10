@@ -1375,16 +1375,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     where,
     qb,
     sort,
+    filters,
     onlySort = false,
     skipViewFilter = false,
+    skipSort = false,
   }: {
     table: Model;
     view?: View;
     where: string;
+    filters?: Filter[];
     qb;
-    sort: string;
+    sort?: string;
     onlySort?: boolean;
     skipViewFilter?: boolean;
+    skipSort?: boolean;
   }) {
     const childAliasColMap = await table.getAliasColObjMap(this.context);
 
@@ -1409,33 +1413,36 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               ]
             : []),
           ...(filter || []),
+          ...(filters || []),
         ],
         qb,
       );
     }
 
     // First priority View Sort
-    if (view) {
+    if (view && !skipSort) {
       const sortObj = await view.getSorts(this.context);
       await sortV2(this, sortObj, qb);
     }
 
-    let orderColumnBy = '';
-    await table.getColumns(this.context);
-    const orderCol = table.columns?.find((col) => col.uidt === UITypes.Order);
-    const childTn = await this.getTnPath(table);
-    if (orderCol) {
-      orderColumnBy = `${childTn}.${orderCol.column_name}`;
-    }
-    // Second priority Order column sort
-    if (orderColumnBy) {
-      qb.orderBy(orderColumnBy);
-    }
+    if (!skipSort) {
+      let orderColumnBy = '';
+      await table.getColumns(this.context);
+      const orderCol = table.columns?.find((col) => col.uidt === UITypes.Order);
+      const childTn = await this.getTnPath(table);
+      if (orderCol) {
+        orderColumnBy = `${childTn}.${orderCol.column_name}`;
+      }
+      // Second priority Order column sort
+      if (orderColumnBy) {
+        qb.orderBy(orderColumnBy);
+      }
 
-    // Third priority query string sort
-    if (!sort) return;
-    const sortObj = extractSortsObject(this.context, sort, childAliasColMap);
-    if (sortObj) await sortV2(this, sortObj, qb);
+      // Third priority query string sort
+      if (!sort) return;
+      const sortObj = extractSortsObject(this.context, sort, childAliasColMap);
+      if (sortObj) await sortV2(this, sortObj, qb);
+    }
   }
 
   async getSelectQueryBuilderForFormula(

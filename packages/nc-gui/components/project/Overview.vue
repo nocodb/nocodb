@@ -153,6 +153,7 @@ const onCreateSyncClick = () => {
         </ProjectActionItem>
         <ProjectActionCreateEmptyScript />
         <ProjectActionScriptsByNocoDB />
+        <ProjectActionCreateEmptyDashboard />
       </template>
     </div>
 

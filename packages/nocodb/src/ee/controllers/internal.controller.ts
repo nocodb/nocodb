@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { InternalController as InternalControllerCE } from 'src/controllers/internal.controller';
 import { DataReflectionService } from '~/services/data-reflection.service';
+import { DashboardsService } from '~/services/dashboards.service';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
 import { SyncModuleService } from '~/integrations/sync/module/services/sync.service';
 import { McpTokenService } from '~/services/mcp.service';
@@ -36,6 +37,7 @@ export class InternalController extends InternalControllerCE {
     private readonly columnsService: ColumnsService,
     private readonly integrationsService: IntegrationsService,
     private readonly permissionsService: PermissionsService,
+    protected readonly dashboardsService: DashboardsService,
   ) {
     super(mcpService, aclMiddleware, auditsService);
   }
@@ -74,6 +76,18 @@ export class InternalController extends InternalControllerCE {
       duplicateScript: 'base',
       setPermission: 'base',
       dropPermission: 'base',
+
+      dashboardList: 'base',
+      dashboardGet: 'base',
+      dashboardCreate: 'base',
+      dashboardUpdate: 'base',
+      dashboardDelete: 'base',
+      widgetList: 'base',
+      widgetGet: 'base',
+      widgetCreate: 'base',
+      widgetUpdate: 'base',
+      widgetDelete: 'base',
+      widgetDataGet: 'base',
     };
   }
 
@@ -134,6 +148,29 @@ export class InternalController extends InternalControllerCE {
           retentionLimit: limit,
         });
       }
+      case 'dashboardList':
+        return await this.dashboardsService.dashboardList(context, baseId);
+      case 'dashboardGet':
+        return await this.dashboardsService.dashboardGet(
+          context,
+          req.query.dashboardId as string,
+        );
+      case 'widgetList':
+        return await this.dashboardsService.widgetList(
+          context,
+          req.query.dashboardId as string,
+        );
+      case 'widgetGet':
+        return await this.dashboardsService.widgetGet(
+          context,
+          req.query.widgetId as string,
+        );
+      case 'widgetDataGet':
+        return await this.dashboardsService.widgetDataGet(
+          context,
+          req.query.widgetId as string,
+          req,
+        );
       default:
         return await super.internalAPI(
           context,
@@ -272,6 +309,48 @@ export class InternalController extends InternalControllerCE {
 
       case 'dropPermission':
         return await this.permissionsService.dropPermission(context, payload);
+
+      case 'dashboardCreate':
+        return await this.dashboardsService.dashboardCreate(
+          context,
+          payload,
+          req,
+        );
+      case 'dashboardUpdate':
+        return await this.dashboardsService.dashboardUpdate(
+          context,
+          payload.dashboardId,
+          payload,
+          req,
+        );
+      case 'dashboardDelete':
+        return await this.dashboardsService.dashboardDelete(
+          context,
+          payload.dashboardId,
+          req,
+        );
+      case 'widgetCreate':
+        return await this.dashboardsService.widgetCreate(context, payload, req);
+      case 'widgetUpdate':
+        return await this.dashboardsService.widgetUpdate(
+          context,
+          payload.widgetId,
+          payload,
+          req,
+        );
+      case 'widgetDelete':
+        return await this.dashboardsService.widgetDelete(
+          context,
+          payload.widgetId,
+          req,
+        );
+
+      case 'widgetDataGet':
+        return await this.dashboardsService.widgetDataGet(
+          context,
+          payload.widgetId,
+          req,
+        );
 
       default:
         return await super.internalAPIPost(

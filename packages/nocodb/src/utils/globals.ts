@@ -71,12 +71,18 @@ export enum MetaTable {
   DB_SERVERS = 'nc_db_servers',
   PERMISSIONS = 'nc_permissions',
   PERMISSION_SUBJECTS = 'nc_permission_subjects',
+  DASHBOARDS = 'nc_dashboards_v2',
+  WIDGETS = 'nc_widgets_v2',
 }
 
 export enum MetaTableOldV2 {
   PROJECT = 'nc_projects_v2',
   PROJECT_USERS = 'nc_project_users_v2',
   BASES = 'nc_bases_v2',
+  LAYOUT = 'nc_ds_layout_v2',
+  WIDGET = 'nc_ds_widget_v2',
+  DASHBOARD_PROJECT_DB_PROJECT_LINKINGS = 'nc_ds_dashboard_project_db_project_linkings_v2',
+  WIDGET_DB_DEPENDENCIES = 'nc_ds_widget_db_dependencies_v2',
 }
 
 export const orderedMetaTables = [
@@ -219,6 +225,8 @@ export enum CacheScope {
   DB_SERVERS = 'dbServers',
   PERMISSION = 'permission',
   PERMISSION_USER = 'permissionUser',
+  DASHBOARD = 'dashboard',
+  WIDGET = 'widget',
 }
 
 export enum CacheGetType {

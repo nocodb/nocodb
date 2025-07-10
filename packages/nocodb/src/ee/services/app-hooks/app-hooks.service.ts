@@ -84,6 +84,14 @@ import type {
 import type { SourceEvent } from '~/services/app-hooks/interfaces';
 import type { WorkspaceUpdateEvent } from '~/services/app-hooks/interfaces';
 import type { WebhookUpdateEvent } from '~/services/app-hooks/interfaces';
+import type { DashboardCreateEvent } from '~/services/app-hooks/interfaces';
+import type { DashboardUpdateEvent } from '~/services/app-hooks/interfaces';
+import type { DashboardDeleteEvent } from '~/services/app-hooks/interfaces';
+import type { DashboardDuplicateEvent } from '~/services/app-hooks/interfaces';
+import type { WidgetCreateEvent } from '~/services/app-hooks/interfaces';
+import type { WidgetUpdateEvent } from '~/services/app-hooks/interfaces';
+import type { WidgetDeleteEvent } from '~/services/app-hooks/interfaces';
+import type { WidgetDuplicateEvent } from '~/services/app-hooks/interfaces';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 
 @Injectable()
@@ -228,6 +236,46 @@ export class AppHooksService extends ApppHookServiceCE {
   on(
     event: AppEvents.SCRIPT_DUPLICATE,
     listener: (data: ScriptDuplicateEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.DASHBOARD_CREATE,
+    listener: (data: DashboardCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.DASHBOARD_UPDATE,
+    listener: (data: DashboardUpdateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.DASHBOARD_DELETE,
+    listener: (data: DashboardDeleteEvent) => void,
+  ): () => void;
+  on(
+    event:
+      | AppEvents.DASHBOARD_DUPLICATE_START
+      | AppEvents.DASHBOARD_DUPLICATE_FAIL
+      | AppEvents.DASHBOARD_DUPLICATE_COMPLETE,
+    listener: (data: DashboardDuplicateEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.WIDGET_CREATE,
+    listener: (data: WidgetCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.WIDGET_UPDATE,
+    listener: (data: WidgetUpdateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.WIDGET_DELETE,
+    listener: (data: WidgetDeleteEvent) => void,
+  ): () => void;
+  on(
+    event:
+      | AppEvents.WIDGET_DUPLICATE_START
+      | AppEvents.WIDGET_DUPLICATE_FAIL
+      | AppEvents.WIDGET_DUPLICATE_COMPLETE,
+    listener: (data: WidgetDuplicateEvent) => void,
   ): () => void;
 
   on(event, listener): () => void {
@@ -467,6 +515,28 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.SCRIPT_UPDATE, data: ScriptUpdateEvent): void;
   emit(event: AppEvents.SCRIPT_DELETE, data: ScriptDeleteEvent): void;
   emit(event: AppEvents.SCRIPT_DUPLICATE, data: ScriptDuplicateEvent): void;
+
+  emit(event: AppEvents.DASHBOARD_CREATE, data: DashboardCreateEvent): void;
+  emit(event: AppEvents.DASHBOARD_UPDATE, data: DashboardUpdateEvent): void;
+  emit(event: AppEvents.DASHBOARD_DELETE, data: DashboardDeleteEvent): void;
+  emit(
+    event:
+      | AppEvents.DASHBOARD_DUPLICATE_START
+      | AppEvents.DASHBOARD_DUPLICATE_FAIL
+      | AppEvents.DASHBOARD_DUPLICATE_COMPLETE,
+    data: DashboardDuplicateEvent,
+  ): void;
+
+  emit(event: AppEvents.WIDGET_CREATE, data: WidgetCreateEvent): void;
+  emit(event: AppEvents.WIDGET_UPDATE, data: WidgetUpdateEvent): void;
+  emit(event: AppEvents.WIDGET_DELETE, data: WidgetDeleteEvent): void;
+  emit(
+    event:
+      | AppEvents.WIDGET_DUPLICATE_START
+      | AppEvents.WIDGET_DUPLICATE_FAIL
+      | AppEvents.WIDGET_DUPLICATE_COMPLETE,
+    data: WidgetDuplicateEvent,
+  ): void;
 
   emit(
     event: AppEvents.USER_PROFILE_UPDATE,

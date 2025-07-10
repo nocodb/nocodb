@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   console.time(
@@ -54,10 +54,10 @@ const up = async (knex: Knex) => {
   );
 
   console.time(
-    `Removed foreign keys and created index for columns in '${MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS}'`,
+    `Removed foreign keys and created index for columns in '${MetaTableOldV2.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS}'`,
   );
   await knex.schema.alterTable(
-    MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
+    MetaTableOldV2.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
     async (table) => {
       table.dropForeign(
         'dashboard_project_id',
@@ -72,14 +72,14 @@ const up = async (knex: Knex) => {
     },
   );
   console.timeEnd(
-    `Removed foreign keys and created index for columns in '${MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS}'`,
+    `Removed foreign keys and created index for columns in '${MetaTableOldV2.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS}'`,
   );
 
   console.time(
-    `Removed foreign keys and created index for columns in '${MetaTable.WIDGET_DB_DEPENDENCIES}'`,
+    `Removed foreign keys and created index for columns in '${MetaTableOldV2.WIDGET_DB_DEPENDENCIES}'`,
   );
   await knex.schema.alterTable(
-    MetaTable.WIDGET_DB_DEPENDENCIES,
+    MetaTableOldV2.WIDGET_DB_DEPENDENCIES,
     async (table) => {
       table.dropForeign('widget_id');
       table.index('widget_id');
@@ -92,15 +92,17 @@ const up = async (knex: Knex) => {
     },
   );
   console.timeEnd(
-    `Removed foreign keys and created index for columns in '${MetaTable.WIDGET_DB_DEPENDENCIES}'`,
+    `Removed foreign keys and created index for columns in '${MetaTableOldV2.WIDGET_DB_DEPENDENCIES}'`,
   );
 
   console.time(
     `Removed foreign keys and created index for columns in '${MetaTable.FILTER_EXP}'`,
   );
   await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) => {
+    // New V2 Migration for dashboard already adds the index
+    // Hence commenting out this line
     table.dropForeign('fk_widget_id');
-    table.index('fk_widget_id');
+    // table.index('fk_widget_id');
   });
   console.timeEnd(
     `Removed foreign keys and created index for columns in '${MetaTable.FILTER_EXP}'`,
@@ -139,7 +141,7 @@ const down = async (knex) => {
   });
 
   await knex.schema.alterTable(
-    MetaTable.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
+    MetaTableOldV2.DASHBOARD_PROJECT_DB_PROJECT_LINKINGS,
     async (table) => {
       table.dropIndex('dashboard_project_id');
       table
@@ -155,10 +157,10 @@ const down = async (knex) => {
   );
 
   await knex.schema.alterTable(
-    MetaTable.WIDGET_DB_DEPENDENCIES,
+    MetaTableOldV2.WIDGET_DB_DEPENDENCIES,
     async (table) => {
       table.dropIndex('widget_id');
-      table.foreign('widget_id').references(`${MetaTable.WIDGET}.id`);
+      table.foreign('widget_id').references(`${MetaTableOldV2.WIDGET}.id`);
       table.dropIndex('model_id');
       table.foreign('model_id').references(`${MetaTable.MODELS}.id`);
       table.dropIndex('view_id');
@@ -170,7 +172,7 @@ const down = async (knex) => {
 
   await knex.schema.alterTable(MetaTable.FILTER_EXP, (table) => {
     table.dropIndex('fk_widget_id');
-    table.foreign('fk_widget_id').references(`${MetaTable.WIDGET}.id`);
+    table.foreign('fk_widget_id').references(`${MetaTableOldV2.WIDGET}.id`);
   });
 };
 

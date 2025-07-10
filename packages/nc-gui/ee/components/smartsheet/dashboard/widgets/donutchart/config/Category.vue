@@ -1,0 +1,64 @@
+<script setup lang="ts">
+const emit = defineEmits<{
+  'update:category': [category: any]
+}>()
+
+const { selectedWidget } = storeToRefs(useWidgetStore())
+
+const modelId = computed(() => selectedWidget.value?.fk_model_id || null)
+const selectedFieldId = ref(selectedWidget.value?.config?.data?.category?.column_id || null)
+const selectedOrderValue = ref(selectedWidget.value?.config?.data?.category?.orderBy || 'default')
+const includeEmptyRecords = ref(selectedWidget.value?.config?.data?.category?.includeEmptyRecords || false)
+
+const fieldOrderOptions = [
+  { value: 'default', label: 'Default field order' },
+  { value: 'asc', label: 'Ascending' },
+  { value: 'desc', label: 'Descending' },
+]
+
+const handleChange = () => {
+  emit('update:category', {
+    column_id: selectedFieldId.value,
+    orderBy: selectedOrderValue.value,
+    includeEmptyRecords: includeEmptyRecords.value,
+  })
+}
+</script>
+
+<template>
+  <div class="flex flex-col gap-4">
+    <div class="text-nc-content-gray text-bodyBold">Category</div>
+    <div class="flex flex-col gap-2 flex-1 min-w-0">
+      <label>Field</label>
+      <NSelectField
+        :key="modelId"
+        v-model:value="selectedFieldId"
+        :disabled="!modelId"
+        :table-id="modelId"
+        @update:value="handleChange"
+      />
+    </div>
+
+    <div class="flex flex-col gap-2 flex-1 min-w-0">
+      <label>Order</label>
+      <a-select
+        v-model:value="selectedOrderValue"
+        :disabled="!selectedFieldId"
+        :options="fieldOrderOptions"
+        class="nc-select-shadow"
+        placeholder="Aggregation"
+        @update:value="handleChange"
+      >
+        <template #suffixIcon>
+          <GeneralIcon icon="arrowDown" class="text-gray-700" />
+        </template>
+      </a-select>
+    </div>
+
+    <div>
+      <NcSwitch v-model:checked="includeEmptyRecords" @change="handleChange">
+        <span class="text-caption text-nc-content-gray select-none">Include empty records</span>
+      </NcSwitch>
+    </div>
+  </div>
+</template>

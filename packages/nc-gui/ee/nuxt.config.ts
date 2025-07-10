@@ -16,6 +16,17 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
+  experimental: {
+    componentIslands: false,
+  },
+  modules: ['nuxt-echarts', '@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt'],
+  echarts: {
+    renderer: ['canvas'],
+    charts: ['BarChart', 'LineChart', 'PieChart'],
+    components: ['DatasetComponent', 'GridComponent', 'TooltipComponent', 'TitleComponent', 'LegendComponent'],
+    ssr: false,
+  },
+  ssr: false,
   alias: {
     '@': resolve(__dirname),
   },

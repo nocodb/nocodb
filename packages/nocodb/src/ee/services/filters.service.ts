@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { FiltersService as FiltersServiceCE } from 'src/services/filters.service';
 import { AppEvents, isLinksOrLTAR } from 'nocodb-sdk';
-import type { FilterReqType, UserType } from 'nocodb-sdk';
+import type { FilterReqType, UserType, WidgetType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
@@ -10,6 +10,7 @@ import { Column, Filter, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import Widget from '~/models/Widget';
 
 @Injectable()
 export class FiltersService extends FiltersServiceCE {
@@ -111,8 +112,50 @@ export class FiltersService extends FiltersServiceCE {
     return filter;
   }
 
+  async widgetFilterCreate(
+    context: NcContext,
+    param: {
+      filter: FilterReqType;
+      widgetId: string;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
+
+    const widget = await Widget.get(context, param.widgetId);
+
+    if (!widget) {
+      NcError.badRequest('Widget not found');
+    }
+
+    const filter = await Filter.insert(context, {
+      ...param.filter,
+      fk_widget_id: param.widgetId,
+    });
+
+    this.appHooksService.emit(AppEvents.FILTER_CREATE, {
+      filter,
+      column:
+        param.filter.fk_column_id &&
+        (await Column.get(context, {
+          colId: param.filter.fk_column_id,
+        })),
+      widget:
+        param.filter.fk_widget_id &&
+        ((await Widget.get(context, param.filter.fk_widget_id)) as WidgetType),
+      req: param.req,
+      context,
+    });
+    return filter;
+  }
+
   async linkFilterList(context: NcContext, param: { columnId: any }) {
     return Filter.rootFilterListByLink(context, { columnId: param.columnId });
+  }
+
+  async widgetFilterList(context: NcContext, param: { widgetId: any }) {
+    return Filter.rootFilterListByWidget(context, { widgetId: param.widgetId });
   }
 
   async rowColorConditionsCreate(

@@ -17,6 +17,7 @@ export interface StatefulGroupProps {
 
   webHook?: boolean
   link?: boolean
+  widget?: boolean
   isForm?: boolean
   isPublic?: boolean
   isFullWidth?: boolean

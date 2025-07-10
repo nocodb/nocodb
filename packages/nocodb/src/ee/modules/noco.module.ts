@@ -40,6 +40,9 @@ import { SnapshotService } from '~/services/snapshot.service';
 /* Scripts */
 import { ScriptsService } from '~/services/scripts.service';
 
+/* Dashboards */
+import { DashboardsService } from '~/services/dashboards.service';
+
 export const nocoModuleEeMetadata = {
   imports: [
     ...nocoModuleMetadata.imports,
@@ -73,6 +76,9 @@ export const nocoModuleEeMetadata = {
 
     /* Scripts */
     ScriptsService,
+
+    /* Dashboards */
+    DashboardsService,
   ],
   controllers: [
     ActionsController,

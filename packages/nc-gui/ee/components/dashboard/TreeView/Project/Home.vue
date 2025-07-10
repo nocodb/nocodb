@@ -2,12 +2,19 @@
 import type { SourceType, TableType } from 'nocodb-sdk'
 import { PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 import Automation from '../Automation.vue'
+import Dashboard from '../Dashboard.vue'
 
 const router = useRouter()
 const route = router.currentRoute
 
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
+
+const dashboardStore = useDashboardStore()
+
+const { isDashboardEnabled } = storeToRefs(dashboardStore)
+
+const { openNewDashboardModal } = dashboardStore
 
 const { openNewScriptModal } = useAutomationStore()
 
@@ -345,6 +352,17 @@ const showCreateNewAsDropdown = computed(() => {
                   <div class="flex-1 w-full" />
                   <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Beta </NcBadge>
                 </NcMenuItem>
+                <NcMenuItem
+                  v-if="isDashboardEnabled"
+                  inner-class="w-full"
+                  data-testid="create-new-script"
+                  @click="openNewDashboardModal({ baseId: base.id })"
+                >
+                  <GeneralIcon icon="dashboards" />
+                  New Dashboard
+                  <div class="flex-1 w-full" />
+                  <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Beta </NcBadge>
+                </NcMenuItem>
               </NcMenu>
             </template>
           </NcDropdown>
@@ -623,6 +641,7 @@ const showCreateNewAsDropdown = computed(() => {
         </div>
       </div>
       <Automation v-if="isAutomationEnabled && !isSharedBase && isUIAllowed('scriptList')" :base-id="base.id" />
+      <Dashboard v-if="isDashboardEnabled && !isSharedBase && isUIAllowed('dashboardList')" :base-id="base.id" />
     </div>
 
     <slot name="footer"> </slot>

@@ -5,11 +5,13 @@ import type {
 } from 'src/services/app-hooks/interfaces';
 import type {
   BaseType,
+  DashboardType,
   IntegrationType,
   PlanFeatureTypes,
   PlanLimitTypes,
   ScriptType,
   UserType,
+  WidgetType,
   WorkspaceType,
 } from 'nocodb-sdk';
 import type Snapshot from '~/models/Snapshot';
@@ -107,6 +109,52 @@ export interface ScriptDuplicateEvent extends NcBaseEvent {
   error?: string;
   sourceScript: ScriptType;
   destScript: ScriptType;
+  user: UserType;
+}
+
+export interface DashboardCreateEvent extends NcBaseEvent {
+  dashboard: DashboardType;
+  user: UserType;
+}
+
+export interface DashboardUpdateEvent extends NcBaseEvent {
+  dashboard: DashboardType;
+  user: UserType;
+  oldDashboard: DashboardType;
+}
+
+export interface DashboardDeleteEvent extends NcBaseEvent {
+  dashboard: DashboardType;
+  user: UserType;
+}
+
+export interface DashboardDuplicateEvent extends NcBaseEvent {
+  error?: string;
+  sourceDashboard: DashboardType;
+  destDashboard: DashboardType;
+  user: UserType;
+}
+
+export interface WidgetCreateEvent extends NcBaseEvent {
+  widget: WidgetType;
+  user: UserType;
+}
+
+export interface WidgetUpdateEvent extends NcBaseEvent {
+  widget: WidgetType;
+  user: UserType;
+  oldWidget: WidgetType;
+}
+
+export interface WidgetDeleteEvent extends NcBaseEvent {
+  widget: WidgetType;
+  user: UserType;
+}
+
+export interface WidgetDuplicateEvent extends NcBaseEvent {
+  error?: string;
+  sourceWidget: WidgetType;
+  destWidget: WidgetType;
   user: UserType;
 }
 

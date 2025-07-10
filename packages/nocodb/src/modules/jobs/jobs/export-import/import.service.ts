@@ -21,8 +21,8 @@ import type {
   LinksColumn,
   LinkToAnotherRecordColumn,
   User,
-  View,
 } from '~/models';
+import { View } from '~/models';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import { sanitizeColumnName } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -1700,6 +1700,10 @@ export class ImportService {
     if (vw.is_default) {
       const view = views.find((a) => a.is_default);
       if (view) {
+        // update meta and coloring mode to default view
+        if (vw.row_coloring_mode || Object.keys(vw.meta ?? {}).length > 0) {
+          await View.update(context, view.id, vw);
+        }
         const gridData = withoutNull(vw.view);
         if (gridData) {
           await this.gridsService.gridViewUpdate(context, {

@@ -872,15 +872,6 @@ const getPluralName = (name: string) => {
             </template>
           </template>
         </div>
-        <!-- <a
-          v-if="!form.copy_from_id"
-          class="text-sm !text-gray-600 !font-default !hover:text-gray-600"
-          :href="`https://docs.nocodb.com/views/view-types/${typeAlias}`"
-          target="_blank"
-        >
-          Docs
-        </a> -->
-
         <AiToggleButton
           v-if="!isAIViewCreateMode && isNecessaryColumnsPresent && isAiFeaturesEnabled"
           :ai-mode="aiMode"

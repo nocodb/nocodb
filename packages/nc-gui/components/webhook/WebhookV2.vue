@@ -449,7 +449,7 @@ const toggleSamplePayload = () => {
 const supportedDocs = [
   {
     title: 'Getting started',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook/',
+    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook',
   },
   {
     title: 'Create webhook',

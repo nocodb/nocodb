@@ -2,7 +2,7 @@
 const supportedDocs = [
   {
     title: 'Permissions Overview',
-    href: 'https://nocodb.com/docs/product-docs/roles-and-permissions/roles-permissions-overview',
+    href: 'https://nocodb.com/docs/product-docs/roles-and-permissions',
   },
   {
     title: 'Setting up Table Permissions',

@@ -2099,7 +2099,7 @@ declare interface Table {
    * @param data - Array of record data
    * @returns Array of created record IDs
    */
-  createRecordsAsync(data: Array<{ [key: string]: unknown }>): Promise<string[]>
+  createRecordsAsync(data: Array<{ fields: { [key: string]: unknown } }>): Promise<string[]>
 
   /**
    * Updates field values for a record.
@@ -3143,7 +3143,7 @@ declare interface ConfigItem {}
       '@param data - Array of record data',
       '@returns Array of created record IDs',
     ])
-    this.write(`createRecordsAsync(data: Array<${generateFieldKeysType(table.fields, true)}>): Promise<string[]>`)
+    this.write(`createRecordsAsync(data: Array<{fields: ${generateFieldKeysType(table.fields, true)}}>): Promise<string[]>`)
 
     this.formatJSDoc([
       'Updates field values for a record.',

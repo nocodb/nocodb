@@ -176,12 +176,6 @@ export class DataV3Service {
       if (columns) {
         const column = columns.find((col) => col.title === key);
         if (column?.uidt === UITypes.LinkToAnotherRecord) {
-          // Get column options to determine relation type
-          const colOptions = (await column.getColOptions(
-            context,
-          )) as LinkToAnotherRecordColumn;
-          const relationType = colOptions.type;
-
           if (Array.isArray(value)) {
             // Check depth limit to prevent unbounded recursion
             if (depth >= MAX_NESTING_DEPTH) {

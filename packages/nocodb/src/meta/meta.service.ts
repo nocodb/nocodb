@@ -341,6 +341,8 @@ export class MetaService {
       [MetaTable.SYNC_CONFIGS]: 'sync',
       [MetaTable.PERMISSIONS]: 'perm',
       [MetaTable.PERMISSION_SUBJECTS]: 'pers',
+      [MetaTable.DASHBOARDS]: 'dash',
+      [MetaTable.WIDGETS]: 'wgt',
     };
 
     const prefix = prefixMap[target] || 'nc';

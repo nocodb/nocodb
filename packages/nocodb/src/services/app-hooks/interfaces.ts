@@ -15,6 +15,7 @@ import type {
   TableType,
   UserType,
   ViewType,
+  WidgetType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { CustomUrl } from '~/models';
@@ -228,6 +229,9 @@ type FilterEventAdditionalProp =
     }
   | {
       linkColumn: ColumnType;
+    }
+  | {
+      widget: WidgetType;
     };
 
 export type FilterEvent = NcBaseEvent & {

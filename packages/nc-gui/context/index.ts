@@ -23,6 +23,7 @@ export const IsGroupByInj: InjectionKey<Ref<boolean>> = Symbol('is-group-by-inje
 export const IsGroupByLabelInj: InjectionKey<Ref<boolean>> = Symbol('is-group-by-label-injection')
 export const IsGalleryInj: InjectionKey<Ref<boolean>> = Symbol('is-gallery-injection')
 export const IsKanbanInj: InjectionKey<Ref<boolean>> = Symbol('is-kanban-injection')
+export const IsDashboardInj: InjectionKey<Ref<boolean>> = Symbol('is-dashboard-injection')
 export const IsLockedInj: InjectionKey<Ref<boolean>> = Symbol('is-locked-injection')
 export const IsExpandedFormOpenInj: InjectionKey<Ref<boolean>> = Symbol('is-expanded-form-open-injection')
 export const IsExpandedBulkUpdateFormOpenInj: InjectionKey<Ref<boolean>> = Symbol('is-expanded-bulk-update-form-open-injection')

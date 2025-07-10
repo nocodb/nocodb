@@ -563,6 +563,11 @@ import NcVerticalAlignBottom from '~icons/nc-icons/align-vertical-bottom.svg'
 import NcAngleRotateCw from '~icons/nc-icons/angle-rotate-cw.svg'
 import NcCheckCircle2 from '~icons/nc-icons/check-2.svg'
 import NcMessageCircleFilled from '~icons/nc-icons-v2/message-circle-filled.svg'
+import NcChartScatterPlot from '~icons/nc-icons-v2/scatter-plot.svg'
+import NcChartDonut from '~icons/nc-icons-v2/chart-donut.svg'
+import NcChartBar from '~icons/nc-icons-v2/chart-bar.svg'
+import NcChartLine from '~icons/nc-icons-v2/chart-line.svg'
+import NcChartPie from '~icons/nc-icons-v2/chart-pie.svg'
 
 import NcSlash1 from '~icons/nc-icons/slash1'
 
@@ -598,6 +603,7 @@ import NcAutoAwesome from '~icons/nc-icons/auto_awesome'
 import NcPlusAi from '~icons/nc-icons/plus-ai'
 import NcPlusMultiple from '~icons/nc-icons/plus-multiple'
 import NcPlusSquareSolid from '~icons/nc-icons/plus-square-solid'
+import NcDashboards from '~icons/nc-icons/dashboards'
 
 /* file types */
 
@@ -1297,6 +1303,7 @@ export const iconMap = {
   'iconTwitter': NcTwitterIcon,
   'iconDiscord': NcDiscordIcon,
   'attachFile': MdiNcAttachFile,
+  'dashboards': NcDashboards,
 
   // Nc-IconsV2 Buttons
   'ncColumns': NcColumnsIcon,
@@ -1733,6 +1740,11 @@ export const iconMap = {
   'ncHeadphone': NcHeadphone,
   'ncCrown': NcCrown,
   'ncMultiCircle': NcMultiCircle,
+  'ncChartScatterPlot': h(NcChartScatterPlot, { stroke: 'transparent' }),
+  'ncChartBar': h(NcChartBar, { stroke: 'transparent' }),
+  'ncChartLine': h(NcChartLine, { stroke: 'transparent' }),
+  'ncChartDonut': h(NcChartDonut, { stroke: 'transparent' }),
+  'ncChartPie': h(NcChartPie, { stroke: 'transparent' }),
 }
 
 export const getMdiIcon = (type: string): any => {

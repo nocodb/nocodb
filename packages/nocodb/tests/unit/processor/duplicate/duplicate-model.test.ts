@@ -29,7 +29,7 @@ function duplicateModelTests() {
     console.timeEnd('#### duplicateColumnTests');
   });
 
-  it('will duplicate Title column successfully', async () => {
+  it('will duplicate model successfully', async () => {
     const user = context.context.user;
     const table1 = await getTable({
       base: context.base,

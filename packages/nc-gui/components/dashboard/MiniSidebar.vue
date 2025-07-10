@@ -24,6 +24,8 @@ const { isSharedBase } = storeToRefs(useBase())
 
 const { isUIAllowed } = useRoles()
 
+const { setActiveCmdView } = useCommand()
+
 const isProjectListOrHomePageOpen = computed(() => {
   return (
     route.value.name?.startsWith('index-typeOrId-baseId-') ||
@@ -109,7 +111,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
             <div class="flex gap-1.5">
-              {{ $t('objects.projects') }}
+              {{ $t('labels.baseList') }}
               <div class="px-1 text-bodySmBold text-white bg-gray-700 rounded">{{ renderAltOrOptlKey(true) }} B</div>
             </div>
           </template>
@@ -126,18 +128,21 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </div>
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
+      <div class="px-2 w-full">
+          <NcDivider class="!border-nc-border-gray-dark !my-1" />
+        </div>
 
       <template v-if="!isMobileMode">
         <DashboardMiniSidebarItemWrapper>
           <NcTooltip placement="right" hide-on-click :arrow="false">
             <template #title>
-              <div class="flex items-center gap-1">{{ renderCmdOrCtrlKey(true) }} K</div>
+              <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
             </template>
             <div
               v-e="['c:quick-actions']"
               class="nc-mini-sidebar-btn-full-width"
               data-testid="nc-sidebar-cmd-k-btn"
-              @click="commandPalette?.open()"
+              @click="setActiveCmdView('cmd-k')"
             >
               <div class="nc-mini-sidebar-btn">
                 <GeneralIcon icon="search" class="h-4 w-4" />
@@ -145,11 +150,50 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </div>
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
-        <div v-if="isUIAllowed('workspaceSettings')" class="px-2 w-full">
+        <DashboardMiniSidebarItemWrapper>
+          <NcTooltip placement="right" hide-on-click :arrow="false">
+            <template #title>
+              <div class="flex items-center gap-1">{{ $t('labels.recentViews') }} {{ renderCmdOrCtrlKey(true) }} L</div>
+            </template>
+            <div
+              v-e="['c:quick-actions']"
+              class="nc-mini-sidebar-btn-full-width"
+              data-testid="nc-sidebar-cmd-l-btn"
+              @click="setActiveCmdView('cmd-l')"
+            >
+              <div class="nc-mini-sidebar-btn">
+                <MdiClockOutline class="h-4 w-4" />
+              </div>
+            </div>
+          </NcTooltip>
+        </DashboardMiniSidebarItemWrapper>
+        <DashboardMiniSidebarItemWrapper>
+          <NcTooltip placement="right" hide-on-click :arrow="false">
+            <template #title>
+              <div class="flex items-center gap-1">{{ $t('labels.searchDocumentation') }} {{ renderCmdOrCtrlKey(true) }} J</div>
+            </template>
+            <div
+              v-e="['c:quick-actions']"
+              class="nc-mini-sidebar-btn-full-width"
+              data-testid="nc-sidebar-cmd-j-btn"
+              @click="setActiveCmdView('cmd-j')"
+            >
+              <div class="nc-mini-sidebar-btn">
+                <GeneralIcon icon="ncFile" class="h-4 w-4" />
+              </div>
+            </div>
+          </NcTooltip>
+        </DashboardMiniSidebarItemWrapper>
+        <div v-if="isUIAllowed('workspaceSettings')" class="px-2 my-2 w-full">
           <NcDivider class="!my-0 !border-nc-border-gray-dark" />
         </div>
         <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')">
-          <NcTooltip :title="$t('title.teamAndSettings')" placement="right" hide-on-click :arrow="false">
+          <NcTooltip
+            :title="`${$t('objects.workspace')} ${$t('labels.settings')}`"
+            placement="right"
+            hide-on-click
+            :arrow="false"
+          >
             <div
               v-e="['c:team:settings']"
               class="nc-mini-sidebar-btn-full-width"
@@ -168,7 +212,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
         <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings')">
-          <NcTooltip :title="$t('general.integrations')" placement="right" hide-on-click :arrow="false">
+          <NcTooltip
+            :title="`${$t('objects.workspace')} ${$t('general.integrations')}`"
+            placement="right"
+            hide-on-click
+            :arrow="false"
+          >
             <div
               v-e="['c:integrations']"
               class="nc-mini-sidebar-btn-full-width"
@@ -188,10 +237,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </DashboardMiniSidebarItemWrapper>
 
         <div class="px-2 w-full">
-          <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+          <NcDivider class="!my-0 !border-nc-border-gray-dark !my-2" />
         </div>
         <DashboardMiniSidebarItemWrapper>
-          <NcTooltip :title="$t('general.notification')" placement="right" hide-on-click :arrow="false">
+          <NcTooltip :title="$t('labels.myNotifications')" placement="right" hide-on-click :arrow="false">
             <NotificationMenu />
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
@@ -215,9 +264,13 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             <DashboardSidebarFeed />
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
-
+        <DashboardMiniSidebarItemWrapper>
+          <NcTooltip :title="`${$t('labels.chatWithNocoDBSupport')}!`" placement="right" hide-on-click :arrow="false">
+            <DashboardSidebarChatSupport />
+          </NcTooltip>
+        </DashboardMiniSidebarItemWrapper>
         <div class="px-2 w-full">
-          <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+          <NcDivider class="!my-2 !border-nc-border-gray-dark" />
         </div>
         <DashboardMiniSidebarItemWrapper>
           <NcTooltip v-if="!isSharedBase" :title="$t('labels.createNew')" placement="right" hide-on-click :arrow="false">
@@ -226,7 +279,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </DashboardMiniSidebarItemWrapper>
       </template>
       <div v-else class="px-2 w-full">
-        <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+        <NcDivider class="!my-2 !border-nc-border-gray-dark" />
       </div>
 
       <DashboardSidebarUserInfo />

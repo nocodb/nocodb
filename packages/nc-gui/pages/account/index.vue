@@ -216,18 +216,13 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 
               <LazyGeneralReleaseInfo />
 
-              <a-tooltip
-                v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || appInfo.isOnPrem"
-                placement="bottom"
-                :mouse-enter-delay="1"
-                class="mr-4"
-              >
-                <template #title>{{ $t('title.switchLanguage') }}</template>
+              <NcTooltip placement="bottom" class="mr-4">
+                <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
                 <div class="flex items-center">
-                  <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-gray-800" />
+                  <LazyGeneralLanguage button class="cursor-pointer text-2xl hover:text-gray-800" />
                 </div>
-              </a-tooltip>
+              </NcTooltip>
 
               <template v-if="signedIn">
                 <NcDropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">

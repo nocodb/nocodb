@@ -255,15 +255,12 @@ useEventListener(document, 'click', handleClose, true)
 
 // search with email or display_name
 const filterOption = (input: string, option: any): boolean => {
-  const opt = options.value.find((o) => o.id === option.value);
-  if (!opt) return false;
+  const opt = options.value.find((o) => o.id === option.value)
+  if (!opt) return false
 
-  const inputLower = input.toLowerCase();
-  return (
-      opt.display_name?.toLowerCase().includes(inputLower) ||
-      opt.email?.toLowerCase().includes(inputLower)
-  );
-};
+  const inputLower = input.toLowerCase()
+  return opt.display_name?.toLowerCase().includes(inputLower) || opt.email?.toLowerCase().includes(inputLower)
+}
 
 // check if user is part of the base
 const isCollaborator = (userIdOrEmail) => {

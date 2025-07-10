@@ -121,13 +121,21 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, 
   if (rowId && !isPublic.value) {
     expandedFormRow.value = undefined
 
-    router.push({
+    const routeParams = {
       query: {
         ...routeQuery.value,
         rowId,
         path: path.join('-'),
+        // Remove expand from query to avoid triggering the expanded form on closing the dialog
+        expand: undefined,
       },
-    })
+    }
+    // if expand is true, replace the route to avoid adding a new history entry
+    if (routeQuery.value.expand) {
+      router.replace(routeParams)
+    } else {
+      router.push(routeParams)
+    }
   } else {
     expandedFormRow.value = row
     expandedFormDlg.value = true

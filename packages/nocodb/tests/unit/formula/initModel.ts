@@ -315,3 +315,33 @@ export async function initQrBarcodeColumns(context: ITestContext) {
     relationColumnId: t2_HM_t1_Ltar.id,
   });
 }
+
+export async function initFormulaLookupColumns(context: ITestContext) {
+  const formulaColumn = await createColumn(
+    context.context,
+    context.tables.table1,
+    {
+      title: 'FormulaTitle',
+      uidt: UITypes.Formula,
+      formula: '{Title}',
+      formula_raw: '{Title}',
+    },
+  );
+  const t2_HM_t1_Ltar = (
+    await context.tables.table2.getColumns(context.ctx)
+  ).find((col) => col.title === 'T1s');
+  const source = (await context.base.getSources())[0];
+
+  await createLookupColumn(context.context, {
+    base: context.base,
+    title: 'table1FormulaTitle',
+    table: await Model.getByIdOrName(context.ctx, {
+      base_id: context.base.id,
+      source_id: source.id!,
+      id: context.tables.table2.id,
+    }),
+    relatedTableName: context.tables.table1.table_name,
+    relatedTableColumnTitle: 'FormulaTitle',
+    relationColumnId: t2_HM_t1_Ltar.id,
+  });
+}

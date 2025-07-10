@@ -119,6 +119,7 @@ import {
   generateAuditV1Payload,
   nocoExecute,
   populateUpdatePayloadDiff,
+  processConcurrently,
   remapWithAlias,
   removeBlankPropsAndMask,
 } from '~/utils';
@@ -5620,27 +5621,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      const batchSize = 15;
+      await processConcurrently(
+        allAttachments,
+        async (item) => {
+          try {
+            await PresignedUrl.signAttachment({
+              attachment: item,
+              filename: item.title,
+            });
+          } catch (e) {}
+        },
+        15,
+      );
 
-      // Process attachments in batches
-      for (let i = 0; i < allAttachments.length; i += batchSize) {
-        const batch = allAttachments.slice(i, i + batchSize);
-        const batchPromises = batch.map(
-          (attachment) =>
-            PresignedUrl.signAttachment({
-              attachment,
-              filename: attachment.title,
-            }).catch(() => {}), // Ignore individual failures
-        );
-        await Promise.all(batchPromises);
-      }
-
-      // Process thumbnails in batches
-      for (let i = 0; i < allThumbnails.length; i += batchSize) {
-        const batch = allThumbnails.slice(i, i + batchSize);
-        const batchPromises = batch.map(
-          ({ attachment, thumbnailKey, thumbnailPath }) =>
-            PresignedUrl.signAttachment({
+      await processConcurrently(
+        allThumbnails,
+        async ({ attachment, thumbnailKey, thumbnailPath }) => {
+          try {
+            await PresignedUrl.signAttachment({
               attachment: {
                 ...attachment,
                 ...(attachment.path
@@ -5650,10 +5648,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               filename: attachment.title,
               mimetype: 'image/jpeg',
               nestedKeys: ['thumbnails', thumbnailKey],
-            }).catch(() => {}), // Ignore individual failures
-        );
-        await Promise.all(batchPromises);
-      }
+            });
+          } catch (e) {}
+        },
+        15,
+      );
     } catch (error) {
       // Log error but don't throw to avoid breaking the entire response
       console.warn('Error in _convertAttachmentType:', error.message);

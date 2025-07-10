@@ -104,4 +104,8 @@ const createProject = async (
   )) as Base;
 };
 
-export { createProject, createSharedBase, createSakilaProject };
+const listBase = (workspaceId?: string) => {
+  return Base.list(workspaceId);
+};
+
+export { createProject, createSharedBase, createSakilaProject, listBase };

@@ -95,8 +95,8 @@ const topbarBreadcrumbItemWidth = computed(() => {
         </div>
         <LazySmartsheetTopbarShareProject v-if="!activeAutomationId" />
 
-        <div v-if="isSharedBase && (!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || appInfo.isOnPrem)">
-          <LazyGeneralLanguage class="cursor-pointer text-lg hover:(text-black bg-gray-200) mr-0 p-1.5 rounded-md" />
+        <div v-if="isSharedBase">
+          <LazyGeneralLanguage button class="cursor-pointer text-lg hover:(text-black bg-gray-200) mr-0 p-1.5 rounded-md" />
         </div>
       </div>
     </template>

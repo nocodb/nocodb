@@ -387,7 +387,7 @@ const selectOption = (option) => {
             class="font-medium text-nc-content-gray cursor-pointer gap-2 flex items-center font-bold leading-6"
             data-testid="nc-calendar-sidebar-filter"
           >
-            <div>
+            <div class="truncate">
               <span class="capitalize">
                 {{ sideBarFilterOption !== 'allRecords' ? $t('objects.records') : '' }}
               </span>

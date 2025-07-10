@@ -30,8 +30,6 @@ async function changeLanguage(lang: { label: string; value: string }) {
   $e('c:navbar:lang', { lang })
 }
 
-const currentLocale = computed(() => locale.value)
-
 const isDropdownOpen = ref(false)
 </script>
 
@@ -53,7 +51,7 @@ const isDropdownOpen = ref(false)
       <div class="flex items-center text-nc-content-gray justify-between">
         <div class="flex items-center min-w-24 gap-2">
           <MaterialSymbolsTranslate class="text-caption nc-menu-translate" />
-          <span class="text-caption">{{ Language[currentLocale] }}</span>
+          <span class="text-caption">{{ Language[locale] }}</span>
         </div>
         <GeneralIcon icon="arrowDown" class="text-caption nc-menu-translate" />
       </div>
@@ -63,7 +61,7 @@ const isDropdownOpen = ref(false)
     </div>
 
     <template #overlay>
-      <NcList :value="currentLocale" :list="languages" @change="changeLanguage" />
+      <NcList :value="locale" :list="languages" @change="changeLanguage" />
     </template>
   </NcDropdown>
 </template>

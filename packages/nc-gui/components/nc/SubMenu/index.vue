@@ -62,16 +62,40 @@ const props = withDefaults(
       @apply py-0.5 text-small leading-5 font-weight-550;
     }
 
-    &.nc-variant-small .nc-submenu-title {
-      @apply min-h-7;
+    &.nc-variant-small {
+      .nc-submenu-title {
+        @apply min-h-7;
+      }
+
+      &.nc-sub-menu-item-icon-only {
+        .nc-submenu-title {
+          @apply !min-h-6;
+        }
+      }
     }
 
-    &.nc-variant-medium .nc-submenu-title {
-      @apply min-h-8;
+    &.nc-variant-medium {
+      .nc-submenu-title {
+        @apply min-h-8;
+      }
+
+      &.nc-sub-menu-item-icon-only {
+        .nc-submenu-title {
+          @apply !min-h-7;
+        }
+      }
     }
 
-    &.nc-variant-large .nc-submenu-title {
-      @apply min-h-9 !font-600;
+    &.nc-variant-large {
+      .nc-submenu-title {
+        @apply min-h-9 !font-600;
+      }
+
+      &.nc-sub-menu-item-icon-only {
+        .nc-submenu-title {
+          @apply !min-h-8;
+        }
+      }
     }
 
     &:not(.ant-dropdown-menu-submenu-disabled) {

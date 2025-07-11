@@ -248,6 +248,8 @@ const openBaseHomePage = async () => {
   )
 }
 
+const isVisibleCreateNew = ref(false)
+
 const hasTableCreatePermission = computed(() => {
   return isUIAllowed('tableCreate', { roles: base.value.project_role, source: base.value?.sources?.[0] })
 })
@@ -281,23 +283,29 @@ const hasTableCreatePermission = computed(() => {
 
       <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 xs:hidden flex flex-col gap-2">
         <div v-if="hasTableCreatePermission" class="flex items-center w-full">
-          <NcButton
-            type="text"
-            size="small"
-            full-width
-            class="nc-home-create-new-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden w-full !px-3"
-            @click="addNewProjectChildEntity"
-          >
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="ncPlusCircleSolid" />
+          <NcDropdown v-model:visible="isVisibleCreateNew">
+            <NcButton
+              type="text"
+              size="small"
+              full-width
+              class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden !w-full !px-3"
+              :class="isVisibleCreateNew ? 'active' : ''"
+              icon-position="right"
+            >
+              <template #icon>
+                <GeneralIcon icon="chevronDown" class="flex-none" />
+              </template>
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="ncPlusCircleSolid" />
 
-              {{
-                $t('general.createEntity', {
-                  entity: $t('objects.table'),
-                })
-              }}
-            </div>
-          </NcButton>
+                <div>{{ $t('labels.createNew') }}</div>
+              </div>
+            </NcButton>
+
+            <template #overlay>
+              <DashboardTreeViewProjectCreateNewMenu v-model:visible="isVisibleCreateNew" @new-table="addNewProjectChildEntity" />
+            </template>
+          </NcDropdown>
         </div>
         <NcButton
           v-e="['c:base:home']"

@@ -2,10 +2,12 @@
 const props = withDefaults(
   defineProps<{
     popupOffset?: number[]
-    variant?: 'default' | 'small' | 'medium'
+    variant?: 'default' | 'small' | 'medium' | 'large'
+    titleClass?: string
   }>(),
   {
     variant: 'default',
+    titleClass: '',
   },
 )
 </script>
@@ -18,7 +20,7 @@ const props = withDefaults(
     :popup-class-name="`nc-variant-${variant} nc-submenu-popup`"
   >
     <template #title>
-      <div class="nc-submenu-title flex flex-row items-center gap-x-1.5 py-1.75 justify-between group">
+      <div class="nc-submenu-title flex flex-row items-center gap-x-1.5 py-1.75 justify-between group" :class="titleClass">
         <div class="flex flex-row items-center gap-x-2">
           <slot name="title" />
         </div>
@@ -60,12 +62,40 @@ const props = withDefaults(
       @apply py-0.5 text-small leading-5 font-weight-550;
     }
 
-    &.nc-variant-small .nc-submenu-title {
-      @apply min-h-7;
+    &.nc-variant-small {
+      .nc-submenu-title {
+        @apply min-h-7;
+      }
+
+      &.nc-sub-menu-item-icon-only {
+        .nc-submenu-title {
+          @apply !min-h-6;
+        }
+      }
     }
 
-    &.nc-variant-medium .nc-submenu-title {
-      @apply min-h-8;
+    &.nc-variant-medium {
+      .nc-submenu-title {
+        @apply min-h-8;
+      }
+
+      &.nc-sub-menu-item-icon-only {
+        .nc-submenu-title {
+          @apply !min-h-7;
+        }
+      }
+    }
+
+    &.nc-variant-large {
+      .nc-submenu-title {
+        @apply min-h-9 !font-600;
+      }
+
+      &.nc-sub-menu-item-icon-only {
+        .nc-submenu-title {
+          @apply !min-h-8;
+        }
+      }
     }
 
     &:not(.ant-dropdown-menu-submenu-disabled) {
@@ -122,12 +152,29 @@ const props = withDefaults(
       }
     }
 
+    &.nc-variant-large {
+      .ant-dropdown-menu-item,
+      .nc-ant-dropdown-menu-item-label {
+        @apply min-h-9;
+      }
+
+      .nc-menu-item-inner {
+        @apply !font-600;
+      }
+    }
+
     .nc-ant-dropdown-menu-item-label {
-      @apply py-0 mx-1;
+      @apply py-0 mx-1 text-bodyDefaultSmBold;
     }
 
     .nc-divider {
       @apply my-0.5;
+    }
+  }
+
+  &.nc-variant-default {
+    .nc-ant-dropdown-menu-item-label {
+      @apply py-2.5 text-bodyDefaultSmBold;
     }
   }
 }

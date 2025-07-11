@@ -220,7 +220,7 @@ const hasAutomationCreateAccess = computed(() => {
                 <NcDivider />
                 <NcMenuItem data-testid="mini-sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
                   <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
-                  <div>{{ $t('labels.aiSuggested') }}</div>
+                  <div>{{ $t('labels.useNocoAI') }}</div>
                 </NcMenuItem>
               </template>
             </NcSubMenu>

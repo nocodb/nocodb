@@ -9,8 +9,6 @@ const $route = useRoute()
 
 const { appInfo, signedIn, signOut } = useGlobal()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const selectedKeys = computed(() => [
   /^\/account\/users\/?$/.test($route.fullPath)
     ? isUIAllowed('superAdminUserManagement')

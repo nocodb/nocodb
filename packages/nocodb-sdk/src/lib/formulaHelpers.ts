@@ -1324,7 +1324,7 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['ARRAYUNIQUE({column})'],
     returnType: FormulaDataTypes.ARRAY,
     docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/array-functions#array_unique',
+      'https://docs.nocodb.com/fields/field-types/formula/array-functions#arrayunique',
   },
 
   ARRAYSORT: {
@@ -1339,7 +1339,7 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['ARRAYSORT({column}, "desc")'],
     returnType: FormulaDataTypes.ARRAY,
     docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/array-functions#array_sort',
+      'https://docs.nocodb.com/fields/field-types/formula/array-functions#arraysort',
   },
 
   REGEX_MATCH: {

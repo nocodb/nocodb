@@ -101,7 +101,6 @@ export default function () {
           .set('xc-auth', context.token)
           .send(table)
           .expect(400);
-        // console.log('response', JSON.stringify(response.body.details, null, 2))
 
         expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
       });

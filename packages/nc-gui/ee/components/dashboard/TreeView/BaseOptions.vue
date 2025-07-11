@@ -1,10 +1,25 @@
 <script lang="ts" setup>
 import type { BaseType, SourceType } from 'nocodb-sdk'
 
-const props = defineProps<{
-  source: SourceType
-  base: BaseType
-}>()
+const props = withDefaults(
+  defineProps<{
+    source: SourceType
+    base: BaseType
+    variant?: 'small' | 'medium' | 'large'
+    titleClass?: string
+    submenuClass?: string
+    showLabel?: boolean
+    showNocoDbImport?: boolean
+    popupOffset?: [number, number]
+  }>(),
+  {
+    variant: 'small',
+    titleClass: '',
+    submenuClass: '',
+    showLabel: false,
+    showNocoDbImport: false,
+  },
+)
 
 const emits = defineEmits(['update:base'])
 
@@ -14,11 +29,13 @@ const base = useVModel(props, 'base', emits)
 
 const { isUIAllowed } = useRoles()
 
-const baseRole = computed(() => base.project_role || base.workspace_role)
+const baseRole = computed(() => base.value?.project_role || base.value?.workspace_role)
 
 const { $e } = useNuxtApp()
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const TODOMagic = ref(false)
 
@@ -109,6 +126,33 @@ function openQuickImportDialog(type: string) {
     close(1000)
   }
 }
+
+function openNocoDbImportDialog(baseId?: string) {
+  if (!baseId) return
+
+  $e('a:actions:import-nocodb')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgNocoDbImport'), {
+    'modelValue': isOpen,
+    'baseId': baseId,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+const isNocoDbImportAllowed = computed(() => {
+  return (
+    props.showNocoDbImport &&
+    isFeatureEnabled(FEATURE_FLAG.IMPORT_FROM_NOCODB) &&
+    isUIAllowed('nocodbImport', { roles: baseRole.value, source: source.value })
+  )
+})
 </script>
 
 <template>
@@ -144,17 +188,29 @@ function openQuickImportDialog(type: string) {
     v-if="
       ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) =>
         isUIAllowed(permission, { roles: baseRole, source }),
-      )
+      ) || isNocoDbImportAllowed
     "
     class="py-0"
+    :class="submenuClass"
     data-testid="nc-sidebar-base-import"
-    variant="small"
+    :variant="variant"
+    :title-class="titleClass"
+    :popup-offset="popupOffset"
+    @click.stop
   >
     <template #title>
-      <GeneralIcon icon="download" />
+      <slot name="title">
+        <GeneralIcon icon="download" />
 
-      {{ $t('labels.importData') }}
+        {{ $t('labels.importData') }}
+      </slot>
     </template>
+
+    <template v-if="$slots.expandIcon" #expandIcon>
+      <slot name="expandIcon"> </slot>
+    </template>
+
+    <slot name="label"> </slot>
 
     <NcMenuItem
       v-if="isUIAllowed('airtableImport', { roles: baseRole, source })"
@@ -194,6 +250,11 @@ function openQuickImportDialog(type: string) {
     >
       <GeneralIcon icon="ncFileTypeExcel" class="w-4 h-4" />
       {{ $t('labels.microsoftExcel') }}
+    </NcMenuItem>
+
+    <NcMenuItem v-if="isNocoDbImportAllowed" key="quick-import-nocodb" @click="openNocoDbImportDialog(base.id)">
+      <GeneralIcon icon="nocodb1" class="w-4 h-4" />
+      {{ $t('objects.syncData.nocodb') }}
     </NcMenuItem>
   </NcSubMenu>
 </template>

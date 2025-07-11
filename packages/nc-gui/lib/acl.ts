@@ -73,6 +73,7 @@ const rolePermissions = {
       airtableImport: true,
       jsonImport: true,
       excelImport: true,
+      nocodbImport: true,
       settingsPage: true,
       webhook: true,
       fieldEdit: true,

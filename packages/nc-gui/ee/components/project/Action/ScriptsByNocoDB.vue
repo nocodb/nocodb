@@ -3,7 +3,7 @@ const { isUIAllowed } = useRoles()
 
 const automationStore = useAutomationStore()
 
-const { isMarketVisible, isDetailsVisible, detailsScriptId } = storeToRefs(automationStore)
+const { isMarketVisible } = storeToRefs(automationStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -33,8 +33,5 @@ const isActionVisible = computed(() => {
         <GeneralIcon icon="ncScript" class="!h-8 !w-8 text-nc-content-maroon-dark" />
       </template>
     </ProjectActionItem>
-
-    <ScriptsMarket v-model:model-value="isMarketVisible" />
-    <ScriptsDetails v-if="isDetailsVisible && detailsScriptId" v-model="isDetailsVisible" :script-id="detailsScriptId" />
   </div>
 </template>

@@ -87,8 +87,8 @@ const onAddScript = async (scr: any) => {
             :data-testid="`nc-script-${scr.id}`"
             @click="onScriptClick(scr.id)"
           >
-            <div class="h-[56px] w-[56px] overflow-hidden m-auto flex-none">
-              <img :src="getScriptAssetsURL(scr.iconUrl)" alt="icon" class="w-full h-full object-contain" />
+            <div class="h-[56px] w-[56px] overflow-hidden m-auto flex-none flex items-center justify-center">
+              <img :src="getScriptAssetsURL(scr.iconUrl)" alt="icon" class="w-[42px] h-[42px] object-contain" />
             </div>
             <div class="flex-1 flex flex-grow flex-col gap-2">
               <div>

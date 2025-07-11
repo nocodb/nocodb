@@ -112,7 +112,7 @@ const detailsBody = computed(() => {
           <GeneralIcon icon="arrowLeft" />
         </NcButton>
 
-        <img :src="getScriptAssetsURL(activeScript.iconUrl)" alt="icon" class="h-[50px] w-[50px] object-contain" />
+        <img :src="getScriptAssetsURL(activeScript.iconUrl)" alt="icon" class="h-[42px] w-[42px] object-contain" />
         <div class="flex-1 flex flex-col">
           <div class="font-semibold text-xl truncate">{{ activeScript.title }}</div>
           <div class="text-small leading-[18px] text-gray-500 truncate">{{ activeScript.subTitle }}</div>
@@ -208,7 +208,7 @@ const detailsBody = computed(() => {
 
 <style lang="scss" scoped>
 .script-details {
-  @apply flex w-full h-[calc(100%_-_75px)];
+  @apply flex w-full h-[calc(100%_-_71px)];
 
   .script-details-left {
     @apply p-6 flex-1 flex flex-col gap-6 nc-scrollbar-thin;

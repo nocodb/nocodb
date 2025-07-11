@@ -11,8 +11,6 @@ const $route = useRoute()
 
 const { appInfo, signedIn, signOut } = useGlobal()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const workspaceStore = useWorkspace()
 
 const { workspacesList } = storeToRefs(workspaceStore)

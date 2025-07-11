@@ -77,7 +77,7 @@ const handleConfigUpdate = async (type: string, updates: any) => {
       <SmartsheetDashboardWidgetsCommonDataText @update:widget="handleConfigUpdate('text', $event)" />
       <SmartsheetDashboardWidgetsCommonDataSource @update:source="handleConfigUpdate('dataSource', $event)" />
       <GroupedSettings title="Data">
-        <SmartsheetDashboardWidgetsPieChartConfigCategory @update:category="handleConfigUpdate('data.category', $event)" />
+        <SmartsheetDashboardWidgetsPiechartConfigCategory @update:category="handleConfigUpdate('data.category', $event)" />
         <div class="flex flex-col gap-4 pt-3">
           <div class="text-nc-content-gray text-bodyBold">Value</div>
           <SmartsheetDashboardWidgetsCommonDataAggregation
@@ -89,7 +89,7 @@ const handleConfigUpdate = async (type: string, updates: any) => {
       <SmartsheetDashboardWidgetsCommonDataPermission @update:permission="handleConfigUpdate('permission', $event)" />
     </template>
     <template #appearance>
-      <SmartsheetDashboardWidgetsPieChartConfigAppearance @update:appearance="handleConfigUpdate('appearance', $event)" />
+      <SmartsheetDashboardWidgetsPiechartConfigAppearance @update:appearance="handleConfigUpdate('appearance', $event)" />
     </template>
   </SmartsheetDashboardWidgetsCommonConfig>
 </template>

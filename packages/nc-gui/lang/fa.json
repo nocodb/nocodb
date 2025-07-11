@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "Example Scripts",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "در حال بازیابی اسنپ‌شات",
     "note": "توجه:",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "افزودن از URL",
     "enterJson": "وارد کردن JSON",
-    "airtableBase": "پایگاه Airtable",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "استفاده از یک منطقهٔ زمانی برای همه اعضا",
     "displayTimezone": "نمایش منطقهٔ زمانی",
     "upgradePlan": "ارتقاء پلن",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "کلیک کنید تا حل شود",

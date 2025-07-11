@@ -10,6 +10,7 @@ const props = withDefaults(
     submenuClass?: string
     showLabel?: boolean
     showNocoDbImport?: boolean
+    popupOffset?: [number, number]
   }>(),
   {
     variant: 'small',
@@ -76,7 +77,14 @@ function openQuickImportDialog(type: string) {
 
 <template>
   <!-- Quick Import From -->
-  <NcSubMenu class="py-0" :class="submenuClass" data-testid="nc-sidebar-base-import" :variant="variant" :title-class="titleClass">
+  <NcSubMenu
+    class="py-0"
+    :class="submenuClass"
+    data-testid="nc-sidebar-base-import"
+    :variant="variant"
+    :title-class="titleClass"
+    :popup-offset="popupOffset"
+  >
     <template #title>
       <GeneralIcon icon="download" class="opacity-80" />
       {{ $t('labels.importData') }}

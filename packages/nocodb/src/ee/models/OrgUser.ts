@@ -4,6 +4,7 @@ import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp } from '~/utils/modelUtils';
+import NocoCache from '~/cache/NocoCache';
 
 // todo: caching
 export default class OrgUser {
@@ -107,6 +108,8 @@ export default class OrgUser {
       },
       true,
     );
+
+    await NocoCache.del(`orgOwners`);
 
     return new OrgUser(user);
   }

@@ -1,10 +1,22 @@
 <script lang="ts" setup>
 import type { BaseType, SourceType } from 'nocodb-sdk'
 
-const props = defineProps<{
-  source: SourceType
-  base: BaseType
-}>()
+const props = withDefaults(
+  defineProps<{
+    source: SourceType
+    base: BaseType
+    variant?: 'small' | 'medium' | 'large'
+    titleClass?: string
+    class?: string
+    showLabel?: boolean
+  }>(),
+  {
+    variant: 'small',
+    titleClass: '',
+    class: '',
+    showLabel: false,
+  },
+)
 
 const source = toRef(props, 'source')
 
@@ -67,6 +79,12 @@ function openQuickImportDialog(type: string) {
       <GeneralIcon icon="download" class="opacity-80" />
       {{ $t('labels.importData') }}
     </template>
+
+    <template v-if="$slots.expandIcon" #expandIcon>
+      <slot name="expandIcon"> </slot>
+    </template>
+
+    <slot name="label"> </slot>
 
     <NcMenuItem
       v-if="isUIAllowed('airtableImport', { roles: baseRole, source })"

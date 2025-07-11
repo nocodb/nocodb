@@ -5,6 +5,7 @@ import {
   parseProp,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
+import Noco from 'src/ee/Noco';
 import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { User } from '~/models';
@@ -15,7 +16,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import Org from '~/models/Org';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType } from '~/utils/globals';
+import { CacheGetType, MetaTable } from '~/utils/globals';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 
 const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
@@ -252,10 +253,31 @@ export class OrgWorkspacesService {
       CacheGetType.TYPE_STRING,
     );
 
-    const isAllowed = cacheVal
+    let isAllowed = cacheVal
       ?.trim?.()
       .split(/\s*,\s*/)
       .includes((param as any).user?.email);
+
+    // TODO: remove this temporary check : if user owner of any org, then add upgradeOrg to featureFlags
+    const orgOwners = await NocoCache.get(
+      `orgOwners`,
+      CacheGetType.TYPE_STRING,
+    );
+    if (!orgOwners) {
+      const orgOwners = await Noco.ncMeta.knexConnection
+        .select('fk_user_id')
+        .from(MetaTable.ORG_USERS)
+        .where('roles', CloudOrgUserRoles.OWNER);
+
+      await NocoCache.set(
+        `orgOwners`,
+        orgOwners.map((o) => o.fk_user_id).join(','),
+      );
+    }
+
+    if (orgOwners?.includes((param as any).user?.id)) {
+      isAllowed = true;
+    }
 
     if (!isAllowed) {
       NcError.forbidden(

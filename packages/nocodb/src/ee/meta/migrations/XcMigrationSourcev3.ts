@@ -45,7 +45,7 @@ import * as nc_044_script_col_rename from './v3/nc_044_script_col_rename';
 import * as nc_045_workspace_connect from './v3/nc_045_workspace_connect';
 import * as nc_046_workspace_connect_refactor from './v3/nc_046_workspace_connect_refactor';
 import * as nc_047_ws_segment_code from './v3/nc_047_ws_segment_code';
-import * as nc_049_org_connect from './v3/nc_049_org_connect';
+import * as nc_048_org_connect from './v3/nc_048_org_connect';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -102,7 +102,7 @@ export default class XcMigrationSourcev3 {
       'nc_045_workspace_connect',
       'nc_046_workspace_connect_refactor',
       'nc_047_ws_segment_code',
-      'nc_049_org_connect',
+      'nc_048_org_connect',
     ]);
   }
 
@@ -206,8 +206,8 @@ export default class XcMigrationSourcev3 {
         return nc_046_workspace_connect_refactor;
       case 'nc_047_ws_segment_code':
         return nc_047_ws_segment_code;
-      case 'nc_049_org_connect':
-        return nc_049_org_connect;
+      case 'nc_048_org_connect':
+        return nc_048_org_connect;
     }
   }
 }

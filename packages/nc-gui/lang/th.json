@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "Example Scripts",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "กำลังกู้คืนสแนปช็อต",
     "note": "หมายเหตุ:",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "เพิ่มจาก URL",
     "enterJson": "ป้อน JSON",
-    "airtableBase": "ฐาน Airtable",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "ใช้เขตเวลาเดียวกันสำหรับสมาชิกทุกคน",
     "displayTimezone": "แสดงเขตเวลา",
     "upgradePlan": "อัปเกรดแผน",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "คลิกเพื่อแก้ไข",

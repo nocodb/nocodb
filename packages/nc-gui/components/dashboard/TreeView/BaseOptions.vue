@@ -86,8 +86,10 @@ function openQuickImportDialog(type: string) {
     :popup-offset="popupOffset"
   >
     <template #title>
-      <GeneralIcon icon="download" class="opacity-80" />
-      {{ $t('labels.importData') }}
+      <slot name="title">
+        <GeneralIcon icon="download" class="opacity-80" />
+        {{ $t('labels.importData') }}
+      </slot>
     </template>
 
     <template v-if="$slots.expandIcon" #expandIcon>

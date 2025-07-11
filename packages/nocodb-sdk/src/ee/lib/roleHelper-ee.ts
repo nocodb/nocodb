@@ -8,6 +8,12 @@ import { extractRolesObj } from '~/lib/helperFunctions';
 
 export { getProjectRole } from '~/lib/roleHelper';
 
+/**
+ * Get the power of the project role of the user.
+ * @param user - The user object.
+ * @param forbiddenCallback - The forbidden callback.
+ * @returns The power of the project role of the user.
+ */
 export function extractProjectRolePower(
   user: any,
   /**
@@ -53,7 +59,12 @@ export function extractProjectRolePower(
   return ind;
 }
 
-export function getWorkspaceRolePower(
+/**
+ * Get the power of the workspace role of the user.
+ * @param user - The user object.
+ * @returns The power of the workspace role of the user.
+ */
+export function extractWorkspaceRolePower(
   user: any,
   /**
    * forbiddenCallback is used to keep old function behaviour
@@ -84,6 +95,11 @@ export function getWorkspaceRolePower(
   return ind;
 }
 
+/**
+ * Map the workspace roles object to the project roles object.
+ * @param wsRoles - The workspace roles object.
+ * @returns The project roles object.
+ */
 export function mapWorkspaceRolesObjToProjectRolesObj(wsRoles: any) {
   wsRoles = extractRolesObj(wsRoles);
   let baseRoles: Record<string, any> | null = null;

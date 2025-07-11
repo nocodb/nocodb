@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "Example Scripts",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "स्न्यापसट पुनर्स्थापना हुँदै",
     "note": "नोट:",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "URL बाट थप्नुहोस्",
     "enterJson": "JSON प्रविष्ट गर्नुहोस्",
-    "airtableBase": "Airtable बेस",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "सबै सदस्यका लागि एउटै समय क्षेत्र प्रयोग गर्नुहोस्",
     "displayTimezone": "समय क्षेत्र देखाउनुहोस्",
     "upgradePlan": "योजना अपग्रेड गर्नुहोस्",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "समाधान गर्न क्लिक गर्नुहोस्",

@@ -1,7 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div class="nc-menu-item-combo-wrapper">
+  <div class="nc-menu-item-combo-wrapper nc-menu-item">
     <slot name="ncMenuItem"> </slot>
 
     <div class="h-7 w-px flex-none bg-nc-border-gray-medium" />

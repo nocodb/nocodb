@@ -11,7 +11,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { encryptPropIfRequired } from '~/utils/encryptDecrypt';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { DbServer, Workspace } from '~/models';
+import { DbServer } from '~/models';
 import { jdbcToXcConfig, metaUrlToDbConfig } from '~/utils/nc-config';
 import { NcError } from '~/helpers/ncError';
 import { JobTypes } from '~/interface/Jobs';
@@ -73,17 +73,14 @@ export class DbServerController {
     return updatedDbServer;
   }
 
-  @Post('/internal/db-server/workspace/:workspaceId/migrate')
+  @Post('/internal/db-server/workspace/:workspaceOrOrgId/migrate')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async migrate(
-    @Param('workspaceId') workspaceId: string,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Body() body: { conditions?: Record<string, string> },
   ) {
-    const workspace = await Workspace.get(workspaceId);
-    if (!workspace) NcError.genericNotFound('Workspace', workspaceId);
-
     const job = await this.jobsService.add(JobTypes.CloudDbMigrate, {
-      workspaceId,
+      workspaceOrOrgId,
       conditions: body.conditions,
     });
 

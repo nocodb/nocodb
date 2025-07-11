@@ -45,7 +45,7 @@ export default class Plan {
     Object.assign(this, plan);
   }
 
-  public static prepare(data: Partial<Plan>): Plan {
+  public static prepare(data: Partial<Plan>, forcePrivate = false): Plan {
     const response = prepareForResponse(data, ['prices', 'meta']);
 
     const descriptions: string[] = [];
@@ -66,10 +66,20 @@ export default class Plan {
       descriptions,
     });
 
+    if (!forcePrivate && response?.prices) {
+      response.prices = response.prices.filter(
+        (price) => !price.lookup_key.includes('private_'),
+      );
+    }
+
     return response;
   }
 
-  public static async get(planId: string, ncMeta = Noco.ncMeta) {
+  public static async get(
+    planId: string,
+    ncMeta = Noco.ncMeta,
+    forcePrivate = false,
+  ) {
     const key = `${CacheScope.PLANS}:${planId}`;
     let plan = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (!plan) {
@@ -84,10 +94,10 @@ export default class Plan {
 
       if (!plan) return null;
 
-      await NocoCache.set(key, this.prepare(plan));
+      await NocoCache.set(key, plan);
     }
 
-    return this.prepare(plan);
+    return this.prepare(plan, forcePrivate);
   }
 
   public static async getByStripeProductId(

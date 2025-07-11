@@ -12,11 +12,11 @@ import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AuthController as AuthControllerCE } from 'src/modules/auth/auth.controller';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, CloudOrgUserRoles } from 'nocodb-sdk';
 import type { UserType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType } from '~/utils/globals';
+import { CacheGetType, MetaTable } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -26,6 +26,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
 import SSOClient from '~/models/SSOClient';
 import { CHATWOOT_IDENTITY_KEY } from '~/utils/nc-config';
+import Noco from '~/Noco';
 const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
 
 @Controller()
@@ -61,6 +62,27 @@ export class AuthController extends AuthControllerCE {
     )
       .filter((f) => f)
       .reduce((acc, f) => ({ ...acc, [f]: true }), {});
+
+    // TODO: remove this temporary check : if user owner of any org, then add upgradeOrg to featureFlags
+    const orgOwners = await NocoCache.get(
+      `orgOwners`,
+      CacheGetType.TYPE_STRING,
+    );
+    if (!orgOwners) {
+      const orgOwners = await Noco.ncMeta.knexConnection
+        .select('fk_user_id')
+        .from(MetaTable.ORG_USERS)
+        .where('roles', CloudOrgUserRoles.OWNER);
+
+      await NocoCache.set(
+        `orgOwners`,
+        orgOwners.map((o) => o.fk_user_id).join(','),
+      );
+    }
+
+    if (orgOwners?.includes(req.user?.id)) {
+      featureFlags.upgradeOrg = true;
+    }
 
     const user = await super.me(req);
 

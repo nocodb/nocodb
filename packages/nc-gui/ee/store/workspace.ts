@@ -163,7 +163,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const createWorkspace = async (workspace: Pick<WorkspaceType, 'title' | 'order' | 'description' | 'meta'>) => {
+  const createWorkspace = async (workspace: Pick<WorkspaceType, 'title' | 'order' | 'description' | 'meta' | 'fk_org_id'>) => {
     try {
       let reqPayload
 

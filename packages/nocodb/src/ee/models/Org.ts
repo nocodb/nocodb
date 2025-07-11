@@ -29,6 +29,8 @@ export default class Org implements OrganizationType {
   stripe_customer_id?: string;
   meta: string;
 
+  fk_db_instance_id?: string;
+
   created_at?: string;
   updated_at?: string;
 
@@ -143,6 +145,8 @@ export default class Org implements OrganizationType {
       'fk_user_id',
       'meta',
       'image',
+      'stripe_customer_id',
+      'fk_db_instance_id',
     ]);
 
     if ('meta' in insertObj) {
@@ -164,7 +168,7 @@ export default class Org implements OrganizationType {
 
   public static async update(
     orgId: string,
-    org: Partial<OrgType>,
+    org: Partial<OrgType> & { fk_db_instance_id?: string },
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj: Record<string, any> = extractProps(org, [
@@ -174,6 +178,8 @@ export default class Org implements OrganizationType {
       'fk_user_id',
       'meta',
       'image',
+      'stripe_customer_id',
+      'fk_db_instance_id',
     ]);
 
     if (updateObj?.image) {

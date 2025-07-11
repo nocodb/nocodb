@@ -357,11 +357,7 @@ export class BasesService extends BasesServiceCE {
       throw e;
     }
 
-    await this.paymentService.reseatSubscription(
-      // TODO: add support for orgs
-      workspace.id,
-      ncMeta,
-    );
+    await this.paymentService.reseatSubscription(workspace.id, ncMeta);
 
     this.appHooksService.emit(AppEvents.PROJECT_DELETE, {
       base,

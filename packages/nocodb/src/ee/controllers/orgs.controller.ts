@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { DomainReqType } from 'nocodb-sdk';
+import { AuthGuard } from '@nestjs/passport';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -22,6 +23,18 @@ import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 @Controller()
 export class OrgsController {
   constructor(protected readonly orgsService: OrgsService) {}
+
+  @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/orgs')
+  async createOrg(
+    @Body() body: { title: string; userId: string; dbServerId?: string },
+  ) {
+    return this.orgsService.createOrg({
+      title: body.title,
+      userId: body.userId,
+      dbServerId: body.dbServerId,
+    });
+  }
 
   @Get('/api/v2/orgs/:orgId')
   @HttpCode(200)

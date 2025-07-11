@@ -213,11 +213,7 @@ export class WorkspaceUsersService {
       throw e;
     }
 
-    await this.paymentService.reseatSubscription(
-      // TODO: add support for orgs
-      workspace.id,
-      ncMeta,
-    );
+    await this.paymentService.reseatSubscription(workspace.id, ncMeta);
 
     this.mailService
       .sendMail({
@@ -362,11 +358,7 @@ export class WorkspaceUsersService {
       throw e;
     }
 
-    await this.paymentService.reseatSubscription(
-      // TODO: add support for orgs
-      workspace.id,
-      ncMeta,
-    );
+    await this.paymentService.reseatSubscription(workspace.id, ncMeta);
 
     this.appHooksService.emit(AppEvents.WORKSPACE_USER_DELETE, {
       workspace,
@@ -622,11 +614,7 @@ export class WorkspaceUsersService {
       throw e;
     }
 
-    await this.paymentService.reseatSubscription(
-      // TODO: add support for orgs
-      workspace.id,
-      ncMeta,
-    );
+    await this.paymentService.reseatSubscription(workspace.id, ncMeta);
 
     // send email and add audit log
     for (const email of emails) {

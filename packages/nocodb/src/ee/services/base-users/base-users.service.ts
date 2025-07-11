@@ -388,11 +388,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       throw e;
     }
 
-    await this.paymentService.reseatSubscription(
-      // TODO: add support for orgs
-      workspace.id,
-      ncMeta,
-    );
+    await this.paymentService.reseatSubscription(workspace.id, ncMeta);
 
     await Promise.all(postOperations.map((fn) => fn()));
 
@@ -546,11 +542,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       throw e;
     }
 
-    await this.paymentService.reseatSubscription(
-      // TODO: add support for orgs
-      workspace.id,
-      ncMeta,
-    );
+    await this.paymentService.reseatSubscription(workspace.id, ncMeta);
 
     await this.mailService.sendMail({
       mailEvent: MailEvent.BASE_ROLE_UPDATE,
@@ -675,11 +667,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       throw e;
     }
 
-    await this.paymentService.reseatSubscription(
-      // TODO: add support for orgs
-      workspace.id,
-      ncMeta,
-    );
+    await this.paymentService.reseatSubscription(workspace.id, ncMeta);
 
     this.appHooksService.emit(AppEvents.PROJECT_USER_DELETE, {
       base,

@@ -1,13 +1,48 @@
 import { Injectable } from '@nestjs/common';
-import type { DomainReqType } from 'nocodb-sdk';
+import { CloudOrgUserRoles, type DomainReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import type { User } from '~/models';
-import { Domain, Org, PresignedUrl } from '~/models';
+import { DbServer, Domain, Org, OrgUser, PresignedUrl, User } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { generateRandomTxt, verifyTXTRecord } from '~/utils';
 
 @Injectable()
 export class OrgsService {
+  async createOrg(param: {
+    title: string;
+    userId: string;
+    dbServerId?: string;
+    req?: NcRequest;
+  }) {
+    const user = await User.get(param.userId);
+
+    if (!user) {
+      NcError.userNotFound(param.userId);
+    }
+
+    if (param.dbServerId) {
+      const dbServer = await DbServer.get(param.dbServerId);
+
+      if (!dbServer) {
+        NcError.genericNotFound('DB Server', param.dbServerId);
+      }
+    }
+
+    const org = await Org.insert({
+      title: param.title,
+      fk_user_id: user.id,
+      fk_db_instance_id: param.dbServerId,
+    });
+
+    // assign org role
+    await OrgUser.insert({
+      fk_user_id: user.id,
+      fk_org_id: org.id,
+      roles: CloudOrgUserRoles.OWNER,
+    });
+
+    return org;
+  }
+
   // add workspace
   addWorkspace(_param: { user: any; workspaceId: string; req: NcRequest }) {
     // return this.orgService.

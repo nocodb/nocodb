@@ -82,7 +82,7 @@ export default class Subscription {
       await NocoCache.set(
         `${CacheScope.SUBSCRIPTIONS_ALIAS}:${
           // subscription.fk_org_id || subscription.fk_workspace_id
-          subscription.fk_workspace_id
+          subscription.fk_org_id || subscription.fk_workspace_id
         }`,
         key,
       );
@@ -97,6 +97,7 @@ export default class Subscription {
   ) {
     const insertObj: Record<string, any> = extractProps(subscription, [
       'fk_workspace_id',
+      'fk_org_id',
       'fk_plan_id',
       'fk_user_id',
       'stripe_subscription_id',
@@ -195,8 +196,7 @@ export default class Subscription {
     );
     await NocoCache.del(
       `${CacheScope.SUBSCRIPTIONS_ALIAS}:${
-        // subscription.fk_org_id || subscription.fk_workspace_id
-        subscription.fk_workspace_id
+        subscription.fk_org_id || subscription.fk_workspace_id
       }`,
     );
 
@@ -297,9 +297,96 @@ export default class Subscription {
 
   public static async calculateOrgSeatCount(
     orgId: string,
-    _ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncMeta,
   ): Promise<number> {
-    throw new Error('Method not implemented.');
+    // Get all workspace users across all workspaces in the organization
+    const workspaceUsers = await ncMeta.knexConnection
+      .select('fk_user_id', 'roles')
+      .from(MetaTable.WORKSPACE_USER)
+      .where(
+        'fk_workspace_id',
+        'in',
+        ncMeta
+          .knex(MetaTable.WORKSPACE)
+          .select('id')
+          .where('fk_org_id', orgId)
+          .where((kn) => {
+            kn.where('deleted', false).orWhereNull('deleted');
+          }),
+      )
+      .where((kn) => {
+        kn.where('deleted', false).orWhereNull('deleted');
+      });
+
+    // Get all base users across all bases in all workspaces in the organization
+    const baseUsers = await ncMeta.knexConnection
+      .select(
+        `${MetaTable.PROJECT_USERS}.fk_user_id`,
+        `${MetaTable.PROJECT_USERS}.roles`,
+      )
+      .from(MetaTable.PROJECT_USERS)
+      .innerJoin(
+        MetaTable.PROJECT,
+        `${MetaTable.PROJECT_USERS}.base_id`,
+        `${MetaTable.PROJECT}.id`,
+      )
+      .innerJoin(
+        MetaTable.WORKSPACE,
+        `${MetaTable.PROJECT}.fk_workspace_id`,
+        `${MetaTable.WORKSPACE}.id`,
+      )
+      .where(`${MetaTable.WORKSPACE}.fk_org_id`, orgId)
+      .where((kn) => {
+        kn.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
+          `${MetaTable.PROJECT}.deleted`,
+        );
+      })
+      .where((kn) => {
+        kn.where(`${MetaTable.WORKSPACE}.deleted`, false).orWhereNull(
+          `${MetaTable.WORKSPACE}.deleted`,
+        );
+      });
+
+    /*
+      Count users based on their roles in either workspace or base
+      and exclude users with roles that do not consume a seat
+    */
+    const seatUsersMap = new Map<string, true>();
+    const nonSeatUsersMap = new Map<string, true>();
+
+    // Process workspace users
+    for (const user of workspaceUsers) {
+      const userId = user.fk_user_id;
+      const role = user.roles;
+      if (!seatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
+        seatUsersMap.set(userId, true);
+      }
+
+      if (!nonSeatUsersMap.has(userId) && NON_SEAT_ROLES.includes(role)) {
+        nonSeatUsersMap.set(userId, true);
+      }
+    }
+
+    // Process base users
+    for (const user of baseUsers) {
+      const userId = user.fk_user_id;
+      const role = user.roles;
+      if (!seatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
+        seatUsersMap.set(userId, true);
+      }
+
+      if (nonSeatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
+        // If user is present in nonSeatUsersMap and in some base it is seat user then remove it
+        nonSeatUsersMap.delete(userId);
+      } else if (
+        !nonSeatUsersMap.has(userId) &&
+        NON_SEAT_ROLES.includes(role)
+      ) {
+        nonSeatUsersMap.set(userId, true);
+      }
+    }
+
+    return seatUsersMap.size;
   }
 
   public static async getByWorkspaceOrOrg(
@@ -326,11 +413,11 @@ export default class Subscription {
                     eq: workspaceOrOrgId,
                   },
                 },
-                // {
-                // fk_org_id: {
-                //   eq: workspaceOrOrgId,
-                // },
-                // },
+                {
+                  fk_org_id: {
+                    eq: workspaceOrOrgId,
+                  },
+                },
               ],
             },
             {

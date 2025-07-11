@@ -11,6 +11,8 @@ const emits = defineEmits(['update:open'])
 
 const vOpen = useVModel(props, 'open', emits)
 
+const { user } = useGlobal()
+
 const modalEl = ref<HTMLElement | null>(null)
 const cmdInputEl = ref<HTMLElement | null>(null)
 const selectedIndex = ref(0)
@@ -78,6 +80,10 @@ useEventListener('keydown', (e: KeyboardEvent) => {
   } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
     hide()
   } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
+    if (vOpen.value || !user?.value?.id) {
+      hide()
+      return
+    }
     vOpen.value = true
     nextTick(() => {
       cmdInputEl.value?.focus()

@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "Example Scripts",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Đang khôi phục Ảnh chụp nhanh",
     "note": "Lưu ý:",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Thêm từ URL",
     "enterJson": "Nhập JSON",
-    "airtableBase": "Cơ sở Airtable",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "Sử dụng cùng múi giờ cho mọi thành viên",
     "displayTimezone": "Hiển thị múi giờ",
     "upgradePlan": "Nâng cấp gói",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "Nhấp để đánh dấu đã giải quyết",

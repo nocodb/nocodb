@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "Example Scripts",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Memulihkan Snapshot",
     "note": "Catatan:",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Tambah dari URL",
     "enterJson": "Masukkan JSON",
-    "airtableBase": "Basis Airtable",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "Gunakan zona waktu yang sama untuk semua anggota",
     "displayTimezone": "Tampilkan zona waktu",
     "upgradePlan": "Tingkatkan Paket",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "Klik untuk selesaikan",

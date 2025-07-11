@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "Example Scripts",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "កំពុងស្ដារឡើងវិញ Snapshot",
     "note": "ចំណាំ៖",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "បន្ថែមពី URL",
     "enterJson": "បញ្ចូល JSON",
-    "airtableBase": "Base Airtable",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "ប្រើតំបន់ពេលវេលាដូចគ្នាសម្រាប់សមាជិកទាំងអស់",
     "displayTimezone": "បង្ហាញតំបន់ពេល",
     "upgradePlan": "អាប់ក្រេដផែនការ",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "ចុចដើម្បីដោះស្រាយ",

@@ -173,13 +173,7 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.FORMULA_ERROR]: {
     message: (message: string) => {
-      // try to extract db error - Experimental
-      if (message.includes(' - ')) {
-        const parts = message.split(' - ');
-        const dbError = parts[parts.length - 1];
-        return `Formula error: ${dbError}`;
-      }
-      return `Formula error: ${message}`;
+      return `${message}`;
     },
     code: 400,
   },

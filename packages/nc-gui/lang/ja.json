@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "スクリプトの例",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "NocoDB によるスクリプト",
     "restoringSnapshot": "スナップショットを復元中",
     "note": "注意：",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "URLから追加",
     "enterJson": "JSONを入力",
-    "airtableBase": "Airtableベース",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "すべてのメンバーで同じタイムゾーンを使用",
     "displayTimezone": "表示タイムゾーン",
     "upgradePlan": "プランをアップグレード",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "クリックして解決",

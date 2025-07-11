@@ -21,6 +21,12 @@ const { isUIAllowed } = useRoles()
 
 const { isMarketVisible } = storeToRefs(useAutomationStore())
 
+const dashboardStore = useDashboardStore()
+
+const { openNewDashboardModal } = dashboardStore
+
+const { isDashboardEnabled } = storeToRefs(dashboardStore)
+
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
@@ -73,11 +79,16 @@ const openMarketPlace = () => {
       </div>
     </NcMenuItem>
 
-    <NcMenuItem inner-class="w-full" disabled data-testid="create-new-dashboard">
-      <GeneralIcon icon="ncLayout" class="w-4 h-4" />
+    <NcMenuItem
+      v-if="isDashboardEnabled"
+      inner-class="w-full"
+      data-testid="create-new-dashboard"
+      @click="openNewDashboardModal({ baseId: base.id })"
+    >
+      <GeneralIcon icon="dashboards" />
       {{ $t('labels.dashboard') }}
       <div class="flex-1 w-full" />
-      <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Soon </NcBadge>
+      <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Beta </NcBadge>
     </NcMenuItem>
 
     <template v-if="isAutomationEnabled">

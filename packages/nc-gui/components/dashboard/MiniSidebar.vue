@@ -9,8 +9,6 @@ const { appInfo, navigateToProject, isMobileMode } = useGlobal()
 
 const { meta: metaKey, control } = useMagicKeys()
 
-const { commandPalette } = useCommandPalette()
-
 const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened, isWorkspacesLoading } =

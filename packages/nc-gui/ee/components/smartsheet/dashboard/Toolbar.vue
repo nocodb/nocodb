@@ -63,13 +63,13 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
 
   await widgetStore.createWidget(activeDashboard.value.id, newWidget)
 }
-const addTextWidget = () => createWidget(WidgetTypes.TEXT)
+// const addTextWidget = () => createWidget(WidgetTypes.TEXT)
 const addNumberWidget = () => createWidget(WidgetTypes.METRIC)
-const addBarChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.BAR)
-const addLineChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.LINE)
+// const addBarChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.BAR)
+// const addLineChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.LINE)
 const addPieChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.PIE)
 const addDonutChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.DONUT)
-const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SCATTER)
+// const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SCATTER)
 </script>
 
 <template>

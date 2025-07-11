@@ -1248,8 +1248,6 @@ export class PaymentService {
       NcError.genericNotFound('Price', subscriptionData.items.data[0].price.id);
     }
 
-    console.log('subscriptionData', subscriptionData, workspaceOrOrg);
-
     const subscription = await Subscription.insert({
       fk_workspace_id:
         workspaceOrOrg.entity === 'workspace' ? workspaceOrOrg.id : null,

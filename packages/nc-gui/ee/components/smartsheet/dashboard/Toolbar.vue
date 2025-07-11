@@ -65,7 +65,7 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
 }
 // const addTextWidget = () => createWidget(WidgetTypes.TEXT)
 const addNumberWidget = () => createWidget(WidgetTypes.METRIC)
-// const addBarChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.BAR)
+const addBarChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.BAR)
 // const addLineChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.LINE)
 const addPieChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.PIE)
 const addDonutChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.DONUT)

@@ -1808,12 +1808,14 @@ export function handleFormulaError({
   error;
 }) {
   let position: number;
+  let identifierLength: number;
   if (error.extra?.columnName) {
     const identifierMatch = formula.match(
       new RegExp(`\\b${error.extra?.columnName}\\b`)
     );
     if (typeof identifierMatch?.index === 'number') {
       position = identifierMatch.index;
+      identifierLength = error.extra.columnName.length;
     }
   } else {
     const message: string = error.message;
@@ -1822,9 +1824,10 @@ export function handleFormulaError({
     const errorAtRegex = message.match(REGEX_ERROR_AT_CHARACTER);
     if (errorAtRegex?.[0]) {
       position = Number(errorAtRegex[1]);
+      identifierLength = 1;
     }
   }
-  if (position) {
+  if (typeof position === 'number') {
     const colRowPosition = getRowColPositionFromIndex({
       stack: formula,
       position,
@@ -1834,9 +1837,9 @@ export function handleFormulaError({
       error.type ?? FormulaErrorType.INVALID_SYNTAX,
       {
         ...(error.extra ?? {}),
-        position: colRowPosition,
+        position: { ...colRowPosition, length: identifierLength },
       },
-      'Required arguments missing'
+      error.message
     );
   } else {
     throw error;

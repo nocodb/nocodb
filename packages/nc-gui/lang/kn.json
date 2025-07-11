@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "Example Scripts",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "ಸ್ನ್ಯಾಪ್‌ಶಾಟ್ ಪುನಸ್ಥಾಪಿಸಲಾಗುತ್ತಿದೆ",
     "note": "ಗಮನಿಸಿ:",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "URL ನಿಂದ ಸೇರಿಸಿ",
     "enterJson": "JSON ನಮೂದಿಸಿ",
-    "airtableBase": "Airtable ಬೇಸ್",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "ಎಲ್ಲಾ ಸದಸ್ಯರಿಗೂ ಅದೇ ಕಾಲವಲಯವನ್ನು ಬಳಸಿ",
     "displayTimezone": "ಕಾಲವಲಯವನ್ನು ಪ್ರದರ್ಶಿಸಿ",
     "upgradePlan": "ಪ್ಲ್ಯಾನ್ ಅಪ್ಗ್ರೇಡ್ ಮಾಡಿ",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "ಪರಿಹರಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",

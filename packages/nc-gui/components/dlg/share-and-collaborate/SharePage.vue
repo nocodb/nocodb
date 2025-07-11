@@ -7,8 +7,6 @@ const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const { dashboardUrl } = useDashboard()
 
 const viewStore = useViewsStore()

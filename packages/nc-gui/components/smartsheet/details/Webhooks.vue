@@ -293,7 +293,9 @@ const getHookTypeText = (hook: HookType) => {
               class="px-2"
               type="text"
               size="small"
-              @click="navigateTo('https://nocodb.com/docs/product-docs/automation/webhook', { open: navigateToBlankTargetOpenOption })"
+              @click="
+                navigateTo('https://nocodb.com/docs/product-docs/automation/webhook', { open: navigateToBlankTargetOpenOption })
+              "
             >
               <div class="flex items-center gap-2">
                 {{ $t('title.docs') }}

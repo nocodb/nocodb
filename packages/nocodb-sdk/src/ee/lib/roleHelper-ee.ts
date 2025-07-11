@@ -6,6 +6,8 @@ import {
 import type { WorkspaceUserRoles, ProjectRoles } from '~/lib/enums';
 import { extractRolesObj } from '~/lib/helperFunctions';
 
+export { getProjectRole } from '~/lib/roleHelper';
+
 export function extractProjectRolePower(
   user: any,
   /**

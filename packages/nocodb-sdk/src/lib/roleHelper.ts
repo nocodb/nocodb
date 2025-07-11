@@ -1,5 +1,5 @@
-import { OrderedProjectRoles } from './enums';
-import type { ProjectRoles } from './enums';
+import { OrderedProjectRoles, OrderedWorkspaceRoles } from './enums';
+import type { ProjectRoles, WorkspaceUserRoles } from './enums';
 
 export function extractProjectRolePower(
   user: any,
@@ -34,23 +34,34 @@ export function extractProjectRolePower(
   return ind;
 }
 
-export function getProjectRole(user) {
-  if (!user.base_roles) {
-    return null;
-  }
-
+export function getProjectRole(user, inheritFromWorkspace = false) {
   // get most powerful role of user (TODO moving forward we will confirm that user has only one role)
   let role = null;
   let power = -1;
-  for (const r of Object.keys(user.base_roles)) {
-    const ind = OrderedProjectRoles.indexOf(r as ProjectRoles);
-    if (ind > power) {
-      role = r;
-      power = ind;
-    }
-  }
 
-  return role;
+  if (user.base_roles) {
+    for (const r of Object.keys(user.base_roles)) {
+      const ind = OrderedProjectRoles.indexOf(r as ProjectRoles);
+      if (ind > power) {
+        role = r;
+        power = ind;
+      }
+    }
+
+    return role;
+  } else if (inheritFromWorkspace && user.workspace_roles) {
+    for (const r of Object.keys(user.workspace_roles)) {
+      const ind = OrderedWorkspaceRoles.indexOf(r as WorkspaceUserRoles);
+      if (ind > power) {
+        role = r;
+        power = ind;
+      }
+    }
+
+    return role;
+  } else {
+    return null;
+  }
 }
 
 export function hasMinimumRoleAccess(

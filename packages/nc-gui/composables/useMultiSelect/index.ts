@@ -497,11 +497,13 @@ export function useMultiSelect(
               maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
               showUpgradeToAddMoreAttachmentsInCell,
               isInfoShown: isColInfoShown[cpCol.title!],
+              markInfoShown: () => {
+                isColInfoShown[cpCol.title!] = true
+              },
             },
             isMysql(meta.value?.source_id),
             true,
           )
-          isColInfoShown[cpCol.title!] = true
           rowObj.row[cpCol.title] = pasteValue
         }
         rowsToPaste.push(rowObj)
@@ -640,11 +642,13 @@ export function useMultiSelect(
                       maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
                       showUpgradeToAddMoreAttachmentsInCell,
                       isInfoShown: isColInfoShown[colObj.title!],
+                      markInfoShown: () => {
+                        isColInfoShown[colObj.title!] = true
+                      },
                     },
                     isMysql(meta.value?.source_id),
                     true,
                   )
-                  isColInfoShown[colObj.title!] = true
                 } catch (ex) {
                   if (ex instanceof ComputedTypePasteError) {
                     throw ex
@@ -1256,11 +1260,13 @@ export function useMultiSelect(
                     maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
                     showUpgradeToAddMoreAttachmentsInCell,
                     isInfoShown: isColInfoShown[column.title!],
+                    markInfoShown: () => {
+                      isColInfoShown[column.title!] = true
+                    },
                   },
                   isMysql(meta.value?.source_id),
                   true,
                 )
-                isColInfoShown[column.title!] = true
                 validateColumnValue(column, pasteValue)
               } catch (ex) {
                 if (ex instanceof ComputedTypePasteError) {
@@ -1725,11 +1731,13 @@ export function useMultiSelect(
                       maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
                       showUpgradeToAddMoreAttachmentsInCell,
                       isInfoShown: isColInfoShown[col.title!],
+                      markInfoShown: () => {
+                        isColInfoShown[col.title!] = true
+                      },
                     },
                     isMysql(meta.value?.source_id),
                     true,
                   )
-                  isColInfoShown[col.title!] = true
 
                   if (fileUploadPayload?.length) {
                     const newAttachments = await handleFileUploadAndGetCellValue(fileUploadPayload, col.id!, row.row[col.title!])
@@ -1749,11 +1757,13 @@ export function useMultiSelect(
                       maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
                       showUpgradeToAddMoreAttachmentsInCell,
                       isInfoShown: isColInfoShown[col.title!],
+                      markInfoShown: () => {
+                        isColInfoShown[col.title!] = true
+                      },
                     },
                     isMysql(meta.value?.source_id),
                     true,
                   )
-                  isColInfoShown[col.title!] = true
                   validateColumnValue(col, pasteValue)
                 } catch (ex) {
                   if (ex instanceof ComputedTypePasteError) {

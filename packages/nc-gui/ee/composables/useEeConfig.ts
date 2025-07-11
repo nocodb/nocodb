@@ -888,6 +888,7 @@ export const useEeConfig = createSharedComposable(() => {
     callback,
     totalAttachments,
     forceShowToastMessage = false,
+    avoidShowError = false,
   }: {
     callback?: (type: 'ok' | 'cancel') => void
     totalAttachments: number
@@ -895,8 +896,15 @@ export const useEeConfig = createSharedComposable(() => {
      * This is useful when we copy pasting in multiple cells
      */
     forceShowToastMessage?: boolean
+    /**
+     * avoidShowError is used to avoid multiple error messages for same column cell
+     */
+    avoidShowError?: boolean
   }) => {
     if (!getIsAttachmentsInCellLimitReached(totalAttachments)) return
+
+    // If avoidShowError is true, then we just need to return true 
+    if (avoidShowError) return true
 
     // All paid plan has same limit so just show toast message
     // Or if payment is not enabled then show toast message

@@ -17,6 +17,7 @@ export default function convertCellData(
       totalAttachments: number
     }) => boolean | undefined
     isInfoShown?: boolean
+    markInfoShown?: () => void
   },
   isMysql = false,
   isMultiple = false,
@@ -29,6 +30,7 @@ export default function convertCellData(
     oldValue,
     maxAttachmentsAllowedInCell: _maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell: _showUpgradeToAddMoreAttachmentsInCell,
+    markInfoShown,
   } = args
 
   const maxAttachmentsAllowedInCell =
@@ -37,13 +39,17 @@ export default function convertCellData(
     ? _showUpgradeToAddMoreAttachmentsInCell
     : ({
         totalAttachments,
+        avoidShowError,
       }: {
         callback?: (type: 'ok' | 'cancel') => void
         totalAttachments: number
         forceShowToastMessage?: boolean
+        avoidShowError?: boolean
       }) => {
         // If it's not ee or total attachments are less than or equal to max attachments allowed in cell, then return
         if (!args.appInfo.ee || totalAttachments <= maxAttachmentsAllowedInCell) return
+
+        if (avoidShowError) return true
 
         message.error(
           `You can only upload at most ${maxAttachmentsAllowedInCell} file${
@@ -118,12 +124,13 @@ export default function convertCellData(
           if (args.appInfo.ee) {
             // verify number of files
             if (
-              args.isInfoShown ||
               showUpgradeToAddMoreAttachmentsInCell({
                 totalAttachments: oldAttachments.length + totalNewAttachments,
                 forceShowToastMessage: isMultiple,
+                avoidShowError: args.isInfoShown,
               })
             ) {
+              markInfoShown?.()
               return
             }
 

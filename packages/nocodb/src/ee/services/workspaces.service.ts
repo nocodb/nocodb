@@ -631,11 +631,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     }
 
     // TODO: remove optional chaining on cloud only code updated
-    await this.paymentService?.reseatSubscription(
-      // TODO: add support for orgs
-      workspace.id,
-      ncMeta,
-    );
+    await this.paymentService?.reseatSubscription(workspace.id, ncMeta);
 
     this.appHooksService.emit(AppEvents.WORKSPACE_DELETE, {
       workspace,

@@ -771,6 +771,16 @@ export class PaymentService {
     const lockKey = `reseatSubscription:${workspaceOrOrgId}`;
     let lockAcquired = false;
 
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
+    if (!workspaceOrOrg) return;
+
+    // if the workspace is a child of an org, we need to use the org id
+    if (workspaceOrOrg.entity === 'workspace') {
+      if (workspaceOrOrg?.fk_org_id) {
+        workspaceOrOrgId = workspaceOrOrg.fk_org_id;
+      }
+    }
+
     try {
       // Acquire lock with retry logic
       lockAcquired = await acquireLock(lockKey, lockId);
@@ -1265,12 +1275,7 @@ export class PaymentService {
         .toISOString(),
     });
 
-    await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
-      workspaceOrOrgId: workspaceOrOrg.id,
-      conditions: {
-        plan: plan.title,
-      },
-    });
+    await this.migrateDb(workspaceOrOrg.id, ncMeta);
 
     if (subscriptionData.status === 'active') {
       await this.updateNextInvoice(
@@ -1485,6 +1490,10 @@ export class PaymentService {
 
   async migrateDb(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
     try {
+      const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
+      if (!workspaceOrOrg)
+        NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+
       const subRec = await Subscription.getByWorkspaceOrOrg(
         workspaceOrOrgId,
         ncMeta,
@@ -1496,9 +1505,14 @@ export class PaymentService {
 
       await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
         workspaceOrOrgId,
-        conditions: {
-          plan: plan.title,
-        },
+        conditions:
+          workspaceOrOrg.entity === 'org'
+            ? {
+                fk_org_id: workspaceOrOrg.id,
+              }
+            : {
+                plan: plan.title,
+              },
       });
     } catch (err) {
       this.telemetryService.sendSystemEvent({

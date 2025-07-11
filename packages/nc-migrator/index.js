@@ -453,6 +453,7 @@ const server = app.listen(port, () => {
     console.log(`  GET    /api/v1/migrate/:jobId/status - Check progress`);
     console.log(`  GET    /api/v1/migrate/jobs - List all transfers`);
     console.log(`  GET    /api/v1/health - Health check`);
+    console.log(`VERSION: 0.1.0`);
 });
 
 // Graceful shutdown handling

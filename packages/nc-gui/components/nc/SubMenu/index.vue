@@ -71,7 +71,7 @@ const props = withDefaults(
     }
 
     &.nc-variant-large .nc-submenu-title {
-      @apply min-h-9;
+      @apply min-h-9 !font-600;
     }
 
     &:not(.ant-dropdown-menu-submenu-disabled) {
@@ -132,6 +132,10 @@ const props = withDefaults(
       .ant-dropdown-menu-item,
       .nc-ant-dropdown-menu-item-label {
         @apply min-h-9;
+      }
+
+      .nc-menu-item-inner {
+        @apply !font-600;
       }
     }
 

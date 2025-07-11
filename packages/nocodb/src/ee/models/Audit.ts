@@ -238,17 +238,6 @@ export default class Audit extends AuditCE {
       forceAwait: process.env['TEST'] === 'true',
     },
   ) {
-    // disable audit by default and enable it only in test environment
-    // skip disabling it in on-prem and enable data audit by default
-    if (
-      process.env.NC_ENABLE_AUDIT !== 'true' &&
-      process.env.NODE_ENV !== 'test' &&
-      !isOnPrem &&
-      !(Array.isArray(audit) ? audit[0] : audit)?.op_type?.startsWith('DATA_')
-    ) {
-      return;
-    }
-
     try {
       if (process.env.NC_DISABLE_AUDIT === 'true') {
         return;

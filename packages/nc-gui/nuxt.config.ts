@@ -120,7 +120,6 @@ export default defineNuxtConfig({
     'virtual:windi-devtools',
     '~/assets/css/global.css',
     '~/assets/style.scss',
-    '~/assets/css/typesense-docsearch.css',
   ],
 
   runtimeConfig: {
@@ -299,6 +298,7 @@ export default defineNuxtConfig({
         '@floating-ui/vue',
         'validator',
         '@stripe/stripe-js',
+        'typesense',
       ],
       esbuildOptions: {
         define: {

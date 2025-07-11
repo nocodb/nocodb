@@ -140,7 +140,6 @@ export default defineNuxtConfig({
     'virtual:windi-devtools',
     '~/assets/css/global.css',
     '~/assets/style.scss',
-    '~/assets/css/typesense-docsearch.css',
     'vue-json-pretty/lib/styles.css',
   ],
 
@@ -338,6 +337,7 @@ export default defineNuxtConfig({
         '@stripe/stripe-js',
         'monacopilot',
         'esbuild-wasm',
+        'typesense',
       ],
       esbuildOptions: {
         define: {

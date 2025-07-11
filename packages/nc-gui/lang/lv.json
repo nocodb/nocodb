@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "Example Scripts",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Atjauno momentuzņēmumu",
     "note": "Piezīme:",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Pievienot no URL",
     "enterJson": "Ievadiet JSON",
-    "airtableBase": "Airtable bāze",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "Lietot vienu laika joslu visiem dalībniekiem",
     "displayTimezone": "Laika joslas rādīšana",
     "upgradePlan": "Jaunināt plānu",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "Noklikšķiniet, lai atrisinātu",

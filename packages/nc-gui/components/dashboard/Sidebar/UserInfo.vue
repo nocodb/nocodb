@@ -5,7 +5,7 @@ const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered
 useUsers()
 
-const { isFeatureEnabled, isExperimentalFeatureModalOpen } = useBetaFeatureToggle()
+const { isExperimentalFeatureModalOpen } = useBetaFeatureToggle()
 
 const { leftSidebarState } = storeToRefs(useSidebarStore())
 

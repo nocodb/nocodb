@@ -129,8 +129,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
       <div class="px-2 w-full">
-          <NcDivider class="!border-nc-border-gray-dark !my-1" />
-        </div>
+        <NcDivider class="!border-nc-border-gray-dark !my-1" />
+      </div>
 
       <template v-if="!isMobileMode">
         <DashboardMiniSidebarItemWrapper>

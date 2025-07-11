@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ChartTypes } from 'nocodb-sdk'
-import type { ChartWidgetType } from 'nocodb-sdk'
+import type { ChartTypes, ChartWidgetType } from 'nocodb-sdk'
 
 interface Props {
   widget: ChartWidgetType<ChartTypes.PIE>

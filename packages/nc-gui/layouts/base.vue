@@ -1,11 +1,9 @@
 <script lang="ts" setup>
-const { signOut, signedIn, isLoading, user, currentVersion, appInfo } = useGlobal()
+const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const email = computed(() => user.value?.email ?? '---')
 

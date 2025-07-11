@@ -14,8 +14,6 @@ const dashboardStore = useDashboardStore()
 
 const { isDashboardEnabled } = storeToRefs(dashboardStore)
 
-const { openNewDashboardModal } = dashboardStore
-
 const { openNewScriptModal } = useAutomationStore()
 
 const { setMenuContext } = inject(TreeViewInj)!

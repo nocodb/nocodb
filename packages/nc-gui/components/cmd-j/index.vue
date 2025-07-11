@@ -103,7 +103,7 @@ watch(vOpen, () => {
     <div ref="modalEl" class="cmdk-modal-content cmdj-modal-content relative h-[25.25rem]">
       <div class="cmdk-input-wrapper border-b-1 border-gray-200">
         <GeneralIcon class="h-4 w-4 text-gray-500" icon="search" />
-        <input ref="cmdInputEl" v-model="search" class="cmdk-input" placeholder="Search through docs" type="text" />
+        <input ref="cmdInputEl" v-model="search" class="cmdk-input cmdj-input" placeholder="Search through docs" type="text" />
       </div>
 
       <div class="cmdk-results-container overflow-y-auto max-h-80">

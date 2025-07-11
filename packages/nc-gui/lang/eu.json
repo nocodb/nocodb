@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "Example Scripts",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Instantanea berreskuratzen",
     "note": "Oharra:",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Gehitu URL-tik",
     "enterJson": "Sartu JSON",
-    "airtableBase": "Airtable basea",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "Erabili ordu-zona bera kide guztientzat",
     "displayTimezone": "Erakutsi ordu-zona",
     "upgradePlan": "Eguneratu plana",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "Egin klik ebazteko",

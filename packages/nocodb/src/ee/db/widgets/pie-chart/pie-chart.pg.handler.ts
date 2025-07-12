@@ -55,7 +55,10 @@ export class PieChartPgHandler extends PieChartCommonHandler {
     });
 
     let aggregationColumn = null;
+
     const aggregationAlias = 'value';
+
+    const categoryAlias = 'category';
 
     const subQuery = baseModel.dbDriver(baseModel.tnPath);
 
@@ -74,16 +77,19 @@ export class PieChartPgHandler extends PieChartCommonHandler {
         baseModel,
         {
           fk_column_id: categoryColumn.id,
-          comparison_op: 'notempty',
+          comparison_op: 'notblank',
         },
         subQuery,
       );
     }
 
-    subQuery.groupBy(categoryColumnNameQuery);
     subQuery.select(
-      baseModel.dbDriver.raw('?? as ??', [categoryColumnNameQuery, 'category']),
+      baseModel.dbDriver.raw(`(${categoryColumnNameQuery}) as ??`, [
+        categoryAlias,
+      ]),
     );
+
+    subQuery.groupBy(categoryAlias);
 
     subQuery.count('* as record_count');
 
@@ -103,7 +109,7 @@ export class PieChartPgHandler extends PieChartCommonHandler {
       });
 
       subQuery.select(
-        baseModel.dbDriver.raw('(??) as ??', [aggSql, aggregationAlias]),
+        baseModel.dbDriver.raw(`(${aggSql}) as ??`, [aggregationAlias]),
       );
       aggregationExpression = aggSql;
     }
@@ -111,15 +117,15 @@ export class PieChartPgHandler extends PieChartCommonHandler {
     // Add row number for ranking
     if (chartData.category.orderBy === 'asc') {
       subQuery.select(
-        baseModel.dbDriver.raw(`ROW_NUMBER() OVER (ORDER BY ?? ASC) as rn`, [
-          categoryColumnNameQuery,
-        ]),
+        baseModel.dbDriver.raw(
+          `ROW_NUMBER() OVER (ORDER BY (${categoryColumnNameQuery}) ASC) as rn`,
+        ),
       );
     } else if (chartData.category.orderBy === 'desc') {
       subQuery.select(
-        baseModel.dbDriver.raw(`ROW_NUMBER() OVER (ORDER BY ?? DESC) as rn`, [
-          categoryColumnNameQuery,
-        ]),
+        baseModel.dbDriver.raw(
+          `ROW_NUMBER() OVER (ORDER BY (${categoryColumnNameQuery}) DESC) as rn`,
+        ),
       );
     } else {
       // Default: order by aggregation expression DESC
@@ -209,23 +215,9 @@ export class PieChartPgHandler extends PieChartCommonHandler {
 
     // Apply ordering - use original_category for proper sorting (especially numeric)
     if (chartData.category.orderBy === 'asc') {
-      finalQuery.orderBy(
-        `CASE 
-          WHEN category = 'Others' THEN 1
-          ELSE 0
-        END, 
-        original_category`,
-        'ASC',
-      );
+      finalQuery.orderBy('original_category', 'ASC');
     } else if (chartData.category.orderBy === 'desc') {
-      finalQuery.orderBy(
-        `CASE 
-          WHEN category = 'Others' THEN 1
-          ELSE 0
-        END, 
-        original_category`,
-        'DESC',
-      );
+      finalQuery.orderBy('original_category', 'DESC');
     } else {
       // Default: order by value DESC
       finalQuery.orderBy('value', 'DESC');

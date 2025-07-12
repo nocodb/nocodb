@@ -36,7 +36,7 @@ export async function getColumnNameQuery({
     });
   }
 
-  let column_name_query = column.column_name;
+  let column_name_query: any = column.column_name;
 
   if (column.uidt === UITypes.CreatedTime && !column.column_name)
     column_name_query = 'created_at';
@@ -91,10 +91,14 @@ export async function getColumnNameQuery({
           model,
           isAggregation: true,
         })
-      ).builder as string;
+      ).builder;
       break;
     }
   }
 
-  return column_name_query;
+  if (column_name_query && typeof column_name_query.toQuery === 'function') {
+    return column_name_query.toQuery();
+  } else {
+    return column_name_query;
+  }
 }

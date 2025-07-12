@@ -11,6 +11,7 @@ import applyAggregation from '~/db/aggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
 import conditionV2 from '~/db/conditionV2';
+
 export class PieChartPgHandler extends PieChartCommonHandler {
   async getWidgetData(params: {
     widget: Widget<ChartWidgetType, ChartTypes.PIE>;
@@ -123,21 +124,29 @@ export class PieChartPgHandler extends PieChartCommonHandler {
     } else {
       // Default: order by aggregation expression DESC
       subQuery.select(
-        baseModel.dbDriver.raw(`ROW_NUMBER() OVER (ORDER BY ?? DESC) as rn`, [
-          aggregationExpression,
-        ]),
+        baseModel.dbDriver.raw(
+          `ROW_NUMBER() OVER (ORDER BY ${aggregationExpression} DESC) as rn`,
+        ),
       );
     }
 
-    // Main query that uses the subquery
+    // Cast everything to TEXT to avoid type conflicts, preserve original for sorting
     const mainQuery = baseModel.dbDriver
       .select('*')
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= 20 THEN category
+          WHEN rn <= 20 THEN CAST(category AS TEXT)
           ELSE 'Others'
         END as final_category
+      `),
+      )
+      .select(
+        baseModel.dbDriver.raw(`
+        CASE 
+          WHEN rn <= 20 THEN category
+          ELSE NULL
+        END as original_category
       `),
       )
       .select(
@@ -178,36 +187,47 @@ export class PieChartPgHandler extends PieChartCommonHandler {
         END as others_count
       `),
       )
-      .from(
-        baseModel.dbDriver.raw(`(??) as ranked_data`, [subQuery.toString()]),
-      );
+      .from(baseModel.dbDriver.raw(`(${subQuery}) as ranked_data`));
 
     // Final aggregation
     const finalQuery = baseModel.dbDriver
-      .select('final_category as category')
+      .select({ category: baseModel.dbDriver.raw('(final_category)::TEXT') })
+      .select(
+        baseModel.dbDriver.raw('MAX(original_category) as original_category'),
+      )
       .select(
         baseModel.dbDriver.raw('SUM(final_value) + SUM(others_value) as value'),
       )
       .select(
         baseModel.dbDriver.raw('SUM(final_count) + SUM(others_count) as count'),
       )
-      .from(
-        baseModel.dbDriver.raw(`(??) as categorized_data`, [
-          mainQuery.toString(),
-        ]),
-      )
+      .from(baseModel.dbDriver.raw(`(${mainQuery}) as categorized_data`))
       .groupBy('final_category')
       .having(
         baseModel.dbDriver.raw('SUM(final_value) + SUM(others_value) > 0'),
       );
 
-    // Apply ordering based on category orderBy setting
+    // Apply ordering - use original_category for proper sorting (especially numeric)
     if (chartData.category.orderBy === 'asc') {
-      finalQuery.orderBy('final_category', 'ASC');
+      finalQuery.orderBy(
+        `CASE 
+          WHEN category = 'Others' THEN 1
+          ELSE 0
+        END, 
+        original_category`,
+        'ASC',
+      );
     } else if (chartData.category.orderBy === 'desc') {
-      finalQuery.orderBy('final_category', 'DESC');
+      finalQuery.orderBy(
+        `CASE 
+          WHEN category = 'Others' THEN 1
+          ELSE 0
+        END, 
+        original_category`,
+        'DESC',
+      );
     } else {
-      // Default: order by value DESC (current behavior)
+      // Default: order by value DESC
       finalQuery.orderBy('value', 'DESC');
     }
 
@@ -230,7 +250,7 @@ export class PieChartPgHandler extends PieChartCommonHandler {
       }
 
       return {
-        name: row.category || 'Unknown',
+        name: row.category || 'Empty',
         value: value || 0,
         formattedValue: formattedValue,
         count: row.count || 0,

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IconType, PublicAttachmentScope } from 'nocodb-sdk'
+import { IconType, PublicAttachmentScope, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
@@ -8,7 +8,7 @@ const props = defineProps<{
 const workspaceStore = useWorkspace()
 const { deleteWorkspace, navigateToWorkspace, updateWorkspace, loadWorkspace, loadWorkspaces, removeCollaborator } =
   workspaceStore
-const { workspacesList, activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(workspaceStore)
+const { workspacesList, activeWorkspace, workspaces, deletingWorkspace, collaborators } = storeToRefs(workspaceStore)
 
 const { orgId } = useOrganization()
 
@@ -171,7 +171,12 @@ const saveChanges = async (isIconUpdate = false) => {
 }
 
 // Todo: @ramesh
-const isLeaveWsEnabled = computed(() => {})
+const restrictLeaveWs = computed(() => {
+  // collaborators will be loaded only if use has ws level viewer or above role
+  if (isUIAllowed('workspaceCollaborators')) {
+    return (collaborators.value?.filter((collab) => collab.roles === WorkspaceUserRoles.OWNER).length ?? 0) < 2
+  }
+})
 
 const handleLeaveWorkspace = () => {
   if (!user.value?.id || !currentWorkspace.value?.id) return
@@ -326,7 +331,7 @@ const onCancel = () => {
         <div class="flex items-center gap-2 justify-between">
           <div class="text-bodyBold">{{ $t('msg.info.leaveThisWorkspace') }}</div>
 
-          <NcTooltip disabled>
+          <NcTooltip :disabled="!restrictLeaveWs">
             <template #title>
               {{ $t('tooltip.leaveWorkspace') }}
             </template>
@@ -336,6 +341,7 @@ const onCancel = () => {
               danger
               class="nc-custom-daner-btn"
               size="small"
+              :disabled="restrictLeaveWs"
               @click="handleLeaveWorkspace"
             >
               {{ $t('activity.leaveWorkspace') }}

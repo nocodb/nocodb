@@ -171,8 +171,13 @@ const saveChanges = async (isIconUpdate = false) => {
   }
 }
 
-const restrictLeaveWs = computed(() => {
-  return (workspaceOwnerCount.value ?? 0) < 2
+const allowLeaveWs = computed(() => {
+  /**
+   * We have to allow user to leave workspace if:
+   * 1. workspace has more than one owner
+   * 2. user workspace role is not owner
+   */
+  return (workspaceOwnerCount.value ?? 0) > 1 || (user.value && !user.value.workspace_roles[WorkspaceUserRoles.OWNER])
 })
 
 const handleLeaveWorkspace = () => {
@@ -328,7 +333,7 @@ const onCancel = () => {
         <div class="flex items-center gap-2 justify-between">
           <div class="text-bodyBold">{{ $t('msg.info.leaveThisWorkspace') }}</div>
 
-          <NcTooltip :disabled="!restrictLeaveWs">
+          <NcTooltip :disabled="allowLeaveWs">
             <template #title>
               {{ $t('tooltip.leaveWorkspace') }}
             </template>
@@ -338,7 +343,7 @@ const onCancel = () => {
               danger
               class="nc-custom-daner-btn"
               size="small"
-              :disabled="restrictLeaveWs"
+              :disabled="!allowLeaveWs"
               @click="handleLeaveWorkspace"
             >
               {{ $t('activity.leaveWorkspace') }}

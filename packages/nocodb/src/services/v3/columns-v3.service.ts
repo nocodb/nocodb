@@ -115,6 +115,12 @@ export class ColumnsV3Service {
       true,
       context,
     );
+    validatePayload(
+      `swagger-v3.json#/components/schemas/FieldOptions/${param.column.type}`,
+      param.column,
+      true,
+      context,
+    );
 
     const column = columnV3ToV2Builder().build(
       param.column,

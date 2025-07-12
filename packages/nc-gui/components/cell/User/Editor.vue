@@ -74,6 +74,8 @@ const { isUIAllowed } = useRoles()
 
 const { showUpgradeToUseCurrentUserFilter } = useEeConfig()
 
+const isFormListView = computed(() => !isEditColumn.value && isForm.value && parseProp(column.value.meta)?.isList)
+
 const options = computed(() => {
   const currentUserField: any[] = []
   if (isEeUI && isInFilter.value) {
@@ -84,6 +86,12 @@ const options = computed(() => {
     })
   }
   return [...currentUserField, ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value))]
+})
+
+const filteredOptions = computed(() => {
+  return options.value.filter((op) => {
+    return searchVal.value ? searchCompare([op.display_name, op.email], searchVal.value) : true
+  })
 })
 
 const optionsMap = computed(() => {
@@ -138,6 +146,9 @@ const vModelListLayout = computed(() => {
 })
 
 watch(isOpen, (n, _o) => {
+  // If it is form list view then we don't need to do anything here
+  if (isFormListView.value) return
+
   if (!n) searchVal.value = ''
 
   if (editAllowed.value) {
@@ -314,63 +325,90 @@ onMounted(() => {
     :class="{ 'read-only': readOnly }"
     @click="toggleMenu"
   >
-    <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
-      <div class="w-full max-w-full max-h-[328px] nc-scrollbar-thin rounded-lg border-1 border-nc-border-gray-medium p-1">
-        <component
-          :is="isMultiple ? CheckboxGroup : RadioGroup"
-          :value="vModelListLayout"
-          :disabled="readOnly || !editAllowed"
-          class="nc-field-layout-list"
-          @update:value="
-            (value) => {
-              vModel = isMultiple ? value : [value]
-            }
-          "
-        >
-          <template v-for="op of options" :key="op.id || op.email">
-            <component
-              :is="isMultiple ? Checkbox : Radio"
-              v-if="!op.deleted"
-              :key="op.id || op.email"
-              :value="op.id"
-              :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
-              :class="`nc-select-option-${column.title}-${op.email}`"
-            >
-              <div class="w-full flex gap-2 items-center py-1.5">
-                <GeneralUserIcon :user="op" size="base" class="flex-none" :disabled="!isCollaborator(op.id || op.email)" />
+    <div v-if="isFormListView" class="w-full max-w-full">
+      <div class="rounded-lg border-1 border-nc-border-gray-medium w-full max-w-full">
+        <div v-if="options.length > 6" class="border-b-1 border-nc-border-gray-medium pl-1 group" @click.stop>
+          <a-input
+            ref="inputRef"
+            v-model:value="searchVal"
+            :placeholder="$t('general.search')"
+            class="nc-user-select-search-field-input !pl-2 !pr-1.5 flex-1 !py-2"
+            allow-clear
+            autocomplete="off"
+            :bordered="false"
+          >
+            <template #prefix>
+              <GeneralIcon icon="search" class="nc-search-icon text-nc-content-gray-muted opacity-50 h-4 w-4 mr-1.5" /> </template
+          ></a-input>
+        </div>
+        <div class="w-full max-w-full max-h-[328px] nc-scrollbar-thin p-1">
+          <component
+            :is="isMultiple ? CheckboxGroup : RadioGroup"
+            :value="vModelListLayout"
+            :disabled="readOnly || !editAllowed"
+            class="nc-field-layout-list"
+            @update:value="
+              (value) => {
+                vModel = isMultiple ? value : [value]
+              }
+            "
+          >
+            <!-- If we have not rendered all options then update value will not work properly so we have to use display: hidden on option which is not visible -->
+            <template v-for="op of options" :key="op.id || op.email">
+              <component
+                :is="isMultiple ? Checkbox : Radio"
+                v-if="!op.deleted"
+                :key="op.id || op.email"
+                :value="op.id"
+                :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
+                :class="[
+                  `nc-select-option-${column.title}-${op.email}`,
+                  {
+                    '!hidden nc-hidden-option': !searchCompare([op.display_name, op.email], searchVal ?? ''),
+                  },
+                ]"
+              >
+                <div class="w-full flex gap-2 items-center py-1.5">
+                  <GeneralUserIcon :user="op" size="base" class="flex-none" :disabled="!isCollaborator(op.id || op.email)" />
 
-                <div class="flex flex-col w-[calc(100%_-_40px)]">
-                  <div class="w-full flex gap-3">
+                  <div class="flex flex-col w-[calc(100%_-_40px)]">
+                    <div class="w-full flex gap-3">
+                      <NcTooltip
+                        class="text-bodyDefaultSmBold !leading-5 capitalize truncate max-w-full text-gray-800"
+                        :class="{
+                          '!text-gray-500': !isCollaborator(op.id || op.email),
+                        }"
+                        show-on-truncate-only
+                        placement="bottom"
+                      >
+                        <template #title>
+                          {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                        </template>
+                        {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                      </NcTooltip>
+                    </div>
                     <NcTooltip
-                      class="text-bodyDefaultSmBold !leading-5 capitalize truncate max-w-full text-gray-800"
-                      :class="{
-                        '!text-gray-500': !isCollaborator(op.id || op.email),
-                      }"
+                      class="text-xs !leading-4 text-nc-content-gray-muted truncate max-w-full"
                       show-on-truncate-only
                       placement="bottom"
                     >
                       <template #title>
-                        {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                        {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
                       </template>
-                      {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+
+                      {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
                     </NcTooltip>
                   </div>
-                  <NcTooltip
-                    class="text-xs !leading-4 text-nc-content-gray-muted truncate max-w-full"
-                    show-on-truncate-only
-                    placement="bottom"
-                  >
-                    <template #title>
-                      {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
-                    </template>
-
-                    {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
-                  </NcTooltip>
                 </div>
-              </div>
-            </component>
+              </component>
+            </template>
+          </component>
+          <template v-if="options.length && searchVal && !filteredOptions.length">
+            <div class="h-full text-center flex items-center justify-center gap-3 mt-4">
+              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
+            </div>
           </template>
-        </component>
+        </div>
       </div>
       <div
         v-if="!readOnly && !isMultiple && vModel.length"

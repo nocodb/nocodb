@@ -286,7 +286,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   // remove user from workspace
-  const removeCollaborator = async (userId: string, workspaceId?: string) => {
+  const removeCollaborator = async (userId: string, workspaceId?: string, onCurrentUserLeftCallback?: () => void) => {
     try {
       if (!workspaceId && !activeWorkspace.value?.id) {
         throw new Error('Workspace not selected')
@@ -302,6 +302,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
       // if user left the workspace, navigate to home
       if (currentUser.value?.id === userId) {
+        onCurrentUserLeftCallback?.()
         const list = await workspaceStore.loadWorkspaces()
         return await navigateTo(`/${list?.[0]?.id}`)
       }

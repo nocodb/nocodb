@@ -5,8 +5,10 @@ const props = defineProps<{
   workspaceId?: string
 }>()
 
-const { deleteWorkspace, navigateToWorkspace, updateWorkspace, loadWorkspace, loadWorkspaces } = useWorkspace()
-const { workspacesList, activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(useWorkspace())
+const workspaceStore = useWorkspace()
+const { deleteWorkspace, navigateToWorkspace, updateWorkspace, loadWorkspace, loadWorkspaces, removeCollaborator } =
+  workspaceStore
+const { workspacesList, activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(workspaceStore)
 
 const { orgId } = useOrganization()
 
@@ -17,6 +19,10 @@ const { showUpgradeToUploadWsImage } = useEeConfig()
 const router = useRouter()
 
 const { isUIAllowed } = useRoles()
+
+const { user } = useGlobal()
+
+const leavedWsUserId = ref('')
 
 const formValidator = ref()
 const isErrored = ref(false)
@@ -55,7 +61,7 @@ const hasWorkspaceManagePermission = computed(() => {
 const currentWorkspace = computedAsync(async () => {
   if (props.workspaceId) {
     const ws = workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
-    if (!ws) {
+    if (!ws && (!leavedWsUserId.value || leavedWsUserId.value !== user.value?.id)) {
       await loadWorkspace(props.workspaceId)
       return workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
     }
@@ -164,6 +170,18 @@ const saveChanges = async (isIconUpdate = false) => {
   }
 }
 
+// Todo: @ramesh
+const isLeaveWsEnabled = computed(() => {})
+
+const handleLeaveWorkspace = () => {
+  if (!user.value?.id || !currentWorkspace.value?.id) return
+
+  leavedWsUserId.value = user.value.id
+  removeCollaborator(user.value.id, currentWorkspace.value.id, () => {
+    leavedWsUserId.value = user.value!.id
+  })
+}
+
 const handleDelete = () => {
   if (!currentWorkspace.value || !currentWorkspace.value.title) return
   toBeDeletedWorkspaceTitle.value = currentWorkspace.value.title
@@ -222,7 +240,7 @@ const onCancel = () => {
   >
     <PaymentBanner v-if="!isAdminPanel" />
 
-    <div class="flex flex-col items-center nc-workspace-settings-settings pb-10 px-6">
+    <div v-if="currentWorkspace" class="flex flex-col items-center nc-workspace-settings-settings pb-10 px-6">
       <div class="item-card flex flex-col w-full">
         <div class="font-bold text-base text-nc-content-gray-emphasis">
           {{ $t('objects.workspace') }} {{ $t('general.appearance') }}
@@ -303,14 +321,35 @@ const onCancel = () => {
           </div>
         </a-form>
       </div>
-      <div class="item-card flex flex-col border-1 border-red-500">
+      <div class="item-card flex flex-col gap-6 border-1 border-red-500 text-nc-content-gray">
         <div class="text-base font-bold text-nc-content-red-dark">{{ $t('labels.dangerZone') }}</div>
-        <div class="text-sm text-nc-content-gray-muted mt-2">{{ $t('msg.info.wsDeleteDlg') }}</div>
-        <div class="flex p-4 border-1 rounded-lg mt-6 items-center">
-          <component :is="iconMap.alertTriangleSolid" class="text-nc-content-orange-medium h-6 w-6 flex-none" />
-          <div class="text-base font-bold ml-3">{{ $t('msg.info.actionIrreversible') }}</div>
+        <div class="flex items-center gap-2 justify-between">
+          <div class="text-bodyBold">{{ $t('msg.info.leaveThisWorkspace') }}</div>
+
+          <NcTooltip disabled>
+            <template #title>
+              {{ $t('tooltip.leaveWorkspace') }}
+            </template>
+            <NcButton
+              v-e="['c:workspace:settings:leave']"
+              type="secondary"
+              danger
+              class="nc-custom-daner-btn"
+              size="small"
+              @click="handleLeaveWorkspace"
+            >
+              {{ $t('activity.leaveWorkspace') }}
+            </NcButton>
+          </NcTooltip>
         </div>
-        <div class="flex flex-row w-full justify-end mt-8">
+        <div v-if="hasWorkspaceManagePermission" class="flex items-start gap-2 justify-between">
+          <div class="pt-1">
+            <div class="text-bodyBold">{{ $t('msg.info.wsDeleteDlg') }}</div>
+            <div class="flex items-center gap-2 mt-2">
+              <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium h-4 w-4 flex-none" />
+              <div class="text-body text-nc-content-gray-subtle">{{ $t('msg.info.actionIrreversible') }}</div>
+            </div>
+          </div>
           <NcButton
             v-e="['c:workspace:settings:delete']"
             type="secondary"
@@ -326,7 +365,13 @@ const onCancel = () => {
     </div>
   </div>
 
-  <GeneralModal v-if="hasWorkspaceManagePermission" v-model:visible="isDeleteModalVisible" class="nc-attachment-rename-modal" size="small" centered>
+  <GeneralModal
+    v-if="hasWorkspaceManagePermission"
+    v-model:visible="isDeleteModalVisible"
+    class="nc-attachment-rename-modal"
+    size="small"
+    centered
+  >
     <div class="flex flex-col items-center justify-center h-full !p-6">
       <div class="text-lg font-semibold self-start mb-5">Delete Workspace</div>
       <span class="self-start mb-2">

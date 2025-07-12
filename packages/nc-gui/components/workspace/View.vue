@@ -13,7 +13,7 @@ const { t } = useI18n()
 
 const { hideSidebar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
 const workspaceStore = useWorkspace()
 
@@ -58,7 +58,10 @@ const tab = computed({
       })
     }
 
-    if (tab === 'collaborators') loadCollaborators({} as any, props.workspaceId)
+    if (tab === 'collaborators' && isUIAllowed('workspaceCollaborators')) {
+      loadCollaborators({} as any, props.workspaceId)
+    }
+
     router.push({ query: { ...route.value.query, tab } })
   },
 })
@@ -85,17 +88,23 @@ watch(
 )
 
 onMounted(() => {
-  until(() => currentWorkspace.value?.id)
+  until(() => currentWorkspace.value?.id && isBaseRolesLoaded.value)
     .toMatch((v) => !!v)
     .then(async () => {
-      await loadCollaborators({} as any, currentWorkspace.value!.id)
+      if (isUIAllowed('workspaceCollaborators')) {
+        await loadCollaborators({} as any, currentWorkspace.value!.id)
+      }
     })
 })
 
 watch(
   () => route.value.query?.tab,
-  (newTab) => {
-    if (!isWsAuditEnabled.value && newTab === 'audits') {
+  async (newTab) => {
+    await until(() => isBaseRolesLoaded.value).toBeTruthy()
+
+    if (!isUIAllowed('workspaceManage')) {
+      tab.value = 'settings'
+    } else if (!isWsAuditEnabled.value && newTab === 'audits') {
       tab.value = 'collaborators'
     }
   },
@@ -227,18 +236,16 @@ onBeforeUnmount(() => {
         </a-tab-pane>
       </template>
 
-      <template v-if="isUIAllowed('workspaceManage')">
-        <a-tab-pane key="settings" class="w-full">
-          <template #tab>
-            <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
-              <GeneralIcon icon="ncSettings" class="h-4 w-4" />
-              {{ $t('labels.settings') }}
-            </div>
-          </template>
+      <a-tab-pane key="settings" class="w-full">
+        <template #tab>
+          <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
+            <GeneralIcon icon="ncSettings" class="h-4 w-4" />
+            {{ $t('labels.settings') }}
+          </div>
+        </template>
 
-          <WorkspaceSettings :workspace-id="currentWorkspace.id" />
-        </a-tab-pane>
-      </template>
+        <WorkspaceSettings :workspace-id="currentWorkspace.id" />
+      </a-tab-pane>
     </NcTabs>
   </div>
 </template>

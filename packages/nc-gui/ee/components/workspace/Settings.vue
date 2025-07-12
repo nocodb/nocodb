@@ -16,6 +16,8 @@ const { showUpgradeToUploadWsImage } = useEeConfig()
 
 const router = useRouter()
 
+const { isUIAllowed } = useRoles()
+
 const formValidator = ref()
 const isErrored = ref(false)
 const isWorkspaceUpdating = ref(false)
@@ -45,6 +47,10 @@ const formRules = {
     { max: 50, message: 'Workspace name must be at most 50 characters long' },
   ],
 }
+
+const hasWorkspaceManagePermission = computed(() => {
+  return isUIAllowed('workspaceManage')
+})
 
 const currentWorkspace = computedAsync(async () => {
   if (props.workspaceId) {
@@ -229,16 +235,18 @@ const onCancel = () => {
                 v-model:icon-type="form.iconType"
                 v-model:image-cropper-data="imageCropperData"
                 :tab-order="[IconType.ICON, IconType.EMOJI, IconType.IMAGE]"
+                :disabled="!hasWorkspaceManagePermission"
                 @submit="() => saveChanges(true)"
                 @before-tab-change="handleOnBeforeTabChange"
               >
                 <template #default="{ isOpen }">
                   <div
-                    class="rounded-lg border-1 flex-none w-17 h-17 overflow-hidden transition-all duration-300 cursor-pointer"
+                    class="rounded-lg border-1 flex-none w-17 h-17 overflow-hidden transition-all duration-300"
                     :class="{
                       'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
                       'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,
                       'border-primary shadow-selected': isOpen,
+                      'cursor-pointer': hasWorkspaceManagePermission,
                     }"
                   >
                     <GeneralWorkspaceIcon
@@ -248,7 +256,8 @@ const onCancel = () => {
                         iconType: form.iconType,
                       }"
                       size="xlarge"
-                      class="!w-full !h-full !min-w-full rounded-none select-none cursor-pointer"
+                      class="!w-full !h-full !min-w-full rounded-none select-none"
+                      :class="{ 'cursor-pointer': hasWorkspaceManagePermission }"
                     />
                   </div>
                 </template>
@@ -262,12 +271,13 @@ const onCancel = () => {
                   class="w-full !rounded-lg !px-4 h-10"
                   placeholder="Workspace name"
                   size="large"
+                  :disabled="!hasWorkspaceManagePermission"
                   data-testid="nc-workspace-settings-settings-rename-input"
                 />
               </a-form-item>
             </div>
           </div>
-          <div class="flex flex-row w-full justify-end mt-8 gap-4">
+          <div v-if="hasWorkspaceManagePermission" class="flex flex-row w-full justify-end mt-8 gap-4">
             <NcButton
               v-if="isSaveChangesBtnEnabled"
               type="secondary"
@@ -316,7 +326,7 @@ const onCancel = () => {
     </div>
   </div>
 
-  <GeneralModal v-model:visible="isDeleteModalVisible" class="nc-attachment-rename-modal" size="small" centered>
+  <GeneralModal v-if="hasWorkspaceManagePermission" v-model:visible="isDeleteModalVisible" class="nc-attachment-rename-modal" size="small" centered>
     <div class="flex flex-col items-center justify-center h-full !p-6">
       <div class="text-lg font-semibold self-start mb-5">Delete Workspace</div>
       <span class="self-start mb-2">

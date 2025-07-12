@@ -209,18 +209,6 @@ const onKeydown = (e: KeyboardEvent) => {
   }
 }
 
-const handleKeyDownList = (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'ArrowUp':
-    case 'ArrowDown':
-    case 'ArrowRight':
-    case 'ArrowLeft':
-      // skip
-      e.stopPropagation()
-      break
-  }
-}
-
 const onSelect = () => {
   isOpen.value = false
   isEditable.value = false
@@ -300,8 +288,8 @@ onMounted(() => {
   >
     <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
       <CellSingleSelectLayoutList
-        :options="options"
         v-model="vModel"
+        :options="options"
         :disabled="readOnly || !editAllowed"
         :row-index="rowIndex"
       />

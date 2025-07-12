@@ -7,7 +7,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { AppEvents, ProjectStatus, WorkspaceUserRoles } from 'nocodb-sdk';
+import {
+  AppEvents,
+  PlanLimitTypes,
+  ProjectStatus,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -16,13 +21,14 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import Snapshot from '~/models/Snapshot';
 import { NcError } from '~/helpers/catchError';
-import { Base, WorkspaceUser } from '~/models';
+import { Base, Workspace, WorkspaceUser } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import { JobTypes } from '~/interface/Jobs';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Noco from '~/Noco';
 import { MetaTable } from '~/cli';
+import { checkLimit } from '~/helpers/paymentHelpers';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -47,15 +53,17 @@ export class SnapshotController {
       throw new Error(`Base not found for id '${baseId}'`);
     }
 
-    const count = await Snapshot.countSnapshotsInBase(context, baseId);
+    const workspace = await Workspace.get(base.fk_workspace_id);
 
-    if (count === 2) {
-      NcError.badRequest('You can only have 2 snapshots in a base');
-    }
+    await checkLimit({
+      workspace,
+      type: PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE,
+      message: ({ limit }) =>
+        `You have reached the limit of ${limit} snapshots for your plan.`,
+    });
 
-    if (count === 1) {
-      const snapshots = await Snapshot.list(context, baseId);
-
+    const snapshots = await Snapshot.list(context, baseId);
+    if (snapshots?.length) {
       const lastCreatedSnapshot = snapshots?.sort(
         (a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix(),
       )[0];

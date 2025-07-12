@@ -1,12 +1,12 @@
-import type {
-  Api,
-  BaseType,
-  IntegrationType,
-  PlanFeatureTypes,
-  PlanLimitTypes,
-  WorkspaceType,
+import {
   WorkspaceUserRoles,
-  WorkspaceUserType,
+  type Api,
+  type BaseType,
+  type IntegrationType,
+  type PlanFeatureTypes,
+  type PlanLimitTypes,
+  type WorkspaceType,
+  type WorkspaceUserType,
 } from 'nocodb-sdk'
 import { WorkspaceStatus } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -69,6 +69,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const nocoAi = useNocoAi()
 
   const workspaceUserCount = ref<number | undefined>(undefined)
+  
+  const workspaceOwnerCount = ref<number | undefined>(undefined)
 
   const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
@@ -250,6 +252,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       allCollaborators.value = list
       collaborators.value = (list || [])?.filter((u) => !u?.deleted)
       workspaceUserCount.value = pageInfo.totalRows
+      workspaceOwnerCount.value = collaborators.value.filter((u) => u.roles === WorkspaceUserRoles.OWNER).length
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
@@ -366,6 +369,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         (res.workspace as WorkspaceType & { integrations: Partial<IntegrationType>[] })?.integrations || []
 
       workspaceUserCount.value = Number(res.workspaceUserCount)
+      workspaceOwnerCount.value = Number(res.workspaceOwnerCount)
 
       if (res.workspace.db_job_id) {
         upgradeWsJobId.value = res.workspace.db_job_id
@@ -637,6 +641,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaceRole,
     isWorkspaceSettingsPageOpened,
     workspaceUserCount,
+    workspaceOwnerCount,
     getPlanLimit,
     moveToOrg,
     isIntegrationsPageOpened,

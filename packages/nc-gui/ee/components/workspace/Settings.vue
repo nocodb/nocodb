@@ -8,7 +8,8 @@ const props = defineProps<{
 const workspaceStore = useWorkspace()
 const { deleteWorkspace, navigateToWorkspace, updateWorkspace, loadWorkspace, loadWorkspaces, removeCollaborator } =
   workspaceStore
-const { workspacesList, activeWorkspace, workspaces, deletingWorkspace, collaborators } = storeToRefs(workspaceStore)
+const { workspacesList, activeWorkspace, workspaces, deletingWorkspace, collaborators, workspaceOwnerCount } =
+  storeToRefs(workspaceStore)
 
 const { orgId } = useOrganization()
 
@@ -170,12 +171,8 @@ const saveChanges = async (isIconUpdate = false) => {
   }
 }
 
-// Todo: @ramesh
 const restrictLeaveWs = computed(() => {
-  // collaborators will be loaded only if use has ws level viewer or above role
-  if (isUIAllowed('workspaceCollaborators')) {
-    return (collaborators.value?.filter((collab) => collab.roles === WorkspaceUserRoles.OWNER).length ?? 0) < 2
-  }
+  return (workspaceOwnerCount.value ?? 0) < 2
 })
 
 const handleLeaveWorkspace = () => {

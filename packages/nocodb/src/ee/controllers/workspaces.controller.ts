@@ -64,11 +64,16 @@ export class WorkspacesController {
       user: req.user,
     });
 
-    const workspaceUserCount = await this.workspaceUserService.count({
-      workspaceId,
-    });
+    const [workspaceUserCount, workspaceOwnerCount] = await Promise.all([
+      this.workspaceUserService.count({
+        workspaceId,
+      }),
+      this.workspaceUserService.ownerCount({
+        workspaceId,
+      }),
+    ]);
 
-    return { workspace, workspaceUserCount };
+    return { workspace, workspaceUserCount, workspaceOwnerCount };
   }
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)

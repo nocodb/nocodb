@@ -1,7 +1,7 @@
 import { IconType, ProjectRoles } from 'nocodb-sdk';
 import { User } from 'src/models';
 import { Logger } from '@nestjs/common';
-import type { WorkspaceUserRoles } from 'nocodb-sdk';
+import { WorkspaceUserRoles } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,
@@ -17,6 +17,7 @@ import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers
 import { PresignedUrl } from '~/models';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
+import { clearWorkspaceUserCountCache } from '~/helpers/cacheHelpers';
 
 const logger = new Logger('WorkspaceUser');
 
@@ -90,9 +91,7 @@ export default class WorkspaceUser {
         true,
       );
 
-      await NocoCache.del(
-        `${CacheScope.WORKSPACE}:${workspaceUser.fk_workspace_id}:userCount`,
-      );
+      await clearWorkspaceUserCountCache(workspaceUser.fk_workspace_id);
 
       await NocoCache.del(
         `${CacheScope.RESOURCE_STATS}:workspace:${workspaceUser.fk_workspace_id}`,
@@ -397,10 +396,15 @@ export default class WorkspaceUser {
     {
       workspaceId,
       include_deleted = false,
-    }: { workspaceId: any; include_deleted?: boolean },
+      onlyOwner = false,
+    }: {
+      workspaceId: any;
+      include_deleted?: boolean;
+      onlyOwner?: boolean;
+    },
     ncMeta = Noco.ncMeta,
   ) {
-    const key = `${CacheScope.WORKSPACE}:${workspaceId}:userCount`;
+    const key = `${CacheScope.WORKSPACE}:${workspaceId}:userCount:${include_deleted}:${onlyOwner}`;
     let count = await NocoCache.get(key, CacheGetType.TYPE_STRING);
 
     if (!count) {
@@ -434,6 +438,9 @@ export default class WorkspaceUser {
                       ],
                     },
                   ]),
+              ...(onlyOwner
+                ? [{ roles: { eq: WorkspaceUserRoles.OWNER } }]
+                : []),
             ],
           },
           aggField: 'fk_user_id',
@@ -498,6 +505,8 @@ export default class WorkspaceUser {
       `${CacheScope.RESOURCE_STATS}:workspace:${workspaceId}`,
     );
 
+    await clearWorkspaceUserCountCache(workspaceId);
+
     cleanCommandPaletteCacheForUser(userId).catch(() => {
       logger.error('Error cleaning command palette cache');
     });
@@ -517,7 +526,7 @@ export default class WorkspaceUser {
       ncMeta,
     );
 
-    await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
+    await clearWorkspaceUserCountCache(workspaceId);
     await NocoCache.del(
       `${CacheScope.RESOURCE_STATS}:workspace:${workspaceId}`,
     );
@@ -545,7 +554,7 @@ export default class WorkspaceUser {
       `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
+    await clearWorkspaceUserCountCache(workspaceId);
     await NocoCache.del(
       `${CacheScope.RESOURCE_STATS}:workspace:${workspaceId}`,
     );
@@ -566,7 +575,7 @@ export default class WorkspaceUser {
       `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
+    await clearWorkspaceUserCountCache(workspaceId);
     await NocoCache.del(
       `${CacheScope.RESOURCE_STATS}:workspace:${workspaceId}`,
     );

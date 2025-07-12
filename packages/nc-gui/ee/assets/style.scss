@@ -967,8 +967,20 @@ svg.nc-virtual-cell-icon {
 .nc-field-layout-list {
   @apply !flex !flex-col !items-start w-full !space-y-0.5 !max-w-full;
 
+  &.nc-user-select-list {
+    .ant-checkbox-wrapper,.ant-radio-wrapper { 
+      @apply !h-12 !py-1.5;
+    }
+  }
+
+  &:not(.nc-user-select-list) {
+    .ant-checkbox-wrapper,.ant-radio-wrapper { 
+      @apply !h-9;
+    }
+  }
+
   .ant-checkbox-wrapper {
-    @apply !m-0 !h-12 !mr-0 !items-center w-full !max-w-full pl-2 py-1.2 rounded-lg hover:bg-gray-100;
+    @apply !m-0 !mr-0 !items-center w-full !max-w-full pl-2 rounded-lg hover:bg-gray-100;
 
     &:not(.nc-hidden-option){
       @apply !flex;
@@ -992,7 +1004,7 @@ svg.nc-virtual-cell-icon {
     }
   }
   .ant-radio-wrapper {
-    @apply !m-0 !h-12 !mr-0 !items-center w-full !max-w-full pl-2 py-1.5 rounded-lg hover:bg-gray-100;
+    @apply !m-0 !mr-0 !items-center w-full !max-w-full pl-2 rounded-lg hover:bg-gray-100;
 
     &:not(.nc-hidden-option){
       @apply !flex;

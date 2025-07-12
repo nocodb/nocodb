@@ -88,8 +88,12 @@ const options = computed(() => {
   return [...currentUserField, ...(userOptions ?? getOptions(column.value, false, isForm.value, baseUsers.value))]
 })
 
+const nonDeletedOptions = computed(() => {
+  return options.value.filter((op) => !op.deleted)
+})
+
 const filteredOptions = computed(() => {
-  return options.value.filter((op) => {
+  return nonDeletedOptions.value.filter((op) => {
     return searchVal.value ? searchCompare([op.display_name, op.email], searchVal.value) : true
   })
 })
@@ -327,7 +331,7 @@ onMounted(() => {
   >
     <div v-if="isFormListView" class="w-full max-w-full">
       <div class="rounded-lg border-1 border-nc-border-gray-medium w-full max-w-full">
-        <div v-if="options.length > 6" class="border-b-1 border-nc-border-gray-medium pl-1 group" @click.stop>
+        <div v-if="nonDeletedOptions.length > 16" class="border-b-1 border-nc-border-gray-medium pl-1 group" @click.stop>
           <a-input
             ref="inputRef"
             v-model:value="searchVal"
@@ -346,7 +350,7 @@ onMounted(() => {
             :is="isMultiple ? CheckboxGroup : RadioGroup"
             :value="vModelListLayout"
             :disabled="readOnly || !editAllowed"
-            class="nc-field-layout-list"
+            class="nc-field-layout-list nc-user-select-list"
             @update:value="
               (value) => {
                 vModel = isMultiple ? value : [value]
@@ -403,7 +407,7 @@ onMounted(() => {
               </component>
             </template>
           </component>
-          <template v-if="options.length && searchVal && !filteredOptions.length">
+          <template v-if="nonDeletedOptions.length && searchVal && !filteredOptions.length">
             <div class="h-full text-center flex items-center justify-center gap-3 mt-4">
               <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
             </div>

@@ -258,8 +258,7 @@ const filterOption = (input: string, option: any): boolean => {
   const opt = options.value.find((o) => o.id === option.value)
   if (!opt) return false
 
-  const inputLower = input.toLowerCase()
-  return opt.display_name?.toLowerCase().includes(inputLower) || opt.email?.toLowerCase().includes(inputLower)
+  return searchCompare([opt.display_name, opt.email], input)
 }
 
 // check if user is part of the base
@@ -394,9 +393,9 @@ onMounted(() => {
       :open="isOpen && editAllowed"
       :disabled="readOnly || !editAllowed"
       :class="{ 'caret-transparent': !hasEditRoles }"
-      :dropdown-class-name="`nc-dropdown-user-select-cell ${
-        isInFilter ? '!min-w-256px nc-dropdown-user-select-cell-filter' : '!min-w-156px'
-      }  ${isOpen ? 'active' : ''}`"
+      :dropdown-class-name="`nc-dropdown-user-select-cell !min-w-256px ${isInFilter ? '!min-w-256px' : '!min-w-180px'}  ${
+        isOpen ? 'active' : ''
+      }`"
       :filter-option="filterOption"
       :search-value="searchVal ?? ''"
       @search="search"
@@ -424,13 +423,19 @@ onMounted(() => {
             v-if="op.email === CURRENT_USER_TOKEN"
             class="absolute -bottom-1 w-[calc(100%_+_16px)] border-b-1 border-nc-border-gray-medium -ml-4"
           ></div>
-          <div v-if="location === 'filter'" class="w-full flex gap-2 items-center">
+          <div class="w-full flex gap-2 items-center">
             <GeneralUserIcon :user="op" size="base" class="flex-none" :show-placeholder-icon="op.email === CURRENT_USER_TOKEN" />
 
-            <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
+            <div
+              class="flex flex-col"
+              :class="{
+                'w-[calc(100%_-_32px)]': !vModel.find((i) => i.email === op.email),
+                'w-[calc(100%_-_68px)]': !!vModel.find((i) => i.email === op.email),
+              }"
+            >
               <div class="w-full flex gap-3">
                 <NcTooltip
-                  class="text-bodyDefaultSmBold !leading-5 capitalize truncate"
+                  class="text-bodyDefaultSmBold !leading-5 capitalize truncate max-w-full"
                   :class="{
                     'text-nc-content-brand': op.email === CURRENT_USER_TOKEN,
                     'text-gray-800': op.email !== CURRENT_USER_TOKEN,
@@ -444,7 +449,11 @@ onMounted(() => {
                   {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
                 </NcTooltip>
               </div>
-              <NcTooltip class="text-xs !leading-4 text-nc-content-gray-muted truncate" show-on-truncate-only placement="bottom">
+              <NcTooltip
+                class="text-xs !leading-4 text-nc-content-gray-muted truncate max-w-full"
+                show-on-truncate-only
+                placement="bottom"
+              >
                 <template #title>
                   {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
                 </template>
@@ -459,43 +468,6 @@ onMounted(() => {
               class="flex-none text-primary w-4 h-4"
             />
           </div>
-          <a-tag
-            v-else
-            class="rounded-tag max-w-full !pl-0"
-            :class="{
-              '!my-0': !rowHeight || rowHeight === 1,
-            }"
-            color="'#ccc'"
-          >
-            <span
-              :style="{
-                color: tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                  ? '#fff'
-                  : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-              }"
-              class="flex items-stretch gap-2"
-              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
-            >
-              <div>
-                <GeneralUserIcon size="auto" :user="op" class="!text-[0.5rem] !h-[16.8px]" />
-              </div>
-              <NcTooltip class="truncate max-w-full" show-on-truncate-only placement="right">
-                <template #title>
-                  {{ op.display_name?.trim() || op.email }}
-                </template>
-                <span
-                  class="text-ellipsis overflow-hidden"
-                  :style="{
-                    wordBreak: 'keep-all',
-                    whiteSpace: 'nowrap',
-                    display: 'inline',
-                  }"
-                >
-                  {{ op.display_name?.trim() || op.email }}
-                </span>
-              </NcTooltip>
-            </span>
-          </a-tag>
         </a-select-option>
       </template>
 
@@ -634,7 +606,13 @@ onMounted(() => {
 </style>
 
 <style lang="scss">
-.ant-select-dropdown.nc-dropdown-user-select-cell-filter .ant-select-item-option-state {
-  @apply !hidden;
+.ant-select-dropdown.nc-dropdown-user-select-cell {
+  .ant-select-item-option-content {
+    @apply w-full;
+  }
+
+  .ant-select-item-option-state {
+    @apply !hidden;
+  }
 }
 </style>

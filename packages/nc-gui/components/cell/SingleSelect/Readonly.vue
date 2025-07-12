@@ -41,40 +41,7 @@ const selectedOpt = computed(() => {
     :class="{ 'max-w-full': isForm }"
   >
     <div v-if="isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
-      <a-radio-group :value="modelValue" disabled class="nc-field-layout-list" @click.stop>
-        <a-radio
-          v-for="op of options"
-          :key="op.title"
-          :value="op.title"
-          :data-testid="`select-option-${column.title}-${rowIndex}`"
-          :class="`nc-select-option-${column.title}-${op.title}`"
-        >
-          <a-tag class="rounded-tag max-w-full" :color="op.color">
-            <span
-              :style="{
-                color: getSelectTypeOptionTextColor(op.color),
-              }"
-              class="text-small"
-            >
-              <NcTooltip class="truncate max-w-full" show-on-truncate-only>
-                <template #title>
-                  {{ op.title }}
-                </template>
-                <span
-                  class="text-ellipsis overflow-hidden"
-                  :style="{
-                    wordBreak: 'keep-all',
-                    whiteSpace: 'nowrap',
-                    display: 'inline',
-                  }"
-                >
-                  {{ op.title }}
-                </span>
-              </NcTooltip>
-            </span>
-          </a-tag>
-        </a-radio>
-      </a-radio-group>
+      <CellSingleSelectLayoutList :options="options" :model-value="modelValue" disabled :row-index="rowIndex" />
     </div>
 
     <div v-else class="w-full flex items-center">

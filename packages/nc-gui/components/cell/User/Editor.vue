@@ -331,7 +331,7 @@ onMounted(() => {
   >
     <div v-if="isFormListView" class="w-full max-w-full">
       <div class="rounded-lg border-1 border-nc-border-gray-medium w-full max-w-full">
-        <div v-if="nonDeletedOptions.length > 16" class="border-b-1 border-nc-border-gray-medium pl-1 group" @click.stop>
+        <div v-if="nonDeletedOptions.length > 6" class="border-b-1 border-nc-border-gray-medium pl-1 group" @click.stop>
           <a-input
             ref="inputRef"
             v-model:value="searchVal"
@@ -407,11 +407,13 @@ onMounted(() => {
               </component>
             </template>
           </component>
-          <template v-if="nonDeletedOptions.length && searchVal && !filteredOptions.length">
-            <div class="h-full text-center flex items-center justify-center gap-3 mt-4">
-              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
-            </div>
-          </template>
+
+          <div
+            v-if="nonDeletedOptions.length && searchVal && !filteredOptions.length"
+            class="h-full text-center flex items-center justify-center gap-3 mt-4"
+          >
+            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
+          </div>
         </div>
       </div>
       <div

@@ -39,6 +39,15 @@ export default function () {
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
         expect(result.body.message).to.include('Invalid request body');
       });
+      it('will handle no type', async () => {
+        const result = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/fields/`)
+          .set('xc-token', context.xc_token)
+          .send({ title: 'MyColumn' })
+          .expect(400);
+        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.message).to.include('Invalid request body');
+      });
       it('will handle duplicate alias', async () => {
         await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/fields/`)
@@ -85,7 +94,7 @@ export default function () {
       });
     });
 
-    describe.only('column update', () => {
+    describe('column update', () => {
       let column: any;
       beforeEach(async () => {
         const colResult = await request(context.app)
@@ -95,13 +104,15 @@ export default function () {
           .expect(200);
         column = colResult.body;
       });
-      it.only('will handle column not found', async () => {
+
+      it('will handle column not found', async () => {
         const result = await request(context.app)
           .patch(`${API_PREFIX}/fields/NOT_FOUND`)
           .set('xc-token', context.xc_token)
           .send({ title: 'any' })
           .expect(400);
-        console.log(result.body)
+        console.log(result)
+
         expect(result.body.error).to.eq('FIELD_NOT_FOUND');
         expect(result.body.message).to.include(`Field 'NOT_FOUND' not found`);
       });

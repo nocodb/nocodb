@@ -242,15 +242,15 @@ export default function () {
         const result = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/fields`)
           .set('xc-token', context.xc_token)
-          .send({ 
-            title: 'FSingleSelect', 
+          .send({
+            title: 'FSingleSelect',
             type: 'SingleSelect',
             options: {
-              options: [
+              choices: [
                 { title: 'Option1', color: '#ff0000' },
-                { title: 'Option2', color: '#00ff00' }
-              ]
-            }
+                { title: 'Option2', color: '#00ff00' },
+              ],
+            },
           })
           .expect(200);
         expect(result.body.id).to.not.empty;
@@ -267,15 +267,15 @@ export default function () {
         const result = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/fields`)
           .set('xc-token', context.xc_token)
-          .send({ 
-            title: 'FMultiSelect', 
+          .send({
+            title: 'FMultiSelect',
             type: 'MultiSelect',
             options: {
-              options: [
+              choices: [
                 { title: 'Option1', color: '#ff0000' },
-                { title: 'Option2', color: '#00ff00' }
-              ]
-            }
+                { title: 'Option2', color: '#00ff00' },
+              ],
+            },
           })
           .expect(200);
         expect(result.body.id).to.not.empty;

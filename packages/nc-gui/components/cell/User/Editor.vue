@@ -315,61 +315,63 @@ onMounted(() => {
     @click="toggleMenu"
   >
     <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
-      <component
-        :is="isMultiple ? CheckboxGroup : RadioGroup"
-        :value="vModelListLayout"
-        :disabled="readOnly || !editAllowed"
-        class="nc-field-layout-list"
-        @update:value="
-          (value) => {
-            vModel = isMultiple ? value : [value]
-          }
-        "
-      >
-        <template v-for="op of options" :key="op.id || op.email">
-          <component
-            :is="isMultiple ? Checkbox : Radio"
-            v-if="!op.deleted"
-            :key="op.id || op.email"
-            :value="op.id"
-            :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
-            :class="`nc-select-option-${column.title}-${op.email}`"
-          >
-            <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
-              <span
-                :style="{
-                  color: tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                    ? '#fff'
-                    : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                }"
-                class="flex items-stretch gap-2 text-small"
-              >
-                <div>
-                  <GeneralUserIcon size="auto" :user="op" class="!text-[0.5rem] !h-[16.8px]" :disabled="!isCollaborator(op.id)" />
-                </div>
-                <NcTooltip class="truncate max-w-full" show-on-truncate-only>
-                  <template #title>
-                    {{ op.display_name?.trim() || op.email }}
-                  </template>
-                  <span
-                    class="text-ellipsis overflow-hidden"
-                    :style="{
-                      wordBreak: 'keep-all',
-                      whiteSpace: 'nowrap',
-                      display: 'inline',
-                    }"
-                    :class="{
-                      'text-gray-600': !isCollaborator(op.id || op.email),
-                    }"
+      <div class="w-full max-w-full max-h-[328px] nc-scrollbar-thin rounded-lg border-1 border-nc-border-gray-medium p-1">
+        <component
+          :is="isMultiple ? CheckboxGroup : RadioGroup"
+          :value="vModelListLayout"
+          :disabled="readOnly || !editAllowed"
+          class="nc-field-layout-list"
+          @update:value="
+            (value) => {
+              vModel = isMultiple ? value : [value]
+            }
+          "
+        >
+          <template v-for="op of options" :key="op.id || op.email">
+            <component
+              :is="isMultiple ? Checkbox : Radio"
+              v-if="!op.deleted"
+              :key="op.id || op.email"
+              :value="op.id"
+              :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
+              :class="`nc-select-option-${column.title}-${op.email}`"
+            >
+              <div class="w-full flex gap-2 items-center py-1.5">
+                <GeneralUserIcon :user="op" size="base" class="flex-none" :disabled="!isCollaborator(op.id || op.email)" />
+
+                <div class="flex flex-col w-[calc(100%_-_40px)]">
+                  <div class="w-full flex gap-3">
+                    <NcTooltip
+                      class="text-bodyDefaultSmBold !leading-5 capitalize truncate max-w-full text-gray-800"
+                      :class="{
+                        '!text-gray-500': !isCollaborator(op.id || op.email),
+                      }"
+                      show-on-truncate-only
+                      placement="bottom"
+                    >
+                      <template #title>
+                        {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                      </template>
+                      {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                    </NcTooltip>
+                  </div>
+                  <NcTooltip
+                    class="text-xs !leading-4 text-nc-content-gray-muted truncate max-w-full"
+                    show-on-truncate-only
+                    placement="bottom"
                   >
-                    {{ op.display_name?.trim() || op.email }}
-                  </span>
-                </NcTooltip>
-              </span>
-            </a-tag>
-          </component>
-        </template>
-      </component>
+                    <template #title>
+                      {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
+                    </template>
+
+                    {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
+                  </NcTooltip>
+                </div>
+              </div>
+            </component>
+          </template>
+        </component>
+      </div>
       <div
         v-if="!readOnly && !isMultiple && vModel.length"
         class="inline-block px-2 pt-2 cursor-pointer text-xs text-gray-500 hover:text-gray-800"

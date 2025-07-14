@@ -64,7 +64,7 @@ export default function () {
               type: 'Number',
               default_value: 34,
               options: {
-                locale_string: true,
+                thousand_separator: true,
               },
             },
           ],
@@ -81,6 +81,7 @@ export default function () {
         );
 
         expect(numberField.default_value).to.eq('34');
+        expect(numberField.options.thousand_separator).to.eq(true);
       });
 
       it(`will create checkbox column with default value`, async () => {

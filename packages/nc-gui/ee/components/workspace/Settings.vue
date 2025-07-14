@@ -248,11 +248,11 @@ const onCancel = () => {
     <PaymentBanner v-if="!isAdminPanel" />
 
     <div v-if="currentWorkspace" class="flex flex-col items-center nc-workspace-settings-settings pb-10 px-6">
-      <div class="item-card-wrapper">
-        <div class="font-bold text-base text-nc-content-gray-emphasis">
+      <div class="nc-settings-item-card-wrapper mt-10">
+        <div class="nc-settings-item-heading text-nc-content-gray-emphasis">
           {{ $t('objects.workspace') }} {{ $t('general.appearance') }}
         </div>
-        <div class="item-card flex flex-col w-full p-6">
+        <div class="nc-settings-item-card flex flex-col w-full p-6">
           <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="() => saveChanges()">
             <div class="flex gap-4">
               <div>
@@ -330,14 +330,14 @@ const onCancel = () => {
           </a-form>
         </div>
       </div>
-      <div class="item-card-wrapper">
-        <div class="text-base font-bold text-nc-content-red-dark">{{ $t('labels.dangerZone') }}</div>
+      <div class="nc-settings-item-card-wrapper mt-10">
+        <div class="nc-settings-item-heading text-nc-content-red-dark">{{ $t('labels.dangerZone') }}</div>
 
-        <div class="item-card flex flex-col border-1 border-red-500 text-nc-content-gray">
-          <div class="item">
-            <div class="item-content">
-              <div class="item-title">{{ $t('msg.info.leaveThisWorkspace') }}</div>
-              <div class="item-subtitle">You will no longer have access to this workspace unless re-invited.</div>
+        <div class="nc-settings-item-card flex flex-col border-1 border-red-500 text-nc-content-gray">
+          <div class="nc-settings-item">
+            <div class="nc-settings-item-content">
+              <div class="nc-settings-item-title">{{ $t('msg.info.leaveThisWorkspace') }}</div>
+              <div class="nc-settings-item-subtitle">You will no longer have access to this workspace unless re-invited.</div>
             </div>
 
             <NcTooltip :disabled="allowLeaveWs">
@@ -357,10 +357,10 @@ const onCancel = () => {
               </NcButton>
             </NcTooltip>
           </div>
-          <div v-if="hasWorkspaceManagePermission" class="item">
-            <div class="item-content">
-              <div class="item-title">{{ $t('msg.info.wsDeleteDlg') }}</div>
-              <div class="item-subtitle">
+          <div v-if="hasWorkspaceManagePermission" class="nc-settings-item">
+            <div class="nc-settings-item-content">
+              <div class="nc-settings-item-title">{{ $t('msg.info.wsDeleteDlg') }}</div>
+              <div class="nc-settings-item-subtitle">
                 This will permanently remove the workspace and all its contents. This action cannot be undone.
               </div>
             </div>
@@ -424,33 +424,3 @@ const onCancel = () => {
     </div>
   </GeneralModal>
 </template>
-
-<style lang="scss" scoped>
-.item-card-wrapper {
-  @apply max-w-[600px] mt-10 min-w-100 w-full flex flex-col gap-4;
-
-  .item-card {
-    @apply rounded-2xl border-1 w-full;
-  }
-
-  .item {
-    @apply p-6 flex items-start gap-2 border-b border-b-nc-border-gray-medium;
-
-    &:last-of-type {
-      @apply border-b-0;
-    }
-  }
-
-  .item-content {
-    @apply flex flex-col gap-2;
-  }
-
-  .item-title {
-    @apply text-bodyBold font-700;
-  }
-
-  .item-subtitle {
-    @apply text-body font-500 text-nc-content-gray-subtle;
-  }
-}
-</style>

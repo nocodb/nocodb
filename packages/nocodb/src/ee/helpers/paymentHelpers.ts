@@ -174,7 +174,7 @@ async function checkLimit(args: {
             updateObject.grace_period_start_at = gracePeriodStartAt;
           }
 
-          await Workspace.update(workspaceId, updateObject, ncMeta);
+          await Workspace.update(workspace.id, updateObject, ncMeta);
 
           return;
         }

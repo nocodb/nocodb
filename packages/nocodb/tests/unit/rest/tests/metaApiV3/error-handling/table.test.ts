@@ -80,6 +80,31 @@ export default function () {
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
         expect(result.body.message).to.eq('Table name exceeds 63 characters');
       });
+
+      it(`will create number column with incorrect options`, async () => {
+        const table = {
+          title: 'Table Number',
+          description: 'Description',
+          fields: [
+            {
+              title: 'Number',
+              type: 'Number',
+              options: {
+                thousand_separator: true,
+              },
+            },
+          ],
+        };
+
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables`)
+          .set('xc-auth', context.token)
+          .send(table)
+          .expect(400);
+        // console.log('response', JSON.stringify(response.body.details, null, 2))
+
+        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+      });
     });
     describe('table get', () => {
       it(`will handle table not found`, async () => {

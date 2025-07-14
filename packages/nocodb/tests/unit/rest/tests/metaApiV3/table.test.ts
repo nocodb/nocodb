@@ -64,7 +64,7 @@ export default function () {
               type: 'Number',
               default_value: 34,
               options: {
-                thousand_separator: true,
+                locale_string: true,
               },
             },
           ],
@@ -81,7 +81,7 @@ export default function () {
         );
 
         expect(numberField.default_value).to.eq('34');
-        expect(numberField.options.thousand_separator).to.eq(true);
+        expect(numberField.options.locale_string).to.eq(true);
       });
 
       it(`will create checkbox column with default value`, async () => {
@@ -108,31 +108,6 @@ export default function () {
         );
 
         expect(checkboxField.default_value).to.eq('true');
-      });
-
-      it(`will create number column with incorrect options`, async () => {
-        const table = {
-          title: 'Table Number',
-          description: 'Description',
-          fields: [
-            {
-              title: 'Number',
-              type: 'Number',
-              options: {
-                locale_string: true,
-              },
-            },
-          ],
-        };
-
-        const response = await request(context.app)
-          .post(`${API_PREFIX}/tables`)
-          .set('xc-auth', context.token)
-          .send(table)
-          .expect(400);
-        // console.log('response', JSON.stringify(response.body.details, null, 2))
-
-        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
       });
     });
   });

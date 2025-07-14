@@ -1,7 +1,17 @@
 <script setup lang="ts">
+const { t } = useI18n()
+
 const { isModalVisible } = useChatWoot()
 
 const toggleVisibility = () => {
+  // if chatwoot is not initialized, show a message
+  if (!isModalVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
+    message.info({
+      content: t('msg.info.unavailableChatSupport'),
+    })
+    return
+  }
+
   const toggleText = (isModalVisible.value ? 'hide' : 'show') as any
   window.$chatwoot.toggle(toggleText)
 }

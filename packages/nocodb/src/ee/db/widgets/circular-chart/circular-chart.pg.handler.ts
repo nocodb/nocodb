@@ -5,14 +5,14 @@ import type {
   NcRequest,
   Widget,
 } from 'nocodb-sdk';
-import { PieChartCommonHandler } from '~/db/widgets/pie-chart/pie-chart.common.handler';
+import { CircularChartCommonHandler } from '~/db/widgets/circular-chart/circular-chart.common.handler';
 import { Column, Filter, Model, Source, View } from '~/models';
 import applyAggregation from '~/db/aggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
 import conditionV2 from '~/db/conditionV2';
 
-export class PieChartPgHandler extends PieChartCommonHandler {
+export class CircularChartPgHandler extends CircularChartCommonHandler {
   /**
    * Get the MAX function expression based on column type
    */
@@ -54,7 +54,9 @@ export class PieChartPgHandler extends PieChartCommonHandler {
   }
 
   async getWidgetData(params: {
-    widget: Widget<ChartWidgetType, ChartTypes.PIE>;
+    widget:
+      | Widget<ChartWidgetType, ChartTypes.PIE>
+      | Widget<ChartWidgetType, ChartTypes.DONUT>;
     req: NcRequest;
   }) {
     const { widget, req } = params;

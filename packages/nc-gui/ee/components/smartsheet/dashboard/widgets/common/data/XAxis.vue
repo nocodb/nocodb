@@ -101,5 +101,3 @@ const sortOrderOptions = [
     </div>
   </GroupedSettings>
 </template>
-
-<style scoped lang="scss"></style>

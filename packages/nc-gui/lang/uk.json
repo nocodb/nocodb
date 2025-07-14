@@ -2229,7 +2229,9 @@
       "valueMustBeAtMostCharLong": "Значення повинно містити не більше {length} символів",
       "copyToClipboardLocalFileUrl": "Браузер не дозволяє безпосередньо завантажувати локальний ресурс. Натомість URL скопійовано в буфер обміну.",
       "unsavedChanges": "You have unsaved changes.",
-      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?",
+      "supportChatUnavailable": "Support chat unavailable",
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

@@ -11,6 +11,7 @@ import {
 import type { Column } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Knex } from 'knex';
+
 import type CustomKnex from '~/db/CustomKnex';
 
 export function genSqlite3AggregateQuery({
@@ -25,7 +26,7 @@ export function genSqlite3AggregateQuery({
   column: Column;
   baseModelSqlv2: BaseModelSqlv2;
   aggregation: string;
-  column_query: string;
+  column_query: string | Knex.QueryBuilder;
   parsedFormulaType?: FormulaDataTypes;
   aggType:
     | 'common'
@@ -452,7 +453,7 @@ export function replaceDelimitedWithKeyValueSqlite3(params: {
     )
     .toQuery();
 
-  const result = knex
+  return knex
     .raw(
       [
         `select nc_p_result from (`,
@@ -465,6 +466,4 @@ export function replaceDelimitedWithKeyValueSqlite3(params: {
       ].join(' '),
     )
     .toQuery();
-
-  return result;
 }

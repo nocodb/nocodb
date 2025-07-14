@@ -14,10 +14,19 @@ import type {
   BaseDuplicatePayload,
   BaseRenamePayload,
   BaseUpdatePayload,
+  BaseUserInvitePayload,
+  BaseUserInviteResendPayload,
   BaseUserRoleUpdatePayload,
+  ColumnCreatePayload,
+  ColumnDeletePayload,
   ColumnDuplicatePayload,
   ColumnRenamePayload,
   ColumnType,
+  ColumnUpdatePayload,
+  DashboardCreatePayload,
+  DashboardDeletePayload,
+  DashboardDuplicatePayload,
+  DashboardUpdatePayload,
   DataExportPayload,
   DataImportPayload,
   FilterCreatePayload,
@@ -27,9 +36,14 @@ import type {
   HookCreatePayload,
   HookDeletePayload,
   HookUpdatePayload,
+  IntegrationCreatePayload,
+  IntegrationDeletePayload,
+  IntegrationUpdatePayload,
   ModelRoleVisibilityPayload,
   NcContext,
   NcRequest,
+  OrgUserInvitePayload,
+  OrgUserInviteResendPayload,
   ScriptCreatePayload,
   ScriptDeletePayload,
   ScriptDuplicatePayload,
@@ -52,6 +66,7 @@ import type {
   TableRenamePayload,
   TableUpdatePayload,
   UpdatePayload,
+  UserInvitePayload,
   UserProfileUpdatePayload,
   ViewColumnUpdatePayload,
   ViewCreatePayload,
@@ -60,25 +75,12 @@ import type {
   ViewRenamePayload,
   ViewUpdatePayload,
   WidgetType,
-  WorkspaceUserDeletePayload,
-} from 'nocodb-sdk';
-import type {
-  BaseUserInvitePayload,
-  BaseUserInviteResendPayload,
-  ColumnCreatePayload,
-  ColumnDeletePayload,
-  ColumnUpdatePayload,
-  IntegrationCreatePayload,
-  IntegrationDeletePayload,
-  IntegrationUpdatePayload,
-  OrgUserInvitePayload,
-  OrgUserInviteResendPayload,
-  UserInvitePayload,
   WorkspaceCreatePayload,
   WorkspaceDeletePayload,
   WorkspaceInvitePayload,
   WorkspaceRenamePayload,
   WorkspaceUpdatePayload,
+  WorkspaceUserDeletePayload,
   WorkspaceUserUpdatePayload,
 } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
@@ -90,6 +92,10 @@ import type {
   ColumnDuplicateEvent,
   ColumnEvent,
   ColumnUpdateEvent,
+  DashboardCreateEvent,
+  DashboardDeleteEvent,
+  DashboardDuplicateEvent,
+  DashboardUpdateEvent,
   DataExportEvent,
   DataImportEvent,
   FilterEvent,
@@ -99,6 +105,7 @@ import type {
   GalleryViewUpdateEvent,
   GridViewUpdateEvent,
   IntegrationEvent,
+  IntegrationUpdateEvent,
   KanbanViewUpdateEvent,
   MetaDiffEvent,
   ModelRoleVisibilityEvent,
@@ -108,6 +115,7 @@ import type {
   ProjectInviteEvent,
   ProjectUpdateEvent,
   ProjectUserResendInviteEvent,
+  ProjectUserUpdateEvent,
   ScriptCreateEvent,
   ScriptDeleteEvent,
   ScriptDuplicateEvent,
@@ -146,11 +154,9 @@ import type {
   WorkspaceUserInviteEvent,
   WorkspaceUserUpdateEvent,
 } from '~/services/app-hooks/interfaces';
-import type { IntegrationUpdateEvent } from '~/services/app-hooks/interfaces';
 import type { SelectOption } from '~/models';
-import type { ProjectUserUpdateEvent } from '~/services/app-hooks/interfaces';
-import { columnBuilder } from '~/utils/data-transformation.builder';
 import { Audit, Column, User } from '~/models';
+import { columnBuilder } from '~/utils/data-transformation.builder';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
@@ -3128,6 +3134,96 @@ export class AppHooksListenerService
               req: param.req,
             },
           ),
+        );
+        break;
+      }
+      case AppEvents.DASHBOARD_CREATE: {
+        const param = data as DashboardCreateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<DashboardCreatePayload>(
+            AuditV1OperationTypes.DASHBOARD_CREATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                dashboard_title: param.dashboard.title,
+                dashboard_id: param.dashboard.id,
+                dashboard_description: param.dashboard.description,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.DASHBOARD_UPDATE: {
+        const param = data as DashboardUpdateEvent;
+
+        const updatePayload = populateUpdatePayloadDiff({
+          prev: param.oldDashboard,
+          next: param.dashboard,
+          parseMeta: true,
+          aliasMap: {
+            dashboard_title: param.dashboard.title,
+            dashboard_description: param.dashboard.description,
+            dashboard_id: param.dashboard.id,
+          },
+        });
+
+        if (!updatePayload) break;
+
+        await this.auditInsert(
+          await generateAuditV1Payload<DashboardUpdatePayload>(
+            AuditV1OperationTypes.DASHBOARD_UPDATE,
+            {
+              details: {
+                dashboard_title: param.dashboard.title,
+                dashboard_id: param.dashboard.id,
+                dashboard_description: param.dashboard.description,
+                ...updatePayload,
+              },
+              context: param.context,
+              req: param.req,
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.DASHBOARD_DELETE: {
+        const param = data as DashboardDeleteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<DashboardDeletePayload>(
+            AuditV1OperationTypes.DASHBOARD_DELETE,
+            {
+              details: {
+                dashboard_title: param.dashboard.title,
+                dashboard_id: param.dashboard.id,
+              },
+              context: param.context,
+              req: param.req,
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.DASHBOARD_DUPLICATE_START:
+      case AppEvents.DASHBOARD_DUPLICATE_FAIL: {
+        const param = data as DashboardDuplicateEvent;
+        let auditEvent = AuditV1OperationTypes.BASE_DELETE;
+        if (event === AppEvents.DASHBOARD_DUPLICATE_FAIL) {
+          auditEvent = AuditV1OperationTypes.DASHBOARD_DUPLICATE_ERROR;
+        }
+
+        await this.auditInsert(
+          await generateAuditV1Payload<DashboardDuplicatePayload>(auditEvent, {
+            details: {
+              source_dashboard_title: param.sourceDashboard.title,
+              source_dashboard_id: param.sourceDashboard.id,
+              duplicated_dashboard_title: param.destDashboard.title,
+              duplicated_dashboard_id: param.destDashboard.id,
+            },
+            context: param.context,
+            req: param.req,
+          }),
         );
         break;
       }

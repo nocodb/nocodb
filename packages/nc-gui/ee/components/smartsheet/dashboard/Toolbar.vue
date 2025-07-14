@@ -88,12 +88,14 @@ const addDonutChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.DON
         Number
       </div>
     </NcButton>
-    <!--    <NcButton size="small" type="text" @click="addBarChartWidget">
+    <!--
+    <NcButton size="small" type="text" @click="addBarChartWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="ncChartBar" class="w-5 h-5" />
         Bar Chart
       </div>
     </NcButton>
+
     <NcButton size="small" type="text" @click="addLineChartWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="ncChartLine" class="w-5 h-5" />

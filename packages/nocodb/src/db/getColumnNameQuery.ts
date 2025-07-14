@@ -1,4 +1,5 @@
 import { UITypes } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type { FormulaColumn, RollupColumn } from '~/models';
 import type { BarcodeColumn, QrCodeColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
@@ -25,7 +26,9 @@ export async function getColumnNameQuery({
   baseModelSqlv2: BaseModelSqlv2;
   column: Column;
   context: NcContext;
-}): Promise<string> {
+}): Promise<{
+  builder: Knex.QueryBuilder | string;
+}> {
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
   if (column.uidt === UITypes.Barcode || column.uidt === UITypes.QrCode) {
     column = new Column({
@@ -36,7 +39,7 @@ export async function getColumnNameQuery({
     });
   }
 
-  let column_name_query = column.column_name;
+  let column_name_query: any = column.column_name;
 
   if (column.uidt === UITypes.CreatedTime && !column.column_name)
     column_name_query = 'created_at';
@@ -60,22 +63,19 @@ export async function getColumnNameQuery({
     case UITypes.Links:
     case UITypes.Rollup: {
       const knex = baseModelSqlv2.dbDriver;
-      column_name_query = (
-        await genRollupSelectv2({
-          baseModelSqlv2,
-          knex,
-          columnOptions: (await column.getColOptions(context)) as RollupColumn,
-        })
-      ).builder;
+      column_name_query = await genRollupSelectv2({
+        baseModelSqlv2,
+        knex,
+        columnOptions: (await column.getColOptions(context)) as RollupColumn,
+      });
       break;
     }
 
     case UITypes.Formula: {
       const formula = await column.getColOptions<FormulaColumn>(context);
       if (!formula.error) {
-        column_name_query = (
-          await baseModelSqlv2.getSelectQueryBuilderForFormula(column)
-        ).builder;
+        column_name_query =
+          await baseModelSqlv2.getSelectQueryBuilderForFormula(column);
       }
       break;
     }
@@ -83,18 +83,19 @@ export async function getColumnNameQuery({
     case UITypes.LinkToAnotherRecord:
     case UITypes.Lookup: {
       const model = await column.getModel(context);
-      column_name_query = (
-        await generateLookupSelectQuery({
-          baseModelSqlv2,
-          column: column,
-          alias: null,
-          model,
-          isAggregation: true,
-        })
-      ).builder as string;
+      column_name_query = await generateLookupSelectQuery({
+        baseModelSqlv2,
+        column: column,
+        alias: null,
+        model,
+        isAggregation: true,
+      });
       break;
     }
   }
-
-  return column_name_query;
+  return typeof column_name_query === 'string'
+    ? {
+        builder: column_name_query,
+      }
+    : column_name_query;
 }

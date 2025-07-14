@@ -54,8 +54,6 @@ const filterAggregation = (value: string) => {
     AllAggregations.Median,
     AllAggregations.Count,
     AllAggregations.CountUnique,
-    AllAggregations.CountEmpty,
-    AllAggregations.CountFilled,
     AllAggregations.Checked,
     AllAggregations.Unchecked,
     AllAggregations.DateRange,

@@ -19,7 +19,7 @@ export default defineNuxtConfig({
   experimental: {
     componentIslands: false,
   },
-  modules: ['nuxt-echarts', '@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt'],
+  modules: ['nuxt-echarts', '@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
   echarts: {
     renderer: ['canvas'],
     charts: ['BarChart', 'LineChart', 'PieChart'],
@@ -30,7 +30,6 @@ export default defineNuxtConfig({
   alias: {
     '@': resolve(__dirname),
   },
-  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
   chatwoot: {
     init: {
       websiteToken: process.env.NUXT_CHATWOOT_WEBSITE_TOKEN,

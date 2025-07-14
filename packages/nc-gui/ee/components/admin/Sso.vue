@@ -16,6 +16,7 @@ const oidcProviders = computed(() => {
 
 const samlDialogShow = ref(false)
 const oidcDialogShow = ref(false)
+const googleDialogShow = ref(false)
 
 const isEdit = ref(false)
 
@@ -45,7 +46,7 @@ const copySigninUrl = async () => {
 
 const updateProviderStatus = async (client: { enabled: boolean; id: string }) => {
   if (!client.id) {
-    // googleDialogShow.value = true
+    googleDialogShow.value = true
     isEdit.value = true
     providerProp.value = await getPrePopulatedProvider('google')
     return
@@ -64,7 +65,7 @@ watch(isCopied.value, (v) => {
 })
 
 watch(
-  () => oidcDialogShow.value || samlDialogShow.value,
+  () => oidcDialogShow.value || samlDialogShow.value || googleDialogShow.value,
   async (v) => {
     if (!v) {
       isEdit.value = false
@@ -290,13 +291,13 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <!--    <DlgGoogleProvider
-      v-if="googleDialogShow"
-      v-model:model-value="googleDialogShow"
-      is-org
-      :google="providerProp"
-      :is-edit="isEdit"
-    /> -->
+      <DlgGoogleProvider
+        v-if="googleDialogShow"
+        v-model:model-value="googleDialogShow"
+        is-org
+        :google="providerProp"
+        :is-edit="isEdit"
+      />
       <DlgSAMLProvider v-if="samlDialogShow" v-model:model-value="samlDialogShow" is-org :is-edit="isEdit" :saml="providerProp" />
       <DlgOIDCProvider v-if="oidcDialogShow" v-model:model-value="oidcDialogShow" is-org :is-edit="isEdit" :oidc="providerProp" />
     </div>

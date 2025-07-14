@@ -2229,7 +2229,9 @@
       "valueMustBeAtMostCharLong": "Waarde mag maximaal {length} tekens lang zijn",
       "copyToClipboardLocalFileUrl": "De browser staat het direct laden van lokale bronnen niet toe. URL is in plaats daarvan naar het klembord gekopieerd.",
       "unsavedChanges": "You have unsaved changes.",
-      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?",
+      "supportChatUnavailable": "Support chat unavailable",
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

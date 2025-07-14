@@ -1,4 +1,4 @@
-import { ChartTypes, ChartWidgetConfig } from './charts';
+import { ChartTypes, ChartWidgetConfig } from '~/lib';
 
 export interface DashboardType {
   id?: string;

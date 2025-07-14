@@ -1,5 +1,5 @@
 import { UITypes } from 'nocodb-sdk';
-import type { knex } from 'knex';
+import type { Knex } from 'knex';
 import type { FormulaColumn, RollupColumn } from '~/models';
 import type { BarcodeColumn, QrCodeColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
@@ -27,7 +27,7 @@ export async function getColumnNameQuery({
   column: Column;
   context: NcContext;
 }): Promise<{
-  builder: knex.QueryBuilder;
+  builder: Knex.QueryBuilder | string;
 }> {
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
   if (column.uidt === UITypes.Barcode || column.uidt === UITypes.QrCode) {
@@ -95,7 +95,7 @@ export async function getColumnNameQuery({
   }
   return typeof column_name_query === 'string'
     ? {
-        builder: baseModelSqlv2.dbDriver.raw(column_name_query),
+        builder: column_name_query,
       }
     : column_name_query;
 }

@@ -95,10 +95,5 @@ export async function getColumnNameQuery({
       break;
     }
   }
-
-  if (column_name_query && typeof column_name_query.toQuery === 'function') {
-    return column_name_query.toQuery();
-  } else {
-    return column_name_query;
-  }
+  return column_name_query;
 }

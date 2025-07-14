@@ -34,7 +34,7 @@ function duplicateBaseTests() {
     console.timeEnd('#### duplicateColumnTests');
   });
 
-  it.only('will duplicate base successfully', async () => {
+  it('will duplicate base successfully', async () => {
     const user = context.context.user;
 
     const dupProject = await basesService.baseCreate({
@@ -144,7 +144,6 @@ function duplicateBaseTests() {
       table: dupTable2!,
     });
     expect(row.length).to.gt(0);
-    console.log(row);
     expect(row[0]).to.have.property('Title');
     expect(row[0].Title).to.eq('T2_001');
 

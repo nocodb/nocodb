@@ -49,15 +49,25 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
     return `${widgetType.charAt(0).toUpperCase() + widgetType.slice(1)}`
   }
 
-  const newWidget: Partial<WidgetType> = {
-    title: getWidgetTitle(widgetType, type),
-    type: widgetType,
-    position: {
+  const positionMap = {
+    [WidgetTypes.METRIC]: {
+      x: 0,
+      y: 0,
+      w: 2,
+      h: 1,
+    },
+    [WidgetTypes.CHART]: {
       x: 0,
       y: 0,
       w: 2,
       h: 2,
     },
+  }
+
+  const newWidget: Partial<WidgetType> = {
+    title: getWidgetTitle(widgetType, type),
+    type: widgetType,
+    position: positionMap[widgetType],
     config: getDefaultConfig(widgetType, type),
   }
 

@@ -207,20 +207,6 @@ watch(
 </template>
 
 <style scoped lang="scss">
-.nc-donut-chart-widget {
-  border: 1px solid var(--nc-border-color-light);
-  transition: all 0.2s ease;
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-color: var(--nc-border-color-medium);
-  }
-
-  .chart {
-    width: 100%;
-  }
-}
-
 // Loading animation
 @keyframes spin {
   to {

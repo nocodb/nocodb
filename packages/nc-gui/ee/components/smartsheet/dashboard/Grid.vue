@@ -106,6 +106,33 @@ const onWidgetClick = (item: string) => {
   const widget = activeDashboardWidgets.value.find((w) => w.id === item)
   if (widget && isEditingDashboard.value) handleWidgetClick(widget)
 }
+
+const getWidgetPositionConfig = (item: string) => {
+  const widget = activeDashboardWidgets.value.find((w) => w.id === item)
+
+  if (!widget) return {}
+
+  switch (widget.type) {
+    case WidgetTypes.METRIC: {
+      return {
+        minW: 1,
+        minH: 1,
+        maxW: 4,
+        maxH: 1,
+      }
+    }
+    case WidgetTypes.CHART: {
+      return {
+        minW: 2,
+        minH: 2,
+        maxW: 2,
+        maxH: 6,
+      }
+    }
+    default:
+      return {}
+  }
+}
 </script>
 
 <template>
@@ -134,6 +161,7 @@ const onWidgetClick = (item: string) => {
         :w="item.w"
         :h="item.h"
         :i="item.i"
+        v-bind="getWidgetPositionConfig(item.i)"
         @move="handleMove"
         @moved="handleMoved"
         @resize="handleResize"

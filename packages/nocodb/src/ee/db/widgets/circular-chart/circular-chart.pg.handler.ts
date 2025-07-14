@@ -18,38 +18,10 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
    */
   private getMaxExpressionForColumn(column: Column): string {
     switch (column.uidt) {
-      case UITypes.Number:
-      case UITypes.Currency:
-      case UITypes.Percent:
-      case UITypes.Decimal:
-      case UITypes.Rating:
-      case UITypes.Count:
-        return 'MAX(original_category::NUMERIC)';
-
-      case UITypes.Date:
-      case UITypes.DateTime:
-      case UITypes.CreatedTime:
-      case UITypes.LastModifiedTime:
-        return 'MAX(original_category::TIMESTAMP)';
-
-      case UITypes.Time:
-        return 'MAX(original_category::TIME)';
-
       case UITypes.Checkbox:
-        return 'BOOL_OR(original_category::BOOLEAN)';
-
-      case UITypes.SingleSelect:
-      case UITypes.MultiSelect:
-      case UITypes.Email:
-      case UITypes.URL:
-      case UITypes.PhoneNumber:
-      case UITypes.LongText:
-      case UITypes.JSON:
-      case UITypes.User:
-      case UITypes.CreatedBy:
-      case UITypes.LastModifiedBy:
+        return 'BOOL_OR(original_category)';
       default:
-        return 'MAX(original_category::TEXT)';
+        return 'MAX(original_category)';
     }
   }
 

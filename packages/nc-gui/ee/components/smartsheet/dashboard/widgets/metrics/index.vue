@@ -54,7 +54,7 @@ watch(
 
 <template>
   <div
-    class="nc-metric-widget h-full w-full p-4 flex group flex-col gap-1 relative"
+    class="nc-metric-widget !rounded-xl h-full w-full p-4 flex group flex-col gap-1 relative"
     :style="{
       backgroundColor: colors.fill,
     }"
@@ -86,14 +86,3 @@ watch(
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-.nc-metric-widget {
-  border-radius: 8px;
-  transition: all 0.2s ease;
-
-  &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-}
-</style>

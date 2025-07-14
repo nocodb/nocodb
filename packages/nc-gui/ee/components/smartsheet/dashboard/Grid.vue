@@ -143,12 +143,15 @@ const onWidgetClick = (item: string) => {
           class="widget-container h-full w-full"
           :class="{
             'cursor-pointer': isEditingDashboard,
-            'selected': selectedWidget?.id === item.i,
           }"
           @click.stop="onWidgetClick(item.i)"
         >
           <component
             :is="getWidgetComponent(activeDashboardWidgets.find(w => w.id === item.i)!)"
+            class="nc-widget"
+            :class="{
+              selected: selectedWidget?.id === item.i,
+            }"
             :widget="activeDashboardWidgets.find(w => w.id === item.i)!"
             :is-editing="isEditingDashboard"
           />
@@ -175,9 +178,8 @@ const onWidgetClick = (item: string) => {
 :deep(.vgl-item--placeholder) {
   @apply border-2 border-nc-content-brand rounded-xl opacity-100;
 }
-
 :deep(.vgl-item:not(.vgl-item--placeholder)) {
-  @apply border-1 border-nc-content-gray-medium rounded-xl overflow-hidden;
+  @apply border-1 border-nc-content-gray-medium !rounded-xl;
 }
 
 :deep(.vgl-item--resizing) {
@@ -195,22 +197,17 @@ const onWidgetClick = (item: string) => {
 :deep(.vgl-item__resizer) {
   @apply opacity-0;
 }
-
-.widget-container {
-  transition: all 0.2s ease;
-
-  &.selected {
-    box-shadow: 0 0 0 2px var(--nc-content-brand);
-  }
-
-  &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-}
-
 .empty-state {
   border: 2px dashed var(--nc-content-gray-300);
   border-radius: 12px;
   margin: 2rem 0;
+}
+</style>
+
+<style lang="scss">
+.nc-widget {
+  &.selected {
+    @apply ring-2 ring-nc-fill-primary;
+  }
 }
 </style>

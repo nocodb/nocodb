@@ -21,10 +21,10 @@ const chartConfig = computed(() => {
 })
 
 const chartSize = computed(() => {
-  const size = chartConfig.value?.appearance?.size ?? 'medium'
+  const size = chartConfig.value?.appearance?.size ?? 'small'
   const sizeMap = {
-    small: { height: '250px', radius: '45%' },
-    medium: { height: '350px', radius: '60%' },
+    small: { height: '336px', radius: '80%' }, // 120 chart radius
+    medium: { height: '240px', radius: '60%' },
     large: { height: '450px', radius: '70%' },
   }
   return sizeMap[size]
@@ -35,12 +35,12 @@ const legendConfig = computed(() => {
   const showCountInLegend = chartConfig.value?.appearance?.showCountInLegend ?? true
 
   if (position === 'none') {
-    return { show: false }
+    return { show: false, orient: 'horizontal', top: '10%', left: 'center' }
   }
 
   const positionMap = {
-    top: { orient: 'horizontal', top: '10%', left: 'center' },
-    bottom: { orient: 'horizontal', bottom: '10%', left: 'center' },
+    top: { orient: 'horizontal', top: '5%', left: 'center' },
+    bottom: { orient: 'horizontal', bottom: '5%', left: 'center' },
     left: { orient: 'vertical', left: '10%', top: 'center' },
     right: { orient: 'vertical', right: '10%', top: 'center' },
   }
@@ -83,6 +83,15 @@ const chartOption = computed<ECOption>(() => {
 
   const showPercentageOnChart = chartConfig.value?.appearance?.showPercentageOnChart ?? true
 
+  const position = chartConfig.value?.appearance?.legendPosition ?? 'right'
+
+  const centerConfig = {
+    top: ['50%', '60%'],
+    bottom: ['50%', '40%'],
+    left: ['70%', '50%'],
+    right: ['30%', '50%'],
+  }
+
   return {
     color: chartColors.value,
     tooltip: {
@@ -109,31 +118,19 @@ const chartOption = computed<ECOption>(() => {
         name: widgetRef.value?.title || 'Data',
         type: 'pie',
         radius: chartSize.value.radius,
-        center: legendConfig.value.show && legendConfig.value.orient === 'vertical' ? ['40%', '50%'] : ['50%', '50%'],
+        center: legendConfig.value.show && centerConfig[position] ? centerConfig[position] : ['50%', '50%'],
         data: widgetData.value.data,
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 15,
-            shadowOffsetX: 0,
-            shadowColor: 'rgba(0, 0, 0, 0.3)',
-            borderWidth: 2,
-            borderColor: '#fff',
-          },
-        },
         label: {
           show: showPercentageOnChart,
           formatter: showPercentageOnChart ? '{d}%' : '',
           position: 'inside',
-          fontSize: 12,
-          fontWeight: 'bold',
+          fontSize: 13,
           color: '#fff',
         },
         labelLine: {
-          show: false,
+          show: true,
         },
-        animationType: 'scale',
-        animationEasing: 'elasticOut',
-        animationDuration: 1000,
+        avoidLabelOverlap: true,
       },
     ],
   }
@@ -173,12 +170,12 @@ watch(
 </script>
 
 <template>
-  <div class="nc-pie-chart-widget h-full w-full flex flex-col relative bg-white rounded-lg">
+  <div class="nc-pie-chart-widget h-full w-full flex flex-col relative bg-white !rounded-xl">
     <div class="flex items-center justify-between p-4 pb-2">
       <div class="flex-1">
-        <h3 class="text-nc-content-gray-emphasis text-subHeading2 font-medium">
+        <div class="text-nc-content-gray-emphasis text-subHeading2 font-medium">
           {{ widget.title }}
-        </h3>
+        </div>
         <p v-if="widget.description" class="text-nc-content-gray-subtle2 text-bodyDefaultSm mt-1">
           {{ widget.description }}
         </p>
@@ -209,20 +206,6 @@ watch(
 </template>
 
 <style scoped lang="scss">
-.nc-pie-chart-widget {
-  border: 1px solid var(--nc-border-color-light);
-  transition: all 0.2s ease;
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-color: var(--nc-border-color-medium);
-  }
-
-  .chart {
-    width: 100%;
-  }
-}
-
 // Loading animation
 @keyframes spin {
   to {

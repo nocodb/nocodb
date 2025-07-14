@@ -195,6 +195,24 @@ async function onRename(script: ScriptType, originalTitle?: string, undo = false
   }
 }
 
+const updateScriptIcon = async (icon: string, script: ScriptType) => {
+  try {
+    // modify the icon property in meta
+    script.meta = {
+      ...parseProp(script.meta),
+      icon,
+    }
+
+    await updateAutomation(script.base_id, script.id!, {
+      meta: script.meta,
+    })
+
+    $e('a:script:icon:sidebar', { icon })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 /** Open delete modal */
 function openDeleteDialog(script: ScriptType) {
   const isOpen = ref(true)
@@ -308,6 +326,7 @@ const filteredScripts = computed(() => {
         @change-script="changeScript"
         @rename="onRename"
         @delete="openDeleteDialog"
+        @select-icon="updateScriptIcon($event, script)"
       />
     </template>
   </a-menu>

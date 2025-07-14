@@ -234,11 +234,11 @@ const deleteDashboard = () => {
           @mouseleave="showDashboardNodeTooltip = true"
         >
           <LazyGeneralEmojiPicker
-            class="nc-script-icon"
+            class="nc-dashboard-icon"
             size="small"
-            :emoji="props.view?.meta?.icon"
+            :emoji="props.dashboard?.meta?.icon"
             :clearable="true"
-            :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
+            :readonly="isMobileMode || !isUIAllowed('dashboardEdit')"
             @emoji-selected="emits('selectIcon', $event)"
           >
             <template #default>

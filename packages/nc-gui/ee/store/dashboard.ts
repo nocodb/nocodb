@@ -33,7 +33,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const activeDashboard = computed(() => {
     if (!activeDashboardId.value) return null
-    return activeBaseDashboards.value.find((a) => a.id === activeDashboardId.value)
+    return dashboards.value.get(activeProjectId.value)?.find((a) => a.id === activeDashboardId.value) || null
   })
 
   const loadDashboards = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
@@ -74,6 +74,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
           operation: 'dashboardGet',
           id: dashboardId,
         })) as unknown as DashboardType)
+
+      const baseDashboards = dashboards.value.get(activeProjectId.value) || []
+      const filtered = baseDashboards.filter((a) => a.id !== dashboardId)
+      filtered.push(dashboard)
+      dashboards.value.set(activeProjectId.value, filtered)
 
       return dashboard
     } catch (e) {
@@ -148,8 +153,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
       const baseDashboards = dashboards.value.get(baseId) || []
       const index = baseDashboards.findIndex((a) => a.id === dashboardId)
+
       if (index !== -1) {
-        baseDashboards[index] = updated as unknown as DashboardType
+        baseDashboards[index] = updated as any
         dashboards.value.set(baseId, baseDashboards)
       }
 

@@ -214,6 +214,24 @@ function openDeleteDialog(dashboard: DashboardType) {
   }
 }
 
+const updateDashboardIcon = async (icon: string, dashboard: DashboardType) => {
+  try {
+    // modify the icon property in meta
+    dashboard.meta = {
+      ...parseProp(dashboard.meta),
+      icon,
+    }
+
+    await updateDashboard(dashboard.base_id, dashboard.id!, {
+      meta: dashboard.meta,
+    })
+
+    $e('a:dashboard:icon:sidebar', { icon })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 const menuRef = ref<typeof AntMenu>()
 
 const initSortable = (el: HTMLElement) => {
@@ -228,7 +246,7 @@ const initSortable = (el: HTMLElement) => {
 }
 
 onMounted(() => {
-  if (isUIAllowed('scriptCreateOrEdit') && menuRef.value) {
+  if (isUIAllowed('dashboardEdit') && menuRef.value) {
     initSortable(menuRef.value.$el)
   }
 })
@@ -290,6 +308,7 @@ const filteredDashboards = computed(() => {
       @change-dashboard="changeDashboard"
       @rename="onRename"
       @delete="openDeleteDialog"
+      @select-icon="updateDashboardIcon($event, dashboard)"
     />
   </a-menu>
 </template>

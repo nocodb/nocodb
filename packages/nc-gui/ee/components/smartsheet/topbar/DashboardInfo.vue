@@ -75,7 +75,14 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               'max-w-none': isSharedBase && !isMobileMode,
             }"
           >
-            <LazyGeneralEmojiPicker v-if="!isMobileMode" readonly size="xsmall" class="mr-1">
+            <LazyGeneralEmojiPicker
+              v-if="!isMobileMode"
+              :key="activeDashboard?.meta"
+              :emoji="activeDashboard?.meta?.icon"
+              readonly
+              size="xsmall"
+              class="mr-1"
+            >
               <template #default>
                 <GeneralIcon
                   icon="dashboards"

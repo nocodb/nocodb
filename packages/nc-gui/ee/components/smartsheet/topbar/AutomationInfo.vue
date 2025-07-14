@@ -51,7 +51,14 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               'max-w-1/4': !isSharedBase && !isMobileMode && !activeAutomation,
             }"
           >
-            <LazyGeneralEmojiPicker v-if="!isMobileMode" readonly size="xsmall" class="mr-1">
+            <LazyGeneralEmojiPicker
+              v-if="!isMobileMode"
+              :key="activeAutomation?.meta"
+              :emoji="activeAutomation?.meta?.icon"
+              readonly
+              size="xsmall"
+              class="mr-1"
+            >
               <template #default>
                 <GeneralIcon
                   icon="ncScript"

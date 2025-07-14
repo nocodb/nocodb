@@ -20,6 +20,22 @@ const getRows = (tableName: string) => {
   return Array.from({ length: 40 }).map((v, i) => {
     return {
       Title: `${tableName}_${(i + 1).toString().padStart(3, '0')}`,
+    };
+  });
+};
+
+const getDuplicatedRows = (tableName: string) => {
+  return Array.from({ length: 40 }).map((v, i) => {
+    return {
+      Title: `${tableName}_${((i + 1) % 5).toString().padStart(3, '0')}`,
+    };
+  });
+};
+
+const getRowsForTable2 = (tableName: string) => {
+  return Array.from({ length: 40 }).map((v, i) => {
+    return {
+      Title: `${tableName}_${(i + 1).toString().padStart(3, '0')}`,
       Number: i + 1,
       Date: new Date(2024, 0, (i % 28) + 1).toISOString().slice(0, 10),
       DateTime: new Date(2024, 0, (i % 28) + 1, 12, 0, 0).toISOString(),
@@ -34,7 +50,7 @@ const getRows = (tableName: string) => {
   });
 };
 
-const getDuplicatedRows = (tableName: string) => {
+const getDuplicatedRowsForTable2 = (tableName: string) => {
   return Array.from({ length: 40 }).map((v, i) => {
     const index = (i + 1) % 5;
     return {
@@ -178,7 +194,7 @@ export async function initDuplicate() {
   await createBulkRows(context, {
     base: base,
     table: table2,
-    values: getRows('T2'),
+    values: getRowsForTable2('T2'),
   });
   const table3 = await createTable(context, base, {
     title: 'Table3',
@@ -215,3 +231,5 @@ export async function initDuplicate() {
     },
   };
 }
+
+export { getRows, getDuplicatedRows, getRowsForTable2, getDuplicatedRowsForTable2 };

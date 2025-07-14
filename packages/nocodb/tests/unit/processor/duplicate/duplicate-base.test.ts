@@ -39,10 +39,11 @@ function duplicateBaseTests() {
   it('will duplicate base successfully', async () => {
     const user = context.context.user;
 
-    const sources = await context.base.getSources();
     const dupProject = await basesService.baseCreate({
       base: {
         title: 'Dup base',
+        status: ProjectStatus.JOB,
+        type: 'database',
         ...(context.ctx.workspace_id
           ? { fk_workspace_id: context.ctx.workspace_id }
           : {}),

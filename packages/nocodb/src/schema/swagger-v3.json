@@ -472,7 +472,7 @@
                         "type": "Number",
                         "default_value": "34",
                         "options": {
-                          "locale_string": true
+                          "thousand_separator": true
                         }
                       },
                       {
@@ -684,7 +684,7 @@
                           "type": "Number",
                           "default_value": "34",
                           "options": {
-                            "locale_string": true
+                            "thousand_separator": true
                           }
                         },
                         {
@@ -973,7 +973,7 @@
                           "type": "Number",
                           "default_value": "34",
                           "options": {
-                            "locale_string": true
+                            "thousand_separator": true
                           }
                         },
                         {
@@ -5051,7 +5051,8 @@
             "type": "boolean",
             "description": "Enable text generation for this field using NocoAI."
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_PhoneNumber": {
         "type": "object",
@@ -5060,7 +5061,8 @@
             "type": "boolean",
             "description": "Enable validation for phone numbers."
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_URL": {
         "type": "object",
@@ -5069,7 +5071,8 @@
             "type": "boolean",
             "description": "Enable validation for URL."
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Email": {
         "type": "object",
@@ -5078,16 +5081,18 @@
             "type": "boolean",
             "description": "Enable validation for Email."
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Number": {
         "type": "object",
         "properties": {
-          "locale_string": {
+          "thousand_separator": {
             "type": "boolean",
             "description": "Show thousand separator on the UI."
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Decimal": {
         "type": "object",
@@ -5098,7 +5103,8 @@
             "minimum": 0,
             "maximum": 5
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Currency": {
         "type": "object",
@@ -5297,7 +5303,8 @@
               "ZWD"
             ]
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Percent": {
         "type": "object",
@@ -5306,7 +5313,8 @@
             "type": "boolean",
             "description": "Display as a progress bar."
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Duration": {
         "type": "object",
@@ -5315,7 +5323,8 @@
             "type": "string",
             "description": "Duration format. Supported options are listed below\n- `h:mm`\n- `h:mm:ss`\n- `h:mm:ss.S`\n- `h:mm:ss.SS`\n- `h:mm:ss.SSS`"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_DateTime": {
         "type": "object",
@@ -5344,7 +5353,8 @@
             "type": "boolean",
             "description": "Use same timezone for all records."
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Date": {
         "type": "object",
@@ -5353,7 +5363,8 @@
             "type": "string",
             "description": "Date format. Supported options are listed below\n- `YYYY/MM/DD`\n- `YYYY-MM-DD`\n- `YYYY MM DD`\n- `DD/MM/YYYY`\n- `DD-MM-YYYY`\n- `DD MM YYYY`\n- `MM/DD/YYYY`\n- `MM-DD-YYYY`\n- `MM DD YYYY`\n- `YYYY-MM`\n- `YYYY MM`"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Time": {
         "type": "object",
@@ -5362,7 +5373,8 @@
             "type": "boolean",
             "description": "Use 12-hour time format."
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Select": {
         "type": "object",
@@ -5388,7 +5400,8 @@
             },
             "uniqueItems": true
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Rating": {
         "type": "object",
@@ -5415,7 +5428,8 @@
             "description": "Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`).",
             "pattern": "^#[0-9A-Fa-f]{6}$"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Checkbox": {
         "type": "object",
@@ -5438,7 +5452,8 @@
             "description": "Specifies icon color using a hexadecimal color code (e.g., `#36BFFF`).",
             "pattern": "^#[0-9A-Fa-f]{6}$"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Barcode": {
         "type": "object",
@@ -5451,7 +5466,8 @@
             "type": "string",
             "description": "Field ID that contains the value."
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_QRCode": {
         "type": "object",
@@ -5460,7 +5476,8 @@
             "type": "string",
             "description": "Field ID that contains the value."
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Formula": {
         "type": "object",
@@ -5469,7 +5486,8 @@
             "type": "string",
             "description": "Formula expression."
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_User": {
         "type": "object",
@@ -5478,7 +5496,8 @@
             "type": "boolean",
             "description": "Allow selecting multiple users."
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Lookup": {
         "type": "object",
@@ -5495,7 +5514,8 @@
         "required": [
           "related_field_id",
           "related_table_lookup_field_id"
-        ]
+        ],
+        "additionalProperties": false
       },
       "FieldOptions_Rollup": {
         "type": "object",
@@ -5527,7 +5547,8 @@
           "related_field_id",
           "related_table_rollup_field_id",
           "rollup_function"
-        ]
+        ],
+        "additionalProperties": false
       },
       "FieldOptions_Button": {
         "type": "object",
@@ -5609,7 +5630,8 @@
             "webhook": "#/components/schemas/FieldOptions_Button/oneOf/1",
             "ai": "#/components/schemas/FieldOptions_Button/oneOf/2"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldOptions_Links": {
         "type": "object",
@@ -5626,7 +5648,8 @@
         "required": [
           "relation_type",
           "related_table_id"
-        ]
+        ],
+        "additionalProperties": false
       },
       "FieldOptions_LinkToAnotherRecord": {
         "type": "object",
@@ -5643,7 +5666,8 @@
         "required": [
           "relation_type",
           "related_table_id"
-        ]
+        ],
+        "additionalProperties": false
       },
       "Field": {
         "allOf": [

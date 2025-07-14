@@ -84,7 +84,8 @@ export class PieChartPgHandler extends PieChartCommonHandler {
     }
 
     subQuery.select(
-      baseModel.dbDriver.raw(`(${categoryColumnNameQuery}) as ??`, [
+      baseModel.dbDriver.raw(`(??) as ??`, [
+        categoryColumnNameQuery.builder,
         categoryAlias,
       ]),
     );
@@ -117,15 +118,15 @@ export class PieChartPgHandler extends PieChartCommonHandler {
     // Add row number for ranking
     if (chartData.category.orderBy === 'asc') {
       subQuery.select(
-        baseModel.dbDriver.raw(
-          `ROW_NUMBER() OVER (ORDER BY (${categoryColumnNameQuery}) ASC) as rn`,
-        ),
+        baseModel.dbDriver.raw(`ROW_NUMBER() OVER (ORDER BY (??) ASC) as rn`, [
+          categoryColumnNameQuery.builder,
+        ]),
       );
     } else if (chartData.category.orderBy === 'desc') {
       subQuery.select(
-        baseModel.dbDriver.raw(
-          `ROW_NUMBER() OVER (ORDER BY (${categoryColumnNameQuery}) DESC) as rn`,
-        ),
+        baseModel.dbDriver.raw(`ROW_NUMBER() OVER (ORDER BY (??) DESC) as rn`, [
+          categoryColumnNameQuery.builder,
+        ]),
       );
     } else {
       // Default: order by aggregation expression DESC
@@ -136,7 +137,7 @@ export class PieChartPgHandler extends PieChartCommonHandler {
       );
     }
 
-    // Cast everything to TEXT to avoid type conflicts, preserve original for sorting
+    // Cast TEXT to avoid type conflicts, preserve original for sorting
     const mainQuery = baseModel.dbDriver
       .select('*')
       .select(
@@ -147,6 +148,7 @@ export class PieChartPgHandler extends PieChartCommonHandler {
         END as final_category
       `),
       )
+      // This is original value used for ordering
       .select(
         baseModel.dbDriver.raw(`
         CASE 
@@ -193,7 +195,7 @@ export class PieChartPgHandler extends PieChartCommonHandler {
         END as others_count
       `),
       )
-      .from(baseModel.dbDriver.raw(`(${subQuery}) as ranked_data`));
+      .from(baseModel.dbDriver.raw(`(??) as ranked_data`, subQuery));
 
     // Final aggregation
     const finalQuery = baseModel.dbDriver
@@ -207,13 +209,13 @@ export class PieChartPgHandler extends PieChartCommonHandler {
       .select(
         baseModel.dbDriver.raw('SUM(final_count) + SUM(others_count) as count'),
       )
-      .from(baseModel.dbDriver.raw(`(${mainQuery}) as categorized_data`))
+      .from(baseModel.dbDriver.raw(`(??) as categorized_data`, [mainQuery]))
       .groupBy('final_category')
       .having(
         baseModel.dbDriver.raw('SUM(final_value) + SUM(others_value) > 0'),
       );
 
-    // Apply ordering - use original_category for proper sorting (especially numeric)
+    // Apply ordering - use original_category for proper sorting
     if (chartData.category.orderBy === 'asc') {
       finalQuery.orderBy('original_category', 'ASC');
     } else if (chartData.category.orderBy === 'desc') {

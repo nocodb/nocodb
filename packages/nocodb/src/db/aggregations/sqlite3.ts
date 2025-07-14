@@ -452,7 +452,7 @@ export function replaceDelimitedWithKeyValueSqlite3(params: {
     )
     .toQuery();
 
-  const result = knex
+  return knex
     .raw(
       [
         `select nc_p_result from (`,
@@ -465,6 +465,4 @@ export function replaceDelimitedWithKeyValueSqlite3(params: {
       ].join(' '),
     )
     .toQuery();
-
-  return result;
 }

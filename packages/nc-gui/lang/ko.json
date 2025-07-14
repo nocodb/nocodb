@@ -2229,7 +2229,9 @@
       "valueMustBeAtMostCharLong": "값은 최대 {length}자여야 합니다",
       "copyToClipboardLocalFileUrl": "브라우저는 로컬 리소스를 직접로드 할 수 없습니다. 대신 URL이 클립보드에 복사되었습니다.",
       "unsavedChanges": "변경 내용이 저장되지 않았습니다.",
-      "unsavedChangesConfirmation": "이 페이지를 떠나시겠습니까?"
+      "unsavedChangesConfirmation": "이 페이지를 떠나시겠습니까?",
+      "supportChatUnavailable": "Support chat unavailable",
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
     },
     "error": {
       "failedToDeleteMcpToken": "MCP 토큰을 삭제하지 못했습니다",

@@ -53,6 +53,61 @@ export default function () {
         expect(emailField.options.validation).to.eq(true);
         expect(emailField.default_value).to.eq('user@nocodb.com');
       });
+
+      it(`will create number column with default value`, async () => {
+        const table = {
+          title: 'Table Number',
+          description: 'Description',
+          fields: [
+            {
+              title: 'Number',
+              type: 'Number',
+              default_value: 34,
+              options: {
+                locale_string: true,
+              },
+            },
+          ],
+        };
+
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables`)
+          .set('xc-auth', context.token)
+          .send(table)
+          .expect(200);
+
+        const numberField = response.body.fields.find(
+          (f) => f.title === 'Number',
+        );
+
+        expect(numberField.default_value).to.eq('34');
+      });
+
+      it(`will create checkbox column with default value`, async () => {
+        const table = {
+          title: 'Table Checkbox',
+          description: 'Description',
+          fields: [
+            {
+              title: 'Checkbox',
+              type: 'Checkbox',
+              default_value: true,
+            },
+          ],
+        };
+
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables`)
+          .set('xc-auth', context.token)
+          .send(table)
+          .expect(200);
+
+        const checkboxField = response.body.fields.find(
+          (f) => f.title === 'Checkbox',
+        );
+
+        expect(checkboxField.default_value).to.eq('true');
+      });
     });
   });
 }

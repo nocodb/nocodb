@@ -63,24 +63,24 @@ defineExpose({
         placement="bottomLeft"
       >
         <template #actions>
-          <!-- <NcButton type="secondary" size="small">
-                        <div class="flex items-center gap-2">
-                            <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
-                            <span>Revert to Default</span>
-                        </div>
-                    </NcButton> -->
+          <NcButton type="secondary" size="small">
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
+              <span>Revert to Default</span>
+            </div>
+          </NcButton>
         </template>
       </PermissionsTable>
 
       <div class="flex min-w-[540px] mx-auto w-full" :class="permissionsFieldWrapperClass">
         <PermissionsField :table-data="tableData" :table-toolbar-class-name="permissionsTableToolbarClassName">
           <template #actions>
-            <!-- <NcButton type="secondary" size="small">
-                        <div class="flex items-center gap-2">
-                          <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
-                          <span>Revert to Default</span>
-                        </div>
-                      </NcButton> -->
+            <NcButton type="secondary" size="small">
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
+                <span>Revert to Default</span>
+              </div>
+            </NcButton>
           </template>
         </PermissionsField>
       </div>

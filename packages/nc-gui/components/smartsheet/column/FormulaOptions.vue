@@ -87,10 +87,11 @@ const validators = {
                 message: errorMessage,
                 position: e.extra.position,
               }
+              // TODO: if it's an editor error with defined position,
+              // do not show form validation error
             } else {
               editorError.value = { ...defaultEditorError }
             }
-            console.log('editorError.value', editorError.value)
             throw new Error(errorMessage)
           }
         })()

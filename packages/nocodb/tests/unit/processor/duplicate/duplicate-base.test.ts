@@ -132,6 +132,8 @@ function duplicateBaseTests() {
 
     const currencyCol = columns?.find((col) => col.title === 'Currency');
     expect(currencyCol?.uidt).to.eq(UITypes.Currency);
+    expect(currencyCol.meta.currency_code).to.eq('USD');
+    expect(currencyCol.meta.currency_locale).to.eq('en-USD');
 
     const percentCol = columns?.find((col) => col.title === 'Percent');
     expect(percentCol?.uidt).to.eq(UITypes.Percent);
@@ -163,6 +165,7 @@ function duplicateBaseTests() {
 
     expect(row[0]).to.have.property('MultiSelect');
     expect(row[0].MultiSelect).to.be.a('string');
+    expect(row[0].MultiSelect).to.eq('tag1,tag2');
 
     expect(row[0]).to.have.property('Checkbox');
     expect([true, false, 0, 1]).to.include(row[0].Checkbox);

@@ -100,6 +100,7 @@ export interface BarChartConfig extends BaseChartConfig {
   dataSource?: WidgetDataSourceTypes;
   data: BarChartDataConfig;
   permission: ChartPermissionConfig;
+  appearance: BarChartAppearanceConfig;
 }
 
 export interface LineChartConfig extends BaseChartConfig {

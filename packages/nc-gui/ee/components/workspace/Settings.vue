@@ -8,8 +8,7 @@ const props = defineProps<{
 const workspaceStore = useWorkspace()
 const { deleteWorkspace, navigateToWorkspace, updateWorkspace, loadWorkspace, loadWorkspaces, removeCollaborator } =
   workspaceStore
-const { workspacesList, activeWorkspace, workspaces, deletingWorkspace, collaborators, workspaceOwnerCount } =
-  storeToRefs(workspaceStore)
+const { workspacesList, activeWorkspace, workspaces, deletingWorkspace, workspaceOwnerCount } = storeToRefs(workspaceStore)
 
 const { orgId } = useOrganization()
 

@@ -1,11 +1,11 @@
 import {
-  WorkspaceUserRoles,
   type Api,
   type BaseType,
   type IntegrationType,
   type PlanFeatureTypes,
   type PlanLimitTypes,
   type WorkspaceType,
+  WorkspaceUserRoles,
   type WorkspaceUserType,
 } from 'nocodb-sdk'
 import { WorkspaceStatus } from 'nocodb-sdk'
@@ -69,7 +69,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const nocoAi = useNocoAi()
 
   const workspaceUserCount = ref<number | undefined>(undefined)
-  
+
   const workspaceOwnerCount = ref<number | undefined>(undefined)
 
   const isSharedBase = computed(() => route.value.params.typeOrId === 'base')

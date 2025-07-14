@@ -93,7 +93,7 @@ export async function initDuplicate() {
   const table1 = await createTable(context, base, {
     title: 'Table1',
     table_name: 'table1',
-    columns: customColumns('textBased', columns),
+    columns: customColumns('custom', columns),
   });
   // insert records
   await createBulkRows(context, {
@@ -199,7 +199,7 @@ export async function initDuplicate() {
   const table3 = await createTable(context, base, {
     title: 'Table3',
     table_name: 'table3',
-    columns: customColumns('textBased', columns),
+    columns: customColumns('custom', columns),
   });
   // insert records
   await createBulkRows(context, {
@@ -210,7 +210,7 @@ export async function initDuplicate() {
   const table4 = await createTable(context, base, {
     title: 'Table4',
     table_name: 'table4',
-    columns: customColumns('textBased', columns),
+    columns: customColumns('custom', columns),
   });
   // insert records
   await createBulkRows(context, {

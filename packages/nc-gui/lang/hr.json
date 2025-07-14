@@ -2229,7 +2229,9 @@
       "valueMustBeAtMostCharLong": "Vrijednost mora imati najviše {length} znakova",
       "copyToClipboardLocalFileUrl": "Preglednik ne dopušta izravno učitavanje lokalnog resursa. URL je umjesto toga kopiran u međuspremnik.",
       "unsavedChanges": "You have unsaved changes.",
-      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?",
+      "supportChatUnavailable": "Support chat unavailable",
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

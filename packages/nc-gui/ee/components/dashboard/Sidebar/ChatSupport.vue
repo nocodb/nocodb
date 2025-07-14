@@ -6,7 +6,7 @@ const { isModalVisible } = useChatWoot()
 const toggleVisibility = () => {
   // if chatwoot is not initialized, show a message
   if (!isModalVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
-    message.info(t('msg.info.unavailableChatSupport'))
+    message.info(t('msg.info.unavailableChatSupport'), undefined, { showCopyBtn: false })
     return
   }
 

@@ -5,7 +5,7 @@ const props = defineProps<{
 }>()
 
 const renderedValue = computed(() => {
-  return Array.isArray(props.value) ? props.value.join(', ') : props.value
+  return Array.isArray(props.value) ? props.value.join(',') : props.value
 })
 </script>
 

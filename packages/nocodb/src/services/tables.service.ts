@@ -240,7 +240,9 @@ export class TablesService {
     const table = await Model.getByIdOrName(context, { id: param.tableId });
 
     if (table?.synced && !param.forceDeleteSyncs) {
-      NcError.badRequest('Synced tables cannot be deleted');
+      NcError.get(context).invalidRequestBody(
+        'Synced tables cannot be deleted',
+      );
     }
 
     await table.getColumns(context);
@@ -278,7 +280,7 @@ export class TablesService {
         }),
       );
 
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `This is a many to many table for ${tables[0]?.title} (${relColumns[0]?.title}) & ${tables[1]?.title} (${relColumns[1]?.title}). You can disable "Show M2M tables" in base settings to avoid seeing this.`,
       );
     } else {
@@ -321,7 +323,7 @@ export class TablesService {
             .then((t) => t?.title),
         ),
       );
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `Table can't be deleted since Table is being referred in following tables : ${referredTables.join(
           ', ',
         )}. Delete LinkToAnotherRecord columns and try again.`,

@@ -91,7 +91,7 @@ export default function () {
         expect(result.body.message).to.eq(`Table 'NOT_FOUND' not found`);
       });
     });
-    describe.only('table update', () => {
+    describe('table update', () => {
       let myTable: any;
       beforeEach(async () => {
         const result = await request(context.app)
@@ -171,7 +171,7 @@ export default function () {
         expect(result.body.message).to.eq('Table name exceeds 63 characters');
       });
     });
-    describe.only('table delete', () => {
+    describe('table delete', () => {
       it(`will handle table not found`, async () => {
         const result = await request(context.app)
           .get(`${API_PREFIX}/tables/NOT_FOUND`)

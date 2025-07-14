@@ -2229,7 +2229,9 @@
       "valueMustBeAtMostCharLong": "ค่าต้องมีความยาวไม่เกิน {length} อักขระ",
       "copyToClipboardLocalFileUrl": "เบราว์เซอร์ไม่อนุญาตให้โหลดทรัพยากรภายในเครื่องโดยตรง จึงคัดลอก URL ไปยังคลิปบอร์ดแทน",
       "unsavedChanges": "You have unsaved changes.",
-      "unsavedChangesConfirmation": "Are you sure you want to leave this page?"
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?",
+      "supportChatUnavailable": "Support chat unavailable",
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

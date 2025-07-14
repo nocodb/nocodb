@@ -134,20 +134,23 @@ export default async function applyAggregation({
     });
   }
 
-  /* The following column types require special handling for aggregation:
+  /* The following column types require special handling:
    * - Links
    * - Rollup
    * - Formula
    * - Lookup
    * - LinkToAnotherRecord
    * These column types require special handling because they are virtual columns and do not have a direct column name.
-   * We generate the select query for these columns and use the generated query for aggregation.
+   * We generate the select query for these columns and use the generated query.
    * */
-  const column_name_query = await getColumnNameQuery({
-    baseModelSqlv2,
-    column,
-    context,
-  });
+
+  const column_name_query = (
+    await getColumnNameQuery({
+      baseModelSqlv2,
+      column,
+      context,
+    })
+  ).builder;
 
   const parsedFormulaType = column.colOptions?.parsed_tree?.dataType;
 

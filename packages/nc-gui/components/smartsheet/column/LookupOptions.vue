@@ -31,8 +31,6 @@ const { tables } = storeToRefs(baseStore)
 
 const { metas, getMeta } = useMetas()
 
-const { getPlanTitle } = useEeConfig()
-
 const filterRef = ref()
 
 setAdditionalValidations({

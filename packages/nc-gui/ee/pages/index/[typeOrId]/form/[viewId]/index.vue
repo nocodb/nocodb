@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { sharedViewMeta, sharedFormView } = useSharedFormStoreOrThrow()
+const { sharedViewMeta, sharedFormView, isAddingEmptyRowPermitted } = useSharedFormStoreOrThrow()
 
 const route = useRoute()
 
@@ -33,14 +33,38 @@ router.afterEach((to) => shouldRedirect(to.name as string))
     class="scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover-scrollbar-thumb-gray-300 h-[100vh] overflow-y-auto overflow-x-hidden flex flex-col color-transition p-4 lg:p-6 nc-form-view min-h-[600px]"
     :class="{
       'children:(!h-auto my-auto)': sharedViewMeta?.surveyMode,
+      'relative': !isAddingEmptyRowPermitted,
     }"
     :style="{
       background: parseProp(sharedFormView?.meta)?.background_color || '#F9F9FA',
     }"
   >
     <NuxtPage />
+
+    <div v-if="!isAddingEmptyRowPermitted" class="nc-form-submission-restriction-overlay">
+      <div class="nc-form-submission-restriction-modal">
+        <div class="text-subHeading1 text-gray-800 font-bold">
+          {{ $t('objects.permissions.formCannotAcceptSubmissions') }}
+        </div>
+        <div class="text-body text-gray-700">
+          {{ $t('objects.permissions.sharedFormCannotAcceptSubmissionsDescription') }}
+        </div>
+      </div>
+    </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-form-submission-restriction-overlay {
+  @apply !pointer-events-auto absolute inset-0 z-500 bg-black/15  grid place-items-center px-4;
+  backdrop-filter: blur(1px);
+
+  .nc-form-submission-restriction-modal {
+    @apply p-6 rounded-2xl bg-white max-w-md flex flex-col gap-4;
+    box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1);
+  }
+}
+</style>
 
 <style lang="scss">
 html,

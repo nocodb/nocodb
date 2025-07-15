@@ -617,7 +617,8 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "You don't have permission to submit responses to this form.",
+      "sharedFormCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form."
     }
   },
   "datatype": {

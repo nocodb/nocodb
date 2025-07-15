@@ -7,7 +7,6 @@ import {
   type RoleLabels,
   type UserType,
   WorkspaceUserRoles,
-  PlanLimitTypes,
 } from 'nocodb-sdk'
 
 import { extractEmail } from '../../helpers/parsers/parserHelpers'
@@ -34,7 +33,7 @@ const { createProjectUser } = basesStore
 
 const { inviteCollaborator: inviteWsCollaborator } = workspaceStore
 
-const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan, getLimit, showUserMayChargeAlert } = useEeConfig()
+const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan, showUserMayChargeAlert } = useEeConfig()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 

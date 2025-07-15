@@ -28,7 +28,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const workspaceStore = useWorkspace()
 
-  const { activeWorkspace, activeWorkspaceId, workspaces, workspaceUserCount } = storeToRefs(workspaceStore)
+  const { activeWorkspace, activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
 
   const { isSideBannerExpanded } = eeConfigState()
 
@@ -176,6 +176,15 @@ export const useEeConfig = createSharedComposable(() => {
       calculatePrice(pricingObject, getStatLimit(PlanLimitTypes.LIMIT_EDITOR) + 1, activeSubscription.value?.period) >
       calculatePrice(pricingObject, getStatLimit(PlanLimitTypes.LIMIT_EDITOR), activeSubscription.value?.period)
     )
+  })
+
+  const maxAttachmentsAllowedInCell = computed(() => {
+    // Keeping 50 to keep backward fallback compatibility
+    const defaultLimit = Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50) || 50
+
+    if (!isPaymentEnabled.value) return defaultLimit
+
+    return getLimit(PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL) || defaultLimit
   })
 
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
@@ -871,6 +880,66 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const getIsAttachmentsInCellLimitReached = (totalAttachments: number) => {
+    return totalAttachments > maxAttachmentsAllowedInCell.value
+  }
+
+  const showUpgradeToAddMoreAttachmentsInCell = ({
+    callback,
+    totalAttachments,
+    forceShowToastMessage = false,
+    avoidShowError = false,
+  }: {
+    callback?: (type: 'ok' | 'cancel') => void
+    totalAttachments: number
+    /**
+     * This is useful when we copy pasting in multiple cells
+     */
+    forceShowToastMessage?: boolean
+    /**
+     * avoidShowError is used to avoid multiple error messages for same column cell
+     */
+    avoidShowError?: boolean
+  }) => {
+    if (!getIsAttachmentsInCellLimitReached(totalAttachments)) return
+
+    // If avoidShowError is true, then we just need to return true
+    if (avoidShowError) return true
+
+    // All paid plan has same limit so just show toast message
+    // Or if payment is not enabled then show toast message
+    if (activePlanTitle.value !== PlanTitles.FREE || !isPaymentEnabled.value || forceShowToastMessage) {
+      message.error({
+        ...(activePlanTitle.value === PlanTitles.FREE
+          ? {
+              title: t('title.upgradeToPlan', {
+                plan: PlanTitles.PLUS,
+              }),
+            }
+          : {}),
+
+        content: `You can only upload at most ${maxAttachmentsAllowedInCell.value} file${
+          maxAttachmentsAllowedInCell.value > 1 ? 's' : ''
+        } to this cell.`,
+      })
+
+      return true
+    }
+
+    // If active plan is free then show upgrade to higher plan modal
+    handleUpgradePlan({
+      content: t('upgrade.upgradeToAddMoreAttachmentsInCellSubtitle', {
+        plan: PlanTitles.PLUS,
+        limit: maxAttachmentsAllowedInCell.value,
+        filePlural: maxAttachmentsAllowedInCell.value === 1 ? t('objects.file') : t('objects.files'),
+      }),
+      callback,
+      limitOrFeature: PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     calculatePrice,
@@ -927,5 +996,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockPrivateBases,
     showUpgradeToUsePrivateBases,
     showUserMayChargeAlert,
+    maxAttachmentsAllowedInCell,
+    showUpgradeToAddMoreAttachmentsInCell,
   }
 })

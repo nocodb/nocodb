@@ -1,19 +1,34 @@
-import { formatAggregation } from 'nocodb-sdk';
+import { formatAggregation, UITypes } from 'nocodb-sdk';
 import type {
   ChartTypes,
   ChartWidgetType,
   NcRequest,
   Widget,
 } from 'nocodb-sdk';
-import { DonutChartCommonHandler } from '~/db/widgets/donut-chart/donut-chart.common.handler';
+import { CircularChartCommonHandler } from '~/db/widgets/circular-chart/circular-chart.common.handler';
 import { Column, Filter, Model, Source, View } from '~/models';
 import applyAggregation from '~/db/aggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
 import conditionV2 from '~/db/conditionV2';
-export class DonutChartPgHandler extends DonutChartCommonHandler {
+
+export class CircularChartPgHandler extends CircularChartCommonHandler {
+  /**
+   * Get the MAX function expression based on column type
+   */
+  private getMaxExpressionForColumn(column: Column): string {
+    switch (column.uidt) {
+      case UITypes.Checkbox:
+        return 'BOOL_OR(original_category)';
+      default:
+        return 'MAX(original_category)';
+    }
+  }
+
   async getWidgetData(params: {
-    widget: Widget<ChartWidgetType, ChartTypes.DONUT>;
+    widget:
+      | Widget<ChartWidgetType, ChartTypes.PIE>
+      | Widget<ChartWidgetType, ChartTypes.DONUT>;
     req: NcRequest;
   }) {
     const { widget, req } = params;
@@ -56,7 +71,6 @@ export class DonutChartPgHandler extends DonutChartCommonHandler {
     let aggregationColumn = null;
 
     const aggregationAlias = 'value';
-
     const categoryAlias = 'category';
 
     const subQuery = baseModel.dbDriver(baseModel.tnPath);
@@ -71,7 +85,9 @@ export class DonutChartPgHandler extends DonutChartCommonHandler {
       where: '',
     });
 
-    if (!chartData.category?.includeEmptyRecords) {
+    const isCheckbox = categoryColumn.uidt === UITypes.Checkbox;
+
+    if (!chartData.category?.includeEmptyRecords && !isCheckbox) {
       await conditionV2(
         baseModel,
         {
@@ -196,12 +212,13 @@ export class DonutChartPgHandler extends DonutChartCommonHandler {
       )
       .from(baseModel.dbDriver.raw(`(??) as ranked_data`, subQuery));
 
+    // Get the MAX expression for this column type
+    const maxExpression = this.getMaxExpressionForColumn(categoryColumn);
+
     // Final aggregation
     const finalQuery = baseModel.dbDriver
       .select({ category: baseModel.dbDriver.raw('(final_category)::TEXT') })
-      .select(
-        baseModel.dbDriver.raw('MAX(original_category) as original_category'),
-      )
+      .select(baseModel.dbDriver.raw(`${maxExpression} as original_category`))
       .select(
         baseModel.dbDriver.raw('SUM(final_value) + SUM(others_value) as value'),
       )
@@ -216,9 +233,9 @@ export class DonutChartPgHandler extends DonutChartCommonHandler {
 
     // Apply ordering - use original_category for proper sorting
     if (chartData.category.orderBy === 'asc') {
-      finalQuery.orderBy('original_category', 'ASC');
+      finalQuery.orderByRaw(baseModel.dbDriver.raw(`${maxExpression} ASC`));
     } else if (chartData.category.orderBy === 'desc') {
-      finalQuery.orderBy('original_category', 'DESC');
+      finalQuery.orderByRaw(baseModel.dbDriver.raw(`${maxExpression} DESC`));
     } else {
       // Default: order by value DESC
       finalQuery.orderBy('value', 'DESC');

@@ -1,9 +1,15 @@
 import { ChartTypes } from 'nocodb-sdk';
-import type { NcContext, WidgetType, WidgetTypes } from 'nocodb-sdk';
+import type {
+  DonutChartConfig,
+  NcContext,
+  PieChartConfig,
+  WidgetType,
+  WidgetTypes,
+} from 'nocodb-sdk';
 import { Column, Model, View } from '~/models';
 import { validateAggregationColType } from '~/db/aggregation';
 
-export class DonutChartCommonHandler {
+export class CircularChartCommonHandler {
   async validateWidgetData(
     context: NcContext,
     widget: WidgetType<WidgetTypes.CHART>,
@@ -14,12 +20,14 @@ export class DonutChartCommonHandler {
       errors.push({ path, message });
     };
 
-    if (widget.config.chartType !== ChartTypes.DONUT) {
-      addError('chartType', 'Chart type must be donut');
+    if (![ChartTypes.PIE, ChartTypes.DONUT].includes(widget.config.chartType)) {
+      addError('chartType', 'Chart type must be pie');
       return errors;
     }
 
-    const { dataSource, data } = widget.config;
+    const { dataSource, data } = widget.config as
+      | PieChartConfig
+      | DonutChartConfig;
 
     if (!widget?.fk_model_id) {
       addError('widget.fk_model_id', 'Model ID is required');

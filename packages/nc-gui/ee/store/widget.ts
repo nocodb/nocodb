@@ -162,6 +162,10 @@ export const useWidgetStore = defineStore('widget', () => {
       const filtered = dashboardWidgets.filter((w) => w.id !== widgetId)
       widgets.value.set(dashboardId, filtered)
 
+      if (selectedWidget.value?.id === widgetId) {
+        selectedWidget.value = null
+      }
+
       return true
     } catch (e) {
       console.error(e)

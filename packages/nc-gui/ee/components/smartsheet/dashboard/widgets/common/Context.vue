@@ -55,17 +55,12 @@ const onResizeClick = (size: 'small' | 'medium' | 'large') => {
       if (size === 'small') {
         updateObj = {
           w: 2,
-          h: 2,
+          h: 5,
         }
       } else if (size === 'medium') {
         updateObj = {
           w: 2,
-          h: 3,
-        }
-      } else if (size === 'large') {
-        updateObj = {
-          w: 2,
-          h: 4,
+          h: 6,
         }
       }
   }
@@ -95,16 +90,9 @@ const onResizeClick = (size: 'small' | 'medium' | 'large') => {
         </NcButton>
         <template #title> Medium </template>
       </NcTooltip>
-
-      <NcTooltip hide-on-click placement="top">
-        <NcButton type="text" size="xsmall" @click.stop="onResizeClick('large')">
-          <GeneralIcon icon="ncSquare" />
-        </NcButton>
-        <template #title> Large </template>
-      </NcTooltip>
     </div>
     <NcDropdown>
-      <NcButton type="text" size="small" @click.stop>
+      <NcButton type="text" size="xsmall" @click.stop>
         <GeneralIcon icon="threeDotVertical" />
       </NcButton>
 

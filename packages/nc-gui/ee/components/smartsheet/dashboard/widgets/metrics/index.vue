@@ -56,21 +56,27 @@ watch(
   <div
     class="nc-metric-widget !rounded-xl h-full w-full p-4 flex group flex-col gap-1 relative"
     :style="{
-      backgroundColor: colors.fill,
+      backgroundColor: colors?.fill,
     }"
   >
-    <div class="flex items-center mb-2">
+    <div
+      :class="{
+        'mb-1.5': widget.description,
+        'mb-3': !widget.description,
+      }"
+      class="flex items-center"
+    >
       <div
         :style="{
-          color: colors.color,
+          color: colors?.color,
         }"
-        class="text-nc-content-gray-emphasis flex-1 text-subHeading2"
+        class="text-nc-content-gray-emphasis flex-1 truncate pr-1 text-subHeading2"
       >
         {{ widget.title }}
       </div>
       <SmartsheetDashboardWidgetsCommonContext v-if="isEditing" :widget="widget" />
     </div>
-    <div v-if="widget.description" class="text-nc-content-gray-subtle2 text-bodyDefaultSm">
+    <div v-if="widget.description" class="text-nc-content-gray-subtle2 whitespace-break-spaces text-bodyDefaultSm line-clamp-2">
       {{ widget.description }}
     </div>
     <div

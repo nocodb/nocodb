@@ -20,14 +20,16 @@ const chartConfig = computed(() => {
   return widgetRef.value?.config
 })
 
+const widgetSize = computed(() => {
+  return widgetRef.value?.position?.h === 5 ? 'small' : 'medium'
+})
+
 const chartSize = computed(() => {
-  const size = chartConfig.value?.appearance?.size ?? 'small'
   const sizeMap = {
-    small: { height: '336px', outerRadius: '80%', innerRadius: '50%' }, // 120 chart radius
-    medium: { height: '240px', outerRadius: '60%', innerRadius: '25%' },
-    large: { height: '450px', outerRadius: '70%', innerRadius: '40%' },
+    small: { height: '368px', outerRadius: '80%', innerRadius: '50%' }, // 120 chart radius
+    medium: { height: '456px', outerRadius: '80%', innerRadius: '50%' },
   }
-  return sizeMap[size]
+  return sizeMap[widgetSize.value]
 })
 
 const legendConfig = computed(() => {
@@ -86,10 +88,18 @@ const chartOption = computed<ECOption>(() => {
   const position = chartConfig.value?.appearance?.legendPosition ?? 'right'
 
   const centerConfig = {
-    top: ['50%', '60%'],
-    bottom: ['50%', '40%'],
-    left: ['70%', '50%'],
-    right: ['30%', '50%'],
+    small: {
+      top: ['50%', '60%'],
+      bottom: ['50%', '40%'],
+      left: ['70%', '50%'],
+      right: ['30%', '50%'],
+    },
+    medium: {
+      top: ['50%', '60%'],
+      bottom: ['50%', '40%'],
+      left: ['70%', '50%'],
+      right: ['30%', '50%'],
+    },
   }
 
   return {
@@ -118,7 +128,10 @@ const chartOption = computed<ECOption>(() => {
         name: widgetRef.value?.title || 'Data',
         type: 'pie',
         radius: [chartSize.value.innerRadius, chartSize.value.outerRadius],
-        center: legendConfig.value.show && centerConfig[position] ? centerConfig[position] : ['50%', '50%'],
+        center:
+          legendConfig.value.show && centerConfig[widgetSize.value][position]
+            ? centerConfig[widgetSize.value][position]
+            : ['50%', '50%'],
         data: widgetData.value.data,
         label: {
           show: showPercentageOnChart,
@@ -160,13 +173,9 @@ onMounted(() => {
   loadData()
 })
 
-watch(
-  () => widgetRef.value?.config,
-  () => {
-    loadData()
-  },
-  { deep: true },
-)
+watch([() => widgetRef.value?.config?.dataSource, () => widgetRef.value?.config?.data], () => {
+  loadData()
+})
 </script>
 
 <template>
@@ -196,11 +205,10 @@ watch(
         class="flex items-center justify-center h-full text-nc-content-gray-subtle2"
       >
         <div class="text-center">
-          <div class="text-4xl mb-2">🍩</div>
+          <div class="text-4xl mb-2">📊</div>
           <div class="text-bodyDefaultSm">No data available</div>
         </div>
       </div>
-
       <VChart v-else class="chart" :style="{ height: chartSize.height }" :option="chartOption" autoresize />
     </div>
   </div>

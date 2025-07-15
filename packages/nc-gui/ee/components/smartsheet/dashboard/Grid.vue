@@ -116,15 +116,15 @@ const getWidgetPositionConfig = (item: string) => {
     case WidgetTypes.METRIC: {
       return {
         minW: 1,
-        minH: 1,
+        minH: 2,
         maxW: 4,
-        maxH: 1,
+        maxH: 2,
       }
     }
     case WidgetTypes.CHART: {
       return {
         minW: 2,
-        minH: 2,
+        minH: 5,
         maxW: 2,
         maxH: 6,
       }
@@ -134,15 +134,21 @@ const getWidgetPositionConfig = (item: string) => {
   }
 }
 
-watch(activeDashboardWidgets, () => {
-  layout.value = activeDashboardWidgets.value.map((widget) => ({
-    x: widget.position?.x || 0,
-    y: widget.position?.y || 0,
-    w: widget.position?.w || 2,
-    h: widget.position?.h || 2,
-    i: widget.id!,
-  }))
-})
+watch(
+  activeDashboardWidgets,
+  () => {
+    layout.value = activeDashboardWidgets.value.map((widget) => ({
+      x: widget.position?.x || 0,
+      y: widget.position?.y || 0,
+      w: widget.position?.w || 2,
+      h: widget.position?.h || 2,
+      i: widget.id!,
+    }))
+  },
+  {
+    deep: true,
+  },
+)
 </script>
 
 <template>
@@ -156,7 +162,7 @@ watch(activeDashboardWidgets, () => {
   >
     <GridLayout
       v-model:layout="layout"
-      :row-height="200"
+      :row-height="80"
       responsive
       :cols="{ lg: 4, md: 3, sm: 2, xs: 1 }"
       :is-draggable="isEditingDashboard"

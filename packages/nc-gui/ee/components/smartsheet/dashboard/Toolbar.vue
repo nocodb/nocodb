@@ -53,14 +53,14 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
     [WidgetTypes.METRIC]: {
       x: 0,
       y: 0,
-      w: 2,
-      h: 1,
+      w: 4,
+      h: 2,
     },
     [WidgetTypes.CHART]: {
       x: 0,
       y: 0,
       w: 2,
-      h: 2,
+      h: 5,
     },
   }
 

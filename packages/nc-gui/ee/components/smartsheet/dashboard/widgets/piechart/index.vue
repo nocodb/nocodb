@@ -20,14 +20,16 @@ const chartConfig = computed(() => {
   return widgetRef.value?.config
 })
 
+const widgetSize = computed(() => {
+  return widgetRef.value?.position?.h === 5 ? 'small' : 'medium'
+})
+
 const chartSize = computed(() => {
-  const size = chartConfig.value?.appearance?.size ?? 'small'
   const sizeMap = {
-    small: { height: '336px', radius: '80%' }, // 120 chart radius
-    medium: { height: '240px', radius: '60%' },
-    large: { height: '450px', radius: '70%' },
+    small: { height: '368px', radius: '80%' }, // 120 chart radius
+    medium: { height: '456px', radius: '80%' },
   }
-  return sizeMap[size]
+  return sizeMap[widgetSize.value]
 })
 
 const legendConfig = computed(() => {
@@ -86,10 +88,18 @@ const chartOption = computed<ECOption>(() => {
   const position = chartConfig.value?.appearance?.legendPosition ?? 'right'
 
   const centerConfig = {
-    top: ['50%', '60%'],
-    bottom: ['50%', '40%'],
-    left: ['70%', '50%'],
-    right: ['30%', '50%'],
+    small: {
+      top: ['50%', '60%'],
+      bottom: ['50%', '40%'],
+      left: ['70%', '50%'],
+      right: ['30%', '50%'],
+    },
+    medium: {
+      top: ['50%', '60%'],
+      bottom: ['50%', '40%'],
+      left: ['70%', '50%'],
+      right: ['30%', '50%'],
+    },
   }
 
   return {
@@ -118,7 +128,10 @@ const chartOption = computed<ECOption>(() => {
         name: widgetRef.value?.title || 'Data',
         type: 'pie',
         radius: chartSize.value.radius,
-        center: legendConfig.value.show && centerConfig[position] ? centerConfig[position] : ['50%', '50%'],
+        center:
+          legendConfig.value.show && centerConfig[widgetSize.value][position]
+            ? centerConfig[widgetSize.value][position]
+            : ['50%', '50%'],
         data: widgetData.value.data,
         label: {
           show: showPercentageOnChart,
@@ -160,13 +173,9 @@ onMounted(() => {
   loadData()
 })
 
-watch(
-  () => widgetRef.value?.config,
-  () => {
-    loadData()
-  },
-  { deep: true },
-)
+watch([() => widgetRef.value?.config?.dataSource, () => widgetRef.value?.config?.data], () => {
+  loadData()
+})
 </script>
 
 <template>

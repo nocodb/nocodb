@@ -43,11 +43,6 @@ setAdditionalValidations({
 if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = null
 if (!vModel.value.fk_lookup_column_id) vModel.value.fk_lookup_column_id = null
 
-if (isEdit.value) {
-  if (!vModel.value.fk_lookup_column_id) vModel.value.fk_lookup_column_id = vModel.value.colOptions?.fk_lookup_column_id
-  if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
-}
-
 const refTables = computed(() => {
   if (!tables.value || !tables.value.length || !meta.value || !meta.value.columns) {
     return []
@@ -145,6 +140,11 @@ provide(
 )
 
 onMounted(() => {
+  if (isEdit.value) {
+    vModel.value.fk_lookup_column_id = vModel.value.colOptions?.fk_lookup_column_id
+    vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
+  }
+
   setPostSaveOrUpdateCbk(async ({ colId, column }) => {
     await filterRef.value?.applyChanges(colId || column?.id, false)
   })
@@ -381,8 +381,12 @@ const onFilterLabelClick = () => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 :deep(.ant-select-selector .ant-select-selection-item .nc-relation-details) {
   @apply hidden;
+}
+
+:deep(.nc-filter-grid) {
+  @apply !pr-0;
 }
 </style>

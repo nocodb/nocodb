@@ -26,8 +26,8 @@ const widgetSize = computed(() => {
 
 const chartSize = computed(() => {
   const sizeMap = {
-    small: { height: '368px', outerRadius: '80%', innerRadius: '50%' }, // 120 chart radius
-    medium: { height: '456px', outerRadius: '80%', innerRadius: '50%' },
+    small: { height: widgetRef?.value?.description ? '330px' : '368px', outerRadius: '80%', innerRadius: '50%' }, // 120 chart radius
+    medium: { height: widgetRef?.value?.description ? '416px' : '456px', outerRadius: '80%', innerRadius: '50%' },
   }
   return sizeMap[widgetSize.value]
 })
@@ -41,8 +41,8 @@ const legendConfig = computed(() => {
   }
 
   const positionMap = {
-    top: { orient: 'horizontal', top: '5%', left: 'center' },
-    bottom: { orient: 'horizontal', bottom: '5%', left: 'center' },
+    top: { orient: 'horizontal', top: '0%', left: 'center' },
+    bottom: { orient: 'horizontal', bottom: '0%', left: 'center' },
     left: { orient: 'vertical', left: '10%', top: 'center' },
     right: { orient: 'vertical', right: '10%', top: 'center' },
   }
@@ -179,17 +179,21 @@ watch([() => widgetRef.value?.config?.dataSource, () => widgetRef.value?.config?
 </script>
 
 <template>
-  <div class="nc-donut-chart-widget h-full w-full flex flex-col relative bg-white !rounded-xl">
-    <div class="flex items-center justify-between p-4 pb-2">
-      <div class="flex-1">
-        <div class="text-nc-content-gray-emphasis text-subHeading2 font-medium">
+  <div class="nc-pie-chart-widget h-full w-full flex flex-col relative bg-white !rounded-xl">
+    <div class="flex flex-col p-4 pb-3">
+      <div class="flex items-center">
+        <div class="text-nc-content-gray-emphasis flex-1 text-subHeading2 truncate font-medium">
           {{ widget.title }}
         </div>
-        <p v-if="widget.description" class="text-nc-content-gray-subtle2 text-bodyDefaultSm mt-1">
-          {{ widget.description }}
-        </p>
+        <SmartsheetDashboardWidgetsCommonContext v-if="isEditing" :widget="widget" />
       </div>
-      <SmartsheetDashboardWidgetsCommonContext v-if="isEditing" :widget="widget" />
+
+      <div
+        v-if="widget.description"
+        class="text-nc-content-gray-subtle2 whitespace-break-spaces line-clamp-2 text-bodyDefaultSm mt-1"
+      >
+        {{ widget.description }}
+      </div>
     </div>
 
     <div class="flex-1 p-4 pt-0">

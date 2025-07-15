@@ -8,15 +8,15 @@ import PlaceholderImage from '~/assets/img/dashboards/placeholder.svg'
 const dashboardStore = useDashboardStore()
 const widgetStore = useWidgetStore()
 
-const { isEditingDashboard } = storeToRefs(dashboardStore)
+const { isEditingDashboard, activeDashboardId } = storeToRefs(dashboardStore)
 const { activeDashboardWidgets, selectedWidget } = storeToRefs(widgetStore)
 
 const layout = ref(
   activeDashboardWidgets.value.map((widget) => ({
-    x: widget.position?.x || 0,
-    y: widget.position?.y || 0,
-    w: widget.position?.w || 2,
-    h: widget.position?.h || 2,
+    x: widget.position?.x,
+    y: widget.position?.y,
+    w: widget.position?.w,
+    h: widget.position?.h,
     i: widget.id!,
   })),
 )
@@ -65,10 +65,10 @@ const handleMoved = (i: string, newX: number, newY: number) => {
     return item
   })
   if (widget) {
-    widgetStore.updateWidgetPosition(dashboardStore.activeDashboardId, i, {
+    widgetStore.updateWidgetPosition(activeDashboardId.value, i, {
       ...widget.position,
-      x: newX,
-      y: newY,
+      x: newX!,
+      y: newY!,
     })
   }
 }
@@ -94,7 +94,7 @@ const handleResized = (i: string, newH: number, newW: number) => {
     return item
   })
   if (widget) {
-    widgetStore.updateWidgetPosition(dashboardStore.activeDashboard.id, i, {
+    widgetStore.updateWidgetPosition(activeDashboardId.value, i, {
       ...widget.position,
       w: newW,
       h: newH,
@@ -134,19 +134,23 @@ const getWidgetPositionConfig = (item: string) => {
   }
 }
 
+const gridRef = ref()
+
 watch(
   activeDashboardWidgets,
   () => {
     layout.value = activeDashboardWidgets.value.map((widget) => ({
-      x: widget.position?.x || 0,
-      y: widget.position?.y || 0,
-      w: widget.position?.w || 2,
-      h: widget.position?.h || 2,
+      x: widget.position?.x,
+      y: widget.position?.y,
+      w: widget.position?.w,
+      h: widget.position?.h,
       i: widget.id!,
     }))
+    gridRef.value?.layoutUpdate()
   },
   {
     deep: true,
+    immediate: true,
   },
 )
 </script>
@@ -161,6 +165,7 @@ watch(
     @click="selectedWidget = null"
   >
     <GridLayout
+      ref="gridRef"
       v-model:layout="layout"
       :row-height="80"
       responsive

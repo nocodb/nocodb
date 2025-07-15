@@ -12,6 +12,7 @@ import Noco from '~/Noco';
 import {
   createDatabaseUser,
   dropDatabaseUser,
+  generateWhereClause,
   genPassword,
   genSuffix,
   grantAccessToSchema,
@@ -31,10 +32,37 @@ const NC_DATA_REFLECTION_QUERY_LIMIT =
 
 // Interception rules
 // For these tables and columns append a WHERE clause to restrict schemas
-const interceptMap = [
-  { table_name: 'pg_namespace', column_name: 'nspname' },
-  { table_name: 'schemata', column_name: 'schema_name' },
-  { table_name: 'pg_tables', column_name: 'schemaname' },
+const interceptMap: {
+  table_name: string;
+  column_name: string;
+  type: 'in' | 'eq';
+  sessionValue?: string;
+  value?: string;
+}[] = [
+  {
+    table_name: 'pg_namespace',
+    column_name: 'nspname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'schemata',
+    column_name: 'schema_name',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_tables',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_database',
+    column_name: 'datname',
+    type: 'eq',
+    sessionValue: 'fk_workspace_id',
+  },
 ];
 
 class DataReflectionSession {
@@ -94,34 +122,6 @@ class DataReflectionSession {
 }
 
 const clientSessions = new Map<string, DataReflectionSession>();
-
-function generateWhereClause(
-  table: string,
-  column: string,
-  allowedSchemas: string[],
-) {
-  return {
-    type: 'binary_expr',
-    operator: 'in',
-    left: {
-      type: 'column_ref',
-      table,
-      column: {
-        expr: {
-          type: 'default',
-          value: column,
-        },
-      },
-    },
-    right: {
-      type: 'expr_list',
-      value: allowedSchemas.map((schema) => ({
-        type: 'string',
-        value: schema,
-      })),
-    },
-  };
-}
 
 export default class DataReflection extends DataReflectionCE {
   /**
@@ -505,7 +505,8 @@ async function interceptQueryIfNeeded(
       const additionalClause = generateWhereClause(
         alias,
         target.column_name,
-        session.availableSchemas,
+        target.type,
+        target.value ? target.value : session[target.sessionValue],
       );
 
       // Inject the additional WHERE clause

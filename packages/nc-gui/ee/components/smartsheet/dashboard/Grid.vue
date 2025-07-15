@@ -11,6 +11,10 @@ const widgetStore = useWidgetStore()
 const { isEditingDashboard, activeDashboardId } = storeToRefs(dashboardStore)
 const { activeDashboardWidgets, selectedWidget } = storeToRefs(widgetStore)
 
+// Track drag/resize state
+const isDragging = ref(false)
+const isResizing = ref(false)
+
 const layout = ref(
   activeDashboardWidgets.value.map((widget) => ({
     x: widget.position?.x,
@@ -45,6 +49,7 @@ const getWidgetComponent = (widget: WidgetType) => {
 }
 
 const handleMove = (i: string, newX: number, newY: number) => {
+  isDragging.value = true
   const layoutItem = layout.value.find((item) => item.i === i)
   if (layoutItem) {
     layoutItem.x = newX
@@ -71,9 +76,15 @@ const handleMoved = (i: string, newX: number, newY: number) => {
       y: newY!,
     })
   }
+
+  // Reset drag state after a small delay to prevent click
+  setTimeout(() => {
+    isDragging.value = false
+  }, 50)
 }
 
 const handleResize = (i: string, newH: number, newW: number) => {
+  isResizing.value = true
   const layoutItem = layout.value.find((item) => item.i === i)
   if (layoutItem) {
     layoutItem.w = newW
@@ -100,9 +111,19 @@ const handleResized = (i: string, newH: number, newW: number) => {
       h: newH,
     })
   }
+
+  // Reset resize state after a small delay to prevent click
+  setTimeout(() => {
+    isResizing.value = false
+  }, 50)
 }
 
 const onWidgetClick = (item: string) => {
+  // Prevent click if currently dragging or resizing
+  if ((isDragging.value || isResizing.value) && !selectedWidget.value) {
+    return
+  }
+
   const widget = activeDashboardWidgets.value.find((w) => w.id === item)
   if (widget && isEditingDashboard.value) handleWidgetClick(widget)
 }
@@ -192,7 +213,9 @@ watch(
         <div
           class="widget-container h-full w-full"
           :class="{
-            'cursor-pointer': isEditingDashboard,
+            'cursor-pointer': isEditingDashboard && !isDragging && !isResizing,
+            'cursor-move': isDragging,
+            'cursor-nw-resize': isResizing,
           }"
           @click.stop="onWidgetClick(item.i)"
         >

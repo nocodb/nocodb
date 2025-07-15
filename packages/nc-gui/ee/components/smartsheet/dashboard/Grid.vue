@@ -11,15 +11,15 @@ const widgetStore = useWidgetStore()
 const { isEditingDashboard } = storeToRefs(dashboardStore)
 const { activeDashboardWidgets, selectedWidget } = storeToRefs(widgetStore)
 
-const layout = computed(() => {
-  return activeDashboardWidgets.value.map((widget) => ({
+const layout = ref(
+  activeDashboardWidgets.value.map((widget) => ({
     x: widget.position?.x || 0,
     y: widget.position?.y || 0,
     w: widget.position?.w || 2,
     h: widget.position?.h || 2,
     i: widget.id!,
-  }))
-})
+  })),
+)
 
 const handleWidgetClick = (widget: WidgetType) => {
   if (isEditingDashboard.value) {
@@ -133,6 +133,16 @@ const getWidgetPositionConfig = (item: string) => {
       return {}
   }
 }
+
+watch(activeDashboardWidgets, () => {
+  layout.value = activeDashboardWidgets.value.map((widget) => ({
+    x: widget.position?.x || 0,
+    y: widget.position?.y || 0,
+    w: widget.position?.w || 2,
+    h: widget.position?.h || 2,
+    i: widget.id!,
+  }))
+})
 </script>
 
 <template>
@@ -146,8 +156,9 @@ const getWidgetPositionConfig = (item: string) => {
   >
     <GridLayout
       v-model:layout="layout"
-      :col-num="4"
       :row-height="200"
+      responsive
+      :cols="{ lg: 4, md: 3, sm: 2, xs: 1 }"
       :is-draggable="isEditingDashboard"
       :is-resizable="isEditingDashboard"
       :vertical-compact="false"

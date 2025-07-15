@@ -121,6 +121,8 @@ export function useCopyPaste({
   const { cleaMMCell, clearLTARCell, addLTARRef, syncLTARRefs } = useSmartsheetLtarHelpersOrThrow()
   const { isSqlView } = useSmartsheetStoreOrThrow()
   const { isAllowed } = usePermissions()
+  const { maxAttachmentsAllowedInCell, showUpgradeToAddMoreAttachmentsInCell } = useEeConfig()
+  const { batchUploadFiles } = useAttachment()
 
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const isPublic = inject(IsPublicInj, ref(false))
@@ -334,6 +336,8 @@ export function useCopyPaste({
         const newRows: Row[] = []
         const propsToPaste: string[] = []
         let isInfoShown = false
+        // We can use this if we want to avoid same info multiple times per column
+        const isColInfoShown = {} as Record<string, boolean>
 
         for (let i = 0; i < selectionRowCount; i++) {
           const clipboardRowIndex = i % clipboardMatrix.length
@@ -378,6 +382,12 @@ export function useCopyPaste({
                     column,
                     appInfo: unref(appInfo),
                     oldValue: column.uidt === UITypes.Attachment ? targetRow.row[column.title!] : undefined,
+                    maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                    showUpgradeToAddMoreAttachmentsInCell,
+                    isInfoShown: isColInfoShown[column.title!],
+                    markInfoShown: () => {
+                      isColInfoShown[column.title!] = true
+                    },
                   },
                   isMysql(meta.value?.source_id),
                   true,
@@ -636,6 +646,8 @@ export function useCopyPaste({
                 files:
                   columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
                 oldValue: rowObj.row[columnObj.title!],
+                maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                showUpgradeToAddMoreAttachmentsInCell,
               },
               isMysql(meta.value?.source_id),
             )
@@ -682,6 +694,8 @@ export function useCopyPaste({
 
           let pasteValue
           let isInfoShown = false
+          // We can use this if we want to avoid same info multiple times per column
+          const isColInfoShown = {} as Record<string, boolean>
 
           const files = e.clipboardData?.files
 
@@ -712,6 +726,12 @@ export function useCopyPaste({
                       appInfo: unref(appInfo),
                       files,
                       oldValue: row.row[col.title],
+                      maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                      showUpgradeToAddMoreAttachmentsInCell,
+                      isInfoShown: isColInfoShown[col.title!],
+                      markInfoShown: () => {
+                        isColInfoShown[col.title!] = true
+                      },
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -732,6 +752,12 @@ export function useCopyPaste({
                       column: col,
                       appInfo: unref(appInfo),
                       oldValue: row.row[col.title],
+                      maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                      showUpgradeToAddMoreAttachmentsInCell,
+                      isInfoShown: isColInfoShown[col.title!],
+                      markInfoShown: () => {
+                        isColInfoShown[col.title!] = true
+                      },
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -777,14 +803,7 @@ export function useCopyPaste({
     const newAttachments: AttachmentType[] = []
 
     try {
-      const data = await $api.storage.upload(
-        {
-          path: [NOCO, base.value.id, meta.value?.id, columnId].join('/'),
-        },
-        {
-          files,
-        },
-      )
+      const data = await batchUploadFiles(files, [NOCO, base.value.id, meta.value?.id, columnId].join('/'))
 
       // add suffix in duplicate file title
       for (const uploadedFile of data) {

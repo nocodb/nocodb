@@ -23,7 +23,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const { fetchSharedViewAttachment } = useSharedView()
 
-    const { showStoragePlanLimitExceededModal } = useEeConfig()
+    const { showStoragePlanLimitExceededModal, maxAttachmentsAllowedInCell, showUpgradeToAddMoreAttachmentsInCell } =
+      useEeConfig()
+
+    const { batchUploadFiles } = useAttachment()
 
     const isReadonly = inject(ReadonlyInj, ref(false))
 
@@ -72,7 +75,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const defaultAttachmentMeta = {
       ...(appInfo.value.ee && {
         // Maximum Number of Attachments per cell
-        maxNumberOfAttachments: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50) || 50,
+        maxNumberOfAttachments: maxAttachmentsAllowedInCell.value,
         // Maximum File Size per file
         maxAttachmentSize: Math.max(1, +appInfo.value.ncAttachmentFieldSize || 20) || 20,
         supportedAttachmentMimeTypes: ['*'],
@@ -134,14 +137,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         if (appInfo.value.ee) {
           // verify number of files
           if (
-            visibleItems.value.length + (selectedFiles.length || selectedFileUrls?.length || 0) >
-            attachmentMeta.maxNumberOfAttachments
+            showUpgradeToAddMoreAttachmentsInCell({
+              totalAttachments: visibleItems.value.length + (selectedFiles.length || selectedFileUrls?.length || 0),
+            })
           ) {
-            message.error(
-              `You can only upload at most ${attachmentMeta.maxNumberOfAttachments} file${
-                attachmentMeta.maxNumberOfAttachments > 1 ? 's' : ''
-              } to this cell.`,
-            )
             return
           }
 
@@ -227,14 +226,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
       if (files.length) {
         try {
-          const data = await api.storage.upload(
-            {
-              path: [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'),
-            },
-            {
-              files,
-            },
-          )
+          const data = await batchUploadFiles(files, [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'))
+
           // add suffix in duplicate file title
           for (const uploadedFile of data) {
             newAttachments.push({
@@ -250,7 +243,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
         }
       } else if (imageUrls.length) {
-        const data = uploadViaUrl(imageUrls)
+        const data = await uploadViaUrl(imageUrls)
         if (!data) return
         newAttachments.push(...data)
       }

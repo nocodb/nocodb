@@ -9,6 +9,8 @@ const eeConfigState = createGlobalState(() => {
 export const useEeConfig = createSharedComposable(() => {
   const { cloudFeatures } = eeConfigState()
 
+  const { appInfo } = useGlobal()
+
   const isSideBannerExpanded = ref(false)
 
   const isPaidPlan = computed(() => false)
@@ -58,6 +60,11 @@ export const useEeConfig = createSharedComposable(() => {
   const blockPrivateBases = computed(() => true)
 
   const showUserMayChargeAlert = computed(() => false)
+
+  const maxAttachmentsAllowedInCell = computed(() => {
+    // Keeping 50 to keep backward fallback compatibility
+    return Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50)
+  })
 
   const calculatePrice = (..._args: any[]) => {}
 
@@ -113,6 +120,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUsePrivateBases = (..._args: any[]) => {}
 
+  const showUpgradeToAddMoreAttachmentsInCell = (..._args: any[]) => {}
+
   return {
     calculatePrice,
     getLimit,
@@ -165,6 +174,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseScripts,
     blockPrivateBases,
     showUpgradeToUsePrivateBases,
-    showUserMayChargeAlert
+    showUserMayChargeAlert,
+    maxAttachmentsAllowedInCell,
+    showUpgradeToAddMoreAttachmentsInCell,
   }
 })

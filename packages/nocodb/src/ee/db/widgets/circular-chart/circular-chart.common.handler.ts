@@ -6,10 +6,11 @@ import type {
   WidgetType,
   WidgetTypes,
 } from 'nocodb-sdk';
+import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
 import { Column, Model, View } from '~/models';
 import { validateAggregationColType } from '~/db/aggregation';
 
-export class CircularChartCommonHandler {
+export class CircularChartCommonHandler extends BaseWidgetHandler {
   async validateWidgetData(
     context: NcContext,
     widget: WidgetType<WidgetTypes.CHART>,

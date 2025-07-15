@@ -83,7 +83,7 @@ watch(
       :style="{
         color: colors.color,
       }"
-      class="text-nc-content-gray-subtle2 text-heading2"
+      class="text-nc-content-gray-subtle2 truncate text-heading2"
     >
       <template v-if="isLoading"> _ </template>
       <template v-else>

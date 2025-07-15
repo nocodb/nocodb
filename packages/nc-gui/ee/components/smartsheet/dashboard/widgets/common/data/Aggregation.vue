@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { AllAggregations, WidgetTypes } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { AllAggregations, WidgetTypes, isSystemColumn } from 'nocodb-sdk'
 import TabbedSelect from '../TabbedSelect.vue'
 
 const emit = defineEmits<{
@@ -30,8 +31,9 @@ const handleChange = (type: 'field' | 'aggregation') => {
     type: selectedValue.value,
   }
   if (type === 'field') {
-    aggregation.aggregation = null
+    aggregation.aggregation = AllAggregations.CountUnique
     aggregation.column_id = selectedFieldId.value
+    selectedAggregationType.value = AllAggregations.CountUnique
   }
 
   if (type === 'aggregation') {
@@ -59,6 +61,13 @@ const filterAggregation = (value: string) => {
     AllAggregations.DateRange,
     AllAggregations.MonthRange,
   ].includes(value)
+}
+
+const filterField = (column: ColumnType) => {
+  if (isSystemColumn(column) || isAttachment(column) || isQrCode(column) || isBarcode(column) || isButton(column)) {
+    return false
+  }
+  return true
 }
 
 watch(modelId, () => {
@@ -101,6 +110,7 @@ watch(selectedValue, () => {
         :key="modelId!"
         v-model:value="selectedFieldId"
         :disabled="!modelId"
+        :filter-column="filterField"
         :table-id="modelId!"
         @update:value="handleChange('field')"
       />

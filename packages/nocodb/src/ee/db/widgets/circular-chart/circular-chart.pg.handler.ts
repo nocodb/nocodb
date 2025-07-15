@@ -247,9 +247,13 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       skipUserConversion: true,
     });
 
-    const formattedData = rawData.map((row: any) => {
+    const formattedData = [];
+
+    for (let i = 0; i < rawData.length; i++) {
+      const row = rawData[i];
       const value = row.value;
       let formattedValue = value;
+      let formattedCategory = row.category;
 
       if (chartData.value.type === 'summary' && aggregationColumn) {
         formattedValue = formatAggregation(
@@ -259,14 +263,21 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
         );
       }
 
-      return {
-        name: row.category || 'Empty',
+      formattedCategory = await this.formatValue(
+        context,
+        row.category,
+        categoryColumn,
+      );
+
+      formattedData.push({
+        name: formattedCategory || 'Empty',
         value: value || 0,
         formattedValue: formattedValue,
         count: row.count || 0,
         category: row.category,
-      };
-    });
+        formattedCategory: formattedCategory,
+      });
+    }
 
     return {
       data: formattedData,

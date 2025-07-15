@@ -78,6 +78,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
       const baseDashboards = dashboards.value.get(activeProjectId.value) || []
       const filtered = baseDashboards.filter((a) => a.id !== dashboardId)
       filtered.push(dashboard)
+      filtered.sort((a, b) => a.order - b.order)
       dashboards.value.set(activeProjectId.value, filtered)
 
       return dashboard

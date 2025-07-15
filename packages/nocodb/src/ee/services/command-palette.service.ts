@@ -35,6 +35,10 @@ export class CommandPaletteService {
           script_title: string;
           script_meta: string;
           script_order: number;
+          dashboard_id: string;
+          dashboard_title: string;
+          dashboard_meta: string;
+          dashboard_order: number;
         }[] = await getCommandPaletteForUserWorkspace(
           param.user?.id,
           data.workspace_id,
@@ -90,6 +94,18 @@ export class CommandPaletteService {
           }
         >();
 
+        const dashboards = new Map<
+          string,
+          {
+            id: string;
+            title: string;
+            workspace_id: string;
+            base_id: string;
+            order: number;
+            meta: any;
+          }
+        >();
+
         for (const item of list) {
           if (!workspaces.has(item.workspace_id)) {
             workspaces.set(item.workspace_id, {
@@ -132,7 +148,7 @@ export class CommandPaletteService {
             });
           }
 
-          if (!scripts.has(item.script_id)) {
+          if (!scripts.has(item.script_id) && item.script_id) {
             scripts.set(item.script_id, {
               id: item.script_id,
               title: item.script_title,
@@ -140,6 +156,17 @@ export class CommandPaletteService {
               workspace_id: item.workspace_id,
               base_id: item.base_id,
               order: item.script_order,
+            });
+          }
+
+          if (!dashboards.has(item.dashboard_id) && item.dashboard_id) {
+            dashboards.set(item.dashboard_id, {
+              id: item.dashboard_id,
+              title: item.dashboard_title,
+              meta: deserializeJSON(item.dashboard_meta),
+              workspace_id: item.workspace_id,
+              base_id: item.base_id,
+              order: item.dashboard_order,
             });
           }
         }
@@ -220,6 +247,23 @@ export class CommandPaletteService {
               payload: `/${script.workspace_id}/${
                 script.base_id
               }/automations/${encodeURIComponent(script.id)}`,
+            },
+          });
+        }
+
+        for (const [id, dashboard] of dashboards) {
+          cmdData.push({
+            id: `dashboard-${id}`,
+            title: dashboard.title,
+            parent: `p-${dashboard.base_id}`,
+            icon: dashboard?.meta?.icon || 'dashboards',
+            projectName: bases.get(dashboard.base_id)?.title,
+            section: 'Dashboards',
+            handler: {
+              type: 'navigate',
+              payload: `/${dashboard.workspace_id}/${
+                dashboard.base_id
+              }/dashboards/${encodeURIComponent(dashboard.id)}`,
             },
           });
         }

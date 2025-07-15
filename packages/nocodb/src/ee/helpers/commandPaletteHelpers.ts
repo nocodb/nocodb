@@ -86,6 +86,11 @@ export async function getCommandPaletteForUserWorkspace(
         's.title as script_title',
         's.meta as script_meta',
         's.order as script_order',
+
+        'd.id as dashboard_id',
+        'd.title as dashboard_title',
+        'd.meta as dashboard_meta',
+        'd.order as dashboard_order',
       )
       .from(rootQb.as('root'))
       .innerJoin(`${MetaTable.MODELS} as t`, `t.base_id`, `root.base_id`)
@@ -104,6 +109,9 @@ export async function getCommandPaletteForUserWorkspace(
             ELSE 0
           END = 1`),
         );
+      })
+      .leftJoin(`${MetaTable.DASHBOARDS} as d`, function () {
+        this.on(`d.base_id`, `=`, `root.base_id`);
       })
       .where(function () {
         this.where('t.mm', false).orWhereNull('t.mm');

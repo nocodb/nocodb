@@ -6,6 +6,7 @@ import {
   PermissionRolePower,
   ProjectRoles,
   RoleColors,
+  ViewTypes,
   getPermissionIcon,
   getPermissionLabel,
   getPermissionOption,
@@ -16,10 +17,14 @@ import {
 export type { PermissionOption } from 'nocodb-sdk'
 
 export const usePermissions = () => {
+  const isPublic = inject(IsPublicInj, ref(false))
+
   const { user } = useGlobal()
 
   const baseStore = useBase()
-  const { base } = storeToRefs(baseStore)
+  const { base, isSharedBase } = storeToRefs(baseStore)
+
+  const { activeView } = storeToRefs(useViewsStore())
 
   const { blockTableAndFieldPermissions } = useEeConfig()
 
@@ -29,6 +34,10 @@ export const usePermissions = () => {
 
   // Use centralized permission options from SDK
   const permissionOptions = PermissionOptions
+
+  const isSharedFormView = computed(() => {
+    return !isSharedBase.value && activeView.value?.type === ViewTypes.FORM && isPublic.value
+  })
 
   // Permissions data grouped by entity
   const permissionsByEntity = computed(() => {

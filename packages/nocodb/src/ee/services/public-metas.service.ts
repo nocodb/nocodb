@@ -16,7 +16,7 @@ import {
 import { ViewRowColorService } from './view-row-color.service';
 import type { NcContext } from '~/interface/config';
 import type { FormView, FormViewColumn, View } from '~/models';
-import { Base, Workspace } from '~/models';
+import { Base, Permission, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getFeature } from '~/helpers/paymentHelpers';
 
@@ -49,6 +49,12 @@ export class PublicMetasService extends PublicMetasServiceCE {
     Object.assign(view, {
       workspace,
       viewRowColorInfo,
+    });
+
+    const basePermissions = await Permission.list(context, view.base_id);
+
+    Object.assign(view, {
+      basePermissions,
     });
 
     return view;

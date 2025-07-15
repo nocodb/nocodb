@@ -28,6 +28,7 @@ const filteredOptions = computed(() => {
 const handleUpdateSelectedOptions = (val: string[]) => {
   if (disabled.value) return
 
+  searchVal.value = ''
   emits('update:selectedOptions', val)
 }
 </script>

@@ -59,6 +59,7 @@ const handleKeyDownList = (e: KeyboardEvent) => {
         v-model:value="vModel"
         :disabled="disabled"
         class="nc-field-layout-list"
+        @update:value="searchVal = ''"
         @keydown="handleKeyDownList"
         @click.stop
       >

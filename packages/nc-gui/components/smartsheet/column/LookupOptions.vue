@@ -315,35 +315,35 @@ const onFilterLabelClick = () => {
     </div>
     <div v-if="isEeUI" class="w-full flex flex-col gap-4">
       <div class="flex flex-col gap-2">
-        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER">
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER">
           <template #default="{ click }">
             <div class="flex gap-2 items-center">
               <a-switch
-                v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+                v-e="['c:lookup:limit-record-by-filter', { status: limitRecToCond }]"
                 :checked="limitRecToCond"
                 :disabled="!selectedTable"
                 size="small"
                 @change="
                   (value) => {
-                    if (value && click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER)) return
+                    if (value && click(PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER)) return
 
                     onFilterLabelClick()
                   }
                 "
               ></a-switch>
               <span
-                v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
-                data-testid="nc-limit-record-filters"
+                v-e="['c:lookup:limit-record-by-filter', { status: limitRecToCond }]"
+                data-testid="nc-lookup-limit-record-filters"
                 class="cursor-pointer whitespace-nowrap"
-                @click="click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER, () => onFilterLabelClick())"
+                @click="click(PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER, () => onFilterLabelClick())"
               >
-                Only include linked records that meet specific conditions
+                {{ $t('labels.onlyIncludeLinkedRecordsThatMeetSpecificConditions') }}
               </span>
               <LazyPaymentUpgradeBadge
                 v-if="!limitRecToCond"
-                :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER"
+                :feature="PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER"
                 :content="
-                  $t('upgrade.upgradeToAddLimitRecordSelection', {
+                  $t('upgrade.upgradeToIncludeLinkedRecordsThatMeetSpecificConditions', {
                     plan: getPlanTitle(PlanTitles.PLUS),
                   })
                 "
@@ -358,7 +358,8 @@ const onFilterLabelClick = () => {
             class="!pl-8 !p-0 max-w-620px"
             :auto-save="false"
             :show-loading="false"
-            :link="true"
+            link
+            :show-dynamic-condition="false"
             :root-meta="meta"
             :link-col-id="vModel.id"
           />

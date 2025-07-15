@@ -12,6 +12,7 @@ interface Props {
   modelValue?: FilterType[] | null
   webHook?: boolean
   link?: boolean
+  showDynamicCondition?: boolean
   widget?: boolean
   draftFilter?: Partial<FilterType>
   isOpen?: boolean
@@ -40,6 +41,7 @@ const props = withDefaults(defineProps<Props>(), {
   widget: false,
   webHook: false,
   link: false,
+  showDynamicCondition: true,
   linkColId: undefined,
   parentColId: undefined,
   actionBtnType: 'text',
@@ -706,6 +708,7 @@ defineExpose({
                   :auto-save="autoSave"
                   :web-hook="webHook"
                   :link="link"
+                  :show-dynamic-condition="showDynamicCondition"
                   :show-loading="false"
                   :root-meta="rootMeta"
                   :link-col-id="linkColId"
@@ -947,7 +950,7 @@ defineExpose({
 
                   <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow"></div>
                 </template>
-                <template v-if="link">
+                <template v-if="link && showDynamicCondition">
                   <NcDropdown
                     class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"
                     :trigger="['click']"

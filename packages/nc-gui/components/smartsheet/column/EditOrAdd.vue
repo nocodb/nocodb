@@ -678,12 +678,12 @@ watch(activeAiTab, (newValue) => {
   onSelectedTagClick()
 })
 
-const hasFilterOptions = computed(() => {
-  const lookupRollupFilterEnabled =
-    (formState.value.uidt === UITypes.Lookup || formState.value.uidt === UITypes.Rollup) &&
-    !!parseProp(formState.value?.meta)?.enableConditions
+const isLookupOrRollup = computed(() => {
+  return formState.value.uidt === UITypes.Lookup || formState.value.uidt === UITypes.Rollup
+})
 
-  return isLinksOrLTAR(formState.value.uidt) || lookupRollupFilterEnabled
+const lookupRollupFilterEnabled = computed(() => {
+  return isLookupOrRollup.value && !!parseProp(formState.value?.meta)?.enableConditions
 })
 </script>
 
@@ -695,8 +695,9 @@ const hasFilterOptions = computed(() => {
     :class="{
       'bg-white max-h-[max(80vh,500px)]': !props.fromTableExplorer,
       'w-[416px]': !props.embedMode,
-      '!w-[600px]': hasFilterOptions,
-      'min-w-[500px] !w-full': hasFilterOptions || formState.uidt === UITypes.Lookup || formState.uidt === UITypes.Rollup,
+      '!w-[600px]': isLinksOrLTAR(formState.uidt),
+      '!min-w-[554px]': lookupRollupFilterEnabled,
+      'min-w-[500px] !w-full': isLinksOrLTAR(formState.uidt) || isLookupOrRollup,
       'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-2xl p-5': !embedMode,
       'nc-ai-mode': isAiMode,
       'h-full': props.fromTableExplorer,

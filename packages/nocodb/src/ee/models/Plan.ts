@@ -232,6 +232,8 @@ export const GenericFeatures = {
   [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: false,
   [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: false,
   [PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER]: false,
+  [PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER]: false,
+  [PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER]: false,
   [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: false,
   [PlanFeatureTypes.FEATURE_SCRIPTS]: false,
   [PlanFeatureTypes.FEATURE_SSO]: false,

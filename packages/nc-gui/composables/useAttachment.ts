@@ -54,7 +54,7 @@ const useAttachment = () => {
     const chunkSize = 10
 
     // Convert FileList to Array if necessary
-    let fileArray: File[] = ncIsArray(files) ? files : Array.from(files)
+    const fileArray: File[] = ncIsArray(files) ? files : Array.from(files)
 
     const uploadedFiles: AttachmentType[] = []
 

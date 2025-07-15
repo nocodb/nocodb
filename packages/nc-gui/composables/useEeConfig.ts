@@ -57,6 +57,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockPrivateBases = computed(() => true)
 
+  const showUserMayChargeAlert = computed(() => false)
+
+  const calculatePrice = (..._args: any[]) => {}
+
   const getLimit = (..._args: any[]) => {}
 
   const getStatLimit = (..._args: any[]) => {}
@@ -110,6 +114,7 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUsePrivateBases = (..._args: any[]) => {}
 
   return {
+    calculatePrice,
     getLimit,
     getStatLimit,
     updateStatLimit,
@@ -160,5 +165,6 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseScripts,
     blockPrivateBases,
     showUpgradeToUsePrivateBases,
+    showUserMayChargeAlert
   }
 })

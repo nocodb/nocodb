@@ -7,6 +7,7 @@ import {
   type RoleLabels,
   type UserType,
   WorkspaceUserRoles,
+  PlanLimitTypes,
 } from 'nocodb-sdk'
 
 import { extractEmail } from '../../helpers/parsers/parserHelpers'
@@ -33,7 +34,7 @@ const { createProjectUser } = basesStore
 
 const { inviteCollaborator: inviteWsCollaborator } = workspaceStore
 
-const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan } = useEeConfig()
+const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan, getLimit, showUserMayChargeAlert } = useEeConfig()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -171,10 +172,12 @@ const isInviteButtonDisabled = computed(() => {
 
 const showUserWillChargedWarning = computed(() => {
   return (
+    isEeUI &&
     !appInfo.value?.isOnPrem &&
     isPaymentEnabled.value &&
     isPaidPlan.value &&
     !NON_SEAT_ROLES.includes(inviteData.roles) &&
+    showUserMayChargeAlert.value &&
     !isInviteButtonDisabled.value &&
     !emailValidation.isError
   )

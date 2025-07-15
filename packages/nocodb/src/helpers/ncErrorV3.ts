@@ -53,4 +53,10 @@ export class NcErrorV3 extends NcErrorV1 {
   }): never {
     throw new AjvErrorV3(param);
   }
+
+  override invalidRequestBody(message: string): never {
+    throw this.errorCodex.generateError(NcErrorType.INVALID_REQUEST_BODY, {
+      params: message,
+    });
+  }
 }

@@ -357,8 +357,6 @@ onMounted(() => {
             @update:value="
               (value) => {
                 vModel = isMultiple ? value : [value]
-                // Clear search query after selection is made
-                searchVal = ''
               }
             "
           >

@@ -4,6 +4,7 @@ import restTests from './rest/index.test';
 import modelTests from './model/index.test';
 import TestDbMngr from './TestDbMngr';
 import { dataApiV3Test } from './rest/tests/dataApiV3/index.test';
+import { processorTests } from './processor/index.test';
 
 process.env.NODE_ENV = 'test';
 process.env.TEST = 'true';
@@ -20,6 +21,7 @@ dotenv.config({
 
   modelTests();
   restTests();
+  processorTests();
   await dataApiV3Test();
 
   run();

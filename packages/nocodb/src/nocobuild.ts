@@ -11,5 +11,5 @@ export default async function (app) {
   app.get('/', (_req, res) => res.redirect(dashboardPath));
   app.use(nestApp.getHttpAdapter().getInstance());
 
-  return app;
+  return { app, nestApp };
 }

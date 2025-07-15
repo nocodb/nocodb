@@ -4,8 +4,6 @@ import {
   ColumnHelper,
   type ColumnType,
   type LinkToAnotherRecordType,
-  PlanFeatureTypes,
-  PlanTitles,
   RelationTypes,
   type RollupType,
   type TableType,
@@ -428,42 +426,25 @@ const onFilterLabelClick = () => {
 
     <div v-if="isEeUI" class="w-full flex flex-col gap-4">
       <div class="flex flex-col gap-2">
-        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER">
-          <template #default="{ click }">
-            <div class="flex gap-2 items-center">
-              <a-switch
-                v-e="['c:rollup:limit-record-by-filter', { status: limitRecToCond }]"
-                :checked="limitRecToCond"
-                :disabled="!selectedTable"
-                size="small"
-                @change="
-                  (value) => {
-                    if (value && click(PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER)) return
+        <div class="flex gap-2 items-center">
+          <a-switch
+            v-e="['c:rollup:limit-record-by-filter', { status: limitRecToCond }]"
+            :checked="limitRecToCond"
+            :disabled="!selectedTable"
+            size="small"
+            @change="onFilterLabelClick"
+          >
+          </a-switch>
+          <span
+            v-e="['c:rollup:limit-record-by-filter', { status: limitRecToCond }]"
+            data-testid="nc-rollup-limit-record-filters"
+            class="cursor-pointer whitespace-nowrap"
+            @click="onFilterLabelClick"
+          >
+            {{ $t('labels.onlyIncludeLinkedRecordsThatMeetSpecificConditions') }}
+          </span>
+        </div>
 
-                    onFilterLabelClick()
-                  }
-                "
-              ></a-switch>
-              <span
-                v-e="['c:rollup:limit-record-by-filter', { status: limitRecToCond }]"
-                data-testid="nc-rollup-limit-record-filters"
-                class="cursor-pointer whitespace-nowrap"
-                @click="click(PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER, () => onFilterLabelClick())"
-              >
-                {{ $t('labels.onlyIncludeLinkedRecordsThatMeetSpecificConditions') }}
-              </span>
-              <LazyPaymentUpgradeBadge
-                v-if="!limitRecToCond"
-                :feature="PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER"
-                :content="
-                  $t('upgrade.upgradeToIncludeLinkedRecordsThatMeetSpecificConditions', {
-                    plan: getPlanTitle(PlanTitles.PLUS),
-                  })
-                "
-              />
-            </div>
-          </template>
-        </PaymentUpgradeBadgeProvider>
         <div v-if="limitRecToCond" class="overflow-auto">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"

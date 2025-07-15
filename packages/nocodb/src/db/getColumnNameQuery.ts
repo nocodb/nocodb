@@ -1,12 +1,16 @@
 import { UITypes } from 'nocodb-sdk';
 import type { Knex } from 'knex';
-import type { FormulaColumn, RollupColumn } from '~/models';
-import type { BarcodeColumn, QrCodeColumn } from '~/models';
+import type {
+  BarcodeColumn,
+  FormulaColumn,
+  QrCodeColumn,
+  RollupColumn,
+} from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { Column } from '~/models';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
-import { Column } from '~/models';
 
 /**
  * Get the column name query for a column
@@ -91,6 +95,14 @@ export async function getColumnNameQuery({
         isAggregation: true,
       });
       break;
+    }
+
+    case UITypes.Checkbox: {
+      column_name_query = {
+        builder: baseModelSqlv2.dbDriver.raw(`COALESCE(??, false)`, [
+          column_name_query,
+        ]),
+      };
     }
   }
   return typeof column_name_query === 'string'

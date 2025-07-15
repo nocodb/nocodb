@@ -178,8 +178,9 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
-  function calculatePrice(priceObj: any, searCount: number, mode: 'year' | 'month') {
-    let remainingSeats = searCount
+  function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
+    // TODO: calculate price when tiers_mode is `volume`
+    let remainingSeats = seatCount
     let total = 0
     let previousUpTo = 0
 

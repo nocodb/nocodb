@@ -16,6 +16,7 @@ export default function convertCellData(
       callback?: (type: 'ok' | 'cancel') => void
       totalAttachments: number
     }) => boolean | undefined
+    isInfoShown?: boolean
   },
   isMysql = false,
   isMultiple = false,
@@ -34,7 +35,13 @@ export default function convertCellData(
     _maxAttachmentsAllowedInCell || Math.max(1, +args.appInfo.ncMaxAttachmentsAllowed || 50) || 50
   const showUpgradeToAddMoreAttachmentsInCell = ncIsFunction(_showUpgradeToAddMoreAttachmentsInCell)
     ? _showUpgradeToAddMoreAttachmentsInCell
-    : ({ callback, totalAttachments }: { callback?: (type: 'ok' | 'cancel') => void; totalAttachments: number }) => {
+    : ({
+        totalAttachments,
+      }: {
+        callback?: (type: 'ok' | 'cancel') => void
+        totalAttachments: number
+        forceShowToastMessage?: boolean
+      }) => {
         // If it's not ee or total attachments are less than or equal to max attachments allowed in cell, then return
         if (!args.appInfo.ee || totalAttachments <= maxAttachmentsAllowedInCell) return
 
@@ -109,8 +116,10 @@ export default function convertCellData(
           if (args.appInfo.ee) {
             // verify number of files
             if (
+              args.isInfoShown ||
               showUpgradeToAddMoreAttachmentsInCell({
                 totalAttachments: parsedVal.length,
+                forceShowToastMessage: isMultiple,
               })
             ) {
               return

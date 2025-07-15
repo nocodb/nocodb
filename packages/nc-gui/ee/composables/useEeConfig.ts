@@ -28,7 +28,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const workspaceStore = useWorkspace()
 
-  const { activeWorkspace, activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
+  const { activeWorkspace, activeWorkspaceId, workspaces, workspaceUserCount } = storeToRefs(workspaceStore)
 
   const { isSideBannerExpanded } = eeConfigState()
 
@@ -164,6 +164,42 @@ export const useEeConfig = createSharedComposable(() => {
   const blockPrivateBases = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_PRIVATE_BASES)
   })
+
+  const showUserMayChargeAlert = computed(() => {
+    if (!activeSubscription.value?.stripe_price_id || !activePlan.value?.prices) return false
+
+    const pricingObject = activePlan.value.prices.find((price: any) => price.id === activeSubscription.value.stripe_price_id)
+
+    if (!pricingObject) return false
+
+    return (
+      calculatePrice(pricingObject, getStatLimit(PlanLimitTypes.LIMIT_EDITOR) + 1, activeSubscription.value?.period) >
+      calculatePrice(pricingObject, getStatLimit(PlanLimitTypes.LIMIT_EDITOR), activeSubscription.value?.period)
+    )
+  })
+
+  function calculatePrice(priceObj: any, searCount: number, mode: 'year' | 'month') {
+    let remainingSeats = searCount
+    let total = 0
+    let previousUpTo = 0
+
+    for (const tier of priceObj.tiers) {
+      const tierLimit = tier.up_to ?? Infinity
+      const tierSeats = Math.min(remainingSeats, tierLimit)
+      const seatsInTier = tierSeats - (previousUpTo ?? 0)
+
+      if (seatsInTier > 0) {
+        total += tier.unit_amount + (tier.flat_amount || 0)
+        remainingSeats -= seatsInTier
+      }
+
+      if (tier.up_to === null || tier.up_to === 'inf' || searCount <= tierLimit) break
+
+      previousUpTo = tierLimit
+    }
+
+    return total / 100 / (mode === 'year' ? 12 : 1)
+  }
 
   /** Helper functions */
   function getLimit(type: PlanLimitTypes, workspace?: NcWorkspace | null) {
@@ -836,6 +872,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   return {
     isWsOwner,
+    calculatePrice,
     getLimit,
     getStatLimit,
     updateStatLimit,
@@ -888,5 +925,6 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseScripts,
     blockPrivateBases,
     showUpgradeToUsePrivateBases,
+    showUserMayChargeAlert,
   }
 })

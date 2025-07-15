@@ -34,7 +34,7 @@ const { createProjectUser } = basesStore
 
 const { inviteCollaborator: inviteWsCollaborator } = workspaceStore
 
-const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan, getLimit } = useEeConfig()
+const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan, getLimit, showUserMayChargeAlert } = useEeConfig()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -177,7 +177,7 @@ const showUserWillChargedWarning = computed(() => {
     isPaymentEnabled.value &&
     isPaidPlan.value &&
     !NON_SEAT_ROLES.includes(inviteData.roles) &&
-    getLimit(PlanLimitTypes.LIMIT_EDITOR) !== Infinity &&
+    showUserMayChargeAlert.value &&
     !isInviteButtonDisabled.value &&
     !emailValidation.isError
   )

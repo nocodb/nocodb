@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -15,14 +15,25 @@ const meta = inject(MetaInj, ref())
 
 const { t } = useI18n()
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn, updateFieldName } =
-  useColumnCreateStoreOrThrow()
+const {
+  setAdditionalValidations,
+  validateInfos,
+  onDataTypeChange,
+  isEdit,
+  disableSubmitBtn,
+  updateFieldName,
+  setPostSaveOrUpdateCbk,
+} = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 
 const { tables } = storeToRefs(baseStore)
 
 const { metas, getMeta } = useMetas()
+
+const { getPlanTitle } = useEeConfig()
+
+const filterRef = ref()
 
 setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: t('general.required') }],
@@ -31,6 +42,11 @@ setAdditionalValidations({
 
 if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = null
 if (!vModel.value.fk_lookup_column_id) vModel.value.fk_lookup_column_id = null
+
+if (isEdit.value) {
+  if (!vModel.value.fk_lookup_column_id) vModel.value.fk_lookup_column_id = vModel.value.colOptions?.fk_lookup_column_id
+  if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
+}
 
 const refTables = computed(() => {
   if (!tables.value || !tables.value.length || !meta.value || !meta.value.columns) {
@@ -108,11 +124,34 @@ const columns = computed<ColumnType[]>(() => {
   )
 })
 
+const limitRecToCond = computed({
+  get() {
+    return !!vModel.value.meta?.enableConditions
+  },
+  set(value) {
+    vModel.value.meta = vModel.value.meta || {}
+    vModel.value.meta.enableConditions = value
+  },
+})
+
+// Provide related table meta for filter conditions
+provide(
+  MetaInj,
+  computed(() => {
+    if (!selectedTable.value) return {}
+
+    return metas.value[selectedTable.value.id] || {}
+  }),
+)
+
 onMounted(() => {
-  if (isEdit.value) {
-    vModel.value.fk_lookup_column_id = vModel.value.colOptions?.fk_lookup_column_id
-    vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
-  }
+  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
+    await filterRef.value?.applyChanges(colId || column?.id, false)
+  })
+})
+
+onUnmounted(() => {
+  setPostSaveOrUpdateCbk(null)
 })
 
 const getNextColumnId = () => {
@@ -169,10 +208,16 @@ watch(
     }
   },
 )
+
+const onFilterLabelClick = () => {
+  if (!selectedTable.value) return
+
+  limitRecToCond.value = !limitRecToCond.value
+}
 </script>
 
 <template>
-  <div v-if="refTables.length" class="w-full flex flex-col gap-2">
+  <div v-if="refTables.length" class="w-full flex flex-col gap-4">
     <div class="w-full flex flex-row space-x-2">
       <a-form-item
         class="flex w-1/2 !max-w-[calc(50%_-_4px)]"
@@ -253,8 +298,8 @@ watch(
         </a-select>
       </a-form-item>
     </div>
-    <div class="w-full flex flex-row space-x-2">
-      <a-form-item v-if="canUseRecursiveEvaluation" class="w-full">
+    <div v-if="canUseRecursiveEvaluation" class="w-full flex flex-row space-x-2">
+      <a-form-item class="w-full">
         <div class="flex items-center gap-2">
           <NcSwitch v-model:checked="useRecursiveEvaluation">
             <NcTooltip>
@@ -267,6 +312,58 @@ watch(
           </NcSwitch>
         </div>
       </a-form-item>
+    </div>
+    <div v-if="isEeUI" class="w-full flex flex-col gap-4">
+      <div class="flex flex-col gap-2">
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER">
+          <template #default="{ click }">
+            <div class="flex gap-2 items-center">
+              <a-switch
+                v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+                :checked="limitRecToCond"
+                :disabled="!selectedTable"
+                size="small"
+                @change="
+                  (value) => {
+                    if (value && click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER)) return
+
+                    onFilterLabelClick()
+                  }
+                "
+              ></a-switch>
+              <span
+                v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+                data-testid="nc-limit-record-filters"
+                class="cursor-pointer whitespace-nowrap"
+                @click="click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER, () => onFilterLabelClick())"
+              >
+                Only include linked records that meet specific conditions
+              </span>
+              <LazyPaymentUpgradeBadge
+                v-if="!limitRecToCond"
+                :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER"
+                :content="
+                  $t('upgrade.upgradeToAddLimitRecordSelection', {
+                    plan: getPlanTitle(PlanTitles.PLUS),
+                  })
+                "
+              />
+            </div>
+          </template>
+        </PaymentUpgradeBadgeProvider>
+        <div v-if="limitRecToCond" class="overflow-auto">
+          <LazySmartsheetToolbarColumnFilter
+            ref="filterRef"
+            v-model="vModel.filters"
+            class="!pl-8 !p-0 max-w-620px"
+            :auto-save="false"
+            :show-loading="false"
+            :link="true"
+            :root-meta="meta"
+            :link-col-id="vModel.id"
+          />
+        </div>
+      </div>
     </div>
   </div>
   <div v-else>

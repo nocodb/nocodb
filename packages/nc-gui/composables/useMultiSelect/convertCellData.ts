@@ -112,13 +112,15 @@ export default function convertCellData(
 
         const attachments: Record<string, any>[] = []
 
+        const totalNewAttachments = value ? parsedVal.length : files.length
+
         for (const attachment of value ? parsedVal : files) {
           if (args.appInfo.ee) {
             // verify number of files
             if (
               args.isInfoShown ||
               showUpgradeToAddMoreAttachmentsInCell({
-                totalAttachments: parsedVal.length,
+                totalAttachments: oldAttachments.length + totalNewAttachments,
                 forceShowToastMessage: isMultiple,
               })
             ) {

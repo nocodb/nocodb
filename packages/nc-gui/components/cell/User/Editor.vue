@@ -122,6 +122,9 @@ const vModel = computed({
     // @ts-expect-error antd select returns string[] instead of { label: string, value: string }[]
     if (isEeUI && val.includes(CURRENT_USER_TOKEN) && showUpgradeToUseCurrentUserFilter()) return
 
+    // Clear search query after selection is made
+    searchVal.value = ''
+
     const value: string[] = []
     if (val && val.length) {
       val.forEach((item) => {
@@ -354,6 +357,8 @@ onMounted(() => {
             @update:value="
               (value) => {
                 vModel = isMultiple ? value : [value]
+                // Clear search query after selection is made
+                searchVal = ''
               }
             "
           >

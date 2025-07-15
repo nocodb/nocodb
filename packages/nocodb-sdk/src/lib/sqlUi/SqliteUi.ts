@@ -953,6 +953,8 @@ export class SqliteUi implements SqlUi {
       'DATESTR',
       'ARRAYSORT',
       'ARRAYUNIQUE',
+      'ARRAYSLICE',
+      'ARRAYCOMPACT',
     ];
   }
 

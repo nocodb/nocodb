@@ -1061,6 +1061,8 @@ export class SnowflakeUi implements SqlUi {
       'DATESTR',
       'ARRAYSORT',
       'ARRAYUNIQUE',
+      'ARRAYSLICE',
+      'ARRAYCOMPACT',
     ];
   }
 

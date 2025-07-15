@@ -11,20 +11,19 @@ import {
   getPermissionLabel,
   getPermissionOption,
   getPermissionOptionValue,
+  type BaseType,
 } from 'nocodb-sdk'
 
 // Re-export the interface from SDK for backward compatibility
 export type { PermissionOption } from 'nocodb-sdk'
 
 export const usePermissions = () => {
-  const isPublic = inject(IsPublicInj, ref(false))
-
   const { user } = useGlobal()
 
   const baseStore = useBase()
-  const { base, isSharedBase } = storeToRefs(baseStore)
+  const { base } = storeToRefs(baseStore)
 
-  const { activeView } = storeToRefs(useViewsStore())
+  const { activeView, sharedView } = storeToRefs(useViewsStore())
 
   const { blockTableAndFieldPermissions } = useEeConfig()
 
@@ -35,13 +34,12 @@ export const usePermissions = () => {
   // Use centralized permission options from SDK
   const permissionOptions = PermissionOptions
 
-  const isSharedFormView = computed(() => {
-    return !isSharedBase.value && activeView.value?.type === ViewTypes.FORM && isPublic.value
-  })
-
   // Permissions data grouped by entity
   const permissionsByEntity = computed(() => {
-    const permissions = base.value?.permissions ?? []
+    const permissions =
+      sharedView.value?.type === ViewTypes.FORM
+        ? (sharedView.value?.basePermissions as BaseType['permissions']) ?? []
+        : base.value?.permissions ?? []
     const grouped: Record<string, any[]> = {}
 
     permissions.forEach((permission) => {

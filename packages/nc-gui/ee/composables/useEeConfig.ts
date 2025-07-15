@@ -28,7 +28,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const workspaceStore = useWorkspace()
 
-  const { activeWorkspace, activeWorkspaceId, workspaces, workspaceUserCount } = storeToRefs(workspaceStore)
+  const { activeWorkspace, activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
 
   const { isSideBannerExpanded } = eeConfigState()
 
@@ -903,7 +903,7 @@ export const useEeConfig = createSharedComposable(() => {
   }) => {
     if (!getIsAttachmentsInCellLimitReached(totalAttachments)) return
 
-    // If avoidShowError is true, then we just need to return true 
+    // If avoidShowError is true, then we just need to return true
     if (avoidShowError) return true
 
     // All paid plan has same limit so just show toast message

@@ -158,7 +158,7 @@ const getWidgetPositionConfig = (item: string) => {
 const gridRef = ref()
 
 watch(
-  activeDashboardWidgets,
+  [activeDashboardWidgets, isEditingDashboard],
   () => {
     layout.value = activeDashboardWidgets.value.map((widget) => ({
       x: widget.position?.x,
@@ -189,7 +189,8 @@ watch(
       ref="gridRef"
       v-model:layout="layout"
       :row-height="80"
-      responsive
+      :col-num="!isEditingDashboard ? null : 4"
+      :responsive="!isEditingDashboard"
       :cols="{ lg: 4, md: 3, sm: 2, xs: 1 }"
       :is-draggable="isEditingDashboard"
       :is-resizable="isEditingDashboard"

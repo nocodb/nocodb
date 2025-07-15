@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ChartTypes, type WidgetType, WidgetTypes } from 'nocodb-sdk'
+import { calculateNextPosition } from '~/utils/widgetUtils'
 
 const dashboardStore = useDashboardStore()
 const widgetStore = useWidgetStore()
 
 const { activeDashboard } = storeToRefs(dashboardStore)
+
+const { activeDashboardWidgets } = storeToRefs(widgetStore)
 
 const getDefaultConfig = (widgetType: WidgetTypes, type?: ChartTypes) => {
   switch (widgetType) {
@@ -64,10 +67,12 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
     },
   }
 
+  const position = calculateNextPosition(activeDashboardWidgets.value, positionMap[widgetType])
+
   const newWidget: Partial<WidgetType> = {
     title: getWidgetTitle(widgetType, type),
     type: widgetType,
-    position: positionMap[widgetType],
+    position: { ...positionMap[widgetType], ...position },
     config: getDefaultConfig(widgetType, type),
   }
 

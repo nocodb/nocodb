@@ -45,25 +45,25 @@ const getWidgetComponent = (widget: WidgetType) => {
 }
 
 const handleMove = (i: string, newX: number, newY: number) => {
-  const widget = activeDashboardWidgets.value.find((w) => w.id === i)
-  if (widget) {
-    widgetStore.updateWidget(
-      dashboardStore.activeDashboardId,
-      i,
-      {
-        position: {
-          ...widget.position,
-          x: newX,
-          y: newY,
-        },
-      },
-      { skipNetworkCall: true },
-    )
+  const layoutItem = layout.value.find((item) => item.i === i)
+  if (layoutItem) {
+    layoutItem.x = newX
+    layoutItem.y = newY
   }
 }
 
 const handleMoved = (i: string, newX: number, newY: number) => {
   const widget = activeDashboardWidgets.value.find((w) => w.id === i)
+  layout.value = layout.value.map((item) => {
+    if (item.i === i) {
+      return {
+        ...item,
+        x: newX,
+        y: newY,
+      }
+    }
+    return item
+  })
   if (widget) {
     widgetStore.updateWidgetPosition(dashboardStore.activeDashboardId, i, {
       ...widget.position,
@@ -74,25 +74,25 @@ const handleMoved = (i: string, newX: number, newY: number) => {
 }
 
 const handleResize = (i: string, newH: number, newW: number) => {
-  const widget = activeDashboardWidgets.value.find((w) => w.id === i)
-  if (widget) {
-    widgetStore.updateWidget(
-      dashboardStore.activeDashboard.id,
-      i,
-      {
-        position: {
-          ...widget.position,
-          w: newW,
-          h: newH,
-        },
-      },
-      { skipNetworkCall: true },
-    )
+  const layoutItem = layout.value.find((item) => item.i === i)
+  if (layoutItem) {
+    layoutItem.w = newW
+    layoutItem.h = newH
   }
 }
 
 const handleResized = (i: string, newH: number, newW: number) => {
   const widget = activeDashboardWidgets.value.find((w) => w.id === i)
+  layout.value = layout.value.map((item) => {
+    if (item.i === i) {
+      return {
+        ...item,
+        w: newW,
+        h: newH,
+      }
+    }
+    return item
+  })
   if (widget) {
     widgetStore.updateWidgetPosition(dashboardStore.activeDashboard.id, i, {
       ...widget.position,

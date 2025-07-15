@@ -214,11 +214,13 @@ export function useFillHandler({
               maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
               showUpgradeToAddMoreAttachmentsInCell,
               isInfoShown: isColInfoShown[cpCol.title!],
+              markInfoShown: () => {
+                isColInfoShown[cpCol.title!] = true
+              },
             },
             isMysql(meta.value?.source_id),
             true,
           )
-          isColInfoShown[cpCol.title!] = true
           rowObj.row[cpCol.title] = pasteValue
         }
         rowsToPaste.push(rowObj)
@@ -422,11 +424,13 @@ export function useFillHandler({
                       maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
                       showUpgradeToAddMoreAttachmentsInCell,
                       isInfoShown: isColInfoShown[colObj.title!],
+                      markInfoShown: () => {
+                        isColInfoShown[colObj.title!] = true
+                      },
                     },
                     isMysql(meta.value?.source_id),
                     true,
                   )
-                  isColInfoShown[colObj.title!] = true
                 } catch (ex) {
                   // Re-throw if it's a ComputedTypePasteError
                   if (ex instanceof ComputedTypePasteError) {

@@ -5,7 +5,7 @@ import { NcError } from '~/helpers/ncError';
 import { Model, Source } from '~/models';
 import { CircularChartPgHandler } from '~/db/widgets/circular-chart/circular-chart.pg.handler';
 
-async function getWidgetHandler(params: {
+export async function getWidgetHandler(params: {
   widget: WidgetType;
   req: NcRequest;
 }) {
@@ -38,9 +38,7 @@ async function getWidgetHandler(params: {
       }
       break;
     default:
-      NcError.badRequest(
-        `Widget type ${widget.type} is not supported for data retrieval`,
-      );
+      NcError.notImplemented(`${widget.type} widget`);
   }
 }
 

@@ -5,7 +5,7 @@ import type { WidgetType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Dashboard from '~/models/Dashboard';
 import Widget from '~/models/Widget';
-import { getWidgetData } from '~/db/widgets';
+import { getWidgetData, getWidgetHandler } from '~/db/widgets';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 
 @Injectable()
@@ -130,6 +130,22 @@ export class DashboardsService {
   ) {
     const widget = await Widget.insert(context, insertObj);
 
+    if ([WidgetTypes.CHART, WidgetTypes.METRIC].includes(widget.type)) {
+      const handler = await getWidgetHandler({
+        widget: widget as WidgetType,
+        req,
+      });
+
+      const errors = await handler.validateWidgetData(context, widget as any);
+
+      if (errors?.length > 0) {
+        await Widget.update(context, widget.id, {
+          error: true,
+        });
+        widget.error = true;
+      }
+    }
+
     this.appHooksService.emit(AppEvents.WIDGET_CREATE, {
       context,
       widget: widget as WidgetType,
@@ -153,6 +169,28 @@ export class DashboardsService {
     }
 
     const updatedWidget = await Widget.update(context, widgetId, updateObj);
+
+    if ([WidgetTypes.CHART, WidgetTypes.METRIC].includes(widget.type)) {
+      const handler = await getWidgetHandler({
+        widget: updatedWidget as WidgetType,
+        req,
+      });
+
+      const errors = await handler.validateWidgetData(
+        context,
+        updatedWidget as any,
+      );
+
+      const hasErrors = errors?.length > 0;
+      updatedWidget.error = hasErrors;
+
+      // Only update if state changed
+      if (widget.error !== hasErrors) {
+        await Widget.update(context, updatedWidget.id, {
+          error: hasErrors,
+        });
+      }
+    }
 
     this.appHooksService.emit(AppEvents.WIDGET_UPDATE, {
       context,

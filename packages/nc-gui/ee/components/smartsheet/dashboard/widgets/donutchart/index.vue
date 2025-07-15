@@ -197,7 +197,22 @@ watch([() => widgetRef.value?.config?.dataSource, () => widgetRef.value?.config?
     </div>
 
     <div class="flex-1 p-4 pt-0">
-      <div v-if="isLoading" class="flex items-center justify-center h-full">
+      <div
+        v-if="widgetRef.error"
+        :class="{
+          'bg-nc-bg-gray-extralight flex items-center justify-center h-full rounded-md': widgetRef.error,
+        }"
+      >
+        <NcTooltip>
+          <template #title> Configuration Error: Invalid widget configuration detected </template>
+
+          <div class="flex items-center gap-2 rounded-md bg-nc-bg-red-light text-caption text-nc-content-red-dark px-2 py-1">
+            <GeneralIcon icon="ncAlertTriangle" />
+            Configuration Error
+          </div>
+        </NcTooltip>
+      </div>
+      <div v-else-if="isLoading" class="flex items-center justify-center h-full">
         <div class="flex items-center gap-2 text-nc-content-gray-subtle2">
           <div class="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
           Loading chart data...

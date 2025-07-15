@@ -32,7 +32,7 @@ const colors = computed(() => {
 })
 
 async function loadData() {
-  if (!widgetRef.value?.id) return
+  if (!widgetRef.value?.id || widgetRef.value?.error) return
   isLoading.value = true
 
   widgetData.value = await widgetStore.loadWidgetData(widgetRef.value.id)
@@ -83,9 +83,24 @@ watch(
       :style="{
         color: colors.color,
       }"
+      :class="{
+        'flex-1 bg-nc-bg-gray-extralight rounded-md': widget.error,
+      }"
       class="text-nc-content-gray-subtle2 truncate text-heading2"
     >
-      <template v-if="isLoading"> _ </template>
+      <template v-if="widget.error">
+        <div class="flex items-center justify-center h-full">
+          <NcTooltip>
+            <template #title> Configuration Error: Invalid widget configuration detected </template>
+
+            <div class="flex items-center gap-2 rounded-md bg-nc-bg-red-light text-caption text-nc-content-red-dark px-2 py-1">
+              <GeneralIcon icon="ncAlertTriangle" />
+              Configuration Error
+            </div>
+          </NcTooltip>
+        </div>
+      </template>
+      <template v-else-if="isLoading"> _ </template>
       <template v-else>
         {{ widgetData?.data ?? '0' }}
       </template>

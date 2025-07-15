@@ -2113,7 +2113,7 @@ const { message: templatedMessage } = useTemplatedMessage(
     }
   }
   &.layout-list {
-    @apply h-auto !pl-0 !py-1;
+    @apply h-auto !p-0;
   }
 
   &.nc-cell-geodata {

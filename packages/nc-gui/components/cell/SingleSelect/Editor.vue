@@ -209,18 +209,6 @@ const onKeydown = (e: KeyboardEvent) => {
   }
 }
 
-const handleKeyDownList = (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'ArrowUp':
-    case 'ArrowDown':
-    case 'ArrowRight':
-    case 'ArrowLeft':
-      // skip
-      e.stopPropagation()
-      break
-  }
-}
-
 const onSelect = () => {
   isOpen.value = false
   isEditable.value = false
@@ -299,46 +287,13 @@ onMounted(() => {
     @keydown.enter.stop.prevent="toggleMenu"
   >
     <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
-      <a-radio-group
-        v-model:value="vModel"
+      <CellSingleSelectLayoutList
+        v-model="vModel"
+        :options="options"
         :disabled="readOnly || !editAllowed"
-        class="nc-field-layout-list"
-        @keydown="handleKeyDownList"
-        @click.stop
-      >
-        <a-radio
-          v-for="op of options"
-          :key="op.title"
-          :value="op.title"
-          :data-testid="`select-option-${column.title}-${rowIndex}`"
-          :class="`nc-select-option-${column.title}-${op.title}`"
-        >
-          <a-tag class="rounded-tag max-w-full" :color="op.color">
-            <span
-              :style="{
-                color: getSelectTypeOptionTextColor(op.color),
-              }"
-              class="text-small"
-            >
-              <NcTooltip class="truncate max-w-full" show-on-truncate-only>
-                <template #title>
-                  {{ op.title }}
-                </template>
-                <span
-                  class="text-ellipsis overflow-hidden"
-                  :style="{
-                    wordBreak: 'keep-all',
-                    whiteSpace: 'nowrap',
-                    display: 'inline',
-                  }"
-                >
-                  {{ op.title }}
-                </span>
-              </NcTooltip>
-            </span>
-          </a-tag>
-        </a-radio>
-      </a-radio-group>
+        :row-index="rowIndex"
+      />
+
       <div
         v-if="!readOnly && editAllowed && vModel"
         class="inline-block px-2 pt-2 cursor-pointer text-xs text-gray-500 hover:text-gray-800"

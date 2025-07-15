@@ -8,6 +8,7 @@ import tinycolor from 'tinycolor2';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import debug from 'debug';
 import { Injectable, Logger } from '@nestjs/common';
+import PQueue from 'p-queue';
 import { JobsLogService } from '../jobs-log.service';
 import FetchAT from './helpers/fetchAT';
 import { importData } from './helpers/readAndProcessData';
@@ -102,6 +103,7 @@ const selectColors = {
 @Injectable()
 export class AtImportProcessor {
   private readonly debugLog = debug('nc:jobs:at-import');
+  private attachmentQueue = new PQueue({ concurrency: 1 });
 
   constructor(
     private readonly tablesService: TablesService,
@@ -1581,27 +1583,44 @@ export class AtImportProcessor {
           case UITypes.Attachment:
             if (!syncDB.options.syncAttachment) rec[key] = null;
             else {
-              let tempArr = [];
+              const tempArr = [];
 
               try {
                 logBasic(
-                  ` :: Retrieving attachment :: ${value
+                  ` :: Retrieving ${value?.length || 0} attachment(s) :: ${value
                     ?.map((a) => a.filename?.split('?')?.[0])
                     .join(', ')}`,
                 );
                 const path = `${moment().format('YYYY/MM/DD')}/${hash(
                   syncDB.user.id,
                 )}`;
-                tempArr = await this.attachmentsService.uploadViaURL({
-                  path,
-                  urls: value?.map((attachment) => ({
-                    fileName: attachment.filename?.split('?')?.[0],
-                    url: attachment.url,
-                    size: attachment.size,
-                    mimetype: attachment.type,
-                  })),
-                  req,
-                });
+
+                // Queue each attachment download individually to process one URL at a time
+                for (const attachment of value || []) {
+                  const uploadedAttachment = await this.attachmentQueue.add(
+                    async () => {
+                      const result = await this.attachmentsService.uploadViaURL(
+                        {
+                          path,
+                          urls: [
+                            {
+                              fileName: attachment.filename?.split('?')?.[0],
+                              url: attachment.url,
+                              size: attachment.size,
+                              mimetype: attachment.type,
+                            },
+                          ],
+                          req,
+                        },
+                      );
+                      return result[0]; // uploadViaURL returns an array, we want the first item
+                    },
+                  );
+
+                  if (uploadedAttachment) {
+                    tempArr.push(uploadedAttachment);
+                  }
+                }
               } catch (e) {
                 logger.log(e);
               }

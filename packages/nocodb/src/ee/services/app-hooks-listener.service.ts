@@ -3163,9 +3163,8 @@ export class AppHooksListenerService
           next: param.dashboard,
           parseMeta: true,
           aliasMap: {
-            dashboard_title: param.dashboard.title,
-            dashboard_description: param.dashboard.description,
-            dashboard_id: param.dashboard.id,
+            title: 'dashboard_title',
+            description: 'dashboard_description',
           },
         });
 

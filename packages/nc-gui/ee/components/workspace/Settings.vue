@@ -347,7 +347,7 @@ const onCancel = () => {
                 v-e="['c:workspace:settings:leave']"
                 type="secondary"
                 danger
-                class="nc-custom-daner-btn"
+                class="nc-custom-daner-btn capitalize"
                 size="small"
                 :disabled="!allowLeaveWs"
                 @click="handleLeaveWorkspace"

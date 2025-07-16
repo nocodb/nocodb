@@ -51,6 +51,7 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
       excludeViews?: boolean;
       excludeComments?: boolean;
       excludeUsers?: boolean;
+      excludeDashboards?: boolean;
     };
   }) {
     if (!params.options?.excludeData && !params.options?.excludeUsers) {

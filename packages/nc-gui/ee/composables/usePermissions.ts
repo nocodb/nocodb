@@ -11,7 +11,6 @@ import {
   getPermissionLabel,
   getPermissionOption,
   getPermissionOptionValue,
-  PermissionEntity,
   type BaseType,
 } from 'nocodb-sdk'
 
@@ -24,7 +23,7 @@ export const usePermissions = () => {
   const baseStore = useBase()
   const { base } = storeToRefs(baseStore)
 
-  const { activeView, sharedView } = storeToRefs(useViewsStore())
+  const { sharedView } = storeToRefs(useViewsStore())
 
   const { blockTableAndFieldPermissions } = useEeConfig()
 
@@ -90,12 +89,10 @@ export const usePermissions = () => {
       return true
     }
 
-    const isFormFieldPermission = options?.isFormView && entity === PermissionEntity.FIELD
-
     /**
-     * If it is form view and field edit permission is checked, then we need to treat user as editor
+     * If it is form view, then we need to treat user as editor
      */
-    let currentUserRole = isFormFieldPermission ? PermissionRoleMap[ProjectRoles.EDITOR] : options?.userRole
+    let currentUserRole = options?.isFormView ? PermissionRoleMap[ProjectRoles.EDITOR] : options?.userRole
 
     if (!currentUserRole) {
       if (typeof user.value?.base_roles === 'string') {
@@ -118,7 +115,7 @@ export const usePermissions = () => {
 
     if (permissionObj.granted_type === PermissionGrantedType.USER) {
       // In shared form user is anonymous, but in form builder user role is present so we have to treat it as shared form
-      if (isFormFieldPermission) return false
+      if (options?.isFormView) return false
 
       // Check if user exists in subjects array
       return (

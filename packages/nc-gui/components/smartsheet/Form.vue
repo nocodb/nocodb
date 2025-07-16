@@ -188,7 +188,11 @@ const { open, onChange: onChangeFile } = useFileDialog({
 })
 
 const isAllowedToAddRecord = computed(
-  () => !meta?.value?.id || isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD),
+  () =>
+    !meta?.value?.id ||
+    isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD, {
+      isFormView: true,
+    }),
 )
 
 const disableFormSubmit = computed(
@@ -323,7 +327,6 @@ const updatePreFillFormSearchParams = useDebounceFn(() => {
 }, 250)
 
 const isFormSubmitting = ref(false)
-
 
 async function submitForm() {
   if (disableFormSubmit.value) return

@@ -81,7 +81,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const allViewFilters = ref<Record<string, FilterType[]>>({})
 
   const isAddingEmptyRowPermitted = computed(() =>
-    meta.value?.id ? isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD) : true,
+    meta.value?.id
+      ? isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD, { isFormView: true })
+      : true,
   )
 
   const isValidRedirectUrl = computed(

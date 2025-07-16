@@ -86,7 +86,7 @@ const firstErrorMsg = computed(() => {
   </template>
   <template v-else>
     <GeneralIcon
-      v-if="fieldConfigError?.hasError || Object.keys(visibilityError ?? {}).length"
+      v-if="fieldConfigError?.hasError || Object.keys(visibilityError ?? {}).length || !column?.permissions?.isAllowedToEdit"
       icon="alertTriangle"
       class="ml-1 flex-none !text-red-500"
     />

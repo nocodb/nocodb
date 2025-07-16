@@ -47,7 +47,7 @@ router.afterEach((to) => shouldRedirect(to.name as string))
           {{ $t('objects.permissions.formCannotAcceptSubmissions') }}
         </div>
         <div class="text-body text-gray-700">
-          {{ $t('objects.permissions.sharedFormCannotAcceptSubmissionsDescription') }}
+          {{ $t('objects.permissions.formCannotAcceptSubmissionsDescription') }}
         </div>
       </div>
     </div>

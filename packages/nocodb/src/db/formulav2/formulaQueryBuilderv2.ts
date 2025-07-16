@@ -10,6 +10,7 @@ import {
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
 import { getColumnName } from 'src/helpers/dbHelpers';
+import { DBErrorExtractor } from 'src/helpers/db-error/extractor';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import { replaceDelimitedWithKeyValuePg } from '../aggregations/pg';
 import { replaceDelimitedWithKeyValueSqlite3 } from '../aggregations/sqlite3';
@@ -18,7 +19,7 @@ import {
   binaryExpressionBuilder,
   callExpressionBuilder,
 } from './parsed-tree-builder';
-import type { LiteralNode } from 'nocodb-sdk';
+import type { ClientType, LiteralNode } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, QrCodeColumn, User } from '~/models';
 import type Column from '~/models/Column';
@@ -123,7 +124,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             parentColumns,
           }: TAliasToColumnParam) => {
             if (parentColumns?.has(col.id)) {
-              NcError.formulaError('Circular reference detected', {
+              NcError.get(context).formulaError('Circular reference detected', {
                 details: {
                   columnId: col.id,
                   modelId: model.id,
@@ -555,7 +556,11 @@ export default async function formulaQueryBuilderv2({
       throw e;
     }
 
-    NcError.formulaError(e.message);
+    const dbError = DBErrorExtractor.get().extractDbError(e, {
+      clientType: baseModelSqlv2.clientType as ClientType,
+      ignoreDefault: true,
+    });
+    NcError.get(context).formulaError(dbError?.message ?? e.message);
   }
   return qb;
 }

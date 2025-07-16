@@ -208,7 +208,7 @@ watch([() => widgetRef.value?.config?.dataSource, () => widgetRef.value?.config?
 
           <div class="flex items-center gap-2 rounded-md bg-nc-bg-red-light text-caption text-nc-content-red-dark px-2 py-1">
             <GeneralIcon icon="ncAlertTriangle" />
-            Configuration Error
+            {{ $t('labels.configurationError') }}
           </div>
         </NcTooltip>
       </div>

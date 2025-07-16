@@ -64,7 +64,14 @@ const filterAggregation = (value: string) => {
 }
 
 const filterField = (column: ColumnType) => {
-  if (isSystemColumn(column) || isAttachment(column) || isQrCode(column) || isBarcode(column) || isButton(column)) {
+  if (
+    isSystemColumn(column) ||
+    isAttachment(column) ||
+    isQrCode(column) ||
+    isBarcode(column) ||
+    isButton(column) ||
+    isLookup(column)
+  ) {
     return false
   }
   return true

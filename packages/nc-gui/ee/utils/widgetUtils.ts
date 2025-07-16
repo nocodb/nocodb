@@ -1,3 +1,1 @@
-import { calculateNextPosition } from 'nocodb-sdk'
-
-export { calculateNextPosition }
+export { calculateNextPosition } from 'nocodb-sdk'

@@ -32,8 +32,8 @@ function formulaQrBarcodeTests() {
       {
         title: 'FormulaQrCode',
         uidt: UITypes.Formula,
-        formula: '{QR Code}',
-        formula_raw: '{QR Code}',
+        formula: '{QRCode}',
+        formula_raw: '{QRCode}',
       },
       { throwError: true },
     );

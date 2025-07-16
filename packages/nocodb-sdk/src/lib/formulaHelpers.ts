@@ -1342,6 +1342,36 @@ export const formulas: Record<string, FormulaMeta> = {
       'https://docs.nocodb.com/fields/field-types/formula/array-functions#arraysort',
   },
 
+  ARRAYCOMPACT: {
+    validation: {
+      args: {
+        rqd: 1,
+        type: FormulaDataTypes.ARRAY,
+      },
+    },
+    description: 'Removes empty strings and null values from the array',
+    syntax: 'ARRAYCOMPACT(value)',
+    examples: ['ARRAYCOMPACT({column})'],
+    returnType: FormulaDataTypes.ARRAY,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/array-functions#arraycompact',
+  },
+
+  ARRAYSLICE: {
+    validation: {
+      args: {
+        min: 2,
+        max: 3,
+      },
+    },
+    description: 'Removes empty strings and null values from the array',
+    syntax: 'ARRAYSLICE(value, start, [end])',
+    examples: ['ARRAYSLICE({column})'],
+    returnType: FormulaDataTypes.ARRAY,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/array-functions#arrayslice',
+  },
+
   REGEX_MATCH: {
     validation: {
       args: {

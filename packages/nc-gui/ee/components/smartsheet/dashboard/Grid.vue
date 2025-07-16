@@ -191,7 +191,7 @@ watch(
       :row-height="80"
       :col-num="!isEditingDashboard ? null : 4"
       :responsive="!isEditingDashboard"
-      :cols="{ lg: 4, md: 3, sm: 2, xs: 1 }"
+      :cols="{ lg: 4, md: 3, sm: 2, xs: 1, xxs: 1 }"
       :is-draggable="isEditingDashboard"
       :is-resizable="isEditingDashboard"
       :vertical-compact="false"

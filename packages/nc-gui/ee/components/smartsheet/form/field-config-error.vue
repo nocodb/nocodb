@@ -55,6 +55,14 @@ const firstErrorMsg = computed(() => {
       "
       class="flex flex-col gap-2 mt-2"
     >
+      <div
+        v-if="!column?.permissions?.isAllowedToEdit"
+        class="nc-field-config-error validation-error text-[#CB3F36] inline-flex items-center gap-2"
+      >
+        <GeneralIcon icon="info" />
+        <div class="flex">{{ column?.permissions?.label }}</div>
+      </div>
+
       <NcTooltip
         v-if="fieldConfigError?.hasError || Object.keys(visibilityError ?? {}).length || requiredFieldEditRestricted"
         :disabled="!firstErrorMsg"
@@ -74,14 +82,6 @@ const firstErrorMsg = computed(() => {
           <div class="flex">Configuration error</div>
         </div>
       </NcTooltip>
-
-      <div
-        v-if="!column?.permissions?.isAllowedToEdit"
-        class="nc-field-config-error validation-error text-[#CB3F36] inline-flex items-center gap-2"
-      >
-        <GeneralIcon icon="info" />
-        <div class="flex">{{ column?.permissions?.label }}</div>
-      </div>
     </div>
   </template>
   <template v-else>

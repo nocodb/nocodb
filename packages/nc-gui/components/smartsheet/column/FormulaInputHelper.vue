@@ -2,13 +2,22 @@
 import { UITypes, isHiddenCol, jsepCurlyHook } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
-import { KeyCode, type editor as MonacoEditor, Position, Range, languages, editor as monacoEditor } from 'monaco-editor'
+import {
+  KeyCode,
+  MarkerSeverity,
+  type editor as MonacoEditor,
+  Position,
+  Range,
+  languages,
+  editor as monacoEditor,
+} from 'monaco-editor'
 import jsep from 'jsep'
 import formulaLanguage from '../../monaco/formula'
 import { isCursorInsideString } from '../../../utils/formulaUtils'
 
 interface Props {
   error?: boolean
+  editorError: { isError: boolean; message: string; position: { column: number; row: number; length: number } }
   value: string
   label?: string
   editorHeight?: string
@@ -148,6 +157,7 @@ const variableList = computed(() => {
 
 const monacoRoot = ref<HTMLDivElement>()
 let editor: MonacoEditor.IStandaloneCodeEditor
+let model: MonacoEditor.ITextModel
 
 function getCurrentKeyword() {
   const model = editor.getModel()
@@ -167,7 +177,7 @@ const handleInputDeb = useDebounceFn(function () {
 
 onMounted(async () => {
   if (monacoRoot.value) {
-    const model = monacoEditor.createModel(value.value, 'formula')
+    model = monacoEditor.createModel(value.value, 'formula')
 
     languages.register({
       id: formulaLanguage.name,
@@ -669,6 +679,27 @@ const enableAI = async () => {
     aiMode.value = AI_MODE.PROMPT
   }
 }
+
+// set monaco module markers every editor error change
+watch(
+  () => props.editorError,
+  (value, _oldValue) => {
+    if (value?.isError) {
+      monacoEditor.setModelMarkers(editor.getModel()!, 'owner', [
+        {
+          startLineNumber: value.position.row + 1,
+          startColumn: value.position.column + 1,
+          endLineNumber: value.position.row + 1,
+          endColumn: value.position.column + 1 + value.position.length,
+          message: value.message,
+          severity: MarkerSeverity.Error,
+        },
+      ])
+    } else {
+      monacoEditor.setModelMarkers(editor.getModel()!, 'owner', [])
+    }
+  },
+)
 </script>
 
 <template>

@@ -9,10 +9,14 @@ const props = defineProps<Props>()
 
 const { column, mode } = toRefs(props)
 
-const { v$ } = useFormViewStoreOrThrow()
+const { v$, isRequired } = useFormViewStoreOrThrow()
 
 const visibilityError = computed(() => {
   return parseProp(column.value?.meta)?.visibility?.errors || {}
+})
+
+const requiredFieldEditRestricted = computed(() => {
+  return isRequired(column.value, column.value?.required) && !column.value?.permissions?.isAllowedToEdit
 })
 
 const fieldConfigError = computed(() => {
@@ -25,6 +29,10 @@ const fieldConfigError = computed(() => {
 })
 
 const firstErrorMsg = computed(() => {
+  if (requiredFieldEditRestricted.value) {
+    return 'This required field isn’t editable, which may cause submission errors during form submission.'
+  }
+
   const visibilityErr = Object.values(visibilityError.value ?? [])
   if (visibilityErr.length) {
     return visibilityErr[0]
@@ -39,14 +47,20 @@ const firstErrorMsg = computed(() => {
 <template>
   <template v-if="mode === 'preview'">
     <div
-      v-if="fieldConfigError?.hasError || Object.keys(visibilityError ?? {}).length || !column?.permissions?.isAllowedToEdit"
+      v-if="
+        fieldConfigError?.hasError ||
+        Object.keys(visibilityError ?? {}).length ||
+        !column?.permissions?.isAllowedToEdit ||
+        requiredFieldEditRestricted
+      "
       class="flex flex-col gap-2 mt-2"
     >
       <NcTooltip
-        v-if="fieldConfigError?.hasError || Object.keys(visibilityError ?? {}).length"
+        v-if="fieldConfigError?.hasError || Object.keys(visibilityError ?? {}).length || requiredFieldEditRestricted"
         :disabled="!firstErrorMsg"
         class="flex cursor-pointer"
-        placement="bottom"
+        placement="bottomLeft"
+        :arrow-point-at-center="false"
       >
         <template #title>
           <div class="flex flex-col">

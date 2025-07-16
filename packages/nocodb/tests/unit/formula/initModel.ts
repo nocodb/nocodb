@@ -7,6 +7,7 @@ import { Model } from '../../../src/models';
 import Base from '../../../src/models/Base';
 import { createProject } from '../factory/base';
 import {
+  createColumn,
   createLookupColumn,
   createLtarColumn2,
   customColumns,
@@ -22,6 +23,12 @@ export interface ITestContext {
     base_id: any;
   };
   base: Base;
+  tables: {
+    table1: Model;
+    table2: Model;
+    table3: Model;
+    table4: Model;
+  };
 }
 async function ncAxiosLinkAdd({
   context,
@@ -256,5 +263,25 @@ export async function initInitialModel() {
       table3,
       table4,
     },
-  };
+  } as ITestContext;
+}
+
+export async function initQrBarcodeColumns(context: ITestContext) {
+  const table1 = context.tables.table1;
+  await createColumn(context.context, table1, {
+    title: 'QR Code',
+    column_name: 'qrcode',
+    uidt: UITypes.QrCode,
+    fk_qr_value_column_id: (
+      await table1.getColumns(context.ctx)
+    ).find((k) => k.title === 'Title').id,
+  });
+  await createColumn(context.context, table1, {
+    title: 'Barcode',
+    column_name: 'barcode',
+    uidt: UITypes.Barcode,
+    fk_barcode_value_column_id: (
+      await table1.getColumns(context.ctx)
+    ).find((k) => k.title === 'Title').id,
+  });
 }

@@ -906,18 +906,24 @@ const createColumn = async (
   context: Context,
   table: Model,
   columnAttr: Record<string, any>,
+  option?: {
+    throwError?: boolean;
+  },
 ) => {
   const ctx = {
     workspace_id: table.fk_workspace_id,
     base_id: table.base_id,
   };
 
-  await request(context.app)
+  const response = await request(context.app)
     .post(`/api/v1/db/meta/tables/${table.id}/columns`)
     .set('xc-auth', context.token)
     .send({
       ...columnAttr,
     });
+  if (response.status >= 400 && option?.throwError) {
+    throw response.error;
+  }
 
   const column: Column = (await table.getColumns(ctx)).find(
     (column) => column.title === columnAttr.title,

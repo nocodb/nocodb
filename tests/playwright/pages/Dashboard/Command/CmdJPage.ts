@@ -10,7 +10,7 @@ export class CmdJ extends BasePage {
   }
 
   get() {
-    return this.dashboardPage.get().locator('.DocSearch');
+    return this.dashboardPage.get().locator('.cmdj-modal');
   }
 
   async openCmdJ() {
@@ -19,7 +19,7 @@ export class CmdJ extends BasePage {
   }
 
   async searchText(text: string) {
-    await this.dashboardPage.rootPage.fill('.DocSearch-Input', text);
+    await this.dashboardPage.rootPage.fill('.cmdj-input', text);
   }
 
   async isCmdJVisible() {

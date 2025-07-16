@@ -150,7 +150,7 @@ function formulaLookupLtarTests() {
     );
   });
 
-  it('will create an ARRAYSORT formula referencing T4s correctly', async () => {
+  it('will create an ARRAYUNIQUE formula referencing T4s correctly', async () => {
     // Create a formula field on table 3 that references T4s
     const controlFormulaColumn = await createColumn(_context, _tables.table3, {
       title: 'FormulaT4sControl',
@@ -189,6 +189,58 @@ function formulaLookupLtarTests() {
     expect(firstRow.FormulaT4sControl.split(',').length).to.greaterThan(
       firstRow.FormulaT4s.length,
     );
+  });
+  it('will create an ARRAYSORT(ARRAYUNIQUE) formula referencing T4s correctly', async () => {
+    // Create a formula field on table 3 that references T4s
+    const controlFormulaColumn = await createColumn(_context, _tables.table3, {
+      title: 'FormulaT4sControl',
+      uidt: UITypes.Formula,
+      formula: 'ARRAYSORT(ARRAYUNIQUE({T4s}), "desc")',
+      formula_raw: 'ARRAYSORT(ARRAYUNIQUE({T4s}), "desc")',
+    });
+    const formulaColumn = await createColumn(_context, _tables.table3, {
+      title: 'FormulaT4s',
+      uidt: UITypes.Formula,
+      formula: 'ARRAYSORT(ARRAYUNIQUE({T4s}))',
+      formula_raw: 'ARRAYSORT(ARRAYUNIQUE({T4s}))',
+    });
+
+    // Verify the formula column was created successfully
+    expect(formulaColumn).to.exist;
+    expect(formulaColumn.title).to.equal('FormulaT4s');
+    expect(formulaColumn.uidt).to.equal(UITypes.Formula);
+    expect(controlFormulaColumn).to.exist;
+    expect(controlFormulaColumn.uidt).to.equal(UITypes.Formula);
+
+    // Get the data to verify the formula is working correctly
+    const rows = await listRow({ base: _base, table: _tables.table3 });
+
+    // Verify that we have data
+    expect(rows).to.be.an('array');
+    expect(rows.length).to.be.greaterThan(0);
+
+    // Check that the formula column exists in the first row
+    const firstRow = rows[0];
+    expect(firstRow).to.have.property('FormulaT4s');
+    expect(firstRow).to.have.property('FormulaT4sControl');
+
+    // Validating result
+    expect(firstRow.FormulaT4s).to.exist;
+    expect(firstRow.FormulaT4sControl).to.exist;
+    expect(firstRow.FormulaT4sControl).to.deep.eq([
+      'T4_004',
+      'T4_003',
+      'T4_002',
+      'T4_001',
+      'T4_000',
+    ]);
+    expect(firstRow.FormulaT4s).to.deep.eq([
+      'T4_000',
+      'T4_001',
+      'T4_002',
+      'T4_003',
+      'T4_004',
+    ]);
   });
 }
 

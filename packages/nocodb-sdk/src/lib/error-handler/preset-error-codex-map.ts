@@ -161,7 +161,7 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.FORMULA_ERROR]: {
     message: (message: string) => {
-      return `${message}`;
+      return message;
     },
     code: 400,
   },

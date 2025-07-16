@@ -8,14 +8,16 @@ import { CircularChartPgHandler } from '~/db/widgets/circular-chart/circular-cha
 export async function getWidgetHandler(params: {
   widget: WidgetType;
   req: NcRequest;
+  idMap?: Map<string, string>;
 }) {
-  const { widget, req } = params;
+  const { widget, req, idMap } = params;
   const context = req.context;
 
-  const model = await Model.getByIdOrName(context, {
-    id: widget.fk_model_id,
-  });
+  const modelId = idMap?.get(widget.fk_model_id) || widget.fk_model_id;
 
+  const model = await Model.getByIdOrName(context, {
+    id: modelId,
+  });
   const source = await Source.get(context, model.source_id);
 
   if (!['pg', 'mysql'].includes(source.type)) {

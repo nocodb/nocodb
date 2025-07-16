@@ -10,10 +10,11 @@ import {
   RelationTypes,
   UITypes,
   ViewTypes,
+  type WidgetType,
 } from 'nocodb-sdk';
 import { unparse } from 'papaparse';
 import { elapsedTime, initTime } from '../../helpers';
-import type { LookupType, RollupType } from 'nocodb-sdk';
+import type { LookupType, NcRequest, RollupType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
@@ -35,6 +36,7 @@ import {
   Base,
   BaseUser,
   Comment,
+  Dashboard,
   Filter,
   Hook,
   Model,
@@ -45,6 +47,7 @@ import {
 import { DatasService } from '~/services/datas.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { parseMetaProp } from '~/utils/modelUtils';
+import { getWidgetHandler } from '~/db/widgets';
 
 @Injectable()
 export class ExportService {
@@ -67,6 +70,46 @@ export class ExportService {
     }
 
     return serializedScripts;
+  }
+
+  async serializeDashboards(context: NcContext, param: any, req: NcRequest) {
+    const { idMap } = param;
+    const serializedDashboards = [];
+
+    const dashboards = await Dashboard.list(context, context.base_id);
+
+    for (const dashboard of dashboards) {
+      idMap.set(dashboard.id, `${dashboard.base_id}::${dashboard.id}`);
+
+      await dashboard.getWidgets(context);
+
+      const serializedWidgets = [];
+
+      for (const widget of dashboard.widgets) {
+        const handler = await getWidgetHandler({
+          widget: widget as WidgetType,
+          req,
+        });
+
+        const serializedWidget = await handler.serializeOrDeserializeWidget(
+          context,
+          widget as any,
+          idMap,
+        );
+
+        serializedWidgets.push(serializedWidget);
+      }
+
+      serializedDashboards.push({
+        id: idMap.get(dashboard.id),
+        title: dashboard.title,
+        description: dashboard.description,
+        meta: dashboard.meta,
+        widgets: serializedWidgets,
+      });
+    }
+
+    return serializedDashboards;
   }
 
   async serializeModels(
@@ -590,9 +633,13 @@ export class ExportService {
         },
         hooks: serializedHooks,
         comments: serializedComments,
+        idMap,
       });
     }
-    return serializedModels;
+    return {
+      serializedModels,
+      idMap,
+    };
   }
 
   async serializeUsers(context: NcContext, param: { baseId: string }) {
@@ -1123,9 +1170,12 @@ export class ExportService {
       (m) => m.source_id === source.id && !m.mm && m.type === 'table',
     );
 
-    const exportedModels = await this.serializeModels(context, {
-      modelIds: models.map((m) => m.id),
-    });
+    const { serializedModels: exportedModels } = await this.serializeModels(
+      context,
+      {
+        modelIds: models.map((m) => m.id),
+      },
+    );
 
     elapsedTime(
       hrTime,

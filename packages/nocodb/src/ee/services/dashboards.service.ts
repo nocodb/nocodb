@@ -138,12 +138,16 @@ export class DashboardsService {
 
       const errors = await handler.validateWidgetData(context, widget as any);
 
-      if (errors?.length > 0) {
+      const hasErrors = errors?.length > 0;
+
+      // Only update if error state changed from the initial state
+      if (widget.error !== hasErrors) {
         await Widget.update(context, widget.id, {
-          error: true,
+          error: hasErrors,
         });
-        widget.error = true;
       }
+
+      widget.error = hasErrors;
     }
 
     this.appHooksService.emit(AppEvents.WIDGET_CREATE, {
@@ -191,6 +195,28 @@ export class DashboardsService {
       ...(widget.fk_view_id && { fk_view_id: widget.fk_view_id }),
       ...(widget.description && { description: widget.description }),
     });
+
+    if ([WidgetTypes.CHART, WidgetTypes.METRIC].includes(newWidget.type)) {
+      const handler = await getWidgetHandler({
+        widget: newWidget as WidgetType,
+        req,
+      });
+
+      const errors = await handler.validateWidgetData(
+        context,
+        newWidget as any,
+      );
+
+      const hasErrors = errors?.length > 0;
+      newWidget.error = hasErrors;
+
+      // Only update if error state changed from the original
+      if (widget.error !== hasErrors) {
+        await Widget.update(context, newWidget.id, {
+          error: hasErrors,
+        });
+      }
+    }
 
     this.appHooksService.emit(AppEvents.WIDGET_DUPLICATE, {
       sourceWidget: widget as WidgetType,

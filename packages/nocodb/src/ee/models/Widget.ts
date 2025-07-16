@@ -31,8 +31,8 @@ export default class Widget implements IWidget {
   };
   error?: boolean;
 
-  base_id?: string;
-  fk_workspace_id?: string;
+  base_id: string;
+  fk_workspace_id: string;
   created_at?: string;
   updated_at?: string;
 

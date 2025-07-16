@@ -106,6 +106,9 @@ export interface CommonWidgetType {
   error?: boolean;
   created_at?: string;
   updated_at?: string;
+
+  base_id: string;
+  fk_workspace_id: string;
 }
 
 export interface ChartWidgetType<C extends ChartTypes = ChartTypes>
@@ -184,6 +187,9 @@ export interface IWidget {
   };
   created_at?: string;
   updated_at?: string;
+
+  base_id: string;
+  fk_workspace_id: string;
 }
 
 export * from './charts';

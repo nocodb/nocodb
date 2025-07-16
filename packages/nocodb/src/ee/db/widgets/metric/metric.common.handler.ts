@@ -3,8 +3,9 @@ import type { NcContext, NcRequest, WidgetType, WidgetTypes } from 'nocodb-sdk';
 import { Column, Filter, Model, Source, View } from '~/models';
 import applyAggregation, { validateAggregationColType } from '~/db/aggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
 
-export class MetricCommonHandler {
+export class MetricCommonHandler extends BaseWidgetHandler {
   async validateWidgetData(
     context: NcContext,
     widget: WidgetType<WidgetTypes.METRIC>,
@@ -158,5 +159,31 @@ export class MetricCommonHandler {
     return {
       data: data.count,
     };
+  }
+
+  async serializeOrDeserializeWidget(
+    context: NcContext,
+    widget: WidgetType<WidgetTypes.METRIC>,
+    idMap: Map<string, string>,
+    mode: 'serialize' | 'deserialize' = 'serialize',
+  ) {
+    const initSerialized = await super.serializeOrDeserializeWidget(
+      context,
+      widget,
+      idMap,
+      mode,
+    );
+    return {
+      ...initSerialized,
+      config: {
+        ...widget.config,
+        metric: {
+          ...widget.config.metric,
+          column_id: widget.config.metric.column_id
+            ? idMap.get(widget.config.metric.column_id)
+            : null,
+        },
+      },
+    } as any;
   }
 }

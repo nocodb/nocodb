@@ -113,7 +113,17 @@ watch(vOpen, () => {
       </div>
 
       <div class="cmdk-results-container overflow-y-auto max-h-80">
-        <div v-if="query.data.value === 'empty'" class="flex flex-col p-4 items-start justify-center text-md">
+        <div v-if="!search?.length" class="flex flex-col p-4 gap-4 items-center justify-center text-sm">
+          <img
+            src="~assets/img/placeholder/no-search-result-found.png"
+            class="!w-[240px] flex-none"
+            alt="Search through our documentation"
+          />
+          <div>
+            Search through our documentation
+          </div>
+        </div>
+        <div v-else-if="query.data.value === 'empty'" class="flex flex-col p-4 items-start justify-center text-sm">
           Your search did not match any results
         </div>
 
@@ -135,7 +145,7 @@ watch(vOpen, () => {
                   }"
                   class="cmdk-action-text flex-1"
                 >
-                  <div class="cmdk-action-title font-medium">{{ result.content }}</div>
+                  <div class="cmdk-action-title text-md">{{ result.content }}</div>
                 </div>
               </div>
             </div>

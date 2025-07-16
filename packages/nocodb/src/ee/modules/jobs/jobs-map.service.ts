@@ -104,6 +104,10 @@ export class JobsMap extends JobsMapCE {
       [JobTypes.CloudDbMigrate]: {
         this: this.cloudDbMigrateProcessor,
       },
+      [JobTypes.DuplicateDashboard]: {
+        this: this.duplicateProcessor,
+        fn: 'duplicateDashboard',
+      },
     };
   }
 }

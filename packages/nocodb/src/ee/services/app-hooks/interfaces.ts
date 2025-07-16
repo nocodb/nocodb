@@ -131,8 +131,9 @@ export interface DashboardDeleteEvent extends NcBaseEvent {
 export interface DashboardDuplicateEvent extends NcBaseEvent {
   error?: string;
   sourceDashboard: DashboardType;
-  destDashboard: DashboardType;
+  destDashboard?: DashboardType;
   user: UserType;
+  id?: string;
 }
 
 export interface WidgetCreateEvent extends NcBaseEvent {

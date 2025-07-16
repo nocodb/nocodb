@@ -8,13 +8,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ProjectStatus } from 'nocodb-sdk';
+import { AppEvents, ProjectStatus } from 'nocodb-sdk';
 import { DuplicateController as DuplicateControllerCE } from 'src/modules/jobs/jobs/export-import/duplicate.controller';
 import { Request } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
-import { Base } from '~/models';
+import { Base, Dashboard } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcContext, NcRequest } from '~/interface/config';
@@ -128,5 +128,59 @@ export class DuplicateController extends DuplicateControllerCE {
     }
 
     return await this.remoteImportService.remoteImportProcess(secret, req);
+  }
+
+  @Post(['/api/v2/meta/duplicate/:baseId/dashboard/:dashboardId'])
+  @HttpCode(200)
+  @Acl('duplicateDashboard')
+  async duplicateDashboard(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('baseId') baseId: string,
+    @Param('dashboardId') dashboardId?: string,
+    @Body()
+    body?: {
+      extra?: any;
+    },
+  ) {
+    const base = await Base.get(context, baseId);
+
+    if (!base) {
+      throw new Error(`Base not found for id '${baseId}'`);
+    }
+
+    const dashboard = await Dashboard.get(context, dashboardId);
+
+    if (!dashboard) {
+      throw new Error(`Dashboard not found!`);
+    }
+
+    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
+    this.appHooksService.emit(AppEvents.DASHBOARD_DUPLICATE_START, {
+      sourceDashboard: dashboard,
+      user: req.user,
+      req,
+      context,
+      id: parentAuditId,
+    });
+
+    req.ncParentAuditId = parentAuditId;
+
+    const job = await this.jobsService.add(JobTypes.DuplicateDashboard, {
+      context,
+      user: req.user,
+      baseId: base.id,
+      dashboardId: dashboard.id,
+      extra: body.extra || {},
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+        headers: req.headers,
+        ncParentAuditId: parentAuditId,
+        ncBaseId: baseId,
+      },
+    });
+
+    return { id: job.id };
   }
 }

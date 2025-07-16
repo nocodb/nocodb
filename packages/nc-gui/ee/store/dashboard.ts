@@ -2,7 +2,7 @@ import type { DashboardType } from 'nocodb-sdk'
 import { DlgDashboardCreate } from '#components'
 
 export const useDashboardStore = defineStore('dashboard', () => {
-  const { $api, $e } = useNuxtApp()
+  const { $api, $e, $poller } = useNuxtApp()
 
   const { ncNavigateTo } = useGlobal()
 
@@ -32,7 +32,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const activeDashboardId = computed(() => route.params.dashboardId as string)
 
   const activeDashboard = computed(() => {
-    if (!activeDashboardId.value) return null
+    if (!activeDashboardId.value || !activeProjectId.value) return null
     return dashboards.value.get(activeProjectId.value)?.find((a) => a.id === activeDashboardId.value) || null
   })
 
@@ -240,6 +240,53 @@ export const useDashboardStore = defineStore('dashboard', () => {
     })
   }
 
+  const duplicateDashboard = async (baseId: string, dashboardId: string, extra: any, onProgress?: (status: string) => void) => {
+    if (!activeWorkspaceId.value) return null
+
+    try {
+      const jobData = await $api.dbDashboard.duplicateDashboard(baseId, dashboardId, {
+        extra,
+      })
+
+      return new Promise((resolve, reject) => {
+        $poller.subscribe(
+          { id: jobData.id! },
+          async (data: {
+            id: string
+            status?: string
+            data?: {
+              error?: {
+                message: string
+              }
+              message?: string
+              result?: any
+            }
+          }) => {
+            if (data.status !== 'close') {
+              onProgress?.(data.status || 'processing')
+
+              if (data.status === JobStatus.COMPLETED) {
+                // Refresh dashboards list to include the new duplicate
+                await loadDashboards({ baseId, force: true })
+
+                $e('a:dashboard:duplicate')
+                resolve(data.data?.result)
+              } else if (data.status === JobStatus.FAILED) {
+                const errorMsg = data.data?.error?.message || 'There was an error duplicating the dashboard.'
+                message.error(errorMsg)
+                reject(new Error(errorMsg))
+              }
+            }
+          },
+        )
+      })
+    } catch (e) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      throw e
+    }
+  }
+
   async function openNewDashboardModal({
     baseId,
     e,
@@ -324,6 +371,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     deleteDashboard,
     openDashboard,
     openNewDashboardModal,
+    duplicateDashboard,
   }
 })
 

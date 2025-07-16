@@ -179,6 +179,7 @@ const rolePermissions = {
       dashboardEdit: true,
       dashboardDelete: true,
       dashboardRename: true,
+      dashboardDuplicate: true,
     },
   },
   [ProjectRoles.EDITOR]: {

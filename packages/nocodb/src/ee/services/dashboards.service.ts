@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { NcError } from 'src/helpers/ncError';
-import { AppEvents, calculateNextPosition, WidgetTypes } from 'nocodb-sdk';
+import { AppEvents, calculateNextPosition } from 'nocodb-sdk';
 import type { WidgetType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Dashboard from '~/models/Dashboard';
@@ -130,25 +130,23 @@ export class DashboardsService {
   ) {
     const widget = await Widget.insert(context, insertObj);
 
-    if ([WidgetTypes.CHART, WidgetTypes.METRIC].includes(widget.type)) {
-      const handler = await getWidgetHandler({
-        widget: widget as WidgetType,
-        req,
+    const handler = await getWidgetHandler({
+      widget: widget as WidgetType,
+      req,
+    });
+
+    const errors = await handler.validateWidgetData(context, widget as any);
+
+    const hasErrors = errors?.length > 0;
+
+    // Only update if error state changed from the initial state
+    if (widget.error !== hasErrors) {
+      await Widget.update(context, widget.id, {
+        error: hasErrors,
       });
-
-      const errors = await handler.validateWidgetData(context, widget as any);
-
-      const hasErrors = errors?.length > 0;
-
-      // Only update if error state changed from the initial state
-      if (widget.error !== hasErrors) {
-        await Widget.update(context, widget.id, {
-          error: hasErrors,
-        });
-      }
-
-      widget.error = hasErrors;
     }
+
+    widget.error = hasErrors;
 
     this.appHooksService.emit(AppEvents.WIDGET_CREATE, {
       context,
@@ -196,26 +194,21 @@ export class DashboardsService {
       ...(widget.description && { description: widget.description }),
     });
 
-    if ([WidgetTypes.CHART, WidgetTypes.METRIC].includes(newWidget.type)) {
-      const handler = await getWidgetHandler({
-        widget: newWidget as WidgetType,
-        req,
+    const handler = await getWidgetHandler({
+      widget: newWidget as WidgetType,
+      req,
+    });
+
+    const errors = await handler.validateWidgetData(context, newWidget as any);
+
+    const hasErrors = errors?.length > 0;
+    newWidget.error = hasErrors;
+
+    // Only update if error state changed from the original
+    if (widget.error !== hasErrors) {
+      await Widget.update(context, newWidget.id, {
+        error: hasErrors,
       });
-
-      const errors = await handler.validateWidgetData(
-        context,
-        newWidget as any,
-      );
-
-      const hasErrors = errors?.length > 0;
-      newWidget.error = hasErrors;
-
-      // Only update if error state changed from the original
-      if (widget.error !== hasErrors) {
-        await Widget.update(context, newWidget.id, {
-          error: hasErrors,
-        });
-      }
     }
 
     this.appHooksService.emit(AppEvents.WIDGET_DUPLICATE, {
@@ -243,26 +236,24 @@ export class DashboardsService {
 
     const updatedWidget = await Widget.update(context, widgetId, updateObj);
 
-    if ([WidgetTypes.CHART, WidgetTypes.METRIC].includes(widget.type)) {
-      const handler = await getWidgetHandler({
-        widget: updatedWidget as WidgetType,
-        req,
+    const handler = await getWidgetHandler({
+      widget: updatedWidget as WidgetType,
+      req,
+    });
+
+    const errors = await handler.validateWidgetData(
+      context,
+      updatedWidget as any,
+    );
+
+    const hasErrors = errors?.length > 0;
+    updatedWidget.error = hasErrors;
+
+    // Only update if state changed
+    if (widget.error !== hasErrors) {
+      await Widget.update(context, updatedWidget.id, {
+        error: hasErrors,
       });
-
-      const errors = await handler.validateWidgetData(
-        context,
-        updatedWidget as any,
-      );
-
-      const hasErrors = errors?.length > 0;
-      updatedWidget.error = hasErrors;
-
-      // Only update if state changed
-      if (widget.error !== hasErrors) {
-        await Widget.update(context, updatedWidget.id, {
-          error: hasErrors,
-        });
-      }
     }
 
     this.appHooksService.emit(AppEvents.WIDGET_UPDATE, {
@@ -299,12 +290,6 @@ export class DashboardsService {
 
     if (!widget) {
       NcError.notFound('Widget not found');
-    }
-
-    if (![WidgetTypes.METRIC, WidgetTypes.CHART].includes(widget.type)) {
-      NcError.badRequest(
-        `Data retrieval not supported for widget type: ${widget.type}`,
-      );
     }
 
     return await getWidgetData({ widget: widget as WidgetType, req });

@@ -18,7 +18,7 @@ interface Emits {
 
   (event: 'delete', dashboard: DashboardType): void
 
-  (event: 'openModal', data: { type: DashboardType }): void
+  (event: 'duplicate', dashboard: DashboardType): void
 }
 
 const props = defineProps<Props>()
@@ -209,11 +209,15 @@ function onStopEdit() {
   }, 250)
 }
 
-const isDashboardDeleteDialogVisible = ref(false)
+const duplicateDashboard = (dashboard: DashboardType) => {
+  isDropdownOpen.value = false
+
+  emits('duplicate', dashboard)
+}
 
 const deleteDashboard = () => {
   isDropdownOpen.value = false
-  isDashboardDeleteDialogVisible.value = true
+  emits('delete', vModel.value)
 }
 </script>
 
@@ -362,6 +366,17 @@ const deleteDashboard = () => {
                   </NcMenuItem>
 
                   <NcMenuItem
+                    v-if="isUIAllowed('dashboardDuplicate')"
+                    :data-testid="`sidebar-dashboard-duplicate-${dashboard.title}`"
+                    @click="duplicateDashboard(dashboard)"
+                  >
+                    <div v-e="['c:dashboard:duplicate']" class="flex gap-2 items-center">
+                      <GeneralIcon icon="duplicate" class="opacity-80" />
+                      {{ $t('general.duplicate') }} {{ $t('objects.dashboard').toLowerCase() }}
+                    </div>
+                  </NcMenuItem>
+
+                  <NcMenuItem
                     v-e="['c:dashboard:update-description']"
                     :data-testid="`sidebar-dashboard-description-${dashboard.title}`"
                     class="nc-dashboard-description"
@@ -388,6 +403,5 @@ const deleteDashboard = () => {
         </template>
       </div>
     </NcTooltip>
-    <DlgDashboardDelete v-if="dashboard.id" v-model:visible="isDashboardDeleteDialogVisible" :dashboard="dashboard" />
   </a-menu-item>
 </template>

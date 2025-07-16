@@ -38,8 +38,16 @@ const firstErrorMsg = computed(() => {
 
 <template>
   <template v-if="mode === 'preview'">
-    <div v-if="fieldConfigError?.hasError || Object.keys(visibilityError ?? {}).length" class="flex mt-2">
-      <NcTooltip :disabled="!firstErrorMsg" class="flex cursor-pointer" placement="bottom">
+    <div
+      v-if="fieldConfigError?.hasError || Object.keys(visibilityError ?? {}).length || !column?.permissions?.isAllowedToEdit"
+      class="flex flex-col gap-2 mt-2"
+    >
+      <NcTooltip
+        v-if="fieldConfigError?.hasError || Object.keys(visibilityError ?? {}).length"
+        :disabled="!firstErrorMsg"
+        class="flex cursor-pointer"
+        placement="bottom"
+      >
         <template #title>
           <div class="flex flex-col">
             {{ firstErrorMsg }}
@@ -52,6 +60,14 @@ const firstErrorMsg = computed(() => {
           <div class="flex">Configuration error</div>
         </div>
       </NcTooltip>
+
+      <div
+        v-if="!column?.permissions?.isAllowedToEdit"
+        class="nc-field-config-error validation-error text-[#CB3F36] inline-flex items-center gap-2"
+      >
+        <GeneralIcon icon="info" />
+        <div class="flex">{{ column?.permissions?.label }}</div>
+      </div>
     </div>
   </template>
   <template v-else>

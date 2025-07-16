@@ -128,7 +128,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       columns.value?.filter((col) => {
         const isVisible = col.show
 
-        const isAllowedToEdit = isAllowed(PermissionEntity.FIELD, col.id!, PermissionKey.RECORD_FIELD_EDIT)
+        const isAllowedToEdit = col?.permissions?.isAllowedToEdit ?? true
 
         return isVisible && supportedFields(col) && isAllowedToEdit
       }) || [],
@@ -207,6 +207,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             visible: true,
             meta: { ...parseProp(fieldById[c.id].meta), ...parseProp(c.meta) },
             description: fieldById[c.id].description,
+            permissions: {
+              isAllowedToEdit: isAllowed(PermissionEntity.FIELD, c.id!, PermissionKey.RECORD_FIELD_EDIT, {
+                isFormView: true,
+              }),
+            },
           }
         })
         .sort((a: ColumnType, b: ColumnType) => (a.order ?? Infinity) - (b.order ?? Infinity))
@@ -345,6 +350,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         col.title &&
         col.show &&
         col.visible &&
+        col.permissions?.isAllowedToEdit &&
         isRequired(col) &&
         formState.value[col.title] === undefined &&
         additionalState.value[col.title] === undefined
@@ -360,7 +366,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
 
       // handle filter out conditionally hidden field data
-      if (!col.visible && col.title) {
+      if ((!col.visible || !col.permissions?.isAllowedToEdit) && col.title) {
         delete formState.value[col.title]
         delete additionalState.value[col.title]
       }

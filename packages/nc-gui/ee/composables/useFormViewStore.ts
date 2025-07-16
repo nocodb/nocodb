@@ -41,6 +41,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
     const { getMeta } = useMetas()
 
+    const { isAllowed } = usePermissions()
+
     const formResetHook = createEventHook<void>()
 
     const allViewFilters = ref<Record<string, FilterType[]>>({})

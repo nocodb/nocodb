@@ -324,6 +324,7 @@ const updatePreFillFormSearchParams = useDebounceFn(() => {
 
 const isFormSubmitting = ref(false)
 
+
 async function submitForm() {
   if (disableFormSubmit.value) return
 
@@ -335,7 +336,7 @@ async function submitForm() {
     }
 
     // handle filter out conditionally hidden field data
-    if ((!col.visible || !col.show) && col.title) {
+    if ((!col.visible || !col.show || !col.permissions?.isAllowedToEdit) && col.title) {
       delete formState.value[col.title]
       delete state.value[col.title]
     }

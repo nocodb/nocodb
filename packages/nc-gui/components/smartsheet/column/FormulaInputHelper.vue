@@ -1021,8 +1021,9 @@ watch(
   @apply !text-gray-500 !text-xs !font-medium;
   font-family: 'Inter';
 }
+/*
 .monaco-editor .overflowingContentWidgets {
   position: fixed;
   z-index: 100;
-}
+}*/
 </style>

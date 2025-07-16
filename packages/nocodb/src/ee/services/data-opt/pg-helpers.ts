@@ -42,7 +42,7 @@ import {
 } from '~/db/BaseModelSqlv2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
-import conditionV2 from '~/db/conditionV2';
+import conditionV2, { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import sortV2 from '~/db/sortV2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { sanitize } from '~/helpers/sqlSanitize';
@@ -958,6 +958,15 @@ export async function extractColumn({
 
             break;
         }
+
+        await extractLinkRelFiltersAndApply({
+          qb: relQb,
+          column,
+          alias: relTableAlias,
+          table: refBaseModel.model,
+          baseModel: refBaseModel,
+          context: refBaseModel.context,
+        });
 
         const { isArray } = await extractColumn({
           qb: relQb,

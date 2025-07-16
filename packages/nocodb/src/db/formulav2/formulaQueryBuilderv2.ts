@@ -313,10 +313,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         ).getValueColumn(context);
         aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
           Promise.resolve({
-            builder: knex.raw(`??`, [
-              `${tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)}.${
-                referencedColumn.column_name
-              }`,
+            builder: knex.raw(`??.??`, [
+              tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+              referencedColumn.column_name,
             ]),
           });
         break;
@@ -324,10 +323,9 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       default:
         aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
           Promise.resolve({
-            builder: knex.raw(`??`, [
-              `${tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)}.${
-                col.column_name
-              }`,
+            builder: knex.raw(`??.??`, [
+              tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+              col.column_name,
             ]),
           });
         break;

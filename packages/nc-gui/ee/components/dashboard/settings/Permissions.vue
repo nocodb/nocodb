@@ -138,13 +138,13 @@ const removeActionQuery = (action: string) => {
   })
 }
 
-const onRevertToDefault = (tableName: string) => {
+const onRevertToDefault = (tableName: string, tableId: string) => {
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgResetPermissions'), {
     'visible': isOpen,
     'tableName': tableName,
-    'options': ['table', 'field'],
+    'tableId': tableId,
     'onUpdate:visible': closeDialog,
   })
 
@@ -265,7 +265,7 @@ watch(
                       <GeneralIcon icon="ncMaximize2" class="flex-none h-4 w-4" />
                       View field permissions
                     </NcMenuItem>
-                    <NcMenuItem @click="onRevertToDefault(record.title)">
+                    <NcMenuItem @click="onRevertToDefault(record.title, record.id)">
                       <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
                       Revert permissions to default
                     </NcMenuItem>

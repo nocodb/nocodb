@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
+import { PermissionEntity } from 'nocodb-sdk'
 
 interface Props {
   tableId: string
@@ -31,13 +32,14 @@ const loadTableMeta = async () => {
   }
 }
 
-const onRevertToDefault = (permission: 'table' | 'field') => {
+const onRevertToDefault = (permission: PermissionEntity) => {
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgResetPermissions'), {
     'visible': isOpen,
     'tableName': tableData.value?.title,
     'options': [permission],
+    'tableId': props.tableId,
     'showCheckbox': false,
     'onUpdate:visible': closeDialog,
   })
@@ -80,7 +82,7 @@ defineExpose({
         placement="bottomLeft"
       >
         <template #actions>
-          <NcButton type="secondary" size="small" @click="onRevertToDefault('table')">
+          <NcButton type="secondary" size="small" @click="onRevertToDefault(PermissionEntity.TABLE)">
             <div class="flex items-center gap-2">
               <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
               <span>Revert to Default</span>
@@ -92,7 +94,7 @@ defineExpose({
       <div class="flex min-w-[540px] mx-auto w-full" :class="permissionsFieldWrapperClass">
         <PermissionsField :table-data="tableData" :table-toolbar-class-name="permissionsTableToolbarClassName">
           <template #actions>
-            <NcButton type="secondary" size="small" @click="onRevertToDefault('field')">
+            <NcButton type="secondary" size="small" @click="onRevertToDefault(PermissionEntity.FIELD)">
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
                 <span>Revert to Default</span>

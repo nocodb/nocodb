@@ -1,21 +1,28 @@
 <script lang="ts" setup>
-type PermissionOption = 'table' | 'field'
+import { PermissionEntity } from 'nocodb-sdk'
 
 interface Props {
   visible: boolean
   tableName: string
+  tableId?: string
   showCheckbox?: boolean
-  options: Array<PermissionOption>
+  options?: Array<PermissionEntity>
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showCheckbox: true,
-  options: () => ['table', 'field'],
+  options: () => [PermissionEntity.TABLE, PermissionEntity.FIELD],
 })
 
 const emits = defineEmits(['update:visible', 'update:permissions'])
 
 const vVisible = useVModel(props, 'visible', emits)
+
+const { $api } = useNuxtApp()
+
+const basesStore = useBases()
+
+const { base } = storeToRefs(useBase())
 
 const optionVisibility = ref(
   props.options.reduce((acc, option) => {
@@ -24,12 +31,39 @@ const optionVisibility = ref(
   }, {} as Record<string, boolean>),
 )
 
+const isDeleting = ref(false)
+
 const onCancel = () => {
   vVisible.value = false
 }
 
-const onOk = () => {
-  vVisible.value = false
+const onOk = async () => {
+  if (!base.value) return
+
+  isDeleting.value = true
+
+  try {
+    await $api.internal.postOperation(
+      base.value.fk_workspace_id as string,
+      base.value.id as string,
+      {
+        operation: 'dropAllPermissions',
+      },
+      {
+        entities: props.options.filter((option) => optionVisibility.value[option]),
+        baseId: base.value.id,
+        modelId: props.tableId,
+      },
+    )
+
+    await basesStore.loadProject(base.value.id!, true)
+  } catch (error: any) {
+    console.error(error)
+    message.error(await extractSdkResponseErrorMsg(error))
+  } finally {
+    isDeleting.value = false
+    vVisible.value = false
+  }
 }
 
 const permissionOptions = computed(() => {
@@ -37,14 +71,14 @@ const permissionOptions = computed(() => {
     {
       title: 'Reset table permissions',
       description: 'Only Editors & up can create and delete records in a table',
-      value: 'table',
+      value: PermissionEntity.TABLE,
     },
     {
       title: 'Reset field permissions',
       description: 'Edit access will be set to Editors & up.',
-      value: 'field',
+      value: PermissionEntity.FIELD,
     },
-  ].filter((option) => props.options.includes(option.value as PermissionOption))
+  ].filter((option) => props.options.includes(option.value))
 })
 
 const onTogglePermission = (permission: 'table' | 'field') => {
@@ -74,6 +108,7 @@ const content = computed(() => {
     ok-text="Confirm Revert"
     :show-icon="false"
     mask-closable
+    :ok-props="{ loading: isDeleting }"
     @cancel="onCancel"
     @ok="onOk"
   >

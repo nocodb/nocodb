@@ -216,4 +216,33 @@ export class PermissionsService {
       throw error;
     }
   }
+
+  async dropAllPermissions(
+    context: NcContext,
+    permissionObj: Partial<{
+      entities: PermissionEntity[];
+      modelId?: string; // If modelId is provided, then delete all permissions for the model + field permissions if included in entities
+    }>,
+  ) {
+    const { entities = [], modelId } = permissionObj;
+
+    let model: Model;
+
+    if (modelId) {
+      model = await Model.get(context, modelId);
+
+      if (!model) {
+        NcError.tableNotFound(modelId);
+      }
+
+      await model.getColumns(context);
+    }
+
+    return await Permission.deleteAll(
+      context,
+      context.base_id,
+      entities,
+      model,
+    );
+  }
 }

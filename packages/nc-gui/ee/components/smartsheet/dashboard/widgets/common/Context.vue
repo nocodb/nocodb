@@ -29,15 +29,16 @@ const onDuplicate = async () => {
     await createWidget(activeDashboardId.value, {
       config,
       title,
-      description,
-      fk_model_id,
-      fk_view_id,
-      meta,
       fk_dashboard_id,
       position: {
         ...position,
         ...calculateNextPosition(activeDashboardWidgets.value, position),
       },
+      type,
+      ...(fk_model_id && { fk_model_id }),
+      ...(fk_view_id && { fk_view_id }),
+      ...(meta && { meta }),
+      ...(description && { description }),
     })
   } finally {
     loadingState.duplicate = false

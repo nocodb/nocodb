@@ -39,8 +39,6 @@ export class BaseWidgetHandler {
         break;
       }
     }
-
-    console.log('formatValue', value, column.uidt);
     return value;
   }
 }

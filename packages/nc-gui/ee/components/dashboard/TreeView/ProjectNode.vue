@@ -43,8 +43,6 @@ const { isMobileMode, user } = useGlobal()
 
 const { api } = useApi()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const base = inject(ProjectInj)!
 
 // For starred base we will have seperate isExpanded state
@@ -506,8 +504,6 @@ watch(
     immediate: true,
   },
 )
-
-const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
 
 const openBaseSettings = async (baseId: string) => {
   await navigateTo(`/${route.value.params.typeOrId}/${baseId}?page=base-settings`)
@@ -1061,7 +1057,7 @@ defineExpose({
             </div>
           </div>
         </template>
-        <Automation v-if="isAutomationEnabled && !isSharedBase" :base-id="base.id" />
+        <Automation v-if="!isSharedBase" :base-id="base.id" />
       </div>
     </div>
     <template v-if="shouldOpenContextMenu || isProjectHeader" #overlay>

@@ -11,8 +11,6 @@ export const useAutomationStore = defineStore('automation', () => {
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
   const { showUpgradeToUseScripts } = useEeConfig()
 
   // State
@@ -34,13 +32,9 @@ export const useAutomationStore = defineStore('automation', () => {
     return activeBaseAutomations.value.find((a) => a.id === activeAutomationId.value) || null
   })
 
-  const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
-
   const activeBaseSchema = ref(null)
   // Actions
   const loadAutomations = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
-    if (!isAutomationEnabled.value) return []
-
     if (!activeWorkspaceId.value) return []
 
     const existingAutomations = automations.value.get(baseId)
@@ -67,7 +61,7 @@ export const useAutomationStore = defineStore('automation', () => {
   }
 
   const loadAutomation = async (automationId: string, showLoader = true) => {
-    if (!activeProjectId.value || !activeWorkspaceId.value || !automationId || !isAutomationEnabled.value) {
+    if (!activeProjectId.value || !activeWorkspaceId.value || !automationId) {
       return null
     }
 
@@ -309,7 +303,7 @@ export const useAutomationStore = defineStore('automation', () => {
   // Watch for active automation changes
   watch(activeAutomationId, async (automationId) => {
     let automation
-    if (!activeProjectId.value || !isAutomationEnabled.value) return
+    if (!activeProjectId.value) return
     if (automationId) {
       automation = await loadAutomation(automationId)
     }

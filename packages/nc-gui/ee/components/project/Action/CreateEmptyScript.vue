@@ -11,10 +11,6 @@ const { openedProject } = storeToRefs(useBases())
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
-
 const label = computed(() => {
   return `${t('general.create')} ${t('general.empty')} ${t('objects.script')}`
 })
@@ -28,7 +24,7 @@ async function openNewScriptModal() {
 }
 
 const isActionVisible = computed(() => {
-  return isAutomationEnabled.value && isUIAllowed('scriptCreateOrEdit') && !isSharedBase.value
+  return isUIAllowed('scriptCreateOrEdit') && !isSharedBase.value
 })
 </script>
 

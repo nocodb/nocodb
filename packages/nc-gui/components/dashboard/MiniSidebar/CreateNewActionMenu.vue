@@ -3,8 +3,6 @@ import { type TableType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const { $e } = useNuxtApp()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const { isUIAllowed, orgRoles, workspaceRoles } = useRoles()
 
 const { openedProject, showProjectList } = storeToRefs(useBases())
@@ -226,7 +224,7 @@ const hasAutomationCreateAccess = computed(() => {
             </NcSubMenu>
           </NcTooltip>
 
-          <template v-if="isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS) && isEeUI">
+          <template v-if="isEeUI">
             <NcDivider />
             <NcTooltip
               :title="

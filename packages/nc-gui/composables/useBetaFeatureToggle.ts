@@ -72,14 +72,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'nocodb_scripts',
-    title: 'NocoDB Scripts',
-    description: 'Enable NocoDB Scripts to automate repetitive workflow',
-    enabled: true,
-    version: 2,
-    isEE: true,
-  },
-  {
     id: 'row_action',
     title: 'Row Actions',
     description: 'Allows user to execute script on a row.',

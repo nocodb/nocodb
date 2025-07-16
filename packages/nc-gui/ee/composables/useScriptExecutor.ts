@@ -601,8 +601,6 @@ export const useScriptExecutor = createSharedComposable(() => {
     isFinished.value = true
   }
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
   const setupQueueEventListeners = () => {
     scriptQueue.on(QueueEvents.TASK_FAILED, (data) => {
       const { id, error } = data
@@ -637,7 +635,7 @@ export const useScriptExecutor = createSharedComposable(() => {
   }
 
   onMounted(async () => {
-    if (isPublic.value || !isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS)) return
+    if (isPublic.value) return
 
     await loadAutomation(activeAutomationId.value)
 

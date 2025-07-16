@@ -1891,7 +1891,6 @@ export async function validateFormulaAndExtractTreeWithType({
           validation.args.min !== undefined &&
           validation.args.min > parsedTree.arguments.length
         ) {
-          console.log(parsedTree);
           throw new FormulaError(
             FormulaErrorType.MIN_ARG,
             {

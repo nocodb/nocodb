@@ -364,18 +364,6 @@ const deleteDashboard = () => {
                     <GeneralIcon icon="rename" class="text-gray-700" />
                     {{ $t('general.rename') }} {{ $t('labels.dashboard').toLowerCase() }}
                   </NcMenuItem>
-
-                  <NcMenuItem
-                    v-if="isUIAllowed('dashboardDuplicate')"
-                    :data-testid="`sidebar-dashboard-duplicate-${dashboard.title}`"
-                    @click="duplicateDashboard(dashboard)"
-                  >
-                    <div v-e="['c:dashboard:duplicate']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="duplicate" class="opacity-80" />
-                      {{ $t('general.duplicate') }} {{ $t('objects.dashboard').toLowerCase() }}
-                    </div>
-                  </NcMenuItem>
-
                   <NcMenuItem
                     v-e="['c:dashboard:update-description']"
                     :data-testid="`sidebar-dashboard-description-${dashboard.title}`"
@@ -387,6 +375,19 @@ const deleteDashboard = () => {
                   </NcMenuItem>
 
                   <NcDivider />
+
+                  <NcMenuItem
+                    v-if="isUIAllowed('dashboardDuplicate')"
+                    :data-testid="`sidebar-dashboard-duplicate-${dashboard.title}`"
+                    @click="duplicateDashboard(dashboard)"
+                  >
+                    <div v-e="['c:dashboard:duplicate']" class="flex gap-2 items-center">
+                      <GeneralIcon icon="duplicate" class="opacity-80" />
+                      {{ $t('general.duplicate') }} {{ $t('objects.dashboard').toLowerCase() }}
+                    </div>
+                  </NcMenuItem>
+                  <NcDivider />
+
                   <NcMenuItem
                     v-e="['c:dashboard:delete']"
                     :data-testid="`sidebar-dashboard-delete-${dashboard.title}`"

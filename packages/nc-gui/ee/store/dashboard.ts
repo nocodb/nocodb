@@ -269,6 +269,15 @@ export const useDashboardStore = defineStore('dashboard', () => {
                 // Refresh dashboards list to include the new duplicate
                 await loadDashboards({ baseId, force: true })
 
+                const duplicatedDashboard = data.data?.result
+                if (duplicatedDashboard && duplicatedDashboard.id) {
+                  ncNavigateTo({
+                    workspaceId: activeWorkspaceId.value,
+                    baseId,
+                    dashboardId: duplicatedDashboard.id,
+                  })
+                }
+
                 $e('a:dashboard:duplicate')
                 resolve(data.data?.result)
               } else if (data.status === JobStatus.FAILED) {

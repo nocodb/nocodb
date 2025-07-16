@@ -238,11 +238,23 @@ export class PermissionsService {
       await model.getColumns(context);
     }
 
-    return await Permission.deleteAll(
-      context,
-      context.base_id,
-      entities,
-      model,
-    );
+    const ncMeta = await Noco.ncMeta.startTransaction();
+
+    try {
+      await Permission.deleteAll(context, context.base_id, entities, model);
+
+      await ncMeta.commit();
+    } catch (error) {
+      await ncMeta.rollback();
+
+      // Rollback cache
+      // Delete base permissions list
+      await NocoCache.deepDel(
+        `${CacheScope.PERMISSION}:${context.base_id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+
+      throw error;
+    }
   }
 }

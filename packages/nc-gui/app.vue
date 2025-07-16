@@ -15,7 +15,7 @@ initializeFeatures()
 
 const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope } = useCommandPalette()
 
-const { cmdK, cmdL, setActiveCmdView } = useCommand()
+const { cmdK, cmdL, cmdJ, setActiveCmdView } = useCommand()
 
 applyNonSelectable()
 
@@ -131,7 +131,7 @@ const _ = (window as any).ResizeObserver
       <!-- Recent Views. Cycles through recently visited Views -->
       <CmdL v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
       <!-- Documentation. Integrated NocoDB Docs directly inside the Product -->
-      <CmdJ />
+      <CmdJ v-model:open="cmdJ" :set-active-cmd-view="setActiveCmdView" />
       <DashboardFeatureExperimentation v-model:value="isExperimentalFeatureModalOpen" />
     </div>
   </ErrorBoundary>

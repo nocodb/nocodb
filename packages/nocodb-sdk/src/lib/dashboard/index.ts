@@ -103,6 +103,7 @@ export interface CommonWidgetType {
     w: number;
     h: number;
   };
+  error?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -174,6 +175,7 @@ export interface IWidget {
   config?: any;
   meta?: any;
   order?: number;
+  error?: boolean;
   position?: {
     x: number;
     y: number;
@@ -185,3 +187,4 @@ export interface IWidget {
 }
 
 export * from './charts';
+export * from './widgetUtils';

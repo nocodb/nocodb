@@ -10,7 +10,10 @@ export const useWidgetStore = defineStore('widget', () => {
   const getWidget = async (_params: any) => null
 
   const createWidget = async (..._params: any) => null
+
   const updateWidget = async (..._params: any) => null
+
+  const duplicateWidget = async (..._params: any) => null
 
   const deleteWidget = async (..._params: any) => true
 
@@ -32,6 +35,7 @@ export const useWidgetStore = defineStore('widget', () => {
     loadWidgets,
     getWidget,
     createWidget,
+    duplicateWidget,
     updateWidget,
     deleteWidget,
     updateWidgetPosition,

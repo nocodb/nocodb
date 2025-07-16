@@ -10,7 +10,7 @@ import type {
 } from '~/models';
 import type { XKnex } from '~/db/CustomKnex';
 import { RelationManager } from '~/db/relation-manager';
-import {Column, Model} from '~/models';
+import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 

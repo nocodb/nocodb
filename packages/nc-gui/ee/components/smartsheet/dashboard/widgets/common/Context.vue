@@ -23,7 +23,7 @@ const loadingState = reactive({
 })
 
 const onDuplicate = async () => {
-  const { position, config, title, description, fk_model_id, fk_view_id, meta, fk_dashboard_id } = props.widget
+  const { position, config, title, description, fk_model_id, fk_view_id, meta, fk_dashboard_id, type } = props.widget
   try {
     loadingState.duplicate = true
     await createWidget(activeDashboardId.value, {

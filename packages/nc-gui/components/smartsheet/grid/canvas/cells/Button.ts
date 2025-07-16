@@ -242,7 +242,15 @@ export const ButtonCellRenderer: CellRenderer = {
     }
 
     if (buttonMeta.type === ButtonActionsType.Url) {
-      const url = addMissingUrlSchma(value?.url?.toString() ?? '')
+      let url = addMissingUrlSchma(value?.url?.toString() ?? '')
+
+      // if url params not encoded, encode them using encodeURI
+      try {
+        url = decodeURI(url) === url ? encodeURI(url) : url
+      } catch {
+        url = encodeURI(url)
+      }
+
       disabledState = !(
         url &&
         isValidURL(url, {

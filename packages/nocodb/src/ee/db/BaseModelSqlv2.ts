@@ -3473,7 +3473,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         errorMessage = 'You are not allowed to delete records from this table';
         break;
       case PermissionKey.RECORD_FIELD_EDIT:
-        errorMessage = 'You are not allowed to edit this field';
+        errorMessage = `You are not allowed to edit field with ID: ${entityId}`;
         break;
       default:
         errorMessage = 'You are not allowed to access this table';

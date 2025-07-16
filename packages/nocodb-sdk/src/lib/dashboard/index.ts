@@ -187,3 +187,4 @@ export interface IWidget {
 }
 
 export * from './charts';
+export * from './widgetUtils';

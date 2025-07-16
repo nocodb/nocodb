@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { WidgetTypes } from 'nocodb-sdk'
-import { calculateNextPosition } from '~/utils/widgetUtils'
 
 const props = defineProps({
   widget: {
@@ -11,9 +10,7 @@ const props = defineProps({
 
 const widgetStore = useWidgetStore()
 
-const { createWidget, deleteWidget, updateWidget } = widgetStore
-
-const { activeDashboardWidgets } = storeToRefs(widgetStore)
+const { duplicateWidget, deleteWidget, updateWidget } = widgetStore
 
 const { activeDashboardId } = storeToRefs(useDashboardStore())
 
@@ -23,23 +20,8 @@ const loadingState = reactive({
 })
 
 const onDuplicate = async () => {
-  const { position, config, title, description, fk_model_id, fk_view_id, meta, fk_dashboard_id, type } = props.widget
   try {
-    loadingState.duplicate = true
-    await createWidget(activeDashboardId.value, {
-      config,
-      title,
-      fk_dashboard_id,
-      position: {
-        ...position,
-        ...calculateNextPosition(activeDashboardWidgets.value, position),
-      },
-      type,
-      ...(fk_model_id && { fk_model_id }),
-      ...(fk_view_id && { fk_view_id }),
-      ...(meta && { meta }),
-      ...(description && { description }),
-    })
+    await duplicateWidget(activeDashboardId.value, props.widget.id)
   } finally {
     loadingState.duplicate = false
   }

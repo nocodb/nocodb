@@ -93,6 +93,32 @@ export const useWidgetStore = defineStore('widget', () => {
     }
   }
 
+  const duplicateWidget = async (dashboardId: string, widgetId: string) => {
+    if (!activeWorkspaceId.value || !openedProject.value?.id) return null
+    try {
+      const created = (await $api.internal.postOperation(
+        activeWorkspaceId.value,
+        openedProject.value.id,
+        {
+          operation: 'widgetDuplicate',
+        },
+        {
+          widgetId,
+        },
+      )) as WidgetType
+
+      const dashboardWidgets = widgets.value.get(dashboardId) || []
+      dashboardWidgets.push(created)
+      widgets.value.set(dashboardId, dashboardWidgets)
+
+      return created
+    } catch (e) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      return null
+    }
+  }
+
   const updateWidget = async (
     dashboardId = activeDashboardId.value,
     widgetId: string,
@@ -218,6 +244,7 @@ export const useWidgetStore = defineStore('widget', () => {
     updateWidgetPosition,
     clearWidgets,
     loadWidgetData,
+    duplicateWidget,
   }
 })
 

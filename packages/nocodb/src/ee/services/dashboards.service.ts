@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { NcError } from 'src/helpers/ncError';
-import { AppEvents, WidgetTypes } from 'nocodb-sdk';
+import { AppEvents, calculateNextPosition, WidgetTypes } from 'nocodb-sdk';
 import type { WidgetType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Dashboard from '~/models/Dashboard';
@@ -154,6 +154,53 @@ export class DashboardsService {
     });
 
     return widget;
+  }
+
+  async duplicateWidget(context: NcContext, widgetId: string, req: NcRequest) {
+    const widget = await Widget.get(context, widgetId);
+
+    if (!widget) {
+      return NcError.notFound('Widget not found');
+    }
+
+    const existingWidgets = await Widget.list(context, widget.fk_dashboard_id);
+
+    let newTitle = `Copy of ${widget.title}`;
+    let counter = 1;
+
+    while (existingWidgets.some((s) => s.title === newTitle)) {
+      newTitle = `Copy of ${widget.title} (${counter})`;
+      counter++;
+    }
+
+    const newWidget = await Widget.insert(context, {
+      title: newTitle,
+      config: widget.config,
+      fk_dashboard_id: widget.fk_dashboard_id,
+      position: {
+        ...widget.position,
+        ...calculateNextPosition(
+          existingWidgets as WidgetType[],
+          widget.position,
+        ),
+      },
+      type: widget.type,
+      error: widget.error,
+      ...(widget.meta && { meta: widget.meta }),
+      ...(widget.fk_model_id && { fk_model_id: widget.fk_model_id }),
+      ...(widget.fk_view_id && { fk_view_id: widget.fk_view_id }),
+      ...(widget.description && { description: widget.description }),
+    });
+
+    this.appHooksService.emit(AppEvents.WIDGET_DUPLICATE, {
+      sourceWidget: widget as WidgetType,
+      destWidget: newWidget as WidgetType,
+      context,
+      req: req,
+      user: context.user,
+    });
+
+    return newWidget;
   }
 
   async widgetUpdate(

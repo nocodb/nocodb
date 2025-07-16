@@ -271,10 +271,7 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: WidgetDeleteEvent) => void,
   ): () => void;
   on(
-    event:
-      | AppEvents.WIDGET_DUPLICATE_START
-      | AppEvents.WIDGET_DUPLICATE_FAIL
-      | AppEvents.WIDGET_DUPLICATE_COMPLETE,
+    event: AppEvents.WIDGET_DUPLICATE,
     listener: (data: WidgetDuplicateEvent) => void,
   ): () => void;
 
@@ -530,13 +527,7 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.WIDGET_CREATE, data: WidgetCreateEvent): void;
   emit(event: AppEvents.WIDGET_UPDATE, data: WidgetUpdateEvent): void;
   emit(event: AppEvents.WIDGET_DELETE, data: WidgetDeleteEvent): void;
-  emit(
-    event:
-      | AppEvents.WIDGET_DUPLICATE_START
-      | AppEvents.WIDGET_DUPLICATE_FAIL
-      | AppEvents.WIDGET_DUPLICATE_COMPLETE,
-    data: WidgetDuplicateEvent,
-  ): void;
+  emit(event: AppEvents.WIDGET_DUPLICATE, data: WidgetDuplicateEvent): void;
 
   emit(
     event: AppEvents.USER_PROFILE_UPDATE,

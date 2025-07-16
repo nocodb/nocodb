@@ -87,6 +87,7 @@ export class InternalController extends InternalControllerCE {
       widgetCreate: 'base',
       widgetUpdate: 'base',
       widgetDelete: 'base',
+      widgetDuplicate: 'base',
       widgetDataGet: 'base',
     };
   }
@@ -331,6 +332,12 @@ export class InternalController extends InternalControllerCE {
         );
       case 'widgetCreate':
         return await this.dashboardsService.widgetCreate(context, payload, req);
+      case 'widgetDuplicate':
+        return await this.dashboardsService.duplicateWidget(
+          context,
+          payload.widgetId,
+          req,
+        );
       case 'widgetUpdate':
         return await this.dashboardsService.widgetUpdate(
           context,

@@ -67,6 +67,13 @@ const handleConfigUpdate = async (type: string, updates: any) => {
         },
       },
     })
+  } else if (type === 'size') {
+    await updateWidget(activeDashboardId.value, selectedWidget.value?.id, {
+      position: {
+        ...selectedWidget.value?.position,
+        ...updates,
+      },
+    })
   }
 }
 </script>
@@ -86,10 +93,15 @@ const handleConfigUpdate = async (type: string, updates: any) => {
           />
         </div>
       </GroupedSettings>
+      <!--
       <SmartsheetDashboardWidgetsCommonDataPermission @update:permission="handleConfigUpdate('permission', $event)" />
+-->
     </template>
     <template #appearance>
-      <SmartsheetDashboardWidgetsPiechartConfigAppearance @update:appearance="handleConfigUpdate('appearance', $event)" />
+      <SmartsheetDashboardWidgetsPiechartConfigAppearance
+        @update:appearance="handleConfigUpdate('appearance', $event)"
+        @update:size="handleConfigUpdate('size', $event)"
+      />
     </template>
   </SmartsheetDashboardWidgetsCommonConfig>
 </template>

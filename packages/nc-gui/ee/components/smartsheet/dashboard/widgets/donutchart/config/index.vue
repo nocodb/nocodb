@@ -86,7 +86,9 @@ const handleConfigUpdate = async (type: string, updates: any) => {
           />
         </div>
       </GroupedSettings>
+      <!--
       <SmartsheetDashboardWidgetsCommonDataPermission @update:permission="handleConfigUpdate('permission', $event)" />
+-->
     </template>
     <template #appearance>
       <SmartsheetDashboardWidgetsDonutchartConfigAppearance @update:appearance="handleConfigUpdate('appearance', $event)" />

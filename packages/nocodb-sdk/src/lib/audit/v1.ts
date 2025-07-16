@@ -146,7 +146,6 @@ enum AuditV1OperationTypes {
   WIDGET_UPDATE = 'WIDGET_UPDATE',
   WIDGET_DELETE = 'WIDGET_DELETE',
   WIDGET_DUPLICATE = 'WIDGET_DUPLICATE',
-  WIDGET_DUPLICATE_ERROR = 'WIDGET_DUPLICATE_ERROR',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -968,7 +967,7 @@ export interface WidgetCreatePayload {
   widget_id: string;
   widget_type: string;
   widget_description: string;
-  widget_config: string;
+  widget_config: Record<string, any>;
 }
 
 export interface WidgetUpdatePayload extends UpdatePayload {

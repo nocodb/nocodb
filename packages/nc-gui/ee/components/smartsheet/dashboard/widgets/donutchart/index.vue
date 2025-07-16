@@ -20,14 +20,16 @@ const chartConfig = computed(() => {
   return widgetRef.value?.config
 })
 
+const widgetSize = computed(() => {
+  return widgetRef.value?.position?.h === 5 ? 'small' : 'medium'
+})
+
 const chartSize = computed(() => {
-  const size = chartConfig.value?.appearance?.size ?? 'medium'
   const sizeMap = {
-    small: { height: '250px', outerRadius: '45%', innerRadius: '35%' },
-    medium: { height: '350px', outerRadius: '60%', innerRadius: '25%' },
-    large: { height: '450px', outerRadius: '70%', innerRadius: '40%' },
+    small: { height: widgetRef?.value?.description ? '330px' : '368px', outerRadius: '80%', innerRadius: '50%' }, // 120 chart radius
+    medium: { height: widgetRef?.value?.description ? '416px' : '456px', outerRadius: '80%', innerRadius: '50%' },
   }
-  return sizeMap[size]
+  return sizeMap[widgetSize.value]
 })
 
 const legendConfig = computed(() => {
@@ -35,12 +37,12 @@ const legendConfig = computed(() => {
   const showCountInLegend = chartConfig.value?.appearance?.showCountInLegend ?? true
 
   if (position === 'none') {
-    return { show: false }
+    return { show: false, orient: 'horizontal', top: '10%', left: 'center' }
   }
 
   const positionMap = {
-    top: { orient: 'horizontal', top: '10%', left: 'center' },
-    bottom: { orient: 'horizontal', bottom: '10%', left: 'center' },
+    top: { orient: 'horizontal', top: '0%', left: 'center' },
+    bottom: { orient: 'horizontal', bottom: '0%', left: 'center' },
     left: { orient: 'vertical', left: '10%', top: 'center' },
     right: { orient: 'vertical', right: '10%', top: 'center' },
   }
@@ -83,6 +85,23 @@ const chartOption = computed<ECOption>(() => {
 
   const showPercentageOnChart = chartConfig.value?.appearance?.showPercentageOnChart ?? true
 
+  const position = chartConfig.value?.appearance?.legendPosition ?? 'right'
+
+  const centerConfig = {
+    small: {
+      top: ['50%', '60%'],
+      bottom: ['50%', '40%'],
+      left: ['70%', '50%'],
+      right: ['30%', '50%'],
+    },
+    medium: {
+      top: ['50%', '60%'],
+      bottom: ['50%', '40%'],
+      left: ['70%', '50%'],
+      right: ['30%', '50%'],
+    },
+  }
+
   return {
     color: chartColors.value,
     tooltip: {
@@ -109,33 +128,21 @@ const chartOption = computed<ECOption>(() => {
         name: widgetRef.value?.title || 'Data',
         type: 'pie',
         radius: [chartSize.value.innerRadius, chartSize.value.outerRadius],
-        center: legendConfig.value.show && legendConfig.value.orient === 'vertical' ? ['40%', '50%'] : ['50%', '50%'],
+        center:
+          legendConfig.value.show && centerConfig[widgetSize.value][position]
+            ? centerConfig[widgetSize.value][position]
+            : ['50%', '50%'],
         data: widgetData.value.data,
-        emphasis: {
-          itemStyle: {
-            shadowBlur: 15,
-            shadowOffsetX: 0,
-            shadowColor: 'rgba(0, 0, 0, 0.3)',
-            borderWidth: 2,
-            borderColor: '#fff',
-          },
-          scale: true,
-          scaleSize: 5,
-        },
         label: {
           show: showPercentageOnChart,
           formatter: showPercentageOnChart ? '{d}%' : '',
           position: 'inside',
-          fontSize: 12,
-          fontWeight: 'bold',
+          fontSize: 13,
           color: '#fff',
         },
         labelLine: {
-          show: false,
+          show: true,
         },
-        animationType: 'scale',
-        animationEasing: 'elasticOut',
-        animationDuration: 1000,
         avoidLabelOverlap: true,
       },
     ],
@@ -166,31 +173,46 @@ onMounted(() => {
   loadData()
 })
 
-watch(
-  () => widgetRef.value?.config,
-  () => {
-    loadData()
-  },
-  { deep: true },
-)
+watch([() => widgetRef.value?.config?.dataSource, () => widgetRef.value?.config?.data], () => {
+  loadData()
+})
 </script>
 
 <template>
-  <div class="nc-donut-chart-widget h-full w-full flex flex-col relative bg-white rounded-lg">
-    <div class="flex items-center justify-between p-4 pb-2">
-      <div class="flex-1">
-        <h3 class="text-nc-content-gray-emphasis text-subHeading2 font-medium">
+  <div class="nc-pie-chart-widget h-full w-full flex flex-col relative bg-white !rounded-xl">
+    <div class="flex flex-col p-4 pb-3">
+      <div class="flex items-center">
+        <div class="text-nc-content-gray-emphasis flex-1 text-subHeading2 truncate font-medium">
           {{ widget.title }}
-        </h3>
-        <p v-if="widget.description" class="text-nc-content-gray-subtle2 text-bodyDefaultSm mt-1">
-          {{ widget.description }}
-        </p>
+        </div>
+        <SmartsheetDashboardWidgetsCommonContext v-if="isEditing" :widget="widget" />
       </div>
-      <SmartsheetDashboardWidgetsCommonContext v-if="isEditing" :widget="widget" />
+
+      <div
+        v-if="widget.description"
+        class="text-nc-content-gray-subtle2 whitespace-break-spaces line-clamp-2 text-bodyDefaultSm mt-1"
+      >
+        {{ widget.description }}
+      </div>
     </div>
 
     <div class="flex-1 p-4 pt-0">
-      <div v-if="isLoading" class="flex items-center justify-center h-full">
+      <div
+        v-if="widgetRef.error"
+        :class="{
+          'bg-nc-bg-gray-extralight flex items-center justify-center h-full rounded-md': widgetRef.error,
+        }"
+      >
+        <NcTooltip>
+          <template #title> Configuration Error: Invalid widget configuration detected </template>
+
+          <div class="flex items-center gap-2 rounded-md bg-nc-bg-red-light text-caption text-nc-content-red-dark px-2 py-1">
+            <GeneralIcon icon="ncAlertTriangle" />
+            {{ $t('labels.configurationError') }}
+          </div>
+        </NcTooltip>
+      </div>
+      <div v-else-if="isLoading" class="flex items-center justify-center h-full">
         <div class="flex items-center gap-2 text-nc-content-gray-subtle2">
           <div class="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
           Loading chart data...
@@ -202,31 +224,16 @@ watch(
         class="flex items-center justify-center h-full text-nc-content-gray-subtle2"
       >
         <div class="text-center">
-          <div class="text-4xl mb-2">🍩</div>
+          <div class="text-4xl mb-2">📊</div>
           <div class="text-bodyDefaultSm">No data available</div>
         </div>
       </div>
-
       <VChart v-else class="chart" :style="{ height: chartSize.height }" :option="chartOption" autoresize />
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-.nc-donut-chart-widget {
-  border: 1px solid var(--nc-border-color-light);
-  transition: all 0.2s ease;
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-color: var(--nc-border-color-medium);
-  }
-
-  .chart {
-    width: 100%;
-  }
-}
-
 // Loading animation
 @keyframes spin {
   to {

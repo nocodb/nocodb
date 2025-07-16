@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { NcError } from 'src/helpers/ncError';
-import { AppEvents, WidgetTypes } from 'nocodb-sdk';
+import { AppEvents, calculateNextPosition, WidgetTypes } from 'nocodb-sdk';
 import type { WidgetType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Dashboard from '~/models/Dashboard';
 import Widget from '~/models/Widget';
-import { getWidgetData } from '~/db/widgets';
+import { getWidgetData, getWidgetHandler } from '~/db/widgets';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 
 @Injectable()
@@ -130,6 +130,22 @@ export class DashboardsService {
   ) {
     const widget = await Widget.insert(context, insertObj);
 
+    if ([WidgetTypes.CHART, WidgetTypes.METRIC].includes(widget.type)) {
+      const handler = await getWidgetHandler({
+        widget: widget as WidgetType,
+        req,
+      });
+
+      const errors = await handler.validateWidgetData(context, widget as any);
+
+      if (errors?.length > 0) {
+        await Widget.update(context, widget.id, {
+          error: true,
+        });
+        widget.error = true;
+      }
+    }
+
     this.appHooksService.emit(AppEvents.WIDGET_CREATE, {
       context,
       widget: widget as WidgetType,
@@ -138,6 +154,53 @@ export class DashboardsService {
     });
 
     return widget;
+  }
+
+  async duplicateWidget(context: NcContext, widgetId: string, req: NcRequest) {
+    const widget = await Widget.get(context, widgetId);
+
+    if (!widget) {
+      return NcError.notFound('Widget not found');
+    }
+
+    const existingWidgets = await Widget.list(context, widget.fk_dashboard_id);
+
+    let newTitle = `Copy of ${widget.title}`;
+    let counter = 1;
+
+    while (existingWidgets.some((s) => s.title === newTitle)) {
+      newTitle = `Copy of ${widget.title} (${counter})`;
+      counter++;
+    }
+
+    const newWidget = await Widget.insert(context, {
+      title: newTitle,
+      config: widget.config,
+      fk_dashboard_id: widget.fk_dashboard_id,
+      position: {
+        ...widget.position,
+        ...calculateNextPosition(
+          existingWidgets as WidgetType[],
+          widget.position,
+        ),
+      },
+      type: widget.type,
+      error: widget.error,
+      ...(widget.meta && { meta: widget.meta }),
+      ...(widget.fk_model_id && { fk_model_id: widget.fk_model_id }),
+      ...(widget.fk_view_id && { fk_view_id: widget.fk_view_id }),
+      ...(widget.description && { description: widget.description }),
+    });
+
+    this.appHooksService.emit(AppEvents.WIDGET_DUPLICATE, {
+      sourceWidget: widget as WidgetType,
+      destWidget: newWidget as WidgetType,
+      context,
+      req: req,
+      user: context.user,
+    });
+
+    return newWidget;
   }
 
   async widgetUpdate(
@@ -153,6 +216,28 @@ export class DashboardsService {
     }
 
     const updatedWidget = await Widget.update(context, widgetId, updateObj);
+
+    if ([WidgetTypes.CHART, WidgetTypes.METRIC].includes(widget.type)) {
+      const handler = await getWidgetHandler({
+        widget: updatedWidget as WidgetType,
+        req,
+      });
+
+      const errors = await handler.validateWidgetData(
+        context,
+        updatedWidget as any,
+      );
+
+      const hasErrors = errors?.length > 0;
+      updatedWidget.error = hasErrors;
+
+      // Only update if state changed
+      if (widget.error !== hasErrors) {
+        await Widget.update(context, updatedWidget.id, {
+          error: hasErrors,
+        });
+      }
+    }
 
     this.appHooksService.emit(AppEvents.WIDGET_UPDATE, {
       context,

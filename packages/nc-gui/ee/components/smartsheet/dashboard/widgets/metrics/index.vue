@@ -32,7 +32,7 @@ const colors = computed(() => {
 })
 
 async function loadData() {
-  if (!widgetRef.value?.id) return
+  if (!widgetRef.value?.id || widgetRef.value?.error) return
   isLoading.value = true
 
   widgetData.value = await widgetStore.loadWidgetData(widgetRef.value.id)
@@ -54,46 +54,56 @@ watch(
 
 <template>
   <div
-    class="nc-metric-widget h-full w-full p-4 flex group flex-col gap-1 relative"
+    class="nc-metric-widget !rounded-xl h-full w-full p-4 flex group flex-col gap-1 relative"
     :style="{
-      backgroundColor: colors.fill,
+      backgroundColor: colors?.fill,
     }"
   >
-    <div class="flex items-center mb-2">
+    <div
+      :class="{
+        'mb-1.5': widget.description,
+        'mb-3': !widget.description,
+      }"
+      class="flex items-center"
+    >
       <div
         :style="{
-          color: colors.color,
+          color: colors?.color,
         }"
-        class="text-nc-content-gray-emphasis flex-1 text-subHeading2"
+        class="text-nc-content-gray-emphasis flex-1 truncate pr-1 text-subHeading2"
       >
         {{ widget.title }}
       </div>
       <SmartsheetDashboardWidgetsCommonContext v-if="isEditing" :widget="widget" />
     </div>
-    <div v-if="widget.description" class="text-nc-content-gray-subtle2 text-bodyDefaultSm">
+    <div v-if="widget.description" class="text-nc-content-gray-subtle2 whitespace-break-spaces text-bodyDefaultSm line-clamp-2">
       {{ widget.description }}
     </div>
     <div
       :style="{
         color: colors.color,
       }"
-      class="text-nc-content-gray-subtle2 text-heading2"
+      :class="{
+        'flex-1 bg-nc-bg-gray-extralight rounded-md': widget.error,
+      }"
+      class="text-nc-content-gray-subtle2 truncate text-heading2"
     >
-      <template v-if="isLoading"> _ </template>
+      <template v-if="widget.error">
+        <div class="flex items-center justify-center h-full">
+          <NcTooltip>
+            <template #title> Configuration Error: Invalid widget configuration detected </template>
+
+            <div class="flex items-center gap-2 rounded-md bg-nc-bg-red-light text-caption text-nc-content-red-dark px-2 py-1">
+              <GeneralIcon icon="ncAlertTriangle" />
+              {{ $t('labels.configurationError') }}
+            </div>
+          </NcTooltip>
+        </div>
+      </template>
+      <template v-else-if="isLoading"> _ </template>
       <template v-else>
         {{ widgetData?.data ?? '0' }}
       </template>
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-.nc-metric-widget {
-  border-radius: 8px;
-  transition: all 0.2s ease;
-
-  &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-}
-</style>

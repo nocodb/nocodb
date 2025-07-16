@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { isSystemColumn } from 'nocodb-sdk'
+
 const emit = defineEmits<{
   'update:category': [category: any]
 }>()
@@ -15,6 +17,13 @@ const fieldOrderOptions = [
   { value: 'asc', label: 'Ascending' },
   { value: 'desc', label: 'Descending' },
 ]
+
+const filterField = (column: ColumnType) => {
+  if (isSystemColumn(column) || isAttachment(column) || isQrCode(column) || isBarcode(column) || isButton(column)) {
+    return false
+  }
+  return true
+}
 
 const handleChange = () => {
   emit('update:category', {
@@ -35,6 +44,7 @@ const handleChange = () => {
         v-model:value="selectedFieldId"
         :disabled="!modelId"
         :table-id="modelId"
+        :filter-column="filterField"
         @update:value="handleChange"
       />
     </div>
@@ -62,5 +72,3 @@ const handleChange = () => {
     </div>
   </div>
 </template>
-
-<style scoped lang="scss"></style>

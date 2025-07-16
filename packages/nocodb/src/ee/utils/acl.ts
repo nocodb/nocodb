@@ -270,6 +270,7 @@ const permissionScopes = {
     'widgetList',
     'widgetGet',
     'widgetCreate',
+    'widgetDuplicate',
     'widgetUpdate',
     'widgetDelete',
     'widgetDataGet',
@@ -520,6 +521,7 @@ const rolePermissions:
 
       // Widget
       widgetCreate: true,
+      widgetDuplicate: true,
       widgetUpdate: true,
       widgetDelete: true,
     },
@@ -932,6 +934,7 @@ const permissionDescriptions: Record<string, string> = {
   widgetList: 'view list of widgets',
   widgetGet: 'view widget details',
   widgetCreate: 'create a new widget',
+  widgetDuplicate: 'duplicate a widget',
   widgetUpdate: 'update widget details',
   widgetDelete: 'delete a widget',
   widgetDataGet: 'view widget data',

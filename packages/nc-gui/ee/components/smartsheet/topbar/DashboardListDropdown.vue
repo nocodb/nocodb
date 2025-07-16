@@ -1,21 +1,17 @@
 <script setup lang="ts">
 import type { DashboardType } from 'nocodb-sdk'
 
-const { $e } = useNuxtApp()
-
-const { ncNavigateTo, isMobileMode } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
 const { base } = storeToRefs(useBase())
 
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
-
 const dashboardStore = useDashboardStore()
 
-const { openDashboard, loadDashboards } = dashboardStore
+const { openDashboard, openNewDashboardModal } = dashboardStore
 
-const { activeDashboard, activeBaseDashboards } = storeToRefs(dashboardStore)
+const { activeBaseDashboards, activeDashboardId } = storeToRefs(dashboardStore)
 
 const isOpen = ref<boolean>(false)
 
@@ -35,44 +31,14 @@ const handleNavigateToDashboard = (dashboard: DashboardType) => {
 }
 
 function openDashboardCreateDialog() {
-  $e('c:dashboard:create:topbar')
-
   isOpen.value = false
 
-  const isCreateDashboardOpen = ref(true)
-
-  if (!base.value?.id) return
-
-  const { close } = useDialog(resolveComponent('DlgDashboardCreate'), {
-    modelValue: isCreateDashboardOpen,
-    baseId: base.value!.id,
-    onCreated: closeDialog,
+  openNewDashboardModal({
+    baseId: base.value?.id,
+    e: 'c:dashboard:create:topbar',
+    loadBasesOnClose: true,
+    scrollOnCreate: true,
   })
-
-  async function closeDialog(dashboard?: DashboardType) {
-    isCreateDashboardOpen.value = false
-
-    await loadDashboards({ baseId: base.value!.id, force: true })
-
-    ncNavigateTo({
-      workspaceId: activeWorkspaceId.value,
-      baseId: base.value.id,
-      dashboardId: dashboard.id,
-    })
-
-    if (!dashboard) return
-
-    // TODO: Better way to know when the dashboard node dom is available
-    setTimeout(() => {
-      const newDashboardDom = document.querySelector(`[data-dashboard-id="${dashboard.id}"]`)
-      if (!newDashboardDom) return
-
-      // Scroll to the dashboard node
-      newDashboardDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-    }, 1000)
-
-    close(1000)
-  }
 }
 </script>
 
@@ -82,7 +48,7 @@ function openDashboardCreateDialog() {
     <template #overlay>
       <LazyNcList
         v-model:open="isOpen"
-        :value="activeDashboard.id"
+        :value="activeDashboardId"
         :list="activeBaseDashboards"
         option-value-key="id"
         option-label-key="title"
@@ -104,7 +70,7 @@ function openDashboardCreateDialog() {
             {{ option?.title }}
           </NcTooltip>
           <GeneralIcon
-            v-if="option.id === activeDashboard.id"
+            v-if="option.id === activeDashboardId"
             id="nc-selected-item-icon"
             icon="check"
             class="flex-none text-primary w-4 h-4"

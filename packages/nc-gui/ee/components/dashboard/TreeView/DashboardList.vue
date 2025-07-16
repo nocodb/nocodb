@@ -22,13 +22,15 @@ const bases = useBases()
 
 const { isUIAllowed } = useRoles()
 
-const { baseHomeSearchQuery } = storeToRefs(bases)
+const { isSharedBase } = storeToRefs(useBase())
+
+const { baseHomeSearchQuery, openedProject } = storeToRefs(bases)
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const dashboardStore = useDashboardStore()
 
-const { updateDashboard } = dashboardStore
+const { updateDashboard, openNewDashboardModal } = dashboardStore
 
 const { activeDashboardId, dashboards: baseDashboards } = storeToRefs(dashboardStore)
 
@@ -212,6 +214,24 @@ function openDeleteDialog(dashboard: DashboardType) {
   }
 }
 
+const updateDashboardIcon = async (icon: string, dashboard: DashboardType) => {
+  try {
+    // modify the icon property in meta
+    dashboard.meta = {
+      ...parseProp(dashboard.meta),
+      icon,
+    }
+
+    await updateDashboard(dashboard.base_id, dashboard.id!, {
+      meta: dashboard.meta,
+    })
+
+    $e('a:dashboard:icon:sidebar', { icon })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 const menuRef = ref<typeof AntMenu>()
 
 const initSortable = (el: HTMLElement) => {
@@ -226,7 +246,7 @@ const initSortable = (el: HTMLElement) => {
 }
 
 onMounted(() => {
-  if (isUIAllowed('scriptCreateOrEdit') && menuRef.value) {
+  if (isUIAllowed('dashboardEdit') && menuRef.value) {
     initSortable(menuRef.value.$el)
   }
 })
@@ -243,6 +263,30 @@ const filteredDashboards = computed(() => {
     :selected-keys="selected"
     class="nc-dashboards-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
+    <template v-if="!dashboards?.length && !isSharedBase && isUIAllowed('dashboardCreate')">
+      <div @click="openNewDashboardModal({ baseId })">
+        <div
+          :class="{
+            'text-brand-500 hover:text-brand-600': openedProject?.id === baseId,
+            'text-gray-500 hover:text-brand-500': openedProject?.id !== baseId,
+          }"
+          class="nc-create-dashboard-btn flex flex-row items-center cursor-pointer rounded-md w-full"
+          role="button"
+        >
+          <div class="nc-project-home-section-item">
+            <GeneralIcon icon="plus" />
+            <div>
+              {{
+                $t('general.createEntity', {
+                  entity: $t('objects.dashboard'),
+                })
+              }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
     <div v-if="!dashboards?.length || !filteredDashboards.length" class="nc-project-home-section-item text-gray-500 font-normal">
       {{
         dashboards?.length && !filteredDashboards.length
@@ -264,6 +308,7 @@ const filteredDashboards = computed(() => {
       @change-dashboard="changeDashboard"
       @rename="onRename"
       @delete="openDeleteDialog"
+      @select-icon="updateDashboardIcon($event, dashboard)"
     />
   </a-menu>
 </template>

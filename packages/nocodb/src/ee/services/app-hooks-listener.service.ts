@@ -74,7 +74,11 @@ import type {
   ViewDuplicatePayload,
   ViewRenamePayload,
   ViewUpdatePayload,
+  WidgetCreatePayload,
+  WidgetDeletePayload,
+  WidgetDuplicatePayload,
   WidgetType,
+  WidgetUpdatePayload,
   WorkspaceCreatePayload,
   WorkspaceDeletePayload,
   WorkspaceInvitePayload,
@@ -148,6 +152,10 @@ import type {
   ViewUpdateEvent,
   WebhookEvent,
   WebhookUpdateEvent,
+  WidgetCreateEvent,
+  WidgetDeleteEvent,
+  WidgetDuplicateEvent,
+  WidgetUpdateEvent,
   WorkspaceEvent,
   WorkspaceUpdateEvent,
   WorkspaceUserDeleteEvent,
@@ -3163,9 +3171,8 @@ export class AppHooksListenerService
           next: param.dashboard,
           parseMeta: true,
           aliasMap: {
-            dashboard_title: param.dashboard.title,
-            dashboard_description: param.dashboard.description,
-            dashboard_id: param.dashboard.id,
+            title: 'dashboard_title',
+            description: 'dashboard_description',
           },
         });
 
@@ -3224,6 +3231,107 @@ export class AppHooksListenerService
             context: param.context,
             req: param.req,
           }),
+        );
+        break;
+      }
+      case AppEvents.WIDGET_CREATE: {
+        const param = data as WidgetCreateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<WidgetCreatePayload>(
+            AuditV1OperationTypes.WIDGET_CREATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                widget_title: param.widget.title,
+                widget_id: param.widget.id,
+                widget_description: param.widget.description,
+                widget_type: param.widget.type,
+                widget_config: param.widget.config,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.WIDGET_UPDATE: {
+        const param = data as WidgetUpdateEvent;
+
+        const updatePayload = populateUpdatePayloadDiff({
+          prev: param.oldWidget,
+          next: param.widget,
+          parseMeta: true,
+          exclude: ['error'],
+          aliasMap: {
+            title: 'widget_title',
+            description: 'widget_description',
+            type: 'widget_type',
+            config: 'widget_config',
+          },
+        });
+
+        if (!updatePayload) break;
+
+        await this.auditInsert(
+          await generateAuditV1Payload<WidgetUpdatePayload>(
+            AuditV1OperationTypes.WIDGET_UPDATE,
+            {
+              details: {
+                widget_title: param.widget.title,
+                widget_id: param.widget.id,
+                widget_description: param.widget.description,
+                widget_type: param.widget.type,
+                ...updatePayload,
+                previous_state: {
+                  ...updatePayload.previous_state,
+                  widget_config: updatePayload.previous_state.widget_config && {
+                    ...param.oldWidget.config,
+                  },
+                },
+                widget_config: param.widget.config,
+              },
+              context: param.context,
+              req: param.req,
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.WIDGET_DELETE: {
+        const param = data as WidgetDeleteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<WidgetDeletePayload>(
+            AuditV1OperationTypes.WIDGET_DELETE,
+            {
+              details: {
+                widget_title: param.widget.title,
+                widget_id: param.widget.id,
+                widget_type: param.widget.type,
+              },
+              context: param.context,
+              req: param.req,
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.WIDGET_DUPLICATE: {
+        const param = data as WidgetDuplicateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<WidgetDuplicatePayload>(
+            AuditV1OperationTypes.WIDGET_DUPLICATE,
+            {
+              details: {
+                source_widget_title: param.sourceWidget.title,
+                source_widget_id: param.sourceWidget.id,
+                duplicated_widget_title: param.destWidget.title,
+                duplicated_widget_id: param.destWidget.id,
+              },
+              context: param.context,
+              req: param.req,
+            },
+          ),
         );
         break;
       }

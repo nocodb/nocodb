@@ -220,10 +220,7 @@ export enum AppEvents {
   WIDGET_CREATE = 'widget.create',
   WIDGET_UPDATE = 'widget.update',
   WIDGET_DELETE = 'widget.delete',
-
-  WIDGET_DUPLICATE_START = 'widget.duplicate.start',
-  WIDGET_DUPLICATE_COMPLETE = 'widget.duplicate.complete',
-  WIDGET_DUPLICATE_FAIL = 'widget.duplicate.fail',
+  WIDGET_DUPLICATE = 'widget.duplicate',
 }
 
 export enum ClickhouseTables {

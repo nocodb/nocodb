@@ -50,9 +50,17 @@ async function ncAxiosLinkAdd({
 }
 
 const getRows = (tableName: string) => {
-  return Array.from({ length: 20 }).map((v, i) => {
+  return Array.from({ length: 40 }).map((v, i) => {
     return {
       Title: `${tableName}_${(i + 1).toString().padStart(3, '0')}`,
+    };
+  });
+};
+
+const getDuplicatedRows = (tableName: string) => {
+  return Array.from({ length: 40 }).map((v, i) => {
+    return {
+      Title: `${tableName}_${((i + 1) % 5).toString().padStart(3, '0')}`,
     };
   });
 };
@@ -112,12 +120,30 @@ export async function initInitialModel() {
     table: table3,
     values: getRows('T3'),
   });
+  const table4 = await createTable(context, base, {
+    title: 'Table4',
+    table_name: 'table4',
+    columns: customColumns('custom', columns),
+  });
+  // insert records
+  await createBulkRows(context, {
+    base: base,
+    table: table4,
+    values: getDuplicatedRows('T4'),
+  });
 
   // Create links
   const t3_HM_t2_Ltar = await createLtarColumn2(context, {
     title: 'T2s',
     parentTable: table3,
     childTable: table2,
+    type: 'hm',
+  });
+  // Create links
+  const t3_HM_t4_Ltar = await createLtarColumn2(context, {
+    title: 'T4s',
+    parentTable: table3,
+    childTable: table4,
     type: 'hm',
   });
   const t2_HM_t1_Ltar = await createLtarColumn2(context, {
@@ -195,11 +221,30 @@ export async function initInitialModel() {
       status: 200,
     });
   };
+  const linkTo_t3_HM_t4_Ltar = (rowId: string, body: any[]) => {
+    ncAxiosLinkAdd({
+      context: {
+        context,
+        base,
+      },
+      urlParams: {
+        tableId: table3.id,
+        linkId: t3_HM_t4_Ltar.id,
+        rowId: rowId,
+      },
+      body: body,
+      status: 200,
+    });
+  };
   await linkTo_t2_HM_t1_Ltar('1', [{ id: 1 }, { id: 2 }, { id: 3 }]);
   await linkTo_t2_HM_t1_Ltar('2', [{ id: 4 }, { id: 5 }, { id: 6 }]);
   await linkTo_t2_HM_t1_Ltar('3', [{ id: 7 }]);
   await linkTo_t3_HM_t2_Ltar('1', [{ id: 1 }, { id: 2 }]);
   await linkTo_t3_HM_t2_Ltar('2', [{ id: 3 }]);
+  await linkTo_t3_HM_t4_Ltar(
+    '1',
+    Array.from({ length: 20 }).map((v, i) => ({ id: i + 1 })),
+  );
 
   return {
     context,
@@ -209,6 +254,7 @@ export async function initInitialModel() {
       table1,
       table2,
       table3,
+      table4,
     },
   };
 }

@@ -158,7 +158,7 @@ const getWidgetPositionConfig = (item: string) => {
 const gridRef = ref()
 
 watch(
-  [activeDashboardWidgets, isEditingDashboard],
+  [() => activeDashboardWidgets.value, () => isEditingDashboard.value],
   () => {
     layout.value = activeDashboardWidgets.value.map((widget) => ({
       x: widget.position?.x,

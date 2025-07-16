@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Client } from 'typesense'
 import { useVModel } from '@vueuse/core'
+import type { SortedResult } from '#imports'
 
 const props = defineProps<{
   open: boolean
@@ -36,7 +37,7 @@ const hide = () => {
   selectedIndex.value = 0
 }
 
-const navigateToResult = (result: SearchResult) => {
+const navigateToResult = (result: SortedResult) => {
   window.open(`https://nocodb.com${result.url}`, '_blank')
   hide()
 }
@@ -119,15 +120,16 @@ watch(vOpen, () => {
             class="!w-[240px] flex-none"
             alt="Search through our documentation"
           />
-          <div>
-            Search through our documentation
-          </div>
+          <div>Search through our documentation</div>
         </div>
-        <div v-else-if="query.data.value === 'empty'" class="flex flex-col p-4 items-start justify-center text-sm">
+        <div
+          v-else-if="(query.data.value === 'empty' || query.data.value?.length === 0) && !query.isLoading.value"
+          class="flex flex-col p-4 items-start justify-center text-sm"
+        >
           Your search did not match any results
         </div>
 
-        <div v-else class="cmdk-results">
+        <div v-else-if="!query.isLoading.value" class="cmdk-results">
           <template v-for="(result, index) in query.data.value" :key="result.id">
             <div
               class="cmdk-action cmdj-action"
@@ -150,6 +152,9 @@ watch(vOpen, () => {
               </div>
             </div>
           </template>
+        </div>
+        <div v-else class="flex flex-col p-4 gap-4 justify-center text-sm">
+          <div>Searching...</div>
         </div>
       </div>
 

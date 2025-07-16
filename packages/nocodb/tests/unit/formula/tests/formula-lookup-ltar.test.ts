@@ -1,49 +1,28 @@
 import 'mocha';
-import { createProject } from '../../factory/base';
-import { createTable } from '../../factory/table';
-import init from '../../init';
-import type Base from '~/models/Base';
-import type Model from '~/models/Model';
-import type View from '~/models/View';
-import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import Source from '~/models/Source';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { initInitialModel } from '../initModel';
 
 function formulaLookupLtarTests() {
-  let context;
-  let ctx: {
+  let _context;
+  let _ctx: {
     workspace_id: string;
     base_id: string;
   };
-  let base: Base;
-  let table: Model;
-  let view: View;
-  let baseModelSql: BaseModelSqlv2;
+  let _base;
+  let _tables;
+  let _view;
+  let _baseModelSql;
 
   beforeEach(async function () {
-    console.time('#### formulaLookupLtarTests');
-    context = await init();
-    base = await createProject(context);
-
-    ctx = {
-      workspace_id: base.fk_workspace_id,
-      base_id: base.id,
-    };
-
-    table = await createTable(context, base);
-    view = await table.getViews(ctx)[0];
-
-    const source = await Source.get(ctx, table.source_id);
-    baseModelSql = new BaseModelSqlv2({
-      dbDriver: await NcConnectionMgrv2.get(source),
-      model: table,
-      view,
-      context: ctx,
-    });
-    console.timeEnd('#### formulaLookupLtarTests');
+    const setup = await initInitialModel();
+    _context = setup.context;
+    _ctx = setup.ctx;
+    _base = setup.base;
+    _tables = setup.tables;
   });
 
-  it('will serve as placeholder', () => {});
+  it.only('will serve as placeholder', () => {
+    console.log(_tables)
+  });
 }
 
 export function formulaLookupLtarTest() {

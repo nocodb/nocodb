@@ -225,6 +225,7 @@ watch(
             class="nc-widget"
             :class="{
               selected: selectedWidget?.id === item.i,
+              error: selectedWidget?.id === item.i && selectedWidget?.error,
             }"
             :widget="activeDashboardWidgets.find(w => w.id === item.i)!"
             :is-editing="isEditingDashboard"
@@ -280,8 +281,12 @@ watch(
 
 <style lang="scss">
 .nc-widget {
-  &.selected {
+  &.selected:not(.error) {
     @apply ring-2 ring-nc-fill-primary;
+  }
+
+  &.error {
+    @apply ring-2 ring-nc-fill-warning-hover;
   }
 }
 </style>

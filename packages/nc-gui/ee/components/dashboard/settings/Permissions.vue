@@ -138,6 +138,22 @@ const removeActionQuery = (action: string) => {
   })
 }
 
+const onRevertToDefault = (tableName: string) => {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgResetPermissions'), {
+    'visible': isOpen,
+    'tableName': tableName,
+    'options': ['table', 'field'],
+    'onUpdate:visible': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
 watch(projectPageTab, () => {
   if (!searchQuery.value) return
 
@@ -247,7 +263,11 @@ watch(
                   <NcMenu variant="small">
                     <NcMenuItem @click="openFieldPermissionsModal(record.id)">
                       <GeneralIcon icon="ncMaximize2" class="flex-none h-4 w-4" />
-                      <span>View field permissions</span>
+                      View field permissions
+                    </NcMenuItem>
+                    <NcMenuItem @click="onRevertToDefault(record.title)">
+                      <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
+                      Revert permissions to default
                     </NcMenuItem>
                   </NcMenu>
                 </template>

@@ -31,6 +31,23 @@ const loadTableMeta = async () => {
   }
 }
 
+const onRevertToDefault = (permission: 'table' | 'field') => {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgResetPermissions'), {
+    'visible': isOpen,
+    'tableName': tableData.value?.title,
+    'options': [permission],
+    'showCheckbox': false,
+    'onUpdate:visible': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
 // Watch for table ID changes
 watch(
   () => props.tableId,
@@ -63,7 +80,7 @@ defineExpose({
         placement="bottomLeft"
       >
         <template #actions>
-          <NcButton type="secondary" size="small">
+          <NcButton type="secondary" size="small" @click="onRevertToDefault('table')">
             <div class="flex items-center gap-2">
               <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
               <span>Revert to Default</span>
@@ -75,7 +92,7 @@ defineExpose({
       <div class="flex min-w-[540px] mx-auto w-full" :class="permissionsFieldWrapperClass">
         <PermissionsField :table-data="tableData" :table-toolbar-class-name="permissionsTableToolbarClassName">
           <template #actions>
-            <NcButton type="secondary" size="small">
+            <NcButton type="secondary" size="small" @click="onRevertToDefault('field')">
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
                 <span>Revert to Default</span>

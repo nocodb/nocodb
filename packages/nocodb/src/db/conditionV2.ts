@@ -1318,6 +1318,11 @@ export async function extractLinkRelFiltersAndApply(param: {
   context: NcContext;
   baseModel: IBaseModelSqlV2;
 }) {
+  // skip it for Links/LTAT column
+  if(isLinksOrLTAR(param.column)){
+    return
+  }
+
   // extract filters
   const filters = await Filter.rootFilterListByLink(param.context, {
     columnId: param.column.id,

@@ -25,13 +25,15 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const vModel = useVModel(props, 'dashboard', emits) as WritableComputedRef<DashboardType & { created_by?: string }>
+const vModel = useVModel(props, 'dashboard', emits) as WritableComputedRef<DashboardType>
 
 const { $e } = useNuxtApp()
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, user } = useGlobal()
 
 const { isSharedBase } = useBase()
+
+const { basesUser } = storeToRefs(useBases())
 
 const { isUIAllowed } = useRoles()
 
@@ -40,6 +42,8 @@ const { activeDashboardId } = storeToRefs(useDashboardStore())
 const { meta: metaKey, control } = useMagicKeys()
 
 const { openDashboardDescriptionDialog: _openDashboardDescriptionDialog } = inject(TreeViewInj)!
+
+const base = inject(ProjectInj, ref())
 
 const input = ref<HTMLInputElement>()
 
@@ -55,6 +59,14 @@ const isStopped = ref(false)
 const _title = ref<string | undefined>()
 
 const showDashboardNodeTooltip = ref(true)
+
+const idUserMap = computed(() => {
+  return (basesUser.value.get(base.value?.id) || []).reduce((acc, user) => {
+    acc[user.id] = user
+    acc[user.email] = user
+    return acc
+  }, {} as Record<string, any>)
+})
 
 /** Debounce click handler, so we can potentially enable editing dashboard name {@see onDblClick} */
 const onClick = useDebounceFn(() => {
@@ -221,8 +233,20 @@ const deleteDashboard = () => {
     >
       <template #title>
         <div class="flex flex-col gap-3">
-          <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.dashboardName') }}</div>
-          <div class="text-small leading-[18px]">{{ vModel.title }}</div>
+          <div>
+            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.dashboardName') }}</div>
+            <div class="text-small leading-[18px]">{{ vModel.title }}</div>
+          </div>
+          <div v-if="vModel?.created_by && idUserMap[vModel?.created_by]">
+            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.createdBy') }}</div>
+            <div class="text-xs">
+              {{
+                idUserMap[vModel?.created_by]?.id === user?.id
+                  ? $t('general.you')
+                  : idUserMap[vModel?.created_by]?.display_name || idUserMap[vModel?.created_by]?.email
+              }}
+            </div>
+          </div>
         </div>
       </template>
       <div v-e="['a:dashboard:open']" class="text-sm flex items-center w-full gap-1" data-testid="dashboard-item">

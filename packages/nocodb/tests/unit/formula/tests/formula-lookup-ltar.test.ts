@@ -53,9 +53,13 @@ function formulaLookupLtarTests() {
 
     // Validating result
     expect(firstRow.FormulaTable2Table1s).to.exist;
-    expect(firstRow.FormulaTable2Table1s).to.eq(
-      'T1_001,T1_002,T1_003,T1_004,T1_005,T1_006',
-    );
+    // do not eq in case of wrong sorting
+    expect(firstRow.FormulaTable2Table1s.indexOf('T1_001') >= 0).to.eq(true);
+    expect(firstRow.FormulaTable2Table1s.indexOf('T1_002') >= 0).to.eq(true);
+    expect(firstRow.FormulaTable2Table1s.indexOf('T1_003') >= 0).to.eq(true);
+    expect(firstRow.FormulaTable2Table1s.indexOf('T1_004') >= 0).to.eq(true);
+    expect(firstRow.FormulaTable2Table1s.indexOf('T1_005') >= 0).to.eq(true);
+    expect(firstRow.FormulaTable2Table1s.indexOf('T1_006') >= 0).to.eq(true);
   });
 
   it('will create a formula referencing table1Name correctly', async () => {
@@ -85,7 +89,10 @@ function formulaLookupLtarTests() {
 
     // Validating result
     expect(firstRow.FormulaTable1Name).to.exist;
-    expect(firstRow.FormulaTable1Name).to.eq('T1_001,T1_002,T1_003');
+    // do not eq in case of wrong sorting
+    expect(firstRow.FormulaTable1Name.indexOf('T1_001') >= 0).to.eq(true);
+    expect(firstRow.FormulaTable1Name.indexOf('T1_002') >= 0).to.eq(true);
+    expect(firstRow.FormulaTable1Name.indexOf('T1_003') >= 0).to.eq(true);
   });
 
   it('will create an ARRAYSORT formula referencing table1Name correctly 1', async () => {

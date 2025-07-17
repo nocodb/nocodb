@@ -7,16 +7,12 @@ const { isMarketVisible } = storeToRefs(automationStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
-
 const openMarketPlace = () => {
   isMarketVisible.value = true
 }
 
 const isActionVisible = computed(() => {
-  return isAutomationEnabled.value && isUIAllowed('scriptCreateOrEdit') && !isSharedBase.value
+  return isUIAllowed('scriptCreateOrEdit') && !isSharedBase.value
 })
 </script>
 

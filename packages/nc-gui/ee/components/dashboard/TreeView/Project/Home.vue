@@ -20,8 +20,6 @@ const { setMenuContext } = inject(TreeViewInj)!
 
 const { api } = useApi()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const base = inject(ProjectInj)!
 
 // For starred base we will have seperate isExpanded state
@@ -243,8 +241,6 @@ onKeyStroke('Escape', () => {
     isBasesOptionsOpen.value[key] = false
   }
 })
-
-const isAutomationEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS))
 
 const openBaseHomePage = async () => {
   const isSharedBase = route.value.params.typeOrId === 'base'
@@ -588,7 +584,7 @@ const hasTableCreatePermission = computed(() => {
           </template>
         </div>
       </div>
-      <Automation v-if="isAutomationEnabled && !isSharedBase && isUIAllowed('scriptList')" :base-id="base.id" />
+      <Automation v-if="!isSharedBase && isUIAllowed('scriptList')" :base-id="base.id" />
       <Dashboard v-if="isDashboardEnabled && !isSharedBase && isUIAllowed('dashboardList')" :base-id="base.id" />
     </div>
 

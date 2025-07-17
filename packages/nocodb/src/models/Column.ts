@@ -39,6 +39,7 @@ import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
+  FilterCacheScope,
   MetaTable,
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
@@ -1119,7 +1120,10 @@ export default class Column<T = any> implements ColumnType {
     }
     // delete filters
     {
-      const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [id]);
+      const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
+        FilterCacheScope.COLUMN,
+        id,
+      ]);
       let { list: filters } = cachedList;
       const { isNoneList } = cachedList;
       if (!isNoneList && !filters.length) {

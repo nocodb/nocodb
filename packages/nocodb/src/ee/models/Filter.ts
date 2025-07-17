@@ -6,7 +6,12 @@ import Column from '~/models/Column';
 import Hook from '~/models/Hook';
 import View from '~/models/View';
 import Noco from '~/Noco';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  CacheGetType,
+  CacheScope,
+  FilterCacheScope,
+  MetaTable,
+} from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
@@ -178,7 +183,7 @@ export default class Filter extends FilterCE implements FilterType {
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
-              [filter.fk_view_id],
+              [FilterCacheScope.VIEW, filter.fk_view_id],
               key,
             ),
           );
@@ -187,7 +192,7 @@ export default class Filter extends FilterCE implements FilterType {
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
-              [filter.fk_hook_id],
+              [FilterCacheScope.HOOK, filter.fk_hook_id],
               key,
             ),
           );
@@ -196,7 +201,7 @@ export default class Filter extends FilterCE implements FilterType {
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
-              [filter.fk_parent_column_id],
+              [FilterCacheScope.PARENT_COLUMN, filter.fk_parent_column_id],
               key,
             ),
           );
@@ -205,7 +210,7 @@ export default class Filter extends FilterCE implements FilterType {
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
-              [filter.fk_link_col_id],
+              [FilterCacheScope.LINK_COL, filter.fk_link_col_id],
               key,
             ),
           );
@@ -214,7 +219,11 @@ export default class Filter extends FilterCE implements FilterType {
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
-              [filter.fk_widget_id, filter.fk_parent_id],
+              [
+                FilterCacheScope.WIDGET,
+                filter.fk_widget_id,
+                filter.fk_parent_id,
+              ],
               key,
             ),
           );
@@ -225,7 +234,11 @@ export default class Filter extends FilterCE implements FilterType {
             p.push(
               NocoCache.appendToList(
                 CacheScope.FILTER_EXP,
-                [filter.fk_view_id, filter.fk_parent_id],
+                [
+                  FilterCacheScope.LINK_COL,
+                  filter.fk_view_id,
+                  filter.fk_parent_id,
+                ],
                 key,
               ),
             );
@@ -234,7 +247,7 @@ export default class Filter extends FilterCE implements FilterType {
             p.push(
               NocoCache.appendToList(
                 CacheScope.FILTER_EXP,
-                [filter.fk_hook_id, filter.fk_parent_id],
+                [FilterCacheScope.HOOK, filter.fk_hook_id, filter.fk_parent_id],
                 key,
               ),
             );
@@ -243,7 +256,11 @@ export default class Filter extends FilterCE implements FilterType {
             p.push(
               NocoCache.appendToList(
                 CacheScope.FILTER_EXP,
-                [filter.fk_link_col_id, filter.fk_parent_id],
+                [
+                  FilterCacheScope.LINK_COL,
+                  filter.fk_link_col_id,
+                  filter.fk_parent_id,
+                ],
                 key,
               ),
             );
@@ -252,7 +269,11 @@ export default class Filter extends FilterCE implements FilterType {
             p.push(
               NocoCache.appendToList(
                 CacheScope.FILTER_EXP,
-                [filter.fk_parent_column_id, filter.fk_parent_id],
+                [
+                  FilterCacheScope.PARENT_COLUMN,
+                  filter.fk_parent_column_id,
+                  filter.fk_parent_id,
+                ],
                 key,
               ),
             );
@@ -260,7 +281,7 @@ export default class Filter extends FilterCE implements FilterType {
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
-              [filter.fk_parent_id],
+              [FilterCacheScope.PARENT, filter.fk_parent_id],
               key,
             ),
           );
@@ -269,7 +290,7 @@ export default class Filter extends FilterCE implements FilterType {
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
-              [filter.fk_column_id],
+              [FilterCacheScope.COLUMN, filter.fk_column_id],
               key,
             ),
           );
@@ -304,7 +325,7 @@ export default class Filter extends FilterCE implements FilterType {
   ) {
     const cachedList = await NocoCache.getList(
       CacheScope.FILTER_EXP,
-      [columnId],
+      [FilterCacheScope.LINK_COL, columnId],
       { key: 'order' },
     );
     let { list: filterObjs } = cachedList;
@@ -321,7 +342,11 @@ export default class Filter extends FilterCE implements FilterType {
           },
         },
       );
-      await NocoCache.setList(CacheScope.FILTER_EXP, [columnId], filterObjs);
+      await NocoCache.setList(
+        CacheScope.FILTER_EXP,
+        [FilterCacheScope.LINK_COL, columnId],
+        filterObjs,
+      );
     }
     return filterObjs
       ?.filter((f) => !f.fk_parent_id)
@@ -335,7 +360,7 @@ export default class Filter extends FilterCE implements FilterType {
   ) {
     const cachedList = await NocoCache.getList(
       CacheScope.FILTER_EXP,
-      [widgetId],
+      [FilterCacheScope.WIDGET, widgetId],
       { key: 'order' },
     );
 
@@ -353,7 +378,11 @@ export default class Filter extends FilterCE implements FilterType {
           },
         },
       );
-      await NocoCache.setList(CacheScope.FILTER_EXP, [widgetId], filterObjs);
+      await NocoCache.setList(
+        CacheScope.FILTER_EXP,
+        [FilterCacheScope.WIDGET, widgetId],
+        filterObjs,
+      );
     }
     return filterObjs
       ?.filter((f) => !f.fk_parent_id)

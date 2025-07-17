@@ -4,6 +4,7 @@ import { parseIntValue, serializeIntValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
+import { ncIsNaN } from '~/lib/is';
 
 export class RatingHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -52,6 +53,10 @@ export class RatingHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string {
+    if (params.isAggregation && ncIsNaN(value)) {
+      value = 0;
+    }
+
     return `${parseIntValue(value, params.col) ?? ''}`;
   }
 

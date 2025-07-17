@@ -9,6 +9,7 @@ import AbstractColumnHelper, {
 } from '../column.interface';
 import { populateFillHandleStringNumber } from '../utils/fill-handler';
 import { ColumnType } from '~/lib/Api';
+import { ncIsNaN } from '~/lib/is';
 
 export class CurrencyHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -49,6 +50,10 @@ export class CurrencyHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string {
+    if (params.isAggregation && ncIsNaN(value)) {
+      value = 0;
+    }
+
     return `${this.parseValue(value, params) ?? ''}`;
   }
 

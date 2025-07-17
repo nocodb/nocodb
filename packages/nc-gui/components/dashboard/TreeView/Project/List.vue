@@ -493,25 +493,25 @@ watch(isProjectsLoaded, () => {
           <slot name="footer"> </slot>
         </div>
       </Transition>
-      <!-- Slide in Project Home -->
-      <Transition name="layout" mode="out-in" :duration="400" appear>
-        <template v-if="!showProjectList">
-          <div
-            v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
-            key="project-home"
-            class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
-          >
-            <ProjectWrapper :base-role="openedBase?.project_role" :base="openedBase">
-              <DashboardTreeViewProjectHome>
-                <template #footer>
-                  <slot name="footer"></slot>
-                </template>
-              </DashboardTreeViewProjectHome>
-            </ProjectWrapper>
-          </div>
-          <DashboardTreeViewProjectListSkeleton v-else />
-        </template>
-      </Transition>
+
+      <!-- Project Home -->
+      <template v-if="!showProjectList">
+        <div
+          v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
+          key="project-home"
+          class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
+        >
+          <ProjectWrapper :base-role="openedBase?.project_role" :base="openedBase">
+            <DashboardTreeViewProjectHome>
+              <template #footer>
+                <slot name="footer"></slot>
+              </template>
+            </DashboardTreeViewProjectHome>
+          </ProjectWrapper>
+        </div>
+        <DashboardTreeViewProjectListSkeleton v-else />
+      </template>
+
       <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
     </template>
   </div>

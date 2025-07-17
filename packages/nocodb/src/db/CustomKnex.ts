@@ -589,15 +589,15 @@ knex.QueryBuilder.extend('concat', function (cn: any) {
   switch (this?.client?.config?.client) {
     case 'pg':
       this.select(
-        this.client.raw(`STRING_AGG(??::character varying , ', ')`, [cn]),
+        this.client.raw(`STRING_AGG(??::character varying , ',')`, [cn]),
       );
       break;
     case 'mysql':
     case 'mysql2':
-      this.select(this.client.raw(`GROUP_CONCAT(?? SEPARATOR ', ')`, [cn]));
+      this.select(this.client.raw(`GROUP_CONCAT(?? SEPARATOR ',')`, [cn]));
       break;
     case 'sqlite3':
-      this.select(this.client.raw(`GROUP_CONCAT(?? , ', ')`, [cn]));
+      this.select(this.client.raw(`GROUP_CONCAT(?? , ',')`, [cn]));
       break;
   }
   return this;

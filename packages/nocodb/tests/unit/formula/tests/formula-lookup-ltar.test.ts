@@ -249,7 +249,7 @@ function formulaLookupLtarTests() {
   // issue #11299
   it('will create a formula referencing lookup referencing formula', async () => {
     await initFormulaLookupColumns(_setup);
-    const formulaColumn = await createColumn(_context, _tables.table2, {
+    const _formulaColumn = await createColumn(_context, _tables.table2, {
       title: 'table1FormulaTitleConcat',
       uidt: UITypes.Formula,
       formula: `CONCAT({table1FormulaTitle}, '.', {table1FormulaTitle})`,

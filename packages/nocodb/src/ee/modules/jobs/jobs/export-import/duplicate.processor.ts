@@ -19,6 +19,7 @@ import { TelemetryService } from '~/services/telemetry.service';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { DashboardsService } from '~/services/dashboards.service';
 import { withoutId } from '~/helpers/exportImportHelpers';
+import { FiltersService } from '~/services/filters.service';
 
 @Injectable()
 export class DuplicateProcessor extends DuplicateProcessorCE {
@@ -33,7 +34,8 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
     protected readonly appHooksService: AppHooksService,
     protected readonly tablesService: TablesService,
     protected readonly telemetryService: TelemetryService,
-    protected dashboardService: DashboardsService,
+    protected readonly dashboardService: DashboardsService,
+    protected readonly filterService: FiltersService,
   ) {
     super(
       exportService,
@@ -105,8 +107,10 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
         JobTypes.DuplicateDashboard,
       );
 
-      for (const widget of dashboard.widgets) {
-        await this.dashboardService.widgetCreate(
+      for (const wget of dashboard.widgets) {
+        const { filters, ...widget } = wget as any;
+        const identifierMap = new Map<string, string>();
+        const createdWidget = await this.dashboardService.widgetCreate(
           context,
           {
             ...withoutId(widget),
@@ -114,6 +118,24 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
           },
           req,
         );
+
+        for (const filter of filters) {
+          const createdFilter = await this.filterService.widgetFilterCreate(
+            context,
+            {
+              filter: {
+                ...withoutId(filter),
+                fk_parent_id: identifierMap.get(filter.fk_parent_id),
+                fk_widget_id: createdWidget.id,
+              },
+              widgetId: createdWidget.id,
+              user: req.user,
+              req,
+            },
+          );
+
+          identifierMap.set(filter.id, createdFilter.id);
+        }
       }
 
       elapsedTime(

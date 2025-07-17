@@ -110,7 +110,9 @@ export class ImportService extends ImportServiceCE {
       idMap.set(dashboard.id, createdDashboard.id);
 
       const widgets = dashboard.widgets;
-      for (const widget of widgets) {
+      for (const wg of widgets) {
+        const { filters, ...widget } = wg;
+
         const handler = await getWidgetHandler({
           widget: widget as WidgetType,
           req,
@@ -130,6 +132,21 @@ export class ImportService extends ImportServiceCE {
           req,
         );
         idMap.set(widget.id, insertedWidget.id);
+
+        for (const filter of filters) {
+          const fg = await this.filtersService.widgetFilterCreate(context, {
+            filter: withoutId({
+              ...filter,
+              fk_widget_id: insertedWidget.id,
+              fk_column_id: idMap.get(filter.fk_column_id),
+              fk_parent_id: idMap.get(filter.fk_parent_id),
+            }),
+            user: param.user,
+            widgetId: insertedWidget.id,
+            req,
+          });
+          idMap.set(filter.id, fg.id);
+        }
       }
     }
 

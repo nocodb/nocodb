@@ -203,14 +203,7 @@ watch([() => widgetRef.value?.config?.dataSource, () => widgetRef.value?.config?
           'bg-nc-bg-gray-extralight flex items-center justify-center h-full rounded-md': widgetRef.error,
         }"
       >
-        <NcTooltip>
-          <template #title> Configuration Error: Invalid widget configuration detected </template>
-
-          <div class="flex items-center gap-2 rounded-md bg-nc-bg-red-light text-caption text-nc-content-red-dark px-2 py-1">
-            <GeneralIcon icon="ncAlertTriangle" />
-            {{ $t('labels.configurationError') }}
-          </div>
-        </NcTooltip>
+        <SmartsheetDashboardWidgetsCommonWidgetsError />
       </div>
       <div v-else-if="isLoading" class="flex items-center justify-center h-full">
         <div class="flex items-center gap-2 text-nc-content-gray-subtle2">

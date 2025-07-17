@@ -306,6 +306,36 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         }
         break;
       }
+      case UITypes.Barcode: {
+        const referencedColumnId = col.colOptions.fk_barcode_value_column_id;
+        const referencedColumn = columns.find(
+          (col) => col.id == referencedColumnId,
+        );
+        aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
+          Promise.resolve({
+            builder: knex.raw(`??`, [
+              `${tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)}.${
+                referencedColumn.column_name
+              }`,
+            ]),
+          });
+        break;
+      }
+      case UITypes.QrCode: {
+        const referencedColumnId = col.colOptions.fk_qr_value_column_id;
+        const referencedColumn = columns.find(
+          (col) => col.id == referencedColumnId,
+        );
+        aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
+          Promise.resolve({
+            builder: knex.raw(`??`, [
+              `${tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)}.${
+                referencedColumn.column_name
+              }`,
+            ]),
+          });
+        break;
+      }
       default:
         aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
           Promise.resolve({

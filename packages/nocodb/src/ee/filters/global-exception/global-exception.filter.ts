@@ -1,10 +1,12 @@
 import { Catch } from '@nestjs/common';
 import { GlobalExceptionFilter as GlobalExceptionFilterCE } from 'src/filters/global-exception/global-exception.filter';
 import * as Sentry from '@sentry/nestjs';
+import type { Plan } from '~/models';
+import { TelemetryService } from '~/services/telemetry.service';
 
 @Catch()
 export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
-  constructor() {
+  constructor(private readonly telemetryService: TelemetryService) {
     super();
 
     process.on('uncaughtExceptionMonitor', (err, origin) => {
@@ -27,6 +29,31 @@ export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
         reqId: (request as any).headers?.['nc-req-id'],
       },
     });
+
+    const workspacePlan = (request as any).ncWorkspace?.payment?.plan as Plan;
+
+    if (workspacePlan && !workspacePlan.free) {
+      this.telemetryService
+        .sendSystemEvent({
+          event_type: 'priority_error',
+          error_trigger: 'global_exception',
+          error_type: exception?.name,
+          message: exception?.message,
+          error_details: exception?.stack,
+          affected_resources: [
+            request?.user?.email,
+            request?.user?.id,
+            workspacePlan?.title,
+            request?.ncWorkspaceId,
+            request?.ncBaseId,
+            request?.ncOrgId,
+            request?.path,
+          ].filter((item) => item !== undefined),
+        })
+        .catch((err) => {
+          console.error('Error sending telemetry event:', err);
+        });
+    }
   }
 
   protected logError(exception: any, request: any) {

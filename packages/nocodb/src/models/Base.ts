@@ -42,6 +42,7 @@ export default class Base implements BaseType {
   public sources?: Source[];
   public linked_db_projects?: Base[];
   public default_role?: 'no-access';
+  public is_snapshot?: boolean;
 
   // shared base props
   uuid?: string;

@@ -68,16 +68,6 @@ const legendConfig = computed(() => {
   }
 })
 
-const chartColors = computed(() => {
-  const colorSchema = chartConfig.value?.appearance?.colorSchema ?? 'default'
-
-  if (colorSchema === 'custom' && chartConfig.value?.appearance?.customColorSchema) {
-    return chartConfig.value.appearance.customColorSchema.map((c) => c.color)
-  }
-
-  return ['#4CAF50', '#FF9800', '#9C27B0', '#2196F3', '#F44336', '#00BCD4', '#FFEB3B', '#795548']
-})
-
 const chartOption = computed<ECOption>(() => {
   if (!widgetData.value?.data || widgetData.value.data.length === 0) {
     return {}
@@ -103,7 +93,28 @@ const chartOption = computed<ECOption>(() => {
   }
 
   return {
-    color: chartColors.value,
+    colors: [
+      '#2ec7c9',
+      '#b6a2de',
+      '#5ab1ef',
+      '#ffb980',
+      '#d87a80',
+      '#8d98b3',
+      '#e5cf0d',
+      '#97b552',
+      '#95706d',
+      '#dc69aa',
+      '#07a2a4',
+      '#9a7fd1',
+      '#588dd5',
+      '#f5994e',
+      '#c05050',
+      '#59678c',
+      '#c9ab00',
+      '#7eb00a',
+      '#6f5553',
+      '#c14089',
+    ],
     tooltip: {
       trigger: 'item',
       formatter: (params: any) => {

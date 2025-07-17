@@ -203,7 +203,7 @@ export const useEeConfig = createSharedComposable(() => {
         remainingSeats -= seatsInTier
       }
 
-      if (tier.up_to === null || tier.up_to === 'inf' || searCount <= tierLimit) break
+      if (tier.up_to === null || tier.up_to === 'inf' || seatCount <= tierLimit) break
 
       previousUpTo = tierLimit
     }

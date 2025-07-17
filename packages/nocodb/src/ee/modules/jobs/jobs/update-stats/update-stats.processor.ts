@@ -32,6 +32,13 @@ export class UpdateStatsProcessor {
       return true;
     }
 
+    const base = await Base.get(context, model.base_id);
+
+    // Skip counting for snapshot bases
+    if (!base || base.is_snapshot) {
+      return true;
+    }
+
     if (row_count === undefined) {
       const source = await Source.get(context, model.source_id);
 

@@ -1,11 +1,12 @@
 import 'mocha';
 import { UITypes } from 'nocodb-sdk';
 import { expect } from 'chai';
-import { initInitialModel } from '../initModel';
+import { initFormulaLookupColumns, initInitialModel } from '../initModel';
 import { createColumn } from '../../factory/column';
 import { listRow } from '../../factory/row';
 
 function formulaLookupLtarTests() {
+  let _setup;
   let _context;
   let _ctx: {
     workspace_id: string;
@@ -18,6 +19,7 @@ function formulaLookupLtarTests() {
 
   beforeEach(async function () {
     const setup = await initInitialModel();
+    _setup = setup;
     _context = setup.context;
     _ctx = setup.ctx;
     _base = setup.base;
@@ -190,6 +192,7 @@ function formulaLookupLtarTests() {
       firstRow.FormulaT4s.length,
     );
   });
+
   it('will create an ARRAYSORT(ARRAYUNIQUE) formula referencing T4s correctly', async () => {
     // Create a formula field on table 3 that references T4s
     const controlFormulaColumn = await createColumn(_context, _tables.table3, {
@@ -241,6 +244,23 @@ function formulaLookupLtarTests() {
       'T4_003',
       'T4_004',
     ]);
+  });
+
+  // issue #11299
+  it('will create a formula referencing lookup referencing formula', async () => {
+    await initFormulaLookupColumns(_setup);
+    const formulaColumn = await createColumn(_context, _tables.table2, {
+      title: 'table1FormulaTitleConcat',
+      uidt: UITypes.Formula,
+      formula: `CONCAT({table1FormulaTitle}, '.', {table1FormulaTitle})`,
+      formula_raw: `CONCAT({table1FormulaTitle}, '.', {table1FormulaTitle})`,
+    });
+
+    // Get the data to verify the formula is working correctly
+    const rows = await listRow({ base: _base, table: _tables.table2 });
+    expect(rows[0].table1FormulaTitleConcat).to.eq(
+      'T1_001, T1_002, T1_003.T1_001, T1_002, T1_003',
+    );
   });
 }
 

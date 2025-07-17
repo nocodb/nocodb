@@ -19,7 +19,9 @@ const emits = defineEmits(['update:visible', 'update:permissions'])
 
 const vVisible = useVModel(props, 'visible', emits)
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
+
+const { t } = useI18n()
 
 const basesStore = useBases()
 
@@ -45,13 +47,13 @@ const isDeleting = ref(false)
 const permissionOptions = computed(() => {
   return [
     {
-      title: 'Reset table permissions',
-      description: 'Only Editors & up can create and delete records in a table',
+      title: t('objects.permissions.resetTablePermissions'),
+      description: t('objects.permissions.resetTablePermissionsDescription'),
       value: PermissionEntity.TABLE,
     },
     {
-      title: 'Reset field permissions',
-      description: 'Edit access will be set to Editors & up.',
+      title: t('objects.permissions.resetFieldPermissions'),
+      description: t('objects.permissions.resetFieldPermissionsDescription'),
       value: PermissionEntity.FIELD,
     },
   ].filter((option) => props.options.includes(option.value))
@@ -120,6 +122,8 @@ const handleResetPermissions = async () => {
       },
     )
 
+    $e('a:permissions:reset')
+
     await basesStore.loadProject(base.value.id!, true)
   } catch (error: any) {
     console.error(error)
@@ -139,7 +143,7 @@ const title = computed(() => {
     return permissionOptions.value[0]!.title
   }
 
-  return `Confirm revert permissions to default for table - "${props.tableName}"`
+  return t('objects.permissions.confirmRevertPermissionsToDefault', { tableName: props.tableName })
 })
 
 const content = computed(() => {

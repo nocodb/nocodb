@@ -121,10 +121,18 @@ export const parseCurrencyValue = (value: any, col: ColumnType) => {
   const columnMeta = parseProp(col.meta);
 
   try {
+    // Round the value to the specified precision
+    const roundedValue = roundUpToPrecision(
+      Number(value),
+      columnMeta.precision ?? 2
+    );
+
     return new Intl.NumberFormat(columnMeta.currency_locale || 'en-US', {
       style: 'currency',
       currency: columnMeta.currency_code || 'USD',
-    }).format(+value);
+      minimumFractionDigits: columnMeta.precision ?? 2,
+      maximumFractionDigits: columnMeta.precision ?? 2,
+    }).format(+roundedValue);
   } catch {
     return value;
   }

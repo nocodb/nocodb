@@ -300,3 +300,29 @@ export function isPrimitiveValue(
 export function ncIsNullOrUndefined(value: any): value is null | undefined {
   return value === null || typeof value === 'undefined';
 }
+
+/**
+ * Checks if a value is valid.
+ *
+ * @param val - The value to check.
+ * @returns {boolean} - True if the value is valid, false otherwise.
+ */
+export const isValidValue = (val: unknown) => {
+  if (ncIsNull(val) || ncIsUndefined(val)) {
+    return false;
+  }
+
+  if (ncIsString(val) && val === '') {
+    return false;
+  }
+
+  if (ncIsEmptyArray(val)) {
+    return false;
+  }
+
+  if (ncIsEmptyObject(val)) {
+    return false;
+  }
+
+  return true;
+};

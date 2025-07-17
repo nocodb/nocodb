@@ -7,6 +7,7 @@ import { getRenderAsTextFunForUiType, parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 import { ComputedTypePasteError } from '~/lib/error';
 import { precisionFormats } from '../utils';
+import { isValidValue } from '~/lib/is';
 
 export class RollupHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -29,7 +30,7 @@ export class RollupHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string | null {
-    if (!value) return null;
+    if (!isValidValue(value)) return null;
 
     const { col, meta, metas } = params;
 

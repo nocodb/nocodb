@@ -45,6 +45,6 @@ export class AttachmentHelper extends AbstractColumnHelper {
     if (ncIsArray(value)) {
       return value.map((v) => `${v.title}`).join(', ');
     }
-    return value as string;
+    return value?.toString() ?? '';
   }
 }

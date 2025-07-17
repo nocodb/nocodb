@@ -26,25 +26,7 @@ import dayjs from 'dayjs'
 import { isColumnRequiredAndNull } from './columnUtils'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
-export const isValidValue = (val: unknown) => {
-  if (ncIsNull(val) || ncIsUndefined(val)) {
-    return false
-  }
-
-  if (ncIsString(val) && val === '') {
-    return false
-  }
-
-  if (ncIsEmptyArray(val)) {
-    return false
-  }
-
-  if (ncIsEmptyObject(val)) {
-    return false
-  }
-
-  return true
-}
+export { isValidValue } from 'nocodb-sdk'
 
 export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
   if (!row || !columns) return null

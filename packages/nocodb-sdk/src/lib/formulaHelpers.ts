@@ -1319,9 +1319,9 @@ export const formulas: Record<string, FormulaMeta> = {
         type: FormulaDataTypes.ARRAY,
       },
     },
-    description: 'Distinct an array result',
+    description: 'Return unique items from the given array',
     syntax: 'ARRAYUNIQUE(value)',
-    examples: ['ARRAYUNIQUE({column}, "desc")'],
+    examples: ['ARRAYUNIQUE({column})'],
     returnType: FormulaDataTypes.ARRAY,
     docsUrl:
       'https://docs.nocodb.com/fields/field-types/formula/array-functions#array_unique',

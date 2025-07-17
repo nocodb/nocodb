@@ -37,8 +37,8 @@ export class ButtonHelper extends AbstractColumnHelper {
 
   parsePlainCellValue(
     value: any,
-    _params: SerializerOrParserFnProps['params']
+    params: SerializerOrParserFnProps['params']
   ): string | null {
-    return this.parseValue(value, _params) ?? '';
+    return this.parseValue(value, params) ?? '';
   }
 }

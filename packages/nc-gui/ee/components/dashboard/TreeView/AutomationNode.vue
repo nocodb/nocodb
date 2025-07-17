@@ -284,6 +284,8 @@ const deleteScript = () => {
           class="flex min-w-6"
           @mouseenter="showAutomationNodeTooltip = false"
           @mouseleave="showAutomationNodeTooltip = true"
+          @click.stop
+          @dblclick.stop
         >
           <LazyGeneralEmojiPicker
             :clearable="true"
@@ -293,12 +295,23 @@ const deleteScript = () => {
             size="small"
             @emoji-selected="emits('selectIcon', $event)"
           >
-            <template #default>
-              <GeneralIcon
-                :class="activeAutomationId === vModel.id ? '!text-brand-600/85' : '!text-gray-600/75'"
-                class="w-4 text-nc-content-gray-subtle !text-[16px]"
-                icon="ncScript"
-              />
+            <template #default="{ isOpen }">
+              <NcTooltip
+                class="flex"
+                placement="topLeft"
+                hide-on-click
+                :disabled="isOpen || isMobileMode || !isUIAllowed('viewCreateOrEdit')"
+              >
+                <template #title>
+                  {{ $t('general.changeIcon') }}
+                </template>
+
+                <GeneralIcon
+                  :class="activeAutomationId === vModel.id ? '!text-brand-600/85' : '!text-gray-600/75'"
+                  class="w-4 text-nc-content-gray-subtle !text-[16px]"
+                  icon="ncScript"
+                />
+              </NcTooltip>
             </template>
           </LazyGeneralEmojiPicker>
         </div>

@@ -415,13 +415,16 @@ END`,
   },
   ARRAYSORT: async (args: MapFnArgs) => {
     const { fn, knex, pt } = args;
-    const source = (await fn(pt.arguments[0])).builder;
+    const source = (await fn({ ...pt.arguments[0], fnName: 'ARRAY_AGG' }))
+      .builder;
     const direction = pt.arguments[1]
-      ? (await fn(pt.arguments[1]))?.builder
+      ? knex.raw(pt.arguments[1]?.value ?? (await fn(pt.arguments[1])).builder)
       : knex.raw('asc');
-    console.log('source', source?.toQuery() ?? source)
     return {
-      builder: knex.raw(`UNNEST(?? ORDER BY 1 ??)`, [source, direction]),
+      builder: knex.raw(`ARRAY(SELECT UNNEST(??) ORDER BY 1 ??)`, [
+        source,
+        direction,
+      ]),
     };
   },
 };

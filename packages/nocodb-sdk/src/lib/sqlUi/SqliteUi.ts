@@ -951,6 +951,8 @@ export class SqliteUi implements SqlUi {
       'COUNTA',
       'COUNT',
       'DATESTR',
+      'ARRAYSORT',
+      'ARRAYUNIQUE',
     ];
   }
 

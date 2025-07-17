@@ -11,6 +11,7 @@ import {
   getLookupColumnType as sdkGetLookupColumnType,
   validateRowFilters as sdkValidateRowFilters,
   timeFormats,
+  isValidValue,
 } from 'nocodb-sdk'
 import type {
   AIRecordType,
@@ -26,7 +27,7 @@ import dayjs from 'dayjs'
 import { isColumnRequiredAndNull } from './columnUtils'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
-export { isValidValue } from 'nocodb-sdk'
+export { isValidValue }
 
 export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
   if (!row || !columns) return null

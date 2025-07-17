@@ -86,7 +86,7 @@ defineExpose({
           <NcButton type="secondary" size="small" @click="onRevertToDefault(PermissionEntity.TABLE)">
             <div class="flex items-center gap-2">
               <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
-              <span>Revert to Default</span>
+              <span>{{ $t('activity.revertToDefault') }}</span>
             </div>
           </NcButton>
         </template>
@@ -98,7 +98,7 @@ defineExpose({
             <NcButton type="secondary" size="small" @click="onRevertToDefault(PermissionEntity.FIELD)">
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
-                <span>Revert to Default</span>
+                <span>{{ $t('activity.revertToDefault') }}</span>
               </div>
             </NcButton>
           </template>

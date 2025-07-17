@@ -1,4 +1,5 @@
 import {
+  type BaseType,
   PermissionGrantedType,
   PermissionOptionValue,
   PermissionOptions,
@@ -11,7 +12,6 @@ import {
   getPermissionLabel,
   getPermissionOption,
   getPermissionOptionValue,
-  type BaseType,
 } from 'nocodb-sdk'
 
 // Re-export the interface from SDK for backward compatibility

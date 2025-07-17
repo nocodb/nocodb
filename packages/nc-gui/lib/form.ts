@@ -169,7 +169,6 @@ export class FormFilters {
         }
 
         if (!column.permissions?.isAllowedToEdit) {
-          console.log('column', column.title, column.permissions?.isAllowedToEdit)
           errors[
             column.fk_column_id
           ] = `Condition references a field (${column.title}) that is not editable and will be hidden in shared form.`

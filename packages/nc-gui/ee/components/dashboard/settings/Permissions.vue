@@ -263,11 +263,11 @@ watch(
                   <NcMenu variant="small">
                     <NcMenuItem @click="openFieldPermissionsModal(record.id)">
                       <GeneralIcon icon="ncMaximize2" class="flex-none h-4 w-4" />
-                      View field permissions
+                      {{ $t('activity.viewFieldPermissions') }}
                     </NcMenuItem>
                     <NcMenuItem @click="onRevertToDefault(record.title, record.id)">
                       <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
-                      Revert permissions to default
+                      {{ $t('activity.revertPermissionsToDefault') }}
                     </NcMenuItem>
                   </NcMenu>
                 </template>

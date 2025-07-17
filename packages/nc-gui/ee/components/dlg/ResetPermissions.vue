@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PermissionEntity, type ColumnType, type TableType } from 'nocodb-sdk'
+import { type ColumnType, PermissionEntity } from 'nocodb-sdk'
 
 interface Props {
   visible: boolean
@@ -64,7 +64,10 @@ const entitiesToDelete = computed(() => {
 })
 
 const handleResetPermissions = async () => {
-  if (!base.value || !entitiesToDelete.value.length) return
+  if (!base.value || !entitiesToDelete.value.length) {
+    vVisible.value = false
+    return
+  }
 
   isDeleting.value = true
 
@@ -106,6 +109,8 @@ const handleResetPermissions = async () => {
   )
 
   if (!permissionIds.length && !subjectIds.length) {
+    isDeleting.value = false
+    vVisible.value = false
     return
   }
 

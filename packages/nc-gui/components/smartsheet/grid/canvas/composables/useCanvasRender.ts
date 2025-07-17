@@ -1969,6 +1969,7 @@ export function useCanvasRender({
             height.value - AGGREGATION_HEIGHT / 2,
           )
         }
+
         ctx.font = '600 12px Inter'
         ctx.fillStyle = '#4a5268'
         ctx.fillText(column.aggregation ?? ' - ', xOffset + width - 8 - scrollLeft.value, height.value - AGGREGATION_HEIGHT / 2)

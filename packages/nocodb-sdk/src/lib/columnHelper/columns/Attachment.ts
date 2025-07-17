@@ -42,6 +42,9 @@ export class AttachmentHelper extends AbstractColumnHelper {
   }
 
   parsePlainCellValue(value: any): string {
-    return parseDefault(value) ?? '';
+    if (ncIsArray(value)) {
+      return value.map((v) => `${v.title}`).join(', ');
+    }
+    return value as string;
   }
 }

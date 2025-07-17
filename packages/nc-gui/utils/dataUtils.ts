@@ -246,6 +246,8 @@ export const getDateValue = (modelValue: string | null | number, col: ColumnType
   } else {
     return dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue).format(dateFormat)
   }
+
+  return ''
 }
 
 export const getYearValue = (modelValue: string | null) => {
@@ -434,9 +436,11 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
 
   const relatedTableMeta =
     relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
+
   const childColumn = relatedTableMeta?.columns.find(
     (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? relatedTableMeta?.columns.find((c) => c.pv).id),
   ) as ColumnType | undefined
+
   if (Array.isArray(modelValue)) {
     return modelValue
       .map((v) => {

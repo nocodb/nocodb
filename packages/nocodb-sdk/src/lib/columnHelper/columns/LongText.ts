@@ -32,8 +32,10 @@ export class LongTextHelper extends AbstractColumnHelper {
     return `"${value.replace(/"/g, '\\"')}"`;
   }
 
-  parsePlainCellValue(value: any): string {
-    // Remove trim() to preserve leading and trailing spaces
-    return value?.toString() ?? '';
+  parsePlainCellValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string {
+    return this.parseValue(value, params)?.toString() ?? '';
   }
 }

@@ -199,3 +199,23 @@ export const parseUserValue = (value: any, withDisplayName = false) => {
     )
     .join(', ');
 };
+
+export const parseLinksValue = (
+  value: any,
+  params: SerializerOrParserFnProps['params']
+) => {
+  const { col, t } = params;
+
+  const columnMeta = parseProp(col.meta);
+
+  const parsedValue = +value || 0;
+  if (!parsedValue) {
+    return `0 ${columnMeta.plural || (t?.('general.links') ?? 'Links')}`;
+  } else if (parsedValue === 1) {
+    return `1 ${columnMeta.singular || (t?.('general.link') ?? 'Link')}`;
+  } else {
+    return `${parsedValue} ${
+      columnMeta.plural || (t('general.links') ?? 'Links')
+    }`;
+  }
+};

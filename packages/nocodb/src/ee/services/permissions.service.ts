@@ -217,31 +217,21 @@ export class PermissionsService {
     }
   }
 
-  async dropAllPermissions(
+  async bulkDropPermissions(
     context: NcContext,
-    permissionObj: Partial<{
-      entities: PermissionEntity[];
-      modelId?: string; // If modelId is provided, then delete all permissions for the model + field permissions if included in entities
-    }>,
+    permissionObj: {
+      permissionIds?: string[];
+      subjectIds?: string[];
+    },
   ) {
-    const { entities = [], modelId } = permissionObj;
+    const { permissionIds = [], subjectIds = [] } = permissionObj;
 
-    let model: Model;
-
-    if (modelId) {
-      model = await Model.get(context, modelId);
-
-      if (!model) {
-        NcError.tableNotFound(modelId);
-      }
-
-      await model.getColumns(context);
-    }
+    if (!permissionIds.length && !subjectIds.length) return;
 
     const ncMeta = await Noco.ncMeta.startTransaction();
 
     try {
-      await Permission.deleteAll(context, context.base_id, entities, model);
+      await Permission.bulkDelete(context, permissionIds, subjectIds, ncMeta);
 
       await ncMeta.commit();
     } catch (error) {

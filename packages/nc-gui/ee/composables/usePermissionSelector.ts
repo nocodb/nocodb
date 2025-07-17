@@ -27,6 +27,8 @@ export const usePermissionSelector = (
   const basesStore = useBases()
   const { basesUser } = storeToRefs(basesStore)
 
+  const { permissionsByEntity } = usePermissions()
+
   // Use centralized permission options from SDK
   const allPermissionOptions = PermissionOptions
 
@@ -122,6 +124,11 @@ export const usePermissionSelector = (
       }
 
       if (currentPermission.value === PermissionOptionValue.EDITORS_AND_UP) {
+        // If permission entity is not found, do nothing
+        if (!permissionsByEntity.value[`${config.value.entity}_${config.value.entityId}`]) {
+          return
+        }
+
         await $api.internal.postOperation(
           base.value.fk_workspace_id,
           base.value.id,

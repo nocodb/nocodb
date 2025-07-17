@@ -34,15 +34,20 @@ export const usePermissions = () => {
   // Use centralized permission options from SDK
   const permissionOptions = PermissionOptions
 
+  // Permission list for the current base
+  const permissionList = computed(() => {
+    if (sharedView.value?.type === ViewTypes.FORM) {
+      return (sharedView.value?.basePermissions as BaseType['permissions']) ?? []
+    }
+
+    return base.value?.permissions ?? []
+  })
+
   // Permissions data grouped by entity
   const permissionsByEntity = computed(() => {
-    const permissions =
-      sharedView.value?.type === ViewTypes.FORM
-        ? (sharedView.value?.basePermissions as BaseType['permissions']) ?? []
-        : base.value?.permissions ?? []
     const grouped: Record<string, any[]> = {}
 
-    permissions.forEach((permission) => {
+    permissionList.value.forEach((permission) => {
       const key = `${permission.entity}_${permission.entity_id}`
       if (!grouped[key]) {
         grouped[key] = []
@@ -175,6 +180,7 @@ export const usePermissions = () => {
 
   return {
     permissionOptions,
+    permissionList,
     permissionsByEntity,
     getPermissionOption,
     getPermissionLabel,

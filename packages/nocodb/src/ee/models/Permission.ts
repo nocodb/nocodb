@@ -340,66 +340,16 @@ export default class Permission {
     return res;
   }
 
-  static async deleteAll(
+  static async bulkDelete(
     context: NcContext,
-    baseId: string,
-    entities: PermissionEntity[],
-    model?: Model,
+    permissionIds: string[],
+    subjectIds: string[],
     ncMeta = Noco.ncMeta,
   ) {
-    const permissionList = await this.list(context, baseId, ncMeta);
-
-    if (!permissionList.length) return;
-
-    const columnIds = model?.columns.map((col) => col.id) || [];
-
-    const permissionsToDelete = permissionList.filter((permission) => {
-      // Filter out permissions that are not in the entities array
-      if (!entities.includes(permission.entity)) {
-        return false;
-      }
-
-      // If model is provided, then delete all field permissions for the model
-      /**
-       * If model is provided then
-       * 1. Delete all field permissions for the model
-       * 2. Delete all table permissions for the model
-       *
-       * If model is not provided then
-       * 1. Delete all permissions
-       */
-      if (model) {
-        if (permission.entity === PermissionEntity.FIELD) {
-          return columnIds.includes(permission.entity_id);
-        }
-
-        // If model is provided, then delete all table permissions for the model
-        if (model && permission.entity === PermissionEntity.TABLE) {
-          return permission.entity_id === model.id;
-        }
-
-        return false;
-      }
-
-      return true;
-    });
-
-    if (!permissionsToDelete.length) return;
-
-    const subjectIdsToDelete: string[] = [];
-
-    for (const permission of permissionsToDelete) {
-      if (!permission.subjects || !permission.subjects.length) {
-        continue;
-      }
-
-      subjectIdsToDelete.push(
-        ...permission.subjects.map((subject) => subject.id),
-      );
-    }
+    if (!permissionIds.length && !subjectIds.length) return;
 
     // Delete all subjects
-    if (subjectIdsToDelete.length > 0) {
+    if (subjectIds.length > 0) {
       await ncMeta.metaDelete(
         context.workspace_id,
         context.base_id,
@@ -408,9 +358,9 @@ export default class Permission {
         {
           _and: [
             {
-              _or: subjectIdsToDelete.map((subjectId) => ({
-                _and: [{ subject_id: { eq: subjectId } }],
-              })),
+              subject_id: {
+                in: subjectIds,
+              },
             },
           ],
         },
@@ -426,22 +376,18 @@ export default class Permission {
       {
         _and: [
           {
-            _or: permissionsToDelete.map((permission) => ({
-              _and: [{ id: { eq: permission.id } }],
-            })),
+            id: {
+              in: permissionIds,
+            },
           },
         ],
       },
     );
 
-    // Delete all permissions from cache
-    await Promise.all(
-      permissionsToDelete.map((permission) =>
-        NocoCache.deepDel(
-          `${CacheScope.PERMISSION}:${permission.id}`,
-          CacheDelDirection.CHILD_TO_PARENT,
-        ),
-      ),
+    // Delete base permissions list cache
+    await NocoCache.deepDel(
+      `${CacheScope.PERMISSION}:${context.base_id}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
     );
 
     return res;

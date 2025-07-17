@@ -40,6 +40,7 @@ const onRevertToDefault = (permission: PermissionEntity) => {
     'tableName': tableData.value?.title,
     'options': [permission],
     'tableId': props.tableId,
+    'tableColumns': tableData.value?.columns || [],
     'showCheckbox': false,
     'onUpdate:visible': closeDialog,
   })

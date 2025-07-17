@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { FormulaDataTypes } from 'nocodb-sdk';
+import { FormulaDataTypes, JSEPNode } from 'nocodb-sdk';
 import commonFns from './commonFns';
 import type { MapFnArgs } from '~/db/mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
@@ -418,7 +418,10 @@ END`,
     const source = (
       await fn({
         ...pt.arguments[0],
-        fnName: 'ARRAY_AGG',
+        fnName:
+          pt.arguments[0].type === JSEPNode.IDENTIFIER
+            ? 'ARRAY_AGG'
+            : pt.arguments[0].fnName,
       })
     ).builder;
     const direction = pt.arguments[1]
@@ -436,7 +439,10 @@ END`,
     const source = (
       await fn({
         ...pt.arguments[0],
-        fnName: 'ARRAY_AGG',
+        fnName:
+          pt.arguments[0].type === JSEPNode.IDENTIFIER
+            ? 'ARRAY_AGG'
+            : pt.arguments[0].fnName,
       })
     ).builder;
     return {

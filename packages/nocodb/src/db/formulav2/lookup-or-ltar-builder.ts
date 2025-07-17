@@ -1,5 +1,4 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-import { NcError } from 'src/helpers/catchError';
 import type { NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
@@ -14,6 +13,8 @@ import type {
   QrCodeColumn,
   RollupColumn,
 } from '~/models';
+import { getRefColumnIfAlias } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
 import { Model } from '~/models';
@@ -508,6 +509,28 @@ export const lookupOrLtarBuilder =
                 .wrap('(', ')');
           } else {
             selectQb.select(`${prevAlias}.${referenceColumn.column_name}`);
+          }
+          break;
+        }
+        case UITypes.CreatedBy:
+        case UITypes.LastModifiedBy:
+        case UITypes.CreatedTime:
+        case UITypes.LastModifiedTime: {
+          const refCol = await getRefColumnIfAlias(context, lookupColumn);
+          if (isArray) {
+            const qb = selectQb;
+            selectQb = (fn) =>
+              knex
+                .raw(
+                  getAggregateFn(fn)({
+                    qb,
+                    knex,
+                    cn: `${prevAlias}.${refCol.column_name}`,
+                  }),
+                )
+                .wrap('(', ')');
+          } else {
+            selectQb.select(`${prevAlias}.${refCol.column_name}`);
           }
           break;
         }

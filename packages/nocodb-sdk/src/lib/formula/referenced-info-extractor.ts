@@ -72,9 +72,10 @@ const filterReferencedInfoByUidt = ({
       !IMPURE_OPR_UIDT_MAP.has(referencedInfo.referencedColumn.uidt as UITypes))
       ? referencedInfo.referencedColumn
       : undefined;
-  let uidtCandidates = referencedInfo.uidtCandidates.filter((uidt) =>
-    allowedUidts.includes(uidt)
-  );
+  let uidtCandidates =
+    referencedInfo.uidtCandidates?.filter((uidt) =>
+      allowedUidts.includes(uidt)
+    ) ?? [];
   if (isPureOperation) {
     uidtCandidates = uidtCandidates.map((c) =>
       IMPURE_OPR_UIDT_MAP.get(c as UITypes)
@@ -112,7 +113,9 @@ export const getReferencedInfoFromArgs = (
   } else if (uniqueLength > 1) {
     invalidForReferenceColumn = true;
   }
-  const uidtCandidates = nodes.map((k) => k.uidtCandidates).flat();
+  const uidtCandidates = nodes
+    .map((k) => k.uidtCandidates)
+    .reduce((a, b) => a.concat(b), []);
   const referencedInfo = {
     referencedColumn,
     uidtCandidates,
@@ -215,13 +218,63 @@ export const extractCallExpressionReferencedInfo = ({
     case 'MIN':
       isPureOperation = true;
       break;
+
+    case 'DATEADD':
+    case 'ROUND':
+    case 'MOD':
+    case 'POWER':
+    case 'REPEAT':
+    case 'REPLACE':
+    case 'REGEX_EXTRACT':
+    case 'REGEX_REPLACE':
+    case 'MID':
+    case 'LEFT':
+    case 'RIGHT':
+    case 'ROUNDDOWN':
+    case 'ROUNDUP':
+    case 'JSON_EXTRACT':
+    case 'SUBSTR': {
+      nodeArgs = nodeArgs.slice(0, 1);
+      break;
+    }
+
+    case 'LOG': {
+      nodeArgs = nodeArgs.slice(1, 2);
+      break;
+    }
+
+    // URL won't need the referenced column info
+    case 'URL':
+    case 'REGEX_MATCH':
+    case 'ISBLANK':
+    case 'ISNOTBLANK':
+    case 'DAY':
+    case 'MONTH':
+    case 'YEAR':
+    case 'HOUR':
+    case 'WEEKDAY':
+    case 'LEN':
+    case 'DATESTR':
+    case 'AND':
+    case 'OR':
+    case 'XOR':
+    case 'COUNTA':
+    case 'COUNT':
+    case 'COUNTALL':
+    case 'SEARCH': {
+      nodeArgs = [];
+      break;
+    }
+
     case 'ARRAYUNIQUE':
     case 'ARRAYSORT':
     case 'ARRAYCOMPACT':
-    case 'ARRAYSLICE':
+    case 'ARRAYSLICE': {
       nodeArgs = nodeArgs.slice(0, 1);
       isPureOperation = true;
       break;
+    }
+
     case 'IF': {
       nodeArgs = nodeArgs.slice(1);
       // is pure operation if the 2nd and 3rd arguments only has data type NULL or single referenced column
@@ -238,6 +291,7 @@ export const extractCallExpressionReferencedInfo = ({
         notNullDataTypes.length === 0 && uniqueReferencedColumnIds.length <= 1;
       break;
     }
+
     case 'SWITCH': {
       nodeArgs = nodeArgs.slice(1).filter((_val, index) => index % 2 === 1);
       // is pure operation if resulting arguments only has data type NULL or single referenced column

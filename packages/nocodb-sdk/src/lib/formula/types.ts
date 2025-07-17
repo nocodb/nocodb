@@ -4,7 +4,7 @@ import { FormulaDataTypes } from './enums';
 export interface ReferencedInfo {
   referencedColumn?: { id: string; uidt: string };
   invalidForReferenceColumn?: boolean;
-  uidtCandidates: UITypes[];
+  uidtCandidates?: UITypes[];
 }
 
 export interface FormulaMeta {

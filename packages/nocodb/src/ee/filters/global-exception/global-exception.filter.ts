@@ -43,10 +43,12 @@ export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
           affected_resources: [
             request?.user?.email,
             request?.user?.id,
+            workspacePlan?.title,
             request?.ncWorkspaceId,
             request?.ncBaseId,
+            request?.ncOrgId,
             request?.path,
-          ],
+          ].filter((item) => item !== undefined),
         })
         .catch((err) => {
           console.error('Error sending telemetry event:', err);

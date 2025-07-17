@@ -978,6 +978,8 @@ export class OracleUi implements SqlUi {
       'DATESTR',
       'ARRAYSORT',
       'ARRAYUNIQUE',
+      'ARRAYSLICE',
+      'ARRAYCOMPACT',
     ];
   }
 

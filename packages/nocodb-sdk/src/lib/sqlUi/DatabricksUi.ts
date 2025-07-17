@@ -823,6 +823,8 @@ export class DatabricksUi implements SqlUi {
       'HOUR',
       'ARRAYSORT',
       'ARRAYUNIQUE',
+      'ARRAYSLICE',
+      'ARRAYCOMPACT',
     ];
   }
 

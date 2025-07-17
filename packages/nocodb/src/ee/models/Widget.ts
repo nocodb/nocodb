@@ -222,5 +222,12 @@ export default class Widget implements IWidget {
       `${CacheScope.WIDGET}:${widgetId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    const filters = await Filter.rootFilterListByWidget(context, {
+      widgetId: widgetId,
+    });
+    for (const filter of filters) {
+      await Filter.delete(context, filter.id);
+    }
   }
 }

@@ -20,6 +20,7 @@ import {
 } from '~/db/field-handler/utils/handlerUtils';
 import { Model } from '~/models';
 import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
+import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 
 export class LookupGeneralHandler extends ComputedFieldHandler {
   /**
@@ -136,6 +137,15 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         });
         conditionJoinResult.clause(qb);
 
+        await extractLinkRelFiltersAndApply({
+          context,
+          column: column,
+          table: childBaseModel.model,
+          baseModel: childBaseModel,
+          qb,
+          alias,
+        });
+
         return {
           rootApply: (qb) => {
             rootApply?.(qb);
@@ -194,6 +204,15 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           parseConditionV2,
         });
         conditionJoinResult.clause(qb);
+
+        await extractLinkRelFiltersAndApply({
+          context,
+          column: column,
+          table: parentBaseModel.model,
+          baseModel: parentBaseModel,
+          qb,
+          alias,
+        });
 
         return {
           rootApply: (qb) => {
@@ -258,6 +277,15 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           parseConditionV2,
         });
         conditionJoinResult.clause(qb);
+
+        await extractLinkRelFiltersAndApply({
+          context,
+          column: column,
+          table: childBaseModel.model,
+          baseModel: childBaseModel,
+          qb,
+          alias,
+        });
 
         return {
           rootApply: (qb) => {

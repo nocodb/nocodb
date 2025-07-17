@@ -3,8 +3,7 @@ import { renderMultiLineText, renderTagLabel } from '../utils/canvas'
 export const SingleLineTextCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { value, x, y, width, height, pv, padding, textColor = '#4a5268' } = props
-
-    const text = value?.toString() ?? ''
+    const text = (Array.isArray(value) ? value.join(',') : value?.toString()) ?? ''
 
     if (!text) {
       return {

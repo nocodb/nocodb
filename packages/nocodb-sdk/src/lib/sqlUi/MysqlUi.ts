@@ -1363,7 +1363,15 @@ export class MysqlUi implements SqlUi {
   }
 
   static getUnsupportedFnList() {
-    return ['COUNTA', 'COUNT', 'DATESTR'];
+    return [
+      'COUNTA',
+      'COUNT',
+      'DATESTR',
+      'ARRAYSORT',
+      'ARRAYUNIQUE',
+      'ARRAYSLICE',
+      'ARRAYCOMPACT',
+    ];
   }
 
   static getCurrentDateDefault(col: Partial<ColumnType>) {

@@ -821,6 +821,10 @@ export class DatabricksUi implements SqlUi {
       'DAY',
       'MONTH',
       'HOUR',
+      'ARRAYSORT',
+      'ARRAYUNIQUE',
+      'ARRAYSLICE',
+      'ARRAYCOMPACT',
     ];
   }
 

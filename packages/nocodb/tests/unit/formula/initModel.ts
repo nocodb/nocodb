@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import request from 'supertest';
 
-// Generated: 2024-12-19T10:30:00Z
 import { UITypes } from 'nocodb-sdk';
 import { Model } from '../../../src/models';
 import Base from '../../../src/models/Base';

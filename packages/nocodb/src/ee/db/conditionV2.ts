@@ -24,9 +24,16 @@ export async function extractLinkRelFiltersAndApply(param: {
   }
 
   // extract filters
-  const filters = await Filter.rootFilterListByLink(param.context, {
-    columnId: param.column.id,
-  });
+  const filters = await Filter.rootFilterListByLink(
+    {
+      ...param.context,
+      // extract base id from the column since inter base link might have different base id
+      base_id: param.column.base_id ?? param.table.base_id,
+    },
+    {
+      columnId: param.column.id,
+    },
+  );
 
   if (filters?.length) {
     await conditionV2(param.baseModel, filters, param.qb, param.alias);

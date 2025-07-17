@@ -1,5 +1,5 @@
 import { IntegrationWrapper } from '../integration';
-import type { CoreMessage } from 'ai';
+import type { CoreMessage, LanguageModel } from 'ai';
 
 export abstract class AiIntegration<T extends { models: string[] } = any> extends IntegrationWrapper<T> {
   abstract generateObject<T>(
@@ -15,6 +15,8 @@ export abstract class AiIntegration<T extends { models: string[] } = any> extend
   }
 
   abstract generateText(args: AiGenerateTextArgs): Promise<AiGenerateTextResponse>;
+
+  abstract getModel(args?: AiGetModelArgs): LanguageModel
 }
 
 export interface AiUsage {
@@ -45,4 +47,8 @@ export interface AiGenerateTextArgs {
 interface AiGenerateTextResponse {
   usage: AiUsage;
   data: string;
+}
+
+export interface AiGetModelArgs {
+  customModel: string;
 }

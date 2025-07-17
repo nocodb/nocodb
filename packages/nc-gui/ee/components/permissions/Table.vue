@@ -11,6 +11,8 @@ const props = defineProps<{
 
 const { $e } = useNuxtApp()
 
+const { permissionsByEntity } = usePermissions()
+
 // Permission configurations for create and delete
 const createPermissionConfig: PermissionConfig = {
   entity: PermissionEntity.TABLE,
@@ -27,6 +29,10 @@ const deletePermissionConfig: PermissionConfig = {
 const handlePermissionSave = () => {
   $e('a:table:permissions')
 }
+
+const hasTablePermissions = computed(() => {
+  return (permissionsByEntity.value[`table_${props.tableId}`]?.length ?? 0) > 0
+})
 </script>
 
 <template>
@@ -37,7 +43,7 @@ const handlePermissionSave = () => {
           {{ $t('title.tablePermissions') }}
         </div>
       </slot>
-      <slot name="actions" />
+      <slot name="actions" :has-permissions="hasTablePermissions" />
     </div>
 
     <!-- Create Records Permission -->

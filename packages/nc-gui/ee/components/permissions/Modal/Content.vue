@@ -82,8 +82,8 @@ defineExpose({
         :class="permissionsTableWrapperClass"
         placement="bottomLeft"
       >
-        <template #actions>
-          <NcButton type="secondary" size="small" @click="onRevertToDefault(PermissionEntity.TABLE)">
+        <template #actions="{ hasPermissions }">
+          <NcButton type="secondary" size="small" :disabled="!hasPermissions" @click="onRevertToDefault(PermissionEntity.TABLE)">
             <div class="flex items-center gap-2">
               <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
               <span>{{ $t('activity.revertToDefault') }}</span>
@@ -94,8 +94,13 @@ defineExpose({
 
       <div class="flex min-w-[540px] mx-auto w-full" :class="permissionsFieldWrapperClass">
         <PermissionsField :table-data="tableData" :table-toolbar-class-name="permissionsTableToolbarClassName">
-          <template #actions>
-            <NcButton type="secondary" size="small" @click="onRevertToDefault(PermissionEntity.FIELD)">
+          <template #actions="{ hasPermissions }">
+            <NcButton
+              type="secondary"
+              size="small"
+              :disabled="!hasPermissions"
+              @click="onRevertToDefault(PermissionEntity.FIELD)"
+            >
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
                 <span>{{ $t('activity.revertToDefault') }}</span>

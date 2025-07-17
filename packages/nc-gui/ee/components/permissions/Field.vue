@@ -96,7 +96,7 @@ const handlePermissionSave = () => {
               {{ customFieldPermissionsCount }}/{{ visibleFields.length }} fields have custom permissions
             </span>
           </template>
-          <slot name="actions" />
+          <slot name="actions" :has-permissions="customFieldPermissionsCount > 0" />
         </div>
       </div>
     </template>

@@ -32,7 +32,10 @@ try {
 
 function initPostHog(_clientId: string) {
   try {
-    if (!isTeleEnabled) return
+    if (!isTeleEnabled) {
+      // return
+    }
+
     // todo: remove posthog session recording
     // if (!phClient) {
     //   phClient = posthog.init('phc_XIYhmt76mLGNt1iByEFoTEbsyuYeZ0o7Q5Ang4G7msr', {

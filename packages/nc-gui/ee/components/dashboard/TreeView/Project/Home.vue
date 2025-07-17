@@ -297,7 +297,7 @@ const hasTableCreatePermission = computed(() => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <DashboardTreeViewProjectHomeSearchInput :placeholder="`Search table, view${isAutomationEnabled ? ', script' : ''}`" />
+      <DashboardTreeViewProjectHomeSearchInput placeholder="Search table, view, script" />
 
       <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 xs:hidden flex flex-col gap-2">
         <div v-if="hasTableCreatePermission" class="flex items-center w-full">

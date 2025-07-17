@@ -9,7 +9,7 @@ import {
   isSystemColumn,
   isVirtualCol,
 } from 'nocodb-sdk'
-import type { ButtonType, ColumnType, TableType, UserType, ViewType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FormulaType, TableType, UserType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -360,8 +360,15 @@ export function useCanvasTable({
           f.extra.isDisplayTimezone = isEeUI ? meta?.isDisplayTimezone : undefined
         }
         if ([UITypes.Formula].includes(f.uidt)) {
-          if ([UITypes.DateTime].includes((f.meta as any)?.display_type)) {
-            const displayColumnConfig = (f.meta as any)?.display_column_meta as any
+          const referencedColumn = (f.colOptions as FormulaType)?.parsed_tree?.referencedColumn
+          const displayType = (f.meta as any)?.display_type ?? referencedColumn?.uidt
+          const displayColumnConfig = (f.meta as any)?.display_type
+            ? ((f.meta as any)?.display_column_meta as any)
+            : referencedColumn
+            ? meta.value?.columns?.find((c) => c.id === referencedColumn.id)
+            : undefined
+
+          if ([UITypes.DateTime].includes(displayType)) {
             if (displayColumnConfig.meta) {
               const displayColumnConfigMeta = displayColumnConfig.meta
 
@@ -375,6 +382,8 @@ export function useCanvasTable({
               displayColumnConfig.extra = extra
             }
           }
+          f.extra.display_type = displayType
+          f.extra.display_column_meta = displayColumnConfig
         }
 
         const isInvalid = isColumnInvalid(

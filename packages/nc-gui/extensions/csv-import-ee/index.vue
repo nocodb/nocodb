@@ -354,12 +354,15 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
 
         const isAllowToEdit = isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
 
+        // We allow to link record throw foreign key, so we don't need to check if the field is readonly
+        const isReadonlyCol = column.readonly && column.uidt !== UITypes.ForeignKey
+
         acc[column.id] = {
           ...column,
-          readonly: column.readonly || !isAllowToEdit,
+          readonly: isReadonlyCol || !isAllowToEdit,
           permissions: {
             isAllowToEdit,
-            tooltip: column.readonly
+            tooltip: isReadonlyCol
               ? t('msg.info.fieldReadonly')
               : !isAllowToEdit
               ? `This field is editable by ${getPermissionSummaryLabel(
@@ -386,6 +389,8 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
         }
       })
     }
+
+    console.log('table coumns', tableMeta.columns)
 
     importPayload.value.isSyncedTable = !!table?.synced
     importPayload.value.tableName = table?.title

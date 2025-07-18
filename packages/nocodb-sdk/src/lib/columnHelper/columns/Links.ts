@@ -2,7 +2,7 @@ import { SilentTypeConversionError } from '~/lib/error';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
-import { isBt, isMm, isOo } from '../utils';
+import { isBt, isMm, isOo, parseLinksValue } from '../utils';
 import { ncIsNaN, ncIsObject } from '~/lib/is';
 import { LinkToAnotherRecordType } from '~/lib/Api';
 
@@ -65,6 +65,6 @@ export class LinksHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params'] & { rowId: string }
   ): string {
-    return this.parseValue(value, params) ?? '';
+    return parseLinksValue(value, params) ?? '';
   }
 }

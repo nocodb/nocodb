@@ -83,5 +83,7 @@ export interface SerializerOrParserFnProps {
     rowId?: string | null;
     isMultipleCellPaste?: boolean;
     serializeSearchQuery?: boolean;
+    t?: (key: string, params?: Record<string, any>) => string;
+    isAggregation?: boolean;
   };
 }

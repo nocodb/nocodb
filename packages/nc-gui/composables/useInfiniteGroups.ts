@@ -30,9 +30,10 @@ export const useInfiniteGroups = (
   },
 ) => {
   const { gridViewCols } = useViewColumnsOrThrow()
-  const { base } = storeToRefs(useBase())
+  const baseStore = useBase()
+  const { base } = storeToRefs(baseStore)
   const { $api } = useNuxtApp()
-  const { getMeta } = useMetas()
+  const { getMeta, metas } = useMetas()
   const { appInfo } = useGlobal()
   const { nestedFilters, sorts } = useSmartsheetStoreOrThrow()
   const { fetchBulkAggregatedData, sharedView } = useSharedView()
@@ -303,7 +304,14 @@ export const useInfiniteGroups = (
             Object.keys(value).forEach((key) => {
               const field = gridViewColByTitle.value[key]
               const col = columnsById.value[field.fk_column_id]
-              value[key] = formatAggregation(field.aggregation, value[key], col) ?? ''
+              value[key] =
+                getFormattedAggrationValue(field.aggregation, value[key], col, [originalKey.toString()], {
+                  col,
+                  meta: meta.value as TableType,
+                  metas: metas.value,
+                  isMysql: baseStore.isMysql,
+                  isPg: baseStore.isPg,
+                }) ?? ''
             })
 
             if (group) {
@@ -547,7 +555,14 @@ export const useInfiniteGroups = (
             const field = gridViewColByTitle.value[key]
             const col = columnsById.value[field.fk_column_id]
             const aggregationType = fieldAggregationMap.get(field.fk_column_id) ?? field.aggregation
-            value[key] = formatAggregation(aggregationType, value[key], col) ?? ''
+            value[key] =
+              getFormattedAggrationValue(aggregationType, value[key], col, [originalKey.toString()], {
+                col,
+                meta: meta.value as TableType,
+                metas: metas.value,
+                isMysql: baseStore.isMysql,
+                isPg: baseStore.isPg,
+              }) ?? ''
           })
 
           Object.assign(group.aggregations, value)

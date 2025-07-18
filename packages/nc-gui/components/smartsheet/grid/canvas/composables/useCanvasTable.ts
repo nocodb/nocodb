@@ -236,7 +236,11 @@ export function useCanvasTable({
 
   const fields = inject(FieldsInj, ref([]))
 
-  const { sqlUis } = storeToRefs(useBase())
+  const baseStore = useBase()
+
+  const { isMysql, isPg } = baseStore
+
+  const { sqlUis } = storeToRefs(baseStore)
 
   const { basesUser } = storeToRefs(useBases())
 
@@ -370,10 +374,19 @@ export function useCanvasTable({
           isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
         )
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
+
         const isCellEditable =
           showReadonlyColumnTooltip(f) ||
           !showEditRestrictedColumnTooltip(f) ||
           isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT)
+
+        const aggregation = getFormattedAggrationValue(gridViewCol.aggregation, aggregations.value[f.title!], f, [], {
+          col: f,
+          meta: meta.value as TableType,
+          metas: metas.value,
+          isMysql,
+          isPg,
+        })
 
         return {
           id: f.id,
@@ -393,7 +406,7 @@ export function useCanvasTable({
           isCellEditable,
           pv: !!f.pv,
           virtual: isVirtualCol(f),
-          aggregation: formatAggregation(gridViewCol.aggregation, aggregations.value[f.title], f),
+          aggregation,
           agg_prefix: gridViewCol.aggregation ? t(`aggregation.${gridViewCol.aggregation}`).replace('Percent ', '') : '',
           agg_fn: gridViewCol.aggregation,
           columnObj: f,

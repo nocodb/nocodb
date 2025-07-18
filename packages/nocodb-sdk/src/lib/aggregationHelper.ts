@@ -5,6 +5,8 @@ import { getDateTimeValue, getDateValue } from '~/lib/dateTimeHelper';
 import { formatBytes, parseProp } from '~/lib/helperFunctions';
 import { convertMS2Duration } from '~/lib/durationUtils';
 import { getCurrencyValue, roundTo } from '~/lib/numberUtils';
+import { SerializerOrParserFnProps } from './columnHelper/column.interface';
+import { ColumnHelper } from './columnHelper';
 
 enum NumericalAggregations {
   Sum = 'sum',
@@ -131,7 +133,11 @@ const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
 const formatAggregation = (
   aggregation: any,
   value: any,
-  column: ColumnType
+  column: ColumnType,
+  /**
+   * If columnHelperParams is provided then it will be used to format the aggregation value
+   */
+  columnHelperParams?: SerializerOrParserFnProps['params']
 ) => {
   if (
     [DateAggregations.EarliestDate, DateAggregations.LatestDate].includes(
@@ -181,6 +187,25 @@ const formatAggregation = (
 
   if ([AttachmentAggregations.AttachmentSize].includes(aggregation)) {
     return formatBytes(value ?? 0);
+  }
+
+  if (
+    columnHelperParams &&
+    columnHelperParams?.col &&
+    Object.values(NumericalAggregations).includes(aggregation) &&
+    [
+      UITypes.Number,
+      UITypes.Decimal,
+      UITypes.Currency,
+      UITypes.Percent,
+      UITypes.Duration,
+      UITypes.Rollup,
+    ].includes(column.uidt as UITypes)
+  ) {
+    return ColumnHelper.parsePlainCellValue(value, {
+      ...columnHelperParams,
+      isAggregation: true,
+    });
   }
 
   if (column.uidt === UITypes.Currency) {

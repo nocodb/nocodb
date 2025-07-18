@@ -1937,6 +1937,8 @@ export function useCanvasRender({
         return
       }
 
+      const aggregationValue = column.aggregation?.toString()
+
       const isHovered = isBoxHovered(
         {
           x: xOffset - scrollLeft.value,
@@ -1959,7 +1961,7 @@ export function useCanvasRender({
         ctx.textAlign = 'right'
 
         ctx.font = '600 12px Inter'
-        const aggWidth = ctx.measureText(column.aggregation).width
+        const aggWidth = ctx.measureText(aggregationValue ?? '').width
         if (column.agg_prefix) {
           ctx.font = '400 12px Inter'
           ctx.fillStyle = '#6a7184'
@@ -1969,9 +1971,10 @@ export function useCanvasRender({
             height.value - AGGREGATION_HEIGHT / 2,
           )
         }
+
         ctx.font = '600 12px Inter'
         ctx.fillStyle = '#4a5268'
-        ctx.fillText(column.aggregation ?? ' - ', xOffset + width - 8 - scrollLeft.value, height.value - AGGREGATION_HEIGHT / 2)
+        ctx.fillText(aggregationValue ?? ' - ', xOffset + width - 8 - scrollLeft.value, height.value - AGGREGATION_HEIGHT / 2)
 
         if (isLocked.value && isHovered) {
           tryShowTooltip({
@@ -2069,10 +2072,12 @@ export function useCanvasRender({
           ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
           ctx.clip()
 
+          const aggregationValue = firstFixedCol.aggregation?.toString()
+
           ctx.textAlign = 'right'
 
           ctx.font = '600 12px Inter'
-          const aggWidth = ctx.measureText(firstFixedCol.aggregation).width
+          const aggWidth = ctx.measureText(aggregationValue ?? '').width
 
           if (firstFixedCol.agg_prefix) {
             ctx.font = '400 12px Inter'
@@ -2084,7 +2089,7 @@ export function useCanvasRender({
 
           ctx.font = '600 12px Inter'
           ctx.fillStyle = '#4a5268'
-          ctx.fillText(firstFixedCol.aggregation ?? ' - ', mergedWidth - 8, height.value - AGGREGATION_HEIGHT / 2)
+          ctx.fillText(aggregationValue ?? ' - ', mergedWidth - 8, height.value - AGGREGATION_HEIGHT / 2)
 
           if (isLocked.value && isHovered) {
             tryShowTooltip({
@@ -2099,7 +2104,7 @@ export function useCanvasRender({
             })
           }
 
-          const w = ctx.measureText(firstFixedCol.aggregation).width
+          const w = ctx.measureText(aggregationValue ?? '').width
           availWidth -= w
           ctx.restore()
         } else if (isHovered) {
@@ -2201,14 +2206,16 @@ export function useCanvasRender({
           ctx.fillStyle = '#F9F9FA'
           ctx.fillRect(xOffset, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
 
-          if (column.aggregation) {
+          const aggregationValue = firstFixedCol.aggregation?.toString()
+
+          if (isValidValue(aggregationValue)) {
             ctx.save()
             ctx.beginPath()
             ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
             ctx.clip()
 
             ctx.font = '600 12px Inter'
-            const aggWidth = ctx.measureText(column.aggregation).width
+            const aggWidth = ctx.measureText(aggregationValue).width
 
             if (column.agg_prefix) {
               ctx.font = '400 12px Inter'
@@ -2218,7 +2225,7 @@ export function useCanvasRender({
 
             ctx.font = '600 12px Inter'
             ctx.fillStyle = '#4a5268'
-            ctx.fillText(column.aggregation, xOffset + width - 8, height.value - AGGREGATION_HEIGHT / 2)
+            ctx.fillText(aggregationValue, xOffset + width - 8, height.value - AGGREGATION_HEIGHT / 2)
 
             ctx.restore()
           } else if (isHovered) {

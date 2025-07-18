@@ -158,6 +158,7 @@ describe('Formula parsing and type validation', () => {
           columns: [],
           clientOrSqlUi: 'mysql2',
           getMeta: async () => ({}),
+          trackPosition: true,
         });
       } catch (ex) {
         expect(ex.extra.position).toEqual({
@@ -172,6 +173,7 @@ describe('Formula parsing and type validation', () => {
           columns: [],
           clientOrSqlUi: 'mysql2',
           getMeta: async () => ({}),
+          trackPosition: true,
         });
       } catch (ex) {
         expect(ex.extra.position).toEqual({
@@ -188,6 +190,7 @@ describe('Formula parsing and type validation', () => {
           columns: [],
           clientOrSqlUi: 'mysql2',
           getMeta: async () => ({}),
+          trackPosition: true,
         });
       } catch (ex) {
         expect(ex.extra.position).toEqual({
@@ -202,12 +205,46 @@ describe('Formula parsing and type validation', () => {
           columns: [],
           clientOrSqlUi: 'mysql2',
           getMeta: async () => ({}),
+          trackPosition: true,
         });
       } catch (ex) {
         expect(ex.extra.position).toEqual({
           column: 0,
           row: 0,
           length: 4,
+        });
+      }
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: 'CONCAT(__a_  , "A")',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+          trackPosition: true,
+        });
+      } catch (ex) {
+        expect(ex.extra.position).toEqual({
+          column: 7,
+          row: 0,
+          length: 6,
+        });
+      }
+    });
+    it(`will handle formula missing parentheses`, async () => {
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: 'CONCAT',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+          trackPosition: true,
+        });
+      } catch (ex) {
+        expect(ex.message).toContain('Missing parentheses after function name');
+        expect(ex.extra.position).toEqual({
+          column: 6,
+          row: 0,
+          length: 1,
         });
       }
     });

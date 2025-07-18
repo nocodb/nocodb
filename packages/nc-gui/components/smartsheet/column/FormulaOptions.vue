@@ -75,6 +75,7 @@ const validators = {
               columns: supportedColumns.value,
               clientOrSqlUi: sqlUi.value,
               getMeta,
+              trackPosition: true,
             })
             editorError.value = { ...defaultEditorError }
           } catch (e: any) {
@@ -135,6 +136,7 @@ const debouncedValidate = useDebounceFn(async () => {
       column: column.value ?? undefined,
       clientOrSqlUi: source.value?.type as any,
       getMeta: async (modelId) => await getMeta(modelId),
+      trackPosition: true,
     })
 
     // Update parsedTree only if this is the latest invocation

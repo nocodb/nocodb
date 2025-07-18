@@ -17,7 +17,16 @@ interface Props {
   wrapClassName?: string
 }
 
-const { importType, importDataOnly = false, baseId, sourceId, transition, showBackBtn, wrapClassName, ...rest } = defineProps<Props>()
+const {
+  importType,
+  importDataOnly = false,
+  baseId,
+  sourceId,
+  transition,
+  showBackBtn,
+  wrapClassName = '',
+  ...rest
+} = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'back'])
 

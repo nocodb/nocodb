@@ -57,6 +57,7 @@ interface ImportType {
   type: 'insert' | 'update' | 'insertAndUpdate'
   title: string
   tooltip: string
+  disabled: boolean
 }
 
 interface SrcDestMappingType {
@@ -91,24 +92,6 @@ interface ImportConfigPayloadType {
   encoding?: SupportedExportCharset
 }
 
-const importTypeOptions = [
-  {
-    type: 'insert',
-    title: 'Create new records only',
-    tooltip: 'Identifies and creates new records from csv.',
-  },
-  {
-    type: 'update',
-    title: 'Update existing records only',
-    tooltip: 'Identifies updated records from csv and updates values in nocodb table.',
-  },
-  {
-    type: 'insertAndUpdate',
-    title: 'Create and update records',
-    tooltip: 'Updates existing records and creates new records from csv to the nocodb table.',
-  },
-] as ImportType[]
-
 const { fullscreen, fullscreenModalSize, extension, tables, insertData, getTableMeta, reloadData, activeTableId } =
   useExtensionHelperOrThrow()
 
@@ -116,7 +99,7 @@ const { getMeta } = useMetas()
 
 const { t } = useI18n()
 
-const { isAllowed } = usePermissions()
+const { isAllowed, getPermissionSummaryLabel } = usePermissions()
 
 const EXTENSION_ID = extension.value.extensionId
 
@@ -159,7 +142,7 @@ const autoInsertOption = ref(false)
 
 const parsedData = ref<any>()
 
-const columns = ref<Record<string, ColumnType>>({})
+const columns = ref<Record<string, ColumnType & { permissions: { isAllowToEdit: boolean; tooltip?: string } }>>({})
 
 const columnByTitle = computed(() => {
   return Object.values(columns.value).reduce((acc, column) => {
@@ -169,6 +152,39 @@ const columnByTitle = computed(() => {
     return acc
   }, {} as Record<string, ColumnType>)
 })
+
+const isAddingEmptyRowPermitted = computed(() => {
+  if (!importPayload.value?.tableId) return true
+
+  return isAllowed(PermissionEntity.TABLE, importPayload.value?.tableId, PermissionKey.TABLE_RECORD_ADD)
+})
+
+const importTypeOptions = computed(
+  () =>
+    [
+      {
+        type: 'insert',
+        title: 'Create new records only',
+        tooltip: !isAddingEmptyRowPermitted.value
+          ? t('objects.permissions.addNewRecordTooltip')
+          : 'Identifies and creates new records from csv.',
+        disabled: !isAddingEmptyRowPermitted.value,
+      },
+      {
+        type: 'update',
+        title: 'Update existing records only',
+        tooltip: 'Identifies updated records from csv and updates values in nocodb table.',
+      },
+      {
+        type: 'insertAndUpdate',
+        title: 'Create and update records',
+        tooltip: !isAddingEmptyRowPermitted.value
+          ? t('objects.permissions.addNewRecordTooltip')
+          : 'Updates existing records and creates new records from csv to the nocodb table.',
+        disabled: !isAddingEmptyRowPermitted.value,
+      },
+    ] as ImportType[],
+)
 
 const importPayloadPlaceholder: ImportPayloadType = {
   step: 0,
@@ -237,12 +253,6 @@ const importPayload = computedAsync(async () => {
 
   return savedPayloads.value[0]!
 }, importPayloadPlaceholder)
-
-const isUploadAllowed = computed(() => {
-  if (!importPayload.value?.tableId) return true
-
-  return isAllowed(PermissionEntity.TABLE, importPayload.value?.tableId, PermissionKey.TABLE_RECORD_ADD)
-})
 
 const updateHistory = async (updateImportVerified = false) => {
   // update last used
@@ -315,13 +325,29 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
     if (tableMeta?.columns) {
       columns.value = tableMeta.columns.reduce((acc, column) => {
         if (!column.id || !filterForDestinationColumn(column)) return acc
-        acc[column.id] = column
-        return acc
-      }, {} as Record<string, ColumnType>)
 
-      const nocodbColumnsToMap = tableMeta.columns.filter(
-        (c) => c.id && !c.system && !GENERATED_COLUMN_TYPES.includes(c.uidt as UITypes) && !c.readonly,
-      )
+        const isAllowToEdit = isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
+
+        acc[column.id] = {
+          ...column,
+          readonly: column.readonly || !isAllowToEdit,
+          permissions: {
+            isAllowToEdit,
+            tooltip: column.readonly
+              ? t('msg.info.fieldReadonly')
+              : !isAllowToEdit
+              ? `This field is editable by ${getPermissionSummaryLabel(
+                  PermissionEntity.FIELD,
+                  column.id!,
+                  PermissionKey.RECORD_FIELD_EDIT,
+                )}`
+              : '',
+          },
+        }
+        return acc
+      }, {} as Record<string, ColumnType & { permissions: { isAllowToEdit: boolean; tooltip?: string } }>)
+
+      const nocodbColumnsToMap = Object.values(columns.value).filter((c) => !c.readonly)
 
       importPayload.value.srcDestMapping = headers.value.map((h) => {
         const column = nocodbColumnsToMap.find((c) => searchCompare([c.title], h.label))
@@ -336,8 +362,20 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
     }
     importPayload.value.tableName = table?.title
     importPayload.value.tableIcon = table?.meta?.icon
+
+    if (!isAddingEmptyRowPermitted.value) {
+      importPayload.value.importType = 'update'
+      importPayload.value.upsert = true
+      importPayload.value.upsertColumnId = undefined
+    }
+
     if (resetUpsertColumnId) {
       importPayload.value.upsertColumnId = undefined
+
+      if (isAddingEmptyRowPermitted.value) {
+        importPayload.value.upsert = false
+        importPayload.value.importType = 'insert'
+      }
     }
   }
 
@@ -1016,7 +1054,7 @@ const errorMsgsTableColumns = [
 
         <NcButton
           size="small"
-          :disabled="!readyForImport || !isUploadAllowed"
+          :disabled="!readyForImport || (!isAddingEmptyRowPermitted && importPayload.importType !== 'update')"
           :loading="isImportingRecords || isVerifyImportLoading"
           @click="onVerifyImport"
         >
@@ -1216,11 +1254,7 @@ const errorMsgsTableColumns = [
             <div class="h-full w-[420px] flex flex-col nc-scrollbar-thin border-r border-nc-border-gray-medium">
               <section>
                 <h1>Table</h1>
-                <a-form-item
-                  class="!my-0 w-full nc-input-required-error"
-                  :validate-status="!isUploadAllowed ? 'error' : ''"
-                  :help="!isUploadAllowed ? $t('objects.permissions.uploadDataTooltip') : ''"
-                >
+                <a-form-item class="!my-0 w-full nc-input-required-error">
                   <NcSelect
                     v-model:value="importPayload.tableId"
                     class="w-full nc-select-shadow"
@@ -1262,12 +1296,17 @@ const errorMsgsTableColumns = [
                 <div class="nc-import-upsert-type">
                   <a-radio-group v-model:value="importPayload.upsert" name="upsert" @change="updateHistory(true)">
                     <div class="input-wrapper border-1 border-nc-border-gray-medium rounded-lg px-3 py-2 flex flex-col gap-2">
-                      <a-radio :value="false">
-                        <div class="flex flex-col">
-                          <div>Add records</div>
-                          <div class="text-small leading-[18px] text-nc-content-gray-muted">Adds all records from CSV.</div>
-                        </div>
-                      </a-radio>
+                      <NcTooltip :disabled="isAddingEmptyRowPermitted" placement="right">
+                        <template #title>
+                          {{ $t('objects.permissions.addNewRecordTooltip') }}
+                        </template>
+                        <a-radio :value="false" :disabled="!isAddingEmptyRowPermitted">
+                          <div class="flex flex-col">
+                            <div>Add records</div>
+                            <div class="text-small leading-[18px] text-nc-content-gray-muted">Adds all records from CSV.</div>
+                          </div>
+                        </a-radio>
+                      </NcTooltip>
                     </div>
                     <div class="input-wrapper border-1 border-nc-border-gray-medium rounded-lg px-3 py-2 flex flex-col gap-2">
                       <a-radio :value="true">
@@ -1288,7 +1327,12 @@ const errorMsgsTableColumns = [
                               dropdown-class-name="w-[254px]"
                               @change="updateHistory(true)"
                             >
-                              <a-select-option v-for="(opt, i) of importTypeOptions" :key="i" :value="opt.type">
+                              <a-select-option
+                                v-for="(opt, i) of importTypeOptions"
+                                :key="i"
+                                :disabled="opt.disabled"
+                                :value="opt.type"
+                              >
                                 <NcTooltip class="!w-full" placement="right">
                                   <template #title>
                                     {{ opt.tooltip }}
@@ -1342,7 +1386,7 @@ const errorMsgsTableColumns = [
                                     :placement="col.readonly ? 'right' : 'top'"
                                   >
                                     <template #title>
-                                      {{ col.readonly ? $t('msg.info.fieldReadonly') : col.title }}
+                                      {{ col.readonly ? col?.permissions?.tooltip || $t('msg.info.fieldReadonly') : col.title }}
                                     </template>
                                     {{ col.title }}
                                   </NcTooltip>
@@ -1528,7 +1572,7 @@ const errorMsgsTableColumns = [
                               :placement="col.readonly ? 'right' : 'top'"
                             >
                               <template #title>
-                                {{ col.readonly ? $t('msg.info.fieldReadonly') : col.title }}
+                                {{ col.readonly ? col?.permissions?.tooltip || $t('msg.info.fieldReadonly') : col.title }}
                               </template>
                               {{ col.title }}
                             </NcTooltip>

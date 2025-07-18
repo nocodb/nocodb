@@ -1,14 +1,13 @@
-import {
-  type Api,
-  type BaseType,
-  type IntegrationType,
-  type PlanFeatureTypes,
-  type PlanLimitTypes,
-  type WorkspaceType,
-  WorkspaceUserRoles,
-  type WorkspaceUserType,
+import type {
+  Api,
+  BaseType,
+  IntegrationType,
+  PlanFeatureTypes,
+  PlanLimitTypes,
+  WorkspaceType,
+  WorkspaceUserType,
 } from 'nocodb-sdk'
-import { WorkspaceStatus } from 'nocodb-sdk'
+import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { isString } from '@vue/shared'
 

@@ -176,7 +176,7 @@ const allowLeaveWs = computed(() => {
    * 1. workspace has more than one owner
    * 2. user workspace role is not owner
    */
-  return (workspaceOwnerCount.value ?? 0) > 1 || (user.value && !user.value.workspace_roles[WorkspaceUserRoles.OWNER])
+  return !!((workspaceOwnerCount.value ?? 0) > 1 || (user.value && !user.value.workspace_roles[WorkspaceUserRoles.OWNER]))
 })
 
 const handleLeaveWorkspace = () => {

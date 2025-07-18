@@ -2,6 +2,7 @@ import type { ComputedRef, Ref } from 'vue'
 import {
   type Api,
   type ColumnType,
+  type DataPayload,
   type FilterType,
   type LinkToAnotherRecordType,
   NcApiVersion,
@@ -83,7 +84,7 @@ export function useInfiniteData(args: {
   const NOCO = 'noco'
   const { meta, viewMeta, callbacks, where, disableSmartsheet, isPublic, groupByColumns = ref(null) } = args
 
-  const { $api } = useNuxtApp()
+  const { $api, $ncSocket } = useNuxtApp()
 
   const { t } = useI18n()
 
@@ -2024,6 +2025,136 @@ export function useInfiniteData(args: {
       })
     }
   })
+
+  watch(
+    meta,
+    (newMeta, oldMeta) => {
+      console.log('useData meta changed')
+      if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
+        if (oldMeta?.id && oldMeta.id === newMeta.id) return
+
+        $ncSocket.subscribe(`event-data:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`)
+
+        $ncSocket.onMessage(`event-data:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`, (data: DataPayload) => {
+          const { id, action, payload, before } = data
+
+          if (action === 'add') {
+            // Add the new row to the local cache (cachedRows)
+            try {
+              const dataCache = getDataCache()
+
+              // find index to insert the new row
+              if (before) {
+                for (const [rowIndex, cachedRow] of dataCache.cachedRows.value.entries()) {
+                  const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+                  if (pk && `${pk}` === `${before}`) {
+                    // Insert before the found row
+                    const newRowIndex = rowIndex
+                    dataCache.cachedRows.value.set(newRowIndex, {
+                      row: payload,
+                      oldRow: {},
+                      rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
+                    })
+
+                    const rows = Array.from(dataCache.cachedRows.value.entries())
+                    const rowsToShift = rows.filter(([index]) => index > rowIndex)
+                    rowsToShift.sort((a, b) => a[0] - b[0])
+
+                    for (const [index, row] of rowsToShift) {
+                      const newIndex = index + 1
+                      row.rowMeta.rowIndex = newIndex
+                      dataCache.cachedRows.value.delete(index)
+                      dataCache.cachedRows.value.set(newIndex, row)
+                    }
+
+                    if (rowsToShift.length) {
+                      dataCache.chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
+                    }
+
+                    dataCache.totalRows.value++
+                    dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+
+                    callbacks?.syncVisibleData?.()
+                    return
+                  }
+                }
+              }
+
+              // If no order is found, append to the end
+              const newRowIndex = dataCache.cachedRows.value.size
+              dataCache.cachedRows.value.set(newRowIndex, {
+                row: payload,
+                oldRow: {},
+                rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
+              })
+              dataCache.totalRows.value++
+              dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+
+              callbacks?.syncVisibleData?.()
+            } catch (e) {
+              console.error('Failed to add cached row on socket event', e)
+            }
+          } else if (action === 'update') {
+            // Update the row in the local cache (cachedRows)
+            try {
+              const dataCache = getDataCache()
+              let updated = false
+              for (const cachedRow of dataCache.cachedRows.value.values()) {
+                const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+                if (pk && `${pk}` === `${id}`) {
+                  Object.assign(cachedRow.row, payload)
+                  Object.assign(cachedRow.oldRow, payload)
+                  cachedRow.rowMeta.changed = false
+                  updated = true
+                  break
+                }
+              }
+              if (updated) {
+                callbacks?.syncVisibleData?.()
+              }
+            } catch (e) {
+              console.error('Failed to update cached row on socket event', e)
+            }
+          } else if (action === 'delete') {
+            // Delete the row from the local cache (cachedRows)
+            try {
+              const dataCache = getDataCache()
+              for (const [rowIndex, cachedRow] of dataCache.cachedRows.value.entries()) {
+                const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+                if (pk && `${pk}` === `${id}`) {
+                  dataCache.cachedRows.value.delete(rowIndex)
+
+                  const rows = Array.from(dataCache.cachedRows.value.entries())
+                  const rowsToShift = rows.filter(([index]) => index > rowIndex)
+                  rowsToShift.sort((a, b) => a[0] - b[0])
+
+                  for (const [index, row] of rowsToShift) {
+                    const newIndex = index - 1
+                    row.rowMeta.rowIndex = newIndex
+                    dataCache.cachedRows.value.delete(index)
+                    dataCache.cachedRows.value.set(newIndex, row)
+                  }
+
+                  if (rowsToShift.length) {
+                    dataCache.chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
+                  }
+
+                  dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
+                  dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
+
+                  callbacks?.syncVisibleData?.()
+                }
+              }
+              callbacks?.syncVisibleData?.()
+            } catch (e) {
+              console.error('Failed to delete cached row on socket event', e)
+            }
+          }
+        })
+      }
+    },
+    { immediate: true },
+  )
 
   return {
     getDataCache,

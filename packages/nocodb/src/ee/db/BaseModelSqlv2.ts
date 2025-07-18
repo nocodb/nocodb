@@ -90,6 +90,7 @@ import {
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { getProjectRole } from '~/utils/roleHelper';
+import NocoSocket from '~/socket/NocoSocket';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -1154,6 +1155,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }): Promise<void> {
     await this.handleHooks('after.insert', null, data, req);
     const id = this.extractPksValues(data);
+
+    NocoSocket.broadcastDataEvent(
+      this.context,
+      this.model.id,
+      {
+        id,
+        action: 'add',
+        payload: data,
+        before: req?.query?.before,
+      },
+      req.socketId,
+    );
+
     const filteredAuditData = removeBlankPropsAndMask(insertData || data, [
       'CreatedAt',
       'UpdatedAt',
@@ -1190,6 +1204,21 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
     await this.handleHooks('after.bulkInsert', null, data, req);
+
+    for (const d of data) {
+      const id = this.extractPksValues(d);
+      NocoSocket.broadcastDataEvent(
+        this.context,
+        this.model.id,
+        {
+          id,
+          action: 'add',
+          payload: d,
+        },
+        req.socketId,
+      );
+    }
+
     if (await this.isDataAuditEnabled()) {
       let parentAuditId;
       if (!req.ncParentAuditId) {
@@ -1259,6 +1288,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
     const id = this.extractPksValues(data);
+
+    NocoSocket.broadcastDataEvent(
+      this.context,
+      this.model.id,
+      {
+        id,
+        action: 'delete',
+        payload: null,
+      },
+      req.socketId,
+    );
+
     if (await this.isDataAuditEnabled()) {
       await Audit.insert(
         await generateAuditV1Payload<DataDeletePayload>(
@@ -1294,6 +1335,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   ): Promise<void> {
     if (!isBulkAllOperation) {
       await this.handleHooks('after.bulkDelete', null, data, req);
+    }
+
+    for (const d of data) {
+      const id = this.extractPksValues(d);
+      NocoSocket.broadcastDataEvent(
+        this.context,
+        this.model.id,
+        {
+          id,
+          action: 'delete',
+          payload: null,
+        },
+        req.socketId,
+      );
     }
 
     if (await this.isDataAuditEnabled()) {
@@ -3167,6 +3222,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       Object.assign(data, newData);
     }
 
+    NocoSocket.broadcastDataEvent(
+      this.context,
+      this.model.id,
+      {
+        id,
+        action: 'update',
+        payload: data,
+      },
+      req.socketId,
+    );
+
     // disable external source audit in cloud
     if (await this.isDataAuditEnabled()) {
       const formattedOldData = formatDataForAudit(oldData, this.model.columns);
@@ -3232,6 +3298,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   ): Promise<void> {
     if (!isBulkAllOperation) {
       await this.handleHooks('after.bulkUpdate', prevData, newData, req);
+    }
+
+    for (const data of newData) {
+      NocoSocket.broadcastDataEvent(
+        this.context,
+        this.model.id,
+        {
+          id: this.extractPksValues(data),
+          action: 'update',
+          payload: data,
+        },
+        req.socketId,
+      );
     }
 
     // disable external source audit in cloud

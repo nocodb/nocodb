@@ -102,7 +102,7 @@ watch(
   async (newTab) => {
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
-    if (!isUIAllowed('workspaceManage')) {
+    if (!isUIAllowed('workspaceCollaborators')) {
       tab.value = 'settings'
     } else if (!isWsAuditEnabled.value && newTab === 'audits') {
       tab.value = 'collaborators'

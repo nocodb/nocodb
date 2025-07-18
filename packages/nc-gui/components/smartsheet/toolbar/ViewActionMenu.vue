@@ -50,7 +50,7 @@ const onDescriptionUpdateClick = () => {
   emits('descriptionUpdate')
 }
 
-const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel']
+const quickImportDialogTypes: ImportType[] = [ImportType.CSV, ImportType.EXCEL]
 
 const importAlias = {
   csv: {
@@ -69,7 +69,7 @@ const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<bo
     return acc
   },
   {},
-) as Record<QuickImportDialogType, Ref<boolean>>
+) as Record<ImportType, Ref<boolean>>
 
 const onImportClick = (dialog: any) => {
   emits('closeModal')
@@ -207,6 +207,10 @@ const isUploadAllowed = computed(() => {
   )
 })
 
+defineOptions({
+  inheritAttrs: false,
+})
+
 /**
  * ## Known Issue and Fix
  * - **Issue**: When conditionally rendering `NcMenuItem` using `v-if` without a corresponding `v-else` fallback,
@@ -223,6 +227,7 @@ const isUploadAllowed = computed(() => {
 <template>
   <NcMenu
     v-if="view"
+    v-bind="$attrs"
     :data-testid="`view-sidebar-view-actions-${view!.alias || view!.title}`"
     class="!min-w-70"
     data-id="toolbar-actions"
@@ -534,19 +539,21 @@ const isUploadAllowed = computed(() => {
         }}
       </NcMenuItem>
     </template>
-    <template v-if="table?.base_id && currentSourceId">
-      <LazyDlgQuickImport
-        v-for="tp in quickImportDialogTypes"
-        :key="tp"
-        v-model="quickImportDialogs[tp].value"
-        :import-data-only="true"
-        :import-type="tp"
-        :base-id="table.base_id"
-        :source-id="currentSourceId"
-      />
-    </template>
   </NcMenu>
-  <span v-else></span>
+  <span v-else v-bind="$attrs"></span>
+
+  <template v-if="table?.base_id && currentSourceId">
+    <!-- Don't add this inside the NcMenu else it will show 2 modals at the same time -->
+    <LazyDlgQuickImport
+      v-for="tp in quickImportDialogTypes"
+      :key="tp"
+      v-model="quickImportDialogs[tp].value"
+      :import-data-only="true"
+      :import-type="tp"
+      :base-id="table.base_id"
+      :source-id="currentSourceId"
+    />
+  </template>
 </template>
 
 <style lang="scss" scoped>

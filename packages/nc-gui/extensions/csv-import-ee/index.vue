@@ -85,6 +85,7 @@ interface ImportPayloadType {
   stats: { inserted: number | null; updated: number | null; error?: { title?: string; message: string } }
   status?: 'initial' | 'inprogress' | 'completed' | 'failed'
   order: number
+  isSyncedTable?: boolean
 }
 
 interface ImportConfigPayloadType {
@@ -100,6 +101,10 @@ const { getMeta } = useMetas()
 const { t } = useI18n()
 
 const { isAllowed, getPermissionSummaryLabel } = usePermissions()
+
+const { isSqlView } = useSmartsheetStoreOrThrow()
+
+const { isUIAllowed, isDataReadOnly } = useRoles()
 
 const EXTENSION_ID = extension.value.extensionId
 
@@ -153,39 +158,6 @@ const columnByTitle = computed(() => {
   }, {} as Record<string, ColumnType>)
 })
 
-const isAddingEmptyRowPermitted = computed(() => {
-  if (!importPayload.value?.tableId) return true
-
-  return isAllowed(PermissionEntity.TABLE, importPayload.value?.tableId, PermissionKey.TABLE_RECORD_ADD)
-})
-
-const importTypeOptions = computed(
-  () =>
-    [
-      {
-        type: 'insert',
-        title: 'Create new records only',
-        tooltip: !isAddingEmptyRowPermitted.value
-          ? t('objects.permissions.addNewRecordTooltip')
-          : 'Identifies and creates new records from csv.',
-        disabled: !isAddingEmptyRowPermitted.value,
-      },
-      {
-        type: 'update',
-        title: 'Update existing records only',
-        tooltip: 'Identifies updated records from csv and updates values in nocodb table.',
-      },
-      {
-        type: 'insertAndUpdate',
-        title: 'Create and update records',
-        tooltip: !isAddingEmptyRowPermitted.value
-          ? t('objects.permissions.addNewRecordTooltip')
-          : 'Updates existing records and creates new records from csv to the nocodb table.',
-        disabled: !isAddingEmptyRowPermitted.value,
-      },
-    ] as ImportType[],
-)
-
 const importPayloadPlaceholder: ImportPayloadType = {
   step: 0,
   file: {
@@ -206,6 +178,7 @@ const importPayloadPlaceholder: ImportPayloadType = {
     updated: null,
   },
   order: 0,
+  isSyncedTable: false,
 }
 
 const savedPayloads = ref<ImportPayloadType[]>([])
@@ -253,6 +226,59 @@ const importPayload = computedAsync(async () => {
 
   return savedPayloads.value[0]!
 }, importPayloadPlaceholder)
+
+const isDataEditAllowed = computed(() => {
+  if (!importPayload.value?.tableId) return true
+
+  return isUIAllowed('dataEdit') && !isDataReadOnly.value && !isSqlView.value
+})
+
+const isAddingEmptyRowAllowed = computed(() => {
+  if (!importPayload.value?.tableId) return true
+
+  return isDataEditAllowed.value && !importPayload.value.isSyncedTable
+})
+
+const isAddingEmptyRowPermitted = computed(() => {
+  if (!importPayload.value?.tableId) return true
+
+  return isAllowed(PermissionEntity.TABLE, importPayload.value?.tableId, PermissionKey.TABLE_RECORD_ADD)
+})
+
+watchEffect(() => {
+  console.log('isSyncedTable', importPayload.value.isSyncedTable)
+})
+
+const importTypeOptions = computed(
+  () =>
+    [
+      {
+        type: 'insert',
+        title: 'Create new records only',
+        tooltip: !isAddingEmptyRowPermitted.value
+          ? t('objects.permissions.addNewRecordTooltip')
+          : !isAddingEmptyRowAllowed.value
+          ? t('tooltip.addingEmptyRecordIsNotAllowedInThisTable')
+          : 'Identifies and creates new records from csv.',
+        disabled: !isAddingEmptyRowPermitted.value || !isAddingEmptyRowAllowed.value,
+      },
+      {
+        type: 'update',
+        title: 'Update existing records only',
+        tooltip: 'Identifies updated records from csv and updates values in nocodb table.',
+      },
+      {
+        type: 'insertAndUpdate',
+        title: 'Create and update records',
+        tooltip: !isAddingEmptyRowPermitted.value
+          ? t('objects.permissions.addNewRecordTooltip')
+          : !isAddingEmptyRowAllowed.value
+          ? t('tooltip.addingEmptyRecordIsNotAllowedInThisTable')
+          : 'Updates existing records and creates new records from csv to the nocodb table.',
+        disabled: !isAddingEmptyRowPermitted.value || !isAddingEmptyRowAllowed.value,
+      },
+    ] as ImportType[],
+)
 
 const updateHistory = async (updateImportVerified = false) => {
   // update last used
@@ -360,10 +386,12 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
         }
       })
     }
+
+    importPayload.value.isSyncedTable = !!table?.synced
     importPayload.value.tableName = table?.title
     importPayload.value.tableIcon = table?.meta?.icon
 
-    if (!isAddingEmptyRowPermitted.value) {
+    if (!isAddingEmptyRowPermitted.value || !isAddingEmptyRowAllowed.value) {
       importPayload.value.importType = 'update'
       importPayload.value.upsert = true
       importPayload.value.upsertColumnId = undefined
@@ -372,7 +400,7 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
     if (resetUpsertColumnId) {
       importPayload.value.upsertColumnId = undefined
 
-      if (isAddingEmptyRowPermitted.value) {
+      if (isAddingEmptyRowPermitted.value && isAddingEmptyRowAllowed.value) {
         importPayload.value.upsert = false
         importPayload.value.importType = 'insert'
       }
@@ -589,6 +617,11 @@ const processedRecordsToInsert = ref(0)
 const processedRecordsToUpdate = ref(0)
 
 const onVerifyImport = async () => {
+  if (!isDataEditAllowed.value) {
+    message.error(t('tooltip.sourceDataIsReadonly'))
+    return
+  }
+
   if (!importPayload.value?.upsert || isImportVerified.value) {
     onImport()
     return
@@ -684,7 +717,8 @@ const onVerifyImport = async () => {
       }
     }
 
-    if (importPayload.value!.importType !== 'update') {
+    // If adding new record is not allowed, then we don't need to insert any records
+    if (importPayload.value!.importType !== 'update' && isAddingEmptyRowPermitted.value && isAddingEmptyRowAllowed.value) {
       recordsToInsert.value.push(...chunk.filter((record: Record<string, any>) => !seen.has(record[upsertFieldTitle])))
     }
   }
@@ -1054,7 +1088,9 @@ const errorMsgsTableColumns = [
 
         <NcButton
           size="small"
-          :disabled="!readyForImport || (!isAddingEmptyRowPermitted && importPayload.importType !== 'update')"
+          :disabled="
+            !readyForImport || (!isAddingEmptyRowPermitted && importPayload.importType !== 'update') || !isDataEditAllowed
+          "
           :loading="isImportingRecords || isVerifyImportLoading"
           @click="onVerifyImport"
         >
@@ -1254,7 +1290,11 @@ const errorMsgsTableColumns = [
             <div class="h-full w-[420px] flex flex-col nc-scrollbar-thin border-r border-nc-border-gray-medium">
               <section>
                 <h1>Table</h1>
-                <a-form-item class="!my-0 w-full nc-input-required-error">
+                <a-form-item
+                  class="!my-0 w-full nc-input-required-error"
+                  :validate-status="!isDataEditAllowed ? 'error' : ''"
+                  :help="!isDataEditAllowed ? $t('tooltip.sourceDataIsReadonly') : ''"
+                >
                   <NcSelect
                     v-model:value="importPayload.tableId"
                     class="w-full nc-select-shadow"
@@ -1296,14 +1336,27 @@ const errorMsgsTableColumns = [
                 <div class="nc-import-upsert-type">
                   <a-radio-group v-model:value="importPayload.upsert" name="upsert" @change="updateHistory(true)">
                     <div class="input-wrapper border-1 border-nc-border-gray-medium rounded-lg px-3 py-2 flex flex-col gap-2">
-                      <NcTooltip :disabled="isAddingEmptyRowPermitted" placement="right">
+                      <NcTooltip :disabled="isAddingEmptyRowPermitted && isAddingEmptyRowAllowed" placement="right">
                         <template #title>
-                          {{ $t('objects.permissions.addNewRecordTooltip') }}
+                          {{
+                            !isAddingEmptyRowPermitted
+                              ? $t('objects.permissions.addNewRecordTooltip')
+                              : !isAddingEmptyRowAllowed
+                              ? $t('tooltip.addingEmptyRecordIsNotAllowedInThisTable')
+                              : ''
+                          }}
                         </template>
-                        <a-radio :value="false" :disabled="!isAddingEmptyRowPermitted">
+                        <a-radio :value="false" :disabled="!isAddingEmptyRowPermitted || !isAddingEmptyRowAllowed">
                           <div class="flex flex-col">
                             <div>Add records</div>
-                            <div class="text-small leading-[18px] text-nc-content-gray-muted">Adds all records from CSV.</div>
+                            <div
+                              class="text-small leading-[18px]"
+                              :class="{
+                                'text-nc-content-gray-muted': isAddingEmptyRowPermitted && isAddingEmptyRowAllowed,
+                              }"
+                            >
+                              Adds all records from CSV.
+                            </div>
                           </div>
                         </a-radio>
                       </NcTooltip>

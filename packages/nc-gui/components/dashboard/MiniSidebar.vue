@@ -187,7 +187,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </div>
         <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')">
           <NcTooltip
-            :title="isEeUI ? `${$t('objects.workspace')} ${$t('labels.settings')}` : $t('title.accountSettings')"
+            :title="isEeUI ? `${$t('objects.workspace')} ${$t('labels.settings')}` : $t('title.teamAndSettings')"
             placement="right"
             hide-on-click
             :arrow="false"

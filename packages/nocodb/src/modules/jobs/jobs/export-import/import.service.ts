@@ -1832,7 +1832,7 @@ export class ImportService {
                       // check if the option is still exists on field option
                       // currently any modification on field option
                       // is not reflected yet to kanban view
-                      const metaValueOption = grpCol.colOptions.options.find(
+                      const metaValueOption = grpCol.colOptions?.options?.find(
                         (el) => el.title === vl.title,
                       );
                       if (!metaValueOption) {

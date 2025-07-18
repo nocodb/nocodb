@@ -176,8 +176,8 @@ export default class Plan {
     return true;
   }
 
-  static async list() {
-    const plans = await Noco.ncMeta.metaList2(
+  static async list(ncMeta = Noco.ncMeta) {
+    const plans = await ncMeta.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.PLANS,

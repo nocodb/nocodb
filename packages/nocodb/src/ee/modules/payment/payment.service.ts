@@ -9,9 +9,9 @@ import {
   PlanOrder,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
-import { JobTypes } from 'src/interface/Jobs';
 import type { PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import { JobTypes } from '~/interface/Jobs';
 import {
   Org,
   Plan,
@@ -28,7 +28,7 @@ import {
 } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType } from '~/utils/globals';
+import { CacheGetType, CacheScope } from '~/utils/globals';
 import { acquireLock, releaseLock } from '~/helpers/lockHelpers';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { TelemetryService } from '~/services/telemetry.service';
@@ -36,6 +36,8 @@ import { TelemetryService } from '~/services/telemetry.service';
 const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder', {
   apiVersion: '2025-05-28.basil',
 });
+
+const NOCODB_INTERNAL = 'nocodb';
 
 @Injectable()
 export class PaymentService {
@@ -159,6 +161,107 @@ export class PaymentService {
     return await Plan.update(plan.id, { is_active: false });
   }
 
+  async internalUpgrade(
+    workspaceOrOrgId: string,
+    planTitle: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const existingSubscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrgId,
+    );
+
+    if (existingSubscription) {
+      throw new Error(`Subscription already exists for ${workspaceOrOrgId} `);
+    }
+
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
+
+    if (!workspaceOrOrg) {
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+    }
+
+    const plans = await Plan.list(ncMeta);
+
+    const plan = plans.find((p) => p.title === planTitle);
+
+    if (!plan) {
+      NcError.genericNotFound('Plan', planTitle);
+    }
+
+    const transaction = await ncMeta.startTransaction();
+
+    let subscription: Subscription | null = null;
+
+    try {
+      subscription = await Subscription.insert(
+        {
+          fk_workspace_id:
+            workspaceOrOrg.entity === 'workspace' ? workspaceOrOrg.id : null,
+          fk_org_id: workspaceOrOrg.entity === 'org' ? workspaceOrOrg.id : null,
+          fk_plan_id: plan.id,
+          stripe_subscription_id: `internal_${nanoid()}`,
+          stripe_price_id: `internal_${plan.id}`,
+          seat_count: 1,
+          status: 'active',
+          start_at: dayjs().utc().toISOString(),
+          period: 'year',
+          billing_cycle_anchor: dayjs().utc().toISOString(),
+        },
+        transaction,
+      );
+
+      if (workspaceOrOrg.entity === 'workspace') {
+        await Workspace.update(
+          workspaceOrOrg.id,
+          {
+            stripe_customer_id: NOCODB_INTERNAL,
+          },
+          transaction,
+        );
+      } else {
+        await Org.update(
+          workspaceOrOrg.id,
+          {
+            stripe_customer_id: NOCODB_INTERNAL,
+          },
+          transaction,
+        );
+      }
+
+      await transaction.commit();
+    } catch (e) {
+      await transaction.rollback();
+
+      await NocoCache.del(
+        `${
+          workspaceOrOrg.entity === 'workspace'
+            ? CacheScope.WORKSPACE
+            : CacheScope.ORG
+        }:${workspaceOrOrg.id}`,
+      );
+
+      this.logger.error(e);
+      return NcError.internalServerError('Failed to create subscription');
+    }
+
+    await this.telemetryService.sendSystemEvent({
+      event_type: 'payment_alert',
+      payment_type: 'subscription_created',
+      message: `FREE Internal Subscription created for ${workspaceOrOrg.title} (${plan.title})`,
+      workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
+      extra: {
+        subscription_id: subscription.id,
+        stripe_subscription_id: subscription.stripe_subscription_id,
+        plan_title: plan.title,
+      },
+    });
+
+    await this.migrateDb(workspaceOrOrg.id, transaction);
+    await this.reseatSubscription(workspaceOrOrg.id, ncMeta);
+
+    return subscription;
+  }
+
   async customerUpdate(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
     const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
 
@@ -168,6 +271,10 @@ export class PaymentService {
 
     if (!workspaceOrOrg.stripe_customer_id) {
       NcError.genericNotFound('Customer', workspaceOrOrgId);
+    }
+
+    if (workspaceOrOrg.stripe_customer_id === NOCODB_INTERNAL) {
+      return;
     }
 
     const customer = await stripe.customers.update(
@@ -332,6 +439,10 @@ export class PaymentService {
     }
 
     if (workspaceOrOrg.stripe_customer_id) {
+      if (workspaceOrOrg.stripe_customer_id === NOCODB_INTERNAL) {
+        NcError.notImplemented('Internal customer not supported');
+      }
+
       const stripe_customer = await stripe.customers.retrieve(
         workspaceOrOrg.stripe_customer_id,
       );
@@ -488,6 +599,10 @@ export class PaymentService {
     const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
     if (!workspaceOrOrg)
       NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+
+    if (workspaceOrOrg.stripe_customer_id === NOCODB_INTERNAL) {
+      NcError.notImplemented('Internal customer not supported');
+    }
 
     const existingSub = await Subscription.getByWorkspaceOrOrg(
       workspaceOrOrgId,
@@ -801,67 +916,75 @@ export class PaymentService {
       const seatCount = await this.getSeatCount(workspaceOrOrgId, ncMeta);
       if (existingSub.seat_count === seatCount) return;
 
-      const stripeSub = await stripe.subscriptions.retrieve(
-        existingSub.stripe_subscription_id,
-      );
-      if (!stripeSub) throw new Error('Stripe subscription not found');
+      if (workspaceOrOrg.stripe_customer_id === NOCODB_INTERNAL) {
+        await Subscription.update(
+          existingSub.id,
+          { seat_count: seatCount },
+          ncMeta,
+        );
+      } else {
+        const stripeSub = await stripe.subscriptions.retrieve(
+          existingSub.stripe_subscription_id,
+        );
+        if (!stripeSub) throw new Error('Stripe subscription not found');
 
-      if (
-        stripeSub.metadata.fk_workspace_id &&
-        stripeSub.metadata.fk_workspace_id !== existingSub.fk_workspace_id
-      ) {
-        throw new Error('Subscription does not belong to the workspace');
-      }
-      if (
-        stripeSub.metadata.fk_org_id &&
-        stripeSub.metadata.fk_org_id !== existingSub.fk_org_id
-      ) {
-        throw new Error('Subscription does not belong to the org');
-      }
+        if (
+          stripeSub.metadata.fk_workspace_id &&
+          stripeSub.metadata.fk_workspace_id !== existingSub.fk_workspace_id
+        ) {
+          throw new Error('Subscription does not belong to the workspace');
+        }
+        if (
+          stripeSub.metadata.fk_org_id &&
+          stripeSub.metadata.fk_org_id !== existingSub.fk_org_id
+        ) {
+          throw new Error('Subscription does not belong to the org');
+        }
 
-      await stripe.subscriptions.update(stripeSub.id, {
-        items: [
-          {
-            id: stripeSub.items.data[0].id,
-            price: existingSub.stripe_price_id,
-            quantity: seatCount,
-          },
-        ],
-        ...(existingSub.period === 'year' || existingSub.stripe_schedule_id
-          ? { proration_behavior: 'always_invoice' }
-          : {}),
-      });
+        await stripe.subscriptions.update(stripeSub.id, {
+          items: [
+            {
+              id: stripeSub.items.data[0].id,
+              price: existingSub.stripe_price_id,
+              quantity: seatCount,
+            },
+          ],
+          ...(existingSub.period === 'year' || existingSub.stripe_schedule_id
+            ? { proration_behavior: 'always_invoice' }
+            : {}),
+        });
 
-      await Subscription.update(
-        existingSub.id,
-        { seat_count: seatCount },
-        ncMeta,
-      );
-
-      // if there is a schedule, update it too
-      if (existingSub.stripe_schedule_id) {
-        const stripePrice = await stripe.prices.retrieve(
-          existingSub.schedule_stripe_price_id,
+        await Subscription.update(
+          existingSub.id,
+          { seat_count: seatCount },
+          ncMeta,
         );
 
-        // update the schedule
-        await this.schedulePlanChange(
-          workspaceOrOrgId,
-          stripePrice,
-          await Plan.get(existingSub.schedule_fk_plan_id, ncMeta, true),
-          {
-            scheduleType: existingSub.schedule_type,
-          },
+        // if there is a schedule, update it too
+        if (existingSub.stripe_schedule_id) {
+          const stripePrice = await stripe.prices.retrieve(
+            existingSub.schedule_stripe_price_id,
+          );
+
+          // update the schedule
+          await this.schedulePlanChange(
+            workspaceOrOrgId,
+            stripePrice,
+            await Plan.get(existingSub.schedule_fk_plan_id, ncMeta, true),
+            {
+              scheduleType: existingSub.schedule_type,
+            },
+            ncMeta,
+          );
+        }
+
+        // update the next invoice
+        await this.updateNextInvoice(
+          existingSub.id,
+          await this.getNextInvoice(workspaceOrOrgId, ncMeta),
           ncMeta,
         );
       }
-
-      // update the next invoice
-      await this.updateNextInvoice(
-        existingSub.id,
-        await this.getNextInvoice(workspaceOrOrgId, ncMeta),
-        ncMeta,
-      );
     } catch (err) {
       const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
       await this.telemetryService.sendSystemEvent({
@@ -908,6 +1031,10 @@ export class PaymentService {
       ncMeta,
     );
     if (!existingSub) NcError.genericNotFound('Subscription', workspaceOrOrgId);
+
+    if (workspaceOrOrg.stripe_customer_id === NOCODB_INTERNAL) {
+      NcError.notImplemented('Internal customer not supported');
+    }
 
     const stripeSub = await stripe.subscriptions.retrieve(
       existingSub.stripe_subscription_id,
@@ -962,7 +1089,17 @@ export class PaymentService {
     return canceled.id;
   }
 
-  async getCheckoutSession(_workspaceOrOrgId: string, sessionId: string) {
+  async getCheckoutSession(workspaceOrOrgId: string, sessionId: string) {
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId);
+
+    if (!workspaceOrOrg) {
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+    }
+
+    if (workspaceOrOrg.stripe_customer_id === NOCODB_INTERNAL) {
+      NcError.notImplemented('Internal customer not supported');
+    }
+
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (!session) {
@@ -989,6 +1126,10 @@ export class PaymentService {
 
     if (!workspaceOrOrg) {
       NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+    }
+
+    if (workspaceOrOrg.stripe_customer_id === NOCODB_INTERNAL) {
+      NcError.notImplemented('Internal customer not supported');
     }
 
     const session = await stripe.billingPortal.sessions.create({
@@ -1026,6 +1167,10 @@ export class PaymentService {
 
       if (!workspaceOrOrg) {
         NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+      }
+
+      if (workspaceOrOrg.stripe_customer_id === NOCODB_INTERNAL) {
+        return;
       }
 
       const subscription = await Subscription.getByWorkspaceOrOrg(
@@ -1082,6 +1227,10 @@ export class PaymentService {
 
     if (!workspaceOrOrg.stripe_customer_id) {
       NcError.genericNotFound('Subscription', workspaceOrOrgId);
+    }
+
+    if (workspaceOrOrg.stripe_customer_id === NOCODB_INTERNAL) {
+      return { data: [] };
     }
 
     const invoices = await stripe.invoices.list({
@@ -1146,6 +1295,10 @@ export class PaymentService {
 
     if (!workspaceOrOrg) {
       NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+    }
+
+    if (workspaceOrOrg.stripe_customer_id === NOCODB_INTERNAL) {
+      NcError.notImplemented('Internal customer not supported');
     }
 
     const existingSubscription = await Subscription.getByWorkspaceOrOrg(
@@ -1305,6 +1458,14 @@ export class PaymentService {
   ) {
     const { scheduleType } = options;
 
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
+    if (!workspaceOrOrg)
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+
+    if (workspaceOrOrg.stripe_customer_id === NOCODB_INTERNAL) {
+      return;
+    }
+
     const existing = await Subscription.getByWorkspaceOrOrg(
       workspaceOrOrgId,
       ncMeta,
@@ -1449,6 +1610,14 @@ export class PaymentService {
     release = true,
     ncMeta = Noco.ncMeta,
   ) {
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
+    if (!workspaceOrOrg)
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+
+    if (workspaceOrOrg.stripe_customer_id === NOCODB_INTERNAL) {
+      return;
+    }
+
     const existing = await Subscription.getByWorkspaceOrOrg(
       workspaceOrOrgId,
       ncMeta,

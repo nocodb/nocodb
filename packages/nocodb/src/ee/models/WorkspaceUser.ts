@@ -529,7 +529,11 @@ export default class WorkspaceUser {
     return res;
   }
 
-  static async delete(workspaceId: any, userId: any, ncMeta = Noco.ncMeta) {
+  private static async delete(
+    workspaceId: any,
+    userId: any,
+    ncMeta = Noco.ncMeta,
+  ) {
     const res = await ncMeta.metaDelete(
       RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,

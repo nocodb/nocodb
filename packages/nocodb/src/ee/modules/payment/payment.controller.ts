@@ -78,6 +78,15 @@ export class PaymentController {
   }
 
   @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/payment/:workspaceOrOrgId/upgrade')
+  async upgradeSubscription(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Body() payload: { plan: string },
+  ) {
+    return this.paymentService.internalUpgrade(workspaceOrOrgId, payload.plan);
+  }
+
+  @UseGuards(AuthGuard('basic'))
   @Post('/api/internal/payment/:workspaceOrOrgId/reseat')
   async reseatSubscription(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -105,7 +114,7 @@ export class PaymentController {
 
   @UseGuards(AuthGuard('basic'))
   @Patch('/api/internal/payment/:workspaceOrOrgId/meta')
-  async updateWorkspaceSubscriptionMeta(
+  async updateSubscriptionMeta(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Body()
     payload: { [key in PlanLimitTypes]: number } & {

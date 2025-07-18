@@ -19,6 +19,12 @@ export class OrgsService {
       NcError.userNotFound(param.userId);
     }
 
+    // check if the user already has an org
+    const ownedOrgs = await OrgUser.getOwnedOrgs(user.id);
+    if (ownedOrgs.length > 0) {
+      return ownedOrgs[0];
+    }
+
     if (param.dbServerId) {
       const dbServer = await DbServer.get(param.dbServerId);
 

@@ -565,6 +565,11 @@ export class PaymentService {
           period: price.recurring.interval,
         },
       },
+      ...(workspaceOrOrg.segment_code === 1
+        ? {
+            allow_promotion_codes: true,
+          }
+        : {}),
     });
 
     await this.telemetryService.sendSystemEvent({

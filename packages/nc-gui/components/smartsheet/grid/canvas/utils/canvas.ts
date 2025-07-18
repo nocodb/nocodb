@@ -38,6 +38,10 @@ export const rowColouringCache: LRUCache<string, RowColouringEvaluatedResultType
   max: 1000,
 })
 
+export const aggregationCache: LRUCache<string, any> = new LRUCache({
+  max: 1000,
+})
+
 /**
  * It is required to remove cache on row height change or even we can clear cache on unmount table component
  */
@@ -50,6 +54,7 @@ export const clearTextCache = () => {
   replaceUrlsWithLinkCache.clear()
   formulaTextSegmentsCache.clear()
   rowColouringCache.clear()
+  aggregationCache.clear()
 }
 
 export const clearRowColouringCache = () => {

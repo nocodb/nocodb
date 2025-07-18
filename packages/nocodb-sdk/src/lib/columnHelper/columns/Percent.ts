@@ -5,6 +5,7 @@ import AbstractColumnHelper, {
 } from '../column.interface';
 import { ColumnType } from '~/lib/Api';
 import { populateFillHandleStringNumber } from '../utils/fill-handler';
+import { ncIsNaN } from '~/lib/is';
 
 export class PercentHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -32,7 +33,14 @@ export class PercentHelper extends AbstractColumnHelper {
     return parsePercentValue(value);
   }
 
-  parsePlainCellValue(value: any): string {
+  parsePlainCellValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string {
+    if (params.isAggregation && ncIsNaN(value)) {
+      value = 0;
+    }
+
     return `${parsePercentValue(value) ?? ''}`;
   }
 

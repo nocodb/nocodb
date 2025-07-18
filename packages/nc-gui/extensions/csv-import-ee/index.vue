@@ -1443,7 +1443,7 @@ const errorMsgsTableColumns = [
                             >
                               <a-select-option v-for="(col, i) of nocodbTableColumns" :key="i" :value="col.id">
                                 <div class="flex items-center gap-2 w-full">
-                                  <NcTooltip class="flex-1 truncate" :show-on-truncate-only="!col.readonly">
+                                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                                     <template #title>
                                       {{ col.title }}
                                     </template>

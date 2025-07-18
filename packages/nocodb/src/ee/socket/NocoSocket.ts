@@ -1,21 +1,14 @@
 import { Logger } from '@nestjs/common';
 import { EventType, type PayloadForEvent, ProjectRoles } from 'nocodb-sdk';
 import { sendConnectionError, sendWelcomeMessage } from './genericEvents';
+import type { Server } from 'socket.io';
 import type { NcContext, NcSocket } from '~/interface/config';
 import { User } from '~/models';
-
-interface EventSubscription {
-  id: string;
-  clients: {
-    id: string;
-    role?: string;
-  }[];
-}
 
 export default class NocoSocket {
   private static logger: Logger = new Logger(NocoSocket.name);
   private static clients: Map<string, NcSocket> = new Map();
-  private static subscriptions: Map<string, EventSubscription> = new Map();
+  public static ioServer: Server | undefined;
 
   public static handleConnection(socket: NcSocket) {
     this.clients.set(socket.id, socket);
@@ -28,16 +21,6 @@ export default class NocoSocket {
 
     // Set up event handlers for this client
     this.setupClientEventHandlers(socket);
-  }
-
-  public static handleDisconnection(socket: NcSocket) {
-    const client = this.clients.get(socket.id);
-    if (client) {
-      this.clients.delete(socket.id);
-      this.logger.log(
-        `Client disconnected: ${socket.id} (User: ${socket.handshake.user?.id})`,
-      );
-    }
   }
 
   private static async subscribeEvent(socket: NcSocket, event: string) {
@@ -80,18 +63,9 @@ export default class NocoSocket {
       return;
     }
 
-    const subscription = this.subscriptions.get(event);
-    if (subscription) {
-      subscription.clients.push({
-        id: socket.id,
-        role: userWithRole.base_roles,
-      });
-    } else {
-      this.subscriptions.set(event, {
-        id: event,
-        clients: [{ id: socket.id, role: userWithRole.base_roles }],
-      });
-    }
+    // Use native Socket.IO rooms
+    socket.join(event);
+    this.logger.log(`Socket ${socket.id} joined room ${event}`);
   }
 
   public static broadcastDataEvent(
@@ -101,31 +75,21 @@ export default class NocoSocket {
     socketId?: string,
   ) {
     const event = `${EventType.DATA_EVENT}:${context.workspace_id}:${context.base_id}:${tableId}`;
-    const subscription = this.subscriptions.get(event);
     const payload = {
       ...args,
       timestamp: Date.now(),
       socketId,
     };
 
-    if (subscription) {
-      subscription.clients.forEach((client) => {
-        const socket = this.clients.get(client.id);
-        if (socket) {
-          socket.emit(event, payload);
-        }
-      });
+    // Use static ioServer reference
+    if (this.ioServer) {
+      this.ioServer.to(event).emit(event, payload);
     } else {
-      this.logger.warn(`No subscribers for event: ${event}`);
+      this.logger.warn(`No server instance available for event: ${event}`);
     }
   }
 
   private static setupClientEventHandlers(socket: NcSocket) {
-    // Room management
-    /* socket.on('room:join', (data: { roomId: string; roomType: string }) => {
-      this.joinRoom(socket.id, data.roomId, data.roomType);
-    }); */
-
     socket.on('event:subscribe', (event: string) => {
       this.subscribeEvent(socket, event);
     });
@@ -140,7 +104,7 @@ export default class NocoSocket {
 
     // Error handling
     socket.on('error', (error: Error) => {
-      this.logger.error(`Socket error from ${socket.id}:`, error);
+      this.logger.error(`Socket error from ${socket.id}: ${error}`);
       sendConnectionError(socket, error, 'SOCKET_ERROR');
     });
 

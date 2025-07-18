@@ -19,6 +19,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       socket = io(url.href, {
         extraHeaders: { 'xc-auth': token },
         path: socketPath,
+        transports: ['websocket'],
       })
 
       socket.on('connect_error', () => {

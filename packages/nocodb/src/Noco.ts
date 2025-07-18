@@ -23,6 +23,7 @@ import { isEE, T } from '~/utils';
 import { getAppUrl } from '~/utils/appUrl';
 import { DataReflection, Integration } from '~/models';
 import { getRedisURL } from '~/helpers/redisHelpers';
+import { RedisIoAdapter } from '~/gateways/RedisIoAdapter';
 
 dotenv.config();
 declare const module: any;
@@ -126,7 +127,14 @@ export default class Noco {
       bufferLogs: true,
       bodyParser: false,
     });
+
     Noco._nestApp = nestApp;
+
+    const redisIoAdapter = new RedisIoAdapter(nestApp);
+    await redisIoAdapter.connectToRedis();
+
+    nestApp.useWebSocketAdapter(redisIoAdapter);
+
     this.initCustomLogger(nestApp);
     NcDebug.log('Custom logger initialized');
     nestApp.flushLogs();

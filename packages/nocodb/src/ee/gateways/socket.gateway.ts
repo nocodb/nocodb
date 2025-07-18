@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { Server } from 'socket.io';
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { AuthGuard } from '@nestjs/passport';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
-import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import type { OnModuleInit } from '@nestjs/common';
 import type { NcSocket } from '~/interface/config';
 import NocoSocket from '~/socket/NocoSocket';
@@ -35,6 +35,9 @@ export class SocketGateway implements OnModuleInit {
   server: Server;
 
   async onModuleInit() {
+    // Pass server instance to NocoSocket for room broadcasting
+    NocoSocket.ioServer = this.server;
+
     this.server
       .use(async (socket, next) => {
         try {

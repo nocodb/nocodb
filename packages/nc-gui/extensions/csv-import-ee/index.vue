@@ -57,6 +57,7 @@ interface ImportType {
   type: 'insert' | 'update' | 'insertAndUpdate'
   title: string
   tooltip: string
+  disabled: boolean
 }
 
 interface SrcDestMappingType {
@@ -84,30 +85,13 @@ interface ImportPayloadType {
   stats: { inserted: number | null; updated: number | null; error?: { title?: string; message: string } }
   status?: 'initial' | 'inprogress' | 'completed' | 'failed'
   order: number
+  isSyncedTable?: boolean
 }
 
 interface ImportConfigPayloadType {
   delimiter?: string
   encoding?: SupportedExportCharset
 }
-
-const importTypeOptions = [
-  {
-    type: 'insert',
-    title: 'Create new records only',
-    tooltip: 'Identifies and creates new records from csv.',
-  },
-  {
-    type: 'update',
-    title: 'Update existing records only',
-    tooltip: 'Identifies updated records from csv and updates values in nocodb table.',
-  },
-  {
-    type: 'insertAndUpdate',
-    title: 'Create and update records',
-    tooltip: 'Updates existing records and creates new records from csv to the nocodb table.',
-  },
-] as ImportType[]
 
 const { fullscreen, fullscreenModalSize, extension, tables, insertData, getTableMeta, reloadData, activeTableId } =
   useExtensionHelperOrThrow()
@@ -116,7 +100,11 @@ const { getMeta } = useMetas()
 
 const { t } = useI18n()
 
-const { isAllowed } = usePermissions()
+const { isAllowed, getPermissionSummaryLabel } = usePermissions()
+
+const { isSqlView } = useSmartsheetStoreOrThrow()
+
+const { isUIAllowed, isDataReadOnly } = useRoles()
 
 const EXTENSION_ID = extension.value.extensionId
 
@@ -159,7 +147,7 @@ const autoInsertOption = ref(false)
 
 const parsedData = ref<any>()
 
-const columns = ref<Record<string, ColumnType>>({})
+const columns = ref<Record<string, ColumnType & { permissions: { isAllowToEdit: boolean; tooltip?: string } }>>({})
 
 const columnByTitle = computed(() => {
   return Object.values(columns.value).reduce((acc, column) => {
@@ -190,6 +178,7 @@ const importPayloadPlaceholder: ImportPayloadType = {
     updated: null,
   },
   order: 0,
+  isSyncedTable: false,
 }
 
 const savedPayloads = ref<ImportPayloadType[]>([])
@@ -238,11 +227,54 @@ const importPayload = computedAsync(async () => {
   return savedPayloads.value[0]!
 }, importPayloadPlaceholder)
 
-const isUploadAllowed = computed(() => {
+const isDataEditAllowed = computed(() => {
+  if (!importPayload.value?.tableId) return true
+
+  return isUIAllowed('dataEdit') && !isDataReadOnly.value && !isSqlView.value
+})
+
+const isAddingEmptyRowAllowed = computed(() => {
+  if (!importPayload.value?.tableId) return true
+
+  return isDataEditAllowed.value && !importPayload.value.isSyncedTable
+})
+
+const isAddingEmptyRowPermitted = computed(() => {
   if (!importPayload.value?.tableId) return true
 
   return isAllowed(PermissionEntity.TABLE, importPayload.value?.tableId, PermissionKey.TABLE_RECORD_ADD)
 })
+
+const importTypeOptions = computed(
+  () =>
+    [
+      {
+        type: 'insert',
+        title: 'Create new records only',
+        tooltip: !isAddingEmptyRowPermitted.value
+          ? t('objects.permissions.addNewRecordTooltip')
+          : !isAddingEmptyRowAllowed.value
+          ? t('tooltip.addingEmptyRecordIsNotAllowedInThisTable')
+          : 'Identifies and creates new records from csv.',
+        disabled: !isAddingEmptyRowPermitted.value || !isAddingEmptyRowAllowed.value,
+      },
+      {
+        type: 'update',
+        title: 'Update existing records only',
+        tooltip: 'Identifies updated records from csv and updates values in nocodb table.',
+      },
+      {
+        type: 'insertAndUpdate',
+        title: 'Create and update records',
+        tooltip: !isAddingEmptyRowPermitted.value
+          ? t('objects.permissions.addNewRecordTooltip')
+          : !isAddingEmptyRowAllowed.value
+          ? t('tooltip.addingEmptyRecordIsNotAllowedInThisTable')
+          : 'Updates existing records and creates new records from csv to the nocodb table.',
+        disabled: !isAddingEmptyRowPermitted.value || !isAddingEmptyRowAllowed.value,
+      },
+    ] as ImportType[],
+)
 
 const updateHistory = async (updateImportVerified = false) => {
   // update last used
@@ -315,13 +347,32 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
     if (tableMeta?.columns) {
       columns.value = tableMeta.columns.reduce((acc, column) => {
         if (!column.id || !filterForDestinationColumn(column)) return acc
-        acc[column.id] = column
-        return acc
-      }, {} as Record<string, ColumnType>)
 
-      const nocodbColumnsToMap = tableMeta.columns.filter(
-        (c) => c.id && !c.system && !GENERATED_COLUMN_TYPES.includes(c.uidt as UITypes) && c.title?.toLocaleLowerCase() !== 'id',
-      )
+        const isAllowToEdit = isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
+
+        // We allow to link record throw foreign key, so we don't need to check if the field is readonly
+        const isReadonlyCol = (column.readonly || column.uidt === UITypes.ID) && column.uidt !== UITypes.ForeignKey
+
+        acc[column.id] = {
+          ...column,
+          readonly: isReadonlyCol || !isAllowToEdit,
+          permissions: {
+            isAllowToEdit,
+            tooltip: isReadonlyCol
+              ? t('msg.info.fieldReadonly')
+              : !isAllowToEdit
+              ? `This field is editable by ${getPermissionSummaryLabel(
+                  PermissionEntity.FIELD,
+                  column.id!,
+                  PermissionKey.RECORD_FIELD_EDIT,
+                )}`
+              : '',
+          },
+        }
+        return acc
+      }, {} as Record<string, ColumnType & { permissions: { isAllowToEdit: boolean; tooltip?: string } }>)
+
+      const nocodbColumnsToMap = Object.values(columns.value).filter((c) => !c.readonly && c.title?.toLocaleLowerCase() !== 'id')
 
       importPayload.value.srcDestMapping = headers.value.map((h) => {
         const column = nocodbColumnsToMap.find((c) => searchCompare([c.title], h.label))
@@ -334,10 +385,24 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
         }
       })
     }
+
+    importPayload.value.isSyncedTable = !!table?.synced
     importPayload.value.tableName = table?.title
     importPayload.value.tableIcon = table?.meta?.icon
+
+    if (!isAddingEmptyRowPermitted.value || !isAddingEmptyRowAllowed.value) {
+      importPayload.value.importType = 'update'
+      importPayload.value.upsert = true
+      importPayload.value.upsertColumnId = undefined
+    }
+
     if (resetUpsertColumnId) {
       importPayload.value.upsertColumnId = undefined
+
+      if (isAddingEmptyRowPermitted.value && isAddingEmptyRowAllowed.value) {
+        importPayload.value.upsert = false
+        importPayload.value.importType = 'insert'
+      }
     }
   }
 
@@ -440,10 +505,24 @@ const onMappingField = (srcTitle: string, value: string) => {
 }
 
 const onUpsertColumnChange = (columnId: string) => {
+  /**
+   * We don't allow readonly field to map except if it is upsertColumnId
+   * So on changing upsertColumnId, we need to check if the readonly columns are mapped and reset that old value
+   * */
+  const readonlyColumns = Object.values(columns.value)
+    .filter((c) => c.readonly)
+    .map((c) => c.title)
+
   importPayload.value.srcDestMapping.forEach((m) => {
     if (m.destCn === columns.value[columnId]?.title && !m.enabled) {
       m.enabled = true
     } else if (!m.destCn && m.enabled) {
+      m.enabled = false
+      m.destCn = ''
+    }
+
+    // If the desctination column is not upsert column and mapped column is readonly then reset mapping
+    if (m.destCn !== columns.value[columnId]?.title && readonlyColumns.includes(m.destCn)) {
       m.enabled = false
       m.destCn = ''
     }
@@ -551,6 +630,11 @@ const processedRecordsToInsert = ref(0)
 const processedRecordsToUpdate = ref(0)
 
 const onVerifyImport = async () => {
+  if (!isDataEditAllowed.value) {
+    message.error(t('tooltip.sourceDataIsReadonly'))
+    return
+  }
+
   if (!importPayload.value?.upsert || isImportVerified.value) {
     onImport()
     return
@@ -633,10 +717,12 @@ const onVerifyImport = async () => {
           mergeFieldValueCount.value[mergeVal] = (mergeFieldValueCount.value[mergeVal] ?? 0) + 1
 
           if (importPayload.value!.importType !== 'insert') {
-            recordsToUpdate.value.push({
+            // return record without upsert field
+            const { [upsertFieldTitle]: _, ...rest } = {
               ...matchingCsvRecord,
-              ...rowPkData(existingRecord, tableMeta.columns!),
-            })
+            }
+
+            recordsToUpdate.value.push({ ...rest, ...rowPkData(existingRecord, tableMeta.columns!) })
           }
         }
       }
@@ -646,7 +732,8 @@ const onVerifyImport = async () => {
       }
     }
 
-    if (importPayload.value!.importType !== 'update') {
+    // If adding new record is not allowed, then we don't need to insert any records
+    if (importPayload.value!.importType !== 'update' && isAddingEmptyRowPermitted.value && isAddingEmptyRowAllowed.value) {
       recordsToInsert.value.push(...chunk.filter((record: Record<string, any>) => !seen.has(record[upsertFieldTitle])))
     }
   }
@@ -1016,7 +1103,9 @@ const errorMsgsTableColumns = [
 
         <NcButton
           size="small"
-          :disabled="!readyForImport || !isUploadAllowed"
+          :disabled="
+            !readyForImport || (!isAddingEmptyRowPermitted && importPayload.importType !== 'update') || !isDataEditAllowed
+          "
           :loading="isImportingRecords || isVerifyImportLoading"
           @click="onVerifyImport"
         >
@@ -1218,8 +1307,8 @@ const errorMsgsTableColumns = [
                 <h1>Table</h1>
                 <a-form-item
                   class="!my-0 w-full nc-input-required-error"
-                  :validate-status="!isUploadAllowed ? 'error' : ''"
-                  :help="!isUploadAllowed ? $t('objects.permissions.uploadDataTooltip') : ''"
+                  :validate-status="!isDataEditAllowed ? 'error' : ''"
+                  :help="!isDataEditAllowed ? $t('tooltip.sourceDataIsReadonly') : ''"
                 >
                   <NcSelect
                     v-model:value="importPayload.tableId"
@@ -1262,12 +1351,30 @@ const errorMsgsTableColumns = [
                 <div class="nc-import-upsert-type">
                   <a-radio-group v-model:value="importPayload.upsert" name="upsert" @change="updateHistory(true)">
                     <div class="input-wrapper border-1 border-nc-border-gray-medium rounded-lg px-3 py-2 flex flex-col gap-2">
-                      <a-radio :value="false">
-                        <div class="flex flex-col">
-                          <div>Add records</div>
-                          <div class="text-small leading-[18px] text-nc-content-gray-muted">Adds all records from CSV.</div>
-                        </div>
-                      </a-radio>
+                      <NcTooltip :disabled="isAddingEmptyRowPermitted && isAddingEmptyRowAllowed" placement="right">
+                        <template #title>
+                          {{
+                            !isAddingEmptyRowPermitted
+                              ? $t('objects.permissions.addNewRecordTooltip')
+                              : !isAddingEmptyRowAllowed
+                              ? $t('tooltip.addingEmptyRecordIsNotAllowedInThisTable')
+                              : ''
+                          }}
+                        </template>
+                        <a-radio :value="false" :disabled="!isAddingEmptyRowPermitted || !isAddingEmptyRowAllowed">
+                          <div class="flex flex-col">
+                            <div>Add records</div>
+                            <div
+                              class="text-small leading-[18px]"
+                              :class="{
+                                'text-nc-content-gray-muted': isAddingEmptyRowPermitted && isAddingEmptyRowAllowed,
+                              }"
+                            >
+                              Adds all records from CSV.
+                            </div>
+                          </div>
+                        </a-radio>
+                      </NcTooltip>
                     </div>
                     <div class="input-wrapper border-1 border-nc-border-gray-medium rounded-lg px-3 py-2 flex flex-col gap-2">
                       <a-radio :value="true">
@@ -1288,7 +1395,12 @@ const errorMsgsTableColumns = [
                               dropdown-class-name="w-[254px]"
                               @change="updateHistory(true)"
                             >
-                              <a-select-option v-for="(opt, i) of importTypeOptions" :key="i" :value="opt.type">
+                              <a-select-option
+                                v-for="(opt, i) of importTypeOptions"
+                                :key="i"
+                                :disabled="opt.disabled"
+                                :value="opt.type"
+                              >
                                 <NcTooltip class="!w-full" placement="right">
                                   <template #title>
                                     {{ opt.tooltip }}
@@ -1331,7 +1443,7 @@ const errorMsgsTableColumns = [
                             >
                               <a-select-option v-for="(col, i) of nocodbTableColumns" :key="i" :value="col.id">
                                 <div class="flex items-center gap-2 w-full">
-                                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                                  <NcTooltip class="flex-1 truncate" :show-on-truncate-only="!col.readonly">
                                     <template #title>
                                       {{ col.title }}
                                     </template>
@@ -1505,12 +1617,25 @@ const errorMsgsTableColumns = [
                         <template #suffixIcon>
                           <GeneralIcon icon="arrowDown" class="text-current" />
                         </template>
-                        <a-select-option v-for="(col, i) of getUnselectedFields(importMeta)" :key="i" :value="col.title">
+                        <a-select-option
+                          v-for="(col, i) of getUnselectedFields(importMeta)"
+                          :key="i"
+                          :value="col.title"
+                          :disabled="col.readonly && col.id !== importPayload.upsertColumnId"
+                        >
                           <div class="flex items-center gap-2 w-full">
                             <component :is="getUIDTIcon(col.uidt as UITypes)" class="flex-none w-3.5 h-3.5" />
-                            <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                            <NcTooltip
+                              class="truncate flex-1"
+                              :show-on-truncate-only="!(col.readonly && col.id !== importPayload.upsertColumnId)"
+                              :placement="col.readonly && col.id !== importPayload.upsertColumnId ? 'right' : 'top'"
+                            >
                               <template #title>
-                                {{ col.title }}
+                                {{
+                                  col.readonly && col.id !== importPayload.upsertColumnId
+                                    ? col?.permissions?.tooltip || $t('msg.info.fieldReadonly')
+                                    : col.title
+                                }}
                               </template>
                               {{ col.title }}
                             </NcTooltip>

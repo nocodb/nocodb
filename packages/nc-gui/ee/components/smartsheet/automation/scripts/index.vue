@@ -12,7 +12,7 @@ const { activeAutomation, activeBaseSchema } = storeToRefs(useAutomationStore())
 
 const { appInfo } = useGlobal()
 
-const { isAiFeaturesEnabled } = useNocoAi()
+const { isAiBetaFeaturesEnabled } = useNocoAi()
 
 const { libCode, code, config, configValue, isSettingsOpen, shouldShowSettings, isCreateEditScriptAllowed } =
   useScriptStoreOrThrow()
@@ -79,7 +79,7 @@ async function setupMonacoEditor() {
     renderLineHighlight: 'none',
   })
 
-  if (isAiFeaturesEnabled.value) {
+  if (isAiBetaFeaturesEnabled.value) {
     registerCompletion(monaco, editor, {
       language: 'typescript',
       endpoint: appInfo.value?.ncSiteUrl,

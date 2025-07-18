@@ -61,7 +61,10 @@ export class NocodbAiIntegration extends AiIntegration {
     if (!this.model || customModel) {
       const config = this.config;
 
-      const model = customModel || config?.models?.[0];
+      const inputModel = args.customModel || config?.models?.[0];
+
+      const model =
+        modelMap[inputModel as keyof typeof modelMap] || modelMap.high;
 
       if (!model) {
         throw new Error('Integration not configured properly');

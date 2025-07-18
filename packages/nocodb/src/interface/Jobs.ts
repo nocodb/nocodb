@@ -229,11 +229,16 @@ export interface SyncDataSyncModuleJobData extends JobData {
 }
 
 export interface AttachmentUrlUploadJobData extends JobData {
-  recordId: string;
-  attachments: Array<{
+  context: NcContext;
+  modelId: string;
+  column: {
     id: string;
-    url?: string;
-    path?: string;
-    size?: number;
-  }>;
+    title: string;
+    column_name: string;
+  };
+  recordId: string;
+  attachments: {
+    id?: string;
+    url: string;
+  }[];
 }

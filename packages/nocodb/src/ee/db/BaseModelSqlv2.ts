@@ -5,6 +5,7 @@ import {
   enumColors,
   extractFilterFromXwhere,
   isAIPromptCol,
+  isAttachment,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -27,6 +28,7 @@ import { customValidators } from 'src/db/util/customValidators';
 import { v4 as uuidv4 } from 'uuid';
 import { customAlphabet } from 'nanoid';
 import { NcApiVersion } from 'nocodb-sdk';
+import { AttachmentUrlUploadPreparator } from 'src/db/BaseModelSqlv2/attachment-url-upload-preparator';
 import type {
   DataBulkDeletePayload,
   DataBulkUpdateAllPayload,
@@ -1515,9 +1517,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       let agPkCol: Column;
 
       if (!raw) {
-        const nestedCols = (await this.model.getColumns(this.context)).filter(
-          (c) => isLinksOrLTAR(c),
-        );
+        const columns = await this.model.getColumns(this.context);
+        const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
+        const attachmentCols = columns.filter((c) => isAttachment(c));
 
         await this.model.getColumns(this.context);
 
@@ -1735,6 +1737,25 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
             postInsertOpsMap[index] = operations.postInsertOps;
             preInsertOps = operations.preInsertOps;
+
+            if (attachmentCols.length > 0) {
+              const attachmentOperations =
+                await new AttachmentUrlUploadPreparator().prepareAttachmentUrlUpload(
+                  this,
+                  {
+                    attachmentCols,
+                    data: d,
+                  },
+                );
+              postInsertOpsMap[index] = [].concat(
+                postInsertOpsMap[index],
+                attachmentOperations.postInsertOps,
+              );
+              preInsertOps = [].concat(
+                preInsertOps,
+                attachmentOperations.preInsertOps,
+              );
+            }
           }
 
           insertDatas.push(insertObj);
@@ -2310,6 +2331,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const toBeUpdated = [];
       const pkAndData: { pk: string; data: any }[] = [];
 
+      const attachmentCols = columns.filter((col) => isAttachment(col));
+      let postUpdateOps: (() => Promise<string>)[] = [];
+
       for (const d of updateDatas) {
         const pkValues = this.extractPksValues(d, true);
 
@@ -2343,8 +2367,22 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }
 
           await this.prepareNocoData(data, false, cookie, oldRecord);
-
           prevData.push(oldRecord);
+          if (attachmentCols.length > 0) {
+            const attachmentOperation =
+              await new AttachmentUrlUploadPreparator().prepareAttachmentUrlUpload(
+                this,
+                {
+                  attachmentCols,
+                  data,
+                },
+              );
+            postUpdateOps = postUpdateOps.concat(
+              attachmentOperation.postInsertOps.map((ops) => {
+                return () => ops(pk);
+              }),
+            );
+          }
 
           const wherePk = await this._wherePk(pk, true);
 
@@ -2424,6 +2462,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             newData: d,
           });
         }
+        await Promise.all(postUpdateOps.map((ops) => ops()));
       }
 
       if (!raw) {

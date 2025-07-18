@@ -182,7 +182,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </div>
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
-        <div v-if="isUIAllowed('workspaceSettings')" class="px-2 my-2 w-full">
+        <div class="px-2 my-2 w-full">
           <NcDivider class="!my-0 !border-nc-border-gray-dark" />
         </div>
         <DashboardMiniSidebarItemWrapper>
@@ -209,7 +209,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </div>
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
-        <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings')">
+        <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceIntegrations')">
           <NcTooltip
             :title="`${$t('objects.workspace')} ${$t('general.integrations')}`"
             placement="right"

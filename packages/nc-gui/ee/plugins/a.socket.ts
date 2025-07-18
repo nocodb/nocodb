@@ -17,9 +17,19 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       socketPath += socketPath.endsWith('/') ? 'socket.io' : '/socket.io'
 
       socket = io(url.href, {
-        extraHeaders: { 'xc-auth': token },
         path: socketPath,
         transports: ['websocket'],
+      })
+
+      socket.on('connect', () => {
+        // Emit handshake event to set up user context
+        socket.emit('handshake', { token }, (response: any) => {
+          if (response.status === 'ok') {
+            console.log('Handshake successful:', response.message)
+          } else {
+            console.error('Handshake failed:', response.message)
+          }
+        })
       })
 
       socket.on('connect_error', () => {

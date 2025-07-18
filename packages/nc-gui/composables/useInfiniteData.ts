@@ -2029,7 +2029,6 @@ export function useInfiniteData(args: {
   watch(
     meta,
     (newMeta, oldMeta) => {
-      console.log('useData meta changed')
       if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
         if (oldMeta?.id && oldMeta.id === newMeta.id) return
 

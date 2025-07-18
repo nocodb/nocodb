@@ -10,7 +10,6 @@ export function sendWelcomeMessage(socket: NcSocket) {
       version: process.env.NC_VERSION || '1.0.0',
       environment: process.env.NODE_ENV || 'development',
     },
-    user: socket.handshake.user,
   };
 
   socket.emit('connection:welcome', welcomePayload);

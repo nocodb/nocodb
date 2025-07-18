@@ -1165,7 +1165,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         payload: data,
         before: req?.query?.before,
       },
-      req.socketId,
+      this.context.socket_id,
     );
 
     const filteredAuditData = removeBlankPropsAndMask(insertData || data, [
@@ -1215,7 +1215,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           action: 'add',
           payload: d,
         },
-        req.socketId,
+        this.context.socket_id,
       );
     }
 
@@ -1297,7 +1297,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         action: 'delete',
         payload: null,
       },
-      req.socketId,
+      this.context.socket_id,
     );
 
     if (await this.isDataAuditEnabled()) {
@@ -1347,7 +1347,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           action: 'delete',
           payload: null,
         },
-        req.socketId,
+        this.context.socket_id,
       );
     }
 
@@ -3230,7 +3230,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         action: 'update',
         payload: data,
       },
-      req.socketId,
+      this.context.socket_id,
     );
 
     // disable external source audit in cloud
@@ -3309,7 +3309,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           action: 'update',
           payload: data,
         },
-        req.socketId,
+        this.context.socket_id,
       );
     }
 

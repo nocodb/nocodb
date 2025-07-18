@@ -13,6 +13,7 @@ export interface NcContext {
     provider?: string;
   };
   fk_model_id?: string;
+  socket_id?: string;
 }
 
 export interface NcRequest extends Partial<Request> {
@@ -32,7 +33,6 @@ export interface NcRequest extends Partial<Request> {
   clientIp?: string;
   query?: Record<string, any>;
   skipAudit?: boolean;
-  socketId?: string;
 }
 
 export type NcRecord<T = any> = Record<string, T>;

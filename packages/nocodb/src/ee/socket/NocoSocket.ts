@@ -3,7 +3,9 @@ import { EventType, type PayloadForEvent, ProjectRoles } from 'nocodb-sdk';
 import { sendConnectionError, sendWelcomeMessage } from './genericEvents';
 import type { Server } from 'socket.io';
 import type { NcContext, NcSocket } from '~/interface/config';
+import { verifyJwt } from '~/services/users/helpers';
 import { User } from '~/models';
+import Noco from '~/Noco';
 
 export default class NocoSocket {
   private static logger: Logger = new Logger(NocoSocket.name);
@@ -12,15 +14,30 @@ export default class NocoSocket {
 
   public static handleConnection(socket: NcSocket) {
     this.clients.set(socket.id, socket);
-    this.logger.log(
-      `Client connected: ${socket.id} (User: ${socket.handshake.user?.id})`,
-    );
+    this.logger.log(`Client connected: ${socket.id}`);
 
-    // Send welcome message with proper payload
-    sendWelcomeMessage(socket);
+    socket.once('handshake', async (args, callback) => {
+      if (callback && typeof callback === 'function') {
+        try {
+          const user = await verifyJwt(args?.token, Noco.getConfig());
+          socket.user = user; // Attach user to socket handshake
+          sendWelcomeMessage(socket);
 
-    // Set up event handlers for this client
-    this.setupClientEventHandlers(socket);
+          // Set up event handlers for this client
+          this.setupClientEventHandlers(socket);
+        } catch (e) {
+          this.logger.error(e);
+          sendConnectionError(
+            socket,
+            new Error('Authentication failed'),
+            'AUTH_ERROR',
+          );
+          return;
+        }
+        // Validate and process handshake args if needed
+        callback({ status: 'ok' });
+      }
+    });
   }
 
   private static async subscribeEvent(socket: NcSocket, event: string) {
@@ -30,7 +47,7 @@ export default class NocoSocket {
       return;
     }
 
-    const user = socket.handshake.user;
+    const user = socket.user;
     if (!user || !user.id) {
       this.logger.warn(`User not authenticated for event: ${event}`);
       return;
@@ -98,7 +115,6 @@ export default class NocoSocket {
       socket.emit('pong', {
         timestamp: new Date().toISOString(),
         serverTimestamp: new Date().toISOString(),
-        latency: 0, // Could be calculated if needed
       });
     });
 

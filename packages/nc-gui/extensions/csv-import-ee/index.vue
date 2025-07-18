@@ -21,7 +21,7 @@ const { $api, $e } = useNuxtApp()
 const CHUNK_SIZE = 100
 
 const filterForDestinationColumn = (col: ColumnType): boolean => {
-  if ([UITypes.ForeignKey].includes(col.uidt as UITypes)) {
+  if ([UITypes.ForeignKey, UITypes.ID].includes(col.uidt as UITypes)) {
     return true
   } else {
     return !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)
@@ -351,7 +351,7 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
         const isAllowToEdit = isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
 
         // We allow to link record throw foreign key, so we don't need to check if the field is readonly
-        const isReadonlyCol = column.readonly && column.uidt !== UITypes.ForeignKey
+        const isReadonlyCol = (column.readonly || column.uidt === UITypes.ID) && column.uidt !== UITypes.ForeignKey
 
         acc[column.id] = {
           ...column,
@@ -372,7 +372,7 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
         return acc
       }, {} as Record<string, ColumnType & { permissions: { isAllowToEdit: boolean; tooltip?: string } }>)
 
-      const nocodbColumnsToMap = Object.values(columns.value).filter((c) => !c.readonly)
+      const nocodbColumnsToMap = Object.values(columns.value).filter((c) => !c.readonly && c.title?.toLocaleLowerCase() !== 'id')
 
       importPayload.value.srcDestMapping = headers.value.map((h) => {
         const column = nocodbColumnsToMap.find((c) => searchCompare([c.title], h.label))
@@ -505,10 +505,24 @@ const onMappingField = (srcTitle: string, value: string) => {
 }
 
 const onUpsertColumnChange = (columnId: string) => {
+  /**
+   * We don't allow readonly field to map except if it is upsertColumnId
+   * So on changing upsertColumnId, we need to check if the readonly columns are mapped and reset that old value
+   * */
+  const readonlyColumns = Object.values(columns.value)
+    .filter((c) => c.readonly)
+    .map((c) => c.title)
+
   importPayload.value.srcDestMapping.forEach((m) => {
     if (m.destCn === columns.value[columnId]?.title && !m.enabled) {
       m.enabled = true
     } else if (!m.destCn && m.enabled) {
+      m.enabled = false
+      m.destCn = ''
+    }
+
+    // If the desctination column is not upsert column and mapped column is readonly then reset mapping
+    if (m.destCn !== columns.value[columnId]?.title && readonlyColumns.includes(m.destCn)) {
       m.enabled = false
       m.destCn = ''
     }
@@ -706,10 +720,9 @@ const onVerifyImport = async () => {
             // return record without upsert field
             const { [upsertFieldTitle]: _, ...rest } = {
               ...matchingCsvRecord,
-              ...rowPkData(existingRecord, tableMeta.columns!),
             }
 
-            recordsToUpdate.value.push(rest)
+            recordsToUpdate.value.push({ ...rest, ...rowPkData(existingRecord, tableMeta.columns!) })
           }
         }
       }
@@ -1428,20 +1441,11 @@ const errorMsgsTableColumns = [
                               dropdown-class-name="w-[254px]"
                               @change="onUpsertColumnChange"
                             >
-                              <a-select-option
-                                v-for="(col, i) of nocodbTableColumns"
-                                :key="i"
-                                :disabled="col.readonly"
-                                :value="col.id"
-                              >
+                              <a-select-option v-for="(col, i) of nocodbTableColumns" :key="i" :value="col.id">
                                 <div class="flex items-center gap-2 w-full">
-                                  <NcTooltip
-                                    class="flex-1 truncate"
-                                    :show-on-truncate-only="!col.readonly"
-                                    :placement="col.readonly ? 'right' : 'top'"
-                                  >
+                                  <NcTooltip class="flex-1 truncate" :show-on-truncate-only="!col.readonly">
                                     <template #title>
-                                      {{ col.readonly ? col?.permissions?.tooltip || $t('msg.info.fieldReadonly') : col.title }}
+                                      {{ col.title }}
                                     </template>
                                     {{ col.title }}
                                   </NcTooltip>
@@ -1617,17 +1621,21 @@ const errorMsgsTableColumns = [
                           v-for="(col, i) of getUnselectedFields(importMeta)"
                           :key="i"
                           :value="col.title"
-                          :disabled="col.readonly"
+                          :disabled="col.readonly && col.id !== importPayload.upsertColumnId"
                         >
                           <div class="flex items-center gap-2 w-full">
                             <component :is="getUIDTIcon(col.uidt as UITypes)" class="flex-none w-3.5 h-3.5" />
                             <NcTooltip
                               class="truncate flex-1"
-                              :show-on-truncate-only="!col.readonly"
-                              :placement="col.readonly ? 'right' : 'top'"
+                              :show-on-truncate-only="!(col.readonly && col.id !== importPayload.upsertColumnId)"
+                              :placement="col.readonly && col.id !== importPayload.upsertColumnId ? 'right' : 'top'"
                             >
                               <template #title>
-                                {{ col.readonly ? col?.permissions?.tooltip || $t('msg.info.fieldReadonly') : col.title }}
+                                {{
+                                  col.readonly && col.id !== importPayload.upsertColumnId
+                                    ? col?.permissions?.tooltip || $t('msg.info.fieldReadonly')
+                                    : col.title
+                                }}
                               </template>
                               {{ col.title }}
                             </NcTooltip>

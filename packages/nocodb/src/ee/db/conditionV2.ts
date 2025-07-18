@@ -7,6 +7,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { Filter } from '~/models';
 
 export * from 'src/db/conditionV2';
+export { conditionV2 as default };
 
 // Extract filters mapped to the Rollup or Lookup cell
 // and apply it to the query builder

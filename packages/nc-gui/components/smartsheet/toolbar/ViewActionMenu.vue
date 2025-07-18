@@ -38,8 +38,6 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { showRecordPlanLimitExceededModal, getPlanTitle } = useEeConfig()
 
-const isSqlView = computed(() => (table.value as TableType)?.type === 'view')
-
 const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
 
 const currentSourceId = computed(() => table.value?.source_id)
@@ -199,6 +197,16 @@ const disablePersonalView = computed(() => {
   return false
 })
 
+const isUploadAllowed = computed(() => {
+  return (
+    isUIAllowed('csvTableImport') &&
+    !isPublicView.value &&
+    !isDataReadOnly.value &&
+    table.value?.type !== 'view' && //isSqlView
+    !table.value?.synced
+  )
+})
+
 /**
  * ## Known Issue and Fix
  * - **Issue**: When conditionally rendering `NcMenuItem` using `v-if` without a corresponding `v-else` fallback,
@@ -272,7 +280,7 @@ const disablePersonalView = computed(() => {
     </template>
     <template v-if="view.type !== ViewTypes.FORM">
       <NcDivider />
-      <template v-if="isUIAllowed('csvTableImport') && !isPublicView && !isDataReadOnly && !isSqlView">
+      <template v-if="isUploadAllowed">
         <NcSubMenu key="upload" variant="small">
           <template #title>
             <div

@@ -245,10 +245,6 @@ const isAddingEmptyRowPermitted = computed(() => {
   return isAllowed(PermissionEntity.TABLE, importPayload.value?.tableId, PermissionKey.TABLE_RECORD_ADD)
 })
 
-watchEffect(() => {
-  console.log('isSyncedTable', importPayload.value.isSyncedTable)
-})
-
 const importTypeOptions = computed(
   () =>
     [
@@ -389,8 +385,6 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
         }
       })
     }
-
-    console.log('table coumns', tableMeta.columns)
 
     importPayload.value.isSyncedTable = !!table?.synced
     importPayload.value.tableName = table?.title
@@ -709,10 +703,13 @@ const onVerifyImport = async () => {
           mergeFieldValueCount.value[mergeVal] = (mergeFieldValueCount.value[mergeVal] ?? 0) + 1
 
           if (importPayload.value!.importType !== 'insert') {
-            recordsToUpdate.value.push({
+            // return record without upsert field
+            const { [upsertFieldTitle]: _, ...rest } = {
               ...matchingCsvRecord,
               ...rowPkData(existingRecord, tableMeta.columns!),
-            })
+            }
+
+            recordsToUpdate.value.push(rest)
           }
         }
       }

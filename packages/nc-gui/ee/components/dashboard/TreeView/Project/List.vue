@@ -550,7 +550,11 @@ onBeforeUnmount(() => {
 
     <template v-else>
       <Transition :name="transitionName" appear>
-        <div v-if="showProjectList" key="project-list" class="nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10">
+        <div
+          v-if="showProjectList"
+          key="project-list"
+          class="nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10 bg-gray-50"
+        >
           <div class="w-full">
             <DashboardSidebarHeaderWrapper>
               <NcTooltip show-on-truncate-only class="truncate capitalize">

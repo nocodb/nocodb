@@ -185,9 +185,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <div v-if="isUIAllowed('workspaceSettings')" class="px-2 my-2 w-full">
           <NcDivider class="!my-0 !border-nc-border-gray-dark" />
         </div>
-        <DashboardMiniSidebarItemWrapper>
+        <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')">
           <NcTooltip
-            :title="`${$t('objects.workspace')} ${$t('labels.settings')}`"
+            :title="isEeUI ? `${$t('objects.workspace')} ${$t('labels.settings')}` : $t('title.teamAndSettings')"
             placement="right"
             hide-on-click
             :arrow="false"
@@ -209,9 +209,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </div>
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
-        <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings')">
+        <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceIntegrations')">
           <NcTooltip
-            :title="`${$t('objects.workspace')} ${$t('general.integrations')}`"
+            :title="isEeUI ? `${$t('objects.workspace')} ${$t('general.integrations')}` : $t('title.integrations')"
             placement="right"
             hide-on-click
             :arrow="false"

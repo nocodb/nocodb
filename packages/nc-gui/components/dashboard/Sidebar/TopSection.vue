@@ -57,6 +57,7 @@ const navigateToIntegrations = () => {
       <!-- <DashboardSidebarTopSectionHeader /> -->
 
       <NcButton
+        v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
         v-e="['c:team:settings']"
         type="text"
         size="xsmall"
@@ -80,7 +81,7 @@ const navigateToIntegrations = () => {
         </div>
       </NcButton>
       <NcButton
-        v-if="isUIAllowed('workspaceSettings')"
+        v-if="isUIAllowed('workspaceIntegrations')"
         v-e="['c:integrations']"
         type="text"
         size="xsmall"

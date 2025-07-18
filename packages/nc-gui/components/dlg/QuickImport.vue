@@ -14,9 +14,19 @@ interface Props {
   importDataOnly?: boolean
   transition?: string
   showBackBtn?: boolean
+  wrapClassName?: string
 }
 
-const { importType, importDataOnly = false, baseId, sourceId, transition, showBackBtn, ...rest } = defineProps<Props>()
+const {
+  importType,
+  importDataOnly = false,
+  baseId,
+  sourceId,
+  transition,
+  showBackBtn,
+  wrapClassName = '',
+  ...rest
+} = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'back'])
 
@@ -690,7 +700,7 @@ watch(
     :closable="false"
     :width="templateEditorModal && importDataOnly ? '640px' : '448px'"
     class="!top-[12.5vh]"
-    wrap-class-name="nc-modal-quick-import"
+    :wrap-class-name="`nc-modal-quick-import ${wrapClassName}`"
     :transition-name="transition"
     @keydown.esc="dialogShow = false"
   >

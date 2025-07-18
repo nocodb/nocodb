@@ -1167,7 +1167,6 @@
     "backToWorkspace": "Back to Workspace",
     "untitledToken": "Untitled token",
     "tableName": "Table name",
-    "dashboardName": "Dashboard name",
     "createView": "Create view",
     "creatingView": "Creating View",
     "createViews": "Create {count} view",
@@ -1805,7 +1804,8 @@
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
-    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
+    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
   },
   "placeholder": {
     "searchIcons": "Search icons",

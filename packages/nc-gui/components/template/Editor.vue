@@ -3,6 +3,8 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import type { ColumnType, OracleUi, TableType } from 'nocodb-sdk'
 import {
+  PermissionEntity,
+  PermissionKey,
   SqlUiFactory,
   UITypes,
   getDateFormat,
@@ -43,6 +45,8 @@ const { t } = useI18n()
 
 const { getMeta } = useMetas()
 
+const { isAllowed, getPermissionSummaryLabel } = usePermissions()
+
 const meta = inject(MetaInj, ref())
 
 const filterForDestinationColumn = (col: ColumnType): boolean => {
@@ -53,7 +57,34 @@ const filterForDestinationColumn = (col: ColumnType): boolean => {
   }
 }
 
-const columns = computed(() => meta.value?.columns?.filter((col) => filterForDestinationColumn(col)) || [])
+const columns = computed(() =>
+  (meta.value?.columns || [])
+    ?.filter((col) => filterForDestinationColumn(col))
+    .map((col) => {
+      // If it is import data only, then we need to check if the field is editable
+      const isEditAllowed = importDataOnly ? isAllowed(PermissionEntity.FIELD, col.id!, PermissionKey.RECORD_FIELD_EDIT) : true
+
+      // We allow to link record throw foreign key, so we don't need to check if the field is readonly
+      const isReadonlyCol = col.readonly && col.uidt !== UITypes.ForeignKey
+
+      return {
+        ...col,
+        readonly: isReadonlyCol || !isEditAllowed,
+        permissions: {
+          isEditAllowed,
+          tooltip: isReadonlyCol
+            ? t('msg.info.fieldReadonly')
+            : !isEditAllowed
+            ? `This field is editable by ${getPermissionSummaryLabel(
+                PermissionEntity.FIELD,
+                col.id!,
+                PermissionKey.RECORD_FIELD_EDIT,
+              )}`
+            : '',
+        },
+      }
+    }),
+)
 
 const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -759,7 +790,7 @@ function mapDefaultColumns() {
     for (const col of importColumns[i]) {
       const o = { srcCn: col.column_name, srcTitle: col.title, destCn: undefined, enabled: true }
       if (columns.value) {
-        const tableColumn = columns.value.find((c) => c.title === col.title || c.column_name === col.column_name)
+        const tableColumn = columns.value.find((c) => !c.readonly && (c.title === col.title || c.column_name === col.column_name))
         if (tableColumn) {
           o.destCn = tableColumn.title as string
         } else {
@@ -1053,12 +1084,13 @@ function getErrorByTableName(tableName: string) {
                         v-for="(col, i) of getUnselectedFields(record, table.table_name)"
                         :key="i"
                         :value="col.title"
+                        :disabled="col.readonly"
                       >
                         <div class="flex items-center gap-2 w-full">
                           <component :is="getUIDTIcon(col.uidt)" class="flex-none w-3.5 h-3.5" />
-                          <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                          <NcTooltip class="truncate flex-1" :show-on-truncate-only="!col.readonly">
                             <template #title>
-                              {{ col.title }}
+                              {{ col.readonly ? col.permissions?.tooltip || t('msg.info.fieldReadonly') : col.title }}
                             </template>
                             {{ col.title }}
                           </NcTooltip>

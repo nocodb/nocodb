@@ -185,7 +185,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <div v-if="isUIAllowed('workspaceSettings')" class="px-2 my-2 w-full">
           <NcDivider class="!my-0 !border-nc-border-gray-dark" />
         </div>
-        <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')">
+        <DashboardMiniSidebarItemWrapper>
           <NcTooltip
             :title="`${$t('objects.workspace')} ${$t('labels.settings')}`"
             placement="right"

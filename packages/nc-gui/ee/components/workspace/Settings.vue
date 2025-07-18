@@ -1,12 +1,14 @@
 <script lang="ts" setup>
-import { IconType, PublicAttachmentScope } from 'nocodb-sdk'
+import { IconType, PublicAttachmentScope, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
 }>()
 
-const { deleteWorkspace, navigateToWorkspace, updateWorkspace, loadWorkspace, loadWorkspaces } = useWorkspace()
-const { workspacesList, activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(useWorkspace())
+const workspaceStore = useWorkspace()
+const { deleteWorkspace, navigateToWorkspace, updateWorkspace, loadWorkspace, loadWorkspaces, removeCollaborator } =
+  workspaceStore
+const { workspacesList, activeWorkspace, workspaces, deletingWorkspace, workspaceOwnerCount } = storeToRefs(workspaceStore)
 
 const { orgId } = useOrganization()
 
@@ -15,6 +17,12 @@ const { refreshCommandPalette } = useCommandPalette()
 const { showUpgradeToUploadWsImage } = useEeConfig()
 
 const router = useRouter()
+
+const { isUIAllowed } = useRoles()
+
+const { user } = useGlobal()
+
+const leavedWsUserId = ref('')
 
 const formValidator = ref()
 const isErrored = ref(false)
@@ -46,10 +54,14 @@ const formRules = {
   ],
 }
 
+const hasWorkspaceManagePermission = computed(() => {
+  return isUIAllowed('workspaceManage')
+})
+
 const currentWorkspace = computedAsync(async () => {
   if (props.workspaceId) {
     const ws = workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
-    if (!ws) {
+    if (!ws && !leavedWsUserId.value) {
       await loadWorkspace(props.workspaceId)
       return workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
     }
@@ -158,6 +170,23 @@ const saveChanges = async (isIconUpdate = false) => {
   }
 }
 
+const allowLeaveWs = computed(() => {
+  /**
+   * We have to allow user to leave workspace if:
+   * 1. workspace has more than one owner
+   * 2. user workspace role is not owner
+   */
+  return !!((workspaceOwnerCount.value ?? 0) > 1 || (user.value && !user.value.workspace_roles[WorkspaceUserRoles.OWNER]))
+})
+
+const handleLeaveWorkspace = () => {
+  if (!user.value?.id || !currentWorkspace.value?.id) return
+
+  removeCollaborator(user.value.id, currentWorkspace.value.id, () => {
+    leavedWsUserId.value = user.value!.id
+  })
+}
+
 const handleDelete = () => {
   if (!currentWorkspace.value || !currentWorkspace.value.title) return
   toBeDeletedWorkspaceTitle.value = currentWorkspace.value.title
@@ -216,107 +245,148 @@ const onCancel = () => {
   >
     <PaymentBanner v-if="!isAdminPanel" />
 
-    <div class="flex flex-col items-center nc-workspace-settings-settings pb-10 px-6">
-      <div class="item-card flex flex-col w-full">
-        <div class="font-bold text-base text-nc-content-gray-emphasis">
+    <div v-if="currentWorkspace" class="flex flex-col items-center nc-workspace-settings-settings pb-10 px-6">
+      <div class="nc-settings-item-card-wrapper mt-10">
+        <div class="nc-settings-item-heading text-nc-content-gray-emphasis">
           {{ $t('objects.workspace') }} {{ $t('general.appearance') }}
         </div>
-        <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="() => saveChanges()">
-          <div class="flex gap-4 mt-6">
-            <div>
-              <GeneralIconSelector
-                v-model:icon="form.icon"
-                v-model:icon-type="form.iconType"
-                v-model:image-cropper-data="imageCropperData"
-                :tab-order="[IconType.ICON, IconType.EMOJI, IconType.IMAGE]"
-                @submit="() => saveChanges(true)"
-                @before-tab-change="handleOnBeforeTabChange"
-              >
-                <template #default="{ isOpen }">
-                  <div
-                    class="rounded-lg border-1 flex-none w-17 h-17 overflow-hidden transition-all duration-300 cursor-pointer"
-                    :class="{
-                      'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
-                      'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,
-                      'border-primary shadow-selected': isOpen,
-                    }"
-                  >
-                    <GeneralWorkspaceIcon
-                      :workspace="currentWorkspace"
-                      :workspace-icon="{
-                        icon: form.icon,
-                        iconType: form.iconType,
+        <div class="nc-settings-item-card flex flex-col w-full p-6">
+          <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="() => saveChanges()">
+            <div class="flex gap-4">
+              <div>
+                <GeneralIconSelector
+                  v-model:icon="form.icon"
+                  v-model:icon-type="form.iconType"
+                  v-model:image-cropper-data="imageCropperData"
+                  :tab-order="[IconType.ICON, IconType.EMOJI, IconType.IMAGE]"
+                  :disabled="!hasWorkspaceManagePermission"
+                  @submit="() => saveChanges(true)"
+                  @before-tab-change="handleOnBeforeTabChange"
+                >
+                  <template #default="{ isOpen }">
+                    <div
+                      class="rounded-lg border-1 flex-none w-17 h-17 overflow-hidden transition-all duration-300"
+                      :class="{
+                        'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
+                        'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,
+                        'border-primary shadow-selected': isOpen,
+                        'cursor-pointer': hasWorkspaceManagePermission,
                       }"
-                      size="xlarge"
-                      class="!w-full !h-full !min-w-full rounded-none select-none cursor-pointer"
-                    />
-                  </div>
-                </template>
-              </GeneralIconSelector>
+                    >
+                      <GeneralWorkspaceIcon
+                        :workspace="currentWorkspace"
+                        :workspace-icon="{
+                          icon: form.icon,
+                          iconType: form.iconType,
+                        }"
+                        size="xlarge"
+                        class="!w-full !h-full !min-w-full rounded-none select-none"
+                        :class="{ 'cursor-pointer': hasWorkspaceManagePermission }"
+                      />
+                    </div>
+                  </template>
+                </GeneralIconSelector>
+              </div>
+              <div class="flex-1">
+                <div class="text-sm text-nc-content-gray-subtle2">{{ $t('general.name') }}</div>
+                <a-form-item name="title" :rules="formRules.title" class="!mt-2 !mb-0">
+                  <a-input
+                    v-model:value="form.title"
+                    class="w-full !rounded-lg !px-4 h-10"
+                    placeholder="Workspace name"
+                    size="large"
+                    :disabled="!hasWorkspaceManagePermission"
+                    data-testid="nc-workspace-settings-settings-rename-input"
+                  />
+                </a-form-item>
+              </div>
             </div>
-            <div class="flex-1">
-              <div class="text-sm text-nc-content-gray-subtle2">{{ $t('general.name') }}</div>
-              <a-form-item name="title" :rules="formRules.title" class="!mt-2 !mb-0">
-                <a-input
-                  v-model:value="form.title"
-                  class="w-full !rounded-lg !px-4 h-10"
-                  placeholder="Workspace name"
-                  size="large"
-                  data-testid="nc-workspace-settings-settings-rename-input"
-                />
-              </a-form-item>
+            <div v-if="hasWorkspaceManagePermission" class="flex flex-row w-full justify-end mt-8 gap-4">
+              <NcButton
+                v-if="isSaveChangesBtnEnabled"
+                type="secondary"
+                size="small"
+                data-testid="nc-workspace-settings-settings-rename-cancel"
+                :disabled="isWorkspaceUpdating"
+                @click="onCancel"
+              >
+                {{ $t('general.cancel') }}
+              </NcButton>
+              <NcButton
+                v-e="['c:workspace:settings:rename']"
+                type="primary"
+                html-type="submit"
+                size="small"
+                :disabled="isErrored || !isSaveChangesBtnEnabled || isWorkspaceUpdating"
+                :loading="isWorkspaceUpdating"
+                data-testid="nc-workspace-settings-settings-rename-submit"
+              >
+                <template #loading> {{ $t('general.saving') }} </template>
+                {{ $t('general.save') }}
+              </NcButton>
             </div>
-          </div>
-          <div class="flex flex-row w-full justify-end mt-8 gap-4">
-            <NcButton
-              v-if="isSaveChangesBtnEnabled"
-              type="secondary"
-              size="small"
-              data-testid="nc-workspace-settings-settings-rename-cancel"
-              :disabled="isWorkspaceUpdating"
-              @click="onCancel"
-            >
-              {{ $t('general.cancel') }}
-            </NcButton>
-            <NcButton
-              v-e="['c:workspace:settings:rename']"
-              type="primary"
-              html-type="submit"
-              size="small"
-              :disabled="isErrored || !isSaveChangesBtnEnabled || isWorkspaceUpdating"
-              :loading="isWorkspaceUpdating"
-              data-testid="nc-workspace-settings-settings-rename-submit"
-            >
-              <template #loading> {{ $t('general.saving') }} </template>
-              {{ $t('general.save') }}
-            </NcButton>
-          </div>
-        </a-form>
-      </div>
-      <div class="item-card flex flex-col border-1 border-red-500">
-        <div class="text-base font-bold text-nc-content-red-dark">{{ $t('labels.dangerZone') }}</div>
-        <div class="text-sm text-nc-content-gray-muted mt-2">{{ $t('msg.info.wsDeleteDlg') }}</div>
-        <div class="flex p-4 border-1 rounded-lg mt-6 items-center">
-          <component :is="iconMap.alertTriangleSolid" class="text-nc-content-orange-medium h-6 w-6 flex-none" />
-          <div class="text-base font-bold ml-3">{{ $t('msg.info.actionIrreversible') }}</div>
+          </a-form>
         </div>
-        <div class="flex flex-row w-full justify-end mt-8">
-          <NcButton
-            v-e="['c:workspace:settings:delete']"
-            type="secondary"
-            danger
-            class="nc-custom-daner-btn"
-            size="small"
-            @click="handleDelete"
-          >
-            {{ $t('general.deleteEntity', { entity: $t('objects.workspace') }) }}
-          </NcButton>
+      </div>
+      <div class="nc-settings-item-card-wrapper mt-10">
+        <div class="nc-settings-item-heading text-nc-content-red-dark">{{ $t('labels.dangerZone') }}</div>
+
+        <div class="nc-settings-item-card flex flex-col border-1 border-red-500 text-nc-content-gray">
+          <div class="nc-settings-item">
+            <div class="nc-settings-item-content">
+              <div class="nc-settings-item-title">{{ $t('msg.info.leaveThisWorkspace') }}</div>
+              <div class="nc-settings-item-subtitle">You will no longer have access to this workspace unless re-invited.</div>
+            </div>
+
+            <NcTooltip :disabled="allowLeaveWs">
+              <template #title>
+                {{ $t('tooltip.leaveWorkspace') }}
+              </template>
+              <NcButton
+                v-e="['c:workspace:settings:leave']"
+                type="secondary"
+                danger
+                class="nc-custom-daner-btn capitalize"
+                size="small"
+                :disabled="!allowLeaveWs"
+                @click="handleLeaveWorkspace"
+              >
+                {{ $t('activity.leaveWorkspace') }}
+              </NcButton>
+            </NcTooltip>
+          </div>
+          <div v-if="hasWorkspaceManagePermission" class="nc-settings-item">
+            <div class="nc-settings-item-content">
+              <div class="nc-settings-item-title">{{ $t('msg.info.wsDeleteDlg') }}</div>
+              <div class="nc-settings-item-subtitle">
+                This will permanently remove the workspace and all its contents. This action cannot be undone.
+              </div>
+            </div>
+            <div class="flex-none">
+              <NcButton
+                v-e="['c:workspace:settings:delete']"
+                type="secondary"
+                danger
+                class="nc-custom-daner-btn"
+                size="small"
+                @click="handleDelete"
+              >
+                {{ $t('general.deleteEntity', { entity: $t('objects.workspace') }) }}
+              </NcButton>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <GeneralModal v-model:visible="isDeleteModalVisible" class="nc-attachment-rename-modal" size="small" centered>
+  <GeneralModal
+    v-if="hasWorkspaceManagePermission"
+    v-model:visible="isDeleteModalVisible"
+    class="nc-attachment-rename-modal"
+    size="small"
+    centered
+  >
     <div class="flex flex-col items-center justify-center h-full !p-6">
       <div class="text-lg font-semibold self-start mb-5">Delete Workspace</div>
       <span class="self-start mb-2">
@@ -352,9 +422,3 @@ const onCancel = () => {
     </div>
   </GeneralModal>
 </template>
-
-<style lang="scss" scoped>
-.item-card {
-  @apply p-6 rounded-2xl border-1 max-w-[600px] mt-10 min-w-100 w-full;
-}
-</style>

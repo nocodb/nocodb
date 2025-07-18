@@ -83,10 +83,18 @@ export class WorkspaceUsersService {
     });
   }
 
-  async count(param: { workspaceId; includeDeleted?: boolean }) {
+  async count(param: { workspaceId: string; includeDeleted?: boolean }) {
     return await WorkspaceUser.count({
       workspaceId: param.workspaceId,
       include_deleted: param.includeDeleted,
+    });
+  }
+
+  async ownerCount(param: { workspaceId: string }) {
+    return await WorkspaceUser.count({
+      workspaceId: param.workspaceId,
+      include_deleted: false,
+      onlyOwner: true,
     });
   }
 

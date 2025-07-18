@@ -5,10 +5,9 @@ import type {
   PlanFeatureTypes,
   PlanLimitTypes,
   WorkspaceType,
-  WorkspaceUserRoles,
   WorkspaceUserType,
 } from 'nocodb-sdk'
-import { WorkspaceStatus } from 'nocodb-sdk'
+import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { isString } from '@vue/shared'
 
@@ -69,6 +68,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const nocoAi = useNocoAi()
 
   const workspaceUserCount = ref<number | undefined>(undefined)
+
+  const workspaceOwnerCount = ref<number | undefined>(undefined)
 
   const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
@@ -250,6 +251,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       allCollaborators.value = list
       collaborators.value = (list || [])?.filter((u) => !u?.deleted)
       workspaceUserCount.value = pageInfo.totalRows
+      workspaceOwnerCount.value = collaborators.value.filter((u) => u.roles === WorkspaceUserRoles.OWNER).length
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
@@ -286,7 +288,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   // remove user from workspace
-  const removeCollaborator = async (userId: string, workspaceId?: string) => {
+  const removeCollaborator = async (userId: string, workspaceId?: string, onCurrentUserLeftCallback?: () => void) => {
     try {
       if (!workspaceId && !activeWorkspace.value?.id) {
         throw new Error('Workspace not selected')
@@ -302,6 +304,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
       // if user left the workspace, navigate to home
       if (currentUser.value?.id === userId) {
+        onCurrentUserLeftCallback?.()
         const list = await workspaceStore.loadWorkspaces()
         return await navigateTo(`/${list?.[0]?.id}`)
       }
@@ -365,6 +368,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         (res.workspace as WorkspaceType & { integrations: Partial<IntegrationType>[] })?.integrations || []
 
       workspaceUserCount.value = Number(res.workspaceUserCount)
+      workspaceOwnerCount.value = Number(res.workspaceOwnerCount)
 
       if (res.workspace.db_job_id) {
         upgradeWsJobId.value = res.workspace.db_job_id
@@ -636,6 +640,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaceRole,
     isWorkspaceSettingsPageOpened,
     workspaceUserCount,
+    workspaceOwnerCount,
     getPlanLimit,
     moveToOrg,
     isIntegrationsPageOpened,

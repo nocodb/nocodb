@@ -418,6 +418,10 @@
                     "workspaceUserCount": {
                       "type": "number",
                       "required": true
+                    },
+                    "workspaceOwnerCount": {
+                      "type": "number",
+                      "required": true
                     }
                   }
                 }

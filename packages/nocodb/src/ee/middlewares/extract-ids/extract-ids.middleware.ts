@@ -785,6 +785,15 @@ export class AclMiddleware implements NestInterceptor {
     }
     // todo : verify user have access to base or not
 
+    // if user have no access role and trying to remove self from workspace then allow it
+    const isUserWithNoAccessLeavingWorkspace =
+      permissionName === 'workspaceUserDelete' &&
+      req.method === 'DELETE' &&
+      req.user?.workspace_roles?.[WorkspaceUserRoles.NO_ACCESS] &&
+      req.params?.workspaceId &&
+      req.params?.workspaceUserId &&
+      req.params?.workspaceUserId === req.user?.id;
+
     const isAllowed =
       (roles &&
         Object.entries(roles).some(([name, hasRole]) => {
@@ -810,7 +819,8 @@ export class AclMiddleware implements NestInterceptor {
               (rolePermissions[name].include &&
                 rolePermissions[name].include[scope + '_' + permissionName]))
           );
-        }));
+        })) ||
+      isUserWithNoAccessLeavingWorkspace;
     if (!isAllowed) {
       NcError.forbidden(
         generateReadablePermissionErr(

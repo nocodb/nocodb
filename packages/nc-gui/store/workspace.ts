@@ -43,6 +43,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
   const workspaceUserCount = ref<number | undefined>(undefined)
+  const workspaceOwnerCount = ref<number | undefined>(undefined)
 
   const upgradeWsDlg = ref(false)
   const upgradeWsJobId = ref<string | null>(null)
@@ -294,6 +295,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     lastPopulatedWorkspaceId,
     isWorkspaceSettingsPageOpened,
     workspaceUserCount,
+    workspaceOwnerCount,
     getPlanLimit,
     workspaceRole,
     moveToOrg,

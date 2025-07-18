@@ -96,6 +96,7 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 const ORDER_STEP_INCREMENT = 1;
 const MAX_RECURSION_DEPTH = 2;
+const READ_CHUNK_SIZE = 100;
 
 export function replaceDynamicFieldWithValue(
   row: any,
@@ -2015,13 +2016,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             insertData: datas?.[0],
           });
         } else {
-          await this.afterBulkInsert(
-            insertDatas.map((r, i) => {
-              return { ...(r || {}), ...(responses?.[i] || {}) };
-            }),
-            this.dbDriver,
-            cookie,
-          );
+          const insertResponses = await this.chunkList({
+            pks: responses.map((d) => this.extractPksValues(d)),
+          });
+
+          await this.afterBulkInsert(insertResponses, this.dbDriver, cookie);
         }
       }
 
@@ -2359,7 +2358,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } = {},
   ) {
     const queries: string[] = [];
-    const readChunkSize = 100;
 
     try {
       const columns = await this.model.getColumns(this.context);
@@ -2404,8 +2402,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         pkAndData.push({ pk: pkValues, data: d });
       }
 
-      for (let i = 0; i < pkAndData.length; i += readChunkSize) {
-        const chunk = pkAndData.slice(i, i + readChunkSize);
+      for (let i = 0; i < pkAndData.length; i += READ_CHUNK_SIZE) {
+        const chunk = pkAndData.slice(i, i + READ_CHUNK_SIZE);
         const pksToRead = chunk.map((v) => v.pk);
 
         const oldRecords = await this.list(
@@ -2526,8 +2524,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (!raw) {
-        for (let i = 0; i < updatePkValues.length; i += readChunkSize) {
-          const pksChunk = updatePkValues.slice(i, i + readChunkSize);
+        for (let i = 0; i < updatePkValues.length; i += READ_CHUNK_SIZE) {
+          const pksChunk = updatePkValues.slice(i, i + READ_CHUNK_SIZE);
 
           const updatedRecords = await this.list(
             { pks: pksChunk.join(',') },
@@ -2765,7 +2763,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const deleted = [];
       const res = [];
       const pkAndData: { pk: any; data: any }[] = [];
-      const readChunkSize = 100;
+
       for (const [i, d] of deleteIds.entries()) {
         const pkValues = getCompositePkValue(
           this.model.primaryKeys,
@@ -2781,7 +2779,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
         pkAndData.push({ pk: pkValues, data: d });
 
-        if (pkAndData.length >= readChunkSize || i === deleteIds.length - 1) {
+        if (pkAndData.length >= READ_CHUNK_SIZE || i === deleteIds.length - 1) {
           const tempToRead = pkAndData.splice(0, pkAndData.length);
           const oldRecords = await this.list(
             {
@@ -3300,17 +3298,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       await this.handleHooks('after.bulkUpdate', prevData, newData, req);
     }
 
-    for (const data of newData) {
-      NocoSocket.broadcastDataEvent(
-        this.context,
-        this.model.id,
-        {
-          id: this.extractPksValues(data),
-          action: 'update',
-          payload: data,
-        },
-        this.context.socket_id,
-      );
+    if (newData && newData.length > 0) {
+      for (const data of newData) {
+        NocoSocket.broadcastDataEvent(
+          this.context,
+          this.model.id,
+          {
+            id: this.extractPksValues(data),
+            action: 'update',
+            payload: data,
+          },
+          this.context.socket_id,
+        );
+      }
     }
 
     // disable external source audit in cloud

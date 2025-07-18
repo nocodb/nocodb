@@ -21,7 +21,7 @@ const { $api, $e } = useNuxtApp()
 const CHUNK_SIZE = 100
 
 const filterForDestinationColumn = (col: ColumnType): boolean => {
-  if ([UITypes.ForeignKey, UITypes.ID].includes(col.uidt as UITypes)) {
+  if ([UITypes.ForeignKey].includes(col.uidt as UITypes)) {
     return true
   } else {
     return !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)
@@ -320,7 +320,7 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
       }, {} as Record<string, ColumnType>)
 
       const nocodbColumnsToMap = tableMeta.columns.filter(
-        (c) => c.id && !c.system && !GENERATED_COLUMN_TYPES.includes(c.uidt as UITypes) && c.title?.toLocaleLowerCase() !== 'id',
+        (c) => c.id && !c.system && !GENERATED_COLUMN_TYPES.includes(c.uidt as UITypes) && !c.readonly,
       )
 
       importPayload.value.srcDestMapping = headers.value.map((h) => {
@@ -1329,11 +1329,20 @@ const errorMsgsTableColumns = [
                               dropdown-class-name="w-[254px]"
                               @change="onUpsertColumnChange"
                             >
-                              <a-select-option v-for="(col, i) of nocodbTableColumns" :key="i" :value="col.id">
+                              <a-select-option
+                                v-for="(col, i) of nocodbTableColumns"
+                                :key="i"
+                                :disabled="col.readonly"
+                                :value="col.id"
+                              >
                                 <div class="flex items-center gap-2 w-full">
-                                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                                  <NcTooltip
+                                    class="flex-1 truncate"
+                                    :show-on-truncate-only="!col.readonly"
+                                    :placement="col.readonly ? 'right' : 'top'"
+                                  >
                                     <template #title>
-                                      {{ col.title }}
+                                      {{ col.readonly ? $t('msg.info.fieldReadonly') : col.title }}
                                     </template>
                                     {{ col.title }}
                                   </NcTooltip>
@@ -1505,12 +1514,21 @@ const errorMsgsTableColumns = [
                         <template #suffixIcon>
                           <GeneralIcon icon="arrowDown" class="text-current" />
                         </template>
-                        <a-select-option v-for="(col, i) of getUnselectedFields(importMeta)" :key="i" :value="col.title">
+                        <a-select-option
+                          v-for="(col, i) of getUnselectedFields(importMeta)"
+                          :key="i"
+                          :value="col.title"
+                          :disabled="col.readonly"
+                        >
                           <div class="flex items-center gap-2 w-full">
                             <component :is="getUIDTIcon(col.uidt as UITypes)" class="flex-none w-3.5 h-3.5" />
-                            <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                            <NcTooltip
+                              class="truncate flex-1"
+                              :show-on-truncate-only="!col.readonly"
+                              :placement="col.readonly ? 'right' : 'top'"
+                            >
                               <template #title>
-                                {{ col.title }}
+                                {{ col.readonly ? $t('msg.info.fieldReadonly') : col.title }}
                               </template>
                               {{ col.title }}
                             </NcTooltip>

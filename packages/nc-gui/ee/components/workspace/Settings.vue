@@ -61,7 +61,7 @@ const hasWorkspaceManagePermission = computed(() => {
 const currentWorkspace = computedAsync(async () => {
   if (props.workspaceId) {
     const ws = workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
-    if (!ws && (!leavedWsUserId.value || leavedWsUserId.value !== user.value?.id)) {
+    if (!ws && !leavedWsUserId.value) {
       await loadWorkspace(props.workspaceId)
       return workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
     }
@@ -182,7 +182,6 @@ const allowLeaveWs = computed(() => {
 const handleLeaveWorkspace = () => {
   if (!user.value?.id || !currentWorkspace.value?.id) return
 
-  leavedWsUserId.value = user.value.id
   removeCollaborator(user.value.id, currentWorkspace.value.id, () => {
     leavedWsUserId.value = user.value!.id
   })

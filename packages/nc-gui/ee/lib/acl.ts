@@ -97,7 +97,6 @@ const rolePermissions = {
     include: {
       baseCreate: true,
       baseDuplicate: true,
-      workspaceSettings: true,
       tableCreate: true,
       tableRename: true,
       tableDelete: true,
@@ -122,7 +121,9 @@ const rolePermissions = {
     },
   },
   [WorkspaceUserRoles.NO_ACCESS]: {
-    include: {},
+    include: {
+      workspaceSettings: true,
+    },
   },
 
   // Base role permissions

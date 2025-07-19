@@ -1339,6 +1339,7 @@
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Include views",
     "includeScripts": "Include scripts",
+    "includeDashboards": "Include dashboards",
     "includeWebhook": "Include webhook",
     "includeComments": "Include comments",
     "zoomInToViewColumns": "Zoom in to view columns",

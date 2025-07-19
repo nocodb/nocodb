@@ -39,6 +39,7 @@ export class DuplicateService {
         excludeViews?: boolean;
         excludeHooks?: boolean;
         excludeScripts?: boolean;
+        excludeDashboards?: boolean;
       };
       // override duplicated base
       base?: any;

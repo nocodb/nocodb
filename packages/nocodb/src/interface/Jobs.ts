@@ -25,6 +25,7 @@ export enum JobTypes {
   DuplicateBase = 'duplicate-base',
   DuplicateModel = 'duplicate-model',
   DuplicateColumn = 'duplicate-column',
+  DuplicateDashboard = 'duplicate-dashboard',
   AtImport = 'at-import',
   MetaSync = 'meta-sync',
   SourceCreate = 'source-create',
@@ -141,6 +142,7 @@ export interface DuplicateBaseJobData extends JobData {
     excludeComments?: boolean;
     excludeUsers?: boolean;
     excludeScripts?: boolean;
+    excludeDashboards?: boolean;
   };
 }
 
@@ -165,6 +167,13 @@ export interface DuplicateColumnJobData extends JobData {
   options: {
     excludeData?: boolean;
   };
+}
+
+export interface DuplicateDashboardJobData extends JobData {
+  sourceId: string;
+  dashboardId: string;
+  req: NcRequest;
+  options: never;
 }
 
 export interface HandleWebhookJobData extends JobData {

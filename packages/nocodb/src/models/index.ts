@@ -54,3 +54,4 @@ export { default as CustomUrl } from './CustomUrl';
 export { default as Script } from './Script';
 export { default as DataReflection } from './DataReflection';
 export { default as MCPToken } from './MCPToken';
+export { default as Dashboard } from './Dashboard';

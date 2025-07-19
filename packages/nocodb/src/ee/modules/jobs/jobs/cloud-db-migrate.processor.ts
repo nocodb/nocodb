@@ -23,7 +23,12 @@ export class CloudDbMigrateProcessor {
   async job(job: Job) {
     this.debugLog(`job started for ${job.id}`);
 
-    const { workspaceOrOrgId, conditions = {}, targetOrgId = null } = job.data;
+    const {
+      workspaceOrOrgId,
+      conditions = {},
+      targetOrgId = null,
+      oldDbServerId = null,
+    } = job.data;
 
     const logBasic = (log) => {
       this.jobsLogService.sendLog(job, { message: log });
@@ -138,7 +143,17 @@ export class CloudDbMigrateProcessor {
         (a, b) => a.current_tenant_count - b.current_tenant_count,
       )[0];
 
-      let oldDbServer;
+      let oldDbServerConfig: DbConfig;
+
+      if (oldDbServerId) {
+        // if oldDbServerId is 'nc', use the nc_data_db config (only for internal use, in case something goes wrong)
+        if (oldDbServerId === 'nc') {
+          oldDbServerConfig = await metaUrlToDbConfig(NC_DATA_DB);
+        } else {
+          oldDbServerConfig = (await DbServer.getWithConfig(oldDbServerId))
+            ?.config as DbConfig;
+        }
+      }
 
       if (!dbServer) {
         logBasic('DbServer not found');
@@ -148,12 +163,6 @@ export class CloudDbMigrateProcessor {
       if (workspaceOrOrg.fk_db_instance_id === dbServer.id) {
         logBasic('Workspace already has the same db server');
         return;
-      }
-
-      if (workspaceOrOrg.fk_db_instance_id) {
-        oldDbServer = await DbServer.getWithConfig(
-          workspaceOrOrg.fk_db_instance_id,
-        );
       }
 
       dbServer = await DbServer.getWithConfig(dbServer.id);
@@ -178,7 +187,7 @@ export class CloudDbMigrateProcessor {
       }
 
       const dataDbConfig =
-        oldDbServer?.config || (await metaUrlToDbConfig(NC_DATA_DB));
+        oldDbServerConfig || (await metaUrlToDbConfig(NC_DATA_DB));
       const targetDbConfig = dbServer.config as DbConfig;
 
       const dataDbUrl = this.dbConfigToJdbcUrl(dataDbConfig);

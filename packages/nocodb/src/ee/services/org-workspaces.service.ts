@@ -136,6 +136,7 @@ export class OrgWorkspacesService {
         fk_org_id: org.id,
       },
       targetOrgId: org.id,
+      oldDbServerId: workspace.fk_db_instance_id,
     });
 
     return org;

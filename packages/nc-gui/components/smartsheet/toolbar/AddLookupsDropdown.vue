@@ -145,13 +145,15 @@ watch(isOpened, async (val) => {
     relatedModel.value = await getMeta(fkRelatedModelId.value)
     isInSearchMode.value = false
     searchField.value = ''
+  } else {
+    selectedFields.value = {}
   }
 })
 </script>
 
 <template>
   <NcDropdown v-model:visible="isOpened" :disabled="props.disabled" placement="right" overlay-class-name="!min-w-[256px]">
-    <slot />
+    <slot :is-opened="isOpened" />
     <template #overlay>
       <div class="flex flex-col !rounded-t-lg overflow-hidden w-[256px]">
         <div @click.stop>

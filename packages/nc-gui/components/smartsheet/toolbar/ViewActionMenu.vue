@@ -202,7 +202,7 @@ const isUploadAllowed = computed(() => {
     isUIAllowed('csvTableImport') &&
     !isPublicView.value &&
     !isDataReadOnly.value &&
-    table.value?.type !== 'view' && //isSqlView
+    table.value?.type !== 'view' && // isSqlView
     !table.value?.synced
   )
 })

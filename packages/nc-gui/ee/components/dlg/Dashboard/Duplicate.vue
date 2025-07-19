@@ -19,7 +19,7 @@ const duplicate = async () => {
   try {
     isLoading.value = true
 
-    await duplicateDashboard(props.dashboard.base_id!, props.dashboard.id!, props.extra, (status) => {})
+    await duplicateDashboard(props.dashboard.base_id!, props.dashboard.id!, props.extra, () => {})
 
     dialogShow.value = false
   } catch (error) {

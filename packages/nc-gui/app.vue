@@ -107,7 +107,6 @@ const _ = (window as any).ResizeObserver
 </script>
 
 <template>
-  <NcNuxtLoadingIndicator />
   <a-config-provider>
     <NuxtLayout :name="disableBaseLayout ? false : 'base'">
       <ErrorBoundary>
@@ -118,6 +117,9 @@ const _ = (window as any).ResizeObserver
 
   <ErrorBoundary>
     <div>
+      <!-- Page Loading Indicator -->
+      <NcNuxtLoadingIndicator />
+
       <!-- Command Menu -->
       <CmdK
         ref="commandPalette"

@@ -195,7 +195,7 @@ export class DuplicateProcessor {
         });
       }
 
-      if (exportedDashboards) {
+      if (exportedDashboards?.length) {
         idMap = await this.importService.importDashboards(targetContext, {
           user,
           baseId: targetBase.id,

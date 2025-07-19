@@ -170,7 +170,6 @@ export interface DuplicateColumnJobData extends JobData {
 }
 
 export interface DuplicateDashboardJobData extends JobData {
-  sourceId: string;
   dashboardId: string;
   req: NcRequest;
   options: never;

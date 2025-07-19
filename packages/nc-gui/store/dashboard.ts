@@ -23,6 +23,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const openDashboard = async (..._params: any) => null
 
+  const duplicateDashboard = async (..._params: any) => null
+
   async function openNewDashboardModal(..._params: any) {}
 
   return {
@@ -43,6 +45,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     updateDashboard,
     deleteDashboard,
     openDashboard,
+    duplicateDashboard,
     openNewDashboardModal,
   }
 })

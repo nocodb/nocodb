@@ -99,8 +99,9 @@ export const TreeViewInj: InjectionKey<{
   ) => void
   openViewDescriptionDialog: (view: ViewType) => void
   openAutomationDescriptionDialog?: (automation: any) => void
+  openDashboardDescriptionDialog?: (dashboard: any) => void
   openTableDescriptionDialog: (table: TableType) => void
-  contextMenuTarget: { type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }
+  contextMenuTarget: { type?: 'base' | 'table' | 'main' | 'layout'; value?: any }
   tableRenameId: Ref<string>
 }> = Symbol('tree-view-functions-injection')
 export const CalendarViewTypeInj: InjectionKey<Ref<'week' | 'month' | 'day' | 'year'>> = Symbol('calendar-view-type-injection')

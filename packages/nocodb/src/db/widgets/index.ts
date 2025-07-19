@@ -1,5 +1,5 @@
 import { NcError } from '~/helpers/ncError';
 
 export async function getWidgetHandler(..._params: any) {
-  NcError.notImplemented(`${widget.type} widget`);
+  NcError.notImplemented(`Widget`);
 }

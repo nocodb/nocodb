@@ -29,6 +29,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { customAlphabet } from 'nanoid';
 import { NcApiVersion } from 'nocodb-sdk';
 import { AttachmentUrlUploadPreparator } from 'src/db/BaseModelSqlv2/attachment-url-upload-preparator';
+import { ncIsStringHasValue } from 'src/db/field-handler/utils/handlerUtils';
 import type {
   DataBulkDeletePayload,
   DataBulkUpdateAllPayload,
@@ -377,7 +378,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   async runOps(ops: Promise<string>[], trx = this.dbDriver) {
-    const queries = await Promise.all(ops);
+    const queries = (await Promise.all(ops)).filter((query) =>
+      ncIsStringHasValue(query),
+    );
     if ((this.dbDriver as any).isExternal) {
       await runExternal(
         this.sanitizeQuery(queries),

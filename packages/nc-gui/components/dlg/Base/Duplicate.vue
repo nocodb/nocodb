@@ -33,7 +33,7 @@ const options = ref({
   includeHooks: true,
   includeComments: true,
   includeScripts: true,
-  includeDashboards: true,
+  includeDashboards: isDashboardEnabled.value,
 })
 const targetWorkspace = ref(activeWorkspace)
 

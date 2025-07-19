@@ -1687,6 +1687,7 @@ export class PaymentService {
             : {
                 plan: plan.title,
               },
+        oldDbServerId: workspaceOrOrg.fk_db_instance_id,
       });
     } catch (err) {
       this.telemetryService.sendSystemEvent({

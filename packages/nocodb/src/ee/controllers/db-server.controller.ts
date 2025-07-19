@@ -77,11 +77,18 @@ export class DbServerController {
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async migrate(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
-    @Body() body: { conditions?: Record<string, string> },
+    @Body()
+    body: {
+      conditions?: Record<string, string>;
+      targetOrgId?: string;
+      oldDbServerId?: string;
+    },
   ) {
     const job = await this.jobsService.add(JobTypes.CloudDbMigrate, {
       workspaceOrOrgId,
       conditions: body.conditions,
+      ...(body.targetOrgId ? { targetOrgId: body.targetOrgId } : {}),
+      ...(body.oldDbServerId ? { oldDbServerId: body.oldDbServerId } : {}),
     });
 
     return {

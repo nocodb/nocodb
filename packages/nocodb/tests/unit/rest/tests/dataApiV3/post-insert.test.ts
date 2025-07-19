@@ -538,18 +538,5 @@ describe('dataApiV3', () => {
         }
       });
     });
-
-    // v3 has no attachment atm
-    describe.skip('attachment', () => {
-      let table: Model;
-      const columns: Column[] = [];
-
-      beforeEach(async function () {
-        const initResult = await beforeEachAttachment(testContext);
-        urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
-      });
-
-      it('Upload file - Super admin', async () => {});
-    });
   });
 });

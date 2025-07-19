@@ -65,10 +65,12 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
       }
     }
     const { removed } = detailedDiff(
-      new Array(oldValueMap.keys()),
+      Array.from(oldValueMap.keys()),
       value.map((k) => k.id),
     );
-    await FileReference.delete(params.options.context, removed);
+    if (removed.length > 0) {
+      await FileReference.delete(params.options.context, removed);
+    }
     return {
       value: value.map((attr) => {
         return attr.id.startsWith('temp_')

@@ -143,9 +143,17 @@ export class CloudDbMigrateProcessor {
         (a, b) => a.current_tenant_count - b.current_tenant_count,
       )[0];
 
-      const oldDbServer = oldDbServerId
-        ? await DbServer.getWithConfig(oldDbServerId)
-        : null;
+      let oldDbServerConfig: DbConfig;
+
+      if (oldDbServerId) {
+        // if oldDbServerId is 'nc', use the nc_data_db config (only for internal use, in case something goes wrong)
+        if (oldDbServerId === 'nc') {
+          oldDbServerConfig = await metaUrlToDbConfig(NC_DATA_DB);
+        } else {
+          oldDbServerConfig = (await DbServer.getWithConfig(oldDbServerId))
+            ?.config as DbConfig;
+        }
+      }
 
       if (!dbServer) {
         logBasic('DbServer not found');
@@ -179,8 +187,7 @@ export class CloudDbMigrateProcessor {
       }
 
       const dataDbConfig =
-        (oldDbServer?.config as DbConfig) ||
-        (await metaUrlToDbConfig(NC_DATA_DB));
+        oldDbServerConfig || (await metaUrlToDbConfig(NC_DATA_DB));
       const targetDbConfig = dbServer.config as DbConfig;
 
       const dataDbUrl = this.dbConfigToJdbcUrl(dataDbConfig);

@@ -107,6 +107,7 @@ const _ = (window as any).ResizeObserver
 </script>
 
 <template>
+  <NcNuxtLoadingIndicator />
   <a-config-provider>
     <NuxtLayout :name="disableBaseLayout ? false : 'base'">
       <ErrorBoundary>

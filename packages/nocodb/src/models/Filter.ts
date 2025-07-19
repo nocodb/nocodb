@@ -496,17 +496,19 @@ export default class Filter implements FilterType {
       hookId,
       linkColId,
       parentColId,
+      widgetId,
     }: {
       viewId?: string;
       hookId?: string;
       linkColId?: string;
       parentColId?: string;
+      widgetId?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<FilterType> {
     const cachedList = await NocoCache.getList(
       CacheScope.FILTER_EXP,
-      [parentColId || viewId || hookId || linkColId],
+      [parentColId || viewId || hookId || linkColId || widgetId],
       {
         key: 'order',
       },
@@ -524,6 +526,8 @@ export default class Filter implements FilterType {
         condition.fk_link_col_id = linkColId;
       } else if (parentColId) {
         condition.fk_parent_column_id = parentColId;
+      } else if (widgetId) {
+        condition.fk_widget_id = widgetId;
       }
 
       filters = await ncMeta.metaList2(
@@ -540,7 +544,7 @@ export default class Filter implements FilterType {
 
       await NocoCache.setList(
         CacheScope.FILTER_EXP,
-        [parentColId || viewId || hookId || linkColId],
+        [parentColId || viewId || hookId || linkColId || widgetId],
         filters,
       );
     }

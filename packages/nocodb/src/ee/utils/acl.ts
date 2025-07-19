@@ -265,6 +265,7 @@ const permissionScopes = {
     'dashboardCreate',
     'dashboardUpdate',
     'dashboardDelete',
+    'dashboardShare',
 
     // Widget
     'widgetList',
@@ -930,6 +931,7 @@ const permissionDescriptions: Record<string, string> = {
   dashboardCreate: 'create a new dashboard',
   dashboardUpdate: 'update dashboard details',
   dashboardDelete: 'delete a dashboard',
+  dashboardShare: 'share a dashboard',
 
   widgetList: 'view list of widgets',
   widgetGet: 'view widget details',

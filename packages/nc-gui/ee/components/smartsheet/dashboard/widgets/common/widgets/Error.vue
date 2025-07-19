@@ -1,5 +1,9 @@
+<script setup lang="ts">
+const isPublic = inject(IsPublicInj, ref(false))
+</script>
+
 <template>
-  <NcTooltip>
+  <NcTooltip v-if="!isPublic">
     <template #title> Incomplete configuration </template>
 
     <div class="flex items-center gap-2 rounded-md bg-nc-bg-orange-light text-caption text-nc-content-orange-dark px-2 py-1">

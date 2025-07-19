@@ -12,6 +12,7 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import { CustomUrl } from '~/models';
 
 export default class Dashboard extends DashboardCE implements DashboardType {
   id?: string;
@@ -25,6 +26,11 @@ export default class Dashboard extends DashboardCE implements DashboardType {
   updated_at?: string;
   created_by?: string;
   owned_by?: string;
+
+  // shared dashboard props
+  uuid?: string;
+  password?: string;
+  fk_custom_url_id?: string;
 
   widgets?: Widget[];
 
@@ -154,6 +160,9 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       'order',
       'meta',
       'owned_by',
+      'uuid',
+      'password',
+      'fk_custom_url_id',
     ]);
 
     updateObj = prepareForDb(updateObj, ['meta']);
@@ -180,6 +189,9 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     dashboardId: string,
     ncMeta = Noco.ncMeta,
   ) {
+    await CustomUrl.bulkDelete({
+      fk_dashboard_id: dashboardId,
+    });
     // Delete all widgets in this dashboard
     const widgets = await Widget.list(context, dashboardId, ncMeta);
     for (const widget of widgets) {
@@ -204,5 +216,21 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     ncMeta = Noco.ncMeta,
   ): Promise<Widget[]> {
     return (this.widgets = await Widget.list(context, this.id, ncMeta));
+  }
+
+  static async getByUUID(
+    context: NcContext,
+    uuid: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const dashboard = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DASHBOARDS,
+      {
+        uuid,
+      },
+    );
+    return dashboard && new Dashboard(dashboard);
   }
 }

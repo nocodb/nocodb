@@ -12,6 +12,9 @@ export interface DashboardType {
   updated_at?: string;
   created_by?: string;
   owned_by?: string;
+
+  password?: string;
+  fk_custom_url_id?: string;
 }
 
 export enum WidgetTypes {

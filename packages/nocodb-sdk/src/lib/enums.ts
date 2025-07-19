@@ -213,6 +213,10 @@ export enum AppEvents {
   DASHBOARD_UPDATE = 'dashboard.update',
   DASHBOARD_DELETE = 'dashboard.delete',
 
+  SHARED_DASHBOARD_GENERATE_LINK = 'shared.dashboard.generate.link',
+  SHARED_DASHBOARD_UPDATE_LINK = 'shared.dashboard.update.link',
+  SHARED_DASHBOARD_DELETE_LINK = 'shared.dashboard.delete.link',
+
   DASHBOARD_DUPLICATE_START = 'dashboard.duplicate.start',
   DASHBOARD_DUPLICATE_COMPLETE = 'dashboard.duplicate.complete',
   DASHBOARD_DUPLICATE_FAIL = 'dashboard.duplicate.fail',

@@ -81,3 +81,51 @@ export async function truncateToLength(param: {
     });
   }
 }
+
+/**
+ * Generates a unique copy name by checking against existing names/items
+ */
+export function generateUniqueCopyName<T = string>(
+  originalName: string,
+  existing: T[] | string[],
+  options: {
+    /** Property name or accessor function to get the name from objects */
+    accessor?: keyof T | ((item: T) => string);
+    /** Prefix to use (default: "Copy of") */
+    prefix?: string;
+    /** Separator before counter (default: " ") */
+    separator?: string;
+    /** Format for counter, use {counter} placeholder (default: "({counter})") */
+    counterFormat?: string;
+  } = {}
+): string {
+  const {
+    accessor,
+    prefix = 'Copy of',
+    separator = ' ',
+    counterFormat = '({counter})',
+  } = options;
+
+  // Extract names from the existing array
+  const existingNames = existing.map((item) => {
+    if (typeof item === 'string') return item;
+    if (accessor) {
+      return typeof accessor === 'function'
+        ? accessor(item)
+        : String(item[accessor]);
+    }
+    // Default to 'title' property if no accessor specified
+    return String((item as any).title);
+  });
+
+  let newName = `${prefix} ${originalName}`;
+  let counter = 1;
+
+  while (existingNames.includes(newName)) {
+    const counterText = counterFormat.replace('{counter}', counter.toString());
+    newName = `${prefix} ${originalName}${separator}${counterText}`;
+    counter++;
+  }
+
+  return newName;
+}

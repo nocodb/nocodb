@@ -16,7 +16,12 @@ export default class CustomUrl extends CustomUrlCE {
     params: Partial<Pick<CustomUrl, 'id' | 'view_id' | 'custom_path'>>,
     ncMeta = Noco.ncMeta,
   ) {
-    const condition = extractProps(params, ['id', 'view_id', 'custom_path']);
+    const condition = extractProps(params, [
+      'id',
+      'view_id',
+      'custom_path',
+      'fk_dashboard_id',
+    ]);
 
     const customUrl = await ncMeta.metaGet2(
       RootScopes.ROOT,
@@ -79,6 +84,7 @@ export default class CustomUrl extends CustomUrlCE {
       'view_id',
       'original_path',
       'custom_path',
+      'fk_dashboard_id',
     ]);
 
     if (insertData.custom_path?.length > 128) {
@@ -111,7 +117,10 @@ export default class CustomUrl extends CustomUrlCE {
 
   public static async list(
     params: Partial<
-      Pick<CustomUrl, 'fk_workspace_id' | 'base_id' | 'fk_model_id'>
+      Pick<
+        CustomUrl,
+        'fk_workspace_id' | 'base_id' | 'fk_model_id' | 'fk_dashboard_id'
+      >
     >,
     ncMeta = Noco.ncMeta,
   ) {
@@ -119,6 +128,7 @@ export default class CustomUrl extends CustomUrlCE {
       'fk_workspace_id',
       'base_id',
       'fk_model_id',
+      'fk_dashboard_id',
     ]);
 
     const customUrlList = await ncMeta.metaList2(
@@ -205,10 +215,14 @@ export default class CustomUrl extends CustomUrlCE {
   }
 
   static async delete(
-    customUrl: Partial<Pick<CustomUrl, 'id' | 'view_id'>>,
+    customUrl: Partial<Pick<CustomUrl, 'id' | 'view_id' | 'fk_dashboard_id'>>,
     ncMeta = Noco.ncMeta,
   ) {
-    const condition = extractProps(customUrl, ['id', 'view_id']);
+    const condition = extractProps(customUrl, [
+      'id',
+      'view_id',
+      'fk_dashboard_id',
+    ]);
 
     const customUrlData = await CustomUrl.get(condition, ncMeta);
 
@@ -230,7 +244,10 @@ export default class CustomUrl extends CustomUrlCE {
 
   static async bulkDelete(
     params: Partial<
-      Pick<CustomUrl, 'fk_workspace_id' | 'base_id' | 'fk_model_id'>
+      Pick<
+        CustomUrl,
+        'fk_workspace_id' | 'base_id' | 'fk_model_id' | 'fk_dashboard_id'
+      >
     >,
     ncMeta = Noco.ncMeta,
   ) {
@@ -238,12 +255,14 @@ export default class CustomUrl extends CustomUrlCE {
       'fk_workspace_id',
       'base_id',
       'fk_model_id',
+      'fk_dashboard_id',
     ]);
 
     if (
       !condition.fk_workspace_id &&
       !condition.base_id &&
-      !condition.fk_model_id
+      !condition.fk_model_id &&
+      !condition.fk_dashboard_id
     ) {
       NcError.badRequest(
         'At least one of fk_workspace_id, base_id or fk_model_id is required',

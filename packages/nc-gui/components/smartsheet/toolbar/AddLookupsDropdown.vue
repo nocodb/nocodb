@@ -51,7 +51,9 @@ const fkRelatedModelId = computed(() => (column.value.colOptions as any)?.fk_rel
 
 const relatedModel = ref<TableType | null>()
 
-const hasSelectedFields = computed(() => Object.values(selectedFields.value).filter(Boolean).length > 0)
+const selectedFieldsCount = computed(() => Object.values(selectedFields.value).filter(Boolean).length)
+
+const hasSelectedFields = computed(() => selectedFieldsCount.value > 0)
 
 const createLookups = async () => {
   if (!hasSelectedFields.value) {
@@ -110,12 +112,22 @@ const createLookups = async () => {
 
     await getMeta(meta?.value?.id as string, true)
 
+    message.success(
+      selectedFieldsCount.value > 1
+        ? t('msg.success.nlookupFieldsCreatedSuccessfullyPlural', {
+            n: selectedFieldsCount.value,
+          })
+        : t('msg.success.nlookupFieldsCreatedSuccessfully', {
+            n: selectedFieldsCount.value,
+          }),
+    )
+
     isOpened.value = false
     selectedFields.value = {}
     emit('created')
   } catch (e) {
     console.error(e)
-    message.error('Failed to create lookup columns')
+    message.error(t('msg.error.failedToCreateLookupFields'))
   } finally {
     isLoading.value = false
   }
@@ -210,11 +222,22 @@ watch(isOpened, async (val) => {
             </div>
           </div>
           <div class="flex w-full p-1">
-            <NcButton :loading="isLoading" size="small" class="w-full" :disabled="!hasSelectedFields" @click="createLookups">
+            <NcButton
+              :loading="isLoading"
+              size="small"
+              type="text"
+              class="nc-add-lookup-button"
+              :disabled="!hasSelectedFields"
+              @click="createLookups"
+            >
               {{
-                $t('general.addLookupField', {
-                  count: Object.values(selectedFields).filter(Boolean).length || '',
-                })
+                selectedFieldsCount > 1
+                  ? $t('general.addLookupFieldPlural', {
+                      count: selectedFieldsCount,
+                    })
+                  : $t('general.addLookupField', {
+                      count: selectedFieldsCount || '',
+                    })
               }}
             </NcButton>
           </div>
@@ -224,7 +247,7 @@ watch(isOpened, async (val) => {
   </NcDropdown>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .a-input-without-effect {
   border: none !important;
 }
@@ -242,5 +265,13 @@ watch(isOpened, async (val) => {
 .slide-out-leave-to {
   opacity: 0;
   transform: translateX(-90px);
+}
+
+.nc-add-lookup-button {
+  @apply w-full;
+
+  &:not(:disabled) {
+    @apply text-primary hover:text-primary;
+  }
 }
 </style>

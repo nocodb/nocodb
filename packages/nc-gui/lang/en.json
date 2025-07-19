@@ -186,6 +186,7 @@
     "manual": "Manual",
     "trigger": "Trigger",
     "addLookupField": "Add {count} lookup field",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Style",
     "label": "Label",
     "role": "Role",
@@ -2358,7 +2359,8 @@
       "anErrorOccuredWhileImporting": "An error occurred while {type}",
       "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
       "paymentFailed": "Payment Failed",
-      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support."
+      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",
@@ -2429,7 +2431,9 @@
       "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
       "upgradeSuccessful": "Upgrade Successful",
       "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

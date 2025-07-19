@@ -104,6 +104,7 @@ export class ExportService {
         id: idMap.get(dashboard.id),
         title: dashboard.title,
         description: dashboard.description,
+        order: dashboard.order,
         meta: dashboard.meta,
         widgets: serializedWidgets,
       });

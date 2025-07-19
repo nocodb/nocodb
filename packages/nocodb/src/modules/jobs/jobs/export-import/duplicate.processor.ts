@@ -293,6 +293,7 @@ export class DuplicateProcessor {
     const excludeComments = options?.excludeComments || excludeData || false;
     const excludeUsers = options?.excludeUsers || false;
     const excludeScripts = options?.excludeScripts || false;
+    const excludeDashboards = options?.excludeDashboards || false;
 
     const base = await Base.get(context, baseId);
     const dupProject = await Base.get(context, dupProjectId);
@@ -311,6 +312,7 @@ export class DuplicateProcessor {
         excludeComments,
         excludeUsers,
         excludeScripts,
+        excludeDashboards,
       },
       operation: JobTypes.DuplicateBase,
     });

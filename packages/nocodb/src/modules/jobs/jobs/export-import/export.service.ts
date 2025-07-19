@@ -97,30 +97,32 @@ export class ExportService {
           idMap,
         );
 
-        const filters = await Filter.rootFilterListByWidget(context, {
+        const filters = await Filter.getFilterObject(context, {
           widgetId: widget.id,
         });
 
         const exportedFilters = [];
 
-        for (const fl of filters) {
-          const tempFl = {
-            id: `${idMap.get(widget.id)}::${fl.id}`,
-            fk_column_id: idMap.get(fl.fk_column_id),
-            fk_parent_id: fl.fk_parent_id,
-            is_group: fl.is_group,
-            logical_op: fl.logical_op,
-            comparison_op: fl.comparison_op,
-            comparison_sub_op: fl.comparison_sub_op,
-            value: fl.value,
-          };
+        if (filters?.children?.length) {
+          for (const fl of filters.children) {
+            const tempFl = {
+              id: `${idMap.get(widget.id)}::${fl.id}`,
+              fk_column_id: idMap.get(fl.fk_column_id),
+              fk_parent_id: `${idMap.get(widget.id)}::${fl.fk_parent_id}`,
+              is_group: fl.is_group,
+              logical_op: fl.logical_op,
+              comparison_op: fl.comparison_op,
+              comparison_sub_op: fl.comparison_sub_op,
+              value: fl.value,
+            };
 
-          if (tempFl.is_group) {
-            delete tempFl.comparison_op;
-            delete tempFl.comparison_sub_op;
-            delete tempFl.value;
+            if (tempFl.is_group) {
+              delete tempFl.comparison_op;
+              delete tempFl.comparison_sub_op;
+              delete tempFl.value;
+            }
+            exportedFilters.push(tempFl);
           }
-          exportedFilters.push(tempFl);
         }
 
         serializedWidgets.push({

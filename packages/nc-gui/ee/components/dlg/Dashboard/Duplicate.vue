@@ -15,7 +15,7 @@ const { duplicateDashboard } = useDashboardStore()
 
 const isLoading = ref(false)
 
-const _duplicate = async () => {
+const duplicate = async () => {
   try {
     isLoading.value = true
 
@@ -31,12 +31,12 @@ const _duplicate = async () => {
 
 onKeyStroke('Enter', () => {
   if (dialogShow.value) {
-    _duplicate()
+    duplicate()
   }
 })
 
 defineExpose({
-  duplicate: _duplicate,
+  duplicate,
 })
 </script>
 
@@ -74,7 +74,7 @@ defineExpose({
       <NcButton v-if="!isLoading" key="back" type="secondary" size="small" @click="dialogShow = false">
         {{ $t('general.cancel') }}
       </NcButton>
-      <NcButton key="submit" type="primary" size="small" :loading="isLoading" @click="_duplicate"> Duplicate </NcButton>
+      <NcButton key="submit" type="primary" size="small" :loading="isLoading" @click="duplicate"> Duplicate </NcButton>
     </div>
   </GeneralModal>
 </template>

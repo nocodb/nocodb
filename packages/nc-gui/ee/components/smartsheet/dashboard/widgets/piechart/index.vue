@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ChartTypes, ChartWidgetType } from 'nocodb-sdk'
+import { CHART_COLORS } from '~/lib/constants'
 
 interface Props {
   widget: ChartWidgetType<ChartTypes.PIE>
@@ -112,28 +113,7 @@ const chartOption = computed<ECOption>(() => {
       borderRadius: 6,
     },
     legend: legendConfig.value,
-    colors: [
-      '#2ec7c9',
-      '#b6a2de',
-      '#5ab1ef',
-      '#ffb980',
-      '#d87a80',
-      '#8d98b3',
-      '#e5cf0d',
-      '#97b552',
-      '#95706d',
-      '#dc69aa',
-      '#07a2a4',
-      '#9a7fd1',
-      '#588dd5',
-      '#f5994e',
-      '#c05050',
-      '#59678c',
-      '#c9ab00',
-      '#7eb00a',
-      '#6f5553',
-      '#c14089',
-    ],
+    colors: CHART_COLORS,
     series: [
       {
         name: widgetRef.value?.title || 'Data',

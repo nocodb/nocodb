@@ -20,7 +20,7 @@ const route = router.currentRoute
  * File ref: packages/nc-gui/pages/index/[typeOrId]/[baseId]/index/index/[viewId]/[[viewTitle]]/[...slugs].vue
  */
 watch(
-  [() => route.value.params?.viewTitle, () => route.value.params?.slugs],
+  [() => route.value.params.viewTitle, () => route.value.params.slugs],
   async ([viewTitle, slugs]) => {
     if (!viewTitle && ncIsUndefined(slugs)) return
 

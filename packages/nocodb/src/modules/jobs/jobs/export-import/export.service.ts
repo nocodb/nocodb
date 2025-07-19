@@ -436,15 +436,17 @@ export class ExportService {
         for (const hook of hooks) {
           idMap.set(hook.id, `${idMap.get(hook.fk_model_id)}::${hook.id}`);
 
-          const hookFilters = await hook.getFilters(context);
+          const hookFilters = await Filter.getFilterObject(context, {
+            hookId: hook.id,
+          });
           const export_filters = [];
 
-          if (hookFilters) {
-            for (const fl of hookFilters) {
+          if (hookFilters?.children?.length) {
+            for (const fl of hookFilters.children) {
               const tempFl = {
                 id: `${idMap.get(hook.id)}::${fl.id}`,
                 fk_column_id: idMap.get(fl.fk_column_id),
-                fk_parent_id: fl.fk_parent_id,
+                fk_parent_id: `${idMap.get(hook.id)}::${fl.fk_parent_id}`,
                 is_group: fl.is_group,
                 logical_op: fl.logical_op,
                 comparison_op: fl.comparison_op,

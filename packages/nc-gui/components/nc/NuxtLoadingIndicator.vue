@@ -6,18 +6,21 @@ const router = useRouter()
 const route = router.currentRoute
 
 /**
- * Manually call `finish()` on NuxtLoadingIndicator when `slugs` route param is active.
+ * Manually call `finish()` on NuxtLoadingIndicator when `[...slugs]` route param is active.
  *
- * Why:
- * Nuxt automatically triggers the loading indicator when navigating to dynamic routes.
- * In our case, the `[...slugs]` route is a placeholder and doesn't render anything directly.
- * The actual rendering and data fetching happens in the `[viewTitle].vue` file *before* Nuxt
- * fully resolves the `[...slugs]` route.
+ * 🔍 Why:
+ * Nuxt automatically starts and finishes the loading indicator based on route navigation.
+ * However, in our case, the `[...slugs]` route is a placeholder that renders nothing.
+ * Instead, rendering and data fetching happen earlier inside the `[viewTitle].vue` file,
+ * which means by the time Nuxt reaches `[...slugs]`, there's no new work to trigger `finish()`.
  *
- * As a result, Nuxt never auto-finishes the loading indicator, causing it to stay stuck.
- * To address this, we manually finish the indicator once `slugs` is detected.
+ * This causes the built-in loading indicator to remain indefinitely visible on these routes.
  *
- * File ref: packages/nc-gui/pages/index/[typeOrId]/[baseId]/index/index/[viewId]/[[viewTitle]]/[...slugs].vue
+ * ✅ Fix:
+ * We watch both `viewTitle` and `slugs` params. Once either is present, we know we're on a deeply nested route,
+ * and we manually call `.finish()` on the indicator to forcefully hide it.
+ *
+ * Reference path: packages/nc-gui/pages/index/[typeOrId]/[baseId]/index/index/[viewId]/[[viewTitle]]/[...slugs].vue
  */
 watch(
   [() => route.value.params.viewTitle, () => route.value.params.slugs],

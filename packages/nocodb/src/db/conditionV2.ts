@@ -1309,9 +1309,7 @@ const parseConditionV2 = async (
   }
 };
 
-// Extract filters mapped to the Rollup or Lookup cell
-// and apply it to the query builder
-export async function extractLinkRelFiltersAndApply(param: {
+export async function extractLinkRelFiltersAndApply(_: {
   qb: Knex.QueryBuilder & Knex.QueryInterface;
   column: Column<any>;
   alias?: string;
@@ -1319,17 +1317,5 @@ export async function extractLinkRelFiltersAndApply(param: {
   context: NcContext;
   baseModel: IBaseModelSqlV2;
 }) {
-  // skip it for Links/LTAR column
-  if (isLinksOrLTAR(param.column)) {
-    return;
-  }
-
-  // extract filters
-  const filters = await Filter.rootFilterListByLink(param.context, {
-    columnId: param.column.id,
-  });
-
-  if (filters?.length) {
-    await conditionV2(param.baseModel, filters, param.qb, param.alias);
-  }
+  // do nothing, it's just a placeholder
 }

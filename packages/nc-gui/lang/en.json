@@ -1806,7 +1806,8 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields"
   },
   "placeholder": {
     "searchIcons": "Search icons",

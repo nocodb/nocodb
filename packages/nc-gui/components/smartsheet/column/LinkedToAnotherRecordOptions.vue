@@ -276,6 +276,8 @@ const onCustomSwitchToggle = () => {
 }
 
 const onCustomSwitchLabelClick = () => {
+  if (isEdit.value) return
+
   vModel.value.is_custom_link = !vModel.value.is_custom_link
   onCustomSwitchToggle()
 }

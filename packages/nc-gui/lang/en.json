@@ -448,7 +448,8 @@
     "baseType": "Base Type",
     "beta": "Beta",
     "selected": "selected",
-    "notice": "Notice"
+    "notice": "Notice",
+    "teams": "Teams"
   },
   "objects": {
     "script": "Script",
@@ -1548,6 +1549,7 @@
     "importOptions": "Import Options",
     "newScript": "New Script",
     "emptyScript": "Empty Script",
+    "newTeam": "New team",
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "selectRole": "Select Role",
@@ -2019,7 +2021,8 @@
     "noAutomations": "No automations",
     "emptyTablePlaceholder": "This base is empty—for now.",
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access.",
-    "noDashboards": "No dashboards"
+    "noDashboards": "No dashboards",
+    "searchATeam": "Search a team"
   },
   "msg": {
     "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",

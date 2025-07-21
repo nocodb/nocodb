@@ -218,6 +218,14 @@ const onFilterLabelClick = () => {
 
   limitRecToCond.value = !limitRecToCond.value
 }
+
+const handleScrollIntoView = () => {
+  filterRef.value?.$el?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+    inline: 'nearest',
+  })
+}
 </script>
 
 <template>
@@ -351,7 +359,7 @@ const onFilterLabelClick = () => {
           </template>
         </PaymentUpgradeBadgeProvider>
 
-        <div v-if="limitRecToCond" class="overflow-auto">
+        <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"
             v-model="vModel.filters"
@@ -362,6 +370,8 @@ const onFilterLabelClick = () => {
             :show-dynamic-condition="false"
             :root-meta="meta"
             :link-col-id="vModel.id"
+            @addFilter="handleScrollIntoView"
+            @addFilterGroup="handleScrollIntoView"
           />
         </div>
       </div>

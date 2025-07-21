@@ -1747,7 +1747,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   this,
                   {
                     attachmentCols,
-                    data: d,
+                    data: insertObj,
                   },
                 );
               postInsertOpsMap[index] = [].concat(

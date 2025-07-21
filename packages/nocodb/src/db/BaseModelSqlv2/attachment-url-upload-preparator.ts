@@ -27,15 +27,14 @@ export class AttachmentUrlUploadPreparator {
       try {
         const attachmentDataRaw =
           dataWrapper(data).getByColumnNameTitleOrId(col);
-        if (attachmentDataRaw) {
-          attachmentData =
-            (typeof attachmentDataRaw === 'string'
-              ? JSON.parse(attachmentDataRaw)
-              : attachmentDataRaw) ?? [];
-          if (attachmentData.length === 0) {
-            continue;
-          }
-        } else {
+        if (!attachmentDataRaw) {
+          continue;
+        }
+        attachmentData =
+          (typeof attachmentDataRaw === 'string'
+            ? JSON.parse(attachmentDataRaw)
+            : attachmentDataRaw) ?? [];
+        if (attachmentData.length === 0) {
           continue;
         }
       } catch {

@@ -1,3 +1,4 @@
+import DashboardCE from 'src/models/Dashboard';
 import type { DashboardType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Widget from '~/models/Widget';
@@ -12,7 +13,7 @@ import {
 } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
-export default class Dashboard implements DashboardType {
+export default class Dashboard extends DashboardCE implements DashboardType {
   id?: string;
   title: string;
   description?: string;
@@ -28,6 +29,7 @@ export default class Dashboard implements DashboardType {
   widgets?: Widget[];
 
   constructor(data: Dashboard) {
+    super(data);
     Object.assign(this, data);
   }
 

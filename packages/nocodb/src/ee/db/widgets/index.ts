@@ -4,23 +4,25 @@ import { MetricCommonHandler } from '~/db/widgets/metric/metric.common.handler';
 import { NcError } from '~/helpers/ncError';
 import { Model, Source } from '~/models';
 import { CircularChartPgHandler } from '~/db/widgets/circular-chart/circular-chart.pg.handler';
+import { CircularChartCommonHandler } from '~/db/widgets/circular-chart/circular-chart.common.handler';
+import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
 
 export async function getWidgetHandler(params: {
   widget: WidgetType;
   req: NcRequest;
+  idMap?: Map<string, string>;
 }) {
-  const { widget, req } = params;
+  const { widget, req, idMap } = params;
   const context = req.context;
 
-  const model = await Model.getByIdOrName(context, {
-    id: widget.fk_model_id,
-  });
+  const modelId = idMap?.get(widget.fk_model_id) || widget.fk_model_id;
 
-  const source = await Source.get(context, model.source_id);
-
-  if (!['pg', 'mysql'].includes(source.type)) {
-    NcError.notImplemented('Widget');
-  }
+  const model =
+    modelId &&
+    (await Model.getByIdOrName(context, {
+      id: modelId,
+    }));
+  const source = model && (await Source.get(context, model.source_id));
 
   switch (widget.type) {
     case WidgetTypes.METRIC:
@@ -29,16 +31,15 @@ export async function getWidgetHandler(params: {
       switch (widget.config.chartType) {
         case ChartTypes.PIE:
         case ChartTypes.DONUT:
-          if (source.type !== 'pg') {
-            NcError.notImplemented('Widget');
+          if (source?.type !== 'pg') {
+            return new CircularChartCommonHandler();
           }
           return new CircularChartPgHandler();
         default:
-          NcError.notImplemented('Chart widget');
+          return new BaseWidgetHandler();
       }
-      break;
     default:
-      NcError.notImplemented(`${widget.type} widget`);
+      return new BaseWidgetHandler();
   }
 }
 

@@ -129,4 +129,43 @@ export class CircularChartCommonHandler extends BaseWidgetHandler {
 
     return errors.length > 0 ? errors : undefined;
   }
+
+  async serializeOrDeserializeWidget(
+    context: NcContext,
+    widget: WidgetType<WidgetTypes.CHART>,
+    idMap: Map<string, string>,
+    mode: 'serialize' | 'deserialize' = 'serialize',
+  ) {
+    const initSerialized = await super.serializeOrDeserializeWidget(
+      context,
+      widget,
+      idMap,
+      mode,
+    );
+
+    const widgetConfig = widget.config as PieChartConfig | DonutChartConfig;
+
+    return {
+      ...initSerialized,
+      config: {
+        ...widgetConfig,
+        data: {
+          ...widgetConfig.data,
+          category: {
+            ...widgetConfig.data.category,
+            column_id: widgetConfig.data.category.column_id
+              ? idMap.get(widgetConfig.data.category.column_id)
+              : null,
+          },
+          value: {
+            ...widgetConfig.data.value,
+            column_id:
+              widgetConfig.data.value && 'column_id' in widgetConfig.data.value
+                ? idMap.get(widgetConfig.data.value.column_id)
+                : null,
+          },
+        },
+      },
+    } as any;
+  }
 }

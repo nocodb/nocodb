@@ -1,0 +1,10 @@
+<template>
+  <NcTooltip>
+    <template #title> Incomplete configuration </template>
+
+    <div class="flex items-center gap-2 rounded-md bg-nc-bg-orange-light text-caption text-nc-content-orange-dark px-2 py-1">
+      <GeneralIcon icon="ncAlertTriangle" />
+      {{ $t('labels.configurationError') }}
+    </div>
+  </NcTooltip>
+</template>

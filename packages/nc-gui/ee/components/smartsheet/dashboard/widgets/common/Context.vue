@@ -74,14 +74,14 @@ const onResizeClick = (size: 'small' | 'medium' | 'large') => {
     <div v-if="widgetType === WidgetTypes.CHART" class="flex items-center gap-2">
       <NcTooltip hide-on-click placement="top">
         <NcButton type="text" size="xsmall" @click.stop="onResizeClick('small')">
-          <GeneralIcon icon="ncSquare" />
+          <GeneralIcon icon="ncSquare" class="w-3.75 h-3.75" />
         </NcButton>
 
         <template #title> Small </template>
       </NcTooltip>
       <NcTooltip hide-on-click placement="top">
         <NcButton type="text" size="xsmall" @click.stop="onResizeClick('medium')">
-          <GeneralIcon icon="ncSquare" />
+          <GeneralIcon icon="ncSquare" class="w-4 h-4" />
         </NcButton>
         <template #title> Medium </template>
       </NcTooltip>

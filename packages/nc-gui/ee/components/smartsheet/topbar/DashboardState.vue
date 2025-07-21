@@ -3,8 +3,12 @@ const { isEditingDashboard } = storeToRefs(useDashboardStore())
 const { selectedWidget } = storeToRefs(useWidgetStore())
 
 const finishEditing = () => {
-  isEditingDashboard.value = false
   selectedWidget.value = null
+  forcedNextTick(() => {
+    forcedNextTick(() => {
+      isEditingDashboard.value = false
+    })
+  })
 }
 </script>
 

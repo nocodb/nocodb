@@ -31,8 +31,8 @@ export default class Widget implements IWidget {
   };
   error?: boolean;
 
-  base_id?: string;
-  fk_workspace_id?: string;
+  base_id: string;
+  fk_workspace_id: string;
   created_at?: string;
   updated_at?: string;
 
@@ -222,5 +222,12 @@ export default class Widget implements IWidget {
       `${CacheScope.WIDGET}:${widgetId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    const filters = await Filter.rootFilterListByWidget(context, {
+      widgetId: widgetId,
+    });
+    for (const filter of filters) {
+      await Filter.delete(context, filter.id);
+    }
   }
 }

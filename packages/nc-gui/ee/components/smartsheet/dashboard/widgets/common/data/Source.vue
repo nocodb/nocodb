@@ -69,6 +69,9 @@ const onDataChange = (type: 'model' | 'view') => {
 }
 
 const useDebouncedGetWidget = useDebounceFn(async () => {
+  if (!selectedWidget.value?.id) {
+    return
+  }
   await updateWidget(
     undefined,
     selectedWidget.value?.id,

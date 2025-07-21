@@ -1257,6 +1257,80 @@
         ]
       }
     },
+    "/api/v2/meta/duplicate/{baseId}/dashboard/{dashboardId}": {
+      "post": {
+        "summary": "Duplicate Dashboard",
+        "operationId": "duplicate-dashboard",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "extra": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Dashboard"
+        ],
+        "description": "Duplicate a dashboard",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "p_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Base ID"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "md_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "dashboardId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Dashboard ID"
+          }
+        ]
+      }
+    },
     "/api/v2/sso-clients": {
       "get": {
         "summary": "Get SSO Client",

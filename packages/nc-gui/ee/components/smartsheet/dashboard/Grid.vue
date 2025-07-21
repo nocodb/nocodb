@@ -158,7 +158,7 @@ const getWidgetPositionConfig = (item: string) => {
 const gridRef = ref()
 
 watch(
-  [() => activeDashboardWidgets.value, () => isEditingDashboard.value],
+  [() => activeDashboardWidgets.value, () => isEditingDashboard.value, () => selectedWidget.value],
   () => {
     layout.value = activeDashboardWidgets.value.map((widget) => ({
       x: widget.position?.x,
@@ -167,7 +167,9 @@ watch(
       h: widget.position?.h,
       i: widget.id!,
     }))
-    gridRef.value?.layoutUpdate()
+    nextTick(() => {
+      gridRef.value?.updateLayout()
+    })
   },
   {
     deep: true,

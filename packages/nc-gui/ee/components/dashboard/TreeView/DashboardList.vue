@@ -199,6 +199,25 @@ function openDeleteDialog(dashboard: DashboardType) {
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgDashboardDelete'), {
+    'visible': isOpen,
+    'dashboard': dashboard,
+    'onUpdate:visible': closeDialog,
+    'onDeleted': () => {
+      closeDialog()
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+const duplicateDashboard = async (dashboard: DashboardType) => {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgDashboardDuplicate'), {
     'modelValue': isOpen,
     'dashboard': dashboard,
     'onUpdate:modelValue': closeDialog,
@@ -307,8 +326,9 @@ const filteredDashboards = computed(() => {
       :dashboard="dashboard"
       @change-dashboard="changeDashboard"
       @rename="onRename"
-      @delete="openDeleteDialog"
+      @delete="openDeleteDialog(dashboard)"
       @select-icon="updateDashboardIcon($event, dashboard)"
+      @duplicate="duplicateDashboard(dashboard)"
     />
   </a-menu>
 </template>

@@ -3215,7 +3215,7 @@ export class AppHooksListenerService
       case AppEvents.DASHBOARD_DUPLICATE_START:
       case AppEvents.DASHBOARD_DUPLICATE_FAIL: {
         const param = data as DashboardDuplicateEvent;
-        let auditEvent = AuditV1OperationTypes.BASE_DELETE;
+        let auditEvent = AuditV1OperationTypes.DASHBOARD_DUPLICATE;
         if (event === AppEvents.DASHBOARD_DUPLICATE_FAIL) {
           auditEvent = AuditV1OperationTypes.DASHBOARD_DUPLICATE_ERROR;
         }
@@ -3225,8 +3225,8 @@ export class AppHooksListenerService
             details: {
               source_dashboard_title: param.sourceDashboard.title,
               source_dashboard_id: param.sourceDashboard.id,
-              duplicated_dashboard_title: param.destDashboard.title,
-              duplicated_dashboard_id: param.destDashboard.id,
+              duplicated_dashboard_title: param.destDashboard?.title,
+              duplicated_dashboard_id: param.destDashboard?.id,
             },
             context: param.context,
             req: param.req,

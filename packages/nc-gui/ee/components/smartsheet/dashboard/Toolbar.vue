@@ -7,7 +7,7 @@ const widgetStore = useWidgetStore()
 
 const { activeDashboard } = storeToRefs(dashboardStore)
 
-const { activeDashboardWidgets } = storeToRefs(widgetStore)
+const { activeDashboardWidgets, selectedWidget } = storeToRefs(widgetStore)
 
 const getDefaultConfig = (widgetType: WidgetTypes, type?: ChartTypes) => {
   switch (widgetType) {
@@ -56,7 +56,7 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
     [WidgetTypes.METRIC]: {
       x: 0,
       y: 0,
-      w: 4,
+      w: 1,
       h: 2,
     },
     [WidgetTypes.CHART]: {
@@ -76,7 +76,7 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
     config: getDefaultConfig(widgetType, type),
   }
 
-  await widgetStore.createWidget(activeDashboard.value.id, newWidget)
+  selectedWidget.value = await widgetStore.createWidget(activeDashboard.value.id, newWidget)
 }
 // const addTextWidget = () => createWidget(WidgetTypes.TEXT)
 const addNumberWidget = () => createWidget(WidgetTypes.METRIC)

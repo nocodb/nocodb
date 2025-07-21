@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ChartTypes, ChartWidgetType } from 'nocodb-sdk'
+import { CHART_COLORS } from '~/lib/constants'
 
 interface Props {
   widget: ChartWidgetType<ChartTypes.PIE>
@@ -68,16 +69,6 @@ const legendConfig = computed(() => {
   }
 })
 
-const chartColors = computed(() => {
-  const colorSchema = chartConfig.value?.appearance?.colorSchema ?? 'default'
-
-  if (colorSchema === 'custom' && chartConfig.value?.appearance?.customColorSchema) {
-    return chartConfig.value.appearance.customColorSchema.map((c) => c.color)
-  }
-
-  return ['#4CAF50', '#FF9800', '#9C27B0', '#2196F3', '#F44336', '#00BCD4', '#FFEB3B', '#795548']
-})
-
 const chartOption = computed<ECOption>(() => {
   if (!widgetData.value?.data || widgetData.value.data.length === 0) {
     return {}
@@ -103,7 +94,6 @@ const chartOption = computed<ECOption>(() => {
   }
 
   return {
-    color: chartColors.value,
     tooltip: {
       trigger: 'item',
       formatter: (params: any) => {
@@ -123,6 +113,7 @@ const chartOption = computed<ECOption>(() => {
       borderRadius: 6,
     },
     legend: legendConfig.value,
+    colors: CHART_COLORS,
     series: [
       {
         name: widgetRef.value?.title || 'Data',
@@ -203,14 +194,7 @@ watch([() => widgetRef.value?.config?.dataSource, () => widgetRef.value?.config?
           'bg-nc-bg-gray-extralight flex items-center justify-center h-full rounded-md': widgetRef.error,
         }"
       >
-        <NcTooltip>
-          <template #title> Configuration Error: Invalid widget configuration detected </template>
-
-          <div class="flex items-center gap-2 rounded-md bg-nc-bg-red-light text-caption text-nc-content-red-dark px-2 py-1">
-            <GeneralIcon icon="ncAlertTriangle" />
-            {{ $t('labels.configurationError') }}
-          </div>
-        </NcTooltip>
+        <SmartsheetDashboardWidgetsCommonWidgetsError />
       </div>
       <div v-else-if="isLoading" class="flex items-center justify-center h-full">
         <div class="flex items-center gap-2 text-nc-content-gray-subtle2">

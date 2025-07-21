@@ -41,4 +41,32 @@ export class BaseWidgetHandler {
     }
     return value;
   }
+  async serializeOrDeserializeWidget(
+    context: NcContext,
+    widget: WidgetType,
+    idMap: Map<string, string>,
+    mode: 'serialize' | 'deserialize' = 'serialize',
+  ) {
+    let id;
+
+    if (mode === 'serialize') {
+      id = `${widget.base_id}::${widget.fk_dashboard_id}::${widget.id}`;
+      idMap.set(widget.id, id);
+    }
+
+    return {
+      title: widget.title,
+      description: widget.description,
+      fk_model_id: widget.fk_model_id ? idMap.get(widget.fk_model_id) : null,
+      fk_view_id: widget.fk_view_id ? idMap.get(widget.fk_view_id) : null,
+      fk_dashboard_id: idMap.get(`${widget.fk_dashboard_id}`),
+      type: widget.type,
+      config: {},
+      meta: widget.meta,
+      order: widget.order,
+      error: true,
+      position: widget.position,
+      ...(mode === 'serialize' ? { id, error: true } : {}),
+    };
+  }
 }

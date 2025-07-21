@@ -10,6 +10,8 @@ import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
+import Widget from '~/models/Widget';
+import { Model } from '~/models';
 
 export default class Filter extends FilterCE implements FilterType {
   fk_link_col_id?: string;
@@ -97,6 +99,12 @@ export default class Filter extends FilterCE implements FilterType {
           { colId: filter.fk_column_id },
           ncMeta,
         );
+      } else if (filter.fk_widget_id) {
+        const widget = await Widget.get(context, filter.fk_widget_id, ncMeta);
+        if (!widget.fk_model_id) {
+          NcError.invalidFilter(JSON.stringify(filter));
+        }
+        model = await Model.get(context, widget.fk_model_id, ncMeta);
       } else {
         NcError.invalidFilter(JSON.stringify(filter));
       }

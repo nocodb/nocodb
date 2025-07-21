@@ -74,28 +74,29 @@ export class AttachmentsSecureController {
     return attachments;
   }
 
-  @Get('/dltemp/:param(*)')
-  async fileReadv3(@Param('param') param: string, @Res() res: Response) {
+  @Get('/dltemp/*param')
+  async fileReadv3(
+    @Param('param') param: string | string[],
+    @Res() res: Response,
+  ) {
+    const joinedParam = Array.isArray(param) ? param.join('/') : param;
+
     try {
-      const fullPath = await PresignedUrl.getPath(`dltemp/${param}`);
-
-      const queryHelper = fullPath.split('?');
-
-      const fpath = queryHelper[0];
+      const fullPath = await PresignedUrl.getPath(`dltemp/${joinedParam}`);
+      const [fpath, queryString] = fullPath.split('?');
 
       let queryResponseContentType = null;
       let queryResponseContentDisposition = null;
 
-      if (queryHelper.length > 1) {
-        const query = new URLSearchParams(queryHelper[1]);
+      if (queryString) {
+        const query = new URLSearchParams(queryString);
         queryResponseContentType = query.get('response-content-type');
         queryResponseContentDisposition = query.get(
           'response-content-disposition',
         );
       }
 
-      const targetParam = param.split('/')[2];
-
+      const targetParam = joinedParam.split('/')[2];
       const filePath = ATTACHMENT_ROOTS.includes(targetParam) ? '' : 'uploads';
 
       const file = await this.attachmentsService.getFile({

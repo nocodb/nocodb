@@ -82,18 +82,23 @@ export class AttachmentsController {
     return attachments;
   }
 
-  // @Get(/^\/download\/(.+)$/)
-  // , getCacheMiddleware(), catchError(fileRead));
-  @Get('/download/:filename(*)')
-  // This route will match any URL that starts with
+  @Get('download/{*filename}')
   async fileRead(
-    @Param('filename') filename: string,
+    @Param('filename') filename: string | string[],
     @Res() res: Response,
     @Query('filename') queryFilename?: string,
   ) {
     try {
+      const joinedPath = Array.isArray(filename)
+        ? filename.join('/')
+        : filename;
+
+      if (!joinedPath) {
+        return res.status(400).send('Missing file path');
+      }
+
       const file = await this.attachmentsService.getFile({
-        path: path.join('nc', 'uploads', filename),
+        path: path.join('nc', 'uploads', joinedPath),
       });
 
       if (!(await localFileExists(file.path))) {
@@ -116,8 +121,7 @@ export class AttachmentsController {
     }
   }
 
-  // @Get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/)
-  @Get('/dl/:param1([a-zA-Z0-9_-]+)/:param2([a-zA-Z0-9_-]+)/:filename(*)')
+  @Get('/dl/:param1/:param2/*filename')
   // getCacheMiddleware(),
   async fileReadv2(
     @Param('param1') param1: string,
@@ -126,6 +130,16 @@ export class AttachmentsController {
     @Res() res: Response,
     @Query('filename') queryFilename?: string,
   ) {
+    const alphanumericPattern = /^[a-zA-Z0-9_-]+$/;
+
+    if (!alphanumericPattern.test(param1)) {
+      NcError.badRequest('Invalid attachment url');
+    }
+
+    if (!alphanumericPattern.test(param2)) {
+      NcError.badRequest('Invalid attachment url');
+    }
+
     try {
       const file = await this.attachmentsService.getFile({
         path: path.join(
@@ -157,8 +171,12 @@ export class AttachmentsController {
     }
   }
 
-  @Get('/dltemp/:param(*)')
-  async fileReadv3(@Param('param') param: string, @Res() res: Response) {
+  @Get('/dltemp/*param')
+  async fileReadv3(
+    @Param('param') paramArray: string | string[],
+    @Res() res: Response,
+  ) {
+    const param = Array.isArray(paramArray) ? paramArray.join('/') : paramArray;
     try {
       const fullPath = await PresignedUrl.getPath(`dltemp/${param}`);
 

@@ -123,8 +123,8 @@ export class DuplicateController {
   }
 
   @Post([
-    '/api/v1/db/meta/duplicate/:baseId/:sourceId?',
-    '/api/v2/meta/duplicate/:baseId/:sourceId?',
+    '/api/v1/db/meta/duplicate/:baseId{/:sourceId}',
+    '/api/v2/meta/duplicate/:baseId{/:sourceId}',
   ])
   @HttpCode(200)
   @Acl('duplicateBase')

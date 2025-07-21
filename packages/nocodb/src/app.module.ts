@@ -4,7 +4,6 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule as NestJsEventEmitter } from '@nestjs/event-emitter';
 import { SentryModule } from '@sentry/nestjs/setup';
-
 import type { MiddlewareConsumer } from '@nestjs/common';
 import { NocoModule } from '~/modules/noco.module';
 import { AuthModule } from '~/modules/auth/auth.module';
@@ -50,7 +49,15 @@ export const ceModuleConfig = {
 export class AppModule {
   // Global Middleware
   configure(consumer: MiddlewareConsumer) {
-    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
+    const rawDashboardUrl = process.env.NC_DASHBOARD_URL ?? '/dashboard';
+
+    let dashboardPath: string;
+    try {
+      const parsedUrl = new URL(rawDashboardUrl);
+      dashboardPath = parsedUrl.pathname;
+    } catch {
+      dashboardPath = rawDashboardUrl;
+    }
     consumer
       .apply(RawBodyMiddleware)
       .forRoutes({
@@ -58,12 +65,15 @@ export class AppModule {
         method: RequestMethod.POST,
       })
       .apply(JsonBodyMiddleware)
-      .forRoutes('*')
+      .forRoutes('*splat')
       .apply(UrlEncodeMiddleware)
-      .forRoutes('*')
+      .forRoutes('*splat')
       .apply(GuiMiddleware)
-      .forRoutes({ path: `${dashboardPath}*`, method: RequestMethod.GET })
+      .forRoutes({
+        path: `${dashboardPath}*splat`,
+        method: RequestMethod.GET,
+      })
       .apply(GlobalMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
+      .forRoutes({ path: '*splat', method: RequestMethod.ALL });
   }
 }

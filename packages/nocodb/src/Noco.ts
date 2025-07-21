@@ -121,6 +121,7 @@ export default class Noco {
       bufferLogs: true,
       bodyParser: false,
     });
+    (nestApp as any).set('query parser', 'extended');
     this.initCustomLogger(nestApp);
     NcDebug.log('Custom logger initialized');
     nestApp.flushLogs();

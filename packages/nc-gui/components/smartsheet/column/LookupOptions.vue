@@ -15,6 +15,8 @@ const meta = inject(MetaInj, ref())
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
 const {
   setAdditionalValidations,
   validateInfos,
@@ -124,6 +126,8 @@ const limitRecToCond = computed({
   set(value) {
     vModel.value.meta = vModel.value.meta || {}
     vModel.value.meta.enableConditions = value
+
+    $e('c:lookup:limit-record-by-filter', { status: value })
   },
 })
 
@@ -313,29 +317,17 @@ const onFilterLabelClick = () => {
     </div>
     <div v-if="isEeUI" class="w-full flex flex-col gap-4">
       <div class="flex flex-col gap-2">
-        <div class="flex gap-2 items-center">
-          <a-switch
-            v-e="['c:lookup:limit-record-by-filter', { status: limitRecToCond }]"
-            :checked="limitRecToCond"
-            :disabled="!selectedTable"
-            size="small"
-            @change="onFilterLabelClick"
-          ></a-switch>
-          <span
-            v-e="['c:lookup:limit-record-by-filter', { status: limitRecToCond }]"
-            data-testid="nc-lookup-limit-record-filters"
-            class="cursor-pointer whitespace-nowrap"
-            @click="onFilterLabelClick"
-          >
+        <div class="flex items-center gap-1 whitespace-nowrap">
+          <NcSwitch v-model:checked="limitRecToCond" :disabled="!selectedTable" data-testid="nc-lookup-limit-record-filters">
             {{ $t('labels.onlyIncludeLinkedRecordsThatMeetSpecificConditions') }}
-          </span>
+          </NcSwitch>
         </div>
 
         <div v-if="limitRecToCond" class="overflow-auto">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"
             v-model="vModel.filters"
-            class="!pl-8 !p-0 max-w-620px"
+            class="!pl-10 !p-0 max-w-620px"
             :auto-save="false"
             :show-loading="false"
             link

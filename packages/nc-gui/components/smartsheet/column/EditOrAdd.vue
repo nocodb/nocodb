@@ -696,7 +696,7 @@ const lookupRollupFilterEnabled = computed(() => {
       'bg-white max-h-[max(80vh,500px)]': !props.fromTableExplorer,
       'w-[416px]': !props.embedMode,
       '!w-[600px]': isLinksOrLTAR(formState.uidt),
-      '!min-w-[554px]': lookupRollupFilterEnabled,
+      '!min-w-[560px]': lookupRollupFilterEnabled,
       'min-w-[500px] !w-full': isLinksOrLTAR(formState.uidt) || isLookupOrRollup,
       'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-2xl p-5': !embedMode,
       'nc-ai-mode': isAiMode,

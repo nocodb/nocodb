@@ -306,6 +306,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       if (currentUser.value?.id === userId) {
         onCurrentUserLeftCallback?.()
         const list = await workspaceStore.loadWorkspaces()
+        message.success(`You’ve left the workspace. Switched to ${list?.[0]?.title ?? 'another'} workspace.`)
         return await navigateTo(`/${list?.[0]?.id}`)
       }
 

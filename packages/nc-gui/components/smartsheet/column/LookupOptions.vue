@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -16,6 +16,8 @@ const meta = inject(MetaInj, ref())
 const { t } = useI18n()
 
 const { $e } = useNuxtApp()
+
+const { getPlanTitle } = useEeConfig()
 
 const {
   setAdditionalValidations,
@@ -317,11 +319,37 @@ const onFilterLabelClick = () => {
     </div>
     <div v-if="isEeUI" class="w-full flex flex-col gap-4">
       <div class="flex flex-col gap-2">
-        <div class="flex items-center gap-1 whitespace-nowrap">
-          <NcSwitch v-model:checked="limitRecToCond" :disabled="!selectedTable" data-testid="nc-lookup-limit-record-filters">
-            {{ $t('labels.onlyIncludeLinkedRecordsThatMeetSpecificConditions') }}
-          </NcSwitch>
-        </div>
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER">
+          <template #default="{ click }">
+            <div class="flex gap-1 items-center whitespace-nowrap">
+              <NcSwitch
+                :checked="limitRecToCond"
+                :disabled="!selectedTable"
+                size="small"
+                data-testid="nc-lookup-limit-record-filters"
+                @change="
+                  (value) => {
+                    if (value && click(PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER)) return
+                    onFilterLabelClick()
+                  }
+                "
+              >
+                {{ $t('labels.onlyIncludeLinkedRecordsThatMeetSpecificConditions') }}
+              </NcSwitch>
+
+              <LazyPaymentUpgradeBadge
+                v-if="!limitRecToCond"
+                :feature="PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER"
+                :content="
+                  $t('upgrade.upgradeToIncludeLinkedRecordsThatMeetSpecificConditions', {
+                    plan: getPlanTitle(PlanTitles.PLUS),
+                  })
+                "
+                class="ml-1"
+              />
+            </div>
+          </template>
+        </PaymentUpgradeBadgeProvider>
 
         <div v-if="limitRecToCond" class="overflow-auto">
           <LazySmartsheetToolbarColumnFilter

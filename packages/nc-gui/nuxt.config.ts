@@ -299,6 +299,7 @@ export default defineNuxtConfig({
         'validator',
         '@stripe/stripe-js',
         'typesense',
+        'vue3-moveable',
       ],
       esbuildOptions: {
         define: {

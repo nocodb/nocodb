@@ -62,9 +62,11 @@ const hasEditPermission = computed(() => {
 })
 
 const textVal = computed(() => {
-  if (isForm?.value || isNew.value) {
+  if (isForm.value || isNew.value) {
     return state.value?.[colTitle.value]?.length
       ? `${+state.value?.[colTitle.value]?.length} ${t('msg.recordsLinked')}`
+      : isForm.value && !isExpandedFormOpen.value
+      ? t('title.linkRecords')
       : t('msg.noRecordsLinked')
   }
 

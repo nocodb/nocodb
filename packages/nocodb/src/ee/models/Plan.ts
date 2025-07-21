@@ -282,7 +282,7 @@ const legacyLimitAndFeatures = {
   [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]: true,
   [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: true,
   [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: true,
-  [PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER]: false,
+  [PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER]: true,
   [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: true,
   [PlanFeatureTypes.FEATURE_SCRIPTS]: true,
   [PlanFeatureTypes.FEATURE_SSO]: false,

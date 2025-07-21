@@ -357,14 +357,14 @@ onUnmounted(() => {
         <NcButton
           data-testid="attachment-cell-file-picker-button"
           type="secondary"
-          size="xsmall"
-          class="mb-1 !px-2"
+          size="small"
+          class="mb-1"
           :disabled="!isEditAllowed"
           @click="openAttachmentModal"
         >
           <div class="flex items-center gap-1.5 justify-center">
-            <GeneralIcon icon="upload" class="text-current opacity-80 h-3.5 w-3.5" />
-            <span class="text-tiny">
+            <GeneralIcon icon="upload" class="text-current opacity-80 h-4 w-4" />
+            <span>
               {{ $t('activity.uploadFiles') }}
             </span>
           </div>

@@ -4,6 +4,8 @@ import {
   ColumnHelper,
   type ColumnType,
   type LinkToAnotherRecordType,
+  PlanFeatureTypes,
+  PlanTitles,
   RelationTypes,
   type RollupType,
   type TableType,
@@ -20,8 +22,15 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn, updateFieldName } =
-  useColumnCreateStoreOrThrow()
+const {
+  setAdditionalValidations,
+  validateInfos,
+  onDataTypeChange,
+  isEdit,
+  disableSubmitBtn,
+  updateFieldName,
+  setPostSaveOrUpdateCbk,
+} = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 
@@ -30,6 +39,10 @@ const { tables } = storeToRefs(baseStore)
 const { metas, getMeta } = useMetas()
 
 const { t } = useI18n()
+
+const { getPlanTitle } = useEeConfig()
+
+const filterRef = ref()
 
 setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: t('general.required') }],
@@ -93,12 +106,40 @@ const columns = computed<ColumnType[]>(() => {
   )
 })
 
+const limitRecToCond = computed({
+  get() {
+    return !!vModel.value.meta?.enableConditions
+  },
+  set(value) {
+    vModel.value.meta = vModel.value.meta || {}
+    vModel.value.meta.enableConditions = value
+  },
+})
+
+// Provide related table meta for filter conditions
+provide(
+  MetaInj,
+  computed(() => {
+    if (!selectedTable.value) return {}
+
+    return metas.value[selectedTable.value.id] || {}
+  }),
+)
+
 onMounted(() => {
   if (isEdit.value) {
     vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
     vModel.value.fk_rollup_column_id = vModel.value.colOptions?.fk_rollup_column_id
     vModel.value.rollup_function = vModel.value.colOptions?.rollup_function
   }
+
+  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
+    await filterRef.value?.applyChanges(colId || column?.id, false)
+  })
+})
+
+onUnmounted(() => {
+  setPostSaveOrUpdateCbk(null)
 })
 
 const getNextColumnId = () => {
@@ -234,6 +275,12 @@ const enableFormattingOptions = computed(() => {
 
   return validFunctions.includes(vModel.value.rollup_function)
 })
+
+const onFilterLabelClick = () => {
+  if (!selectedTable.value) return
+
+  limitRecToCond.value = !limitRecToCond.value
+}
 </script>
 
 <template>
@@ -378,6 +425,59 @@ const enableFormattingOptions = computed(() => {
         </NcSwitch>
       </div>
     </a-form-item>
+
+    <div v-if="isEeUI" class="w-full flex flex-col gap-4">
+      <div class="flex flex-col gap-2">
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER">
+          <template #default="{ click }">
+            <div class="flex gap-2 items-center">
+              <a-switch
+                v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+                :checked="limitRecToCond"
+                :disabled="!selectedTable"
+                size="small"
+                @change="
+                  (value) => {
+                    if (value && click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER)) return
+
+                    onFilterLabelClick()
+                  }
+                "
+              ></a-switch>
+              <span
+                v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+                data-testid="nc-limit-record-filters"
+                class="cursor-pointer whitespace-nowrap"
+                @click="click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER, () => onFilterLabelClick())"
+              >
+                Only include linked records that meet specific conditions
+              </span>
+              <LazyPaymentUpgradeBadge
+                v-if="!limitRecToCond"
+                :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER"
+                :content="
+                  $t('upgrade.upgradeToAddLimitRecordSelection', {
+                    plan: getPlanTitle(PlanTitles.PLUS),
+                  })
+                "
+              />
+            </div>
+          </template>
+        </PaymentUpgradeBadgeProvider>
+        <div v-if="limitRecToCond" class="overflow-auto">
+          <LazySmartsheetToolbarColumnFilter
+            ref="filterRef"
+            v-model="vModel.filters"
+            class="!pl-8 !p-0 max-w-620px"
+            :auto-save="false"
+            :show-loading="false"
+            :link="true"
+            :root-meta="meta"
+            :link-col-id="vModel.id"
+          />
+        </div>
+      </div>
+    </div>
   </div>
   <div v-else>
     <a-alert type="warning" show-icon>
@@ -394,8 +494,12 @@ const enableFormattingOptions = computed(() => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 :deep(.ant-select-selector .ant-select-selection-item .nc-relation-details) {
   @apply hidden;
+}
+
+:deep(.nc-filter-grid) {
+  @apply !pr-0;
 }
 </style>

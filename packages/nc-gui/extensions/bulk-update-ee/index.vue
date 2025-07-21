@@ -5,6 +5,8 @@ import isMobilePhone from 'validator/lib/isMobilePhone'
 
 import {
   type PaginatedType,
+  PermissionEntity,
+  PermissionKey,
   type TableType,
   UITypes,
   type ViewType,
@@ -56,6 +58,10 @@ enum BulkUpdateFieldActionOpTypes {
 
 const { $api, $e } = useNuxtApp()
 
+const { t } = useI18n()
+
+const { isAllowed, getPermissionSummaryLabel } = usePermissions()
+
 const router = useRouter()
 const route = router.currentRoute
 
@@ -98,18 +104,43 @@ const isUpdating = ref(false)
 
 const systemFieldsIds = computed(() => getSystemColumnsIds(meta.value?.columns || []))
 
+const updateNotSupportedCols = [UITypes.Attachment]
+
 const bulkUpdateColumns = computed(() => {
   return (meta.value?.columns || [])
     .filter((c) => {
       return !hiddenColTypes.includes(c.uidt) && !systemFieldsIds.value.includes(c.id) && !isVirtualCol(c) && !c.pk && !c.unique
     })
     .map((c) => {
-      const disabled = c.uidt === UITypes.Attachment
+      const isAllowToEdit = isAllowed(PermissionEntity.FIELD, c.id!, PermissionKey.RECORD_FIELD_EDIT)
 
-      const tooltip = c.uidt === UITypes.Attachment ? 'Not supported' : ''
+      const isReadonlyCol = !!c.readonly || updateNotSupportedCols.includes(c.uidt as UITypes)
 
-      return { ...c, disabled, tooltip }
+      const tooltip = updateNotSupportedCols.includes(c.uidt as UITypes)
+        ? t('msg.error.notSupported')
+        : isReadonlyCol
+        ? t('msg.info.fieldReadonly')
+        : !isAllowToEdit
+        ? `This field is editable by ${getPermissionSummaryLabel(PermissionEntity.FIELD, c.id!, PermissionKey.RECORD_FIELD_EDIT)}`
+        : ''
+
+      return {
+        ...c,
+        readonly: isReadonlyCol || !isAllowToEdit,
+        permissions: {
+          isAllowToEdit,
+          tooltip,
+        },
+      }
     })
+})
+
+const bulkUpdateColumnsMap = computed(() => {
+  return bulkUpdateColumns.value.reduce((acc, col) => {
+    acc[col.id!] = col
+
+    return acc
+  }, {} as Record<string, (typeof bulkUpdateColumns.value)[number]>)
 })
 
 const savedPayloads = ref<BulkUpdatePayloadType>(bulkUpdatePayloadPlaceholder)
@@ -1091,22 +1122,22 @@ provide(IsGalleryInj, ref(false))
                             v-for="col of bulkUpdateColumns"
                             :key="col.title"
                             :value="col.id"
-                            :disabled="col.disabled || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id)"
+                            :disabled="col.readonly || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id)"
                           >
                             <NcTooltip
                               class="w-full"
                               placement="right"
-                              :disabled="!(col.disabled || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id))"
+                              :disabled="!(col.readonly || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id))"
                             >
                               <template #title>
-                                {{ col.disabled ? col.tooltip : 'Already added' }}
+                                {{ col.readonly ? col.permissions.tooltip : 'Already added' }}
                               </template>
                               <div class="flex items-center gap-2 w-full">
                                 <component :is="getUIDTIcon(UITypes[col.uidt])" class="h-3.5 w-3.5" />
 
                                 <NcTooltip
                                   class="truncate flex-1"
-                                  :disabled="col.disabled || !col.tooltip || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id)"
+                                  :disabled="col.readonly || !col.permissions.tooltip || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id)"
                                   show-on-truncate-only
                                 >
                                   <template #title>
@@ -1208,13 +1239,20 @@ provide(IsGalleryInj, ref(false))
                       </a-form-item>
 
                       <div class="w-full flex items-center justify-between">
-                        <div>
-                          <NcCheckbox v-model:checked="fieldConfig.selected" @click.stop>
+                        <NcTooltip :disabled="!(fieldConfig.columnId && bulkUpdateColumnsMap[fieldConfig.columnId]?.readonly)">
+                          <template #title
+                            >{{ fieldConfig.columnId ? bulkUpdateColumnsMap[fieldConfig.columnId]?.permissions?.tooltip : '' }}
+                          </template>
+                          <NcCheckbox
+                            v-model:checked="fieldConfig.selected"
+                            :disabled="!!(fieldConfig.columnId && bulkUpdateColumnsMap[fieldConfig.columnId]?.readonly)"
+                            @click.stop
+                          >
                             <span class="ml-1">
                               {{ fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE ? 'Clear' : 'Set' }}
                             </span>
                           </NcCheckbox>
-                        </div>
+                        </NcTooltip>
                         <NcButton
                           type="text"
                           size="xs"

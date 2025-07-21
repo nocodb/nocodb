@@ -567,7 +567,10 @@ export default class Filter implements FilterType {
 
       await NocoCache.setList(
         CacheScope.FILTER_EXP,
-        [filterCacheScope, parentColId || viewId || hookId || linkColId || widgetId],
+        [
+          filterCacheScope,
+          parentColId || viewId || hookId || linkColId || widgetId,
+        ],
         filters,
       );
     }

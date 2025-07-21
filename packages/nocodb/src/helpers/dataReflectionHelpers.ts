@@ -69,6 +69,64 @@ const dropDatabaseUser = async (knex, username) => {
   await knex.raw(preparedQuery);
 };
 
+function inInterceptor(table: string, column: string, values: string[]) {
+  return {
+    type: 'binary_expr',
+    operator: 'in',
+    left: {
+      type: 'column_ref',
+      table,
+      column: {
+        expr: {
+          type: 'default',
+          value: column,
+        },
+      },
+    },
+    right: {
+      type: 'expr_list',
+      value: values.map((schema) => ({
+        type: 'string',
+        value: schema,
+      })),
+    },
+  };
+}
+
+function eqInterceptor(table: string, column: string, value: string) {
+  return {
+    type: 'binary_expr',
+    operator: '=',
+    left: {
+      type: 'column_ref',
+      table,
+      column: {
+        expr: {
+          type: 'default',
+          value: column,
+        },
+      },
+    },
+    right: {
+      type: 'string',
+      value,
+    },
+  };
+}
+
+function generateWhereClause(
+  table: string,
+  column: string,
+  type: 'in' | 'eq',
+  value: string | string[],
+) {
+  if (type === 'in') {
+    return inInterceptor(table, column, Array.isArray(value) ? value : [value]);
+  }
+
+  return eqInterceptor(table, column, value as string);
+}
+
 export {
   NC_DATA_REFLECTION_SETTINGS,
   grantAccessToSchema,
@@ -77,4 +135,5 @@ export {
   dropDatabaseUser,
   genSuffix,
   genPassword,
+  generateWhereClause,
 };

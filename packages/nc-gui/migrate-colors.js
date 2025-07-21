@@ -777,13 +777,13 @@ switch (command) {
 🎨 Advanced Tailwind → Semantic Token Migration Script
 
 Usage:
-  node tailwind-to-semantic.js convert [directory]        # Convert using priority-based resolution
-  node tailwind-to-semantic.js convert-smart [directory]  # Convert using context-aware resolution  
-  node tailwind-to-semantic.js interactive [filepath]     # Interactive conflict resolution
-  node tailwind-to-semantic.js conflicts [directory]      # Analyze conflicts before converting
-  node tailwind-to-semantic.js report [directory]         # Generate Tailwind usage report
-  node tailwind-to-semantic.js file [filepath]            # Convert single file (priority-based)
-  node tailwind-to-semantic.js file-smart [filepath]      # Convert single file (context-aware)
+  node migrate-colors.js convert [directory]        # Convert using priority-based resolution
+  node migrate-colors.js convert-smart [directory]  # Convert using context-aware resolution  
+  node migrate-colors.js interactive [filepath]     # Interactive conflict resolution
+  node migrate-colors.js conflicts [directory]      # Analyze conflicts before converting
+  node migrate-colors.js report [directory]         # Generate Tailwind usage report
+  node migrate-colors.js file [filepath]            # Convert single file (priority-based)
+  node migrate-colors.js file-smart [filepath]      # Convert single file (context-aware)
 
 Conflict Resolution Strategies:
   🏆 Priority-based: Uses predefined priority scores for each semantic token
@@ -791,9 +791,9 @@ Conflict Resolution Strategies:
   🤝 Interactive: Lets you manually choose resolution for each conflict
 
 Examples:
-  node tailwind-to-semantic.js conflicts ./src              # Analyze conflicts first
-  node tailwind-to-semantic.js convert-smart ./src          # Smart conversion
-  node tailwind-to-semantic.js interactive ./src/Button.jsx # Manual resolution
+  node migrate-colors.js conflicts ./src              # Analyze conflicts first
+  node migrate-colors.js convert-smart ./src          # Smart conversion
+  node migrate-colors.js interactive ./src/Button.jsx # Manual resolution
 
 Conflict Examples:
   text-gray-700 can become:

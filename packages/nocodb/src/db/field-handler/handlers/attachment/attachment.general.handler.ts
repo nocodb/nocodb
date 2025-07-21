@@ -1,7 +1,7 @@
 import { arrDetailedDiff, type NcContext } from 'nocodb-sdk';
-import { ComputedFieldHandler } from '../computed';
 import type { MetaService } from '~/meta/meta.service';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import { ComputedFieldHandler } from '~/db/field-handler/handlers/computed';
 import { NcError } from '~/helpers/catchError';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { extractProps } from '~/helpers/extractProps';

@@ -209,6 +209,7 @@ export default class DataReflection extends DataReflectionCE {
           clientSocket.end();
           return;
         }
+        clientSocket.end();
         session.pgSocket?.end();
       });
 

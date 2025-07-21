@@ -61,6 +61,7 @@ export class DuplicateProcessor {
       excludeHooks?: boolean;
       excludeViews?: boolean;
       excludeComments?: boolean;
+      excludeDashboards?: boolean;
     };
   }) {
     throw new NotImplementedException();
@@ -89,6 +90,7 @@ export class DuplicateProcessor {
       excludeComments?: boolean;
       excludeUsers?: boolean;
       excludeScripts?: boolean;
+      excludeDashboards?: boolean;
     };
     operation: JobTypes;
   }) {
@@ -127,21 +129,46 @@ export class DuplicateProcessor {
         (m) => m.source_id === dataSource.id && !m.mm && m.type === 'table',
       );
 
-      const exportedModels = await this.exportService.serializeModels(context, {
-        modelIds: models.map((m) => m.id),
-        ...options,
-      });
-
-      let exportedScripts = null;
-      if (!options?.excludeScripts) {
-        exportedScripts = await this.exportService.serializeScripts(context);
-      }
+      const { serializedModels: exportedModels, idMap: exportModelMap } =
+        await this.exportService.serializeModels(context, {
+          modelIds: models.map((m) => m.id),
+          ...options,
+        });
 
       elapsedTime(
         hrTime,
         `serialize models schema for ${dataSource.base_id}::${dataSource.id}`,
         operation,
       );
+
+      let exportedScripts = null;
+      if (!options?.excludeScripts) {
+        exportedScripts = await this.exportService.serializeScripts(context);
+
+        elapsedTime(
+          hrTime,
+          `serialize scripts schema for ${dataSource.base_id}`,
+          operation,
+        );
+      }
+
+      let exportedDashboards = null;
+
+      if (!options.excludeDashboards) {
+        exportedDashboards = await this.exportService.serializeDashboards(
+          context,
+          {
+            idMap: exportModelMap,
+          },
+          req,
+        );
+
+        elapsedTime(
+          hrTime,
+          `serialize dashboards schema for ${dataSource.base_id}`,
+          operation,
+        );
+      }
 
       if (!exportedModels) {
         throw new Error(`Export failed for source '${dataSource.id}'`);
@@ -151,7 +178,7 @@ export class DuplicateProcessor {
 
       const targetBaseSource = targetBase.sources[0];
 
-      const idMap = await this.importService.importModels(targetContext, {
+      let idMap = await this.importService.importModels(targetContext, {
         user,
         baseId: targetBase.id,
         sourceId: targetBaseSource.id,
@@ -165,6 +192,16 @@ export class DuplicateProcessor {
           baseId: targetBase.id,
           data: exportedScripts,
           req: req,
+        });
+      }
+
+      if (exportedDashboards?.length) {
+        idMap = await this.importService.importDashboards(targetContext, {
+          user,
+          baseId: targetBase.id,
+          data: exportedDashboards,
+          req,
+          idMap,
         });
       }
 
@@ -256,6 +293,7 @@ export class DuplicateProcessor {
     const excludeComments = options?.excludeComments || excludeData || false;
     const excludeUsers = options?.excludeUsers || false;
     const excludeScripts = options?.excludeScripts || false;
+    const excludeDashboards = options?.excludeDashboards || false;
 
     const base = await Base.get(context, baseId);
     const dupProject = await Base.get(context, dupProjectId);
@@ -274,6 +312,7 @@ export class DuplicateProcessor {
         excludeComments,
         excludeUsers,
         excludeScripts,
+        excludeDashboards,
       },
       operation: JobTypes.DuplicateBase,
     });
@@ -328,7 +367,7 @@ export class DuplicateProcessor {
           excludeData,
           excludeComments,
         })
-      )[0];
+      ).serializedModels[0];
 
       elapsedTime(
         hrTime,
@@ -496,7 +535,7 @@ export class DuplicateProcessor {
         excludeViews: true,
         excludeRowColorConditions: true,
       })
-    )[0];
+    ).serializedModels[0];
 
     elapsedTime(
       hrTime,

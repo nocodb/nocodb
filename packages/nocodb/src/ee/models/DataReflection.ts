@@ -249,11 +249,16 @@ export default class DataReflection extends DataReflectionCE {
     const sanitizedWorkspaceTitle = workspace.title.replace(/[^a-z0-9]/gi, '_');
     const username = `nc_${sanitizedWorkspaceTitle}_readonly_${genSuffix()}`;
     const password = genPassword();
-    const database = workspace.id;
 
     const knex = await (
       await NcConnectionMgrv2.getWorkspaceDataKnex(fk_workspace_id)
     )?.transaction();
+
+    const dataConfig = await NcConnectionMgrv2.getWorkspaceDataConfig(
+      fk_workspace_id,
+    );
+
+    const database = dataConfig.connection.database;
 
     try {
       await createDatabaseUser(knex, username, password, database);

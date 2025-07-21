@@ -203,8 +203,8 @@ onUnmounted(() => {
             class="text-center nc-datatype-link underline-transparent nc-canvas-links-text font-weight-500"
             :class="{ '!text-gray-300': !textVal }"
             :tabindex="readOnly ? -1 : 0"
-            @click.stop.prevent="openChildList"
-            @keydown.enter.stop.prevent="openChildList"
+            @click.stop.prevent="isForm && !isExpandedFormOpen ? openListDlg() : openChildList()"
+            @keydown.enter.stop.prevent="isForm && !isExpandedFormOpen ? openListDlg() : openChildList"
           >
             {{ textVal }}
           </component>

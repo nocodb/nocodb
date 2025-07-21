@@ -304,7 +304,7 @@ const onFocus = () => {
     isFocusing.value = false
   }, 250)
 
-  if (isSurveyForm.value && vModel.value) return
+  if (isSurveyForm.value && vModel.value?.length) return
 
   isOpen.value = true
 }

@@ -85,7 +85,7 @@ export class SharedFormPage extends BasePage {
   async getFormFieldErrors({ title }: { title: string }) {
     const field = this.get().getByTestId(`nc-shared-form-item-${title.replace(' ', '')}`);
     await field.scrollIntoViewIfNeeded();
-    const fieldErrorEl = field.locator('.ant-form-item-explain-error');
+    const fieldErrorEl = field.locator('.ant-form-item-explain');
     return {
       locator: fieldErrorEl,
       verify: async ({ hasError, hasErrorMsg }: { hasError?: boolean; hasErrorMsg?: string | RegExp }) => {

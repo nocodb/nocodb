@@ -1,4 +1,5 @@
 import net from 'net';
+import tls from 'tls';
 import getPort from 'get-port';
 import { nanoid } from 'nanoid';
 import { serialize } from 'pg-protocol';
@@ -6,6 +7,7 @@ import { Parser } from 'node-sql-parser';
 import { Logger } from '@nestjs/common';
 import DataReflectionCE from 'src/models/DataReflection';
 import type { Socket } from 'net';
+import type { TLSSocket } from 'tls';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Base, Workspace } from '~/models';
 import Noco from '~/Noco';
@@ -23,15 +25,12 @@ import {
 const logger = new Logger('DataReflection');
 
 // Environment variables
-const NC_DATA_REFLECTION_DB_HOST = process.env.NC_DATA_REFLECTION_DB_HOST;
-const NC_DATA_REFLECTION_DB_PORT = +process.env.NC_DATA_REFLECTION_DB_PORT;
 const NC_DATA_REFLECTION_WINDOW_SIZE =
   +process.env.NC_DATA_REFLECTION_WINDOW_SIZE || 60_000;
 const NC_DATA_REFLECTION_QUERY_LIMIT =
   +process.env.NC_DATA_REFLECTION_QUERY_LIMIT || 60;
 
 // Interception rules
-// For these tables and columns append a WHERE clause to restrict schemas
 const interceptMap: {
   table_name: string;
   column_name: string;
@@ -63,6 +62,18 @@ const interceptMap: {
     type: 'eq',
     sessionValue: 'fk_workspace_id',
   },
+  {
+    table_name: 'pg_roles',
+    column_name: 'rolname',
+    type: 'eq',
+    sessionValue: 'pgUser',
+  },
+  {
+    table_name: 'pg_user',
+    column_name: 'usename',
+    type: 'eq',
+    sessionValue: 'pgUser',
+  },
 ];
 
 class DataReflectionSession {
@@ -72,11 +83,16 @@ class DataReflectionSession {
   private totalQueries = 0;
   private readonly sessionStartTime: number;
 
-  public constructor(
-    public readonly clientId: string,
-    public readonly fk_workspace_id: string,
-    public readonly availableSchemas: string[],
-  ) {
+  public fk_workspace_id?: string;
+  public availableSchemas?: string[];
+
+  public pgSocket: Socket | TLSSocket | null = null;
+  public connected = false;
+
+  public pgUser: string | null = null;
+  public pgDatabase: string | null = null;
+
+  public constructor(public readonly clientId: string) {
     this.sessionStartTime = Date.now();
   }
 
@@ -112,7 +128,6 @@ class DataReflectionSession {
     if (this.closed) return;
     this.closed = true;
 
-    // TODO: Save session stats
     logger.log(
       `Session closed for ${this.clientId} (${this.fk_workspace_id}). ` +
         `Total query time: ${this.totalQueryTime}ms, Total queries: ${this.totalQueries}`,
@@ -124,63 +139,43 @@ class DataReflectionSession {
 const clientSessions = new Map<string, DataReflectionSession>();
 
 export default class DataReflection extends DataReflectionCE {
-  /**
-   * Initialize the data reflection proxy server.
-   * This server acts as a middleware layer between the clients and the actual PostgreSQL server.
-   */
   public static async init(): Promise<void> {
-    const dataConfig: {
-      client: string;
-      host: string;
-      port: number;
-      database: string;
-    } = (await NcConnectionMgrv2.getDataConfig()).connection as any;
-
     const parser = new Parser();
 
     const server = net.createServer((clientSocket: Socket) => {
       const clientId = nanoid();
 
-      const pgSocket = new net.Socket();
-
-      logger.log(
-        `Client ${clientId} connected ${
-          NC_DATA_REFLECTION_DB_HOST || dataConfig.host
-        }:${NC_DATA_REFLECTION_DB_PORT || dataConfig.port}`,
-      );
-
-      pgSocket.connect(
-        NC_DATA_REFLECTION_DB_PORT || dataConfig.port,
-        NC_DATA_REFLECTION_DB_HOST || dataConfig.host,
-      );
+      logger.log(`Client ${clientId} connected`);
 
       clientSocket.on('data', async (data: Buffer) => {
         try {
           const messageType = data.readUInt8(0);
 
-          // Handle startup message (no message type for startup; often 0)
-          if (messageType === 0) {
-            return handleStartupMessage(data, pgSocket, clientId, dataConfig);
+          if (!clientSessions.get(clientId)?.connected) {
+            return handleStartupMessage(clientSocket, data, clientId);
           }
 
-          // 'Q' (0x51) message: Simple Query
+          const session = clientSessions.get(clientId);
+
+          if (!session) {
+            clientSocket.end();
+            return;
+          }
+
           if (messageType === 0x51) {
-            const session = clientSessions.get(clientId);
             if (!session) {
-              // If we don't have a session for this client terminate the connection
               clientSocket.end();
-              pgSocket.end();
+              session.pgSocket?.end();
               return;
             }
 
-            // Check query frequency limit
             const queryCount = session.queryCountWithinWindow();
             if (queryCount > NC_DATA_REFLECTION_QUERY_LIMIT) {
               logger.warn(
                 `Too many queries for workspace ${session.fk_workspace_id}. Closing connection.`,
               );
               clientSocket.end();
-              pgSocket.end();
+              session.pgSocket?.end();
               return;
             }
 
@@ -192,62 +187,39 @@ export default class DataReflection extends DataReflectionCE {
               parser,
             );
 
-            // If we modified the query write that; otherwise fallback to the original data
-            pgSocket.write(modifiedQueryBuffer ?? data);
+            session.pgSocket?.write(modifiedQueryBuffer ?? data);
             return;
           }
 
-          pgSocket.write(data);
+          session.pgSocket?.write(data);
         } catch (error) {
           logger.error(`Error processing client data: ${error.message}.`);
-          pgSocket.write(data); // Fallback to original data
-        }
-      });
-
-      pgSocket.on('data', (data: Buffer) => {
-        try {
-          const messageType = data.readUInt8(0);
-
-          // Messages indicating end of a query execution cycle
-          switch (messageType) {
-            case 0x54: // RowDescription
-            case 0x44: // DataRow
-            case 0x43: // CommandComplete
-            case 0x45: // ErrorResponse
-            case 0x49: // EmptyQueryResponse
-            case 0x5a: // ReadyForQuery
-              {
-                const session = clientSessions.get(clientId);
-                session?.recordQueryEnd();
-              }
-              break;
+          const session = clientSessions.get(clientId);
+          if (!session) {
+            clientSocket.end();
+            return;
           }
-
-          clientSocket.write(data);
-        } catch (error) {
-          logger.error(`Error processing Postgres data: ${error.message}.`);
-          clientSocket.write(data); // Fallback to original data
+          session.pgSocket?.write(data);
         }
-      });
-
-      pgSocket.on('error', (err) => {
-        logger.error(`Postgres socket error: ${err.message}`);
-        clientSocket.end();
       });
 
       clientSocket.on('error', (err) => {
         logger.error(`Client socket error: ${err.message}`);
-        pgSocket.end();
+        const session = clientSessions.get(clientId);
+        if (!session) {
+          clientSocket.end();
+          return;
+        }
+        session.pgSocket?.end();
       });
 
       clientSocket.on('end', () => {
         clientSessions.get(clientId)?.close();
-        pgSocket.end();
-      });
-
-      pgSocket.on('end', () => {
-        clientSessions.get(clientId)?.close();
-        clientSocket.end();
+        const session = clientSessions.get(clientId);
+        if (!session) {
+          return;
+        }
+        session.pgSocket?.end();
       });
     });
 
@@ -258,16 +230,15 @@ export default class DataReflection extends DataReflectionCE {
       ),
     });
 
-    // Update the port in the settings
     NC_DATA_REFLECTION_SETTINGS.port = port;
 
     server.listen(port, () => {
       logger.log(`Proxy server listening on port ${port}`);
-
       server.unref();
     });
   }
 
+  // ... (keeping all the static methods unchanged for brevity)
   public static async create(fk_workspace_id: string, ncMeta = Noco.ncMeta) {
     const workspace = await Workspace.get(fk_workspace_id, false, ncMeta);
 
@@ -276,16 +247,16 @@ export default class DataReflection extends DataReflectionCE {
     }
 
     const sanitizedWorkspaceTitle = workspace.title.replace(/[^a-z0-9]/gi, '_');
-
     const username = `nc_${sanitizedWorkspaceTitle}_readonly_${genSuffix()}`;
     const password = genPassword();
     const database = workspace.id;
 
-    const knex = await (await NcConnectionMgrv2.getDataKnex())?.transaction();
+    const knex = await (
+      await NcConnectionMgrv2.getWorkspaceDataKnex(fk_workspace_id)
+    )?.transaction();
 
     try {
-      await createDatabaseUser(knex, username, password);
-
+      await createDatabaseUser(knex, username, password, database);
       await DataReflection.insert(
         {
           fk_workspace_id,
@@ -297,7 +268,6 @@ export default class DataReflection extends DataReflectionCE {
       );
 
       const bases = await Base.listByWorkspace(fk_workspace_id, false, ncMeta);
-
       for (const base of bases) {
         await grantAccessToSchema(knex, base.id, username);
       }
@@ -313,32 +283,26 @@ export default class DataReflection extends DataReflectionCE {
 
   public static async destroy(fk_workspace_id: string, ncMeta = Noco.ncMeta) {
     const reflection = await DataReflection.get({ fk_workspace_id }, ncMeta);
+    if (!reflection) return;
 
-    if (!reflection) {
-      return;
-    }
-
-    const knex = await (await NcConnectionMgrv2.getDataKnex())?.transaction();
+    const knex = await (
+      await NcConnectionMgrv2.getWorkspaceDataKnex(fk_workspace_id)
+    )?.transaction();
 
     try {
       const bases = await Base.listByWorkspace(fk_workspace_id, false, ncMeta);
-
       for (const base of bases) {
         await revokeAccessToSchema(knex, base.id, reflection.username);
       }
 
-      await dropDatabaseUser(knex, reflection.username);
-
+      await dropDatabaseUser(knex, reflection.username, reflection.database);
       await DataReflection.delete({ fk_workspace_id }, ncMeta);
-
       await knex.commit();
     } catch (e) {
       await knex.rollback();
       logger.error(`Failed to destroy reflection for ${fk_workspace_id}`);
       logger.error(e);
     }
-
-    return;
   }
 
   public static async grantBase(
@@ -347,16 +311,14 @@ export default class DataReflection extends DataReflectionCE {
     ncMeta = Noco.ncMeta,
   ) {
     const reflection = await DataReflection.get({ fk_workspace_id }, ncMeta);
+    if (!reflection) return;
 
-    if (!reflection) {
-      return;
-    }
-
-    const knex = await (await NcConnectionMgrv2.getDataKnex())?.transaction();
+    const knex = await (
+      await NcConnectionMgrv2.getWorkspaceDataKnex(fk_workspace_id)
+    )?.transaction();
 
     try {
       await grantAccessToSchema(knex, base_id, reflection.username);
-
       await knex.commit();
     } catch (e) {
       await knex.rollback();
@@ -373,16 +335,14 @@ export default class DataReflection extends DataReflectionCE {
     ncMeta = Noco.ncMeta,
   ) {
     const reflection = await DataReflection.get({ fk_workspace_id }, ncMeta);
+    if (!reflection) return;
 
-    if (!reflection) {
-      return;
-    }
-
-    const knex = await (await NcConnectionMgrv2.getDataKnex())?.transaction();
+    const knex = await (
+      await NcConnectionMgrv2.getWorkspaceDataKnex(fk_workspace_id)
+    )?.transaction();
 
     try {
       await revokeAccessToSchema(knex, base_id, reflection.username);
-
       await knex.commit();
     } catch (e) {
       await knex.rollback();
@@ -395,87 +355,262 @@ export default class DataReflection extends DataReflectionCE {
 }
 
 /**
- * Handle the startup message from the client.
- * Extract the workspace ID from the 'database' field and set up a session.
- * If data reflection is not set up for the workspace terminate the connection.
+ * Create a secure connection to PostgreSQL with SSL
+ */
+function createSecurePostgresConnection(
+  dataConfig: any,
+): Promise<TLSSocket | Socket> {
+  return new Promise((resolve, reject) => {
+    // Check if SSL is required
+    const sslRequired = dataConfig.ssl || dataConfig.connection?.ssl;
+
+    if (!sslRequired) {
+      // Use plain socket for non-SSL connections
+      const socket = new net.Socket();
+      socket.connect(dataConfig.port, dataConfig.host, () => {
+        resolve(socket);
+      });
+      socket.on('error', reject);
+      return;
+    }
+
+    // First, establish a plain connection
+    const plainSocket = new net.Socket();
+
+    plainSocket.connect(dataConfig.port, dataConfig.host, () => {
+      // Send SSL request (8 bytes: length + SSL request code)
+      const sslRequest = Buffer.alloc(8);
+      sslRequest.writeUInt32BE(8, 0); // length
+      sslRequest.writeUInt32BE(80877103, 4); // SSL request code
+
+      plainSocket.write(sslRequest);
+    });
+
+    plainSocket.once('data', (response: Buffer) => {
+      const sslResponse = response[0];
+
+      if (sslResponse === 0x53) {
+        // 'S' - SSL supported
+        // Upgrade to TLS
+        const tlsOptions = {
+          socket: plainSocket,
+          rejectUnauthorized: false, // For self-signed certs - adjust based on your needs
+          servername: dataConfig.host,
+        };
+
+        // Add SSL configuration if provided
+        if (typeof dataConfig.ssl === 'object') {
+          if (dataConfig.ssl.rejectUnauthorized !== undefined) {
+            tlsOptions.rejectUnauthorized = dataConfig.ssl.rejectUnauthorized;
+          }
+        }
+
+        const tlsSocket = tls.connect(tlsOptions, () => {
+          logger.log(
+            `SSL connection established to ${dataConfig.host}:${dataConfig.port}`,
+          );
+          resolve(tlsSocket);
+        });
+
+        tlsSocket.on('error', (err) => {
+          logger.error(`SSL connection error: ${err.message}`);
+          reject(err);
+        });
+      } else if (sslResponse === 0x4e) {
+        // 'N' - SSL not supported
+        logger.warn(
+          `SSL not supported by PostgreSQL server at ${dataConfig.host}:${dataConfig.port}`,
+        );
+        // Continue with plain connection
+        resolve(plainSocket);
+      } else {
+        reject(new Error(`Unexpected SSL response: ${sslResponse}`));
+      }
+    });
+
+    plainSocket.on('error', reject);
+  });
+}
+
+function rewriteSASLMechanisms(buf: Buffer): Buffer {
+  const saslMechs = parseNullDelimitedBuffer(buf.subarray(9));
+  const filtered = saslMechs.filter((m) => m !== 'SCRAM-SHA-256-PLUS');
+
+  if (filtered.length === 0) {
+    throw new Error('No valid SASL mechanisms after filtering');
+  }
+
+  const mechList = Buffer.concat(filtered.map((m) => Buffer.from(m + '\0')));
+
+  const totalLength = 4 + 4 + mechList.length; // 4 (length), 4 (auth type), N
+
+  const header = Buffer.alloc(9);
+  header.writeUInt8(0x52, 0); // 'R'
+  header.writeUInt32BE(totalLength, 1);
+  header.writeUInt32BE(10, 5); // AuthenticationSASL
+
+  return Buffer.concat([header, mechList]);
+}
+
+/**
+ * Handle the startup message from the client and establish secure backend connection
  */
 async function handleStartupMessage(
+  clientSocket: Socket,
   data: Buffer,
-  pgSocket: Socket,
   clientId: string,
-  dataConfig: { database: string },
 ) {
-  const textData = data.toString('utf-8');
+  let session = clientSessions.get(clientId);
 
-  // If no database field just forward the startup message as is (possible handshake)
-  if (!textData.includes('database')) {
-    pgSocket.write(data);
+  if (!session) {
+    clientSessions.set(clientId, new DataReflectionSession(clientId));
+    session = clientSessions.get(clientId);
+  }
+
+  if (session.connected) {
     return;
   }
 
-  // Extract key-value pairs from the startup message
+  // Handle SSLRequest from client (always deny - client connects in plain text)
+  if (data.length === 8 && data.readUInt32BE(4) === 80877103) {
+    // Respond 'N' (no SSL) to client - proxy handles SSL to backend
+    clientSocket.write(Buffer.from([0x4e]));
+    return;
+  }
+
+  const textData = data.toString('utf-8');
+
+  // If no database field, return handshake
+  if (!textData.includes('database')) {
+    clientSocket.write(Buffer.from([0x4e, 0, 0, 0, 0]));
+    return;
+  }
+
+  // Parse startup message
   const protocolVersion = data.readUInt32BE(4);
   const startupBody = data.subarray(8);
   const parts = parseNullDelimitedBuffer(startupBody);
 
-  // Identify and replace 'database' field
   let workspaceId: string | undefined;
   for (let i = 0; i < parts.length; i += 2) {
     const key = parts[i];
     const value = parts[i + 1];
+
     if (key === 'database') {
       workspaceId = value;
-      // Attempt to fetch the reflection object for this workspace
+
       const reflection = await DataReflectionCE.get({
         fk_workspace_id: workspaceId,
       });
+
       if (!reflection) {
-        // No reflection: terminate the connection with an 'X' (Terminate) message
-        const terminateBuffer = Buffer.from([0x58, 0, 0, 0, 4]);
-        pgSocket.write(terminateBuffer);
+        // No reflection: terminate connection
+        clientSocket.write(Buffer.from([0x58, 0, 0, 0, 4]));
         return;
       }
 
-      // Prepare session
-      const availableSchemas = await DataReflection.availableSchemas(
-        reflection.fk_workspace_id,
-      );
-      clientSessions.set(
-        clientId,
-        new DataReflectionSession(clientId, workspaceId, availableSchemas),
-      );
+      try {
+        // Get data configuration
+        const dataConfig = (
+          await NcConnectionMgrv2.getWorkspaceDataConfig(workspaceId)
+        ).connection;
 
-      // Use the underlying DB name from the actual Postgres connection
-      parts[i + 1] = dataConfig.database;
+        dataConfig.host = dataConfig.host.replace(
+          /-pooler(\..*\.neon\.tech)/,
+          '$1',
+        );
+
+        // Create secure connection to PostgreSQL
+        const pgSocket = await createSecurePostgresConnection(dataConfig);
+
+        // Prepare session
+        const availableSchemas = await DataReflection.availableSchemas(
+          reflection.fk_workspace_id,
+        );
+
+        session.pgSocket = pgSocket;
+        session.connected = true;
+        session.fk_workspace_id = workspaceId;
+        session.availableSchemas = availableSchemas;
+        session.pgUser = reflection.username;
+        session.pgDatabase = reflection.database;
+
+        // Use the underlying DB name from the actual Postgres connection
+        parts[i + 1] = dataConfig.database;
+
+        // Rebuild startup message for backend
+        const newBody = parts
+          .map((part) => Buffer.concat([Buffer.from(part), Buffer.from([0])]))
+          .reduce((acc, cur) => Buffer.concat([acc, cur]), Buffer.alloc(0));
+
+        const newHeader = Buffer.alloc(8);
+        newHeader.writeUInt32BE(8 + newBody.length, 0);
+        newHeader.writeUInt32BE(protocolVersion, 4);
+        const newStartupMessage = Buffer.concat([newHeader, newBody]);
+
+        // Send startup message to backend
+        pgSocket.write(newStartupMessage);
+
+        // Handle responses from PostgreSQL
+        pgSocket.on('data', (data: Buffer) => {
+          try {
+            const messageType = data.readUInt8(0);
+
+            if (messageType === 0x52) {
+              const authType = data.readUInt32BE(5);
+              if (authType === 10) {
+                const rewritten = rewriteSASLMechanisms(data);
+
+                clientSocket.write(rewritten);
+                return;
+              }
+            }
+
+            // Track query completion
+            switch (messageType) {
+              case 0x54: // RowDescription
+              case 0x44: // DataRow
+              case 0x43: // CommandComplete
+              case 0x45: // ErrorResponse
+              case 0x49: // EmptyQueryResponse
+              case 0x5a: // ReadyForQuery
+                {
+                  const session = clientSessions.get(clientId);
+                  session?.recordQueryEnd();
+                }
+                break;
+            }
+
+            clientSocket.write(data);
+          } catch (error) {
+            logger.error(`Error processing Postgres data: ${error.message}`);
+            clientSocket.write(data);
+          }
+        });
+
+        pgSocket.on('error', (err) => {
+          logger.error(`Postgres socket error: ${err.message}`);
+          clientSocket.end();
+        });
+
+        pgSocket.on('end', () => {
+          clientSessions.get(clientId)?.close();
+          clientSocket.end();
+        });
+      } catch (error) {
+        logger.error(`Failed to establish secure connection: ${error.message}`);
+        clientSocket.write(Buffer.from([0x58, 0, 0, 0, 4])); // Terminate
+        return;
+      }
     }
   }
-
-  // Rebuild the startup message
-  const newBody = parts
-    .map((part) => Buffer.concat([Buffer.from(part), Buffer.from([0])]))
-    .reduce((acc, cur) => Buffer.concat([acc, cur]), Buffer.alloc(0));
-
-  const newHeader = Buffer.alloc(8);
-  newHeader.writeUInt32BE(8 + newBody.length, 0);
-  newHeader.writeUInt32BE(protocolVersion, 4);
-  const newStartupMessage = Buffer.concat([newHeader, newBody]);
-
-  pgSocket.write(newStartupMessage);
 }
 
-/**
- * Attempt to parse and intercept the query.
- * If it matches our interception rules inject a WHERE clause to restrict the query.
- * Return modified query buffer if successful (undefined otherwise).
- */
 async function interceptQueryIfNeeded(
   data: Buffer,
   session: DataReflectionSession,
   parser: Parser,
 ): Promise<Buffer | undefined> {
-  // Extract the query text from the buffer
-  // Byte 0: Message type (0x51 for 'Q')
-  // Bytes 1-4: Message length
   const queryText = data.subarray(5).toString('utf8').replace(/\0/g, '');
 
   let ast;
@@ -491,8 +626,6 @@ async function interceptQueryIfNeeded(
 
   for (const statement of astArray) {
     if (statement.type !== 'select') continue;
-
-    // Check if the FROM clause includes a table that we need to intercept
     if (!statement.from || !Array.isArray(statement.from)) continue;
 
     for (const target of interceptMap) {
@@ -509,7 +642,6 @@ async function interceptQueryIfNeeded(
         target.value ? target.value : session[target.sessionValue],
       );
 
-      // Inject the additional WHERE clause
       if (statement.where) {
         statement.where = {
           type: 'binary_expr',
@@ -528,7 +660,6 @@ async function interceptQueryIfNeeded(
     return undefined;
   }
 
-  // Convert the AST back to SQL
   const modifiedQuery = parser.sqlify(
     astArray.length === 1 ? astArray[0] : astArray,
     {
@@ -536,13 +667,9 @@ async function interceptQueryIfNeeded(
     },
   );
 
-  // Serialize the modified query into a PostgreSQL wire protocol query message
   return serialize.query(modifiedQuery);
 }
 
-/**
- * Splits a buffer by null bytes into a list of strings.
- */
 function parseNullDelimitedBuffer(buf: Buffer): string[] {
   const bytes = Array.from(buf);
   const parts: string[] = [];
@@ -557,7 +684,6 @@ function parseNullDelimitedBuffer(buf: Buffer): string[] {
     }
   }
 
-  // If there's trailing non-null content (shouldn't happen in startup messages but just in case)
   if (temp.length > 0) {
     parts.push(Buffer.from(temp).toString('utf8'));
   }

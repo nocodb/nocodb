@@ -1,5 +1,4 @@
 import { customAlphabet, nanoid } from 'nanoid';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 const NC_DATA_REFLECTION_SETTINGS = {
   host:
@@ -35,11 +34,7 @@ const revokeAccessToSchema = async (knex, schema, username) => {
   await knex.raw(preparedQuery);
 };
 
-const createDatabaseUser = async (knex, username, password) => {
-  const dataConfig = await NcConnectionMgrv2.getDataConfig();
-
-  const database = (dataConfig.connection as any).database;
-
+const createDatabaseUser = async (knex, username, password, database) => {
   const query = `
   CREATE USER :username: WITH PASSWORD :password;
   REVOKE ALL ON SCHEMA public FROM :username:;
@@ -54,11 +49,7 @@ const createDatabaseUser = async (knex, username, password) => {
   await knex.raw(preparedQuery);
 };
 
-const dropDatabaseUser = async (knex, username) => {
-  const dataConfig = await NcConnectionMgrv2.getDataConfig();
-
-  const database = (dataConfig.connection as any).database;
-
+const dropDatabaseUser = async (knex, username, database) => {
   const query = `
   REVOKE ALL ON DATABASE :database: FROM :username:;
   DROP USER IF EXISTS :username:;

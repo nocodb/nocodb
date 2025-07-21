@@ -239,13 +239,13 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
                   req: cookie,
                 },
               );
-            postInsertOpsMap[index] = [].concat(
-              postInsertOpsMap[index],
-              attachmentOperations.postInsertOps,
-            );
+            postInsertOpsMap[index] = [
+              ...(postInsertOpsMap[index] ?? []),
+              ...(attachmentOperations.postInsertOps ?? []),
+            ];
             preInsertOps = [].concat(
-              preInsertOps,
-              attachmentOperations.preInsertOps,
+              ...(preInsertOps ?? []),
+              ...(attachmentOperations.preInsertOps ?? []),
             );
           }
 

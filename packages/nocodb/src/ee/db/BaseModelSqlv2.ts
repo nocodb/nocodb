@@ -1751,14 +1751,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                     req: cookie,
                   },
                 );
-              postInsertOpsMap[index] = [].concat(
-                postInsertOpsMap[index],
-                attachmentOperations.postInsertOps,
-              );
-              preInsertOps = [].concat(
-                preInsertOps,
-                attachmentOperations.preInsertOps,
-              );
+              postInsertOpsMap[index] = [
+                ...(postInsertOpsMap[index] ?? []),
+                ...(attachmentOperations.postInsertOps ?? []),
+              ];
+              preInsertOps = [
+                ...(preInsertOps ?? []),
+                ...(attachmentOperations.preInsertOps ?? []),
+              ];
             }
           }
 

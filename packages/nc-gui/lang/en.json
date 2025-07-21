@@ -693,6 +693,12 @@
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
       "copyFromAView": "Copy from a view"
+    },
+    "teams": {
+      "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
+      "confirmLeaveTeamSubtitle": "You may lose access to bases unless you were explicitly invited or have a role at the workspace level.",
+      "confirmDeleteTeamTitle": "Are you sure you want to delete this team?",
+      "confirmDeleteTeamSubtitle": "Members may still have access to bases if they were explicitly invited or hold a role at the workspace level."
     }
   },
   "datatype": {
@@ -1850,6 +1856,8 @@
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
     "convertToSharedBase": "Convert to Shared Base",
+    "leaveTeam": "Leave team",
+    "deleteTeam": "Delete team",
     "revertToDefault": "Revert to Default",
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
@@ -2024,7 +2032,9 @@
     "emptyTablePlaceholder": "This base is empty—for now.",
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access.",
     "noDashboards": "No dashboards",
-    "searchATeam": "Search a team"
+    "searchATeam": "Search a team",
+    "youHaveNotCreatedAnyTeams": "You have not created any teams",
+    "youHaveNotCreatedAnyTeamsSubtitle": "Group members into teams for easier assignments and permission configurations"
   },
   "msg": {
     "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",

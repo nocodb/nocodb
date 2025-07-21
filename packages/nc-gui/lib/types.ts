@@ -928,6 +928,16 @@ interface OAuthAuthorization {
   last_used_at?: string
 }
 
+interface TeamType {
+  name: string
+  created_by: string
+  owners: string[]
+  members: string[]
+  created_at: string
+  updated_at: string
+  meta: MetaType
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -998,4 +1008,5 @@ export type {
   AttachmentCellDropOverType,
   GroupKeysStorage,
   OAuthAuthorization,
+  TeamType,
 }

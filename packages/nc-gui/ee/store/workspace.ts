@@ -47,7 +47,23 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
+  const collaboratorsMap = computed(() => {
+    return (collaborators.value || [])?.reduce((acc, curr) => {
+      if (curr.email) {
+        acc[curr.email] = curr
+      }
+
+      if (curr.fk_user_id) {
+        acc[curr.fk_user_id] = curr
+      }
+
+      return acc
+    }, {} as Record<string, WorkspaceUserType>)
+  })
+
   const allCollaborators = ref<WorkspaceUserType[] | null>()
+
+  const teams = ref<TeamType[]>([])
 
   const lastPopulatedWorkspaceId = ref<string | null>(null)
 
@@ -669,6 +685,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     upgradeWsDlg,
     upgradeWsJobId,
     removingCollaboratorMap,
+    teams,
+    collaboratorsMap,
   }
 })
 

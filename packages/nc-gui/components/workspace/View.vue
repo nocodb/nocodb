@@ -58,7 +58,7 @@ const tab = computed({
       })
     }
 
-    if (tab === 'collaborators' && isUIAllowed('workspaceCollaborators')) {
+    if (['collaborators', 'teams'].includes(tab) && isUIAllowed('workspaceCollaborators')) {
       loadCollaborators({} as any, props.workspaceId)
     }
 

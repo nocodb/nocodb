@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { MetaType } from 'nocodb-sdk'
+
 interface Props {
   workspaceId?: string
   isActive?: boolean
@@ -14,13 +16,18 @@ const { t } = useI18n()
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
+const { user } = useGlobal()
+
+const workspaceStore = useWorkspace()
+
+const { teams, collaborators, collaboratorsMap, activeWorkspace, workspacesList, isCollaboratorsLoading } =
+  storeToRefs(workspaceStore)
+
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Teams')
 
 const searchQuery = ref('')
 
-const isTeamsLoading = ref(false)
-
-const teams = ref([])
+const isTeamsLoading = ref(true)
 
 const sortedTeams = computed(() => {
   return handleGetSortedData(teams.value, sorts.value)
@@ -60,7 +67,6 @@ const columns = [
     basis: '25%',
     minWidth: 252,
     dataIndex: 'badge',
-    showOrderBy: true,
   },
   {
     key: 'owner',
@@ -79,6 +85,72 @@ const columns = [
   },
 ] as NcTableColumnProps[]
 
+const handleLeaveTeam = (team: TeamType) => {
+  const isOpen = ref(true)
+
+  const okProps = ref({ loading: false, type: 'danger' })
+
+  const { close } = useDialog(resolveComponent('NcModalConfirm'), {
+    'visible': isOpen,
+    'title': t('objects.teams.confirmLeaveTeamTitle'),
+    'content': t('objects.teams.confirmLeaveTeamSubtitle'),
+    'okText': t('activity.leaveTeam'),
+    'cancelText': t('labels.cancel'),
+    'onCancel': closeDialog,
+    'onOk': async () => {
+      okProps.value.loading = true
+
+      // Todo: api call
+
+      okProps.value.loading = false
+
+      closeDialog()
+    },
+    'okProps': okProps,
+    'update:visible': closeDialog,
+    'showIcon': false,
+    'maskClosable': false,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
+const handleDeleteTeam = (team: TeamType) => {
+  const isOpen = ref(true)
+
+  const okProps = ref({ loading: false, type: 'danger' })
+
+  const { close } = useDialog(resolveComponent('NcModalConfirm'), {
+    'visible': isOpen,
+    'title': t('objects.teams.confirmDeleteTeamTitle'),
+    'content': t('objects.teams.confirmDeleteTeamSubtitle'),
+    'okText': t('activity.deleteTeam'),
+    'cancelText': t('labels.cancel'),
+    'onCancel': closeDialog,
+    'onOk': async () => {
+      okProps.value.loading = true
+
+      // Todo: api call
+
+      okProps.value.loading = false
+
+      closeDialog()
+    },
+    'okProps': okProps,
+    'update:visible': closeDialog,
+    'showIcon': false,
+    'maskClosable': false,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
 /**
  * Reset search query on tab change
  */
@@ -86,8 +158,35 @@ watch(isActive, () => {
   searchQuery.value = ''
 })
 
+const mockTeamsList = [
+  {
+    name: 'Engineering',
+    created_by: 'ramesh@nocodb.com',
+    owners: ['ramesh@nocodb.com', 'test@nocodb.com'],
+    members: ['ramesh@nocodb.com', 'test@nocodb.com', 'test-1@nocodb.com', 'test-2@nocodb.com', 'test-3@nocodb.com'],
+    created_at: '2021-01-01',
+    updated_at: '2021-01-01',
+    meta: {},
+  },
+  {
+    name: 'Sales',
+    created_by: 'user@gmail.com',
+    owners: ['user@nocodb.com', 'test-1@nocodb.com'],
+    members: ['ramesh@nocodb.com', 'test@nocodb.com', 'test-1@nocodb.com', 'test-2@nocodb.com', 'test-3@nocodb.com'],
+    created_at: '2021-01-01',
+    updated_at: '2021-01-01',
+    meta: {},
+  },
+]
+
 onMounted(async () => {
   loadSorts()
+
+  teams.value = mockTeamsList
+
+  forcedNextTick(() => {
+    isTeamsLoading.value = false
+  })
 })
 </script>
 
@@ -113,7 +212,7 @@ onMounted(async () => {
           </template>
         </a-input>
 
-        <NcButton size="small" inner-class="gap-2" :disabled="isTeamsLoading" data-testid="nc-new-team-btn">
+        <NcButton size="small" inner-class="!gap-2" :disabled="isTeamsLoading" data-testid="nc-new-team-btn">
           <template #icon>
             <GeneralIcon icon="plus" class="h-4 w-4" />
           </template>
@@ -132,9 +231,15 @@ onMounted(async () => {
         :pagination-offset="25"
       >
         <template #emptyText>
-          <NcEmptyPlaceholder :title="$t('activity.noTeams')" :subtitle="$t('activity.noTeamsSubtitle')">
+          <NcEmptyPlaceholder
+            :title="$t('placeholder.youHaveNotCreatedAnyTeams')"
+            :subtitle="$t('placeholder.youHaveNotCreatedAnyTeamsSubtitle')"
+          >
+            <template #icon>
+              <img src="~assets/img/placeholder/moscot-collaborators.png" alt="New Team" class="!w-[320px] flex-none" />
+            </template>
             <template #action>
-              <NcButton size="small" inner-class="gap-2">
+              <NcButton size="small" inner-class="!gap-2">
                 <template #icon>
                   <GeneralIcon icon="plus" class="h-4 w-4" />
                 </template>
@@ -145,22 +250,32 @@ onMounted(async () => {
         </template>
 
         <template #bodyCell="{ column, record, recordIndex }">
+          <div v-if="column.key === 'teamName'">
+            {{ record.name }}
+          </div>
+
+          <div v-if="column.key === 'badge'">
+            <NcBadge class="uppercase">
+              {{ record.name?.slice(0, 3) }}
+            </NcBadge>
+          </div>
+
           <div v-if="column.key === 'owner'" class="w-full flex gap-3 items-center">
-            <GeneralUserIcon size="base" :user="record" class="flex-none" />
+            <GeneralUserIcon size="base" :user="collaboratorsMap[record.created_by]" class="flex-none" />
             <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
               <div class="flex items-center gap-1">
                 <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
                   <template #title>
-                    {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                    {{ collaboratorsMap[record.created_by]?.display_name || extractNameFromEmail(record.created_by) }}
                   </template>
-                  {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                  {{ collaboratorsMap[record.created_by]?.display_name || extractNameFromEmail(record.created_by) }}
                 </NcTooltip>
               </div>
               <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
                 <template #title>
-                  {{ record.email }}
+                  {{ collaboratorsMap[record.created_by]?.email }}
                 </template>
-                {{ record.email }}
+                {{ collaboratorsMap[record.created_by]?.email }}
               </NcTooltip>
             </div>
           </div>
@@ -171,14 +286,18 @@ onMounted(async () => {
                 <component :is="iconMap.ncMoreVertical" />
               </NcButton>
               <template #overlay>
-                <NcMenu variant="small">
+                <NcMenu variant="medium">
                   <NcMenuItem>
                     <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                     {{ $t('general.edit') }}
                   </NcMenuItem>
-                  <NcMenuItem key="delete" class="!text-red-500 !hover:bg-red-50">
+                  <NcMenuItem @click="handleLeaveTeam(record)">
+                    <GeneralIcon icon="ncLogOut" class="h-4 w-4" />
+                    {{ $t('activity.leaveTeam') }}
+                  </NcMenuItem>
+                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="handleDeleteTeam(record)">
                     <GeneralIcon icon="delete" />
-                    {{ $t('general.delete') }}
+                    {{ $t('activity.deleteTeam') }}
                   </NcMenuItem>
                 </NcMenu>
               </template>

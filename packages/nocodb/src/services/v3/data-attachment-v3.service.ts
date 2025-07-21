@@ -6,7 +6,7 @@ import { nanoid } from 'nanoid';
 import slash from 'slash';
 import { NcError } from 'src/helpers/ncError';
 import { extractColsMetaForAudit, generateAuditV1Payload } from 'src/utils';
-import { AuditV1OperationTypes } from 'nocodb-sdk';
+import { AuditV1OperationTypes, ncIsNull } from 'nocodb-sdk';
 import { DataV3Service } from './data-v3.service';
 import type { DataUpdatePayload } from 'nocodb-sdk';
 import type {
@@ -81,8 +81,12 @@ export class DataAttachmentV3Service {
           });
           const processedAttachment = {
             id: attachmentId,
-            url: downloadedAttachment.url,
-            path: downloadedAttachment.path,
+            url: ncIsNull(downloadedAttachment.url)
+              ? undefined
+              : downloadedAttachment.url,
+            path: ncIsNull(downloadedAttachment.url)
+              ? downloadedAttachment.path
+              : undefined,
             title: downloadedAttachment.filename,
             mimetype: downloadedAttachment.mimeType,
             size: downloadedAttachment.fileSize,
@@ -213,10 +217,24 @@ export class DataAttachmentV3Service {
         new PassThrough().end(buffer),
       );
 
+      const attachmentId = await FileReference.insert(context, {
+        storage: storageAdapter.name,
+        file_url:
+          resultAttachmentUrl ?? path.join('download', filePath, filename),
+        file_size: fileSize,
+        fk_user_id: context?.user?.id ?? 'anonymous',
+        source_id: baseModel.model.source_id,
+        fk_model_id: modelId,
+        fk_column_id: column.id,
+        is_external: !(await baseModel.getSource()).isMeta(),
+      });
+
       const processedAttachment = {
-        id: nanoid(), // Generate a new ID for the attachment
-        url: resultAttachmentUrl,
-        path: path.join('download', filePath, filename),
+        id: attachmentId, // Generate a new ID for the attachment
+        url: ncIsNull(resultAttachmentUrl) ? undefined : resultAttachmentUrl,
+        path: ncIsNull(resultAttachmentUrl)
+          ? path.join('download', filePath, filename)
+          : undefined,
         title: filename,
         mimetype: mimeType,
         size: fileSize,

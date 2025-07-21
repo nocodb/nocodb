@@ -249,11 +249,16 @@ export default class DataReflection extends DataReflectionCE {
     const sanitizedWorkspaceTitle = workspace.title.replace(/[^a-z0-9]/gi, '_');
     const username = `nc_${sanitizedWorkspaceTitle}_readonly_${genSuffix()}`;
     const password = genPassword();
-    const database = workspace.id;
 
     const knex = await (
       await NcConnectionMgrv2.getWorkspaceDataKnex(fk_workspace_id)
     )?.transaction();
+
+    const dataConfig = await NcConnectionMgrv2.getWorkspaceDataConfig(
+      fk_workspace_id,
+    );
+
+    const database = dataConfig.connection.database;
 
     try {
       await createDatabaseUser(knex, username, password, database);
@@ -262,7 +267,8 @@ export default class DataReflection extends DataReflectionCE {
           fk_workspace_id,
           username,
           password,
-          database,
+          // We use the workspace id as the database name for backlinking to data reflection record (TODO: move to using data reflection id)
+          database: fk_workspace_id,
         },
         ncMeta,
       );
@@ -289,13 +295,19 @@ export default class DataReflection extends DataReflectionCE {
       await NcConnectionMgrv2.getWorkspaceDataKnex(fk_workspace_id)
     )?.transaction();
 
+    const dataConfig = await NcConnectionMgrv2.getWorkspaceDataConfig(
+      fk_workspace_id,
+    );
+
+    const database = dataConfig.connection.database;
+
     try {
       const bases = await Base.listByWorkspace(fk_workspace_id, false, ncMeta);
       for (const base of bases) {
         await revokeAccessToSchema(knex, base.id, reflection.username);
       }
 
-      await dropDatabaseUser(knex, reflection.username, reflection.database);
+      await dropDatabaseUser(knex, reflection.username, database);
       await DataReflection.delete({ fk_workspace_id }, ncMeta);
       await knex.commit();
     } catch (e) {
@@ -534,7 +546,7 @@ async function handleStartupMessage(
         session.fk_workspace_id = workspaceId;
         session.availableSchemas = availableSchemas;
         session.pgUser = reflection.username;
-        session.pgDatabase = reflection.database;
+        session.pgDatabase = dataConfig.database;
 
         // Use the underlying DB name from the actual Postgres connection
         parts[i + 1] = dataConfig.database;

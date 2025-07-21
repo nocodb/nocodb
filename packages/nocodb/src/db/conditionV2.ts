@@ -6,6 +6,7 @@ import {
   isDateMonthFormat,
   isNumericCol,
   UITypes,
+  isLinksOrLTAR,
 } from 'nocodb-sdk';
 import { FieldHandler } from './field-handler';
 import type { FilterOperationResult } from './field-handler/field-handler.interface';
@@ -1319,8 +1320,8 @@ export async function extractLinkRelFiltersAndApply(param: {
   baseModel: IBaseModelSqlV2;
 }) {
   // skip it for Links/LTAT column
-  if(isLinksOrLTAR(param.column)){
-    return
+  if (isLinksOrLTAR(param.column)) {
+    return;
   }
 
   // extract filters

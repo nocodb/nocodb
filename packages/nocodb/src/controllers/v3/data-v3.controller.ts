@@ -82,7 +82,7 @@ export class Datav3Controller {
   }
 
   @Post(
-    `${PREFIX_APIV3_DATA}/:modelId/records/:recordId/columns/:columnId/upload`,
+    `${PREFIX_APIV3_DATA}/:modelId/records/:recordId/fields/:columnId/upload`,
   )
   @HttpCode(200)
   @Acl('dataUpdate')

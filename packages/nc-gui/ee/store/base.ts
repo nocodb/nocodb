@@ -13,8 +13,6 @@ export const useBase = defineStore('baseStore', () => {
 
   const route = router.currentRoute
 
-  const { setTheme, theme } = useTheme()
-
   const { loadRoles } = useRoles()
 
   const { refreshCommandPalette } = useCommandPalette()
@@ -243,7 +241,7 @@ export const useBase = defineStore('baseStore', () => {
     // base.value = {}
     // tables.value = []
     baseMetaInfo.value = undefined
-    setTheme()
+    // setTheme()
   }
 
   const setProject = (baseVal: BaseType) => {

@@ -4,8 +4,6 @@ definePageMeta({
   hasSidebar: true,
 })
 
-useTheme()
-
 const { t } = useI18n()
 
 const { $e } = useNuxtApp()

@@ -54,9 +54,9 @@ interface Relation {
 export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ERDConfig>) {
   const elements = ref<Elements<NodeData | EdgeData>>([])
 
-  const { theme } = useTheme()
-
-  const colorScale = d3ScaleLinear<string>().domain([0, 2]).range([theme.value.primaryColor, theme.value.accentColor])
+  const colorScale = d3ScaleLinear<string>()
+    .domain([0, 2])
+    .range([themeV2Colors['royal-blue'].DEFAULT, themeV2Colors.pink['500']])
 
   const dagreGraph = new dagre.graphlib.Graph()
   dagreGraph.setDefaultEdgeLabel(() => ({}))

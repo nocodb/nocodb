@@ -70,9 +70,9 @@ interface Relation {
 export function useErdElements(schema: MaybeRef<AiBaseSchema>, props: MaybeRef<AiERDConfig>) {
   const elements = ref<Elements<AiNodeData | AiEdgeData>>([])
 
-  const { theme } = useTheme()
-
-  const colorScale = d3ScaleLinear<string>().domain([0, 2]).range([theme.value.primaryColor, theme.value.accentColor])
+  const colorScale = d3ScaleLinear<string>()
+    .domain([0, 2])
+    .range([themeV2Colors['royal-blue'].DEFAULT, themeV2Colors.pink['500']])
 
   const dagreGraph = new dagre.graphlib.Graph()
   dagreGraph.setDefaultEdgeLabel(() => ({}))

@@ -11,7 +11,6 @@ import {
 
 const props = defineProps<{
   workspaceId?: string
-  height?: string
 }>()
 
 const { workspaceRoles } = useRoles()
@@ -312,10 +311,9 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
   <div
     class="nc-collaborator-table-container overflow-auto nc-scrollbar-thin relative"
     :class="{
-      'nc-is-admin-panel': !height && isAdminPanel,
-      'nc-is-ws-members-list': !height && !isAdminPanel,
+      'nc-is-admin-panel': isAdminPanel,
+      'nc-is-ws-members-list': !isAdminPanel,
     }"
-    :style="`${height ? `height: ${height}` : ''}`"
     @scroll.passive="handleScroll"
   >
     <div ref="topSectionRef">

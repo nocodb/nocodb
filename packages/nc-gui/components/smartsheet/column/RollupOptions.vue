@@ -38,8 +38,6 @@ const { metas, getMeta } = useMetas()
 
 const { t } = useI18n()
 
-const { getPlanTitle } = useEeConfig()
-
 const filterRef = ref()
 
 setAdditionalValidations({

@@ -11,6 +11,7 @@ import {
 
 const props = defineProps<{
   workspaceId?: string
+  isActive?: boolean
 }>()
 
 const { workspaceRoles } = useRoles()
@@ -305,6 +306,16 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
     },
   })
 }
+
+/**
+ * Reset search query on unmount
+ */
+watch(
+  () => props.isActive,
+  () => {
+    userSearchText.value = ''
+  },
+)
 </script>
 
 <template>

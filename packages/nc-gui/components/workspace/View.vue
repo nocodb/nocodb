@@ -194,7 +194,7 @@ onBeforeUnmount(() => {
             </div>
           </template>
 
-          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
+          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" :is-active="tab === 'collaborators'" />
         </a-tab-pane>
 
         <a-tab-pane v-if="isEeUI" key="teams" class="w-full h-full">
@@ -205,7 +205,7 @@ onBeforeUnmount(() => {
             </div>
           </template>
 
-          <WorkspaceTeams :workspace-id="currentWorkspace.id" />
+          <WorkspaceTeams :workspace-id="currentWorkspace.id" :is-active="tab === 'teams'" />
         </a-tab-pane>
       </template>
       <template v-if="!isMobileMode">

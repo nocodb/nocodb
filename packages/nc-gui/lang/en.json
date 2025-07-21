@@ -1550,6 +1550,8 @@
     "newScript": "New Script",
     "emptyScript": "Empty Script",
     "newTeam": "New team",
+    "teamName": "Team name",
+    "badge": "Badge",
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "selectRole": "Select Role",

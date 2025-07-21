@@ -10,7 +10,7 @@ import type { UsersSortType } from '~/lib/types'
  * @returns {object} An object containing reactive values and functions related to user sorts.
  */
 export function useUserSorts(
-  roleType: 'Workspace' | 'Org' | 'Project' | 'Organization' | 'Webhook' | 'OAuthAuthorization' | 'OAuthClients',
+  roleType: 'Workspace' | 'Org' | 'Project' | 'Organization' | 'Webhook' | 'Teams' | 'OAuthAuthorization' | 'OAuthClients',
 ) {
   const clone = rfdc()
 

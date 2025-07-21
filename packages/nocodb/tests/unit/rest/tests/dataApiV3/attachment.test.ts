@@ -141,7 +141,7 @@ describe('Attachment V3', () => {
     const columnId = table.columns.find((col) => col.title === 'Attachment').id;
 
     const rspPatch1 = await ncAxiosPost({
-      url: `${urlPrefix}/${table.id}/records/${recordId}/columns/${columnId}/upload`,
+      url: `${urlPrefix}/${table.id}/records/${recordId}/fields/${columnId}/upload`,
       body: {
         contentType: 'image/png',
         file: base64Image,
@@ -152,7 +152,7 @@ describe('Attachment V3', () => {
     expect(rspPatch1.body.fields.Attachment.length).to.eq(1);
     expect(rspPatch1.body.fields.Attachment[0].mimetype).to.eq('image/png');
     const rspPatch2 = await ncAxiosPost({
-      url: `${urlPrefix}/${table.id}/records/${recordId}/columns/${columnId}/upload`,
+      url: `${urlPrefix}/${table.id}/records/${recordId}/fields/${columnId}/upload`,
       body: {
         contentType: 'image/png',
         file: base64Image,

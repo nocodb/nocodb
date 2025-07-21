@@ -286,7 +286,7 @@ const coverImageObjectFit = computed({
   },
 })
 
-const onShowAll = () => {
+const onShowAll = async () => {
   addUndo({
     undo: {
       fn: async () => {
@@ -302,10 +302,10 @@ const onShowAll = () => {
     },
     scope: defineViewScope({ view: activeView.value }),
   })
-  showAll()
+  await showAll()
 }
 
-const onHideAll = () => {
+const onHideAll = async () => {
   addUndo({
     undo: {
       fn: async () => {
@@ -321,7 +321,7 @@ const onHideAll = () => {
     },
     scope: defineViewScope({ view: activeView.value }),
   })
-  hideAll()
+  await hideAll()
 }
 
 const visibleFields = computed(
@@ -344,15 +344,31 @@ const visibleFields = computed(
     }) || [],
 )
 
+const isLoadingShowAllColumns = ref(false)
+
+const isDisabledShowAllColumns = computed(() => {
+  return (
+    !searchCompare(
+      fields.value?.map((f) => f.title),
+      filterQuery.value,
+    ) || isLocked.value
+  )
+})
+
 const showAllColumns = computed({
   get: () => {
     return visibleFields.value?.every((field) => field?.show)
   },
   set: async (val) => {
-    if (val) {
-      await onShowAll()
-    } else {
-      await onHideAll()
+    isLoadingShowAllColumns.value = true
+    try {
+      if (val) {
+        await onShowAll()
+      } else {
+        await onHideAll()
+      }
+    } finally {
+      isLoadingShowAllColumns.value = false
     }
   },
 })
@@ -687,12 +703,8 @@ const onAddColumnDropdownVisibilityChange = () => {
               <div class="pl-2 flex">
                 <NcSwitch
                   v-model:checked="showAllColumns"
-                  :disabled="
-                    !searchCompare(
-                      fields?.map((f) => f.title),
-                      filterQuery,
-                    ) || isLocked
-                  "
+                  :disabled="isDisabledShowAllColumns"
+                  :loading="isLoadingShowAllColumns"
                   size="xsmall"
                   class="!mr-1 nc-fields-toggle-show-all-fields"
                 />
@@ -848,7 +860,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                       <span @click.stop="conditionalToggleFieldVisibility(field)">
                         <NcSwitch
                           :checked="field.show"
-                          :disabled="field.isViewEssentialField || isLocked"
+                          :disabled="field.isViewEssentialField || isLocked || isLoadingShowAllColumns"
                           size="xxsmall"
                           @change="$e('a:fields:show-hide')"
                           @click="handleFieldVisibilityClick(field)"

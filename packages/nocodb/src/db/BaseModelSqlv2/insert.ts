@@ -235,7 +235,8 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
                 baseModel,
                 {
                   attachmentCols,
-                  data: d,
+                  data: insertObj,
+                  req: cookie,
                 },
               );
             postInsertOpsMap[index] = [].concat(

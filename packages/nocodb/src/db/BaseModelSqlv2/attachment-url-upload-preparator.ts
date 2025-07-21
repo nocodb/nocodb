@@ -1,3 +1,4 @@
+import type { NcRequest } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { type AttachmentUrlUploadJobData, JobTypes } from '~/interface/Jobs';
 import { EMIT_EVENT } from '~/constants';
@@ -11,9 +12,11 @@ export class AttachmentUrlUploadPreparator {
     {
       attachmentCols,
       data,
+      req,
     }: {
       attachmentCols: Column[];
       data: Record<string, any>;
+      req?: NcRequest;
     },
   ) {
     const postInsertOps: ((rowId: any) => Promise<string>)[] = [];
@@ -47,6 +50,7 @@ export class AttachmentUrlUploadPreparator {
           recordId,
           user: baseModel.context.user,
           attachments: attachmentData,
+          req,
         } as AttachmentUrlUploadJobData);
         return '';
       });

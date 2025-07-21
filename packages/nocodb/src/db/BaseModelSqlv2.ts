@@ -2292,6 +2292,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           {
             attachmentCols: columns.filter((c) => isAttachment(c)),
             data: insertObj,
+            req: request,
           },
         );
       postInsertOps = [].concat(
@@ -3031,6 +3032,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 {
                   attachmentCols,
                   data,
+                  req: cookie,
                 },
               );
             postUpdateOps = postUpdateOps.concat(

@@ -1748,6 +1748,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   {
                     attachmentCols,
                     data: insertObj,
+                    req: cookie,
                   },
                 );
               postInsertOpsMap[index] = [].concat(
@@ -2378,6 +2379,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 {
                   attachmentCols,
                   data,
+                  req: cookie,
                 },
               );
             postUpdateOps = postUpdateOps.concat(

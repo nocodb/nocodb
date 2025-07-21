@@ -150,7 +150,7 @@ export class SurveyFormPage extends BasePage {
   }
 
   async getFormFieldErrors() {
-    const fieldErrorEl = this.get().locator('.ant-form-item-explain');
+    const fieldErrorEl = this.get().locator('.ant-form-item-explain-error');
     return {
       locator: fieldErrorEl,
       verify: async ({ hasError, hasErrorMsg }: { hasError?: boolean; hasErrorMsg?: string | RegExp }) => {

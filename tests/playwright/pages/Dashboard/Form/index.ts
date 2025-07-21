@@ -666,7 +666,7 @@ export class FormPage extends BasePage {
     // ant-form-item-explain
     const field = this.get().locator(`[data-testid="nc-form-fields"][data-title="${title}"]`);
     await field.scrollIntoViewIfNeeded();
-    const fieldErrorEl = field.locator('.ant-form-item-explain');
+    const fieldErrorEl = field.locator('.ant-form-item-explain-error');
 
     return {
       locator: fieldErrorEl,

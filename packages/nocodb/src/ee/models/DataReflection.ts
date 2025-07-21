@@ -139,6 +139,10 @@ class DataReflectionSession {
 const clientSessions = new Map<string, DataReflectionSession>();
 
 export default class DataReflection extends DataReflectionCE {
+  /**
+   * Initialize the data reflection proxy server.
+   * This server acts as a middleware layer between the clients and the actual PostgreSQL server.
+   */
   public static async init(): Promise<void> {
     const parser = new Parser();
 
@@ -163,12 +167,6 @@ export default class DataReflection extends DataReflectionCE {
           }
 
           if (messageType === 0x51) {
-            if (!session) {
-              clientSocket.end();
-              session.pgSocket?.end();
-              return;
-            }
-
             const queryCount = session.queryCountWithinWindow();
             if (queryCount > NC_DATA_REFLECTION_QUERY_LIMIT) {
               logger.warn(
@@ -187,6 +185,7 @@ export default class DataReflection extends DataReflectionCE {
               parser,
             );
 
+            // If we modified the query write that; otherwise fallback to the original data
             session.pgSocket?.write(modifiedQueryBuffer ?? data);
             return;
           }
@@ -515,6 +514,7 @@ async function handleStartupMessage(
           await NcConnectionMgrv2.getWorkspaceDataConfig(workspaceId)
         ).connection;
 
+        // postgresql://username:password@db-id-pooler.region.aws.neon.tech/nocodb?sslmode=require&channel_binding=require
         dataConfig.host = dataConfig.host.replace(
           /-pooler(\..*\.neon\.tech)/,
           '$1',
@@ -606,11 +606,19 @@ async function handleStartupMessage(
   }
 }
 
+/**
+ * Attempt to parse and intercept the query.
+ * If it matches our interception rules inject a WHERE clause to restrict the query.
+ * Return modified query buffer if successful (undefined otherwise).
+ */
 async function interceptQueryIfNeeded(
   data: Buffer,
   session: DataReflectionSession,
   parser: Parser,
 ): Promise<Buffer | undefined> {
+  // Extract the query text from the buffer
+  // Byte 0: Message type (0x51 for 'Q')
+  // Bytes 1-4: Message length
   const queryText = data.subarray(5).toString('utf8').replace(/\0/g, '');
 
   let ast;
@@ -626,6 +634,7 @@ async function interceptQueryIfNeeded(
 
   for (const statement of astArray) {
     if (statement.type !== 'select') continue;
+    // Check if the FROM clause includes a table that we need to intercept
     if (!statement.from || !Array.isArray(statement.from)) continue;
 
     for (const target of interceptMap) {
@@ -642,6 +651,7 @@ async function interceptQueryIfNeeded(
         target.value ? target.value : session[target.sessionValue],
       );
 
+      // Inject the additional WHERE clause
       if (statement.where) {
         statement.where = {
           type: 'binary_expr',
@@ -660,6 +670,7 @@ async function interceptQueryIfNeeded(
     return undefined;
   }
 
+  // Convert the AST back to SQL
   const modifiedQuery = parser.sqlify(
     astArray.length === 1 ? astArray[0] : astArray,
     {
@@ -667,9 +678,13 @@ async function interceptQueryIfNeeded(
     },
   );
 
+  // Serialize the modified query into a PostgreSQL wire protocol query message
   return serialize.query(modifiedQuery);
 }
 
+/**
+ * Splits a buffer by null bytes into a list of strings.
+ */
 function parseNullDelimitedBuffer(buf: Buffer): string[] {
   const bytes = Array.from(buf);
   const parts: string[] = [];
@@ -684,6 +699,7 @@ function parseNullDelimitedBuffer(buf: Buffer): string[] {
     }
   }
 
+  // If there's trailing non-null content (shouldn't happen in startup messages but just in case)
   if (temp.length > 0) {
     parts.push(Buffer.from(temp).toString('utf8'));
   }

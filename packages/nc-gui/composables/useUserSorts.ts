@@ -134,7 +134,9 @@ export function useUserSorts(
           }
         }
         case 'email':
-        case 'title': {
+        case 'title':
+        case 'name':
+        case 'created_by': {
           if (sortsConfig.direction === 'asc') {
             return a[sortsConfig.field]?.localeCompare(b[sortsConfig.field])
           } else {

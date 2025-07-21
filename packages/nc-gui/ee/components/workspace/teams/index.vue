@@ -59,7 +59,7 @@ const columns = [
     key: 'teamName',
     title: t('labels.teamName'),
     minWidth: 220,
-    dataIndex: 'teamName',
+    dataIndex: 'name',
     showOrderBy: true,
   },
   {
@@ -71,10 +71,10 @@ const columns = [
   },
   {
     key: 'owner',
-    title: t('objects.owner'),
+    title: t('title.creator'),
     basis: '25%',
     minWidth: 252,
-    dataIndex: 'owner',
+    dataIndex: 'created_by',
     showOrderBy: true,
   },
   {
@@ -84,7 +84,11 @@ const columns = [
     minWidth: 110,
     justify: 'justify-end',
   },
-] as NcTableColumnProps[]
+] as NcTableColumnProps<TeamType>[]
+
+const hasSoleTeamOwner = (team: TeamType) => {
+  return team?.owners?.length < 2
+}
 
 const handleConfirm = ({
   title,
@@ -174,7 +178,7 @@ const mockTeamsList = [
   {
     name: 'Sales',
     created_by: 'user@gmail.com',
-    owners: ['user@nocodb.com', 'test-1@nocodb.com'],
+    owners: ['user@nocodb.com'],
     members: ['ramesh@nocodb.com', 'test@nocodb.com', 'test-1@nocodb.com', 'test-2@nocodb.com', 'test-3@nocodb.com'],
     created_at: '2021-01-01',
     updated_at: '2021-01-01',
@@ -294,11 +298,17 @@ onMounted(async () => {
                     <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                     {{ $t('general.edit') }}
                   </NcMenuItem>
-                  <NcMenuItem @click="handleLeaveTeam(record)">
-                    <GeneralIcon icon="ncLogOut" class="h-4 w-4" />
-                    {{ $t('activity.leaveTeam') }}
-                  </NcMenuItem>
-                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="handleDeleteTeam(record)">
+                  <NcTooltip
+                    :disabled="!hasSoleTeamOwner(record as TeamType)"
+                    :title="t('objects.teams.soleTeamOwnerTooltip')"
+                    placement="left"
+                  >
+                    <NcMenuItem @click="handleLeaveTeam(record as TeamType)" :disabled="hasSoleTeamOwner(record as TeamType)">
+                      <GeneralIcon icon="ncLogOut" class="h-4 w-4" />
+                      {{ $t('activity.leaveTeam') }}
+                    </NcMenuItem>
+                  </NcTooltip>
+                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="handleDeleteTeam(record as TeamType)">
                     <GeneralIcon icon="delete" />
                     {{ $t('activity.deleteTeam') }}
                   </NcMenuItem>

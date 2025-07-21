@@ -17,6 +17,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const teams = ref<TeamType[]>([])
 
+  const teamsMap = computed(() => {})
+
   const router = useRouter()
 
   const route = router.currentRoute
@@ -314,6 +316,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     upgradeWsJobId,
     removingCollaboratorMap,
     teams,
+    teamsMap,
     collaboratorsMap,
   }
 })

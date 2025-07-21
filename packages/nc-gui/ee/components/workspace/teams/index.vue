@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { MetaType } from 'nocodb-sdk'
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
 
 interface Props {
@@ -11,6 +10,9 @@ const props = withDefaults(defineProps<Props>(), {
   isActive: true,
 })
 
+const router = useRouter()
+const route = router.currentRoute
+
 const { workspaceId, isActive } = toRefs(props)
 
 const { t } = useI18n()
@@ -21,8 +23,7 @@ const { user } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { teams, collaborators, collaboratorsMap, activeWorkspace, workspacesList, isCollaboratorsLoading } =
-  storeToRefs(workspaceStore)
+const { teams, collaboratorsMap } = storeToRefs(workspaceStore)
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Teams')
 
@@ -85,6 +86,18 @@ const columns = [
     justify: 'justify-end',
   },
 ] as NcTableColumnProps<TeamType>[]
+
+const customRow = (record: Record<string, any>) => ({
+  onClick: () => {
+    handleEditTeam(record as TeamType)
+  },
+})
+
+const handleEditTeam = (team: TeamType) => {
+  if (!team?.id) return
+
+  router.push({ query: { ...route.value.query, teamId: team.id } })
+}
 
 const hasSoleTeamOwner = (team: TeamType) => {
   return team?.owners?.length < 2
@@ -167,6 +180,7 @@ watch(isActive, () => {
 
 const mockTeamsList = [
   {
+    id: '1',
     name: 'Engineering',
     created_by: 'ramesh@nocodb.com',
     owners: ['ramesh@nocodb.com', 'test@nocodb.com'],
@@ -176,6 +190,7 @@ const mockTeamsList = [
     meta: {},
   },
   {
+    id: '2',
     name: 'Sales',
     created_by: 'user@gmail.com',
     owners: ['user@nocodb.com'],
@@ -236,6 +251,7 @@ onMounted(async () => {
         class="flex-1 nc-teams-list"
         :pagination="true"
         :pagination-offset="25"
+        :custom-row="customRow"
       >
         <template #emptyText>
           <NcEmptyPlaceholder
@@ -287,14 +303,14 @@ onMounted(async () => {
             </div>
           </div>
 
-          <div v-if="column.key === 'action'">
+          <div v-if="column.key === 'action'" @click.stop>
             <NcDropdown>
               <NcButton size="small" type="secondary">
                 <component :is="iconMap.ncMoreVertical" />
               </NcButton>
               <template #overlay>
                 <NcMenu variant="medium">
-                  <NcMenuItem>
+                  <NcMenuItem @click="handleEditTeam(record as TeamType)">
                     <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                     {{ $t('general.edit') }}
                   </NcMenuItem>
@@ -319,6 +335,7 @@ onMounted(async () => {
         </template>
       </NcTable>
     </div>
+    <WorkspaceTeamsModal />
   </div>
 </template>
 

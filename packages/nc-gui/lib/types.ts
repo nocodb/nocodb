@@ -929,6 +929,7 @@ interface OAuthAuthorization {
 }
 
 interface TeamType {
+  id: string
   name: string
   created_by: string
   owners: string[]

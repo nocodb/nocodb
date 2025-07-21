@@ -24,6 +24,11 @@ export async function extractLinkRelFiltersAndApply(param: {
     return;
   }
 
+  // skip if condition is in disabled state
+  if (!param.column.meta?.enableConditions) {
+    return;
+  }
+
   // extract filters
   const filters = await Filter.rootFilterListByLink(
     {

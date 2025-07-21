@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { MetaType } from 'nocodb-sdk'
+import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
 
 interface Props {
   workspaceId?: string
@@ -85,22 +86,29 @@ const columns = [
   },
 ] as NcTableColumnProps[]
 
-const handleLeaveTeam = (team: TeamType) => {
+const handleConfirm = ({
+  title,
+  content,
+  okText,
+  cancelText,
+  okProps: _okProps = {},
+  okCallback = () => Promise.resolve(),
+}: Partial<NcConfirmModalProps> & { okCallback?: () => Promise<void> }) => {
   const isOpen = ref(true)
 
-  const okProps = ref({ loading: false, type: 'danger' })
+  const okProps = ref({ loading: false, type: 'danger', ..._okProps })
 
   const { close } = useDialog(resolveComponent('NcModalConfirm'), {
     'visible': isOpen,
-    'title': t('objects.teams.confirmLeaveTeamTitle'),
-    'content': t('objects.teams.confirmLeaveTeamSubtitle'),
-    'okText': t('activity.leaveTeam'),
-    'cancelText': t('labels.cancel'),
+    'title': title,
+    'content': content,
+    'okText': okText,
+    'cancelText': cancelText,
     'onCancel': closeDialog,
     'onOk': async () => {
       okProps.value.loading = true
 
-      // Todo: api call
+      await okCallback()
 
       okProps.value.loading = false
 
@@ -109,7 +117,7 @@ const handleLeaveTeam = (team: TeamType) => {
     'okProps': okProps,
     'update:visible': closeDialog,
     'showIcon': false,
-    'maskClosable': false,
+    'maskClosable': true,
   })
 
   function closeDialog() {
@@ -118,37 +126,32 @@ const handleLeaveTeam = (team: TeamType) => {
   }
 }
 
-const handleDeleteTeam = (team: TeamType) => {
-  const isOpen = ref(true)
-
-  const okProps = ref({ loading: false, type: 'danger' })
-
-  const { close } = useDialog(resolveComponent('NcModalConfirm'), {
-    'visible': isOpen,
-    'title': t('objects.teams.confirmDeleteTeamTitle'),
-    'content': t('objects.teams.confirmDeleteTeamSubtitle'),
-    'okText': t('activity.deleteTeam'),
-    'cancelText': t('labels.cancel'),
-    'onCancel': closeDialog,
-    'onOk': async () => {
-      okProps.value.loading = true
-
+const handleLeaveTeam = (team: TeamType) => {
+  handleConfirm({
+    title: t('objects.teams.confirmLeaveTeamTitle'),
+    content: t('objects.teams.confirmLeaveTeamSubtitle'),
+    okText: t('activity.leaveTeam'),
+    cancelText: t('labels.cancel'),
+    okCallback: async () => {
       // Todo: api call
-
-      okProps.value.loading = false
-
-      closeDialog()
+      console.log('leave team', team)
+      await ncDelay(1000)
     },
-    'okProps': okProps,
-    'update:visible': closeDialog,
-    'showIcon': false,
-    'maskClosable': false,
   })
+}
 
-  function closeDialog() {
-    isOpen.value = false
-    close(1000)
-  }
+const handleDeleteTeam = (team: TeamType) => {
+  handleConfirm({
+    title: t('objects.teams.confirmDeleteTeamTitle'),
+    content: t('objects.teams.confirmDeleteTeamSubtitle'),
+    okText: t('activity.deleteTeam'),
+    cancelText: t('labels.cancel'),
+    okCallback: async () => {
+      // Todo: api call
+      console.log('delete team', team)
+      await ncDelay(2000)
+    },
+  })
 }
 
 /**

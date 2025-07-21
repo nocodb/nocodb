@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
+import type { ColumnType, LinkToAnotherRecordType, RollupType, TableType } from 'nocodb-sdk'
 import {
   ColumnHelper,
-  type ColumnType,
-  type LinkToAnotherRecordType,
+  PlanFeatureTypes,
+  PlanTitles,
   RelationTypes,
-  type RollupType,
-  type TableType,
   UITypes,
+  getAvailableRollupForColumn,
   getRenderAsTextFunForUiType,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isVirtualCol,
 } from 'nocodb-sdk'
-import { getAvailableRollupForColumn, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -39,6 +41,8 @@ const { metas, getMeta } = useMetas()
 const { t } = useI18n()
 
 const { $e } = useNuxtApp()
+
+const { getPlanTitle } = useEeConfig()
 
 const filterRef = ref()
 
@@ -274,6 +278,12 @@ const enableFormattingOptions = computed(() => {
 
   return validFunctions.includes(vModel.value.rollup_function)
 })
+
+const onFilterLabelClick = () => {
+  if (!selectedTable.value) return
+
+  limitRecToCond.value = !limitRecToCond.value
+}
 </script>
 
 <template>
@@ -421,11 +431,37 @@ const enableFormattingOptions = computed(() => {
 
     <div v-if="isEeUI" class="w-full flex flex-col gap-4">
       <div class="flex flex-col gap-2">
-        <div class="flex items-center gap-1 whitespace-nowrap">
-          <NcSwitch v-model:checked="limitRecToCond" :disabled="!selectedTable" data-testid="nc-rollup-limit-record-filters">
-            {{ $t('labels.onlyIncludeLinkedRecordsThatMeetSpecificConditions') }}
-          </NcSwitch>
-        </div>
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER">
+          <template #default="{ click }">
+            <div class="flex gap-1 items-center whitespace-nowrap">
+              <NcSwitch
+                :checked="limitRecToCond"
+                :disabled="!selectedTable"
+                size="small"
+                data-testid="nc-rollup-limit-record-filters"
+                @change="
+                  (value) => {
+                    if (value && click(PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER)) return
+                    onFilterLabelClick()
+                  }
+                "
+              >
+                {{ $t('labels.onlyIncludeLinkedRecordsThatMeetSpecificConditions') }}
+              </NcSwitch>
+
+              <LazyPaymentUpgradeBadge
+                v-if="!limitRecToCond"
+                :feature="PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER"
+                :content="
+                  $t('upgrade.upgradeToIncludeLinkedRecordsThatMeetSpecificConditions', {
+                    plan: getPlanTitle(PlanTitles.PLUS),
+                  })
+                "
+                class="ml-1"
+              />
+            </div>
+          </template>
+        </PaymentUpgradeBadgeProvider>
 
         <div v-if="limitRecToCond" class="overflow-auto">
           <LazySmartsheetToolbarColumnFilter

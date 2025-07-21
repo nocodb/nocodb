@@ -53,7 +53,14 @@ const props = withDefaults(defineProps<Props>(), {
   isColourFilter: false,
 })
 
-const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:modelValue', 'update:isOpen'])
+const emit = defineEmits([
+  'update:filtersLength',
+  'update:draftFilter',
+  'update:modelValue',
+  'update:isOpen',
+  'addFilter',
+  'addFilterGroup',
+])
 
 const initialModelValue = props.modelValue
 
@@ -407,6 +414,8 @@ const addFilter = async (filter?: Partial<FilterType>) => {
   } else {
     scrollDownIfNeeded()
   }
+
+  emit('addFilter', nested.value)
 }
 
 const addFilterGroup = async () => {
@@ -418,6 +427,8 @@ const addFilterGroup = async () => {
   } else {
     scrollDownIfNeeded()
   }
+
+  emit('addFilterGroup', nested.value)
 }
 
 const showFilterInput = (filter: Filter) => {
@@ -617,7 +628,9 @@ defineExpose({
     data-testid="nc-filter"
     class="menu-filter-dropdown w-min"
     :class="{
-      'max-h-[max(80vh,500px)] min-w-122 py-2 pl-4': !nested && !queryFilter,
+      'min-w-122 py-2 pl-4': !nested && !queryFilter,
+      'max-h-[max(80vh,500px)]': !nested && !queryFilter && !link,
+      'max-h-[max(50vh,400px)]': !nested && !queryFilter && link,
       '!min-w-127.5': isForm && !webHook,
       '!min-w-full !w-full !pl-0': !nested && webHook,
       'min-w-full': nested || queryFilter,
@@ -687,7 +700,9 @@ defineExpose({
       ref="wrapperDomRef"
       class="flex flex-col gap-y-1.5 nc-filter-grid min-w-full w-min"
       :class="{
-        'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 mt-1 mb-2 py-1': !nested && !queryFilter,
+        'nc-scrollbar-thin nc-filter-top-wrapper pr-4 mt-1 mb-2 py-1': !nested && !queryFilter,
+        'max-h-420px': !nested && !queryFilter && !link,
+        'max-h-320px': !nested && !queryFilter && link,
         '!pr-0': webHook && !nested,
       }"
       @click.stop

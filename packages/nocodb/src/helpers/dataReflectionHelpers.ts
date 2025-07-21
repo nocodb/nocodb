@@ -1,5 +1,4 @@
 import { customAlphabet, nanoid } from 'nanoid';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 const NC_DATA_REFLECTION_SETTINGS = {
   host:
@@ -35,11 +34,7 @@ const revokeAccessToSchema = async (knex, schema, username) => {
   await knex.raw(preparedQuery);
 };
 
-const createDatabaseUser = async (knex, username, password) => {
-  const dataConfig = await NcConnectionMgrv2.getDataConfig();
-
-  const database = (dataConfig.connection as any).database;
-
+const createDatabaseUser = async (knex, username, password, database) => {
   const query = `
   CREATE USER :username: WITH PASSWORD :password;
   REVOKE ALL ON SCHEMA public FROM :username:;
@@ -54,11 +49,7 @@ const createDatabaseUser = async (knex, username, password) => {
   await knex.raw(preparedQuery);
 };
 
-const dropDatabaseUser = async (knex, username) => {
-  const dataConfig = await NcConnectionMgrv2.getDataConfig();
-
-  const database = (dataConfig.connection as any).database;
-
+const dropDatabaseUser = async (knex, username, database) => {
   const query = `
   REVOKE ALL ON DATABASE :database: FROM :username:;
   DROP USER IF EXISTS :username:;
@@ -69,6 +60,64 @@ const dropDatabaseUser = async (knex, username) => {
   await knex.raw(preparedQuery);
 };
 
+function inInterceptor(table: string, column: string, values: string[]) {
+  return {
+    type: 'binary_expr',
+    operator: 'in',
+    left: {
+      type: 'column_ref',
+      table,
+      column: {
+        expr: {
+          type: 'default',
+          value: column,
+        },
+      },
+    },
+    right: {
+      type: 'expr_list',
+      value: values.map((schema) => ({
+        type: 'string',
+        value: schema,
+      })),
+    },
+  };
+}
+
+function eqInterceptor(table: string, column: string, value: string) {
+  return {
+    type: 'binary_expr',
+    operator: '=',
+    left: {
+      type: 'column_ref',
+      table,
+      column: {
+        expr: {
+          type: 'default',
+          value: column,
+        },
+      },
+    },
+    right: {
+      type: 'string',
+      value,
+    },
+  };
+}
+
+function generateWhereClause(
+  table: string,
+  column: string,
+  type: 'in' | 'eq',
+  value: string | string[],
+) {
+  if (type === 'in') {
+    return inInterceptor(table, column, Array.isArray(value) ? value : [value]);
+  }
+
+  return eqInterceptor(table, column, value as string);
+}
+
 export {
   NC_DATA_REFLECTION_SETTINGS,
   grantAccessToSchema,
@@ -77,4 +126,5 @@ export {
   dropDatabaseUser,
   genSuffix,
   genPassword,
+  generateWhereClause,
 };

@@ -268,6 +268,22 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
     }
   }
 
+  public static async getWorkspaceDataConfig(workspaceId: string) {
+    const dbServer = await getWorkspaceDbServer(workspaceId);
+    if (dbServer) {
+      return dbServer.config;
+    }
+    return this.getDataConfig();
+  }
+
+  public static async getWorkspaceDataKnex(workspaceId: string) {
+    const dbConnection = await getWorkspaceDbConnection(workspaceId);
+    if (dbConnection) {
+      return dbConnection;
+    }
+    return this.getDataKnex();
+  }
+
   public static async getDataKnex?() {
     if (!this.dataKnex) {
       await this.getDataConfig();

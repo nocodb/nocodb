@@ -516,6 +516,7 @@ function handleFieldVisibilityClick(field: Field) {
 }
 
 function onColumnSubmitted() {
+  message.success(t('msg.toast.createField'))
   addColumnDropdown.value = false
   scrollToLatestField()
 }

@@ -2374,6 +2374,7 @@
       "projInfo": "Copied base info to clipboard",
       "inviteUrlCopy": "Copied Invite URL to clipboard",
       "createView": "View created successfully",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Please activate the SMTP plugin to enable e-mail notifications",
       "collabView": "Successfully Switched to collaborative view",
       "lockedView": "Successfully Switched to locked view",

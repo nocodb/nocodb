@@ -553,6 +553,20 @@ const rules = computed(() => {
 
           return true
         }),
+        isColumnReadOnly: helpers.withMessage(
+          (params) => {
+            return params.$model
+              ? bulkUpdateColumnsMap.value[params.$model]?.permissions?.tooltip || t('msg.info.fieldReadonly')
+              : t('msg.info.fieldReadonly')
+          },
+          (value, _currentConfig) => {
+            const currentConfig = _currentConfig as BulkUpdateFieldConfig
+
+            if (!currentConfig?.columnId || !meta.value) return true
+
+            return !(currentConfig.columnId && bulkUpdateColumnsMap.value[currentConfig.columnId]?.readonly)
+          },
+        ),
       },
       opType: {
         required: helpers.withMessage('Update type is required', (value, _currentConfig) => {
@@ -1239,20 +1253,13 @@ provide(IsGalleryInj, ref(false))
                       </a-form-item>
 
                       <div class="w-full flex items-center justify-between">
-                        <NcTooltip :disabled="!(fieldConfig.columnId && bulkUpdateColumnsMap[fieldConfig.columnId]?.readonly)">
-                          <template #title
-                            >{{ fieldConfig.columnId ? bulkUpdateColumnsMap[fieldConfig.columnId]?.permissions?.tooltip : '' }}
-                          </template>
-                          <NcCheckbox
-                            v-model:checked="fieldConfig.selected"
-                            :disabled="!!(fieldConfig.columnId && bulkUpdateColumnsMap[fieldConfig.columnId]?.readonly)"
-                            @click.stop
-                          >
+                        <div>
+                          <NcCheckbox v-model:checked="fieldConfig.selected" @click.stop>
                             <span class="ml-1">
                               {{ fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE ? 'Clear' : 'Set' }}
                             </span>
                           </NcCheckbox>
-                        </NcTooltip>
+                        </div>
                         <NcButton
                           type="text"
                           size="xs"

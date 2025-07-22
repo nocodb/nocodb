@@ -237,7 +237,7 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
-  const createViews = async (views: SerializedAiViewType[], customBaseId?: string) => {
+  const createViews = async (views: SerializedAiViewType[], customBaseId?: string, sourceId?: string) => {
     try {
       const baseId = customBaseId || activeProjectId.value
 
@@ -245,6 +245,7 @@ export const useNocoAi = createSharedComposable(() => {
         'createViews',
         {
           views,
+          sourceId,
         },
         baseId,
       )
@@ -280,9 +281,10 @@ export const useNocoAi = createSharedComposable(() => {
     baseId?: string,
     description?: string,
     type?: string,
+    sourceId?: string,
     skipMsgToast = true,
   ) => {
-    const res = await callAiSchemaApi('predictViews', { tableId, history, description, type }, baseId, skipMsgToast)
+    const res = await callAiSchemaApi('predictViews', { tableId, history, description, type, sourceId }, baseId, skipMsgToast)
 
     if (res?.views) {
       return res.views.map((view) => ({

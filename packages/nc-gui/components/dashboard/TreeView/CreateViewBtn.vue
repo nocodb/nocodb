@@ -99,6 +99,7 @@ async function onOpenModal({
     coverImageColumnId,
     baseId: base.value.id!,
     tableId: table.value.id!,
+    sourceId: table.value?.source_id,
   })
 }
 </script>

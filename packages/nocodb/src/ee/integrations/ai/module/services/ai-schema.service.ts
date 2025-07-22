@@ -207,12 +207,13 @@ export class AiSchemaService {
     context: NcContext,
     params: {
       baseId: string;
+      sourceId?: string;
       input: string | string[];
       instructions?: string;
       req?: any;
     },
   ) {
-    const { baseId, instructions, req } = params;
+    const { baseId, sourceId, instructions, req } = params;
 
     const base = await Base.get(context, baseId);
 
@@ -235,6 +236,7 @@ export class AiSchemaService {
 
     const existingSchema = await this.serializeSchema(context, {
       baseId: base.id,
+      sourceId,
       req,
     });
 
@@ -438,6 +440,7 @@ export class AiSchemaService {
     context: NcContext,
     params: {
       baseId: string;
+      sourceId?: string;
       tableIds?: string[];
       history?: any[];
       instructions?: string;
@@ -445,7 +448,7 @@ export class AiSchemaService {
       req?: any;
     },
   ) {
-    const { baseId, tableIds, history, instructions, req } = params;
+    const { baseId, sourceId, tableIds, history, instructions, req } = params;
 
     const viewType =
       params.type && stringToViewTypeMap[params.type] !== undefined
@@ -471,6 +474,7 @@ export class AiSchemaService {
 
     const serializedSchema = await this.serializeSchema(context, {
       baseId: base.id,
+      sourceId,
       tableIds,
       predictedViews: history,
       viewType,
@@ -562,19 +566,26 @@ export class AiSchemaService {
     context: NcContext,
     params: {
       base: Base;
+      sourceId?: string;
       views?: SerializedAiViewType[];
       req: any;
     },
   ) {
-    const { base, views = [], req } = params;
+    const { base, sourceId, views = [], req } = params;
 
     const sources = await base.getSources();
 
-    if (!sources || sources.length === 0) {
+    if (
+      !sources ||
+      sources.length === 0 ||
+      (sourceId && !sources.find((s) => s.id === sourceId))
+    ) {
       throw new Error('No sources found');
     }
 
-    const source = sources[0];
+    const source = sourceId
+      ? sources.find((s) => s.id === sourceId)
+      : sources[0];
 
     const createdViews: View[] = [];
 
@@ -1019,13 +1030,14 @@ export class AiSchemaService {
     context: NcContext,
     params: {
       baseId: string;
+      sourceId?: string;
       tableIds?: string[];
       predictedViews?: SerializedAiViewType[];
       viewType?: string;
       req: any;
     },
   ) {
-    const { baseId, req } = params;
+    const { baseId, sourceId, req } = params;
 
     const base = await Base.get(context, baseId);
 
@@ -1035,11 +1047,17 @@ export class AiSchemaService {
 
     const sources = await base.getSources();
 
-    if (!sources || sources.length === 0) {
+    if (
+      !sources ||
+      sources.length === 0 ||
+      (sourceId && !sources.find((s) => s.id === sourceId))
+    ) {
       throw new Error('No sources found');
     }
 
-    const source = sources[0];
+    const source = sourceId
+      ? sources.find((s) => s.id === sourceId)
+      : sources[0];
 
     let tables = await this.tablesService.getAccessibleTables(context, {
       baseId: base.id,

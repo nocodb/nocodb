@@ -304,6 +304,7 @@ const onAiEnter = async () => {
       undefined,
       onAiTableCreate,
       props.baseId,
+      customSourceId.value,
     )
   }
 }

@@ -326,9 +326,12 @@ export class AiSchemaService {
       });
     }
 
-    return this.createSchema(context, { base, schema: data, req }).then(
-      (res) => res.tables,
-    );
+    return this.createSchema(context, {
+      base,
+      sourceId,
+      schema: data,
+      req,
+    }).then((res) => res.tables);
   }
 
   public async createSchema(
@@ -336,6 +339,7 @@ export class AiSchemaService {
     params: {
       base?: Base;
       baseId?: string;
+      sourceId?: string;
       schema: SerializedAiTableType & {
         views?: SerializedAiViewType[];
       };
@@ -350,7 +354,7 @@ export class AiSchemaService {
       params.base = await Base.get(context, params.baseId);
     }
 
-    const { base, schema, req } = params;
+    const { base, sourceId, schema, req } = params;
 
     const tables = schema.tables || [];
     const relationships = schema.relationships || [];
@@ -361,6 +365,7 @@ export class AiSchemaService {
       generatedTables.push(
         await this.tablesService.tableCreate(context, {
           baseId: base.id,
+          sourceId,
           table: {
             title: table.title,
             table_name: table.title,

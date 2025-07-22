@@ -223,11 +223,12 @@ export const useNocoAi = createSharedComposable(() => {
     description?: string,
     onTableCreate?: (firstTableMeta: TableType) => void,
     customBaseId?: string,
+    sourceId?: string,
   ) => {
     try {
       const baseId = customBaseId || activeProjectId.value
 
-      const res = await callAiSchemaApi('generateTables', { title, description }, baseId)
+      const res = await callAiSchemaApi('generateTables', { title, description, sourceId }, baseId)
 
       if (res?.length) {
         await onTableCreate?.(res[0])

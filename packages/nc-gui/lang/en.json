@@ -699,7 +699,8 @@
       "confirmLeaveTeamSubtitle": "You may lose access to bases unless you were explicitly invited or have a role at the workspace level.",
       "confirmDeleteTeamTitle": "Are you sure you want to delete this team?",
       "confirmDeleteTeamSubtitle": "Members may still have access to bases if they were explicitly invited or hold a role at the workspace level.",
-      "soleTeamOwnerTooltip": "You’re the sole owner of this team. Transfer ownership to another member before leaving."
+      "soleTeamOwnerTooltip": "You’re the sole owner of this team. Transfer ownership to another member before leaving.",
+      "removeFromTeamRestrictionTooltip": "You can’t remove all owners. Deselect at least one owner to proceed."
     }
   },
   "datatype": {
@@ -1862,6 +1863,8 @@
     "convertToSharedBase": "Convert to Shared Base",
     "leaveTeam": "Leave team",
     "deleteTeam": "Delete team",
+    "removeFromTeam": "Remove from team",
+    "assignAsTeamOwner": "Assign as team owner",
     "revertToDefault": "Revert to Default",
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",

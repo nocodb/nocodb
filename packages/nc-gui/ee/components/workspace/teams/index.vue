@@ -210,12 +210,27 @@ const mockTeamsList = [
     title: 'Sales',
     created_by: 'user@gmail.com',
     owners: ['user@nocodb.com'],
-    members: ['ramesh@nocodb.com', 'test@nocodb.com', 'test-1@nocodb.com', 'test-2@nocodb.com', 'test-3@nocodb.com'],
+    members: [
+      'ramesh@nocodb.com',
+      'test@nocodb.com',
+      'test-1@nocodb.com',
+      'test-2@nocodb.com',
+      'test-3@nocodb.com',
+      'user@nocodb.com',
+    ],
     created_at: '2021-01-01',
     updated_at: '2021-01-01',
     meta: {},
   },
 ]
+
+console.log(
+  'mockTeamsList',
+  mockTeamsList
+    .map((team) => team.members)
+    .flat()
+    .join(','),
+)
 
 onMounted(async () => {
   loadSorts()
@@ -361,5 +376,3 @@ onMounted(async () => {
     <WorkspaceTeamsCreate v-model:visible="isCreateTeamModalVisible" />
   </div>
 </template>
-
-<style lang="scss" scoped></style>

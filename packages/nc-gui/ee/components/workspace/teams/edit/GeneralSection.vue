@@ -88,7 +88,7 @@ onMounted(() => {
 
         <a-textarea
           v-model:value="formState.description"
-          class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-gray-800 max-h-[150px] min-h-[100px]"
+          class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-gray-800 max-h-[150px] !min-h-[80px]"
           hide-details
           data-testid="create-team-description-input"
           :placeholder="$t('placeholder.enterTeamDescription')"

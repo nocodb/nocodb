@@ -111,7 +111,7 @@ const supportedDocs: SupportedDocsType[] = [
   }
 
   .nc-modal-teams-edit-content {
-    @apply px-6 pb-6 nc-scrollbar-thin relative w-full h-full flex flex-col gap-8;
+    @apply px-6 pb-6 nc-scrollbar-thin relative w-full h-full flex flex-col gap-2;
 
     .nc-modal-teams-edit-content-section {
       @apply flex flex-col gap-4 min-w-[540px] max-w-[720px] mx-auto w-full;

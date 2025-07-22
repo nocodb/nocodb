@@ -39,8 +39,8 @@ const validators = computed(() => {
     title: [
       validateTeamName,
       {
-        validator: (_: any, value: any) => {
-          return new Promise((resolve, reject) => {
+        validator: (_: any, _value: any) => {
+          return new Promise((resolve, _reject) => {
             // Todo: Duplicate team name check
             return resolve(true)
           })

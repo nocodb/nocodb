@@ -74,6 +74,7 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
     header-row-height="44px"
     table-toolbar-class-name="pt-6"
     class="nc-field-permissions-table flex-1"
+    :custom-row="customRow"
   >
     <template #tableToolbar>
       <div class="flex items-center justify-between min-h-8">

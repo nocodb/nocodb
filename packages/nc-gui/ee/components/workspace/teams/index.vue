@@ -13,13 +13,11 @@ const props = withDefaults(defineProps<Props>(), {
 const router = useRouter()
 const route = router.currentRoute
 
-const { workspaceId, isActive } = toRefs(props)
+const { isActive } = toRefs(props)
 
 const { t } = useI18n()
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
-
-const { user } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
@@ -59,6 +57,12 @@ const orderBy = computed<Record<string, SordDirectionType>>({
     })
   },
 })
+
+const handleEditTeam = (team: TeamType) => {
+  if (!team?.id) return
+
+  router.push({ query: { ...route.value.query, teamId: team.id } })
+}
 
 const columns = [
   {
@@ -100,12 +104,6 @@ const customRow = (record: Record<string, any>) => ({
 
 const handleCreateTeam = () => {
   isCreateTeamModalVisible.value = true
-}
-
-const handleEditTeam = (team: TeamType) => {
-  if (!team?.id) return
-
-  router.push({ query: { ...route.value.query, teamId: team.id } })
 }
 
 const hasSoleTeamOwner = (team: TeamType) => {
@@ -287,7 +285,7 @@ onMounted(async () => {
           </NcEmptyPlaceholder>
         </template>
 
-        <template #bodyCell="{ column, record, recordIndex }">
+        <template #bodyCell="{ column, record }">
           <div v-if="column.key === 'teamName'">
             {{ record.title }}
           </div>
@@ -334,7 +332,7 @@ onMounted(async () => {
                     :title="t('objects.teams.soleTeamOwnerTooltip')"
                     placement="left"
                   >
-                    <NcMenuItem @click="handleLeaveTeam(record as TeamType)" :disabled="hasSoleTeamOwner(record as TeamType)">
+                    <NcMenuItem :disabled="hasSoleTeamOwner(record as TeamType)" @click="handleLeaveTeam(record as TeamType)">
                       <GeneralIcon icon="ncLogOut" class="h-4 w-4" />
                       {{ $t('activity.leaveTeam') }}
                     </NcMenuItem>

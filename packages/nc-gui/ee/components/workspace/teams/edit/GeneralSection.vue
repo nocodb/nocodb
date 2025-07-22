@@ -33,12 +33,18 @@ const updateTeam = async () => {
     // Todo: update team
   } catch (e: any) {
     console.error(e)
-    e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
-    if (e.errorFields.length) return
   } finally {
     updating.value = false
   }
 }
+
+const updateTeamWithDebounce = useDebounceFn(
+  async () => {
+    await updateTeam()
+  },
+  250,
+  { maxWait: 3000 },
+)
 
 onMounted(() => {
   formState.title = team.value.title
@@ -73,6 +79,7 @@ onMounted(() => {
           hide-details
           data-testid="create-team-title-input"
           :placeholder="$t('placeholder.enterTeamName')"
+          @input="updateTeamWithDebounce"
         />
       </a-form-item>
       <a-form-item class="!mb-0">
@@ -87,10 +94,9 @@ onMounted(() => {
           hide-details
           data-testid="create-team-description-input"
           :placeholder="$t('placeholder.enterTeamDescription')"
+          @input="updateTeamWithDebounce"
         />
       </a-form-item>
     </a-form>
   </div>
 </template>
-
-<style lang="scss" scoped></style>

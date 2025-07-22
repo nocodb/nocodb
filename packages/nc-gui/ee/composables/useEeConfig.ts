@@ -515,6 +515,8 @@ export const useEeConfig = createSharedComposable(() => {
 
     const oldCancelClass = requestUpgrade ? '!hidden' : ''
 
+    const okClass = ref('')
+
     const cancelProps = ref({ class: oldCancelClass })
 
     const isRequested = ref(false)
@@ -588,6 +590,7 @@ export const useEeConfig = createSharedComposable(() => {
                 ? t('upgrade.formOwnerNotifiedSubtitle')
                 : t('upgrade.WorkspaceOwnerNotifiedSubtitle')
               okBtnText.value = t('general.close')
+              okClass.value = '!hidden'
               cancelProps.value.class = '!hidden'
               slots.value = {}
             }
@@ -597,6 +600,7 @@ export const useEeConfig = createSharedComposable(() => {
             callback?.('ok')
           }
         },
+        'okClass': okClass,
         'okProps': okProps,
         'onClickCancel': () => {
           callback?.('cancel')

@@ -25,6 +25,28 @@ const vVisible = computed({
     }
   },
 })
+
+/**
+ * Todo: @rameshmane7218 update doc links
+ */
+const supportedDocs: SupportedDocsType[] = [
+  {
+    title: 'Creating and Managing Teams',
+    href: '',
+  },
+  {
+    title: 'Understanding Team Roles',
+    href: '',
+  },
+  {
+    title: 'Inviting Members to a Team',
+    href: '',
+  },
+  {
+    title: 'Team Permissions',
+    href: '',
+  },
+]
 </script>
 
 <template>
@@ -49,10 +71,9 @@ const vVisible = computed({
 
         <div class="flex-1">Content</div>
 
-        <div class="w-[320px] h-full p-5 bg-nc-bg-gray-extralight">
-          <PermissionsSupportedDocs />
-          <NcDivider class="!my-4" />
-        </div>
+        <NcModalSupportedDocsSidebar>
+          <NcModalSupportedDocs :docs="supportedDocs" />
+        </NcModalSupportedDocsSidebar>
       </div>
     </div>
   </NcModal>

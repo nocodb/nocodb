@@ -1,9 +1,6 @@
 <script lang="ts" setup>
 interface Props {
-  docs: {
-    title: string
-    href: string
-  }[]
+  docs: SupportedDocsType[]
 }
 
 withDefaults(defineProps<Props>(), {
@@ -13,7 +10,9 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <div class="w-full flex flex-col gap-3">
-    <div class="text-sm text-gray-800 font-semibold">Support Docs</div>
+    <div class="text-sm text-gray-800 font-semibold">
+      <slot name="title">Support Docs</slot>
+    </div>
 
     <div>
       <div v-for="(doc, idx) of docs" :key="idx" class="flex items-center gap-1">

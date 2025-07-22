@@ -928,6 +928,11 @@ interface OAuthAuthorization {
   last_used_at?: string
 }
 
+interface SupportedDocsType {
+  title: string
+  href: string
+}
+
 interface TeamType {
   id: string
   name: string
@@ -1009,5 +1014,6 @@ export type {
   AttachmentCellDropOverType,
   GroupKeysStorage,
   OAuthAuthorization,
+  SupportedDocsType,
   TeamType,
 }

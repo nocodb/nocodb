@@ -835,6 +835,7 @@ interface NcBaseThemeColorsType {
   bgLight?: string
   bgDark?: string
   color?: string
+  textColor?: string
 }
 
 export type {
@@ -900,5 +901,5 @@ export type {
   RawValueType,
   NcDropdownPlacement,
   MakeCellEditableFn,
-  NcBaseThemeColorsType
+  NcBaseThemeColorsType,
 }

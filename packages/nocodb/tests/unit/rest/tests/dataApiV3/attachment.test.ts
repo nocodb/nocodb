@@ -203,12 +203,20 @@ describe('Attachment V3', () => {
       ],
     });
 
-    // wait until worker is done
-    await new Promise<void>((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, 1000);
-    });
+    let getRsp1;
+    do {
+      // wait until worker is done
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 200);
+      });
+
+      getRsp1 = await ncAxiosGet({
+        url: `${urlPrefix}/${table.id}/records/${rsp.body.records[0].id}`,
+      });
+    } while (getRsp1.body.fields.Attachment.length === 0);
+
     const recordId = rsp.body.records[0].id;
     const columnId = table.columns.find((col) => col.title === 'Attachment').id;
 

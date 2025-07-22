@@ -2148,6 +2148,174 @@ export function useInfiniteData(args: {
             } catch (e) {
               console.error('Failed to delete cached row on socket event', e)
             }
+          } else if (action === 'reorder') {
+            // Reorder/move the row in the local cache (cachedRows)
+            try {
+              const dataCache = getDataCache()
+
+              // Find the row to be moved by its primary key
+              let rowToMove: Row | null = null
+              let currentIndex: number | null = null
+
+              for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
+                const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+                if (pk && `${pk}` === `${id}`) {
+                  rowToMove = cachedRow
+                  currentIndex = index
+                  break
+                }
+              }
+
+              if (!rowToMove || currentIndex === null) {
+                console.warn('Row to move not found in cache:', id)
+
+                if (before) {
+                  // Find the 'before' row in cache
+                  let beforeIndex: number | null = null
+                  for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
+                    const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+                    if (pk && `${pk}` === `${before}`) {
+                      beforeIndex = index
+                      break
+                    }
+                  }
+
+                  if (beforeIndex !== null) {
+                    // The new row position is before an existing cached row
+                    // We need to shift all rows from beforeIndex onwards down by 1
+                    const newCachedRows = new Map(dataCache.cachedRows.value.entries())
+
+                    // Get all rows that need to be shifted (from beforeIndex onwards)
+                    const rowsToShift = Array.from((dataCache.cachedRows.value as Map<number, Row>).entries())
+                      .filter(([index]) => index >= beforeIndex!)
+                      .sort((a, b) => b[0] - a[0])
+
+                    // Shift each row down by 1
+                    for (const [index, row] of rowsToShift) {
+                      const newIndex = index + 1
+                      row.rowMeta.rowIndex = newIndex
+                      newCachedRows.delete(index)
+                      newCachedRows.set(newIndex, row)
+                    }
+
+                    // Invalidate affected chunks
+                    if (rowsToShift.length > 0) {
+                      const minAffectedChunk = getChunkIndex(beforeIndex!)
+                      const maxAffectedChunk = getChunkIndex(rowsToShift[rowsToShift.length - 1][0] + 1)
+                      for (let i = minAffectedChunk; i <= maxAffectedChunk; i++) {
+                        dataCache.chunkStates.value[i] = undefined
+                      }
+                    }
+
+                    // Apply the changes
+                    dataCache.cachedRows.value = newCachedRows
+
+                    callbacks?.syncVisibleData?.()
+                  } else {
+                    // The 'before' row is not in cache, skip
+                    console.log('Before row not in cache, skipping reorder operation')
+                  }
+                } else {
+                  // No 'before' specified means move to end
+                  // No changes needed to cache since it's moving to the end
+                  console.log('Row moved to end, no cache changes needed')
+                  callbacks?.syncVisibleData?.()
+                }
+
+                return
+              }
+
+              // Row found in cache - proceed with reordering
+
+              // Find the target position based on the 'before' parameter
+              let targetIndex: number
+
+              if (before) {
+                // Find the row that should come after the moved row
+                let beforeIndex: number | null = null
+                for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
+                  const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+                  if (pk && `${pk}` === `${before}`) {
+                    beforeIndex = index
+                    break
+                  }
+                }
+
+                if (beforeIndex !== null) {
+                  targetIndex = beforeIndex
+                } else {
+                  // If 'before' row not found in cache, move to end
+                  targetIndex = Math.max(...Array.from(dataCache.cachedRows.value.keys())) + 1
+                }
+              } else {
+                // If no 'before' specified, move to the end
+                targetIndex = Math.max(...Array.from(dataCache.cachedRows.value.keys())) + 1
+              }
+
+              // If the row is already at the target position, no need to move
+              if (currentIndex === targetIndex) {
+                return
+              }
+
+              // Create a new cached rows map with the updated positions
+              const newCachedRows = new Map(dataCache.cachedRows.value.entries())
+
+              // Remove the row from its current position
+              newCachedRows.delete(currentIndex)
+
+              // Determine the final target index (similar to updateRecordOrder logic)
+              const finalTargetIndex = targetIndex > currentIndex ? targetIndex - 1 : targetIndex
+
+              // Shift rows to make space for the moved row
+              if (finalTargetIndex < currentIndex) {
+                // Moving up: shift rows down
+                for (let i = currentIndex - 1; i >= finalTargetIndex; i--) {
+                  const row = newCachedRows.get(i)
+                  if (row) {
+                    const newIndex = i + 1
+                    row.rowMeta.rowIndex = newIndex
+                    newCachedRows.delete(i)
+                    newCachedRows.set(newIndex, row)
+                  }
+                }
+              } else {
+                // Moving down: shift rows up
+                for (let i = currentIndex + 1; i <= finalTargetIndex; i++) {
+                  const row = newCachedRows.get(i)
+                  if (row) {
+                    const newIndex = i - 1
+                    row.rowMeta.rowIndex = newIndex
+                    newCachedRows.delete(i)
+                    newCachedRows.set(newIndex, row)
+                  }
+                }
+              }
+
+              // Place the moved row at its new position
+              rowToMove.rowMeta.rowIndex = finalTargetIndex
+              newCachedRows.set(finalTargetIndex, rowToMove)
+
+              // Update any changed data in the moved row (if payload contains updates)
+              if (payload && typeof payload === 'object') {
+                Object.assign(rowToMove.row, payload)
+                Object.assign(rowToMove.oldRow, payload)
+              }
+              rowToMove.rowMeta.changed = false
+
+              // Invalidate affected chunks
+              const targetChunkIndex = getChunkIndex(finalTargetIndex)
+              const sourceChunkIndex = getChunkIndex(currentIndex)
+              for (let i = Math.min(sourceChunkIndex, targetChunkIndex); i <= Math.max(sourceChunkIndex, targetChunkIndex); i++) {
+                dataCache.chunkStates.value[i] = undefined
+              }
+
+              // Apply the changes
+              dataCache.cachedRows.value = newCachedRows
+
+              callbacks?.syncVisibleData?.()
+            } catch (e) {
+              console.error('Failed to reorder cached row on socket event', e)
+            }
           }
         })
       }

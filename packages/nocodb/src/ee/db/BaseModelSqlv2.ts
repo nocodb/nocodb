@@ -955,6 +955,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       response = await this.dbDriver.raw(query);
     }
 
+    NocoSocket.broadcastDataEvent(this.context, this.model.id, {
+      id: rowId,
+      action: 'reorder',
+      payload: row,
+      before: beforeRowId,
+    });
+
     return response;
   }
 

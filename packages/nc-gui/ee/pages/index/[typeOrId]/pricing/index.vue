@@ -135,6 +135,10 @@ const embedPage = computed(() => {
     searchQuery.set('workspace', activeWorkspace.value?.title)
   }
 
+  if (activeWorkspace.value?.id) {
+    searchQuery.set('workspaceId', activeWorkspace.value?.id)
+  }
+
   if (activePlan.value?.title) {
     searchQuery.set('plan', activePlan.value?.title)
   }

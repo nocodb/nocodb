@@ -406,7 +406,7 @@ export class AiSchemaService {
 
       const tables = await Model.list(context, {
         base_id: base.id,
-        source_id: undefined,
+        source_id: sourceId,
       });
 
       const fromTable = tables.find((table) => table.title === relation.from);
@@ -432,7 +432,12 @@ export class AiSchemaService {
     }
 
     if (schema.views) {
-      await this.createViews(context, { base, views: schema.views, req });
+      await this.createViews(context, {
+        base,
+        sourceId,
+        views: schema.views,
+        req,
+      });
     }
 
     return {

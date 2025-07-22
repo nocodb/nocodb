@@ -166,6 +166,7 @@ const predictNextTables = async (): Promise<AiSuggestedTableType[]> => {
       activeTabPredictHistory.value.map(({ title }) => title),
       props.baseId,
       activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
+      customSourceId.value,
     )
   )
     .filter((t) => !ncIsArrayIncludes(activeTabPredictedTables.value, t.title, 'title'))

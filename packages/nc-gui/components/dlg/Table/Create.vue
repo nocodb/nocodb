@@ -520,10 +520,10 @@ const handleRefreshOnError = () => {
               v-if="showSourceSelector"
               name="sourceId"
               class="!mb-0"
-              @click.stop
-              @dblclick.stop
               :validate-status="selectedSource?.ncItemDisabled ? 'error' : ''"
               :help="selectedSource?.ncItemDisabled ? [selectedSource.ncItemTooltip] : []"
+              @click.stop
+              @dblclick.stop
             >
               <template #label>
                 <div>{{ t('general.datasource') }}</div>
@@ -551,11 +551,11 @@ const handleRefreshOnError = () => {
                   <NcList
                     v-model:open="isOpenSourceSelectDropdown"
                     :value="customSourceId || selectedSource?.value || ''"
-                    @update:value="customSourceId = $event"
                     :list="sourceList"
                     variant="medium"
                     class="!w-auto"
                     wrapper-class-name="!h-auto"
+                    @update:value="customSourceId = $event"
                     @escape="onEsc"
                   >
                   </NcList>
@@ -599,8 +599,8 @@ const handleRefreshOnError = () => {
                   <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start">
                     <div class="flex-1 flex gap-2 flex-wrap">
                       <template v-if="activeTabPredictedTables.length">
-                        <template v-for="t of activeTabPredictedTables" :key="t.title">
-                          <NcTooltip :disabled="activeTabSelectedTables.length < maxSelectionCount || t.selected">
+                        <template v-for="tb of activeTabPredictedTables" :key="tb.title">
+                          <NcTooltip :disabled="activeTabSelectedTables.length < maxSelectionCount || tb.selected">
                             <template #title>
                               <div class="w-[150px]">You can only select {{ maxSelectionCount }} tables to create at a time.</div>
                             </template>
@@ -608,20 +608,21 @@ const handleRefreshOnError = () => {
                             <a-tag
                               class="nc-ai-suggested-tag"
                               :class="{
-                                'nc-disabled': isAiSaving || (!t.selected && activeTabSelectedTables.length >= maxSelectionCount),
-                                'nc-selected': t.selected,
+                                'nc-disabled':
+                                  isAiSaving || (!tb.selected && activeTabSelectedTables.length >= maxSelectionCount),
+                                'nc-selected': tb.selected,
                               }"
                               :disabled="activeTabSelectedTables.length >= maxSelectionCount"
-                              @click="onToggleTag(t)"
+                              @click="onToggleTag(tb)"
                             >
                               <div class="flex flex-row items-center gap-1.5 py-[3px] text-small leading-[18px]">
                                 <NcCheckbox
-                                  :checked="t.selected"
+                                  :checked="tb.selected"
                                   theme="ai"
-                                  :disabled="isAiSaving || (t.selected && activeTabSelectedTables.length >= maxSelectionCount)"
+                                  :disabled="isAiSaving || (tb.selected && activeTabSelectedTables.length >= maxSelectionCount)"
                                 />
 
-                                <div>{{ t.title }}</div>
+                                <div>{{ tb.title }}</div>
                               </div>
                             </a-tag>
                           </NcTooltip>
@@ -744,8 +745,8 @@ const handleRefreshOnError = () => {
                     <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Table(s)</div>
                     <div class="flex gap-2 flex-wrap">
                       <template v-if="activeTabPredictedTables.length">
-                        <template v-for="t of activeTabPredictedTables" :key="t.title">
-                          <NcTooltip :disabled="activeTabSelectedTables.length < maxSelectionCount || t.selected">
+                        <template v-for="tb of activeTabPredictedTables" :key="tb.title">
+                          <NcTooltip :disabled="activeTabSelectedTables.length < maxSelectionCount || tb.selected">
                             <template #title>
                               <div class="w-[150px]">You can only select {{ maxSelectionCount }} tables to create at a time.</div>
                             </template>
@@ -753,20 +754,21 @@ const handleRefreshOnError = () => {
                             <a-tag
                               class="nc-ai-suggested-tag"
                               :class="{
-                                'nc-disabled': isAiSaving || (!t.selected && activeTabSelectedTables.length >= maxSelectionCount),
-                                'nc-selected': t.selected,
+                                'nc-disabled':
+                                  isAiSaving || (!tb.selected && activeTabSelectedTables.length >= maxSelectionCount),
+                                'nc-selected': tb.selected,
                               }"
                               :disabled="activeTabSelectedTables.length >= maxSelectionCount"
-                              @click="onToggleTag(t)"
+                              @click="onToggleTag(tb)"
                             >
                               <div class="flex flex-row items-center gap-1.5 py-[3px] text-small leading-[18px]">
                                 <NcCheckbox
-                                  :checked="t.selected"
+                                  :checked="tb.selected"
                                   theme="ai"
-                                  :disabled="isAiSaving || (!t.selected && activeTabSelectedTables.length >= maxSelectionCount)"
+                                  :disabled="isAiSaving || (!tb.selected && activeTabSelectedTables.length >= maxSelectionCount)"
                                 />
 
-                                <div>{{ t.title }}</div>
+                                <div>{{ tb.title }}</div>
                               </div>
                             </a-tag>
                           </NcTooltip>

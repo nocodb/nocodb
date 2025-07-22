@@ -14,7 +14,6 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
-import { extractProps } from '~/helpers/extractProps';
 import { getCompositePkValue } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import { Column, Model, Source } from '~/models';
@@ -255,32 +254,6 @@ export class DataV3Service {
               reuse,
               depth: depth + 1,
             });
-            continue;
-          }
-        } else if (column?.uidt === UITypes.Attachment) {
-          if (value) {
-            let attachmentVal: any[] = value as any;
-            if (!Array.isArray(value) && typeof value === 'string') {
-              attachmentVal = JSON.parse(value);
-            } else if (!Array.isArray(attachmentVal)) {
-              // unknown format, let's not handle it yet
-              continue;
-            }
-
-            attachmentVal = attachmentVal.map((attr) =>
-              extractProps(attr, [
-                'id',
-                'url',
-                'path',
-                'title',
-                'mimetype',
-                'size',
-                'icon',
-                'width',
-                'height',
-              ]),
-            );
-            transformedFields[key] = attachmentVal;
             continue;
           }
         }

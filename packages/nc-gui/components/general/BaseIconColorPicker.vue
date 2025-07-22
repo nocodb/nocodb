@@ -53,7 +53,12 @@ watch(
 
 <template>
   <div>
-    <a-dropdown v-model:visible="isOpen" :trigger="['click']" :disabled="readonly">
+    <NcDropdown
+      v-model:visible="isOpen"
+      :trigger="['click']"
+      :disabled="readonly"
+      overlay-class-name="overflow-hidden max-w-[342px]"
+    >
       <div
         class="flex flex-row justify-center items-center select-none rounded nc-base-icon-picker-trigger"
         :class="{
@@ -77,9 +82,7 @@ watch(
       </div>
 
       <template #overlay>
-        <div
-          class="nc-base-icon-color-picker-dropdown relative bg-white rounded-lg border-1 border-gray-200 overflow-hidden max-w-[342px]"
-        >
+        <div class="nc-base-icon-color-picker-dropdown relative bg-white">
           <div class="flex justify-start">
             <GeneralColorPicker
               :model-value="colorRef"
@@ -91,12 +94,6 @@ watch(
           </div>
         </div>
       </template>
-    </a-dropdown>
+    </NcDropdown>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.nc-base-icon-color-picker-dropdown {
-  box-shadow: 0px 8px 8px -4px #0000000a, 0px 20px 24px -4px #0000001a;
-}
-</style>

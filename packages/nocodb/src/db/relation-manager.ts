@@ -11,6 +11,8 @@ import {
   getCompositePkValue,
   getOppositeRelationType,
 } from '~/helpers/dbHelpers';
+import NocoSocket from '~/ee/socket/NocoSocket';
+import getAst from '~/helpers/getAst';
 
 interface AuditUpdateLog {
   pkValue?: Record<string, any>;
@@ -291,12 +293,17 @@ export class RelationManager {
             rowIds: [parentId],
             cookie: req,
           });
+
+          await this.broadcastLinkUpdates(parentBaseModel, [parentId]);
+
           await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
             model: childTable,
             rowIds: [childId],
             cookie: req,
           });
+
+          await this.broadcastLinkUpdates(childBaseModel, [childId]);
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -368,12 +375,16 @@ export class RelationManager {
             cookie: req,
           });
 
+          await this.broadcastLinkUpdates(childBaseModel, [childId]);
+
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
           });
+
+          await this.broadcastLinkUpdates(parentBaseModel, [parentId]);
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -410,6 +421,7 @@ export class RelationManager {
               direction: 'child_parent',
               type: getOppositeRelationType(colOptions.type),
             });
+
             await parentBaseModel.updateLastModified({
               baseModel: parentBaseModel,
               model: parentTable,
@@ -444,12 +456,16 @@ export class RelationManager {
             cookie: req,
           });
 
+          await this.broadcastLinkUpdates(childBaseModel, [childId]);
+
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
           });
+
+          await this.broadcastLinkUpdates(parentBaseModel, [parentId]);
         }
         break;
       case RelationTypes.ONE_TO_ONE:
@@ -584,12 +600,17 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
           });
+
+          await this.broadcastLinkUpdates(childBaseModel, [childId]);
+
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: parentId,
             cookie: req,
           });
+
+          await this.broadcastLinkUpdates(parentBaseModel, [parentId]);
         }
         break;
     }
@@ -683,12 +704,17 @@ export class RelationManager {
             rowIds: [parentId],
             cookie: req,
           });
+
+          await this.broadcastLinkUpdates(parentBaseModel, [parentId]);
+
           await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
             model: childTable,
             rowIds: [childId],
             cookie: req,
           });
+
+          await this.broadcastLinkUpdates(childBaseModel, [childId]);
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -713,12 +739,17 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
           });
+
+          await this.broadcastLinkUpdates(childBaseModel, [childId]);
+
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
           });
+
+          await this.broadcastLinkUpdates(parentBaseModel, [parentId]);
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -744,12 +775,17 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
           });
+
+          await this.broadcastLinkUpdates(childBaseModel, [childId]);
+
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
-            rowIds: [childId],
+            rowIds: [parentId],
             cookie: req,
           });
+
+          await this.broadcastLinkUpdates(parentBaseModel, [parentId]);
         }
         break;
       case RelationTypes.ONE_TO_ONE:
@@ -769,12 +805,16 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
           });
+
+          await this.broadcastLinkUpdates(childBaseModel, [childId]);
+
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
-            rowIds: [childId],
+            rowIds: [parentId],
             cookie: req,
           });
+          await this.broadcastLinkUpdates(parentBaseModel, [parentId]);
         }
         break;
     }
@@ -871,5 +911,30 @@ export class RelationManager {
         req,
       } as AuditUpdateObj;
     });
+  }
+
+  async broadcastLinkUpdates(baseModel: IBaseModelSqlV2, ids: Array<string>) {
+    try {
+      const ast = await getAst(baseModel.context, {
+        model: baseModel.model,
+      });
+
+      const list = await baseModel.chunkList({
+        pks: ids,
+        chunkSize: 100,
+        args: ast.dependencyFields,
+      });
+
+      for (const item of list) {
+        const extractedId = baseModel.extractPksValues(item);
+        NocoSocket.broadcastDataEvent(baseModel.context, baseModel.model.id, {
+          action: 'update',
+          payload: item,
+          id: extractedId,
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 }

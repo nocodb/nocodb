@@ -1492,7 +1492,7 @@ export async function singleQueryList(
   context: NcContext,
   ctx: {
     model: Model;
-    view: View;
+    view?: View;
     source: Source;
     params;
     throwErrorIfInvalidParams?: boolean;
@@ -1504,8 +1504,11 @@ export async function singleQueryList(
     getHiddenColumns?: boolean;
     apiVersion?: NcApiVersion;
     includeSortAndFilterColumns?: boolean;
+    skipPaginateWrapper?: boolean;
   },
-): Promise<PagedResponseImpl<Record<string, any>>> {
+): Promise<
+  PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
+> {
   const excludeCount = ctx.params?.excludeCount;
 
   if (ctx.source.type !== 'pg') {
@@ -1573,6 +1576,10 @@ export async function singleQueryList(
         logger.warn(
           'Invalid count query cache deleted. Query: ' + cachedCountQuery,
         );
+      }
+
+      if (ctx.skipPaginateWrapper) {
+        return res.map(({ __nc_count, ...rest }) => rest);
       }
 
       return new PagedResponseImpl(
@@ -1808,6 +1815,10 @@ export async function singleQueryList(
       context.api_version === NcApiVersion.V3 &&
       ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
   });
+
+  if (ctx.skipPaginateWrapper) {
+    return res.map(({ __nc_count, ...rest }) => rest);
+  }
 
   return new PagedResponseImpl(
     res.map(({ __nc_count, ...rest }) => rest),

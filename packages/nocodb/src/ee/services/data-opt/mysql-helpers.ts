@@ -1441,7 +1441,7 @@ export async function singleQueryList(
   context: NcContext,
   ctx: {
     model: Model;
-    view: View;
+    view?: View;
     source: Source;
     params;
     throwErrorIfInvalidParams?: boolean;
@@ -1453,8 +1453,11 @@ export async function singleQueryList(
     getHiddenColumns?: boolean;
     apiVersion?: NcApiVersion;
     includeSortAndFilterColumns?: boolean;
+    skipPaginateWrapper?: boolean;
   },
-): Promise<PagedResponseImpl<Record<string, any>>> {
+): Promise<
+  PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
+> {
   if (!['mysql', 'mysql2'].includes(ctx.source.type)) {
     throw new Error('Source is not mysql');
   }
@@ -1497,6 +1500,10 @@ export async function singleQueryList(
         },
       );
       dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+
+      if (ctx.skipPaginateWrapper) {
+        return res.map(({ __nc_count, ...rest }) => rest);
+      }
 
       return new PagedResponseImpl(
         res.map(({ __nc_count, ...rest }) => rest),
@@ -1737,6 +1744,10 @@ export async function singleQueryList(
       },
     );
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+  }
+
+  if (ctx.skipPaginateWrapper) {
+    return res.map(({ __nc_count, ...rest }) => rest);
   }
 
   return new PagedResponseImpl(

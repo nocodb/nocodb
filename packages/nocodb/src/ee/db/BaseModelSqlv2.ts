@@ -64,7 +64,10 @@ import {
   ModelStat,
   Permission,
 } from '~/models';
-import { getSingleQueryReadFn } from '~/services/data-opt/pg-helpers';
+import {
+  getSingleQueryReadFn,
+  singleQueryList,
+} from '~/services/data-opt/pg-helpers';
 import { canUseOptimisedQuery, removeBlankPropsAndMask } from '~/utils';
 import {
   UPDATE_WORKSPACE_COUNTER,
@@ -91,6 +94,8 @@ import {
 } from '~/helpers/dbHelpers';
 import { getProjectRole } from '~/utils/roleHelper';
 import NocoSocket from '~/socket/NocoSocket';
+import { chunkArray } from '~/utils/tsUtils';
+import { singleQueryList as mysqlSingleQueryList } from '~/services/data-opt/mysql-helpers';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -2033,6 +2038,69 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // await this.errorInsertb(e, data, null);
       throw e;
     }
+  }
+
+  async chunkList(args: {
+    pks: string[];
+    chunkSize?: number;
+    apiVersion?: NcApiVersion;
+    args?: Record<string, any>;
+  }) {
+    const { pks, chunkSize = 1000 } = args;
+
+    const data = [];
+
+    const chunkedPks = chunkArray(pks, chunkSize);
+
+    const source = await this.getSource();
+
+    for (const chunk of chunkedPks) {
+      let chunkData;
+
+      const ctx = {
+        source,
+        params: {
+          pks: chunk.join(','),
+          apiVersion: args.apiVersion,
+          ...(args.args || {}),
+        },
+        limitOverride: chunk.length,
+        ignoreViewFilterAndSort: true,
+      };
+
+      if (['mysql', 'mysql2'].includes(source.type)) {
+        chunkData = await mysqlSingleQueryList(this.context, {
+          ...ctx,
+          skipPaginateWrapper: true,
+          params: ctx.params,
+          model: this.model,
+        });
+      } else if (['pg', 'postgres', 'postgresql'].includes(source.type)) {
+        chunkData = await singleQueryList(this.context, {
+          ...ctx,
+          skipPaginateWrapper: true,
+          params: ctx.params,
+          model: this.model,
+        });
+      } else {
+        // Fallback to regular list function
+        chunkData = await this.list(
+          {
+            pks: chunk.join(','),
+            apiVersion: args.apiVersion,
+            ...(args.args || {}),
+          },
+          {
+            limitOverride: chunk.length,
+            ignoreViewFilterAndSort: true,
+          },
+        );
+      }
+
+      data.push(...chunkData);
+    }
+
+    return data;
   }
 
   async bulkUpsert(

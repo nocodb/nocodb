@@ -170,6 +170,14 @@ const FEATURES = [
     version: 2,
     isEE: true,
   },
+  {
+    id: 'base_theme_colours',
+    title: 'Base Theme Colours',
+    description: 'Change base topbar colours according to base icon colour.',
+    enabled: true,
+    version: 1,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

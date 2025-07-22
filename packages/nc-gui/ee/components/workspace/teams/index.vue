@@ -31,6 +31,13 @@ const isTeamsLoading = ref(true)
 
 const isCreateTeamModalVisible = ref(false)
 
+/**
+ * Modal visibility is based on query params, and will use following method
+ * Open - router.push
+ * Close - router.back or router.replace (if back history is not available)
+ * */
+const isEditModalOpenUsingRouterPush = ref(false)
+
 const sortedTeams = computed(() => {
   return handleGetSortedData(
     teams.value.filter((team) => searchCompare([team.title], searchQuery.value)),
@@ -62,6 +69,8 @@ const handleEditTeam = (team: TeamType) => {
   if (!team?.id) return
 
   router.push({ query: { ...route.value.query, teamId: team.id } })
+
+  isEditModalOpenUsingRouterPush.value = true
 }
 
 const columns = [
@@ -348,7 +357,7 @@ onMounted(async () => {
         </template>
       </NcTable>
     </div>
-    <WorkspaceTeamsEdit />
+    <WorkspaceTeamsEdit :is-open-using-router-push="isEditModalOpenUsingRouterPush" />
     <WorkspaceTeamsCreate v-model:visible="isCreateTeamModalVisible" />
   </div>
 </template>

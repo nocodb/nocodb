@@ -1,4 +1,19 @@
 <script lang="ts" setup>
+interface Props {
+  /**
+   * Modal visibility is based on query params, and will use following method
+   * Open - router.push
+   * Close - router.back or router.replace (if back history is not available)
+   * */
+  isOpenUsingRouterPush?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isOpenUsingRouterPush: false,
+})
+
+const { isOpenUsingRouterPush } = toRefs(props)
+
 const router = useRouter()
 const route = router.currentRoute
 
@@ -21,7 +36,11 @@ const vVisible = computed({
   },
   set: (value: boolean) => {
     if (!value) {
-      router.replace({ query: { ...route.value.query, teamId: undefined } })
+      if (isOpenUsingRouterPush.value) {
+        router.back()
+      } else {
+        router.replace({ query: { ...route.value.query, teamId: undefined } })
+      }
     }
   },
 })
@@ -95,7 +114,7 @@ const supportedDocs: SupportedDocsType[] = [
     @apply px-6 pb-6 nc-scrollbar-thin relative w-full h-full flex flex-col gap-8;
 
     .nc-modal-teams-edit-content-section {
-      @apply flex flex-col gap-4 min-w-[540px] mx-auto w-full;
+      @apply flex flex-col gap-4 min-w-[540px] max-w-[720px] mx-auto w-full;
     }
   }
 }

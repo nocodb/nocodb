@@ -63,28 +63,46 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
 </script>
 
 <template>
-  <NcTable
-    :is-data-loading="false"
-    :columns="membersColumns"
-    :data="membersData"
-    :bordered="false"
-    row-height="56px"
-    disable-table-scroll
-    force-sticky-header
-    header-row-height="44px"
-    table-toolbar-class-name="pt-6"
-    class="nc-field-permissions-table flex-1"
-    :custom-row="customRow"
-  >
-    <template #tableToolbar>
-      <div class="flex items-center justify-between min-h-8">
-        <h3 class="text-nc-content-gray-emphasis text-bodyBold mb-0">{{ $t('labels.members') }}</h3>
-        <div class="flex items-center gap-2">
-          <slot name="actions" />
+  <div class="nc-modal-teams-edit-content-section mt-6">
+    <div class="nc-modal-teams-edit-content-section-title text-bodyBold">{{ $t('labels.members') }}</div>
+    <NcTable
+      :is-data-loading="false"
+      :columns="membersColumns"
+      :data="membersData"
+      :bordered="false"
+      row-height="56px"
+      disable-table-scroll
+      force-sticky-header
+      header-row-height="44px"
+      table-toolbar-class-name="pt-0"
+      class="nc-field-permissions-table flex-1"
+      :custom-row="customRow"
+    >
+      <template #tableToolbar>
+        <div class="flex items-center justify-between min-h-8">
+          <a-input
+            v-model:value="searchQuery"
+            allow-clear
+            class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+            :placeholder="`${$t('general.search')}...`"
+          >
+            <template #prefix>
+              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+            </template>
+          </a-input>
+
+          <div>
+            <NcButton size="small" type="secondary" inner-class="!gap-2 text-nc-content-brand">
+              <template #icon>
+                <GeneralIcon icon="ncUserPlus" class="h-4 w-4" />
+              </template>
+              {{ $t('activity.addMembers') }}
+            </NcButton>
+          </div>
         </div>
-      </div>
-    </template>
-  </NcTable>
+      </template>
+    </NcTable>
+  </div>
 </template>
 
 <style lang="scss" scoped></style>

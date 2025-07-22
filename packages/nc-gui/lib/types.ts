@@ -935,7 +935,8 @@ interface SupportedDocsType {
 
 interface TeamType {
   id: string
-  name: string
+  title: string
+  description?: string
   created_by: string
   owners: string[]
   members: string[]

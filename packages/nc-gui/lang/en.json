@@ -1559,6 +1559,8 @@
     "newTeam": "New team",
     "teamName": "Team name",
     "badge": "Badge",
+    "createTeam": "Create team",
+    "creatingTeam": "Creating team",
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "selectRole": "Select Role",
@@ -2035,7 +2037,9 @@
     "noDashboards": "No dashboards",
     "searchATeam": "Search a team",
     "youHaveNotCreatedAnyTeams": "You have not created any teams",
-    "youHaveNotCreatedAnyTeamsSubtitle": "Group members into teams for easier assignments and permission configurations"
+    "youHaveNotCreatedAnyTeamsSubtitle": "Group members into teams for easier assignments and permission configurations",
+    "enterTeamName": "Enter team name",
+    "enterTeamDescription": "Enter team description"
   },
   "msg": {
     "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
@@ -2533,7 +2537,9 @@
       "invalidSearchQueryForDisplayField": "Invalid search query for display field",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
       "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
-      "unableToLoadFeed": "Unable to load feed"
+      "unableToLoadFeed": "Unable to load feed",
+      "teamNameRequired": "Team name is required",
+      "teamNameExceedsCharacters": "Team name exceeds {value} characters"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

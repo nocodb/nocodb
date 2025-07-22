@@ -57,7 +57,7 @@ const supportedDocs: SupportedDocsType[] = [
         <div class="flex items-center">
           <GeneralIcon icon="table" class="!h-6 !w-6 pl-1" />
         </div>
-        <div class="flex-1 text-lg font-bold text-nc-content-gray-emphasis">Team: {{ editTeam?.name }}</div>
+        <div class="flex-1 text-lg font-bold text-nc-content-gray-emphasis">Team: {{ editTeam?.title }}</div>
 
         <div class="flex items-center gap-3">
           <NcButton size="small" type="text" @click="vVisible = false">

@@ -267,6 +267,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     return Infinity
   }
 
+  const createTeam = async (..._args: any[]) => {}
+
   return {
     loadWorkspaces,
     workspaces,
@@ -318,6 +320,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     teams,
     teamsMap,
     collaboratorsMap,
+    createTeam,
   }
 })
 

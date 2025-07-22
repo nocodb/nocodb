@@ -31,6 +31,8 @@ const searchQuery = ref('')
 
 const isTeamsLoading = ref(true)
 
+const isCreateTeamModalVisible = ref(false)
+
 const sortedTeams = computed(() => {
   return handleGetSortedData(teams.value, sorts.value)
 })
@@ -92,6 +94,10 @@ const customRow = (record: Record<string, any>) => ({
     handleEditTeam(record as TeamType)
   },
 })
+
+const handleCreateTeam = () => {
+  isCreateTeamModalVisible.value = true
+}
 
 const handleEditTeam = (team: TeamType) => {
   if (!team?.id) return
@@ -181,7 +187,7 @@ watch(isActive, () => {
 const mockTeamsList = [
   {
     id: '1',
-    name: 'Engineering',
+    title: 'Engineering',
     created_by: 'ramesh@nocodb.com',
     owners: ['ramesh@nocodb.com', 'test@nocodb.com'],
     members: ['ramesh@nocodb.com', 'test@nocodb.com', 'test-1@nocodb.com', 'test-2@nocodb.com', 'test-3@nocodb.com'],
@@ -191,7 +197,7 @@ const mockTeamsList = [
   },
   {
     id: '2',
-    name: 'Sales',
+    title: 'Sales',
     created_by: 'user@gmail.com',
     owners: ['user@nocodb.com'],
     members: ['ramesh@nocodb.com', 'test@nocodb.com', 'test-1@nocodb.com', 'test-2@nocodb.com', 'test-3@nocodb.com'],
@@ -234,7 +240,13 @@ onMounted(async () => {
           </template>
         </a-input>
 
-        <NcButton size="small" inner-class="!gap-2" :disabled="isTeamsLoading" data-testid="nc-new-team-btn">
+        <NcButton
+          size="small"
+          inner-class="!gap-2"
+          :disabled="isTeamsLoading"
+          data-testid="nc-new-team-btn"
+          @click="handleCreateTeam"
+        >
           <template #icon>
             <GeneralIcon icon="plus" class="h-4 w-4" />
           </template>
@@ -262,7 +274,7 @@ onMounted(async () => {
               <img src="~assets/img/placeholder/moscot-collaborators.png" alt="New Team" class="!w-[320px] flex-none" />
             </template>
             <template #action>
-              <NcButton size="small" inner-class="!gap-2">
+              <NcButton size="small" inner-class="!gap-2" @click="handleCreateTeam">
                 <template #icon>
                   <GeneralIcon icon="plus" class="h-4 w-4" />
                 </template>
@@ -274,12 +286,12 @@ onMounted(async () => {
 
         <template #bodyCell="{ column, record, recordIndex }">
           <div v-if="column.key === 'teamName'">
-            {{ record.name }}
+            {{ record.title }}
           </div>
 
           <div v-if="column.key === 'badge'">
             <NcBadge class="uppercase">
-              {{ record.name?.slice(0, 3) }}
+              {{ record.title?.slice(0, 3) }}
             </NcBadge>
           </div>
 
@@ -335,7 +347,8 @@ onMounted(async () => {
         </template>
       </NcTable>
     </div>
-    <WorkspaceTeamsModal />
+    <WorkspaceTeamsEditModal />
+    <WorkspaceTeamsCreateModal v-model:visible="isCreateTeamModalVisible" />
   </div>
 </template>
 

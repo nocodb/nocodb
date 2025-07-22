@@ -627,6 +627,24 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     return limit === -1 ? Infinity : limit
   }
 
+  const toggleSsoLoginRequiredDlg = (show = !ssoLoginRequiredDlg.value) => {
+    ssoLoginRequiredDlg.value = show
+  }
+
+  const createTeam = async (team: Pick<TeamType, 'title' | 'description' | 'meta'>) => {
+    try {
+      // Todo: api call
+
+      return team
+    } catch (error: any) {
+      console.error(error)
+      message.error('Error occured while creating new team')
+    }
+  }
+
+  /**
+   * Watchers
+   */
   watch(activeWorkspaceId, async () => {
     await loadRoles(undefined, {}, activeWorkspaceId.value)
   })
@@ -638,10 +656,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       storage.value.lastOpenedWorkspaceId = activeWorkspaceId.value
     },
   )
-
-  const toggleSsoLoginRequiredDlg = (show = !ssoLoginRequiredDlg.value) => {
-    ssoLoginRequiredDlg.value = show
-  }
 
   return {
     loadWorkspaces,
@@ -697,6 +711,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     teams,
     teamsMap,
     collaboratorsMap,
+    createTeam,
   }
 })
 

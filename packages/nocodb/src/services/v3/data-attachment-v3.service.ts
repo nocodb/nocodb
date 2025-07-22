@@ -31,6 +31,8 @@ const normalizeFilename = (filename: string) => {
 
 const thumbnailMimes = ['image/'];
 
+const mb = 1024 * 1024;
+
 @Injectable()
 export class DataAttachmentV3Service {
   constructor(
@@ -155,6 +157,19 @@ export class DataAttachmentV3Service {
     const { context, modelId, columnId, recordId, scope, attachment, req } =
       param;
 
+    const buffer = Buffer.from(attachment.file, 'base64');
+
+    // Calculate file size from base64 value
+    const fileSize = buffer.length;
+
+    if (fileSize > NC_ATTACHMENT_FIELD_SIZE) {
+      NcError.get(context).invalidRequestBody(
+        `Attachment is larger than maximum allowed size at ${Math.floor(
+          NC_ATTACHMENT_FIELD_SIZE / mb,
+        )} mb`,
+      );
+    }
+
     const baseModel = await getBaseModelSqlFromModelId({
       context: context,
       modelId: modelId,
@@ -206,11 +221,6 @@ export class DataAttachmentV3Service {
         column.id,
       );
       const destPath = path.join('nc', scope ?? 'uploads', filePath);
-
-      const buffer = Buffer.from(attachment.file, 'base64');
-
-      // Calculate file size from base64 value
-      const fileSize = buffer.length;
 
       const resultAttachmentUrl = await storageAdapter.fileCreateByStream(
         slash(path.join(destPath, filename)),

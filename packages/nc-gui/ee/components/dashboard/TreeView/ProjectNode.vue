@@ -261,7 +261,7 @@ const setColor = async (color: string, base: BaseType) => {
   }
 }
 
-function openTableCreateDialog(baseIndex?: number | undefined) {
+function openTableCreateDialog(baseIndex?: number | undefined, showSourceSelector = false) {
   $e('c:table:create:navdraw')
 
   let sourceId = base.value!.sources?.[0].id
@@ -273,6 +273,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
   _openTableCreateDialog({
     baseId: base.value?.id,
     sourceId,
+    showSourceSelector,
     onCloseCallback: () => {
       isExpanded.value = true
 
@@ -303,7 +304,7 @@ function openErdView(source: SourceType) {
 }
 
 const isAddNewProjectChildEntityLoading = ref(false)
-const addNewProjectChildEntity = async () => {
+const addNewProjectChildEntity = async (showSourceSelector = false) => {
   if (isAddNewProjectChildEntityLoading.value) return
 
   isAddNewProjectChildEntityLoading.value = true
@@ -317,7 +318,7 @@ const addNewProjectChildEntity = async () => {
   }
 
   try {
-    openTableCreateDialog()
+    openTableCreateDialog(undefined, showSourceSelector)
   } finally {
     isAddNewProjectChildEntityLoading.value = false
   }
@@ -808,7 +809,7 @@ defineExpose({
                     '!inline-block !opacity-100': isOptionsOpen,
                   }"
                   :loading="isAddNewProjectChildEntityLoading"
-                  @click.stop="addNewProjectChildEntity"
+                  @click.stop="addNewProjectChildEntity()"
                   @mouseenter="showNodeTooltip = false"
                   @mouseleave="showNodeTooltip = true"
                 >

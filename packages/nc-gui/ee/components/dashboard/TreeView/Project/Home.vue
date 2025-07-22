@@ -213,10 +213,10 @@ function openErdView(source: SourceType) {
   }
 }
 
-const addNewProjectChildEntity = async () => {
+const addNewProjectChildEntity = async (showSourceSelector = false) => {
   if (!projectNodeRef.value) return
 
-  projectNodeRef.value?.addNewProjectChildEntity?.()
+  projectNodeRef.value?.addNewProjectChildEntity?.(showSourceSelector)
 }
 
 watch(
@@ -323,7 +323,7 @@ const hasTableCreatePermission = computed(() => {
             <template #overlay>
               <DashboardTreeViewProjectCreateNewMenu
                 v-model:visible="isVisibleCreateNew"
-                @new-table="addNewProjectChildEntity"
+                @new-table="addNewProjectChildEntity(true)"
                 @empty-script="openNewScriptModal({ baseId: base.id })"
               />
             </template>
@@ -374,7 +374,7 @@ const hasTableCreatePermission = computed(() => {
                     :base="base"
                     :source-index="0"
                     :show-create-table-btn="hasTableCreatePermission"
-                    @create-table="addNewProjectChildEntity"
+                    @create-table="addNewProjectChildEntity()"
                   />
                 </div>
               </div>

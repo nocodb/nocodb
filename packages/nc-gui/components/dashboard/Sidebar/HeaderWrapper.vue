@@ -15,8 +15,6 @@ const { activeWorkspace, isWorkspacesLoading } = storeToRefs(workspaceStore)
 
 const { showProjectList } = storeToRefs(useBases())
 
-const { baseThemeColors } = storeToRefs(useBase())
-
 const { activeViewTitleOrId } = storeToRefs(useViewsStore())
 
 const { activeTableId } = storeToRefs(useTablesStore())
@@ -31,9 +29,6 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
     class="nc-sidebar-header"
     :class="showProjectList ? 'nc-project-list' : 'nc-active-project'"
     :data-workspace-title="activeWorkspace?.title"
-    :style="{
-      backgroundColor: baseThemeColors.bgLight,
-    }"
   >
     <template v-if="!isWorkspacesLoading && !isLoading">
       <div class="nc-sidebar-header-content text-subHeading2 truncate">
@@ -82,7 +77,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
 
 <style lang="scss" scoped>
 .nc-sidebar-header {
-  @apply w-full px-2 py-1.5 flex items-center justify-between gap-2 h-[var(--topbar-height)];
+  @apply w-full px-2 py-1.5 flex items-center justify-between gap-2 h-[var(--topbar-height)] bg-[var(--topbar-bg-color)];
 
   .nc-sidebar-header-content {
     @apply xs:flex-1;
@@ -95,5 +90,9 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
 
 :deep(.nc-sidebar-node-btn) {
   @apply !hover:bg-nc-bg-gray-medium !rounded-md text-nc-content-gray-subtle;
+}
+
+.nc-sidebar-left-toggle-icon {
+  @apply !hover:bg-[var(--topbar-bg-dark-color,#F4F4F5)];
 }
 </style>

@@ -34,7 +34,10 @@ const isTeamsLoading = ref(true)
 const isCreateTeamModalVisible = ref(false)
 
 const sortedTeams = computed(() => {
-  return handleGetSortedData(teams.value, sorts.value)
+  return handleGetSortedData(
+    teams.value.filter((team) => searchCompare([team.title], searchQuery.value)),
+    sorts.value,
+  )
 })
 
 const orderBy = computed<Record<string, SordDirectionType>>({

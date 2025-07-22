@@ -1561,6 +1561,7 @@
     "badge": "Badge",
     "createTeam": "Create team",
     "creatingTeam": "Creating team",
+    "workspaceRole": "Workspace role",
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "selectRole": "Select Role",

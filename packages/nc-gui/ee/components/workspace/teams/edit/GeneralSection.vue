@@ -53,7 +53,6 @@ onMounted(() => {
 
   nextTick(() => {
     inputEl.value?.focus()
-    inputEl.value?.select()
   })
 })
 </script>
@@ -88,7 +87,6 @@ onMounted(() => {
         </template>
 
         <a-textarea
-          ref="inputEl"
           v-model:value="formState.description"
           class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-gray-800 max-h-[150px] min-h-[100px]"
           hide-details

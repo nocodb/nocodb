@@ -55,7 +55,7 @@ const supportedDocs: SupportedDocsType[] = [
       <!-- Header -->
       <div class="p-2 w-full flex items-center gap-3 border-b-1 border-nc-border-gray-medium">
         <div class="flex items-center">
-          <GeneralIcon icon="table" class="!h-6 !w-6 pl-1" />
+          <GeneralIcon icon="ncBuilding" class="!h-6 !w-6 pl-1" />
         </div>
         <div class="flex-1 text-lg font-bold text-nc-content-gray-emphasis">Team: {{ editTeam?.title }}</div>
 

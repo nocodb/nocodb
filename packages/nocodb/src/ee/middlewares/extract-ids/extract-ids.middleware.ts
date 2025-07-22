@@ -617,6 +617,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       workspace_id: req.ncWorkspaceId,
       base_id: req.ncBaseId,
       api_version: context.api_version,
+      socket_id: req.headers['xc-socket-id'],
     };
 
     if (req.ncBaseId && !isInternalWorkspaceScope) {

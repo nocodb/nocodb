@@ -18,10 +18,7 @@ const onClickDetails = () => {
 
 <template>
   <div
-    class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab"
-    :style="{
-      backgroundColor: 'var(--topbar-select-mode-bg-color)',
-    }"
+    class="flex flex-row p-1 bg-[var(--topbar-select-mode-bg-color,var(--color-grey-200))] rounded-lg gap-x-0.5 nc-view-sidebar-tab"
   >
     <div
       v-e="['c:project:mode:data']"
@@ -77,13 +74,7 @@ const onClickDetails = () => {
 }
 
 .active {
-  @apply bg-white !text-brand-500 !hover:text-brand-500;
-
-  color: var(--topbar-text-color) !important;
-
-  &:hover {
-    color: var(--topbar-text-color) !important;
-  }
+  @apply bg-white !text-[var(--topbar-text-color,--color-brand-500)] !hover:text-[var(--topbar-text-color,--color-brand-500)];
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 }

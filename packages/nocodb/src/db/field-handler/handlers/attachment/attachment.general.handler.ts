@@ -6,6 +6,7 @@ import { NcError } from '~/helpers/catchError';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { extractProps } from '~/helpers/extractProps';
 import { type Column, FileReference } from '~/models';
+import { validateNumberOfFilesInCell } from '~/helpers/attachmentHelpers';
 
 export class AttachmentGeneralHandler extends ComputedFieldHandler {
   override async parseUserInput(params: {
@@ -71,6 +72,12 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
     if (removed.length > 0) {
       await FileReference.delete(params.options.context, removed);
     }
+    await validateNumberOfFilesInCell(
+      params.options.context,
+      value.length,
+      params.column,
+    );
+
     return {
       value: value.map((attr) => {
         return attr.id.startsWith('temp_')

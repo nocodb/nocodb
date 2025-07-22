@@ -68,8 +68,12 @@ const supportedDocs: SupportedDocsType[] = [
 
       <div class="h-[calc(100%_-_50px)] flex">
         <!-- Content -->
-
-        <div class="flex-1">Content</div>
+        <div class="flex-1 nc-modal-teams-edit-content">
+          <template v-if="editTeam">
+            <WorkspaceTeamsEditGeneralSection :team="editTeam" />
+            <WorkspaceTeamsEditMembersSection :team="editTeam" />
+          </template>
+        </div>
 
         <NcModalSupportedDocsSidebar>
           <NcModalSupportedDocs :docs="supportedDocs" />
@@ -85,6 +89,14 @@ const supportedDocs: SupportedDocsType[] = [
     @apply !p-0;
     height: min(calc(100vh - 100px), 1024px);
     max-height: min(calc(100vh - 100px), 1024px) !important;
+  }
+
+  .nc-modal-teams-edit-content {
+    @apply px-6 pb-6 nc-scrollbar-thin relative w-full h-full flex flex-col gap-8;
+
+    .nc-modal-teams-edit-content-section {
+      @apply flex flex-col gap-4 min-w-[540px] mx-auto w-full;
+    }
   }
 }
 </style>

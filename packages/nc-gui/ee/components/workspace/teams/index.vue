@@ -347,8 +347,8 @@ onMounted(async () => {
         </template>
       </NcTable>
     </div>
-    <WorkspaceTeamsEditModal />
-    <WorkspaceTeamsCreateModal v-model:visible="isCreateTeamModalVisible" />
+    <WorkspaceTeamsEdit />
+    <WorkspaceTeamsCreate v-model:visible="isCreateTeamModalVisible" />
   </div>
 </template>
 

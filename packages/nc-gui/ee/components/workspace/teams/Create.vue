@@ -125,7 +125,7 @@ onMounted(() => {
         @keydown.esc="vVisible = false"
       >
         <div class="flex flex-col gap-5">
-          <a-form-item v-bind="validateInfos.title" class="relative nc-table-input-wrapper relative">
+          <a-form-item v-bind="validateInfos.title" class="relative nc-team-input-wrapper relative">
             <a-input
               ref="inputEl"
               v-model:value="formState.title"

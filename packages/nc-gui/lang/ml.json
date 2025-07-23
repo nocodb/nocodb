@@ -186,6 +186,7 @@
     "manual": "മാനുവൽ",
     "trigger": "ട്രിഗർ",
     "addLookupField": "{count} ലുക്കപ്പ് ഫീൽഡ് ചേർക്കുക",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "ഷൈൽ",
     "label": "ലേബൽ",
     "role": "പങ്ക്",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "ഈ ലിങ്ക് വിശ്വസിക്കുന്നുണ്ടെങ്കിൽ മാത്രം തുടരുക.",
     "reAssignViewModalSubtitle": "വീണ്ടും നിയോഗിച്ചാൽ നിലവിലുള്ള ഉടമയ്ക്ക് ഇനി കാഴ്ച സജ്ജീകരണം എഡിറ്റ് ചെയ്യാൻ കഴിയില്ല.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "വിശ്വസ്തത ഫലം തരുന്നു — പരിധിയിട്ട നിരക്കുകൾ ആസ്വദിക്കുക!",
     "loyaltyBannerSubtitle": "പരിമിതിയില്ലാത്ത സീറ്റുകൾ, അധിക റെക്കോഡുകൾ, കൂടുതൽ സ്റ്റോറേജ്, കണ്ടീഷണൽ വെബ്‌ഹുക്കുകൾ, SSO, ഇന്റഗ്രേഷനുകൾ തുടങ്ങിയവ അന്ലോക്ക് ചെയ്യുക!",
     "selectTimezone": "ടൈംസോൺ പ്രദർശിപ്പിക്കുക",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "NocoDB സമൂഹത്തിൽ ചേരുക",
       "joinReddit": "/r/NocoDB",
       "followNocodb": "NocoDB നെ പിന്തുടരുക",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(കോമ്യുണിറ്റി/AI വിവർത്തനം)"
     },
     "twitter": "Twitter",
     "docReference": "ഡോക്യുമെന്റ് റഫറൻസ്",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "URL-ൽ നിന്ന് ചേർക്കുക",
     "enterJson": "JSON നൽകുക",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable ബെസ്",
     "useSameTimezoneForAllMembers": "എല്ലാ അംഗങ്ങൾക്കും ഒരേ ടൈംസോൺ ഉപയോഗിക്കുക",
     "displayTimezone": "ടൈംസോൺ പ്രദർശിപ്പിക്കുക",
     "upgradePlan": "പ്ലാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "ചിഹ്നങ്ങൾ തിരയുക",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "ചെറിയവിരാമം (,) ഉപയോഗിച്ച് നിരവധി ഇമെയിലുകൾ ചേർക്കാം",
       "enterTableName": "ടേബിളിന്റെ പേര് നൽകുക",
       "enterScriptName": "സ്‌ക്രിപ്റ്റ് പേര് നൽകുക",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "ഡാഷ്ബോർഡ് പേര് നൽകുക",
       "enterTableDescription": "ടേബിള്‍ വിവരണം നൽകുക...",
       "enterScriptDescription": "സ്‌ക്രിപ്റ്റ് വിവരണം നൽകുക...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "{type} során പിശക് സംഭവിച്ചു? Malayalam: {type} നടത്തുന്നതിനിടെ പിശക് സംഭവിച്ചു",
       "anErrorOccuredWhileAirtableBaseImport": "Airtable-ൽ നിന്ന് ബേസ് ഇറക്കുമതി ചെയ്യുമ്പോൾ പിശക് സംഭവിച്ചു",
       "paymentFailed": "പെയ്മെന്റ് പരാജയപ്പെട്ടു",
-      "paymentFailedSubtitle": "താങ്കളുടെ പേയ്മെന്റ് പ്രോസസ്സ് ചെയ്യുമ്പോൾ എന്തോ കുഴപ്പം സംഭവിച്ചു. വീണ്ടും ശ്രമിക്കുകയോ പിന്തുണയുമായി ബന്ധപ്പെടുകയോ ചെയ്യുക."
+      "paymentFailedSubtitle": "താങ്കളുടെ പേയ്മെന്റ് പ്രോസസ്സ് ചെയ്യുമ്പോൾ എന്തോ കുഴപ്പം സംഭവിച്ചു. വീണ്ടും ശ്രമിക്കുകയോ പിന്തുണയുമായി ബന്ധപ്പെടുകയോ ചെയ്യുക.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "അടിസ്ഥാന ഡാറ്റയുടെ മീറ്റാ വിവരങ്ങൾ വിജയകരമായി കയറ്റുമതി ചെയ്തു",
@@ -2371,6 +2375,7 @@
       "projInfo": "അടിസ്ഥാന വിവരങ്ങൾ ക്ലിപ്പ്ബോർഡിലേക്ക് പകർത്തി",
       "inviteUrlCopy": "നിമിഷം URL ക്ലിപ്പ്ബോർഡിലേക്ക് പകർത്തി",
       "createView": "കാഴ്ച വിജയകരമായി സൃഷ്ടിച്ചു",
+      "createField": "Field created successfully",
       "formEmailSMTP": "ഇമെയിൽ അറിയിപ്പുകൾ സജ്ജമാക്കാൻ അപ്ലിക്കേഷൻ സ്റ്റോറിൽ SMTP പ്ലഗിൻ സജ്ജീകരിക്കുക",
       "collabView": "സഹകരണം കാഴ്ചയ്ക്ക് വിജയകരമായി മാറ്റി",
       "lockedView": "പൂട്ടിയ കാഴ്ചയ്ക്ക് വിജയകരമായി മാറ്റി",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "നിങ്ങളുടെ പേയ്മെന്റ് പ്രോസസ്സ് ചെയ്തു. ഇനി നിങ്ങളുടെ പുതിയ പ്ലാൻ ഉപയോഗിക്കാം.",
       "upgradeSuccessful": "അപ്‌ഗ്രേഡ് വിജയകരമായി",
       "upgradeSuccessfulSubtitle": "അപ്‌ഗ്രേഡിനുള്ള നിങ്ങളുടെ പേയ്മെന്റ് പ്രോസസ്സ് ചെയ്തു. ഇനി പുതിയ പ്ലാൻ ഉപയോഗിക്കാം.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

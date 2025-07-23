@@ -186,6 +186,7 @@
     "manual": "راهنما",
     "trigger": "راه‌انداز",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "سبک",
     "label": "برچسب",
     "role": "نقش",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "تنها در صورتی ادامه دهید که به این لینک اعتماد دارید.",
     "reAssignViewModalSubtitle": "پس از بازتخصیص، مالک فعلی دیگر قادر به ویرایش پیکربندی نما نخواهد بود.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "وفاداری سودآور است — از قیمت ثابت لذت ببرید!",
     "loyaltyBannerSubtitle": "صندلی‌های نامحدود، رکوردهای بیشتر، فضای ذخیره‌سازی افزوده، وبهوک‌های شرطی، SSO، یکپارچگی‌ها و بسیار بیشتر را باز کنید!",
     "selectTimezone": "نمایش منطقهٔ زمانی",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "ملحق شدن به انجمن Nocodb",
       "joinReddit": "به NocoDB بپیوندید",
       "followNocodb": "NocoDB را دنبال کنید",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(ترجمه انجمن/هوش مصنوعی)"
     },
     "twitter": "Twitter",
     "docReference": "مرجع سند",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "افزودن از URL",
     "enterJson": "وارد کردن JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "پایگاه Airtable",
     "useSameTimezoneForAllMembers": "استفاده از یک منطقهٔ زمانی برای همه اعضا",
     "displayTimezone": "نمایش منطقهٔ زمانی",
     "upgradePlan": "ارتقاء پلن",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "جستجو آیکون",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "می‌توانید چندین ایمیل را به صورت لیست جدا شده با کاما اضافه کنید",
       "enterTableName": "نام جدول را وارد کنید",
       "enterScriptName": "نام اسکریپت را وارد کنید",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "نام داشبورد را وارد کنید",
       "enterTableDescription": "توضیحات جدول را وارد کنید...",
       "enterScriptDescription": "توضیح اسکریپت را وارد کنید...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "خطایی در هنگام {type} رخ داد",
       "anErrorOccuredWhileAirtableBaseImport": "خطایی هنگام ایمپورت پایگاه از Airtable رخ داد",
       "paymentFailed": "پرداخت ناموفق",
-      "paymentFailedSubtitle": "در پردازش پرداخت شما مشکلی رخ داد. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید."
+      "paymentFailedSubtitle": "در پردازش پرداخت شما مشکلی رخ داد. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "فراداده پروژه با موفقیت خارج شد",
@@ -2371,6 +2375,7 @@
       "projInfo": "اطلاعات پروژه در کلیپ بورد ذخیره شد",
       "inviteUrlCopy": "URL دعوت نامه در کلیپ بورد ذخیره شده",
       "createView": "نمایش با موفقیت ایجاد شد",
+      "createField": "Field created successfully",
       "formEmailSMTP": "لطفاْ جهت فعال‌سازی اعلان پست الکترونیکی، پلاگین SMTP را در قسمت اپلیکیشن‌ها فعال کنید",
       "collabView": "با موفقیت به نمایش مشارکتی تغییر یافت",
       "lockedView": "با موفقیت به نمایش قفل‌شده تغییر یافت",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "پرداخت شما با موفقیت انجام شد. اکنون می‌توانید از پلن جدید خود استفاده کنید.",
       "upgradeSuccessful": "ارتقاء موفق بود",
       "upgradeSuccessfulSubtitle": "پرداخت شما برای ارتقاء با موفقیت انجام شد. اکنون می‌توانید از پلن جدید خود استفاده کنید.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

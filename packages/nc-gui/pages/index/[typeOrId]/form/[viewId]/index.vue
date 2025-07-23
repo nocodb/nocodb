@@ -182,6 +182,10 @@ p {
               @apply px-3;
             }
           }
+
+          &.nc-cell-attachment {
+            @apply pl-1;
+          }
         }
         &.nc-virtual-cell {
           @apply px-2 py-1;

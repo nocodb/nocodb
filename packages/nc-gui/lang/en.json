@@ -136,8 +136,8 @@
     "upgradeToAddWebhook": "Upgrade to add unlimited webhooks",
     "upgradeToAddWebhookSubtitle": "The {activePlan} plan allows up to {limit} webhooks. Upgrade to the {plan} plan and get access to unlimited webhooks.",
     "upgradeToAccessWebhookLogsSubtitle": "Access webhook logs by upgrading your workspace to the {plan} plan.",
-    "formOwnerNotified": "Form owner notified",
-    "formOwnerNotifiedSubtitle": "We've notified the form owner about your submission request.",
+    "formOwnerNotified": "Form creator notified",
+    "formOwnerNotifiedSubtitle": "We've notified the form creator about your submission request.",
     "WorkspaceOwnerNotified": "Workspace owner notified",
     "WorkspaceOwnerNotifiedSubtitle": "Your request to upgrade has been shared with the workspace owner.",
     "failedToSendUpgradeRequest": "Failed to send upgrade request",
@@ -186,6 +186,7 @@
     "manual": "Manual",
     "trigger": "Trigger",
     "addLookupField": "Add {count} lookup field",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Style",
     "label": "Label",
     "role": "Role",
@@ -1806,7 +1807,8 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields"
   },
   "placeholder": {
     "searchIcons": "Search icons",
@@ -2357,7 +2359,8 @@
       "anErrorOccuredWhileImporting": "An error occurred while {type}",
       "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
       "paymentFailed": "Payment Failed",
-      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support."
+      "paymentFailedSubtitle": "Something went wrong while processing your payment. Please try again or contact support.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",
@@ -2371,6 +2374,7 @@
       "projInfo": "Copied base info to clipboard",
       "inviteUrlCopy": "Copied Invite URL to clipboard",
       "createView": "View created successfully",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Please activate the SMTP plugin to enable e-mail notifications",
       "collabView": "Successfully Switched to collaborative view",
       "lockedView": "Successfully Switched to locked view",
@@ -2428,7 +2432,9 @@
       "paymentSuccessfulSubtitle": "Your payment has been processed. You can now use your new plan.",
       "upgradeSuccessful": "Upgrade Successful",
       "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

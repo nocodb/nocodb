@@ -1805,7 +1805,8 @@
     "youDontHaveAccessToCreateNewAutomation": "새 자동화를 만들 수 있는 액세스 권한이 없습니다",
     "formViewCreationNotSupportedForSyncedTable": "동기화된 테이블에 대해 양식 보기 생성이 지원되지 않습니다.",
     "dataInThisFieldCantBeManuallyEdited": "이 필드의 데이터는 수동으로 편집할 수 없습니다",
-    "viewAndEditPermissionsForAllFieldsInThisTable": "이 표의 모든 필드에 대한 보기 및 편집 권한"
+    "viewAndEditPermissionsForAllFieldsInThisTable": "이 표의 모든 필드에 대한 보기 및 편집 권한",
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",
@@ -2236,6 +2237,7 @@
       "copyToClipboardLocalFileUrl": "브라우저는 로컬 리소스를 직접로드 할 수 없습니다. 대신 URL이 클립보드에 복사되었습니다.",
       "unsavedChanges": "변경 내용이 저장되지 않았습니다.",
       "unsavedChangesConfirmation": "이 페이지를 떠나시겠습니까?",
+      "leaveThisWorkspace": "Leave this workspace.",
       "supportChatUnavailable": "채팅 지원 불가",
       "supportChatUnavailableSubtitle": "지원 채팅이 광고 차단기에 의해 차단되었을 수 있습니다. 비활성화하고 페이지를 새로고침해 보세요.",
       "leaveWithoutFinishing": "Leave without finishing?",

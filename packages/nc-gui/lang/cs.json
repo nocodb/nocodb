@@ -2227,7 +2227,11 @@
       "pleaseRequestAccessForView": "Požádejte o vyšší oprávnění od správce / vlastníka základny / vlastníka pracovního prostoru, abyste získali přístup k tomuto {viewName}",
       "preventHideAllOptions": "Pokud je pole povinné, nemůžete skrýt všechny možnosti",
       "valueMustBeAtMostCharLong": "Hodnota může mít maximálně {length} znaků",
-      "copyToClipboardLocalFileUrl": "Prohlížeč neumožňuje přímo načíst místní zdroj. URL byla místo toho zkopírována do schránky."
+      "copyToClipboardLocalFileUrl": "Prohlížeč neumožňuje přímo načíst místní zdroj. URL byla místo toho zkopírována do schránky.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?",
+      "supportChatUnavailable": "Support chat unavailable",
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
     },
     "error": {
       "failedToDeleteMcpToken": "Nepodařilo se vymazat token MCP",

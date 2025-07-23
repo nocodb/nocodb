@@ -141,15 +141,15 @@
     "WorkspaceOwnerNotified": "Proprietario del workspace avvisato",
     "WorkspaceOwnerNotifiedSubtitle": "La tua richiesta di upgrade è stata inviata al proprietario del workspace.",
     "failedToSendUpgradeRequest": "Invio della richiesta di upgrade non riuscito",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Esegui l'upgrade per sbloccare l'accesso completo ai dati",
+    "upgradeToSeeMoreRecordInline": "Esegui l'upgrade per visualizzare tutti i record dalle sorgenti dati esterne",
     "upgradeToSeeMoreRecordSubtitle": "Sblocca la visibilità completa delle tue sorgenti collegate. Visualizza tutti i record passando al piano Plus.",
     "upgradeToSeeMoreRecordInlineSubtitle": "Stai visualizzando {limit} di {total} record. Sblocca l'accesso ai restanti {remaining} record passando al piano Plus.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Il piano Free consente fino a {limit} utenti di tipo Editor, esegui l'upgrade per ottenere utenti illimitati",
     "adjustCollaboratorRoles": "Modifica ruoli dei collaboratori",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "Manuale",
     "trigger": "Azione",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Stile",
     "label": "Etichetta",
     "role": "Ruolo",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "Procedi solo se ti fidi di questo link.",
     "reAssignViewModalSubtitle": "Una volta riassegnata, l'attuale proprietario non potrà più modificare la configurazione della vista.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "La fedeltà paga: goditi prezzi bloccati!",
     "loyaltyBannerSubtitle": "Sblocca posti illimitati, record aggiuntivi, più spazio di archiviazione, webhook condizionali, SSO, integrazioni e molto altro!",
     "selectTimezone": "Fuso orario di visualizzazione",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "Unisciti alla community di NocoDB",
       "joinReddit": "Unisciti a /r/NocoDB su Reddit",
       "followNocodb": "Segui NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Traduzione della Community/AI)"
     },
     "twitter": "Twitter",
     "docReference": "Riferimento del documento",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Aggiungi da URL",
     "enterJson": "Inserisci JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Base Airtable",
     "useSameTimezoneForAllMembers": "Usa lo stesso fuso orario per tutti i membri",
     "displayTimezone": "Fuso orario di visualizzazione",
     "upgradePlan": "Aggiorna piano",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "Icona di ricerca",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "Puoi aggiungere più e-mail separate da virgole(,)",
       "enterTableName": "Inserisci il nome della tabella",
       "enterScriptName": "Inserisci il nome dello script",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Inserisci nome Dashboard",
       "enterTableDescription": "Inserisca la descrizione della tabella...",
       "enterScriptDescription": "Inserisci la descrizione dello script...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "Si è verificato un errore durante {type}",
       "anErrorOccuredWhileAirtableBaseImport": "Si è verificato un errore durante l'importazione della base da Airtable",
       "paymentFailed": "Pagamento non riuscito",
-      "paymentFailedSubtitle": "Si è verificato un errore durante l'elaborazione del pagamento. Riprova o contatta l'assistenza."
+      "paymentFailedSubtitle": "Si è verificato un errore durante l'elaborazione del pagamento. Riprova o contatta l'assistenza.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Metadati del progetto esportati con successo",
@@ -2371,6 +2375,7 @@
       "projInfo": "Informazioni del progetto copiate negli Appunti",
       "inviteUrlCopy": "Copiato URL di invito negli Appunti",
       "createView": "Vista creata con successo",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Si prega di attivare il plugin SMTP in App Store per abilitare la notifica e-mail",
       "collabView": "Passato correttamente alla vista collaborativa",
       "lockedView": "Passato correttamente alla vista bloccata",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "Il pagamento è stato elaborato. Ora puoi utilizzare il tuo nuovo piano.",
       "upgradeSuccessful": "Upgrade riuscito",
       "upgradeSuccessfulSubtitle": "Il pagamento per l'upgrade è stato elaborato. Ora puoi utilizzare il tuo nuovo piano.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

@@ -186,6 +186,7 @@
     "manual": "マニュアル",
     "trigger": "トリガー",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "スタイル",
     "label": "ラベル",
     "role": "役割",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "このリンクを信頼する場合のみ続行してください。",
     "reAssignViewModalSubtitle": "再割り当てすると、現在の所有者はビュー設定を編集できなくなります。",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "継続利用でお得に— 価格上限をお楽しみください！",
     "loyaltyBannerSubtitle": "無制限シート、追加レコード、より多くのストレージ、条件付きWebhook、SSO、統合など、さらに多くの機能を解放しましょう！",
     "selectTimezone": "表示タイムゾーン",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "NocoDB のコミュニティに参加",
       "joinReddit": "/r/NocoDB に参加",
       "followNocodb": "NocoDB をフォロー",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(コミュニティ/AI翻訳)"
     },
     "twitter": "Twitter",
     "docReference": "リファレンスドキュメント",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "URLから追加",
     "enterJson": "JSONを入力",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtableベース",
     "useSameTimezoneForAllMembers": "すべてのメンバーで同じタイムゾーンを使用",
     "displayTimezone": "表示タイムゾーン",
     "upgradePlan": "プランをアップグレード",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "アイコンを検索",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "カンマ（,）区切りで入力すると複数のEメールを追加できます",
       "enterTableName": "テーブル名を入力してください",
       "enterScriptName": "スクリプト名を入力してください",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "ダッシュボード名を入力してください",
       "enterTableDescription": "テーブルの説明を入力…",
       "enterScriptDescription": "スクリプトの説明を入力...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "{type} の実行中にエラーが発生しました",
       "anErrorOccuredWhileAirtableBaseImport": "Airtableからベースをインポート中にエラーが発生しました",
       "paymentFailed": "支払いに失敗しました",
-      "paymentFailedSubtitle": "お支払いの処理中に問題が発生しました。もう一度お試しいただくか、サポートへご連絡ください。"
+      "paymentFailedSubtitle": "お支払いの処理中に問題が発生しました。もう一度お試しいただくか、サポートへご連絡ください。",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",
@@ -2371,6 +2375,7 @@
       "projInfo": "プロジェクト情報をクリップボードにコピーしました",
       "inviteUrlCopy": "招待用 URL をクリップボードにコピーしました",
       "createView": "正常に作成されたビュー",
+      "createField": "Field created successfully",
       "formEmailSMTP": "電子メール通知を有効にするために、App StoreでSMTPプラグインを有効にしてください。",
       "collabView": "共同ビューに正常に切り替わりました",
       "lockedView": "ロックビューに正常に切り替わりました",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "お支払いが処理され、新しいプランをご利用いただけます。",
       "upgradeSuccessful": "アップグレードが完了しました",
       "upgradeSuccessfulSubtitle": "アップグレードのお支払いが処理されました。新しいプランをご利用いただけます。",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

@@ -166,7 +166,7 @@
     "upgradeToUseScriptsSubtitle": "{plan} 플랜으로 업그레이드하여 스크립트를 사용하여 워크플로를 자동화하거나 로직을 사용자 지정합니다.",
     "upgradeToUsePrivateBases": "업그레이드하여 개인 프로젝트 잠금 해제",
     "upgradeToUsePrivateBasesSubtitle": "개인 프로젝트는 {plan} 플랜에서 사용할 수 있습니다. 지금 업그레이드하여 사용을 시작하십시오.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "이 셀에는 최대 {limit} {filePlural}까지만 업로드할 수 있습니다. 더 많은 파일을 추가하려면 {plan} 플랜으로 업그레이드합니다."
   },
   "general": {
     "script": "스크립트",
@@ -429,7 +429,7 @@
     "scripts": "스크립트",
     "dashboard": "대시보드",
     "dashboards": "대시보드",
-    "file": "file",
+    "file": "파일",
     "files": "파일",
     "owner": "소유자",
     "member": "사용자",
@@ -887,9 +887,9 @@
     "thisPrivateBaseHasBeenLockedSubtext": "잠금을 해제하려면 {plan} 플랜으로 업그레이드하거나 이 베이스를 공유 베이스로 전환하십시오."
   },
   "labels": {
-    "configurationError": "Configuration Error",
-    "keepEditing": "Keep editing",
-    "leave": "Leave",
+    "configurationError": "구성 오류",
+    "keepEditing": "계속 편집",
+    "leave": "떠나기",
     "chatWithNocoDBSupport": "NocoDB 지원팀과 채팅",
     "revisionHistory": "리비전 이력",
     "myNotifications": "내 알림",
@@ -1806,7 +1806,7 @@
     "formViewCreationNotSupportedForSyncedTable": "동기화된 테이블에 대해 양식 보기 생성이 지원되지 않습니다.",
     "dataInThisFieldCantBeManuallyEdited": "이 필드의 데이터는 수동으로 편집할 수 없습니다",
     "viewAndEditPermissionsForAllFieldsInThisTable": "이 표의 모든 필드에 대한 보기 및 편집 권한",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "이 테이블에서는 빈 레코드를 추가할 수 없습니다"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",
@@ -2237,11 +2237,11 @@
       "copyToClipboardLocalFileUrl": "브라우저는 로컬 리소스를 직접로드 할 수 없습니다. 대신 URL이 클립보드에 복사되었습니다.",
       "unsavedChanges": "변경 내용이 저장되지 않았습니다.",
       "unsavedChangesConfirmation": "이 페이지를 떠나시겠습니까?",
-      "leaveThisWorkspace": "Leave this workspace.",
+      "leaveThisWorkspace": "이 작업 공간을 종료합니다.",
       "supportChatUnavailable": "채팅 지원 불가",
       "supportChatUnavailableSubtitle": "지원 채팅이 광고 차단기에 의해 차단되었을 수 있습니다. 비활성화하고 페이지를 새로고침해 보세요.",
-      "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishing": "마무리하지 않고 떠나시겠습니까?",
+      "leaveWithoutFinishingConfirmation": "변경 사항은 자동으로 저장되지만 여전히 편집 모드에 있습니다."
     },
     "error": {
       "failedToDeleteMcpToken": "MCP 토큰을 삭제하지 못했습니다",

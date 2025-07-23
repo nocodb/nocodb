@@ -1805,7 +1805,8 @@
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
-    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
+    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
   },
   "placeholder": {
     "searchIcons": "ស្វែងរកនិមិត្តសញ្ញា",
@@ -2236,6 +2237,7 @@
       "copyToClipboardLocalFileUrl": "កម្មវិធីរុករកមិនអនុញ្ញាតផ្ទុកធនធានមូលដ្ឋានដោយផ្ទាល់ទេ។ URL ត្រូវបានចម្លងទៅក្តារតម្បៀតខ្ទាស់ជំនួស។",
       "unsavedChanges": "You have unsaved changes.",
       "unsavedChangesConfirmation": "Are you sure you want to leave this page?",
+      "leaveThisWorkspace": "Leave this workspace.",
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",

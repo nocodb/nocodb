@@ -887,7 +887,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Configuration Error",
+    "configurationError": "Incomplete configuration",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1339,6 +1339,7 @@
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "ভিউ অন্তর্ভুক্ত করুন",
     "includeScripts": "Include scripts",
+    "includeDashboards": "Include dashboards",
     "includeWebhook": "ওয়েবহুক অন্তর্ভুক্ত করুন",
     "includeComments": "মন্তব্য অন্তর্ভুক্ত করুন",
     "zoomInToViewColumns": "কলাম দেখতে জুম ইন করুন",

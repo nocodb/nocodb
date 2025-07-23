@@ -502,7 +502,6 @@ watch(isProjectsLoaded, () => {
       <template v-if="!showProjectList">
         <div
           v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
-          key="project-home"
           class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
         >
           <ProjectWrapper :base-role="openedBase?.project_role" :base="openedBase">

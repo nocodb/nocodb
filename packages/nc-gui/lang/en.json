@@ -1167,7 +1167,6 @@
     "backToWorkspace": "Back to Workspace",
     "untitledToken": "Untitled token",
     "tableName": "Table name",
-    "dashboardName": "Dashboard name",
     "createView": "Create view",
     "creatingView": "Creating View",
     "createViews": "Create {count} view",

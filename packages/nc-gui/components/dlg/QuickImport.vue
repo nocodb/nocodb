@@ -65,10 +65,6 @@ const tablesStore = useTablesStore()
 const { loadProjectTables } = tablesStore
 const { baseTables } = storeToRefs(tablesStore)
 
-const { bases } = storeToRefs(useBases())
-
-const base = computed(() => bases.value.get(baseId))
-
 const templateEditorRef = ref()
 
 const preImportLoading = ref(false)

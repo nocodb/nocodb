@@ -36,10 +36,6 @@ const { loadTables } = baseStore
 
 const { getJobsForBase, loadJobsForBase } = useJobs()
 
-const { bases } = storeToRefs(useBases())
-
-const base = computed(() => bases.value.get(baseId))
-
 const showGoToDashboardButton = ref(false)
 
 const step = ref(1)

@@ -28,8 +28,6 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { $e } = useNuxtApp()
 
-const { t } = useI18n()
-
 const isAdvanceOptVisible = ref(false)
 
 const inputEl = ref<HTMLInputElement>()

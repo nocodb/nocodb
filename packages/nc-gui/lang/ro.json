@@ -1771,11 +1771,11 @@
     "exceedingLimit": "Depășește limita",
     "filteredByCurrentUser": "Filtrat după utilizatorul curent",
     "navigateToBaseToCreateTable": "Navighează la o bază pentru a crea un tabel",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
+    "navigateToBaseToCreateAutomation": "Navigați la o bază pentru a crea o automatizare",
     "navigateToTableToCreateView": "Navighează la un tabel pentru a crea o vizualizare",
     "youDontHaveAccessToCreateNewTable": "Nu aveți acces pentru a crea un tabel nou",
     "youDontHaveAccessToCreateNewView": "Nu aveți acces pentru a crea o vizualizare nouă",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
+    "youDontHaveAccessToCreateNewAutomation": "Nu aveți acces pentru a crea o nouă automatizare",
     "formViewCreationNotSupportedForSyncedTable": "Crearea unei vizualizări de formular nu este disponibilă pentru un tabel sincronizat",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"

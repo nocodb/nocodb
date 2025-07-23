@@ -13,15 +13,7 @@ const { api } = useApi()
 
 const base = inject(ProjectInj)!
 
-// For starred base we will have seperate isExpanded state
-const isExpanded = computed<boolean>({
-  get: () => {
-    return !!base.value.isExpanded
-  },
-  set: (val: boolean) => {
-    base.value.isExpanded = val
-  },
-})
+const isExpanded = ref(true)
 
 const basesStore = useBases()
 
@@ -142,7 +134,7 @@ const updateSourceTitle = async (sourceId: string) => {
  * @see {@link packages/nc-gui/components/smartsheet/topbar/TableListDropdown.vue} for a similar implementation
  * of table creation dialog. If this function is updated, consider updating the other implementation as well.
  */
-function openTableCreateDialog(sourceIndex?: number | undefined) {
+function openTableCreateDialog(sourceIndex?: number | undefined, showSourceSelector = true) {
   const isOpen = ref(true)
   let sourceId = base.value!.sources?.[0].id
   if (typeof sourceIndex === 'number') {
@@ -156,6 +148,7 @@ function openTableCreateDialog(sourceIndex?: number | undefined) {
     sourceId,
     'baseId': base.value!.id,
     'onCreate': closeDialog,
+    'showSourceSelector': showSourceSelector,
     'onUpdate:modelValue': () => closeDialog(),
   })
 
@@ -201,10 +194,10 @@ function openErdView(source: SourceType) {
   }
 }
 
-async function addNewProjectChildEntity() {
+async function addNewProjectChildEntity(showSourceSelector = true) {
   if (!projectNodeRef.value) return
 
-  projectNodeRef.value?.addNewProjectChildEntity?.()
+  projectNodeRef.value?.addNewProjectChildEntity?.(showSourceSelector)
 }
 
 watch(
@@ -303,7 +296,10 @@ const hasTableCreatePermission = computed(() => {
             </NcButton>
 
             <template #overlay>
-              <DashboardTreeViewProjectCreateNewMenu v-model:visible="isVisibleCreateNew" @new-table="addNewProjectChildEntity" />
+              <DashboardTreeViewProjectCreateNewMenu
+                v-model:visible="isVisibleCreateNew"
+                @new-table="addNewProjectChildEntity()"
+              />
             </template>
           </NcDropdown>
         </div>
@@ -511,6 +507,7 @@ const hasTableCreatePermission = computed(() => {
                                       v-if="showBaseOption(source)"
                                       v-model:base="base"
                                       :source="source"
+                                      :show-source-selector="false"
                                     />
                                   </NcMenu>
                                 </template>
@@ -523,7 +520,7 @@ const hasTableCreatePermission = computed(() => {
                                 size="xxsmall"
                                 class="nc-sidebar-node-btn"
                                 :class="{ '!opacity-100 !inline-block': isBasesOptionsOpen[source!.id!] }"
-                                @click.stop="openTableCreateDialog(sourceIndex)"
+                                @click.stop="openTableCreateDialog(sourceIndex, false)"
                               >
                                 <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
                               </NcButton>

@@ -33,7 +33,9 @@ const isOptionVisible = computed(() => {
   return {
     rename: isUIAllowed('baseRename'),
     baseDuplicate: isUIAllowed('baseDuplicate', { roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join() }),
-    baseOptions: base.value?.sources?.[0]?.enabled && props.showBaseOption(base.value.sources[0]),
+    baseOptions:
+      (base.value?.sources?.[0]?.enabled || (base.value?.sources || []).length > 1) &&
+      props.showBaseOption(base.value.sources[0]),
     baseDelete: isUIAllowed('baseDelete', { roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join() }),
   }
 })

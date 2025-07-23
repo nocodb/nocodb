@@ -520,6 +520,7 @@ export class AiUtilsService {
       input: {
         history?: string[];
         prompt?: string;
+        sourceId?: string;
       };
       req?: any;
     },
@@ -543,7 +544,7 @@ export class AiUtilsService {
 
     const tables = await Model.list(context, {
       base_id: context.base_id,
-      source_id: undefined,
+      source_id: params.input?.sourceId,
     });
 
     const { data, usage } = await wrapper.generateObject({

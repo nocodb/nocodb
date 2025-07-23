@@ -28,7 +28,10 @@ const { openNewDashboardModal } = dashboardStore
 const { isDashboardEnabled } = storeToRefs(dashboardStore)
 
 const showBaseOption = (source: SourceType) => {
-  return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
+  return (
+    (source.enabled || (base.value.sources || []).length > 1) &&
+    ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
+  )
 }
 
 const openMarketPlace = () => {

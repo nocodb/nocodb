@@ -255,7 +255,7 @@ const setColor = async (color: string, base: BaseType) => {
   }
 }
 
-function openTableCreateDialog(sourceIndex?: number | undefined) {
+function openTableCreateDialog(sourceIndex?: number | undefined, showSourceSelector = true) {
   let sourceId = base.value!.sources?.[0].id
   if (typeof sourceIndex === 'number') {
     sourceId = base.value!.sources?.[sourceIndex].id
@@ -264,6 +264,7 @@ function openTableCreateDialog(sourceIndex?: number | undefined) {
   _openTableCreateDialog({
     baseId: base.value?.id,
     sourceId,
+    showSourceSelector,
     onCloseCallback: () => {
       base.value.isExpanded = true
 
@@ -276,7 +277,7 @@ function openTableCreateDialog(sourceIndex?: number | undefined) {
 
 const isAddNewProjectChildEntityLoading = ref(false)
 
-async function addNewProjectChildEntity() {
+async function addNewProjectChildEntity(showSourceSelector = true) {
   if (isAddNewProjectChildEntityLoading.value) return
 
   isAddNewProjectChildEntityLoading.value = true
@@ -290,7 +291,7 @@ async function addNewProjectChildEntity() {
   }
 
   try {
-    openTableCreateDialog()
+    openTableCreateDialog(undefined, showSourceSelector)
   } finally {
     isAddNewProjectChildEntityLoading.value = false
   }
@@ -692,7 +693,7 @@ defineExpose({
                 <NcButton
                   v-if="isUIAllowed('tableCreate', { roles: baseRole, source: base?.sources?.[0] })"
                   v-e="['c:base:create-table']"
-                  :disabled="!base?.sources?.[0]?.enabled"
+                  :disabled="!base?.sources?.[0]?.enabled && base?.sources?.length === 1"
                   class="nc-sidebar-node-btn"
                   size="xxsmall"
                   type="text"
@@ -702,7 +703,7 @@ defineExpose({
                     '!inline-block !opacity-100': isOptionsOpen,
                   }"
                   :loading="isAddNewProjectChildEntityLoading"
-                  @click.stop="addNewProjectChildEntity"
+                  @click.stop="addNewProjectChildEntity()"
                   @mouseenter="showNodeTooltip = false"
                   @mouseleave="showNodeTooltip = true"
                 >
@@ -907,6 +908,7 @@ defineExpose({
                                     v-if="showBaseOption(source)"
                                     v-model:base="base"
                                     :source="source"
+                                    :show-source-selector="false"
                                   />
                                 </NcMenu>
                               </template>
@@ -919,7 +921,7 @@ defineExpose({
                               size="xxsmall"
                               class="nc-sidebar-node-btn"
                               :class="{ '!opacity-100 !inline-block': isBasesOptionsOpen[source!.id!] }"
-                              @click.stop="openTableCreateDialog(sourceIndex)"
+                              @click.stop="openTableCreateDialog(sourceIndex, false)"
                             >
                               <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
                             </NcButton>

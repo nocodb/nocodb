@@ -41,19 +41,21 @@ export class AiSchemaController {
     const { operation } = body;
 
     if (operation === 'generateTables') {
-      const { title, description } = body.input;
+      const { title, description, sourceId } = body.input;
 
       return await this.aiSchemaService.generateTables(context, {
         baseId: context.base_id,
+        sourceId,
         input: title,
         instructions: description,
         req: req,
       });
     } else if (operation === 'predictViews') {
-      const { tableId, history = [], description, type } = body.input;
+      const { tableId, sourceId, history = [], description, type } = body.input;
 
       return await this.aiSchemaService.predictViews(context, {
         baseId: context.base_id,
+        sourceId,
         tableIds: [tableId],
         history,
         instructions: description,
@@ -61,7 +63,7 @@ export class AiSchemaController {
         req: req,
       });
     } else if (operation === 'createViews') {
-      const { views } = body.input;
+      const { views, sourceId } = body.input;
 
       const base = await this.basesService.getProject(context, {
         baseId: context.base_id,
@@ -69,6 +71,7 @@ export class AiSchemaController {
 
       return await this.aiSchemaService.createViews(context, {
         base,
+        sourceId,
         views,
         req: req,
       });

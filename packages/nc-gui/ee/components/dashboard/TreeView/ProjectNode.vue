@@ -261,7 +261,7 @@ const setColor = async (color: string, base: BaseType) => {
   }
 }
 
-function openTableCreateDialog(baseIndex?: number | undefined) {
+function openTableCreateDialog(baseIndex?: number | undefined, showSourceSelector = true) {
   $e('c:table:create:navdraw')
 
   let sourceId = base.value!.sources?.[0].id
@@ -273,6 +273,7 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
   _openTableCreateDialog({
     baseId: base.value?.id,
     sourceId,
+    showSourceSelector,
     onCloseCallback: () => {
       isExpanded.value = true
 
@@ -303,7 +304,7 @@ function openErdView(source: SourceType) {
 }
 
 const isAddNewProjectChildEntityLoading = ref(false)
-const addNewProjectChildEntity = async () => {
+const addNewProjectChildEntity = async (showSourceSelector = true) => {
   if (isAddNewProjectChildEntityLoading.value) return
 
   isAddNewProjectChildEntityLoading.value = true
@@ -317,7 +318,7 @@ const addNewProjectChildEntity = async () => {
   }
 
   try {
-    openTableCreateDialog()
+    openTableCreateDialog(undefined, showSourceSelector)
   } finally {
     isAddNewProjectChildEntityLoading.value = false
   }
@@ -354,6 +355,10 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   if (isNewSidebarEnabled.value && !cmdOrCtrl && activeProjectId.value === base.id) {
+    if (!isExpanded.value) {
+      isExpanded.value = true
+    }
+
     showProjectList.value = false
     return
   }
@@ -798,7 +803,7 @@ defineExpose({
                   v-if="
                     isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })
                   "
-                  :disabled="!base?.sources?.[0]?.enabled"
+                  :disabled="!base?.sources?.[0]?.enabled && base?.sources?.length === 1"
                   class="nc-sidebar-node-btn"
                   type="text"
                   data-testid="nc-sidebar-add-base-entity"
@@ -808,7 +813,7 @@ defineExpose({
                     '!inline-block !opacity-100': isOptionsOpen,
                   }"
                   :loading="isAddNewProjectChildEntityLoading"
-                  @click.stop="addNewProjectChildEntity"
+                  @click.stop="addNewProjectChildEntity()"
                   @mouseenter="showNodeTooltip = false"
                   @mouseleave="showNodeTooltip = true"
                 >
@@ -1025,6 +1030,7 @@ defineExpose({
                                     v-if="showBaseOption(source)"
                                     v-model:base="base"
                                     :source="source"
+                                    :show-source-selector="false"
                                   />
                                 </NcMenu>
                               </template>
@@ -1036,7 +1042,7 @@ defineExpose({
                               size="xxsmall"
                               class="nc-sidebar-node-btn"
                               :class="{ '!opacity-100 !inline-block': isBasesOptionsOpen[source!.id!] }"
-                              @click.stop="openTableCreateDialog(baseIndex)"
+                              @click.stop="openTableCreateDialog(baseIndex, false)"
                             >
                               <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
                             </NcButton>

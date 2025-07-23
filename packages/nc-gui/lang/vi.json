@@ -141,15 +141,15 @@
     "WorkspaceOwnerNotified": "Chủ workspace đã được thông báo",
     "WorkspaceOwnerNotifiedSubtitle": "Yêu cầu nâng cấp của bạn đã được gửi tới chủ workspace.",
     "failedToSendUpgradeRequest": "Gửi yêu cầu nâng cấp thất bại",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Nâng cấp để mở khóa truy cập dữ liệu đầy đủ",
+    "upgradeToSeeMoreRecordInline": "Nâng cấp để xem tất cả bản ghi từ nguồn dữ liệu ngoài",
     "upgradeToSeeMoreRecordSubtitle": "Mở khóa khả năng xem đầy đủ các nguồn đã kết nối. Xem tất cả bản ghi bằng cách nâng cấp lên gói Plus.",
     "upgradeToSeeMoreRecordInlineSubtitle": "Bạn đang xem {limit}/{total} bản ghi. Nâng cấp lên gói Plus để truy cập {remaining} bản ghi còn lại.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Gói miễn phí cho phép tối đa {limit} người dùng loại Editor, hãy nâng cấp để không giới hạn",
     "adjustCollaboratorRoles": "Điều chỉnh vai trò cộng tác viên",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "Hướng dẫn sử dụng",
     "trigger": "Kích hoạt",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Phong cách",
     "label": "Nhãn",
     "role": "Vai diễn",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "Chỉ tiếp tục nếu bạn tin tưởng liên kết này.",
     "reAssignViewModalSubtitle": "Khi đã chuyển giao, chủ sở hữu hiện tại sẽ không thể chỉnh sửa cấu hình chế độ xem.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Khách hàng thân thiết được hưởng giá ưu đãi cố định!",
     "loyaltyBannerSubtitle": "Mở khóa chỗ ngồi không giới hạn, thêm bản ghi, dung lượng lớn hơn, webhook có điều kiện, SSO, tích hợp và nhiều hơn nữa!",
     "selectTimezone": "Hiển thị múi giờ",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "Tham gia cộng đồng",
       "joinReddit": "Tham gia /r/NocoDB",
       "followNocodb": "Theo dõi NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Dịch bởi Cộng đồng/AI)"
     },
     "twitter": "Twitter",
     "docReference": "Tài liệu tham khảo",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Thêm từ URL",
     "enterJson": "Nhập JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Cơ sở Airtable",
     "useSameTimezoneForAllMembers": "Sử dụng cùng múi giờ cho mọi thành viên",
     "displayTimezone": "Hiển thị múi giờ",
     "upgradePlan": "Nâng cấp gói",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "Tìm kiếm biểu tượng",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "Bạn có thể thêm nhiều email được phân tách bằng dấu phẩy (,)",
       "enterTableName": "Nhập tên bảng",
       "enterScriptName": "Nhập tên script",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Nhập tên Bảng điều khiển",
       "enterTableDescription": "Nhập mô tả bảng...",
       "enterScriptDescription": "Nhập mô tả script...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "Đã xảy ra lỗi khi {type}",
       "anErrorOccuredWhileAirtableBaseImport": "Đã xảy ra lỗi khi nhập cơ sở từ Airtable",
       "paymentFailed": "Thanh toán thất bại",
-      "paymentFailedSubtitle": "Đã xảy ra sự cố khi xử lý thanh toán của bạn. Vui lòng thử lại hoặc liên hệ bộ phận hỗ trợ."
+      "paymentFailedSubtitle": "Đã xảy ra sự cố khi xử lý thanh toán của bạn. Vui lòng thử lại hoặc liên hệ bộ phận hỗ trợ.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Metadata dự án xuất khẩu thành công",
@@ -2371,6 +2375,7 @@
       "projInfo": "Sao chép thông tin dự án vào clipboard",
       "inviteUrlCopy": "Sao chép lời mời URL vào clipboard",
       "createView": "Xem được tạo thành công",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Vui lòng kích hoạt plugin SMTP trong App Store để bật thông báo email",
       "collabView": "Chuyển thành công thành quan điểm cộng tác",
       "lockedView": "Chuyển thành công thành chế độ xem bị khóa",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "Thanh toán của bạn đã được xử lý. Bạn có thể sử dụng gói mới ngay bây giờ.",
       "upgradeSuccessful": "Nâng cấp thành công",
       "upgradeSuccessfulSubtitle": "Thanh toán nâng cấp của bạn đã được xử lý. Bạn có thể sử dụng gói mới ngay bây giờ.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

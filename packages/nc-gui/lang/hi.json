@@ -186,6 +186,7 @@
     "manual": "मैनुअल",
     "trigger": "ट्रिगर",
     "addLookupField": "{count} लुकअप फील्ड जोड़ें",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "शैली",
     "label": "लेबल",
     "role": "भूमिका",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "Only proceed if you trust this link.",
     "reAssignViewModalSubtitle": "Once reassigned, current owner will no longer be able to edit the view configuration.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "वफादारी का लाभ उठाएँ — सीमित मूल्य का आनंद लें!",
     "loyaltyBannerSubtitle": "अनलिमिटेड सीटें, अतिरिक्त रिकॉर्ड, अधिक स्टोरेज, सशर्त वेबहुक्स, SSO, इंटीग्रेशन और बहुत कुछ अनलॉक करें!",
     "selectTimezone": "टाइमज़ोन प्रदर्शित करें",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "NocoDB के समुदाय से जुड़े",
       "joinReddit": "/r/NocoDB में जुड़े",
       "followNocodb": "NocoDB से जुड़े",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Community/AI Translated)"
     },
     "twitter": "Twitter",
     "docReference": "Document Reference",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Add from URL",
     "enterJson": "Enter JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable base",
     "useSameTimezoneForAllMembers": "सभी सदस्यों के लिए एक ही टाइमज़ोन उपयोग करें",
     "displayTimezone": "टाइम ज़ोन प्रदर्शित करें",
     "upgradePlan": "Upgrade Plan",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "आइकन खोजें",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "आप एकाधिक COMMA (,) द्वारा अलग ईमेल जोड़ सकते है",
       "enterTableName": "टेबल का नाम लिखे",
       "enterScriptName": "Enter script name",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "डैशबोर्ड नाम दर्ज करें",
       "enterTableDescription": "तालिका विवरण दर्ज करें...",
       "enterScriptDescription": "Enter script description...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "An error occurred while {type}",
       "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
       "paymentFailed": "भुगतान असफल हुआ",
-      "paymentFailedSubtitle": "आपका भुगतान संसाधित करते समय कुछ त्रुटि हुई। कृपया पुनः प्रयास करें या सहायता से संपर्क करें।"
+      "paymentFailedSubtitle": "आपका भुगतान संसाधित करते समय कुछ त्रुटि हुई। कृपया पुनः प्रयास करें या सहायता से संपर्क करें।",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात किया गया",
@@ -2371,6 +2375,7 @@
       "projInfo": "क्लिपबोर्ड में प्रोजेक्ट की जानकारी कॉपी की गयी है",
       "inviteUrlCopy": "आमंत्रण URL को क्लिपबोर्ड में कॉपी किया गया है",
       "createView": "व्यू सफलतापूर्वक बनाया गया",
+      "createField": "Field created successfully",
       "formEmailSMTP": "कृपया ईमेल अधिसूचना को सक्षम करने के लिए ऐप स्टोर में SMTP प्लगइन को सक्रिय करें",
       "collabView": "सफलतापूर्वक सहयोगी दृश्य पर स्विच किया गया",
       "lockedView": "सफलतापूर्वक लॉक किए गए दृश्य पर स्विच किया गया",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "आपका भुगतान प्रोसेस हो गया है। अब आप अपना नया प्लान उपयोग कर सकते हैं।",
       "upgradeSuccessful": "अपग्रेड सफल",
       "upgradeSuccessfulSubtitle": "अपग्रेड के लिए आपका भुगतान प्रोसेस हो गया है। अब आप अपना नया प्लान उपयोग कर सकते हैं।",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

@@ -186,6 +186,7 @@
     "manual": "म्यानुअल",
     "trigger": "ट्रिगर",
     "addLookupField": "{count} खोज्या फिल्ड थप्नुहोस्",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "शैली",
     "label": "लेबल",
     "role": "भूमिका",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "यदि तपाईं यस लिङ्कमा भरोसा गर्नुहुन्छ भने मात्र अगाडि बढ्नुहोस्।",
     "reAssignViewModalSubtitle": "पुनः तोकेपछि, हालका मालिकले दृश्य कन्फिगरेसन सम्पादन गर्न अब सक्षम हुने छैनन्।",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "प्रतिबद्धताको फलस्वरूप — सीमित मूल्यमा आनन्द लिनुहोस्!",
     "loyaltyBannerSubtitle": "असीमित सिट, थप रेकर्ड, बढी भण्डारण, सर्तसहितका वेबहुक, SSO, एकीकरणहरू र अझ धेरै अनलक गर्नुहोस्!",
     "selectTimezone": "समय क्षेत्र देखाउनुहोस्",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "NocoDB समुदायमा सामेल हुनुहोस्",
       "joinReddit": "/r/NocoDB",
       "followNocodb": "NocoDB लाई पछ्याउनुहोस्",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(सामुदायिक/AI अनुवादित)"
     },
     "twitter": "Twitter",
     "docReference": "दस्तावेज सन्दर्भ",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "URL बाट थप्नुहोस्",
     "enterJson": "JSON प्रविष्ट गर्नुहोस्",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable बेस",
     "useSameTimezoneForAllMembers": "सबै सदस्यका लागि एउटै समय क्षेत्र प्रयोग गर्नुहोस्",
     "displayTimezone": "समय क्षेत्र देखाउनुहोस्",
     "upgradePlan": "योजना अपग्रेड गर्नुहोस्",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "आइकनहरू खोज्नुहोस्",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "तपाईंले कयौं अल्पविराम(,) विभाजित इमेल थप्न सक्नुहुन्छ",
       "enterTableName": "तालिका नाम प्रविष्ट गर्नुहोस्",
       "enterScriptName": "स्क्रिप्ट नाम प्रविष्ट गर्नुहोस्",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "ड्यासबोर्ड नाम प्रविष्ट गर्नुहोस्",
       "enterTableDescription": "तालिका विवरण प्रविष्ट गर्नुहोस्...",
       "enterScriptDescription": "स्क्रिप्ट वर्णन प्रविष्ट गर्नुहोस्...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "{type} गर्दा त्रुटि भयो",
       "anErrorOccuredWhileAirtableBaseImport": "Airtable बाट बेस आयात गर्दा त्रुटि भयो",
       "paymentFailed": "भुक्तानी असफल भयो",
-      "paymentFailedSubtitle": "तपाईंको भुक्तानी प्रशोधन गर्दा केही त्रुटि भयो । कृपया फेरि प्रयास गर्नुहोस् वा समर्थनसँग सम्पर्क गर्नुहोस्।"
+      "paymentFailedSubtitle": "तपाईंको भुक्तानी प्रशोधन गर्दा केही त्रुटि भयो । कृपया फेरि प्रयास गर्नुहोस् वा समर्थनसँग सम्पर्क गर्नुहोस्।",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात गरिएको छ",
@@ -2371,6 +2375,7 @@
       "projInfo": "आधार जानकारी क्लिपबोर्डमा प्रतिलिपि गरियो",
       "inviteUrlCopy": "आमन्त्रण URL क्लिपबोर्डमा प्रतिलिपि गरियो",
       "createView": "दृश्य सफलतापूर्वक सिर्जना गरियो",
+      "createField": "Field created successfully",
       "formEmailSMTP": "ईमेल सूचना सक्षम गर्नको लागि एप स्टोरमा SMTP प्लगइन सक्रिय गर्नुहोस्",
       "collabView": "सहकार्यात्मक दृश्यमा सफलतापूर्वक सुइच गरियो",
       "lockedView": "लक गरिएको दृश्यमा सफलतापूर्वक सुइच गरियो",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "तपाईंको भुक्तानी प्रशोधन भयो। अब तपाईं नयाँ योजना प्रयोग गर्न सक्नुहुन्छ।",
       "upgradeSuccessful": "अपग्रेड सफल",
       "upgradeSuccessfulSubtitle": "अपग्रेडका लागि तपाईंको भुक्तानी प्रशोधन भयो। अब तपाईं नयाँ योजना प्रयोग गर्न सक्नुहुन्छ।",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

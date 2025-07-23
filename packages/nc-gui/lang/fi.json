@@ -141,15 +141,15 @@
     "WorkspaceOwnerNotified": "Työtilan omistajalle ilmoitettu",
     "WorkspaceOwnerNotifiedSubtitle": "Pyyntösi päivityksestä on jaettu työtilan omistajalle.",
     "failedToSendUpgradeRequest": "Päivityspyyntöä ei voitu lähettää",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Päivitä avataksesi täyden datan käytön",
+    "upgradeToSeeMoreRecordInline": "Päivitä nähdäksesi kaikki tietueet ulkoisista tietolähteistä",
     "upgradeToSeeMoreRecordSubtitle": "Avaa täysi näkyvyys yhdistettyihin lähteisiin. Näe kaikki tietueet päivittämällä Plus-pakettiin.",
     "upgradeToSeeMoreRecordInlineSubtitle": "Näet {total} tietueesta {limit}. Avaa pääsy jäljellä oleviin {remaining} tietueeseen päivittämällä Plus-pakettiin.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Ilmainen paketti sallii enintään {limit} Editor-tyyppistä käyttäjää, päivitä saadaksesi rajattoman määrän",
     "adjustCollaboratorRoles": "Säädä yhteistyökumppaneiden rooleja",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "Manuaalinen",
     "trigger": "Laukaisin",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Tyyli",
     "label": "Tunniste",
     "role": "Rooli",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "Jatka vain, jos luotat tähän linkkiin.",
     "reAssignViewModalSubtitle": "Kun omistaja on vaihdettu, nykyinen omistaja ei voi enää muokata näkymän asetuksia.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Uskollisuudesta palkitaan — nauti kiinteästä hinnoittelusta!",
     "loyaltyBannerSubtitle": "Avaa rajattomat paikat, lisää tietueita, enemmän tallennustilaa, ehdolliset webhookit, SSO, integraatiot ja paljon muuta!",
     "selectTimezone": "Näytä aikavyöhyke",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "Liity NocoDB-yhteisöön",
       "joinReddit": "Liity /r/NocoDB",
       "followNocodb": "Seuraa NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Yhteisön/AI:n kääntämä)"
     },
     "twitter": "Twitter",
     "docReference": "Asiakirjan viite",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Lisää URL-osoitteesta",
     "enterJson": "Syötä JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable-pohja",
     "useSameTimezoneForAllMembers": "Käytä samaa aikavyöhykettä kaikille jäsenille",
     "displayTimezone": "Näytä aikavyöhyke",
     "upgradePlan": "Päivitä paketti",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "Etsi kuvakkeita",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "Voit lisätä useita pilkuja (,) erotettuja sähköposteja",
       "enterTableName": "Anna taulukon nimi",
       "enterScriptName": "Anna skriptin nimi",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Anna hallintapaneelin nimi",
       "enterTableDescription": "Anna taulukon kuvaus...",
       "enterScriptDescription": "Anna skriptin kuvaus...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "Virhe tapahtui, kun {type}",
       "anErrorOccuredWhileAirtableBaseImport": "Virhe tapahtui tuotaessa pohjaa Airtablesta",
       "paymentFailed": "Maksu epäonnistui",
-      "paymentFailedSubtitle": "Maksun käsittelyssä tapahtui virhe. Yritä uudelleen tai ota yhteyttä tukeen."
+      "paymentFailedSubtitle": "Maksun käsittelyssä tapahtui virhe. Yritä uudelleen tai ota yhteyttä tukeen.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Project Metadata viedään onnistuneesti",
@@ -2371,6 +2375,7 @@
       "projInfo": "Kopioitu projektitiedot leikepöydälle",
       "inviteUrlCopy": "Kopioitus kutsua URL-osoitteen leikepöydälle",
       "createView": "Näkymä on luotu onnistuneesti",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Aktivoi SMTP-laajennus App Storesta sähköpostin ilmoittamisen mahdollistamiseksi",
       "collabView": "Onnistuneesti siirtynyt yhteistyöhön",
       "lockedView": "Onnistuneesti kytketty lukittuun näkymään",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "Maksusi on käsitelty. Voit nyt käyttää uutta pakettiasi.",
       "upgradeSuccessful": "Päivitys onnistui",
       "upgradeSuccessfulSubtitle": "Päivityksen maksu on käsitelty. Voit nyt käyttää uutta pakettiasi.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

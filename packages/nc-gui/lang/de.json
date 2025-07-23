@@ -160,7 +160,11 @@
     "upgradeToUseRowColoring": "Upgrade deinen Tarif um Reihen farbig zu markieren.",
     "upgradeToUseRowColoringSubtitle": "Upgrade auf {plan} um Reihen basierend auf Feld-Inhalten oder Bedingungen farbig zu markieren. Dies macht es einfacher wichtige Inhalte zu erfassen.",
     "upgradeToUseTableAndFieldPermissions": "Upgrade deinen Tarif um Feld und Tabellen Berechtigungen zu nutzen.",
-    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade auf {plan} um Feld und Tabellen Berechtigungen zu nutzen. Dies macht es einfacher deine Daten zu verwalten."
+    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade auf {plan} um Feld und Tabellen Berechtigungen zu nutzen. Dies macht es einfacher deine Daten zu verwalten.",
+    "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
+    "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them."
   },
   "general": {
     "script": "Skript",
@@ -412,7 +416,9 @@
     "permissions": "Berechtigungen",
     "manageAllFields": "Alle Felder verwalten",
     "automations": "Automatisierungen",
-    "record": "Eintrag"
+    "record": "Eintrag",
+    "overview": "Overview",
+    "baseType": "Base Type"
   },
   "objects": {
     "script": "Skript",
@@ -658,6 +664,7 @@
     "isNotNull": "ist nicht Null"
   },
   "title": {
+    "accessRestricted": "Access Restricted",
     "editTablePermissions": "Tabellenberechtigungen bearbeiten",
     "editFieldPermissions": "Feldberechtigungen bearbeiten",
     "confirmSnapshotRestore": "Wiederherstellung des Snapshots bestätigen",
@@ -858,7 +865,16 @@
     "duplicatesFound": "Duplikate gefunden",
     "matchingResultsInRecords": "Übereinstimmende Ergebnisse in {count} Datensätzen",
     "tablePermissions": "Tabellenberechtigungen",
-    "fieldPermissions": "Feldberechtigungen"
+    "fieldPermissions": "Feldberechtigungen",
+    "baseTypeDefaultSubtext": "Workspace members can collaborate based on their role.",
+    "baseTypePrivateSubtext": "Invite-only base. Only you can view and manage its members.",
+    "baseTypeTabSubtext": "Control who can view and interact with this base. Choose an access level that fits your privacy needs.",
+    "baseTypeSettingsDefaultSubtext": "Everyone in the workspace can access this base, based on their role.",
+    "baseTypeSettingsPrivateSubtext": "Only you and members invited to this base can view and interact with it.",
+    "privateBase": "Private Base",
+    "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
+    "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
     "crossBase": "Verknüpfung zu externer Base",
@@ -1394,7 +1410,12 @@
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
     "customColours": "Custom colours",
-    "sendAllEvents": "Send all events"
+    "sendAllEvents": "Send all events",
+    "useNocoAI": "Use NocoAI",
+    "disableNocoAI": "Disable NocoAI",
+    "defaultType": "Default",
+    "privateType": "Private",
+    "sharingRestricted": "Sharing restricted"
   },
   "activity": {
     "clickToResolve": "Zum Klären klicken",
@@ -1682,7 +1703,9 @@
     "pending": "Ausstehend",
     "goToPage": "Zur Seite gehen",
     "changePlan": "Plan ändern",
-    "goToPermissionsOverview": "Go to Permissions Overview"
+    "goToPermissionsOverview": "Go to Permissions Overview",
+    "goToBaseSettings": "Go to Base Settings",
+    "convertToSharedBase": "Convert to Shared Base"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1821,6 +1844,7 @@
     "noAutomations": "No automations"
   },
   "msg": {
+    "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
@@ -1955,6 +1979,8 @@
     "saveChanges": "Möchten Sie die Änderungen speichern?",
     "tooLargeFieldEntity": "Das Feld ist zu groß, um in {entity} konvertiert zu werden",
     "roleRequired": "Rolle erforderlich",
+    "privateBaseShareRestrictedMsg": "This base is set as Private and cannot be shared publicly.",
+    "privateBaseViewShareRestrictedMsg": "Views within a Private base cannot be shared publicly.",
     "warning": {
       "webhookDelete": "Wirkt sich auf Schaltflächenfelder aus, die auf diesen Webhook angewiesen sind",
       "calendarNoFields": "Die Kalenderansicht erfordert ein Datums- oder Datum/Zeit-Feld. Richten Sie eine Kalenderansicht ein, nachdem Sie das entsprechende Feld hinzugefügt haben!",
@@ -2361,9 +2387,11 @@
       "mcpUrlCopied": "MCP URL copied to clipboard"
     },
     "subText": {
-      "createNewTable": "Von vorn beginnen",
+      "startFromScratch": "Start from scratch.",
       "importData": "Aus Dateien und externen Quellen",
-      "connectExternalData": "In Echtzeit zu externen Datenbanken"
+      "connectExternalData": "In Echtzeit zu externen Datenbanken",
+      "syncData": "With internal or external sources",
+      "scriptsByNocoDB": "Ready to use scripts by NocoDB"
     },
     "noAccess": "No Access",
     "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",

@@ -141,15 +141,15 @@
     "WorkspaceOwnerNotified": "បានជូនដំណឹងដល់ម្ចាស់ Workspace",
     "WorkspaceOwnerNotifiedSubtitle": "សំណើធ្វើបច្ចុប្បន្នភាពរបស់អ្នកត្រូវបានចែករំលែកជាមួយម្ចាស់ Workspace។",
     "failedToSendUpgradeRequest": "ផ្ញើសំណើធ្វើបច្ចុប្បន្នភាពមិនជោគជ័យ",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "ធ្វើបច្ចុប្បន្នភាពដើម្បីដោះសោការចូលដំណើរការទិន្នន័យពេញលេញ",
+    "upgradeToSeeMoreRecordInline": "ធ្វើបច្ចុប្បន្នភាពដើម្បីមើលកំណត់ត្រាទាំងអស់ពីប្រភពទិន្នន័យខាងក្រៅ",
     "upgradeToSeeMoreRecordSubtitle": "បើកចំហការមើលឃើញពេញលេញលើប្រភពដែលបានភ្ជាប់។ មើលកំណត់ត្រាទាំងអស់ ដោយធ្វើបច្ចុប្បន្នភាពទៅគម្រោង Plus។",
     "upgradeToSeeMoreRecordInlineSubtitle": "អ្នកកំពុងមើល {limit} នៃ {total} កំណត់ត្រា។ បើកចំហដើម្បីចូលដំណើរការកំណត់ត្រា {remaining} នៅសល់ ដោយធ្វើបច្ចុប្បន្នភាពទៅគម្រោង Plus។",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "គម្រោងឥតគិតថ្លៃអនុញ្ញាតអ្នកប្រើប្រភេទ Editor បានដល់ {limit} នាក់ សូមធ្វើបច្ចុប្បន្នភាពដើម្បីបានគ្មានកំណត់",
     "adjustCollaboratorRoles": "លៃតម្រូវតួនាទីអ្នកសហការគ្នា",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "សៀវភៅណែនាំ",
     "trigger": "ចាប់ផ្តើម",
     "addLookupField": "បន្ថែម {count} វាលស្វែងរក",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "ស្ទីល",
     "label": "ស្លាកយោង",
     "role": "តួនាទី",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "សូមបន្តតែបើអ្នកទុកចិត្តលីងនេះ។",
     "reAssignViewModalSubtitle": "បន្ទាប់ពីបានប្តូរអ្នកកាន់ ម្ចាស់បច្ចុប្បន្នមិនអាចកែប្រែការ​កំណត់​ទិដ្ឋភាពបាន​ទៀតទេ។",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "ភាពស្មោះត្រង់ផ្តល់អត្ថប្រយោជន៍ — រីករាយនឹងតម្លៃថេរ!",
     "loyaltyBannerSubtitle": "បើកចំហកន្លែងគ្មានកំណត់ កំណត់ត្រាបន្ថែម ទំហំផ្ទុកបន្ថែម Webhook លក្ខខណ្ឌ SSO សមាហរណកម្ម និងច្រើនទៀត!",
     "selectTimezone": "បង្ហាញតំបន់ពេលវេលា",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "ចូលរួមជាមួយសហគមន៍ NocoDB",
       "joinReddit": "/r/NocoDB",
       "followNocodb": "ធ្វើតាម NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(ជាសហគមន៍/បកប្រែដោយ AI)"
     },
     "twitter": "Twitter",
     "docReference": "ព័ត៌មាន ឯកសារ",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "បន្ថែមពី URL",
     "enterJson": "បញ្ចូល JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Base Airtable",
     "useSameTimezoneForAllMembers": "ប្រើតំបន់ពេលវេលាដូចគ្នាសម្រាប់សមាជិកទាំងអស់",
     "displayTimezone": "បង្ហាញតំបន់ពេល",
     "upgradePlan": "អាប់ក្រេដផែនការ",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "ស្វែងរកនិមិត្តសញ្ញា",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "អ្នកអាចបន្ថែមអ៊ីម៉ែលជាច្រើន ដោយបំបែកជាក្បៀស(,)",
       "enterTableName": "បញ្ចូលឈ្មោះតារាង",
       "enterScriptName": "បញ្ចូលឈ្មោះស្គ្រីប",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "បញ្ចូលឈ្មោះផ្ទាំងបង្អួច",
       "enterTableDescription": "បញ្ចូលពិពណ៌នាតារាង...",
       "enterScriptDescription": "បញ្ចូលការ​ពិពណ៌នា​ស្គ្រីប...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "កំហុសបានកើតឡើងនៅពេល {type}",
       "anErrorOccuredWhileAirtableBaseImport": "កំហុសបានកើតឡើងខណៈនាំចូល Base ពី Airtable",
       "paymentFailed": "ការទូទាត់មិនជោគជ័យ",
-      "paymentFailedSubtitle": "មានបញ្ហា​នៅពេលកំពុងដំណើរការទូទាត់។ សូមព្យាយាមម្តងទៀត ឬទំនាក់ទំនងជាមួយក្រុមគាំទ្រ។"
+      "paymentFailedSubtitle": "មានបញ្ហា​នៅពេលកំពុងដំណើរការទូទាត់។ សូមព្យាយាមម្តងទៀត ឬទំនាក់ទំនងជាមួយក្រុមគាំទ្រ។",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "ធាតុមូលដ្ឋានត្រូវបាននាំចេញដោយជោគជ័យ",
@@ -2371,6 +2375,7 @@
       "projInfo": "បានចម្លងព័ត៌មានមូលដ្ឋានទៅកាន់ក្រាល",
       "inviteUrlCopy": "បានចម្លង URL អញ្ជើញទៅកាន់ក្រាល",
       "createView": "បានបង្កើតទិដ្ឋភាពដោយជោគជ័យ",
+      "createField": "Field created successfully",
       "formEmailSMTP": "សូមបើកដំណើរការ SMTP plugin នៅក្នុង App store ដើម្បីអនុញ្ញាតការជូនដំណឹងអ៊ីមែល",
       "collabView": "បង្កើនទិដ្ឋភាពដំណើរការក្នុងអាជ្ញាធរជុំគ្នាបានជោគជ័យ",
       "lockedView": "បង្កើនទិដ្ឋភាពខ្លួនឯងបានជោគជ័យ",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "ការទូទាត់របស់អ្នកបានដំណើរការរួច។ អ្នកអាចប្រើគម្រោងថ្មីរបស់អ្នកបានហើយ។",
       "upgradeSuccessful": "ធ្វើបច្ចុប្បន្នភាពជោគជ័យ",
       "upgradeSuccessfulSubtitle": "ការទូទាត់សម្រាប់ការធ្វើបច្ចុប្បន្នភាពរបស់អ្នកបានដំណើរការរួច។ អ្នកអាចប្រើគម្រោងថ្មីរបស់អ្នកបានហើយ។",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

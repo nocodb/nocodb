@@ -909,7 +909,7 @@
     "modelContextProtocol": "모델 컨텍스트 프로토콜",
     "mcp": "MCP",
     "exampleScript": "예제 스크립트",
-    "scriptByNocoDB": "NocoDB의 스크립트",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "NocoDB의 스크립트",
     "restoringSnapshot": "스냅샷 복원",
     "note": "메모:",
@@ -1396,7 +1396,7 @@
     "selectOwner": "소유자 선택",
     "addFromUrl": "URL에서 추가",
     "enterJson": "JSON을 입력합니다",
-    "airtableBase": "에어테이블 베이스",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "모든 구성원에 대해 동일한 시간대 사용",
     "displayTimezone": "시간대 표시",
     "upgradePlan": "요금제 업그레이드",
@@ -1435,7 +1435,10 @@
     "disableNocoAI": "NocoAI 비활성화",
     "defaultType": "기본값",
     "privateType": "비공개",
-    "sharingRestricted": "공유 제한"
+    "sharingRestricted": "공유 제한",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",

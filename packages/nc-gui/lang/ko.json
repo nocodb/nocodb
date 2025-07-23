@@ -2231,11 +2231,8 @@
       "copyToClipboardLocalFileUrl": "브라우저는 로컬 리소스를 직접로드 할 수 없습니다. 대신 URL이 클립보드에 복사되었습니다.",
       "unsavedChanges": "변경 내용이 저장되지 않았습니다.",
       "unsavedChangesConfirmation": "이 페이지를 떠나시겠습니까?",
-      "leaveThisWorkspace": "이 작업 공간을 종료합니다.",
-      "supportChatUnavailable": "채팅 지원 불가",
-      "supportChatUnavailableSubtitle": "지원 채팅이 광고 차단기에 의해 차단되었을 수 있습니다. 비활성화하고 페이지를 새로고침해 보세요.",
-      "leaveWithoutFinishing": "마무리하지 않고 떠나시겠습니까?",
-      "leaveWithoutFinishingConfirmation": "변경 사항은 자동으로 저장되지만 여전히 편집 모드에 있습니다."
+      "supportChatUnavailable": "Support chat unavailable",
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
     },
     "error": {
       "failedToDeleteMcpToken": "MCP 토큰을 삭제하지 못했습니다",

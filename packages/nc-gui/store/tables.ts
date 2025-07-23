@@ -262,7 +262,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     baseId,
     sourceId,
     onCloseCallback,
-    showSourceSelector,
+    showSourceSelector = true,
   }: {
     baseId?: string
     sourceId?: string

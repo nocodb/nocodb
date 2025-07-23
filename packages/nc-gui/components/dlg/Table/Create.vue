@@ -2,12 +2,17 @@
 import type { TableType } from 'nocodb-sdk'
 import { AiWizardTabsType } from '#imports'
 
-const props = defineProps<{
-  modelValue: boolean
-  sourceId: string
-  baseId: string
-  showSourceSelector?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: boolean
+    sourceId: string
+    baseId: string
+    showSourceSelector?: boolean
+  }>(),
+  {
+    showSourceSelector: true,
+  },
+)
 
 const emit = defineEmits(['update:modelValue', 'create'])
 

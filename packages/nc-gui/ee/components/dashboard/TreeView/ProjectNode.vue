@@ -261,7 +261,7 @@ const setColor = async (color: string, base: BaseType) => {
   }
 }
 
-function openTableCreateDialog(baseIndex?: number | undefined, showSourceSelector = false) {
+function openTableCreateDialog(baseIndex?: number | undefined, showSourceSelector = true) {
   $e('c:table:create:navdraw')
 
   let sourceId = base.value!.sources?.[0].id
@@ -304,7 +304,7 @@ function openErdView(source: SourceType) {
 }
 
 const isAddNewProjectChildEntityLoading = ref(false)
-const addNewProjectChildEntity = async (showSourceSelector = false) => {
+const addNewProjectChildEntity = async (showSourceSelector = true) => {
   if (isAddNewProjectChildEntityLoading.value) return
 
   isAddNewProjectChildEntityLoading.value = true
@@ -813,7 +813,7 @@ defineExpose({
                     '!inline-block !opacity-100': isOptionsOpen,
                   }"
                   :loading="isAddNewProjectChildEntityLoading"
-                  @click.stop="addNewProjectChildEntity(true)"
+                  @click.stop="addNewProjectChildEntity()"
                   @mouseenter="showNodeTooltip = false"
                   @mouseleave="showNodeTooltip = true"
                 >
@@ -1042,7 +1042,7 @@ defineExpose({
                               size="xxsmall"
                               class="nc-sidebar-node-btn"
                               :class="{ '!opacity-100 !inline-block': isBasesOptionsOpen[source!.id!] }"
-                              @click.stop="openTableCreateDialog(baseIndex)"
+                              @click.stop="openTableCreateDialog(baseIndex, false)"
                             >
                               <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
                             </NcButton>

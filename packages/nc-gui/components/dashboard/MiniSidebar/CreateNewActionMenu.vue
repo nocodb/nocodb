@@ -88,7 +88,6 @@ function openTableCreateDialog() {
   _openTableCreateDialog({
     baseId: base.value?.id,
     sourceId: base.value!.sources?.[0].id,
-    showSourceSelector: true,
   })
 }
 

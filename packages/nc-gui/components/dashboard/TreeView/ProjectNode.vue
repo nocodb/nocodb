@@ -255,7 +255,7 @@ const setColor = async (color: string, base: BaseType) => {
   }
 }
 
-function openTableCreateDialog(sourceIndex?: number | undefined, showSourceSelector = false) {
+function openTableCreateDialog(sourceIndex?: number | undefined, showSourceSelector = true) {
   let sourceId = base.value!.sources?.[0].id
   if (typeof sourceIndex === 'number') {
     sourceId = base.value!.sources?.[sourceIndex].id
@@ -277,7 +277,7 @@ function openTableCreateDialog(sourceIndex?: number | undefined, showSourceSelec
 
 const isAddNewProjectChildEntityLoading = ref(false)
 
-async function addNewProjectChildEntity(showSourceSelector = false) {
+async function addNewProjectChildEntity(showSourceSelector = true) {
   if (isAddNewProjectChildEntityLoading.value) return
 
   isAddNewProjectChildEntityLoading.value = true
@@ -703,7 +703,7 @@ defineExpose({
                     '!inline-block !opacity-100': isOptionsOpen,
                   }"
                   :loading="isAddNewProjectChildEntityLoading"
-                  @click.stop="addNewProjectChildEntity(true)"
+                  @click.stop="addNewProjectChildEntity()"
                   @mouseenter="showNodeTooltip = false"
                   @mouseleave="showNodeTooltip = true"
                 >
@@ -921,7 +921,7 @@ defineExpose({
                               size="xxsmall"
                               class="nc-sidebar-node-btn"
                               :class="{ '!opacity-100 !inline-block': isBasesOptionsOpen[source!.id!] }"
-                              @click.stop="openTableCreateDialog(sourceIndex)"
+                              @click.stop="openTableCreateDialog(sourceIndex, false)"
                             >
                               <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
                             </NcButton>

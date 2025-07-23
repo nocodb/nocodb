@@ -40,7 +40,6 @@ function openTableCreateDialog(baseIndex?: number | undefined) {
     sourceId,
     'baseId': openedProject.value.id,
     'onCreate': closeDialog,
-    'showSourceSelector': true,
     'onUpdate:modelValue': () => closeDialog(),
   })
 

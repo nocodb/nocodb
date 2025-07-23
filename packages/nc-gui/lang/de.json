@@ -156,17 +156,12 @@
     "newEditorWillBeChangedSubtitle": "New Editor and higher role members will be billed in the next billing cycle.",
     "upgradeToUploadWsImage": "Upgrade, um ein Workspace-Bild hochzuladen",
     "upgradeToUploadWsImageSubtitle": "Ihr aktueller {activePlan}-Tarif erlaubt nur Symbole und Emojis. Aktualisieren Sie auf den {plan}-Tarif, um ein eigenes Bild als Workspace-Avatar hochzuladen.",
-    "upgradeToUseCurrentUserFilter": "Upgrade deinen Tarif um nach dem aktuellen Nutzer zu filtern.",
-    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade auf {plan} um Filter zu nutzen, die Daten basierend auf dem aktuellen Nutzer zeigen.",
-    "upgradeToUseRowColoring": "Upgrade to use row coloring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
-    "upgradeToUseTableAndFieldPermissions": "Upgrade deinen Tarif um Feld und Tabellen Berechtigungen zu nutzen.",
-    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade auf {plan} um Feld und Tabellen Berechtigungen zu nutzen. Dies macht es einfacher deine Daten zu verwalten.",
-    "upgradeToUseScripts": "Führen Sie ein Upgrade durch, um Scripts zu verwenden",
-    "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
-    "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
-    "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
+    "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
+    "upgradeToUseRowColoring": "Upgrade to use row colouring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data.",
+    "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
+    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data."
   },
   "general": {
     "script": "Skript",
@@ -412,17 +407,13 @@
     "automation": "Automatisierung",
     "resources": "Ressourcen",
     "community": "Community",
-    "youtube": "YouTube",
-    "changelog": "Änderungsverlauf",
-    "contactSupport": "Support kontaktieren",
-    "proceedImport": "Import fortsetzen",
-    "inserting": "Einfügen",
-    "permissions": "Berechtigungen",
-    "manageAllFields": "Alle Felder verwalten",
-    "automations": "Automatisierungen",
-    "record": "Eintrag",
-    "overview": "Overview",
-    "baseType": "Base Type"
+    "youtube": "Youtube",
+    "changelog": "Changelog",
+    "contactSupport": "Contact Support",
+    "proceedImport": "Proceed Import",
+    "inserting": "Inserting",
+    "permissions": "Permissions",
+    "manageAllFields": "Manage all fields"
   },
   "objects": {
     "script": "Skript",
@@ -600,22 +591,22 @@
       "usingSingleSelectField": "Einzelauswahlfeld verwenden",
       "usingSingleSelectFieldDescription": "Datensätze basierend auf einem Einzelauswahlfeld einfärben",
       "usingSingleSelectFieldTooltip": "No single select field found. Add one to enable select-field based row colouring.",
-      "usingConditions": "Bedingungen verwenden",
-      "usingConditionsDescription": "Datensätze basierend auf Bedingungen einfärben",
-      "colourRecordsByField": "Datensätze nach Feld färben"
+      "usingConditions": "Using Conditions",
+      "usingConditionsDescription": "Colour records based on conditions",
+      "colourRecordsByField": "Colour records by field"
     },
     "permissions": {
-      "addNewRecordTooltipTitle": "Erstellung von Datensätzen eingeschränkt",
-      "addNewRecordTooltip": "Du bist nicht berechtigt Datensätze in dieser Tabelle zu erstellen.",
-      "deleteRecordTooltipTitle": "Löschen des Datensatzes eingeschränkt",
-      "deleteRecordTooltip": "Du bist nicht berechtigt Datensätze in dieser Tabelle zu löschen.",
-      "editFieldTooltipTitle": "Bearbeitung eingeschränkt",
-      "editFieldTooltip": "Du bist nicht berechtigt Felder zu bearbeiten.",
-      "generalPermissionTooltipTitle": "Berechtigung eingeschränkt",
-      "generalPermissionTooltip": "Du bist nicht berechtigt diese Aktion auszuführen.",
-      "uploadDataTooltip": "Du bist nicht berechtigt Daten in diese Tabelle hochzuladen.",
-      "formCannotAcceptSubmissions": "Dieses Formular nimmt keine Einsendungen entgegen.",
-      "formCannotAcceptSubmissionsDescription": "Nur bestimmte Mitglieder haben die Berechtigung, Einsendungen für dieses Formular einzureichen."
+      "addNewRecordTooltipTitle": "Create record restricted",
+      "addNewRecordTooltip": "You do not have permission to create records in this table",
+      "deleteRecordTooltipTitle": "Delete record restricted",
+      "deleteRecordTooltip": "You do not have permission to delete records in this table",
+      "editFieldTooltipTitle": "Edit restricted",
+      "editFieldTooltip": "You do not have permission to edit this field",
+      "generalPermissionTooltipTitle": "Permission restricted",
+      "generalPermissionTooltip": "You do not have permission to perform this action",
+      "uploadDataTooltip": "You do not have permission to upload data into this table",
+      "formCannotAcceptSubmissions": "Form cannot accept submissions.",
+      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
     }
   },
   "datatype": {
@@ -671,9 +662,8 @@
     "isNotNull": "ist nicht Null"
   },
   "title": {
-    "accessRestricted": "Zugriff eingeschränkt",
-    "editTablePermissions": "Tabellenberechtigungen bearbeiten",
-    "editFieldPermissions": "Feldberechtigungen bearbeiten",
+    "editTablePermissions": "Edit table permissions",
+    "editFieldPermissions": "Edit field permissions",
     "confirmSnapshotRestore": "Wiederherstellung des Snapshots bestätigen",
     "urlFilters": "URL-Filter",
     "creatingScript": "Skript erstellen",
@@ -868,23 +858,14 @@
     "upgradeWorkspaceToPlan": "{workspace} auf {plan}-Tarif upgraden",
     "upgradeToPlanSubtitle": "Sie werden für diesen Tarif sofort belastet.",
     "reactivateToPlan": "{plan}-Tarif reaktivieren?",
-    "whatsNew": "What’s New!",
-    "currentUser": "Aktueller Benutzer",
-    "filteredByLoggedInUser": "Gefiltert durch eingeloggte Benutzer",
-    "hideExtensions": "Erweiterungen ausblenden",
-    "duplicatesFound": "Duplikate gefunden",
-    "matchingResultsInRecords": "Übereinstimmende Ergebnisse in {count} Datensätzen",
-    "tablePermissions": "Tabellenberechtigungen",
-    "fieldPermissions": "Feldberechtigungen",
-    "baseTypeDefaultSubtext": "Workspace members can collaborate based on their role.",
-    "baseTypePrivateSubtext": "Invite-only base. Only you can view and manage its members.",
-    "baseTypeTabSubtext": "Control who can view and interact with this base. Choose an access level that fits your privacy needs.",
-    "baseTypeSettingsDefaultSubtext": "Everyone in the workspace can access this base, based on their role.",
-    "baseTypeSettingsPrivateSubtext": "Only you and members invited to this base can view and interact with it.",
-    "privateBase": "Private Base",
-    "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
-    "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "whatsNew": "What’s New",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user",
+    "hideExtensions": "Hide Extensions",
+    "duplicatesFound": "Duplicates found",
+    "matchingResultsInRecords": "Matching results in {count} records",
+    "tablePermissions": "Table permissions",
+    "fieldPermissions": "Field permissions"
   },
   "labels": {
     "configurationError": "Incomplete configuration",
@@ -1731,9 +1712,7 @@
     "pending": "Ausstehend",
     "goToPage": "Zur Seite gehen",
     "changePlan": "Plan ändern",
-    "goToPermissionsOverview": "Go to Permissions Overview",
-    "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "goToPermissionsOverview": "Go to Permissions Overview"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1805,8 +1784,7 @@
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
-    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
   },
   "placeholder": {
     "searchIcons": "Icons suchen",

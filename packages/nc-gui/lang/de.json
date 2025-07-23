@@ -887,7 +887,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Konfigurationsfehler",
+    "configurationError": "Incomplete configuration",
     "keepEditing": "Weiter bearbeiten",
     "leave": "Verlassen",
     "chatWithNocoDBSupport": "NocoDB Support kontaktieren",

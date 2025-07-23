@@ -15,6 +15,7 @@ interface Props {
   transition?: string
   showBackBtn?: boolean
   wrapClassName?: string
+  showSourceSelector?: boolean
 }
 
 const {
@@ -25,6 +26,7 @@ const {
   transition,
   showBackBtn,
   wrapClassName = '',
+  showSourceSelector = true,
   ...rest
 } = defineProps<Props>()
 
@@ -62,6 +64,9 @@ const { activeWorkspace } = storeToRefs(workspace)
 const tablesStore = useTablesStore()
 const { loadProjectTables } = tablesStore
 const { baseTables } = storeToRefs(tablesStore)
+const { bases } = storeToRefs(useBases())
+
+const base = computed(() => bases.value.get(baseId))
 
 const templateEditorRef = ref()
 
@@ -79,7 +84,7 @@ const templateEditorModal = ref(false)
 
 const isParsingData = ref(false)
 
-const collapseKey = ref('')
+const collapseKey = ref(showSourceSelector && (base.value?.sources || [])?.length > 1 ? 'advanced-settings' : '')
 
 const temporaryJson = ref({})
 
@@ -90,6 +95,12 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
 const isError = ref(false)
 
 const refMonacoEditor = ref()
+
+const sourceSelectorRef = ref()
+
+const customSourceId = computed(() => {
+  return sourceSelectorRef.value?.customSourceId || sourceId
+})
 
 const useForm = Form.useForm
 
@@ -739,7 +750,7 @@ watch(
           :quick-import-type="importType"
           :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
           :base-id="baseId"
-          :source-id="sourceId"
+          :source-id="customSourceId"
           :import-worker="importWorker"
           :table-icon="importMeta.icon"
           class="nc-quick-import-template-editor"
@@ -1044,6 +1055,13 @@ watch(
             <a-form-item v-if="!importDataOnly" class="!my-2 nc-dense-checkbox-container">
               <NcCheckbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </NcCheckbox>
             </a-form-item>
+
+            <NcListSourceSelector
+              ref="sourceSelectorRef"
+              :base-id="baseId"
+              :source-id="sourceId"
+              :show-source-selector="showSourceSelector"
+            />
           </a-collapse-panel>
         </a-collapse>
       </div>
@@ -1077,7 +1095,7 @@ watch(
           size="small"
           class="nc-btn-import"
           :loading="preImportLoading"
-          :disabled="disablePreImportButton || preImportLoading"
+          :disabled="disablePreImportButton || preImportLoading || sourceSelectorRef?.selectedSource?.ncItemDisabled"
           @click="handlePreImport"
         >
           {{ importBtnText }}
@@ -1146,6 +1164,9 @@ watch(
 }
 .nc-import-collapse :deep(.ant-collapse-header) {
   display: none !important;
+}
+.nc-import-collapse :deep(.ant-collapse-content-box) {
+  @apply pr-0.2;
 }
 span:has(> .nc-modern-drag-import) {
   display: flex;

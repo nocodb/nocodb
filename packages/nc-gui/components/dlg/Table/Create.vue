@@ -782,9 +782,7 @@ const handleRefreshOnError = () => {
               type="primary"
               size="small"
               :disabled="
-                validateInfos.title?.validateStatus === 'error' ||
-                creating ||
-                (sourceSelectorRef?.selectedSource && sourceSelectorRef?.selectedSource?.ncItemDisabled)
+                validateInfos.title?.validateStatus === 'error' || creating || sourceSelectorRef?.selectedSource?.ncItemDisabled
               "
               :loading="creating"
               @click="_createTable"

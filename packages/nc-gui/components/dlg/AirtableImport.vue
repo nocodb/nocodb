@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import { JobStatus } from '#imports'
 
-const { modelValue, baseId, sourceId, transition } = defineProps<{
+const {
+  modelValue,
+  baseId,
+  sourceId,
+  transition,
+  showSourceSelector = true,
+} = defineProps<{
   modelValue: boolean
   baseId: string
   sourceId: string
   transition?: string
   showBackBtn?: boolean
+  showSourceSelector?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue', 'back'])
@@ -28,6 +35,10 @@ const { refreshCommandPalette } = useCommandPalette()
 const { loadTables } = baseStore
 
 const { getJobsForBase, loadJobsForBase } = useJobs()
+
+const { bases } = storeToRefs(useBases())
+
+const base = computed(() => bases.value.get(baseId))
 
 const showGoToDashboardButton = ref(false)
 
@@ -64,6 +75,12 @@ const syncSource = ref({
       syncUsers: false,
     },
   },
+})
+
+const sourceSelectorRef = ref()
+
+const customSourceId = computed(() => {
+  return sourceSelectorRef.value?.customSourceId || sourceId
 })
 
 const onLog = (data: { message: string }) => {
@@ -127,7 +144,7 @@ async function createOrUpdate() {
         body: payload,
       })
     } else {
-      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${sourceId}`, {
+      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${customSourceId.value}`, {
         baseURL,
         method: 'POST',
         headers: { 'xc-auth': $state.token.value as string },
@@ -189,7 +206,7 @@ async function listenForUpdates(id?: string) {
 }
 
 async function loadSyncSrc() {
-  const data: any = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${sourceId}`, {
+  const data: any = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${customSourceId.value}`, {
     baseURL,
     method: 'GET',
     headers: { 'xc-auth': $state.token.value as string },
@@ -284,7 +301,7 @@ const isInProgress = computed(() => {
 })
 
 const detailsIsShown = ref(false)
-const collapseKey = ref('')
+const collapseKey = ref(showSourceSelector && (base.value?.sources || [])?.length > 1 ? 'advanced-settings' : '')
 </script>
 
 <template>
@@ -419,6 +436,15 @@ const collapseKey = ref('')
                 {{ $t('labels.importFormulaColumns') }}
               </NcCheckbox>
             </div>
+            <div class="my-2">
+              <NcListSourceSelector
+                ref="sourceSelectorRef"
+                :base-id="baseId"
+                :source-id="sourceId"
+                :show-source-selector="showSourceSelector"
+                force-layout="horizontal"
+              />
+            </div>
           </a-collapse-panel>
         </a-collapse>
       </a-form>
@@ -496,8 +522,9 @@ const collapseKey = ref('')
 .nc-import-collapse :deep(.ant-collapse-header) {
   display: none !important;
 }
+
 .nc-import-collapse :deep(.ant-collapse-content-box) {
-  @apply !pb-0 !pt-2;
+  @apply !pb-0 !pt-2 !pr-0.2;
 }
 
 .nc-input-api-key {

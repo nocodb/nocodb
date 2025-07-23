@@ -22,15 +22,7 @@ const { api } = useApi()
 
 const base = inject(ProjectInj)!
 
-// For starred base we will have seperate isExpanded state
-const isExpanded = computed<boolean>({
-  get: () => {
-    return !!base.value.isExpanded
-  },
-  set: (val: boolean) => {
-    base.value.isExpanded = val
-  },
-})
+const isExpanded = ref(true)
 
 const basesStore = useBases()
 

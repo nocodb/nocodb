@@ -64,6 +64,7 @@ const { activeWorkspace } = storeToRefs(workspace)
 const tablesStore = useTablesStore()
 const { loadProjectTables } = tablesStore
 const { baseTables } = storeToRefs(tablesStore)
+
 const { bases } = storeToRefs(useBases())
 
 const base = computed(() => bases.value.get(baseId))
@@ -1166,7 +1167,7 @@ watch(
   display: none !important;
 }
 .nc-import-collapse :deep(.ant-collapse-content-box) {
-  @apply pr-0.2;
+  @apply !pr-0.2;
 }
 span:has(> .nc-modern-drag-import) {
   display: flex;

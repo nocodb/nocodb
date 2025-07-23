@@ -355,6 +355,10 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   if (isNewSidebarEnabled.value && !cmdOrCtrl && activeProjectId.value === base.id) {
+    if (!isExpanded.value) {
+      isExpanded.value = true
+    }
+
     showProjectList.value = false
     return
   }

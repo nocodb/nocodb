@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "Example Scripts",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Obnovuje sa snapshot",
     "note": "Poznámka:",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Pridať z URL",
     "enterJson": "Zadajte JSON",
-    "airtableBase": "Základ Airtable",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "Používať rovnaké časové pásmo pre všetkých členov",
     "displayTimezone": "Zobraziť časové pásmo",
     "upgradePlan": "Inovovať plán",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "Kliknite na vyriešenie",

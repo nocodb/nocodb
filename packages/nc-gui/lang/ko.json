@@ -2227,7 +2227,11 @@
       "pleaseRequestAccessForView": "이 {viewName}에 액세스하려면 관리자/프로젝트 소유자/작업공간 소유자에게 상위 권한을 요청하세요.",
       "preventHideAllOptions": "필드가 필수인 경우 모든 옵션을 숨길 수 없습니다",
       "valueMustBeAtMostCharLong": "값은 최대 {length}자여야 합니다",
-      "copyToClipboardLocalFileUrl": "Browser doesn’t allow to load local resource directly. URL copied to clipboard instead."
+      "copyToClipboardLocalFileUrl": "브라우저는 로컬 리소스를 직접로드 할 수 없습니다. 대신 URL이 클립보드에 복사되었습니다.",
+      "unsavedChanges": "변경 내용이 저장되지 않았습니다.",
+      "unsavedChangesConfirmation": "이 페이지를 떠나시겠습니까?",
+      "supportChatUnavailable": "Support chat unavailable",
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
     },
     "error": {
       "failedToDeleteMcpToken": "MCP 토큰을 삭제하지 못했습니다",

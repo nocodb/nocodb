@@ -211,6 +211,10 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) => message,
     code: 422,
   },
+  [NcErrorType.INVALID_REQUEST_BODY]: {
+    message: (message: string) => message,
+    code: 400,
+  },
   [NcErrorType.BASE_USER_ERROR]: {
     message: (message: string) => message || 'Something went wrong',
     code: 422,

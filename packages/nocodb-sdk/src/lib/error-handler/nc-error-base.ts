@@ -387,6 +387,12 @@ export class NcErrorBase {
     );
   }
 
+  invalidRequestBody(message: string): never {
+    throw this.errorCodex.generateError(NcErrorType.INVALID_REQUEST_BODY, {
+      params: message,
+    });
+  }
+
   unprocessableEntity(message = 'Unprocessable entity'): never {
     throw new UnprocessableEntity(message);
   }

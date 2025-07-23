@@ -85,7 +85,7 @@ const templateEditorModal = ref(false)
 
 const isParsingData = ref(false)
 
-const collapseKey = ref(showSourceSelector && (base.value?.sources || [])?.length > 1 ? 'advanced-settings' : '')
+const collapseKey = ref('')
 
 const temporaryJson = ref({})
 
@@ -1023,6 +1023,16 @@ watch(
       />
 
       <div v-if="!templateEditorModal" class="mt-5">
+        <div class="mb-4">
+          <NcListSourceSelector
+            ref="sourceSelectorRef"
+            :base-id="baseId"
+            :source-id="sourceId"
+            :show-source-selector="showSourceSelector"
+            force-layout="vertical"
+          />
+        </div>
+
         <NcButton type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">
           {{ $t('title.advancedSettings') }}
           <GeneralIcon
@@ -1056,13 +1066,6 @@ watch(
             <a-form-item v-if="!importDataOnly" class="!my-2 nc-dense-checkbox-container">
               <NcCheckbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </NcCheckbox>
             </a-form-item>
-
-            <NcListSourceSelector
-              ref="sourceSelectorRef"
-              :base-id="baseId"
-              :source-id="sourceId"
-              :show-source-selector="showSourceSelector"
-            />
           </a-collapse-panel>
         </a-collapse>
       </div>

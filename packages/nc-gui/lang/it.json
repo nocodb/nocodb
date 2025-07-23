@@ -2231,11 +2231,8 @@
       "copyToClipboardLocalFileUrl": "Il browser non consente di caricare direttamente risorse locali. URL copiato negli appunti.",
       "unsavedChanges": "You have unsaved changes.",
       "unsavedChangesConfirmation": "Are you sure you want to leave this page?",
-      "leaveThisWorkspace": "Leave this workspace.",
       "supportChatUnavailable": "Support chat unavailable",
-      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
-      "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

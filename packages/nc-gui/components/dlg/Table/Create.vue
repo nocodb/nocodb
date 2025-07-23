@@ -88,7 +88,7 @@ const sourceList = computed(() => {
 })
 
 const selectedSource = computed(() => {
-  if (!props.showSourceSelector) return undefined
+  if (!props.showSourceSelector || sourceList.value.length < 2) return undefined
 
   return sourceList.value.find((source) => source.value === customSourceId.value) || sourceList.value[0]
 })
@@ -517,7 +517,7 @@ const handleRefreshOnError = () => {
               />
             </a-form-item>
             <a-form-item
-              v-if="showSourceSelector"
+              v-if="selectedSource"
               name="sourceId"
               class="!mb-0"
               :validate-status="selectedSource?.ncItemDisabled ? 'error' : ''"

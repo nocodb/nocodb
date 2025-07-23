@@ -55,6 +55,7 @@ const handleNavigateToProject = async (base: NcProject) => {
         option-label-key="title"
         search-input-placeholder="Search bases"
         class="min-w-64 !w-auto"
+        variant="medium"
         @change="handleNavigateToProject"
       >
         <template #listItem="{ option }">

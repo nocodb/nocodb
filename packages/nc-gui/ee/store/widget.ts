@@ -1,7 +1,7 @@
-import type { WidgetType } from 'nocodb-sdk'
+import { EventType, type WidgetPayload, type WidgetType } from 'nocodb-sdk'
 
 export const useWidgetStore = defineStore('widget', () => {
-  const { $api } = useNuxtApp()
+  const { $api, $ncSocket } = useNuxtApp()
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -9,7 +9,7 @@ export const useWidgetStore = defineStore('widget', () => {
 
   const bases = useBases()
 
-  const { openedProject } = storeToRefs(bases)
+  const { openedProject, activeProjectId } = storeToRefs(bases)
 
   const widgets = ref<Map<string, WidgetType[]>>(new Map<string, WidgetType[]>())
 
@@ -236,6 +236,68 @@ export const useWidgetStore = defineStore('widget', () => {
     }
   }
 
+  const handleRealtimeWidgetEvent = (payload: WidgetPayload) => {
+    const { id, dashboardId, action, payload: widget } = payload
+    const existingWidgets = widgets.value.get(dashboardId) || []
+
+    switch (action) {
+      case 'create': {
+        const updatedWidgets = [...existingWidgets, widget]
+        widgets.value.set(dashboardId, updatedWidgets)
+        break
+      }
+      case 'update': {
+        const updatedWidgets = existingWidgets.map((w) => (w.id === id ? { ...w, ...widget } : w))
+        widgets.value.set(dashboardId, updatedWidgets)
+
+        if (selectedWidget.value?.id === id) {
+          selectedWidget.value = { ...selectedWidget.value, ...widget }
+        }
+        break
+      }
+      case 'delete': {
+        const updatedWidgets = existingWidgets.filter((w) => w.id !== id)
+        widgets.value.set(dashboardId, updatedWidgets)
+
+        if (selectedWidget.value?.id === id) {
+          selectedWidget.value = null
+        }
+        break
+      }
+    }
+  }
+
+  const setupRealtimeSubscription = (baseId: string) => {
+    if (!activeWorkspaceId.value || !$ncSocket || !baseId) return
+
+    const eventKey = `${EventType.WIDGET_EVENT}:${activeWorkspaceId.value}:${baseId}`
+
+    $ncSocket.subscribe(eventKey)
+
+    $ncSocket.onMessage(eventKey, (payload: WidgetPayload) => {
+      if (payload.eventType === EventType.WIDGET_EVENT) {
+        handleRealtimeWidgetEvent(payload as WidgetPayload)
+      }
+    })
+  }
+
+  watch(
+    activeProjectId,
+    (newBaseId, oldBaseId) => {
+      if (newBaseId && newBaseId !== oldBaseId) {
+        setupRealtimeSubscription(newBaseId)
+      }
+    },
+    { immediate: true },
+  )
+
+  onUnmounted(() => {
+    if (activeProjectId.value && activeWorkspaceId.value && $ncSocket) {
+      const eventKey = `${EventType.WIDGET_EVENT}:${activeWorkspaceId.value}:${activeProjectId.value}`
+      $ncSocket.offMessage(eventKey)
+    }
+  })
+
   return {
     // State
     widgets,
@@ -248,12 +310,12 @@ export const useWidgetStore = defineStore('widget', () => {
     loadWidgets,
     getWidget,
     createWidget,
+    duplicateWidget,
     updateWidget,
     deleteWidget,
     updateWidgetPosition,
     clearWidgets,
     loadWidgetData,
-    duplicateWidget,
   }
 })
 

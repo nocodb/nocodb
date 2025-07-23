@@ -3,6 +3,7 @@ import { EventType, type PayloadForEvent, ProjectRoles } from 'nocodb-sdk';
 import { sendConnectionError, sendWelcomeMessage } from './genericEvents';
 import type { Server } from 'socket.io';
 import type { NcContext, NcSocket } from '~/interface/config';
+import type { Prettify } from '~/types/utils';
 import { verifyJwt } from '~/services/users/helpers';
 import { User } from '~/models';
 import Noco from '~/Noco';
@@ -19,8 +20,7 @@ export default class NocoSocket {
     socket.once('handshake', async (args, callback) => {
       if (callback && typeof callback === 'function') {
         try {
-          const user = await verifyJwt(args?.token, Noco.getConfig());
-          socket.user = user; // Attach user to socket handshake
+          socket.user = await verifyJwt(args?.token, Noco.getConfig()); // Attach user to socket handshake
           sendWelcomeMessage(socket);
 
           // Set up event handlers for this client
@@ -70,8 +70,11 @@ export default class NocoSocket {
       },
     );
 
+    // Check permissions based on event type
     if (
-      eventType === EventType.DATA_EVENT &&
+      (eventType === EventType.DATA_EVENT ||
+        eventType === EventType.DASHBOARD_EVENT ||
+        eventType === EventType.WIDGET_EVENT) &&
       userWithRole.base_roles?.[ProjectRoles.NO_ACCESS]
     ) {
       this.logger.warn(
@@ -99,6 +102,27 @@ export default class NocoSocket {
     };
 
     // Use static ioServer reference
+    if (this.ioServer) {
+      this.ioServer.to(event).emit(event, payload);
+    } else {
+      this.logger.warn(`No server instance available for event: ${event}`);
+    }
+  }
+
+  public static broadcastEvent<T extends EventType>(
+    context: NcContext,
+    eventType: T,
+    args: Prettify<Omit<PayloadForEvent<T>, 'timestamp' | 'socketId'>>,
+    socketId?: string,
+  ) {
+    const event = `${eventType}:${context.workspace_id}:${context.base_id}`;
+    const payload = {
+      ...args,
+      eventType,
+      timestamp: Date.now(),
+      socketId,
+    };
+
     if (this.ioServer) {
       this.ioServer.to(event).emit(event, payload);
     } else {

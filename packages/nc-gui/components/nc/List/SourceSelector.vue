@@ -3,6 +3,7 @@ interface Props {
   baseId: string
   sourceId?: string
   showSourceSelector?: boolean
+  forceLayout?: 'vertical' | 'horizontal'
 }
 
 const props = withDefaults(defineProps<Props>(), {})
@@ -78,6 +79,7 @@ defineExpose({
     v-if="selectedSource"
     name="sourceId"
     class="!mb-0 nc-source-selector"
+    :class="`nc-force-layout-${forceLayout}`"
     :validate-status="selectedSource?.ncItemDisabled ? 'error' : ''"
     :help="selectedSource?.ncItemDisabled ? [selectedSource.ncItemTooltip] : []"
     @click.stop
@@ -121,3 +123,23 @@ defineExpose({
     </NcListDropdown>
   </a-form-item>
 </template>
+
+<style lang="scss">
+.nc-source-selector.ant-form-item {
+  &.nc-force-layout-vertical {
+    @apply !flex-col !items-start;
+  }
+
+  &.nc-force-layout-horizontal {
+    @apply !flex-row !items-center;
+
+    & > .ant-form-item-label {
+      @apply pb-0 items-center;
+
+      &::after {
+        @apply content-[':'] !mr-2 !ml-0.5 relative top-[0.5px];
+      }
+    }
+  }
+}
+</style>

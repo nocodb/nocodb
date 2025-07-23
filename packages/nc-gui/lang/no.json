@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "Example Scripts",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Gjenoppretter øyeblikksbilde",
     "note": "Merk:",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Legg til fra URL",
     "enterJson": "Skriv inn JSON",
-    "airtableBase": "Airtable-base",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "Bruk samme tidssone for alle medlemmer",
     "displayTimezone": "Vis tidssone",
     "upgradePlan": "Oppgrader abonnement",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "Klikk for å løse",

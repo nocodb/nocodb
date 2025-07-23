@@ -117,6 +117,9 @@ const _ = (window as any).ResizeObserver
 
   <ErrorBoundary>
     <div>
+      <!-- Page Loading Indicator -->
+      <NcNuxtLoadingIndicator />
+
       <!-- Command Menu -->
       <CmdK
         ref="commandPalette"

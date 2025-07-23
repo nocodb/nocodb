@@ -157,10 +157,6 @@ const isNocoDbImportAllowed = computed(() => {
     isUIAllowed('nocodbImport', { roles: baseRole.value, source: source.value })
   )
 })
-
-watchEffect(() => {
-  console.log('source selector', props.showSourceSelector)
-})
 </script>
 
 <template>

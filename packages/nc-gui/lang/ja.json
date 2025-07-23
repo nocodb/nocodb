@@ -2227,7 +2227,11 @@
       "pleaseRequestAccessForView": "この{viewName}にアクセスするには管理者/Baseオーナー/ワークスペースオーナーからより高い権限をリクエストしてください",
       "preventHideAllOptions": "必須フィールドの場合、すべてのオプションを隠すことはできません",
       "valueMustBeAtMostCharLong": "値は{length}文字以下でなければなりません",
-      "copyToClipboardLocalFileUrl": "ブラウザーがローカルリソースを直接読み込むことを許可していません。代わりにURLをクリップボードにコピーしました。"
+      "copyToClipboardLocalFileUrl": "ブラウザーがローカルリソースを直接読み込むことを許可していません。代わりにURLをクリップボードにコピーしました。",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?",
+      "supportChatUnavailable": "Support chat unavailable",
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

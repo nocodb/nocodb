@@ -141,15 +141,15 @@
     "WorkspaceOwnerNotified": "Владелец рабочего пространства уведомлён",
     "WorkspaceOwnerNotifiedSubtitle": "Ваш запрос на обновление отправлен владельцу рабочего пространства.",
     "failedToSendUpgradeRequest": "Не удалось отправить запрос на обновление",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Обновитесь, чтобы получить полный доступ к данным",
+    "upgradeToSeeMoreRecordInline": "Обновитесь, чтобы просматривать все записи из внешних источников данных",
     "upgradeToSeeMoreRecordSubtitle": "Откройте полный обзор подключённых источников. Просматривайте все записи, перейдя на тариф Plus.",
     "upgradeToSeeMoreRecordInlineSubtitle": "Вы просматриваете {limit} из {total} записей. Получите доступ к оставшимся {remaining} записям, перейдя на тариф Plus.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Бесплатный план допускает до {limit} пользователей с ролью \\\"Редактор\\\". Обновитесь, чтобы снять ограничение.",
     "adjustCollaboratorRoles": "Изменить роли участников",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "Вручную",
     "trigger": "Триггер",
     "addLookupField": "Добавить {count} подстановочных полей",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Стиль",
     "label": "Метка",
     "role": "Роль",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "Переходите по ссылке, только если вы ей доверяете.",
     "reAssignViewModalSubtitle": "После переназначения текущий владелец больше не сможет редактировать конфигурацию представления.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Лояльность вознаграждается — зафиксируйте выгодную цену!",
     "loyaltyBannerSubtitle": "Разблокируйте неограниченные места, дополнительные записи, больше хранилища, условные вебхуки, SSO, интеграции и многое другое!",
     "selectTimezone": "Часовой пояс отображения",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "Присоединиться к сообществу NocoDB",
       "joinReddit": "/r/NocoDB",
       "followNocodb": "Следите за NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Переведено сообществом/ИИ)"
     },
     "twitter": "Twitter",
     "docReference": "Ссылка на документ",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Добавить по URL",
     "enterJson": "Ввести JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "База Airtable",
     "useSameTimezoneForAllMembers": "Использовать один часовой пояс для всех участников",
     "displayTimezone": "Часовой пояс отображения",
     "upgradePlan": "Обновить тариф",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "Поиск значков",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "Вы можете добавить несколько email-адресов, разделенных запятыми (,)",
       "enterTableName": "Введите имя таблицы",
       "enterScriptName": "Введите имя скрипта",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Введите имя дашборда",
       "enterTableDescription": "Введите описание таблицы...",
       "enterScriptDescription": "Введите описание скрипта...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "Произошла ошибка при {type}",
       "anErrorOccuredWhileAirtableBaseImport": "Произошла ошибка при импорте базы из Airtable",
       "paymentFailed": "Оплата не прошла",
-      "paymentFailedSubtitle": "При обработке платежа произошла ошибка. Попробуйте ещё раз или свяжитесь со службой поддержки."
+      "paymentFailedSubtitle": "При обработке платежа произошла ошибка. Попробуйте ещё раз или свяжитесь со службой поддержки.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Метаданные проекта успешно экспортированы",
@@ -2371,6 +2375,7 @@
       "projInfo": "Информация о проекте скопирована в буфер обмена",
       "inviteUrlCopy": "URL-адрес для приглашения скопирован в буфер обмена",
       "createView": "Представление успешно создано",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Пожалуйста, активируйте плагин SMTP в магазине приложений, чтобы включить уведомления по электронной почте.",
       "collabView": "Выполнен переход в режим совместного просмотра",
       "lockedView": "Выполнен переход в заблокированный режим просмотра",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "Платёж успешно обработан. Теперь вы можете использовать новый тарифный план.",
       "upgradeSuccessful": "Успешно обновлено",
       "upgradeSuccessfulSubtitle": "Платёж за обновление успешно обработан. Теперь вы можете использовать новый тарифный план.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

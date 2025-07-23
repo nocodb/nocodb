@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "Example Scripts",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Pillanatkép visszaállítása",
     "note": "Megjegyzés:",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Hozzáadás URL-ből",
     "enterJson": "JSON beírása",
-    "airtableBase": "Airtable bázis",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "Azonos időzóna használata minden tagnál",
     "displayTimezone": "Időzóna megjelenítése",
     "upgradePlan": "Csomag frissítése",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "Kattintson a megoldáshoz",

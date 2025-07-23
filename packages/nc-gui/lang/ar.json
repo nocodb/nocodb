@@ -186,6 +186,7 @@
     "manual": "يدوي",
     "trigger": "مشغل",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "النمط",
     "label": "تسمية",
     "role": "دور",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "تابع فقط إذا كنت تثق بهذا الرابط.",
     "reAssignViewModalSubtitle": "عند إعادة التعيين، لن يتمكن المالك الحالي من تحرير تكوين العرض.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "الولاء يؤتي ثماره — استمتع بأسعار محددة!",
     "loyaltyBannerSubtitle": "افتح مقاعد غير محدودة، سجلات إضافية، سعة تخزين أكبر، Webhooks شرطية، SSO، تكاملات، والمزيد!",
     "selectTimezone": "عرض المنطقة الزمنية",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "انضم إلى مجتمع NocoDB",
       "joinReddit": "انضم إلى /r/NocodB",
       "followNocodb": "تابع NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(مترجم بواسطة المجتمع/الذكاء الاصطناعي)"
     },
     "twitter": "تويتر",
     "docReference": "مرجع الوثيقة",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "إضافة من رابط",
     "enterJson": "أدخل JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "قاعدة Airtable",
     "useSameTimezoneForAllMembers": "استخدم نفس المنطقة الزمنية لجميع الأعضاء",
     "displayTimezone": "عرض المنطقة الزمنية",
     "upgradePlan": "ترقية الخطة",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "البحث عن الأيقونات",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "يمكنك إضافة أكثر من فاصلة (,) لفصل الإيميلات",
       "enterTableName": "أدخل اسم الجدول",
       "enterScriptName": "أدخل اسم السكربت",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "أدخل اسم لوحة التحكم",
       "enterTableDescription": "أدخل وصف الجدول...",
       "enterScriptDescription": "أدخل وصف السكربت...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "حدث خطأ أثناء {type}",
       "anErrorOccuredWhileAirtableBaseImport": "حدث خطأ أثناء استيراد القاعدة من Airtable",
       "paymentFailed": "فشل الدفع",
-      "paymentFailedSubtitle": "حدث خطأ أثناء معالجة دفعتك. يرجى المحاولة مرة أخرى أو الاتصال بالدعم."
+      "paymentFailedSubtitle": "حدث خطأ أثناء معالجة دفعتك. يرجى المحاولة مرة أخرى أو الاتصال بالدعم.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "تصدير البيانات الوصفية للمشروع بنجاح",
@@ -2371,6 +2375,7 @@
       "projInfo": "تم نسخ معلومات المشروع للحافظة",
       "inviteUrlCopy": "تم نسخ رابط الدعوة للحافظة",
       "createView": "تم إنشاء العرض بنجاح",
+      "createField": "Field created successfully",
       "formEmailSMTP": "يرجى تفعيل SMTP لتمكين إشعار البريد الإلكتروني",
       "collabView": "تحولت بنجاح إلى عرض تعاوني",
       "lockedView": "تم التبديل بنجاح إلى العرض المقفل",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "تمت معالجة دفعتك. يمكنك الآن استخدام خطتك الجديدة.",
       "upgradeSuccessful": "تمت الترقية بنجاح",
       "upgradeSuccessfulSubtitle": "تمت معالجة دفعتك للترقية. يمكنك الآن استخدام خطتك الجديدة.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

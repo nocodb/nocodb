@@ -1805,7 +1805,8 @@
     "youDontHaveAccessToCreateNewAutomation": "Nu aveți acces pentru a crea o nouă automatizare",
     "formViewCreationNotSupportedForSyncedTable": "Crearea unei vizualizări de formular nu este disponibilă pentru un tabel sincronizat",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
-    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
+    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
   },
   "placeholder": {
     "searchIcons": "Caută icoane",
@@ -2236,6 +2237,7 @@
       "copyToClipboardLocalFileUrl": "Browserul nu permite încărcarea directă a resursei locale. URL-ul a fost copiat în clipboard.",
       "unsavedChanges": "Aveți modificări nesalvate.",
       "unsavedChangesConfirmation": "Sigur doriți să părăsiți această pagină?",
+      "leaveThisWorkspace": "Leave this workspace.",
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",

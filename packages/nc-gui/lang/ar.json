@@ -2227,7 +2227,11 @@
       "pleaseRequestAccessForView": "يرجى الطلب من المسؤول / مالك القاعدة / مالك مساحة العمل للحصول على إذن أعلى للوصول إلى هذا {viewName}",
       "preventHideAllOptions": "لا يمكنك إخفاء جميع الخيارات إذا كان الحقل مطلوبًا",
       "valueMustBeAtMostCharLong": "يجب ألا يزيد الطول عن {length} حرفًا",
-      "copyToClipboardLocalFileUrl": "لا يسمح المتصفح بتحميل مورد محلي مباشرةً. تم نسخ الرابط إلى الحافظة بدلًا من ذلك."
+      "copyToClipboardLocalFileUrl": "لا يسمح المتصفح بتحميل مورد محلي مباشرةً. تم نسخ الرابط إلى الحافظة بدلًا من ذلك.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?",
+      "supportChatUnavailable": "Support chat unavailable",
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

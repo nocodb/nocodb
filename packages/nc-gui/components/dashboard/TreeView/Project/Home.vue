@@ -201,10 +201,10 @@ function openErdView(source: SourceType) {
   }
 }
 
-async function addNewProjectChildEntity() {
+async function addNewProjectChildEntity(showSourceSelector = false) {
   if (!projectNodeRef.value) return
 
-  projectNodeRef.value?.addNewProjectChildEntity?.()
+  projectNodeRef.value?.addNewProjectChildEntity?.(showSourceSelector)
 }
 
 watch(
@@ -303,7 +303,10 @@ const hasTableCreatePermission = computed(() => {
             </NcButton>
 
             <template #overlay>
-              <DashboardTreeViewProjectCreateNewMenu v-model:visible="isVisibleCreateNew" @new-table="addNewProjectChildEntity" />
+              <DashboardTreeViewProjectCreateNewMenu
+                v-model:visible="isVisibleCreateNew"
+                @new-table="addNewProjectChildEntity(true)"
+              />
             </template>
           </NcDropdown>
         </div>

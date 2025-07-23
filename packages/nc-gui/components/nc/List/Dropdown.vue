@@ -11,6 +11,7 @@ interface Props {
   defaultSlotWrapperClass?: string
   disabled?: boolean
   borderOnHover?: boolean
+  hasError?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -19,6 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
   defaultSlotWrapperClass: '',
   disabled: false,
   borderOnHover: false,
+  hasError: false,
 })
 
 const emits = defineEmits(['update:isOpen'])
@@ -59,12 +61,14 @@ const onEsc = (_e: KeyboardEvent) => {
         defaultSlotWrapperClass,
         {
           'cursor-pointer': !disabled,
-          'border-brand-500 shadow-selected': vModelIsOpen && !disabled,
+          'border-brand-500 shadow-selected': vModelIsOpen && !disabled && !hasError,
+          'border-error shadow-error': vModelIsOpen && !disabled && hasError,
           'shadow-default hover:shadow-hover': !vModelIsOpen && !disabled && !borderOnHover,
           'hover:(border-brand-500 shadow-selected)': vModelIsOpen && !disabled && borderOnHover,
           'hover:(shadow-default hover:shadow-hover)': !vModelIsOpen && !disabled && borderOnHover,
           'border-transparent hover:(border-nc-gray-medium)': (borderOnHover || vModelIsOpen) && !disabled,
-          'border-nc-gray-medium': !borderOnHover,
+          'border-nc-gray-medium': !borderOnHover && !hasError,
+          'border-error': !borderOnHover && hasError,
         },
       ]"
     >

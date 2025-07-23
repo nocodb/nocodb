@@ -6,6 +6,7 @@ const props = defineProps<{
   modelValue: boolean
   sourceId: string
   baseId: string
+  showSourceSelector?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue', 'create'])
@@ -87,11 +88,9 @@ const sourceList = computed(() => {
 })
 
 const selectedSource = computed(() => {
-  return sourceList.value.find((source) => source.value === customSourceId.value) || sourceList.value[0]
-})
+  if (!props.showSourceSelector) return undefined
 
-watchEffect(() => {
-  console.log('props', sourceList.value)
+  return sourceList.value.find((source) => source.value === customSourceId.value) || sourceList.value[0]
 })
 
 const onAiTableCreate = async (table: TableType) => {
@@ -326,7 +325,7 @@ const validators = computed(() => {
         validator: (_: any, value: any) => {
           // validate duplicate alias
           return new Promise((resolve, reject) => {
-            if ((tables.value || []).some((t) => t.title === (value || '') && t.source_id === props.sourceId)) {
+            if ((tables.value || []).some((t) => t.title === (value || '') && t.source_id === customSourceId.value)) {
               return reject(new Error('Duplicate table alias'))
             }
             return resolve(true)
@@ -337,9 +336,9 @@ const validators = computed(() => {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
             let tableNameLengthLimit = 255
-            if (isMysql(props.sourceId)) {
+            if (isMysql(customSourceId.value)) {
               tableNameLengthLimit = 64
-            } else if (isPg(props.sourceId)) {
+            } else if (isPg(customSourceId.value)) {
               tableNameLengthLimit = 63
             }
             const basePrefix = base?.value?.prefix || ''
@@ -515,7 +514,15 @@ const handleRefreshOnError = () => {
                 :placeholder="$t('msg.info.enterTableName')"
               />
             </a-form-item>
-            <a-form-item name="default_role" class="!mb-0" @click.stop @dblclick.stop>
+            <a-form-item
+              v-if="showSourceSelector"
+              name="sourceId"
+              class="!mb-0"
+              @click.stop
+              @dblclick.stop
+              :validate-status="selectedSource?.ncItemDisabled ? 'error' : ''"
+              :help="selectedSource?.ncItemDisabled ? [selectedSource.ncItemTooltip] : []"
+            >
               <template #label>
                 <div>{{ t('general.datasource') }}</div>
               </template>
@@ -527,9 +534,10 @@ const handleRefreshOnError = () => {
                     ? 'text-nc-content-gray-muted cursor-not-allowed bg-nc-bg-gray-light children:opacity-60'
                     : 'text-nc-content-gray'
                 "
+                :has-error="!!selectedSource?.ncItemDisabled"
               >
                 <div class="flex-1 flex items-center gap-2">
-                  <span class="text-sm flex-1">{{ selectedSource?.label }}</span>
+                  <span class="text-sm flex-1">{{ selectedSource?.label || t('general.default') }}</span>
 
                   <GeneralIcon
                     icon="ncChevronDown"
@@ -540,10 +548,10 @@ const handleRefreshOnError = () => {
                 <template #overlay="{ onEsc }">
                   <NcList
                     v-model:open="isOpenSourceSelectDropdown"
-                    :value="customSourceId || sourceList[0]?.value || ''"
+                    :value="customSourceId || selectedSource?.value || ''"
                     @update:value="customSourceId = $event"
                     :list="sourceList"
-                    variant="small"
+                    variant="medium"
                     class="!w-auto"
                     wrapper-class-name="!h-auto"
                     @escape="onEsc"
@@ -772,7 +780,7 @@ const handleRefreshOnError = () => {
           <a-form-item
             v-if="enableDescription && !aiMode"
             v-bind="validateInfos.description"
-            :class="{ '!mb-1': isSnowflake(props.sourceId), '!mb-0': !isSnowflake(props.sourceId) }"
+            :class="{ '!mb-1': isSnowflake(customSourceId), '!mb-0': !isSnowflake(customSourceId) }"
           >
             <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
               <span>
@@ -793,7 +801,7 @@ const handleRefreshOnError = () => {
             />
           </a-form-item>
 
-          <template v-if="isSnowflake(props.sourceId)">
+          <template v-if="isSnowflake(customSourceId)">
             <a-checkbox v-model:checked="table.is_hybrid" class="!flex flex-row items-center"> Hybrid Table </a-checkbox>
           </template>
         </div>
@@ -851,7 +859,9 @@ const handleRefreshOnError = () => {
               v-e="['a:table:create']"
               type="primary"
               size="small"
-              :disabled="validateInfos.title.validateStatus === 'error' || creating"
+              :disabled="
+                validateInfos.title?.validateStatus === 'error' || creating || (selectedSource && selectedSource.ncItemDisabled)
+              "
               :loading="creating"
               @click="_createTable"
             >

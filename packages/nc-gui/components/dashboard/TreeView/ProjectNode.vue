@@ -255,7 +255,7 @@ const setColor = async (color: string, base: BaseType) => {
   }
 }
 
-function openTableCreateDialog(sourceIndex?: number | undefined) {
+function openTableCreateDialog(sourceIndex?: number | undefined, showSourceSelector = false) {
   let sourceId = base.value!.sources?.[0].id
   if (typeof sourceIndex === 'number') {
     sourceId = base.value!.sources?.[sourceIndex].id
@@ -264,6 +264,7 @@ function openTableCreateDialog(sourceIndex?: number | undefined) {
   _openTableCreateDialog({
     baseId: base.value?.id,
     sourceId,
+    showSourceSelector,
     onCloseCallback: () => {
       base.value.isExpanded = true
 
@@ -276,7 +277,7 @@ function openTableCreateDialog(sourceIndex?: number | undefined) {
 
 const isAddNewProjectChildEntityLoading = ref(false)
 
-async function addNewProjectChildEntity() {
+async function addNewProjectChildEntity(showSourceSelector = false) {
   if (isAddNewProjectChildEntityLoading.value) return
 
   isAddNewProjectChildEntityLoading.value = true
@@ -290,7 +291,7 @@ async function addNewProjectChildEntity() {
   }
 
   try {
-    openTableCreateDialog()
+    openTableCreateDialog(undefined, showSourceSelector)
   } finally {
     isAddNewProjectChildEntityLoading.value = false
   }
@@ -702,7 +703,7 @@ defineExpose({
                     '!inline-block !opacity-100': isOptionsOpen,
                   }"
                   :loading="isAddNewProjectChildEntityLoading"
-                  @click.stop="addNewProjectChildEntity"
+                  @click.stop="addNewProjectChildEntity()"
                   @mouseenter="showNodeTooltip = false"
                   @mouseleave="showNodeTooltip = true"
                 >

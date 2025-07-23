@@ -2227,7 +2227,11 @@
       "pleaseRequestAccessForView": "請向管理員 / 基地所有者 / 工作區所有者申請更高的權限以訪問此 {viewName}",
       "preventHideAllOptions": "如果字段是必需的，您不能隱藏所有選項",
       "valueMustBeAtMostCharLong": "值長度不得超過 {length} 個字元",
-      "copyToClipboardLocalFileUrl": "瀏覽器不允許直接載入本機資源，已改為將 URL 複製到剪貼簿。"
+      "copyToClipboardLocalFileUrl": "瀏覽器不允許直接載入本機資源，已改為將 URL 複製到剪貼簿。",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?",
+      "supportChatUnavailable": "Support chat unavailable",
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

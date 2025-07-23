@@ -1805,7 +1805,8 @@
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
-    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
+    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
   },
   "placeholder": {
     "searchIcons": "आइकनहरू खोज्नुहोस्",
@@ -2236,6 +2237,7 @@
       "copyToClipboardLocalFileUrl": "ब्राउजरले स्थानीय स्रोत प्रत्यक्ष लोड गर्न अनुमति दिदैन। यसको सट्टा URL क्लिपबोर्डमा प्रतिलिपि गरियो।",
       "unsavedChanges": "You have unsaved changes.",
       "unsavedChangesConfirmation": "Are you sure you want to leave this page?",
+      "leaveThisWorkspace": "Leave this workspace.",
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",

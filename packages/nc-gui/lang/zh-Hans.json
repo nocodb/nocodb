@@ -162,7 +162,7 @@
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data."
   },
   "general": {
-    "script": "Script",
+    "script": "脚本",
     "supported": "支持",
     "usage": "使用",
     "snapshot": "快照",
@@ -405,10 +405,10 @@
     "community": "社区",
     "youtube": "Youtube",
     "changelog": "变更记录",
-    "contactSupport": "Contact Support",
-    "proceedImport": "Proceed Import",
+    "contactSupport": "联系客服",
+    "proceedImport": "继续导入",
     "inserting": "Inserting",
-    "permissions": "Permissions",
+    "permissions": "权限",
     "manageAllFields": "Manage all fields",
     "automations": "自动化",
     "record": "Record"
@@ -657,8 +657,8 @@
     "isNotNull": "不为空（Not Null）"
   },
   "title": {
-    "editTablePermissions": "Edit table permissions",
-    "editFieldPermissions": "Edit field permissions",
+    "editTablePermissions": "编辑表格权限",
+    "editFieldPermissions": "编辑列权限",
     "confirmSnapshotRestore": "确认恢复快照",
     "urlFilters": "URL过滤",
     "creatingScript": "创建脚本",
@@ -689,7 +689,7 @@
     "termsOfService": "服务条款",
     "updateSelectedRows": "更新选定记录",
     "noFiltersAdded": "未添加过滤器",
-    "noFieldsSelected": "No fields selected",
+    "noFieldsSelected": "没有被选中的列",
     "editCards": "编辑卡片",
     "noFieldsFound": "无可用字段",
     "displayValue": "显示值",
@@ -831,7 +831,7 @@
     "youAreLeavingNocoDB": "您将离开 NocoDB",
     "onlyProceedIfYouTrustThisLink": "仅在您信任此链接时继续。",
     "reAssignViewModalSubtitle": "一旦重新分配，当前所有者将无法编辑视图配置。",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
+    "getMoreFromNocodb": "众人拾柴火焰高 — 升级到 Plus 套餐让更多人参与编辑",
     "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
     "loyaltyBannerTitle": "忠诚有回报 — 享受封顶价格！",
     "loyaltyBannerSubtitle": "解锁无限席位、更多记录、更大存储、条件 Webhook、SSO、集成等更多功能！",
@@ -849,25 +849,25 @@
     "upgradeWorkspaceToPlan": "将 {workspace} 升级到 {plan} 套餐",
     "upgradeToPlanSubtitle": "您将立即为此方案付款。",
     "reactivateToPlan": "重新激活 {plan} 方案？",
-    "whatsNew": "What’s New",
-    "currentUser": "Current User",
-    "filteredByLoggedInUser": "Filtered by logged-in user",
-    "hideExtensions": "Hide Extensions",
-    "duplicatesFound": "Duplicates found",
-    "matchingResultsInRecords": "Matching results in {count} records",
-    "tablePermissions": "Table permissions",
-    "fieldPermissions": "Field permissions"
+    "whatsNew": "What’s New!",
+    "currentUser": "当前用户",
+    "filteredByLoggedInUser": "按已登录用户筛选",
+    "hideExtensions": "隐藏扩展",
+    "duplicatesFound": "发现重复项",
+    "matchingResultsInRecords": "找到 {count} 条匹配结果",
+    "tablePermissions": "表格权限",
+    "fieldPermissions": "列权限"
   },
   "labels": {
-    "crossBase": "Link to external base",
+    "crossBase": "链接其他项目",
     "mcpSetup": "MCP Setup",
-    "mcpTokenVisibilityInfo": "Save your MCP Client Config",
-    "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
-    "mcpTokenVisibilityInfoDescription2": "Tokens are only visible immediately after creation or regeneration.",
-    "regenerateToken": "Re-Generate Token",
+    "mcpTokenVisibilityInfo": "保存 MCP 客户端配置",
+    "mcpTokenVisibilityInfoDescription": "您只能查看一次 MCP 客户端配置，请及时存放到安全的地方",
+    "mcpTokenVisibilityInfoDescription2": "令牌只能在创建或重新生成后查看一次。",
+    "regenerateToken": "重新生成令牌",
     "deleteToken": "删除令牌",
-    "creatingMCPToken": "Creating MCP Token",
-    "creatingTokenDescription": "Creating token for MCP server",
+    "creatingMCPToken": "创建 MCP 令牌",
+    "creatingTokenDescription": "正在为 MCP 服务器创建令牌",
     "mcpToken": "MCP Token",
     "never": "Never",
     "expiresAt": "Expires At",
@@ -875,7 +875,7 @@
     "mcpSubText": "The NocoDB MCP (Model Context Protocol) can be added to any client that supports MCP. It's a unique endpoint that allows LLMs to directly perform actions (based on your role) within your base on your behalf.",
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
-    "exampleScript": "Example Scripts",
+    "exampleScript": "脚本示例",
     "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "恢复快照",
     "note": "备注：",
@@ -891,7 +891,7 @@
     "duplicateBaseMessage": "您只能在拥有创建者及以上权限的工作区中复制 Base。",
     "snapshotBaseRestoreMessage": "您只能在拥有创建者及以上权限的工作区中恢复。",
     "currentWorkspace": "当前工作区",
-    "currentBase": "Current base",
+    "currentBase": "当前项目",
     "sendMeEverything": "Send me everything",
     "latitude": "纬度",
     "longitude": "经度",
@@ -1678,7 +1678,7 @@
     "pending": "待处理",
     "goToPage": "转到页面",
     "changePlan": "更改套餐",
-    "goToPermissionsOverview": "Go to Permissions Overview"
+    "goToPermissionsOverview": "转到权限概览"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1741,7 +1741,7 @@
     "paidUserBadgeTooltip": "用户在至少一个 Base 中拥有编辑者或更高角色。",
     "approachingLimit": "接近限制",
     "exceedingLimit": "超出限制",
-    "filteredByCurrentUser": "Filtered by current user",
+    "filteredByCurrentUser": "按当前用户筛选",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
     "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
@@ -1819,8 +1819,8 @@
     "emptyTablePlaceholderSubtitle": "暂无表格"
   },
   "msg": {
-    "userAlreadyExists": "{email} already has access to this {scope}",
-    "evaluateRecursively": "Evaluate recursively",
+    "userAlreadyExists": "{email} 现在可以访问 {scope}",
+    "evaluateRecursively": "递归计算",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",
     "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
     "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
@@ -2308,9 +2308,9 @@
       "nCellsCopied": "已复制 {n} 个单元格"
     },
     "success": {
-      "mcpTokenDeleted": "MCP Token Deleted",
+      "mcpTokenDeleted": "已删除 MCP 令牌",
       "mcpTokenUpdated": "MCP Token Updated",
-      "mcpTokenCreated": "MCP Token Created",
+      "mcpTokenCreated": "MCP 令牌创建成功",
       "licenseKeyUpdated": "更新许可证密钥",
       "columnDuplicated": "此列的副本创建成功",
       "rowDuplicatedWithoutSavedYet": "该记录已复制（未保存）",
@@ -2356,17 +2356,17 @@
       "paymentSuccessfulSubtitle": "您的付款已处理完成。现在可以使用新的套餐。",
       "upgradeSuccessful": "升级成功",
       "upgradeSuccessfulSubtitle": "您的升级付款已处理完成。现在可以使用新的套餐。",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "已复制 MCP URL"
     },
     "subText": {
       "createNewTable": "从头开始。",
       "importData": "来自文件和外部来源。",
       "connectExternalData": "实时连接到外部数据库。"
     },
-    "noAccess": "No Access",
-    "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
-    "tryAgain": "Try Again",
+    "noAccess": "没有访问权限",
+    "noAccessDescription": "您无权访问任何工作区，请联系管理员申请访问权限。",
+    "tryAgain": "重试",
     "internalUrlsNotAllowed": "Internal URLs are not allowed",
-    "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls"
+    "cyclicCallsWarning": "此 URL 指向同一个 NocoDB 实例，可能导致循环调用"
   }
 }

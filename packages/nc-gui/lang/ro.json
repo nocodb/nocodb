@@ -157,7 +157,9 @@
     "upgradeToUseCurrentUserFilter": "Actualizați pentru a filtra după utilizatorul curent",
     "upgradeToUseCurrentUserFilterSubtitle": "Faceți upgrade la planul {plan} pentru a utiliza filtre care afișează datele pe baza utilizatorului curent.",
     "upgradeToUseRowColoring": "Upgrade to use row colouring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data."
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data.",
+    "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
+    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data."
   },
   "general": {
     "script": "Script",
@@ -404,7 +406,9 @@
     "changelog": "Istoric modificări",
     "contactSupport": "Contactați asistența",
     "proceedImport": "Continuă importul",
-    "inserting": "Se inserează"
+    "inserting": "Se inserează",
+    "permissions": "Permissions",
+    "manageAllFields": "Manage all fields"
   },
   "objects": {
     "script": "Script",
@@ -582,6 +586,19 @@
       "usingConditions": "Using Conditions",
       "usingConditionsDescription": "Colour records based on conditions",
       "colourRecordsByField": "Colour records by field"
+    },
+    "permissions": {
+      "addNewRecordTooltipTitle": "Create record restricted",
+      "addNewRecordTooltip": "You do not have permission to create records in this table",
+      "deleteRecordTooltipTitle": "Delete record restricted",
+      "deleteRecordTooltip": "You do not have permission to delete records in this table",
+      "editFieldTooltipTitle": "Edit restricted",
+      "editFieldTooltip": "You do not have permission to edit this field",
+      "generalPermissionTooltipTitle": "Permission restricted",
+      "generalPermissionTooltip": "You do not have permission to perform this action",
+      "uploadDataTooltip": "You do not have permission to upload data into this table",
+      "formCannotAcceptSubmissions": "Form cannot accept submissions.",
+      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
     }
   },
   "datatype": {
@@ -637,6 +654,8 @@
     "isNotNull": "nu este nul"
   },
   "title": {
+    "editTablePermissions": "Edit table permissions",
+    "editFieldPermissions": "Edit field permissions",
     "confirmSnapshotRestore": "Confirmă restaurarea instantaneului",
     "urlFilters": "Filtre URL",
     "creatingScript": "Se creează scriptul",
@@ -831,7 +850,9 @@
     "filteredByLoggedInUser": "Filtrat după utilizatorul conectat",
     "hideExtensions": "Ascunde extensiile",
     "duplicatesFound": "Duplicate găsite",
-    "matchingResultsInRecords": "Potrivirea rezultatelor în {count} înregistrări"
+    "matchingResultsInRecords": "Potrivirea rezultatelor în {count} înregistrări",
+    "tablePermissions": "Table permissions",
+    "fieldPermissions": "Field permissions"
   },
   "labels": {
     "crossBase": "Legătură către bază externă",
@@ -907,6 +928,8 @@
     "fieldID": "ID câmp",
     "addDescription": "Adaugă descriere",
     "editDescription": "Modifică descriere",
+    "editTableDescription": "Edit table description",
+    "editFieldDescription": "Edit field description",
     "urlFormula": "Formulă URL",
     "selectIcon": "niciun",
     "selectAWebhook": "--selectează un webhook--",
@@ -1646,7 +1669,8 @@
     "addConditionGroup": "Adaugă grup de condiții",
     "pending": "În așteptare",
     "goToPage": "Mergi la pagină",
-    "changePlan": "Schimbă planul"
+    "changePlan": "Schimbă planul",
+    "goToPermissionsOverview": "Go to Permissions Overview"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1716,7 +1740,9 @@
     "youDontHaveAccessToCreateNewTable": "Nu aveți acces pentru a crea un tabel nou",
     "youDontHaveAccessToCreateNewView": "Nu aveți acces pentru a crea o vizualizare nouă",
     "youDontHaveAccessToCreateNewAutomation": "Nu aveți acces pentru a crea o nouă automatizare",
-    "formViewCreationNotSupportedForSyncedTable": "Crearea unei vizualizări de formular nu este disponibilă pentru un tabel sincronizat"
+    "formViewCreationNotSupportedForSyncedTable": "Crearea unei vizualizări de formular nu este disponibilă pentru un tabel sincronizat",
+    "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
+    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
   },
   "placeholder": {
     "searchIcons": "Caută icoane",

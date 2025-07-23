@@ -141,15 +141,15 @@
     "WorkspaceOwnerNotified": "已通知工作區擁有者",
     "WorkspaceOwnerNotifiedSubtitle": "您要求升級的訊息已傳送給工作區擁有者。",
     "failedToSendUpgradeRequest": "升級請求發送失敗",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "升級以解鎖完整資料存取權",
+    "upgradeToSeeMoreRecordInline": "升級即可檢視外部資料來源的全部記錄",
     "upgradeToSeeMoreRecordSubtitle": "升級至 Plus 方案即可完整檢視已連結來源的所有記錄。",
     "upgradeToSeeMoreRecordInlineSubtitle": "您目前僅查看 {total} 筆中的 {limit} 筆記錄。升級至 Plus 方案即可解鎖其餘 {remaining} 筆記錄。",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "免費方案最多允許 {limit} 位 Editor 類型使用者，升級即可無限制使用",
     "adjustCollaboratorRoles": "調整協作者角色",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "手冊",
     "trigger": "觸發",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "風格",
     "label": "標籤",
     "role": "角色",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "若您信任此連結才繼續。",
     "reAssignViewModalSubtitle": "重新分配後，目前擁有者將無法再編輯檢視設定。",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "忠誠回饋—享受封頂價格！",
     "loyaltyBannerSubtitle": "解鎖無限席位、更多記錄、更大儲存空間、條件 Webhook、單一登入（SSO）、整合服務等更多功能！",
     "selectTimezone": "顯示時區",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "加入 NocoDB 社群",
       "joinReddit": "加入 /r/NocoDB",
       "followNocodb": "追蹤 NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "（社群/AI 翻譯）"
     },
     "twitter": "Twitter",
     "docReference": "文件參考文獻",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "搜索圖標",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "您可以添加多個逗號（，）分隔的電子郵件",
       "enterTableName": "輸入表名",
       "enterScriptName": "輸入指令碼名稱",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "輸入儀表板名稱",
       "enterTableDescription": "輸入表描述...",
       "enterScriptDescription": "輸入指令碼描述...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "{type} 時發生錯誤",
       "anErrorOccuredWhileAirtableBaseImport": "從 Airtable 匯入 Base 時發生錯誤",
       "paymentFailed": "付款失敗",
-      "paymentFailedSubtitle": "處理您的付款時發生錯誤。請再試一次或聯絡支援人員。"
+      "paymentFailedSubtitle": "處理您的付款時發生錯誤。請再試一次或聯絡支援人員。",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "專案中繼資料已成功匯出",
@@ -2371,6 +2375,7 @@
       "projInfo": "已將專案資訊複製到剪貼簿",
       "inviteUrlCopy": "已將邀請連結複製到剪貼簿",
       "createView": "成功建立檢視",
+      "createField": "Field created successfully",
       "formEmailSMTP": "請啟用 App Store 中的 SMTP 外掛程式以啟用電子郵件通知",
       "collabView": "成功轉換為協作視圖",
       "lockedView": "成功轉換為鎖定視圖",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "您的付款已完成，現在可以使用新的方案。",
       "upgradeSuccessful": "升級成功",
       "upgradeSuccessfulSubtitle": "您的升級付款已完成，現在可以使用新的方案。",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

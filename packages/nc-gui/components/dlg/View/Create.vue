@@ -46,6 +46,7 @@ interface Props {
     fk_to_column_id: string | null // for ee only
   }>
   coverImageColumnId?: string
+  sourceId?: string
 }
 
 interface Emits {
@@ -234,7 +235,7 @@ const onAiEnter = async () => {
 
   if (activeTabSelectedViews.value.length) {
     try {
-      const data = await createViews(activeTabSelectedViews.value, baseId.value)
+      const data = await createViews(activeTabSelectedViews.value, baseId.value, props.sourceId)
 
       emits('created', ncIsArray(data) && data.length ? data[0] : undefined)
     } catch (e: any) {
@@ -579,6 +580,7 @@ const predictViews = async (): Promise<AiSuggestedViewType[]> => {
       baseId.value,
       activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
       viewType,
+      props.sourceId,
     )
   )
     .filter((v: AiSuggestedViewType) => !ncIsArrayIncludes(activeTabPredictedViews.value, v.title, 'title'))

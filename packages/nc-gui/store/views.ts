@@ -561,6 +561,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     coverImageColumnId,
     baseId,
     tableId,
+    sourceId,
   }: {
     title?: string
     type: ViewTypes | 'AI'
@@ -573,6 +574,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     coverImageColumnId?: string
     baseId: string
     tableId: string
+    sourceId?: string
   }) => {
     if (!baseId || !tableId) return
 
@@ -589,6 +591,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       coverImageColumnId,
       'onUpdate:modelValue': closeDialog,
       'baseId': baseId,
+      'sourceId': sourceId,
       'onCreated': async (view?: ViewType) => {
         closeDialog()
 

@@ -887,6 +887,9 @@
     "thisPrivateBaseHasBeenLockedSubtext": "잠금을 해제하려면 {plan} 플랜으로 업그레이드하거나 이 베이스를 공유 베이스로 전환하십시오."
   },
   "labels": {
+    "configurationError": "Configuration Error",
+    "keepEditing": "Keep editing",
+    "leave": "Leave",
     "chatWithNocoDBSupport": "NocoDB 지원팀과 채팅",
     "revisionHistory": "리비전 이력",
     "myNotifications": "내 알림",
@@ -2234,7 +2237,9 @@
       "unsavedChanges": "변경 내용이 저장되지 않았습니다.",
       "unsavedChangesConfirmation": "이 페이지를 떠나시겠습니까?",
       "supportChatUnavailable": "채팅 지원 불가",
-      "supportChatUnavailableSubtitle": "지원 채팅이 광고 차단기에 의해 차단되었을 수 있습니다. 비활성화하고 페이지를 새로고침해 보세요."
+      "supportChatUnavailableSubtitle": "지원 채팅이 광고 차단기에 의해 차단되었을 수 있습니다. 비활성화하고 페이지를 새로고침해 보세요.",
+      "leaveWithoutFinishing": "Leave without finishing?",
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
     },
     "error": {
       "failedToDeleteMcpToken": "MCP 토큰을 삭제하지 못했습니다",

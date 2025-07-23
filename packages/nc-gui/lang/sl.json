@@ -141,15 +141,15 @@
     "WorkspaceOwnerNotified": "Lastnik delovnega prostora obveščen",
     "WorkspaceOwnerNotifiedSubtitle": "Vaša zahteva za nadgradnjo je bila posredovana lastniku delovnega prostora.",
     "failedToSendUpgradeRequest": "Zahteve za nadgradnjo ni bilo mogoče poslati",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Nadgradite za popoln dostop do podatkov",
+    "upgradeToSeeMoreRecordInline": "Nadgradite za ogled vseh zapisov iz zunanjih virov podatkov",
     "upgradeToSeeMoreRecordSubtitle": "Odklenite popoln vpogled v povezane vire. Za ogled vseh zapisov nadgradite na načrt Plus.",
     "upgradeToSeeMoreRecordInlineSubtitle": "Ogledate si {limit} od {total} zapisov. Za dostop do preostalih {remaining} zapisov nadgradite na načrt Plus.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Brezplačni načrt omogoča do {limit} uporabnikov tipa Urednik; nadgradite za neomejeno število.",
     "adjustCollaboratorRoles": "Prilagodi vloge sodelavcev",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "Ročno",
     "trigger": "Sprožilec",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Slog",
     "label": "Oznaka",
     "role": "Vloga",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "Nadaljujte samo, če zaupate tej povezavi.",
     "reAssignViewModalSubtitle": "Ko bo ponovno dodeljen, trenutni lastnik ne bo več mogel urejati konfiguracije pogleda.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Zvestoba se obrestuje — izkoristite omejeno ceno!",
     "loyaltyBannerSubtitle": "Odklenite neomejena mesta, dodatne zapise, več prostora za shranjevanje, pogojne webhooke, SSO, integracije in še veliko več!",
     "selectTimezone": "Prikaži časovni pas",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "Pridružite se skupnosti NocoDB",
       "joinReddit": "Pridružite se /r/NocoDB",
       "followNocodb": "Sledite NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Prevod skupnosti/AI)"
     },
     "twitter": "Twitter",
     "docReference": "Referenca dokumentov",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Dodaj iz URL",
     "enterJson": "Vnesi JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable baza",
     "useSameTimezoneForAllMembers": "Uporabi isti časovni pas za vse člane",
     "displayTimezone": "Prikaži časovni pas",
     "upgradePlan": "Nadgradi paket",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "Iskanje ikon",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "Dodate lahko več e-pošte, ločenih z vejicami (,)",
       "enterTableName": "Vnesite ime tabele",
       "enterScriptName": "Vnesite ime skripte",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Vnesite ime nadzorne plošče",
       "enterTableDescription": "Vnesite opis tabele...",
       "enterScriptDescription": "Vnesite opis skripte...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "Prišlo je do napake med {type}",
       "anErrorOccuredWhileAirtableBaseImport": "Prišlo je do napake pri uvozu baze iz Airtable",
       "paymentFailed": "Plačilo ni uspelo",
-      "paymentFailedSubtitle": "Pri obdelavi vašega plačila je prišlo do napake. Poskusite znova ali se obrnite na podporo."
+      "paymentFailedSubtitle": "Pri obdelavi vašega plačila je prišlo do napake. Poskusite znova ali se obrnite na podporo.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Projekt Metapodatki se je uspešno izvozil",
@@ -2371,6 +2375,7 @@
       "projInfo": "Kopirane informacije o projektu v odložišče",
       "inviteUrlCopy": "Kopirani URL v odložišče",
       "createView": "Pogled je uspešno ustvaril",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Aktivirajte Plugin SMTP v App Store za omogočanje e-poštnega obvestila",
       "collabView": "Uspešno prehod na skupni pogled",
       "lockedView": "Uspešno prehod na zaklenjen pogled",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "Vaše plačilo je bilo obdelano. Zdaj lahko uporabljate svoj novi načrt.",
       "upgradeSuccessful": "Nadgradnja uspešna",
       "upgradeSuccessfulSubtitle": "Vaše plačilo za nadgradnjo je bilo obdelano. Zdaj lahko uporabljate svoj novi načrt.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

@@ -262,9 +262,10 @@ export const useNocoAi = createSharedComposable(() => {
     history?: string[],
     baseId?: string,
     prompt?: string,
+    sourceId?: string,
     skipMsgToast = true,
   ): Promise<{ title: string; selected: boolean }[]> => {
-    const res = await callAiUtilsApi('predictNextTables', { history, prompt }, baseId, skipMsgToast)
+    const res = await callAiUtilsApi('predictNextTables', { history, prompt, sourceId }, baseId, skipMsgToast)
 
     if (res?.tables) {
       return res.tables.map((title: string) => ({

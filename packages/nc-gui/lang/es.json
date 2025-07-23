@@ -169,6 +169,7 @@
   },
   "general": {
     "script": "Guion",
+    "dashboard": "Dashboard",
     "supported": "Apoyado",
     "usage": "Uso",
     "snapshot": "Instantánea",
@@ -427,7 +428,6 @@
     "scripts": "Scripts",
     "dashboard": "Dashboard",
     "dashboards": "Dashboards",
-    "file": "file",
     "files": "archivos",
     "owner": "Propietario",
     "member": "Miembro",

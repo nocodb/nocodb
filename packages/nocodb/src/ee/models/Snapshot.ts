@@ -183,4 +183,24 @@ export default class Snapshot implements SnapshotType {
       },
     );
   }
+
+  static async clearFromStats(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const countsInBase = await this.countSnapshotsInBase(
+      context,
+      baseId,
+      ncMeta,
+    );
+
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE,
+      -countsInBase,
+    );
+
+    return true;
+  }
 }

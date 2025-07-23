@@ -15,10 +15,8 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
-import { Base, Integration } from '~/models';
-import Noco from '~/Noco';
-import { MetaTable, RootScopes } from '~/utils/globals';
-import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import { Base, Integration, Workspace } from '~/models';
+import { checkLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { NcContext, NcRequest } from '~/interface/config';
 import { deepMerge } from '~/utils';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
@@ -57,66 +55,18 @@ export class SourceCreateController {
       NcError.baseNotFound(baseId);
     }
 
-    const sourcesInWorkspace = await Noco.ncMeta.metaCount(
-      context.workspace_id,
-      RootScopes.WORKSPACE,
-      MetaTable.SOURCES,
-      {
-        xcCondition: {
-          _and: [
-            {
-              fk_workspace_id: {
-                eq: context.workspace_id,
-              },
-            },
-            {
-              _or: [
-                {
-                  is_meta: {
-                    eq: false,
-                  },
-                },
-                {
-                  is_meta: {
-                    eq: null,
-                  },
-                },
-              ],
-            },
-            {
-              _or: [
-                {
-                  is_local: {
-                    eq: false,
-                  },
-                },
-                {
-                  is_local: {
-                    eq: null,
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      },
-    );
+    const workspace = await Workspace.get(base.fk_workspace_id, false);
 
-    const { limit: sourceLimitForWorkspace, plan } = await getLimit(
-      PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
-      base.fk_workspace_id,
-    );
-
-    if (sourcesInWorkspace >= sourceLimitForWorkspace) {
-      NcError.planLimitExceeded(
-        `Only ${sourceLimitForWorkspace} sources are allowed, for more please upgrade your plan`,
-        {
-          plan: plan?.title,
-          limit: sourceLimitForWorkspace,
-          current: sourcesInWorkspace,
-        },
-      );
+    if (!workspace) {
+      NcError.workspaceNotFound(base.fk_workspace_id);
     }
+
+    await checkLimit({
+      workspace: workspace,
+      type: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
+      message: ({ limit }) =>
+        `You have reached the limit of ${limit} external sources for your plan.`,
+    });
 
     let config = {
       ...body.config,

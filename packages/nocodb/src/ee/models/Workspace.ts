@@ -598,15 +598,42 @@ export default class Workspace implements WorkspaceType {
           [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.HOOKS)
             .count('*')
-            .where('fk_workspace_id', id),
+            .where('fk_workspace_id', id)
+            // exclude webhook from deleted bases
+            .whereNotIn(
+              'base_id',
+              ncMeta
+                .knexConnection(MetaTable.PROJECT)
+                .select('id')
+                .where('deleted', true)
+                .where('fk_workspace_id', id),
+            ),
           [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.EXTENSIONS)
             .count('*')
-            .where('fk_workspace_id', id),
+            .where('fk_workspace_id', id)
+            // exclude extensions from deleted bases
+            .whereNotIn(
+              'base_id',
+              ncMeta
+                .knexConnection(MetaTable.PROJECT)
+                .select('id')
+                .where('deleted', true)
+                .where('fk_workspace_id', id),
+            ),
           [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.SNAPSHOT)
             .count('*')
-            .where('fk_workspace_id', id),
+            .where('fk_workspace_id', id)
+            // exclude snapshots from deleted bases
+            .whereNotIn(
+              'base_id',
+              ncMeta
+                .knexConnection(MetaTable.PROJECT)
+                .select('id')
+                .where('deleted', true)
+                .where('fk_workspace_id', id),
+            ),
           [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.SOURCES)
             .count('*')
@@ -616,7 +643,16 @@ export default class Workspace implements WorkspaceType {
             })
             .where((qb) => {
               qb.where('is_local', false).orWhereNull('is_local');
-            }),
+            })
+            // exclude sources from deleted bases
+            .whereNotIn(
+              'base_id',
+              ncMeta
+                .knexConnection(MetaTable.PROJECT)
+                .select('id')
+                .where('deleted', true)
+                .where('fk_workspace_id', id),
+            ),
           [PlanLimitTypes.LIMIT_EDITOR]: ncMeta
             .knexConnection(`${MetaTable.WORKSPACE_USER} AS wu`)
             .leftJoin(

@@ -1805,7 +1805,8 @@
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
-    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
+    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
   },
   "placeholder": {
     "searchIcons": "ചിഹ്നങ്ങൾ തിരയുക",
@@ -2236,6 +2237,7 @@
       "copyToClipboardLocalFileUrl": "ബ്രൗസർ ലൊക്കൽ റസോഴ്‌സ് നേരിട്ട് ലോഡ് ചെയ്യാൻ അനുവദിക്കുന്നില്ല. പകരം URL ക്ലിപ്പ്ബോർഡിലേക്ക് പകർത്തി.",
       "unsavedChanges": "You have unsaved changes.",
       "unsavedChangesConfirmation": "Are you sure you want to leave this page?",
+      "leaveThisWorkspace": "Leave this workspace.",
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",

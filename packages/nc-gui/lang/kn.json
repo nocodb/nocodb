@@ -161,7 +161,11 @@
     "upgradeToUseRowColoring": "Upgrade to use row colouring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data.",
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
-    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data."
+    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
+    "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
+    "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them."
   },
   "general": {
     "script": "Script",
@@ -415,7 +419,9 @@
     "permissions": "Permissions",
     "manageAllFields": "Manage all fields",
     "automations": "Automations",
-    "record": "Record"
+    "record": "Record",
+    "overview": "Overview",
+    "baseType": "Base Type"
   },
   "objects": {
     "script": "ಸ್ಕ್ರಿಪ್ಟ್",
@@ -664,6 +670,7 @@
     "isNotNull": "null ಅಲ್ಲ"
   },
   "title": {
+    "accessRestricted": "Access Restricted",
     "editTablePermissions": "Edit table permissions",
     "editFieldPermissions": "Edit field permissions",
     "confirmSnapshotRestore": "ಸ್ನ್ಯಾಪ್‌ಶಾಟ್ ಪುನಸ್ಥಾಪನೆಯನ್ನು ದೃಢಪಡಿಸಿ",
@@ -867,7 +874,16 @@
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
-    "fieldPermissions": "Field permissions"
+    "fieldPermissions": "Field permissions",
+    "baseTypeDefaultSubtext": "Workspace members can collaborate based on their role.",
+    "baseTypePrivateSubtext": "Invite-only base. Only you can view and manage its members.",
+    "baseTypeTabSubtext": "Control who can view and interact with this base. Choose an access level that fits your privacy needs.",
+    "baseTypeSettingsDefaultSubtext": "Everyone in the workspace can access this base, based on their role.",
+    "baseTypeSettingsPrivateSubtext": "Only you and members invited to this base can view and interact with it.",
+    "privateBase": "Private Base",
+    "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
+    "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
     "configurationError": "Incomplete configuration",
@@ -1418,7 +1434,12 @@
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
     "customColours": "Custom colours",
-    "sendAllEvents": "Send all events"
+    "sendAllEvents": "Send all events",
+    "useNocoAI": "Use NocoAI",
+    "disableNocoAI": "Disable NocoAI",
+    "defaultType": "Default",
+    "privateType": "Private",
+    "sharingRestricted": "Sharing restricted"
   },
   "activity": {
     "clickToResolve": "ಪರಿಹರಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
@@ -1706,7 +1727,9 @@
     "pending": "ಬಾಕಿ",
     "goToPage": "ಪುಟಕ್ಕೆ ಹೋಗಿ",
     "changePlan": "ಯೋಜನೆ ಬದಲಾವಣೆ",
-    "goToPermissionsOverview": "Go to Permissions Overview"
+    "goToPermissionsOverview": "Go to Permissions Overview",
+    "goToBaseSettings": "Go to Base Settings",
+    "convertToSharedBase": "Convert to Shared Base"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1850,6 +1873,7 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
+    "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",

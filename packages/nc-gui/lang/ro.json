@@ -141,15 +141,15 @@
     "WorkspaceOwnerNotified": "Proprietarul spațiului de lucru a fost notificat",
     "WorkspaceOwnerNotifiedSubtitle": "Cererea ta de upgrade a fost transmisă proprietarului spațiului de lucru.",
     "failedToSendUpgradeRequest": "Trimiterea cererii de upgrade a eșuat",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Fă upgrade pentru a debloca accesul complet la date",
+    "upgradeToSeeMoreRecordInline": "Fă upgrade pentru a vedea toate înregistrările din sursele de date externe",
     "upgradeToSeeMoreRecordSubtitle": "Deblochează vizibilitatea completă asupra surselor conectate. Vezi toate înregistrările făcând upgrade la planul Plus.",
     "upgradeToSeeMoreRecordInlineSubtitle": "Vizualizezi {limit} din {total} înregistrări. Deblochează accesul la cele {remaining} înregistrări rămase făcând upgrade la planul Plus.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Planul gratuit permite până la {limit} utilizatori de tip Editor; fă upgrade pentru nelimitat",
     "adjustCollaboratorRoles": "Ajustează rolurile colaboratorilor",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "Manual",
     "trigger": "Declanșator",
     "addLookupField": "Adăugați {count} câmp de căutare",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Stil",
     "label": "Etichetă",
     "role": "Rol",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "Continuați doar dacă aveți încredere în acest link.",
     "reAssignViewModalSubtitle": "După reatribuire, proprietarul curent nu va mai putea edita configurația vizualizării.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Loialitatea se răsplătește — bucură-te de prețuri plafonate!",
     "loyaltyBannerSubtitle": "Deblochează locuri nelimitate, înregistrări suplimentare, mai mult spațiu de stocare, webhook-uri condiționate, SSO, integrări și multe altele!",
     "selectTimezone": "Afișează fusul orar",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "Alătură-te Comunității NocoDB",
       "joinReddit": "/r/NocoDB",
       "followNocodb": "Urmărește NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Comunitate/Tradus de AI)"
     },
     "twitter": "Twitter",
     "docReference": "Referință Document",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Adaugă din URL",
     "enterJson": "Introduceți JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Baza Airtable",
     "useSameTimezoneForAllMembers": "Folosește același fus orar pentru toți membrii",
     "displayTimezone": "Afișează fusul orar",
     "upgradePlan": "Upgrade plan",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Crearea unei vizualizări de formular nu este disponibilă pentru un tabel sincronizat",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "Caută icoane",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "Puteți adăuga mai multe adrese de e-mail separate prin virgulă(,)",
       "enterTableName": "Introduceți numele tabelului",
       "enterScriptName": "Introduceți numele scriptului",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Introdu numele Tabloului de Bord",
       "enterTableDescription": "Introdu descriere tabel...",
       "enterScriptDescription": "Introduceți descrierea scriptului...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "A apărut o eroare în timpul {type}",
       "anErrorOccuredWhileAirtableBaseImport": "A apărut o eroare la importarea bazei din Airtable",
       "paymentFailed": "Plata a eșuat",
-      "paymentFailedSubtitle": "A apărut o eroare la procesarea plății. Încearcă din nou sau contactează asistența."
+      "paymentFailedSubtitle": "A apărut o eroare la procesarea plății. Încearcă din nou sau contactează asistența.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Metadatele bazei au fost exportate cu succes",
@@ -2371,6 +2375,7 @@
       "projInfo": "Informațiile bazei au fost copiate în clipboard",
       "inviteUrlCopy": "URL-ul de invitație copiat în clipboard",
       "createView": "Vizualizare creată cu succes",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Vă rugăm să activați pluginul SMTP în Magazinul de aplicații pentru a permite notificarea prin e-mail",
       "collabView": "Comutat cu succes la vizualizarea colaborativă",
       "lockedView": "Comutat cu succes la vizualizarea blocată",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "Plata ta a fost procesată. Poți folosi acum noul plan.",
       "upgradeSuccessful": "Upgrade reușit",
       "upgradeSuccessfulSubtitle": "Plata pentru upgrade a fost procesată. Acum poți folosi noul plan.",
-      "mcpUrlCopied": "URL-ul MCP a fost copiat în clipboard"
+      "mcpUrlCopied": "URL-ul MCP a fost copiat în clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

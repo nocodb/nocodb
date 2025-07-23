@@ -1,9 +1,9 @@
-import type { ScriptType } from 'nocodb-sdk'
+import { EventType, type ScriptPayload, type ScriptType } from 'nocodb-sdk'
 import { DlgAutomationCreate } from '#components'
 import { parseScript, validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
 
 export const useAutomationStore = defineStore('automation', () => {
-  const { $api, $e } = useNuxtApp()
+  const { $api, $e, $ncSocket } = useNuxtApp()
   const route = useRoute()
   const { ncNavigateTo } = useGlobal()
   const bases = useBases()
@@ -194,7 +194,10 @@ export const useAutomationStore = defineStore('automation', () => {
       const baseAutomations = automations.value.get(baseId) || []
       const index = baseAutomations.findIndex((a) => a.id === automationId)
       if (index !== -1) {
-        baseAutomations[index] = updated as unknown as ScriptType
+        baseAutomations[index] = {
+          ...baseAutomations[index],
+          ...updated,
+        } as unknown as ScriptType
         automations.value.set(baseId, baseAutomations)
       }
 
@@ -384,6 +387,77 @@ export const useAutomationStore = defineStore('automation', () => {
       close(1000)
     }
   }
+
+  const handleScriptEvent = (payload: ScriptPayload, baseId: string) => {
+    const { id, action, payload: automation } = payload
+    const existingAutomations = automations.value.get(baseId) || []
+
+    switch (action) {
+      case 'create': {
+        const updatedAutomations = [...existingAutomations, automation]
+        automations.value.set(baseId, updatedAutomations)
+        break
+      }
+      case 'update': {
+        const updatedAutomations = existingAutomations.map((d) =>
+          d.id === id ? { ...d, ...automation, _dirty: d._dirty ? d._dirty + 1 : 1 } : d,
+        )
+        automations.value.set(baseId, updatedAutomations)
+        break
+      }
+      case 'delete': {
+        const updatedAutomations = existingAutomations.filter((d) => d.id !== id)
+        automations.value.set(baseId, updatedAutomations)
+        if (activeAutomationId.value === id) {
+          const nextAutomation = updatedAutomations[0]
+          if (nextAutomation) {
+            ncNavigateTo({
+              workspaceId: activeWorkspaceId.value,
+              baseId,
+              automationId: nextAutomation.id,
+            })
+          } else {
+            ncNavigateTo({
+              workspaceId: activeWorkspaceId.value,
+              baseId,
+            })
+          }
+        }
+        break
+      }
+    }
+  }
+
+  const setupRealtimeSubscription = (baseId: string) => {
+    if (!activeWorkspaceId.value || !$ncSocket || !baseId) return
+
+    const eventKey = `${EventType.SCRIPT_EVENT}:${activeWorkspaceId.value}:${baseId}`
+
+    $ncSocket.subscribe(eventKey)
+
+    $ncSocket.onMessage(eventKey, (payload: ScriptPayload) => {
+      if (payload.eventType === EventType.SCRIPT_EVENT) {
+        handleScriptEvent(payload as ScriptPayload, baseId)
+      }
+    })
+  }
+
+  watch(
+    activeProjectId,
+    (newBaseId, oldBaseId) => {
+      if (newBaseId && newBaseId !== oldBaseId) {
+        setupRealtimeSubscription(newBaseId)
+      }
+    },
+    { immediate: true },
+  )
+
+  onUnmounted(() => {
+    if (activeProjectId.value && activeWorkspaceId.value && $ncSocket) {
+      const eventKey = `${EventType.SCRIPT_EVENT}:${activeWorkspaceId.value}:${activeProjectId.value}`
+      $ncSocket.offMessage(eventKey)
+    }
+  })
 
   return {
     // State

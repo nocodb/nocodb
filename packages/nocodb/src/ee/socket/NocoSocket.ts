@@ -20,7 +20,7 @@ export default class NocoSocket {
     socket.once('handshake', async (args, callback) => {
       if (callback && typeof callback === 'function') {
         try {
-          socket.user = await verifyJwt(args?.token, Noco.getConfig()); // Attach user to socket handshake
+          socket.user = verifyJwt(args?.token, Noco.getConfig()); // Attach user to socket handshake
           sendWelcomeMessage(socket);
 
           // Set up event handlers for this client
@@ -72,9 +72,12 @@ export default class NocoSocket {
 
     // Check permissions based on event type
     if (
-      (eventType === EventType.DATA_EVENT ||
-        eventType === EventType.DASHBOARD_EVENT ||
-        eventType === EventType.WIDGET_EVENT) &&
+      [
+        EventType.DATA_EVENT,
+        EventType.DASHBOARD_EVENT,
+        EventType.WIDGET_EVENT,
+        EventType.SCRIPT_EVENT,
+      ].includes(eventType as EventType) &&
       userWithRole.base_roles?.[ProjectRoles.NO_ACCESS]
     ) {
       this.logger.warn(

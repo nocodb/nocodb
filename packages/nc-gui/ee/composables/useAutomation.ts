@@ -21,12 +21,11 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     activeSteps,
   } = useScriptExecutor()
 
-  const code = ref<string>()
   const activeExecutionId = ref<string | null>(null)
   const configValue = ref<Record<string, any>>({})
 
   const config = computed(() => {
-    return parseScript(code.value) ?? {}
+    return parseScript(activeAutomation.value?.code) ?? {}
   })
 
   const isCreateEditScriptAllowed = computed(() => {
@@ -108,7 +107,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
 
     activeExecutionId.value = await executeScript({
       ...activeAutomation.value,
-      script: code.value,
+      script: activeAutomation.value.code,
     })
   }
 
@@ -124,14 +123,29 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     await runScript()
   }
 
-  const updateScript = async ({ script, config }: { script?: string; config?: Record<string, any> }) => {
+  const updateScript = async ({
+    script,
+    config,
+    skipNetworkCall,
+  }: {
+    script?: string
+    config?: Record<string, any>
+    skipNetworkCall?: boolean
+  }) => {
     if (!activeProjectId.value || !activeAutomation.value?.id) return
 
     if (isCreateEditScriptAllowed.value) {
-      await updateAutomation(activeProjectId.value, activeAutomation.value.id, {
-        script,
-        config,
-      })
+      await updateAutomation(
+        activeProjectId.value,
+        activeAutomation.value.id,
+        {
+          script,
+          config,
+        },
+        {
+          skipNetworkCall,
+        },
+      )
     }
 
     if (config) {
@@ -142,14 +156,9 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   const debouncedSave = useDebounceFn(async () => {
     if (!activeProjectId.value || !activeAutomation.value?.id) return
     await updateScript({
-      script: code.value,
+      script: activeAutomation.value.script,
     })
   }, 500)
-
-  watch(code, async (_newValue, oldValue) => {
-    if (!oldValue) return
-    await debouncedSave()
-  })
 
   onBeforeUnmount(() => {
     stopScript()
@@ -157,7 +166,6 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
 
   return {
     // State
-    code,
     configValue,
 
     // Computed
@@ -180,6 +188,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     resolveInput,
     updateScript,
     restartScript,
+    debouncedSave,
   }
 })
 

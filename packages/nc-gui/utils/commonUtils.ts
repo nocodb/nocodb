@@ -167,3 +167,22 @@ export const extractNameFromEmail = (email?: string) => {
 
   return email?.slice(0, email.indexOf('@'))
 }
+
+/**
+ * Wait for a condition to be truthy
+ * @param conditionFn - Function that returns the condition to check
+ * @param interval - Polling interval in milliseconds (default: 100)
+ * @returns Promise that resolves when condition becomes truthy
+ */
+export function waitForCondition(conditionFn: () => unknown, interval: number = 100): Promise<void> {
+  return new Promise((resolve) => {
+    const check = (): void => {
+      if (conditionFn()) {
+        resolve()
+      } else {
+        setTimeout(check, interval)
+      }
+    }
+    check()
+  })
+}

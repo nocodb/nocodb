@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, EventType } from 'nocodb-sdk';
 import type { ScriptType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Script from '~/models/Script';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class ScriptsService {
@@ -42,6 +43,17 @@ export class ScriptsService {
       user: req.user,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      EventType.SCRIPT_EVENT,
+      {
+        id: script.id,
+        action: 'create',
+        payload: script,
+      },
+      context.socket_id,
+    );
+
     return script;
   }
 
@@ -67,6 +79,17 @@ export class ScriptsService {
       req: req,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      EventType.SCRIPT_EVENT,
+      {
+        id: scriptId,
+        action: 'update',
+        payload: updatedScript,
+      },
+      context.socket_id,
+    );
+
     return updatedScript;
   }
 
@@ -85,6 +108,17 @@ export class ScriptsService {
       req: req,
       user: context.user,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      EventType.SCRIPT_EVENT,
+      {
+        id: scriptId,
+        action: 'delete',
+        payload: script,
+      },
+      context.socket_id,
+    );
 
     return true;
   }
@@ -112,6 +146,17 @@ export class ScriptsService {
       description: script.description,
       created_by: req.user.id,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      EventType.SCRIPT_EVENT,
+      {
+        id: newScript.id,
+        action: 'create',
+        payload: newScript,
+      },
+      context.socket_id,
+    );
 
     this.appHooksService.emit(AppEvents.SCRIPT_DUPLICATE, {
       sourceScript: script,

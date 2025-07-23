@@ -14,8 +14,16 @@ const { appInfo } = useGlobal()
 
 const { isAiBetaFeaturesEnabled } = useNocoAi()
 
-const { libCode, code, config, configValue, isSettingsOpen, shouldShowSettings, isCreateEditScriptAllowed } =
-  useScriptStoreOrThrow()
+const {
+  libCode,
+  config,
+  configValue,
+  isSettingsOpen,
+  shouldShowSettings,
+  isCreateEditScriptAllowed,
+  updateScript,
+  debouncedSave,
+} = useScriptStoreOrThrow()
 
 const updateTypes = () => {
   if (!activeBaseSchema.value) return
@@ -34,7 +42,7 @@ async function setupMonacoEditor() {
 
   updateTypes()
 
-  const model = monaco.editor.createModel(code.value, 'typescript')
+  const model = monaco.editor.createModel(activeAutomation.value?.script, 'typescript')
 
   editor = monaco.editor.create(editorRef.value!, {
     model,
@@ -98,17 +106,32 @@ async function setupMonacoEditor() {
   }
 
   editor.onDidChangeModelContent(() => {
-    code.value = editor.getValue()
+    updateScript({
+      script: editor.getValue(),
+      skipNetworkCall: true,
+    })
+    debouncedSave()
   })
 
   editor.focus()
 }
 
+watch(
+  () => activeAutomation.value._dirty,
+  (newVal) => {
+    if (newVal) {
+      const pos = editor.getPosition()
+      editor.setValue(activeAutomation.value.script)
+      editor.setPosition(pos)
+    }
+  },
+)
+
 onMounted(async () => {
-  code.value = activeAutomation.value?.script || ''
   configValue.value = {
     ...(activeAutomation.value?.config ?? {}),
   }
+  await waitForCondition(() => !!activeAutomation.value)
   await until(() => editorRef.value).toBeTruthy()
   await setupMonacoEditor()
 })

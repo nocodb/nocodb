@@ -22,11 +22,15 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const isAdvanceOptVisible = ref(false)
 
 const inputEl = ref<HTMLInputElement>()
 
 const aiPromptInputRef = ref<HTMLElement>()
+
+const customSourceId = ref<string | undefined>()
 
 const workspaceStore = useWorkspace()
 
@@ -48,8 +52,46 @@ const onTableCreate = async (table: TableType) => {
 
 const { table, createTable, generateUniqueTitle, tables, base, openTable } = useTableNew({
   onTableCreate,
-  sourceId: props.sourceId,
+  sourceId: customSourceId,
   baseId: props.baseId,
+})
+
+const isOpenSourceSelectDropdown = ref(false)
+
+const sourceList = computed(() => {
+  return (base.value?.sources || [])?.map((source, idx) => {
+    const isHidden = source.enabled === false
+
+    const ncItemTooltip = isHidden
+      ? t('tooltip.sourceVisibilityIsHidden')
+      : source.is_schema_readonly
+      ? t('tooltip.schemaChangeDisabled')
+      : ''
+
+    let sourceLabel = t('general.default')
+
+    if (idx !== 0 && (source.is_meta || source.is_local)) {
+      sourceLabel = t('general.base')
+    } else if (idx !== 0) {
+      sourceLabel = source.alias || source.id!
+    }
+
+    return {
+      label: sourceLabel,
+      value: source.id,
+      ncItemDisabled: isHidden || source.is_schema_readonly,
+      ncItemTooltip,
+      ...source,
+    }
+  })
+})
+
+const selectedSource = computed(() => {
+  return sourceList.value.find((source) => source.value === customSourceId.value) || sourceList.value[0]
+})
+
+watchEffect(() => {
+  console.log('props', sourceList.value)
 })
 
 const onAiTableCreate = async (table: TableType) => {
@@ -358,6 +400,17 @@ const toggleDescription = () => {
 onMounted(() => {
   generateUniqueTitle()
 
+  const newSourceId = props.sourceId || sourceList.value[0]?.value
+
+  const sourceObj = sourceList.value.find((source) => source.value === newSourceId)
+
+  // Change source id only if it is default source selected initially and its not enabled
+  if (sourceObj && sourceObj.ncItemDisabled && sourceObj.value === sourceList.value[0]?.value) {
+    customSourceId.value = sourceList.value.find((source) => !source.ncItemDisabled)?.value || sourceList.value[0]?.value
+  } else {
+    customSourceId.value = newSourceId
+  }
+
   nextTick(() => {
     inputEl.value?.focus()
     inputEl.value?.select()
@@ -451,16 +504,55 @@ const handleRefreshOnError = () => {
         @keydown.esc="dialogShow = false"
       >
         <div class="flex flex-col gap-5">
-          <a-form-item v-if="!aiMode" v-bind="validateInfos.title" class="relative nc-table-input-wrapper relative">
-            <a-input
-              ref="inputEl"
-              v-model:value="table.title"
-              class="nc-table-input nc-input-sm nc-input-shadow"
-              hide-details
-              data-testid="create-table-title-input"
-              :placeholder="$t('msg.info.enterTableName')"
-            />
-          </a-form-item>
+          <template v-if="!aiMode">
+            <a-form-item v-bind="validateInfos.title" class="relative nc-table-input-wrapper relative">
+              <a-input
+                ref="inputEl"
+                v-model:value="table.title"
+                class="nc-table-input nc-input-sm nc-input-shadow"
+                hide-details
+                data-testid="create-table-title-input"
+                :placeholder="$t('msg.info.enterTableName')"
+              />
+            </a-form-item>
+            <a-form-item name="default_role" class="!mb-0" @click.stop @dblclick.stop>
+              <template #label>
+                <div>{{ t('general.datasource') }}</div>
+              </template>
+              <NcListDropdown
+                v-model:is-open="isOpenSourceSelectDropdown"
+                :disabled="sourceList.length < 2"
+                :default-slot-wrapper-class="
+                  sourceList.length < 2
+                    ? 'text-nc-content-gray-muted cursor-not-allowed bg-nc-bg-gray-light children:opacity-60'
+                    : 'text-nc-content-gray'
+                "
+              >
+                <div class="flex-1 flex items-center gap-2">
+                  <span class="text-sm flex-1">{{ selectedSource?.label }}</span>
+
+                  <GeneralIcon
+                    icon="ncChevronDown"
+                    class="flex-none h-4 w-4 transition-transform opacity-70"
+                    :class="{ 'transform rotate-180': isOpenSourceSelectDropdown }"
+                  />
+                </div>
+                <template #overlay="{ onEsc }">
+                  <NcList
+                    v-model:open="isOpenSourceSelectDropdown"
+                    :value="customSourceId || sourceList[0]?.value || ''"
+                    @update:value="customSourceId = $event"
+                    :list="sourceList"
+                    variant="small"
+                    class="!w-auto"
+                    wrapper-class-name="!h-auto"
+                    @escape="onEsc"
+                  >
+                  </NcList>
+                </template>
+              </NcListDropdown>
+            </a-form-item>
+          </template>
 
           <!-- Ai table wizard  -->
           <template v-if="aiMode">
@@ -683,7 +775,7 @@ const handleRefreshOnError = () => {
             :class="{ '!mb-1': isSnowflake(props.sourceId), '!mb-0': !isSnowflake(props.sourceId) }"
           >
             <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
-              <span class="text-[13px]">
+              <span>
                 {{ $t('labels.description') }}
               </span>
               <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">

@@ -887,6 +887,9 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
+    "configurationError": "Configuration Error",
+    "keepEditing": "Keep editing",
+    "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
     "revisionHistory": "Revision History",
     "myNotifications": "My Notifications",
@@ -2234,7 +2237,9 @@
       "unsavedChanges": "Aveți modificări nesalvate.",
       "unsavedChangesConfirmation": "Sigur doriți să părăsiți această pagină?",
       "supportChatUnavailable": "Support chat unavailable",
-      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
+      "leaveWithoutFinishing": "Leave without finishing?",
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
     },
     "error": {
       "failedToDeleteMcpToken": "Nu s-a putut șterge token-ul MCP",

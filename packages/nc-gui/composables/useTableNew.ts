@@ -6,7 +6,7 @@ import { generateUniqueTitle as generateTitle } from '#imports'
 export function useTableNew(param: {
   onTableCreate?: (tableMeta: TableType) => void
   baseId: string
-  sourceId?: Ref<string | undefined>
+  sourceId?: ComputedRef<string | undefined>
 }) {
   const table = reactive<{ title: string; table_name: string; description?: string; columns: string[]; is_hybrid: boolean }>({
     title: '',

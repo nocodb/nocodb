@@ -799,7 +799,7 @@ defineExpose({
                   v-if="
                     isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })
                   "
-                  :disabled="!base?.sources?.[0]?.enabled"
+                  :disabled="!base?.sources?.[0]?.enabled && base?.sources?.length === 1"
                   class="nc-sidebar-node-btn"
                   type="text"
                   data-testid="nc-sidebar-add-base-entity"
@@ -809,7 +809,7 @@ defineExpose({
                     '!inline-block !opacity-100': isOptionsOpen,
                   }"
                   :loading="isAddNewProjectChildEntityLoading"
-                  @click.stop="addNewProjectChildEntity()"
+                  @click.stop="addNewProjectChildEntity(true)"
                   @mouseenter="showNodeTooltip = false"
                   @mouseleave="showNodeTooltip = true"
                 >

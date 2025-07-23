@@ -877,7 +877,14 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "crossBase": "Link to external base",
+    "chatWithNocoDBSupport": "Chat with NocoDB Support",
+    "revisionHistory": "Revision History",
+    "myNotifications": "My Notifications",
+    "quickSearch": "Quick Search",
+    "recentViews": "Recent Views",
+    "searchDocumentation": "Search Documentation",
+    "baseList": "Base List",
+    "crossBase": "外部ベースへのリンク",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -1242,7 +1249,7 @@
       "joinCommunity": "NocoDB のコミュニティに参加",
       "joinReddit": "/r/NocoDB に参加",
       "followNocodb": "NocoDB をフォロー",
-      "communityTranslated": "(コミュニティ/AI翻訳)"
+      "communityTranslated": "AI Generated Translations"
     },
     "twitter": "Twitter",
     "docReference": "リファレンスドキュメント",

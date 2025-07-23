@@ -11,6 +11,7 @@ const props = withDefaults(
     showLabel?: boolean
     showNocoDbImport?: boolean
     popupOffset?: [number, number]
+    showSourceSelector?: boolean
   }>(),
   {
     variant: 'small',
@@ -18,6 +19,7 @@ const props = withDefaults(
     submenuClass: '',
     showLabel: false,
     showNocoDbImport: false,
+    showSourceSelector: true,
   },
 )
 
@@ -64,6 +66,7 @@ function openQuickImportDialog(type: string) {
     'importType': type,
     'baseId': source.value.base_id,
     'sourceId': source.value.id,
+    'showSourceSelector': props.showSourceSelector,
     'onUpdate:modelValue': closeDialog,
   })
 

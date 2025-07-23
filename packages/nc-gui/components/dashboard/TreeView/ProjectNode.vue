@@ -908,6 +908,7 @@ defineExpose({
                                     v-if="showBaseOption(source)"
                                     v-model:base="base"
                                     :source="source"
+                                    :show-source-selector="false"
                                   />
                                 </NcMenu>
                               </template>

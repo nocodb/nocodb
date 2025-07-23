@@ -121,6 +121,7 @@
     "requestUpgradeToAdd": "请求升级以添加",
     "upgradeToAddMoreExtensions": "您当前使用的是免费套餐，只允许一个扩展。升级即可解锁无限扩展。",
     "upgradeToAddMoreScripts": "您当前使用的免费套餐仅允许创建一个脚本，升级套餐可以去除脚本数量限制。",
+    "upgradeToAddMoreDashboards": "You're currently on the Free plan, which allows only one dashboard. Upgrade to unlock unlimited dashboards.",
     "upgradeToAccessWsAudit": "升级以启用工作区审计",
     "upgradeToAccessWsAuditSubtitle": "升级到 {plan} 套餐即可启用工作区审计日志，高效监控关键操作。",
     "upgradeToAddMoreAttachments": "升级以添加更多附件",
@@ -168,6 +169,7 @@
   },
   "general": {
     "script": "脚本",
+    "dashboard": "Dashboard",
     "supported": "支持",
     "usage": "使用",
     "snapshot": "快照",
@@ -426,7 +428,6 @@
     "scripts": "脚本",
     "dashboard": "Dashboard",
     "dashboards": "Dashboards",
-    "file": "file",
     "files": "文件",
     "owner": "所有者",
     "member": "成员",
@@ -1863,7 +1864,8 @@
     "noTables": "暂无表格",
     "noAutomations": "无自动化内容",
     "emptyTablePlaceholder": "此项目暂时为空。",
-    "emptyTablePlaceholderSubtitle": "暂无表格"
+    "emptyTablePlaceholderSubtitle": "暂无表格",
+    "noDashboards": "No dashboards"
   },
   "msg": {
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",

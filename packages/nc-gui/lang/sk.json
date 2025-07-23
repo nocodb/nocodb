@@ -141,15 +141,15 @@
     "WorkspaceOwnerNotified": "Majiteľ pracovného priestoru bol informovaný",
     "WorkspaceOwnerNotifiedSubtitle": "Vaša žiadosť o upgrade bola odoslaná majiteľovi pracovného priestoru.",
     "failedToSendUpgradeRequest": "Nepodarilo sa odoslať žiadosť o upgrade",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Upgradujte na odomknutie úplného prístupu k údajom",
+    "upgradeToSeeMoreRecordInline": "Upgradujte na zobrazenie všetkých záznamov z externých zdrojov údajov",
     "upgradeToSeeMoreRecordSubtitle": "Odomknite úplnú viditeľnosť do vašich pripojených zdrojov. Zobraziť všetky záznamy môžete upgradovaním na plán Plus.",
     "upgradeToSeeMoreRecordInlineSubtitle": "Zobrazuje sa {limit} z {total} záznamov. Odomknite prístup k zostávajúcim {remaining} záznamom upgradovaním na plán Plus.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Bezplatný plán umožňuje maximálne {limit} používateľov typu Editor, upgradujte pre neobmedzený počet",
     "adjustCollaboratorRoles": "Upraviť roly spolupracovníkov",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "Manuál",
     "trigger": "Spustiť",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Štýl",
     "label": "Označenie",
     "role": "Rola",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "Pokračujte, iba ak dôverujete tomuto odkazu.",
     "reAssignViewModalSubtitle": "Po prepriradení už aktuálny vlastník nebude môcť upravovať konfiguráciu zobrazenia.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Vernosť sa vypláca — využite zastropovanú cenu!",
     "loyaltyBannerSubtitle": "Odomknite neobmedzené miesta, viac záznamov, väčšie úložisko, podmienené webhooky, SSO, integrácie a omnoho viac!",
     "selectTimezone": "Zobraziť časové pásmo",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "Pripojte sa ku komunite NocoDB",
       "joinReddit": "Pripojte sa k /r/NocoDB",
       "followNocodb": "Sledujte NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Preklad komunity/AI)"
     },
     "twitter": "Twitter",
     "docReference": "Odkaz na dokument",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Pridať z URL",
     "enterJson": "Zadajte JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Základ Airtable",
     "useSameTimezoneForAllMembers": "Používať rovnaké časové pásmo pre všetkých členov",
     "displayTimezone": "Zobraziť časové pásmo",
     "upgradePlan": "Inovovať plán",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "Vyhľadať ikony",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "Môžete pridať viacero e-mailov oddelených čiarkou(,)",
       "enterTableName": "Zadajte názov tabuľky",
       "enterScriptName": "Zadajte názov skriptu",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Zadajte názov dashboardu",
       "enterTableDescription": "Zadajte popis tabuľky...",
       "enterScriptDescription": "Zadajte popis skriptu...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "Počas {type} sa vyskytla chyba",
       "anErrorOccuredWhileAirtableBaseImport": "Pri importe základu z Airtable sa vyskytla chyba",
       "paymentFailed": "Platba zlyhala",
-      "paymentFailedSubtitle": "Pri spracovaní vašej platby sa vyskytla chyba. Skúste to znova alebo kontaktujte podporu."
+      "paymentFailedSubtitle": "Pri spracovaní vašej platby sa vyskytla chyba. Skúste to znova alebo kontaktujte podporu.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Úspešný export metadát projektu",
@@ -2371,6 +2375,7 @@
       "projInfo": "Skopírovanie informácií o projekte do schránky",
       "inviteUrlCopy": "Skopírovaná adresa URL pozvánky do schránky",
       "createView": "Zobrazenie úspešne vytvorené",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Prosím, aktivujte zásuvný modul SMTP v obchode s aplikáciami, aby ste mohli posielať e-mailové oznámenia",
       "collabView": "Úspešné prepnutie na kolaboratívne zobrazenie",
       "lockedView": "Úspešné prepnutie na uzamknuté zobrazenie",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "Vaša platba bola spracovaná. Môžete teraz používať svoj nový plán.",
       "upgradeSuccessful": "Upgrade úspešný",
       "upgradeSuccessfulSubtitle": "Vaša platba za upgrade bola spracovaná. Teraz môžete používať svoj nový plán.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

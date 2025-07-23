@@ -909,6 +909,7 @@
     "modelContextProtocol": "Modell-Kontext-Protokoll",
     "mcp": "MCP",
     "exampleScript": "Beispielskripte",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Skripte von NocoDB",
     "restoringSnapshot": "Snapshot wird wiederhergestellt",
     "note": "Hinweis:",
@@ -1434,7 +1435,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "Zum Klären klicken",

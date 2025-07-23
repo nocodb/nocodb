@@ -11,6 +11,7 @@ const props = withDefaults(
     showLabel?: boolean
     showNocoDbImport?: boolean
     popupOffset?: [number, number]
+    showSourceSelector?: boolean
   }>(),
   {
     variant: 'small',
@@ -18,6 +19,7 @@ const props = withDefaults(
     submenuClass: '',
     showLabel: false,
     showNocoDbImport: false,
+    showSourceSelector: true,
   },
 )
 
@@ -117,6 +119,7 @@ function openQuickImportDialog(type: string) {
     'importType': type,
     'baseId': base.value.id,
     'sourceId': source.value.id,
+    'showSourceSelector': props.showSourceSelector,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -152,6 +155,10 @@ const isNocoDbImportAllowed = computed(() => {
     isFeatureEnabled(FEATURE_FLAG.IMPORT_FROM_NOCODB) &&
     isUIAllowed('nocodbImport', { roles: baseRole.value, source: source.value })
   )
+})
+
+watchEffect(() => {
+  console.log('source selector', props.showSourceSelector)
 })
 </script>
 

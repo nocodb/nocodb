@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "Example Scripts",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Scripts by NocoDB",
     "restoringSnapshot": "Obnavljanje posnetka",
     "note": "Opomba:",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Dodaj iz URL",
     "enterJson": "Vnesi JSON",
-    "airtableBase": "Airtable baza",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "Uporabi isti časovni pas za vse člane",
     "displayTimezone": "Prikaži časovni pas",
     "upgradePlan": "Nadgradi paket",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "Kliknite za razrešitev",

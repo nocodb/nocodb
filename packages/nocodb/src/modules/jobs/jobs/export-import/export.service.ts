@@ -1009,7 +1009,7 @@ export class ExportService {
             mmOffset,
             mmLimit,
             mmFields,
-            streamedHeaders ? false : true,
+            !streamedHeaders,
           );
 
           // avoid writing headers for same model multiple times

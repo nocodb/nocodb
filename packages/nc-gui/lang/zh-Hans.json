@@ -157,16 +157,11 @@
     "upgradeToUploadWsImage": "升级以上传工作区图像",
     "upgradeToUploadWsImageSubtitle": "您当前的 {activePlan} 套餐仅允许使用图标和表情符号。升级到 {plan} 套餐即可上传自定义图像作为工作区头像。",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
-    "upgradeToUseCurrentUserFilterSubtitle": "升级到{plan}套餐才能使用根据当前用户显示对应数据的筛选器。",
-    "upgradeToUseRowColoring": "Upgrade to use row coloring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
+    "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
+    "upgradeToUseRowColoring": "Upgrade to use row colouring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data.",
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
-    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
-    "upgradeToUseScripts": "Upgrade to use scripts",
-    "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
-    "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
-    "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
+    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data."
   },
   "general": {
     "script": "脚本",
@@ -413,16 +408,12 @@
     "resources": "Resources",
     "community": "社区",
     "youtube": "Youtube",
-    "changelog": "变更记录",
-    "contactSupport": "联系客服",
-    "proceedImport": "继续导入",
+    "changelog": "Changelog",
+    "contactSupport": "Contact Support",
+    "proceedImport": "Proceed Import",
     "inserting": "Inserting",
-    "permissions": "权限",
-    "manageAllFields": "Manage all fields",
-    "automations": "自动化",
-    "record": "Record",
-    "overview": "Overview",
-    "baseType": "Base Type"
+    "permissions": "Permissions",
+    "manageAllFields": "Manage all fields"
   },
   "objects": {
     "script": "脚本",
@@ -671,9 +662,8 @@
     "isNotNull": "不为空（Not Null）"
   },
   "title": {
-    "accessRestricted": "Access Restricted",
-    "editTablePermissions": "编辑表格权限",
-    "editFieldPermissions": "编辑列权限",
+    "editTablePermissions": "Edit table permissions",
+    "editFieldPermissions": "Edit field permissions",
     "confirmSnapshotRestore": "确认恢复快照",
     "urlFilters": "URL过滤",
     "creatingScript": "创建脚本",
@@ -868,23 +858,14 @@
     "upgradeWorkspaceToPlan": "将 {workspace} 升级到 {plan} 套餐",
     "upgradeToPlanSubtitle": "您将立即为此方案付款。",
     "reactivateToPlan": "重新激活 {plan} 方案？",
-    "whatsNew": "What’s New!",
-    "currentUser": "当前用户",
-    "filteredByLoggedInUser": "按已登录用户筛选",
-    "hideExtensions": "隐藏扩展",
-    "duplicatesFound": "发现重复项",
-    "matchingResultsInRecords": "找到 {count} 条匹配结果",
-    "tablePermissions": "表格权限",
-    "fieldPermissions": "列权限",
-    "baseTypeDefaultSubtext": "Workspace members can collaborate based on their role.",
-    "baseTypePrivateSubtext": "Invite-only base. Only you can view and manage its members.",
-    "baseTypeTabSubtext": "Control who can view and interact with this base. Choose an access level that fits your privacy needs.",
-    "baseTypeSettingsDefaultSubtext": "Everyone in the workspace can access this base, based on their role.",
-    "baseTypeSettingsPrivateSubtext": "Only you and members invited to this base can view and interact with it.",
-    "privateBase": "Private Base",
-    "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
-    "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "whatsNew": "What’s New",
+    "currentUser": "Current User",
+    "filteredByLoggedInUser": "Filtered by logged-in user",
+    "hideExtensions": "Hide Extensions",
+    "duplicatesFound": "Duplicates found",
+    "matchingResultsInRecords": "Matching results in {count} records",
+    "tablePermissions": "Table permissions",
+    "fieldPermissions": "Field permissions"
   },
   "labels": {
     "configurationError": "Incomplete configuration",
@@ -1731,9 +1712,7 @@
     "pending": "待处理",
     "goToPage": "转到页面",
     "changePlan": "更改套餐",
-    "goToPermissionsOverview": "转到权限概览",
-    "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "goToPermissionsOverview": "Go to Permissions Overview"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1805,8 +1784,7 @@
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
-    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
   },
   "placeholder": {
     "searchIcons": "搜索图标",

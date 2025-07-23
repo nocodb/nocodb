@@ -44,6 +44,7 @@ function openAirtableImportDialog(baseId?: string, sourceId?: string) {
     'modelValue': isOpen,
     'baseId': baseId,
     'sourceId': sourceId,
+    'showSourceSelector': props.showSourceSelector,
     'onUpdate:modelValue': closeDialog,
   })
 

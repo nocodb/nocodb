@@ -6,7 +6,9 @@ interface Props {
   forceLayout?: 'vertical' | 'horizontal'
 }
 
-const props = withDefaults(defineProps<Props>(), {})
+const props = withDefaults(defineProps<Props>(), {
+  showSourceSelector: true,
+})
 
 const { baseId } = toRefs(props)
 
@@ -49,7 +51,7 @@ const sourceList = computed(() => {
 })
 
 const selectedSource = computed(() => {
-  if (!props.showSourceSelector || sourceList.value.length < 2) return undefined
+  if (sourceList.value.length < 2) return undefined
 
   return sourceList.value.find((source) => source.value === customSourceId.value) || sourceList.value[0]
 })
@@ -90,9 +92,9 @@ defineExpose({
     </template>
     <NcListDropdown
       v-model:is-open="isOpenSourceSelectDropdown"
-      :disabled="sourceList.length < 2"
+      :disabled="!showSourceSelector"
       :default-slot-wrapper-class="
-        sourceList.length < 2
+        !showSourceSelector
           ? 'text-nc-content-gray-muted cursor-not-allowed bg-nc-bg-gray-light children:opacity-60'
           : 'text-nc-content-gray'
       "

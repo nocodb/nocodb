@@ -134,7 +134,7 @@ const updateSourceTitle = async (sourceId: string) => {
  * @see {@link packages/nc-gui/components/smartsheet/topbar/TableListDropdown.vue} for a similar implementation
  * of table creation dialog. If this function is updated, consider updating the other implementation as well.
  */
-function openTableCreateDialog(sourceIndex?: number | undefined) {
+function openTableCreateDialog(sourceIndex?: number | undefined, showSourceSelector = true) {
   const isOpen = ref(true)
   let sourceId = base.value!.sources?.[0].id
   if (typeof sourceIndex === 'number') {
@@ -148,6 +148,7 @@ function openTableCreateDialog(sourceIndex?: number | undefined) {
     sourceId,
     'baseId': base.value!.id,
     'onCreate': closeDialog,
+    'showSourceSelector': showSourceSelector,
     'onUpdate:modelValue': () => closeDialog(),
   })
 
@@ -193,7 +194,7 @@ function openErdView(source: SourceType) {
   }
 }
 
-async function addNewProjectChildEntity(showSourceSelector = false) {
+async function addNewProjectChildEntity(showSourceSelector = true) {
   if (!projectNodeRef.value) return
 
   projectNodeRef.value?.addNewProjectChildEntity?.(showSourceSelector)
@@ -297,7 +298,7 @@ const hasTableCreatePermission = computed(() => {
             <template #overlay>
               <DashboardTreeViewProjectCreateNewMenu
                 v-model:visible="isVisibleCreateNew"
-                @new-table="addNewProjectChildEntity(true)"
+                @new-table="addNewProjectChildEntity()"
               />
             </template>
           </NcDropdown>
@@ -519,7 +520,7 @@ const hasTableCreatePermission = computed(() => {
                                 size="xxsmall"
                                 class="nc-sidebar-node-btn"
                                 :class="{ '!opacity-100 !inline-block': isBasesOptionsOpen[source!.id!] }"
-                                @click.stop="openTableCreateDialog(sourceIndex)"
+                                @click.stop="openTableCreateDialog(sourceIndex, false)"
                               >
                                 <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
                               </NcButton>

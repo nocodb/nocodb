@@ -186,6 +186,7 @@
     "manual": "Manuell",
     "trigger": "Utløser",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Stil",
     "label": "Etikett",
     "role": "Rolle",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "Fortsett kun hvis du stoler på denne koblingen.",
     "reAssignViewModalSubtitle": "Når den er tildelt på nytt, vil nåværende eier ikke lenger kunne redigere visningskonfigurasjonen.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Lojalitet lønner seg – nyt fast pris!",
     "loyaltyBannerSubtitle": "Lås opp ubegrensede seter, flere poster, mer lagring, betingede webhooks, SSO, integrasjoner og mye mer!",
     "selectTimezone": "Vis tidssone",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "Join NocoDB Community",
       "joinReddit": "Bli med /r/NocoDB",
       "followNocodb": "Følg NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Oversatt av fellesskapet/AI)"
     },
     "twitter": "Twitter",
     "docReference": "Dokumentreferanse",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Legg til fra URL",
     "enterJson": "Skriv inn JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable-base",
     "useSameTimezoneForAllMembers": "Bruk samme tidssone for alle medlemmer",
     "displayTimezone": "Vis tidssone",
     "upgradePlan": "Oppgrader abonnement",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "Søk ikoner",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "Du kan legge til flere komma (,) separerte e-poster",
       "enterTableName": "Skriv inn tabellnavn",
       "enterScriptName": "Skriv inn skriptnavn",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Skriv inn dashboardnavn",
       "enterTableDescription": "Skriv inn tabellbeskrivelse...",
       "enterScriptDescription": "Skriv inn skriptbeskrivelse...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "En feil oppstod under {type}",
       "anErrorOccuredWhileAirtableBaseImport": "En feil oppstod under import av base fra Airtable",
       "paymentFailed": "Betaling mislyktes",
-      "paymentFailedSubtitle": "Noe gikk galt under behandlingen av betalingen. Prøv igjen eller kontakt support."
+      "paymentFailedSubtitle": "Noe gikk galt under behandlingen av betalingen. Prøv igjen eller kontakt support.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Prosjektmetadata eksporteres vellykket",
@@ -2371,6 +2375,7 @@
       "projInfo": "Kopiert prosjektinfo til utklippstavlen",
       "inviteUrlCopy": "Kopiert invitasjonsadresse til utklippstavle",
       "createView": "Se opprettet vellykket",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Vennligst aktiver SMTP-plugin i App Store for å aktivere e-postvarsling",
       "collabView": "Vellykket byttet til samarbeidsvisning",
       "lockedView": "Vellykket byttet til låst visning",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "Betalingen er behandlet. Du kan nå bruke den nye planen.",
       "upgradeSuccessful": "Oppgradering vellykket",
       "upgradeSuccessfulSubtitle": "Betalingen for oppgraderingen er behandlet. Du kan nå bruke den nye planen.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

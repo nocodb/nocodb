@@ -5,6 +5,7 @@ import { ProjectRoles } from 'nocodb-sdk'
 const props = defineProps<{
   baseId?: string
   tab?: string
+  showEmptySkeleton?: boolean
 }>()
 
 const { hideSidebar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
@@ -173,7 +174,7 @@ onMounted(() => {
     >
       <div class="flex-1 flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
-        <div class="flex flex-row items-center h-full gap-x-2 px-2">
+        <div v-if="!showEmptySkeleton" class="flex flex-row items-center h-full gap-x-2 px-2">
           <GeneralProjectIcon :color="parseProp(currentBase?.meta).iconColor" :type="currentBase?.type" />
           <NcTooltip class="flex font-bold text-sm capitalize truncate max-w-150 text-gray-800" show-on-truncate-only>
             <template #title> {{ currentBase?.title }}</template>
@@ -193,12 +194,14 @@ onMounted(() => {
           </NcBadge>
         </div>
       </div>
+      <template v-if="!showEmptySkeleton">
+        <SmartsheetTopbarCmdK v-if="!isSharedBase && !isNewSidebarEnabled" />
 
-      <SmartsheetTopbarCmdK v-if="!isSharedBase && !isNewSidebarEnabled" />
-
-      <LazyGeneralShareProject />
+        <LazyGeneralShareProject />
+      </template>
     </div>
     <div
+      v-if="!showEmptySkeleton"
       class="flex nc-base-view-tab"
       :style="{
         height: 'calc(100% - var(--topbar-height))',

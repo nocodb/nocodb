@@ -29,6 +29,9 @@ export interface ExtensionManifest {
   order: number
   disabled?: boolean
   type: 'extension'
+  /**
+   * `beta` used for extension visibility.
+   */
   beta?: boolean
   onPrem?: boolean
   /**
@@ -37,6 +40,11 @@ export interface ExtensionManifest {
    * Todo: @rameshmane7218
    */
   minAccessRole?: ProjectRoles
+  /**
+   * `showAsBeta` released as a beta extension.
+   * We will add beta tab in market, details and extension places.
+   */
+  showAsBeta?: boolean
 }
 
 export interface ScriptManifest {

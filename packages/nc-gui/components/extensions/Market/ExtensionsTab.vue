@@ -75,8 +75,11 @@ const onAddExtension = (ext: any) => {
             </div>
             <div class="flex-1 flex flex-grow flex-col gap-2">
               <div>
-                <div class="text-sm font-bold text-nc-content-gray line-clamp-1">
-                  {{ ext.title }}
+                <div class="flex items-center gap-2">
+                  <div class="text-sm font-bold text-nc-content-gray line-clamp-1">
+                    {{ ext.title }}
+                  </div>
+                  <NcBadgeBeta v-if="ext.showAsBeta" />
                 </div>
                 <div v-if="ext.publisher?.name" class="mt-0.5 text-xs leading-[18px] text-nc-content-gray-muted line-clamp-1">
                   Built by {{ ext.publisher.name }}
@@ -124,5 +127,3 @@ const onAddExtension = (ext: any) => {
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped></style>

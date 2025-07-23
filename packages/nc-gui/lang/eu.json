@@ -145,11 +145,11 @@
     "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
     "upgradeToSeeMoreRecordSubtitle": "Iturri konektatuen ikusgarritasun osoa desblokeatu. Erregistro guztiak ikusteko, igo zaitez Plus planeraino.",
     "upgradeToSeeMoreRecordInlineSubtitle": "{total} erregistroetatik {limit} ikusten ari zara. Gelditzen diren {remaining} erregistroetara sartzeko, igo zaitez Plus planeraino.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Plan doakoak gehienez {limit} Editore motako erabiltzaile baimentzen ditu; igo zaitez mugarik gabe izateko.",
     "adjustCollaboratorRoles": "Lankideen rolak egokitu",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "Eskuzko",
     "trigger": "Eraldagailua",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Estiloa",
     "label": "Etiketa",
     "role": "Rola",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "Jarraitu soilik esteka honi konfiantza badiozu.",
     "reAssignViewModalSubtitle": "Berriz esleitu ondoren, uneko jabek ezingo du ikuspegiaren konfigurazioa gehiago editatu.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Leialtasunak saria du — gozatu prezio mugatuak!",
     "loyaltyBannerSubtitle": "Desblokeatu eserleku mugagabeak, erregistro gehigarriak, biltegiratze handiagoa, webhook baldintzatuak, SSO, integrazioak eta askoz gehiago!",
     "selectTimezone": "Erakutsi ordu-zona",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "NocoDB Komunitatean sartu",
       "joinReddit": "Join /r/NocoDB",
       "followNocodb": "Jarraitu NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Komunitate/AI itzulpena)"
     },
     "twitter": "Twitter",
     "docReference": "Dokumentazio erreferentzia",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Gehitu URL-tik",
     "enterJson": "Sartu JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable basea",
     "useSameTimezoneForAllMembers": "Erabili ordu-zona bera kide guztientzat",
     "displayTimezone": "Erakutsi ordu-zona",
     "upgradePlan": "Eguneratu plana",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "Bilatu ikonoak",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "Gehitu dezakezu koma(,)-z banatutako email anitz",
       "enterTableName": "Sartu taularen izena",
       "enterScriptName": "Sartu scriptaren izena",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Sartu aginte-panelaren izena",
       "enterTableDescription": "Idatzi taula deskribapena...",
       "enterScriptDescription": "Sartu scriptaren deskribapena...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "{type} egitean errore bat gertatu da",
       "anErrorOccuredWhileAirtableBaseImport": "Errore bat gertatu da Airtable basea inportatzean",
       "paymentFailed": "Ordainketa huts egin du",
-      "paymentFailedSubtitle": "Zerbait gaizki joan da zure ordainketa prozesatzean. Saiatu berriro edo jarri harremanetan laguntza zerbitzuarekin."
+      "paymentFailedSubtitle": "Zerbait gaizki joan da zure ordainketa prozesatzean. Saiatu berriro edo jarri harremanetan laguntza zerbitzuarekin.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Project metadata exported successfully",
@@ -2371,6 +2375,7 @@
       "projInfo": "Copied project info to clipboard",
       "inviteUrlCopy": "Copied invite URL to clipboard",
       "createView": "Ikuspegia arrakastaz sortu da",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Mesedez aktibatu SMTP plugin-a App dendan email jakinarazpenak gaitzeko",
       "collabView": "Ikuspegi kolaboratiboan arrakastaz aldatu da",
       "lockedView": "Ikuspegi blokeatuan arrakastaz aldatu da",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "Zure ordainketa prozesatu da. Orain zure plan berria erabil dezakezu.",
       "upgradeSuccessful": "Igoera arrakastatsua",
       "upgradeSuccessfulSubtitle": "Igoerarako zure ordainketa prozesatu da. Orain zure plan berria erabil dezakezu.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

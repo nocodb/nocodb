@@ -141,15 +141,15 @@
     "WorkspaceOwnerNotified": "Власника робочого простору повідомлено",
     "WorkspaceOwnerNotifiedSubtitle": "Ваш запит на оновлення надіслано власнику робочого простору.",
     "failedToSendUpgradeRequest": "Не вдалося надіслати запит на оновлення",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Оновіть тариф, щоб розблокувати повний доступ до даних",
+    "upgradeToSeeMoreRecordInline": "Оновіть тариф, щоб переглядати всі записи з зовнішніх джерел даних",
     "upgradeToSeeMoreRecordSubtitle": "Отримайте повну видимість підключених джерел. Перегляньте всі записи, оновивши тариф до Plus.",
     "upgradeToSeeMoreRecordInlineSubtitle": "Ви переглядаєте {limit} із {total} записів. Отримайте доступ до ще {remaining} записів, оновивши тариф до Plus.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Безплатний тариф дозволяє до {limit} користувачів типу Editor, оновіть тариф, щоб отримати необмежену кількість.",
     "adjustCollaboratorRoles": "Налаштувати ролі учасників",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "Ручний",
     "trigger": "Тригер",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Стиль",
     "label": "Мітка",
     "role": "Роль",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "Продовжуйте лише якщо довіряєте цьому посиланню.",
     "reAssignViewModalSubtitle": "Після перепризначення поточний власник більше не зможе редагувати конфігурацію вигляду.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Лояльність винагороджується — насолоджуйтеся фіксованою ціною!",
     "loyaltyBannerSubtitle": "Відкрийте необмежену кількість місць, додаткові записи, більше сховища, умовні вебхуки, SSO, інтеграції та багато іншого!",
     "selectTimezone": "Відображати часовий пояс",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "Приєднуйтесь до спільноти NocoDB",
       "joinReddit": "Приєднатися /r/NocoDB",
       "followNocodb": "Слідкуйте за NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Community Translated)"
     },
     "twitter": "Twitter",
     "docReference": "Довідник",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Додати з URL",
     "enterJson": "Введіть JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "База Airtable",
     "useSameTimezoneForAllMembers": "Використовувати один часовий пояс для всіх учасників",
     "displayTimezone": "Часовий пояс відображення",
     "upgradePlan": "Оновити план",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "Пошук іконок",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "Ви можете додати кілька електронних адрес через кому",
       "enterTableName": "Введіть назву таблиці",
       "enterScriptName": "Введіть назву скрипту",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Введіть назву інформаційної панелі",
       "enterTableDescription": "Введіть опис таблиці...",
       "enterScriptDescription": "Введіть опис скрипту...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "Під час {type} сталася помилка",
       "anErrorOccuredWhileAirtableBaseImport": "Під час імпорту бази з Airtable сталася помилка",
       "paymentFailed": "Платіж не виконано",
-      "paymentFailedSubtitle": "Щось пішло не так під час обробки вашого платежу. Спробуйте ще раз або звʼяжіться зі службою підтримки."
+      "paymentFailedSubtitle": "Щось пішло не так під час обробки вашого платежу. Спробуйте ще раз або звʼяжіться зі службою підтримки.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Метадані проєкту експортовано",
@@ -2371,6 +2375,7 @@
       "projInfo": "Інформацію про проєкт скопійовано до буфера обміну",
       "inviteUrlCopy": "Скопійовано запрошення URL в буфер обміну",
       "createView": "Вигляд створено",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Будь ласка, активуйте плагін SMTP в магазині додатків, щоб ввімкнути повідомлення на електронну пошту",
       "collabView": "Переведено в режим спільної роботи",
       "lockedView": "Переведено в заблокований режим",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "Ваш платіж оброблено. Тепер ви можете користуватися новим тарифом.",
       "upgradeSuccessful": "Оновлення успішне",
       "upgradeSuccessfulSubtitle": "Ваш платіж за оновлення оброблено. Тепер ви можете користуватися новим тарифом.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

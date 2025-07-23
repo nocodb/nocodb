@@ -158,15 +158,10 @@
     "upgradeToUploadWsImageSubtitle": "Ваш поточний тариф {activePlan} дозволяє лише іконки та емодзі. Перейдіть на тариф {plan}, щоб завантажити власне зображення як аватар робочого простору.",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
-    "upgradeToUseRowColoring": "Upgrade to use row coloring",
-    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
+    "upgradeToUseRowColoring": "Upgrade to use row colouring",
+    "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data.",
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
-    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
-    "upgradeToUseScripts": "Upgrade to use scripts",
-    "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
-    "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
-    "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
+    "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data."
   },
   "general": {
     "script": "Script",
@@ -418,11 +413,7 @@
     "proceedImport": "Proceed Import",
     "inserting": "Inserting",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields",
-    "automations": "Automations",
-    "record": "Record",
-    "overview": "Overview",
-    "baseType": "Base Type"
+    "manageAllFields": "Manage all fields"
   },
   "objects": {
     "script": "Скрипт",
@@ -671,7 +662,6 @@
     "isNotNull": "не рівне null"
   },
   "title": {
-    "accessRestricted": "Access Restricted",
     "editTablePermissions": "Edit table permissions",
     "editFieldPermissions": "Edit field permissions",
     "confirmSnapshotRestore": "Підтвердити відновлення знімка",
@@ -875,16 +865,7 @@
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
-    "fieldPermissions": "Field permissions",
-    "baseTypeDefaultSubtext": "Workspace members can collaborate based on their role.",
-    "baseTypePrivateSubtext": "Invite-only base. Only you can view and manage its members.",
-    "baseTypeTabSubtext": "Control who can view and interact with this base. Choose an access level that fits your privacy needs.",
-    "baseTypeSettingsDefaultSubtext": "Everyone in the workspace can access this base, based on their role.",
-    "baseTypeSettingsPrivateSubtext": "Only you and members invited to this base can view and interact with it.",
-    "privateBase": "Private Base",
-    "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
-    "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "fieldPermissions": "Field permissions"
   },
   "labels": {
     "configurationError": "Incomplete configuration",
@@ -1731,9 +1712,7 @@
     "pending": "Очікування",
     "goToPage": "Перейти до сторінки",
     "changePlan": "Зміна плану",
-    "goToPermissionsOverview": "Go to Permissions Overview",
-    "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "goToPermissionsOverview": "Go to Permissions Overview"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1805,8 +1784,7 @@
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
-    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
   },
   "placeholder": {
     "searchIcons": "Пошук іконок",

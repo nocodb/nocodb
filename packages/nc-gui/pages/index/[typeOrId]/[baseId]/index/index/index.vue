@@ -128,11 +128,21 @@ const hideProjectViewPage = computed(() => {
   return isSharedBase.value || isMobileMode.value
 })
 
+const showEmptySkeleton = ref(true)
+
 const showProjectViewPage = computed(() => {
   return (
     activeTables.value.length === 0 || !!route.value.query.page || isUIAllowed('projectOverviewTab') || !isNewSidebarEnabled.value
   )
 })
+
+const hideEmptySkeleton = () => {
+  if (!showEmptySkeleton.value) return
+
+  nextTick(() => {
+    showEmptySkeleton.value = false
+  })
+}
 
 watch(
   [
@@ -143,10 +153,16 @@ watch(
   ],
   ([newIsSharedBase, newActiveTablesLength, isOverviewTabVisible, newPage]) => {
     // If no tables are active or if new sidebar is not enabled then return
-    if (!newActiveTablesLength || !activeTables.value[0]?.base_id || !isNewSidebarEnabled.value) return
+    if (!newActiveTablesLength || !activeTables.value[0]?.base_id || !isNewSidebarEnabled.value) {
+      hideEmptySkeleton()
+      return
+    }
 
     // If page is defined or overview tab is visible then return
-    if (!newIsSharedBase && (newPage || isOverviewTabVisible)) return
+    if (!newIsSharedBase && (newPage || isOverviewTabVisible)) {
+      hideEmptySkeleton()
+      return
+    }
 
     openTable(activeTables.value[0]!, true)
   },
@@ -158,13 +174,5 @@ watch(
 </script>
 
 <template>
-  <ProjectView v-if="!hideProjectViewPage && showProjectViewPage" />
-  <div
-    v-else-if="!hideProjectViewPage"
-    class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-gray-200 h-[var(--topbar-height)]"
-  >
-    <div class="flex-1 flex flex-row items-center gap-x-3">
-      <GeneralOpenLeftSidebarBtn />
-    </div>
-  </div>
+  <ProjectView v-if="!hideProjectViewPage" :show-empty-skeleton="!showProjectViewPage || showEmptySkeleton" />
 </template>

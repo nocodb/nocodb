@@ -2227,7 +2227,11 @@
       "pleaseRequestAccessForView": "Por favor solicite un permiso superior al Administrador / Propietario de la Base / Propietario del Espacio de trabajo para obtener acceso a este {viewName}",
       "preventHideAllOptions": "No puede ocultar todas las opciones si el campo es obligatorio",
       "valueMustBeAtMostCharLong": "El valor debe tener como máximo {length} caracteres",
-      "copyToClipboardLocalFileUrl": "El navegador no permite cargar recursos locales directamente. La URL se copió al portapapeles."
+      "copyToClipboardLocalFileUrl": "El navegador no permite cargar recursos locales directamente. La URL se copió al portapapeles.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?",
+      "supportChatUnavailable": "Support chat unavailable",
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

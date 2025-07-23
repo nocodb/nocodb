@@ -141,15 +141,15 @@
     "WorkspaceOwnerNotified": "Pemilik ruang kerja telah diberitahu",
     "WorkspaceOwnerNotifiedSubtitle": "Permintaan peningkatan Anda telah dibagikan kepada pemilik ruang kerja.",
     "failedToSendUpgradeRequest": "Gagal mengirim permintaan peningkatan",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Tingkatkan untuk membuka akses data penuh",
+    "upgradeToSeeMoreRecordInline": "Tingkatkan untuk melihat semua rekaman dari sumber data eksternal",
     "upgradeToSeeMoreRecordSubtitle": "Buka visibilitas penuh ke sumber yang terhubung. Lihat semua rekaman dengan meningkatkan ke paket Plus.",
     "upgradeToSeeMoreRecordInlineSubtitle": "Anda melihat {limit} dari {total} rekaman. Buka akses ke {remaining} rekaman tersisa dengan meningkatkan ke paket Plus.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Paket Gratis memungkinkan hingga {limit} pengguna tipe Editor, tingkatkan untuk mendapatkan tanpa batas",
     "adjustCollaboratorRoles": "Sesuaikan Peran Kolaborator",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "Manual",
     "trigger": "Pemicu",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Gaya",
     "label": "Label",
     "role": "Peran",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "Lanjutkan hanya jika Anda mempercayai tautan ini.",
     "reAssignViewModalSubtitle": "Setelah dialihkan, pemilik saat ini tidak lagi dapat mengedit konfigurasi tampilan.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Loyalitas terbayar — nikmati harga tetap!",
     "loyaltyBannerSubtitle": "Buka kursi tanpa batas, rekaman tambahan, lebih banyak penyimpanan, webhook bersyarat, SSO, integrasi, dan masih banyak lagi!",
     "selectTimezone": "Tampilkan zona waktu",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "Bergabunglah dengan Komunitas NocoDB",
       "joinReddit": "Bergabunglah /r/NocoDB",
       "followNocodb": "Ikuti NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Terjemahan Komunitas/AI)"
     },
     "twitter": "Twitter",
     "docReference": "Referensi Dokumen",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Tambah dari URL",
     "enterJson": "Masukkan JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Basis Airtable",
     "useSameTimezoneForAllMembers": "Gunakan zona waktu yang sama untuk semua anggota",
     "displayTimezone": "Tampilkan zona waktu",
     "upgradePlan": "Tingkatkan Paket",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "Cari ikon",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "Anda dapat menambahkan beberapa email terpisah koma (,)",
       "enterTableName": "Masukkan nama tabel",
       "enterScriptName": "Masukkan nama skrip",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Masukkan nama Dasbor",
       "enterTableDescription": "Masukkan deskripsi tabel...",
       "enterScriptDescription": "Masukkan deskripsi skrip...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "Terjadi kesalahan saat {type}",
       "anErrorOccuredWhileAirtableBaseImport": "Terjadi kesalahan saat mengimpor basis dari Airtable",
       "paymentFailed": "Pembayaran Gagal",
-      "paymentFailedSubtitle": "Terjadi kesalahan saat memproses pembayaran Anda. Silakan coba lagi atau hubungi dukungan."
+      "paymentFailedSubtitle": "Terjadi kesalahan saat memproses pembayaran Anda. Silakan coba lagi atau hubungi dukungan.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Metadata proyek berhasil diekspor",
@@ -2371,6 +2375,7 @@
       "projInfo": "Info proyek yang disalin ke clipboard",
       "inviteUrlCopy": "URL Undangan yang Disalin ke Clipboard",
       "createView": "Tampilan berhasil dibuat.",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Silakan Aktifkan Plugin SMTP di App Store untuk Mengaktifkan Pemberitahuan Email",
       "collabView": "Berhasil beralih ke tampilan kolaboratif",
       "lockedView": "Berhasil beralih ke tampilan yang dikunci",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "Pembayaran Anda telah diproses. Anda sekarang dapat menggunakan paket baru Anda.",
       "upgradeSuccessful": "Peningkatan Berhasil",
       "upgradeSuccessfulSubtitle": "Pembayaran Anda untuk peningkatan telah diproses. Anda sekarang dapat menggunakan paket baru Anda.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

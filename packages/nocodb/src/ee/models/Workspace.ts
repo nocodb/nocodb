@@ -616,7 +616,16 @@ export default class Workspace implements WorkspaceType {
             })
             .where((qb) => {
               qb.where('is_local', false).orWhereNull('is_local');
-            }),
+            })
+            // exclude sources from deleted bases
+            .whereNotIn(
+              'base_id',
+              ncMeta
+                .knexConnection(MetaTable.PROJECT)
+                .select('id')
+                .where('deleted', true)
+                .where('fk_workspace_id', id),
+            ),
           [PlanLimitTypes.LIMIT_EDITOR]: ncMeta
             .knexConnection(`${MetaTable.WORKSPACE_USER} AS wu`)
             .leftJoin(

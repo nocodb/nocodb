@@ -162,10 +162,10 @@
     "upgradeToUseRowColoringSubtitle": "{plan} 플랜으로 업그레이드하여 필드 값 또는 조건에 따라 행의 색상을 지정하면 데이터를 더 쉽게 스캔하고 우선 순위를 지정할 수 있습니다.",
     "upgradeToUseTableAndFieldPermissions": "테이블 및 필드 권한을 사용하도록 업그레이드",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "{plan} 플랜으로 업그레이드하여 테이블 및 필드 권한을 사용하면 데이터를 더 쉽게 관리할 수 있습니다.",
-    "upgradeToUseScripts": "Upgrade to use scripts",
-    "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
-    "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
-    "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them."
+    "upgradeToUseScripts": "스크립트를 사용하도록 업그레이드",
+    "upgradeToUseScriptsSubtitle": "{plan} 플랜으로 업그레이드하여 스크립트를 사용하여 워크플로를 자동화하거나 로직을 사용자 지정합니다.",
+    "upgradeToUsePrivateBases": "업그레이드하여 개인 프로젝트 잠금 해제",
+    "upgradeToUsePrivateBasesSubtitle": "개인 프로젝트는 {plan} 플랜에서 사용할 수 있습니다. 지금 업그레이드하여 사용을 시작하십시오."
   },
   "general": {
     "script": "스크립트",
@@ -421,7 +421,7 @@
     "automations": "자동화",
     "record": "항목",
     "overview": "개요",
-    "baseType": "Base Type"
+    "baseType": "기본 유형"
   },
   "objects": {
     "script": "스크립트",
@@ -670,7 +670,7 @@
     "isNotNull": "null 값이 아님"
   },
   "title": {
-    "accessRestricted": "Access Restricted",
+    "accessRestricted": "접근 제한",
     "editTablePermissions": "테이블 권한 편집",
     "editFieldPermissions": "필드 권한 편집",
     "confirmSnapshotRestore": "스냅샷 복원 확인",
@@ -875,15 +875,15 @@
     "matchingResultsInRecords": "{count} 레코드의 결과 일치",
     "tablePermissions": "테이블 사용 권한",
     "fieldPermissions": "필드 권한",
-    "baseTypeDefaultSubtext": "Workspace members can collaborate based on their role.",
-    "baseTypePrivateSubtext": "Invite-only base. Only you can view and manage its members.",
-    "baseTypeTabSubtext": "Control who can view and interact with this base. Choose an access level that fits your privacy needs.",
-    "baseTypeSettingsDefaultSubtext": "Everyone in the workspace can access this base, based on their role.",
-    "baseTypeSettingsPrivateSubtext": "Only you and members invited to this base can view and interact with it.",
-    "privateBase": "Private Base",
-    "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
-    "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "baseTypeDefaultSubtext": "작업 공간 구성원은 자신의 역할에 따라 협업할 수 있습니다.",
+    "baseTypePrivateSubtext": "초대 전용 프로젝트. 사용자만 해당 구성원을 보고 관리할 수 있습니다.",
+    "baseTypeTabSubtext": "이 프로젝트를 보고 상호 작용할 수 있는 사용자를 제어합니다. 개인 정보 보호 요구 사항에 맞는 액세스 수준을 선택합니다.",
+    "baseTypeSettingsDefaultSubtext": "작업 영역의 모든 사용자는 자신의 역할에 따라 이 프로젝트에 액세스할 수 있습니다.",
+    "baseTypeSettingsPrivateSubtext": "이 프로젝트에 초대된 사용자와 멤버만 프로젝트를 보고 상호 작용할 수 있습니다.",
+    "privateBase": "개인 프로젝트",
+    "privateBaseAlertDescription": "이 베이스는 초대받은 사람만 참여할 수 있으며, 이 베이스에 초대된 멤버만 액세스하고 상호 작용할 수 있습니다. 모든 기본 소유자는 다른 사용자를 초대할 수 있습니다",
+    "thisPrivateBaseHasBeenLocked": "이 개인 프로젝트는 잠겨 있습니다.",
+    "thisPrivateBaseHasBeenLockedSubtext": "잠금을 해제하려면 {plan} 플랜으로 업그레이드하거나 이 베이스를 공유 베이스로 전환하십시오."
   },
   "labels": {
     "configurationError": "불완전한 구성",
@@ -1435,11 +1435,11 @@
     "defaultColours": "기본 색상",
     "customColours": "사용자 정의 색상",
     "sendAllEvents": "모든 이벤트 보내기",
-    "useNocoAI": "Use NocoAI",
-    "disableNocoAI": "Disable NocoAI",
-    "defaultType": "Default",
-    "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "useNocoAI": "NocoAI 사용",
+    "disableNocoAI": "NocoAI 비활성화",
+    "defaultType": "기본값",
+    "privateType": "비공개",
+    "sharingRestricted": "공유 제한"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",
@@ -1728,8 +1728,8 @@
     "goToPage": "페이지로 이동",
     "changePlan": "체인지플랜",
     "goToPermissionsOverview": "Permissions Overview(권한 개요)로 이동합니다.",
-    "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "goToBaseSettings": "기본 설정으로 이동",
+    "convertToSharedBase": "공유 프로젝트로 변환"
   },
   "tooltip": {
     "includeUserHint": "웹훅을 트리거한 사용자는 페이로드에 'user' 개체로 포함됩니다.",
@@ -1873,7 +1873,7 @@
     "noDashboards": "대시보드 없음"
   },
   "msg": {
-    "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
+    "privateBaseAccessRestricted": "이것은 개인 기지입니다. 구성원을 보거나 초대할 수 있는 권한이 없습니다.",
     "userAlreadyExists": "\"{email}\"가 있는 사용자는 이미 액세스 권한이 있습니다.",
     "evaluateRecursively": "재귀적으로 평가",
     "evaluateRecursivelyTooltip": "이 조회를 재귀적으로 평가하여 자체 참조 관계가 많음(Enterprise Edition + PostgreSQL만 해당)",
@@ -2008,8 +2008,8 @@
     "saveChanges": "변경 사항을 저장하시겠습니까?",
     "tooLargeFieldEntity": "필드가 너무 커서 {entity} 로 변환할 수 없습니다",
     "roleRequired": "역할이 필요합니다",
-    "privateBaseShareRestrictedMsg": "This base is set as Private and cannot be shared publicly.",
-    "privateBaseViewShareRestrictedMsg": "Views within a Private base cannot be shared publicly.",
+    "privateBaseShareRestrictedMsg": "이 기본은 비공개로 설정되며 공개적으로 공유할 수 없습니다.",
+    "privateBaseViewShareRestrictedMsg": "비공개 프로젝트 내의 뷰는 공개적으로 공유할 수 없습니다.",
     "warning": {
       "webhookDelete": "이 웹훅에 의존하는 버튼 필드는 영향을 받습니다",
       "calendarNoFields": "캘린더 뷰에는 날짜 또는 날짜 시간 필드가 설정되어 있어야 합니다. 날짜/날짜 시간 필드를 추가한 후 캘린더 뷰를 설정해 보세요!",

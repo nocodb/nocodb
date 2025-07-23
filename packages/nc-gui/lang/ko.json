@@ -165,7 +165,8 @@
     "upgradeToUseScripts": "스크립트를 사용하도록 업그레이드",
     "upgradeToUseScriptsSubtitle": "{plan} 플랜으로 업그레이드하여 스크립트를 사용하여 워크플로를 자동화하거나 로직을 사용자 지정합니다.",
     "upgradeToUsePrivateBases": "업그레이드하여 개인 프로젝트 잠금 해제",
-    "upgradeToUsePrivateBasesSubtitle": "개인 프로젝트는 {plan} 플랜에서 사용할 수 있습니다. 지금 업그레이드하여 사용을 시작하십시오."
+    "upgradeToUsePrivateBasesSubtitle": "개인 프로젝트는 {plan} 플랜에서 사용할 수 있습니다. 지금 업그레이드하여 사용을 시작하십시오.",
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
   },
   "general": {
     "script": "스크립트",
@@ -428,6 +429,7 @@
     "scripts": "스크립트",
     "dashboard": "대시보드",
     "dashboards": "대시보드",
+    "file": "file",
     "files": "파일",
     "owner": "소유자",
     "member": "사용자",
@@ -2231,8 +2233,8 @@
       "copyToClipboardLocalFileUrl": "브라우저는 로컬 리소스를 직접로드 할 수 없습니다. 대신 URL이 클립보드에 복사되었습니다.",
       "unsavedChanges": "변경 내용이 저장되지 않았습니다.",
       "unsavedChangesConfirmation": "이 페이지를 떠나시겠습니까?",
-      "supportChatUnavailable": "Support chat unavailable",
-      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
+      "supportChatUnavailable": "채팅 지원 불가",
+      "supportChatUnavailableSubtitle": "지원 채팅이 광고 차단기에 의해 차단되었을 수 있습니다. 비활성화하고 페이지를 새로고침해 보세요."
     },
     "error": {
       "failedToDeleteMcpToken": "MCP 토큰을 삭제하지 못했습니다",

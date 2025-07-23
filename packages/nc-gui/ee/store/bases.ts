@@ -62,8 +62,6 @@ export const useBases = defineStore('basesStore', () => {
   const workspaceStore = useWorkspace()
   const tableStore = useTablesStore()
 
-  const { loadWorkspace } = workspaceStore
-
   const { api } = useApi()
 
   const { getBaseUrl, navigateToProject: _navigateToProject } = useGlobal()
@@ -317,7 +315,7 @@ export const useBases = defineStore('basesStore', () => {
     await api.base.delete(baseId)
     bases.value.delete(baseId)
     tableStore.baseTables.delete(baseId)
-    await loadWorkspace(workspaceStore.activeWorkspaceId!)
+    await workspaceStore.loadWorkspace(workspaceStore.activeWorkspaceId!)
 
     await loadProjects()
   }

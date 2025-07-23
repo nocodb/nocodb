@@ -1,5 +1,7 @@
 import dayjs from 'dayjs';
-import { FormulaDataTypes } from 'nocodb-sdk';
+import { FormulaDataTypes, JSEPNode } from 'nocodb-sdk';
+import { sanitize } from 'src/helpers/sqlSanitize';
+import { customAlphabet } from 'nanoid';
 import commonFns from './commonFns';
 import type { MapFnArgs } from '~/db/mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
@@ -411,6 +413,95 @@ END`,
         `CASE WHEN (?)::jsonb IS NOT NULL THEN jsonb_path_query_first((?)::jsonb, CONCAT('$', ?)::jsonpath) ELSE NULL END`,
         [source, source, needle],
       ),
+    };
+  },
+  ARRAYSORT: async (args: MapFnArgs) => {
+    const { fn, knex, pt } = args;
+    const source = (
+      await fn({
+        ...pt.arguments[0],
+        fnName:
+          pt.arguments[0].type === JSEPNode.IDENTIFIER
+            ? 'ARRAY_AGG'
+            : pt.arguments[0].fnName,
+      })
+    ).builder;
+    const direction = pt.arguments[1]
+      ? sanitize(
+          knex.raw(
+            pt.arguments[1]?.value ?? (await fn(pt.arguments[1])).builder,
+          ),
+        )
+      : knex.raw('asc');
+    return {
+      builder: knex.raw(`ARRAY(SELECT UNNEST(??) ORDER BY 1 ??)`, [
+        source,
+        direction,
+      ]),
+    };
+  },
+  ARRAYUNIQUE: async (args: MapFnArgs) => {
+    const { fn, knex, pt } = args;
+    const source = (
+      await fn({
+        ...pt.arguments[0],
+        fnName:
+          pt.arguments[0].type === JSEPNode.IDENTIFIER
+            ? 'ARRAY_AGG'
+            : pt.arguments[0].fnName,
+      })
+    ).builder;
+    return {
+      builder: knex.raw(`ARRAY(SELECT DISTINCT UNNEST(??))`, [source]),
+    };
+  },
+  ARRAYCOMPACT: async (args: MapFnArgs) => {
+    const { fn, knex, pt } = args;
+    const source = (
+      await fn({
+        ...pt.arguments[0],
+        fnName:
+          pt.arguments[0].type === JSEPNode.IDENTIFIER
+            ? 'ARRAY_AGG'
+            : pt.arguments[0].fnName,
+      })
+    ).builder;
+    const tableName = customAlphabet(
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+    )(6);
+    const fieldName = customAlphabet(
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+    )(6);
+    const selectStatement = [
+      `SELECT ${tableName}.${fieldName}`,
+      `FROM UNNEST(??) as ${tableName}(${fieldName})`,
+      `WHERE ${tableName}.${fieldName} IS NOT NULL AND ${tableName}.${fieldName}::text IS NOT NULL`,
+    ].join(' ');
+    return {
+      builder: knex.raw(`ARRAY(${selectStatement})`, [source]),
+    };
+  },
+  ARRAYSLICE: async (args: MapFnArgs) => {
+    const { fn, knex, pt } = args;
+    const source = (
+      await fn({
+        ...pt.arguments[0],
+        fnName:
+          pt.arguments[0].type === JSEPNode.IDENTIFIER
+            ? 'ARRAY_AGG'
+            : pt.arguments[0].fnName,
+      })
+    ).builder;
+
+    const start = sanitize(knex.raw((await fn(pt.arguments[1])).builder));
+    const end = pt.arguments[2]
+      ? sanitize(knex.raw((await fn(pt.arguments[2])).builder))
+      : knex.raw('');
+
+    return {
+      builder: knex
+        .raw(`SELECT (??)[??:??]`, [source, start, end])
+        .wrap('(', ')'),
     };
   },
 };

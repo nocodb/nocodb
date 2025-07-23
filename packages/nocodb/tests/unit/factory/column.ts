@@ -906,18 +906,24 @@ const createColumn = async (
   context: Context,
   table: Model,
   columnAttr: Record<string, any>,
+  option?: {
+    throwError?: boolean;
+  },
 ) => {
   const ctx = {
     workspace_id: table.fk_workspace_id,
     base_id: table.base_id,
   };
 
-  await request(context.app)
+  const response = await request(context.app)
     .post(`/api/v1/db/meta/tables/${table.id}/columns`)
     .set('xc-auth', context.token)
     .send({
       ...columnAttr,
     });
+  if (response.status >= 400 && option?.throwError) {
+    throw response.error;
+  }
 
   const column: Column = (await table.getColumns(ctx)).find(
     (column) => column.title === columnAttr.title,
@@ -1134,6 +1140,31 @@ const createLtarColumn = async (
 
   return ltarColumn;
 };
+const createLtarColumn2 = async (
+  context,
+  {
+    title,
+    parentTable,
+    childTable,
+    type,
+  }: {
+    title: string;
+    parentTable: Model;
+    childTable: Model;
+    type: string;
+  },
+) => {
+  const ltarColumn = await createColumn(context, parentTable, {
+    title: title,
+    column_name: title,
+    uidt: UITypes.LinkToAnotherRecord,
+    parentId: parentTable.id,
+    childId: childTable.id,
+    type: type,
+  });
+
+  return ltarColumn;
+};
 
 const updateGridViewColumn = async (
   context,
@@ -1230,6 +1261,7 @@ export {
   createRollupColumn,
   createLookupColumn,
   createLtarColumn,
+  createLtarColumn2,
   updateGridViewColumn,
   updateViewColumn,
   updateColumn,

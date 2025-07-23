@@ -909,6 +909,7 @@
     "modelContextProtocol": "Model Context Protocol",
     "mcp": "MCP",
     "exampleScript": "Exemple de scripturi",
+    "scriptByNocoDB": "Script by NocoDB",
     "scriptsByNocoDB": "Scripturi de la NocoDB",
     "restoringSnapshot": "Se restaurează instantaneul",
     "note": "Notă:",
@@ -1394,7 +1395,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Adaugă din URL",
     "enterJson": "Introduceți JSON",
-    "airtableBase": "Baza Airtable",
+    "airtableBase": "Airtable Base",
     "useSameTimezoneForAllMembers": "Folosește același fus orar pentru toți membrii",
     "displayTimezone": "Afișează fusul orar",
     "upgradePlan": "Upgrade plan",
@@ -1433,7 +1434,10 @@
     "disableNocoAI": "Disable NocoAI",
     "defaultType": "Default",
     "privateType": "Private",
-    "sharingRestricted": "Sharing restricted"
+    "sharingRestricted": "Sharing restricted",
+    "importOptions": "Import Options",
+    "newScript": "New Script",
+    "emptyScript": "Empty Script"
   },
   "activity": {
     "clickToResolve": "Fă clic pentru a rezolva",

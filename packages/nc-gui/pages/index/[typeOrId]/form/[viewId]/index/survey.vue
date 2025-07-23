@@ -445,7 +445,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                           :read-only="field?.read_only"
                           @update:model-value="validateField(field.title)"
                         />
-                        <template #help v-if="field.uidt === UITypes.LongText">
+                        <template v-if="field.uidt === UITypes.LongText" #help>
                           <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-xs mt-2">
                             <div class="hidden text-sm text-gray-500 md:flex flex-wrap items-center">
                               {{ $t('general.shift') }} <span class="text-primary"> &nbsp;⇧&nbsp; </span> +

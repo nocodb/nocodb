@@ -887,7 +887,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "잠금을 해제하려면 {plan} 플랜으로 업그레이드하거나 이 베이스를 공유 베이스로 전환하십시오."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "불완전한 구성",
     "keepEditing": "계속 편집",
     "leave": "떠나기",
     "chatWithNocoDBSupport": "NocoDB 지원팀과 채팅",
@@ -1339,7 +1339,7 @@
     "tableDuplicateMessage": "참고: 교차 기본 링크는 중복되지 않습니다.",
     "includeView": "보기 포함",
     "includeScripts": "스크립트 포함",
-    "includeDashboards": "Include dashboards",
+    "includeDashboards": "대시보드 포함",
     "includeWebhook": "웹훅 포함",
     "includeComments": "주석 포함",
     "zoomInToViewColumns": "열을 보려면 확대하세요",

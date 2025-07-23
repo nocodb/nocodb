@@ -127,7 +127,22 @@ defineExpose({
 <style lang="scss">
 .nc-source-selector.ant-form-item {
   &.nc-force-layout-vertical {
-    @apply !flex-col !items-start;
+    @apply !flex-col;
+
+    & > .ant-form-item-label {
+      @apply pb-2 text-left;
+
+      &::after {
+        @apply hidden;
+      }
+
+      & > label {
+        @apply !h-auto;
+        &::after {
+          @apply !hidden;
+        }
+      }
+    }
   }
 
   &.nc-force-layout-horizontal {

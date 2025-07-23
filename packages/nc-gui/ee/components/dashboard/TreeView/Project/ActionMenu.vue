@@ -39,7 +39,9 @@ const isOptionVisible = computed(() => {
       isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
       isUIAllowed('createConnectionDetails') &&
       base.value?.sources?.[0]?.enabled,
-    baseOptions: base.value?.sources?.[0]?.enabled && props.showBaseOption(base.value.sources[0]),
+    baseOptions:
+      (base.value?.sources?.[0]?.enabled || (base.value?.sources || []).length > 1) &&
+      props.showBaseOption(base.value.sources[0]),
     baseDelete: isUIAllowed('baseDelete', { roles: base.value.project_role || base.value.workspace_role }),
   }
 })

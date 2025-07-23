@@ -301,7 +301,7 @@ const isInProgress = computed(() => {
 })
 
 const detailsIsShown = ref(false)
-const collapseKey = ref(showSourceSelector && (base.value?.sources || [])?.length > 1 ? 'advanced-settings' : '')
+const collapseKey = ref('')
 </script>
 
 <template>
@@ -392,6 +392,16 @@ const collapseKey = ref(showSourceSelector && (base.value?.sources || [])?.lengt
           />
         </a-form-item>
 
+        <div class="my-5">
+          <NcListSourceSelector
+            ref="sourceSelectorRef"
+            :base-id="baseId"
+            :source-id="sourceId"
+            :show-source-selector="showSourceSelector"
+            force-layout="vertical"
+          />
+        </div>
+
         <nc-button type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">
           {{ $t('title.advancedSettings') }}
           <GeneralIcon
@@ -435,15 +445,6 @@ const collapseKey = ref(showSourceSelector && (base.value?.sources || [])?.lengt
               <NcCheckbox v-model:checked="syncSource.details.options.syncFormula" disabled>
                 {{ $t('labels.importFormulaColumns') }}
               </NcCheckbox>
-            </div>
-            <div class="my-2">
-              <NcListSourceSelector
-                ref="sourceSelectorRef"
-                :base-id="baseId"
-                :source-id="sourceId"
-                :show-source-selector="showSourceSelector"
-                force-layout="horizontal"
-              />
             </div>
           </a-collapse-panel>
         </a-collapse>

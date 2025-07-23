@@ -141,15 +141,15 @@
     "WorkspaceOwnerNotified": "Munkatér tulajdonos értesítve",
     "WorkspaceOwnerNotifiedSubtitle": "A frissítési kérését megosztottuk a munkatér tulajdonosával.",
     "failedToSendUpgradeRequest": "Nem sikerült elküldeni a frissítési kérelmet",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Frissítés a teljes adat-hozzáférés feloldásához",
+    "upgradeToSeeMoreRecordInline": "Frissítés az összes rekord megtekintéséhez a külső adatforrásokból",
     "upgradeToSeeMoreRecordSubtitle": "Szerezzen teljes rálátást a csatlakoztatott forrásokra: frissítsen a Plus csomagra az összes rekord megtekintéséhez.",
     "upgradeToSeeMoreRecordInlineSubtitle": "Jelenleg {total} rekordból {limit} rekordot lát. Frissítsen a Plus csomagra a fennmaradó {remaining} rekord eléréséhez.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Az ingyenes csomag legfeljebb {limit} szerkesztő típusú felhasználót engedélyez; frissítsen a korlátlanhoz",
     "adjustCollaboratorRoles": "Közreműködő szerepkörök módosítása",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "Manuális",
     "trigger": "Trigger",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Stílus",
     "label": "Címke",
     "role": "Szerep",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "Csak akkor folytassa, ha megbízik ebben a linkben.",
     "reAssignViewModalSubtitle": "Átrendelés után a jelenlegi tulajdonos nem fogja tudni szerkeszteni a nézet beállításait.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Hűségét díjazzuk — élvezze a rögzített árakat!",
     "loyaltyBannerSubtitle": "Oldjon fel korlátlan helyeket, további rekordokat, nagyobb tárhelyet, feltételes webhookokat, SSO-t, integrációkat és még sok mást!",
     "selectTimezone": "Időzóna megjelenítése",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "Csatlakozz a NocoDB közösséghez",
       "joinReddit": "/r/NocoDB",
       "followNocodb": "NocoDB követése",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Közösségi/MI fordítás)"
     },
     "twitter": "Twitter",
     "docReference": "Dokumentum hivatkozás",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Hozzáadás URL-ből",
     "enterJson": "JSON beírása",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable bázis",
     "useSameTimezoneForAllMembers": "Azonos időzóna használata minden tagnál",
     "displayTimezone": "Időzóna megjelenítése",
     "upgradePlan": "Csomag frissítése",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "Ikonok keresése",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "Több, vesszővel (,) elválasztott e-mail címet is megadhat",
       "enterTableName": "Írja be a tábla nevét",
       "enterScriptName": "Adja meg a szkript nevét",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Adja meg a műszerfal nevét",
       "enterTableDescription": "Írjon be táblaleírást...",
       "enterScriptDescription": "Adja meg a szkript leírását...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "Hiba történt a következő művelet közben: {type}",
       "anErrorOccuredWhileAirtableBaseImport": "Hiba történt az Airtable-bázis importálása közben",
       "paymentFailed": "Sikertelen fizetés",
-      "paymentFailedSubtitle": "Hiba történt a fizetés feldolgozása közben. Próbálja meg újra, vagy lépjen kapcsolatba az ügyfélszolgálattal."
+      "paymentFailedSubtitle": "Hiba történt a fizetés feldolgozása közben. Próbálja meg újra, vagy lépjen kapcsolatba az ügyfélszolgálattal.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Bázis metaadatai sikeresen exportálva",
@@ -2371,6 +2375,7 @@
       "projInfo": "Bázis információi átmásolva a vágólapra",
       "inviteUrlCopy": "Meghívó URL átmásolva a vágólapra",
       "createView": "Nézet sikeresen létrehozva",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Kérjük, aktiválja az SMTP bővítményt az App Store-ban az e-mail értesítések engedélyezéséhez",
       "collabView": "Sikeresen váltott együttműködési nézetre",
       "lockedView": "Sikeresen váltott zárolt nézetre",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "A fizetés feldolgozása megtörtént. Mostantól használhatja az új csomagot.",
       "upgradeSuccessful": "Sikeres frissítés",
       "upgradeSuccessfulSubtitle": "A frissítésért fizetett összeget feldolgoztuk. Mostantól használhatja az új csomagot.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

@@ -16,13 +16,7 @@ import { elapsedTime, initTime } from '../../helpers';
 import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { Readable } from 'stream';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type {
-  CalendarView,
-  LinksColumn,
-  LinkToAnotherRecordColumn,
-  User,
-} from '~/models';
-import { View } from '~/models';
+import type { CalendarView, LinksColumn, User } from '~/models';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import { sanitizeColumnName } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -36,7 +30,16 @@ import {
   withoutNull,
 } from '~/helpers/exportImportHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { Base, Column, Comment, Hook, Model, Source } from '~/models';
+import {
+  Base,
+  Column,
+  Comment,
+  Hook,
+  LinkToAnotherRecordColumn,
+  Model,
+  Source,
+  View,
+} from '~/models';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -402,7 +405,7 @@ export class ImportService {
       const linkedColumnSet = modelData.columns.filter(
         (a) =>
           isLinksOrLTAR(a) &&
-          !(a.colOptions as LinkToAnotherRecordColumn).isCrossBaseLink() &&
+          !new LinkToAnotherRecordColumn(a.colOptions).isCrossBaseLink() &&
           !a.system &&
           (param.importColumnIds
             ? param.importColumnIds.includes(getEntityIdentifier(a.id))
@@ -414,7 +417,7 @@ export class ImportService {
         if (col.colOptions) {
           if (
             isLinksOrLTAR(col) &&
-            (col.colOptions as LinkToAnotherRecordColumn).isCrossBaseLink()
+            new LinkToAnotherRecordColumn(col.colOptions).isCrossBaseLink()
           ) {
             continue;
           }

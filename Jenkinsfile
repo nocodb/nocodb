@@ -16,7 +16,7 @@ pipeline {
                     if (isRunning) {
                         echo "NocoDB container already running, skipping deployment."
                     } else {
-                        sh 'docker run -d --name nocodb-container -p 8080:8080 nocodb/nocodb:latest'
+                        sh 'docker run -d --name nocodb-container -p 8090:8080 nocodb/nocodb:latest'
                     }
                 }
             }

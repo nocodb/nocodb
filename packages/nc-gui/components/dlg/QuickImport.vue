@@ -15,6 +15,7 @@ interface Props {
   transition?: string
   showBackBtn?: boolean
   wrapClassName?: string
+  showSourceSelector?: boolean
 }
 
 const {
@@ -25,6 +26,7 @@ const {
   transition,
   showBackBtn,
   wrapClassName = '',
+  showSourceSelector = true,
   ...rest
 } = defineProps<Props>()
 
@@ -90,6 +92,12 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
 const isError = ref(false)
 
 const refMonacoEditor = ref()
+
+const sourceSelectorRef = ref()
+
+const customSourceId = computed(() => {
+  return sourceSelectorRef.value?.customSourceId || sourceId
+})
 
 const useForm = Form.useForm
 
@@ -739,7 +747,7 @@ watch(
           :quick-import-type="importType"
           :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
           :base-id="baseId"
-          :source-id="sourceId"
+          :source-id="customSourceId"
           :import-worker="importWorker"
           :table-icon="importMeta.icon"
           class="nc-quick-import-template-editor"
@@ -1011,6 +1019,16 @@ watch(
       />
 
       <div v-if="!templateEditorModal" class="mt-5">
+        <div class="mb-4">
+          <NcListSourceSelector
+            ref="sourceSelectorRef"
+            :base-id="baseId"
+            :source-id="sourceId"
+            :show-source-selector="showSourceSelector"
+            force-layout="vertical"
+          />
+        </div>
+
         <NcButton type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">
           {{ $t('title.advancedSettings') }}
           <GeneralIcon
@@ -1077,7 +1095,7 @@ watch(
           size="small"
           class="nc-btn-import"
           :loading="preImportLoading"
-          :disabled="disablePreImportButton || preImportLoading"
+          :disabled="disablePreImportButton || preImportLoading || sourceSelectorRef?.selectedSource?.ncItemDisabled"
           @click="handlePreImport"
         >
           {{ importBtnText }}
@@ -1146,6 +1164,9 @@ watch(
 }
 .nc-import-collapse :deep(.ant-collapse-header) {
   display: none !important;
+}
+.nc-import-collapse :deep(.ant-collapse-content-box) {
+  @apply !pr-0.2;
 }
 span:has(> .nc-modern-drag-import) {
   display: flex;

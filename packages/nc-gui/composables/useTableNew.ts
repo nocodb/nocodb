@@ -3,7 +3,11 @@ import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import type { SidebarTableNode } from '~/lib/types'
 import { generateUniqueTitle as generateTitle } from '#imports'
 
-export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; baseId: string; sourceId?: string }) {
+export function useTableNew(param: {
+  onTableCreate?: (tableMeta: TableType) => void
+  baseId: string
+  sourceId?: ComputedRef<string | undefined>
+}) {
   const table = reactive<{ title: string; table_name: string; description?: string; columns: string[]; is_hybrid: boolean }>({
     title: '',
     table_name: '',
@@ -131,7 +135,7 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
       table.title = table.title.trim()
     }
 
-    let { sourceId } = param
+    let sourceId = unref(param.sourceId)
 
     if (!(baseId in bases.value)) {
       await basesStore.loadProject(baseId)

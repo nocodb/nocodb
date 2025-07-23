@@ -2,11 +2,17 @@
 import type { TableType } from 'nocodb-sdk'
 import { AiWizardTabsType } from '#imports'
 
-const props = defineProps<{
-  modelValue: boolean
-  sourceId: string
-  baseId: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: boolean
+    sourceId: string
+    baseId: string
+    showSourceSelector?: boolean
+  }>(),
+  {
+    showSourceSelector: true,
+  },
+)
 
 const emit = defineEmits(['update:modelValue', 'create'])
 
@@ -28,6 +34,12 @@ const inputEl = ref<HTMLInputElement>()
 
 const aiPromptInputRef = ref<HTMLElement>()
 
+const sourceSelectorRef = ref()
+
+const customSourceId = computed(() => {
+  return sourceSelectorRef.value?.customSourceId || props.sourceId
+})
+
 const workspaceStore = useWorkspace()
 
 const { isMysql, isPg, isSnowflake } = useBase()
@@ -48,7 +60,7 @@ const onTableCreate = async (table: TableType) => {
 
 const { table, createTable, generateUniqueTitle, tables, base, openTable } = useTableNew({
   onTableCreate,
-  sourceId: props.sourceId,
+  sourceId: customSourceId,
   baseId: props.baseId,
 })
 
@@ -125,6 +137,7 @@ const predictNextTables = async (): Promise<AiSuggestedTableType[]> => {
       activeTabPredictHistory.value.map(({ title }) => title),
       props.baseId,
       activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
+      customSourceId.value,
     )
   )
     .filter((t) => !ncIsArrayIncludes(activeTabPredictedTables.value, t.title, 'title'))
@@ -263,6 +276,7 @@ const onAiEnter = async () => {
       undefined,
       onAiTableCreate,
       props.baseId,
+      customSourceId.value,
     )
   }
 }
@@ -284,7 +298,7 @@ const validators = computed(() => {
         validator: (_: any, value: any) => {
           // validate duplicate alias
           return new Promise((resolve, reject) => {
-            if ((tables.value || []).some((t) => t.title === (value || '') && t.source_id === props.sourceId)) {
+            if ((tables.value || []).some((t) => t.title === (value || '') && t.source_id === customSourceId.value)) {
               return reject(new Error('Duplicate table alias'))
             }
             return resolve(true)
@@ -295,9 +309,9 @@ const validators = computed(() => {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
             let tableNameLengthLimit = 255
-            if (isMysql(props.sourceId)) {
+            if (isMysql(customSourceId.value)) {
               tableNameLengthLimit = 64
-            } else if (isPg(props.sourceId)) {
+            } else if (isPg(customSourceId.value)) {
               tableNameLengthLimit = 63
             }
             const basePrefix = base?.value?.prefix || ''
@@ -451,16 +465,25 @@ const handleRefreshOnError = () => {
         @keydown.esc="dialogShow = false"
       >
         <div class="flex flex-col gap-5">
-          <a-form-item v-if="!aiMode" v-bind="validateInfos.title" class="relative nc-table-input-wrapper relative">
-            <a-input
-              ref="inputEl"
-              v-model:value="table.title"
-              class="nc-table-input nc-input-sm nc-input-shadow"
-              hide-details
-              data-testid="create-table-title-input"
-              :placeholder="$t('msg.info.enterTableName')"
+          <template v-if="!aiMode">
+            <a-form-item v-bind="validateInfos.title" class="relative nc-table-input-wrapper relative">
+              <a-input
+                ref="inputEl"
+                v-model:value="table.title"
+                class="nc-table-input nc-input-sm nc-input-shadow"
+                hide-details
+                data-testid="create-table-title-input"
+                :placeholder="$t('msg.info.enterTableName')"
+              />
+            </a-form-item>
+
+            <NcListSourceSelector
+              ref="sourceSelectorRef"
+              :base-id="baseId"
+              :source-id="sourceId"
+              :show-source-selector="showSourceSelector"
             />
-          </a-form-item>
+          </template>
 
           <!-- Ai table wizard  -->
           <template v-if="aiMode">
@@ -497,8 +520,8 @@ const handleRefreshOnError = () => {
                   <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start">
                     <div class="flex-1 flex gap-2 flex-wrap">
                       <template v-if="activeTabPredictedTables.length">
-                        <template v-for="t of activeTabPredictedTables" :key="t.title">
-                          <NcTooltip :disabled="activeTabSelectedTables.length < maxSelectionCount || t.selected">
+                        <template v-for="tb of activeTabPredictedTables" :key="tb.title">
+                          <NcTooltip :disabled="activeTabSelectedTables.length < maxSelectionCount || tb.selected">
                             <template #title>
                               <div class="w-[150px]">You can only select {{ maxSelectionCount }} tables to create at a time.</div>
                             </template>
@@ -506,20 +529,21 @@ const handleRefreshOnError = () => {
                             <a-tag
                               class="nc-ai-suggested-tag"
                               :class="{
-                                'nc-disabled': isAiSaving || (!t.selected && activeTabSelectedTables.length >= maxSelectionCount),
-                                'nc-selected': t.selected,
+                                'nc-disabled':
+                                  isAiSaving || (!tb.selected && activeTabSelectedTables.length >= maxSelectionCount),
+                                'nc-selected': tb.selected,
                               }"
                               :disabled="activeTabSelectedTables.length >= maxSelectionCount"
-                              @click="onToggleTag(t)"
+                              @click="onToggleTag(tb)"
                             >
                               <div class="flex flex-row items-center gap-1.5 py-[3px] text-small leading-[18px]">
                                 <NcCheckbox
-                                  :checked="t.selected"
+                                  :checked="tb.selected"
                                   theme="ai"
-                                  :disabled="isAiSaving || (t.selected && activeTabSelectedTables.length >= maxSelectionCount)"
+                                  :disabled="isAiSaving || (tb.selected && activeTabSelectedTables.length >= maxSelectionCount)"
                                 />
 
-                                <div>{{ t.title }}</div>
+                                <div>{{ tb.title }}</div>
                               </div>
                             </a-tag>
                           </NcTooltip>
@@ -642,8 +666,8 @@ const handleRefreshOnError = () => {
                     <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Table(s)</div>
                     <div class="flex gap-2 flex-wrap">
                       <template v-if="activeTabPredictedTables.length">
-                        <template v-for="t of activeTabPredictedTables" :key="t.title">
-                          <NcTooltip :disabled="activeTabSelectedTables.length < maxSelectionCount || t.selected">
+                        <template v-for="tb of activeTabPredictedTables" :key="tb.title">
+                          <NcTooltip :disabled="activeTabSelectedTables.length < maxSelectionCount || tb.selected">
                             <template #title>
                               <div class="w-[150px]">You can only select {{ maxSelectionCount }} tables to create at a time.</div>
                             </template>
@@ -651,20 +675,21 @@ const handleRefreshOnError = () => {
                             <a-tag
                               class="nc-ai-suggested-tag"
                               :class="{
-                                'nc-disabled': isAiSaving || (!t.selected && activeTabSelectedTables.length >= maxSelectionCount),
-                                'nc-selected': t.selected,
+                                'nc-disabled':
+                                  isAiSaving || (!tb.selected && activeTabSelectedTables.length >= maxSelectionCount),
+                                'nc-selected': tb.selected,
                               }"
                               :disabled="activeTabSelectedTables.length >= maxSelectionCount"
-                              @click="onToggleTag(t)"
+                              @click="onToggleTag(tb)"
                             >
                               <div class="flex flex-row items-center gap-1.5 py-[3px] text-small leading-[18px]">
                                 <NcCheckbox
-                                  :checked="t.selected"
+                                  :checked="tb.selected"
                                   theme="ai"
-                                  :disabled="isAiSaving || (!t.selected && activeTabSelectedTables.length >= maxSelectionCount)"
+                                  :disabled="isAiSaving || (!tb.selected && activeTabSelectedTables.length >= maxSelectionCount)"
                                 />
 
-                                <div>{{ t.title }}</div>
+                                <div>{{ tb.title }}</div>
                               </div>
                             </a-tag>
                           </NcTooltip>
@@ -680,10 +705,10 @@ const handleRefreshOnError = () => {
           <a-form-item
             v-if="enableDescription && !aiMode"
             v-bind="validateInfos.description"
-            :class="{ '!mb-1': isSnowflake(props.sourceId), '!mb-0': !isSnowflake(props.sourceId) }"
+            :class="{ '!mb-1': isSnowflake(customSourceId), '!mb-0': !isSnowflake(customSourceId) }"
           >
             <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
-              <span class="text-[13px]">
+              <span>
                 {{ $t('labels.description') }}
               </span>
               <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
@@ -701,7 +726,7 @@ const handleRefreshOnError = () => {
             />
           </a-form-item>
 
-          <template v-if="isSnowflake(props.sourceId)">
+          <template v-if="isSnowflake(customSourceId)">
             <a-checkbox v-model:checked="table.is_hybrid" class="!flex flex-row items-center"> Hybrid Table </a-checkbox>
           </template>
         </div>
@@ -759,7 +784,9 @@ const handleRefreshOnError = () => {
               v-e="['a:table:create']"
               type="primary"
               size="small"
-              :disabled="validateInfos.title.validateStatus === 'error' || creating"
+              :disabled="
+                validateInfos.title?.validateStatus === 'error' || creating || sourceSelectorRef?.selectedSource?.ncItemDisabled
+              "
               :loading="creating"
               @click="_createTable"
             >

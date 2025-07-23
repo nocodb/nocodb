@@ -262,10 +262,12 @@ export const useTablesStore = defineStore('tablesStore', () => {
     baseId,
     sourceId,
     onCloseCallback,
+    showSourceSelector = true,
   }: {
     baseId?: string
     sourceId?: string
     onCloseCallback?: () => void
+    showSourceSelector?: boolean
   }) {
     if (!sourceId || !baseId) return
 
@@ -275,6 +277,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
       'modelValue': isCreateTableOpen,
       sourceId,
       'baseId': baseId,
+      'showSourceSelector': showSourceSelector,
       'onCreate': closeDialog,
       'onUpdate:modelValue': () => closeDialog(),
     })

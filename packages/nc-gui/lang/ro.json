@@ -413,7 +413,9 @@
     "proceedImport": "Continuă importul",
     "inserting": "Se inserează",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "Script",
@@ -1416,15 +1418,7 @@
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
     "customColours": "Custom colours",
-    "sendAllEvents": "Send all events",
-    "useNocoAI": "Use NocoAI",
-    "disableNocoAI": "Disable NocoAI",
-    "defaultType": "Default",
-    "privateType": "Private",
-    "sharingRestricted": "Sharing restricted",
-    "importOptions": "Import Options",
-    "newScript": "New Script",
-    "emptyScript": "Empty Script"
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "Fă clic pentru a rezolva",
@@ -1777,11 +1771,11 @@
     "exceedingLimit": "Depășește limita",
     "filteredByCurrentUser": "Filtrat după utilizatorul curent",
     "navigateToBaseToCreateTable": "Navighează la o bază pentru a crea un tabel",
-    "navigateToBaseToCreateAutomation": "Navigați la o bază pentru a crea o automatizare",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navighează la un tabel pentru a crea o vizualizare",
     "youDontHaveAccessToCreateNewTable": "Nu aveți acces pentru a crea un tabel nou",
     "youDontHaveAccessToCreateNewView": "Nu aveți acces pentru a crea o vizualizare nouă",
-    "youDontHaveAccessToCreateNewAutomation": "Nu aveți acces pentru a crea o nouă automatizare",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Crearea unei vizualizări de formular nu este disponibilă pentru un tabel sincronizat",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"

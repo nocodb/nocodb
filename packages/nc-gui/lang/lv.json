@@ -141,15 +141,15 @@
     "WorkspaceOwnerNotified": "Darba telpas īpašnieks informēts",
     "WorkspaceOwnerNotifiedSubtitle": "Jūsu jaunināšanas pieprasījums ir nosūtīts darba telpas īpašniekam.",
     "failedToSendUpgradeRequest": "Neizdevās nosūtīt jaunināšanas pieprasījumu",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Jauniniet, lai atbloķētu pilnu datu piekļuvi",
+    "upgradeToSeeMoreRecordInline": "Jauniniet, lai skatītu visus ierakstus no ārējiem datu avotiem",
     "upgradeToSeeMoreRecordSubtitle": "Atbloķējiet pilnīgu redzamību saviem pieslēgtajiem avotiem. Skatiet visus ierakstus, jauninot uz Plus plānu.",
     "upgradeToSeeMoreRecordInlineSubtitle": "Jūs skatāties {limit} no {total} ierakstiem. Atbloķējiet piekļuvi atlikušajiem {remaining} ierakstiem, jauninot uz Plus plānu.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Bezmaksas plāns atļauj līdz {limit} redaktora tipa lietotājiem; jauniniet, lai iegūtu neierobežotu skaitu",
     "adjustCollaboratorRoles": "Pielāgot sadarbības lomas",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "Manuāls",
     "trigger": "Izraisītājs",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Stils",
     "label": "Etiķete",
     "role": "Loma",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "Turpiniet tikai tad, ja uzticaties šai saitei.",
     "reAssignViewModalSubtitle": "Pēc pārdales pašreizējais īpašnieks vairs nevarēs rediģēt skata konfigurāciju.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Lojalitāte atmaksājas — baudiet fiksētu cenu!",
     "loyaltyBannerSubtitle": "Atbloķējiet neierobežotas vietas, papildu ierakstus, lielāku krātuvi, nosacītus tīmekļa āķus, SSO, integrācijas un daudz ko citu!",
     "selectTimezone": "Rādīt laika joslu",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "Pievienojieties NocoDB kopienai",
       "joinReddit": "Pievienoties /r/NocoDB",
       "followNocodb": "Sekot NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Kopienas / AI tulkojums)"
     },
     "twitter": "Twitter",
     "docReference": "Dokumenta atsauce",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Pievienot no URL",
     "enterJson": "Ievadiet JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable bāze",
     "useSameTimezoneForAllMembers": "Lietot vienu laika joslu visiem dalībniekiem",
     "displayTimezone": "Laika joslas rādīšana",
     "upgradePlan": "Jaunināt plānu",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "Meklēt ikonas",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "Tu vari pievienot vairākas epasta adreses atdalītas ar komatu(,)",
       "enterTableName": "Ievadiet tabulas nosaukumu",
       "enterScriptName": "Ievadiet skripta nosaukumu",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Ievadiet informācijas paneļa nosaukumu",
       "enterTableDescription": "Ievadiet tabulas aprakstu...",
       "enterScriptDescription": "Ievadiet skripta aprakstu...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "Radās kļūda: {type}",
       "anErrorOccuredWhileAirtableBaseImport": "Radās kļūda, importējot bāzi no Airtable",
       "paymentFailed": "Maksājums neizdevās",
-      "paymentFailedSubtitle": "Radās kļūda, apstrādājot Jūsu maksājumu. Lūdzu, mēģiniet vēlreiz vai sazinieties ar atbalstu."
+      "paymentFailedSubtitle": "Radās kļūda, apstrādājot Jūsu maksājumu. Lūdzu, mēģiniet vēlreiz vai sazinieties ar atbalstu.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "Projekta metadati eksportēti veiksmīgi",
@@ -2371,6 +2375,7 @@
       "projInfo": "Projekta informācija nokopēta starpliktuvē",
       "inviteUrlCopy": "Uzaicinājuma saite nokopēta starpliktuvē",
       "createView": "Skats izveidots veiksmīgi",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Lūdzu aktivizējiet SMTP spraudni Lietotņu veikalā, lai iespējotu epasta paziņojumus",
       "collabView": "Veiksmīgi pārslēgts uz sadarbības skatu",
       "lockedView": "Veiksmīgi pārslēgts uz aizslēgto skatu",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "Maksājums ir apstrādāts. Tagad varat izmantot savu jauno plānu.",
       "upgradeSuccessful": "Jaunināšana veiksmīga",
       "upgradeSuccessfulSubtitle": "Maksājums par jauninājumu ir apstrādāts. Tagad varat izmantot savu jauno plānu.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

@@ -141,15 +141,15 @@
     "WorkspaceOwnerNotified": "ಕಾರ್ಯಕ್ಷೇತ್ರ ಮಾಲೀಕಿಗೆ ತಿಳಿಸಲಾಗಿದೆ",
     "WorkspaceOwnerNotifiedSubtitle": "ನಿಮ್ಮ ಅಪ್\r\u000bಗ್ರೇಡ್ ವಿನಂತಿಯನ್ನು ಕಾರ್ಯಕ್ಷೇತ್ರ ಮಾಲೀಕರೊಂದಿಗೆ ಹಂಚಲಾಗಿದೆ.",
     "failedToSendUpgradeRequest": "ಅಪ್\r\u000bಗ್ರೇಡ್ ವಿನಂತಿಯನ್ನು ಕಳಿಸಲು ವಿಫಲವಾಗಿದೆ",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "ಪೂರ್ಣ ಡೇಟಾ ಪ್ರವೇಶವನ್ನು ಅನ್ಲಾಕ್ ಮಾಡಲು ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ",
+    "upgradeToSeeMoreRecordInline": "ಬಾಹ್ಯ ಡೇಟಾ ಮೂಲಗಳಿಂದ ಎಲ್ಲಾ ದಾಖಲೆಗಳನ್ನು ವೀಕ್ಷಿಸಲು ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ",
     "upgradeToSeeMoreRecordSubtitle": "ಸಂಪರ್ಕಿತ ಮೂಲಗಳ ಪೂರ್ಣ ದೃಶ್ಯತೆಯನ್ನು ಅನ್ಲಾಕ್ ಮಾಡಿ. ಎಲ್ಲ ದಾಖಲೆಗಳನ್ನು ವೀಕ್ಷಿಸಲು Plus ಯೋಜನೆಗೆ ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿರಿ.",
     "upgradeToSeeMoreRecordInlineSubtitle": "ನೀವು {total} ದಾಖಲೆಗಳಲ್ಲಿ {limit} ಅನ್ನು ವೀಕ್ಷಿಸುತ್ತಿದ್ದಾರೆ. ಉಳಿದ {remaining} ದಾಖಲೆಗಳಿಗೆ ಪ್ರವೇಶವನ್ನು ಅನ್ಲಾಕ್ ಮಾಡಲು Plus ಯೋಜನೆಗೆ ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "ಉಚಿತ ಯೋಜನೆ ಗರಿಷ್ಠ {limit} ಎಡಿಟರ್ ವಿಧದ ಬಳಕೆದಾರರನ್ನು ಮಾತ್ರ ಅನುಮತಿಸುತ್ತದೆ, ಅನಿಯಮಿತವನ್ನು ಪಡೆಯಲು ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ",
     "adjustCollaboratorRoles": "ಸಹಕಾರಿಯ ಪಾತ್ರಗಳನ್ನು ಸರಿಹೊಂದಿಸಿ",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -186,6 +186,7 @@
     "manual": "ಮ್ಯಾನುಯಲ್",
     "trigger": "ಕಾರಣ",
     "addLookupField": "{count} ಹುಡುಕಾಟ ಕ್ಷೇತ್ರ ಸೇರಿಸಿ",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "ಶೈಲಿ",
     "label": "ಲೇಬಲ್",
     "role": "ಪಾತ್ರ",
@@ -850,8 +851,8 @@
     "onlyProceedIfYouTrustThisLink": "ಈ ಲಿಂಕ್ ಮೇಲೆ ನಂಬಿಕೆ ಇದ್ದಾಗ ಮಾತ್ರ ಮುಂದುವರಿಯಿರಿ.",
     "reAssignViewModalSubtitle": "ಮರುನಿಯೋಜಿಸಿದ ನಂತರ, ಪ್ರಸಕ್ತ ಮಾಲೀಕನಿಗೆ ದೃಶ್ಯ ಸಂರಚನೆಯನ್ನು ಸಂಪಾದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "ನಿಷ್ಠೆ ಫಲಿಸುತ್ತದೆ — ಸೀಮಿತ ದರಗಳನ್ನು ಆನಂದಿಸಿ!",
     "loyaltyBannerSubtitle": "ಅನಿಯಮಿತ ಸೀಟುಗಳು, ಹೆಚ್ಚುವರಿ ದಾಖಲೆಗಳು, ಹೆಚ್ಚಿನ ಸಂಗ್ರಹ, ಷರತ್ತಿನ ವೆಬ್\r\u000bಹುಕ್\r\u000bಗಳು, SSO, ಏಕತೆಗಳು ಮತ್ತು ಇನ್ನೂ ಹೆಚ್ಚಿನವನ್ನು ಅನ್ಲಾಕ್ ಮಾಡಿ!",
     "selectTimezone": "ಪ್ರದರ್ಶಿಸುವ ಕಾಲವಲಯ",
@@ -887,7 +888,7 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -1266,7 +1267,7 @@
       "joinCommunity": "NocoDB ಸಮುದಾಯಕ್ಕೆ ಸೇರು",
       "joinReddit": "/r/NocoDB",
       "followNocodb": "NocoDB ಅನ್ನು ಅನುಸರಿಸಿ",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(ಸಮುದಾಯ/AI ಅನುವಾದಿತ)"
     },
     "twitter": "Twitter",
     "docReference": "ಡಾಕ್ಯುಮೆಂಟ್ ರೆಫರೆನ್ಸ್",
@@ -1401,7 +1402,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "URL ನಿಂದ ಸೇರಿಸಿ",
     "enterJson": "JSON ನಮೂದಿಸಿ",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable ಬೇಸ್",
     "useSameTimezoneForAllMembers": "ಎಲ್ಲಾ ಸದಸ್ಯರಿಗೂ ಅದೇ ಕಾಲವಲಯವನ್ನು ಬಳಸಿ",
     "displayTimezone": "ಕಾಲವಲಯವನ್ನು ಪ್ರದರ್ಶಿಸಿ",
     "upgradePlan": "ಪ್ಲ್ಯಾನ್ ಅಪ್ಗ್ರೇಡ್ ಮಾಡಿ",
@@ -1806,7 +1807,9 @@
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden"
   },
   "placeholder": {
     "searchIcons": "ಐಕಾನ್‌ಗಳನ್ನು ಹುಡುಕಿ",
@@ -2163,7 +2166,7 @@
       "addMultipleUsers": "ನೀವು ಅನೇಕ ಅಲ್ಪ ವಿರಾಮ(,) ಬೇರ್ಪಡಿಸಿದ ಇಮೇಲ್‌ಗಳನ್ನು ಸೇರಿಸಬಹುದು",
       "enterTableName": "ಕೋಷ್ಟಕದ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
       "enterScriptName": "ಸ್ಕ್ರಿಪ್ಟ್ ಹೆಸರನ್ನು ನಮೂದಿಸಿ",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಹೆಸರನ್ನು ನಮೆಯನ್ನು",
       "enterTableDescription": "ಕೋಷ್ಟಕ ವಿವರಣೆ ನಮೂದಿಸಿ...",
       "enterScriptDescription": "ಸ್ಕ್ರಿಪ್ಟ್ ವಿವರಣೆಯನ್ನು ನಮೂದಿಸಿ...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2357,7 +2360,8 @@
       "anErrorOccuredWhileImporting": "{type} ಸಮಯದಲ್ಲಿ ದೋಷ ಉಂಟಾಯಿತು",
       "anErrorOccuredWhileAirtableBaseImport": "Airtable ಬೇಸ್ ಇಂಪೊರ್ಟ್ ಮಾಡುವಾಗ ದೋಷ ಉಂಟಾಯಿತು",
       "paymentFailed": "ಪಾವತಿ ವಿಫಲವಾಗಿದೆ",
-      "paymentFailedSubtitle": "ನಿಮ್ಮ ಪಾವತಿಯನ್ನು ಪ್ರಕ್ರಿಯೆಗೊಳಿಸುವಾಗ ಏನೋ ತಪ್ಪಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಬೆಂಬಲವನ್ನು ಸಂಪರ್ಕಿಸಿ."
+      "paymentFailedSubtitle": "ನಿಮ್ಮ ಪಾವತಿಯನ್ನು ಪ್ರಕ್ರಿಯೆಗೊಳಿಸುವಾಗ ಏನೋ ತಪ್ಪಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಬೆಂಬಲವನ್ನು ಸಂಪರ್ಕಿಸಿ.",
+      "failedToCreateLookupFields": "Failed to create lookup fields"
     },
     "toast": {
       "exportMetadata": "ಮೂಲಮಾಹಿತಿ ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ",
@@ -2371,6 +2375,7 @@
       "projInfo": "ಮೂಲಪ್ರದೇಶದ ಮಾಹಿತಿಯನ್ನು ಕ್ಲಿಪ್‌ಬೋರ್ಡ್‌ಗೆ ನಕಲಿಸಲಾಗಿದೆ",
       "inviteUrlCopy": "ನಿಮಂತ್ರಣ URL ಅನ್ನು ಕ್ಲಿಪ್‌ಬೋರ್ಡ್‌ಗೆ ನಕಲಿಸಲಾಗಿದೆ",
       "createView": "ವೀಕ್ಷಣೆ ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ",
+      "createField": "Field created successfully",
       "formEmailSMTP": "ಇಮೇಲ್ ನೋಟಿಫಿಕೇಶನ್ ಸಕ್ರಿಯಗೊಳಿಸಲು ದಯವಿಟ್ಟು ಅಪ್ ಸ್ಟೋರ್‌ನಲ್ಲಿ SMTP ಪ್ಲಗಿನ್ ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ",
       "collabView": "ಯಶಸ್ವಿಯಾಗಿ ಸಹಯೋಗದ ವೀಕ್ಷಣೆಗೆ ಬದಲಾಯಿಸಲಾಗಿದೆ",
       "lockedView": "ಯಶಸ್ವಿಯಾಗಿ ಲಾಕ್ ಮಾಡಿದ ವೀಕ್ಷಣೆಗೆ ಬದಲಾಯಿಸಲಾಗಿದೆ",
@@ -2428,7 +2433,9 @@
       "paymentSuccessfulSubtitle": "ನಿಮ್ಮ ಪಾವತಿ ಪೂರ್ಣಗೊಂಡಿದೆ. ಈಗ ನೀವು ನಿಮ್ಮ ಹೊಸ ಯೋಜನೆಯನ್ನು ಬಳಸಬಹುದು.",
       "upgradeSuccessful": "ಅಪ್\r\u000bಗ್ರೇಡ್ ಯಶಸ್ವಿಯಾಗಿದೆ",
       "upgradeSuccessfulSubtitle": "ಅಪ್\r\u000bಗ್ರೇಡ್‌ನಿಗಾಗಿ ваша ಪಾವತಿ ಪ್ರಕ್ರಿಯೆ ಪೂರ್ಣಗೊಂಡಿದೆ. ಈಗ ನೀವು ನಿಮ್ಮ ಹೊಸ ಯೋಜನೆಯನ್ನು ಬಳಸಬಹುದು.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

@@ -2227,7 +2227,11 @@
       "pleaseRequestAccessForView": "Пожалуйста, запросите более высокие права у Администратора / Владельца проекта / Владельца рабочего пространства, чтобы получить доступ к этому {viewName}",
       "preventHideAllOptions": "Нельзя скрыть все опции, если поле является обязательным",
       "valueMustBeAtMostCharLong": "Значение должно быть не длиннее {length} символов",
-      "copyToClipboardLocalFileUrl": "Браузер не позволяет загружать локальный ресурс напрямую. URL скопирован в буфер обмена."
+      "copyToClipboardLocalFileUrl": "Браузер не позволяет загружать локальный ресурс напрямую. URL скопирован в буфер обмена.",
+      "unsavedChanges": "You have unsaved changes.",
+      "unsavedChangesConfirmation": "Are you sure you want to leave this page?",
+      "supportChatUnavailable": "Support chat unavailable",
+      "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page."
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

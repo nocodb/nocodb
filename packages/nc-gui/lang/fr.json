@@ -398,7 +398,7 @@
     "total": "Total",
     "downgrade": "Retourner à une version inférieure",
     "upgrade": "Passer à une version supérieure",
-    "reviewAndUpgrade": "Examiner et mettre à niveau",
+    "reviewAndUpgrade": "Review & Upgrade",
     "requestUpgrade": "Request Upgrade",
     "reactivate": "Réactiver",
     "left": "restant",
@@ -413,7 +413,9 @@
     "proceedImport": "Procéder à l'import",
     "inserting": "Insertion en cours",
     "permissions": "Permissions",
-    "manageAllFields": "Manage all fields"
+    "manageAllFields": "Manage all fields",
+    "automations": "Automations",
+    "record": "Record"
   },
   "objects": {
     "script": "Script",
@@ -911,7 +913,7 @@
     "duplicateBaseMessage": "Vous ne pouvez dupliquer les bases que dans des espaces de travail où vous avez un accès créateur ou supérieur.",
     "snapshotBaseRestoreMessage": "Vous pouvez uniquement restaurer dans des espaces de travail où vous avez un accès créateur ou supérieur.",
     "currentWorkspace": "Espace de travail courant",
-    "currentBase": "Base actuelle",
+    "currentBase": "Current base",
     "sendMeEverything": "Send me everything",
     "latitude": "Latitude",
     "longitude": "Longitude",
@@ -1416,15 +1418,7 @@
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
     "customColours": "Custom colours",
-    "sendAllEvents": "Send all events",
-    "useNocoAI": "Use NocoAI",
-    "disableNocoAI": "Disable NocoAI",
-    "defaultType": "Default",
-    "privateType": "Private",
-    "sharingRestricted": "Sharing restricted",
-    "importOptions": "Import Options",
-    "newScript": "New Script",
-    "emptyScript": "Empty Script"
+    "sendAllEvents": "Send all events"
   },
   "activity": {
     "clickToResolve": "Cliquer pour résoudre",
@@ -1777,11 +1771,11 @@
     "exceedingLimit": "Limite dépassée",
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
-    "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateAutomation": "Navigate to a base to a create script",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
-    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new script",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table"
@@ -1856,7 +1850,6 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
-    "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
     "evaluateRecursivelyTooltip": "Recursively evaluate this lookup for self-referencing Has Many relations (Enterprise Edition + PostgreSQL only)",

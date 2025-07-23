@@ -884,6 +884,13 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
   },
   "labels": {
+    "chatWithNocoDBSupport": "Chat with NocoDB Support",
+    "revisionHistory": "Revision History",
+    "myNotifications": "My Notifications",
+    "quickSearch": "Quick Search",
+    "recentViews": "Recent Views",
+    "searchDocumentation": "Search Documentation",
+    "baseList": "Base List",
     "crossBase": "Verknüpfung zu externer Base",
     "mcpSetup": "MCP-Einrichtung",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",

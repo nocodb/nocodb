@@ -335,7 +335,7 @@ const handleCancel = () => {
                     <GeneralTruncateText placement="top" :length="20">
                       {{ el.description }}
                     </GeneralTruncateText>
-                    <NcBadge v-if="el.fk_sso_client_id" color="orange" class="!text-xs !py-0.5 !px-1.5">
+                    <NcBadge v-if="el.fk_sso_client_id" color="orange" class="!text-xs !py-0.5 !px-1.5 mr-4">
                       SSO
                     </NcBadge>
                   </div>

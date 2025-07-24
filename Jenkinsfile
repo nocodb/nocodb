@@ -4,7 +4,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/hafiz-syed-burhan/nocodb.git'
+                git branch: 'hafiz-syed-burhan-patch-1',
+                    url: 'https://github.com/hafiz-syed-burhan/nocodb.git'
             }
         }
 
@@ -16,10 +17,10 @@ pipeline {
 
                         # Agar container exist karta hai
                         if [ "$(docker ps -a -q -f name=$CONTAINER_NAME)" ]; then
-                            echo "Container exists. Restarting..."
+                            echo "✅ Container exists. Restarting..."
                             docker restart $CONTAINER_NAME
                         else
-                            echo "Container does not exist. Creating new one..."
+                            echo "🚀 Container does not exist. Creating new one..."
                             docker run -d --name $CONTAINER_NAME -p 8090:8080 nocodb/nocodb:latest
                         fi
                     '''

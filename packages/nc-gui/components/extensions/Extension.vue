@@ -2,6 +2,7 @@
 interface Prop {
   extensionId: string
   error?: any
+  clearError?: () => void
 }
 
 const props = defineProps<Prop>()
@@ -61,6 +62,11 @@ const closeFullscreen = (e: MouseEvent) => {
   if (e.target === extensionModalRef.value) {
     fullscreen.value = false
   }
+}
+
+const onClearData = () => {
+  extension.value.clear()
+  props.clearError?.()
 }
 
 onMounted(() => {
@@ -158,7 +164,7 @@ watch(
           <a-result status="error" title="Extension Error" class="nc-extension-error">
             <template #subTitle>{{ activeError }}</template>
             <template #extra>
-              <NcButton size="small" @click="extension.clear()">
+              <NcButton size="small" @click="onClearData">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="reload" />
                   Clear Data

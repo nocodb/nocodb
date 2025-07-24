@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { type ColumnType, type UITypes, isMultiUser, isVirtualCol } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../lib/context'
-import { type PageDesignerFieldWidget, fontWeightToLabel, fontWeights, fonts, plainCellFields } from '../lib/widgets'
+import {
+  LinkedFieldDisplayAs,
+  type PageDesignerFieldWidget,
+  SelectTypeFieldDisplayAs,
+  fontWeightToLabel,
+  fontWeights,
+  fonts,
+  plainCellFields,
+} from '../lib/widgets'
 import { objectFitLabels } from '../lib/widgets'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
@@ -32,6 +40,11 @@ const isAttachmentField = computed(() => fieldWidget.value?.field && isAttachmen
 const isMultiSelectTypeField = computed(
   () => fieldWidget.value?.field && (isMultiSelect(fieldWidget.value.field) || isMultiUser(fieldWidget.value.field)),
 )
+
+const displayAsOptionsMap = {
+  [LinkedFieldDisplayAs.INLINE]: iconMap.ncAlignLeft,
+  [LinkedFieldDisplayAs.LIST]: iconMap.ncList,
+}
 </script>
 
 <template>
@@ -62,6 +75,16 @@ const isMultiSelectTypeField = computed(
           </a-radio-button>
         </a-radio-group>
       </div>
+    </GroupedSettings>
+    <GroupedSettings v-if="isMultiSelectTypeField" title="Display as">
+      <TabbedSelect v-model="fieldWidget.displayAs" :values="[SelectTypeFieldDisplayAs.INLINE, SelectTypeFieldDisplayAs.LIST]">
+        <template #default="{ value }">
+          <div class="flex gap-2 items-center">
+            <component :is="displayAsOptionsMap[value as SelectTypeFieldDisplayAs]" />
+            <span>{{ value }}</span>
+          </div>
+        </template>
+      </TabbedSelect>
     </GroupedSettings>
     <GroupedSettings v-if="isPlainCell" title="Font settings">
       <div class="flex gap-3">
@@ -127,3 +150,30 @@ const isMultiSelectTypeField = computed(
     </GroupedSettings>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.field-list-type {
+  :deep(.ant-radio-input:focus + .ant-radio-inner) {
+    box-shadow: none !important;
+  }
+  :deep(.ant-radio-wrapper) {
+    @apply flex px-4 py-2 border-1 border-nc-gray-medium m-0;
+    .ant-radio-checked .ant-radio-inner {
+      @apply !bg-nc-fill-primary !border-nc-fill-primary;
+      &::after {
+        @apply bg-nc-bg-default;
+        width: 12px;
+        height: 12px;
+        margin-top: -6px;
+        margin-left: -6px;
+      }
+    }
+    &:first-child {
+      @apply rounded-tl-lg rounded-tr-lg;
+    }
+    &:last-child {
+      @apply border-t-0 rounded-bl-lg rounded-br-lg;
+    }
+  }
+}
+</style>

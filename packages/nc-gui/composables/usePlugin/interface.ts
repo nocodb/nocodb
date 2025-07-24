@@ -77,3 +77,9 @@ export interface ScriptManifest {
 }
 
 export type PluginManifest = ExtensionManifest | ScriptManifest
+
+export interface ExtensionConfigInjType {
+  activeExtensionId?: string
+  isPageDesignerPreviewPanel?: boolean
+  [key: string]: any
+}

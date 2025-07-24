@@ -40,10 +40,6 @@ const displayAsOptionsMap = {
   [LinkedFieldDisplayAs.LIST]: iconMap.ncList,
   [LinkedFieldDisplayAs.TABLE]: iconMap.table,
 }
-const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
-  })
 
 const relatedColumns = computed(
   () => relatedTableMeta.value.columns?.filter((col) => !isSystemColumn(col) && !isLinksOrLTAR(col)) ?? [],

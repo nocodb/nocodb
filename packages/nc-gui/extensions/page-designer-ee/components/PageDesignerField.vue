@@ -18,6 +18,8 @@ defineEmits(['deleteCurrentWidget'])
 const payload = inject(PageDesignerPayloadInj)!
 const widget = ref() as Ref<PageDesignerFieldWidget>
 const row = inject(PageDesignerRowInj)!
+const injectedExtensionConfig = inject(ExtensionConfigInj, ref({}))
+
 watch(
   () => props.id,
   (id) => {
@@ -25,6 +27,17 @@ watch(
   },
   { immediate: true },
 )
+
+const previewConfig = computed(() => {
+  return {
+    ...injectedExtensionConfig.value,
+    isPageDesignerPreviewPanel: true,
+    widget: widget.value,
+  }
+})
+
+// Scoped re-provide for preview mode subtree
+provide(ExtensionConfigInj, previewConfig)
 
 const draggable = true
 const throttleDrag = 1
@@ -129,7 +142,7 @@ const isLookupField = computed(() => widget.value.field.uidt === UITypes.Lookup)
               :model-value="row.row?.[fieldTitle]"
               read-only
               :edit-enabled="false"
-              class="pointer-events-none overflow-hidden"
+              class="pointer-events-none overflow-hidden nc-preview-virtual-cell"
             />
             <SmartsheetCell
               v-else
@@ -137,7 +150,7 @@ const isLookupField = computed(() => widget.value.field.uidt === UITypes.Lookup)
               :model-value="row.row?.[fieldTitle]"
               read-only
               :edit-enabled="false"
-              class="pointer-events-none overflow-hidden"
+              class="pointer-events-none overflow-hidden nc-preview-cell"
             />
           </SmartsheetRow>
         </template>
@@ -203,6 +216,20 @@ const isLookupField = computed(() => widget.value.field.uidt === UITypes.Lookup)
     .nc-qrcode-container img,
     .nc-barcode-container svg {
       height: 100% !important;
+    }
+  }
+
+  :deep(.nc-preview-cell.nc-cell) {
+    &.nc-cell-single-select,
+    &.nc-cell-multi-select,
+    &.nc-cell-user-select {
+      @apply items-start;
+    }
+
+    .nc-single-select,
+    .nc-multi-select,
+    .nc-user-select {
+      @apply items-start;
     }
   }
 }

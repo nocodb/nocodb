@@ -9,6 +9,7 @@ import PageDesignerDivider from './PageDesignerDivider.vue'
 import PropertiesPanel from './PropertiesPanel.vue'
 import PageDesignerField from './PageDesignerField.vue'
 import PageDesignerLinkedField from './PageDesignerLinkedField.vue'
+import PreviewWrapper from './PreviewWrapper.vue'
 
 const props = defineProps<{
   miniPreview?: boolean
@@ -153,46 +154,48 @@ const zoomLevel = computed(() => {
 
 <template>
   <div class="h-full w-full flex" :style="{ zoom: `${zoomLevel}%` }">
-    <div
-      ref="el"
-      class="print-page-layout-wrapper flex-1 overflow-auto grid place-items-center"
-      @drop="onDropped"
-      @mousedown="unselectCurrentWidget"
-      @dragover.prevent
-    >
+    <PreviewWrapper>
       <div
-        id="printPage"
-        ref="pageRef"
-        class="page relative flex-shrink-0"
-        :class="{
-          'nc-page-preview-mode': payload.isPreviewMode && payload.currentWidgetId === -1 && fullscreen,
-        }"
-        :style="{ width: `${pageSize.width}px !important`, height: `${pageSize.height}px !important` }"
+        ref="el"
+        class="print-page-layout-wrapper flex-1 overflow-auto grid place-items-center"
+        @drop="onDropped"
+        @mousedown="unselectCurrentWidget"
+        @dragover.prevent
       >
-        <div class="grid-lines absolute top-0 left-0 h-full w-full">
-          <div
-            v-for="line in horizontalLines"
-            :key="line"
-            :style="{ left: `${line}px`, height: `${pageSize.height}px`, width: `1px` }"
-          ></div>
-          <div
-            v-for="line in verticalLines"
-            :key="line"
-            :style="{ top: `${line}px`, width: `${pageSize.width}px`, height: `1px` }"
-          ></div>
+        <div
+          id="printPage"
+          ref="pageRef"
+          class="page relative flex-shrink-0"
+          :class="{
+            'nc-page-preview-mode': payload.isPreviewMode && payload.currentWidgetId === -1 && fullscreen,
+          }"
+          :style="{ width: `${pageSize.width}px !important`, height: `${pageSize.height}px !important` }"
+        >
+          <div class="grid-lines absolute top-0 left-0 h-full w-full">
+            <div
+              v-for="line in horizontalLines"
+              :key="line"
+              :style="{ left: `${line}px`, height: `${pageSize.height}px`, width: `1px` }"
+            ></div>
+            <div
+              v-for="line in verticalLines"
+              :key="line"
+              :style="{ top: `${line}px`, width: `${pageSize.width}px`, height: `1px` }"
+            ></div>
+          </div>
+          <template v-for="(widget, i) in payload?.widgets ?? {}" :key="i">
+            <component
+              :is="widgetTypeToComponent[widget.type]"
+              :id="i"
+              class="page-widget"
+              :class="{ 'active-page-widget': +i === +payload.currentWidgetId }"
+              @delete-current-widget="deleteCurrentWidget"
+              @mousedown.stop="onWidgetClick(i)"
+            />
+          </template>
         </div>
-        <template v-for="(widget, i) in payload?.widgets ?? {}" :key="i">
-          <component
-            :is="widgetTypeToComponent[widget.type]"
-            :id="i"
-            class="page-widget"
-            :class="{ 'active-page-widget': +i === +payload.currentWidgetId }"
-            @delete-current-widget="deleteCurrentWidget"
-            @mousedown.stop="onWidgetClick(i)"
-          />
-        </template>
       </div>
-    </div>
+    </PreviewWrapper>
     <PropertiesPanel v-if="fullscreen" @delete-current-widget="deleteCurrentWidget" />
   </div>
 </template>

@@ -9,8 +9,8 @@ const { extensionId } = defineProps<Prop>()
 <template>
   <NuxtErrorBoundary>
     <ExtensionsExtension :extension-id="extensionId" />
-    <template #error="{ error }">
-      <ExtensionsExtension :extension-id="extensionId" :error="error" />
+    <template #error="{ error, clearError }">
+      <ExtensionsExtension :extension-id="extensionId" :error="error" :clearError="clearError" />
     </template>
   </NuxtErrorBoundary>
 </template>

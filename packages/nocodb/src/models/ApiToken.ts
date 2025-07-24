@@ -9,6 +9,8 @@ import {
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
+import { extractProps } from '~/helpers/extractProps';
+import { NcError } from '~/helpers/catchError';
 
 export default class ApiToken implements ApiTokenType {
   id?: string;
@@ -207,5 +209,45 @@ export default class ApiToken implements ApiTokenType {
       MetaTable.API_TOKENS,
       tokenId,
     );
+  }
+
+  public static async bulkDelete(
+    params: Partial<Pick<ApiToken, 'fk_sso_client_id' | 'fk_user_id'>>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const condition = extractProps(params, ['fk_sso_client_id', 'fk_user_id']);
+
+    if (!condition.fk_sso_client_id && !condition.fk_user_id) {
+      NcError.badRequest(
+        'At least one of fk_sso_client_id or fk_user_id is required',
+      );
+    }
+
+    const tokens = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.API_TOKENS,
+      {
+        condition,
+      },
+    );
+
+    for (const token of tokens) {
+      await ncMeta.metaDelete(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.API_TOKENS,
+        token.id,
+      );
+
+      // Clear cache
+      await NocoCache.deepDel(
+        `${CacheScope.API_TOKEN}:${token.id}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+      await NocoCache.del(`${CacheScope.API_TOKEN}:${token.token}`);
+    }
+
+    return true;
   }
 }

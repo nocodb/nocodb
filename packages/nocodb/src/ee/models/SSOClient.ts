@@ -20,6 +20,7 @@ import {
 } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
 import { isCloud } from '~/utils';
+import { ApiToken } from '~/models';
 
 const PUBLIC_LIST_KEY = `${CacheScope.SSO_CLIENT_PUBLIC_LIST}:default`;
 
@@ -118,7 +119,10 @@ export default class SSOClient implements SSOClientType {
   }
 
   public static async delete(clientId: string, ncMeta = Noco.ncMeta) {
-    // delete from cache
+    // First, delete all API tokens associated with this SSO client
+    await ApiToken.bulkDelete({ fk_sso_client_id: clientId }, ncMeta);
+
+    // delete SSO client from cache
     await ncMeta.metaDelete(
       RootScopes.ORG,
       RootScopes.ORG,

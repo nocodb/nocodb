@@ -1,10 +1,12 @@
 <script lang="ts" setup>
+import { isVirtualCol, type ColumnType } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../../lib/context'
 
 interface Props {
   title?: string
   description?: string
   isFieldHeader?: boolean
+  field?: ColumnType
 }
 
 withDefaults(defineProps<Props>(), {
@@ -16,12 +18,17 @@ const payload = inject(PageDesignerPayloadInj)!
 function unselectCurrentWidget() {
   payload.value.currentWidgetId = -1
 }
+
+const getIcon = (c: ColumnType) =>
+  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
+    columnMeta: c,
+  })
 </script>
 
 <template>
   <header class="widget-header">
-    <div class="flex items-center gap-3">
-      <h1 class="nc-widget-header-title text-subHeading1 !text-[18px] m-0 flex items-center gap-3 flex-1">
+    <div class="flex items-center gap-3 min-h-8">
+      <h1 class="nc-widget-header-title text-bodyBold !font-semibold m-0 flex items-center gap-2 flex-1">
         <template v-if="isFieldHeader">
           <div
             class="cursor-pointer select-none hover:underline text-nc-content-gray-subtle2"
@@ -29,10 +36,25 @@ function unselectCurrentWidget() {
           >
             Page
           </div>
-          <div class="font-normal text-nc-content-gray-muted -mx-1">/</div>
+          <div class="text-xl font-normal text-nc-content-gray-muted">/</div>
         </template>
 
-        <slot name="title">{{ title }}</slot>
+        <slot v-if="$slots.field || field" name="field">
+          <template v-if="field">
+            <component :is="getIcon(field)" class="!m-0 flex-none" />
+            <NcTooltip class="truncate max-w-[220px] text-bodyBold !font-semibold" show-on-truncate-only>
+              <template #title>
+                {{ field.title }}
+              </template>
+
+              {{ field.title }}
+            </NcTooltip>
+          </template>
+        </slot>
+
+        <slot name="title">
+          {{ title }}
+        </slot>
       </h1>
       <slot name="actions"></slot>
     </div>
@@ -47,9 +69,6 @@ function unselectCurrentWidget() {
 
 <style lang="scss" scoped>
 .widget-header {
-  @apply p-4 border-b border-nc-border-gray-medium flex flex-col gap-2 w-full;
-  h1 {
-    @apply text-[18px] font-700 leading-8 tracking-[-0.4px];
-  }
+  @apply px-4 pt-4 pb-2 border-b border-nc-border-gray-medium flex flex-col gap-1 w-full;
 }
 </style>

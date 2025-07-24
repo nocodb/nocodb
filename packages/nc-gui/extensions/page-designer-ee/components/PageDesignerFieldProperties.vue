@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type UITypes, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type UITypes, isMultiUser, isVirtualCol } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../lib/context'
 import { type PageDesignerFieldWidget, fontWeightToLabel, fontWeights, fonts, plainCellFields } from '../lib/widgets'
 import { objectFitLabels } from '../lib/widgets'
@@ -24,20 +24,15 @@ watch(
 const isPlainCell = computed(() => plainCellFields.has(fieldWidget.value?.field.uidt as UITypes))
 
 const isAttachmentField = computed(() => fieldWidget.value?.field && isAttachment(fieldWidget.value.field))
-const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
-  })
+
+const isMultiSelectTypeField = computed(
+  () => fieldWidget.value?.field && (isMultiSelect(fieldWidget.value.field) || isMultiUser(fieldWidget.value.field)),
+)
 </script>
 
 <template>
   <div v-if="fieldWidget" class="flex flex-col properties overflow-y-auto max-h-full">
-    <SettingsHeader>
-      <template #title>
-        <component :is="getIcon(fieldWidget.field)" class="!h-5 !w-5 !m-0" style="stroke-width: 1.66px" />
-        {{ fieldWidget.field.title }}
-      </template>
-    </SettingsHeader>
+    <SettingsHeader :field="fieldWidget.field" />
     <GroupedSettings v-if="isPlainCell" title="Alignment">
       <div class="flex gap-3">
         <a-radio-group v-model:value="fieldWidget.horizontalAlign" class="radio-pills">

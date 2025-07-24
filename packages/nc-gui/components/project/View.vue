@@ -88,12 +88,18 @@ watch(
     // Wait for base roles to be loaded before checking if the overview tab is visible
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
+    /**
+     * We are waiting for base role load and their might be the case that,
+     * on navigating to different page this watch get called which will overwrite projectPageTab value and navigateToProjectPage fn get called
+     */
+    if (route.value.params.viewId) return
+
     if (newVal && newVal !== oldVal) {
       if (newVal === 'syncs') {
         projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
-      } else if (newVal === 'overview' && isOverviewTabVisible) {
+      } else if (newVal === 'overview' && isOverviewTabVisible.value) {
         projectPageTab.value = 'overview'
       } else if (
         newVal === 'permissions' &&
@@ -110,7 +116,7 @@ watch(
       return
     }
 
-    if (isAdminPanel.value || !isOverviewTabVisible) {
+    if (isAdminPanel.value || !isOverviewTabVisible.value) {
       projectPageTab.value = 'collaborator'
     } else {
       projectPageTab.value = 'overview'

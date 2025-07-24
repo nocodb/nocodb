@@ -42,6 +42,8 @@ const cellEventHook = inject(CellEventHookInj, null)
 
 const active = inject(ActiveCellInj, null)
 
+const activeExtensionId = inject(ActiveExtensionIdInj, readonly(ref('')))
+
 const readOnly = computed(() => readOnlyInj.value || column.value.readonly)
 
 const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
@@ -106,6 +108,14 @@ const localRowHeight = computed(() => {
   if (readOnly.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 4
 
   return rowHeight.value
+})
+
+const isPageDesignerExtensionActive = computed(() => {
+  return activeExtensionId.value === 'page-designer-ee'
+})
+
+const isFullHeight = computed(() => {
+  return isForm.value || isPageDesignerExtensionActive.value
 })
 
 const isVisible = ref(false)
@@ -184,7 +194,9 @@ const richTextContent = computedAsync(async () => {
           enableMention: true,
           users: unref(baseUsers.value),
           currentUser: unref(user.value),
-          ...(isExpandedFormOpen.value ? { maxBlockTokens: undefined } : { maxBlockTokens: rowHeight.value }),
+          ...(isExpandedFormOpen.value || isPageDesignerExtensionActive.value
+            ? { maxBlockTokens: undefined }
+            : { maxBlockTokens: rowHeight.value }),
         },
         true,
       ),
@@ -450,7 +462,7 @@ useResizeObserver(inputWrapperRef, () => {
       :class="{
         'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
         'min-h-5.5': rowHeight === 1 && !isExpandedFormOpen,
-        'h-full w-full': isForm,
+        'h-full w-full': isFullHeight,
       }"
     >
       <div v-if="isForm && isRichMode" class="w-full">
@@ -479,16 +491,17 @@ useResizeObserver(inputWrapperRef, () => {
           isExpandedFormOpen ? 'nc-scrollbar-thin' : 'overflow-hidden',
           {
             'nc-readonly-rich-text-grid ': !isExpandedFormOpen && !isForm,
-            'nc-readonly-rich-text-sort-height': localRowHeight === 1 && !isExpandedFormOpen && !isForm,
+            'nc-readonly-rich-text-sort-height':
+              localRowHeight === 1 && !isExpandedFormOpen && !isForm && !isPageDesignerExtensionActive,
           },
         ]"
         :style="{
-          maxHeight: isForm
+          maxHeight: isFullHeight
             ? undefined
             : isExpandedFormOpen
             ? `${height}px`
             : `${16.6 * rowHeightTruncateLines(localRowHeight)}px`,
-          minHeight: isForm
+          minHeight: isFullHeight
             ? undefined
             : isExpandedFormOpen
             ? `${height}px`
@@ -500,7 +513,11 @@ useResizeObserver(inputWrapperRef, () => {
       >
         <div
           class="nc-cell-field nc-rich-text-content nc-rich-text-content-grid"
-          :class="!isExpandedFormOpen ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}` : 'py-2'"
+          :class="
+            !isExpandedFormOpen && !isPageDesignerExtensionActive
+              ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}`
+              : 'py-2'
+          "
           v-html="richTextContent"
         ></div>
       </div>
@@ -633,6 +650,7 @@ useResizeObserver(inputWrapperRef, () => {
       <span v-else>{{ vModel }}</span>
 
       <div
+        v-if="!isPageDesignerExtensionActive"
         class="!absolute !hidden nc-text-area-expand-btn group-hover:block z-3 items-center gap-1"
         :class="{
           'active': active && isCanvasInjected,

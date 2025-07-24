@@ -30,6 +30,10 @@ const extensionManifest = computed<ExtensionManifest | undefined>(() => {
   return availableExtensions.value.find((ext) => ext.id === extension.value?.extensionId)
 })
 
+const activeExtensionId = computed(() => extensionManifest.value?.id ?? '')
+
+provide(ActiveExtensionIdInj, readonly(activeExtensionId))
+
 const {
   fullscreen,
   fullscreenModalSize: currentExtensionModalSize,

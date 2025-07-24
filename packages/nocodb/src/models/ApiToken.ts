@@ -71,21 +71,6 @@ export default class ApiToken implements ApiTokenType {
     return tokens?.map((t) => new ApiToken(t));
   }
 
-  static async listForSsoUser(userId: string, ssoClientId: string, ncMeta = Noco.ncMeta) {
-    const tokens = await ncMeta.metaList2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.API_TOKENS,
-      {
-        condition: {
-          fk_user_id: userId,
-          fk_sso_client_id: ssoClientId
-        },
-      },
-    );
-    return tokens?.map((t) => new ApiToken(t));
-  }
-
   static async listForNonSsoUser(userId: string, ncMeta = Noco.ncMeta) {
     const tokens = await ncMeta.metaList2(
       RootScopes.ROOT,

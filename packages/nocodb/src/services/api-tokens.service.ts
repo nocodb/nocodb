@@ -15,10 +15,10 @@ export class ApiTokensService {
   async apiTokenList(param: { userId: string; req: NcRequest }) {
     // Check if user logged in via SSO
     const ssoClientId = (param.req.user as any)?.extra?.sso_client_id;
-    
+
     if (ssoClientId) {
-      // User logged in via SSO - only show SSO tokens
-      return await ApiToken.listForSsoUser(param.userId, ssoClientId);
+      // User logged in via SSO - show both SSO and normal tokens
+      return await ApiToken.list(param.userId);
     } else {
       // User logged in normally - only show non-SSO tokens
       return await ApiToken.listForNonSsoUser(param.userId);
@@ -33,10 +33,10 @@ export class ApiTokensService {
       'swagger.json#/components/schemas/ApiTokenReq',
       param.tokenBody,
     );
-    
+
     // Get SSO client ID if user logged in via SSO
     const ssoClientId = (param.req.user as any)?.extra?.sso_client_id;
-    
+
     const token = await ApiToken.insert({
       ...param.tokenBody,
       fk_user_id: param.userId,

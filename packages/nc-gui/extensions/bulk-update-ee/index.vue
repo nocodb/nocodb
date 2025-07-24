@@ -60,7 +60,7 @@ const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { isAllowed, getPermissionSummaryLabel } = usePermissions()
+const { isAllowed } = usePermissions()
 
 const router = useRouter()
 const route = router.currentRoute
@@ -121,7 +121,7 @@ const bulkUpdateColumns = computed(() => {
         : isReadonlyCol
         ? t('msg.info.fieldReadonly')
         : !isAllowToEdit
-        ? `This field is editable by ${getPermissionSummaryLabel(PermissionEntity.FIELD, c.id!, PermissionKey.RECORD_FIELD_EDIT)}`
+        ? t('tooltip.youDontHavePermissionToEditThisField')
         : ''
 
       return {

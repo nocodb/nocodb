@@ -26,6 +26,7 @@ const savedPayload = ref<PageDesignerPayload>({
   pageType: PageType.LETTER,
   lastWidgetId: 0,
   currentWidgetId: -1,
+  isPreviewMode: false,
 })
 
 const { viewsByTable } = storeToRefs(useViewsStore())
@@ -371,7 +372,25 @@ useEventListener('afterprint', () => {
       }
     }
   }
+
+  #printPage.nc-page-preview-mode {
+    * {
+      -webkit-print-color-adjust: exact; /* Chrome, Safari 6 – 15.3, Edge */
+      color-adjust: exact; /* Firefox 48 – 96 */
+      print-color-adjust: exact;
+    }
+
+    .print-hide,
+    .grid-lines,
+    .nc-moveable {
+      @apply !hidden;
+    }
+    .page-widget > .absolute {
+      outline: none !important;
+    }
+  }
 }
+
 @media print {
   * {
     -webkit-print-color-adjust: exact; /* Chrome, Safari 6 – 15.3, Edge */
@@ -387,13 +406,10 @@ useEventListener('afterprint', () => {
     outline: none !important;
   }
   #printPage {
-    @apply m-0 shadow-none;
+    @apply m-0 shadow-none visible absolute left-0 top-0;
   }
   body {
     @apply invisible;
-  }
-  #printPage {
-    @apply visible absolute left-0 top-0;
   }
 }
 </style>

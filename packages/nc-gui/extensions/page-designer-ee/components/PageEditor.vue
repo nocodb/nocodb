@@ -164,6 +164,9 @@ const zoomLevel = computed(() => {
         id="printPage"
         ref="pageRef"
         class="page relative flex-shrink-0"
+        :class="{
+          'nc-page-preview-mode': payload.isPreviewMode && payload.currentWidgetId === -1 && fullscreen,
+        }"
         :style="{ width: `${pageSize.width}px !important`, height: `${pageSize.height}px !important` }"
       >
         <div class="grid-lines absolute top-0 left-0 h-full w-full">

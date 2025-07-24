@@ -10,4 +10,5 @@ export interface PageDesignerPayload {
   currentWidgetId: string | number
   lastWidgetId: number
   widgets: Record<string | number, PageDesignerWidget>
+  isPreviewMode?: boolean
 }

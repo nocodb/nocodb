@@ -26,15 +26,26 @@ function addWidget(widget: PageDesignerWidget) {
 function print() {
   window.print()
 }
+
+const togglePreviewMode = () => {
+  payload.value.isPreviewMode = !payload.value.isPreviewMode
+}
 </script>
 
 <template>
   <div v-if="payload" class="flex flex-col properties overflow-y-auto max-h-full">
     <SettingsHeader title="Page" :is-field-header="false">
       <template #actions>
-        <NcButton size="small" type="secondary" @click="print">
-          <GeneralIcon icon="ncPrinter"></GeneralIcon>
-        </NcButton>
+        <NcTooltip :title="payload.isPreviewMode ? 'Hide Preview Mode' : 'Show Preview Mode'">
+          <NcButton size="small" type="secondary" @click="togglePreviewMode">
+            <GeneralIcon :icon="payload.isPreviewMode ? 'ncEyeOff' : 'ncEye'" />
+          </NcButton>
+        </NcTooltip>
+        <NcTooltip title="Print">
+          <NcButton size="small" type="secondary" @click="print">
+            <GeneralIcon icon="ncPrinter"></GeneralIcon>
+          </NcButton>
+        </NcTooltip>
       </template>
     </SettingsHeader>
     <GroupedSettings title="Preview">

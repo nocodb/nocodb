@@ -365,7 +365,7 @@ useEventListener('afterprint', () => {
       @apply !inline-block;
     }
     .widget-header {
-      @apply px-6 py-4 border-b border-solid border-nc-border-gray-medium;
+      @apply p-4 border-b border-solid border-nc-border-gray-medium;
       h1 {
         @apply text-[18px] font-700 leading-8 tracking-[-0.4px];
       }

@@ -23,7 +23,7 @@ watch(isOpen, updateState)
 
 <style lang="scss" scoped>
 .grouped-settings {
-  @apply gap-4 py-4 px-6 border-b-1 border-nc-border-gray-medium;
+  @apply gap-4 p-4 border-b-1 border-nc-border-gray-medium;
   header > span {
     @apply text-[16px] font-700;
   }

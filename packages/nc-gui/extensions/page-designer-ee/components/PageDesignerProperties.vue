@@ -10,6 +10,7 @@ import GroupedSettings from './GroupedSettings.vue'
 import TableAndViewPicker from './TableAndViewPicker.vue'
 import FieldElements from './FieldElements.vue'
 import RecordSelector from './RecordSelector.vue'
+import SettingsHeader from './Settings/SettingsHeader.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 const row = inject(PageDesignerRowInj)!
@@ -29,12 +30,13 @@ function print() {
 
 <template>
   <div v-if="payload" class="flex flex-col properties overflow-y-auto max-h-full">
-    <header class="widget-header flex w-full justify-between">
-      <h1 class="m-0">Page</h1>
-      <NcButton size="small" type="secondary" @click="print">
-        <GeneralIcon icon="ncPrinter"></GeneralIcon>
-      </NcButton>
-    </header>
+    <SettingsHeader title="Page" :is-field-header="false">
+      <template #actions>
+        <NcButton size="small" type="secondary" @click="print">
+          <GeneralIcon icon="ncPrinter"></GeneralIcon>
+        </NcButton>
+      </template>
+    </SettingsHeader>
     <GroupedSettings title="Preview">
       <div class="flex flex-col gap-4">
         <TableAndViewPicker />

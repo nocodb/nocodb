@@ -6,6 +6,7 @@ import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import TabbedSelect from './TabbedSelect.vue'
 import BorderSettings from './BorderSettings.vue'
+import SettingsHeader from './Settings/SettingsHeader.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
@@ -24,6 +25,7 @@ watch(
     <header class="widget-header">
       <h1 class="m-0">Image</h1>
     </header>
+    <SettingsHeader title="Image" />
     <GroupedSettings title="Source">
       <a-input v-model:value="imageWidget.imageSrc" placeholder="Image URL"></a-input>
     </GroupedSettings>

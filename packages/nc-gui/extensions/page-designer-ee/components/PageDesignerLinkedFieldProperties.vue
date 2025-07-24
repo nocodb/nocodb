@@ -15,6 +15,7 @@ import TabbedSelect from './TabbedSelect.vue'
 import RelatedFieldsSelector from './RelatedFieldsSelector.vue'
 import BorderSettings from './BorderSettings.vue'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
+import SettingsHeader from './Settings/SettingsHeader.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 const row = inject(PageDesignerRowInj)! as Ref<Row>
@@ -81,18 +82,13 @@ const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDispl
 
 <template>
   <div v-if="fieldWidget" class="flex flex-col properties overflow-y-auto max-h-full">
-    <header class="widget-header">
-      <h1 class="m-0 flex items-center gap-3 flex-wrap">
-        <div class="flex items-center gap-3">
-          <component :is="getIcon(fieldWidget.field)" class="!h-5 !w-5 !m-0" style="stroke-width: 1.66px" />
-          {{ fieldWidget.field.title }}
-        </div>
-        <div class="flex-1"></div>
-        <span class="text-[13px] -mt-0.5 font-medium text-nc-content-gray-subtle2">
-          Display Linked fields Inline, as a list or in a tabular format.
-        </span>
-      </h1>
-    </header>
+    <SettingsHeader>
+      <template #title>
+        <component :is="getIcon(fieldWidget.field)" class="!h-5 !w-5 !m-0" style="stroke-width: 1.66px" />
+        {{ fieldWidget.field.title }}
+      </template>
+      <template #description> Display Linked fields Inline, as a list or in a tabular format. </template>
+    </SettingsHeader>
     <GroupedSettings title="Display as">
       <TabbedSelect
         v-model="fieldWidget.displayAs"

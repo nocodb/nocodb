@@ -4,6 +4,7 @@ import type { PageDesignerDividerWidget } from '../lib/widgets'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
+import SettingsHeader from './Settings/SettingsHeader.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
@@ -27,9 +28,7 @@ watch(
 
 <template>
   <div v-if="dividerWidget" class="flex flex-col properties overflow-y-auto max-h-full">
-    <header class="widget-header">
-      <h1 class="m-0">Divider</h1>
-    </header>
+    <SettingsHeader title="Divider" />
     <GroupedSettings title="Border">
       <div class="flex gap-3">
         <div class="flex flex-col gap-2 flex-1 min-w-0">

@@ -8,6 +8,7 @@ import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
 import TabbedSelect from './TabbedSelect.vue'
 import BorderSettings from './BorderSettings.vue'
+import SettingsHeader from './Settings/SettingsHeader.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
@@ -31,12 +32,12 @@ const getIcon = (c: ColumnType) =>
 
 <template>
   <div v-if="fieldWidget" class="flex flex-col properties overflow-y-auto max-h-full">
-    <header class="widget-header">
-      <h1 class="m-0 flex items-center gap-3">
+    <SettingsHeader>
+      <template #title>
         <component :is="getIcon(fieldWidget.field)" class="!h-5 !w-5 !m-0" style="stroke-width: 1.66px" />
         {{ fieldWidget.field.title }}
-      </h1>
-    </header>
+      </template>
+    </SettingsHeader>
     <GroupedSettings v-if="isPlainCell" title="Alignment">
       <div class="flex gap-3">
         <a-radio-group v-model:value="fieldWidget.horizontalAlign" class="radio-pills">

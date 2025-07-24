@@ -6,6 +6,7 @@ import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
 import BorderSettings from './BorderSettings.vue'
+import SettingsHeader from './Settings/SettingsHeader.vue'
 
 const emit = defineEmits(['deleteCurrentWidget'])
 
@@ -90,9 +91,8 @@ function onTextFieldDelete() {
 
 <template>
   <div v-if="textWidget" class="flex flex-col properties overflow-y-auto max-h-full">
-    <header class="widget-header flex items-center justify-between">
-      <h1 class="m-0">Text</h1>
-      <div class="flex gap-3">
+    <SettingsHeader title="Text">
+      <template #actions>
         <NcButton
           type="secondary"
           size="small"
@@ -117,8 +117,8 @@ function onTextFieldDelete() {
         >
           <GeneralIcon icon="ncHeading3" />
         </NcButton>
-      </div>
-    </header>
+      </template>
+    </SettingsHeader>
     <GroupedSettings title="Content">
       <AiPromptWithFields
         id="textWidgetContent"

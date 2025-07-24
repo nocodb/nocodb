@@ -27,7 +27,7 @@ const getIcon = (c: ColumnType) =>
 
 <template>
   <header class="widget-header">
-    <div class="flex items-center gap-3 min-h-8">
+    <div class="flex items-center gap-3">
       <h1 class="nc-widget-header-title text-bodyBold !font-semibold m-0 flex items-center gap-2 flex-1">
         <template v-if="isFieldHeader">
           <div
@@ -36,7 +36,7 @@ const getIcon = (c: ColumnType) =>
           >
             Page
           </div>
-          <div class="text-xl font-normal text-nc-content-gray-muted">/</div>
+          <div class="text-xl font-normal text-nc-content-gray-muted !leading-6">/</div>
         </template>
 
         <slot v-if="$slots.field || field" name="field">
@@ -56,7 +56,9 @@ const getIcon = (c: ColumnType) =>
           {{ title }}
         </slot>
       </h1>
-      <slot name="actions"></slot>
+      <div v-if="$slots.actions" class="flex items-center gap-3 -my-1">
+        <slot name="actions"></slot>
+      </div>
     </div>
     <div
       v-if="$slots.description || description"
@@ -69,6 +71,6 @@ const getIcon = (c: ColumnType) =>
 
 <style lang="scss" scoped>
 .widget-header {
-  @apply px-4 pt-4 pb-2 border-b border-nc-border-gray-medium flex flex-col gap-1 w-full;
+  @apply p-4 border-b border-nc-border-gray-medium flex flex-col gap-1 w-full;
 }
 </style>

@@ -82,11 +82,7 @@ const isTable = computed(() => fieldWidget.value?.displayAs === LinkedFieldDispl
 
 <template>
   <div v-if="fieldWidget" class="flex flex-col properties overflow-y-auto max-h-full">
-    <SettingsHeader>
-      <template #title>
-        <component :is="getIcon(fieldWidget.field)" class="!h-5 !w-5 !m-0" style="stroke-width: 1.66px" />
-        {{ fieldWidget.field.title }}
-      </template>
+    <SettingsHeader :field="fieldWidget.field">
       <template #description> Display Linked fields Inline, as a list or in a tabular format. </template>
     </SettingsHeader>
     <GroupedSettings title="Display as">

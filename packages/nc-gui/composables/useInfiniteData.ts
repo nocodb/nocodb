@@ -434,9 +434,6 @@ export function useInfiniteData(args: {
 
       loadAggCommentsCount(data, path)
 
-
-      console.log('response', data)
-
       return data
     } catch (error: any) {
       if (error?.response?.data.error === 'INVALID_OFFSET_VALUE') {

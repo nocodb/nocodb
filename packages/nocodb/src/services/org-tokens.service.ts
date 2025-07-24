@@ -46,9 +46,13 @@ export class OrgTokensService {
       param.apiToken,
     );
 
+    // Get SSO client ID if user logged in via SSO
+    const ssoClientId = (param.req.user as any)?.extra?.sso_client_id;
+    
     const apiToken = await ApiToken.insert({
       ...param.apiToken,
       fk_user_id: param['user'].id,
+      fk_sso_client_id: ssoClientId || null,
     });
 
     this.appHooksService.emit(AppEvents.ORG_API_TOKEN_CREATE, {

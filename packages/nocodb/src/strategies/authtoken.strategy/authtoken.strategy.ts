@@ -54,6 +54,14 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           ...(dbUser.org_roles
             ? { org_roles: extractRolesObj(dbUser.org_roles) }
             : {}),
+          // Add SSO client information from the API token if available
+          ...(apiToken.fk_sso_client_id
+            ? { 
+                extra: { 
+                  sso_client_id: apiToken.fk_sso_client_id 
+                } 
+              }
+            : {}),
         });
       }
       return callback(null, sanitiseUserObj(user));

@@ -196,6 +196,44 @@ export default class ApiToken implements ApiTokenType {
     );
   }
 
+  public static async clearSsoAssociation(
+    ssoClientId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!ssoClientId) {
+      NcError.badRequest('SSO client ID is required');
+    }
+
+    const tokens = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.API_TOKENS,
+      {
+        condition: { fk_sso_client_id: ssoClientId },
+      },
+    );
+
+    for (const token of tokens) {
+      // Update database to remove SSO association
+      await ncMeta.metaUpdate(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.API_TOKENS,
+        { fk_sso_client_id: null },
+        token.id,
+      );
+
+      // Clear cache
+      await NocoCache.deepDel(
+        `${CacheScope.API_TOKEN}:${token.id}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+      await NocoCache.del(`${CacheScope.API_TOKEN}:${token.token}`);
+    }
+
+    return tokens?.length || 0;
+  }
+
   public static async bulkDelete(
     params: Partial<Pick<ApiToken, 'fk_sso_client_id' | 'fk_user_id'>>,
     ncMeta = Noco.ncMeta,

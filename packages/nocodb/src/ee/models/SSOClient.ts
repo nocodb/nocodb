@@ -119,8 +119,8 @@ export default class SSOClient implements SSOClientType {
   }
 
   public static async delete(clientId: string, ncMeta = Noco.ncMeta) {
-    // First, delete all API tokens associated with this SSO client
-    await ApiToken.bulkDelete({ fk_sso_client_id: clientId }, ncMeta);
+    // First, clear SSO association from API tokens linked to this SSO client
+    await ApiToken.clearSsoAssociation(clientId, ncMeta);
 
     // delete SSO client from cache
     await ncMeta.metaDelete(

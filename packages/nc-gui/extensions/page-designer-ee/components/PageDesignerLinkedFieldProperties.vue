@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
 import {
   LinkedFieldDisplayAs,

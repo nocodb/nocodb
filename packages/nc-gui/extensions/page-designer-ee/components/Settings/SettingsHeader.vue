@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { isVirtualCol, type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../../lib/context'
 
 interface Props {

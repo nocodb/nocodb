@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type UITypes, isMultiUser, isVirtualCol } from 'nocodb-sdk'
+import { type UITypes, isMultiUser } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../lib/context'
 import {
   LinkedFieldDisplayAs,

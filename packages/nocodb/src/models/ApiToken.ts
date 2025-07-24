@@ -79,7 +79,7 @@ export default class ApiToken implements ApiTokenType {
       {
         condition: {
           fk_user_id: userId,
-          fk_sso_client_id: null
+          fk_sso_client_id: null,
         },
       },
     );
@@ -272,5 +272,9 @@ export default class ApiToken implements ApiTokenType {
     }
 
     return true;
+  }
+
+  async getExtraForUserPayload() {
+    return; // Placeholder for future implementation
   }
 }

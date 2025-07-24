@@ -102,6 +102,21 @@ useEventListener('keydown', (e) => {
 const noExplicitHeightExtensions = ['nc-data-exporter']
 
 const isNoExplicitHeightExtension = computed(() => noExplicitHeightExtensions.includes(extension.value.extensionId))
+
+/**
+ * Log extension error so that we can debug easily.
+ */
+watch(
+  activeError,
+  (newVal) => {
+    if (!newVal) return
+
+    console.error(newVal)
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

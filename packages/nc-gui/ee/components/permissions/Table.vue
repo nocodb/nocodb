@@ -39,7 +39,7 @@ const hasTablePermissions = computed(() => {
   <div class="flex flex-col gap-5">
     <div class="flex items-center justify-between">
       <slot name="title">
-        <div class="text-nc-content-gray-emphasis text-bodyBold min-h-8 flex items-center">
+        <div class="text-nc-content-gray-emphasis text-bodyBold min-h-8 flex items-center capitalize">
           {{ $t('title.tablePermissions') }}
         </div>
       </slot>

@@ -203,7 +203,8 @@ watch(
     v-model:visible="vVisible"
     :title="title"
     :content="content"
-    ok-text="Confirm Revert"
+    ok-class="capitalize"
+    :ok-text="$t('activity.confirmReset')"
     :show-icon="false"
     mask-closable
     :ok-props="{ loading: isDeleting, disabled: isLoading || !entitiesToDelete.length }"

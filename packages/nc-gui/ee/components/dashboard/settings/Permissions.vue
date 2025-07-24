@@ -267,7 +267,7 @@ watch(
                     </NcMenuItem>
                     <NcMenuItem @click="onRevertToDefault(record.title, record.id)">
                       <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
-                      {{ $t('activity.revertPermissionsToDefault') }}
+                      {{ $t('activity.resetPermissions') }}
                     </NcMenuItem>
                   </NcMenu>
                 </template>

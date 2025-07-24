@@ -81,19 +81,25 @@ const handlePermissionSave = () => {
     disable-table-scroll
     force-sticky-header
     header-row-height="44px"
+    body-row-class-name="!cursor-default"
     :table-toolbar-class-name="tableToolbarClassName"
     class="nc-field-permissions-table flex-1"
   >
     <template #tableToolbar>
       <div class="flex items-center justify-between min-h-8">
-        <h3 class="text-nc-content-gray-emphasis text-bodyBold mb-0">Field Permissions</h3>
+        <h3 class="text-nc-content-gray-emphasis text-bodyBold mb-0 capitalize">{{ $t('title.fieldPermissions') }}</h3>
         <div class="flex items-center gap-2">
           <template v-if="customFieldPermissionsCount > 0">
             <div class="flex items-center justify-center">
               <div class="h-1.5 w-1.5 rounded-full bg-primary flex-none"></div>
             </div>
             <span class="text-body text-nc-content-gray-subtle">
-              {{ customFieldPermissionsCount }}/{{ visibleFields.length }} fields have custom permissions
+              {{
+                $t('title.mOfNFieldsHaveCustomPermissions', {
+                  m: customFieldPermissionsCount,
+                  n: visibleFields.length,
+                })
+              }}
             </span>
           </template>
           <slot name="actions" :has-permissions="customFieldPermissionsCount > 0" />

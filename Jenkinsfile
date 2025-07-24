@@ -4,20 +4,25 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'hafiz-syed-burhan-patch-1',
-                    url: 'https://github.com/hafiz-syed-burhan/nocodb.git'
+                git 'https://github.com/hafiz-syed-burhan/nocodb.git'
             }
         }
 
-        stage('Deploy NocoDB') {
+        stage('Start or Restart NocoDB') {
             steps {
                 script {
-                    def isRunning = sh(script: "docker ps -q -f name=nocodb-container", returnStdout: true).trim()
-                    if (isRunning) {
-                        echo "NocoDB container already running, skipping deployment."
-                    } else {
-                        sh 'docker run -d --name nocodb-container -p 8090:8080 nocodb/nocodb:latest'
-                    }
+                    sh '''
+                        CONTAINER_NAME=nocodb-container
+
+                        # Agar container exist karta hai
+                        if [ "$(docker ps -a -q -f name=$CONTAINER_NAME)" ]; then
+                            echo "Container exists. Restarting..."
+                            docker restart $CONTAINER_NAME
+                        else
+                            echo "Container does not exist. Creating new one..."
+                            docker run -d --name $CONTAINER_NAME -p 8090:8080 nocodb/nocodb:latest
+                        fi
+                    '''
                 }
             }
         }
@@ -25,7 +30,7 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline finished.'
+            echo '✅ NocoDB Deployment Pipeline Finished.'
         }
     }
 }

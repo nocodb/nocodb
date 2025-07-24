@@ -45,7 +45,7 @@ const { t } = useI18n()
 
 const { getMeta } = useMetas()
 
-const { isAllowed, getPermissionSummaryLabel } = usePermissions()
+const { isAllowed } = usePermissions()
 
 const meta = inject(MetaInj, ref())
 
@@ -75,11 +75,7 @@ const columns = computed(() =>
           tooltip: isReadonlyCol
             ? t('msg.info.fieldReadonly')
             : !isEditAllowed
-            ? `This field is editable by ${getPermissionSummaryLabel(
-                PermissionEntity.FIELD,
-                col.id!,
-                PermissionKey.RECORD_FIELD_EDIT,
-              )}`
+            ? t('tooltip.youDontHavePermissionToEditThisField')
             : '',
         },
       }

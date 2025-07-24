@@ -1,5 +1,5 @@
-import { ApiToken as ApiTokenCE } from 'src/models';
-import SSOClient from './SSOClient';
+import ApiTokenCE from 'src/models/ApiToken';
+import SSOClient from '~/models/SSOClient';
 import Noco from '~/Noco';
 
 export default class ApiToken extends ApiTokenCE {
@@ -20,5 +20,9 @@ export default class ApiToken extends ApiTokenCE {
       sso_client_id: ssoClient.id,
       sso_client_type: ssoClient.type,
     } as Record<string, any>;
+  }
+
+  public static castType(apiToken: ApiToken): ApiToken {
+    return apiToken && new ApiToken(apiToken);
   }
 }

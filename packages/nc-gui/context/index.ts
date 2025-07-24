@@ -144,10 +144,5 @@ export const PlanUpgraderClickHookInj: InjectionKey<EventHook<void>> = Symbol('p
 
 export const IsMiniSidebarInj: InjectionKey<Ref<boolean>> = Symbol('is-mini-sidebar-injection')
 
-export const ExtensionConfigInj: InjectionKey<
-  Ref<{
-    activeExtensionId?: string
-    isPageDesignerPreviewPanel?: boolean
-    [key: string]: any
-  }>
-> = Symbol('extension-config-injection')
+export const ExtensionConfigInj: InjectionKey<Ref<ExtensionConfigInjType> | ComputedRef<ExtensionConfigInjType>> =
+  Symbol('extension-config-injection')

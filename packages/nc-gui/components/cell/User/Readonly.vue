@@ -141,16 +141,21 @@ const isCollaborator = (userIdOrEmail) => {
 
     <div
       v-else
-      class="flex overflow-hidden gap-y-1"
+      class="flex overflow-hidden"
       :class="{
-        'flex-wrap': isPageDesignerPreviewPanel,
+        'gap-y-1': !isPageDesignerPreviewPanel,
+        'flex-wrap flex-col items-start gap-2': extensionConfig?.widget?.displayAs === 'List',
       }"
-      :style="{
-        'flex-wrap': !isInFilter,
-        'max-width': '100%',
-        '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
-        'maxHeight': `${rowHeightInPx[rowHeight] - 12}px`,
-      }"
+      :style="
+        extensionConfig?.widget?.displayAs !== 'List'
+          ? {
+              'flex-wrap': !isInFilter,
+              'max-width': '100%',
+              '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
+              'maxHeight': `${rowHeightInPx[rowHeight] - 12}px`,
+            }
+          : {}
+      "
     >
       <template v-for="selectedOpt of selectedUsers" :key="selectedOpt.value">
         <a-tag

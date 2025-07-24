@@ -87,7 +87,7 @@ const { cachedRows, loadData, syncCount, totalRows, chunkStates, clearCache } = 
   viewMeta,
   where: computedWhere,
   callbacks: {
-    getWhereFilter: async (path, ignoreWhereFilter) => (ignoreWhereFilter ? '' : computedWhere.value),
+    getWhereFilter: async (_path, ignoreWhereFilter) => (ignoreWhereFilter ? '' : computedWhere.value),
   },
   disableSmartsheet: true,
 })
@@ -129,7 +129,8 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   }
   try {
     const newItems = await loadData({ offset, limit })
-    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex, item))
+
+    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
 
     chunkStates.value[chunkId] = 'loaded'
     if (isInitialLoad) {
@@ -243,9 +244,8 @@ useScroll(scrollWrapper, {
   behavior: 'smooth',
 })
 
-watch(where, async () => {
+watch(computedWhere, async () => {
   if (records?.value?.length) {
-    console.log('search like', where.value)
     const filteredRecords = searchLike(records.value, `%${where.value}%`)
     totalRows.value = filteredRecords.length
     const tempCachedRows = new Map()
@@ -260,7 +260,9 @@ watch(where, async () => {
     cachedRows.value = tempCachedRows
   } else {
     await syncCount()
-    await loadData()
+    const newItems = await loadData()
+    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+
     calculateSlices()
     await updateVisibleRows()
   }
@@ -280,7 +282,9 @@ onMounted(async () => {
     totalRows.value = records.value.length
   } else {
     await syncCount()
-    await loadData()
+    const newItems = await loadData()
+    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+
     calculateSlices()
     await updateVisibleRows()
   }

@@ -3,7 +3,7 @@ import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.API_TOKENS, (table) => {
-    table.string('fk_sso_client_id', 20)
+    table.string('fk_sso_client_id', 20);
     table.index('fk_sso_client_id');
   });
 };

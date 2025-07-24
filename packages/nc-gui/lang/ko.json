@@ -1809,7 +1809,7 @@
     "viewAndEditPermissionsForAllFieldsInThisTable": "이 표의 모든 필드에 대한 보기 및 편집 권한",
     "addingEmptyRecordIsNotAllowedInThisTable": "이 테이블에서는 빈 레코드를 추가할 수 없습니다",
     "addLookupFields": "조회 필드 추가",
-    "sourceVisibilityIsHidden": "Data source visibility is hidden"
+    "sourceVisibilityIsHidden": "데이터 원본 가시성이 숨겨짐"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",

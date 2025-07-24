@@ -39,6 +39,12 @@ const rowHeight = inject(RowHeightInj, ref(isInFilter.value ? 1 : undefined))
 
 const isKanban = inject(IsKanbanInj, ref(false))
 
+const extensionConfig = inject(ExtensionConfigInj, ref({ isPageDesignerPreviewPanel: false }))
+
+const isPageDesignerPreviewPanel = computed(() => {
+  return extensionConfig.value.isPageDesignerPreviewPanel
+})
+
 const options = computed(() => {
   const currentUserField: any[] = []
   if (isEeUI && isInFilter.value) {
@@ -136,6 +142,9 @@ const isCollaborator = (userIdOrEmail) => {
     <div
       v-else
       class="flex overflow-hidden gap-y-1"
+      :class="{
+        'flex-wrap': isPageDesignerPreviewPanel,
+      }"
       :style="{
         'flex-wrap': !isInFilter,
         'max-width': '100%',

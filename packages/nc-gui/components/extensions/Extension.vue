@@ -32,7 +32,7 @@ const extensionManifest = computed<ExtensionManifest | undefined>(() => {
 
 const activeExtensionId = computed(() => extensionManifest.value?.id ?? '')
 
-provide(ActiveExtensionIdInj, readonly(activeExtensionId))
+provide(ExtensionConfigInj, ref({ activeExtensionId }))
 
 const {
   fullscreen,

@@ -42,7 +42,7 @@ const cellEventHook = inject(CellEventHookInj, null)
 
 const active = inject(ActiveCellInj, null)
 
-const activeExtensionId = inject(ActiveExtensionIdInj, readonly(ref('')))
+const extensionConfig = inject(ExtensionConfigInj, ref({ isPageDesignerPreviewPanel: false }))
 
 const readOnly = computed(() => readOnlyInj.value || column.value.readonly)
 
@@ -110,12 +110,12 @@ const localRowHeight = computed(() => {
   return rowHeight.value
 })
 
-const isPageDesignerExtensionActive = computed(() => {
-  return activeExtensionId.value === 'page-designer-ee'
+const isPageDesignerPreviewPanel = computed(() => {
+  return extensionConfig.value.isPageDesignerPreviewPanel
 })
 
 const isFullHeight = computed(() => {
-  return isForm.value || isPageDesignerExtensionActive.value
+  return isForm.value || isPageDesignerPreviewPanel.value
 })
 
 const isVisible = ref(false)
@@ -194,7 +194,7 @@ const richTextContent = computedAsync(async () => {
           enableMention: true,
           users: unref(baseUsers.value),
           currentUser: unref(user.value),
-          ...(isExpandedFormOpen.value || isPageDesignerExtensionActive.value
+          ...(isExpandedFormOpen.value || isPageDesignerPreviewPanel.value
             ? { maxBlockTokens: undefined }
             : { maxBlockTokens: rowHeight.value }),
         },
@@ -492,7 +492,7 @@ useResizeObserver(inputWrapperRef, () => {
           {
             'nc-readonly-rich-text-grid ': !isExpandedFormOpen && !isForm,
             'nc-readonly-rich-text-sort-height':
-              localRowHeight === 1 && !isExpandedFormOpen && !isForm && !isPageDesignerExtensionActive,
+              localRowHeight === 1 && !isExpandedFormOpen && !isForm && !isPageDesignerPreviewPanel,
           },
         ]"
         :style="{
@@ -514,7 +514,7 @@ useResizeObserver(inputWrapperRef, () => {
         <div
           class="nc-cell-field nc-rich-text-content nc-rich-text-content-grid"
           :class="
-            !isExpandedFormOpen && !isPageDesignerExtensionActive
+            !isExpandedFormOpen && !isPageDesignerPreviewPanel
               ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}`
               : 'py-2'
           "
@@ -650,7 +650,7 @@ useResizeObserver(inputWrapperRef, () => {
       <span v-else>{{ vModel }}</span>
 
       <div
-        v-if="!isPageDesignerExtensionActive"
+        v-if="!isPageDesignerPreviewPanel"
         class="!absolute !hidden nc-text-area-expand-btn group-hover:block z-3 items-center gap-1"
         :class="{
           'active': active && isCanvasInjected,

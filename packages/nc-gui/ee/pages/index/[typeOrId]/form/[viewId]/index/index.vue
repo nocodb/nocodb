@@ -18,6 +18,7 @@ const {
   validateInfos,
   validate,
   fieldMappings,
+  isAddingEmptyRowPermitted,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -297,7 +298,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     html-type="reset"
                     type="secondary"
                     :size="isMobileMode ? 'medium' : 'small'"
-                    :disabled="isLoading"
+                    :disabled="isLoading || !isAddingEmptyRowPermitted"
                     class="nc-shared-form-button shared-form-clear-button"
                     data-testid="shared-form-clear-button"
                     @click="clearForm"
@@ -306,7 +307,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                   </NcButton>
 
                   <NcButton
-                    :disabled="progress || blockAddNewRecord"
+                    :disabled="progress || blockAddNewRecord || !isAddingEmptyRowPermitted"
                     type="primary"
                     :size="isMobileMode ? 'medium' : 'small'"
                     class="nc-shared-form-button shared-form-submit-button"

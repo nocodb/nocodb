@@ -165,6 +165,30 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       loadAllviewFilters(Array.isArray(viewMeta?.filter?.children) ? viewMeta?.filter?.children : [])
 
+      const _sharedViewMeta = (viewMeta as any).meta
+      sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
+
+      await setMeta(viewMeta.model)
+
+      // if base is not defined then set it with an object containing source
+      if (!base.value?.sources)
+        baseStore.setProject({
+          sources: [
+            {
+              id: viewMeta.source_id,
+              type: viewMeta.client,
+            },
+          ],
+        })
+
+      const relatedMetas = { ...viewMeta.relatedMetas }
+
+      Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
+
+      if (viewMeta.users) {
+        basesUser.value.set(viewMeta.base_id, viewMeta.users)
+      }
+
       const fieldById = (viewMeta.columns || []).reduce(
         (o: Record<string, any>, f: Record<string, any>) => ({
           ...o,
@@ -205,6 +229,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
           return {
             ...c,
+            readonly: !isAddingEmptyRowPermitted.value ? true : c?.readonly ?? false,
+            read_only: !isAddingEmptyRowPermitted.value ? true : c?.read_only ?? false,
             order: fieldById[c.id].order || c.order,
             visible: true,
             meta: { ...parseProp(fieldById[c.id].meta), ...parseProp(c.meta) },
@@ -217,30 +243,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           }
         })
         .sort((a: ColumnType, b: ColumnType) => (a.order ?? Infinity) - (b.order ?? Infinity))
-
-      const _sharedViewMeta = (viewMeta as any).meta
-      sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
-
-      await setMeta(viewMeta.model)
-
-      // if base is not defined then set it with an object containing source
-      if (!base.value?.sources)
-        baseStore.setProject({
-          sources: [
-            {
-              id: viewMeta.source_id,
-              type: viewMeta.client,
-            },
-          ],
-        })
-
-      const relatedMetas = { ...viewMeta.relatedMetas }
-
-      Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
-
-      if (viewMeta.users) {
-        basesUser.value.set(viewMeta.base_id, viewMeta.users)
-      }
 
       await handlePreFillForm()
 

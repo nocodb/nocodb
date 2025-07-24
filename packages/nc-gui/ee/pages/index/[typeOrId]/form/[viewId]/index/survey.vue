@@ -32,6 +32,7 @@ const {
   isRequired,
   handleAddMissingRequiredFieldDefaultState,
   fieldMappings,
+  isAddingEmptyRowPermitted,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -380,7 +381,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                   <NcButton
                     :size="isMobileMode ? 'medium' : 'small'"
                     data-testid="nc-survey-form__fill-form-btn"
-                    :disabled="blockAddNewRecord"
+                    :disabled="blockAddNewRecord || !isAddingEmptyRowPermitted"
                     @click="onStart()"
                   >
                     {{ $t('labels.fillForm') }}
@@ -490,7 +491,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             ? 'transform translate-y-[1px] translate-x-[1px] ring ring-accent ring-opacity-100'
                             : ''
                         "
-                        :disabled="fieldHasError || blockAddNewRecord"
+                        :disabled="fieldHasError || blockAddNewRecord || !isAddingEmptyRowPermitted"
                         data-testid="nc-survey-form__btn-submit-confirm"
                         @click="showSubmitConfirmModal"
                       >

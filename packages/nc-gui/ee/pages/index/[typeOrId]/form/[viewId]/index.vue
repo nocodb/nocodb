@@ -56,7 +56,7 @@ router.afterEach((to) => shouldRedirect(to.name as string))
 
 <style lang="scss" scoped>
 .nc-form-submission-restriction-overlay {
-  @apply !pointer-events-auto absolute inset-0 z-500 bg-black/15  grid place-items-center px-4;
+  @apply !pointer-events-auto fixed inset-0 z-500 bg-black/15  grid place-items-center px-4;
   backdrop-filter: blur(1px);
 
   .nc-form-submission-restriction-modal {

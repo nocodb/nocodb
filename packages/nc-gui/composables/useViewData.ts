@@ -389,11 +389,7 @@ export function useViewData(
             isAllowedToEdit: isAllowed(PermissionEntity.FIELD, c.id!, PermissionKey.RECORD_FIELD_EDIT, {
               isFormView: true,
             }),
-            label: `This field isn’t visible in the form since it's editable by ${getPermissionSummaryLabel(
-              PermissionEntity.FIELD,
-              c.id!,
-              PermissionKey.RECORD_FIELD_EDIT,
-            )}`,
+            label: t('objects.permissions.formViewFieldEditPermissionRestrictionTooltip'),
           },
         }))
         .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>[]

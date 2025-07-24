@@ -202,6 +202,9 @@ export class NcError {
   static allowedOnlySSOAccess(ncWorkspaceId: string): never {
     return NcError._.allowedOnlySSOAccess(ncWorkspaceId);
   }
+  static allowedOnlySSOGeneratedToken(ncWorkspaceId: string): never {
+    return NcError._.allowedOnlySSOGeneratedToken(ncWorkspaceId);
+  }
   static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
     return NcError._.maxInsertLimitExceeded(limit, args);
   }

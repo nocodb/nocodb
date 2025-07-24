@@ -22,8 +22,6 @@ const { fields, fieldsToDisplay, displayField } = toRefs(props)
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const { isMobileMode } = useGlobal()
-
 interface Attachment {
   url: string
   title: string

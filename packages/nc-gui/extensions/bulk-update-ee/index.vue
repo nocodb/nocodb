@@ -37,7 +37,7 @@ interface BulkUpdatePayloadType {
 
 interface BulkUpdateHistory {
   tableId?: string
-  viewId?: string
+
   config: BulkUpdateFieldConfig[]
 }
 
@@ -186,13 +186,30 @@ const bulkUpdatePayload = computedAsync(async () => {
 
       const availableTables: string[] = (tableList.value || []).map((t) => t.value) || []
 
-      for (const h of saved.history) {
+      /**
+       * Initially before release we used to keep field config view level but now we are keeping it table level.
+       * View selection is just to update data for a view.
+       * So we have to clear history with multiple tableIds and keep only 1 history object per table
+       */
+      const firstTableIndex = new Map<string, number>()
+
+      for (let index = 0; index < saved.history.length; index++) {
+        const h = saved.history[index]!
+
+        if (h.tableId) {
+          if (!firstTableIndex.has(h.tableId)) {
+            firstTableIndex.set(h.tableId, index)
+          }
+        }
+
         if (h.tableId && !availableTables.includes(h.tableId)) {
           deletedTableIds.add(h.tableId)
         }
       }
 
-      saved.history = saved.history.filter((h) => !(h.tableId && deletedTableIds.has(h.tableId)))
+      saved.history = saved.history.filter(
+        (h, index) => !(h.tableId && deletedTableIds.has(h.tableId) && index !== firstTableIndex.get(h.tableId)),
+      )
 
       if (saved.selectedTableId && deletedTableIds.has(saved.selectedTableId)) {
         saved.selectedTableId = ''
@@ -220,23 +237,20 @@ const bulkUpdatePayload = computedAsync(async () => {
     validateAll()
   }
 
-  if (savedPayloads.value.selectedTableId && savedPayloads.value.selectedViewId) {
-    const historyIndex = savedPayloads.value.history.findIndex(
-      (h) => h.tableId === savedPayloads.value.selectedTableId && h.viewId === savedPayloads.value.selectedViewId,
-    )
+  if (savedPayloads.value.selectedTableId) {
+    const historyIndex = savedPayloads.value.history.findIndex((h) => h.tableId === savedPayloads.value.selectedTableId)
 
     if (historyIndex !== -1) {
       return savedPayloads.value.history[historyIndex]
     } else {
       savedPayloads.value.history.push({
         tableId: savedPayloads.value.selectedTableId,
-        viewId: savedPayloads.value.selectedViewId,
         config: [],
       })
-
-      return savedPayloads.value.history[savedPayloads.value.history.length - 1]
     }
   }
+
+  return savedPayloads.value.history[savedPayloads.value.history.length - 1]
 })
 
 const fieldConfigMap = computed(() => {
@@ -357,18 +371,18 @@ async function onTableSelect(tableId?: string) {
   await updateColumns()
 
   await saveChanges()
-}
-
-const onViewSelect = async (viewId: string) => {
-  savedPayloads.value.selectedViewId = viewId
-
-  await saveChanges()
 
   if (bulkUpdatePayload.value?.config?.length) {
     fieldConfigExpansionPanel.value = [bulkUpdatePayload.value?.config[0].id]
 
     handleAutoScrollField(bulkUpdatePayload.value?.config[0].id)
   }
+}
+
+const onViewSelect = async (viewId: string) => {
+  savedPayloads.value.selectedViewId = viewId
+
+  await saveChanges()
 }
 
 const isExporting = ref(false)
@@ -659,12 +673,12 @@ async function validateAll() {
 }
 
 async function bulkUpdateView(data: Record<string, any>) {
-  if (!meta.value || !bulkUpdatePayload.value?.viewId) return
+  if (!meta.value || !savedPayloads.value.selectedViewId) return
 
   isUpdating.value = true
   try {
     await $api.dbTableRow.bulkUpdateAll(NOCO, meta.value.base_id as string, meta.value.id as string, data, {
-      viewId: bulkUpdatePayload.value?.viewId,
+      viewId: savedPayloads.value.selectedViewId,
     })
 
     message.success('Fields successfully bulk updated')
@@ -721,7 +735,7 @@ onClickOutside(formRef, (e) => {
 })
 
 watch(
-  [() => fullscreen.value, () => bulkUpdatePayload.value?.viewId],
+  [() => fullscreen.value, () => bulkUpdatePayload.value?.tableId],
   ([isFullscreen]) => {
     if (isFullscreen) {
       if (!bulkUpdatePayload.value?.config?.length) {

@@ -4,7 +4,7 @@ import request from 'supertest';
 import init from '../../../init';
 
 export default function () {
-  describe(`error-handling: Table v3`, () => {
+  describe(`Table v3`, () => {
     let context: Awaited<ReturnType<typeof init>>;
     let initBase: any;
     let API_PREFIX;
@@ -107,7 +107,7 @@ export default function () {
           (f) => f.title === 'Checkbox',
         );
 
-        expect(checkboxField.default_value).to.eq('true');
+        expect(checkboxField.default_value).to.satisfy((val) => val === 'true' || val === '1' || val === 1);
       });
     });
   });

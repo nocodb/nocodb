@@ -21,7 +21,11 @@ watch(
   { immediate: true },
 )
 
-const isPlainCell = computed(() => plainCellFields.has(fieldWidget.value?.field.uidt as UITypes))
+const isPlainCell = computed(
+  () =>
+    plainCellFields.has(fieldWidget.value?.field.uidt as UITypes) &&
+    (!fieldWidget.value?.field || !isRichText(fieldWidget.value?.field)),
+)
 
 const isAttachmentField = computed(() => fieldWidget.value?.field && isAttachment(fieldWidget.value.field))
 

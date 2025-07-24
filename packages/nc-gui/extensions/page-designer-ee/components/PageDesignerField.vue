@@ -67,7 +67,7 @@ const onRenderEnd = () => {
 
 const container = useParentElement()
 
-const isPlainCell = computed(() => plainCellFields.has(widget.value.field.uidt as UITypes))
+const isPlainCell = computed(() => plainCellFields.has(widget.value.field.uidt as UITypes) && !isRichText(widget.value.field))
 
 const isAttachmentField = computed(() => isAttachment(widget.value.field))
 

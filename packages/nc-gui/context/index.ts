@@ -144,3 +144,5 @@ export const IsLinkRecordDropdownInj: InjectionKey<Ref<boolean>> = Symbol('is-li
 export const PlanUpgraderClickHookInj: InjectionKey<EventHook<void>> = Symbol('plan-upgrader-click-hook-injection')
 
 export const IsMiniSidebarInj: InjectionKey<Ref<boolean>> = Symbol('is-mini-sidebar-injection')
+
+export const ActiveExtensionIdInj: InjectionKey<ComputedRef<string> | Ref<string>> = Symbol('active-extension-id-injection')

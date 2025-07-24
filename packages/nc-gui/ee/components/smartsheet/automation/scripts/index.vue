@@ -37,6 +37,8 @@ const updateTypes = () => {
 
 const { completeScript } = useNocoAi()
 
+let dirty = false
+
 async function setupMonacoEditor() {
   if (!editorRef.value) return
 
@@ -106,6 +108,10 @@ async function setupMonacoEditor() {
   }
 
   editor.onDidChangeModelContent(() => {
+    if (dirty) {
+      dirty = false
+      return
+    }
     updateScript({
       script: editor.getValue(),
       skipNetworkCall: true,
@@ -121,7 +127,10 @@ watch(
   (newVal) => {
     if (newVal) {
       const pos = editor.getPosition()
-      editor.setValue(activeAutomation.value.script)
+      if (activeAutomation.value?.script !== editor.getValue()) {
+        dirty = true
+        editor.setValue(activeAutomation.value.script)
+      }
       editor.setPosition(pos)
     }
   },

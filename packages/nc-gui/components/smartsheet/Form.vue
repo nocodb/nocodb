@@ -911,16 +911,6 @@ const { message: templatedMessage } = useTemplatedMessage(
         data-testid="nc-form-wrapper-submit"
       >
         <div class="max-w-[max(33%,688px)] mx-auto">
-          <div v-if="!isAllowedToAddRecord" class="mb-6">
-            <NcAlert
-              type="warning"
-              show-icon
-              class="mt-6 bg-nc-bg-orange-light max-w-[max(33%,688px)] mx-auto"
-              :message="$t('objects.permissions.formCannotAcceptSubmissions')"
-              :description="$t('objects.permissions.formCannotAcceptSubmissionsDescription')"
-            />
-          </div>
-
           <GeneralFormBanner
             v-if="!parseProp(formViewData?.meta).hide_banner"
             :banner-image-url="formViewData?.banner_image_url"

@@ -43,6 +43,8 @@ export enum PlanFeatureTypes {
   FEATURE_GROUP_BY_AGGREGATIONS = 'feature_group_by_aggregations',
   FEATURE_HIDE_BRANDING = 'feature_hide_branding',
   FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER = 'feature_ltar_limit_selection_by_filter',
+  FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER = 'feature_lookup_limit_records_by_filter',
+  FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER = 'feature_rollup_limit_records_by_filter',
   FEATURE_PERSONAL_VIEWS = 'feature_personal_views',
   FEATURE_SCRIPTS = 'feature_scripts',
   FEATURE_SSO = 'feature_sso',
@@ -212,6 +214,10 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: 'to remove branding.',
   [PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER]:
     'to limit row selection by filters.',
+  [PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER]:
+    'to limit lookup records by filters.',
+  [PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER]:
+    'to limit rollup records by filters.',
   [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: 'to use personal views.',
   [PlanFeatureTypes.FEATURE_SCRIPTS]: 'to enable scripts.',
   [PlanFeatureTypes.FEATURE_SSO]: 'to enable SSO (Single Sign-On).',

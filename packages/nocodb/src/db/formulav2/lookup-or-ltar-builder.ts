@@ -18,6 +18,7 @@ import { NcError } from '~/helpers/catchError';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
 import { Model } from '~/models';
+import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 
 export const lookupOrLtarBuilder =
   (
@@ -99,6 +100,15 @@ export const lookupOrLtarBuilder =
               ]),
             );
             lookupColumn = lookupColumn ?? parentModel.displayValue;
+
+            await extractLinkRelFiltersAndApply({
+              context,
+              column,
+              table: parentModel,
+              baseModel: parentBaseModel,
+              qb: selectQb,
+              alias,
+            });
           }
           break;
         case RelationTypes.HAS_MANY:
@@ -122,6 +132,15 @@ export const lookupOrLtarBuilder =
               ]),
             );
             lookupColumn = lookupColumn ?? childModel.displayValue;
+
+            await extractLinkRelFiltersAndApply({
+              context,
+              column,
+              table: childModel,
+              baseModel: childBaseModel,
+              qb: selectQb,
+              alias,
+            });
           }
           break;
         case RelationTypes.MANY_TO_MANY:
@@ -164,6 +183,15 @@ export const lookupOrLtarBuilder =
                 ]),
               );
             lookupColumn = lookupColumn ?? parentModel.displayValue;
+
+            await extractLinkRelFiltersAndApply({
+              context,
+              column,
+              table: parentModel,
+              baseModel: parentBaseModel,
+              qb: selectQb,
+              alias,
+            });
           }
           break;
       }
@@ -219,6 +247,15 @@ export const lookupOrLtarBuilder =
                 `${prevAlias}.${childColumn.column_name}`,
                 `${nestedAlias}.${parentColumn.column_name}`,
               );
+
+              await extractLinkRelFiltersAndApply({
+                context,
+                column: lookupColumn,
+                table: parentModel,
+                baseModel: parentBaseModel,
+                qb: selectQb,
+                alias,
+              });
             }
             break;
           case RelationTypes.HAS_MANY:
@@ -232,6 +269,15 @@ export const lookupOrLtarBuilder =
                 `${prevAlias}.${parentColumn.column_name}`,
                 `${nestedAlias}.${childColumn.column_name}`,
               );
+
+              await extractLinkRelFiltersAndApply({
+                context,
+                column: lookupColumn,
+                table: childModel,
+                baseModel: childBaseModel,
+                qb: selectQb,
+                alias,
+              });
             }
             break;
           case RelationTypes.MANY_TO_MANY: {
@@ -264,6 +310,15 @@ export const lookupOrLtarBuilder =
                 `${nestedAlias}.${parentColumn.column_name}`,
                 `${assocAlias}.${mmParentColumn.column_name}`,
               );
+
+            await extractLinkRelFiltersAndApply({
+              context,
+              column: lookupColumn,
+              table: parentModel,
+              baseModel: parentBaseModel,
+              qb: selectQb,
+              alias,
+            });
           }
         }
 

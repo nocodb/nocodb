@@ -290,3 +290,13 @@ export const CACHE_PREFIX =
   process.env.NC_CACHE_PREFIX && process.env.NC_CACHE_PREFIX.trim().length > 0
     ? process.env.NC_CACHE_PREFIX
     : 'nc';
+
+export enum FilterCacheScope {
+  VIEW = 'view',
+  HOOK = 'hook',
+  COLUMN = 'column',
+  PARENT_COLUMN = 'parentColumn',
+  LINK_COL = 'linkCol',
+  WIDGET = 'widget',
+  PARENT = 'parent',
+}

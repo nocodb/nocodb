@@ -253,7 +253,9 @@ export default class ApiToken implements ApiTokenType {
     return tokens?.length || 0;
   }
 
-  async getExtraForUserPayload(_ncMeta = Noco.ncMeta): Promise<void | Record<string, any>> {
+  async getExtraForUserPayload(
+    _ncMeta = Noco.ncMeta,
+  ): Promise<void | Record<string, any>> {
     return; // Placeholder for future implementation
   }
 

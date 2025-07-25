@@ -9,7 +9,6 @@ import {
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
-import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 
 export default class ApiToken implements ApiTokenType {

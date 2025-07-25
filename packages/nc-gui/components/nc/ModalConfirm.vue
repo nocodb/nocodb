@@ -228,6 +228,7 @@ useSelectedCellKeydownListener(
           </div>
         </div>
       </div>
+      <slot name="extraContent"></slot>
 
       <div class="flex flex-row w-full justify-end gap-2">
         <NcButton

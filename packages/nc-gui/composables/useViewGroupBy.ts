@@ -523,12 +523,12 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     watch(
       () => groupBy.value.length,
       async () => {
-        if (groupBy.value.length > 0) {
-          rootGroup.value.paginationData = { page: 1, pageSize: groupByGroupLimit.value }
-          rootGroup.value.column = {} as any
-          refreshNested()
-          nextTick(() => reloadViewDataHook?.trigger())
-        }
+        if (!groupBy.value.length) return
+
+        rootGroup.value.paginationData = { page: 1, pageSize: groupByGroupLimit.value }
+        rootGroup.value.column = {} as any
+        refreshNested()
+        nextTick(() => reloadViewDataHook?.trigger())
       },
     )
 

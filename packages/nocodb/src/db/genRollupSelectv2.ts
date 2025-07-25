@@ -10,8 +10,9 @@ import type {
 } from '~/models';
 import type { XKnex } from '~/db/CustomKnex';
 import { RelationManager } from '~/db/relation-manager';
-import { Model } from '~/models';
+import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 
 export default async function ({
   baseModelSqlv2,
@@ -26,6 +27,9 @@ export default async function ({
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
   const context = baseModelSqlv2.context;
 
+  const column = await Column.get(context, {
+    colId: columnOptions.fk_column_id,
+  });
   const relationColumn = await columnOptions.getRelationColumn(context);
   const relationColumnOption: LinkToAnotherRecordColumn =
     (await relationColumn.getColOptions(context)) as LinkToAnotherRecordColumn;
@@ -171,6 +175,15 @@ export default async function ({
       );
       await applyFunction(queryBuilder);
 
+      await extractLinkRelFiltersAndApply({
+        qb: queryBuilder,
+        column,
+        alias: refTableAlias,
+        table: childBaseModel.model,
+        baseModel: childBaseModel,
+        context: childBaseModel.context,
+      });
+
       return {
         builder: queryBuilder,
       };
@@ -191,6 +204,15 @@ export default async function ({
         '=',
         knex.ref(`${refTableAlias}.${childCol.column_name}`),
       );
+
+      await extractLinkRelFiltersAndApply({
+        qb,
+        column,
+        alias: refTableAlias,
+        table: childBaseModel.model,
+        baseModel: childBaseModel,
+        context: childBaseModel.context,
+      });
 
       await applyFunction(qb);
       return {
@@ -243,6 +265,15 @@ export default async function ({
             }`,
           ),
         );
+
+      await extractLinkRelFiltersAndApply({
+        qb: qb,
+        column,
+        alias: refTableAlias,
+        table: parentBaseModel.model,
+        baseModel: parentBaseModel,
+        context: parentBaseModel.context,
+      });
 
       await applyFunction(qb);
 

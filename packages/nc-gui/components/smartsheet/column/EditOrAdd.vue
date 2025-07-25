@@ -677,6 +677,14 @@ watch(activeAiTab, (newValue) => {
   }
   onSelectedTagClick()
 })
+
+const isLookupOrRollup = computed(() => {
+  return formState.value.uidt === UITypes.Lookup || formState.value.uidt === UITypes.Rollup
+})
+
+const lookupRollupFilterEnabled = computed(() => {
+  return isLookupOrRollup.value && !!parseProp(formState.value?.meta)?.enableConditions
+})
 </script>
 
 <template>
@@ -687,9 +695,9 @@ watch(activeAiTab, (newValue) => {
     :class="{
       'bg-white max-h-[max(80vh,500px)]': !props.fromTableExplorer,
       'w-[416px]': !props.embedMode,
-      'min-w-[500px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
-      '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
-      'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),
+      '!w-[600px]': isLinksOrLTAR(formState.uidt),
+      '!min-w-[560px]': lookupRollupFilterEnabled,
+      'min-w-[500px] !w-full': isLinksOrLTAR(formState.uidt) || isLookupOrRollup,
       'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-2xl p-5': !embedMode,
       'nc-ai-mode': isAiMode,
       'h-full': props.fromTableExplorer,

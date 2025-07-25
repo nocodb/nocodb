@@ -1,4 +1,4 @@
-import { ViewTypes } from 'nocodb-sdk'
+import { ViewTypes, PermissionRoleMap, ProjectRoles, PermissionEntity, PermissionKey } from 'nocodb-sdk'
 import axios from 'axios'
 import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
@@ -34,6 +34,8 @@ export function useViewData(
   const route = router.currentRoute
 
   const { appInfo, gridViewPageSize } = useGlobal()
+
+  const { isAllowed, getPermissionSummaryLabel } = usePermissions()
 
   const appInfoDefaultLimit = gridViewPageSize.value || appInfo.value.defaultLimit || 25
 
@@ -383,6 +385,16 @@ export function useViewData(
           order: (fieldById[c.id!] && fieldById[c.id!].order) || order++,
           id: fieldById[c.id!] && fieldById[c.id!].id,
           visible: true,
+          permissions: {
+            isAllowedToEdit: isAllowed(PermissionEntity.FIELD, c.id!, PermissionKey.RECORD_FIELD_EDIT, {
+              isFormView: true,
+            }),
+            label: `This field isn’t visible in the form since it's editable by ${getPermissionSummaryLabel(
+              PermissionEntity.FIELD,
+              c.id!,
+              PermissionKey.RECORD_FIELD_EDIT,
+            )}`,
+          },
         }))
         .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>[]
     } catch (e: any) {

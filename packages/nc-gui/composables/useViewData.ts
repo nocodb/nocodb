@@ -35,7 +35,7 @@ export function useViewData(
 
   const { appInfo, gridViewPageSize } = useGlobal()
 
-  const { isAllowed, getPermissionSummaryLabel } = usePermissions()
+  const { isAllowed } = usePermissions()
 
   const appInfoDefaultLimit = gridViewPageSize.value || appInfo.value.defaultLimit || 25
 

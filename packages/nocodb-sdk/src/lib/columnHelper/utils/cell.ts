@@ -92,6 +92,9 @@ export const isGeometry = (column: ColumnType) =>
 
 export const isUser = (column: ColumnType) => column.uidt === UITypes.User;
 
+export const isMultiUser = (column: ColumnType) =>
+  isUser(column) && !!parseProp(column.meta).is_multi;
+
 export const isButton = (column: ColumnType) => column.uidt === UITypes.Button;
 
 export const isAiButton = (column: ColumnType) =>

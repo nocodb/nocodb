@@ -152,7 +152,7 @@ whenever(isOpen, () => {
     :disabled="props.disabled"
     :trigger="['click']"
     :class="`.nc-${randomClass}`"
-    :overlay-class-name="`nc-record-picker-dropdown !min-w-[540px] xs:(!min-w-[90vw]) ${isOpen ? 'active' : ''}`"
+    :overlay-class-name="`nc-record-picker-dropdown overflow-hidden !min-w-[540px] xs:(!min-w-[90vw]) ${isOpen ? 'active' : ''}`"
   >
     <NcButton
       type="secondary"

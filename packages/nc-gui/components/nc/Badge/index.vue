@@ -1,17 +1,16 @@
 <script lang="ts" setup>
-const props = withDefaults(
-  defineProps<{
-    color?: string
-    border?: boolean
-    size?: 'xs' | 'sm' | 'md' | 'lg'
-    rounded?: 'sm' | 'md' | 'lg'
-  }>(),
-  {
-    border: true,
-    size: 'sm',
-    rounded: 'md',
-  },
-)
+export interface NcBadgeProps {
+  color?: string
+  border?: boolean
+  size?: 'xs' | 'sm' | 'md' | 'lg'
+  rounded?: 'sm' | 'md' | 'lg'
+}
+
+const props = withDefaults(defineProps<NcBadgeProps>(), {
+  border: true,
+  size: 'sm',
+  rounded: 'md',
+})
 </script>
 
 <template>

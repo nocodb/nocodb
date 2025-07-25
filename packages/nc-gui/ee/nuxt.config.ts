@@ -338,6 +338,7 @@ export default defineNuxtConfig({
         'monacopilot',
         'esbuild-wasm',
         'typesense',
+        'vue3-moveable',
       ],
       esbuildOptions: {
         define: {

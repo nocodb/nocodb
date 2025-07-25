@@ -79,13 +79,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <NcModal
-    v-model:visible="vModel"
-    :class="{ active: vModel }"
-    :footer="null"
-    size="lg"
-    wrap-class-name="nc-modal-extension-market"
-  >
+  <NcModal v-model:visible="vModel" :footer="null" size="lg" wrap-class-name="nc-modal-extension-market">
     <div class="h-full">
       <div class="nc-extension-market-header flex items-center gap-3 px-4 py-3 border-b-1 border-gray-200">
         <div

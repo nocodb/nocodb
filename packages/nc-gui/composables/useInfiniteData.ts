@@ -380,13 +380,13 @@ export function useInfiniteData(args: {
       where?: string
     } = {},
     _shouldShowLoading?: boolean,
-    path?: Array<number> = [],
+    path: Array<number> = [],
   ): Promise<Row[]> {
     if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return []
 
     const whereFilter = await callbacks?.getWhereFilter?.(path)
 
-    if (!path.length && params.offset && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+    if (!disableSmartsheet && !path.length && params.offset && blockExternalSourceRecordVisibility(isExternalSource.value)) {
       if (!isAlreadyShownUpgradeModal.value && params.offset >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
         isAlreadyShownUpgradeModal.value = true
 
@@ -1689,14 +1689,14 @@ export function useInfiniteData(args: {
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             })
 
-        if (!path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+        if (!disableSmartsheet && !path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
           totalRowsWithoutSearchQuery.value = Math.max(Math.min(200, _count as number), _count as number)
         } else {
           totalRowsWithoutSearchQuery.value = _count as number
         }
       }
 
-      if (!path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+      if (!disableSmartsheet && !path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
         dataCache.totalRows.value = Math.min(200, count as number)
       } else {
         dataCache.totalRows.value = count as number

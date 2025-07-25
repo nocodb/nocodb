@@ -1,5 +1,15 @@
 <script setup lang="ts">
-import { type TableType, type ViewType, isCreatedOrLastModifiedTimeCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  FormulaDataTypes,
+  type TableType,
+  UITypes,
+  type ViewType,
+  isCreatedOrLastModifiedTimeCol,
+  isLinksOrLTAR,
+  isNumericCol,
+  isSystemColumn,
+} from 'nocodb-sdk'
 import { searchLike } from '~/utils/searchUtils'
 
 const props = defineProps<{
@@ -14,18 +24,62 @@ const props = defineProps<{
 const emits = defineEmits<{
   resolve: [Row]
 }>()
-const meta = toRef(props, 'meta')
-const viewMeta = toRef(props, 'viewMeta')
-const where = toRef(props, 'where')
-const records = toRef(props, 'data')
-const _Fields = toRef(props, 'fields')
+
+const { meta, viewMeta, where, records, fields: propsFields } = toRefs(props)
 
 const pv = computed(() => (meta.value.columns ?? []).find((c) => c.pv))
 useProvideSmartsheetLtarHelpers(meta)
 
+const { isMobileMode } = useGlobal()
+
+const { sqlUi, getValidSearchQueryForColumn } = useSmartsheetStoreOrThrow()
+
+const _fields = computedInject(FieldsInj, (_fields) => {
+  const conditionToCheck = (col: ColumnType) =>
+    !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isCreatedOrLastModifiedTimeCol(col)
+
+  if (propsFields.value?.length) {
+    return (meta.value.columns ?? []).filter((col) => propsFields.value.includes(col.title!) && conditionToCheck(col))
+  }
+
+  return (meta.value.columns ?? [])
+    .filter((col) => conditionToCheck(col))
+    .sort((a, b) => {
+      return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+    })
+}) as ComputedRef<ColumnType[]>
+
+const fieldsToDisplay = computed(() => _fields.value.slice(0, isMobileMode.value ? 1 : 3))
+
 const computedWhere = computed(() => {
-  if (!pv.value?.column_name) return ''
-  return `(${pv.value.title},like,%${where.value}%)`
+  const columnsToSearch = fieldsToDisplay.value
+    .filter((col) => isSearchableColumn(col) && !col.pv)
+    .concat(...(pv.value ? [pv.value] : []))
+
+  const fieldQuery = columnsToSearch
+    .map((col) => {
+      let searchQuery = where.value.trim()
+
+      searchQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType)
+
+      if (!isValidValue(searchQuery)) return ''
+
+      if (
+        (col.uidt !== UITypes.Formula || getFormulaColDataType(col) !== FormulaDataTypes.NUMERIC) &&
+        !isNumericCol(col) &&
+        sqlUi.value &&
+        ['text', 'string'].includes(sqlUi.value.getAbstractType(col)) &&
+        col.dt !== 'bigint'
+      ) {
+        return `(${col.title},like,%${searchQuery}%)`
+      }
+
+      return `(${col.title},eq,${searchQuery})`
+    })
+    .filter(Boolean)
+    .join('~or')
+
+  return fieldQuery
 })
 
 const { cachedRows, loadData, syncCount, totalRows, chunkStates, clearCache } = useInfiniteData({
@@ -33,28 +87,9 @@ const { cachedRows, loadData, syncCount, totalRows, chunkStates, clearCache } = 
   viewMeta,
   where: computedWhere,
   callbacks: {
-    getWhereFilter: async (path, ignoreWhereFilter) => (ignoreWhereFilter ? '' : computedWhere.value),
+    getWhereFilter: async (_path, ignoreWhereFilter) => (ignoreWhereFilter ? '' : computedWhere.value),
   },
   disableSmartsheet: true,
-})
-
-const _fields = computedInject(FieldsInj, (_fields) => {
-  if (_Fields.value?.length) {
-    return (meta.value.columns ?? []).filter(
-      (col) =>
-        _Fields.value.includes(col.title) &&
-        !isSystemColumn(col) &&
-        !isPrimary(col) &&
-        !isLinksOrLTAR(col) &&
-        !isCreatedOrLastModifiedTimeCol(col),
-    )
-  }
-
-  return (meta.value.columns ?? [])
-    .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isCreatedOrLastModifiedTimeCol(col))
-    .sort((a, b) => {
-      return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-    })
 })
 
 const scrollWrapper = ref()
@@ -94,7 +129,8 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   }
   try {
     const newItems = await loadData({ offset, limit })
-    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex, item))
+
+    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
 
     chunkStates.value[chunkId] = 'loaded'
     if (isInitialLoad) {
@@ -208,7 +244,7 @@ useScroll(scrollWrapper, {
   behavior: 'smooth',
 })
 
-watch(where, async () => {
+watch(computedWhere, async () => {
   if (records?.value?.length) {
     const filteredRecords = searchLike(records.value, `%${where.value}%`)
     totalRows.value = filteredRecords.length
@@ -224,7 +260,9 @@ watch(where, async () => {
     cachedRows.value = tempCachedRows
   } else {
     await syncCount()
-    await loadData()
+    const newItems = await loadData()
+    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+
     calculateSlices()
     await updateVisibleRows()
   }
@@ -244,7 +282,9 @@ onMounted(async () => {
     totalRows.value = records.value.length
   } else {
     await syncCount()
-    await loadData()
+    const newItems = await loadData()
+    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+
     calculateSlices()
     await updateVisibleRows()
   }
@@ -273,6 +313,7 @@ const wrapperHeight = computed(() => {
       <NRecordPickerItem
         :row="row"
         :fields="_fields"
+        :fields-to-display="fieldsToDisplay"
         :is-loading="row?.rowMeta.isLoading"
         :display-field="pv"
         @click="resolve(row)"

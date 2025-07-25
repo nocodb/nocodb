@@ -21,6 +21,6 @@
     "contentMinHeight": "310px"
   },
   "order": 4,
-  "beta": true,
+  "beta": false,
   "disabled": false
 }

@@ -1,13 +1,22 @@
 <script setup lang="ts">
-import { type ColumnType, type UITypes, isVirtualCol } from 'nocodb-sdk'
+import { type UITypes, isMultiUser } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../lib/context'
-import { type PageDesignerFieldWidget, fontWeightToLabel, fontWeights, fonts, plainCellFields } from '../lib/widgets'
+import {
+  LinkedFieldDisplayAs,
+  type PageDesignerFieldWidget,
+  SelectTypeFieldDisplayAs,
+  fontWeightToLabel,
+  fontWeights,
+  fonts,
+  plainCellFields,
+} from '../lib/widgets'
 import { objectFitLabels } from '../lib/widgets'
 import GroupedSettings from './GroupedSettings.vue'
 import ColorPropertyPicker from './ColorPropertyPicker.vue'
 import NonNullableNumberInput from './NonNullableNumberInput.vue'
 import TabbedSelect from './TabbedSelect.vue'
 import BorderSettings from './BorderSettings.vue'
+import SettingsHeader from './Settings/SettingsHeader.vue'
 
 const payload = inject(PageDesignerPayloadInj)!
 
@@ -20,23 +29,27 @@ watch(
   { immediate: true },
 )
 
-const isPlainCell = computed(() => plainCellFields.has(fieldWidget.value?.field.uidt as UITypes))
+const isPlainCell = computed(
+  () =>
+    plainCellFields.has(fieldWidget.value?.field.uidt as UITypes) &&
+    (!fieldWidget.value?.field || !isRichText(fieldWidget.value?.field)),
+)
 
 const isAttachmentField = computed(() => fieldWidget.value?.field && isAttachment(fieldWidget.value.field))
-const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
-  })
+
+const isMultiSelectTypeField = computed(
+  () => fieldWidget.value?.field && (isMultiSelect(fieldWidget.value.field) || isMultiUser(fieldWidget.value.field)),
+)
+
+const displayAsOptionsMap = {
+  [LinkedFieldDisplayAs.INLINE]: iconMap.ncAlignLeft,
+  [LinkedFieldDisplayAs.LIST]: iconMap.ncList,
+}
 </script>
 
 <template>
   <div v-if="fieldWidget" class="flex flex-col properties overflow-y-auto max-h-full">
-    <header class="widget-header">
-      <h1 class="m-0 flex items-center gap-3">
-        <component :is="getIcon(fieldWidget.field)" class="!h-5 !w-5 !m-0" style="stroke-width: 1.66px" />
-        {{ fieldWidget.field.title }}
-      </h1>
-    </header>
+    <SettingsHeader :field="fieldWidget.field" />
     <GroupedSettings v-if="isPlainCell" title="Alignment">
       <div class="flex gap-3">
         <a-radio-group v-model:value="fieldWidget.horizontalAlign" class="radio-pills">
@@ -62,6 +75,16 @@ const getIcon = (c: ColumnType) =>
           </a-radio-button>
         </a-radio-group>
       </div>
+    </GroupedSettings>
+    <GroupedSettings v-if="isMultiSelectTypeField" title="Display as">
+      <TabbedSelect v-model="fieldWidget.displayAs" :values="[SelectTypeFieldDisplayAs.INLINE, SelectTypeFieldDisplayAs.LIST]">
+        <template #default="{ value }">
+          <div class="flex gap-2 items-center">
+            <component :is="displayAsOptionsMap[value as SelectTypeFieldDisplayAs]" />
+            <span>{{ value }}</span>
+          </div>
+        </template>
+      </TabbedSelect>
     </GroupedSettings>
     <GroupedSettings v-if="isPlainCell" title="Font settings">
       <div class="flex gap-3">
@@ -127,3 +150,30 @@ const getIcon = (c: ColumnType) =>
     </GroupedSettings>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.field-list-type {
+  :deep(.ant-radio-input:focus + .ant-radio-inner) {
+    box-shadow: none !important;
+  }
+  :deep(.ant-radio-wrapper) {
+    @apply flex px-4 py-2 border-1 border-nc-gray-medium m-0;
+    .ant-radio-checked .ant-radio-inner {
+      @apply !bg-nc-fill-primary !border-nc-fill-primary;
+      &::after {
+        @apply bg-nc-bg-default;
+        width: 12px;
+        height: 12px;
+        margin-top: -6px;
+        margin-left: -6px;
+      }
+    }
+    &:first-child {
+      @apply rounded-tl-lg rounded-tr-lg;
+    }
+    &:last-child {
+      @apply border-t-0 rounded-bl-lg rounded-br-lg;
+    }
+  }
+}
+</style>

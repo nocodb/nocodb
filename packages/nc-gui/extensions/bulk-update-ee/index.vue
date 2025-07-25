@@ -5,6 +5,8 @@ import isMobilePhone from 'validator/lib/isMobilePhone'
 
 import {
   type PaginatedType,
+  PermissionEntity,
+  PermissionKey,
   type TableType,
   UITypes,
   type ViewType,
@@ -35,7 +37,7 @@ interface BulkUpdatePayloadType {
 
 interface BulkUpdateHistory {
   tableId?: string
-  viewId?: string
+
   config: BulkUpdateFieldConfig[]
 }
 
@@ -55,6 +57,10 @@ enum BulkUpdateFieldActionOpTypes {
 }
 
 const { $api, $e } = useNuxtApp()
+
+const { t } = useI18n()
+
+const { isAllowed } = usePermissions()
 
 const router = useRouter()
 const route = router.currentRoute
@@ -98,18 +104,43 @@ const isUpdating = ref(false)
 
 const systemFieldsIds = computed(() => getSystemColumnsIds(meta.value?.columns || []))
 
+const updateNotSupportedCols = [UITypes.Attachment]
+
 const bulkUpdateColumns = computed(() => {
   return (meta.value?.columns || [])
     .filter((c) => {
       return !hiddenColTypes.includes(c.uidt) && !systemFieldsIds.value.includes(c.id) && !isVirtualCol(c) && !c.pk && !c.unique
     })
     .map((c) => {
-      const disabled = c.uidt === UITypes.Attachment
+      const isAllowToEdit = isAllowed(PermissionEntity.FIELD, c.id!, PermissionKey.RECORD_FIELD_EDIT)
 
-      const tooltip = c.uidt === UITypes.Attachment ? 'Not supported' : ''
+      const isReadonlyCol = !!c.readonly || updateNotSupportedCols.includes(c.uidt as UITypes)
 
-      return { ...c, disabled, tooltip }
+      const tooltip = updateNotSupportedCols.includes(c.uidt as UITypes)
+        ? t('msg.error.notSupported')
+        : isReadonlyCol
+        ? t('msg.info.fieldReadonly')
+        : !isAllowToEdit
+        ? t('tooltip.youDontHavePermissionToEditThisField')
+        : ''
+
+      return {
+        ...c,
+        readonly: isReadonlyCol || !isAllowToEdit,
+        permissions: {
+          isAllowToEdit,
+          tooltip,
+        },
+      }
     })
+})
+
+const bulkUpdateColumnsMap = computed(() => {
+  return bulkUpdateColumns.value.reduce((acc, col) => {
+    acc[col.id!] = col
+
+    return acc
+  }, {} as Record<string, (typeof bulkUpdateColumns.value)[number]>)
 })
 
 const savedPayloads = ref<BulkUpdatePayloadType>(bulkUpdatePayloadPlaceholder)
@@ -155,13 +186,30 @@ const bulkUpdatePayload = computedAsync(async () => {
 
       const availableTables: string[] = (tableList.value || []).map((t) => t.value) || []
 
-      for (const h of saved.history) {
+      /**
+       * Initially before release we used to keep field config view level but now we are keeping it table level.
+       * View selection is just to update data for a view.
+       * So we have to clear history with multiple tableIds and keep only 1 history object per table
+       */
+      const firstTableIndex = new Map<string, number>()
+
+      for (let index = 0; index < saved.history.length; index++) {
+        const h = saved.history[index]!
+
+        if (h.tableId) {
+          if (!firstTableIndex.has(h.tableId)) {
+            firstTableIndex.set(h.tableId, index)
+          }
+        }
+
         if (h.tableId && !availableTables.includes(h.tableId)) {
           deletedTableIds.add(h.tableId)
         }
       }
 
-      saved.history = saved.history.filter((h) => !(h.tableId && deletedTableIds.has(h.tableId)))
+      saved.history = saved.history.filter(
+        (h, index) => !(h.tableId && deletedTableIds.has(h.tableId) && index !== firstTableIndex.get(h.tableId)),
+      )
 
       if (saved.selectedTableId && deletedTableIds.has(saved.selectedTableId)) {
         saved.selectedTableId = ''
@@ -189,23 +237,20 @@ const bulkUpdatePayload = computedAsync(async () => {
     validateAll()
   }
 
-  if (savedPayloads.value.selectedTableId && savedPayloads.value.selectedViewId) {
-    const historyIndex = savedPayloads.value.history.findIndex(
-      (h) => h.tableId === savedPayloads.value.selectedTableId && h.viewId === savedPayloads.value.selectedViewId,
-    )
+  if (savedPayloads.value.selectedTableId) {
+    const historyIndex = savedPayloads.value.history.findIndex((h) => h.tableId === savedPayloads.value.selectedTableId)
 
     if (historyIndex !== -1) {
       return savedPayloads.value.history[historyIndex]
     } else {
       savedPayloads.value.history.push({
         tableId: savedPayloads.value.selectedTableId,
-        viewId: savedPayloads.value.selectedViewId,
         config: [],
       })
-
-      return savedPayloads.value.history[savedPayloads.value.history.length - 1]
     }
   }
+
+  return savedPayloads.value.history[savedPayloads.value.history.length - 1]
 })
 
 const fieldConfigMap = computed(() => {
@@ -326,18 +371,18 @@ async function onTableSelect(tableId?: string) {
   await updateColumns()
 
   await saveChanges()
-}
-
-const onViewSelect = async (viewId: string) => {
-  savedPayloads.value.selectedViewId = viewId
-
-  await saveChanges()
 
   if (bulkUpdatePayload.value?.config?.length) {
     fieldConfigExpansionPanel.value = [bulkUpdatePayload.value?.config[0].id]
 
     handleAutoScrollField(bulkUpdatePayload.value?.config[0].id)
   }
+}
+
+const onViewSelect = async (viewId: string) => {
+  savedPayloads.value.selectedViewId = viewId
+
+  await saveChanges()
 }
 
 const isExporting = ref(false)
@@ -522,6 +567,20 @@ const rules = computed(() => {
 
           return true
         }),
+        isColumnReadOnly: helpers.withMessage(
+          (params) => {
+            return params.$model
+              ? bulkUpdateColumnsMap.value[params.$model]?.permissions?.tooltip || t('msg.info.fieldReadonly')
+              : t('msg.info.fieldReadonly')
+          },
+          (value, _currentConfig) => {
+            const currentConfig = _currentConfig as BulkUpdateFieldConfig
+
+            if (!currentConfig?.columnId || !meta.value) return true
+
+            return !(currentConfig.columnId && bulkUpdateColumnsMap.value[currentConfig.columnId]?.readonly)
+          },
+        ),
       },
       opType: {
         required: helpers.withMessage('Update type is required', (value, _currentConfig) => {
@@ -614,12 +673,12 @@ async function validateAll() {
 }
 
 async function bulkUpdateView(data: Record<string, any>) {
-  if (!meta.value || !bulkUpdatePayload.value?.viewId) return
+  if (!meta.value || !savedPayloads.value.selectedViewId) return
 
   isUpdating.value = true
   try {
     await $api.dbTableRow.bulkUpdateAll(NOCO, meta.value.base_id as string, meta.value.id as string, data, {
-      viewId: bulkUpdatePayload.value?.viewId,
+      viewId: savedPayloads.value.selectedViewId,
     })
 
     message.success('Fields successfully bulk updated')
@@ -676,7 +735,7 @@ onClickOutside(formRef, (e) => {
 })
 
 watch(
-  [() => fullscreen.value, () => bulkUpdatePayload.value?.viewId],
+  [() => fullscreen.value, () => bulkUpdatePayload.value?.tableId],
   ([isFullscreen]) => {
     if (isFullscreen) {
       if (!bulkUpdatePayload.value?.config?.length) {
@@ -1091,22 +1150,22 @@ provide(IsGalleryInj, ref(false))
                             v-for="col of bulkUpdateColumns"
                             :key="col.title"
                             :value="col.id"
-                            :disabled="col.disabled || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id)"
+                            :disabled="col.readonly || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id)"
                           >
                             <NcTooltip
                               class="w-full"
                               placement="right"
-                              :disabled="!(col.disabled || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id))"
+                              :disabled="!(col.readonly || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id))"
                             >
                               <template #title>
-                                {{ col.disabled ? col.tooltip : 'Already added' }}
+                                {{ col.readonly ? col.permissions.tooltip : 'Already added' }}
                               </template>
                               <div class="flex items-center gap-2 w-full">
                                 <component :is="getUIDTIcon(UITypes[col.uidt])" class="h-3.5 w-3.5" />
 
                                 <NcTooltip
                                   class="truncate flex-1"
-                                  :disabled="col.disabled || !col.tooltip || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id)"
+                                  :disabled="col.readonly || !col.permissions.tooltip || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id)"
                                   show-on-truncate-only
                                 >
                                   <template #title>

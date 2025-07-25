@@ -100,7 +100,7 @@ const { getMeta } = useMetas()
 
 const { t } = useI18n()
 
-const { isAllowed, getPermissionSummaryLabel } = usePermissions()
+const { isAllowed } = usePermissions()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
@@ -361,11 +361,7 @@ const onTableSelect = async (resetUpsertColumnId = false) => {
             tooltip: isReadonlyCol
               ? t('msg.info.fieldReadonly')
               : !isAllowToEdit
-              ? `This field is editable by ${getPermissionSummaryLabel(
-                  PermissionEntity.FIELD,
-                  column.id!,
-                  PermissionKey.RECORD_FIELD_EDIT,
-                )}`
+              ? t('tooltip.youDontHavePermissionToEditThisField')
               : '',
           },
         }

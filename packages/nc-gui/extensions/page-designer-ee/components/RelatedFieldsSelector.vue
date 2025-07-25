@@ -150,6 +150,7 @@ whenever(
         <Draggable v-model="selectedFields" handle=".cursor-move">
           <template #item="{ element: field }">
             <FieldElement
+              v-if="metaColumnById[field.id]"
               v-show="filteredFieldSet.has(field.id)"
               :field="metaColumnById[field.id]!"
               :icon="getIcon(metaColumnById[field.id]!)"

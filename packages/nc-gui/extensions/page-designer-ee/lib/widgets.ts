@@ -1,4 +1,4 @@
-import { type ColumnType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isLinksOrLTAR, isMultiUser } from 'nocodb-sdk'
 import type { PageDesignerPayload } from './payload'
 
 export interface PageDesignerWidgetComponentProps {
@@ -77,6 +77,8 @@ export interface PageDesignerFieldWidget extends PageDesignerWidget {
   objectFit: 'fill' | 'contain' | 'cover'
   horizontalAlign: 'flex-start' | 'center' | 'flex-end'
   verticalAlign: 'flex-start' | 'center' | 'flex-end'
+  displayAs?: SelectTypeFieldDisplayAs
+  listType?: SelectTypeFieldListType
 }
 
 export enum LinkedFieldDisplayAs {
@@ -88,6 +90,17 @@ export enum LinkedFieldDisplayAs {
 export enum LinkedFieldListType {
   Bullet = 'Bulleted',
   Number = 'Numbered',
+}
+
+export enum SelectTypeFieldDisplayAs {
+  LIST = 'List',
+  INLINE = 'Inline',
+}
+
+export enum SelectTypeFieldListType {
+  Bullet = 'Bulleted',
+  Number = 'Numbered',
+  None = 'None',
 }
 
 export interface PageDesignerLinkedFieldWidget extends PageDesignerWidget {
@@ -206,9 +219,14 @@ export class PageDesignerWidgetFactory {
   static createEmptyFieldWidget(field: ColumnType, { x, y } = { x: 0, y: 0 }): PageDesignerFieldWidget {
     const { width, height } = getInitialSizeHeightOfWidget(PageDesignerWidgetType.FIELD, field)
     const { x: newX, y: newY } = centerCursor({ x, y }, { width, height })
+
+    const isSelectTypeField = isMultiSelect(field) || isMultiUser(field)
+
     return {
       id: 0,
       field,
+      displayAs: isSelectTypeField ? SelectTypeFieldDisplayAs.INLINE : undefined,
+      listType: SelectTypeFieldListType.None,
       borderTop: '0',
       borderRight: '0',
       borderBottom: '0',
@@ -285,8 +303,6 @@ export const plainCellFields = new Set([
   UITypes.ID,
   UITypes.ForeignKey,
   UITypes.SingleLineText,
-  UITypes.MultiSelect,
-  UITypes.SingleSelect,
   UITypes.Date,
   UITypes.Year,
   UITypes.Time,

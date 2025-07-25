@@ -18,7 +18,6 @@ const eventHook = createEventHook<'previousRecord' | 'nextRecord'>()
 const { base } = storeToRefs(useBase())
 
 provide(PageDesignerEventHookInj, eventHook)
-provide(IsPageDesignerExtensionActiveInj, true)
 
 const savedPayload = ref<PageDesignerPayload>({
   widgets: {},
@@ -26,6 +25,7 @@ const savedPayload = ref<PageDesignerPayload>({
   pageType: PageType.LETTER,
   lastWidgetId: 0,
   currentWidgetId: -1,
+  isPreviewMode: false,
 })
 
 const { viewsByTable } = storeToRefs(useViewsStore())
@@ -364,14 +364,26 @@ useEventListener('afterprint', () => {
     .ant-select-selection-item {
       @apply !inline-block;
     }
-    .widget-header {
-      @apply px-6 py-4 border-b border-solid border-nc-border-gray-medium;
-      h1 {
-        @apply text-[18px] font-700 leading-8 tracking-[-0.4px];
-      }
+  }
+
+  #printPage.nc-page-preview-mode {
+    * {
+      -webkit-print-color-adjust: exact; /* Chrome, Safari 6 – 15.3, Edge */
+      color-adjust: exact; /* Firefox 48 – 96 */
+      print-color-adjust: exact;
+    }
+
+    .print-hide,
+    .grid-lines,
+    .nc-moveable {
+      @apply !hidden;
+    }
+    .page-widget > .absolute {
+      outline: none !important;
     }
   }
 }
+
 @media print {
   * {
     -webkit-print-color-adjust: exact; /* Chrome, Safari 6 – 15.3, Edge */
@@ -387,13 +399,10 @@ useEventListener('afterprint', () => {
     outline: none !important;
   }
   #printPage {
-    @apply m-0 shadow-none;
+    @apply m-0 shadow-none visible absolute left-0 top-0;
   }
   body {
     @apply invisible;
-  }
-  #printPage {
-    @apply visible absolute left-0 top-0;
   }
 }
 </style>

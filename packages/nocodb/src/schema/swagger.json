@@ -25930,6 +25930,10 @@
             "items": {
               "type": "object",
               "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Permission id"
+                },
                 "entity": {
                   "type": "string",
                   "description": "Permission entity"

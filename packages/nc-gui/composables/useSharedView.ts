@@ -1,4 +1,5 @@
 import {
+  type BaseType,
   type CalendarType,
   ExportTypes,
   type FilterType,
@@ -38,7 +39,10 @@ export function useSharedView() {
     pageSize: appInfoDefaultLimit,
   }))
 
-  const sharedView = useState<ViewType | undefined>('sharedView', () => undefined)
+  const sharedView = useState<(ViewType & { basePermissions: BaseType['permissions'] }) | undefined>(
+    'sharedView',
+    () => undefined,
+  )
 
   const sorts = ref<SortType[]>([])
 

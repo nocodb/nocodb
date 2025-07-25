@@ -214,22 +214,32 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return row.value.row[displayValueProp.value]
     })
 
-    const attachmentCol = computedInject(FieldsInj, (_fields) => {
-      return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
-    })
+    const attachmentCol = computedInject(
+      FieldsInj,
+      (_fields) => {
+        return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
+      },
+      ref([]),
+    )
 
-    const fields = computedInject(FieldsInj, (_fields) => {
-      return (relatedTableMeta.value.columns ?? [])
-        .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
-        .sort((a, b) => {
-          if (isPublic.value) {
-            return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-          }
+    const fields = computedInject(
+      FieldsInj,
+      (_fields) => {
+        return (relatedTableMeta.value.columns ?? [])
+          .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
+          .sort((a, b) => {
+            if (isPublic.value) {
+              return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+            }
 
-          return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
-        })
-        .slice(0, isMobileMode.value ? 1 : 3)
-    })
+            return (
+              (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
+            )
+          })
+          .slice(0, isMobileMode.value ? 1 : 3)
+      },
+      ref([]),
+    )
 
     const requiredFieldsToLoad = computed(() => {
       return Array.from(

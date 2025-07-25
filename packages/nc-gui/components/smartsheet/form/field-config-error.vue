@@ -40,6 +40,10 @@ const firstErrorMsg = computed(() => {
     </div>
   </template>
   <template v-else>
-    <GeneralIcon v-if="Object.keys(visibilityError ?? {}).length" icon="alertTriangle" class="ml-1 flex-none !text-red-500" />
+    <GeneralIcon
+      v-if="Object.keys(visibilityError ?? {}).length"
+      icon="alertTriangle"
+      class="ml-1 flex-none !text-red-500 h-3.5 w-3.5"
+    />
   </template>
 </template>

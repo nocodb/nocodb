@@ -117,6 +117,7 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "अधिक रेकर्डहरू थप्न अपग्रेड गर्नुहोस्",
     "upgradeToAddLimitRecordSelection": "फिल्टर प्रयोग गरी रेकर्ड छनोट सीमित गर्न {plan} योजना मा अपग्रेड गर्नुहोस्।",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "थप्न अपग्रेड गर्नुहोस्",
     "requestUpgradeToAdd": "थप्नको लागि अपग्रेड अनुरोध गर्नुहोस्",
     "upgradeToAddMoreExtensions": "तपाईं अहिले नि:शुल्क योजनामा हुनुहुन्छ, जसले केवल एक एक्सटेन्सन अनुमति दिन्छ। असीमित एक्सटेन्सन अनलक गर्न अपग्रेड गर्नुहोस्।",
@@ -423,7 +424,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "स्क्रिप्ट",
@@ -616,7 +618,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -885,7 +893,8 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions"
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -942,13 +951,13 @@
     "recent": "भर्खरको",
     "limitRecordSelectionToView": "रेकर्ड चयनलाई विशेष दृश्यमा सीमित गर्नुहोस्",
     "limitRecordSelectionToFilters": "रेकर्ड चयनलाई फिल्टरहरूमा सीमित गर्नुहोस्",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "द्वारा थपिएको",
     "whatsNew": "के नयाँ छ!",
     "newAction": "नयाँ कार्य",
     "actionLogs": "कार्य लगहरू",
     "runScript": "स्क्रिप्ट चलाउनुहोस्",
     "scriptName": "स्क्रिप्ट नाम",
-    "dashboardName": "ड्यासबोर्ड नाम",
     "enableSnowFall": "हिउँ वर्षा सक्षम गर्नुहोस्",
     "disableSnowFall": "हिउँ वर्षा अक्षम गर्नुहोस्",
     "snapshotCreationFailed": "स्न्यापसट सिर्जना असफल भयो",
@@ -1734,7 +1743,11 @@
     "changePlan": "योजना परिवर्तन गर्नुहोस्",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1809,7 +1822,8 @@
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
     "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
     "addLookupFields": "Add Lookup Fields",
-    "sourceVisibilityIsHidden": "Data source visibility is hidden"
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "आइकनहरू खोज्नुहोस्",

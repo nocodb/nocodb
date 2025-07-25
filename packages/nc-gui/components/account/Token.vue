@@ -335,9 +335,12 @@ const handleCancel = () => {
                     <GeneralTruncateText placement="top" :length="20">
                       {{ el.description }}
                     </GeneralTruncateText>
-                    <NcBadge v-if="el.fk_sso_client_id" color="orange" class="!text-xs !py-0.5 !px-1.5 mr-4">
+                    <NcTooltip v-if="el.fk_sso_client_id" placement="top">
+                      <template #title>{{ $t("msg.ssoTokenTooltip") }}</template>
+                      <NcBadge color="orange" class="!text-xs !py-0.5 !px-1.5 mr-4">
                       SSO
                     </NcBadge>
+                    </NcTooltip>
                   </div>
                 </span>
                 <span class="text-gray-500 font-medium text-3.5 text-start w-2/9">

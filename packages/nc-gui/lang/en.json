@@ -2048,6 +2048,7 @@
       },
       "duplicateProject": "Are you sure you want to duplicate the base?",
       "duplicateTable": "Are you sure you want to duplicate the table?",
+      "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
       "multiField": {
         "fieldVisibility": "You cannot change visibility of a field that is being edited. Please save or discard changes first.",
         "moveEditedField": "You cannot move field that is being edited. Either save or discard changes first",

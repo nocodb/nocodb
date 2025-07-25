@@ -117,6 +117,7 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "Upgrade, um weitere Datensätze hinzuzufügen",
     "upgradeToAddLimitRecordSelection": "Um die Datensatzauswahl mit Filtern zu begrenzen, aktualisieren Sie bitte auf den {plan}-Tarif.",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "Upgrade, um hinzuzufügen",
     "requestUpgradeToAdd": "Upgrade anfordern, um hinzuzufügen",
     "upgradeToAddMoreExtensions": "Sie nutzen derzeit den Free-Tarif, der nur eine Erweiterung erlaubt. Aktualisieren Sie, um unbegrenzte Erweiterungen freizuschalten.",
@@ -423,7 +424,8 @@
     "automations": "Automatisierungen",
     "record": "Eintrag",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "Skript",
@@ -616,7 +618,13 @@
       "generalPermissionTooltip": "Du bist nicht berechtigt diese Aktion auszuführen.",
       "uploadDataTooltip": "Du bist nicht berechtigt Daten in diese Tabelle hochzuladen.",
       "formCannotAcceptSubmissions": "Dieses Formular nimmt keine Einsendungen entgegen.",
-      "formCannotAcceptSubmissionsDescription": "Nur bestimmte Mitglieder haben die Berechtigung, Einsendungen für dieses Formular einzureichen."
+      "formCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -885,7 +893,8 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions"
   },
   "labels": {
     "configurationError": "Konfigurationsfehler",
@@ -942,13 +951,13 @@
     "recent": "Kürzlich",
     "limitRecordSelectionToView": "Datensatzauswahl auf eine Ansicht beschränken",
     "limitRecordSelectionToFilters": "Datensatzauswahl auf Filter begrenzen",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "Hinzugefügt von",
     "whatsNew": "Was gibt's Neues?",
     "newAction": "Neue Aktion",
     "actionLogs": "Aktionsprotokoll",
     "runScript": "Skript ausführen",
     "scriptName": "Skriptname",
-    "dashboardName": "Dashboard-Name",
     "enableSnowFall": "Snowfall aktivieren",
     "disableSnowFall": "Snowfall deaktivieren",
     "snapshotCreationFailed": "Erstellen des Snapshots fehlgeschlagen",
@@ -1734,7 +1743,11 @@
     "changePlan": "Plan ändern",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1809,7 +1822,8 @@
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
     "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
     "addLookupFields": "Add Lookup Fields",
-    "sourceVisibilityIsHidden": "Data source visibility is hidden"
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "Icons suchen",

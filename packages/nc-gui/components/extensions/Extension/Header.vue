@@ -125,22 +125,27 @@ const toggleFullScreen = () => {
       </a-input>
     </div>
 
-    <NcTooltip v-else show-on-truncate-only class="truncate flex-1">
-      <template #title>
-        {{ extension.title }}
-      </template>
-      <span
-        class="extension-title cursor-pointer"
-        :class="{
-          'text-[20px] font-semibold ': isFullscreen,
-          'mr-1': !isFullscreen,
-        }"
-        @dblclick.stop="enableEditMode"
-        @click.stop
-      >
-        {{ extension.title }}
-      </span>
-    </NcTooltip>
+    <template v-else>
+      <NcTooltip show-on-truncate-only class="truncate">
+        <template #title>
+          {{ extension.title }}
+        </template>
+        <span
+          class="extension-title cursor-pointer"
+          :class="{
+            'text-[20px] font-semibold ': isFullscreen,
+            'mr-1': !isFullscreen,
+          }"
+          @dblclick.stop="enableEditMode"
+          @click.stop
+        >
+          {{ extension.title }}
+        </span>
+      </NcTooltip>
+      <div class="flex-1 flex">
+        <NcBadgeBeta v-if="extensionManifest?.showAsBeta" />
+      </div>
+    </template>
     <slot v-if="isFullscreen" name="extra"></slot>
     <ExtensionsExtensionHeaderMenu
       :is-fullscreen="isFullscreen"

@@ -2,6 +2,7 @@
 interface Prop {
   extensionId: string
   error?: any
+  clearError?: () => void
 }
 
 const props = defineProps<Prop>()
@@ -30,6 +31,10 @@ const extensionManifest = computed<ExtensionManifest | undefined>(() => {
   return availableExtensions.value.find((ext) => ext.id === extension.value?.extensionId)
 })
 
+const activeExtensionId = computed(() => extensionManifest.value?.id ?? '')
+
+provide(ExtensionConfigInj, ref({ activeExtensionId }))
+
 const {
   fullscreen,
   fullscreenModalSize: currentExtensionModalSize,
@@ -57,6 +62,11 @@ const closeFullscreen = (e: MouseEvent) => {
   if (e.target === extensionModalRef.value) {
     fullscreen.value = false
   }
+}
+
+const onClearData = () => {
+  extension.value.clear()
+  props.clearError?.()
 }
 
 onMounted(() => {
@@ -102,6 +112,21 @@ useEventListener('keydown', (e) => {
 const noExplicitHeightExtensions = ['nc-data-exporter']
 
 const isNoExplicitHeightExtension = computed(() => noExplicitHeightExtensions.includes(extension.value.extensionId))
+
+/**
+ * Log extension error so that we can debug easily.
+ */
+watch(
+  activeError,
+  (newVal) => {
+    if (!newVal) return
+
+    console.error(newVal)
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -139,7 +164,7 @@ const isNoExplicitHeightExtension = computed(() => noExplicitHeightExtensions.in
           <a-result status="error" title="Extension Error" class="nc-extension-error">
             <template #subTitle>{{ activeError }}</template>
             <template #extra>
-              <NcButton size="small" @click="extension.clear()">
+              <NcButton size="small" @click="onClearData">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="reload" />
                   Clear Data

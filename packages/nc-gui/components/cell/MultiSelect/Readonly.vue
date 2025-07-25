@@ -20,6 +20,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const isEditColumn = inject(EditModeInj, ref(false))
 
+const extensionConfig = inject(ExtensionConfigInj, ref({ isPageDesignerPreviewPanel: false }))
+
 const { isMysql } = useBase()
 
 const options = computed(() => {
@@ -65,14 +67,21 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
     <div
       v-else
       class="flex flex-wrap"
-      :style="{
-        'display': '-webkit-box',
-        'max-width': '100%',
-        '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
-        '-webkit-box-orient': 'vertical',
-        '-webkit-box-align': 'center',
-        'overflow': 'hidden',
+      :class="{
+        'flex-col items-start gap-2': extensionConfig?.widget?.displayAs === 'List',
       }"
+      :style="
+        extensionConfig?.widget?.displayAs !== 'List'
+          ? {
+              'display': '-webkit-box',
+              'max-width': '100%',
+              '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
+              '-webkit-box-orient': 'vertical',
+              '-webkit-box-align': 'center',
+              'overflow': 'hidden',
+            }
+          : {}
+      "
     >
       <template v-for="selectedOpt of selectedOpts" :key="selectedOpt.value">
         <a-tag

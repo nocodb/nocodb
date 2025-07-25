@@ -1515,7 +1515,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                 <!-- Form Field settings -->
                 <div v-if="activeField && activeColumn" :key="activeField?.id" class="nc-form-field-right-panel">
                   <!-- Field header -->
-                  <div class="px-3 pt-4 pb-2 flex items-center justify-between border-b border-gray-200 font-medium">
+                  <div class="px-4 pt-4 pb-2 flex items-center justify-between border-b border-gray-200 font-medium">
                     <div class="flex items-center">
                       <div class="text-gray-600 font-medium cursor-pointer select-none hover:underline" @click="activeRow = ''">
                         {{ $t('objects.viewType.form') }}

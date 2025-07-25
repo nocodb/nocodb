@@ -67,7 +67,7 @@ export default class ApiToken implements ApiTokenType {
     );
     // await NocoCache.setList(CacheScope.API_TOKEN, [], tokens);
     // }
-    return tokens?.map((t) => new ApiToken(t));
+    return tokens?.map((t) => this.castType(t));
   }
 
   static async listForNonSsoUser(userId: string, ncMeta = Noco.ncMeta) {
@@ -82,7 +82,7 @@ export default class ApiToken implements ApiTokenType {
         },
       },
     );
-    return tokens?.map((t) => new ApiToken(t));
+    return tokens?.map((t) => this.castType(t));
   }
 
   static async delete(tokenId: string, ncMeta = Noco.ncMeta) {
@@ -115,7 +115,7 @@ export default class ApiToken implements ApiTokenType {
       );
       await NocoCache.set(`${CacheScope.API_TOKEN}:${token}`, data);
     }
-    return data && new ApiToken(data);
+    return data && this.castType(data);
   }
 
   public static async count(
@@ -253,7 +253,11 @@ export default class ApiToken implements ApiTokenType {
     return tokens?.length || 0;
   }
 
-  async getExtraForUserPayload(): Promise<void | Record<string, any>> {
+  async getExtraForUserPayload(_ncMeta = Noco.ncMeta): Promise<void | Record<string, any>> {
     return; // Placeholder for future implementation
+  }
+
+  public static castType(apiToken: ApiToken): ApiToken {
+    return apiToken && new ApiToken(apiToken);
   }
 }

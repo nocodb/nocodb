@@ -254,47 +254,7 @@ export default class ApiToken implements ApiTokenType {
     return tokens?.length || 0;
   }
 
-  public static async bulkDelete(
-    params: Partial<Pick<ApiToken, 'fk_sso_client_id' | 'fk_user_id'>>,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const condition = extractProps(params, ['fk_sso_client_id', 'fk_user_id']);
-
-    if (!condition.fk_sso_client_id && !condition.fk_user_id) {
-      NcError.badRequest(
-        'At least one of fk_sso_client_id or fk_user_id is required',
-      );
-    }
-
-    const tokens = await ncMeta.metaList2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.API_TOKENS,
-      {
-        condition,
-      },
-    );
-
-    for (const token of tokens) {
-      await ncMeta.metaDelete(
-        RootScopes.ROOT,
-        RootScopes.ROOT,
-        MetaTable.API_TOKENS,
-        token.id,
-      );
-
-      // Clear cache
-      await NocoCache.deepDel(
-        `${CacheScope.API_TOKEN}:${token.id}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-      await NocoCache.del(`${CacheScope.API_TOKEN}:${token.token}`);
-    }
-
-    return true;
-  }
-
-  async getExtraForUserPayload() {
+  async getExtraForUserPayload(): Promise<void | Record<string, any>> {
     return; // Placeholder for future implementation
   }
 }

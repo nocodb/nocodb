@@ -117,6 +117,7 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "Nadogradite za dodavanje više zapisa",
     "upgradeToAddLimitRecordSelection": "Kako biste ograničili odabir zapisa pomoću filtara, nadogradite na plan {plan}.",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "Nadogradite za dodavanje",
     "requestUpgradeToAdd": "Zatražite nadogradnju za dodavanje",
     "upgradeToAddMoreExtensions": "Trenutno ste na besplatnom planu koji dopušta samo jedno proširenje. Nadogradite kako biste otključali neograničena proširenja.",
@@ -423,7 +424,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "Skripta",
@@ -616,7 +618,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -885,7 +893,8 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions"
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -942,13 +951,13 @@
     "recent": "Nedavno",
     "limitRecordSelectionToView": "Ograniči odabir zapisa na prikaz",
     "limitRecordSelectionToFilters": "Ograniči odabir zapisa na filtre",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "Dodao/la",
     "whatsNew": "Što je novo!",
     "newAction": "Nova akcija",
     "actionLogs": "Dnevnici akcija",
     "runScript": "Pokreni skriptu",
     "scriptName": "Naziv skripte",
-    "dashboardName": "Naziv Nadzorne Ploče",
     "enableSnowFall": "Omogući snijeg",
     "disableSnowFall": "Onemogući snijeg",
     "snapshotCreationFailed": "Stvaranje snimke nije uspjelo",
@@ -1734,7 +1743,11 @@
     "changePlan": "Promijeni plan",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1809,7 +1822,8 @@
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
     "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
     "addLookupFields": "Add Lookup Fields",
-    "sourceVisibilityIsHidden": "Data source visibility is hidden"
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "Pretraži ikone",

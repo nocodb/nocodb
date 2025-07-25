@@ -1694,16 +1694,18 @@ const { message: templatedMessage } = useTemplatedMessage(
                             @click.stop
                           >
                             <div class="w-4 h-4 flex-none mx-2"></div>
-                            <div class="flex-1 flex flex-row items-center truncate cursor-pointer">
-                              <div class="flex-1 font-base my-1.5">{{ $t('activity.selectAllFields') }}</div>
+                            <div class="flex-1 flex items-center justify-end truncate">
                               <div class="flex items-center px-2">
-                                <a-switch
+                                <NcSwitch
                                   :checked="visibleColumns.length === localColumns.length"
                                   size="small"
                                   class="nc-switch"
                                   :disabled="isLocked"
+                                  placement="right"
                                   @change="handleAddOrRemoveAllColumns"
-                                />
+                                >
+                                  <div class="font-base my-1.5 select-none">{{ $t('activity.selectAllFields') }}</div>
+                                </NcSwitch>
                               </div>
                             </div>
                           </div>

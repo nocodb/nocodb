@@ -1,5 +1,5 @@
-import { NcError } from '~/helpers/ncError';
+import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
 
 export async function getWidgetHandler(..._params: any) {
-  NcError.notImplemented(`Widget`);
+  return new BaseWidgetHandler();
 }

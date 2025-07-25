@@ -162,12 +162,16 @@ export class BaseUsersService {
             ncMeta,
           );
           this.checkMultipleOwnerExist(baseUsers, base);
-          await this.ensureBaseOwner(context, {
-            baseUsers,
-            ignoreUserId: user.id,
-            baseId: param.baseId,
-            req: param.req,
-          });
+          await this.ensureBaseOwner(
+            context,
+            {
+              baseUsers,
+              ignoreUserId: user.id,
+              baseId: param.baseId,
+              req: param.req,
+            },
+            ncMeta,
+          );
         }
 
         // if already exists and has a role then throw error
@@ -185,20 +189,23 @@ export class BaseUsersService {
             param.baseUser.roles,
             ncMeta,
           );
-          await this.mailService.sendMail({
-            mailEvent: MailEvent.BASE_ROLE_UPDATE,
-            payload: {
-              req: param.req,
-              user: user,
-              base: base,
-              oldRole: (getProjectRole(baseUser) ??
-                this.getInheritedBaseRole({
-                  base,
-                  workspaceRole: (baseUser as any)?.workspace_roles,
-                })) as ProjectRoles,
-              newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
+          await this.mailService.sendMail(
+            {
+              mailEvent: MailEvent.BASE_ROLE_UPDATE,
+              payload: {
+                req: param.req,
+                user: user,
+                base: base,
+                oldRole: (getProjectRole(baseUser) ??
+                  this.getInheritedBaseRole({
+                    base,
+                    workspaceRole: (baseUser as any)?.workspace_roles,
+                  })) as ProjectRoles,
+                newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
+              },
             },
-          });
+            ncMeta,
+          );
         } else {
           await BaseUser.insert(
             context,
@@ -212,31 +219,37 @@ export class BaseUsersService {
           );
 
           if (param?.workspaceInvited) {
-            await this.mailService.sendMail({
-              mailEvent: MailEvent.BASE_INVITE,
-              payload: {
-                req: param.req,
-                user: user,
-                base: base,
-                role: (param.baseUser.roles || 'editor') as ProjectRoles,
-                token: invite_token,
+            await this.mailService.sendMail(
+              {
+                mailEvent: MailEvent.BASE_INVITE,
+                payload: {
+                  req: param.req,
+                  user: user,
+                  base: base,
+                  role: (param.baseUser.roles || 'editor') as ProjectRoles,
+                  token: invite_token,
+                },
               },
-            });
+              ncMeta,
+            );
           } else {
-            await this.mailService.sendMail({
-              mailEvent: MailEvent.BASE_ROLE_UPDATE,
-              payload: {
-                req: param.req,
-                user: user,
-                base: base,
-                oldRole: (getProjectRole(baseUser) ??
-                  this.getInheritedBaseRole({
-                    base,
-                    workspaceRole: (baseUser as any)?.workspace_roles,
-                  })) as ProjectRoles,
-                newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
+            await this.mailService.sendMail(
+              {
+                mailEvent: MailEvent.BASE_ROLE_UPDATE,
+                payload: {
+                  req: param.req,
+                  user: user,
+                  base: base,
+                  oldRole: (getProjectRole(baseUser) ??
+                    this.getInheritedBaseRole({
+                      base,
+                      workspaceRole: (baseUser as any)?.workspace_roles,
+                    })) as ProjectRoles,
+                  newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
+                },
               },
-            });
+              ncMeta,
+            );
           }
         }
 
@@ -285,31 +298,37 @@ export class BaseUsersService {
 
           if (emails.length === 1) {
             try {
-              await this.mailService.sendMail({
-                mailEvent: MailEvent.BASE_INVITE,
-                payload: {
-                  req: param.req,
-                  user: user,
-                  base: base,
-                  role: (param.baseUser.roles || 'editor') as ProjectRoles,
-                  token: invite_token,
+              await this.mailService.sendMail(
+                {
+                  mailEvent: MailEvent.BASE_INVITE,
+                  payload: {
+                    req: param.req,
+                    user: user,
+                    base: base,
+                    role: (param.baseUser.roles || 'editor') as ProjectRoles,
+                    token: invite_token,
+                  },
                 },
-              });
+                ncMeta,
+              );
             } catch (e) {
               this.logger.error(e.message, e.stack);
               return { invite_token, email };
             }
           } else {
-            await this.mailService.sendMail({
-              mailEvent: MailEvent.BASE_INVITE,
-              payload: {
-                req: param.req,
-                user: user,
-                base: base,
-                token: invite_token,
-                role: (param.baseUser.roles || 'editor') as ProjectRoles,
+            await this.mailService.sendMail(
+              {
+                mailEvent: MailEvent.BASE_INVITE,
+                payload: {
+                  req: param.req,
+                  user: user,
+                  base: base,
+                  token: invite_token,
+                  role: (param.baseUser.roles || 'editor') as ProjectRoles,
+                },
               },
-            });
+              ncMeta,
+            );
           }
         } catch (e) {
           this.logger.error(e.message, e.stack);
@@ -321,7 +340,6 @@ export class BaseUsersService {
         }
       }
     }
-
     if (emails.length === 1) {
       return {
         msg: 'The user has been invited successfully',
@@ -426,12 +444,16 @@ export class BaseUsersService {
         ncMeta,
       );
       await this.checkMultipleOwnerExist(baseUsers, base);
-      await this.ensureBaseOwner(context, {
-        baseUsers,
-        ignoreUserId: param.userId,
-        baseId: param.baseId,
-        req: param.req,
-      });
+      await this.ensureBaseOwner(
+        context,
+        {
+          baseUsers,
+          ignoreUserId: param.userId,
+          baseId: param.baseId,
+          req: param.req,
+        },
+        ncMeta,
+      );
     }
     const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
     const newRolePower = reverseOrderedProjectRoles.indexOf(
@@ -462,20 +484,23 @@ export class BaseUsersService {
       ncMeta,
     );
 
-    await this.mailService.sendMail({
-      mailEvent: MailEvent.BASE_ROLE_UPDATE,
-      payload: {
-        req: param.req,
-        user: user,
-        base,
-        oldRole: (getProjectRole(targetUser) ??
-          this.getInheritedBaseRole({
-            base,
-            workspaceRole: (targetUser as any)?.workspace_roles,
-          })) as ProjectRoles,
-        newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
+    await this.mailService.sendMail(
+      {
+        mailEvent: MailEvent.BASE_ROLE_UPDATE,
+        payload: {
+          req: param.req,
+          user: user,
+          base,
+          oldRole: (getProjectRole(targetUser) ??
+            this.getInheritedBaseRole({
+              base,
+              workspaceRole: (targetUser as any)?.workspace_roles,
+            })) as ProjectRoles,
+          newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
+        },
       },
-    });
+      ncMeta,
+    );
 
     this.appHooksService.emit(AppEvents.PROJECT_USER_UPDATE, {
       base,

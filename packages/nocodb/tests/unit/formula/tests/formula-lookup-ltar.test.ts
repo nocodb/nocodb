@@ -96,6 +96,9 @@ function formulaLookupLtarTests() {
   });
 
   it('will create an ARRAYSORT formula referencing table1Name correctly 1', async () => {
+    // only applicable for pg
+    const source = (await _base.getSources())[0];
+    if(source.type !== 'pg') { return; }
     // Create a formula field on table 2 that references table1Name
     const formulaColumn = await createColumn(_context, _tables.table2, {
       title: 'FormulaTable1Name',
@@ -128,6 +131,10 @@ function formulaLookupLtarTests() {
   });
 
   it('will create an ARRAYSORT formula referencing table2_table1s correctly', async () => {
+    // only applicable for pg
+    const source = (await _base.getSources())[0];
+    if(source.type !== 'pg') { return; }
+
     // Create a formula field on table 3 that references table2_table1s
     const formulaColumn = await createColumn(_context, _tables.table3, {
       title: 'FormulaTable2Table1s',
@@ -160,6 +167,10 @@ function formulaLookupLtarTests() {
   });
 
   it('will create an ARRAYUNIQUE formula referencing T4s correctly', async () => {
+    // only applicable for pg
+    const source = (await _base.getSources())[0];
+    if(source.type !== 'pg') { return; }
+
     // Create a formula field on table 3 that references T4s
     const controlFormulaColumn = await createColumn(_context, _tables.table3, {
       title: 'FormulaT4sControl',
@@ -201,6 +212,10 @@ function formulaLookupLtarTests() {
   });
 
   it('will create an ARRAYSORT(ARRAYUNIQUE) formula referencing T4s correctly', async () => {
+    // only applicable for pg
+    const source = (await _base.getSources())[0];
+    if(source.type !== 'pg') { return; }
+
     // Create a formula field on table 3 that references T4s
     const controlFormulaColumn = await createColumn(_context, _tables.table3, {
       title: 'FormulaT4sControl',

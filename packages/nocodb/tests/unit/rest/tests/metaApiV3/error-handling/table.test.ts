@@ -1,8 +1,8 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
-import init from '../../../../init';
 import { SqlUiFactory } from 'nocodb-sdk';
+import init from '../../../../init';
 import { Base } from '~/models';
 
 export default function () {
@@ -71,23 +71,34 @@ export default function () {
         );
       });
       it(`will handle incorrect title length`, async () => {
-        const source = (await (await Base.get({
-          fk_workspace_id: context.fk_workspace_id,
-          base_id: initBase.id
-        }, initBase.id)).getSources())[0];
+        const source = (
+          await (
+            await Base.get(
+              {
+                fk_workspace_id: context.fk_workspace_id,
+                base_id: initBase.id,
+              },
+              initBase.id,
+            )
+          ).getSources()
+        )[0];
 
-        const sqlUi = SqlUiFactory.create({client: source.type})
+        const sqlUi = SqlUiFactory.create({ client: source.type });
         const repeatTimes = Math.ceil(sqlUi.tableNameLengthLimit / 10);
         const title = 'A012345678'.repeat(repeatTimes);
         const result = await request(context.app)
           .post(`${API_PREFIX}/tables`)
           .set('xc-token', context.xc_token)
           .send({
-            title
+            title,
           })
           .expect(400);
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
-        expect(result.body.message).to.eq(sqlUi.tableNameLengthLimit > 250 ? 'Invalid request body' : 'Table name exceeds ${sqlUi.tableNameLengthLimit} characters');
+        expect(result.body.message).to.eq(
+          sqlUi.tableNameLengthLimit > 250
+            ? 'Invalid request body'
+            : `Table name exceeds ${sqlUi.tableNameLengthLimit} characters`,
+        );
       });
 
       it(`will create number column with incorrect options`, async () => {
@@ -192,24 +203,33 @@ export default function () {
         expect(result.body.message).to.eq('Duplicate table alias');
       });
       it(`will handle incorrect title length`, async () => {
-        const source = (await (await Base.get({
-          fk_workspace_id: context.fk_workspace_id,
-          base_id: initBase.id
-        }, initBase.id)).getSources())[0];
+        const source = (
+          await (
+            await Base.get(
+              {
+                fk_workspace_id: context.fk_workspace_id,
+                base_id: initBase.id,
+              },
+              initBase.id,
+            )
+          ).getSources()
+        )[0];
 
-        const sqlUi = SqlUiFactory.create({client: source.type})
+        const sqlUi = SqlUiFactory.create({ client: source.type });
         const repeatTimes = Math.ceil(sqlUi.tableNameLengthLimit / 10);
         const title = 'A012345678'.repeat(repeatTimes);
-        
+
         const result = await request(context.app)
           .patch(`${API_PREFIX}/tables/${myTable?.id}`)
           .set('xc-token', context.xc_token)
           .send({
-            title
+            title,
           })
           .expect(400);
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
-        expect(result.body.message).to.eq(`Table name exceeds ${sqlUi.tableNameLengthLimit} characters`);
+        expect(result.body.message).to.eq(
+          `Table name exceeds ${sqlUi.tableNameLengthLimit} characters`,
+        );
       });
     });
     describe('table delete', () => {

@@ -10,7 +10,7 @@ import type {
   StringOrNullType,
   TableType,
 } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { useTitle } from '@vueuse/core'
 import type { RuleObject } from 'ant-design-vue/es/form'
@@ -64,6 +64,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { basesUser } = storeToRefs(basesStore)
 
+  const { isAllowed } = usePermissions()
+
   const { t } = useI18n()
 
   const route = useRoute()
@@ -77,6 +79,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const preFilledDefaultValueformState = ref<Record<string, any>>({})
 
   const allViewFilters = ref<Record<string, FilterType[]>>({})
+
+  const isAddingEmptyRowPermitted = computed(() =>
+    meta.value?.id ? isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD) : true,
+  )
 
   const isValidRedirectUrl = computed(
     () => typeof sharedFormView.value?.redirect_url === 'string' && !!sharedFormView.value?.redirect_url?.trim(),
@@ -870,6 +876,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isValidRedirectUrl,
     loadAllviewFilters,
     checkFieldVisibility,
+    isAddingEmptyRowPermitted,
   }
 }, 'shared-form-view-store')
 

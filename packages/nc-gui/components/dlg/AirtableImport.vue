@@ -118,7 +118,12 @@ const useForm = Form.useForm
 
 const { validateInfos } = useForm(syncSource, validators)
 
-const disableImportButton = computed(() => !syncSource.value.details.apiKey || !syncSource.value.details.syncSourceUrlOrId)
+const disableImportButton = computed(
+  () =>
+    !syncSource.value.details.apiKey ||
+    !syncSource.value.details.syncSourceUrlOrId ||
+    sourceSelectorRef.value?.selectedSource?.ncItemDisabled,
+)
 
 const isLoading = ref(false)
 

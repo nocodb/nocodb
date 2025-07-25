@@ -245,6 +245,9 @@ const rolePermissions:
 
       extensionList: true,
       extensionRead: true,
+      extensionCreate: true,
+      extensionUpdate: true,
+      extensionDelete: true,
 
       jobList: true,
       commentList: true,

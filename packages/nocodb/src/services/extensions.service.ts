@@ -1,9 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, type ExtensionReqType } from 'nocodb-sdk';
+import {
+  AppEvents,
+  extractRolesObj,
+  ProjectRoles,
+  UserType,
+  type ExtensionReqType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { Extension } from '~/models';
+import { hasMinimumRole } from '~/utils/roleHelper';
+import { NcError } from '~/helpers/ncError';
+import { generateReadablePermissionErr } from 'src/utils/acl';
 
 @Injectable()
 export class ExtensionsService {
@@ -22,8 +31,15 @@ export class ExtensionsService {
     param: {
       extension: ExtensionReqType;
       req: NcRequest;
+      minAccessRole?: string;
     },
   ) {
+    this.verifyMininumRoleAccess({
+      user: param.req.user,
+      minAccessRole: param.minAccessRole,
+      permissionName: 'extensionCreate',
+    });
+
     validatePayload(
       'swagger.json#/components/schemas/ExtensionReq',
       param.extension,
@@ -49,8 +65,15 @@ export class ExtensionsService {
       extensionId: string;
       extension: ExtensionReqType;
       req: NcRequest;
+      minAccessRole?: string;
     },
   ) {
+    this.verifyMininumRoleAccess({
+      user: param.req.user,
+      minAccessRole: param.minAccessRole,
+      permissionName: 'extensionUpdate',
+    });
+
     validatePayload(
       'swagger.json#/components/schemas/ExtensionReq',
       param.extension,
@@ -73,8 +96,18 @@ export class ExtensionsService {
 
   async extensionDelete(
     context: NcContext,
-    param: { extensionId: string; req: NcRequest },
+    param: {
+      extensionId: string;
+      req: NcRequest;
+      minAccessRole?: string;
+    },
   ) {
+    this.verifyMininumRoleAccess({
+      user: param.req.user,
+      minAccessRole: param.minAccessRole,
+      permissionName: 'extensionDelete',
+    });
+
     const res = await Extension.delete(context, param.extensionId);
 
     this.appHooksService.emit(AppEvents.EXTENSION_DELETE, {
@@ -83,5 +116,27 @@ export class ExtensionsService {
     });
 
     return res;
+  }
+
+  verifyMininumRoleAccess(param: {
+    user: UserType & {
+      base_roles?: Record<string, boolean>;
+      workspace_roles?: Record<string, boolean>;
+    };
+    minAccessRole?: string;
+    permissionName: string;
+  }) {
+    if (
+      !hasMinimumRole(
+        param.user,
+        (param.minAccessRole as ProjectRoles) || ProjectRoles.CREATOR,
+      )
+    ) {
+      const roles = extractRolesObj(param.user.base_roles);
+
+      NcError.forbidden(
+        generateReadablePermissionErr(param.permissionName, roles, 'base'),
+      );
+    }
   }
 }

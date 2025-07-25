@@ -1,5 +1,6 @@
 import { useStorage } from '@vueuse/core'
-import { PlanLimitTypes } from 'nocodb-sdk'
+import type { ProjectRoles } from 'nocodb-sdk'
+import { PlanLimitTypes, getProjectRole, hasMinimumRoleAccess } from 'nocodb-sdk'
 import { usePlugin } from './usePlugin'
 import { ExtensionsEvents } from '#imports'
 
@@ -50,6 +51,7 @@ export const useExtensions = createSharedComposable(() => {
     getPluginAssetUrl,
     availableExtensions,
     availableExtensionIds,
+    availableExtensionMapById,
     pluginTypes,
     pluginDescriptionContent,
     isPluginsEnabled,
@@ -58,6 +60,8 @@ export const useExtensions = createSharedComposable(() => {
   const { baseExtensions } = extensionsState()
 
   const { $api, $e } = useNuxtApp()
+
+  const { user } = useGlobal()
 
   const { isUIAllowed } = useRoles()
 
@@ -105,13 +109,38 @@ export const useExtensions = createSharedComposable(() => {
     isPanelExpanded.value = !isPanelExpanded.value
   }
 
+  /**
+   * @param extensionId - The id of the extension which is defined in manifest.json to get the minimum access role for
+   * @returns The minimum access role for the extension
+   */
+  const getExtensionMinAccessRole = (extensionId: string): ExtensionManifest['minAccessRole'] => {
+    const extension = availableExtensionMapById.value[extensionId]
+    return extension?.minAccessRole || 'creator'
+  }
+
   const extensionList = computed<ExtensionType[]>(() => {
     return (activeBaseExtensions.value ? activeBaseExtensions.value.extensions : [])
-      .filter((e: ExtensionType) => availableExtensionIds.value.includes(e.extensionId))
+      .filter(
+        (e: ExtensionType) =>
+          availableExtensionIds.value.includes(e.extensionId) &&
+          hasMinimumRoleAccess(user.value, getExtensionMinAccessRole(e.extensionId) as ProjectRoles),
+      )
       .sort((a: ExtensionType, b: ExtensionType) => {
         return (a?.order ?? Infinity) - (b?.order ?? Infinity)
       })
   })
+
+  const userCurrentBaseRole = computed(() => {
+    return getProjectRole(user.value, true)
+  })
+
+  /**
+   * @param extensionId - The id of the extension which is defined in manifest.json to check if the user has access to
+   * @returns True if the user has access to the extension, false otherwise
+   */
+  const hasAccessToExtension = (extensionId: string) => {
+    return hasMinimumRoleAccess(user.value, getExtensionMinAccessRole(extensionId) as ProjectRoles)
+  }
 
   const addExtension = async (extension: any) => {
     if (!base.value || !base.value.id || !baseExtensions.value[base.value.id]) {
@@ -127,38 +156,49 @@ export const useExtensions = createSharedComposable(() => {
       },
     }
 
-    const newExtension = await $api.extensions.create(base.value.id, extensionReq)
-
-    if (newExtension) {
-      updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
-
-      baseExtensions.value[base.value.id].extensions.push(new Extension(newExtension))
-
-      nextTick(() => {
-        eventBus.emit(ExtensionsEvents.ADD, newExtension?.id)
-        $e('a:extension:add', { extensionId: extensionReq.extension_id })
+    try {
+      const newExtension = await $api.extensions.create(base.value.id, extensionReq, {
+        minAccessRole: getExtensionMinAccessRole(extension.id),
       })
-    }
 
-    return newExtension
+      if (newExtension) {
+        updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
+
+        baseExtensions.value[base.value.id].extensions.push(new Extension(newExtension))
+
+        nextTick(() => {
+          eventBus.emit(ExtensionsEvents.ADD, newExtension?.id)
+          $e('a:extension:add', { extensionId: extensionReq.extension_id })
+        })
+      }
+      return newExtension
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
   }
 
   const updateExtension = async (extensionId: string, extension: any) => {
-    if (!base.value || !base.value.id || !baseExtensions.value[base.value.id]) {
+    if (!extensionList.value.length) {
       return
     }
 
-    const updatedExtension = await $api.extensions.update(extensionId, extension)
+    const extensionToUpdate = extensionList.value.find((ext: any) => ext.id === extensionId)
 
-    if (updatedExtension) {
-      const extension = baseExtensions.value[base.value.id].extensions.find((ext: any) => ext.id === extensionId)
+    if (!extensionToUpdate) return
 
-      if (extension) {
-        extension.deserialize(updatedExtension)
+    try {
+      const updatedExtension = await $api.extensions.update(extensionId, extension, {
+        minAccessRole: getExtensionMinAccessRole(extensionToUpdate.extensionId),
+      })
+
+      if (updatedExtension) {
+        extensionToUpdate.deserialize(updatedExtension)
       }
-    }
 
-    return updatedExtension
+      return updatedExtension
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
   }
 
   const updateExtensionMeta = async (extensionId: string, key: string, value: any) => {
@@ -181,17 +221,25 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
-    await $api.extensions.delete(extensionId)
-
-    updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, -1)
-
     const extensionToDelete = baseExtensions.value[base.value.id].extensions.find((e: any) => e.id === extensionId)
 
-    baseExtensions.value[base.value.id].extensions = baseExtensions.value[base.value.id].extensions.filter(
-      (ext: any) => ext.id !== extensionId,
-    )
+    if (!extensionToDelete) return
 
-    $e('a:extension:delete', { extensionId: extensionToDelete.extensionId })
+    try {
+      await $api.extensions.delete(extensionId, {
+        minAccessRole: getExtensionMinAccessRole(extensionToDelete.extensionId),
+      })
+
+      updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, -1)
+
+      baseExtensions.value[base.value.id].extensions = baseExtensions.value[base.value.id].extensions.filter(
+        (ext: any) => ext.id !== extensionId,
+      )
+
+      $e('a:extension:delete', { extensionId: extensionToDelete.extensionId })
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
   }
 
   const duplicateExtension = async (extensionId: string) => {
@@ -205,12 +253,16 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
-    const { id: _id, order: _order, ...extensionData } = extension.serialize()
+    const { id: _id, order: _order, minAccessRole: _minAccessRole, ...extensionData } = extension.serialize()
 
-    const newExtension = await $api.extensions.create(base.value.id, {
-      ...extensionData,
-      title: `${extension.title} (Copy)`,
-    })
+    const newExtension = await $api.extensions.create(
+      base.value.id,
+      {
+        ...extensionData,
+        title: `${extension.title} (Copy)`,
+      },
+      { minAccessRole: getExtensionMinAccessRole(extension.extensionId) },
+    )
 
     if (newExtension) {
       const duplicatedExtension = new Extension(newExtension)
@@ -256,7 +308,11 @@ export const useExtensions = createSharedComposable(() => {
     try {
       const { list } = await $api.extensions.list(baseId)
 
-      const extensions = list?.map((ext: any) => new Extension(ext))
+      const extensions = list
+        ?.map((ext: any) => new Extension(ext))
+        .filter((ext: any) => {
+          return hasMinimumRoleAccess(user.value, getExtensionMinAccessRole(ext.extensionId) as ProjectRoles)
+        })
 
       if (baseExtensions.value[baseId]) {
         baseExtensions.value[baseId].extensions = extensions || baseExtensions.value[baseId].extensions
@@ -311,7 +367,6 @@ export const useExtensions = createSharedComposable(() => {
     private _kvStore: KvStore
     private _meta: any
     private _order: number
-
     public uiKey = 0
 
     constructor(data: any) {
@@ -406,9 +461,9 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   watch(
-    [() => base.value?.id, isPluginsEnabled, () => isUIAllowed('extensionList')],
-    ([baseId, newPluginsEnabled, isAllowed]) => {
-      if (!newPluginsEnabled || !baseId || !isAllowed) {
+    [() => base.value?.id, isPluginsEnabled, () => isUIAllowed('extensionList'), () => pluginsLoaded.value],
+    ([baseId, newPluginsEnabled, isAllowed, isPluginsLoaded]) => {
+      if (!newPluginsEnabled || !baseId || !isAllowed || !isPluginsLoaded) {
         return
       }
 
@@ -457,5 +512,8 @@ export const useExtensions = createSharedComposable(() => {
     isMarketVisible,
     extensionPanelSize,
     eventBus,
+    getExtensionMinAccessRole,
+    hasAccessToExtension,
+    userCurrentBaseRole,
   }
 })

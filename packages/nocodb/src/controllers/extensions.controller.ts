@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -42,6 +43,7 @@ export class ExtensionsController {
     @Param('baseId') baseId: string,
     @Body() body: Partial<ExtensionReqType>,
     @Req() req: NcRequest,
+    @Query('minAccessRole') minAccessRole?: string,
   ) {
     return await this.extensionsService.extensionCreate(context, {
       extension: {
@@ -49,6 +51,7 @@ export class ExtensionsController {
         base_id: baseId,
       },
       req,
+      minAccessRole,
     });
   }
 
@@ -68,11 +71,13 @@ export class ExtensionsController {
     @Param('extensionId') extensionId: string,
     @Body() body: Partial<ExtensionReqType>,
     @Req() req: NcRequest,
+    @Query('minAccessRole') minAccessRole?: string,
   ) {
     return await this.extensionsService.extensionUpdate(context, {
       extensionId,
       extension: body,
       req,
+      minAccessRole,
     });
   }
 
@@ -82,10 +87,12 @@ export class ExtensionsController {
     @TenantContext() context: NcContext,
     @Param('extensionId') extensionId: string,
     @Req() req: NcRequest,
+    @Query('minAccessRole') minAccessRole?: string,
   ) {
     return await this.extensionsService.extensionDelete(context, {
       extensionId,
       req,
+      minAccessRole,
     });
   }
 }

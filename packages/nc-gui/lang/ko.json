@@ -1895,6 +1895,7 @@
     "noDashboards": "대시보드 없음"
   },
   "msg": {
+    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "이것은 개인 기지입니다. 구성원을 보거나 초대할 수 있는 권한이 없습니다.",
     "userAlreadyExists": "\"{email}\"가 있는 사용자는 이미 액세스 권한이 있습니다.",
     "evaluateRecursively": "재귀적으로 평가",

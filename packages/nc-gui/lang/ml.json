@@ -117,6 +117,7 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "കൂടുതല്‍ റെക്കോഡുകള്‍ ചേര്‍ക്കാന്‍ അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "upgradeToAddLimitRecordSelection": "ഫിൽട്ടറുകൾ ഉപയോഗിച്ച് റെക്കോർഡ് തിരഞ്ഞെടുപ്പ് പരിധി നിശ്ചയിക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "ചേർക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "requestUpgradeToAdd": "ചേർക്കുന്നതിനായി അപ്‌ഗ്രേഡ് അഭ്യർത്ഥിക്കുക",
     "upgradeToAddMoreExtensions": "നിങ്ങൾ ഇപ്പോൾ ഫ്രീ പ്ലാനിലാണ്; ഇത് ഒരു എക്‌സ്റ്റൻഷൻ മാത്രമേ അനുവദിക്കൂ. പരിധിയില്ലാത്ത എക്‌സ്റ്റൻഷനുകൾക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
@@ -423,7 +424,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "സ്‌ക്രിപ്റ്റ്",
@@ -616,7 +618,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -885,7 +893,8 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions"
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -942,13 +951,13 @@
     "recent": "അടുത്തിടെ",
     "limitRecordSelectionToView": "റെക്കോര്‍ഡ് തെരഞ്ഞെടുപ്പ് ഒരു കാഴ്ചയില്‍ സിമിതപ്പെടുത്തുക",
     "limitRecordSelectionToFilters": "റെക്കോര്‍ഡ് തിരഞ്ഞെടുപ്പ് ഫിൽറ്ററുകളിലേക്ക് സിമിതപ്പെടുത്തുക",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "ചേർത്തവന്‍",
     "whatsNew": "എന്താണ് പുതിയത്!",
     "newAction": "പുതിയ ആക്ഷൻ",
     "actionLogs": "ആക്ഷൻ ലോഗ്സ്",
     "runScript": "സ്‌ക്രിപ്റ്റ് റണ്‍ ചെയ്യുക",
     "scriptName": "സ്‌ക്രിപ്റ്റ് പേര്",
-    "dashboardName": "ഡാഷ്ബോഡ് പേര്",
     "enableSnowFall": "സ്നോഫോൾ പ്രാവർത്തികമാക്കുക",
     "disableSnowFall": "സ്നോഫോൾ പ്രവർത്തനം നിർത്തുക",
     "snapshotCreationFailed": "സ്നാപ്ഷോട്ട് സൃഷ്ടിക്കുന്നത് പരാജയപ്പെട്ടു",
@@ -1734,7 +1743,11 @@
     "changePlan": "പദ്ധതി മാറ്റുക",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1809,7 +1822,8 @@
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
     "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
     "addLookupFields": "Add Lookup Fields",
-    "sourceVisibilityIsHidden": "Data source visibility is hidden"
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "ചിഹ്നങ്ങൾ തിരയുക",

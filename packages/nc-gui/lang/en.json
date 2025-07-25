@@ -621,7 +621,8 @@
       "resetTablePermissionsDescription": "Only Editors & up can create and delete records in a table",
       "resetFieldPermissions": "Reset field permissions",
       "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
-      "confirmRevertPermissionsToDefault": "Confirm revert permissions to default for table - \"{tableName}\""
+      "confirmRevertPermissionsToDefault": "Confirm revert permissions to default for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {

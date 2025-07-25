@@ -444,12 +444,16 @@ export class BaseUsersService {
         ncMeta,
       );
       await this.checkMultipleOwnerExist(baseUsers, base);
-      await this.ensureBaseOwner(context, {
-        baseUsers,
-        ignoreUserId: param.userId,
-        baseId: param.baseId,
-        req: param.req,
-      });
+      await this.ensureBaseOwner(
+        context,
+        {
+          baseUsers,
+          ignoreUserId: param.userId,
+          baseId: param.baseId,
+          req: param.req,
+        },
+        ncMeta,
+      );
     }
     const reverseOrderedProjectRoles = [...OrderedProjectRoles].reverse();
     const newRolePower = reverseOrderedProjectRoles.indexOf(
@@ -480,20 +484,23 @@ export class BaseUsersService {
       ncMeta,
     );
 
-    await this.mailService.sendMail({
-      mailEvent: MailEvent.BASE_ROLE_UPDATE,
-      payload: {
-        req: param.req,
-        user: user,
-        base,
-        oldRole: (getProjectRole(targetUser) ??
-          this.getInheritedBaseRole({
-            base,
-            workspaceRole: (targetUser as any)?.workspace_roles,
-          })) as ProjectRoles,
-        newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
+    await this.mailService.sendMail(
+      {
+        mailEvent: MailEvent.BASE_ROLE_UPDATE,
+        payload: {
+          req: param.req,
+          user: user,
+          base,
+          oldRole: (getProjectRole(targetUser) ??
+            this.getInheritedBaseRole({
+              base,
+              workspaceRole: (targetUser as any)?.workspace_roles,
+            })) as ProjectRoles,
+          newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
+        },
       },
-    });
+      ncMeta,
+    );
 
     this.appHooksService.emit(AppEvents.PROJECT_USER_UPDATE, {
       base,

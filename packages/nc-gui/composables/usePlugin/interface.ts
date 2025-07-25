@@ -1,5 +1,3 @@
-import type { ProjectRoles } from 'nocodb-sdk'
-
 export interface ExtensionManifest {
   id: string
   title: string

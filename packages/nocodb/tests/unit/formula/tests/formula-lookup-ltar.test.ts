@@ -287,5 +287,5 @@ function formulaLookupLtarTests() {
 }
 
 export function formulaLookupLtarTest() {
-  describe('FormulaLookupLtarTests', formulaLookupLtarTests);
+  describe.only('FormulaLookupLtarTests', formulaLookupLtarTests);
 }

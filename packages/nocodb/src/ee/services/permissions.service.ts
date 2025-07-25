@@ -216,4 +216,35 @@ export class PermissionsService {
       throw error;
     }
   }
+
+  async bulkDropPermissions(
+    context: NcContext,
+    permissionObj: {
+      permissionIds?: string[];
+      subjectIds?: string[];
+    },
+  ) {
+    const { permissionIds = [], subjectIds = [] } = permissionObj;
+
+    if (!permissionIds.length && !subjectIds.length) return;
+
+    const ncMeta = await Noco.ncMeta.startTransaction();
+
+    try {
+      await Permission.bulkDelete(context, permissionIds, subjectIds, ncMeta);
+
+      await ncMeta.commit();
+    } catch (error) {
+      await ncMeta.rollback();
+
+      // Rollback cache
+      // Delete base permissions list
+      await NocoCache.deepDel(
+        `${CacheScope.PERMISSION}:${context.base_id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+
+      throw error;
+    }
+  }
 }

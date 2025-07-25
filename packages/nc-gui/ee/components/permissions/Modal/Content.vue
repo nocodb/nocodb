@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
+import { PermissionEntity } from 'nocodb-sdk'
 
 interface Props {
   tableId: string
@@ -28,6 +29,25 @@ const loadTableMeta = async () => {
     console.error('Failed to load table metadata:', error)
   } finally {
     isLoading.value = false
+  }
+}
+
+const onRevertToDefault = (permission: PermissionEntity) => {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgResetPermissions'), {
+    'visible': isOpen,
+    'tableName': tableData.value?.title,
+    'options': [permission],
+    'tableId': props.tableId,
+    'tableColumns': tableData.value?.columns || [],
+    'showCheckbox': false,
+    'onUpdate:visible': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
   }
 }
 
@@ -62,25 +82,39 @@ defineExpose({
         :class="permissionsTableWrapperClass"
         placement="bottomLeft"
       >
-        <template #actions>
-          <!-- <NcButton type="secondary" size="small">
-                        <div class="flex items-center gap-2">
-                            <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
-                            <span>Revert to Default</span>
-                        </div>
-                    </NcButton> -->
+        <template #actions="{ hasPermissions }">
+          <NcTooltip :title="$t('objects.permissions.resetTablePermissions')" hide-on-click>
+            <NcButton
+              type="secondary"
+              size="small"
+              :disabled="!hasPermissions"
+              @click="onRevertToDefault(PermissionEntity.TABLE)"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
+                <span>{{ $t('activity.resetPermissions') }}</span>
+              </div>
+            </NcButton>
+          </NcTooltip>
         </template>
       </PermissionsTable>
 
       <div class="flex min-w-[540px] mx-auto w-full" :class="permissionsFieldWrapperClass">
         <PermissionsField :table-data="tableData" :table-toolbar-class-name="permissionsTableToolbarClassName">
-          <template #actions>
-            <!-- <NcButton type="secondary" size="small">
-                        <div class="flex items-center gap-2">
-                          <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
-                          <span>Revert to Default</span>
-                        </div>
-                      </NcButton> -->
+          <template #actions="{ hasPermissions }">
+            <NcTooltip :title="$t('objects.permissions.resetFieldPermissions')" hide-on-click>
+              <NcButton
+                type="secondary"
+                size="small"
+                :disabled="!hasPermissions"
+                @click="onRevertToDefault(PermissionEntity.FIELD)"
+              >
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncRotateCcw" class="flex-none h-4 w-4" />
+                  <span>{{ $t('activity.resetPermissions') }}</span>
+                </div>
+              </NcButton>
+            </NcTooltip>
           </template>
         </PermissionsField>
       </div>

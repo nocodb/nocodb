@@ -188,7 +188,11 @@ const { open, onChange: onChangeFile } = useFileDialog({
 })
 
 const isAllowedToAddRecord = computed(
-  () => !meta?.value?.id || isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD),
+  () =>
+    !meta?.value?.id ||
+    isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD, {
+      isFormView: true,
+    }),
 )
 
 const disableFormSubmit = computed(
@@ -335,7 +339,7 @@ async function submitForm() {
     }
 
     // handle filter out conditionally hidden field data
-    if ((!col.visible || !col.show) && col.title) {
+    if ((!col.visible || !col.show || !col.permissions?.isAllowedToEdit) && col.title) {
       delete formState.value[col.title]
       delete state.value[col.title]
     }
@@ -911,16 +915,6 @@ const { message: templatedMessage } = useTemplatedMessage(
         data-testid="nc-form-wrapper-submit"
       >
         <div class="max-w-[max(33%,688px)] mx-auto">
-          <div v-if="!isAllowedToAddRecord" class="mb-6">
-            <NcAlert
-              type="warning"
-              show-icon
-              class="mt-6 bg-nc-bg-orange-light max-w-[max(33%,688px)] mx-auto"
-              :message="$t('objects.permissions.formCannotAcceptSubmissions')"
-              :description="$t('objects.permissions.formCannotAcceptSubmissionsDescription')"
-            />
-          </div>
-
           <GeneralFormBanner
             v-if="!parseProp(formViewData?.meta).hide_banner"
             :banner-image-url="formViewData?.banner_image_url"
@@ -1700,16 +1694,18 @@ const { message: templatedMessage } = useTemplatedMessage(
                             @click.stop
                           >
                             <div class="w-4 h-4 flex-none mx-2"></div>
-                            <div class="flex-1 flex flex-row items-center truncate cursor-pointer">
-                              <div class="flex-1 font-base my-1.5">{{ $t('activity.selectAllFields') }}</div>
+                            <div class="flex-1 flex items-center justify-end truncate">
                               <div class="flex items-center px-2">
-                                <a-switch
+                                <NcSwitch
                                   :checked="visibleColumns.length === localColumns.length"
                                   size="small"
                                   class="nc-switch"
                                   :disabled="isLocked"
+                                  placement="right"
                                   @change="handleAddOrRemoveAllColumns"
-                                />
+                                >
+                                  <div class="font-base my-1.5 select-none">{{ $t('activity.selectAllFields') }}</div>
+                                </NcSwitch>
                               </div>
                             </div>
                           </div>

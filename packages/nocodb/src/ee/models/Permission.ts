@@ -1,5 +1,5 @@
 import {
-  type PermissionEntity,
+  PermissionEntity,
   PermissionGrantedType,
   type PermissionKey,
   type PermissionRole,
@@ -20,6 +20,7 @@ import {
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/ncError';
+import { Model } from '~/models';
 
 export default class Permission {
   id: string;
@@ -334,6 +335,59 @@ export default class Permission {
     await NocoCache.deepDel(
       `${CacheScope.PERMISSION}:${permissionId}`,
       CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    return res;
+  }
+
+  static async bulkDelete(
+    context: NcContext,
+    permissionIds: string[],
+    subjectIds: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!permissionIds.length && !subjectIds.length) return;
+
+    // Delete all subjects
+    if (subjectIds.length > 0) {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.PERMISSION_SUBJECTS,
+        null,
+        {
+          _and: [
+            {
+              subject_id: {
+                in: subjectIds,
+              },
+            },
+          ],
+        },
+      );
+    }
+
+    // Delete all permissions
+    const res = await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PERMISSIONS,
+      null,
+      {
+        _and: [
+          {
+            id: {
+              in: permissionIds,
+            },
+          },
+        ],
+      },
+    );
+
+    // Delete base permissions list cache
+    await NocoCache.deepDel(
+      `${CacheScope.PERMISSION}:${context.base_id}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
     );
 
     return res;

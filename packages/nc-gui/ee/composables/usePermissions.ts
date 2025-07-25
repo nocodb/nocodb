@@ -1,4 +1,5 @@
 import {
+  type BaseType,
   PermissionGrantedType,
   PermissionOptionValue,
   PermissionOptions,
@@ -6,6 +7,7 @@ import {
   PermissionRolePower,
   ProjectRoles,
   RoleColors,
+  ViewTypes,
   getPermissionIcon,
   getPermissionLabel,
   getPermissionOption,
@@ -21,6 +23,8 @@ export const usePermissions = () => {
   const baseStore = useBase()
   const { base } = storeToRefs(baseStore)
 
+  const { sharedView } = storeToRefs(useViewsStore())
+
   const { blockTableAndFieldPermissions } = useEeConfig()
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
@@ -30,12 +34,20 @@ export const usePermissions = () => {
   // Use centralized permission options from SDK
   const permissionOptions = PermissionOptions
 
+  // Permission list for the current base
+  const permissionList = computed(() => {
+    if (sharedView.value?.type === ViewTypes.FORM) {
+      return (sharedView.value?.basePermissions as BaseType['permissions']) ?? []
+    }
+
+    return base.value?.permissions ?? []
+  })
+
   // Permissions data grouped by entity
   const permissionsByEntity = computed(() => {
-    const permissions = base.value?.permissions ?? []
     const grouped: Record<string, any[]> = {}
 
-    permissions.forEach((permission) => {
+    permissionList.value.forEach((permission) => {
       const key = `${permission.entity}_${permission.entity_id}`
       if (!grouped[key]) {
         grouped[key] = []
@@ -74,6 +86,7 @@ export const usePermissions = () => {
     permissionType: string,
     options?: {
       userRole?: string
+      isFormView?: boolean
     },
   ) => {
     // If table and field permissions feature is not enabled, then we allow all permissions
@@ -81,7 +94,10 @@ export const usePermissions = () => {
       return true
     }
 
-    let currentUserRole = options?.userRole
+    /**
+     * If it is form view, then we need to treat user as editor
+     */
+    let currentUserRole = options?.isFormView ? PermissionRoleMap[ProjectRoles.EDITOR] : options?.userRole
 
     if (!currentUserRole) {
       if (typeof user.value?.base_roles === 'string') {
@@ -103,6 +119,9 @@ export const usePermissions = () => {
     }
 
     if (permissionObj.granted_type === PermissionGrantedType.USER) {
+      // In shared form user is anonymous, but in form builder user role is present so we have to treat it as shared form
+      if (options?.isFormView) return false
+
       // Check if user exists in subjects array
       return (
         permissionObj.subjects?.some(
@@ -161,6 +180,7 @@ export const usePermissions = () => {
 
   return {
     permissionOptions,
+    permissionList,
     permissionsByEntity,
     getPermissionOption,
     getPermissionLabel,

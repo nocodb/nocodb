@@ -76,6 +76,7 @@ export class InternalController extends InternalControllerCE {
       duplicateScript: 'base',
       setPermission: 'base',
       dropPermission: 'base',
+      bulkDropPermissions: 'base',
 
       dashboardList: 'base',
       dashboardGet: 'base',
@@ -310,6 +311,12 @@ export class InternalController extends InternalControllerCE {
 
       case 'dropPermission':
         return await this.permissionsService.dropPermission(context, payload);
+
+      case 'bulkDropPermissions':
+        return await this.permissionsService.bulkDropPermissions(
+          context,
+          payload,
+        );
 
       case 'dashboardCreate':
         return await this.dashboardsService.dashboardCreate(

@@ -9,10 +9,14 @@ const props = defineProps<Props>()
 
 const { column, mode } = toRefs(props)
 
-const { v$ } = useFormViewStoreOrThrow()
+const { v$, isRequired } = useFormViewStoreOrThrow()
 
 const visibilityError = computed(() => {
   return parseProp(column.value?.meta)?.visibility?.errors || {}
+})
+
+const requiredFieldEditRestricted = computed(() => {
+  return isRequired(column.value, column.value?.required) && !column.value?.permissions?.isAllowedToEdit
 })
 
 const fieldConfigError = computed(() => {
@@ -25,6 +29,10 @@ const fieldConfigError = computed(() => {
 })
 
 const firstErrorMsg = computed(() => {
+  if (requiredFieldEditRestricted.value) {
+    return 'This required field isn’t editable, which may cause submission errors during form submission.'
+  }
+
   const visibilityErr = Object.values(visibilityError.value ?? [])
   if (visibilityErr.length) {
     return visibilityErr[0]
@@ -38,8 +46,30 @@ const firstErrorMsg = computed(() => {
 
 <template>
   <template v-if="mode === 'preview'">
-    <div v-if="fieldConfigError?.hasError || Object.keys(visibilityError ?? {}).length" class="flex mt-2">
-      <NcTooltip :disabled="!firstErrorMsg" class="flex cursor-pointer" placement="bottom">
+    <div
+      v-if="
+        fieldConfigError?.hasError ||
+        Object.keys(visibilityError ?? {}).length ||
+        !column?.permissions?.isAllowedToEdit ||
+        requiredFieldEditRestricted
+      "
+      class="flex flex-col gap-2 mt-2"
+    >
+      <div
+        v-if="!column?.permissions?.isAllowedToEdit"
+        class="nc-field-config-error validation-error text-red-500 inline-flex items-center gap-2"
+      >
+        <GeneralIcon icon="info" />
+        <div class="flex">{{ column?.permissions?.label }}</div>
+      </div>
+
+      <NcTooltip
+        v-if="fieldConfigError?.hasError || Object.keys(visibilityError ?? {}).length || requiredFieldEditRestricted"
+        :disabled="!firstErrorMsg"
+        class="flex cursor-pointer"
+        placement="bottomLeft"
+        :arrow-point-at-center="false"
+      >
         <template #title>
           <div class="flex flex-col">
             {{ firstErrorMsg }}
@@ -56,9 +86,9 @@ const firstErrorMsg = computed(() => {
   </template>
   <template v-else>
     <GeneralIcon
-      v-if="fieldConfigError?.hasError || Object.keys(visibilityError ?? {}).length"
+      v-if="fieldConfigError?.hasError || Object.keys(visibilityError ?? {}).length || !column?.permissions?.isAllowedToEdit"
       icon="alertTriangle"
-      class="ml-1 flex-none !text-red-500"
+      class="ml-1 flex-none !text-red-500 h-3.5 w-3.5"
     />
   </template>
 </template>

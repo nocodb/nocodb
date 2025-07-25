@@ -331,9 +331,15 @@ const handleCancel = () => {
                 class="flex pl-5 py-3 justify-between token items-center border-l-1 border-r-1 border-b-1"
               >
                 <span class="text-black font-bold text-3.5 text-start w-2/9">
-                  <GeneralTruncateText placement="top" :length="20">
-                    {{ el.description }}
-                  </GeneralTruncateText>
+                  <div class="flex items-center gap-2">
+                    <GeneralTruncateText placement="top" :length="20">
+                      {{ el.description }}
+                    </GeneralTruncateText>
+                    <NcTooltip v-if="el.fk_sso_client_id" placement="top">
+                      <template #title>{{ $t('msg.ssoTokenTooltip') }}</template>
+                      <NcBadge color="orange" class="!text-xs !py-0.5 !px-1.5 mr-4"> SSO </NcBadge>
+                    </NcTooltip>
+                  </div>
                 </span>
                 <span class="text-gray-500 font-medium text-3.5 text-start w-2/9">
                   <GeneralTruncateText placement="top" :length="20">

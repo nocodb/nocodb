@@ -715,6 +715,10 @@ export class AclMiddleware implements NestInterceptor {
         ssoClient.length > 0 &&
         (await checkIfEmailAllowedNonSSO(req.ncWorkspaceId, req.user?.email))
       ) {
+        if (req.user?.is_api_token) {
+          NcError.allowedOnlySSOGeneratedToken(req.ncWorkspaceId);
+        }
+
         NcError.allowedOnlySSOAccess(req.ncWorkspaceId);
       }
     }

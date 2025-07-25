@@ -30,3 +30,4 @@ export { default as UsageStat } from './UsageStat';
 export { default as DbServer } from './DbServer';
 export { default as Permission } from './Permission';
 export { default as Dashboard } from './Dashboard';
+export { default as ApiToken } from './ApiToken';

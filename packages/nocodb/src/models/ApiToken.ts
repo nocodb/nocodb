@@ -123,7 +123,12 @@ export default class ApiToken implements ApiTokenType {
     {
       fk_user_id,
       includeUnmappedToken = false,
-    }: { fk_user_id?: string; includeUnmappedToken?: boolean } = {},
+      ssoClientId,
+    }: {
+      fk_user_id?: string;
+      includeUnmappedToken?: boolean;
+      ssoClientId?: string;
+    } = {},
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
     const qb = ncMeta.knex(MetaTable.API_TOKENS);
@@ -131,6 +136,12 @@ export default class ApiToken implements ApiTokenType {
     if (fk_user_id) {
       qb.where(`${MetaTable.API_TOKENS}.fk_user_id`, fk_user_id);
     }
+
+    // SSO filtering logic - if no ssoClientId, user is non-SSO and should only see non-SSO tokens
+    if (!ssoClientId) {
+      qb.whereNull(`${MetaTable.API_TOKENS}.fk_sso_client_id`);
+    }
+    // If ssoClientId exists, user logged via SSO and sees all tokens (no additional filtering)
 
     if (includeUnmappedToken) {
       qb.orWhereNull(`${MetaTable.API_TOKENS}.fk_user_id`);
@@ -145,11 +156,13 @@ export default class ApiToken implements ApiTokenType {
       offset = 0,
       fk_user_id,
       includeUnmappedToken = false,
+      ssoClientId,
     }: {
       limit: number;
       offset: number;
       fk_user_id?: string;
       includeUnmappedToken: boolean;
+      ssoClientId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -162,6 +175,7 @@ export default class ApiToken implements ApiTokenType {
         `${MetaTable.API_TOKENS}.token`,
         `${MetaTable.API_TOKENS}.description`,
         `${MetaTable.API_TOKENS}.fk_user_id`,
+        `${MetaTable.API_TOKENS}.fk_sso_client_id`,
         `${MetaTable.API_TOKENS}.base_id`,
         `${MetaTable.API_TOKENS}.created_at`,
         `${MetaTable.API_TOKENS}.updated_at`,
@@ -179,6 +193,12 @@ export default class ApiToken implements ApiTokenType {
     if (fk_user_id) {
       queryBuilder.where(`${MetaTable.API_TOKENS}.fk_user_id`, fk_user_id);
     }
+
+    // SSO filtering logic - if no ssoClientId, user is non-SSO and should only see non-SSO tokens
+    if (!ssoClientId) {
+      queryBuilder.whereNull(`${MetaTable.API_TOKENS}.fk_sso_client_id`);
+    }
+    // If ssoClientId exists, user logged via SSO and sees all tokens (no additional filtering)
 
     if (includeUnmappedToken) {
       queryBuilder.orWhereNull(`${MetaTable.API_TOKENS}.fk_user_id`);

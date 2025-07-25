@@ -6,11 +6,12 @@ import { MailEvent } from '~/interface/Mail';
 import { extractMentions } from '~/utils/richTextHelper';
 import { Base, BaseUser, Workspace } from '~/models';
 import { extractDisplayNameFromEmail } from '~/utils';
+import Noco from '~/Noco';
 
 @Injectable()
 export class MailService extends MailServiceCE {
-  async sendMail(params: MailParams) {
-    const mailerAdapter = await this.getAdapter();
+  async sendMail(params: MailParams, ncMeta = Noco.ncMeta) {
+    const mailerAdapter = await this.getAdapter(ncMeta);
     if (!mailerAdapter) {
       this.logger.error('Email Plugin not configured / active');
       return false;

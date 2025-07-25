@@ -38,22 +38,10 @@ function duplicateBaseTests() {
   it('will duplicate base successfully', async () => {
     const user = context.context.user;
 
-    const sources = await context.base.getSources();
     const dupProject = await basesService.baseCreate({
       base: {
         title: 'Dup base',
         status: ProjectStatus.JOB,
-        sources: [
-          {
-            inflection_column: sources[0].inflection_column,
-            inflection_table: sources[0].inflection_table,
-            is_meta: sources[0].is_meta,
-            is_local: sources[0].is_local,
-            is_schema_readonly: sources[0].is_schema_readonly,
-            is_data_readonly: sources[0].is_data_readonly,
-            type: sources[0].type,
-          },
-        ] as BaseReqType[],
         type: 'database',
         ...(context.ctx.workspace_id
           ? { fk_workspace_id: context.ctx.workspace_id }

@@ -104,10 +104,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       if (!base) {
         NcError.get(context).baseNotFound(params.baseId ?? params.baseName);
       }
-
       if (base) {
         req.ncBaseId = base.id;
-        if (params.tableName) {
+        if (params.tableId || params.tableName || params.modelId) {
           // extract model and then source id from model
           const model = await Model.getByAliasOrId(
             {
@@ -116,12 +115,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
             },
             {
               base_id: base.id,
-              aliasOrId: params.tableName,
+              aliasOrId: params.tableId || params.tableName || params.modelId,
             },
           );
-
           if (!model) {
-            NcError.get(context).tableNotFound(req.params.tableName);
+            NcError.get(context).tableNotFound(
+              params.tableId || req.params.tableName || params.modelId,
+            );
           }
 
           req.ncSourceId = model?.source_id;

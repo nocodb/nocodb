@@ -618,10 +618,10 @@
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
       "formCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form.",
       "resetTablePermissions": "Reset table permissions",
-      "resetTablePermissionsDescription": "Only Editors & up can create and delete records in a table",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
       "resetFieldPermissions": "Reset field permissions",
       "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
-      "confirmRevertPermissionsToDefault": "Confirm revert permissions to default for table - \"{tableName}\"",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
@@ -891,7 +891,8 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions"
   },
   "labels": {
     "configurationError": "Incomplete configuration",
@@ -1743,7 +1744,8 @@
     "convertToSharedBase": "Convert to Shared Base",
     "revertToDefault": "Revert to Default",
     "viewFieldPermissions": "View field permissions",
-    "revertPermissionsToDefault": "Revert permissions to default"
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

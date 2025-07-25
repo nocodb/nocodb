@@ -1,6 +1,7 @@
 import {
   AuditV1OperationTypes,
   isLinksOrLTAR,
+  ncIsNullOrUndefined,
   RelationTypes,
 } from 'nocodb-sdk';
 import type { AuditOperationSubTypes, NcRequest } from 'nocodb-sdk';
@@ -9,6 +10,7 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import {
   _wherePk,
+  dataWrapper,
   extractIds,
   getOppositeRelationType,
   getRelatedLinksColumn,
@@ -16,6 +18,37 @@ import {
 import { Model } from '~/models';
 
 export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
+  const validateRefIds = (
+    refIds: (string | number | Record<string, any>)[],
+    refModel: Model,
+  ) => {
+    for (const refId of Array.isArray(refIds) ? refIds : [refIds]) {
+      if (typeof refId === 'object') {
+        for (const primaryKey of refModel.primaryKeys) {
+          if (
+            ncIsNullOrUndefined(
+              dataWrapper(refId).getByColumnNameTitleOrId(primaryKey),
+            )
+          ) {
+            NcError.unprocessableEntity(
+              `Validation failed: Missing primary key column "${
+                primaryKey.title
+              }" in request for model "${
+                refModel.title
+              }". RefId: ${JSON.stringify(refId)}`,
+            );
+          }
+        }
+      } else if (ncIsNullOrUndefined(refId)) {
+        NcError.unprocessableEntity(
+          `Validation failed: Invalid id "${JSON.stringify(
+            refId,
+          )}" for model "${refModel.title}".`,
+        );
+      }
+    }
+  };
+
   const addLinks = async ({
     cookie,
     childIds: _childIds,
@@ -103,6 +136,11 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         : RelationTypes.HAS_MANY;
       childIds = childIds.slice(0, 1);
 
+      validateRefIds(
+        childIds,
+        relationType === RelationTypes.BELONGS_TO ? parentTable : childTable,
+      );
+
       // unlink
       await baseModel.execAndParse(
         baseModel
@@ -134,6 +172,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     switch (relationType) {
       case RelationTypes.MANY_TO_MANY:
         {
+          validateRefIds(childIds, parentTable);
+
           const vChildCol = await colOptions.getMMChildColumn(mmContext);
           const vParentCol = await colOptions.getMMParentColumn(mmContext);
           const vTable = await colOptions.getMMModel(mmContext);
@@ -177,10 +217,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               childRowsQb.whereIn(
                 `${parentTn}.${parentTable.primaryKey.column_name}`,
                 typeof childIds[0] === 'object'
-                  ? childIds.map(
-                      (c) =>
-                        c[parentTable.primaryKey.title] ??
-                        c[parentTable.primaryKey.column_name],
+                  ? childIds.map((c) =>
+                      dataWrapper(c).getByColumnNameTitleOrId(
+                        parentTable.primaryKey,
+                      ),
                     )
                   : childIds,
               );
@@ -214,10 +254,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               // generate insert data for new links
               .map((childRow) => ({
                 [vParentCol.column_name]:
-                  childRow[parentColumn.title] ??
-                  childRow[parentColumn.column_name],
+                  dataWrapper(childRow).getByColumnNameTitleOrId(parentColumn),
                 [vChildCol.column_name]:
-                  row[childColumn.title] ?? row[childColumn.column_name],
+                  dataWrapper(row).getByColumnNameTitleOrId(childColumn),
               }));
 
             // if no new links, return true
@@ -253,6 +292,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         break;
       case RelationTypes.HAS_MANY:
         {
+          validateRefIds(childIds, childTable);
           // validate Ids
           {
             const childRowsQb = baseModel
@@ -269,10 +309,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               childRowsQb.whereIn(
                 parentTable.primaryKey.column_name,
                 typeof childIds[0] === 'object'
-                  ? childIds.map(
-                      (c) =>
-                        c[parentTable.primaryKey.title] ??
-                        c[parentTable.primaryKey.column_name],
+                  ? childIds.map((c) =>
+                      dataWrapper(c).getByColumnNameTitleOrId(
+                        parentTable.primaryKey,
+                      ),
                     )
                   : childIds,
               );
@@ -315,10 +355,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             updateQb.whereIn(
               childTable.primaryKey.column_name,
               typeof childIds[0] === 'object'
-                ? childIds.map(
-                    (c) =>
-                      c[childTable.primaryKey.title] ??
-                      c[childTable.primaryKey.column_name],
+                ? childIds.map((c) =>
+                    dataWrapper(c).getByColumnNameTitleOrId(
+                      childTable.primaryKey,
+                    ),
                   )
                 : childIds,
             );
@@ -334,6 +374,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         break;
       case RelationTypes.BELONGS_TO:
         {
+          validateRefIds(childIds, parentTable);
           auditConfig.parentModel = childTable;
           auditConfig.childModel = parentTable;
           const refBaseModel = parentBaseModel;
@@ -408,7 +449,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           rowId: _childId,
           refRowId: rowId,
           refDisplayValue:
-            row[childColumn.title] ?? row[childColumn.column_name],
+            dataWrapper(row).getByColumnNameTitleOrId(childColumn),
           type: getOppositeRelationType(colOptions.type),
         });
       }
@@ -540,6 +581,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
         {
+          validateRefIds(childIds, parentTable);
           const vChildCol = await colOptions.getMMChildColumn(mmContext);
           const vParentCol = await colOptions.getMMParentColumn(mmContext);
           const vTable = await colOptions.getMMModel(mmContext);
@@ -565,10 +607,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             } else if (typeof childIds[0] === 'object') {
               childRowsQb.whereIn(
                 `${parentTn}.${parentTable.primaryKey.column_name}`,
-                childIds.map(
-                  (c) =>
-                    c[parentTable.primaryKey.title] ||
-                    c[parentTable.primaryKey.column_name],
+                childIds.map((c) =>
+                  dataWrapper(c).getByColumnNameTitleOrId(
+                    parentTable.primaryKey,
+                  ),
                 ),
               );
             } else {
@@ -598,8 +640,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                     (r) =>
                       r[parentColumn.column_name] ===
                       (typeof id === 'object'
-                        ? id[parentTable.primaryKey.title] ??
-                          id[parentTable.primaryKey.column_name]
+                        ? dataWrapper(id).getByColumnNameTitleOrId(
+                            parentTable.primaryKey,
+                          )
                         : id),
                   ),
               );
@@ -624,10 +667,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           delQb.whereIn(
             `${vTable.table_name}.${vParentCol.column_name}`,
             typeof childIds[0] === 'object'
-              ? childIds.map(
-                  (c) =>
-                    c[parentTable.primaryKey.title] ??
-                    c[parentTable.primaryKey.column_name],
+              ? childIds.map((c) =>
+                  dataWrapper(c).getByColumnNameTitleOrId(
+                    parentTable.primaryKey,
+                  ),
                 )
               : childIds,
           );
@@ -652,6 +695,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         break;
       case RelationTypes.HAS_MANY:
         {
+          validateRefIds(childIds, childTable);
           // validate Ids
           {
             const childRowsQb = baseModel
@@ -667,10 +711,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             } else if (typeof childIds[0] === 'object') {
               childRowsQb.whereIn(
                 parentTable.primaryKey.column_name,
-                childIds.map(
-                  (c) =>
-                    c[parentTable.primaryKey.title] ??
-                    c[parentTable.primaryKey.column_name],
+                childIds.map((c) =>
+                  dataWrapper(c).getByColumnNameTitleOrId(
+                    parentTable.primaryKey,
+                  ),
                 ),
               );
             } else {
@@ -692,8 +736,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                     (r) =>
                       r[parentColumn.column_name] ===
                       (typeof id === 'object'
-                        ? id[parentTable.primaryKey.title] ??
-                          id[parentTable.primaryKey.column_name]
+                        ? dataWrapper(id).getByColumnNameTitleOrId(
+                            parentTable.primaryKey,
+                          )
                         : id),
                   ),
               );
@@ -714,10 +759,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             childRowsQb.whereIn(
               parentTable.primaryKey.column_name,
               typeof childIds[0] === 'object'
-                ? childIds.map(
-                    (c) =>
-                      c[parentTable.primaryKey.title] ??
-                      c[parentTable.primaryKey.column_name],
+                ? childIds.map((c) =>
+                    dataWrapper(c).getByColumnNameTitleOrId(
+                      parentTable.primaryKey,
+                    ),
                   )
                 : childIds,
             );
@@ -738,6 +783,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         break;
       case RelationTypes.BELONGS_TO:
         {
+          validateRefIds(childIds, parentTable);
           auditConfig.parentModel = childTable;
           auditConfig.childModel = parentTable;
 
@@ -806,7 +852,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       parentAuditObj.push({
         rowId,
         refRowId: _childId,
-        displayValue: row[column.title] ?? row[column.column_name],
+        displayValue: dataWrapper(row).getByColumnNameTitleOrId(column),
         type: colOptions.type as RelationTypes,
       });
 
@@ -815,7 +861,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           rowId: _childId,
           refRowId: rowId,
           refDisplayValue:
-            row[childColumn.title] ?? row[childColumn.column_name],
+            dataWrapper(row).getByColumnNameTitleOrId(childColumn),
           type: getOppositeRelationType(colOptions.type),
         });
       }

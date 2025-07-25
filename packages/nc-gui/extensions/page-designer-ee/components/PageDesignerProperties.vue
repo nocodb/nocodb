@@ -48,7 +48,7 @@ const togglePreviewMode = () => {
         </NcTooltip>
       </template>
     </SettingsHeader>
-    <GroupedSettings title="Preview">
+    <GroupedSettings title="Select Record">
       <div class="flex flex-col gap-4">
         <TableAndViewPicker />
         <div class="flex flex-col gap-2">

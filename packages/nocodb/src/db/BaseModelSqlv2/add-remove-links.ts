@@ -16,6 +16,33 @@ import {
 import { Model } from '~/models';
 
 export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
+  const validateRefIds = (
+    refIds: (string | number | Record<string, any>)[],
+    refModel: Model,
+  ) => {
+    for (const refId of Array.isArray(refIds) ? refIds : [refIds]) {
+      if (typeof refId === 'object') {
+        for (const primaryKey of refModel.primaryKeys) {
+          if (!Object.keys(refId).includes(primaryKey.title)) {
+            NcError.unprocessableEntity(
+              `Validation failed: Missing primary key column "${
+                primaryKey.title
+              }" in request for model "${
+                refModel.title
+              }". RefId: ${JSON.stringify(refId)}`,
+            );
+          }
+        }
+      } else if (refId === null || refId === undefined) {
+        NcError.unprocessableEntity(
+          `Validation failed: Invalid id "${JSON.stringify(
+            refId,
+          )}" for model "${refModel.title}".`,
+        );
+      }
+    }
+  };
+
   const addLinks = async ({
     cookie,
     childIds: _childIds,
@@ -103,6 +130,11 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         : RelationTypes.HAS_MANY;
       childIds = childIds.slice(0, 1);
 
+      validateRefIds(
+        childIds,
+        relationType === RelationTypes.BELONGS_TO ? parentTable : childTable,
+      );
+
       // unlink
       await baseModel.execAndParse(
         baseModel
@@ -134,6 +166,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     switch (relationType) {
       case RelationTypes.MANY_TO_MANY:
         {
+          validateRefIds(childIds, parentTable);
+
           const vChildCol = await colOptions.getMMChildColumn(mmContext);
           const vParentCol = await colOptions.getMMParentColumn(mmContext);
           const vTable = await colOptions.getMMModel(mmContext);
@@ -253,6 +287,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         break;
       case RelationTypes.HAS_MANY:
         {
+          validateRefIds(childIds, childTable);
           // validate Ids
           {
             const childRowsQb = baseModel
@@ -334,6 +369,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         break;
       case RelationTypes.BELONGS_TO:
         {
+          validateRefIds(childIds, parentTable);
           auditConfig.parentModel = childTable;
           auditConfig.childModel = parentTable;
           const refBaseModel = parentBaseModel;
@@ -540,6 +576,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
         {
+          validateRefIds(childIds, parentTable);
           const vChildCol = await colOptions.getMMChildColumn(mmContext);
           const vParentCol = await colOptions.getMMParentColumn(mmContext);
           const vTable = await colOptions.getMMModel(mmContext);
@@ -652,6 +689,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         break;
       case RelationTypes.HAS_MANY:
         {
+          validateRefIds(childIds, childTable);
           // validate Ids
           {
             const childRowsQb = baseModel
@@ -738,6 +776,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         break;
       case RelationTypes.BELONGS_TO:
         {
+          validateRefIds(childIds, parentTable);
           auditConfig.parentModel = childTable;
           auditConfig.childModel = parentTable;
 

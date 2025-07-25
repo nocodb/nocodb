@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  BoolType,
   isCreatedOrLastModifiedByCol,
   isLinksOrLTAR,
   ncIsObject,
@@ -37,6 +38,7 @@ export class PublicMetasService {
       relatedMetas?: { [ket: string]: Model };
       users?: { id: string; display_name: string; email: string }[];
       client?: string;
+      source?: Pick<Source, 'id' | 'type' | 'is_meta' | 'is_local'>;
     } = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
@@ -61,6 +63,12 @@ export class PublicMetasService {
 
     const source = await Source.get(context, view.model.source_id);
     view.client = source.type;
+    view.source = {
+      id: source.id,
+      type: source.type,
+      is_meta: source.is_meta,
+      is_local: source.is_local,
+    };
 
     // todo: return only required props
     view.password = undefined;

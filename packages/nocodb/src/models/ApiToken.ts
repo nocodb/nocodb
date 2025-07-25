@@ -15,6 +15,7 @@ export default class ApiToken implements ApiTokenType {
   fk_workspace_id?: string;
   base_id?: string;
   fk_user_id?: string;
+  fk_sso_client_id?: string;
   description?: string;
   permissions?: string;
   token?: string;
@@ -38,6 +39,7 @@ export default class ApiToken implements ApiTokenType {
         description: apiToken.description,
         token,
         fk_user_id: apiToken.fk_user_id,
+        fk_sso_client_id: apiToken.fk_sso_client_id ?? null,
       },
       true,
     );
@@ -64,6 +66,36 @@ export default class ApiToken implements ApiTokenType {
     );
     // await NocoCache.setList(CacheScope.API_TOKEN, [], tokens);
     // }
+    return tokens?.map((t) => new ApiToken(t));
+  }
+
+  static async listForSsoUser(userId: string, ssoClientId: string, ncMeta = Noco.ncMeta) {
+    const tokens = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.API_TOKENS,
+      {
+        condition: {
+          fk_user_id: userId,
+          fk_sso_client_id: ssoClientId
+        },
+      },
+    );
+    return tokens?.map((t) => new ApiToken(t));
+  }
+
+  static async listForNonSsoUser(userId: string, ncMeta = Noco.ncMeta) {
+    const tokens = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.API_TOKENS,
+      {
+        condition: {
+          fk_user_id: userId,
+          fk_sso_client_id: null
+        },
+      },
+    );
     return tokens?.map((t) => new ApiToken(t));
   }
 

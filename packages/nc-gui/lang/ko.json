@@ -117,6 +117,7 @@
     "planLimitReached": "한도에 도달했습니다: 요금제 업그레이드",
     "planLimitReachedSubtitle": "더 많은 항목을 추가하려면 업그레이드하십시오",
     "upgradeToAddLimitRecordSelection": "필터를 사용하여 항목 선택을 제한하려면 {plan} 플랜으로 업그레이드하십시오.",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "업그레이드하여 추가",
     "requestUpgradeToAdd": "추가하려면 업그레이드 요청",
     "upgradeToAddMoreExtensions": "현재 하나의 확장만 허용하는 무료 요금제를 사용 중입니다. 업그레이드하여 무제한 확장 기능을 잠금 해제하세요.",
@@ -423,7 +424,8 @@
     "automations": "자동화",
     "record": "항목",
     "overview": "개요",
-    "baseType": "기본 유형"
+    "baseType": "기본 유형",
+    "beta": "Beta"
   },
   "objects": {
     "script": "스크립트",
@@ -616,7 +618,13 @@
       "generalPermissionTooltip": "이 작업을 수행할 수 있는 권한이 없습니다",
       "uploadDataTooltip": "이 테이블에 데이터를 업로드할 수 있는 권한이 없습니다",
       "formCannotAcceptSubmissions": "양식은 제출을 수락할 수 없습니다.",
-      "formCannotAcceptSubmissionsDescription": "특정 회원만 이 양식에 대한 응답을 제출할 수 있는 권한이 있습니다."
+      "formCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -885,7 +893,8 @@
     "privateBase": "개인 프로젝트",
     "privateBaseAlertDescription": "이 베이스는 초대받은 사람만 참여할 수 있으며, 이 베이스에 초대된 멤버만 액세스하고 상호 작용할 수 있습니다. 모든 기본 소유자는 다른 사용자를 초대할 수 있습니다",
     "thisPrivateBaseHasBeenLocked": "이 개인 프로젝트는 잠겨 있습니다.",
-    "thisPrivateBaseHasBeenLockedSubtext": "잠금을 해제하려면 {plan} 플랜으로 업그레이드하거나 이 베이스를 공유 베이스로 전환하십시오."
+    "thisPrivateBaseHasBeenLockedSubtext": "잠금을 해제하려면 {plan} 플랜으로 업그레이드하거나 이 베이스를 공유 베이스로 전환하십시오.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions"
   },
   "labels": {
     "configurationError": "구성 오류",
@@ -942,13 +951,13 @@
     "recent": "최근",
     "limitRecordSelectionToView": "항목 선택을 보기로 제한",
     "limitRecordSelectionToFilters": "항목 선택을 필터로 제한",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "추가자",
     "whatsNew": "새로운 소식!",
     "newAction": "새 작업",
     "actionLogs": "작업 로그",
     "runScript": "스크립트 실행",
     "scriptName": "스크립트 이름",
-    "dashboardName": "대시보드 이름",
     "enableSnowFall": "눈 내림 효과 활성화",
     "disableSnowFall": "눈 내림 효과 비활성화",
     "snapshotCreationFailed": "스냅샷 생성 실패",
@@ -1734,7 +1743,11 @@
     "changePlan": "체인지플랜",
     "goToPermissionsOverview": "Permissions Overview(권한 개요)로 이동합니다.",
     "goToBaseSettings": "기본 설정으로 이동",
-    "convertToSharedBase": "공유 프로젝트로 변환"
+    "convertToSharedBase": "공유 프로젝트로 변환",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset"
   },
   "tooltip": {
     "includeUserHint": "웹훅을 트리거한 사용자는 페이로드에 'user' 개체로 포함됩니다.",
@@ -1809,7 +1822,8 @@
     "viewAndEditPermissionsForAllFieldsInThisTable": "이 표의 모든 필드에 대한 보기 및 편집 권한",
     "addingEmptyRecordIsNotAllowedInThisTable": "이 테이블에서는 빈 레코드를 추가할 수 없습니다",
     "addLookupFields": "조회 필드 추가",
-    "sourceVisibilityIsHidden": "데이터 원본 가시성이 숨겨짐"
+    "sourceVisibilityIsHidden": "데이터 원본 가시성이 숨겨짐",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",

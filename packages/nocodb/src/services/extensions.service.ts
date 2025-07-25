@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
   extractRolesObj,
+  ProjectRoles,
   UserType,
   type ExtensionReqType,
 } from 'nocodb-sdk';
@@ -9,7 +10,6 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { Extension } from '~/models';
-import { getExtensionMinAccessRole } from '~/utils/extensionUtils';
 import { hasMinimumRole } from '~/utils/roleHelper';
 import { NcError } from '~/helpers/ncError';
 import { generateReadablePermissionErr } from 'src/utils/acl';
@@ -31,12 +31,12 @@ export class ExtensionsService {
     param: {
       extension: ExtensionReqType;
       req: NcRequest;
-      extensionEntry?: string;
+      minAccessRole?: string;
     },
   ) {
     this.verifyMininumRoleAccess({
       user: param.req.user,
-      extensionEntry: param.extensionEntry,
+      minAccessRole: param.minAccessRole,
       permissionName: 'extensionCreate',
     });
 
@@ -65,12 +65,12 @@ export class ExtensionsService {
       extensionId: string;
       extension: ExtensionReqType;
       req: NcRequest;
-      extensionEntry?: string;
+      minAccessRole?: string;
     },
   ) {
     this.verifyMininumRoleAccess({
       user: param.req.user,
-      extensionEntry: param.extensionEntry,
+      minAccessRole: param.minAccessRole,
       permissionName: 'extensionUpdate',
     });
 
@@ -99,12 +99,12 @@ export class ExtensionsService {
     param: {
       extensionId: string;
       req: NcRequest;
-      extensionEntry?: string;
+      minAccessRole?: string;
     },
   ) {
     this.verifyMininumRoleAccess({
       user: param.req.user,
-      extensionEntry: param.extensionEntry,
+      minAccessRole: param.minAccessRole,
       permissionName: 'extensionDelete',
     });
 
@@ -123,14 +123,10 @@ export class ExtensionsService {
       base_roles?: Record<string, boolean>;
       workspace_roles?: Record<string, boolean>;
     };
-    extensionEntry?: string;
+    minAccessRole?: string;
     permissionName: string;
   }) {
-    const extensionMinAccessRole = getExtensionMinAccessRole(
-      param.extensionEntry,
-    );
-
-    if (!hasMinimumRole(param.user, extensionMinAccessRole)) {
+    if (!hasMinimumRole(param.user, param.minAccessRole as ProjectRoles)) {
       const roles = extractRolesObj(param.user.base_roles);
 
       NcError.forbidden(

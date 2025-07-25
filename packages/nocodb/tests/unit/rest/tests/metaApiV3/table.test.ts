@@ -26,7 +26,7 @@ export default function () {
     describe('table create', () => {
       it(`will create email column with validation true`, async () => {
         const table = {
-          title: 'Table Email',
+          title: 'Table_Email',
           description: 'Description',
           fields: [
             {

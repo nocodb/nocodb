@@ -63,14 +63,6 @@ const computedWhere = computed(() => {
   return fieldQuery
 })
 
-const isValidSearchQuery = computed(() => {
-  const searchQuery = where.value?.trim()
-
-  if (!searchQuery) return true
-
-  return !!(searchQuery && computedWhere.value)
-})
-
 const { cachedRows, loadData, syncCount, totalRows, chunkStates, clearCache } = useInfiniteData({
   meta,
   viewMeta,
@@ -287,6 +279,17 @@ onMounted(async () => {
 
 const wrapperHeight = computed(() => {
   return totalRows.value * ROW_HEIGHT
+})
+
+const isValidSearchQuery = computed(() => {
+  // If it is local searchLike or no records then don't check for valid search query
+  if (records.value?.length || !totalRows.value) return true
+
+  const searchQuery = where.value?.trim()
+
+  if (!searchQuery) return true
+
+  return !!(searchQuery && computedWhere.value)
 })
 
 /**

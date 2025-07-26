@@ -34,14 +34,6 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import { addOrRemoveLinks } from './BaseModelSqlv2/add-remove-links';
-import { baseModelInsert } from './BaseModelSqlv2/insert';
-import { NestedLinkPreparator } from './BaseModelSqlv2/nested-link-preparator';
-import { relationDataFetcher } from './BaseModelSqlv2/relation-data-fetcher';
-import { selectObject } from './BaseModelSqlv2/select-object';
-import { FieldHandler } from './field-handler';
-import { AttachmentUrlUploadPreparator } from './BaseModelSqlv2/attachment-url-upload-preparator';
-import { ncIsStringHasValue } from './field-handler/utils/handlerUtils';
 import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
@@ -73,6 +65,14 @@ import type {
 } from '~/models';
 import type LookupColumn from '~/models/LookupColumn';
 import type { ResolverObj } from '~/utils';
+import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
+import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
+import { FieldHandler } from '~/db/field-handler';
+import { selectObject } from '~/db/BaseModelSqlv2/select-object';
+import { relationDataFetcher } from '~/db/BaseModelSqlv2/relation-data-fetcher';
+import { NestedLinkPreparator } from '~/db/BaseModelSqlv2/nested-link-preparator';
+import { baseModelInsert } from '~/db/BaseModelSqlv2/insert';
+import { addOrRemoveLinks } from '~/db/BaseModelSqlv2/add-remove-links';
 import applyAggregation from '~/db/aggregation';
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
 import conditionV2 from '~/db/conditionV2';

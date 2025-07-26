@@ -4,15 +4,15 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
-import { NcError } from 'src/helpers/ncError';
-import { extractColsMetaForAudit, generateAuditV1Payload } from 'src/utils';
 import { AuditV1OperationTypes, ncIsNull } from 'nocodb-sdk';
-import { DataV3Service } from './data-v3.service';
 import type { DataUpdatePayload } from 'nocodb-sdk';
 import type {
   AttachmentBase64UploadParam,
   AttachmentUrlUploadParam,
 } from '~/types/data-columns/attachment';
+import { extractColsMetaForAudit, generateAuditV1Payload } from '~/utils';
+import { NcError } from '~/helpers/ncError';
+import { DataV3Service } from '~/services/v3/data-v3.service';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
   NC_ATTACHMENT_URL_MAX_REDIRECT,

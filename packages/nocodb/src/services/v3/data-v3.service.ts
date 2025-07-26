@@ -2,6 +2,7 @@ import { NcApiVersion, RelationTypes, UITypes } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import { NcError } from 'src/helpers/catchError';
 import { getCompositePkValue } from 'src/helpers/dbHelpers';
+import { extractProps } from 'src/helpers/extractProps';
 import type {
   DataDeleteParams,
   DataInsertParams,
@@ -254,6 +255,32 @@ export class DataV3Service {
               reuse,
               depth: depth + 1,
             });
+            continue;
+          }
+        } else if (column?.uidt === UITypes.Attachment) {
+          if (value) {
+            let attachmentVal: any[] = value as any;
+            if (!Array.isArray(value) && typeof value === 'string') {
+              attachmentVal = JSON.parse(value);
+            } else if (!Array.isArray(attachmentVal)) {
+              // unknown format, let's not handle it yet
+              continue;
+            }
+
+            attachmentVal = attachmentVal.map((attr) =>
+              extractProps(attr, [
+                'id',
+                'url',
+                'path',
+                'title',
+                'mimetype',
+                'size',
+                'icon',
+                'width',
+                'height',
+              ]),
+            );
+            transformedFields[key] = attachmentVal;
             continue;
           }
         }

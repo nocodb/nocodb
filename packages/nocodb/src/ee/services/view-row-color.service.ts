@@ -21,7 +21,7 @@ import type {
 import { MetaTable } from '~/cli';
 import { NcError } from '~/helpers/catchError';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
-import { View } from '~/models';
+import { Model, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -47,13 +47,13 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
 
     if (view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {
-      const baseModel = await getBaseModelSqlFromModelId({
-        context: params.context,
-        modelId: view.fk_model_id,
-      });
-      await baseModel.model.getColumns(params.context);
+      const model = await Model.get(params.context, view.fk_model_id);
+
+      await model.getColumns(params.context);
+
       const meta: ViewMetaRowColoring = parseProp(view.meta);
-      const selectColumn = baseModel.model.columns.find(
+
+      const selectColumn = model.columns.find(
         (k) => k.id === meta.rowColoringInfo.fk_column_id,
       );
 
@@ -65,7 +65,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           fk_column_id: null,
           color: null,
           is_set_as_background: null,
-          fk_model_id: baseModel.model.id,
+          fk_model_id: model.id,
           fk_view_id: view.id,
         };
       }
@@ -80,7 +80,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         is_set_as_background: meta.rowColoringInfo.is_set_as_background,
         fk_column_id: meta.rowColoringInfo.fk_column_id,
         selectColumn,
-        fk_model_id: baseModel.model.id,
+        fk_model_id: model.id,
         fk_view_id: view.id,
       } as RowColoringInfo;
     } else if (view.row_coloring_mode === ROW_COLORING_MODE.FILTER) {

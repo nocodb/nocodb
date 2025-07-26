@@ -10,6 +10,7 @@ import type {
   AttachmentBase64UploadParam,
   AttachmentUrlUploadParam,
 } from '~/types/data-columns/attachment';
+import { validateNumberOfFilesInCell } from '~/helpers/attachmentHelpers';
 import { extractColsMetaForAudit, generateAuditV1Payload } from '~/utils';
 import { NcError } from '~/helpers/ncError';
 import { DataV3Service } from '~/services/v3/data-v3.service';
@@ -198,6 +199,16 @@ export class DataAttachmentV3Service {
       );
     }
 
+    // Update the cell field using baseModel.dbDriver directly
+    const currentAttachments = rowData[column.column_name]
+      ? JSON.parse(rowData[column.column_name])
+      : [];
+    await validateNumberOfFilesInCell(
+      context,
+      currentAttachments.length + 1,
+      column,
+    );
+
     const processedAttachments = [];
     const generateThumbnailAttachments = [];
 
@@ -259,10 +270,6 @@ export class DataAttachmentV3Service {
       );
     }
 
-    // Update the cell field using baseModel.dbDriver directly
-    const currentAttachments = rowData[column.column_name]
-      ? JSON.parse(rowData[column.column_name])
-      : [];
     const updatedAttachments = [...currentAttachments, ...processedAttachments];
 
     await baseModel

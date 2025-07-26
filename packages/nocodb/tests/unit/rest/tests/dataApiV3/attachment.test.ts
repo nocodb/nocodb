@@ -162,4 +162,66 @@ describe('Attachment V3', () => {
     expect(rspPatch2.body.fields.Attachment.length).to.eq(2);
     expect(rspPatch2.body.fields.Attachment[1].mimetype).to.eq('image/png');
   });
+  it('Upload file and update from url error due to cell limit', async () => {
+    const isEE = !!process.env.EE;
+    if (!isEE) {
+      return true;
+    }
+    const attachments = Array.from({ length: 11 }).map((v) => ({
+      url: 'http://myhost.local/files/image',
+    }));
+    const response = await ncAxiosPost({
+      url: `${urlPrefix}/${table.id}/records`,
+      body: [
+        {
+          fields: {
+            Attachment: attachments,
+          },
+        },
+      ],
+      status: 422,
+    });
+    expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+  });
+  it('Upload file and update from base64 error due to cell limit', async () => {
+    const isEE = !!process.env.EE;
+    if (!isEE) {
+      return true;
+    }
+
+    const attachments = Array.from({ length: 10 }).map((v) => ({
+      url: 'http://myhost.local/files/image',
+    }));
+    const rsp = await ncAxiosPost({
+      url: `${urlPrefix}/${table.id}/records`,
+      body: [
+        {
+          fields: {
+            Attachment: attachments,
+          },
+        },
+      ],
+    });
+
+    // wait until worker is done
+    await new Promise<void>((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, 1000);
+    });
+    const recordId = rsp.body.records[0].id;
+    const columnId = table.columns.find((col) => col.title === 'Attachment').id;
+
+    const rspPatch1 = await ncAxiosPost({
+      url: `${urlPrefix}/${table.id}/records/${recordId}/fields/${columnId}/upload`,
+      body: {
+        contentType: 'image/png',
+        file: base64Image,
+        filename: 'photo.png',
+      },
+      status: 422,
+    });
+
+    expect(rspPatch1.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+  });
 });

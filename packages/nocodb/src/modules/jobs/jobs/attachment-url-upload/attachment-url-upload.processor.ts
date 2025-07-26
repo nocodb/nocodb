@@ -1,31 +1,48 @@
+import path from 'path';
+import { PassThrough } from 'stream';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import axios from 'axios';
-import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
-import { _wherePk, getBaseModelSqlFromModelId } from 'src/helpers/dbHelpers';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import slash from 'slash';
+import { nanoid } from 'nanoid';
+import { IJobsService } from '../../jobs-service.interface';
 import type { AttachmentUrlUploadJobData } from '~/interface/Jobs';
+import { _wherePk, getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { FileReference } from '~/models';
+import { RootScopes } from '~/utils/globals';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
   NC_ATTACHMENT_URL_MAX_REDIRECT,
 } from '~/constants';
-import { AttachmentsService } from '~/services/attachments.service';
-import { JOBS_QUEUE } from '~/interface/Jobs';
+import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+
+const thumbnailMimes = ['image/'];
+
+// ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html - extended with some more characters
+const normalizeFilename = (filename: string) => {
+  return filename.replace(/[\\/:*?"<>'`#|%~{}[\]^]/g, '_');
+};
 
 @Injectable()
 @Processor(JOBS_QUEUE)
 export class AttachmentUrlUploadProcessor {
-  constructor(private readonly attachmentsService: AttachmentsService) {}
+  constructor(
+    @Inject(forwardRef(() => 'JobsService'))
+    private readonly jobsService: IJobsService,
+  ) {}
 
   @Process('attachment-url-upload')
   async attachmentUrlUpload(job: Job<AttachmentUrlUploadJobData>) {
-    const { context, modelId, column, recordId, attachments } = job.data;
+    const { context, modelId, column, recordId, scope, attachments } = job.data;
 
     const baseModel = await getBaseModelSqlFromModelId({
       context: context,
       modelId: modelId,
     });
     const processedAttachments = [];
+    const generateThumbnailAttachments = [];
 
     for (const attachment of attachments) {
       try {
@@ -34,11 +51,46 @@ export class AttachmentUrlUploadProcessor {
         }
         // If attachment has URL, download and process it
         if (attachment.url) {
-          const downloadedAttachment = await this.downloadAndStoreAttachment(
-            context,
-            attachment.url,
-          );
-          processedAttachments.push(downloadedAttachment);
+          const downloadedAttachment = await this.downloadAndStoreAttachment({
+            destPath: path.join(
+              ...[
+                'nc',
+                scope ?? 'uploads',
+                context.workspace_id,
+                context.base_id,
+                modelId,
+                column.id,
+                scope ? nanoid(5) : undefined,
+              ].filter((k) => k),
+            ),
+            url: attachment.url,
+            scope,
+          });
+          const attachmentId = await FileReference.insert(context, {
+            storage: downloadedAttachment.storageName,
+            file_url: downloadedAttachment.url,
+            file_size: downloadedAttachment.fileSize,
+            fk_user_id: context?.user?.id ?? 'anonymous',
+            source_id: baseModel.model.source_id,
+            fk_model_id: modelId,
+            fk_column_id: column.id,
+            is_external: !(await baseModel.getSource()).isMeta(),
+          });
+          const processedAttachment = {
+            id: attachmentId,
+            url: downloadedAttachment.url,
+            title: downloadedAttachment.filename,
+            mimetype: downloadedAttachment.mimeType,
+            size: downloadedAttachment.fileSize,
+          };
+          processedAttachments.push(processedAttachment);
+          if (
+            thumbnailMimes.some((type) =>
+              downloadedAttachment.mimeType.startsWith(type),
+            )
+          ) {
+            generateThumbnailAttachments.push(processedAttachment);
+          }
         }
       } catch (error) {
         console.error(`Failed to process attachment:`, error);
@@ -51,13 +103,28 @@ export class AttachmentUrlUploadProcessor {
         [column.column_name]: JSON.stringify(processedAttachments),
       })
       .where(await _wherePk(baseModel.model.primaryKeys, recordId, true));
+
+    if (generateThumbnailAttachments.length > 0) {
+      await this.jobsService.add(JobTypes.ThumbnailGenerator, {
+        context: {
+          base_id: RootScopes.ROOT,
+          workspace_id: RootScopes.ROOT,
+        },
+        attachments: generateThumbnailAttachments,
+        scope,
+      });
+    }
   }
 
-  private async downloadAndStoreAttachment(
-    context: any,
-    url: string,
-    attachmentId: string,
-  ) {
+  private async downloadAndStoreAttachment({
+    url,
+    destPath,
+    scope,
+  }: {
+    url: string;
+    destPath: string;
+    scope: string;
+  }) {
     // Configure axios for download
     const response = await axios({
       method: 'GET',
@@ -65,7 +132,6 @@ export class AttachmentUrlUploadProcessor {
       responseType: 'stream',
       maxRedirects: NC_ATTACHMENT_URL_MAX_REDIRECT,
       maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
-      timeout: 30000, // 30 seconds timeout
     });
 
     // Extract file information from response headers
@@ -73,6 +139,17 @@ export class AttachmentUrlUploadProcessor {
       response.headers['content-type'] || 'application/octet-stream';
     const contentLength = response.headers['content-length'];
     const contentDisposition = response.headers['content-disposition'];
+
+    const passthrough = new PassThrough(); // Track size via the PassThrough stream
+    let totalBytes = 0;
+    if (!contentLength) {
+      passthrough.on('data', (chunk) => {
+        totalBytes += chunk.length;
+      });
+    }
+
+    const storageAdapter = await NcPluginMgrv2.storageAdapter();
+    const mimeType = contentType.split(';')[0].trim();
 
     // Extract filename from URL or content-disposition header
     let filename = url.split('/').pop()?.split('?')[0] || 'attachment';
@@ -84,29 +161,30 @@ export class AttachmentUrlUploadProcessor {
         filename = filenameMatch[1].replace(/['"]/g, '');
       }
     }
+    filename = scope
+      ? `${normalizeFilename(path.parse(filename).name)}${path.extname(
+          filename,
+        )}`
+      : `${normalizeFilename(path.parse(filename).name)}_${nanoid(
+          5,
+        )}${path.extname(filename)}`;
 
-    // Generate unique filename to avoid conflicts
-    const fileExtension = filename.split('.').pop() || '';
-    const uniqueFilename = `${uuidv4()}_${filename}`;
+    const nanoId = nanoid(5);
+    const fileDestPath = path.join(destPath, `${nanoId}`);
 
-    // Use attachments service to store the file
-    const storedAttachment = await this.attachmentsService.uploadViaURL({
-      urls: [
-        {
-          url: url,
-          fileName: uniqueFilename,
-        },
-      ],
-      path: `nc/uploads/${attachmentId}`,
-    });
+    const resultAttachmentUrl = await storageAdapter.fileCreateByStream(
+      slash(path.join(fileDestPath, filename)),
+      response.data.pipe(passthrough),
+    );
+
+    const fileSize = contentLength ? Number(contentLength) : totalBytes;
 
     return {
-      id: attachmentId,
-      url: storedAttachment[0].url,
-      title: filename,
-      mimetype: contentType,
-      size: contentLength ? parseInt(contentLength) : undefined,
-      path: storedAttachment[0].path,
+      storageName: storageAdapter.name,
+      url: resultAttachmentUrl,
+      filename,
+      mimeType,
+      fileSize,
     };
   }
 }

@@ -230,6 +230,7 @@ export interface SyncDataSyncModuleJobData extends JobData {
 
 export interface AttachmentUrlUploadJobData extends JobData {
   context: NcContext;
+  scope?: PublicAttachmentScope;
   modelId: string;
   column: {
     id: string;

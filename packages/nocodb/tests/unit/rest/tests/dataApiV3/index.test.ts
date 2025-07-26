@@ -6,4 +6,5 @@ export const dataApiV3Test = async () => {
   await import('./patch-update.test');
   await import('./delete.test');
   await import('./list-and-crud.test');
+  await import('./attachment.test');
 };

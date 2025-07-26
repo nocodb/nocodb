@@ -3,7 +3,6 @@ import {
   JobsModule as JobsModuleCE,
   JobsModuleMetadata,
 } from 'src/modules/jobs/jobs.module';
-import { AttachmentUrlUploadProcessor } from 'src/modules/jobs/jobs/attachment-url-upload/attachment-url-upload.processor';
 import { UpdateStatsProcessor } from '~/modules/jobs/jobs/update-stats/update-stats.processor';
 import { CleanUpProcessor } from '~/modules/jobs/jobs/clean-up/clean-up.processor';
 import { CleanUpController } from '~/modules/jobs/jobs/clean-up/clean-up.controller';
@@ -35,7 +34,6 @@ import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.pr
     SyncModuleSyncDataProcessor,
     UpdateUsageStatsProcessor,
     CloudDbMigrateProcessor,
-    AttachmentUrlUploadProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],
 })

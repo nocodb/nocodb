@@ -63,6 +63,14 @@ const computedWhere = computed(() => {
   return fieldQuery
 })
 
+const isValidSearchQuery = computed(() => {
+  const searchQuery = where.value?.trim()
+
+  if (!searchQuery) return true
+
+  return !!(searchQuery && computedWhere.value)
+})
+
 const { cachedRows, loadData, syncCount, totalRows, chunkStates, clearCache } = useInfiniteData({
   meta,
   viewMeta,
@@ -279,6 +287,13 @@ onMounted(async () => {
 
 const wrapperHeight = computed(() => {
   return totalRows.value * ROW_HEIGHT
+})
+
+/**
+ * Expose the isValidSearchQuery to the parent component
+ */
+defineExpose({
+  isValidSearchQuery,
 })
 </script>
 

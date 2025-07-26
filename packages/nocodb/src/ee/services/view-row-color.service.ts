@@ -548,10 +548,4 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       },
     };
   }
-
-  async clearCache(view: View) {
-    await NocoCache.del(`${CacheScope.VIEW}:${view.id}`);
-    await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
-    await NocoCache.del(`${CacheScope.SINGLE_QUERY}:${view.fk_model_id}`);
-  }
 }

@@ -1419,6 +1419,17 @@ export default class View implements ViewType {
 
     const oldView = await this.get(context, viewId, ncMeta);
 
+    if (
+      'meta' in updateObj &&
+      (!('row_coloring_mode' in updateObj) ||
+        updateObj.row_coloring_mode === ROW_COLORING_MODE.SELECT)
+    ) {
+      updateObj.meta = {
+        ...parseProp(oldView.meta),
+        ...parseProp(updateObj.meta),
+      };
+    }
+
     // set meta
     await ncMeta.metaUpdate(
       context.workspace_id,

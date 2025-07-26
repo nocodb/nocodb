@@ -50,6 +50,11 @@ export class AttachmentUrlUploadPreparator {
         } as AttachmentUrlUploadJobData);
         return '';
       });
+      const columnKeyName = dataWrapper(data).getColumnKeyName(col);
+      // remove temp_ ids so it doesn't get recorded in audit
+      data[columnKeyName] = JSON.stringify(
+        attachmentData.filter((dt) => dt.id && !dt.id.startsWith('temp_')),
+      );
     }
     return { postInsertOps, preInsertOps, postInsertAuditOps };
   }

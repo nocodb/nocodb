@@ -5,7 +5,10 @@ import axios from 'axios';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
 import { NcError } from 'src/helpers/ncError';
+import { extractColsMetaForAudit, generateAuditV1Payload } from 'src/utils';
+import { AuditV1OperationTypes } from 'nocodb-sdk';
 import { DataV3Service } from './data-v3.service';
+import type { DataUpdatePayload } from 'nocodb-sdk';
 import type {
   AttachmentBase64UploadParam,
   AttachmentUrlUploadParam,
@@ -17,7 +20,7 @@ import {
 import { _wherePk, getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { JobTypes } from '~/interface/Jobs';
-import { FileReference } from '~/models';
+import { Audit, FileReference } from '~/models';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { RootScopes } from '~/utils/globals';
 
@@ -114,6 +117,33 @@ export class DataAttachmentV3Service {
         scope,
       });
     }
+
+    await Audit.insert(
+      await generateAuditV1Payload<DataUpdatePayload>(
+        AuditV1OperationTypes.DATA_UPDATE,
+        {
+          context: context,
+          row_id: recordId,
+          fk_model_id: baseModel.model.id,
+          fk_workspace_id: context.workspace_id,
+          base_id: context.base_id,
+          source_id: baseModel.model.source_id,
+          details: {
+            table_title: baseModel.model.title,
+            column_meta: extractColsMetaForAudit([column], {
+              [column.title]: processedAttachments,
+            }),
+            data: { [column.title]: processedAttachments },
+            old_data: {
+              [column.title]: attachments.filter(
+                (attr) => attr.id && !attr.id.startsWith('temp_'),
+              ),
+            },
+          },
+          req: { user: context.user } as any,
+        },
+      ),
+    );
   }
 
   async appendBase64AttachmentToCellData(param: AttachmentBase64UploadParam) {

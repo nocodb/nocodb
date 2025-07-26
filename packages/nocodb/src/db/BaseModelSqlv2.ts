@@ -2291,7 +2291,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           this,
           {
             attachmentCols: columns.filter((c) => isAttachment(c)),
-            data,
+            data: insertObj,
           },
         );
       postInsertOps = [].concat(

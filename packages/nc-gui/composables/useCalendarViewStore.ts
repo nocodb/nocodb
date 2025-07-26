@@ -51,6 +51,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { isMobileMode } = useGlobal()
 
+    const { getValidSearchQueryForColumn } = useFieldQuery()
+
     const displayField = computed(() => meta.value?.columns?.find((c) => c.pv))
 
     const activeCalendarView = ref<'month' | 'year' | 'day' | 'week'>()
@@ -80,6 +82,28 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     const searchQuery = reactive({
       value: '',
       field: '',
+      isValidFieldQuery: true,
+    })
+
+    const validSearchQueryForDisplayField = computed(() => {
+      if (!displayField.value || !searchQuery.value?.trim()) {
+        searchQuery.isValidFieldQuery = true
+        return
+      }
+
+      const validSearchQuery = getValidSearchQueryForColumn(
+        displayField.value,
+        searchQuery.value.trim(),
+        meta.value as TableType,
+        { getWhereQueryAs: 'object' },
+      )
+
+      if (!validSearchQuery) {
+        searchQuery.isValidFieldQuery = false
+        return
+      }
+
+      return validSearchQuery as ValidSearchQueryForColumnReturnType
     })
 
     const pageDate = ref<dayjs.Dayjs>(timezoneDayjs.dayjsTz())
@@ -353,28 +377,17 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         })
       }
 
-      if (displayField.value && searchQuery.value) {
+      if (displayField.value && ncIsObject(validSearchQueryForDisplayField.value)) {
         if (combinedFilters.length > 0) {
           combinedFilters = [
             {
               is_group: true,
               logical_op: 'and',
-              children: [
-                ...combinedFilters,
-                {
-                  fk_column_id: displayField.value.id,
-                  comparison_op: 'like',
-                  value: searchQuery.value,
-                },
-              ],
+              children: [...combinedFilters, validSearchQueryForDisplayField.value],
             },
           ]
         } else {
-          combinedFilters.push({
-            fk_column_id: displayField.value.id,
-            comparison_op: 'like',
-            value: searchQuery.value,
-          })
+          combinedFilters.push(validSearchQueryForDisplayField.value)
         }
       }
 
@@ -954,7 +967,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       await loadSidebarData()
     })
 
-    watch(searchQuery, async () => {
+    // Load Sidebar Data when search query or field changes, `isValidFieldQuery` is used only in the frontend to show error tooltip
+    watch([() => searchQuery.value, () => displayField.value?.id], async () => {
       await loadSidebarData()
     })
 

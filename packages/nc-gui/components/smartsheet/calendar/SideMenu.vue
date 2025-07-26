@@ -441,16 +441,20 @@ const selectOption = (option) => {
           ref="searchRef"
           v-model:value="searchQuery.value"
           :class="{
-            '!border-brand-500': searchQuery.value.length > 0,
             '!hidden': !showSearch,
           }"
-          class="!rounded-lg !h-8 !placeholder:text-gray-500 !border-gray-200 !px-4"
+          class="!rounded-lg !h-8 !placeholder:text-gray-500 !px-4"
           data-testid="nc-calendar-sidebar-search"
           placeholder="Search records"
           @keydown.esc="toggleSearch"
         >
           <template #prefix>
             <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
+          </template>
+          <template v-if="searchQuery.value?.trim() && !searchQuery.isValidFieldQuery" #suffix>
+            <NcTooltip :title="$t('msg.error.invalidSearchQueryForDisplayField')" class="flex" placement="topRight">
+              <GeneralIcon icon="ncInfo" class="flex-noneh-4 w-4 text-nc-content-red-medium" />
+            </NcTooltip>
           </template>
         </a-input>
       </div>

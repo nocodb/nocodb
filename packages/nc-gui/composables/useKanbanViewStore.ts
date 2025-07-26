@@ -58,7 +58,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         return where
       }
 
-      const colWhereQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType, true)
+      const colWhereQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType, { getWhereQueryAs: 'string' })
 
       if (!colWhereQuery) {
         search.value.isValidFieldQuery = false

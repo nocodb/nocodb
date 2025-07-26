@@ -6,6 +6,12 @@ export interface FieldQueryType {
   isValidFieldQuery?: boolean
 }
 
+export interface ValidSearchQueryForColumnReturnType {
+  fk_column_id: string
+  comparison_op: 'like' | 'eq'
+  value: string
+}
+
 export function useFieldQuery() {
   const baseStore = useBase()
 
@@ -49,7 +55,12 @@ export function useFieldQuery() {
    * @param getWhereQuery - Whether to get the where query for the column
    * @returns The valid search query for the column or the where query for the column
    */
-  const getValidSearchQueryForColumn = (col: ColumnType, query?: string, tableMeta?: TableType, getWhereQuery = false) => {
+  const getValidSearchQueryForColumn = (
+    col: ColumnType,
+    query?: string,
+    tableMeta?: TableType,
+    params: { getWhereQueryAs?: 'string' | 'object' } = {},
+  ): string | ValidSearchQueryForColumnReturnType => {
     if (!isValidValue(query)) return ''
 
     let searchQuery = query
@@ -87,7 +98,7 @@ export function useFieldQuery() {
 
     if (!isValidValue(searchQuery)) return ''
 
-    if (!getWhereQuery) return searchQuery ?? ''
+    if (!params.getWhereQueryAs) return searchQuery ?? ''
 
     const sqlUi = tableMeta?.source_id ? sqlUis.value[tableMeta.source_id] : Object.values(sqlUis.value)[0]
 
@@ -98,7 +109,23 @@ export function useFieldQuery() {
       ['text', 'string'].includes(sqlUi.getAbstractType(col)) &&
       col.dt !== 'bigint'
     ) {
+      if (params.getWhereQueryAs === 'object') {
+        return {
+          fk_column_id: col.id!,
+          comparison_op: 'like',
+          value: searchQuery ?? '',
+        }
+      }
+
       return `(${col.title},like,%${searchQuery}%)`
+    }
+
+    if (params.getWhereQueryAs === 'object') {
+      return {
+        fk_column_id: col.id!,
+        comparison_op: 'eq',
+        value: searchQuery ?? '',
+      }
     }
 
     return `(${col.title},eq,${searchQuery})`

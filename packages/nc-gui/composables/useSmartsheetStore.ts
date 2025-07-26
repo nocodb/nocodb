@@ -1,15 +1,5 @@
 import type { ColumnType, FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
-import {
-  ColumnHelper,
-  FormulaDataTypes,
-  NcApiVersion,
-  UITypes,
-  ViewLockType,
-  ViewTypes,
-  extractFilterFromXwhere,
-  isNumericCol,
-  isVirtualCol,
-} from 'nocodb-sdk'
+import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { EventBusEnum, type SmartsheetStoreEvents } from '#imports'
 
@@ -31,13 +21,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { user, isMobileMode } = useGlobal()
 
-    const { metas } = useMetas()
-
     const { activeView: view, activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
 
     const baseStore = useBase()
-
-    const { isMysql, isPg } = baseStore
 
     const { sqlUis, base } = storeToRefs(baseStore)
 
@@ -125,7 +111,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
       if (!search.value.query.trim()) return where
 
-      let searchQuery = search.value.query.trim()
+      const searchQuery = search.value.query.trim()
 
       const colWhereQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType, true)
 

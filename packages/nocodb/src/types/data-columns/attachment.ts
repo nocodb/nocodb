@@ -28,3 +28,16 @@ export interface AttachmentUrlUploadParam {
     url: string;
   }[];
 }
+
+export interface AttachmentBase64UploadParam {
+  context: NcContext;
+  scope?: PublicAttachmentScope;
+  modelId: string;
+  columnId: string;
+  recordId: string;
+  attachment: {
+    contentType: string;
+    file: string; // base64-encoded-file-content
+    filename: string;
+  };
+}

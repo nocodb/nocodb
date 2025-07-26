@@ -4,7 +4,12 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
-import type { AttachmentUrlUploadParam } from '~/types/data-columns/attachment';
+import { NcError } from 'src/helpers/ncError';
+import { DataV3Service } from './data-v3.service';
+import type {
+  AttachmentBase64UploadParam,
+  AttachmentUrlUploadParam,
+} from '~/types/data-columns/attachment';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
   NC_ATTACHMENT_URL_MAX_REDIRECT,
@@ -28,6 +33,7 @@ export class DataAttachmentV3Service {
   constructor(
     @Inject(forwardRef(() => 'JobsService'))
     private readonly jobsService: IJobsService,
+    private readonly dataV3Service: DataV3Service,
   ) {}
   async handleUrlUploadCellUpdate(param: AttachmentUrlUploadParam) {
     const { context, modelId, column, recordId, scope, attachments } = param;
@@ -108,6 +114,130 @@ export class DataAttachmentV3Service {
         scope,
       });
     }
+  }
+
+  async appendBase64AttachmentToCellData(param: AttachmentBase64UploadParam) {
+    const { context, modelId, columnId, recordId, scope, attachment } = param;
+
+    const baseModel = await getBaseModelSqlFromModelId({
+      context: context,
+      modelId: modelId,
+    });
+    await baseModel.model.getColumns(context);
+    const column = baseModel.model.columns.find((col) => col.id === columnId);
+
+    // Check if column exists in model
+    if (!column) {
+      NcError.get(context).fieldNotFound(columnId);
+    }
+
+    // Get the row data
+    const rowData = await baseModel
+      .dbDriver(baseModel.getTnPath(baseModel.model))
+      .where(await _wherePk(baseModel.model.primaryKeys, recordId, true))
+      .first();
+
+    if (!rowData) {
+      NcError.get(context).recordNotFound(recordId);
+    }
+
+    if (!attachment.contentType || !attachment.file || !attachment.filename) {
+      NcError.get(context).invalidRequestBody(
+        `Field contentType, file and filename is required`,
+      );
+    }
+
+    const processedAttachments = [];
+    const generateThumbnailAttachments = [];
+
+    try {
+      const storageAdapter = await NcPluginMgrv2.storageAdapter();
+      const mimeType = attachment.contentType.split(';')[0].trim();
+
+      let filename = attachment.filename;
+      filename = scope
+        ? `${normalizeFilename(path.parse(filename).name)}${path.extname(
+            filename,
+          )}`
+        : `${normalizeFilename(path.parse(filename).name)}_${nanoid(
+            5,
+          )}${path.extname(filename)}`;
+
+      const filePath = path.join(
+        context.workspace_id,
+        context.base_id,
+        modelId,
+        column.id,
+      );
+      const destPath = path.join('nc', scope ?? 'uploads', filePath);
+
+      const buffer = Buffer.from(attachment.file, 'base64');
+
+      // Calculate file size from base64 value
+      const fileSize = buffer.length;
+
+      const resultAttachmentUrl = await storageAdapter.fileCreateByStream(
+        slash(path.join(destPath, filename)),
+        new PassThrough().end(buffer),
+      );
+
+      const processedAttachment = {
+        id: nanoid(), // Generate a new ID for the attachment
+        url: resultAttachmentUrl,
+        path: path.join('download', filePath, filename),
+        title: filename,
+        mimetype: mimeType,
+        size: fileSize,
+      };
+      processedAttachments.push(processedAttachment);
+      if (thumbnailMimes.some((type) => mimeType.startsWith(type))) {
+        generateThumbnailAttachments.push(processedAttachment);
+      }
+    } catch (error) {
+      NcError.unprocessableEntity(
+        `Failed to process base64 attachment: ${error}`,
+      );
+    }
+
+    // Update the cell field using baseModel.dbDriver directly
+    const currentAttachments = rowData[column.column_name]
+      ? JSON.parse(rowData[column.column_name])
+      : [];
+    const updatedAttachments = [...currentAttachments, ...processedAttachments];
+
+    await baseModel
+      .dbDriver(baseModel.getTnPath(baseModel.model))
+      .update({
+        [column.column_name]: JSON.stringify(updatedAttachments),
+      })
+      .where(await _wherePk(baseModel.model.primaryKeys, recordId, true));
+
+    if (generateThumbnailAttachments.length > 0) {
+      await this.jobsService.add(JobTypes.ThumbnailGenerator, {
+        context: {
+          base_id: RootScopes.ROOT,
+          workspace_id: RootScopes.ROOT,
+        },
+        attachments: generateThumbnailAttachments,
+        scope,
+      });
+    }
+
+    await baseModel.updateLastModified({
+      rowIds: [recordId],
+      cookie: { user: context.user },
+      baseModel,
+      knex: baseModel.dbDriver,
+      model: baseModel.model,
+    });
+    // TODO: audit log
+
+    return await this.dataV3Service.dataRead(context, {
+      modelId,
+      query: '',
+      req: { context, user: context.user } as any,
+      rowId: recordId,
+    });
   }
 
   protected async downloadAndStoreAttachment({

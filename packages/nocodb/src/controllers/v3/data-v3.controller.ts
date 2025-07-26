@@ -28,6 +28,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
+import { DataAttachmentV3Service } from '~/services/v3/data-attachment-v3.service';
 import { PREFIX_APIV3_DATA } from '~/constants/controllers';
 
 @Controller()
@@ -36,6 +37,7 @@ export class Datav3Controller {
   constructor(
     protected readonly dataV3Service: DataV3Service,
     protected readonly dataTableService: DataTableService,
+    protected readonly dataAttachmentV3Service: DataAttachmentV3Service,
   ) {}
 
   @Get(`${PREFIX_APIV3_DATA}/:modelId/records`)
@@ -76,6 +78,28 @@ export class Datav3Controller {
       body: body,
       viewId,
       cookie: req,
+    });
+  }
+
+  @Post(
+    `${PREFIX_APIV3_DATA}/:modelId/records/:recordId/columns/:columnId/upload`,
+  )
+  @HttpCode(200)
+  @Acl('dataUpdate')
+  async dataAttachmentUpload(
+    @TenantContext() context: NcContext,
+    @Param('modelId') modelId: string,
+    @Param('recordId') recordId: string,
+    @Param('columnId') columnId: string,
+    @Body() body: { contentType: string; file: string; filename: string },
+  ) {
+    return await this.dataAttachmentV3Service.appendBase64AttachmentToCellData({
+      context,
+      modelId,
+      recordId,
+      columnId,
+      scope: undefined,
+      attachment: body,
     });
   }
 
@@ -218,7 +242,6 @@ export class Datav3Controller {
 
     res.json(countResult);
   }
-
   @Get(`${PREFIX_APIV3_DATA}/:modelId/records/:rowId`)
   @Acl('dataRead')
   async dataRead(

@@ -291,7 +291,7 @@ const isValidSearchQuery = computed(() => {
 
   if (!searchQuery) return true
 
-  return !!(searchQuery && computedWhere.value)
+  return !!computedWhere.value
 })
 
 /**

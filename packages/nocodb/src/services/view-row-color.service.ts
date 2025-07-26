@@ -58,6 +58,12 @@ export class ViewRowColorService {
     ncMeta?: MetaService;
   }) {}
 
+  async removeRowColorInfo(_params: {
+    context: NcContext;
+    fk_view_id?: string;
+    ncMeta?: MetaService;
+  }) {}
+
   async checkIfColumnInvolved(_param: {
     context: NcContext;
     existingColumn: Column;

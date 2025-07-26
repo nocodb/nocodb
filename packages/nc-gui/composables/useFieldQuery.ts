@@ -33,6 +33,13 @@ export function useFieldQuery() {
     search.value = searchMap.value[id]
   }
 
+  /**
+   * @param col
+   * @param query - search query
+   * @param tableMeta
+   * @param getWhereQuery - Whether to get the where query for the column
+   * @returns The valid search query for the column or the where query for the column
+   */
   const getValidSearchQueryForColumn = (col: ColumnType, query?: string, tableMeta?: TableType, getWhereQuery = false) => {
     if (!isValidValue(query)) return ''
 

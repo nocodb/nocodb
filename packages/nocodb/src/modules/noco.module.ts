@@ -154,6 +154,7 @@ import { AttachmentUrlUploadHandler } from '~/services/emit-handler/attachment-u
 
 /* ACL */
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { DataAttachmentV3Service } from '~/services/v3/data-attachment-v3.service';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -327,6 +328,7 @@ export const nocoModuleMetadata = {
     PublicDatasService,
     PublicDatasExportService,
     DataV3Service,
+    DataAttachmentV3Service,
 
     // use custom provider to avoid circular dependency
     {
@@ -378,6 +380,7 @@ export const nocoModuleMetadata = {
     BulkDataAliasService,
     DataTableService,
     DataV3Service,
+    DataAttachmentV3Service,
 
     AttachmentUrlUploadHandler,
   ],

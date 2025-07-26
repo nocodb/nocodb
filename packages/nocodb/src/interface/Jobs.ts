@@ -1,3 +1,4 @@
+import type { AttachmentUrlUploadParam } from '~/types/data-columns/attachment';
 import type {
   AttachmentResType,
   PublicAttachmentScope,
@@ -228,18 +229,4 @@ export interface SyncDataSyncModuleJobData extends JobData {
   req: NcRequest;
 }
 
-export interface AttachmentUrlUploadJobData extends JobData {
-  context: NcContext;
-  scope?: PublicAttachmentScope;
-  modelId: string;
-  column: {
-    id: string;
-    title: string;
-    column_name: string;
-  };
-  recordId: string;
-  attachments: {
-    id?: string;
-    url: string;
-  }[];
-}
+export type AttachmentUrlUploadJobData = AttachmentUrlUploadParam & JobData;

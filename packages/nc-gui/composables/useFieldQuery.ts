@@ -1,5 +1,11 @@
 import { ColumnHelper, type ColumnType, FormulaDataTypes, type TableType, UITypes, isNumericCol, isVirtualCol } from 'nocodb-sdk'
 
+export interface FieldQueryType {
+  field: string
+  query: string
+  isValidFieldQuery?: boolean
+}
+
 export function useFieldQuery() {
   const baseStore = useBase()
 
@@ -13,13 +19,16 @@ export function useFieldQuery() {
   const emptyFieldQueryObj = {
     field: '',
     query: '',
+    isValidFieldQuery: true,
   }
 
   // mapping view id (key) to corresponding emptyFieldQueryObj (value)
-  const searchMap = useState<Record<string, { field: string; query: string }>>('field-query-search-map', () => ({}))
+  const searchMap = useState<Record<string, FieldQueryType>>('field-query-search-map', () => ({}))
 
   // the fieldQueryObj under the current view
-  const search = useState<{ field: string; query: string }>('field-query-search', () => ({ ...emptyFieldQueryObj }))
+  const search = useState<FieldQueryType>('field-query-search', () => ({
+    ...emptyFieldQueryObj,
+  }))
 
   // retrieve the fieldQueryObj of the given view id
   // if it is not found in `searchMap`, init with emptyFieldQueryObj
@@ -30,7 +39,7 @@ export function useFieldQuery() {
       searchMap.value[id] = { ...emptyFieldQueryObj }
     }
 
-    search.value = searchMap.value[id]
+    search.value = searchMap.value[id]!
   }
 
   /**

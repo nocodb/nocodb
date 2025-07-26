@@ -107,15 +107,23 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       const col =
         (meta.value as TableType)?.columns?.find(({ id }) => id === search.value.field) ||
         (meta.value as TableType)?.columns?.find((v) => v.pv)
-      if (!col) return where
-
-      if (!search.value.query.trim()) return where
 
       const searchQuery = search.value.query.trim()
 
+      if (!col || !searchQuery) {
+        search.value.isValidFieldQuery = true
+
+        return where
+      }
+
       const colWhereQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType, true)
 
-      if (!colWhereQuery) return where
+      if (!colWhereQuery) {
+        search.value.isValidFieldQuery = false
+        return where
+      }
+
+      search.value.isValidFieldQuery = true
 
       return `${where ? `${where}~and` : ''}${colWhereQuery}`
     })

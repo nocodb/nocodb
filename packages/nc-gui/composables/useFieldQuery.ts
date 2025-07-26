@@ -1,4 +1,14 @@
+import { ColumnHelper, FormulaDataTypes, isNumericCol, isVirtualCol, UITypes, type ColumnType, type TableType } from 'nocodb-sdk'
+
 export function useFieldQuery() {
+  const baseStore = useBase()
+
+  const { isMysql, isPg } = baseStore
+
+  const { sqlUis } = storeToRefs(baseStore)
+
+  const { metas } = useMetas()
+
   // initial search object
   const emptyFieldQueryObj = {
     field: '',
@@ -23,5 +33,60 @@ export function useFieldQuery() {
     search.value = searchMap.value[id]
   }
 
-  return { search, loadFieldQuery }
+  const getValidSearchQueryForColumn = (col: ColumnType, query?: string, tableMeta?: TableType, getWhereQuery = false) => {
+    if (!isValidValue(query)) return ''
+
+    let searchQuery = query
+
+    try {
+      /**
+       * This method can throw errors. so it's important to use a try-catch block when calling it.
+       */
+      searchQuery = ColumnHelper.serializeValue(searchQuery, {
+        col,
+        isMysql,
+        isPg,
+        meta: tableMeta,
+        metas: metas.value,
+        serializeSearchQuery: true,
+      })
+    } catch (_err: any) {
+      /**
+       * If it is a virtual column, then send query as it is
+       */
+      if (!isVirtualCol(col)) {
+        searchQuery = ''
+        /**
+         * We don't have to anything if serializeValue is not valid for current column
+         */
+        console.log('invalid search query for column', col.title, searchQuery)
+      } else if (col.uidt !== UITypes.Formula) {
+        searchQuery = query
+      }
+    }
+
+    if (isVirtualCol(col) && col.uidt !== UITypes.Formula && !isValidValue(searchQuery)) {
+      searchQuery = query
+    }
+
+    if (!isValidValue(searchQuery)) return ''
+
+    if (!getWhereQuery) return searchQuery ?? ''
+
+    const sqlUi = tableMeta?.source_id ? sqlUis.value[tableMeta.source_id] : Object.values(sqlUis.value)[0]
+
+    if (
+      (col.uidt !== UITypes.Formula || getFormulaColDataType(col) !== FormulaDataTypes.NUMERIC) &&
+      !isNumericCol(col) &&
+      sqlUi &&
+      ['text', 'string'].includes(sqlUi.getAbstractType(col)) &&
+      col.dt !== 'bigint'
+    ) {
+      return `(${col.title},like,%${searchQuery}%)`
+    }
+
+    return `(${col.title},eq,${searchQuery})`
+  }
+
+  return { search, loadFieldQuery, getValidSearchQueryForColumn }
 }

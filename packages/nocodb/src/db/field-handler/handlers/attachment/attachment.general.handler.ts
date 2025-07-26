@@ -1,4 +1,4 @@
-import { detailedDiff, type NcContext } from 'nocodb-sdk';
+import { arrDetailedDiff, type NcContext } from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
 import type { MetaService } from '~/meta/meta.service';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -64,7 +64,7 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
         attachment.id = 'temp_' + tempIndex++;
       }
     }
-    const { removed } = detailedDiff(
+    const { removed } = arrDetailedDiff(
       Array.from(oldValueMap.keys()),
       value.map((k) => k.id),
     );

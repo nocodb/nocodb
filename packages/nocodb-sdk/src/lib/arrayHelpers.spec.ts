@@ -1,19 +1,19 @@
-import { detailedDiff, intersection } from './arrayHelpers';
+import { arrDetailedDiff, arrIntersection } from './arrayHelpers';
 
 describe('arrayHelpers', () => {
-  describe('intersection', () => {
+  describe('arrIntersection', () => {
     it('will intersect 2 array', () => {
       const a = ['a', 'b', 'c'];
       const b = ['c', 'd', 'e'];
-      const result = intersection(a, b);
+      const result = arrIntersection(a, b);
       expect(result).toEqual(['c']);
     });
   });
-  describe('detailedDiff', () => {
+  describe('arrDetailedDiff', () => {
     it('will detailed diff 2 array', () => {
       const a = ['a', 'b', 'c'];
       const b = ['c', 'd', 'e'];
-      const result = detailedDiff(a, b);
+      const result = arrDetailedDiff(a, b);
       expect(result).toEqual({
         removed: ['a', 'b'],
         intersected: ['c'],

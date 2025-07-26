@@ -1,11 +1,11 @@
-export const uniq = (array: any[]) => {
+export const arrUniq = (array: any[]) => {
   return [...new Set(array)];
 };
-export const intersection = (...arrays: any[][]) => {
+export const arrIntersection = (...arrays: any[][]) => {
   return arrays.reduce((a, b) => a.filter((c) => b.includes(c)));
 };
-export const detailedDiff = (a: any[], b: any[]) => {
-  const intersected = intersection(a, b);
+export const arrDetailedDiff = (a: any[], b: any[]) => {
+  const intersected = arrIntersection(a, b);
   return {
     removed: a.filter((old) => !intersected.includes(old)),
     intersected,

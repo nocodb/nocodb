@@ -45,7 +45,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
     )
 
-    const { search } = useFieldQuery()
+    const { search, getValidSearchQueryForColumn } = useFieldQuery()
 
     const eventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore)
 
@@ -110,47 +110,6 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       return search.value.query?.trim() && !isMobileMode.value && (isGrid.value || isGallery.value)
     })
 
-    const getValidSearchQueryForColumn = (col: ColumnType, query?: string, tableMeta?: TableType) => {
-      if (!isValidValue(query)) return ''
-
-      let searchQuery = query
-
-      try {
-        /**
-         * This method can throw errors. so it's important to use a try-catch block when calling it.
-         */
-        searchQuery = ColumnHelper.serializeValue(searchQuery, {
-          col,
-          isMysql,
-          isPg,
-          meta: tableMeta,
-          metas: metas.value,
-          serializeSearchQuery: true,
-        })
-      } catch (_err: any) {
-        /**
-         * If it is a virtual column, then send query as it is
-         */
-        if (!isVirtualCol(col)) {
-          searchQuery = ''
-          /**
-           * We don't have to anything if serializeValue is not valid for current column
-           */
-          console.log('invalid search query for column', col.title, searchQuery)
-        } else if (col.uidt !== UITypes.Formula) {
-          searchQuery = query
-        }
-      }
-
-      if (isVirtualCol(col) && col.uidt !== UITypes.Formula && !isValidValue(searchQuery)) {
-        searchQuery = query
-      }
-
-      if (!isValidValue(searchQuery)) return ''
-
-      return searchQuery ?? ''
-    }
-
     const xWhere = computed(() => {
       let where
 
@@ -168,24 +127,11 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
       let searchQuery = search.value.query.trim()
 
-      searchQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType)
+      const colWhereQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType, true)
 
-      if (!isValidValue(searchQuery)) return where
+      if (!colWhereQuery) return where
 
-      // concat the where clause if query is present
-      if (
-        (col.uidt !== UITypes.Formula || getFormulaColDataType(col) !== FormulaDataTypes.NUMERIC) &&
-        !isNumericCol(col) &&
-        sqlUi.value &&
-        ['text', 'string'].includes(sqlUi.value.getAbstractType(col)) &&
-        col.dt !== 'bigint'
-      ) {
-        where = `${where ? `${where}~and` : ''}(${col.title},like,%${searchQuery}%)`
-      } else {
-        where = `${where ? `${where}~and` : ''}(${col.title},eq,${searchQuery})`
-      }
-
-      return where
+      return `${where ? `${where}~and` : ''}${colWhereQuery}`
     })
 
     const isActionPaneActive = ref(false)

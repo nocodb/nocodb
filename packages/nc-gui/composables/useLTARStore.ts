@@ -114,7 +114,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { sharedView } = useSharedView()
 
-    const { getViewColumns, getValidSearchQueryForColumn } = useSmartsheetStoreOrThrow()
+    const { getViewColumns } = useSmartsheetStoreOrThrow()
+
+    const { getValidSearchQueryForColumn } = useFieldQuery()
 
     const baseId = base.value?.id || (sharedView.value?.view as any)?.base_id
 

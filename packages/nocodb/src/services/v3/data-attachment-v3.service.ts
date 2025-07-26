@@ -226,10 +226,9 @@ export class DataAttachmentV3Service {
           )}${path.extname(filename)}`;
 
       const filePath = path.join(
-        context.workspace_id,
-        context.base_id,
-        modelId,
-        column.id,
+        ...[context.workspace_id, context.base_id, modelId, column.id].filter(
+          (k) => k,
+        ),
       );
       const destPath = path.join('nc', scope ?? 'uploads', filePath);
 

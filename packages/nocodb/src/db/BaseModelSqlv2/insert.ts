@@ -1,5 +1,11 @@
 import { dataWrapper, populatePk } from 'src/helpers/dbHelpers';
-import { isLinksOrLTAR, NcApiVersion, type NcRequest } from 'nocodb-sdk';
+import {
+  isAttachment,
+  isLinksOrLTAR,
+  NcApiVersion,
+  type NcRequest,
+} from 'nocodb-sdk';
+import { AttachmentUrlUploadPreparator } from './attachment-url-upload-preparator';
 import type { Column } from 'src/models';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 
@@ -193,6 +199,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
 
         const order = await baseModel.getHighestOrderInTable();
         const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
+        const attachmentCols = columns.filter((c) => isAttachment(c));
 
         for (const [index, d] of datas.entries()) {
           const insertObj = await baseModel.handleValidateBulkInsert(
@@ -221,6 +228,24 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
 
             postInsertOpsMap[index] = operations.postInsertOps;
             preInsertOps = operations.preInsertOps;
+          }
+          if (attachmentCols.length > 0) {
+            const attachmentOperations =
+              await new AttachmentUrlUploadPreparator().prepareAttachmentUrlUpload(
+                baseModel,
+                {
+                  attachmentCols,
+                  data: d,
+                },
+              );
+            postInsertOpsMap[index] = [].concat(
+              postInsertOpsMap[index],
+              attachmentOperations.postInsertOps,
+            );
+            preInsertOps = [].concat(
+              preInsertOps,
+              attachmentOperations.preInsertOps,
+            );
           }
 
           insertDatas.push(insertObj);

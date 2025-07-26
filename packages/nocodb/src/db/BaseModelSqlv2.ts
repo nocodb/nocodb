@@ -14,6 +14,7 @@ import {
   enumColors,
   extractFilterFromXwhere,
   isAIPromptCol,
+  isAttachment,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -39,6 +40,7 @@ import { NestedLinkPreparator } from './BaseModelSqlv2/nested-link-preparator';
 import { relationDataFetcher } from './BaseModelSqlv2/relation-data-fetcher';
 import { selectObject } from './BaseModelSqlv2/select-object';
 import { FieldHandler } from './field-handler';
+import { AttachmentUrlUploadPreparator } from './BaseModelSqlv2/attachment-url-upload-preparator';
 import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
@@ -2275,13 +2277,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       let rowId = null;
 
       const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
-      const { postInsertOps, preInsertOps, postInsertAuditOps } =
+      // eslint-disable-next-line prefer-const
+      let { postInsertOps, preInsertOps, postInsertAuditOps } =
         await this.prepareNestedLinkQb({
           nestedCols,
           data,
           insertObj,
           req: request,
         });
+      const attachmentOperations =
+        await new AttachmentUrlUploadPreparator().prepareAttachmentUrlUpload(
+          this,
+          {
+            attachmentCols: columns.filter((c) => isAttachment(c)),
+            data,
+          },
+        );
+      postInsertOps = [].concat(
+        postInsertOps,
+        attachmentOperations.postInsertOps,
+      );
+      preInsertOps = [].concat(preInsertOps, attachmentOperations.preInsertOps);
 
       await this.validate(insertObj, columns);
 
@@ -2985,6 +3001,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         pkAndData.push({ pk: pkValues, data: d });
       }
 
+      const attachmentCols = columns.filter((col) => isAttachment(col));
+      let postUpdateOps: (() => Promise<string>)[] = [];
+
       for (let i = 0; i < pkAndData.length; i += readChunkSize) {
         const chunk = pkAndData.slice(i, i + readChunkSize);
         const pksToRead = chunk.map((v) => v.pk);
@@ -3002,9 +3021,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             if (throwExceptionIfNotExist) NcError.recordNotFound(pk);
             continue;
           }
-
           await this.prepareNocoData(data, false, cookie, oldRecord);
           prevData.push(oldRecord);
+          if (attachmentCols.length > 0) {
+            const attachmentOperation =
+              await new AttachmentUrlUploadPreparator().prepareAttachmentUrlUpload(
+                this,
+                {
+                  attachmentCols,
+                  data,
+                },
+              );
+            postUpdateOps = postUpdateOps.concat(
+              attachmentOperation.postInsertOps.map((ops) => {
+                return () => ops(pk);
+              }),
+            );
+          }
 
           const wherePk = await this._wherePk(pk, true);
           toBeUpdated.push({ d: data, wherePk });
@@ -3022,24 +3055,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       transaction = await this.dbDriver.transaction();
-
-      if (
-        this.model.primaryKeys.length === 1 &&
-        (this.isPg || this.isMySQL || this.isSqlite)
-      ) {
-        await batchUpdate(
-          transaction,
-          this.tnPath,
-          toBeUpdated.map((o) => o.d),
-          this.model.primaryKey.column_name,
-        );
-      } else {
-        for (const o of toBeUpdated) {
-          await transaction(this.tnPath).update(o.d).where(o.wherePk);
+      try {
+        if (
+          this.model.primaryKeys.length === 1 &&
+          (this.isPg || this.isMySQL || this.isSqlite)
+        ) {
+          await batchUpdate(
+            transaction,
+            this.tnPath,
+            toBeUpdated.map((o) => o.d),
+            this.model.primaryKey.column_name,
+          );
+        } else {
+          for (const o of toBeUpdated) {
+            await transaction(this.tnPath).update(o.d).where(o.wherePk);
+          }
         }
-      }
 
-      await transaction.commit();
+        await transaction.commit();
+      } catch (ex) {
+        await transaction.rollback();
+      }
 
       // todo: wrap with transaction
       if (apiVersion === NcApiVersion.V3) {
@@ -3051,6 +3087,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             newData: d,
           });
         }
+        await Promise.all(postUpdateOps.map((ops) => ops()));
       }
 
       if (!raw) {
@@ -6392,6 +6429,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           await FieldHandler.fromBaseModel(this).parseUserInput({
             value: data[column.column_name],
             column,
+            oldData,
             row: data,
             options: {
               context: this.context,

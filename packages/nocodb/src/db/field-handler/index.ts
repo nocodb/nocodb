@@ -459,6 +459,7 @@ export class FieldHandler implements IFieldHandler {
   async parseUserInput(params: {
     value: any;
     row: any;
+    oldData?: any;
     column: Column;
     options?: {
       context?: NcContext;

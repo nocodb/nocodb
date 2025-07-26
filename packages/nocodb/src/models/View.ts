@@ -6,6 +6,7 @@ import {
   parseProp,
   UITypes,
   ViewTypes,
+  ROW_COLORING_MODE,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type {
@@ -14,7 +15,6 @@ import type {
   ExpandedFormModeType,
   FilterType,
   NcRequest,
-  ROW_COLORING_MODE,
   ViewType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
@@ -1418,6 +1418,17 @@ export default class View implements ViewType {
     }
 
     const oldView = await this.get(context, viewId, ncMeta);
+
+    if (
+      'meta' in updateObj &&
+      (!updateObj.row_coloring_mode ||
+        updateObj.row_coloring_mode === ROW_COLORING_MODE.SELECT)
+    ) {
+      updateObj.meta = {
+        ...parseProp(oldView.meta),
+        ...parseProp(updateObj.meta),
+      };
+    }
 
     // set meta
     await ncMeta.metaUpdate(

@@ -2259,7 +2259,9 @@
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
+      "searchResultBasedOnButtonLabel": "Showing search result based on button field label",
+      "searchResultBasedOnFieldDescription": "Showing search result based on field description"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

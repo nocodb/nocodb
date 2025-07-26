@@ -38,6 +38,7 @@ const {
   showSystemFields,
   fields,
   filteredFieldList,
+  searchBasis,
   numberOfHiddenFields,
   filterQuery,
   showAll,
@@ -66,8 +67,30 @@ eventBus.on((event) => {
 
 const gridDisplayValueField = computed(() => {
   if (activeView.value?.type !== ViewTypes.GRID && activeView.value?.type !== ViewTypes.CALENDAR) return null
+
   const pvCol = Object.values(metaColumnById.value)?.find((col) => col?.pv)
+
   return filteredFieldList.value?.find((field) => field.fk_column_id === pvCol?.id)
+})
+
+const localFilteredFieldList = computed(() => {
+  return filteredFieldList.value.filter((el) =>
+    activeView.value?.type !== ViewTypes.CALENDAR ? el !== gridDisplayValueField.value : true,
+  )
+})
+
+const searchResultInfo = computed(() => {
+  if (!searchBasis.value || searchBasis.value === 'title' || !localFilteredFieldList.value.length) return ''
+
+  if (searchBasis.value === 'buttonLabel') {
+    return t('msg.info.searchResultBasedOnButtonLabel')
+  }
+
+  if (searchBasis.value === 'description') {
+    return t('msg.info.searchResultBasedOnFieldDescription')
+  }
+
+  return ''
 })
 
 const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
@@ -701,7 +724,10 @@ const onAddColumnDropdownVisibilityChange = () => {
           >
             <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1 ml-2" /> </template>
             <template #suffix>
-              <div class="pl-2 flex">
+              <div class="pl-2 flex items-center gap-2">
+                <NcTooltip v-if="searchResultInfo" :title="searchResultInfo" class="flex cursor-help">
+                  <GeneralIcon icon="info" class="h-4 w-4 text-primary opacity-80" />
+                </NcTooltip>
                 <NcSwitch
                   v-model:checked="showAllColumns"
                   :disabled="isDisabledShowAllColumns"
@@ -720,7 +746,7 @@ const onAddColumnDropdownVisibilityChange = () => {
         >
           <div class="nc-fields-list">
             <div
-              v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
+              v-if="!localFilteredFieldList.length"
               class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
             >
               <img
@@ -742,11 +768,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             >
               <template #item="{ element: field }">
                 <div
-                  v-if="
-                    filteredFieldList
-                      .filter((el) => (activeView.type !== ViewTypes.CALENDAR ? el !== gridDisplayValueField : true))
-                      .includes(field)
-                  "
+                  v-if="localFilteredFieldList.includes(field)"
                   :key="field.id"
                   :data-testid="`nc-fields-menu-${field.title}`"
                   class="nc-fields-menu-item pl-2 flex flex-row items-center rounded-md"

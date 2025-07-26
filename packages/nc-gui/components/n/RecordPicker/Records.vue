@@ -55,7 +55,9 @@ const computedWhere = computed(() => {
 
   const fieldQuery = columnsToSearch
     .map((col) => {
-      return getValidSearchQueryForColumn(col, where.value.trim(), meta.value as TableType, true)
+      return getValidSearchQueryForColumn(col, where.value.trim(), meta.value as TableType, {
+        getWhereQueryAs: 'string',
+      }) as string
     })
     .filter(Boolean)
     .join('~or')

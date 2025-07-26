@@ -116,7 +116,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         return where
       }
 
-      const colWhereQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType, true)
+      const colWhereQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType, {
+        getWhereQueryAs: 'string',
+      }) as string
 
       if (!colWhereQuery) {
         search.value.isValidFieldQuery = false

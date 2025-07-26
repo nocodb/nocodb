@@ -366,7 +366,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           const isDateOrDateTime = isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) && isDateOrDateTimeCol(field)
 
           if (!isDateOrDateTime) {
-            query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value)
+            query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value) as string
           }
 
           if (!isValidValue(query)) return ''

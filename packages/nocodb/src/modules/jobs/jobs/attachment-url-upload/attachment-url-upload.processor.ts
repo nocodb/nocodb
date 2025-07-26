@@ -1,12 +1,11 @@
 import path from 'path';
 import { PassThrough } from 'stream';
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
 import axios from 'axios';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import slash from 'slash';
 import { nanoid } from 'nanoid';
 import { IJobsService } from '../../jobs-service.interface';
+import type { Job } from 'bull';
 import type { AttachmentUrlUploadJobData } from '~/interface/Jobs';
 import { _wherePk, getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -16,7 +15,7 @@ import {
   NC_ATTACHMENT_FIELD_SIZE,
   NC_ATTACHMENT_URL_MAX_REDIRECT,
 } from '~/constants';
-import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import { JobTypes } from '~/interface/Jobs';
 
 const thumbnailMimes = ['image/'];
 
@@ -26,36 +25,32 @@ const normalizeFilename = (filename: string) => {
 };
 
 @Injectable()
-@Processor(JOBS_QUEUE)
 export class AttachmentUrlUploadProcessor {
   constructor(
     @Inject(forwardRef(() => 'JobsService'))
     private readonly jobsService: IJobsService,
   ) {}
 
-  @Process('attachment-url-upload')
-  async attachmentUrlUpload(job: Job<AttachmentUrlUploadJobData>) {
+  async job(job: Job<AttachmentUrlUploadJobData>) {
     const { context, modelId, column, recordId, scope, attachments } = job.data;
 
     const baseModel = await getBaseModelSqlFromModelId({
       context: context,
       modelId: modelId,
     });
+    await baseModel.model.getColumns(context);
     const processedAttachments = [];
     const generateThumbnailAttachments = [];
 
     for (const attachment of attachments) {
       try {
-        if (attachment.id) {
+        if (attachment.id && !attachment.id.startsWith('temp_')) {
           processedAttachments.push(attachment);
-        }
-        // If attachment has URL, download and process it
-        if (attachment.url) {
+        } else if (attachment.url) {
+          // If attachment has URL, download and process it
           const downloadedAttachment = await this.downloadAndStoreAttachment({
-            destPath: path.join(
+            filePath: path.join(
               ...[
-                'nc',
-                scope ?? 'uploads',
                 context.workspace_id,
                 context.base_id,
                 modelId,
@@ -68,7 +63,7 @@ export class AttachmentUrlUploadProcessor {
           });
           const attachmentId = await FileReference.insert(context, {
             storage: downloadedAttachment.storageName,
-            file_url: downloadedAttachment.url,
+            file_url: downloadedAttachment.url ?? downloadedAttachment.path,
             file_size: downloadedAttachment.fileSize,
             fk_user_id: context?.user?.id ?? 'anonymous',
             source_id: baseModel.model.source_id,
@@ -79,6 +74,7 @@ export class AttachmentUrlUploadProcessor {
           const processedAttachment = {
             id: attachmentId,
             url: downloadedAttachment.url,
+            path: downloadedAttachment.path,
             title: downloadedAttachment.filename,
             mimetype: downloadedAttachment.mimeType,
             size: downloadedAttachment.fileSize,
@@ -118,11 +114,11 @@ export class AttachmentUrlUploadProcessor {
 
   private async downloadAndStoreAttachment({
     url,
-    destPath,
+    filePath,
     scope,
   }: {
     url: string;
-    destPath: string;
+    filePath: string;
     scope: string;
   }) {
     // Configure axios for download
@@ -169,19 +165,17 @@ export class AttachmentUrlUploadProcessor {
           5,
         )}${path.extname(filename)}`;
 
-    const nanoId = nanoid(5);
-    const fileDestPath = path.join(destPath, `${nanoId}`);
-
+    const destPath = path.join(...['nc', scope ?? 'uploads', filePath]);
     const resultAttachmentUrl = await storageAdapter.fileCreateByStream(
-      slash(path.join(fileDestPath, filename)),
+      slash(path.join(destPath, filename)),
       response.data.pipe(passthrough),
     );
-
     const fileSize = contentLength ? Number(contentLength) : totalBytes;
 
     return {
       storageName: storageAdapter.name,
       url: resultAttachmentUrl,
+      path: path.join('download', filePath, filename),
       filename,
       mimeType,
       fileSize,

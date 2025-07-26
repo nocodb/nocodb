@@ -88,6 +88,7 @@ export class Datav3Controller {
   @Acl('dataUpdate')
   async dataAttachmentUpload(
     @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('modelId') modelId: string,
     @Param('recordId') recordId: string,
     @Param('columnId') columnId: string,
@@ -100,6 +101,7 @@ export class Datav3Controller {
       columnId,
       scope: undefined,
       attachment: body,
+      req,
     });
   }
 

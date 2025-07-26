@@ -39,7 +39,8 @@ export class DataAttachmentV3Service {
     private readonly dataV3Service: DataV3Service,
   ) {}
   async handleUrlUploadCellUpdate(param: AttachmentUrlUploadParam) {
-    const { context, modelId, column, recordId, scope, attachments } = param;
+    const { context, modelId, column, recordId, scope, req, attachments } =
+      param;
 
     const baseModel = await getBaseModelSqlFromModelId({
       context: context,
@@ -140,14 +141,15 @@ export class DataAttachmentV3Service {
               ),
             },
           },
-          req: { user: context.user } as any,
+          req: req ?? ({ user: context.user } as any),
         },
       ),
     );
   }
 
   async appendBase64AttachmentToCellData(param: AttachmentBase64UploadParam) {
-    const { context, modelId, columnId, recordId, scope, attachment } = param;
+    const { context, modelId, columnId, recordId, scope, attachment, req } =
+      param;
 
     const baseModel = await getBaseModelSqlFromModelId({
       context: context,
@@ -260,7 +262,31 @@ export class DataAttachmentV3Service {
       knex: baseModel.dbDriver,
       model: baseModel.model,
     });
-    // TODO: audit log
+
+    await Audit.insert(
+      await generateAuditV1Payload<DataUpdatePayload>(
+        AuditV1OperationTypes.DATA_UPDATE,
+        {
+          context: context,
+          row_id: recordId,
+          fk_model_id: baseModel.model.id,
+          fk_workspace_id: context.workspace_id,
+          base_id: context.base_id,
+          source_id: baseModel.model.source_id,
+          details: {
+            table_title: baseModel.model.title,
+            column_meta: extractColsMetaForAudit([column], {
+              [column.title]: updatedAttachments,
+            }),
+            data: { [column.title]: updatedAttachments },
+            old_data: {
+              [column.title]: currentAttachments,
+            },
+          },
+          req: req ?? ({ user: context.user } as any),
+        },
+      ),
+    );
 
     return await this.dataV3Service.dataRead(context, {
       modelId,

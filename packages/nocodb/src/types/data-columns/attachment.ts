@@ -1,4 +1,4 @@
-import type { NcContext, PublicAttachmentScope } from 'nocodb-sdk';
+import type { NcContext, NcRequest, PublicAttachmentScope } from 'nocodb-sdk';
 
 // Attachment data types for v3 API
 export interface DataAttachmentRequestUrl {
@@ -16,6 +16,7 @@ export type DataAttachmentRequest =
 export interface AttachmentUrlUploadParam {
   context: NcContext;
   scope?: PublicAttachmentScope;
+  req?: Partial<NcRequest>;
   modelId: string;
   column: {
     id: string;
@@ -35,6 +36,7 @@ export interface AttachmentBase64UploadParam {
   modelId: string;
   columnId: string;
   recordId: string;
+  req?: Partial<NcRequest>;
   attachment: {
     contentType: string;
     file: string; // base64-encoded-file-content

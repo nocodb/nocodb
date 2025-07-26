@@ -49,6 +49,7 @@ export enum JobTypes {
   SyncModuleMigrateSync = 'sync-module-migrate-sync',
   UpdateUsageStats = 'update-usage-stats',
   CloudDbMigrate = 'cloud-db-migrate',
+  AttachmentUrlUpload = 'attachment-url-upload',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -225,4 +226,14 @@ export interface SyncDataSyncModuleJobData extends JobData {
   trigger: SyncTrigger;
   bulk?: boolean;
   req: NcRequest;
+}
+
+export interface AttachmentUrlUploadJobData extends JobData {
+  recordId: string;
+  attachments: Array<{
+    id: string;
+    url?: string;
+    path?: string;
+    size?: number;
+  }>;
 }

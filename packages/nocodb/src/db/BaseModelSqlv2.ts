@@ -2295,11 +2295,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             req: request,
           },
         );
-      postInsertOps = [].concat(
-        postInsertOps,
-        attachmentOperations.postInsertOps,
-      );
-      preInsertOps = [].concat(preInsertOps, attachmentOperations.preInsertOps);
+      postInsertOps = [
+        ...(postInsertOps ?? []),
+        ...(attachmentOperations.postInsertOps ?? []),
+      ];
+      preInsertOps = [
+        ...(preInsertOps ?? []),
+        ...(attachmentOperations.preInsertOps ?? []),
+      ];
 
       await this.validate(insertObj, columns);
 

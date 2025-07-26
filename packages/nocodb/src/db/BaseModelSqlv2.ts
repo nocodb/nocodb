@@ -41,6 +41,7 @@ import { relationDataFetcher } from './BaseModelSqlv2/relation-data-fetcher';
 import { selectObject } from './BaseModelSqlv2/select-object';
 import { FieldHandler } from './field-handler';
 import { AttachmentUrlUploadPreparator } from './BaseModelSqlv2/attachment-url-upload-preparator';
+import { ncIsStringHasValue } from './field-handler/utils/handlerUtils';
 import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
@@ -5321,7 +5322,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async runOps(ops: Promise<string>[], trx = this.dbDriver) {
-    const queries = await Promise.all(ops);
+    const queries = (await Promise.all(ops)).filter((query) =>
+      ncIsStringHasValue(query),
+    );
     for (const query of queries) {
       await trx.raw(query);
     }
@@ -5704,7 +5707,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       }),
                     );
                   }
-                } else if (attachment?.url) {
+                } else if (
+                  attachment?.url &&
+                  !attachment.id.startsWith('temp_')
+                ) {
                   if (attachment?.url.startsWith('data:')) {
                     continue;
                   }
@@ -6480,47 +6486,59 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           data[column.column_name] = isInsertData ? null : cookie?.user?.id;
         }
       }
-      if (column.uidt === UITypes.Attachment) {
+      if (
+        column.uidt === UITypes.Attachment &&
+        this.context.api_version === NcApiVersion.V3
+      ) {
+        if (column.column_name in data) {
+          if (
+            data &&
+            data[column.column_name] &&
+            typeof data[column.column_name] === 'object'
+          ) {
+            data[column.column_name] = JSON.stringify(data[column.column_name]);
+          }
+        }
+      } else if (
+        column.uidt === UITypes.Attachment &&
+        this.context.api_version !== NcApiVersion.V3
+      ) {
         if (column.column_name in data) {
           if (data && data[column.column_name]) {
-            if (this.context.api_version !== NcApiVersion.V3) {
-              try {
-                if (typeof data[column.column_name] === 'string') {
-                  data[column.column_name] = JSON.parse(
-                    data[column.column_name],
-                  );
-                }
-
-                if (
-                  data[column.column_name] &&
-                  !Array.isArray(data[column.column_name])
-                ) {
-                  NcError.invalidAttachmentJson(data[column.column_name]);
-                }
-              } catch (e) {
-                NcError.invalidAttachmentJson(data[column.column_name]);
+            try {
+              if (typeof data[column.column_name] === 'string') {
+                data[column.column_name] = JSON.parse(data[column.column_name]);
               }
 
-              // Confirm that all urls are valid urls
-              for (const attachment of data[column.column_name] || []) {
-                if (!('url' in attachment) && !('path' in attachment)) {
+              if (
+                data[column.column_name] &&
+                !Array.isArray(data[column.column_name])
+              ) {
+                NcError.invalidAttachmentJson(data[column.column_name]);
+              }
+            } catch (e) {
+              NcError.invalidAttachmentJson(data[column.column_name]);
+            }
+
+            // Confirm that all urls are valid urls
+            for (const attachment of data[column.column_name] || []) {
+              if (!('url' in attachment) && !('path' in attachment)) {
+                NcError.unprocessableEntity(
+                  'Attachment object must contain either url or path',
+                );
+              }
+
+              if (attachment.url) {
+                if (attachment.url.startsWith('data:')) {
                   NcError.unprocessableEntity(
-                    'Attachment object must contain either url or path',
+                    `Attachment urls do not support data urls`,
                   );
                 }
 
-                if (attachment.url) {
-                  if (attachment.url.startsWith('data:')) {
-                    NcError.unprocessableEntity(
-                      `Attachment urls do not support data urls`,
-                    );
-                  }
-
-                  if (attachment.url.length > 8 * 1024) {
-                    NcError.unprocessableEntity(
-                      `Attachment url '${attachment.url}' is too long`,
-                    );
-                  }
+                if (attachment.url.length > 8 * 1024) {
+                  NcError.unprocessableEntity(
+                    `Attachment url '${attachment.url}' is too long`,
+                  );
                 }
               }
             }

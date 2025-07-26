@@ -72,6 +72,7 @@ import { Column } from '~/models';
 import { JsonPgHandler } from '~/db/field-handler/handlers/json/json.pg.handler';
 import { DecimalPgHandler } from '~/db/field-handler/handlers/decimal/decimal.pg.handler';
 import { EmailGeneralHandler } from '~/db/field-handler/handlers/email/email.general.handler';
+import { AttachmentGeneralHandler } from '~/db/field-handler/handlers/attachment/attachment.general.handler';
 
 const CLIENT_DEFAULT = '_default';
 
@@ -102,7 +103,9 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.LongText]: {
     [CLIENT_DEFAULT]: LongTextGeneralHandler,
   },
-  [UITypes.Attachment]: {},
+  [UITypes.Attachment]: {
+    [CLIENT_DEFAULT]: AttachmentGeneralHandler,
+  },
   [UITypes.Checkbox]: {
     [CLIENT_DEFAULT]: CheckboxGeneralHandler,
     [ClientType.SQLITE]: CheckboxSqliteHandler,

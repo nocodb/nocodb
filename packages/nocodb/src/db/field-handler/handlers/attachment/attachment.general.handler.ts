@@ -19,9 +19,10 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
       baseModel?: IBaseModelSqlV2;
     };
   }): Promise<{ value: any }> {
-    let oldValue = params.oldData
-      ? dataWrapper(params.oldData).getByColumnNameTitleOrId(params.column)
-      : '[]';
+    let oldValue =
+      params.oldData &&
+      dataWrapper(params.oldData).getByColumnNameTitleOrId(params.column);
+    oldValue = oldValue || '[]';
     let oldValueMap: Map<string, any>;
     let value = params.value;
     if (!value) {
@@ -49,9 +50,7 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
       throwError();
     }
 
-    // remove all url-uploading attachments, it'll be handled later
-    value = value.filter((k) => !k.url);
-
+    let tempIndex = 1;
     // Confirm that all urls are valid urls
     for (const attachment of value ?? []) {
       if (attachment.id) {
@@ -61,27 +60,34 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
         }
         // if id exists, persist old value
         Object.assign(attachment, oldAttachmentRow);
+      } else {
+        attachment.id = 'temp_' + tempIndex++;
       }
     }
     const { removed } = detailedDiff(
-      new Array(oldValueMap.keys),
+      new Array(oldValueMap.keys()),
       value.map((k) => k.id),
     );
     await FileReference.delete(params.options.context, removed);
-
     return {
       value: value.map((attr) => {
-        extractProps(attr, [
-          'id',
-          'url',
-          'path',
-          'title',
-          'mimetype',
-          'size',
-          'icon',
-          'width',
-          'height',
-        ]);
+        return attr.id.startsWith('temp_')
+          ? {
+              id: attr.id,
+              url: attr.url,
+              status: 'uploading',
+            }
+          : extractProps(attr, [
+              'id',
+              'url',
+              'path',
+              'title',
+              'mimetype',
+              'size',
+              'icon',
+              'width',
+              'height',
+            ]);
       }),
     };
   }

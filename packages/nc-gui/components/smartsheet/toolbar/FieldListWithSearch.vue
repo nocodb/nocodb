@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, isSystemColumn } from 'nocodb-sdk'
+import { type ButtonType, type ColumnType, isSystemColumn } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -24,6 +24,8 @@ const { isParentOpen, toolbarMenu, searchInputPlaceholder, selectedOptionId, sho
 const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
 const { $e } = useNuxtApp()
+
+const { t } = useI18n()
 
 const options = computed(() =>
   (props.options || [])
@@ -88,6 +90,31 @@ const handleSelect = (c: ColumnType) => {
 }
 
 const isLocked = inject(IsLockedInj)
+
+const fieldSearchBasisOptions = computed<NcListSearchBasisOptionType[]>(() => [
+  {
+    searchBasisInfo: t('msg.info.searchResultBasedOnButtonLabel'),
+    filterCallback: (query, option) => {
+      if (!option) return false
+
+      const column = option as ColumnType
+
+      return isButton(column) && searchCompare([(column.colOptions as ButtonType)?.label], query)
+    },
+  },
+  {
+    searchBasisInfo: t('msg.info.searchResultBasedOnFieldDescription'),
+    filterCallback: (query, option) => {
+      if (!option) return false
+
+      const column = option as ColumnType
+
+      if (!column.description) return false
+
+      return searchCompare([column.description], query)
+    },
+  },
+])
 </script>
 
 <template>
@@ -109,6 +136,7 @@ const isLocked = inject(IsLockedInj)
     :list="options"
     :value="selectedOptionId"
     :item-height="32"
+    :search-basis-options="fieldSearchBasisOptions"
     @change="handleSelect"
   >
     <template #listItemExtraLeft="{ option }">

@@ -208,8 +208,8 @@ whenever(isOpen, () => {
                   <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-gray-500" />
                 </template>
                 <template v-if="!isValidSearchQuery" #suffix>
-                  <NcTooltip title="Invalid search query for visible fields">
-                    <GeneralIcon icon="ncInfo" class="h-4 w-4 text-nc-content-red-medium" />
+                  <NcTooltip :title="$t('msg.error.invalidSearchQueryForVisibleFields')" class="flex">
+                    <GeneralIcon icon="ncInfo" class="flex-noneh-4 w-4 text-nc-content-red-medium" />
                   </NcTooltip>
                 </template>
               </a-input>

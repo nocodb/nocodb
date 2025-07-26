@@ -21,7 +21,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { api } = useApi()
 
-    const { base, sqlUis } = storeToRefs(useBase())
+    const { base } = storeToRefs(useBase())
 
     const { $e, $api } = useNuxtApp()
 
@@ -35,7 +35,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const password = ref<string | null>(null)
 
-    const { search } = useFieldQuery()
+    const { search, getValidSearchQueryForColumn } = useFieldQuery()
 
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
@@ -44,24 +44,30 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     // save history of stack changes for undo/redo
     const moveHistory = ref<{ op: 'added' | 'removed'; pk: string; stack: string; index: number }[]>([])
 
-    const sqlUi = ref(
-      (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
-    )
-
     const xWhere = computed(() => {
       let where
       const col =
         (meta.value as TableType)?.columns?.find(({ id }) => id === search.value.field) ||
         (meta.value as TableType)?.columns?.find((v) => v.pv)
-      if (!col) return
 
-      if (!search.value.query.trim()) return
-      if (sqlUi.value && ['text', 'string'].includes(sqlUi.value.getAbstractType(col)) && col.dt !== 'bigint') {
-        where = `(${col.title},like,%${search.value.query.trim()}%)`
-      } else {
-        where = `(${col.title},eq,${search.value.query.trim()})`
+      const searchQuery = search.value.query.trim()
+
+      if (!col || !searchQuery) {
+        search.value.isValidFieldQuery = true
+
+        return where
       }
-      return where
+
+      const colWhereQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType, true)
+
+      if (!colWhereQuery) {
+        search.value.isValidFieldQuery = false
+        return where
+      }
+
+      search.value.isValidFieldQuery = true
+
+      return colWhereQuery
     })
 
     provide(SharedViewPasswordInj, password)

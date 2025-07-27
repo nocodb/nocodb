@@ -1,3 +1,4 @@
+import type { AttachmentUrlUploadParam } from '~/types/data-columns/attachment';
 import type {
   AttachmentResType,
   PublicAttachmentScope,
@@ -49,6 +50,7 @@ export enum JobTypes {
   SyncModuleMigrateSync = 'sync-module-migrate-sync',
   UpdateUsageStats = 'update-usage-stats',
   CloudDbMigrate = 'cloud-db-migrate',
+  AttachmentUrlUpload = 'attachment-url-upload',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -226,3 +228,5 @@ export interface SyncDataSyncModuleJobData extends JobData {
   bulk?: boolean;
   req: NcRequest;
 }
+
+export type AttachmentUrlUploadJobData = AttachmentUrlUploadParam & JobData;

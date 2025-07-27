@@ -1,5 +1,6 @@
 import { JobsMap as JobsMapCE } from 'src/modules/jobs/jobs-map.service';
 import { Injectable } from '@nestjs/common';
+import { AttachmentUrlUploadProcessor } from 'src/modules/jobs/jobs/attachment-url-upload/attachment-url-upload.processor';
 import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.processor';
 import { AtImportProcessor } from '~/modules/jobs/jobs/at-import/at-import.processor';
 import { MetaSyncProcessor } from '~/modules/jobs/jobs/meta-sync/meta-sync.processor';
@@ -46,6 +47,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly syncModuleSyncDataProcessor: SyncModuleSyncDataProcessor,
     protected readonly updateUsageStatsProcessor: UpdateUsageStatsProcessor,
     protected readonly cloudDbMigrateProcessor: CloudDbMigrateProcessor,
+    protected readonly attachmentUrlUploadProcessor: AttachmentUrlUploadProcessor,
   ) {
     super(
       duplicateProcessor,
@@ -60,6 +62,7 @@ export class JobsMap extends JobsMapCE {
       initMigrationJobs,
       useWorkerProcessor,
       dataExportCleanUpProcessor,
+      attachmentUrlUploadProcessor,
     );
   }
 
@@ -107,6 +110,9 @@ export class JobsMap extends JobsMapCE {
       [JobTypes.DuplicateDashboard]: {
         this: this.duplicateProcessor,
         fn: 'duplicateDashboard',
+      },
+      [JobTypes.AttachmentUrlUpload]: {
+        this: this.attachmentUrlUploadProcessor,
       },
     };
   }

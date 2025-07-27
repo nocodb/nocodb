@@ -33,3 +33,8 @@ export const S3_PATCH_KEYS = [
 export const V3_INSERT_LIMIT = 10;
 export const MAX_NESTING_DEPTH = 3;
 export const MAX_CONCURRENT_TRANSFORMS = 50;
+export const NC_ATTACHMENT_URL_MAX_REDIRECT = 3;
+
+export const EMIT_EVENT = {
+  HANDLE_ATTACHMENT_URL_UPLOAD: '__nc_handleAttachmentUrlUpload',
+};

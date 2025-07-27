@@ -150,9 +150,11 @@ import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { ViewsV3Service } from '~/services/v3/views-v3.service';
 import { ViewRowColorController } from '~/controllers/view-row-color.controller';
+import { AttachmentUrlUploadHandler } from '~/services/emit-handler/attachment-url-upload.handler';
 
 /* ACL */
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { DataAttachmentV3Service } from '~/services/v3/data-attachment-v3.service';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -326,12 +328,16 @@ export const nocoModuleMetadata = {
     PublicDatasService,
     PublicDatasExportService,
     DataV3Service,
+    DataAttachmentV3Service,
 
     // use custom provider to avoid circular dependency
     {
       provide: 'FormulaColumnTypeChanger',
       useClass: FormulaColumnTypeChanger,
     },
+
+    /* emit handlers */
+    AttachmentUrlUploadHandler,
   ],
   exports: [
     /* Generic */
@@ -374,6 +380,9 @@ export const nocoModuleMetadata = {
     BulkDataAliasService,
     DataTableService,
     DataV3Service,
+    DataAttachmentV3Service,
+
+    AttachmentUrlUploadHandler,
   ],
 };
 

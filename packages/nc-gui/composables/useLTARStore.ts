@@ -114,7 +114,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { sharedView } = useSharedView()
 
-    const { getViewColumns, getValidSearchQueryForColumn } = useSmartsheetStoreOrThrow()
+    const { getViewColumns } = useSmartsheetStoreOrThrow()
+
+    const { getValidSearchQueryForColumn } = useFieldQuery()
 
     const baseId = base.value?.id || (sharedView.value?.view as any)?.base_id
 
@@ -364,7 +366,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           const isDateOrDateTime = isDateOrDateTimeCol(relatedTableDisplayValueColumn.value!) && isDateOrDateTimeCol(field)
 
           if (!isDateOrDateTime) {
-            query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value)
+            query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value) as string
           }
 
           if (!isValidValue(query)) return ''

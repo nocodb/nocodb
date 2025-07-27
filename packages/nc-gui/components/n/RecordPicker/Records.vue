@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import {
   type ColumnType,
-  FormulaDataTypes,
   type TableType,
-  UITypes,
   type ViewType,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
-  isNumericCol,
   isSystemColumn,
 } from 'nocodb-sdk'
 import { searchLike } from '~/utils/searchUtils'
@@ -32,7 +29,7 @@ useProvideSmartsheetLtarHelpers(meta)
 
 const { isMobileMode } = useGlobal()
 
-const { sqlUi, getValidSearchQueryForColumn } = useSmartsheetStoreOrThrow()
+const { getValidSearchQueryForColumn } = useFieldQuery()
 
 const _fields = computedInject(FieldsInj, (_fields) => {
   const conditionToCheck = (col: ColumnType) =>
@@ -58,23 +55,9 @@ const computedWhere = computed(() => {
 
   const fieldQuery = columnsToSearch
     .map((col) => {
-      let searchQuery = where.value.trim()
-
-      searchQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType)
-
-      if (!isValidValue(searchQuery)) return ''
-
-      if (
-        (col.uidt !== UITypes.Formula || getFormulaColDataType(col) !== FormulaDataTypes.NUMERIC) &&
-        !isNumericCol(col) &&
-        sqlUi.value &&
-        ['text', 'string'].includes(sqlUi.value.getAbstractType(col)) &&
-        col.dt !== 'bigint'
-      ) {
-        return `(${col.title},like,%${searchQuery}%)`
-      }
-
-      return `(${col.title},eq,${searchQuery})`
+      return getValidSearchQueryForColumn(col, where.value.trim(), meta.value as TableType, {
+        getWhereQueryAs: 'string',
+      }) as string
     })
     .filter(Boolean)
     .join('~or')
@@ -244,28 +227,34 @@ useScroll(scrollWrapper, {
   behavior: 'smooth',
 })
 
-watch(computedWhere, async () => {
-  if (records?.value?.length) {
-    const filteredRecords = searchLike(records.value, `%${where.value}%`)
-    totalRows.value = filteredRecords.length
-    const tempCachedRows = new Map()
-    filteredRecords.forEach((row, index) => {
-      tempCachedRows.set(index, {
-        row,
-        rowMeta: {
-          rowIndex: index,
-        },
-      })
-    })
-    cachedRows.value = tempCachedRows
-  } else {
-    await syncCount()
-    const newItems = await loadData()
-    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+// watch the where query and update the cached rows
+watch(where, () => {
+  if (!records?.value?.length) return
 
-    calculateSlices()
-    await updateVisibleRows()
-  }
+  const filteredRecords = searchLike(records.value, `%${where.value}%`)
+  totalRows.value = filteredRecords.length
+  const tempCachedRows = new Map()
+  filteredRecords.forEach((row, index) => {
+    tempCachedRows.set(index, {
+      row,
+      rowMeta: {
+        rowIndex: index,
+      },
+    })
+  })
+  cachedRows.value = tempCachedRows
+})
+
+// watch the computed where query and update the cached rows
+watch(computedWhere, async () => {
+  if (records?.value?.length) return
+
+  await syncCount()
+  const newItems = await loadData()
+  newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+
+  calculateSlices()
+  await updateVisibleRows()
 })
 
 onMounted(async () => {
@@ -292,6 +281,24 @@ onMounted(async () => {
 
 const wrapperHeight = computed(() => {
   return totalRows.value * ROW_HEIGHT
+})
+
+const isValidSearchQuery = computed(() => {
+  // If it is local searchLike or no records then don't check for valid search query
+  if (records.value?.length || !totalRows.value) return true
+
+  const searchQuery = where.value?.trim()
+
+  if (!searchQuery) return true
+
+  return !!computedWhere.value
+})
+
+/**
+ * Expose the isValidSearchQuery to the parent component
+ */
+defineExpose({
+  isValidSearchQuery,
 })
 </script>
 

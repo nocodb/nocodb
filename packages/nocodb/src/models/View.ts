@@ -6,7 +6,6 @@ import {
   parseProp,
   UITypes,
   ViewTypes,
-  ROW_COLORING_MODE,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type {
@@ -15,6 +14,7 @@ import type {
   ExpandedFormModeType,
   FilterType,
   NcRequest,
+  ROW_COLORING_MODE,
   ViewType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';

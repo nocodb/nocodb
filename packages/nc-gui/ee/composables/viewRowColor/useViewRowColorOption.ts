@@ -22,7 +22,7 @@ export function useViewRowColorOption(params: {
 
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
-  const { activeViewRowColorInfo: rowColorInfo } = storeToRefs(useViewsStore())
+  const { activeViewRowColorInfo: rowColorInfo, views } = storeToRefs(useViewsStore())
 
   const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -66,6 +66,18 @@ export function useViewRowColorOption(params: {
     return await composeColumnsForFilter({ rootMeta: meta.value, getMeta: async (id) => metas.value[id] })
   })
 
+  const getViewById = (viewId: string) => {
+    return views.value.find((v) => v.id === viewId)
+  }
+
+  const updateViewLocalState = (viewId: string, updateObj: Partial<ViewType>) => {
+    const view = getViewById(viewId)
+
+    if (!view) return
+
+    Object.assign(view, updateObj)
+  }
+
   const reloadViewDataIfNeeded = (columnId?: string) => {
     if (!columnId || !viewFieldsMap.value) return
 
@@ -77,6 +89,16 @@ export function useViewRowColorOption(params: {
   const onRemoveRowColoringMode = async () => {
     await $api.dbView.deleteViewRowColor(params.view.value.id)
     rowColorInfo.value = { mode: null, conditions: [] }
+
+    const viewMeta = parseProp(getViewById(params.view.value.id!)?.meta)
+
+    delete viewMeta.rowColoringInfo
+
+    updateViewLocalState(params.view.value.id!, {
+      row_coloring_mode: null,
+      meta: viewMeta,
+    })
+
     eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
@@ -86,6 +108,20 @@ export function useViewRowColorOption(params: {
 
     if (rowColorInfo.value.fk_column_id) {
       await $api.dbView.viewRowColorSelectAdd(params.view.value.id, rowColorInfo.value)
+
+      const viewMeta = parseProp(getViewById(params.view.value.id!)?.meta)
+
+      updateViewLocalState(params.view.value.id!, {
+        row_coloring_mode: ROW_COLORING_MODE.SELECT,
+        meta: {
+          ...viewMeta,
+          rowColoringInfo: {
+            fk_column_id: rowColorInfo.value.fk_column_id,
+            is_set_as_background: rowColorInfo.value.is_set_as_background,
+          },
+        },
+      })
+
       eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
 
       if (columnChanged) {
@@ -138,6 +174,10 @@ export function useViewRowColorOption(params: {
         ).conditions[0].id
         conditionToAdd.conditions[0].fk_row_color_condition_id = conditionToAdd.id
       }
+
+      updateViewLocalState(params.view.value.id!, {
+        row_coloring_mode: ROW_COLORING_MODE.FILTER,
+      })
     })
 
     reloadViewDataIfNeeded(evalColumn?.id)
@@ -155,6 +195,17 @@ export function useViewRowColorOption(params: {
 
         reloadViewDataIfNeeded(rowColorInfo.value.fk_column_id)
       }
+
+      updateViewLocalState(params.view.value.id!, {
+        row_coloring_mode: ROW_COLORING_MODE.SELECT,
+        meta: {
+          ...parseProp(getViewById(params.view.value.id!)?.meta),
+          rowColoringInfo: {
+            fk_column_id: rowColorInfo.value.fk_column_id,
+            is_set_as_background: rowColorInfo.value.is_set_as_background,
+          },
+        },
+      })
 
       eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
       eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)

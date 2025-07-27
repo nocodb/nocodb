@@ -21,7 +21,7 @@ import type {
 import { MetaTable } from '~/cli';
 import { NcError } from '~/helpers/catchError';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
-import { View } from '~/models';
+import { Model, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -47,13 +47,13 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
 
     if (view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {
-      const baseModel = await getBaseModelSqlFromModelId({
-        context: params.context,
-        modelId: view.fk_model_id,
-      });
-      await baseModel.model.getColumns(params.context);
+      const model = await Model.get(params.context, view.fk_model_id);
+
+      await model.getColumns(params.context);
+
       const meta: ViewMetaRowColoring = parseProp(view.meta);
-      const selectColumn = baseModel.model.columns.find(
+
+      const selectColumn = model.columns.find(
         (k) => k.id === meta.rowColoringInfo.fk_column_id,
       );
 
@@ -65,7 +65,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           fk_column_id: null,
           color: null,
           is_set_as_background: null,
-          fk_model_id: baseModel.model.id,
+          fk_model_id: model.id,
           fk_view_id: view.id,
         };
       }
@@ -80,7 +80,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         is_set_as_background: meta.rowColoringInfo.is_set_as_background,
         fk_column_id: meta.rowColoringInfo.fk_column_id,
         selectColumn,
-        fk_model_id: baseModel.model.id,
+        fk_model_id: model.id,
         fk_view_id: view.id,
       } as RowColoringInfo;
     } else if (view.row_coloring_mode === ROW_COLORING_MODE.FILTER) {
@@ -206,18 +206,19 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       );
 
       if (!view.row_coloring_mode) {
-        await ncMetaTrans.metaUpdate(
-          params.context.workspace_id,
-          params.context.base_id,
-          MetaTable.VIEWS,
+        await View.update(
+          params.context,
+          view.id,
           {
             row_coloring_mode: ROW_COLORING_MODE.FILTER,
           },
-          view.id,
+          false,
+          ncMeta,
         );
-        await this.clearCache(view);
       }
+
       await ncMetaTrans.commit();
+
       return {
         id: rowColoringCondition.id,
         info: await this.getByViewId({ ...params }),
@@ -299,15 +300,16 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
 
     const view = await View.get(params.context, exists.fk_view_id);
+
     if (!view) {
       NcError.get(params.context).viewNotFound(params.fk_view_id);
     }
+
     await RowColorCondition.delete(
       params.context,
       params.fk_row_coloring_conditions_id,
       params.ncMeta,
     );
-    await this.clearCache(view);
   }
 
   async setRowColoringSelect(params: {
@@ -327,22 +329,23 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     } else {
       NcError.requiredFieldMissing('view_id');
     }
+
     const viewMeta: ViewMetaRowColoring = parseProp(view.meta);
     viewMeta.rowColoringInfo = {
       fk_column_id: params.fk_column_id,
       is_set_as_background: params.is_set_as_background,
     };
-    await ncMeta.metaUpdate(
-      params.context.workspace_id,
-      params.context.base_id,
-      MetaTable.VIEWS,
-      {
-        meta: viewMeta,
-        row_coloring_mode: ROW_COLORING_MODE.SELECT,
-      },
+
+    await View.update(
+      params.context,
       view.id,
+      {
+        row_coloring_mode: ROW_COLORING_MODE.SELECT,
+        meta: viewMeta,
+      },
+      false,
+      ncMeta,
     );
-    await this.clearCache(view);
   }
 
   async removeRowColorInfo(params: {
@@ -386,15 +389,17 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
             rowColorCondition.id,
           );
         }
-        await ncMetaTrans.metaUpdate(
-          params.context.workspace_id,
-          params.context.base_id,
-          MetaTable.VIEWS,
+
+        await View.update(
+          params.context,
+          view.id,
           {
             row_coloring_mode: null,
           },
-          view.id,
+          false,
+          ncMeta,
         );
+
         await ncMetaTrans.commit();
       } catch (e) {
         await ncMetaTrans.rollback(e);
@@ -403,18 +408,18 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     } else if (view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {
       const viewMeta = parseProp(view.meta);
       delete viewMeta.rowColoringInfo;
-      await ncMeta.metaUpdate(
-        params.context.workspace_id,
-        params.context.base_id,
-        MetaTable.VIEWS,
+
+      await View.update(
+        params.context,
+        view.id,
         {
           row_coloring_mode: null,
           meta: viewMeta,
         },
-        view.id,
+        false,
+        ncMeta,
       );
     }
-    await this.clearCache(view);
   }
 
   async checkIfColumnInvolved(param: {
@@ -542,11 +547,5 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         Promise.all(commitHandlers.map((k) => k()));
       },
     };
-  }
-
-  async clearCache(view: View) {
-    await NocoCache.del(`${CacheScope.VIEW}:${view.id}`);
-    await NocoCache.del(`${CacheScope.VIEW}:${view.fk_model_id}:${view.title}`);
-    await NocoCache.del(`${CacheScope.SINGLE_QUERY}:${view.fk_model_id}`);
   }
 }

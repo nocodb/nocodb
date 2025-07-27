@@ -370,8 +370,8 @@ const handleScrollIntoView = () => {
             :show-dynamic-condition="false"
             :root-meta="meta"
             :link-col-id="vModel.id"
-            @addFilter="handleScrollIntoView"
-            @addFilterGroup="handleScrollIntoView"
+            @add-filter="handleScrollIntoView"
+            @add-filter-group="handleScrollIntoView"
           />
         </div>
       </div>

@@ -970,15 +970,5 @@ describe('dataApiV3', () => {
         ).to.equal(true);
       });
     });
-
-    describe.skip('attachment', () => {
-      let table: Model;
-      const columns: Column[] = [];
-
-      beforeEach(async function () {
-        const initResult = await beforeEachAttachment(testContext);
-        urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
-      });
-    });
   });
 });

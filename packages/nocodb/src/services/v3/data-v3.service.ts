@@ -1,7 +1,5 @@
 import { NcApiVersion, RelationTypes, UITypes } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
-import { NcError } from 'src/helpers/catchError';
-import { getCompositePkValue } from 'src/helpers/dbHelpers';
 import type {
   DataDeleteParams,
   DataInsertParams,
@@ -12,10 +10,12 @@ import type {
   DataRecordWithDeleted,
   DataUpdateParams,
   NestedDataListParams,
-} from './data-v3.types';
+} from '~/services/v3/data-v3.types';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
+import { getCompositePkValue } from '~/helpers/dbHelpers';
+import { NcError } from '~/helpers/catchError';
 import { Column, Model, Source } from '~/models';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
 import { DataTableService } from '~/services/data-table.service';

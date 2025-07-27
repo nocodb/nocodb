@@ -2997,6 +2997,156 @@
         }
       }
     },
+    "/api/v3/data/{baseId}/{modelId}/records/{recordId}/fields/{fieldId}/upload": {
+      "post": {
+        "summary": "Upload Attachment to Cell",
+        "operationId": "db-data-table-row-attachment-upload",
+        "description": "This API endpoint allows you to upload an attachment (base64 encoded) to a specific cell in a table. The attachment data includes content type, base64 encoded file, and filename.",
+        "tags": [
+          "Table Records"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "description": "**Base Identifier**."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "modelId",
+            "in": "path",
+            "required": true,
+            "description": "**Model Identifier**."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "description": "**Record Identifier**."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "fieldId",
+            "in": "path",
+            "required": true,
+            "description": "**Field Identifier**."
+          },
+          {
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "contentType": {
+                    "type": "string",
+                    "description": "Content type of the file (e.g., image/png, application/pdf)."
+                  },
+                  "file": {
+                    "type": "string",
+                    "description": "Base64 encoded file content."
+                  },
+                  "filename": {
+                    "type": "string",
+                    "description": "Original filename of the attachment."
+                  }
+                },
+                "required": [
+                  "contentType",
+                  "file",
+                  "filename"
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "contentType": "image/png",
+                    "file": "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+                    "filename": "image.png"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataReadResponseV3"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": 1,
+                      "fields": {
+                        "SingleLineText": "record #1",
+                        "MultiLineText": "sample long text",
+                        "Email": "user@nocodb.com",
+                        "PhoneNumber": "1234567890",
+                        "URL": "www.google.com",
+                        "Number": 1234,
+                        "Decimal": 100.88,
+                        "Currency": 100,
+                        "Percent": 10,
+                        "Duration": 1010,
+                        "Rating": 3,
+                        "Year": 2020,
+                        "Time": "20:20:00",
+                        "Checkbox": true,
+                        "Date": "2020-01-01",
+                        "SingleSelect": "Jan",
+                        "MultiSelect": [
+                          "Jan",
+                          "Feb",
+                          "Mar"
+                        ],
+                        "DateTime": "2022-02-02 00:00:00+00:00",
+                        "LTAR": [
+                          {
+                            "id": 1,
+                            "fields": {
+                              "SingleLineText": "record #1"
+                            }
+                          },
+                          {
+                            "id": 2,
+                            "fields": {
+                              "SingleLineText": "record #2"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
     "/api/v3/data/{baseId}/{tableId}/count": {
       "parameters": [
         {

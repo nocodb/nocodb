@@ -163,11 +163,11 @@ function generateV3ToV2Converter() {
   `
 }
 
-function generateWorkflowStepAPI() {
+function generateStepAPI() {
   return `
   let __nc_currentStepId = null;
   
-  // Export colors and icons as objects for easy access and IntelliSense
+  // Export colors and icons as objects for easy access 
   const colors = {
     red: 'red',
     blue: 'blue', 
@@ -649,7 +649,7 @@ function generateWorkflowStepAPI() {
     }
   };
   
-  const workflow = { step, clear, colors, icons };
+  const script = { step, clear, colors, icons };
   `
 }
 
@@ -2463,7 +2463,7 @@ export function createWorkerCode(userCode: string, custom?: string): string {
     ${generateConsoleOverride()}
     ${generateOutput()}
     ${generateProgressAPIs()}
-    ${generateWorkflowStepAPI()}
+    ${generateStepAPI()}
     ${generateV3ToV2Converter()}
     ${generateInputMethods()}
     ${generateApiProxy()}

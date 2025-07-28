@@ -10,10 +10,10 @@ declare let console: {
 }
 
 // Color options
-type WorkflowColor = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange' | 'gray';
+type ScriptColor = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange' | 'gray';
 
 // Icon options (comprehensive list)
-type WorkflowIcon = 
+type ScriptIcon = 
   // Layout & Structure
   | 'columns' | 'grid' | 'layout' | 'sidebar'
   // Navigation & Arrows
@@ -128,16 +128,16 @@ type WorkflowIcon =
   // Logo Icons - Entertainment
   | 'twitch';
 
-// Workflow step configuration
-interface WorkflowStepConfig {
+// Script step configuration
+interface ScriptStepConfig {
   title: string;
   description?: string;
-  icon?: WorkflowIcon;
-  color?: WorkflowColor;
+  icon?: ScriptIcon;
+  color?: ScriptColor;
 }
 
 // Colors object with proper typing
-interface WorkflowColors {
+interface ScriptColors {
   readonly red: 'red';
   readonly blue: 'blue';
   readonly green: 'green';
@@ -148,7 +148,7 @@ interface WorkflowColors {
 }
 
 // Icons object with proper typing
-interface WorkflowIcons {
+interface ScriptIcons {
   // Layout & Structure
   readonly columns: 'ncColumns';
   readonly grid: 'ncGrid';
@@ -569,7 +569,7 @@ interface WorkflowIcons {
 }
 
 /**
- * Creates a workflow step with the given configuration.
+ * Creates a script step with the given configuration.
  * Supports both string title and full configuration object.
  * 
  * @param config - Either a string title or full configuration object
@@ -580,46 +580,46 @@ interface WorkflowIcons {
  * workflow.step("Process Data");
  * 
  * // Step with full configuration
- * workflow.step({
+ * script.step({
  *   title: "AI Processing",
  *   description: "Running AI analysis on data",
  *   icon: workflow.icons.openai,
  *   color: workflow.colors.blue
  * });
  */
-declare function step(config: string | WorkflowStepConfig): string;
+declare function step(config: string | ScriptStepConfig): string;
 
 /**
- * Clears all currently active workflow steps.
- * Use this to reset the workflow display.
+ * Clears all currently active script steps.
+ * Use this to reset the script display.
  * 
  * @example
- * workflow.clear();
+ * script.clear();
  */
 declare function clear(): void;
 
 /**
- * Workflow API for creating visual workflow steps with icons and colors.
+ * Script Steps API for creating visual steps with icons and colors.
  * 
  * @example
  * // Simple step
- * workflow.step("Process Data");
+ * script.step("Process Data");
  * 
  * // Step with icon and color
- * workflow.step({
+ * script.step({
  *   title: "AI Processing",
- *   icon: workflow.icons.openai,
- *   color: workflow.colors.blue
+ *   icon: script.icons.openai,
+ *   color: script.colors.blue
  * });
  * 
  * // Clear all steps
- * workflow.clear();
+ * script.clear();
  */
-declare const workflow: {
+declare const script: {
   step: typeof step;
   clear: typeof clear;
-  colors: WorkflowColors;
-  icons: WorkflowIcons;
+  colors: ScriptColors;
+  icons: ScriptIcons;
 };
 
 

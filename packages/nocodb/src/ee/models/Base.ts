@@ -129,6 +129,11 @@ export default class Base extends BaseCE {
       'default_role',
     ]);
 
+    // define base type as database if missing
+    if (!baseBody.type) {
+      baseBody.type = 'database';
+    }
+
     if (!insertObj.order) {
       // get order value
       insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.PROJECT, {});

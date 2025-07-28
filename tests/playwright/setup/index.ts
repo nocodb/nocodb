@@ -483,15 +483,15 @@ const setup = async ({
   // default landing page for tests
   let baseUrl;
   if (isEE()) {
-    switch (base.type) {
+    const type = base.type || ProjectTypes.DATABASE;
+
+    switch (type) {
       case ProjectTypes.DOCUMENTATION:
         baseUrl = url ? url : `/#/${base.fk_workspace_id}/${base.id}/doc`;
         break;
       case ProjectTypes.DATABASE:
         baseUrl = url ? url : `/#/${base.fk_workspace_id}/${base.id}`;
         break;
-      default:
-        throw new Error(`Unknown base type: ${base.type}`);
     }
   } else {
     // sample: http://localhost:3000/#/ws/default/base/pdknlfoc5e7bx4w

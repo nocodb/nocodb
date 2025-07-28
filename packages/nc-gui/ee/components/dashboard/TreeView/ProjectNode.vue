@@ -4,6 +4,7 @@ import {
   PlanLimitTypes,
   PlanTitles,
   ProjectRoles,
+  ProjectTypes,
   RoleColors,
   RoleIcons,
   RoleLabels,
@@ -389,8 +390,10 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
 
   if (!isProjectPopulated) base.isLoading = true
 
-  switch (base.type) {
-    case 'database':
+  const type = base.type || ProjectTypes.DATABASE
+
+  switch (type) {
+    case ProjectTypes.DATABASE:
       if (!ignoreNavigation) {
         await navigateTo(
           baseUrl({
@@ -406,7 +409,7 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
       }
       break
     default:
-      throw new Error(`Unknown base type: ${base.type}`)
+      throw new Error(`Unknown base type: ${type}`)
   }
 
   if (!isProjectPopulated) {

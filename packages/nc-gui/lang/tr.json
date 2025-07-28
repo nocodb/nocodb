@@ -2376,7 +2376,10 @@
       "anErrorOccuredWhileAirtableBaseImport": "Airtable tabanı içe aktarılırken bir hata oluştu",
       "paymentFailed": "Ödeme Başarısız",
       "paymentFailedSubtitle": "Ödemeniz işlenirken bir sorun oluştu. Lütfen tekrar deneyin veya destekle iletişime geçin.",
-      "failedToCreateLookupFields": "Failed to create lookup fields"
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "Proje metaverileri başarıyla dışa aktarıldı",

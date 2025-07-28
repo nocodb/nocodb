@@ -2376,7 +2376,10 @@
       "anErrorOccuredWhileAirtableBaseImport": "خطایی هنگام ایمپورت پایگاه از Airtable رخ داد",
       "paymentFailed": "پرداخت ناموفق",
       "paymentFailedSubtitle": "در پردازش پرداخت شما مشکلی رخ داد. لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.",
-      "failedToCreateLookupFields": "Failed to create lookup fields"
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "فراداده پروژه با موفقیت خارج شد",

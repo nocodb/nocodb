@@ -2376,7 +2376,10 @@
       "anErrorOccuredWhileAirtableBaseImport": "Airtable ಬೇಸ್ ಇಂಪೊರ್ಟ್ ಮಾಡುವಾಗ ದೋಷ ಉಂಟಾಯಿತು",
       "paymentFailed": "ಪಾವತಿ ವಿಫಲವಾಗಿದೆ",
       "paymentFailedSubtitle": "ನಿಮ್ಮ ಪಾವತಿಯನ್ನು ಪ್ರಕ್ರಿಯೆಗೊಳಿಸುವಾಗ ಏನೋ ತಪ್ಪಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಬೆಂಬಲವನ್ನು ಸಂಪರ್ಕಿಸಿ.",
-      "failedToCreateLookupFields": "Failed to create lookup fields"
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "ಮೂಲಮಾಹಿತಿ ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ",

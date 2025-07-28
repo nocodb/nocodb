@@ -2376,7 +2376,10 @@
       "anErrorOccuredWhileAirtableBaseImport": "airtable에서 베이스를 가져오는 동안 오류가 발생했습니다",
       "paymentFailed": "결제 완료",
       "paymentFailedSubtitle": "결제를 처리하는 동안 문제가 발생했습니다. 다시 시도하거나 지원팀에 문의하세요.",
-      "failedToCreateLookupFields": "조회 필드를 만들지 못했습니다."
+      "failedToCreateLookupFields": "조회 필드를 만들지 못했습니다.",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "프로젝트 메타 데이터를 성공적으로 내보냈습니다",

@@ -20,6 +20,10 @@ export default class Noco extends NocoCE {
     return this.ee;
   }
 
+  public static isOnPrem(): boolean {
+    return false;
+  }
+
   public static async prepareAuditService() {
     if (process.env.NC_AUDIT_DB) {
       const auditConfig = await NcConfig.create({

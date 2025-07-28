@@ -590,6 +590,47 @@ export const useInfiniteGroups = (
     }
   }
 
+  const toggleExpandAll = async (path: number[], expand: boolean) => {
+    let targetGroups: Map<number, CanvasGroup>
+    if (!path?.length) {
+      path = [0]
+    }
+
+    if (path.length === 1) {
+      targetGroups = cachedGroups.value
+    } else {
+      let currentGroups = cachedGroups.value
+
+      // Navigate to the parent level (all path elements except the last one)
+      for (let i = 0; i < path.length - 1; i++) {
+        const group = currentGroups.get(path[i])
+        if (!group || !group.groups) return
+        currentGroups = group.groups
+      }
+
+      targetGroups = currentGroups
+    }
+
+    targetGroups.forEach((group) => {
+      const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
+
+      group.isExpanded = expand
+
+      if (expand) {
+        if (!activeGroupKeys.value.includes(nestedKey)) {
+          activeGroupKeys.value.push(nestedKey)
+        }
+      } else {
+        const keyIndex = activeGroupKeys.value.indexOf(nestedKey)
+        if (keyIndex !== -1) {
+          activeGroupKeys.value.splice(keyIndex, 1)
+        }
+      }
+    })
+
+    callbacks?.syncVisibleData()
+  }
+
   const isGroupBy = computed(() => !!groupByColumns.value.length)
 
   return {
@@ -608,5 +649,6 @@ export const useInfiniteGroups = (
     columnsById,
     gridViewColByTitle,
     updateGroupAggregations,
+    toggleExpandAll,
   }
 }

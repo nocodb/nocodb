@@ -78,6 +78,7 @@ const {
   toggleExpand,
   totalGroups,
   clearGroupCache,
+  toggleExpandAll,
   groupDataCache,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
@@ -428,6 +429,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
       :group-sync-count="groupSyncCount"
       :fetch-missing-group-chunks="fetchMissingGroupChunks"
       :is-bulk-operation-in-progress="isBulkOperationInProgress"
+      :toggle-expand-all="toggleExpandAll"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateTrigger"
     />

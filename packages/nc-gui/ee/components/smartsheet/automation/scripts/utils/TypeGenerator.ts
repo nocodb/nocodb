@@ -9,58 +9,618 @@ declare let console: {
   error(...args: Array<unknown>): void
 }
 
-type WorkflowStepBuilder = { red: any; blue: any; green: any; yellow: any; purple: any; orange: any; gray: any; columns: any; grid: any; layout: any; sidebar: any; arrowUp: any; arrowDown: any; arrowLeft: any; arrowRight: any; arrowUpLeft: any; arrowUpRight: any; arrowDownLeft: any; arrowDownRight: any; chevronUp: any; chevronDown: any; chevronLeft: any; chevronRight: any; chevronsUp: any; chevronsDown: any; chevronsLeft: any; chevronsRight: any; cornerUpLeft: any; cornerUpRight: any; cornerDownLeft: any; cornerDownRight: any; cornerLeftUp: any; cornerLeftDown: any; cornerRightUp: any; cornerRightDown: any; play: any; pause: any; stop: any; skipForward: any; skipBack: any; fastForward: any; rewind: any; shuffle: any; repeat: any; playCircle: any; pauseCircle: any; arrowUpCircle: any; arrowDownCircle: any; arrowLeftCircle: any; arrowRightCircle: any; add: any; remove: any; close: any; check: any; edit: any; edit2: any; edit3: any; delete: any; trash: any; trash2: any; copy: any; cut: any; save: any; addCircle: any; removeCircle: any; closeCircle: any; checkCircle: any; addSquare: any; removeSquare: any; closeSquare: any; checkSquare: any; file: any; fileText: any; filePlus: any; fileMinus: any; fileSearch: any; folder: any; folderPlus: any; folderMinus: any; document: any; mail: any; message: any; messageSquare: any; phone: any; phoneCall: any; phoneIncoming: any; phoneOutgoing: any; phoneMissed: any; phoneForwarded: any; phoneOff: any; user: any; users: any; userPlus: any; userMinus: any; userCheck: any; userX: any; smartphone: any; tablet: any; monitor: any; tv: any; camera: any; cameraOff: any; video: any; videoOff: any; mic: any; micOff: any; volume: any; volume1: any; volume2: any; volumeX: any; speaker: any; mute: any; headphone: any; wifi: any; wifiOff: any; bluetooth: any; cast: any; airplay: any; cloud: any; cloudOff: any; cloudSnow: any; uploadCloud: any; downloadCloud: any; upload: any; download: any; database: any; server: any; hardDrive: any; barChart: any; barChart2: any; pieChart: any; trendingUp: any; trendingDown: any; activity: any; type: any; bold: any; italic: any; underline: any; alignLeft: any; alignCenter: any; alignRight: any; alignJustify: any; heading1: any; heading2: any; heading3: any; quote: any; list: any; numberList: any; checkList: any; menu: any; home: any; search: any; searchDuo: any; filter: any; settings: any; settingsDuo: any; sliders: any; more: any; moreVertical: any; bell: any; bellOff: any; notification: any; alert: any; alertFilled: any; alertTriangle: any; alertOctagon: any; info: any; lock: any; unlock: any; key: any; shield: any; shieldOff: any; eye: any; eyeOff: any; logIn: any; logOut: any; circle: any; square: any; triangle: any; hexagon: any; octagon: any; star: any; heart: any; target: any; crosshair: any; tool: any; wrench: any; paintRoller: any; penTool: any; crop: any; move: any; maximize: any; maximize2: any; minimize: any; minimize2: any; zoomIn: any; zoomOut: any; rotateCw: any; rotateCcw: any; refreshCw: any; refreshCcw: any; refresh: any; toggleLeft: any; toggleRight: any; link: any; link2: any; externalLink: any; share: any; share2: any; send: any; briefcase: any; dollarSign: any; creditCard: any; package: any; box: any; clipboard: any; calendar: any; clock: any; bookmark: any; printer: any; inbox: any; code: any; codeBlock: any; terminal: any; command: any; gitBranch: any; gitCommit: any; gitPullRequest: any; globe: any; mapPin: any; navigation: any; navigation2: any; compass: any; smile: any; frown: any; thumbsUp: any; thumbsDown: any; power: any; battery: any; batteryCharging: any; zap: any; zapOff: any; droplet: any; moon: any; disc: any; film: any; radio: any; book: any; bookOpen: any; hash: any; atSign: any; percent: any; slash: any; layers: any; flag: any; award: any; loader: any; mousePointer: any; image: any; paperclip: any; pocket: any; autoAwesome: any; magic: any; ai: any; rss: any; webhook: any; megaphone: any; conditions: any; integration: any; base: any; baseDuo: any; github: any; gitlab: any; instagram: any; linkedin: any; youtube: any; chrome: any; openai: any; claude: any; gemini: any; groq: any; ollama: any; slack: any; discord: any; teams: any; telegram: any; whatsapp: any; twitter: any; facebook: any; gmail: any; outlook: any; googleDrive: any; dropbox: any; asana: any; jira: any; trello: any; miro: any; figma: any; framer: any; bitbucket: any; salesforce: any; hubspot: any; pipedrive: any; zoho: any; dynamics: any; greenhouse: any; lever: any; workday: any; zendesk: any; freshdesk: any; intercom: any; mailchimp: any; surveymonkey: any; typeform: any; stripe: any; quickbooks: any; twilio: any; twitch: any; start: () => string };
+// Color options
+type WorkflowColor = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'orange' | 'gray';
+
+// Icon options (comprehensive list)
+type WorkflowIcon = 
+  // Layout & Structure
+  | 'columns' | 'grid' | 'layout' | 'sidebar'
+  // Navigation & Arrows
+  | 'arrowUp' | 'arrowDown' | 'arrowLeft' | 'arrowRight'
+  | 'arrowUpLeft' | 'arrowUpRight' | 'arrowDownLeft' | 'arrowDownRight'
+  | 'chevronUp' | 'chevronDown' | 'chevronLeft' | 'chevronRight'
+  | 'chevronsUp' | 'chevronsDown' | 'chevronsLeft' | 'chevronsRight'
+  | 'cornerUpLeft' | 'cornerUpRight' | 'cornerDownLeft' | 'cornerDownRight'
+  | 'cornerLeftUp' | 'cornerLeftDown' | 'cornerRightUp' | 'cornerRightDown'
+  // Actions & Controls
+  | 'play' | 'pause' | 'stop' | 'skipForward' | 'skipBack' | 'fastForward' | 'rewind' | 'shuffle' | 'repeat'
+  // Media Controls (Circle variants)
+  | 'playCircle' | 'pauseCircle' | 'arrowUpCircle' | 'arrowDownCircle' | 'arrowLeftCircle' | 'arrowRightCircle'
+  // Basic Actions
+  | 'add' | 'remove' | 'close' | 'check' | 'edit' | 'edit2' | 'edit3' | 'delete' | 'trash' | 'trash2' | 'copy' | 'cut' | 'save'
+  // Circle Actions
+  | 'addCircle' | 'removeCircle' | 'closeCircle' | 'checkCircle'
+  // Square Actions
+  | 'addSquare' | 'removeSquare' | 'closeSquare' | 'checkSquare'
+  // Files & Documents
+  | 'file' | 'fileText' | 'filePlus' | 'fileMinus' | 'fileSearch' | 'folder' | 'folderPlus' | 'folderMinus' | 'document'
+  // Communication
+  | 'mail' | 'message' | 'messageSquare' | 'phone' | 'phoneCall' | 'phoneIncoming' | 'phoneOutgoing' 
+  | 'phoneMissed' | 'phoneForwarded' | 'phoneOff'
+  // Users & People
+  | 'user' | 'users' | 'userPlus' | 'userMinus' | 'userCheck' | 'userX'
+  // Technology & Devices
+  | 'smartphone' | 'tablet' | 'monitor' | 'tv' | 'camera' | 'cameraOff' | 'video' | 'videoOff' | 'mic' | 'micOff'
+  // Audio & Volume
+  | 'volume' | 'volume1' | 'volume2' | 'volumeX' | 'speaker' | 'mute' | 'headphone'
+  // Network & Connectivity
+  | 'wifi' | 'wifiOff' | 'bluetooth' | 'cast' | 'airplay'
+  // Cloud & Storage
+  | 'cloud' | 'cloudOff' | 'cloudSnow' | 'uploadCloud' | 'downloadCloud' | 'upload' | 'download'
+  // Data & Analytics
+  | 'database' | 'server' | 'hardDrive' | 'barChart' | 'barChart2' | 'pieChart' | 'trendingUp' | 'trendingDown' | 'activity'
+  // Text & Formatting
+  | 'type' | 'bold' | 'italic' | 'underline' | 'alignLeft' | 'alignCenter' | 'alignRight' | 'alignJustify'
+  | 'heading1' | 'heading2' | 'heading3' | 'quote'
+  // Lists & Organization
+  | 'list' | 'numberList' | 'checkList' | 'menu'
+  // Navigation & Interface
+  | 'home' | 'search' | 'searchDuo' | 'filter' | 'settings' | 'settingsDuo' | 'sliders' | 'more' | 'moreVertical'
+  // Status & Notifications
+  | 'bell' | 'bellOff' | 'notification' | 'alert' | 'alertFilled' | 'alertTriangle' | 'alertOctagon' | 'info'
+  // Security & Privacy
+  | 'lock' | 'unlock' | 'key' | 'shield' | 'shieldOff' | 'eye' | 'eyeOff'
+  // Authentication
+  | 'logIn' | 'logOut'
+  // Shapes & Symbols
+  | 'circle' | 'square' | 'triangle' | 'hexagon' | 'octagon' | 'star' | 'heart' | 'target' | 'crosshair'
+  // Tools & Utilities
+  | 'tool' | 'wrench' | 'paintRoller' | 'penTool' | 'crop' | 'move'
+  // Size & View Controls
+  | 'maximize' | 'maximize2' | 'minimize' | 'minimize2' | 'zoomIn' | 'zoomOut'
+  // Rotation & Transform
+  | 'rotateCw' | 'rotateCcw' | 'refreshCw' | 'refreshCcw' | 'refresh'
+  // Toggle & Switch
+  | 'toggleLeft' | 'toggleRight'
+  // Links & Sharing
+  | 'link' | 'link2' | 'externalLink' | 'share' | 'share2' | 'send'
+  // Business & Finance
+  | 'briefcase' | 'dollarSign' | 'creditCard' | 'package' | 'box'
+  // Office & Productivity
+  | 'clipboard' | 'calendar' | 'clock' | 'bookmark' | 'printer' | 'inbox'
+  // Development & Code
+  | 'code' | 'codeBlock' | 'terminal' | 'command' | 'gitBranch' | 'gitCommit' | 'gitPullRequest'
+  // Geography & Location
+  | 'globe' | 'mapPin' | 'navigation' | 'navigation2' | 'compass'
+  // Emotions & Reactions
+  | 'smile' | 'frown' | 'thumbsUp' | 'thumbsDown'
+  // Energy & Power
+  | 'power' | 'battery' | 'batteryCharging' | 'zap' | 'zapOff'
+  // Nature & Elements
+  | 'droplet' | 'moon'
+  // Entertainment & Media
+  | 'disc' | 'film' | 'radio'
+  // Learning & Knowledge
+  | 'book' | 'bookOpen'
+  // Symbols & Characters
+  | 'hash' | 'atSign' | 'percent' | 'slash'
+  // Organization & Structure
+  | 'layers' | 'flag' | 'award'
+  // Interface Elements
+  | 'loader' | 'mousePointer' | 'image' | 'paperclip' | 'pocket'
+  // Special/Unique
+  | 'autoAwesome' | 'magic' | 'ai' | 'rss' | 'webhook' | 'megaphone' | 'conditions' | 'integration' | 'base' | 'baseDuo'
+  // Social Media & Platforms
+  | 'github' | 'gitlab' | 'instagram' | 'linkedin' | 'youtube' | 'chrome'
+  // Logo Icons - AI & Tools
+  | 'openai' | 'claude' | 'gemini' | 'groq' | 'ollama'
+  // Logo Icons - Communication
+  | 'slack' | 'discord' | 'teams' | 'telegram' | 'whatsapp' | 'twitter' | 'facebook'
+  // Logo Icons - Productivity
+  | 'gmail' | 'outlook' | 'googleDrive' | 'dropbox' | 'boxLogo'
+  // Logo Icons - Project Management
+  | 'asana' | 'jira' | 'trello' | 'miro'
+  // Logo Icons - Design & Development
+  | 'figma' | 'framer' | 'bitbucket'
+  // Logo Icons - Business & CRM
+  | 'salesforce' | 'hubspot' | 'pipedrive' | 'zoho' | 'dynamics'
+  // Logo Icons - HR & Recruiting
+  | 'greenhouse' | 'lever' | 'workday'
+  // Logo Icons - Support & Service
+  | 'zendesk' | 'freshdesk' | 'intercom'
+  // Logo Icons - Marketing & Analytics
+  | 'mailchimp' | 'surveymonkey' | 'typeform'
+  // Logo Icons - Finance & Payments
+  | 'stripe' | 'quickbooks'
+  // Logo Icons - Communication & APIs
+  | 'twilio'
+  // Logo Icons - Entertainment
+  | 'twitch';
+
+// Workflow step configuration
+interface WorkflowStepConfig {
+  title: string;
+  description?: string;
+  icon?: WorkflowIcon;
+  color?: WorkflowColor;
+}
+
+// Colors object with proper typing
+interface WorkflowColors {
+  readonly red: 'red';
+  readonly blue: 'blue';
+  readonly green: 'green';
+  readonly yellow: 'yellow';
+  readonly purple: 'purple';
+  readonly orange: 'orange';
+  readonly gray: 'gray';
+}
+
+// Icons object with proper typing
+interface WorkflowIcons {
+  // Layout & Structure
+  readonly columns: 'ncColumns';
+  readonly grid: 'ncGrid';
+  readonly layout: 'ncLayout';
+  readonly sidebar: 'ncSidebar';
+  
+  // Navigation & Arrows
+  readonly arrowUp: 'ncArrowUp';
+  readonly arrowDown: 'ncArrowDown2';
+  readonly arrowLeft: 'ncArrowLeft';
+  readonly arrowRight: 'ncArrowRight';
+  readonly arrowUpLeft: 'ncArrowUpLeft';
+  readonly arrowUpRight: 'ncArrowUpRight';
+  readonly arrowDownLeft: 'ncArrowDownLeft';
+  readonly arrowDownRight: 'ncArrowDownRight';
+  readonly chevronUp: 'ncChevronUp';
+  readonly chevronDown: 'ncChevronDown';
+  readonly chevronLeft: 'ncChevronLeft';
+  readonly chevronRight: 'ncChevronRight';
+  readonly chevronsUp: 'ncChevronsUp';
+  readonly chevronsDown: 'ncChevronsDown';
+  readonly chevronsLeft: 'ncChevronsLeft';
+  readonly chevronsRight: 'ncChevronsRight';
+  readonly cornerUpLeft: 'ncCornerUpLeft';
+  readonly cornerUpRight: 'ncCornerUpRight';
+  readonly cornerDownLeft: 'ncCornerDownLeft';
+  readonly cornerDownRight: 'ncCornerDownRight';
+  readonly cornerLeftUp: 'ncCornerLeftUp';
+  readonly cornerLeftDown: 'ncCornerLeftDown';
+  readonly cornerRightUp: 'ncCornerRightUp';
+  readonly cornerRightDown: 'ncCornerRightDown';
+  
+  // Actions & Controls
+  readonly play: 'ncPlay';
+  readonly pause: 'ncPause';
+  readonly stop: 'ncStopCircle';
+  readonly skipForward: 'ncSkipForward';
+  readonly skipBack: 'ncSkipBack';
+  readonly fastForward: 'ncFastForward';
+  readonly rewind: 'ncRewind';
+  readonly shuffle: 'ncShuffle';
+  readonly repeat: 'ncRepeat';
+  
+  // Media Controls (Circle variants)
+  readonly playCircle: 'ncPlayCircle';
+  readonly pauseCircle: 'ncPauseCircle';
+  readonly arrowUpCircle: 'ncArrowUpCircle';
+  readonly arrowDownCircle: 'ncArrowDownCircle';
+  readonly arrowLeftCircle: 'ncArrowLeftCircle';
+  readonly arrowRightCircle: 'ncArrowRightCircle';
+  
+  // Basic Actions
+  readonly add: 'ncPlus';
+  readonly remove: 'ncMinus';
+  readonly close: 'ncX';
+  readonly check: 'ncCheck';
+  readonly edit: 'ncEdit';
+  readonly edit2: 'ncEdit2';
+  readonly edit3: 'ncEdit3';
+  readonly delete: 'ncDelete';
+  readonly trash: 'ncTrash';
+  readonly trash2: 'ncTrash2';
+  readonly copy: 'ncCopy';
+  readonly cut: 'ncScissors';
+  readonly save: 'ncSave2';
+  
+  // Circle Actions
+  readonly addCircle: 'ncPlusCircle';
+  readonly removeCircle: 'ncMinusCircle';
+  readonly closeCircle: 'ncXCircle';
+  readonly checkCircle: 'ncCheckCircle';
+  
+  // Square Actions
+  readonly addSquare: 'ncPlusSquare';
+  readonly removeSquare: 'ncMinusSquare';
+  readonly closeSquare: 'ncXSquare';
+  readonly checkSquare: 'ncCheckSquare';
+  
+  // Files & Documents
+  readonly file: 'ncFile';
+  readonly fileText: 'ncFileText';
+  readonly filePlus: 'ncFilePlus';
+  readonly fileMinus: 'ncFileMinus';
+  readonly fileSearch: 'ncFileSearch';
+  readonly folder: 'ncFolder';
+  readonly folderPlus: 'ncFolderPlus';
+  readonly folderMinus: 'ncFolderMinus';
+  readonly document: 'ncFileText';
+  
+  // Communication
+  readonly mail: 'ncMail';
+  readonly message: 'ncMessageCircle';
+  readonly messageSquare: 'ncMessageSquare';
+  readonly phone: 'ncPhone';
+  readonly phoneCall: 'ncPhoneCall';
+  readonly phoneIncoming: 'ncPhoneIncoming';
+  readonly phoneOutgoing: 'ncPhoneOutgoing';
+  readonly phoneMissed: 'ncPhoneMissed';
+  readonly phoneForwarded: 'ncPhoneForwarded';
+  readonly phoneOff: 'ncPhoneOff';
+  
+  // Users & People
+  readonly user: 'ncUser';
+  readonly users: 'ncUsers';
+  readonly userPlus: 'ncUserPlus';
+  readonly userMinus: 'ncUserMinus';
+  readonly userCheck: 'ncUserCheck';
+  readonly userX: 'ncUserX';
+  
+  // Technology & Devices
+  readonly smartphone: 'ncSmartphone';
+  readonly tablet: 'ncTablet';
+  readonly monitor: 'ncMonitor';
+  readonly tv: 'ncTv';
+  readonly camera: 'ncCamera';
+  readonly cameraOff: 'ncCameraOff';
+  readonly video: 'ncVideo';
+  readonly videoOff: 'ncVideoOff';
+  readonly mic: 'ncMic';
+  readonly micOff: 'ncMicOff';
+  
+  // Audio & Volume
+  readonly volume: 'ncVolume';
+  readonly volume1: 'ncVolume1';
+  readonly volume2: 'ncVolume2';
+  readonly volumeX: 'ncVolumeX';
+  readonly speaker: 'ncVolume2';
+  readonly mute: 'ncVolumeX';
+  readonly headphone: 'ncHeadphone';
+  
+  // Network & Connectivity
+  readonly wifi: 'ncWifi';
+  readonly wifiOff: 'ncWifiOff';
+  readonly bluetooth: 'ncBluetooth';
+  readonly cast: 'ncCast';
+  readonly airplay: 'ncAirplay';
+  
+  // Cloud & Storage
+  readonly cloud: 'ncCloud';
+  readonly cloudOff: 'ncCloudOff';
+  readonly cloudSnow: 'ncCloudSnow';
+  readonly uploadCloud: 'ncUploadCloud';
+  readonly downloadCloud: 'ncDownloadCloud';
+  readonly upload: 'ncUpload';
+  readonly download: 'ncDownload';
+  
+  // Data & Analytics
+  readonly database: 'ncDatabase';
+  readonly server: 'ncServer';
+  readonly hardDrive: 'ncHardDrive';
+  readonly barChart: 'ncBarChart';
+  readonly barChart2: 'ncBarChart2';
+  readonly pieChart: 'ncPieChart';
+  readonly trendingUp: 'ncTrendingUp';
+  readonly trendingDown: 'ncTrendingDown';
+  readonly activity: 'ncActivity';
+  
+  // Text & Formatting
+  readonly type: 'ncType';
+  readonly bold: 'ncBold';
+  readonly italic: 'ncItalic';
+  readonly underline: 'ncUnderline';
+  readonly alignLeft: 'ncAlignLeft';
+  readonly alignCenter: 'ncAlignCenter';
+  readonly alignRight: 'ncAlignRight';
+  readonly alignJustify: 'ncAlignJustify';
+  readonly heading1: 'ncHeading1';
+  readonly heading2: 'ncHeading2';
+  readonly heading3: 'ncHeading3';
+  readonly quote: 'ncQuote';
+  
+  // Lists & Organization
+  readonly list: 'ncList';
+  readonly numberList: 'ncNumberList';
+  readonly checkList: 'ncCheckList';
+  readonly menu: 'ncMenu';
+  
+  // Navigation & Interface
+  readonly home: 'ncHome';
+  readonly search: 'ncSearch';
+  readonly searchDuo: 'ncSearchDuo';
+  readonly filter: 'ncFilter';
+  readonly settings: 'ncSettings';
+  readonly settingsDuo: 'ncSettingsDuo';
+  readonly sliders: 'sliders';
+  readonly more: 'ncMoreHorizontal';
+  readonly moreVertical: 'ncMoreVertical';
+  
+  // Status & Notifications
+  readonly bell: 'ncBell';
+  readonly bellOff: 'ncBellOff';
+  readonly notification: 'ncNotificationDuo';
+  readonly alert: 'ncAlertCircle';
+  readonly alertFilled: 'ncAlertCircleFilled';
+  readonly alertTriangle: 'ncAlertTriangle';
+  readonly alertOctagon: 'ncAlertOctagon';
+  readonly info: 'ncInfo';
+  
+  // Security & Privacy
+  readonly lock: 'ncLock';
+  readonly unlock: 'ncUnlock';
+  readonly key: 'ncKey';
+  readonly shield: 'ncShield';
+  readonly shieldOff: 'ncShieldOff';
+  readonly eye: 'ncEye';
+  readonly eyeOff: 'ncEyeOff';
+  
+  // Authentication
+  readonly logIn: 'ncLogIn';
+  readonly logOut: 'ncLogOut';
+  
+  // Shapes & Symbols
+  readonly circle: 'ncCircle';
+  readonly square: 'ncSquare';
+  readonly triangle: 'ncTriangle';
+  readonly hexagon: 'ncHexagon';
+  readonly octagon: 'ncOctagon';
+  readonly star: 'ncStar';
+  readonly heart: 'ncHeart';
+  readonly target: 'ncTarget';
+  readonly crosshair: 'ncCrosshair';
+  
+  // Tools & Utilities
+  readonly tool: 'ncTool';
+  readonly wrench: 'ncTool';
+  readonly paintRoller: 'ncPaintRoller';
+  readonly penTool: 'ncPenTool';
+  readonly crop: 'ncCrop';
+  readonly move: 'ncMove';
+  
+  // Size & View Controls
+  readonly maximize: 'ncMaximize';
+  readonly maximize2: 'ncMaximize2';
+  readonly minimize: 'ncMinimize';
+  readonly minimize2: 'ncMinimize2';
+  readonly zoomIn: 'ncZoomIn';
+  readonly zoomOut: 'ncZoomOut';
+  
+  // Rotation & Transform
+  readonly rotateCw: 'ncRotateCw';
+  readonly rotateCcw: 'ncRotateCcw';
+  readonly refreshCw: 'ncRefreshCw';
+  readonly refreshCcw: 'ncRefreshCcw';
+  readonly refresh: 'ncRefreshCw';
+  
+  // Toggle & Switch
+  readonly toggleLeft: 'ncToggleLeft';
+  readonly toggleRight: 'ncToggleRight';
+  
+  // Links & Sharing
+  readonly link: 'ncLink';
+  readonly link2: 'ncLink2';
+  readonly externalLink: 'ncExternalLink';
+  readonly share: 'ncShare';
+  readonly share2: 'ncShare2';
+  readonly send: 'ncSend';
+  
+  // Business & Finance
+  readonly briefcase: 'ncBriefcase';
+  readonly dollarSign: 'ncDollarSign';
+  readonly creditCard: 'ncCreditCard';
+  readonly package: 'ncPackage';
+  readonly box: 'ncBox';
+  
+  // Office & Productivity
+  readonly clipboard: 'ncClipboard';
+  readonly calendar: 'ncCalendar';
+  readonly clock: 'ncClock';
+  readonly bookmark: 'ncBookmark';
+  readonly printer: 'ncPrinter';
+  readonly inbox: 'ncInbox';
+  
+  // Development & Code
+  readonly code: 'ncCode';
+  readonly codeBlock: 'ncCodeBlock';
+  readonly terminal: 'ncTerminal';
+  readonly command: 'ncCommand';
+  readonly gitBranch: 'ncGitBranch';
+  readonly gitCommit: 'ncGitCommit';
+  readonly gitPullRequest: 'ncGitPullRequest';
+  
+  // Geography & Location
+  readonly globe: 'ncGlobe';
+  readonly mapPin: 'ncMapPin';
+  readonly navigation: 'ncNavigation';
+  readonly navigation2: 'ncNavigation2';
+  readonly compass: 'ncCompass';
+  
+  // Emotions & Reactions
+  readonly smile: 'ncSmile';
+  readonly frown: 'ncFrown';
+  readonly thumbsUp: 'ncThumbsUp';
+  readonly thumbsDown: 'ncThumbsDown';
+  
+  // Energy & Power
+  readonly power: 'ncPower';
+  readonly battery: 'ncBattery';
+  readonly batteryCharging: 'ncBatteryCharging';
+  readonly zap: 'ncZap';
+  readonly zapOff: 'ncZapOff';
+  
+  // Nature & Elements
+  readonly droplet: 'ncDroplet';
+  readonly moon: 'ncMoon';
+  
+  // Entertainment & Media
+  readonly disc: 'ncDisc';
+  readonly film: 'ncFilm';
+  readonly radio: 'ncRadio';
+  
+  // Learning & Knowledge
+  readonly book: 'ncBook';
+  readonly bookOpen: 'ncBookOpen';
+  
+  // Symbols & Characters
+  readonly hash: 'ncHash';
+  readonly atSign: 'ncAtSign';
+  readonly percent: 'ncPercent';
+  readonly slash: 'ncSlash';
+  
+  // Organization & Structure
+  readonly layers: 'ncLayers';
+  readonly flag: 'ncFlag';
+  readonly award: 'ncAward';
+  
+  // Interface Elements
+  readonly loader: 'ncLoader';
+  readonly mousePointer: 'ncMousePointer';
+  readonly image: 'ncImage';
+  readonly paperclip: 'ncPaperclip';
+  readonly pocket: 'ncPocket';
+  
+  // Special/Unique
+  readonly autoAwesome: 'ncAutoAwesome';
+  readonly magic: 'ncAutoAwesome';
+  readonly ai: 'ncAutoAwesome';
+  readonly rss: 'ncRss';
+  readonly webhook: 'ncWebhook';
+  readonly megaphone: 'ncMegaPhoneDuo';
+  readonly conditions: 'ncConditions';
+  readonly integration: 'ncIntegrationDuo';
+  readonly base: 'ncBaseOutline';
+  readonly baseDuo: 'ncBaseOutlineDuo';
+  
+  // Social Media & Platforms
+  readonly github: 'ncGithub';
+  readonly gitlab: 'ncGitlab';
+  readonly instagram: 'ncInstagram';
+  readonly linkedin: 'ncLinkedin';
+  readonly youtube: 'ncYoutube';
+  readonly chrome: 'ncChrome';
+  
+  // Logo Icons - AI & Tools
+  readonly openai: 'ncLogoOpenAi';
+  readonly claude: 'ncLogoClaudeAi';
+  readonly gemini: 'ncLogoGeminiAi';
+  readonly groq: 'ncLogoGroqAi';
+  readonly ollama: 'ncLogoOllama';
+  
+  // Logo Icons - Communication
+  readonly slack: 'ncLogoSlack';
+  readonly discord: 'ncLogoDiscord';
+  readonly teams: 'ncLogoTeams';
+  readonly telegram: 'ncLogoTelegram';
+  readonly whatsapp: 'ncLogoWhatsapp';
+  readonly twitter: 'ncLogoTwitter';
+  readonly facebook: 'ncLogoFacebook';
+  
+  // Logo Icons - Productivity
+  readonly gmail: 'ncLogoGmail';
+  readonly outlook: 'ncLogoOutlook';
+  readonly googleDrive: 'ncLogoGoogleDrive';
+  readonly dropbox: 'ncLogoDropbox';
+  readonly boxLogo: 'ncLogoBoxLogo';
+  
+  // Logo Icons - Project Management
+  readonly asana: 'ncLogoAsana';
+  readonly jira: 'ncLogoJira';
+  readonly trello: 'ncLogoTrello';
+  readonly miro: 'ncLogoMiro';
+  
+  // Logo Icons - Design & Development
+  readonly figma: 'ncLogoFigma';
+  readonly framer: 'ncLogoFramer';
+  readonly bitbucket: 'ncLogoBitbucket';
+  
+  // Logo Icons - Business & CRM
+  readonly salesforce: 'ncLogoSalesforce';
+  readonly hubspot: 'ncLogoHubspot';
+  readonly pipedrive: 'ncLogoPipedrive';
+  readonly zoho: 'ncLogoZoho';
+  readonly dynamics: 'ncLogoMsDynamics';
+  
+  // Logo Icons - HR & Recruiting
+  readonly greenhouse: 'ncLogoGreenhouse';
+  readonly lever: 'ncLogoLever';
+  readonly workday: 'ncLogoWorkday';
+  
+  // Logo Icons - Support & Service
+  readonly zendesk: 'ncLogoZendesk';
+  readonly freshdesk: 'ncLogoFreshdesk';
+  readonly intercom: 'ncLogoIntercom';
+  
+  // Logo Icons - Marketing & Analytics
+  readonly mailchimp: 'ncLogoMailchimp';
+  readonly surveymonkey: 'ncLogoSurveyMonkey';
+  readonly typeform: 'ncLogoTypeform';
+  
+  // Logo Icons - Finance & Payments
+  readonly stripe: 'ncLogoStripe';
+  readonly quickbooks: 'ncLogoQuickbooks';
+  
+  // Logo Icons - Communication & APIs
+  readonly twilio: 'ncLogoTwilio';
+  
+  // Logo Icons - Entertainment
+  readonly twitch: 'ncLogoTwitch';
+}
 
 /**
- * Creates a workflow step with the given title and optional description.
- * Returns a builder object that allows chaining colors, icons, and calling start().
+ * Creates a workflow step with the given configuration.
+ * Supports both string title and full configuration object.
  * 
- * @param title - The title of the workflow step
- * @param options - Optional configuration object
- * @param options.description - Optional description for the step
- * @returns A builder object with color properties, icon properties, and start() method
+ * @param config - Either a string title or full configuration object
+ * @returns The step ID that was created
  * 
  * @example
- * // Basic step
- * step("Process Data").start()
+ * // Simple step
+ * workflow.step("Process Data");
  * 
- * // Step with icon and color
- * step("AI Processing").openai.blue.start()
- * 
- * // Step with description
- * step("Send Email", { description: "Send notification to users" }).mail.green.start()
+ * // Step with full configuration
+ * workflow.step({
+ *   title: "AI Processing",
+ *   description: "Running AI analysis on data",
+ *   icon: workflow.icons.openai,
+ *   color: workflow.colors.blue
+ * });
  */
-declare function step(title: string, options?: { description?: string }): WorkflowStepBuilder;
+declare function step(config: string | WorkflowStepConfig): string;
 
 /**
  * Clears all currently active workflow steps.
  * Use this to reset the workflow display.
  * 
  * @example
- * workflow.clear()
+ * workflow.clear();
  */
-declare function workflowClear(): void;
+declare function clear(): void;
 
 /**
  * Workflow API for creating visual workflow steps with icons and colors.
  * 
  * @example
- * // Basic step
- * workflow.step("Process Data").start()
+ * // Simple step
+ * workflow.step("Process Data");
  * 
  * // Step with icon and color
- * workflow.step("AI Processing").openai.blue.start()
- * 
- * // Step with description
- * workflow.step("Send Email", { description: "Send notification to users" }).mail.green.start()
+ * workflow.step({
+ *   title: "AI Processing",
+ *   icon: workflow.icons.openai,
+ *   color: workflow.colors.blue
+ * });
  * 
  * // Clear all steps
- * workflow.clear()
- * 
- * // Available colors: red, blue, green, yellow, purple, orange, gray
- * // Available icons: 200+ icons including openai, slack, github, database, etc.
+ * workflow.clear();
  */
-declare const workflow: { step: typeof step; clear: typeof workflowClear };
+declare const workflow: {
+  step: typeof step;
+  clear: typeof clear;
+  colors: WorkflowColors;
+  icons: WorkflowIcons;
+};
 
 
 /**

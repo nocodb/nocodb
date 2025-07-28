@@ -1,20 +1,41 @@
 export const defaultScript = `// Welcome to NocoDB Scripts!
-// This is a simple example to get you started.
+// This is a simple default script to demonstrate basic functionality
 
-// Get your table
-const table = await input.tableAsync("Select a table");
+// Step 1: Initialize
+script.step({
+  title: 'Getting Started',
+  description: 'Initializing the script and selecting data source',
+  icon: 'play',
+  color: 'blue'
+});
 
-// Get all records from the table
+// Get user input for table selection
+const table = await input.tableAsync("Choose a table to work with");
+output.text(\`Selected table: \${table.name}\`);
+
+// Step 2: Fetch Data
+script.step({
+  title: 'Fetching Data',
+  description: 'Retrieving records from the selected table',
+  icon: 'database',
+  color: 'purple'
+});
+
+// Fetch all records
 const query = await table.selectRecordsAsync();
+const recordCount = query.records.length;
 
-// Display how many records you have
-output.text(\`You have $\{query.records.length} records in this table.\`);
+output.text(\`Found \${recordCount} records in the table.\`);
 
-// Show the first record as an example
-if (query.records.length > 0) {
-    let firstRecord = query.records[0];
-    output.text(\`First record: $\{firstRecord.name || firstRecord.id}\`);
-}
+await new Promise(resolve => setTimeout(resolve, 1000));
 
-// That's it! You've just read data from your table.
-// Try changing the table name above and run the script again.`;
+// Step 3: Complete
+script.step({
+  title: 'Complete',
+  description: 'Script execution finished successfully',
+  icon: 'checkCircle',
+  color: 'green'
+});
+
+output.text("✅ Script completed successfully!");
+output.text("You can now modify this script to add your own custom logic.");`;

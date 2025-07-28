@@ -2376,7 +2376,10 @@
       "anErrorOccuredWhileAirtableBaseImport": "حدث خطأ أثناء استيراد القاعدة من Airtable",
       "paymentFailed": "فشل الدفع",
       "paymentFailedSubtitle": "حدث خطأ أثناء معالجة دفعتك. يرجى المحاولة مرة أخرى أو الاتصال بالدعم.",
-      "failedToCreateLookupFields": "Failed to create lookup fields"
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "تصدير البيانات الوصفية للمشروع بنجاح",

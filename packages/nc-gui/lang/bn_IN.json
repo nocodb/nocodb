@@ -2376,7 +2376,10 @@
       "anErrorOccuredWhileAirtableBaseImport": "এয়ারটেবল থেকে বেস আমদানি করার সময় একটি ত্রুটি ঘটেছে",
       "paymentFailed": "পেমেন্ট ব্যর্থ হয়েছে",
       "paymentFailedSubtitle": "আপনার পেমেন্ট প্রক্রিয়াকরণের সময় কিছু ভুল হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন বা সাপোর্টের সাথে যোগাযোগ করুন।",
-      "failedToCreateLookupFields": "Failed to create lookup fields"
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "প্রকল্প মেটাডেটা সফলভাবে রফতানি করেছে",

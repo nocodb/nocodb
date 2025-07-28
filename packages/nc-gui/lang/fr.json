@@ -2376,7 +2376,10 @@
       "anErrorOccuredWhileAirtableBaseImport": "Une erreur est survenue lors de l'import de la base depuis Airtable",
       "paymentFailed": "Echec du paiement",
       "paymentFailedSubtitle": "Quelque chose s'est mal passé lors du traitement de votre paiement. Veuillez réessayer ou contacter le support.",
-      "failedToCreateLookupFields": "Failed to create lookup fields"
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "Les métadonnées de projet sont exportées avec succès",

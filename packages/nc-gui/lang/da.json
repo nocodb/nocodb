@@ -2376,7 +2376,10 @@
       "anErrorOccuredWhileAirtableBaseImport": "Der opstod en fejl under import af base fra Airtable",
       "paymentFailed": "Betaling mislykkedes",
       "paymentFailedSubtitle": "Noget gik galt under behandlingen af din betaling. Prøv igen eller kontakt support.",
-      "failedToCreateLookupFields": "Failed to create lookup fields"
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "Project Metadata eksporteres med succes",

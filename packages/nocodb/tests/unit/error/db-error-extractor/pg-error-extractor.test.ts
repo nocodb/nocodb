@@ -1,11 +1,11 @@
 import { expect } from 'chai';
 import 'mocha';
 import { ClientType } from 'nocodb-sdk';
+import { Source } from '../../../../src/models';
+import { initInitialModel } from '../../formula/initModel';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { Source } from '../../../../src/models';
-import { initInitialModel } from '../../formula/initModel';
 
 function pgErrorExtractorTests() {
   let _setup;
@@ -17,6 +17,7 @@ function pgErrorExtractorTests() {
   let _base;
   let _tables;
   let _view;
+  let _source;
   let baseModelSql: BaseModelSqlv2;
 
   beforeEach(async function () {
@@ -30,6 +31,7 @@ function pgErrorExtractorTests() {
     const view = await setup.tables.table1.getViews(setup.ctx)[0];
 
     const source = await Source.get(setup.ctx, setup.tables.table1.source_id);
+    _source = source;
     baseModelSql = new BaseModelSqlv2({
       dbDriver: await NcConnectionMgrv2.get(source),
       model: setup.tables.table1,
@@ -40,6 +42,10 @@ function pgErrorExtractorTests() {
 
   const clientType = ClientType.PG;
   it(`will extract pg syntax error`, async () => {
+    // skip if not pg
+    if (_source.type !== clientType) {
+      return;
+    }
     const knex = baseModelSql.dbDriver;
     const columnTitle = (await _tables.table1.getColumns()).find(
       (col) => col.title === 'Title',
@@ -61,6 +67,10 @@ function pgErrorExtractorTests() {
   });
 
   it(`will extract pg substring negative length error`, async () => {
+    // skip if not pg
+    if (_source.type !== clientType) {
+      return;
+    }
     const knex = baseModelSql.dbDriver;
     const columnTitle = (await _tables.table1.getColumns()).find(
       (col) => col.title === 'Title',

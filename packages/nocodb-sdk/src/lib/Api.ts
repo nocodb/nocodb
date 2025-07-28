@@ -454,7 +454,7 @@ export interface FieldOptionsFormulaV3Type {
   formula?: string;
 }
 
-export interface FieldOptionsQRCodeV3Type {
+export interface FieldOptionsQrCodeV3Type {
   /** Field ID that contains the value. */
   qrcode_value_field_id?: string;
 }
@@ -839,7 +839,7 @@ export interface FieldBaseV3Type {
   /** Description of the field. */
   description?: string | null;
   /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
-  default_value?: string;
+  default_value?: string | boolean | number;
 }
 
 export interface ViewCreateV3Type {
@@ -3660,6 +3660,8 @@ export interface BaseType {
   fk_custom_url_id?: StringOrNullType;
   /** List of permissions for the base */
   permissions?: {
+    /** Permission id */
+    id?: string;
     /** Permission entity */
     entity: string;
     /** ID of the entity */

@@ -17,6 +17,7 @@ import {
 import type { OnDeleteAction, SyncCategory, SyncType } from 'nocodb-sdk';
 import type {
   AuthIntegration,
+  CustomSyncSchema,
   SyncIntegration,
 } from '@noco-local-integrations/core';
 import {
@@ -605,6 +606,213 @@ export class SyncModuleService {
 
       if (!integration) {
         NcError.genericNotFound('Integration', integrationPayload.id);
+      }
+
+      if (integrationPayload && integrationPayload.config?.custom_schema) {
+        const syncMappings = await SyncMapping.list(context, {
+          fk_sync_config_id:
+            syncConfig.fk_parent_sync_config_id || syncConfig.id,
+          force: true,
+        });
+
+        const oldConfig = await integration.getConfig();
+
+        const oldCustomSchema = oldConfig.custom_schema as CustomSyncSchema;
+        const newCustomSchema = integrationPayload.config
+          .custom_schema as CustomSyncSchema;
+
+        const tablesToCreate = Object.keys(newCustomSchema).filter(
+          (newTableKey) => !Object.keys(oldCustomSchema).includes(newTableKey),
+        );
+
+        const tablesToDrop = Object.keys(oldCustomSchema).filter(
+          (oldTableKey) => !Object.keys(newCustomSchema).includes(oldTableKey),
+        );
+
+        // tables to modify are the ones that exist in both old and new schema with extra columns or uidt mismatch
+        const tablesToModify = Object.keys(newCustomSchema).filter(
+          (newTableKey) => {
+            const oldTable = oldCustomSchema[newTableKey];
+            const newTable = newCustomSchema[newTableKey];
+            if (!oldTable || !newTable) {
+              return false;
+            }
+
+            for (const column of newTable.columns) {
+              const oldColumn = oldTable.columns.find(
+                (col) => col.title === column.title,
+              );
+              if (
+                !oldColumn ||
+                oldColumn.exclude !== column.exclude ||
+                oldColumn.uidt !== column.uidt
+              ) {
+                return true;
+              }
+            }
+
+            return false;
+          },
+        );
+
+        for (const tableKey of tablesToCreate) {
+          const table = newCustomSchema[tableKey];
+
+          const columns = [...table.columns, ...syncSystemFields];
+
+          if (table.systemFields?.primaryKey?.length) {
+            const pvColumn = columns.find(
+              (col) => !table.systemFields.primaryKey.includes(col.title),
+            );
+
+            if (pvColumn) {
+              pvColumn.pv = true;
+            }
+          }
+
+          const model = await this.tablesService.tableCreate(context, {
+            baseId: context.base_id,
+            table: {
+              title: table.title,
+              columns: columns
+                .filter((column) => !column.exclude)
+                .map((column) => ({
+                  title: column.title,
+                  column_name: column.column_name || column.title,
+                  uidt: column.uidt as UITypes,
+                  readonly: true,
+                  pv: column.pv,
+                  meta: column.meta,
+                })),
+            },
+            apiVersion: NcApiVersion.V3,
+            synced: true,
+            user: req.user,
+            req,
+          });
+
+          const defaultView = await View.getDefaultView(context, model.id);
+
+          await this.viewColumnsService.columnsUpdate(context, {
+            viewId: defaultView.id,
+            columns: model.columns
+              .filter((column) => !!syncSystemFieldsMap[column.title])
+              .map((column) => ({
+                id: column.id,
+                show: false,
+              })),
+            req,
+          });
+
+          const syncMapping = await SyncMapping.insert(context, {
+            fk_sync_config_id: syncConfig.id,
+            target_table: tableKey,
+            fk_model_id: model.id,
+          });
+
+          syncMappings.push(syncMapping);
+        }
+
+        for (const tableKey of tablesToDrop) {
+          const mapping = syncMappings.find(
+            (m) => m.target_table === oldCustomSchema[tableKey].title,
+          );
+
+          if (!mapping) {
+            continue;
+          }
+
+          const model = await Model.get(context, mapping.fk_model_id);
+
+          if (model) {
+            await this.tablesService.tableDelete(context, {
+              tableId: model.id,
+              forceDeleteSyncs: true,
+              user: req.user,
+              req,
+            });
+          }
+        }
+
+        for (const tableKey of tablesToModify) {
+          const mapping = syncMappings.find(
+            (m) => m.target_table === oldCustomSchema[tableKey].title,
+          );
+
+          if (!mapping) {
+            continue;
+          }
+
+          const model = await Model.get(context, mapping.fk_model_id);
+          if (model) {
+            const table = newCustomSchema[tableKey];
+
+            const existingSyncColumns = (
+              await model.getColumns(context)
+            ).filter((col) => col.readonly && !syncSystemFieldsMap[col.title]);
+
+            for (const column of table.columns) {
+              const existingColumn = existingSyncColumns.find(
+                (col) => col.title === column.title,
+              );
+
+              if (existingColumn) {
+                if (existingColumn.uidt === column.uidt) continue; // no change needed
+
+                await this.columnsService.columnUpdate(context, {
+                  columnId: existingColumn.id,
+                  column: {
+                    title: column.title,
+                    column_name: column.column_name || column.title,
+                    uidt: column.uidt,
+                    readonly: true,
+                  },
+                  forceUpdateSystem: true,
+                  user: req.user,
+                  req,
+                });
+              } else {
+                if (column.exclude) continue;
+
+                await this.columnsService.columnAdd(context, {
+                  tableId: model.id,
+                  column: {
+                    title: column.title,
+                    column_name: column.column_name || column.title,
+                    uidt: column.uidt,
+                    readonly: true,
+                  },
+                  user: req.user,
+                  req,
+                });
+              }
+            }
+
+            for (const existingColumn of existingSyncColumns) {
+              const column = table.columns.find(
+                (col) => col.title === existingColumn.title,
+              );
+
+              if (!column || column.exclude) {
+                await this.columnsService.columnDelete(context, {
+                  columnId: existingColumn.id,
+                  forceDeleteSystem: true,
+                  user: req.user,
+                  req,
+                });
+              }
+            }
+          }
+        }
+
+        await this.nocoJobsService.add(JobTypes.SyncModuleRefreshData, {
+          context,
+          syncConfigId: syncConfig.id,
+          req: {
+            user: req.user,
+            clientIp: req.clientIp,
+          },
+        });
       }
 
       const integrationWrapper =

@@ -229,17 +229,22 @@ export class InternalController extends InternalControllerCE {
           payload.bulk,
           req,
         );
-      case 'updateSync':
+      case 'updateSync': {
         if (!payload.syncConfigId) {
           NcError.genericNotFound('SyncConfig', payload.syncConfigId);
         }
-
-        return await this.syncService.updateSync(
-          context,
-          payload.syncConfigId,
-          payload,
-          req,
-        );
+        try {
+          return await this.syncService.updateSync(
+            context,
+            payload.syncConfigId,
+            payload,
+            req,
+          );
+        } catch (error) {
+          console.error(error);
+          break;
+        }
+      }
       case 'deleteSync':
         if (!payload.syncConfigId) {
           NcError.genericNotFound('SyncConfig', payload.syncConfigId);

@@ -2376,7 +2376,10 @@
       "anErrorOccuredWhileAirtableBaseImport": "從 Airtable 匯入 Base 時發生錯誤",
       "paymentFailed": "付款失敗",
       "paymentFailedSubtitle": "處理您的付款時發生錯誤。請再試一次或聯絡支援人員。",
-      "failedToCreateLookupFields": "Failed to create lookup fields"
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "專案中繼資料已成功匯出",

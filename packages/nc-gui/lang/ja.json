@@ -2376,7 +2376,10 @@
       "anErrorOccuredWhileAirtableBaseImport": "Airtableからベースをインポート中にエラーが発生しました",
       "paymentFailed": "支払いに失敗しました",
       "paymentFailedSubtitle": "お支払いの処理中に問題が発生しました。もう一度お試しいただくか、サポートへご連絡ください。",
-      "failedToCreateLookupFields": "Failed to create lookup fields"
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",

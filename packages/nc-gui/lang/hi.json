@@ -2376,7 +2376,10 @@
       "anErrorOccuredWhileAirtableBaseImport": "An error occurred while importing base from airtable",
       "paymentFailed": "भुगतान असफल हुआ",
       "paymentFailedSubtitle": "आपका भुगतान संसाधित करते समय कुछ त्रुटि हुई। कृपया पुनः प्रयास करें या सहायता से संपर्क करें।",
-      "failedToCreateLookupFields": "Failed to create lookup fields"
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात किया गया",

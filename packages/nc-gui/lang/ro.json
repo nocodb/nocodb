@@ -2376,7 +2376,10 @@
       "anErrorOccuredWhileAirtableBaseImport": "A apărut o eroare la importarea bazei din Airtable",
       "paymentFailed": "Plata a eșuat",
       "paymentFailedSubtitle": "A apărut o eroare la procesarea plății. Încearcă din nou sau contactează asistența.",
-      "failedToCreateLookupFields": "Failed to create lookup fields"
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "Metadatele bazei au fost exportate cu succes",

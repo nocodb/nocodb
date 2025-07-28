@@ -2376,7 +2376,10 @@
       "anErrorOccuredWhileAirtableBaseImport": "Pri importe základu z Airtable sa vyskytla chyba",
       "paymentFailed": "Platba zlyhala",
       "paymentFailedSubtitle": "Pri spracovaní vašej platby sa vyskytla chyba. Skúste to znova alebo kontaktujte podporu.",
-      "failedToCreateLookupFields": "Failed to create lookup fields"
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "Úspešný export metadát projektu",

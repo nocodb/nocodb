@@ -390,9 +390,9 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
 
   if (!isProjectPopulated) base.isLoading = true
 
-  const type = base.type || ProjectTypes.DATABASE
+  const baseType = base.type || ProjectTypes.DATABASE
 
-  switch (type) {
+  switch (baseType) {
     case ProjectTypes.DATABASE:
       if (!ignoreNavigation) {
         await navigateTo(
@@ -409,7 +409,7 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
       }
       break
     default:
-      throw new Error(`Unknown base type: ${type}`)
+      throw new Error(`Unknown base type: ${baseType}`)
   }
 
   if (!isProjectPopulated) {

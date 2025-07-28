@@ -483,9 +483,9 @@ const setup = async ({
   // default landing page for tests
   let baseUrl;
   if (isEE()) {
-    const type = base.type || ProjectTypes.DATABASE;
+    const baseType = base.type || ProjectTypes.DATABASE;
 
-    switch (type) {
+    switch (baseType) {
       case ProjectTypes.DOCUMENTATION:
         baseUrl = url ? url : `/#/${base.fk_workspace_id}/${base.id}/doc`;
         break;

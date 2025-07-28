@@ -38,7 +38,7 @@ const {
   showSystemFields,
   fields,
   filteredFieldList,
-  searchBasis,
+  searchBasisIdMap,
   numberOfHiddenFields,
   filterQuery,
   showAll,
@@ -77,20 +77,6 @@ const localFilteredFieldList = computed(() => {
   return filteredFieldList.value.filter((el) =>
     activeView.value?.type !== ViewTypes.CALENDAR ? el !== gridDisplayValueField.value : true,
   )
-})
-
-const searchResultInfo = computed(() => {
-  if (!searchBasis.value || searchBasis.value === 'title' || !localFilteredFieldList.value.length) return ''
-
-  if (searchBasis.value === 'buttonLabel') {
-    return t('msg.info.searchResultBasedOnButtonLabel')
-  }
-
-  if (searchBasis.value === 'description') {
-    return t('msg.info.searchResultBasedOnFieldDescription')
-  }
-
-  return ''
 })
 
 const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
@@ -725,9 +711,6 @@ const onAddColumnDropdownVisibilityChange = () => {
             <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1 ml-2" /> </template>
             <template #suffix>
               <div class="pl-2 flex items-center gap-2">
-                <NcTooltip v-if="searchResultInfo" :title="searchResultInfo" class="flex cursor-help">
-                  <GeneralIcon icon="info" class="h-4 w-4 text-primary opacity-80" />
-                </NcTooltip>
                 <NcSwitch
                   v-model:checked="showAllColumns"
                   :disabled="isDisabledShowAllColumns"
@@ -812,7 +795,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                         <NcTooltip
                           class="pl-1 truncate"
                           :class="{
-                            'mr-3 flex-1': !showAddLookupDropdown(field),
+                            'mr-3 flex-1': !showAddLookupDropdown(field) && !searchBasisIdMap[field.fk_column_id!],
                           }"
                           show-on-truncate-only
                           :disabled="isDragging"
@@ -824,6 +807,11 @@ const onAddColumnDropdownVisibilityChange = () => {
                             {{ field.title }}
                           </template>
                         </NcTooltip>
+                        <div v-if="searchBasisIdMap[field.fk_column_id!]" class="flex-1 flex ml-1 mr-3">
+                          <NcTooltip :title="searchBasisIdMap[field.fk_column_id!]" class="flex cursor-help">
+                            <GeneralIcon icon="info" class="h-3.5 w-3.5 opacity-80 text-nc-content-gray-muted" />
+                          </NcTooltip>
+                        </div>
                         <div v-if="showAddLookupDropdown(field)" class="flex-1 flex mr-3">
                           <NcTooltip :disabled="isOpened">
                             <template #title>

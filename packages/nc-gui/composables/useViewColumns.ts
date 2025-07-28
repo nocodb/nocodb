@@ -35,6 +35,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const { $api, $e } = useNuxtApp()
 
+    const { t } = useI18n()
+
     const { isUIAllowed } = useRoles()
 
     const { isSharedBase } = storeToRefs(useBase())
@@ -335,71 +337,60 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       },
     })
 
-    const searchBasis = ref<'title' | 'buttonLabel' | 'description' | null>(null)
+    const fieldSearchBasisOptions: {
+      searchBasisInfo: string
+      filterCallback: (query: string, option: ColumnType) => boolean
+    }[] = [
+      {
+        searchBasisInfo: t('msg.info.matchedByButtonLabel'),
+        filterCallback: (query, option) => {
+          if (!option) return false
+
+          const column = option as ColumnType
+
+          return isButton(column) && searchCompare([(column.colOptions as ButtonType)?.label], query)
+        },
+      },
+      {
+        searchBasisInfo: t('msg.info.matchedByFieldDescription'),
+        filterCallback: (query, option) => {
+          if (!option) return false
+
+          const column = option as ColumnType
+
+          if (!column.description) return false
+
+          return searchCompare([column.description], query)
+        },
+      },
+    ]
+
+    const searchBasisIdMap = ref<Record<string, string>>({})
 
     const filteredFieldList = computed(() => {
-      const fieldsToFilter = fields.value || []
+      searchBasisIdMap.value = {}
 
-      const baseFilter = (field: Field) => {
-        if (!field.initialShow && isLocalMode.value) {
-          return false
-        }
+      return (fields.value || []).filter((field: Field) => {
+        // Step 1: If no query, return all fields based on baseFilter
+        if (!filterQuery.value) return true
 
-        if (metaColumnById?.value?.[field.fk_column_id!]?.pv) {
+        // Step 2: Try matching by title - default search basis
+        if (searchCompare([field.title], filterQuery.value)) return true
+
+        const column = metaColumnById?.value?.[field.fk_column_id!]
+
+        if (!column) return false
+
+        // Step 3: Try matching by search basis options
+        for (const basisOption of fieldSearchBasisOptions) {
+          if (!basisOption.filterCallback(filterQuery.value, column)) continue
+
+          searchBasisIdMap.value[field.fk_column_id!] = basisOption.searchBasisInfo
           return true
         }
 
-        // hide system columns if not enabled
-        if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
-          return false
-        }
-
-        return true
-      }
-
-      searchBasis.value = null
-      // Step 1: If no query, return all fields based on baseFilter
-      if (!filterQuery.value) return fieldsToFilter.filter(baseFilter)
-
-      // Step 2: Try matching by title
-      let result = fieldsToFilter.filter((field: Field) => {
-        if (!baseFilter(field)) return false
-
-        return searchCompare([field.title], filterQuery.value)
+        return false
       })
-
-      if (result.length > 0) {
-        searchBasis.value = 'title'
-        return result
-      }
-
-      // Step 3: Try matching label (only if it is button column)
-      result = fieldsToFilter.filter((field: Field) => {
-        if (!baseFilter(field)) return false
-        const column = metaColumnById?.value?.[field.fk_column_id!]
-        if (!column) return false
-
-        return isButton(column) && searchCompare([(column.colOptions as ButtonType)?.label], filterQuery.value)
-      })
-
-      if (result.length > 0) {
-        searchBasis.value = 'buttonLabel'
-        return result
-      }
-
-      // Step 4: Try matching description
-      result = fieldsToFilter.filter((field: Field) => {
-        if (!baseFilter(field)) return false
-
-        const column = metaColumnById?.value?.[field.fk_column_id!]
-
-        if (!column || !column.description) return false
-
-        return searchCompare([column.description], filterQuery.value)
-      })
-
-      searchBasis.value = result.length > 0 ? 'description' : null
-      return result
     })
 
     const numberOfHiddenFields = computed(() => {
@@ -555,7 +546,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       fieldsMap,
       loadViewColumns,
       filteredFieldList,
-      searchBasis,
+      searchBasisIdMap,
       numberOfHiddenFields,
       filterQuery,
       showAll,

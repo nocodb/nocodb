@@ -64,7 +64,7 @@ const listRef = ref<HTMLDivElement>()
 
 const searchQuery = ref('')
 
-const searchBasisInfo = ref<string | null>(null)
+const searchBasisInfoMap = ref<Record<string, string>>({})
 
 const inputRef = ref()
 
@@ -79,45 +79,47 @@ const isSearchEnabled = computed(
 const keyDown = ref(false)
 
 /**
- * Computed property that filters the list of options based on the search query.
+ * Default filter function that checks if the item matches the search query.
  * If a custom filter function is provided via props.filterOption, it will be used instead of the default filtering logic.
  *
- * @returns Filtered list of options
+ * @returns {boolean} - True if the item matches the search query, false otherwise
+ */
+const defaultFilter = (item: NcListItemType, i: number, _array: NcListItemType[], query: string) => {
+  if (props?.filterOption) {
+    return props.filterOption(query, item, i)
+  }
+
+  return searchCompare(item[optionLabelKey], query)
+}
+
+/**
+ * Computed property that filters the list of options based on the search query.
  *
- * @typeparam NcListItemType - The type of items in the list
+ * @returns Filtered list of options
  */
 const list = computed(() => {
   const query = searchQuery.value.toLowerCase()
 
-  searchBasisInfo.value = null
+  searchBasisInfoMap.value = {}
+
   // If no query, return all items
   if (!query) return props.list
 
-  const defaultFilter = (item: NcListItemType, i: number, _array: NcListItemType[]) => {
-    if (props?.filterOption) {
-      return props.filterOption(query, item, i)
+  return props.list.filter((item, i, array) => {
+    // Step 1: apply default filter
+    if (defaultFilter(item, i, array, query)) return true
+
+    // Step 2: apply search basis options
+    for (const basisOption of props.searchBasisOptions) {
+      if (!basisOption.filterCallback(query, item, i)) continue
+
+      searchBasisInfoMap.value[item[optionValueKey]] = basisOption.searchBasisInfo ?? ''
+
+      return true
     }
 
-    return searchCompare(item[optionLabelKey], query)
-  }
-
-  let result = props.list.filter(defaultFilter)
-
-  // If search result is found based on default search basis or search basis options are not provided then return the result
-  if (result.length || !props.searchBasisOptions?.length) return result
-
-  for (const basisOption of props.searchBasisOptions) {
-    result = props.list.filter((item, i) => {
-      return basisOption.filterCallback(query, item, i)
-    })
-
-    if (result.length) {
-      searchBasisInfo.value = basisOption.searchBasisInfo ?? ''
-      return result
-    }
-  }
-
-  return result
+    return false
+  })
 })
 
 const {
@@ -361,11 +363,6 @@ defineExpose({
           @change="handleResetHoverEffect(false, 0)"
         >
           <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template>
-          <template #suffix>
-            <NcTooltip v-if="searchBasisInfo" :title="searchBasisInfo" class="flex cursor-help ml-0.5" placement="topRight">
-              <GeneralIcon icon="info" class="flex-none h-3.5 w-3.5 text-primary" />
-            </NcTooltip>
-          </template>
         </a-input>
         <slot name="headerExtraRight"> </slot>
       </div>
@@ -432,12 +429,23 @@ defineExpose({
                   <slot name="listItemExtraLeft" :option="option" :is-selected="compareVModel(option[optionValueKey])"> </slot>
 
                   <slot name="listItemContent" :option="option" :is-selected="compareVModel(option[optionValueKey])">
-                    <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                    <NcTooltip
+                      class="truncate"
+                      :class="{
+                        'flex-1': !searchBasisInfoMap[option[optionValueKey]],
+                      }"
+                      show-on-truncate-only
+                    >
                       <template #title>
                         {{ option[optionLabelKey] }}
                       </template>
                       {{ option[optionLabelKey] }}
                     </NcTooltip>
+                    <div v-if="searchBasisInfoMap[option[optionValueKey]]" class="flex-1 flex">
+                      <NcTooltip :title="searchBasisInfoMap[option[optionValueKey]]" class="flex cursor-help">
+                        <GeneralIcon icon="info" class="flex-none h-3.5 w-3.5 text-nc-content-gray-muted" />
+                      </NcTooltip>
+                    </div>
                   </slot>
 
                   <slot name="listItemExtraRight" :option="option" :is-selected="compareVModel(option[optionValueKey])"> </slot>

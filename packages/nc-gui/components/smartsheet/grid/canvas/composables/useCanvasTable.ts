@@ -280,15 +280,13 @@ export function useCanvasTable({
 
   const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.value || !isPrimaryKeyAvailable.value)
 
-  const isDataEditAllowed = computed(() => isUIAllowed('dataEdit') && !isSqlView.value)
+  const isDataEditAllowed = computed(() => isUIAllowed('dataEdit') && !isSqlView.value && !isPublicView.value)
 
   const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
 
   const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value)
 
-  const isAddingEmptyRowAllowed = computed(
-    () => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
-  )
+  const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !meta.value?.synced)
 
   const isAddingEmptyRowPermitted = computed(() =>
     meta.value?.id ? isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD) : true,
@@ -775,7 +773,7 @@ export function useCanvasTable({
     updateOrSaveRow,
     makeCellEditable,
     meta,
-    hasEditPermission: isAddingEmptyRowAllowed,
+    hasEditPermission: isDataEditAllowed,
     setCursor,
   })
 

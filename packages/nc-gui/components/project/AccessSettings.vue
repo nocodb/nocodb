@@ -6,11 +6,15 @@ const props = defineProps<{
   baseId?: string
 }>()
 
+const router = useRouter()
+
+const { isPrivateBase, base } = storeToRefs(useBase())
+
 const basesStore = useBases()
 const { getBaseUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
 const { activeProjectId, bases, basesUser } = storeToRefs(basesStore)
 
-const { orgRoles, baseRoles, loadRoles } = useRoles()
+const { orgRoles, baseRoles, loadRoles, isUIAllowed } = useRoles()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Project')
 
@@ -24,6 +28,8 @@ const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 const { $api } = useNuxtApp()
 
 const { t } = useI18n()
+
+const { projectPageTab } = storeToRefs(useConfigStore())
 
 const { isPaymentEnabled, showUserPlanLimitExceededModal } = useEeConfig()
 
@@ -54,6 +60,7 @@ interface Collaborators {
   display_name: string | null
   meta: MetaType
 }
+
 const collaborators = ref<Collaborators[]>([])
 const totalCollaborators = ref(0)
 const userSearchText = ref('')
@@ -159,8 +166,12 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
     loadCollaborators()
   }
 }
+const showOverlay = computed(() => {
+  return base.value?.default_role && !baseRoles.value?.[ProjectRoles.OWNER]
+})
 
 onMounted(async () => {
+  if (showOverlay.value) return
   isLoading.value = true
   try {
     await loadCollaborators()
@@ -277,151 +288,201 @@ const isOnlyOneOwner = computed(() => {
 const isDeleteOrUpdateAllowed = (user) => {
   return !(isOnlyOneOwner.value && user.roles === ProjectRoles.OWNER)
 }
+
+const goToBaseSettings = () => {
+  router.push({
+    query: {
+      ...router.currentRoute.value.query,
+      page: 'base-settings',
+      tab: 'baseType',
+    },
+  })
+}
+
+watch(projectPageTab, () => {
+  if (!userSearchText.value) return
+
+  userSearchText.value = ''
+})
 </script>
 
 <template>
   <div
-    class="nc-collaborator-table-container nc-access-settings-view flex flex-col"
+    class="nc-collaborator-table-container nc-access-settings-view flex flex-col relative"
     :class="{
       'h-[calc(100vh_-_100px)]': !isAdminPanel,
     }"
   >
-    <div v-if="isAdminPanel">
-      <div class="nc-breadcrumb px-2">
-        <div class="nc-breadcrumb-item">
-          {{ org.title }}
-        </div>
-        <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
-        <NuxtLink
-          :href="`/admin/${orgId}/bases`"
-          class="!hover:(text-gray-800 underline-gray-600) flex items-center !text-gray-700 !underline-transparent max-w-1/4"
-        >
+    <ProjectPrivateOverlay v-if="showOverlay" />
+    <template v-else>
+      <div v-if="isAdminPanel">
+        <div class="nc-breadcrumb px-2">
           <div class="nc-breadcrumb-item">
-            {{ $t('objects.projects') }}
+            {{ org.title }}
           </div>
-        </NuxtLink>
-        <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
-        <div class="nc-breadcrumb-item active truncate capitalize">
-          {{ currentBase?.title }}
-        </div>
-      </div>
-      <NcPageHeader>
-        <template #icon>
-          <div class="nc-page-header-icon flex justify-center items-center h-5 w-5">
-            <GeneralBaseIconColorPicker readonly />
-          </div>
-        </template>
-        <template #title>
-          <span data-rec="true" class="capitalize">
-            {{ currentBase?.title }}
-          </span>
-        </template>
-      </NcPageHeader>
-    </div>
-
-    <div class="nc-content-max-w h-full flex flex-col items-center gap-6 px-6 pt-6">
-      <div v-if="!isAdminPanel" class="w-full flex justify-between items-center max-w-full gap-3">
-        <a-input
-          v-model:value="userSearchText"
-          :placeholder="$t('title.searchMembers')"
-          :disabled="isLoading"
-          allow-clear
-          class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
-        >
-          <template #prefix>
-            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
-          </template>
-        </a-input>
-
-        <NcButton :disabled="isLoading" size="small" @click="isInviteModalVisible = true">
-          <div class="flex items-center gap-1">
-            <component :is="iconMap.plus" class="w-4 h-4" />
-            {{ $t('activity.addMembers') }}
-          </div>
-        </NcButton>
-      </div>
-
-      <NcTable
-        v-model:order-by="orderBy"
-        :is-data-loading="isLoading"
-        :columns="columns"
-        :data="sortedCollaborators"
-        :bordered="false"
-        :custom-row="customRow"
-        class="flex-1 nc-collaborators-list max-w-full"
-        body-row-class-name="!cursor-default"
-      >
-        <template #emptyText>
-          <a-empty :description="$t('title.noMembersFound')" />
-        </template>
-
-        <template #headerCell="{ column }">
-          <template v-if="column.key === 'select'">
-            <NcCheckbox v-model:checked="selectAll" :disabled="!sortedCollaborators.length" />
-          </template>
-          <template v-else>
-            {{ column.title }}
-          </template>
-        </template>
-
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'select'">
-            <NcCheckbox v-model:checked="selected[record.id]" />
-          </template>
-
-          <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
-            <GeneralUserIcon size="base" :user="record" class="flex-none" />
-            <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
-              <div class="flex gap-3">
-                <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
-                  <template #title>
-                    {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
-                  </template>
-                  {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
-                </NcTooltip>
-              </div>
-              <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
-                <template #title>
-                  {{ record.email }}
-                </template>
-                {{ record.email }}
-              </NcTooltip>
+          <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
+          <NuxtLink
+            :href="`/admin/${orgId}/bases`"
+            class="!hover:(text-gray-800 underline-gray-600) flex items-center !text-gray-700 !underline-transparent max-w-1/4"
+          >
+            <div class="nc-breadcrumb-item">
+              {{ $t('objects.projects') }}
             </div>
+          </NuxtLink>
+          <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
+          <div class="nc-breadcrumb-item active truncate capitalize">
+            {{ currentBase?.title }}
           </div>
-          <div v-if="column.key === 'role'">
-            <template v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles)">
-              <RolesSelector
-                :role="record.roles"
-                :roles="accessibleRoles"
-                :inherit="
-                  isEeUI && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
-                    ? WorkspaceRolesToProjectRoles[record.workspace_roles]
-                    : null
-                "
-                show-inherit
-                :description="false"
-                :on-role-change="(role) => updateCollaborator(record, role as ProjectRoles)"
-              />
+        </div>
+        <NcPageHeader>
+          <template #icon>
+            <div class="nc-page-header-icon flex justify-center items-center h-5 w-5">
+              <GeneralBaseIconColorPicker readonly />
+            </div>
+          </template>
+          <template #title>
+            <span data-rec="true" class="capitalize">
+              {{ currentBase?.title }}
+            </span>
+          </template>
+        </NcPageHeader>
+      </div>
+
+      <div class="nc-content-max-w h-full flex flex-col items-center gap-6 px-6 pt-6">
+        <NcAlert v-if="isEeUI && isPrivateBase" type="info" :message="$t('title.privateBase')" class="bg-nc-bg-gray-extralight">
+          <template #icon>
+            <GeneralIcon icon="ncUser" class="w-6 h-6 text-nc-content-gray-subtle" />
+          </template>
+          <template #description>
+            {{ $t('title.privateBaseAlertDescription') }}
+          </template>
+
+          <template v-if="isUIAllowed('manageBaseType')" #action>
+            <NcButton
+              type="secondary"
+              size="small"
+              class="!mt-[-4px]"
+              inner-class="!gap-1.5"
+              icon-position="right"
+              @click="goToBaseSettings"
+            >
+              <template #icon>
+                <GeneralIcon icon="ncArrowUpRight" class="w-4 h-4" />
+              </template>
+              {{ $t('activity.goToBaseSettings') }}
+            </NcButton>
+          </template>
+        </NcAlert>
+        <div v-if="!isAdminPanel" class="w-full flex justify-between items-center max-w-full gap-3">
+          <a-input
+            v-model:value="userSearchText"
+            :placeholder="$t('title.searchMembers')"
+            :disabled="isLoading"
+            allow-clear
+            class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+          >
+            <template #prefix>
+              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+            </template>
+          </a-input>
+
+          <NcButton :disabled="isLoading" size="small" @click="isInviteModalVisible = true">
+            <div class="flex items-center gap-1">
+              <component :is="iconMap.plus" class="w-4 h-4" />
+              {{ $t('activity.addMembers') }}
+            </div>
+          </NcButton>
+        </div>
+
+        <NcTable
+          v-model:order-by="orderBy"
+          :is-data-loading="isLoading"
+          :columns="columns"
+          :data="sortedCollaborators"
+          :bordered="false"
+          :custom-row="customRow"
+          class="flex-1 nc-collaborators-list max-w-full"
+          body-row-class-name="!cursor-default"
+          :pagination="true"
+          :pagination-offset="25"
+        >
+          <template #emptyText>
+            <a-empty :description="$t('title.noMembersFound')" />
+          </template>
+
+          <template #headerCell="{ column }">
+            <template v-if="column.key === 'select'">
+              <NcCheckbox v-model:checked="selectAll" :disabled="!sortedCollaborators.length" />
             </template>
             <template v-else>
-              <RolesBadge :border="false" :role="record.roles" />
+              {{ column.title }}
             </template>
-          </div>
-          <div v-if="column.key === 'created_at'">
-            <NcTooltip class="max-w-full">
-              <template #title>
-                {{ parseStringDateTime(record.created_at) }}
-              </template>
-              <span>
-                {{ timeAgo(record.created_at) }}
-              </span>
-            </NcTooltip>
-          </div>
-        </template>
-      </NcTable>
-    </div>
+          </template>
 
-    <LazyDlgInviteDlg v-model:model-value="isInviteModalVisible" :base-id="currentBase?.id" :users="collaborators" type="base" />
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'select'">
+              <NcCheckbox v-model:checked="selected[record.id]" />
+            </template>
+
+            <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
+              <GeneralUserIcon size="base" :user="record" class="flex-none" />
+              <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+                <div class="flex gap-3">
+                  <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
+                    <template #title>
+                      {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                    </template>
+                    {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                  </NcTooltip>
+                </div>
+                <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
+                  <template #title>
+                    {{ record.email }}
+                  </template>
+                  {{ record.email }}
+                </NcTooltip>
+              </div>
+            </div>
+            <div v-if="column.key === 'role'">
+              <template v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles)">
+                <RolesSelector
+                  :role="record.roles"
+                  :roles="accessibleRoles"
+                  :inherit="
+                    isEeUI && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
+                      ? WorkspaceRolesToProjectRoles[record.workspace_roles]
+                      : null
+                  "
+                  show-inherit
+                  :description="false"
+                  :on-role-change="(role) => updateCollaborator(record, role as ProjectRoles)"
+                />
+              </template>
+              <template v-else>
+                <RolesBadge :border="false" :role="record.roles" />
+              </template>
+            </div>
+            <div v-if="column.key === 'created_at'">
+              <NcTooltip class="max-w-full">
+                <template #title>
+                  {{ parseStringDateTime(record.created_at) }}
+                </template>
+                <span>
+                  {{ timeAgo(record.created_at) }}
+                </span>
+              </NcTooltip>
+            </div>
+          </template>
+        </NcTable>
+      </div>
+
+      <LazyDlgInviteDlg
+        v-model:model-value="isInviteModalVisible"
+        :base-id="currentBase?.id"
+        :users="collaborators"
+        type="base"
+      /> </template
+    ><x></x>
   </div>
 </template>
 

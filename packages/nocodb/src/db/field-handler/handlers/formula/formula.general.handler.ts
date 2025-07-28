@@ -70,7 +70,7 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
         options.context,
       );
       const parsedTree = await formulaCol.getParsedTree();
-      const dataType = parsedTree.dataType;
+
       const setColumnTypeAndVerify = (type: UITypes) => {
         const updatedColumn = new Column({
           ...column,
@@ -82,6 +82,12 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
           options,
         );
       };
+
+      if (!parsedTree?.dataType) {
+        return setColumnTypeAndVerify(UITypes.SingleLineText);
+      }
+
+      const dataType = parsedTree.dataType;
 
       switch (dataType) {
         case FormulaDataTypes.BOOLEAN:

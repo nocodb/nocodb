@@ -3,6 +3,8 @@ import {
   type AttachmentType,
   type ColumnType,
   type LinkToAnotherRecordType,
+  PermissionEntity,
+  PermissionKey,
   type TableType,
   UITypes,
   type ViewType,
@@ -21,7 +23,7 @@ import { TypeConversionError } from '../../../../../error/type-conversion.error'
 import type { SuppressedError } from '../../../../../error/suppressed.error'
 import { EDIT_INTERACTABLE } from '../utils/constants'
 
-const MAX_ROWS = 200
+const MAX_ROWS = 5000
 
 export function useCopyPaste({
   activeCell,
@@ -118,13 +120,20 @@ export function useCopyPaste({
   const { copy } = useCopy()
   const { cleaMMCell, clearLTARCell, addLTARRef, syncLTARRefs } = useSmartsheetLtarHelpersOrThrow()
   const { isSqlView } = useSmartsheetStoreOrThrow()
+  const { isAllowed } = usePermissions()
+  const { maxAttachmentsAllowedInCell, showUpgradeToAddMoreAttachmentsInCell } = useEeConfig()
+  const { batchUploadFiles } = useAttachment()
+
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const isPublic = inject(IsPublicInj, ref(false))
 
   const { base } = storeToRefs(useBase())
   const fields = computed(() => (columns.value ?? []).map((c) => c.columnObj))
+
+  const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
+
   const canPasteCell = computed(() => {
-    if (isSqlView.value || isPublic.value) return false
+    if (isSqlView.value || isPublic.value || !hasEditPermission.value) return false
 
     return (
       !editEnabled.value ||
@@ -133,9 +142,8 @@ export function useCopyPaste({
         !(activeCell.value.row === -1 || activeCell.value.column === -1))
     )
   })
-  const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 
-  function isPasteable(row?: Row, col?: ColumnType, showInfo = false) {
+  function isPasteable(row?: Row, col?: ColumnType, showInfo = false, avoidLtarRestrictions = false) {
     if (!row || !col) {
       if (showInfo) {
         message.toast('Please select a cell to paste')
@@ -143,12 +151,16 @@ export function useCopyPaste({
       return false
     }
 
+    const restrictEditCell = col.id && !isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
+
     // skip pasting virtual columns (including LTAR columns for now) and system columns
     if (isVirtualCol(col) || isSystemColumn(col) || col?.readonly) {
-      if (showInfo) {
-        message.toast(t('msg.info.pasteNotSupported'))
+      if (!avoidLtarRestrictions || !isLinksOrLTAR(col)) {
+        if (showInfo) {
+          message.toast(t('msg.info.pasteNotSupported'))
+        }
+        return false
       }
-      return false
     }
 
     // skip pasting auto increment columns
@@ -163,6 +175,14 @@ export function useCopyPaste({
     if (col.pk && !row.rowMeta.new) {
       if (showInfo) {
         message.toast(t('msg.info.editingPKnotSupported'))
+      }
+      return false
+    }
+
+    // Keep this check at the end so that readonly or other field restrictions get priority over permission check
+    if (restrictEditCell) {
+      if (showInfo) {
+        message.toast('You do not have permission to paste into this field')
       }
       return false
     }
@@ -316,6 +336,8 @@ export function useCopyPaste({
         const newRows: Row[] = []
         const propsToPaste: string[] = []
         let isInfoShown = false
+        // We can use this if we want to avoid same info multiple times per column
+        const isColInfoShown = {} as Record<string, boolean>
 
         for (let i = 0; i < selectionRowCount; i++) {
           const clipboardRowIndex = i % clipboardMatrix.length
@@ -360,6 +382,12 @@ export function useCopyPaste({
                     column,
                     appInfo: unref(appInfo),
                     oldValue: column.uidt === UITypes.Attachment ? targetRow.row[column.title!] : undefined,
+                    maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                    showUpgradeToAddMoreAttachmentsInCell,
+                    isInfoShown: isColInfoShown[column.title!],
+                    markInfoShown: () => {
+                      isColInfoShown[column.title!] = true
+                    },
                   },
                   isMysql(meta.value?.source_id),
                   true,
@@ -417,6 +445,8 @@ export function useCopyPaste({
 
           // handle belongs to column, skip custom links
           if (isBt(columnObj) && !(columnObj.meta as any)?.custom) {
+            if (!isPasteable(rowObj, columnObj, true, true)) return
+
             const pasteVal = convertCellData(
               {
                 value: clipboardData,
@@ -454,6 +484,8 @@ export function useCopyPaste({
 
           // Handle many-to-many column paste
           if (isMm(columnObj)) {
+            if (!isPasteable(rowObj, columnObj, true, true)) return
+
             const pasteVal = convertCellData(
               {
                 value: clipboardData,
@@ -614,6 +646,8 @@ export function useCopyPaste({
                 files:
                   columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
                 oldValue: rowObj.row[columnObj.title!],
+                maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                showUpgradeToAddMoreAttachmentsInCell,
               },
               isMysql(meta.value?.source_id),
             )
@@ -660,6 +694,8 @@ export function useCopyPaste({
 
           let pasteValue
           let isInfoShown = false
+          // We can use this if we want to avoid same info multiple times per column
+          const isColInfoShown = {} as Record<string, boolean>
 
           const files = e.clipboardData?.files
 
@@ -690,6 +726,12 @@ export function useCopyPaste({
                       appInfo: unref(appInfo),
                       files,
                       oldValue: row.row[col.title],
+                      maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                      showUpgradeToAddMoreAttachmentsInCell,
+                      isInfoShown: isColInfoShown[col.title!],
+                      markInfoShown: () => {
+                        isColInfoShown[col.title!] = true
+                      },
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -710,6 +752,12 @@ export function useCopyPaste({
                       column: col,
                       appInfo: unref(appInfo),
                       oldValue: row.row[col.title],
+                      maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                      showUpgradeToAddMoreAttachmentsInCell,
+                      isInfoShown: isColInfoShown[col.title!],
+                      markInfoShown: () => {
+                        isColInfoShown[col.title!] = true
+                      },
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -755,14 +803,7 @@ export function useCopyPaste({
     const newAttachments: AttachmentType[] = []
 
     try {
-      const data = await $api.storage.upload(
-        {
-          path: [NOCO, base.value.id, meta.value?.id, columnId].join('/'),
-        },
-        {
-          files,
-        },
-      )
+      const data = await batchUploadFiles(files, [NOCO, base.value.id, meta.value?.id, columnId].join('/'))
 
       // add suffix in duplicate file title
       for (const uploadedFile of data) {
@@ -811,7 +852,7 @@ export function useCopyPaste({
     const col = columns.value[ctx.col]
     const rowObj = cachedRows.value.get(ctx.row)
 
-    if (!col || !col?.columnObj || !rowObj) return
+    if (!col || !col?.columnObj || !rowObj || !col.isCellEditable) return
     const columnObj = col.columnObj
 
     if (
@@ -990,7 +1031,7 @@ export function useCopyPaste({
             isMysql,
           })
 
-          await copy(textToCopy)
+          await copy(isValidValue(textToCopy) ? textToCopy : '')
           message.toast(
             t(`msg.toast.nCellCopied`, {
               n: 1,

@@ -5,6 +5,7 @@ import AbstractColumnHelper, {
 import { LinkToAnotherRecordType } from '~/lib/Api';
 import { ncHasProperties } from '~/lib/is';
 import { isMm } from '../../utils';
+import { LookupHelper } from '../Lookup';
 
 export class ManyToManyHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -48,6 +49,6 @@ export class ManyToManyHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string {
-    return this.parseValue(value, params) ?? '';
+    return new LookupHelper().parsePlainCellValue(value, params) ?? '';
   }
 }

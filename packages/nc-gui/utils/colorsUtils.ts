@@ -1,5 +1,6 @@
 import colors from 'windicss/colors'
 import { enumColors as enumColor } from 'nocodb-sdk'
+import tinycolor from 'tinycolor2'
 export { enumColors as enumColor } from 'nocodb-sdk'
 
 export const theme = {
@@ -187,6 +188,25 @@ export const themeV3Colors = {
     800: '#105628',
     900: '#082B14',
   },
+}
+
+type ThemeV3ColorKeys = Exclude<keyof typeof themeV3Colors, 'base'>
+type Shade = keyof (typeof themeV3Colors)[ThemeV3ColorKeys]
+
+/**
+ * Get a random color from the themeV3Colors
+ * @param randomNumber - The random number to use to get the color
+ * @param shade - The shade of the color to get
+ * @returns The color
+ */
+export function getThemeV3RandomColor(randomNumber: number = 1, shade: Shade = 600): string {
+  const colorGroups = Object.keys(themeV3Colors).filter((key) => key !== 'base') as ThemeV3ColorKeys[]
+
+  const groupIndex = Math.floor(Math.random() * 1000 * randomNumber) % colorGroups.length
+  const colorGroup = colorGroups[groupIndex]!
+
+  const selectedGroup = themeV3Colors[colorGroup]
+  return selectedGroup[shade]
 }
 
 const isValidHex = (hex: string) => /^#([A-Fa-f0-9]{3,4}){1,2}$/.test(hex)
@@ -564,12 +584,12 @@ export const themeVariables = {
     'nc-content-inverted-primary': {
       DEFAULT: themeV4Colors.base.white,
       hover: themeV4Colors.base.white,
-      disabled: themeV4Colors.gray[400],
+      disabled: themeV4Colors.gray[500],
     },
     'nc-content-inverted-secondary': {
       DEFAULT: themeV4Colors.gray[700],
       hover: themeV4Colors.gray[700],
-      disabled: themeV4Colors.gray[400],
+      disabled: themeV4Colors.gray[500],
     },
     'nc-content-red': {
       dark: themeV4Colors.red[700],
@@ -752,4 +772,31 @@ export const themeVariables = {
       light: themeV4Colors.maroon[300],
     },
   },
+}
+
+export const getLighterTint = (
+  color: string,
+  option?: {
+    saturationMod?: number
+    brightnessMod?: number
+  },
+) => {
+  const evalColor = tinycolor(color)
+
+  const hsv = evalColor.toHsv()
+
+  const safeS = hsv.s < 0.01 ? 0 : 5 + (option?.saturationMod ?? 0) // prevent gray → red
+  const safeV = Math.min(100, (hsv.s < 0.01 ? 97 : 100) + (option?.brightnessMod ?? 0))
+
+  return tinycolor({
+    h: hsv.h,
+    s: safeS,
+    v: safeV,
+  }).toHexString()
+}
+
+export const getOppositeColorOfBackground = (color: string) => {
+  return tinycolor.isReadable(color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+    ? '#fff'
+    : tinycolor.mostReadable(color || '#ccc', ['#0b1d05', '#fff']).toHex8String()
 }

@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import { JobStatus } from '#imports'
 
-const { modelValue, baseId, sourceId, transition } = defineProps<{
+const {
+  modelValue,
+  baseId,
+  sourceId,
+  transition,
+  showSourceSelector = true,
+} = defineProps<{
   modelValue: boolean
   baseId: string
   sourceId: string
   transition?: string
   showBackBtn?: boolean
+  showSourceSelector?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue', 'back'])
@@ -66,6 +73,12 @@ const syncSource = ref({
   },
 })
 
+const sourceSelectorRef = ref()
+
+const customSourceId = computed(() => {
+  return sourceSelectorRef.value?.customSourceId || sourceId
+})
+
 const onLog = (data: { message: string }) => {
   progressRef.value?.pushProgress(data.message, 'progress')
   lastProgress.value = { msg: data.message, status: 'progress' }
@@ -105,7 +118,12 @@ const useForm = Form.useForm
 
 const { validateInfos } = useForm(syncSource, validators)
 
-const disableImportButton = computed(() => !syncSource.value.details.apiKey || !syncSource.value.details.syncSourceUrlOrId)
+const disableImportButton = computed(
+  () =>
+    !syncSource.value.details.apiKey ||
+    !syncSource.value.details.syncSourceUrlOrId ||
+    sourceSelectorRef.value?.selectedSource?.ncItemDisabled,
+)
 
 const isLoading = ref(false)
 
@@ -127,7 +145,7 @@ async function createOrUpdate() {
         body: payload,
       })
     } else {
-      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${sourceId}`, {
+      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${customSourceId.value}`, {
         baseURL,
         method: 'POST',
         headers: { 'xc-auth': $state.token.value as string },
@@ -189,7 +207,7 @@ async function listenForUpdates(id?: string) {
 }
 
 async function loadSyncSrc() {
-  const data: any = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${sourceId}`, {
+  const data: any = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${customSourceId.value}`, {
     baseURL,
     method: 'GET',
     headers: { 'xc-auth': $state.token.value as string },
@@ -312,7 +330,7 @@ const collapseKey = ref('')
 
       <template v-if="step === 1">
         <a
-          href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
+          href="https://nocodb.com/docs/product-docs/bases/import-base-from-airtable#get-airtable-credentials"
           class="!text-nc-content-gray-subtle2 text-sm font-weight-500 ml-auto"
           target="_blank"
           rel="noopener"
@@ -346,7 +364,7 @@ const collapseKey = ref('')
           <div class="flex items-end">
             <label class="text-nc-content-gray text-sm"> {{ $t('labels.personalAccessToken') }} </label>
             <a
-              href="https://docs.nocodb.com/bases/import-base-from-airtable#get-airtable-credentials"
+              href="https://nocodb.com/docs/product-docs/bases/import-base-from-airtable#get-airtable-credentials"
               class="!text-brand text-sm ml-auto"
               target="_blank"
               rel="noopener"
@@ -374,6 +392,16 @@ const collapseKey = ref('')
             class="!rounded-lg !mt-2 nc-input-shared-base nc-input-shadow !text-nc-content-gray"
           />
         </a-form-item>
+
+        <div class="my-5">
+          <NcListSourceSelector
+            ref="sourceSelectorRef"
+            :base-id="baseId"
+            :source-id="sourceId"
+            :show-source-selector="showSourceSelector"
+            force-layout="vertical"
+          />
+        </div>
 
         <nc-button type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">
           {{ $t('title.advancedSettings') }}
@@ -496,8 +524,9 @@ const collapseKey = ref('')
 .nc-import-collapse :deep(.ant-collapse-header) {
   display: none !important;
 }
+
 .nc-import-collapse :deep(.ant-collapse-content-box) {
-  @apply !pb-0 !pt-2;
+  @apply !pb-0 !pt-2 !pr-0.2;
 }
 
 .nc-input-api-key {

@@ -85,6 +85,9 @@ class SwaggerTypes {
 
   static setSwaggerTypeForPg(column, field) {
     switch (column.dt) {
+      case 'decimal':
+        field.type = 'number';
+        break;
       case 'int':
       case 'integer':
       case 'bigint':

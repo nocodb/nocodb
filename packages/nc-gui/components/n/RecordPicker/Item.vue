@@ -5,6 +5,7 @@ const props = withDefaults(
   defineProps<{
     row: Row
     fields: ColumnType[]
+    fieldsToDisplay: ColumnType[]
     isLoading: boolean
     displayField: ColumnType
   }>(),
@@ -17,13 +18,9 @@ provide(RowHeightInj, ref(1 as const))
 
 const row = useVModel(props, 'row')
 
-const fields = toRef(props, 'fields')
-
-const displayField = toRef(props, 'displayField')
+const { fields, fieldsToDisplay, displayField } = toRefs(props)
 
 const { getPossibleAttachmentSrc } = useAttachment()
-
-const { isMobileMode } = useGlobal()
 
 interface Attachment {
   url: string
@@ -49,8 +46,6 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
     return []
   }
 })
-
-const limitedFields = computed(() => props.fields.filter((field) => !isAttachment(field)).slice(0, isMobileMode.value ? 1 : 3))
 
 useProvideSmartsheetRowStore(row)
 </script>
@@ -87,16 +82,14 @@ useProvideSmartsheetRowStore(row)
         </template>
 
         <div class="flex-1 flex flex-col gap-1 justify-center overflow-hidden">
-          <div class="flex justify-start">
-            <LazySmartsheetPlainCell
-              :model-value="row.row[displayField.title]"
-              :column="displayField"
-              class="font-semibold text-brand-500 nc-display-value leading-[20px]"
-            />
-          </div>
+          <SmartsheetPlainCell
+            :model-value="row.row[displayField.title]"
+            :column="displayField"
+            class="font-semibold text-brand-500 nc-display-value leading-[20px]"
+          />
 
-          <div v-if="limitedFields.length > 0" class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5">
-            <div v-for="field in limitedFields" :key="field.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">
+          <div v-if="fieldsToDisplay.length > 0" class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5">
+            <div v-for="field in fieldsToDisplay" :key="field.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">
               <div v-if="!isRowEmpty(row, field)" class="flex flex-col gap-[-1]">
                 <NcTooltip class="z-10 flex" placement="bottomLeft" :arrow-point-at-center="false">
                   <template #title>
@@ -105,12 +98,14 @@ useProvideSmartsheetRowStore(row)
                       class="text-gray-100 !text-sm nc-picker-record-cell-tooltip"
                       :column="field"
                       :hide-menu="true"
+                      hide-icon-tooltip
                     />
                     <LazySmartsheetHeaderCell
                       v-else
                       class="text-gray-100 !text-sm nc-picker-record-cell-tooltip"
                       :column="field"
                       :hide-menu="true"
+                      hide-icon-tooltip
                     />
                   </template>
                   <div class="nc-picker-record-cell flex w-full max-w-full">

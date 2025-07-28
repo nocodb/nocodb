@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{
   modelValue: any[]
+  disabled?: boolean
 }>()
 
 const emits = defineEmits(['update:modelValue'])
@@ -25,14 +26,20 @@ const deleteParamRow = (i: number) => {
   <div class="flex flex-col py-3 gap-1.5 w-full">
     <div v-for="(paramRow, idx) in vModel" :key="idx" class="flex relative items-center w-full">
       <a-form-item class="form-item w-8">
-        <NcCheckbox v-model:checked="paramRow.enabled" size="large" />
+        <NcCheckbox v-model:checked="paramRow.enabled" size="large" :disabled="disabled" />
       </a-form-item>
       <a-form-item class="form-item w-3/6">
-        <a-input v-model:value="paramRow.name" :placeholder="$t('placeholder.key')" class="!rounded-l-lg !border-gray-200" />
+        <a-input
+          v-model:value="paramRow.name"
+          :disabled="disabled"
+          :placeholder="$t('placeholder.key')"
+          class="!rounded-l-lg !border-gray-200"
+        />
       </a-form-item>
       <a-form-item class="form-item w-3/6">
         <a-input
           v-model:value="paramRow.value"
+          :disabled="disabled"
           :placeholder="$t('placeholder.value')"
           class="nc-webhook-parameters-value-input !border-x-0 !border-gray-200 !rounded-none"
         />
@@ -42,7 +49,7 @@ const deleteParamRow = (i: number) => {
         class="!rounded-l-none delete-btn !border-gray-200 !shadow-none"
         type="secondary"
         size="small"
-        :disabled="vModel.length === 1"
+        :disabled="vModel.length === 1 || disabled"
         @click="deleteParamRow(idx)"
       >
         <component :is="iconMap.deleteListItem" />
@@ -50,7 +57,7 @@ const deleteParamRow = (i: number) => {
     </div>
 
     <div class="mt-1.5">
-      <NcButton size="small" type="secondary" class="nc-btn-focus" @click="addParamRow">
+      <NcButton size="small" type="secondary" class="nc-btn-focus" :disabled="disabled" @click="addParamRow">
         <div class="flex flex-row items-center gap-x-2">
           <component :is="iconMap.plus" class="flex-none" />
           <div data-rec="true">{{ $t('general.add') }}</div>
@@ -64,7 +71,7 @@ const deleteParamRow = (i: number) => {
 .ant-input {
   box-shadow: none !important;
 
-  &:hover {
+  &:hover:not(:disabled) {
     @apply !hover:bg-gray-50;
   }
 }

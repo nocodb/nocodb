@@ -121,10 +121,18 @@ export const parseCurrencyValue = (value: any, col: ColumnType) => {
   const columnMeta = parseProp(col.meta);
 
   try {
+    // Round the value to the specified precision
+    const roundedValue = roundUpToPrecision(
+      Number(value),
+      columnMeta.precision ?? 2
+    );
+
     return new Intl.NumberFormat(columnMeta.currency_locale || 'en-US', {
       style: 'currency',
       currency: columnMeta.currency_code || 'USD',
-    }).format(+value);
+      minimumFractionDigits: columnMeta.precision ?? 2,
+      maximumFractionDigits: columnMeta.precision ?? 2,
+    }).format(+roundedValue);
   } catch {
     return value;
   }
@@ -157,6 +165,10 @@ export const parseTimeValue = (
   if (!d.isValid()) {
     // MySQL and Postgres store time in HH:mm:ss format so we need to feed custom parse format
     d = isMySQL || isPostgres ? dayjs(value, 'HH:mm:ss') : dayjs(value);
+  }
+
+  if (!d.isValid()) {
+    d = dayjs(`1999-01-01 ${value}`);
   }
 
   if (!d.isValid()) {
@@ -194,4 +206,24 @@ export const parseUserValue = (value: any, withDisplayName = false) => {
         : `${user.email}`
     )
     .join(', ');
+};
+
+export const parseLinksValue = (
+  value: any,
+  params: SerializerOrParserFnProps['params']
+) => {
+  const { col, t } = params;
+
+  const columnMeta = parseProp(col.meta);
+
+  const parsedValue = +value || 0;
+  if (!parsedValue) {
+    return `0 ${columnMeta.plural || (t?.('general.links') ?? 'Links')}`;
+  } else if (parsedValue === 1) {
+    return `1 ${columnMeta.singular || (t?.('general.link') ?? 'Link')}`;
+  } else {
+    return `${parsedValue} ${
+      columnMeta.plural || (t('general.links') ?? 'Links')
+    }`;
+  }
 };

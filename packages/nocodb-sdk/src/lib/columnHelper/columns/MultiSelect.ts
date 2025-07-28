@@ -2,7 +2,7 @@ import { ncIsArray } from '~/lib/is';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
-import { serializeSelectValue } from '../utils';
+import { serializeSelectValue, serializeStringValue } from '../utils';
 
 export class MultiSelectHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -11,6 +11,10 @@ export class MultiSelectHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string {
+    if (params.serializeSearchQuery) {
+      return serializeStringValue(value);
+    }
+
     return serializeSelectValue(value, params.col);
   }
 

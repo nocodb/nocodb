@@ -689,7 +689,7 @@ defineExpose({
       &.selected {
         cursor: pointer;
         background-color: #f4f4f5;
-        border-left: 4px solid var(--ant-primary-color);
+        border-left: 4px solid #3366ff;
         outline: none;
 
         .cmdk-keyboard {

@@ -162,9 +162,12 @@ export default function () {
         .expect(400);
 
       // validate error response
-      expect(Object.keys(errLong.body)).to.include.members(['msg', 'errors']);
-      expect(errLong.body.msg).to.equal('Invalid request body');
-      expect(errLong.body.errors[0].message).to.equal(
+      expect(Object.keys(errLong.body)).to.include.members([
+        'message',
+        'error',
+      ]);
+      expect(errLong.body.message).to.equal('Invalid request body');
+      expect(errLong.body.details[0].message).to.equal(
         'must NOT have more than 50 characters',
       );
     });

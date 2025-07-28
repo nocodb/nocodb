@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnReqType, type ColumnType, isAIPromptCol, isSupportedDisplayValueColumn } from 'nocodb-sdk'
+import { type ColumnReqType, type ColumnType, UITypesSearchTerms, isAIPromptCol, isSupportedDisplayValueColumn } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   UITypes,
@@ -50,7 +50,7 @@ const {
   defaultFormState,
 } = useColumnCreateStoreOrThrow()
 
-const { aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
+const { isAiFeaturesEnabled, isAiBetaFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
 
 const {
   aiMode: aiAutoSuggestMode,
@@ -185,7 +185,7 @@ const uiFilters = (t: UiTypesType) => {
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
-  const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isFeatureEnabled(FEATURE_FLAG.AI_FEATURES) && !isEdit.value : true
+  const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isAiBetaFeaturesEnabled.value && !isEdit.value : true
   const isAllowToAddInFormView = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
 
   const showLTAR =
@@ -548,7 +548,14 @@ const submitBtnLabel = computed(() => {
 })
 
 const filterOption = (input: string, option: { value: UITypes }) => {
-  return searchCompare([option.value, ...(UITypesName[option.value] ? [UITypesName[option.value]] : [])], input)
+  return searchCompare(
+    [
+      option.value,
+      ...(UITypesName[option.value] ? [UITypesName[option.value]] : []),
+      ...(UITypesSearchTerms[option.value] || []),
+    ],
+    input,
+  )
 }
 
 const triggerDescriptionEnable = () => {
@@ -670,6 +677,14 @@ watch(activeAiTab, (newValue) => {
   }
   onSelectedTagClick()
 })
+
+const isLookupOrRollup = computed(() => {
+  return formState.value.uidt === UITypes.Lookup || formState.value.uidt === UITypes.Rollup
+})
+
+const lookupRollupFilterEnabled = computed(() => {
+  return isLookupOrRollup.value && !!parseProp(formState.value?.meta)?.enableConditions
+})
 </script>
 
 <template>
@@ -680,9 +695,9 @@ watch(activeAiTab, (newValue) => {
     :class="{
       'bg-white max-h-[max(80vh,500px)]': !props.fromTableExplorer,
       'w-[416px]': !props.embedMode,
-      'min-w-[500px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
-      '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
-      'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),
+      '!w-[600px]': isLinksOrLTAR(formState.uidt),
+      '!min-w-[560px]': lookupRollupFilterEnabled,
+      'min-w-[500px] !w-full': isLinksOrLTAR(formState.uidt) || isLookupOrRollup,
       'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-2xl p-5': !embedMode,
       'nc-ai-mode': isAiMode,
       'h-full': props.fromTableExplorer,
@@ -710,33 +725,14 @@ watch(activeAiTab, (newValue) => {
         >
           <div class="flex items-center gap-3">
             <div class="flex-1 text-base font-bold text-nc-content-gray">{{ $t('general.new') }} {{ $t('objects.field') }}</div>
-            <div
-              :class="{
-                'cursor-wait': aiLoading,
-              }"
-            >
-              <NcButton
-                v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)"
-                type="text"
-                size="small"
-                class="-my-1.5 !text-nc-content-purple-dark hover:text-nc-content-purple-dark"
-                :class="{
-                  '!pointer-events-none !cursor-not-allowed': aiLoading,
-                  '!bg-nc-bg-purple-dark hover:!bg-gray-100': aiAutoSuggestMode,
-                }"
-                @click.stop="aiAutoSuggestMode ? disableAiMode() : toggleAiMode()"
-              >
-                <div class="flex items-center justify-center">
-                  <GeneralIcon icon="ncAutoAwesome" />
-                  <span
-                    class="overflow-hidden trasition-all ease duration-200"
-                    :class="{ 'w-[0px] invisible': aiAutoSuggestMode, 'ml-1 w-[78px]': !aiAutoSuggestMode }"
-                  >
-                    Use NocoAI
-                  </span>
-                </div>
-              </NcButton>
-            </div>
+
+            <AiToggleButton
+              v-if="isAiFeaturesEnabled"
+              :ai-mode="aiAutoSuggestMode"
+              :ai-loading="aiLoading"
+              :off-tooltip="`Auto suggest fields for ${meta?.title || 'the current table'}`"
+              @click="aiAutoSuggestMode ? disableAiMode() : toggleAiMode()"
+            />
           </div>
           <template v-if="aiAutoSuggestMode">
             <div v-if="!aiIntegrationAvailable" class="flex items-center gap-3 py-2">
@@ -1358,7 +1354,7 @@ watch(activeAiTab, (newValue) => {
           />
         </a-form-item>
 
-        <template v-if="props.fromTableExplorer">
+        <template v-if="props.fromTableExplorer || aiAutoSuggestMode">
           <a-form-item
             v-if="!enableDescription"
             :class="{

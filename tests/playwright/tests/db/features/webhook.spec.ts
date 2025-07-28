@@ -157,7 +157,8 @@ test.describe.serial('Webhook', () => {
     // after insert hook
     await webhook.create({
       title: 'hook-1',
-      event: 'On Record Insert',
+      event: 'Record',
+      operation: 'insert',
     });
     await clearServerData({ request });
     await dashboard.grid.addNewRow({
@@ -190,7 +191,8 @@ test.describe.serial('Webhook', () => {
     // after update hook
     await webhook.create({
       title: 'hook-2',
-      event: 'On Record Update',
+      event: 'Record',
+      operation: 'update',
     });
 
     await clearServerData({ request });
@@ -225,7 +227,8 @@ test.describe.serial('Webhook', () => {
     // after delete hook
     await webhook.create({
       title: 'hook-3',
-      event: 'On Record Delete',
+      event: 'Record',
+      operation: 'delete',
     });
     await clearServerData({ request });
     await dashboard.grid.addNewRow({
@@ -259,16 +262,30 @@ test.describe.serial('Webhook', () => {
     //  - verify trigger after delete
 
     await webhook.open({ index: 0 });
+    // toggle off insert
     await webhook.configureWebhook({
       title: 'hook-1-modified',
-      event: 'On Record Delete',
+      event: 'Record',
+      operation: 'insert',
+    });
+    await webhook.configureWebhook({
+      title: 'hook-1-modified',
+      event: 'Record',
+      operation: 'delete',
     });
     await webhook.save();
     await webhook.close();
     await webhook.open({ index: 1 });
+    // toggle off update
     await webhook.configureWebhook({
       title: 'hook-2-modified',
-      event: 'On Record Delete',
+      event: 'Record',
+      operation: 'update',
+    });
+    await webhook.configureWebhook({
+      title: 'hook-2-modified',
+      event: 'Record',
+      operation: 'delete',
     });
     await webhook.save();
     await webhook.close();
@@ -330,17 +347,20 @@ test.describe.serial('Webhook', () => {
     // after insert hook
     await webhook.create({
       title: 'hook-1',
-      event: 'On Record Insert',
+      event: 'Record',
+      operation: 'insert',
     });
     // after insert hook
     await webhook.create({
       title: 'hook-2',
-      event: 'On Record Update',
+      event: 'Record',
+      operation: 'update',
     });
     // after insert hook
     await webhook.create({
       title: 'hook-3',
-      event: 'On Record Delete',
+      event: 'Record',
+      operation: 'delete',
     });
 
     await webhook.open({ index: 0 });
@@ -515,15 +535,18 @@ test.describe.serial('Webhook', () => {
     // create after insert webhook
     await webhook.create({
       title: 'hook-1',
-      event: 'On Multiple Record Insert',
+      event: 'Record',
+      operation: 'insert',
     });
     await webhook.create({
       title: 'hook-1',
-      event: 'On Multiple Record Update',
+      event: 'Record',
+      operation: 'update',
     });
     await webhook.create({
       title: 'hook-1',
-      event: 'On Multiple Record Delete',
+      event: 'Record',
+      operation: 'delete',
     });
 
     await clearServerData({ request });
@@ -534,7 +557,7 @@ test.describe.serial('Webhook', () => {
     await api.dbTableRow.bulkCreate('noco', context.base.id, table.id, rowAttributesForInsert);
     await page.reload();
     let rsp = await getWebhookResponses({ request, count: 1 });
-    await verifyBulkOperationTrigger(rsp, 'records.after.bulkInsert');
+    await verifyBulkOperationTrigger(rsp, 'records.after.insert');
 
     // bulk update all rows
     await clearServerData({ request });
@@ -548,7 +571,7 @@ test.describe.serial('Webhook', () => {
     await page.reload();
     // 50 records updated, we expect 2 webhook responses
     rsp = await getWebhookResponses({ request, count: 1 });
-    await verifyBulkOperationTrigger(rsp, 'records.after.bulkUpdate');
+    await verifyBulkOperationTrigger(rsp, 'records.after.update');
 
     // bulk delete all rows
     await clearServerData({ request });
@@ -557,7 +580,7 @@ test.describe.serial('Webhook', () => {
     await api.dbTableRow.bulkDelete('noco', context.base.id, table.id, rowAttributesForDelete);
     await page.reload();
     rsp = await getWebhookResponses({ request, count: 1 });
-    await verifyBulkOperationTrigger(rsp, 'records.after.bulkDelete');
+    await verifyBulkOperationTrigger(rsp, 'records.after.delete');
   });
 
   test('Virtual columns', async ({ request, page }) => {
@@ -688,7 +711,8 @@ test.describe.serial('Webhook', () => {
     // after update hook
     await webhook.create({
       title: 'hook-2',
-      event: 'On Record Update',
+      event: 'Record',
+      operation: 'update',
     });
 
     // clear server data
@@ -785,12 +809,8 @@ test.describe.serial('Webhook', () => {
     // after insert hook
     await webhook.create({
       title: 'hook-1',
-      event: 'On Record Delete',
-    });
-    // after insert hook
-    await webhook.create({
-      title: 'hook-2',
-      event: 'On Multiple Record Delete',
+      event: 'Record',
+      operation: 'delete',
     });
 
     const titles = ['Poole', 'Delaware', 'Pabalo', 'John', 'Vicky', 'Tom'];
@@ -817,7 +837,7 @@ test.describe.serial('Webhook', () => {
     await dashboard.grid.deleteSelectedRows();
     rsp = await getWebhookResponses({ request, count: 2 });
 
-    await verifyDeleteOperation(rsp, 'records.after.bulkDelete', 2);
+    await verifyDeleteOperation(rsp, 'records.after.delete', 2);
 
     // Right click and delete record
     await dashboard.grid.deleteRow(0);
@@ -834,6 +854,92 @@ test.describe.serial('Webhook', () => {
     await dashboard.grid.deleteRow(0);
     rsp = await getWebhookResponses({ request, count: 4 });
 
-    await verifyDeleteOperation(rsp, 'records.after.bulkDelete', 2);
+    await verifyDeleteOperation(rsp, 'records.after.delete', 2);
+  });
+
+  test('Include user option', async ({ request }) => {
+    if (!isEE()) test.skip();
+
+    await clearServerData({ request });
+    await dashboard.treeView.createTable({ title: 'Test', baseTitle: context.base.title });
+
+    // Test webhook without include_user option (default)
+    await webhook.create({
+      title: 'hook-without-user',
+      event: 'Record',
+      operation: 'insert',
+    });
+
+    await clearServerData({ request });
+    await dashboard.grid.addNewRow({
+      index: 0,
+      columnHeader: 'Title',
+      value: 'Test Record',
+    });
+
+    let rsp = await getWebhookResponses({ request, count: 1 });
+
+    // Verify webhook response doesn't include user information
+    expect(rsp[0].type).toBe('records.after.insert');
+    expect(rsp[0].data.table_name).toBe('Test');
+    expect(rsp[0].user).toBeUndefined();
+
+    // Create webhook with include_user option enabled
+    await webhook.open({ index: 0 });
+    await webhook.toggleIncludeUser({ save: true });
+
+    await clearServerData({ request });
+    await dashboard.grid.addNewRow({
+      index: 1,
+      columnHeader: 'Title',
+      value: 'Test Record 2',
+    });
+
+    rsp = await getWebhookResponses({ request, count: 1 });
+
+    // Verify webhook response includes user information
+    expect(rsp[0].type).toBe('records.after.insert');
+    expect(rsp[0].data.table_name).toBe('Test');
+    expect(rsp[0].user).toBeDefined();
+    expect(rsp[0].user).toMatchObject({
+      id: expect.any(String),
+      email: expect.any(String),
+    });
+
+    // Test webhook without include_user option (default)
+    await webhook.create({
+      title: 'hook-without-user-update',
+      event: 'Record',
+      operation: 'update',
+    });
+
+    await clearServerData({ request });
+    await dashboard.grid.editRow({ index: 1, value: 'Updated Record' });
+
+    rsp = await getWebhookResponses({ request, count: 1 });
+
+    // Verify webhook response doesn't include user information after disabling
+    expect(rsp[0].type).toBe('records.after.update');
+    expect(rsp[0].data.table_name).toBe('Test');
+    expect(rsp[0].user).toBeUndefined();
+
+    // Test disabling include_user option
+    await webhook.open({ index: 1 });
+    await webhook.toggleIncludeUser({ save: true });
+
+    // Test with update operation
+    await clearServerData({ request });
+    await dashboard.grid.editRow({ index: 0, value: 'Updated Record 2' });
+
+    rsp = await getWebhookResponses({ request, count: 1 });
+
+    // Verify webhook response includes user information for update
+    expect(rsp[0].type).toBe('records.after.update');
+    expect(rsp[0].data.table_name).toBe('Test');
+    expect(rsp[0].user).toBeDefined();
+    expect(rsp[0].user).toMatchObject({
+      id: expect.any(String),
+      email: expect.any(String),
+    });
   });
 });

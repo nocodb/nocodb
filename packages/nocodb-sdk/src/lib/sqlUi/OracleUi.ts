@@ -976,6 +976,10 @@ export class OracleUi implements SqlUi {
       'ROUNDDOWN',
       'ROUNDUP',
       'DATESTR',
+      'ARRAYSORT',
+      'ARRAYUNIQUE',
+      'ARRAYSLICE',
+      'ARRAYCOMPACT',
     ];
   }
 

@@ -27,7 +27,7 @@ describe('dataApiV3', () => {
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+      urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -59,102 +59,125 @@ describe('dataApiV3', () => {
       };
       it('Update: all fields', async function () {
         const rsp = await ncAxiosPatch({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: [
             {
-              Id: 1,
-              ...newRecord,
+              id: 1,
+              fields: newRecord,
             },
           ],
         });
-        expect(rsp.body).to.deep.equal([{ Id: 1 }]);
+        expect(rsp.body.records).to.have.length(1);
+        expect(rsp.body.records[0]).to.have.property('id', 1);
+        expect(rsp.body.records[0]).to.have.property('fields');
       });
 
       it('Update: partial', async function () {
         const recordBeforeUpdate = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/1`,
+          url: `${urlPrefix}/${table.id}/records/1`,
           query: {
             fields: 'Id,SingleLineText,MultiLineText',
           },
         });
 
         const rsp = await ncAxiosPatch({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: [
             {
-              Id: 1,
-              SingleLineText: 'some text',
-              MultiLineText: 'some more text',
+              id: 1,
+              fields: {
+                SingleLineText: 'some text',
+                MultiLineText: 'some more text',
+              },
             },
           ],
         });
-        expect(rsp.body).to.deep.equal([{ Id: 1 }]);
+        expect(rsp.body.records).to.have.length(1);
+        expect(rsp.body.records[0]).to.have.property('id', 1);
+        expect(rsp.body.records[0]).to.have.property('fields');
 
         const recordAfterUpdate = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/1`,
+          url: `${urlPrefix}/${table.id}/records/1`,
           query: {
             fields: 'Id,SingleLineText,MultiLineText',
           },
         });
         expect(recordAfterUpdate.body).to.deep.equal({
-          ...recordBeforeUpdate.body,
-          SingleLineText: 'some text',
-          MultiLineText: 'some more text',
+          id: 1,
+          fields: {
+            ...recordBeforeUpdate.body.fields,
+            SingleLineText: 'some text',
+            MultiLineText: 'some more text',
+          },
         });
       });
 
       it('Update: bulk', async function () {
         const rsp = await ncAxiosPatch({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: [
             {
-              Id: 1,
-              SingleLineText: 'some text',
-              MultiLineText: 'some more text',
+              id: 1,
+              fields: {
+                SingleLineText: 'some text',
+                MultiLineText: 'some more text',
+              },
             },
             {
-              Id: 2,
-              SingleLineText: 'some text',
-              MultiLineText: 'some more text',
+              id: 2,
+              fields: {
+                SingleLineText: 'some text',
+                MultiLineText: 'some more text',
+              },
             },
           ],
         });
-        expect(rsp.body).to.deep.equal([{ Id: 1 }, { Id: 2 }]);
+        expect(rsp.body.records).to.have.length(2);
+        expect(rsp.body.records[0]).to.have.property('id', 1);
+        expect(rsp.body.records[1]).to.have.property('id', 2);
+        rsp.body.records.forEach(record => {
+          expect(record).to.have.property('fields');
+        });
       });
 
       it('Update: single with column id', async function () {
         const idMap = {
-          Id: columns.find((col) => col.title === 'Id')?.id,
-          SingleLineText: columns.find((col) => col.title === 'SingleLineText')
-            ?.id,
-          MultiLineText: columns.find((col) => col.title === 'MultiLineText')
-            ?.id,
+
+            SingleLineText: columns.find(
+              (col) => col.title === 'SingleLineText',
+            )?.id,
+            MultiLineText: columns.find((col) => col.title === 'MultiLineText')
+              ?.id,
         };
 
         const updatePayload = {
-          [idMap['Id']!]: 1,
-          [idMap['SingleLineText']!]: 'SingleLineText',
-          [idMap['MultiLineText']!]: 'MultiLineText',
+          id: 1,
+          fields: {
+            [idMap['SingleLineText']!]: 'SingleLineText',
+            [idMap['MultiLineText']!]: 'MultiLineText',
+          },
         };
         const rsp = await ncAxiosPatch({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: updatePayload,
         });
-        expect(rsp.body).to.deep.equal({ Id: 1 });
+        expect(rsp.body.records).to.have.length(1);
+        expect(rsp.body.records[0]).to.have.property('id', 1);
+        expect(rsp.body.records[0]).to.have.property('fields');
         const rspGet = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           query: {
             where: '(Id,eq,1)',
           },
         });
         expect(
-          rspGet.body.list.map((k) => k.SingleLineText).join(','),
+          rspGet.body.records.map((k) => k.fields.SingleLineText).join(','),
         ).to.equal('SingleLineText');
       });
 
       it('Update: bulk with column id', async function () {
         const idMap = {
-          Id: columns.find((col) => col.title === 'Id')?.id,
+          id: columns.find((col) => col.title === 'Id')?.id,
           SingleLineText: columns.find((col) => col.title === 'SingleLineText')
             ?.id,
           MultiLineText: columns.find((col) => col.title === 'MultiLineText')
@@ -163,29 +186,38 @@ describe('dataApiV3', () => {
 
         const createPayload = [
           {
-            [idMap['Id']!]: 1,
-            [idMap['SingleLineText']!]: 'SingleLineText',
-            [idMap['MultiLineText']!]: 'MultiLineText',
+            id: 1,
+            fields: {
+              [idMap['SingleLineText']!]: 'SingleLineText',
+              [idMap['MultiLineText']!]: 'MultiLineText',
+            },
           },
           {
-            [idMap['Id']!]: 2,
-            [idMap['SingleLineText']!]: 'SingleLineText2',
-            [idMap['MultiLineText']!]: 'MultiLineText2',
+            id: 2,
+            fields: {
+              [idMap['SingleLineText']!]: 'SingleLineText2',
+              [idMap['MultiLineText']!]: 'MultiLineText2',
+            },
           },
         ];
         const rsp = await ncAxiosPatch({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           body: createPayload,
         });
-        expect(rsp.body).to.deep.equal([{ Id: 1 }, { Id: 2 }]);
+        expect(rsp.body.records).to.have.length(2);
+        expect(rsp.body.records[0]).to.have.property('id', 1);
+        expect(rsp.body.records[1]).to.have.property('id', 2);
+        rsp.body.records.forEach(record => {
+          expect(record).to.have.property('fields');
+        });
         const rspGet = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}`,
+          url: `${urlPrefix}/${table.id}/records`,
           query: {
             where: '(Id,gte,1)~and(Id,lte,2)',
           },
         });
         expect(
-          rspGet.body.list.map((k) => k.SingleLineText).join(','),
+          rspGet.body.records.map((k) => k.fields.SingleLineText).join(','),
         ).to.equal('SingleLineText,SingleLineText2');
       });
 
@@ -194,14 +226,14 @@ describe('dataApiV3', () => {
       it('Update: invalid ID', async function () {
         // Invalid table ID
         await ncAxiosPatch({
-          url: `${urlPrefix}/123456789`,
-          body: { Id: 100, SingleLineText: 'some text' },
+          url: `${urlPrefix}/123456789/records`,
+          body: { id: 100, fields: { SingleLineText: 'some text' } },
           status: 422,
         });
         // Invalid row ID
         await ncAxiosPatch({
-          url: `${urlPrefix}/${table.id}`,
-          body: { Id: 123456789, SingleLineText: 'some text' },
+          url: `${urlPrefix}/${table.id}/records`,
+          body: { id: 123456789, fields: { SingleLineText: 'some text' } },
           status: 404,
         });
       });

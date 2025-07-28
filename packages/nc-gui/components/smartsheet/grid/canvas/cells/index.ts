@@ -46,7 +46,7 @@ export function useGridCellHandler(params: {
     path: Array<number>,
   ) => { x: number; y: number; width: number; height: number }
   actionManager: ActionManager
-  makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+  makeCellEditable: MakeCellEditableFn
   updateOrSaveRow: (
     row: Row,
     property?: string,
@@ -68,6 +68,9 @@ export function useGridCellHandler(params: {
   provide(CanvasCellEventDataInj, canvasCellEvents)
 
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
+
+  const { isRowColouringEnabled } = useViewRowColorRender()
+
   const baseStore = useBase()
   const { showNull, appInfo } = useGlobal()
   const { isMysql, isXcdbBase, isPg } = baseStore
@@ -178,12 +181,13 @@ export function useGridCellHandler(params: {
       isCellInSelectionRange = false,
       isGroupHeader = false,
       rowMeta = {},
+      isRootCell = false,
     }: Omit<CellRendererOptions, 'metas' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
     if (!isGroupHeader) {
       const columnState = isColumnSortedOrFiltered(column.id!)
-      if (columnState !== undefined && !rowMeta?.isValidationFailed) {
+      if (!isRowColouringEnabled.value && columnState !== undefined && !rowMeta?.isValidationFailed) {
         let bgColorProps: 'cellBgColor' | 'cellBgColor.hovered' | 'cellBgColor.selected' = 'cellBgColor'
         let borderColorProps: 'cellBorderColor' | 'cellBorderColor.hovered' | 'cellBorderColor.selected' = 'cellBorderColor'
         if (selected || isRowChecked || isCellInSelectionRange) {
@@ -205,6 +209,25 @@ export function useGridCellHandler(params: {
             left: true,
           },
         })
+      } else if (!rowMeta?.isValidationFailed && isRootCell) {
+        const rowColor =
+          rowMeta?.is_set_as_background && (selected || isRowHovered || isRowChecked || isCellInSelectionRange)
+            ? rowMeta?.rowHoverColor
+            : rowMeta?.rowBgColor
+
+        if (rowColor) {
+          roundedRect(ctx, x, y, width, height, 0, {
+            backgroundColor: rowColor,
+            borderColor: themeV3Colors.gray['200'],
+            borderWidth: 0.4,
+            borders: {
+              top: rowMeta.rowIndex !== 0,
+              right: true,
+              bottom: true,
+              left: true,
+            },
+          })
+        }
       }
     }
     const cellType = cellTypesRegistry.get(column.uidt)
@@ -328,7 +351,8 @@ export function useGridCellHandler(params: {
         readonly: !params.hasEditPermission.value,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
-        makeCellEditable,
+        makeCellEditable: (row, clickedColumn, showEditCellRestrictionTooltip = ctx.event.detail === 2) =>
+          makeCellEditable(row, clickedColumn, showEditCellRestrictionTooltip),
         isPublic: isPublic.value,
         openDetachedExpandedForm,
         openDetachedLongText,

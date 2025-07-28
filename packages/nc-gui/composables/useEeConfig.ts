@@ -9,6 +9,8 @@ const eeConfigState = createGlobalState(() => {
 export const useEeConfig = createSharedComposable(() => {
   const { cloudFeatures } = eeConfigState()
 
+  const { appInfo } = useGlobal()
+
   const isSideBannerExpanded = ref(false)
 
   const isPaidPlan = computed(() => false)
@@ -48,6 +50,23 @@ export const useEeConfig = createSharedComposable(() => {
   const blockWsImageLogoUpload = computed(() => true)
 
   const blockCurrentUserFilter = computed(() => false)
+
+  const blockRowColoring = computed(() => true)
+
+  const blockTableAndFieldPermissions = computed(() => true)
+
+  const blockUseScripts = computed(() => false)
+
+  const blockPrivateBases = computed(() => true)
+
+  const showUserMayChargeAlert = computed(() => false)
+
+  const maxAttachmentsAllowedInCell = computed(() => {
+    // Keeping 50 to keep backward fallback compatibility
+    return Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50)
+  })
+
+  const calculatePrice = (..._args: any[]) => {}
 
   const getLimit = (..._args: any[]) => {}
 
@@ -93,7 +112,18 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseCurrentUserFilter = (..._args: any[]) => {}
 
+  const showUpgradeToUseRowColoring = (..._args: any[]) => {}
+
+  const showUpgradeToUseTableAndFieldPermissions = (..._args: any[]) => {}
+
+  const showUpgradeToUseScripts = (..._args: any[]) => {}
+
+  const showUpgradeToUsePrivateBases = (..._args: any[]) => {}
+
+  const showUpgradeToAddMoreAttachmentsInCell = (..._args: any[]) => {}
+
   return {
+    calculatePrice,
     getLimit,
     getStatLimit,
     updateStatLimit,
@@ -136,5 +166,16 @@ export const useEeConfig = createSharedComposable(() => {
     cloudFeatures,
     blockCurrentUserFilter,
     showUpgradeToUseCurrentUserFilter,
+    blockRowColoring,
+    showUpgradeToUseRowColoring,
+    blockTableAndFieldPermissions,
+    showUpgradeToUseTableAndFieldPermissions,
+    blockUseScripts,
+    showUpgradeToUseScripts,
+    blockPrivateBases,
+    showUpgradeToUsePrivateBases,
+    showUserMayChargeAlert,
+    maxAttachmentsAllowedInCell,
+    showUpgradeToAddMoreAttachmentsInCell,
   }
 })

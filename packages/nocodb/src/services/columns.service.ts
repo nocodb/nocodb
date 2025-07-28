@@ -1,4 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { pluralize, singularize } from 'inflection';
 import {
   AppEvents,
   ButtonActionsType,
@@ -10,6 +11,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
+  NcApiVersion,
   ncIsNull,
   ncIsUndefined,
   partialUpdateAllowedTypes,
@@ -22,39 +24,22 @@ import {
   UITypes,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
-import { pluralize, singularize } from 'inflection';
 import rfdc from 'rfdc';
-import { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
   LinkToAnotherRecordType,
   UserType,
 } from 'nocodb-sdk';
-import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
-import type { Base, LinkToAnotherRecordColumn } from '~/models';
-import type CustomKnex from '~/db/CustomKnex';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type CustomKnex from '~/db/CustomKnex';
+import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type {
   IColumnsService,
   ReusableParams,
 } from '~/services/columns.service.type';
-import { Filter, User } from '~/models';
-import { parseMetaProp } from '~/utils/modelUtils';
-import {
-  BaseUser,
-  CalendarRange,
-  Column,
-  FormulaColumn,
-  Hook,
-  KanbanView,
-  Model,
-  Script,
-  Source,
-  View,
-} from '~/models';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
@@ -69,6 +54,7 @@ import {
   validateRollupPayload,
 } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import { extractProps } from '~/helpers/extractProps';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import {
   getUniqueColumnAliasName,
@@ -76,16 +62,32 @@ import {
 } from '~/helpers/getUniqueName';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import validateParams from '~/helpers/validateParams';
-import Noco from '~/Noco';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
+import {
+  BaseUser,
+  CalendarRange,
+  Column,
+  Filter,
+  FormulaColumn,
+  Hook,
+  KanbanView,
+  Model,
+  Script,
+  Source,
+  User,
+  View,
+} from '~/models';
+import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
+import { ViewRowColorService } from '~/services/view-row-color.service';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   convertAIRecordTypeToValue,
   convertValueToAIRecordType,
 } from '~/utils/dataConversion';
-import { extractProps } from '~/helpers/extractProps';
-import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
+import { MetaTable } from '~/utils/globals';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 export type { ReusableParams } from '~/services/columns.service.type';
 
@@ -202,6 +204,7 @@ export class ColumnsService implements IColumnsService {
     protected readonly appHooksService: AppHooksService,
     @Inject(forwardRef(() => 'FormulaColumnTypeChanger'))
     protected readonly formulaColumnTypeChanger: IFormulaColumnTypeChanger,
+    protected readonly viewRowColorService: ViewRowColorService,
   ) {}
 
   async updateFormulas(
@@ -515,6 +518,14 @@ export class ColumnsService implements IColumnsService {
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
     sqlUi.adjustLengthAndScale(colBody);
 
+    const { applyRowColorInvolvement } =
+      await this.viewRowColorService.checkIfColumnInvolved({
+        context,
+        existingColumn: oldColumn,
+        newColumn: colBody,
+        action: 'update',
+      });
+
     if (
       isMetaOnlyUpdateAllowed ||
       isCreatedOrLastModifiedTimeCol(column) ||
@@ -630,7 +641,12 @@ export class ColumnsService implements IColumnsService {
 
             const hook = await Hook.get(context, colBody.fk_webhook_id);
 
-            if (!hook || !hook.active || hook.event !== 'manual') {
+            if (
+              !hook ||
+              !hook.active ||
+              (hook.version !== 'v3' && hook.event === 'manual') ||
+              (hook.version === 'v3' && !hook.operation?.includes('trigger'))
+            ) {
               NcError.badRequest('Webhook not found');
             }
           } else if (colBody.type === ButtonActionsType.Script) {
@@ -1848,6 +1864,8 @@ export class ColumnsService implements IColumnsService {
       columns: table.columns,
     });
 
+    await applyRowColorInvolvement();
+
     if (param.apiVersion === NcApiVersion.V3) {
       return column;
     }
@@ -2631,6 +2649,13 @@ export class ColumnsService implements IColumnsService {
 
     const column = await Column.get(context, { colId: param.columnId }, ncMeta);
 
+    const { applyRowColorInvolvement } =
+      await this.viewRowColorService.checkIfColumnInvolved({
+        context,
+        existingColumn: column,
+        action: 'delete',
+      });
+
     if ((column.system || isSystemColumn(column)) && !param.forceDeleteSystem) {
       NcError.badRequest(
         `The column '${
@@ -3161,6 +3186,8 @@ export class ColumnsService implements IColumnsService {
         columns: table.columns,
       });
     }
+
+    await applyRowColorInvolvement();
 
     return table;
   }
@@ -4045,38 +4072,7 @@ export class ColumnsService implements IColumnsService {
         };
       }
 
-      savedColumn = await Column.insert(refContext, {
-        title: getUniqueColumnAliasName(
-          await refTable.getColumns(refContext),
-          pluralize(table.title),
-        ),
-        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
-        type: 'mm',
-
-        // ref_db_alias
-        fk_model_id: refTable.id,
-        // db_type:
-
-        fk_child_column_id: refPrimaryKey.id,
-        fk_parent_column_id: primaryKey.id,
-        // Adding view ID here applies the view filter in reverse also
-        fk_target_view_id: null,
-        fk_mm_model_id: assocModel.id,
-        fk_mm_child_column_id: childCol.id,
-        fk_mm_parent_column_id: parentCol.id,
-        fk_related_model_id: table.id,
-        virtual: (param.column as LinkToAnotherColumnReqType).virtual,
-        meta: {
-          plural: pluralize(table.title),
-          singular: singularize(table.title),
-        },
-        // if self referencing treat it as system field to hide from ui
-        system: table.id === refTable.id,
-        // include cross base link props
-        ...refCrossBaseLinkProps,
-      });
-
-      const parentRelCol = await Column.insert(context, {
+      savedColumn = await Column.insert(context, {
         title: getUniqueColumnAliasName(
           await table.getColumns(context),
           param.column.title ?? pluralize(refTable.title),
@@ -4109,22 +4105,57 @@ export class ColumnsService implements IColumnsService {
         ...crossBaseLinkProps,
       });
 
-      this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
-        table: table,
-        column: parentRelCol,
-        columnId: parentRelCol.id,
-        req: param.req,
-        context,
-        columns: await table.getCachedColumns(context),
+      const parentRelCol = await Column.insert(refContext, {
+        title: getUniqueColumnAliasName(
+          [
+            ...(await refTable.getColumns(refContext)),
+            // if self ref include saved column
+            ...(table.id === refTable.id ? [savedColumn] : []),
+          ],
+          pluralize(table.title),
+        ),
+        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
+        type: 'mm',
+
+        // ref_db_alias
+        fk_model_id: refTable.id,
+        // db_type:
+
+        fk_child_column_id: refPrimaryKey.id,
+        fk_parent_column_id: primaryKey.id,
+        // Adding view ID here applies the view filter in reverse also
+        fk_target_view_id: null,
+        fk_mm_model_id: assocModel.id,
+        fk_mm_child_column_id: childCol.id,
+        fk_mm_parent_column_id: parentCol.id,
+        fk_related_model_id: table.id,
+        virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+        meta: {
+          plural: pluralize(table.title),
+          singular: singularize(table.title),
+        },
+        // if self referencing treat it as system field to hide from ui
+        system: table.id === refTable.id,
+        // include cross base link props
+        ...refCrossBaseLinkProps,
       });
 
       this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
         table: refTable,
-        column: savedColumn,
-        columnId: savedColumn.id,
+        column: parentRelCol,
+        columnId: parentRelCol.id,
         req: param.req,
         context: refContext,
         columns: await refTable.getCachedColumns(context),
+      });
+
+      this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
+        table: table,
+        column: savedColumn,
+        columnId: savedColumn.id,
+        req: param.req,
+        context,
+        columns: await table.getCachedColumns(context),
       });
 
       // todo: create index for virtual relations as well

@@ -47,6 +47,111 @@ export interface PaginatedV3Type {
   nestedPrev?: string;
 }
 
+/**
+ * V3 Nested Data List Response format - supports both single record and array responses
+ */
+export interface DataNestedListResponseV3V3Type {
+  /** Array of records for has-many and many-to-many relationships */
+  records?: DataRecordV3V3Type[];
+  /** Single record for belongs-to and one-to-one relationships */
+  record?: DataRecordV3V3Type | null;
+  /** Pagination token for next page */
+  next?: string | null;
+  /** Pagination token for previous page */
+  prev?: string | null;
+}
+
+/**
+ * V3 Data Read Response format
+ */
+export type DataReadResponseV3V3Type = DataRecordV3V3Type;
+
+/**
+ * V3 Data Delete Response format
+ */
+export interface DataDeleteResponseV3V3Type {
+  /** Array of deleted records */
+  records: DataRecordWithDeletedV3V3Type[];
+}
+
+/**
+ * V3 Data Update Response format
+ */
+export interface DataUpdateResponseV3V3Type {
+  /** Array of updated record identifiers */
+  records: {
+    /** Updated record identifier */
+    id: string | number;
+    /** Record fields data (excluding primary key). Undefined when empty. */
+    fields?: Record<string, any>;
+  }[];
+}
+
+/**
+ * V3 Data Insert Response format
+ */
+export interface DataInsertResponseV3V3Type {
+  /** Array of created records */
+  records: DataRecordV3V3Type[];
+}
+
+/**
+ * Single record delete request
+ */
+export interface DataDeleteRequestV3V3Type {
+  /** Record identifier */
+  id: string | number;
+}
+
+/**
+ * V3 Data Update Request format
+ */
+export interface DataUpdateRequestV3V3Type {
+  /** Record identifier */
+  id: string | number;
+  /** Record fields data to update */
+  fields: Record<string, any>;
+}
+
+/**
+ * V3 Data Insert Request format
+ */
+export interface DataInsertRequestV3V3Type {
+  /** Record fields data */
+  fields: Record<string, any>;
+}
+
+/**
+ * V3 Data List Response format
+ */
+export interface DataListResponseV3V3Type {
+  /** Array of records for has-many and many-to-many relationships */
+  records?: DataRecordV3V3Type[];
+  /** Pagination token for next page */
+  next?: string | null;
+  /** Pagination token for previous page */
+  prev?: string | null;
+  /** Nested pagination token for next page */
+  nestedNext?: string | null;
+  /** Nested pagination token for previous page */
+  nestedPrev?: string | null;
+}
+
+export type DataRecordWithDeletedV3V3Type = DataRecordV3V3Type & {
+  /** Indicates if the record was deleted */
+  deleted: boolean;
+};
+
+/**
+ * V3 Data Record format with id and fields separation
+ */
+export interface DataRecordV3V3Type {
+  /** Record identifier (primary key value) */
+  id: string | number;
+  /** Record fields data (excluding primary key). Undefined when empty. */
+  fields?: Record<string, any>;
+}
+
 export interface SortListResponseV3Type {
   list: SortV3Type[];
 }
@@ -2138,6 +2243,8 @@ export interface FilterReqType {
       );
   /** Foreign Key to Column */
   fk_column_id?: StringOrNullType;
+  /** Foreign Key to Widget */
+  fk_widget_id?: StringOrNullType;
   /** Belong to which filter ID */
   fk_parent_id?: StringOrNullType;
   /** Is this filter grouped? */
@@ -2676,14 +2783,7 @@ export interface HookType {
    * Hook Operation
    * @example insert
    */
-  operation?:
-    | 'insert'
-    | 'update'
-    | 'delete'
-    | 'bulkInsert'
-    | 'bulkUpdate'
-    | 'bulkDelete'
-    | 'trigger';
+  operation?: ('insert' | 'update' | 'delete' | 'trigger')[];
   /**
    * Retry Count
    * @example 10
@@ -2708,9 +2808,12 @@ export interface HookType {
   type?: string;
   /**
    * Hook Version
-   * @example v2
+   * @example v3
    */
-  version?: 'v1' | 'v2';
+  version?: 'v1' | 'v2' | 'v3';
+  /** Is this hook only trigger when some fields are affected */
+  trigger_field?: boolean;
+  trigger_fields?: string[];
 }
 
 /**
@@ -2746,14 +2849,7 @@ export interface HookReqType {
    * Hook Operation
    * @example insert
    */
-  operation:
-    | 'insert'
-    | 'update'
-    | 'delete'
-    | 'bulkInsert'
-    | 'bulkUpdate'
-    | 'bulkDelete'
-    | 'trigger';
+  operation: ('insert' | 'update' | 'delete' | 'trigger')[];
   /**
    * Retry Count
    * @example 10
@@ -2778,6 +2874,9 @@ export interface HookReqType {
   type?: string | null;
   /** Is this hook assoicated with some filters */
   condition?: BoolType;
+  /** Is this hook only trigger when some fields are affected */
+  trigger_field?: boolean;
+  trigger_fields?: string[];
 }
 
 /**
@@ -2827,14 +2926,7 @@ export interface HookLogType {
    * Hook Operation
    * @example insert
    */
-  operation?:
-    | 'insert'
-    | 'update'
-    | 'delete'
-    | 'bulkInsert'
-    | 'bulkUpdate'
-    | 'bulkDelete'
-    | 'trigger';
+  operation?: 'insert' | 'update' | 'delete' | 'trigger';
   /**
    * Hook Payload
    * @example {"method":"POST","body":"{{ json data }}","headers":[{}],"parameters":[{}],"auth":"","path":"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b"}
@@ -3566,6 +3658,26 @@ export interface BaseType {
   title?: string;
   /** ID of custom url */
   fk_custom_url_id?: StringOrNullType;
+  /** List of permissions for the base */
+  permissions?: {
+    /** Permission entity */
+    entity: string;
+    /** ID of the entity */
+    entity_id: string;
+    /** Permission key */
+    permission: string;
+    /** Type of permission granted */
+    granted_type: string;
+    /** Role to which permission is granted */
+    granted_role?: string | null;
+    /** List of subjects (users or groups) for the permission */
+    subjects?: {
+      /** Type of the subject */
+      type: 'user' | 'group';
+      /** ID of the subject */
+      id: string;
+    }[];
+  }[];
 }
 
 /**
@@ -4129,6 +4241,8 @@ export interface ViewType {
     | (FormType & GalleryType & GridType & KanbanType & MapType & CalendarType);
   /** ID of view owner user */
   owned_by?: IdType;
+  /** The row coloring mode whether it is select, condition or not set */
+  row_coloring_mode?: 'filter' | 'select';
   /** ID of custom url */
   fk_custom_url_id?: StringOrNullType;
 }
@@ -4696,7 +4810,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || 'http://localhost:8080',
+      baseURL: axiosConfig.baseURL || 'https://app.nocodb.com',
     });
     this.secure = secure;
     this.format = format;
@@ -4815,7 +4929,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title nocodb
  * @version 1.0
- * @baseUrl http://localhost:8080
+ * @baseUrl https://app.nocodb.com
  *
  * NocoDB API Documentation
  */
@@ -7018,66 +7132,6 @@ export class Api<
         format: 'json',
         ...params,
       }),
-
-    /**
- * @description List all audit data in the given base
- * 
- * @tags Base
- * @name AuditList
- * @summary List Audits in Base
- * @request GET:/api/v1/db/meta/projects/{baseId}/audits
- * @response `200` `{
-  list: (AuditType)[],
-  \** Model for Paginated *\
-  pageInfo: PaginatedType,
-
-}` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    auditList: (
-      baseId: IdType,
-      query?: {
-        /** @min 0 */
-        offset?: number;
-        /** @min 1 */
-        limit?: number;
-        sourceId?: string;
-        orderBy?: {
-          /**
-           * Sort direction
-           * @example desc
-           */
-          created_at?: 'asc' | 'desc';
-          /**
-           * Sort direction
-           * @example desc
-           */
-          user?: 'asc' | 'desc';
-        };
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        {
-          list: AuditType[];
-          /** Model for Paginated */
-          pageInfo: PaginatedType;
-        },
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/meta/projects/${baseId}/audits`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
   };
   source = {
     /**
@@ -8114,6 +8168,189 @@ export class Api<
         path: `/api/v1/db/meta/views/${viewId}`,
         method: 'DELETE',
         format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Get the row color info from view.
+ * 
+ * @tags DB View
+ * @name GetViewRowColor
+ * @summary Get row color info
+ * @request GET:/api/v1/db/meta/views/{viewId}/row-color
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    getViewRowColor: (viewId: IdType, params: RequestParams = {}) =>
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/views/${viewId}/row-color`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Delete the row color info from view.
+ * 
+ * @tags DB View
+ * @name DeleteViewRowColor
+ * @summary Delete row color info
+ * @request DELETE:/api/v1/db/meta/views/{viewId}/row-color
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    deleteViewRowColor: (viewId: IdType, params: RequestParams = {}) =>
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/views/${viewId}/row-color`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB View
+     * @name ViewRowColorSelectAdd
+     * @summary Set view row color select
+     * @request POST:/api/v1/db/meta/views/{viewId}/row-color-select
+     * @response `200` `void` OK
+     */
+    viewRowColorSelectAdd: (
+      viewId: IdType,
+      data: {
+        /** Column ID to use for row coloring */
+        fk_column_id: string;
+        /** Whether to use the color as background */
+        is_set_as_background: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/views/${viewId}/row-color-select`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB View
+     * @name ViewRowColorConditionAdd
+     * @summary Add view row color condition
+     * @request POST:/api/v1/db/meta/views/{viewId}/row-color-conditions
+     * @response `200` `void` OK
+     */
+    viewRowColorConditionAdd: (
+      viewId: IdType,
+      data: {
+        /** Color to apply to matching rows */
+        color: string;
+        /** Whether to use the color as background */
+        is_set_as_background: boolean;
+        /** Order of the condition */
+        nc_order: number;
+        filter: {
+          /** Comparison operator */
+          comparison_op:
+            | 'eq'
+            | 'neq'
+            | 'gt'
+            | 'gte'
+            | 'lt'
+            | 'lte'
+            | 'like'
+            | 'nlike'
+            | 'in'
+            | 'nin'
+            | 'is'
+            | 'isnot'
+            | 'null'
+            | 'notnull';
+          /** Value to compare against */
+          value: string;
+          /** Column ID to filter on */
+          fk_column_id: string;
+        };
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/views/${viewId}/row-color-conditions`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB View
+     * @name ViewRowColorConditionUpdate
+     * @summary Update view row color condition
+     * @request PATCH:/api/v1/db/meta/views/{viewId}/row-color-conditions/{id}
+     * @response `200` `void` OK
+     */
+    viewRowColorConditionUpdate: (
+      viewId: IdType,
+      id: IdType,
+      data: {
+        /** Color to apply to matching rows */
+        color: string;
+        /** Whether to use the color as background */
+        is_set_as_background: boolean;
+        /** Order of the condition */
+        nc_order: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/views/${viewId}/row-color-conditions/${id}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB View
+     * @name ViewRowColorConditionDelete
+     * @summary Delete view row color condition
+     * @request DELETE:/api/v1/db/meta/views/{viewId}/row-color-conditions/{id}
+     * @response `200` `void` OK
+     */
+    viewRowColorConditionDelete: (
+      viewId: IdType,
+      id: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/views/${viewId}/row-color-conditions/${id}`,
+        method: 'DELETE',
         ...params,
       }),
 
@@ -11778,62 +12015,6 @@ export class Api<
   };
   utils = {
     /**
- * @description List all audits
- * 
- * @tags Utils
- * @name AuditList
- * @summary List Audits
- * @request GET:/api/v1/db/meta/audits
- * @response `200` `{
-  list: (AuditType)[],
-  \** Pagination Info *\
-  pageInfo?: PaginatedType,
-
-}` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    auditList: (
-      query: {
-        /** @min 0 */
-        offset?: number;
-        /** @min 1 */
-        limit?: number;
-        /**
-         * Row ID
-         * @example 10
-         */
-        row_id: string;
-        /**
-         * Foreign Key to Model
-         * @example md_c6csq89tl37jm5
-         */
-        fk_model_id: IdType;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        {
-          list: AuditType[];
-          /** Pagination Info */
-          pageInfo?: PaginatedType;
-        },
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/meta/audits`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
  * @description List all comments
  * 
  * @tags Utils
@@ -12008,98 +12189,6 @@ export class Api<
         path: `/api/v1/db/meta/comments/count`,
         method: 'GET',
         query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
- * @description List all audit data in the given project
- * 
- * @tags Utils
- * @name ProjectAuditList
- * @summary List Audits in Project
- * @request GET:/api/v1/db/meta/projects/audits
- * @response `200` `{
-  list: (AuditType)[],
-  \** Model for Paginated *\
-  pageInfo: PaginatedType,
-
-}` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    projectAuditList: (
-      query?: {
-        /** @min 0 */
-        offset?: number;
-        /** @min 1 */
-        limit?: number;
-        orderBy?: {
-          /**
-           * Sort direction
-           * @example desc
-           */
-          created_at?: 'asc' | 'desc';
-          /**
-           * Sort direction
-           * @example desc
-           */
-          user?: 'asc' | 'desc';
-        };
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        {
-          list: AuditType[];
-          /** Model for Paginated */
-          pageInfo: PaginatedType;
-        },
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/meta/projects/audits`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
- * @description Update Audit Row
- * 
- * @tags Utils
- * @name AuditRowUpdate
- * @summary Update Audit Row
- * @request POST:/api/v1/db/meta/audits/rows/{rowId}/update
- * @response `200` `AuditType` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    auditRowUpdate: (
-      rowId: any,
-      data: AuditRowUpdateReqType,
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        AuditType,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/meta/audits/rows/${rowId}/update`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -12891,7 +12980,7 @@ export class Api<
         | 'bulkInsert'
         | 'bulkUpdate'
         | 'bulkDelete',
-      version: 'v1' | 'v2',
+      version: 'v1' | 'v2' | 'v3',
       params: RequestParams = {}
     ) =>
       this.request<
@@ -14230,6 +14319,31 @@ export class Api<
       }),
 
     /**
+     * @description AI Completion
+     *
+     * @tags Ai
+     * @name Completion
+     * @summary AI Completion
+     * @request POST:/api/v2/ai/bases/{baseId}/completion
+     * @response `200` `object` OK
+     */
+    completion: (
+      baseId: IdType,
+      data: {
+        schema?: object;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v2/ai/bases/${baseId}/completion`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description AI Schema
      *
      * @tags Ai
@@ -14642,6 +14756,10 @@ export class Api<
         operation: string;
         /** Model ID */
         fk_model_id?: string;
+        /** Row ID */
+        row_id?: string;
+        /** Cursor */
+        cursor?: string;
       },
       data: Record<string, any>,
       params: RequestParams = {}
@@ -14673,6 +14791,10 @@ export class Api<
         operation: string;
         /** Model ID */
         fk_model_id?: string;
+        /** Row ID */
+        row_id?: string;
+        /** Cursor */
+        cursor?: string;
       },
       params: RequestParams = {}
     ) =>

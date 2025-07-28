@@ -309,7 +309,7 @@ const isMiniSidebarVisible = computed(() => {
 
 .nc-sidebar-wrapper > * {
   transition: all 0.2s ease-in-out;
-  @apply z-10 absolute;
+  @apply z-501 absolute;
 }
 
 .nc-sidebar-wrapper.hide-sidebar {

@@ -5,14 +5,16 @@ import nocobuild from '../../../src/nocobuild';
 import { createUser } from '../factory/user';
 import cleanupMeta from './cleanupMeta';
 import { cleanUpSakila, resetAndSeedSakila } from './cleanupSakila';
+import type { INestApplication } from '@nestjs/common';
 
 let server;
+let nestApp: INestApplication<any>;
 
 const serverInit = async () => {
   const serverInstance = express();
   serverInstance.enable('trust proxy');
   // serverInstance.use(await Noco.init());
-  await nocobuild(serverInstance);
+  const { nestApp } = await nocobuild(serverInstance);
   serverInstance.use(function (req, res, next) {
     // 50 sec timeout
     req.setTimeout(500000, function () {
@@ -21,7 +23,7 @@ const serverInit = async () => {
     });
     next();
   });
-  return serverInstance;
+  return { serverInstance, nestApp };
 };
 
 const isFirstTimeRun = () => !server;
@@ -31,7 +33,9 @@ export default async function (forceReset = false, roles = 'editor') {
 
   if (isFirstTimeRun()) {
     await resetAndSeedSakila();
-    server = await serverInit();
+    const serverInitResult = await serverInit();
+    server = serverInitResult.serverInstance;
+    nestApp = serverInitResult.nestApp;
   }
 
   // if (isSakila) {
@@ -69,6 +73,7 @@ export default async function (forceReset = false, roles = 'editor') {
 
   return {
     app: server,
+    nestApp,
     token,
     xc_token,
     user,

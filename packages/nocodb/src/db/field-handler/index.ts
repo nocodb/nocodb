@@ -8,6 +8,10 @@ import {
 } from 'nocodb-sdk';
 import { ClientType } from 'nocodb-sdk';
 import { FilterVerificationError } from './error/filter-verification.error';
+import { CurrencyGeneralHandler } from './handlers/currency/currency.general.handler';
+import { CurrencyPgHandler } from './handlers/currency/currency.pg.handler';
+import { CurrencyMysqlHandler } from './handlers/currency/currency.mysql.handler';
+import { CurrencySqliteHandler } from './handlers/currency/currency.sqlite.handler';
 import type { Logger } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
@@ -68,6 +72,7 @@ import { Column } from '~/models';
 import { JsonPgHandler } from '~/db/field-handler/handlers/json/json.pg.handler';
 import { DecimalPgHandler } from '~/db/field-handler/handlers/decimal/decimal.pg.handler';
 import { EmailGeneralHandler } from '~/db/field-handler/handlers/email/email.general.handler';
+import { AttachmentGeneralHandler } from '~/db/field-handler/handlers/attachment/attachment.general.handler';
 
 const CLIENT_DEFAULT = '_default';
 
@@ -98,7 +103,9 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.LongText]: {
     [CLIENT_DEFAULT]: LongTextGeneralHandler,
   },
-  [UITypes.Attachment]: {},
+  [UITypes.Attachment]: {
+    [CLIENT_DEFAULT]: AttachmentGeneralHandler,
+  },
   [UITypes.Checkbox]: {
     [CLIENT_DEFAULT]: CheckboxGeneralHandler,
     [ClientType.SQLITE]: CheckboxSqliteHandler,
@@ -139,7 +146,10 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.SQLITE]: DecimalSqliteHandler,
   },
   [UITypes.Currency]: {
-    [CLIENT_DEFAULT]: DecimalGeneralHandler,
+    [CLIENT_DEFAULT]: CurrencyGeneralHandler,
+    [ClientType.PG]: CurrencyPgHandler,
+    [ClientType.MYSQL]: CurrencyMysqlHandler,
+    [ClientType.SQLITE]: CurrencySqliteHandler,
   },
   [UITypes.Percent]: {
     [CLIENT_DEFAULT]: PercentGeneralHandler,
@@ -452,6 +462,7 @@ export class FieldHandler implements IFieldHandler {
   async parseUserInput(params: {
     value: any;
     row: any;
+    oldData?: any;
     column: Column;
     options?: {
       context?: NcContext;

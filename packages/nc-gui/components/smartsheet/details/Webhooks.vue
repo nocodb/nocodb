@@ -9,9 +9,11 @@ const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: save
 
 const selectedHook = ref<undefined | HookType>()
 
-const { hooks, isHooksLoading } = storeToRefs(useWebhooksStore())
+const webhooksStore = useWebhooksStore()
 
-const { loadHooksList, deleteHook: _deleteHook, copyHook, saveHooks } = useWebhooksStore()
+const { hooks, isHooksLoading, hasV2Webhooks } = storeToRefs(webhooksStore)
+
+const { loadHooksList, deleteHook: _deleteHook, copyHook, saveHooks } = webhooksStore
 
 const { activeView } = storeToRefs(useViewsStore())
 
@@ -76,6 +78,8 @@ const openDeleteModal = (hookId: string) => {
 }
 
 const webHookSearch = ref('')
+
+const isOpenContextMenu = ref<Record<string, boolean>>({})
 
 const filteredHooks = computed(() =>
   hooks.value.filter((hook) => hook.title?.toLowerCase().includes(webHookSearch.value.toLowerCase())),
@@ -164,13 +168,19 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 })
 
 const eventList = ref<Record<string, any>[]>([
-  { text: [t('general.on'), t('labels.recordInsert')], value: ['after', 'insert'] },
-  { text: [t('general.on'), t('labels.recordUpdate')], value: ['after', 'update'] },
-  { text: [t('general.on'), t('labels.recordDelete')], value: ['after', 'delete'] },
-  { text: [t('general.onMultiple'), t('labels.recordInsert')], value: ['after', 'bulkInsert'] },
-  { text: [t('general.onMultiple'), t('labels.recordUpdate')], value: ['after', 'bulkUpdate'] },
-  { text: [t('general.onMultiple'), t('labels.recordDelete')], value: ['after', 'bulkDelete'] },
-  { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
+  { text: [t('general.record'), t('general.insert').toLowerCase()], value: ['after', 'insert'] },
+  { text: [t('general.record'), t('general.update').toLowerCase()], value: ['after', 'update'] },
+  { text: [t('general.record'), t('general.delete').toLowerCase()], value: ['after', 'delete'] },
+  {
+    text: [t('general.manual'), t('general.trigger').toLowerCase()],
+    value: ['manual', 'trigger'],
+  },
+])
+const v2EventList = ref<Record<string, any>[]>([
+  ...eventList.value,
+  { text: [t('general.record'), t('general.bulkInsert').toLowerCase()], value: ['after', 'bulkInsert'] },
+  { text: [t('general.record'), t('general.bulkUpdate').toLowerCase()], value: ['after', 'bulkUpdate'] },
+  { text: [t('general.record'), t('general.bulkDelete').toLowerCase()], value: ['after', 'bulkDelete'] },
 ])
 
 const columns: NcTableColumnProps[] = [
@@ -218,10 +228,33 @@ const customRow = (hook: HookType) => {
 }
 
 const getHookTypeText = (hook: HookType) => {
-  return (
-    eventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text?.join(' ') ||
-    `Before ${hook.operation}`
-  )
+  if (hook.version === 'v3') {
+    const operationsArray = Array.isArray(hook.operation) ? hook.operation : []
+
+    const operations = operationsArray
+      .map((op) => {
+        const eventData = eventList.value.find((e) => e.value[0] === hook.event)
+        const operationData = eventData?.operations?.[op] || eventData?.[op]
+        return operationData?.text?.[1] || op
+      })
+      .filter(Boolean)
+
+    const prefix = hook.event === 'after' ? `${t('general.after')} ` : hook.event === 'manual' ? `${t('general.manual')} ` : ''
+
+    if (operations.length === 1) {
+      return `${prefix}${operations[0]}`
+    }
+
+    return t('labels.sendAllEvents')
+  }
+
+  const result = v2EventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text
+
+  if (result && result.includes('Manual Trigger')) {
+    return 'Manual Trigger'
+  }
+
+  return result?.join(' ') || `Before ${hook.operation}`
 }
 </script>
 
@@ -229,7 +262,21 @@ const getHookTypeText = (hook: HookType) => {
   <div class="nc-webhook-wrapper w-full p-4">
     <div class="max-w-250 h-full w-full mx-auto">
       <div v-if="activeView && !isHooksLoading">
-        <div class="w-full mb-4 flex justify-between gap-3">
+        <NcAlert
+          v-if="hasV2Webhooks"
+          type="warning"
+          :message="$t('msg.webhookV2DeprecationAlertTitle')"
+          :description="$t('msg.webhookV2DeprecationAlertDesc')"
+          class="bg-nc-bg-orange-light"
+        >
+          <template #action>
+            <NcButton type="link" size="xsmall" class="!hover:underline !font-bold">
+              {{ $t('activity.goToDocs') }}
+            </NcButton>
+          </template>
+        </NcAlert>
+
+        <div class="w-full mb-4 mt-6 flex justify-between gap-3">
           <div class="flex-1 flex gap-2">
             <a-input
               v-model:value="webHookSearch"
@@ -246,7 +293,9 @@ const getHookTypeText = (hook: HookType) => {
               class="px-2"
               type="text"
               size="small"
-              @click="navigateTo('https://docs.nocodb.com/category/webhook/', { open: navigateToBlankTargetOpenOption })"
+              @click="
+                navigateTo('https://nocodb.com/docs/product-docs/automation/webhook', { open: navigateToBlankTargetOpenOption })
+              "
             >
               <div class="flex items-center gap-2">
                 {{ $t('title.docs') }}
@@ -271,7 +320,11 @@ const getHookTypeText = (hook: HookType) => {
           </NcButton>
         </div>
 
-        <div style="height: calc(100vh - (var(--topbar-height) * 3.5))" class="">
+        <div
+          :style="{
+            height: `calc(100vh - var(--topbar-height) - var(--toolbar-height) - 104px - ${hasV2Webhooks ? '82px' : '0px'})`,
+          }"
+        >
           <div
             v-if="!hooks.length"
             class="flex-col flex items-center gap-6 justify-center w-full h-full py-12 px-4 border-1 rounded-xl border-gray-200"
@@ -293,7 +346,7 @@ const getHookTypeText = (hook: HookType) => {
             :data="sortedHooks"
             :custom-row="customRow"
             class="h-full"
-            body-row-class-name="nc-view-sidebar-webhook-item"
+            body-row-class-name="nc-view-sidebar-webhook-item group"
           >
             <template #bodyCell="{ column, record: hook }">
               <NcTooltip :disabled="hook.event !== 'manual'">
@@ -311,12 +364,18 @@ const getHookTypeText = (hook: HookType) => {
               </NcTooltip>
 
               <template v-if="column.key === 'name'">
-                <NcTooltip class="truncate max-w-full text-gray-800 font-semibold text-sm" show-on-truncate-only>
+                <NcTooltip class="truncate max-w-full flex-1 text-gray-800 font-semibold text-sm" show-on-truncate-only>
                   {{ hook.title }}
 
                   <template #title>
                     {{ hook.title }}
                   </template>
+                </NcTooltip>
+
+                <NcTooltip v-if="hook.version === 'v2'" class="-mr-2 flex">
+                  <GeneralIcon icon="ncAlertTriangle" class="flex-none text-nc-content-orange-dark" />
+
+                  <template #title> Port this webhook from v2 to v3 </template>
                 </NcTooltip>
               </template>
               <template v-if="column.key === 'type'">
@@ -326,18 +385,34 @@ const getHookTypeText = (hook: HookType) => {
                 {{ dayjs(hook.created_at).format('DD MMM YYYY') }}
               </template>
               <template v-if="column.key === 'action'">
-                <NcDropdown overlay-class-name="nc-webhook-item-action-dropdown">
-                  <NcButton type="secondary" size="small" class="!w-8 !h-8" data-testid="nc-webhook-item-action" @click.stop>
-                    <component :is="iconMap.threeDotVertical" class="text-gray-700" />
-                  </NcButton>
+                <NcDropdown v-model:visible="isOpenContextMenu[hook.id]" overlay-class-name="nc-webhook-item-action-dropdown">
+                  <template #default="{ visible }">
+                    <NcButton
+                      type="secondary"
+                      size="small"
+                      class="!w-8 !h-8 invisible group-hover:visible"
+                      :class="{
+                        '!visible': visible,
+                      }"
+                      data-testid="nc-webhook-item-action"
+                      @click.stop
+                    >
+                      <component :is="iconMap.threeDotVertical" class="text-gray-700" />
+                    </NcButton>
+                  </template>
                   <template #overlay>
-                    <NcMenu class="w-48" variant="small">
+                    <NcMenu class="w-48" variant="small" @click="isOpenContextMenu[hook.id] = false">
                       <NcMenuItem key="edit" data-testid="nc-webhook-item-action-edit" @click="editHook(hook)">
-                        <GeneralIcon icon="edit" class="text-gray-800" />
+                        <GeneralIcon icon="edit" />
                         <span>{{ $t('general.edit') }}</span>
                       </NcMenuItem>
-                      <NcMenuItem key="duplicate" data-testid="nc-webhook-item-action-duplicate" @click="copyWebhook(hook)">
-                        <GeneralIcon icon="duplicate" class="text-gray-800" />
+                      <NcMenuItem
+                        key="duplicate"
+                        data-testid="nc-webhook-item-action-duplicate"
+                        :disabled="hook.version !== 'v3'"
+                        @click="copyWebhook(hook)"
+                      >
+                        <GeneralIcon icon="duplicate" />
                         <span>{{ $t('general.duplicate') }}</span>
                       </NcMenuItem>
 
@@ -345,14 +420,12 @@ const getHookTypeText = (hook: HookType) => {
 
                       <NcMenuItem
                         key="delete"
-                        class="!hover:bg-red-50"
+                        class="!text-red-500 !hover:bg-red-50"
                         data-testid="nc-webhook-item-action-delete"
                         @click="openDeleteModal(hook.id)"
                       >
-                        <div class="text-red-500">
-                          <GeneralIcon icon="delete" class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" />
-                          {{ $t('general.delete') }}
-                        </div>
+                        <GeneralIcon icon="delete" />
+                        {{ $t('general.delete') }}
                       </NcMenuItem>
                     </NcMenu>
                   </template>
@@ -379,7 +452,14 @@ const getHookTypeText = (hook: HookType) => {
         </GeneralDeleteModal>
 
         <Webhook
-          v-if="isWebhookModalOpen"
+          v-if="isWebhookModalOpen && (!selectedHook || selectedHook.version === 'v3')"
+          v-model:value="isWebhookModalOpen"
+          :hook="selectedHook"
+          :event-list="eventList"
+          @close="onModalClose"
+        />
+        <WebhookV2
+          v-if="isWebhookModalOpen && selectedHook && selectedHook.version !== 'v3'"
           v-model:value="isWebhookModalOpen"
           :hook="selectedHook"
           :event-list="eventList"
@@ -400,5 +480,8 @@ const getHookTypeText = (hook: HookType) => {
 <style lang="scss" scoped>
 :deep(.ant-input::placeholder) {
   @apply text-gray-500;
+}
+.btn-goto-docs:hover {
+  background: var(--nc-background-coloured-orange-dark, #fee6d6) !important;
 }
 </style>

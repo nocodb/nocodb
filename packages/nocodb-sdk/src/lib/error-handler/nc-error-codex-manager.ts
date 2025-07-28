@@ -65,6 +65,8 @@ export class NcErrorCodexManager {
       message = messageHelper;
     }
 
-    return new NcBaseErrorv2(message, errorHelper.code, error);
+    return new NcBaseErrorv2(message, errorHelper.code, error, {
+      details: details,
+    });
   }
 }

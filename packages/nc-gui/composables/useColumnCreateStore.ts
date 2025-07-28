@@ -52,6 +52,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const disableSubmitBtn = ref(false)
 
+    const isSaving = ref(false)
+
     const isWebhookCreateModalOpen = ref(false)
 
     const isScriptCreateModalOpen = ref(false)
@@ -89,7 +91,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const setPostSaveOrUpdateCbk = (cbk: typeof postSaveOrUpdateCbk) => {
       postSaveOrUpdateCbk = cbk
     }
-
     const defaultType = isMetaReadOnly.value ? UITypes.Formula : UITypes.SingleLineText
 
     const defaultFormState = {
@@ -365,6 +366,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       let oldCol: ColumnType | undefined
 
       try {
+        isSaving.value = true // set saving state
+
         formState.value.table_name = meta.value?.table_name
 
         const refModelId = formState.value.custom?.ref_model_id
@@ -387,6 +390,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
               viewsStore.loadViews({ tableId: oldCol?.fk_model_id, ignoreLoading: true, force: true })
             }
             eventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
+            eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
           } catch (e: any) {
             if (!validateInfos.formula_raw) validateInfos.formula_raw = {}
             validateInfos.formula_raw!.validateStatus = 'error'
@@ -458,6 +462,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         return true
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
+      } finally {
+        isSaving.value = false // reset saving state
       }
     }
 
@@ -523,6 +529,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       tableExplorerColumns,
       defaultFormState,
       isScriptCreateModalOpen,
+      isSaving,
     }
   },
 )

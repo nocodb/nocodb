@@ -403,24 +403,30 @@ export const useBases = defineStore('basesStore', () => {
    * Will have to show base home page sidebar if any base/table/view/script is active
    */
   watch(
-    [
-      () => route.value.params.baseId,
-      () => route.value.params.viewId,
-      () => route.value.params.viewTitle,
-      () => basesList.value.length,
-    ],
-    ([newBaseId, newTableId, newViewId, newBasesListLength], [oldBaseId, oldTableId, oldViewId]) => {
-      const shouldShowProjectList =
-        !newBasesListLength || !((newBaseId && newBaseId !== oldBaseId) || newTableId !== oldTableId || newViewId !== oldViewId)
+    [() => route.value.params.baseId, () => route.value.params.viewId, () => route.value.params.viewTitle],
+    ([newBaseId, newTableId, newViewId], [oldBaseId, oldTableId, oldViewId]) => {
+      const shouldShowProjectList = !(
+        (newBaseId && newBaseId !== oldBaseId) ||
+        newTableId !== oldTableId ||
+        newViewId !== oldViewId
+      )
 
-      if (!showProjectList.value && shouldShowProjectList) {
-        showProjectList.value = shouldShowProjectList
-        return
-      }
+      if (showProjectList.value === shouldShowProjectList) return
 
       showProjectList.value = shouldShowProjectList
     },
   )
+
+  watch([() => basesList.value.length, () => isProjectsLoaded.value], ([baseListLength, newIsProjectsLoaded]) => {
+    /**
+     * Use case:
+     * If project list is empty and showProjectList is false,
+     * then we have to show project list else it will stuck in loading state (blank sidebar state)
+     */
+    if (baseListLength || !newIsProjectsLoaded || showProjectList.value) return
+
+    showProjectList.value = true
+  })
 
   watch(activeProjectId, () => {
     ncLastVisitedBase().set(activeProjectId.value)

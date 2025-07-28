@@ -21,7 +21,7 @@ const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
-const clientMousePosition = inject(ClientMousePositionInj)
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 

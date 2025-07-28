@@ -39,6 +39,7 @@ import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
+  FilterCacheScope,
   MetaTable,
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
@@ -48,6 +49,7 @@ import {
   prepareForResponse,
 } from '~/utils/modelUtils';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
+import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 
 const selectColors = enumColors.light;
 
@@ -273,6 +275,10 @@ export default class Column<T = any> implements ColumnType {
     );
 
     await View.clearSingleQueryCache(context, column.fk_model_id, null, ncMeta);
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
 
     return col;
   }
@@ -1114,7 +1120,10 @@ export default class Column<T = any> implements ColumnType {
     }
     // delete filters
     {
-      const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [id]);
+      const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
+        FilterCacheScope.COLUMN,
+        id,
+      ]);
       let { list: filters } = cachedList;
       const { isNoneList } = cachedList;
       if (!isNoneList && !filters.length) {
@@ -1281,6 +1290,10 @@ export default class Column<T = any> implements ColumnType {
     {
       await View.clearSingleQueryCache(context, col.fk_model_id, null, ncMeta);
     }
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
   }
 
   static async update(
@@ -1640,6 +1653,10 @@ export default class Column<T = any> implements ColumnType {
         );
       }
     }
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
   }
 
   static async updateCustomIndexName(

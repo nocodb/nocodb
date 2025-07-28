@@ -7,6 +7,7 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isSystemColumn,
+  isValidValue,
   isVirtualCol,
   getLookupColumnType as sdkGetLookupColumnType,
   validateRowFilters as sdkValidateRowFilters,
@@ -26,25 +27,7 @@ import dayjs from 'dayjs'
 import { isColumnRequiredAndNull } from './columnUtils'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
-export const isValidValue = (val: unknown) => {
-  if (ncIsNull(val) || ncIsUndefined(val)) {
-    return false
-  }
-
-  if (ncIsString(val) && val === '') {
-    return false
-  }
-
-  if (ncIsEmptyArray(val)) {
-    return false
-  }
-
-  if (ncIsEmptyObject(val)) {
-    return false
-  }
-
-  return true
-}
+export { isValidValue }
 
 export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
   if (!row || !columns) return null
@@ -68,6 +51,10 @@ export const rowPkData = (row: Record<string, any>, columns: ColumnType[]) => {
     }
   }
   return pkData
+}
+
+export const getRowHash = (row: Record<string, any>) => {
+  return MD5(JSON.stringify(row))
 }
 
 export const extractPk = (columns: ColumnType[]) => {
@@ -242,6 +229,8 @@ export const getDateValue = (modelValue: string | null | number, col: ColumnType
   } else {
     return dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue).format(dateFormat)
   }
+
+  return ''
 }
 
 export const getYearValue = (modelValue: string | null) => {
@@ -397,11 +386,13 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
   const relatedTableMeta =
     relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
 
-  const childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id) as
+  let childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id) as
     | ColumnType
     | undefined
 
   if (!childColumn) return modelValue?.toString() ?? ''
+  // may use deepClone
+  childColumn = { ...childColumn }
 
   const renderAsTextFun = getRenderAsTextFunForUiType((childColumn.uidt ?? UITypes.SingleLineText) as UITypes)
 
@@ -428,9 +419,11 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
 
   const relatedTableMeta =
     relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
+
   const childColumn = relatedTableMeta?.columns.find(
     (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? relatedTableMeta?.columns.find((c) => c.pv).id),
   ) as ColumnType | undefined
+
   if (Array.isArray(modelValue)) {
     return modelValue
       .map((v) => {

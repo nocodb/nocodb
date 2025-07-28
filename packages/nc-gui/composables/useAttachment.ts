@@ -1,5 +1,13 @@
+import type { AttachmentType } from 'nocodb-sdk'
+import { getI18n } from '~/plugins/a.i18n'
+
 const useAttachment = () => {
   const { appInfo } = useGlobal()
+
+  const { $api } = useNuxtApp()
+
+  // `useAttachment` is used inside normal function of canvas table so we have to use `getI18n().global` instead of `useI18n`
+  const { t } = getI18n().global
 
   const getPossibleAttachmentSrc = (item: Record<string, any>, thumbnail?: 'card_cover' | 'tiny' | 'small') => {
     const res: string[] = []
@@ -40,10 +48,45 @@ const useAttachment = () => {
     openLink(await getAttachmentSrc(item))
   }
 
+  async function batchUploadFiles(files: FileList | File[], path: string) {
+    if (!files.length) return []
+
+    const chunkSize = 10
+
+    // Convert FileList to Array if necessary
+    const fileArray: File[] = ncIsArray(files) ? files : Array.from(files)
+
+    const uploadedFiles: AttachmentType[] = []
+
+    try {
+      while (fileArray.length) {
+        const chunk = fileArray.splice(0, chunkSize)
+
+        const uploadedFilesChunk = await $api.storage.upload(
+          {
+            path,
+          },
+          {
+            files: chunk,
+          },
+        )
+
+        uploadedFiles.push(...uploadedFilesChunk)
+      }
+
+      return uploadedFiles
+    } catch (e: any) {
+      message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
+
+      return []
+    }
+  }
+
   return {
     getAttachmentSrc,
     getPossibleAttachmentSrc,
     openAttachment,
+    batchUploadFiles,
   }
 }
 

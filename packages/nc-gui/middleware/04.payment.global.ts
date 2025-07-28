@@ -19,7 +19,10 @@ export default defineNuxtRouteMiddleware(() => {
   if (pricing) {
     const workspaceId = params.get('workspaceId')
 
-    const url = `/#/${workspaceId}/pricing`
+    const searchParams = new URLSearchParams(params.toString())
+    searchParams.delete('workspaceId')
+
+    const url = `/#/${workspaceId}/pricing${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
 
     window.location.href = url
 

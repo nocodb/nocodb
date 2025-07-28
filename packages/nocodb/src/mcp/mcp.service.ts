@@ -6,6 +6,11 @@ import { z } from 'zod';
 import { extractRolesObj, NcApiVersion, ProjectRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
 import type { Request, Response } from 'express';
+import type {
+  DataDeleteRequest,
+  DataInsertRequest,
+  DataUpdateRequest,
+} from '~/services/v3/data-v3.types';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
@@ -15,15 +20,17 @@ import { hasMinimumRole } from '~/utils/roleHelper';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { serialize } from '~/helpers/serialize';
 import { AuditsService } from '~/services/audits.service';
+import { isEE } from '~/utils';
+import { aggregationDescription, whereDescription } from '~/mcp/descriptions';
 
 @Injectable()
 export class McpService {
   constructor(
-    private readonly baseV3Service: BasesV3Service,
-    private readonly tablesV3Service: TablesV3Service,
-    private readonly datasV3Service: DataV3Service,
+    protected readonly baseV3Service: BasesV3Service,
+    protected readonly tablesV3Service: TablesV3Service,
+    protected readonly datasV3Service: DataV3Service,
     protected readonly dataTableService: DataTableService,
-    private readonly auditService: AuditsService,
+    protected readonly auditService: AuditsService,
   ) {}
 
   async handleRequest(
@@ -51,7 +58,7 @@ export class McpService {
     await transport.handleRequest(req as Request, res, req.body);
   }
 
-  private async registerTools({
+  protected async registerTools({
     server,
     context,
     user,
@@ -68,9 +75,16 @@ export class McpService {
     const isEditorPlus = hasMinimumRole(user, ProjectRoles.EDITOR);
 
     // Base Details
-    server.tool(
+    server.registerTool(
       'getBaseInfo',
-      {}, // No parameters needed
+      {
+        title: 'Get Base Info',
+        description: 'Fetch information about current base',
+        annotations: {
+          readOnlyHint: true,
+          idempotentHint: true,
+        },
+      }, // No parameters needed
       async () => {
         try {
           const baseInfo = await this.baseV3Service.getProject(context, {
@@ -92,9 +106,16 @@ export class McpService {
     );
 
     // List Tables
-    server.tool(
+    server.registerTool(
       'getTablesList',
-      {}, // No parameters needed
+      {
+        title: 'List Tables',
+        annotations: {
+          readOnlyHint: true,
+          idempotentHint: true,
+        },
+        description: 'List tables accessible by user',
+      },
       async () => {
         try {
           const tables = (
@@ -118,10 +139,19 @@ export class McpService {
     );
 
     // Get Table Schema
-    server.tool(
+    server.registerTool(
       'getTableSchema',
       {
-        tableId: z.string().describe('Table Id'),
+        title: 'Get the table schema',
+        description:
+          'Get the table schema including fields and views information',
+        inputSchema: {
+          tableId: z.string().describe('Table Id'),
+        },
+        annotations: {
+          readOnlyHint: true,
+          idempotentHint: true,
+        },
       },
       async ({ tableId }) => {
         try {
@@ -154,36 +184,39 @@ export class McpService {
     );
 
     // Query Records
-    server.tool(
+    server.registerTool(
       'queryRecords',
       {
-        tableId: z.string().describe('Table ID'),
-        limit: z
-          .number()
-          .optional()
-          .describe('Number of records to fetch (default: 50)'),
-        page: z
-          .number()
-          .optional()
-          .describe('Page number for pagination (default: 1)'),
-        where: z
-          .string()
-          .optional()
-          .describe('Filter condition in NocoDB format'),
-        sort: z
-          .string()
-          .optional()
-          .describe('Sort criteria, e.g. "field,-field2"'),
-        fields: z
-          .string()
-          .optional()
-          .describe('Comma-separated list of fields to include'),
+        title: 'Query Records',
+        description: 'Query Records from a Table',
+        inputSchema: {
+          tableId: z.string().describe('Table ID'),
+          pageSize: z
+            .number()
+            .optional()
+            .describe('Number of records to fetch (default: 50)'),
+          page: z
+            .number()
+            .optional()
+            .describe('Page number for pagination (default: 1)'),
+          where: z.string().optional().describe(whereDescription),
+          sort: z.array(
+            z.object({
+              field: z.string().describe('Field Name'),
+              description: z.enum(['asc', 'desc']).describe('Sort Direction'),
+            }),
+          ),
+          fields: z.array(z.string()).optional().describe('Fields to fetch'),
+        },
+        annotations: {
+          readOnlyHint: true,
+        },
       },
-      async ({ tableId, limit = 50, page = 1, where, sort, fields }) => {
+      async ({ tableId, pageSize = 50, page = 1, where, sort, fields }) => {
         try {
-          limit = Math.max(1, Math.min(limit || 25, 200));
+          pageSize = Math.max(1, Math.min(pageSize || 25, 200));
           // Prepare parameters
-          const params: any = { limit, page };
+          const params: any = { pageSize, page };
           if (where) params.where = where;
           if (sort) params.sort = sort;
           if (fields) params.fields = fields;
@@ -208,15 +241,22 @@ export class McpService {
     );
 
     // Get Record by ID tool
-    server.tool(
+    server.registerTool(
       'getRecord',
       {
-        tableId: z.string().describe('Table ID'),
-        recordId: z.string().describe('Record ID or primary key value'),
-        fields: z
-          .string()
-          .optional()
-          .describe('Comma-separated list of fields to include'),
+        title: 'Get Record',
+        description: 'Fetch a record by ID',
+        inputSchema: {
+          tableId: z.string().describe('Table ID'),
+          recordId: z.string().describe('Record ID or primary key value'),
+          fields: z
+            .string()
+            .optional()
+            .describe('Comma-separated list of fields to include'),
+        },
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async ({ tableId, recordId, fields }) => {
         try {
@@ -243,14 +283,18 @@ export class McpService {
       },
     );
 
-    server.tool(
+    server.registerTool(
       'countRecords',
       {
-        tableId: z.string().describe('Table ID'),
-        where: z
-          .string()
-          .optional()
-          .describe('Filter condition in NocoDB format'),
+        title: 'Count Records',
+        description: 'Count Records in a Table',
+        inputSchema: {
+          tableId: z.string().describe('Table ID'),
+          where: z.string().optional().describe(whereDescription),
+        },
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async ({ tableId, where }) => {
         try {
@@ -276,58 +320,65 @@ export class McpService {
       },
     );
 
-    server.tool(
+    server.registerTool(
       'readAttachment',
       {
-        files: z
-          .array(
-            z
-              .object({
-                title: z.string().nullable().describe('Attachment title'),
-                mimeType: z
-                  .string()
-                  .nullable()
-                  .describe('Attachment mime type'),
-                size: z.number().nullable().describe('Attachment size'),
-              })
-              .and(
-                z.union([
-                  z.object({
-                    url: z
-                      .string()
-                      .nullable()
-                      .describe(
-                        'Attachment URL. Required if `path` is not provided.',
-                      ),
-                    signedUrl: z
-                      .string()
-                      .nullable()
-                      .describe(
-                        'Attachment signed URL. Required if `path` is not provided.',
-                      ),
-                    path: z.null(),
-                    signedPath: z.null(),
-                  }),
-                  z.object({
-                    path: z
-                      .string()
-                      .nullable()
-                      .describe(
-                        'Attachment path. Required if `url` is not provided.',
-                      ),
-                    signedPath: z
-                      .string()
-                      .nullable()
-                      .describe(
-                        'Attachment signed Path. Required if `url` is not provided.',
-                      ),
-                    url: z.null(),
-                    signedUrl: z.null(),
-                  }),
-                ]),
-              ),
-          )
-          .describe('Array of attachment objects from NocoDB'),
+        title: 'Read Attachments',
+        description: 'Read attachments in a record',
+        inputSchema: {
+          files: z
+            .array(
+              z
+                .object({
+                  title: z.string().nullable().describe('Attachment title'),
+                  mimeType: z
+                    .string()
+                    .nullable()
+                    .describe('Attachment mime type'),
+                  size: z.number().nullable().describe('Attachment size'),
+                })
+                .and(
+                  z.union([
+                    z.object({
+                      url: z
+                        .string()
+                        .nullable()
+                        .describe(
+                          'Attachment URL. Required if `path` is not provided.',
+                        ),
+                      signedUrl: z
+                        .string()
+                        .nullable()
+                        .describe(
+                          'Attachment signed URL. Required if `path` is not provided.',
+                        ),
+                      path: z.null(),
+                      signedPath: z.null(),
+                    }),
+                    z.object({
+                      path: z
+                        .string()
+                        .nullable()
+                        .describe(
+                          'Attachment path. Required if `url` is not provided.',
+                        ),
+                      signedPath: z
+                        .string()
+                        .nullable()
+                        .describe(
+                          'Attachment signed Path. Required if `url` is not provided.',
+                        ),
+                      url: z.null(),
+                      signedUrl: z.null(),
+                    }),
+                  ]),
+                ),
+            )
+            .describe('Array of attachment objects from NocoDB'),
+        },
+        annotations: {
+          readOnlyHint: true,
+        },
       },
       async ({ files }) => {
         try {
@@ -446,22 +497,119 @@ export class McpService {
       },
     );
 
+    if (!isEE) {
+      server.registerTool(
+        'aggregate_single',
+        {
+          title: 'Aggregate',
+          description:
+            'Perform aggregations on a table with a filter condition',
+          annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+          },
+          inputSchema: {
+            tableId: z.string().describe('Table ID'),
+            aggregations: z
+              .array(
+                z.object({
+                  field: z.string().describe('Field/column ID to aggregate'),
+                  type: z
+                    .enum([
+                      // Numerical aggregations
+                      'sum',
+                      'min',
+                      'max',
+                      'avg',
+                      'median',
+                      'std_dev',
+                      'range',
+                      // Common aggregations
+                      'count',
+                      'count_empty',
+                      'count_filled',
+                      'count_unique',
+                      'percent_empty',
+                      'percent_filled',
+                      'percent_unique',
+                      // Boolean aggregations
+                      'checked',
+                      'unchecked',
+                      'percent_checked',
+                      'percent_unchecked',
+                      // Date aggregations
+                      'earliest_date',
+                      'latest_date',
+                      'date_range',
+                      'month_range',
+                      // None
+                      'none',
+                    ])
+                    .describe(aggregationDescription),
+                }),
+              )
+              .describe('Array of aggregations to perform'),
+            where: z.string().optional().describe(whereDescription),
+            viewId: z
+              .string()
+              .optional()
+              .describe('Optional view ID to use view-specific configurations'),
+          },
+        },
+        async ({ aggregations, tableId, where, viewId }) => {
+          try {
+            const result = await this.dataTableService.dataAggregate(context, {
+              modelId: tableId,
+              viewId: viewId,
+              query: {
+                where: where,
+                aggregation: JSON.stringify(aggregations),
+              },
+            });
+
+            return {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(result, null, 2),
+                },
+              ],
+              isError: false,
+            };
+          } catch (error) {
+            return {
+              content: [{ type: 'text', text: `Error: ${error.message}` }],
+              isError: true,
+            };
+          }
+        },
+      );
+    }
+
     if (isEditorPlus) {
       // Create Records tool
-      server.tool(
+      server.registerTool(
         'createRecords',
         {
-          tableId: z.string().describe('Table ID'),
-          records: z
-            .array(
-              z.record(
-                z.string().describe('Field name/title'),
-                z.any().describe('Field value'),
-              ),
-            )
-            .describe(
-              'Array of records as key-value pairs of field titles and values',
-            ),
+          title: 'Create Records',
+          description: 'Create records in a table',
+          annotations: {
+            readOnlyHint: true,
+            idempotentHint: true,
+          },
+          inputSchema: {
+            tableId: z.string().describe('Table ID'),
+            records: z
+              .array(
+                z.object({
+                  fields: z.record(
+                    z.string().describe('Field name/title'),
+                    z.any().describe('Field value'),
+                  ),
+                }),
+              )
+              .describe('Array of records with fields as key-value pairs'),
+          },
         },
         async ({ tableId, records }) => {
           try {
@@ -470,7 +618,7 @@ export class McpService {
             const result = await this.datasV3Service.dataInsert(context, {
               modelId: tableId,
               baseId: context.base_id,
-              body: recordsArray,
+              body: recordsArray as DataInsertRequest[],
               cookie: req,
             });
 
@@ -489,20 +637,28 @@ export class McpService {
       );
 
       // Update Records tool
-      server.tool(
+      server.registerTool(
         'updateRecords',
         {
-          tableId: z.string().describe('Table ID'),
-          records: z
-            .array(
-              z.record(
-                z.string().describe('Field name/title'),
-                z.any().describe('Field value'),
-              ),
-            )
-            .describe(
-              'Array of records as key-value pairs of field titles and values',
-            ),
+          title: 'Update Records',
+          description: 'Update records in a table',
+          inputSchema: {
+            tableId: z.string().describe('Table ID'),
+            records: z
+              .array(
+                z.object({
+                  id: z.union([z.string(), z.number()]).describe('Record ID'),
+                  fields: z.record(
+                    z.string().describe('Field name/title'),
+                    z.any().describe('Field value'),
+                  ),
+                }),
+              )
+              .describe('Array of records with ID and fields to update'),
+          },
+          annotations: {
+            destructiveHint: true,
+          },
         },
         async ({ tableId, records }) => {
           try {
@@ -511,7 +667,7 @@ export class McpService {
             const result = await this.datasV3Service.dataUpdate(context, {
               modelId: tableId,
               baseId: context.base_id,
-              body: recordsArray,
+              body: recordsArray as DataUpdateRequest[],
               cookie: req,
             });
 
@@ -530,20 +686,24 @@ export class McpService {
       );
 
       // Delete Records tool
-      server.tool(
+      server.registerTool(
         'deleteRecords',
         {
-          tableId: z.string().describe('Table ID'),
-          records: z
-            .array(
-              z.record(
-                z.string().describe('Field name/title'),
-                z.any().describe('Field value'),
-              ),
-            )
-            .describe(
-              'Array of records as key-value pairs of primary key titles and values',
-            ),
+          title: 'Delete Records',
+          description: 'Delete records in a table',
+          annotations: {
+            destructiveHint: true,
+          },
+          inputSchema: {
+            tableId: z.string().describe('Table ID'),
+            records: z
+              .array(
+                z.object({
+                  id: z.union([z.string(), z.number()]).describe('Record ID'),
+                }),
+              )
+              .describe('Array of records with IDs to delete'),
+          },
         },
         async ({ tableId, records }) => {
           try {
@@ -551,7 +711,7 @@ export class McpService {
             const result = await this.datasV3Service.dataDelete(context, {
               modelId: tableId,
               baseId: context.base_id,
-              body: recordsArray,
+              body: recordsArray as DataDeleteRequest[],
               cookie: req,
             });
 
@@ -569,7 +729,9 @@ export class McpService {
         },
       );
 
-      server.tool(
+      /*
+      TODO: Enable once audit is ready
+      server.registerTool(
         'readAuditLogs',
         {
           tableId: z.string().describe('Table ID (fk_model_id)'),
@@ -588,7 +750,7 @@ export class McpService {
         async ({ tableId, rowId, limit = 25, offset = 0 }) => {
           limit = Math.max(1, Math.min(limit || 25, 1000));
           try {
-            const audits = await this.auditService.auditOnlyList({
+            const audits = await this.auditService.recordAuditList({
               query: {
                 row_id: rowId,
                 fk_model_id: tableId,
@@ -614,7 +776,7 @@ export class McpService {
             };
           }
         },
-      );
+      );*/
     }
   }
 }

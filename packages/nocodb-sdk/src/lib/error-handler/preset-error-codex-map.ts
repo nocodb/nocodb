@@ -198,6 +198,11 @@ export const presetErrorCodexMap: Partial<
     message: (_workspaceId: string) => 'SSO login required for workspace',
     code: 403,
   },
+  [NcErrorType.SSO_GENERATED_TOKEN_REQUIRED]: {
+    message: (_workspaceId: string) =>
+      'This workspace requires SSO-authenticated tokens. Please generate a new token after signing in with SSO',
+    code: 403,
+  },
   [NcErrorType.MAX_INSERT_LIMIT_EXCEEDED]: {
     message: (limit: string) => `Maximum ${limit} records during insert`,
     code: 422,
@@ -210,6 +215,10 @@ export const presetErrorCodexMap: Partial<
   [NcErrorType.INVALID_VALUE_FOR_FIELD]: {
     message: (message: string) => message,
     code: 422,
+  },
+  [NcErrorType.INVALID_REQUEST_BODY]: {
+    message: (message: string) => message,
+    code: 400,
   },
   [NcErrorType.BASE_USER_ERROR]: {
     message: (message: string) => message || 'Something went wrong',

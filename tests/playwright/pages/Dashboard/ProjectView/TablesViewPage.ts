@@ -21,9 +21,9 @@ export class TablesViewPage extends BasePage {
   }
 
   async verifyAccess(role: string) {
-    await this.get().waitFor({ state: 'visible' });
-
     if (role.toLowerCase() === 'creator' || role.toLowerCase() === 'owner') {
+      await this.get().waitFor({ state: 'visible' });
+
       await expect(this.btn_addNewTable).toBeVisible();
       await expect(this.btn_importData).toBeVisible();
     } else {

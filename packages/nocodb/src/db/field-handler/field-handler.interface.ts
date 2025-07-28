@@ -158,6 +158,7 @@ export interface IFieldHandler {
   parseUserInput(params: {
     value: any;
     row: any;
+    oldData?: any;
     column: Column;
     options?: {
       context?: NcContext;

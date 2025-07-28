@@ -3,8 +3,6 @@
 .DS_Store
 ehthumbs.db
 Thumbs.db
-Icon
-
 
 
 # Node and related ecosystem
@@ -73,7 +71,6 @@ local.properties
 # Cloud9 IDE
 # =========
 .c9/
-data/
 mongod
 
 # Visual Studio

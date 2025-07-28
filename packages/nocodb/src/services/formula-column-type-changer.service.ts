@@ -212,9 +212,8 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
           }),
         );
       }
-      await Promise.all(
-        auditPayloads.map((auditPayload) => Audit.insert(auditPayload)),
-      );
+
+      await Audit.insert(auditPayloads);
     }
   }
 }

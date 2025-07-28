@@ -2,14 +2,25 @@
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import type { SourceType } from 'nocodb-sdk'
 
+const router = useRouter()
+const route = router.currentRoute
+
 const baseStore = useBase()
-const { base, sources } = storeToRefs(baseStore)
+const { base, sources, isSharedBase } = storeToRefs(baseStore)
+
+const tablesStore = useTablesStore()
+const { openTable } = tablesStore
+const { activeTables } = storeToRefs(tablesStore)
+
+const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { isMobileMode } = useGlobal()
 
 const { files, reset } = useFileDialog()
 
 const { $e } = useNuxtApp()
+
+const { isUIAllowed } = useRoles()
 
 type QuickImportTypes = 'excel' | 'json' | 'csv'
 
@@ -112,8 +123,56 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
     reset()
   }
 }
+
+const hideProjectViewPage = computed(() => {
+  return isSharedBase.value || isMobileMode.value
+})
+
+const showEmptySkeleton = ref(true)
+
+const showProjectViewPage = computed(() => {
+  return (
+    activeTables.value.length === 0 || !!route.value.query.page || isUIAllowed('projectOverviewTab') || !isNewSidebarEnabled.value
+  )
+})
+
+const hideEmptySkeleton = () => {
+  if (!showEmptySkeleton.value) return
+
+  nextTick(() => {
+    showEmptySkeleton.value = false
+  })
+}
+
+watch(
+  [
+    () => isSharedBase.value,
+    () => activeTables.value.length,
+    () => isUIAllowed('projectOverviewTab'),
+    () => route.value.query.page,
+  ],
+  ([newIsSharedBase, newActiveTablesLength, isOverviewTabVisible, newPage]) => {
+    // If no tables are active or if new sidebar is not enabled then return
+    if (!newActiveTablesLength || !activeTables.value[0]?.base_id || !isNewSidebarEnabled.value) {
+      hideEmptySkeleton()
+      return
+    }
+
+    // If page is defined or overview tab is visible then return
+    if (!newIsSharedBase && (newPage || isOverviewTabVisible)) {
+      hideEmptySkeleton()
+      return
+    }
+
+    openTable(activeTables.value[0]!, true)
+  },
+  {
+    immediate: true,
+    flush: 'pre',
+  },
+)
 </script>
 
 <template>
-  <ProjectView v-if="!isMobileMode" />
+  <ProjectView v-if="!hideProjectViewPage" :show-empty-skeleton="!showProjectViewPage || showEmptySkeleton" />
 </template>

@@ -94,7 +94,12 @@ import request from 'supertest';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/base';
 import { createTable, getTable } from '../../factory/table';
-import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
+import {
+  createBulkRows,
+  createBulkRowsV3,
+  listRow,
+  rowMixedValue,
+} from '../../factory/row';
 import {
   createLookupColumn,
   createLtarColumn,
@@ -1409,18 +1414,18 @@ export default function (API_VERSION: 'v2' | 'v3') {
       }[] = [];
       for (let i = 0; i < 400; i++) {
         const row = {
-          Number: rowMixedValue(columns[6], i),
-          Decimal: rowMixedValue(columns[7], i),
-          Currency: rowMixedValue(columns[8], i),
-          Percent: rowMixedValue(columns[9], i),
-          Duration: rowMixedValue(columns[10], i),
-          Rating: rowMixedValue(columns[11], i),
+          Number: rowMixedValue(columns[6], i, true),
+          Decimal: rowMixedValue(columns[7], i, true),
+          Currency: rowMixedValue(columns[8], i, true),
+          Percent: rowMixedValue(columns[9], i, true),
+          Duration: rowMixedValue(columns[10], i, true),
+          Rating: rowMixedValue(columns[11], i, true),
         };
         rowAttributes.push(row);
       }
 
       // insert records
-      await createBulkRows(context, {
+      await createBulkRowsV3(context, {
         base,
         table,
         values: rowAttributes,

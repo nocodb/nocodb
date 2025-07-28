@@ -4,14 +4,14 @@ import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import relativeTime from 'dayjs/plugin/relativeTime.js';
-import { ColumnType, FilterType } from '~/lib/Api';
+import { ColumnType, FilterType, LinkToAnotherRecordType } from '~/lib/Api';
 import { isDateMonthFormat } from '~/lib/dateTimeHelper';
 import { buildFilterTree } from '~/lib/filterHelpers';
 import { parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
-import { CURRENT_USER_TOKEN } from '../globals';
-import { ColumnHelper } from '../columnHelper';
+import { CURRENT_USER_TOKEN } from '~/lib';
+import { ColumnHelper } from '~/lib';
 
 extend(relativeTime);
 extend(customParseFormat);
@@ -260,12 +260,103 @@ export function validateRowFilters(params: {
             default:
               res = false; // Unsupported operation for User fields
           }
-        } else if([UITypes.JSON, UITypes.Time].includes(column.uidt as UITypes) && ['eq'].includes(filter.comparison_op)) {
-          res = ColumnHelper.getColumn(column.uidt as UITypes).equalityComparison(
-            val, filter.value, {
-              col: column,
+        } else if (column.uidt === UITypes.LinkToAnotherRecord) {
+          let linkData = data[field];
+
+          linkData = Array.isArray(linkData) ? linkData : [linkData];
+
+          const colOptions = column.colOptions as LinkToAnotherRecordType;
+
+          const relatedModelId = colOptions?.fk_related_model_id;
+
+          const relatedMeta = metas[relatedModelId];
+
+          if (!relatedMeta?.columns) {
+            res = false;
+          } else {
+            // Find the child column in the related table
+            const childColumn = relatedMeta.columns.find((col) => col.pv);
+            if (!childColumn) {
+              res = false;
+            } else {
+              const childFieldName = childColumn.title;
+              const childValues = linkData
+                .map((item) => {
+                  return item[childFieldName]?.toString() || '';
+                })
+                .filter((val) => val !== '');
+
+              switch (filter.comparison_op) {
+                case 'eq':
+                  res = childValues.includes(filter.value);
+                  break;
+                case 'neq':
+                  res = !childValues.includes(filter.value);
+                  break;
+                case 'like':
+                  res = childValues.some((val) =>
+                    val
+                      .toLowerCase()
+                      .includes(filter.value?.toLowerCase() || '')
+                  );
+                  break;
+                case 'nlike':
+                  res = !childValues.some((val) =>
+                    val
+                      .toLowerCase()
+                      .includes(filter.value?.toLowerCase() || '')
+                  );
+                  break;
+                case 'anyof': {
+                  const filterValues =
+                    filter.value?.split(',').map((v) => v.trim()) || [];
+                  res = childValues.some((val) => filterValues.includes(val));
+                  break;
+                }
+                case 'nanyof': {
+                  const filterValues2 =
+                    filter.value?.split(',').map((v) => v.trim()) || [];
+                  res = !childValues.some((val) => filterValues2.includes(val));
+                  break;
+                }
+                case 'allof': {
+                  const filterValues3 =
+                    filter.value?.split(',').map((v) => v.trim()) || [];
+                  res = filterValues3.every((filterVal) =>
+                    childValues.includes(filterVal)
+                  );
+                  break;
+                }
+                case 'nallof': {
+                  const filterValues4 =
+                    filter.value?.split(',').map((v) => v.trim()) || [];
+                  res = !filterValues4.every((filterVal) =>
+                    childValues.includes(filterVal)
+                  );
+                  break;
+                }
+                case 'empty':
+                case 'blank':
+                  res = linkData.length === 0;
+                  break;
+                case 'notempty':
+                case 'notblank':
+                  res = linkData.length > 0;
+                  break;
+                default:
+                  res = false;
+              }
             }
-          );
+          }
+        } else if (
+          [UITypes.JSON, UITypes.Time].includes(column.uidt as UITypes) &&
+          ['eq'].includes(filter.comparison_op)
+        ) {
+          res = ColumnHelper.getColumn(
+            column.uidt as UITypes
+          ).equalityComparison(val, filter.value, {
+            col: column,
+          });
         } else {
           switch (filter.comparison_op as any) {
             case 'eq':

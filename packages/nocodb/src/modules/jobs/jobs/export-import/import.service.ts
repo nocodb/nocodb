@@ -11,17 +11,13 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import papaparse from 'papaparse';
+import { MetaTable } from 'src/cli';
 import { elapsedTime, initTime } from '../../helpers';
 import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { Readable } from 'stream';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type {
-  CalendarView,
-  LinksColumn,
-  LinkToAnotherRecordColumn,
-  User,
-  View,
-} from '~/models';
+import type { CalendarView, LinksColumn, User } from '~/models';
+import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import { sanitizeColumnName } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import {
@@ -34,7 +30,16 @@ import {
   withoutNull,
 } from '~/helpers/exportImportHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { Base, Column, Comment, Hook, Model, Source } from '~/models';
+import {
+  Base,
+  Column,
+  Comment,
+  Hook,
+  LinkToAnotherRecordColumn,
+  Model,
+  Source,
+  View,
+} from '~/models';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -51,6 +56,7 @@ import { TablesService } from '~/services/tables.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import Noco from '~/Noco';
 
 @Injectable()
 export class ImportService {
@@ -90,6 +96,32 @@ export class ImportService {
     throw new NotImplementedException();
   }
 
+  async importScripts(
+    _context: NcContext,
+    _param: {
+      user: User;
+      baseId: string;
+      data: Array<any>;
+      req: NcRequest;
+    },
+  ) {
+    // Not Implemented
+  }
+
+  async importDashboards(
+    _context: NcContext,
+    _param: {
+      user: User;
+      baseId: string;
+      data: Array<any>;
+      req: NcRequest;
+      idMap: Map<string, string>;
+    },
+  ) {
+    return _param.idMap;
+    //  create dashboards
+  }
+
   async importModels(
     context: NcContext,
     param: {
@@ -103,9 +135,22 @@ export class ImportService {
               views: any[];
               hooks?: any[];
               comments?: any[];
+              rowColorConditions?: {
+                filters?: any[];
+                rowColorConditions?: any[];
+              };
             }[];
           }
-        | { model: any; views: any[]; hooks?: any[]; comments?: any[] }[];
+        | {
+            model: any;
+            views: any[];
+            hooks?: any[];
+            comments?: any[];
+            rowColorConditions?: {
+              filters?: any[];
+              rowColorConditions?: any[];
+            };
+          }[];
       req: NcRequest;
       externalModels?: Model[];
       existingModel?: Model;
@@ -113,6 +158,8 @@ export class ImportService {
     },
   ) {
     const hrTime = initTime();
+
+    const ncMeta = Noco.ncMeta;
 
     // structured id to db id
     const idMap = new Map<string, string>();
@@ -301,13 +348,19 @@ export class ImportService {
           ...rest,
         });
 
-        const hk = await this.hooksService.hookCreate(context, {
-          tableId: table.id,
-          hook: {
-            ...hookData,
-          } as any,
-          req: param.req,
-        });
+        const hk = await this.hooksService.hookCreate(
+          context,
+          {
+            tableId: table.id,
+            hook: {
+              ...hookData,
+            } as any,
+            req: param.req,
+          },
+          {
+            isTableDuplicate: true,
+          },
+        );
 
         if (!hk) continue;
 
@@ -352,7 +405,7 @@ export class ImportService {
       const linkedColumnSet = modelData.columns.filter(
         (a) =>
           isLinksOrLTAR(a) &&
-          !(a.colOptions as LinkToAnotherRecordColumn).isCrossBaseLink() &&
+          !new LinkToAnotherRecordColumn(a.colOptions).isCrossBaseLink() &&
           !a.system &&
           (param.importColumnIds
             ? param.importColumnIds.includes(getEntityIdentifier(a.id))
@@ -364,7 +417,7 @@ export class ImportService {
         if (col.colOptions) {
           if (
             isLinksOrLTAR(col) &&
-            (col.colOptions as LinkToAnotherRecordColumn).isCrossBaseLink()
+            new LinkToAnotherRecordColumn(col.colOptions).isCrossBaseLink()
           ) {
             continue;
           }
@@ -1443,6 +1496,12 @@ export class ImportService {
       for (const view of viewsData) {
         const viewData = withoutId({
           ...view,
+          meta: RowColorViewHelpers.withContext(context).mapMetaColumn({
+            meta: view.meta,
+            idMap: {
+              get: getIdOrExternalId,
+            } as any,
+          }),
         });
 
         const vw = await this.createView(
@@ -1574,6 +1633,37 @@ export class ImportService {
       }
     }
 
+    // create row color info
+    for (const data of param.data) {
+      if (param.existingModel) break;
+      if (data.rowColorConditions?.rowColorConditions?.length > 0) {
+        await ncMeta.bulkMetaInsert(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.ROW_COLOR_CONDITIONS,
+          data.rowColorConditions.rowColorConditions.map((rc) => {
+            return {
+              ...rc,
+              fk_view_id: getIdOrExternalId(rc.fk_view_id),
+            };
+          }),
+        );
+      }
+      if (data.rowColorConditions?.filters?.length > 0) {
+        await ncMeta.bulkMetaInsert(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          data.rowColorConditions.filters.map((flt) => {
+            return {
+              ...flt,
+              fk_column_id: getIdOrExternalId(flt.fk_column_id),
+            };
+          }),
+        );
+      }
+    }
+
     elapsedTime(hrTime, 'create views', 'importModels');
 
     // create hook filters for hooks
@@ -1627,6 +1717,10 @@ export class ImportService {
     if (vw.is_default) {
       const view = views.find((a) => a.is_default);
       if (view) {
+        // update meta and coloring mode to default view
+        if (vw.row_coloring_mode || Object.keys(vw.meta ?? {}).length > 0) {
+          await View.update(context, view.id, vw);
+        }
         const gridData = withoutNull(vw.view);
         if (gridData) {
           await this.gridsService.gridViewUpdate(context, {
@@ -1752,7 +1846,7 @@ export class ImportService {
                       // check if the option is still exists on field option
                       // currently any modification on field option
                       // is not reflected yet to kanban view
-                      const metaValueOption = grpCol.colOptions.options.find(
+                      const metaValueOption = grpCol.colOptions?.options?.find(
                         (el) => el.title === vl.title,
                       );
                       if (!metaValueOption) {

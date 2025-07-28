@@ -6,6 +6,7 @@ import AbstractColumnHelper, {
 import { toSafeInteger } from '~/lib/helperFunctions';
 import { ColumnType } from '~/lib/Api';
 import { populateFillHandleStringNumber } from '../utils/fill-handler';
+import { ncIsNaN } from '~/lib/is';
 
 export class NumberHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -19,7 +20,7 @@ export class NumberHelper extends AbstractColumnHelper {
     value = serializeIntValue(value);
 
     if (value === null) {
-      if (params.isMultipleCellPaste) {
+      if (params.isMultipleCellPaste || params.serializeSearchQuery) {
         return null;
       } else {
         throw new SilentTypeConversionError();
@@ -44,6 +45,10 @@ export class NumberHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string {
+    if (params.isAggregation && ncIsNaN(value)) {
+      value = 0;
+    }
+
     return `${parseIntValue(value, params.col) ?? ''}`;
   }
 

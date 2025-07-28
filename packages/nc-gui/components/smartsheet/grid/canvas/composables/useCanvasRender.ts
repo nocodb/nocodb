@@ -1,5 +1,5 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { AllAggregations, type ColumnType, type TableType, UITypes, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
+import { AllAggregations, type ColumnType, PlanTitles, type TableType, UITypes, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
 import type { Composer } from 'vue-i18n'
 import tinycolor from 'tinycolor2'
 import {
@@ -26,7 +26,6 @@ import {
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
-  ROW_META_COLUMN_WIDTH,
 } from '../utils/constants'
 import { parseCellWidth } from '../utils/cell'
 import {
@@ -67,6 +66,7 @@ export function useCanvasRender({
   isRowDraggingEnabled,
   isAddingColumnAllowed,
   isAddingEmptyRowAllowed,
+  isAddingEmptyRowPermitted,
   selectedRows,
   isDragging,
   draggedRowIndex,
@@ -94,6 +94,8 @@ export function useCanvasRender({
   draggedRowGroupPath,
   removeInlineAddRecord,
   upgradeModalInlineState,
+  rowMetaColumnWidth,
+  rowColouringBorderWidth,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -120,6 +122,7 @@ export function useCanvasRender({
   isRowDraggingEnabled: ComputedRef<boolean>
   isAddingColumnAllowed: ComputedRef<boolean>
   isAddingEmptyRowAllowed: ComputedRef<boolean>
+  isAddingEmptyRowPermitted: ComputedRef<boolean>
   isFillMode: Ref<boolean>
   getFillHandlerPosition: () => FillHandlerPosition | null
   imageLoader: ImageWindowLoader
@@ -170,6 +173,8 @@ export function useCanvasRender({
     isHoveredLearnMore: boolean
     isHoveredUpgrade: boolean
   }>
+  rowMetaColumnWidth: ComputedRef<number>
+  rowColouringBorderWidth: ComputedRef<number>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -178,6 +183,8 @@ export function useCanvasRender({
   const { isWsOwner } = useEeConfig()
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const isLocked = inject(IsLockedInj, ref(false))
+
+  const { isRowColouringEnabled } = useViewRowColorRender()
 
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
 
@@ -275,7 +282,7 @@ export function useCanvasRender({
       }
 
       if (colObj?.id) {
-        const columnState = isColumnSortedOrFiltered(colObj.id)
+        const columnState = isColumnSortedOrFiltered(colObj.id, true)
 
         if (columnState) {
           renderTag(ctx, {
@@ -518,7 +525,7 @@ export function useCanvasRender({
         ctx.fillRect(xOffset, 0, width, 32)
 
         if (column.columnObj?.id) {
-          const columnState = isColumnSortedOrFiltered(column.columnObj.id)
+          const columnState = isColumnSortedOrFiltered(column.columnObj.id, true)
 
           if (columnState) {
             renderTag(ctx, {
@@ -704,16 +711,49 @@ export function useCanvasRender({
 
   const renderActiveState = (
     ctx: CanvasRenderingContext2D,
-    activeState: { x: number; y: number; width: number; height: number; col: CanvasGridColumn } | null,
+    activeState: {
+      x: number
+      y: number
+      width: number
+      height: number
+      col: CanvasGridColumn
+    } | null,
   ) => {
     if (!activeState) return
 
     const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 0)
     const isInFixedArea = activeState.x <= fixedWidth
 
+    let borderColor = '#3366ff'
+
+    if (!activeState.col.isCellEditable) {
+      borderColor = '#9AA2AF'
+
+      const boxRect = {
+        x: activeState.x,
+        y: activeState.y,
+        height: activeState.height,
+        width: activeState.width,
+      }
+
+      const isHovered = isBoxHovered(boxRect, mousePosition)
+
+      if (isHovered && activeState.col.id !== editEnabled.value?.column?.id) {
+        tryShowTooltip({
+          mousePosition,
+          text: t('objects.permissions.editFieldTooltipTitle'),
+          description: t('objects.permissions.editFieldTooltip'),
+          rect: {
+            ...boxRect,
+          },
+          placement: 'bottom',
+        })
+      }
+    }
+
     if (activeState.col.fixed || !isInFixedArea) {
       roundedRect(ctx, activeState.x, activeState.y, activeState.width, activeState.height, 2, {
-        borderColor: '#3366ff',
+        borderColor,
         borderWidth: 2,
       })
       ctx.lineWidth = 1
@@ -733,7 +773,7 @@ export function useCanvasRender({
       }
       // add extra 1px offset to x, since there is an additional border separating fixed and non-fixed columns
       roundedRect(ctx, adjustedState.x + 1, adjustedState.y, adjustedState.width, adjustedState.height, 2, {
-        borderColor: '#3366ff',
+        borderColor,
         borderWidth: 2,
       })
       ctx.lineWidth = 1
@@ -836,6 +876,7 @@ export function useCanvasRender({
       yOffset: number
       width: number
     },
+    rowColor?: string,
   ) => {
     const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
     const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
@@ -843,11 +884,19 @@ export function useCanvasRender({
       activeCell.value.row === row.rowMeta.rowIndex && comparePath(activeCell.value.path, row?.rowMeta?.path)
     const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
 
-    ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : '#ffffff'
-    if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
+    if (rowColor) {
+      ctx.fillStyle = rowColor
+    } else {
+      ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : '#ffffff'
+
+      if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
+    }
+
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
 
     let currentX = xOffset + 4
+
+    const rowColouringBoxTotalWidth = rowColouringBorderWidth.value ? rowColouringBorderWidth.value + 4 : 0
 
     /**
      * 1. Render row index
@@ -869,7 +918,7 @@ export function useCanvasRender({
         x: currentX + 8,
         y: yOffset,
         text: (row.rowMeta.rowIndex! + 1).toString(),
-        maxWidth: ROW_META_COLUMN_WIDTH - 28,
+        maxWidth: rowMetaColumnWidth.value - 28 - rowColouringBoxTotalWidth,
         fontFamily: `500 ${rowIndexFontSize} Inter`,
         isTagLabel: true,
         fillStyle: '#6B7280',
@@ -948,7 +997,7 @@ export function useCanvasRender({
           y,
           render,
           text: commentCount,
-          maxWidth: ROW_META_COLUMN_WIDTH / 2,
+          maxWidth: rowMetaColumnWidth.value / 2 - rowColouringBoxTotalWidth,
           fontFamily: `${reduceFontSize ? '600 10px' : '500 13px'} Inter`,
           textAlign: 'center',
           isTagLabel: true,
@@ -961,7 +1010,7 @@ export function useCanvasRender({
 
       const bubbleWidth = Math.max(20, commentCountWidth + (reduceFontSize ? 6 : 8))
 
-      const x = xOffset + width - 4 - bubbleWidth
+      const x = xOffset + width - 4 - bubbleWidth - rowColouringBoxTotalWidth
 
       const isExpandHovered = isBoxHovered(
         {
@@ -1006,7 +1055,12 @@ export function useCanvasRender({
         })
       }
     } else if (isHover || isRowCellSelected) {
-      const box = { x: xOffset + width - 4 - 20, y: yOffset + (rowHeight.value - 20) / 2, height: 20, width: 20 }
+      const box = {
+        x: xOffset + width - 4 - 20 - rowColouringBoxTotalWidth,
+        y: yOffset + (rowHeight.value - 20) / 2,
+        height: 20,
+        width: 20,
+      }
 
       const isExpandHovered = isBoxHovered(box, mousePosition)
       renderIconButton(ctx, {
@@ -1025,6 +1079,23 @@ export function useCanvasRender({
         borderColor: !isExpandHovered ? 'transparent' : undefined,
         background: !isExpandHovered ? 'transparent' : undefined,
         setCursor,
+      })
+    }
+
+    if (isRowColouringEnabled) {
+      const rowColorBorderHeight = rowHeight.value - 8
+
+      const leftBorderColor = row.rowMeta.rowLeftBorderColor ?? null
+
+      renderTag(ctx, {
+        x: xOffset + width - 8,
+        radius: 8,
+        y: yOffset + (rowHeight.value - rowColorBorderHeight) / 2,
+        height: rowColorBorderHeight,
+        width: 4,
+        fillStyle: leftBorderColor ?? 'transparent',
+        borderColor: leftBorderColor ?? 'transparent',
+        borderWidth: 0,
       })
     }
   }
@@ -1055,6 +1126,7 @@ export function useCanvasRender({
       x: width.value / 2,
       y: yOffset,
       text: t('upgrade.upgradeToSeeMoreRecordInlineSubtitle', {
+        plan: PlanTitles.BUSINESS,
         limit: 100,
         total: totalRecords,
         remaining: totalRecords - 100,
@@ -1178,7 +1250,13 @@ export function useCanvasRender({
       group?: CanvasGroup
     },
   ) {
-    let activeState: { col: any; x: number; y: number; width: number; height: number } | null = null
+    let activeState: {
+      col: any
+      x: number
+      y: number
+      width: number
+      height: number
+    } | null = null
     const renderRedBorders: {
       rowIndex: number
       column: CanvasGridColumn
@@ -1188,6 +1266,12 @@ export function useCanvasRender({
     const isActiveCellInCurrentGroup = comparePath(activeCell.value?.path, groupPath ?? group?.path)
     const isRowCellSelected =
       activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path ?? group?.path)
+
+    const rowColor = row?.row
+      ? row.rowMeta?.is_set_as_background && (isHovered || row.rowMeta.selected || isRowCellSelected)
+        ? row.rowMeta.rowHoverColor
+        : row.rowMeta.rowBgColor
+      : null
 
     if (row) {
       const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
@@ -1232,7 +1316,7 @@ export function useCanvasRender({
           row.rowMeta.selected ||
           (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup)
         ) {
-          ctx.fillStyle = '#F6F7FE'
+          ctx.fillStyle = rowColor ? '#3366ff0d' : '#F6F7FE'
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         } else if (isRowCellSelected) {
           ctx.fillStyle = 'red'
@@ -1303,6 +1387,7 @@ export function useCanvasRender({
           isRowChecked: row.rowMeta.selected,
           isCellInSelectionRange:
             selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup,
+          isRootCell: true,
         })
         ctx.restore()
         xOffset += width
@@ -1325,7 +1410,7 @@ export function useCanvasRender({
             row.rowMeta.selected ||
             (selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup)
           ) {
-            ctx.fillStyle = '#F6F7FE'
+            ctx.fillStyle = rowColor ? '#3366ff0d' : '#F6F7FE'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
             ctx.fillStyle = isHovered || isRowCellSelected ? '#F9F9FA' : '#ffffff'
@@ -1341,7 +1426,7 @@ export function useCanvasRender({
 
           if (column.id === 'row_number') {
             if (isGroupBy.value) width -= initialXOffset
-            renderRowMeta(ctx, row, { xOffset, yOffset, width })
+            renderRowMeta(ctx, row, { xOffset, yOffset, width }, rowColor)
           } else {
             const value = row.row[column.title]
 
@@ -1386,6 +1471,7 @@ export function useCanvasRender({
               isRowHovered: isHovered,
               isRowChecked: row.rowMeta.selected,
               isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup,
+              isRootCell: true,
             })
             ctx.restore()
           }
@@ -1396,7 +1482,7 @@ export function useCanvasRender({
             isActiveCellInCurrentGroup
 
           ctx.strokeStyle =
-            idx !== 0 && (isHovered || row.rowMeta.selected || isColumnInSelection || isRowCellSelected)
+            idx !== 0 && (isHovered || row.rowMeta.selected || isColumnInSelection || isRowCellSelected || rowColor)
               ? themeV3Colors.gray['200']
               : themeV3Colors.gray['100']
           ctx.lineWidth = 1
@@ -1565,7 +1651,13 @@ export function useCanvasRender({
     const visibleCols = columns.value.slice(startColIndex, endColIndex)
     let yOffset = -partialRowHeight.value + 33
 
-    let activeState: { col: any; x: number; y: number; width: number; height: number } | null = null
+    let activeState: {
+      col: any
+      x: number
+      y: number
+      width: number
+      height: number
+    } | null = null
 
     let initialXOffset = 1
     for (let i = 0; i < startColIndex; i++) {
@@ -1601,6 +1693,7 @@ export function useCanvasRender({
 
         const isRowHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
         const isRowCellSelected = activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path)
+        const rowColor = row?.row ? row.rowMeta.rowBgColor : null
 
         const isNextRowHovered = hoverRow.value?.rowIndex === rowIdx + 1 && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
         const isNextRowCellSelected =
@@ -1638,7 +1731,8 @@ export function useCanvasRender({
           isRowCellSelected ||
           isNextRowHovered ||
           isNextRowCellSelected ||
-          isNextRowSelected
+          isNextRowSelected ||
+          rowColor
             ? themeV3Colors.gray['300']
             : themeV3Colors.gray['200']
         ctx.lineWidth = 1
@@ -1674,7 +1768,7 @@ export function useCanvasRender({
         },
         mousePosition,
       )
-      ctx.fillStyle = isNewRowHovered ? '#F9F9FA' : '#ffffff'
+      ctx.fillStyle = isNewRowHovered && isAddingEmptyRowPermitted.value ? '#F9F9FA' : '#ffffff'
       ctx.fillRect(0, yOffset, adjustedWidth, COLUMN_HEADER_HEIGHT_IN_PX)
       // Bottom border for new row
       ctx.strokeStyle = '#f4f4f5'
@@ -1685,18 +1779,36 @@ export function useCanvasRender({
 
       spriteLoader.renderIcon(ctx, {
         icon: 'ncPlus',
-        color: isNewRowHovered ? '#000000' : '#4a5268',
+        color: isNewRowHovered && isAddingEmptyRowPermitted.value ? '#000000' : '#4a5268',
         x: 16,
         y: yOffset + 9,
         size: 14,
       })
-      elementMap.addElement({
-        y: yOffset,
-        x: 0,
-        height: COLUMN_HEADER_HEIGHT_IN_PX,
-        path: [],
-        type: ElementTypes.ADD_NEW_ROW,
-      })
+
+      if (isNewRowHovered && !isAddingEmptyRowPermitted.value) {
+        tryShowTooltip({
+          mousePosition,
+          text: t('objects.permissions.addNewRecordTooltipTitle'),
+          description: t('objects.permissions.addNewRecordTooltip'),
+          rect: {
+            x: 0,
+            y: yOffset,
+            width: adjustedWidth,
+            height: COLUMN_HEADER_HEIGHT_IN_PX,
+            targetWidth: 258,
+          },
+        })
+      }
+
+      if (isAddingEmptyRowPermitted.value) {
+        elementMap.addElement({
+          y: yOffset,
+          x: 0,
+          height: COLUMN_HEADER_HEIGHT_IN_PX,
+          path: [],
+          type: ElementTypes.ADD_NEW_ROW,
+        })
+      }
     }
 
     if (warningRow) {
@@ -1825,6 +1937,8 @@ export function useCanvasRender({
         return
       }
 
+      const aggregationValue = column.aggregation?.toString()
+
       const isHovered = isBoxHovered(
         {
           x: xOffset - scrollLeft.value,
@@ -1847,7 +1961,7 @@ export function useCanvasRender({
         ctx.textAlign = 'right'
 
         ctx.font = '600 12px Inter'
-        const aggWidth = ctx.measureText(column.aggregation).width
+        const aggWidth = ctx.measureText(aggregationValue ?? '').width
         if (column.agg_prefix) {
           ctx.font = '400 12px Inter'
           ctx.fillStyle = '#6a7184'
@@ -1857,9 +1971,10 @@ export function useCanvasRender({
             height.value - AGGREGATION_HEIGHT / 2,
           )
         }
+
         ctx.font = '600 12px Inter'
         ctx.fillStyle = '#4a5268'
-        ctx.fillText(column.aggregation ?? ' - ', xOffset + width - 8 - scrollLeft.value, height.value - AGGREGATION_HEIGHT / 2)
+        ctx.fillText(aggregationValue ?? ' - ', xOffset + width - 8 - scrollLeft.value, height.value - AGGREGATION_HEIGHT / 2)
 
         if (isLocked.value && isHovered) {
           tryShowTooltip({
@@ -1957,10 +2072,12 @@ export function useCanvasRender({
           ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
           ctx.clip()
 
+          const aggregationValue = firstFixedCol.aggregation?.toString()
+
           ctx.textAlign = 'right'
 
           ctx.font = '600 12px Inter'
-          const aggWidth = ctx.measureText(firstFixedCol.aggregation).width
+          const aggWidth = ctx.measureText(aggregationValue ?? '').width
 
           if (firstFixedCol.agg_prefix) {
             ctx.font = '400 12px Inter'
@@ -1972,7 +2089,7 @@ export function useCanvasRender({
 
           ctx.font = '600 12px Inter'
           ctx.fillStyle = '#4a5268'
-          ctx.fillText(firstFixedCol.aggregation ?? ' - ', mergedWidth - 8, height.value - AGGREGATION_HEIGHT / 2)
+          ctx.fillText(aggregationValue ?? ' - ', mergedWidth - 8, height.value - AGGREGATION_HEIGHT / 2)
 
           if (isLocked.value && isHovered) {
             tryShowTooltip({
@@ -1987,7 +2104,7 @@ export function useCanvasRender({
             })
           }
 
-          const w = ctx.measureText(firstFixedCol.aggregation).width
+          const w = ctx.measureText(aggregationValue ?? '').width
           availWidth -= w
           ctx.restore()
         } else if (isHovered) {
@@ -2089,14 +2206,16 @@ export function useCanvasRender({
           ctx.fillStyle = '#F9F9FA'
           ctx.fillRect(xOffset, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
 
-          if (column.aggregation) {
+          const aggregationValue = firstFixedCol.aggregation?.toString()
+
+          if (isValidValue(aggregationValue)) {
             ctx.save()
             ctx.beginPath()
             ctx.rect(xOffset, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
             ctx.clip()
 
             ctx.font = '600 12px Inter'
-            const aggWidth = ctx.measureText(column.aggregation).width
+            const aggWidth = ctx.measureText(aggregationValue).width
 
             if (column.agg_prefix) {
               ctx.font = '400 12px Inter'
@@ -2106,7 +2225,7 @@ export function useCanvasRender({
 
             ctx.font = '600 12px Inter'
             ctx.fillStyle = '#4a5268'
-            ctx.fillText(column.aggregation, xOffset + width - 8, height.value - AGGREGATION_HEIGHT / 2)
+            ctx.fillText(aggregationValue, xOffset + width - 8, height.value - AGGREGATION_HEIGHT / 2)
 
             ctx.restore()
           } else if (isHovered) {
@@ -2372,7 +2491,7 @@ export function useCanvasRender({
           topLeft: 0,
         },
         {
-          backgroundColor: isNewRowHovered ? '#F9F9FA' : '#ffffff',
+          backgroundColor: isNewRowHovered && isAddingEmptyRowPermitted.value ? '#F9F9FA' : '#ffffff',
           borders: {
             bottom: true,
           },
@@ -2382,7 +2501,7 @@ export function useCanvasRender({
       )
       spriteLoader.renderIcon(ctx, {
         icon: isAddNewRecordGridMode.value ? 'ncPlus' : 'form',
-        color: isNewRowHovered ? '#000000' : '#4a5268',
+        color: isNewRowHovered && isAddingEmptyRowPermitted.value ? '#000000' : '#4a5268',
         x: 16 + level * 13,
         y: yOffset + 9,
         size: 14,
@@ -2399,11 +2518,26 @@ export function useCanvasRender({
 
       spriteLoader.renderIcon(ctx, {
         icon: 'chevronDown',
-        color: isNewRowHovered ? '#000000' : '#4a5268',
+        color: isNewRowHovered && isAddingEmptyRowPermitted.value ? '#000000' : '#4a5268',
         x: 16 + 20 + level * 13 + renderedWidth + 12,
         y: yOffset + 10,
         size: 14,
       })
+
+      if (isNewRowHovered && !isAddingEmptyRowPermitted.value) {
+        tryShowTooltip({
+          mousePosition,
+          text: t('objects.permissions.addNewRecordTooltipTitle'),
+          description: t('objects.permissions.addNewRecordTooltip'),
+          rect: {
+            x: level * 13,
+            y: yOffset,
+            height: COLUMN_HEADER_HEIGHT_IN_PX,
+            width: adjustedWidth,
+            targetWidth: 258,
+          },
+        })
+      }
 
       elementMap.addElement({
         x: 16 + 20 + level * 13 + renderedWidth + 12,
@@ -2417,16 +2551,18 @@ export function useCanvasRender({
         type: ElementTypes.EDIT_NEW_ROW_METHOD,
       })
 
-      elementMap.addElement({
-        y: yOffset,
-        x: level * 13,
-        group,
-        level,
-        height: COLUMN_HEADER_HEIGHT_IN_PX,
-        path: group.nestedIn,
-        groupPath: group?.path,
-        type: ElementTypes.ADD_NEW_ROW,
-      })
+      if (isAddingEmptyRowPermitted.value) {
+        elementMap.addElement({
+          y: yOffset,
+          x: level * 13,
+          group,
+          level,
+          height: COLUMN_HEADER_HEIGHT_IN_PX,
+          path: group.nestedIn,
+          groupPath: group?.path,
+          type: ElementTypes.ADD_NEW_ROW,
+        })
+      }
 
       yOffset += COLUMN_HEADER_HEIGHT_IN_PX
     }

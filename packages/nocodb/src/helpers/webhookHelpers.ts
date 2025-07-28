@@ -1,31 +1,38 @@
+import { Logger } from '@nestjs/common';
+import axios from 'axios';
+import dayjs from 'dayjs';
+import isBetween from 'dayjs/plugin/isBetween';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import Handlebars from 'handlebars';
 import handlebarsHelpers from 'handlebars-helpers-v2';
-import { v4 as uuidv4 } from 'uuid';
-import axios from 'axios';
+import {
+  ColumnHelper,
+  HookOperationCode,
+  isDateMonthFormat,
+  UITypes,
+} from 'nocodb-sdk';
 import { useAgent } from 'request-filtering-agent';
-import { Logger } from '@nestjs/common';
-import dayjs from 'dayjs';
-import { ColumnHelper, isDateMonthFormat, UITypes } from 'nocodb-sdk';
-import isBetween from 'dayjs/plugin/isBetween';
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import { v4 as uuidv4 } from 'uuid';
 import NcPluginMgrv2 from './NcPluginMgrv2';
-import type { AxiosResponse } from 'axios';
-import type { HookType } from 'jsep';
 import type {
   ColumnType,
   FormColumnType,
   HookLogType,
+  HookType,
   TableType,
+  UpdatePayload,
   UserType,
   ViewType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { Column, FormView, Hook, Model, View } from '~/models';
+import type { AxiosResponse } from 'axios';
 import { Filter, HookLog, Source } from '~/models';
-import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
-import { isEE, isOnPrem } from '~/utils';
+import { isEE, isOnPrem, populateUpdatePayloadDiff } from '~/utils';
+import { parseMetaProp } from '~/utils/modelUtils';
+import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 
 handlebarsHelpers({ handlebars: Handlebars });
 
@@ -379,14 +386,48 @@ export async function validateCondition(
   return isValid;
 }
 
-export function constructWebHookData(hook, model, view, prevData, newData) {
-  if (hook.version === 'v2') {
+/**
+ * Sanitizes user object to include only safe, non-sensitive information
+ */
+export function sanitizeUserForHook(user: any) {
+  if (!user || !user.id || !user.email) return null;
+
+  return {
+    id: user.id,
+    email: user.email,
+    display_name: user.display_name,
+    // Explicitly exclude sensitive fields like:
+    // - tokens
+    // - password hashes
+    // - api tokens
+    // - personal information not needed in webhooks
+  };
+}
+
+export function constructWebHookData(
+  hook: Hook | HookType,
+  model: Model | TableType,
+  _view: View | ViewType,
+  prevData: Record<string, unknown>,
+  newData: Record<string, unknown>,
+  user = null,
+) {
+  if (['v2', 'v3'].includes(hook.version)) {
     // extend in the future - currently only support records
     const scope = 'records';
+    const isBulkInsert =
+      hook.version === 'v2' && (hook.operation as any) === 'bulkInsert';
+
+    // Check for include_user in notification object first, fall back to hook.include_user for backward compatibility
+    const includeUser = parseMetaProp(hook, 'notification')?.include_user;
 
     return {
       type: `${scope}.${hook.event}.${hook.operation}`,
       id: uuidv4(),
+      ...(includeUser && isEE && user
+        ? { user: sanitizeUserForHook(user) }
+        : {}),
+      version: hook.version,
       data: {
         table_id: model.id,
         table_name: model.title,
@@ -394,11 +435,20 @@ export function constructWebHookData(hook, model, view, prevData, newData) {
         // view_id: view?.id,
         // view_name: view?.title,
         ...(prevData && {
-          previous_rows: Array.isArray(prevData) ? prevData : [prevData],
+          previous_rows: Array.isArray(prevData)
+            ? prevData.map((prev) => ({ ...prev, nc_order: undefined }))
+            : [{ ...prevData, nc_order: undefined }],
         }),
-        ...(hook.operation !== 'bulkInsert' &&
-          newData && { rows: Array.isArray(newData) ? newData : [newData] }),
-        ...(hook.operation === 'bulkInsert' && {
+        ...(!isBulkInsert &&
+          newData && {
+            rows: Array.isArray(newData)
+              ? newData.map((each) => ({
+                  ...each,
+                  nc_order: undefined,
+                }))
+              : [{ ...newData, nc_order: undefined }],
+          }),
+        ...(isBulkInsert && {
           rows_inserted: Array.isArray(newData)
             ? newData.length
             : newData
@@ -420,6 +470,7 @@ function populateAxiosReq({
   view,
   prevData,
   newData,
+  user,
 }: {
   apiMeta: any;
   user: UserType;
@@ -455,12 +506,8 @@ function populateAxiosReq({
     view,
     prevData,
     newData,
+    user,
   );
-  // const reqPayload = axiosRequestMake(
-  //   _apiMeta,
-  //   user,
-  //   webhookData,
-  // );
 
   const apiMeta = { ..._apiMeta };
   // if it's a string try to parse and apply handlebar
@@ -601,12 +648,34 @@ function flattenFilter(
   return flattenedFilters;
 }
 
+function constructHookDataForNonURLHooks({
+  newData,
+  prevData,
+  view,
+  hook,
+  model,
+}: {
+  hook: Hook;
+  model: Model;
+  view: View;
+  newData: Record<string, unknown>;
+  prevData: Record<string, unknown>;
+}) {
+  // for old webhooks keep the old data syntax for backward compatibility
+  if (hook.version === 'v2' || hook.version === 'v1') {
+    return newData;
+  } else {
+    return constructWebHookData(hook, model, view, prevData, newData);
+  }
+}
+
 export async function invokeWebhook(
   context: NcContext,
   param: {
     hook: Hook;
     model: Model;
     view: View;
+    hookName: string;
     prevData;
     newData;
     user;
@@ -619,14 +688,26 @@ export async function invokeWebhook(
     hook,
     model,
     view,
-    prevData,
     user,
+    hookName,
+    prevData,
     testFilters = null,
     throwErrorOnFailure = false,
     testHook = false,
   } = param;
 
   let { newData } = param;
+
+  if (hook.version === 'v3' && hookName) {
+    // since we already verified the operation in v3,
+    // we'll assign the event and operation back to v2 format
+    // for it to further be referenced during payload building
+    const [event, operation] = hookName.split('.');
+    hook.event = event as any;
+    hook.operation = (operation as any as string)
+      .replace('bulk', '')
+      .toLowerCase() as any;
+  }
 
   let hookLog: HookLogType;
   const startTime = process.hrtime();
@@ -710,10 +791,18 @@ export async function invokeWebhook(
     switch (notification?.type) {
       case 'Email':
         {
+          const webhookData = constructHookDataForNonURLHooks({
+            hook,
+            model,
+            view,
+            prevData,
+            newData,
+          });
+
           const parsedPayload = {
-            to: parseBody(notification?.payload?.to, newData),
-            subject: parseBody(notification?.payload?.subject, newData),
-            html: parseBody(notification?.payload?.body, newData),
+            to: parseBody(notification?.payload?.to, webhookData),
+            subject: parseBody(notification?.payload?.subject, webhookData),
+            html: parseBody(notification?.payload?.body, webhookData),
           };
           const res = await (
             await NcPluginMgrv2.emailAdapter(false)
@@ -724,6 +813,7 @@ export async function invokeWebhook(
           ) {
             hookLog = {
               ...hook,
+              operation: hookName?.split('.')?.[1] as any,
               fk_hook_id: hook.id,
               type: notification.type,
               payload: JSON.stringify(parsedPayload),
@@ -756,6 +846,7 @@ export async function invokeWebhook(
           ) {
             hookLog = {
               ...hook,
+              operation: hookName?.split('.')?.[1] as any,
               fk_hook_id: hook.id,
               type: notification.type,
               payload: JSON.stringify(requestPayload),
@@ -768,13 +859,21 @@ export async function invokeWebhook(
         break;
       default:
         {
+          const webhookData = constructHookDataForNonURLHooks({
+            hook,
+            model,
+            view,
+            prevData,
+            newData,
+          });
+
           const res = await (
             await NcPluginMgrv2.webhookNotificationAdapters(notification.type)
           ).sendMessage(
-            parseBody(notification?.payload?.body, newData),
+            parseBody(notification?.payload?.body, webhookData),
             JSON.parse(JSON.stringify(notification?.payload), (_key, value) => {
               return typeof value === 'string'
-                ? parseBody(value, newData)
+                ? parseBody(value, webhookData)
                 : value;
             }),
           );
@@ -785,6 +884,7 @@ export async function invokeWebhook(
           ) {
             hookLog = {
               ...hook,
+              operation: hookName?.split('.')?.[1] as any,
               fk_hook_id: hook.id,
               type: notification.type,
               payload: JSON.stringify(notification?.payload),
@@ -824,6 +924,7 @@ export async function invokeWebhook(
     ) {
       hookLog = {
         ...hook,
+        operation: hookName?.split('.')?.[1] as any,
         type: notification.type,
         payload: JSON.stringify(
           reqPayload
@@ -831,7 +932,7 @@ export async function invokeWebhook(
             : notification?.payload,
         ),
         fk_hook_id: hook.id,
-        error_code: e.error_code,
+        error_code: e.error_code ?? e.code,
         error_message: e.message,
         error: JSON.stringify(e),
         triggered_by: user?.email,
@@ -968,4 +1069,85 @@ export function transformDataForMailRendering(
 function parseHrtimeToMilliSeconds(hrtime) {
   const milliseconds = (hrtime[0] + hrtime[1] / 1e6).toFixed(3);
   return milliseconds;
+}
+
+export function operationArrToCode(value: HookType['operation']) {
+  let result = 0;
+  for (const operation of value) {
+    result += HookOperationCode[operation];
+  }
+  return result.toString();
+}
+export function operationCodeToArr(code: number | string) {
+  const numberCode = typeof code === 'number' ? code : Number(code);
+  const result: HookType['operation'] = [];
+  for (const operation of Object.keys(HookOperationCode)) {
+    const operationCode = HookOperationCode[operation];
+    if ((numberCode & operationCode) === operationCode) {
+      result.push(operation as any);
+    }
+  }
+  return result;
+}
+export function compareOperationCode(param: {
+  code: string | number;
+  operation: string;
+}) {
+  const numberCode =
+    typeof param.code === 'number' ? param.code : Number(param.code);
+  return (
+    (HookOperationCode[param.operation] & numberCode) ===
+    HookOperationCode[param.operation]
+  );
+}
+
+export async function getAffectedColumns(
+  context: NcContext,
+  {
+    hookName,
+    prevData,
+    newData,
+    model,
+  }: {
+    hookName: string;
+    prevData: any;
+    newData: any;
+    model: Model;
+  },
+) {
+  if (hookName !== 'after.update' && hookName !== 'after.bulkUpdate') {
+    return undefined;
+  }
+  let affectedCols = [];
+  if (typeof prevData === 'undefined' || prevData === null) {
+    return undefined;
+  }
+  const compareSingle = (prev, next) => {
+    const updatePayload = populateUpdatePayloadDiff({
+      prev,
+      next,
+      keepUnderModified: true,
+    }) as UpdatePayload;
+    if (updatePayload) {
+      affectedCols = affectedCols.concat(
+        Object.keys(updatePayload.modifications),
+      );
+    }
+  };
+  if (Array.isArray(prevData)) {
+    for (let i = 0; i < prevData.length; i++) {
+      compareSingle(prevData[i], newData[i]);
+    }
+  } else {
+    compareSingle(prevData, newData);
+  }
+  if (affectedCols.length) {
+    affectedCols = [...new Set(affectedCols)];
+    const columns = await model.getColumns(context);
+    return affectedCols.map(
+      (title) => columns.find((col) => col.title === title).id,
+    );
+  } else {
+    return undefined;
+  }
 }

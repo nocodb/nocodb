@@ -142,12 +142,14 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     query,
     tableId,
     viewId,
+    replace,
   }: {
     workspaceId?: string
     baseId?: string
     query?: any
     tableId?: string
     viewId?: string
+    replace?: boolean
   }) => {
     const tablePath = tableId ? `/${tableId}${viewId ? `/${viewId}` : ''}` : ''
     const workspaceId = _workspaceId || 'nc'
@@ -163,6 +165,7 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
 
     return navigateTo({
       path,
+      replace,
     })
   }
 

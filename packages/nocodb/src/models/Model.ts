@@ -3,7 +3,6 @@ import {
   isVirtualCol,
   ModelTypes,
   NcApiVersion,
-  ncIsUndefined,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -39,6 +38,8 @@ import {
   prepareForResponse,
 } from '~/utils/modelUtils';
 import { Source } from '~/models';
+import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import { dataWrapper } from '~/helpers/dbHelpers';
 
 const logger = new Logger('Model');
 
@@ -275,6 +276,10 @@ export default class Model implements TableType {
       logger.error('Failed to clean command palette cache');
     });
 
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
+
     return modelRes;
   }
 
@@ -285,7 +290,7 @@ export default class Model implements TableType {
       source_id,
     }: {
       base_id: string;
-      source_id: string;
+      source_id?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model[]> {
@@ -663,6 +668,10 @@ export default class Model implements TableType {
       logger.error('Failed to clean command palette cache');
     });
 
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
+
     return true;
   }
 
@@ -677,14 +686,11 @@ export default class Model implements TableType {
     knex,
     columns?: Column[],
   ) {
+    const dbDataWrapper = dataWrapper(data);
     const insertObj = {};
     for (const col of columns || (await this.getColumns(context))) {
       if (isVirtualCol(col)) continue;
-      let val = !ncIsUndefined(data?.[col.column_name])
-        ? data?.[col.column_name]
-        : !ncIsUndefined(data?.[col.title])
-        ? data?.[col.title]
-        : data?.[col.id];
+      let val = dbDataWrapper.getByColumnNameTitleOrId(col);
       if (val !== undefined) {
         if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
           val = JSON.stringify(val);
@@ -755,12 +761,10 @@ export default class Model implements TableType {
 
   async mapColumnToAlias(context: NcContext, data, columns?: Column[]) {
     const res = {};
+    const dbDataWrapper = dataWrapper(data);
     for (const col of columns || (await this.getColumns(context))) {
       if (isVirtualCol(col)) continue;
-      let val =
-        data?.[col.title] !== undefined
-          ? data?.[col.title]
-          : data?.[col.column_name];
+      let val = dbDataWrapper.getByColumnNameTitleOrId(col);
       if (val !== undefined) {
         if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
           val = JSON.stringify(val);
@@ -1136,9 +1140,17 @@ export default class Model implements TableType {
   }
 
   async getAliasColObjMap(context: NcContext, columns?: Column[]) {
-    return (columns || (await this.getColumns(context))).reduce(
-      (sortAgg, c) => ({ ...sortAgg, [c.title]: c }),
+    const mapColumns = columns || (await this.getColumns(context));
+    const idReduce = mapColumns.reduce(
+      (sortAgg, c) => ({ ...sortAgg, [c.id]: c }),
       {},
+    );
+
+    // 2nd reduce start by using idReduce props
+    // if title is same as column id, even if it's a different column, it'll take priority over id
+    return mapColumns.reduce(
+      (sortAgg, c) => ({ ...sortAgg, [c.title]: c }),
+      idReduce,
     );
   }
 

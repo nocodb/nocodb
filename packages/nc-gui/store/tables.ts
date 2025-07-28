@@ -119,7 +119,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     })
   }
 
-  const openTable = async (table: TableType) => {
+  const openTable = async (table: TableType, replace = false) => {
     if (!table.base_id) return
 
     const bases = basesStore.bases
@@ -156,6 +156,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
       workspaceId: workspaceIdOrType,
       baseId: baseIdOrBaseId,
       tableId: table?.id,
+      replace,
     })
   }
 
@@ -261,10 +262,12 @@ export const useTablesStore = defineStore('tablesStore', () => {
     baseId,
     sourceId,
     onCloseCallback,
+    showSourceSelector = true,
   }: {
     baseId?: string
     sourceId?: string
     onCloseCallback?: () => void
+    showSourceSelector?: boolean
   }) {
     if (!sourceId || !baseId) return
 
@@ -274,6 +277,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
       'modelValue': isCreateTableOpen,
       sourceId,
       'baseId': baseId,
+      'showSourceSelector': showSourceSelector,
       'onCreate': closeDialog,
       'onUpdate:modelValue': () => closeDialog(),
     })

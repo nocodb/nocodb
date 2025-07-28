@@ -24,9 +24,12 @@ provide(IsLockedInj, isLocked)
 provide(ReloadAggregateHookInj, createEventHook())
 
 useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
+
 useProvideViewGroupBy(sharedView, meta, xWhere, true)
 
 useProvideSmartsheetLtarHelpers(meta)
+
+useViewRowColorProvider({ shared: true })
 
 if (signedIn.value) {
   try {

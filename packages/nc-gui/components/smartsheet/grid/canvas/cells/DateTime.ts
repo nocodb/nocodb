@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { type TimeZone } from '@vvo/tzdb'
+import { isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, isBoxHovered, truncateText } from '../utils/canvas'
 import { timeCellMaxWidthMap, timeFormatsObj } from '../utils/cell'
 
@@ -77,7 +78,7 @@ export const DateTimeCellRenderer: CellRenderer = {
     const { row, column, makeCellEditable, getCellPosition, mousePosition, value, selected } = ctx
     const bound = getCellPosition(column, row.rowMeta.rowIndex)
     const padding = 8
-    if (!selected || column.readonly) return false
+    if (!selected || column.readonly || isCreatedOrLastModifiedTimeCol(column.uidt)) return false
 
     const canvasContext = defaultOffscreen2DContext
 
@@ -133,7 +134,7 @@ export const DateTimeCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
-    if (column.readonly || !column?.isCellEditable) return
+    if (column.readonly || !column?.isCellEditable || isCreatedOrLastModifiedTimeCol(column.uidt)) return
     if (e.key.length === 1) {
       makeCellEditable(row, column)
       return true

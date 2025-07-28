@@ -12,7 +12,11 @@ export class YearHelper extends AbstractColumnHelper {
   serializeValue(
     value: any,
     params: SerializerOrParserFnProps['params']
-  ): number | null {
+  ): string | number | null {
+    if (params.serializeSearchQuery) {
+      return this.parseValue(value);
+    }
+
     value = serializeYearValue(value);
 
     if (value === null) {

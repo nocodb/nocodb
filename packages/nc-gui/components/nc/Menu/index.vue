@@ -2,7 +2,7 @@
 const props = withDefaults(
   defineProps<{
     selectable?: boolean | undefined
-    variant?: 'default' | 'small' | 'medium'
+    variant?: 'default' | 'small' | 'medium' | 'large'
   }>(),
   {
     variant: 'default',
@@ -55,12 +55,29 @@ const selectable = computed(() => props.selectable ?? false)
       }
     }
 
+    &.nc-variant-large {
+      .ant-dropdown-menu-item,
+      .nc-ant-dropdown-menu-item-label {
+        @apply min-h-9;
+      }
+
+      .nc-menu-item-inner {
+        @apply !font-600;
+      }
+    }
+
     .nc-ant-dropdown-menu-item-label {
-      @apply py-0 mx-1;
+      @apply py-0 mx-1 text-bodyDefaultSmBold;
     }
 
     .nc-divider {
       @apply my-0.5;
+    }
+  }
+
+  &.nc-variant-default {
+    .nc-ant-dropdown-menu-item-label {
+      @apply py-2.5 text-bodyDefaultSmBold;
     }
   }
 }

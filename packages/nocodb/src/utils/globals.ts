@@ -38,6 +38,7 @@ export enum MetaTable {
   AUDIT = 'nc_audit_v2',
   HOOKS = 'nc_hooks_v2',
   HOOK_LOGS = 'nc_hook_logs_v2',
+  HOOK_TRIGGER_FIELDS = 'nc_hook_trigger_fields',
   PLUGIN = 'nc_plugins_v2',
   PROJECT_USERS = 'nc_base_users_v2',
   MODEL_ROLE_VISIBILITY = 'nc_disabled_models_for_role_v2',
@@ -59,6 +60,7 @@ export enum MetaTable {
   FILE_REFERENCES = 'nc_file_references',
   COL_BUTTON = 'nc_col_button_v2',
   SNAPSHOT = 'nc_snapshots',
+  ROW_COLOR_CONDITIONS = 'nc_row_color_conditions',
   DATA_REFLECTION = 'nc_data_reflection',
   CUSTOM_URLS = 'nc_custom_urls_v2',
   SCRIPTS = 'nc_scripts',
@@ -66,12 +68,21 @@ export enum MetaTable {
   SYNC_MAPPINGS = 'nc_sync_mappings',
   USAGE_STATS = 'nc_usage_stats',
   MCP_TOKENS = 'nc_mcp_tokens',
+  DB_SERVERS = 'nc_db_servers',
+  PERMISSIONS = 'nc_permissions',
+  PERMISSION_SUBJECTS = 'nc_permission_subjects',
+  DASHBOARDS = 'nc_dashboards_v2',
+  WIDGETS = 'nc_widgets_v2',
 }
 
 export enum MetaTableOldV2 {
   PROJECT = 'nc_projects_v2',
   PROJECT_USERS = 'nc_project_users_v2',
   BASES = 'nc_bases_v2',
+  LAYOUT = 'nc_ds_layout_v2',
+  WIDGET = 'nc_ds_widget_v2',
+  DASHBOARD_PROJECT_DB_PROJECT_LINKINGS = 'nc_ds_dashboard_project_db_project_linkings_v2',
+  WIDGET_DB_DEPENDENCIES = 'nc_ds_widget_db_dependencies_v2',
 }
 
 export const orderedMetaTables = [
@@ -101,6 +112,7 @@ export const orderedMetaTables = [
   MetaTable.FILTER_EXP,
   MetaTable.HOOK_LOGS,
   MetaTable.HOOKS,
+  MetaTable.HOOK_TRIGGER_FIELDS,
   MetaTable.VIEWS,
   MetaTable.COL_FORMULA,
   MetaTable.COL_ROLLUP,
@@ -210,6 +222,11 @@ export enum CacheScope {
   STORAGE_STATS = 'storageStats',
   CLOUD_FEATURES = 'cloudFeatures',
   MCP_TOKEN = 'mcpToken',
+  DB_SERVERS = 'dbServers',
+  PERMISSION = 'permission',
+  PERMISSION_USER = 'permissionUser',
+  DASHBOARD = 'dashboard',
+  WIDGET = 'widget',
 }
 
 export enum CacheGetType {
@@ -273,3 +290,13 @@ export const CACHE_PREFIX =
   process.env.NC_CACHE_PREFIX && process.env.NC_CACHE_PREFIX.trim().length > 0
     ? process.env.NC_CACHE_PREFIX
     : 'nc';
+
+export enum FilterCacheScope {
+  VIEW = 'view',
+  HOOK = 'hook',
+  COLUMN = 'column',
+  PARENT_COLUMN = 'parentColumn',
+  LINK_COL = 'linkCol',
+  WIDGET = 'widget',
+  PARENT = 'parent',
+}

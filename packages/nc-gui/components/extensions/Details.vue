@@ -66,13 +66,7 @@ const detailsBody = computed(() => {
 </script>
 
 <template>
-  <NcModal
-    v-model:visible="vModel"
-    :class="{ active: vModel }"
-    :footer="null"
-    size="lg"
-    wrap-class-name="nc-modal-extension-details"
-  >
+  <NcModal v-model:visible="vModel" :footer="null" size="lg" wrap-class-name="nc-modal-extension-details">
     <div v-if="activeExtension" class="flex flex-col w-full h-full">
       <div class="flex items-center gap-3 px-4 py-3 border-b-1 border-gray-200">
         <NcButton v-if="from === 'market'" size="small" type="text" @click="onBack">
@@ -81,7 +75,10 @@ const detailsBody = computed(() => {
 
         <img :src="getExtensionAssetsUrl(activeExtension.iconUrl)" alt="icon" class="h-[50px] w-[50px] object-contain" />
         <div class="flex-1 flex flex-col">
-          <div class="font-semibold text-xl truncate">{{ activeExtension.title }}</div>
+          <div class="flex items-center gap-2">
+            <div class="font-semibold text-xl truncate">{{ activeExtension.title }}</div>
+            <NcBadgeBeta v-if="activeExtension.showAsBeta" />
+          </div>
           <div class="text-small leading-[18px] text-gray-500 truncate">{{ activeExtension.subTitle }}</div>
         </div>
         <div class="self-start flex items-center gap-2.5">

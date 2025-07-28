@@ -1,3 +1,4 @@
+import type { AttachmentUrlUploadParam } from '~/types/data-columns/attachment';
 import type {
   AttachmentResType,
   PublicAttachmentScope,
@@ -14,16 +15,18 @@ export enum MigrationJobTypes {
   Thumbnail = 'thumbnail',
   RecoverLinks = 'recover-links',
   CleanupDuplicateColumns = 'cleanup-duplicate-columns',
-  OrderColumnCreation = 'order-column-creation',
   NoOpMigration = 'no-op-migration',
+  OrderColumnCreation = 'order-column-creation',
   RecoverOrderColumnMigration = 'recover-order-column-migration',
   RecoverDisconnectedTableNames = 'recover-disconnected-table-names',
+  AuditMigration = 'audit-migration',
 }
 
 export enum JobTypes {
   DuplicateBase = 'duplicate-base',
   DuplicateModel = 'duplicate-model',
   DuplicateColumn = 'duplicate-column',
+  DuplicateDashboard = 'duplicate-dashboard',
   AtImport = 'at-import',
   MetaSync = 'meta-sync',
   SourceCreate = 'source-create',
@@ -46,6 +49,8 @@ export enum JobTypes {
   SyncModuleSyncData = 'sync-module-sync-data',
   SyncModuleMigrateSync = 'sync-module-migrate-sync',
   UpdateUsageStats = 'update-usage-stats',
+  CloudDbMigrate = 'cloud-db-migrate',
+  AttachmentUrlUpload = 'attachment-url-upload',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -93,8 +98,9 @@ export const InstanceTypes = {
 export enum InstanceCommands {
   RESUME_LOCAL = 'resumeLocal',
   PAUSE_LOCAL = 'pauseLocal',
-  RESET = 'reset',
   RELEASE = 'release',
+  ASSIGN_WORKER_GROUP = 'assignWorkerGroup',
+  STOP_OTHER_WORKER_GROUPS = 'stopOtherWorkerGroups',
 }
 
 export interface JobData {
@@ -137,6 +143,8 @@ export interface DuplicateBaseJobData extends JobData {
     excludeHooks?: boolean;
     excludeComments?: boolean;
     excludeUsers?: boolean;
+    excludeScripts?: boolean;
+    excludeDashboards?: boolean;
   };
 }
 
@@ -163,10 +171,17 @@ export interface DuplicateColumnJobData extends JobData {
   };
 }
 
+export interface DuplicateDashboardJobData extends JobData {
+  dashboardId: string;
+  req: NcRequest;
+  options: never;
+}
+
 export interface HandleWebhookJobData extends JobData {
   hookId: string;
   modelId: string;
   viewId: string;
+  hookName: string;
   prevData;
   newData;
 }
@@ -213,3 +228,5 @@ export interface SyncDataSyncModuleJobData extends JobData {
   bulk?: boolean;
   req: NcRequest;
 }
+
+export type AttachmentUrlUploadJobData = AttachmentUrlUploadParam & JobData;

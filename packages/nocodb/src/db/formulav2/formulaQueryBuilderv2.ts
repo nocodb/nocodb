@@ -20,7 +20,7 @@ import {
 } from './parsed-tree-builder';
 import type { LiteralNode } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { User } from '~/models';
+import type { BarcodeColumn, QrCodeColumn, User } from '~/models';
 import type Column from '~/models/Column';
 import type RollupColumn from '~/models/RollupColumn';
 import type {
@@ -306,13 +306,26 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         }
         break;
       }
+      case UITypes.QrCode:
+      case UITypes.Barcode: {
+        const referencedColumn = await (
+          await col.getColOptions<BarcodeColumn | QrCodeColumn>(context)
+        ).getValueColumn(context);
+        aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
+          Promise.resolve({
+            builder: knex.raw(`??.??`, [
+              tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+              referencedColumn.column_name,
+            ]),
+          });
+        break;
+      }
       default:
         aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
           Promise.resolve({
-            builder: knex.raw(`??`, [
-              `${tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)}.${
-                col.column_name
-              }`,
+            builder: knex.raw(`??.??`, [
+              tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+              col.column_name,
             ]),
           });
         break;

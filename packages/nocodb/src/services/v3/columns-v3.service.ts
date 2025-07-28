@@ -102,7 +102,7 @@ export class ColumnsV3Service {
     },
   ) {
     validatePayload(
-      'swagger-v3.json#/components/schemas/Field',
+      'swagger-v3.json#/components/schemas/CreateField',
       param.column,
       true,
     );

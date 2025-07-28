@@ -338,6 +338,14 @@ export class NcErrorBase {
       params: ncWorkspaceId,
     });
   }
+  allowedOnlySSOGeneratedToken(ncWorkspaceId: string): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.SSO_GENERATED_TOKEN_REQUIRED,
+      {
+        params: ncWorkspaceId,
+      }
+    );
+  }
   maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.MAX_INSERT_LIMIT_EXCEEDED, {
       params: limit.toString(),
@@ -385,6 +393,12 @@ export class NcErrorBase {
         ...args,
       }
     );
+  }
+
+  invalidRequestBody(message: string): never {
+    throw this.errorCodex.generateError(NcErrorType.INVALID_REQUEST_BODY, {
+      params: message,
+    });
   }
 
   unprocessableEntity(message = 'Unprocessable entity'): never {

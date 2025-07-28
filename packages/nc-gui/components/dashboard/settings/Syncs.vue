@@ -81,7 +81,7 @@ const handleEditSync = (syncId: string) => {
   isEditSyncModalOpen.value = true
 }
 
-const handleSyncNow = async (syncId: string) => {
+const _handleSyncNow = async (syncId: string) => {
   try {
     const response = await $api.internal.postOperation(
       activeWorkspace.value!.id!,
@@ -110,7 +110,7 @@ const handleSyncNow = async (syncId: string) => {
   }
 }
 
-const handleMigrateSync = async (syncId: string) => {
+const _handleMigrateSync = async (syncId: string) => {
   try {
     await $api.internal.postOperation(
       activeWorkspace.value!.id!,

@@ -104,10 +104,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       if (!base) {
         NcError.get(context).baseNotFound(params.baseId ?? params.baseName);
       }
-
       if (base) {
         req.ncBaseId = base.id;
-        if (params.tableName) {
+        if (params.tableId || params.tableName || params.modelId) {
           // extract model and then source id from model
           const model = await Model.getByAliasOrId(
             {
@@ -116,12 +115,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
             },
             {
               base_id: base.id,
-              aliasOrId: params.tableName,
+              aliasOrId: params.tableId || params.tableName || params.modelId,
             },
           );
-
           if (!model) {
-            NcError.get(context).tableNotFound(req.params.tableName);
+            NcError.get(context).tableNotFound(
+              params.tableId || req.params.tableName || params.modelId,
+            );
           }
 
           req.ncSourceId = model?.source_id;
@@ -309,12 +309,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     }
     // extract fk_model_id from query params only if it's audit post endpoint
     else if (
-      [
-        '/api/v1/db/meta/audits/rows/:rowId/update',
-        '/api/v2/meta/audits/rows/:rowId/update',
-        '/api/v1/db/meta/comments',
-        '/api/v2/meta/comments',
-      ].some(
+      ['/api/v1/db/meta/comments', '/api/v2/meta/comments'].some(
         (auditInsertOrUpdatePath) => req.route.path === auditInsertOrUpdatePath,
       ) &&
       req.method === 'POST' &&
@@ -338,8 +333,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         '/api/v1/db/meta/comments/count',
         '/api/v2/meta/comments',
         '/api/v1/db/meta/comments',
-        '/api/v1/db/meta/audits',
-        '/api/v2/meta/audits',
       ].some((auditReadPath) => req.route.path === auditReadPath) &&
       req.method === 'GET' &&
       req.query.fk_model_id

@@ -19,7 +19,7 @@ const { activeView, views } = storeToRefs(viewsStore)
 
 const { navigateToView, onOpenViewCreateModal } = viewsStore
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { isAiFeaturesEnabled } = useNocoAi()
 
 const isOpen = ref<boolean>(false)
 
@@ -126,6 +126,7 @@ async function onOpenModal({
     coverImageColumnId,
     baseId: base.value.id!,
     tableId: activeTable.value.id!,
+    sourceId: activeTable.value?.source_id,
   })
 }
 </script>
@@ -141,8 +142,9 @@ async function onOpenModal({
         option-value-key="id"
         option-label-key="title"
         search-input-placeholder="Search views"
-        class="min-w-64 !w-auto"
+        class="min-w-63.5 !w-auto"
         :filter-option="filterOption"
+        variant="medium"
         @change="handleNavigateToView"
       >
         <template #listItem="{ option }">
@@ -171,7 +173,7 @@ async function onOpenModal({
           <NcDivider class="!mt-0 !mb-2" />
           <div class="overflow-hidden mb-2">
             <a-menu class="nc-viewlist-menu">
-              <a-sub-menu popup-class-name="nc-viewlist-submenu-popup">
+              <a-sub-menu popup-class-name="nc-viewlist-submenu-popup" :popup-offset="[8, -2]">
                 <template #title>
                   <div class="flex items-center justify-between gap-2 text-sm font-weight-500 !text-brand-500">
                     <div class="flex items-center gap-2">
@@ -239,14 +241,16 @@ async function onOpenModal({
                   </div>
                 </a-menu-item>
 
-                <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+                <template v-if="isAiFeaturesEnabled">
                   <NcDivider />
-                  <a-menu-item data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
-                    <div class="nc-viewlist-submenu-popup-item">
-                      <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
-                      <div>{{ $t('labels.aiSuggested') }}</div>
-                    </div>
-                  </a-menu-item>
+                  <NcTooltip :title="`Auto suggest views for ${activeTable?.title || 'the current table'}`" placement="right">
+                    <a-menu-item data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
+                      <div class="nc-viewlist-submenu-popup-item">
+                        <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
+                        <div>{{ $t('labels.useNocoAI') }}</div>
+                      </div>
+                    </a-menu-item>
+                  </NcTooltip>
                 </template>
               </a-sub-menu>
             </a-menu>
@@ -275,14 +279,14 @@ async function onOpenModal({
 }
 
 .nc-viewlist-submenu-popup {
-  @apply !rounded-lg border-1 border-gray-50;
+  @apply !rounded-lg border-1 border-nc-border-gray-medium;
 
   .ant-menu.ant-menu-sub {
     @apply p-2 !rounded-lg !shadow-lg shadow-gray-200;
   }
 
   .ant-menu-item {
-    @apply h-auto !my-0 text-sm !leading-5 py-2 px-2 hover:!bg-gray-100 cursor-pointer rounded-md;
+    @apply h-auto min-h-8 !my-0 text-sm !leading-5 py-1.5 px-2 hover:!bg-gray-100 cursor-pointer rounded-md;
 
     .ant-menu-title-content {
       @apply w-full px-0;

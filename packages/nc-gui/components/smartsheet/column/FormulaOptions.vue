@@ -205,7 +205,7 @@ watch(
 
 <template>
   <div class="formula-wrapper relative">
-    <NcTabs v-model:activeKey="activeKey">
+    <NcTabs v-model:active-key="activeKey">
       <a-tab-pane key="formula">
         <template #tab>
           <div class="tab">

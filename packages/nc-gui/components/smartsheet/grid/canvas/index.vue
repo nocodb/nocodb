@@ -2,6 +2,8 @@
 import {
   type ColumnReqType,
   type ColumnType,
+  PermissionEntity,
+  PermissionKey,
   PlanLimitTypes,
   type TableType,
   UITypes,
@@ -29,7 +31,6 @@ import {
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
-  ROW_META_COLUMN_WIDTH,
 } from './utils/constants'
 import { calculateGroupRowTop, comparePath, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
 import { CanvasElement, ElementTypes } from './utils/CanvasElement'
@@ -185,17 +186,17 @@ const overlayStyle = ref<Record<string, any> | null>(null)
 const openAggregationField = ref<CanvasGridColumn | null>(null)
 const openAddNewRowDropdown = ref<Array<number> | null>(null)
 const openColumnDropdownField = ref<ColumnType | null>(null)
-const isDropdownVisible = ref(false)
+const _isDropdownVisible = ref(false)
 const contextMenuTarget = ref<{ row: number; col: number; path: Array<number> } | null>(null)
 const _isContextMenuOpen = ref(false)
-const isCreateOrEditColumnDropdownOpen = ref(false)
+const _isCreateOrEditColumnDropdownOpen = ref(false)
 const columnEditOrAddProviderRef = ref()
 const editColumn = ref<ColumnType | null>(null)
 const lastOpenColumnDropdownField = ref<ColumnType | null>(null)
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 const isEditColumnDescription = ref(false)
 const mousePosition = reactive({ x: 0, y: 0 })
-const clientMousePosition = reactive({ clientX: 0, clientY: 0 })
+const clientMousePosition = reactive(clientMousePositionDefaultValue)
 const paddingLessUITypes = new Set([
   UITypes.LongText,
   UITypes.DateTime,
@@ -252,8 +253,9 @@ const { floatingStyles } = useFloating(targetReference, tooltipRef, {
 })
 const { tryShowTooltip, hideTooltip } = tooltipStore
 
-let selectedRowInfo: { index: number | null | undefined; path: Array<number> } = {
+let selectedRowInfo: { index: number | null | undefined; isSelectionStarted: boolean; path: Array<number> } = {
   index: null,
+  isSelectionStarted: false,
   path: [],
 }
 
@@ -309,6 +311,7 @@ const {
   view,
   isAddingColumnAllowed,
   isAddingEmptyRowAllowed,
+  isAddingEmptyRowPermitted,
   // Selections
   isSelectedOnlyScript,
   isSelectedOnlyAI,
@@ -340,6 +343,8 @@ const {
   removeInlineAddRecord,
   upgradeModalInlineState,
   isRowDraggingEnabled,
+  rowMetaColumnWidth,
+  rowColouringBorderWidth,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -397,6 +402,34 @@ function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType)
 }
 
 // Computed
+const isDropdownVisible = computed({
+  get() {
+    return _isDropdownVisible.value
+  },
+  set(value) {
+    // block closing editOrAddMenu if it needs to be keep open
+    // for example while saving/updating column it needs to be in open state to avoid partial save
+    if (!value && _isCreateOrEditColumnDropdownOpen.value && columnEditOrAddProviderRef.value?.shouldKeepModalOpen()) {
+      return
+    }
+    _isDropdownVisible.value = value
+  },
+})
+
+const isCreateOrEditColumnDropdownOpen = computed({
+  get() {
+    return _isCreateOrEditColumnDropdownOpen.value
+  },
+  set(value) {
+    // block closing editOrAddMenu if it needs to be keep open
+    // for example while saving/updating column it needs to be in open state to avoid partial save
+    if (!value && columnEditOrAddProviderRef.value?.shouldKeepModalOpen()) {
+      return
+    }
+    _isCreateOrEditColumnDropdownOpen.value = value
+  },
+})
+
 const noPadding = computed(() => paddingLessUITypes.has(editEnabled.value?.column.uidt as UITypes))
 
 const containerRef = computed(() => scroller.value?.wrapperRef)
@@ -753,14 +786,16 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
 
   const initialX = currentX
 
+  const rowColouringBoxTotalWidth = rowColouringBorderWidth.value ? rowColouringBorderWidth.value + 8 : 0
+
   if (readOnly.value || !(isHover || isChecked || isRowCellSelected)) {
     regions.push({
       x: currentX,
-      width: ROW_META_COLUMN_WIDTH / 2 - 8,
+      width: rowMetaColumnWidth.value / 2 - 8,
       action: 'none',
     })
 
-    currentX += ROW_META_COLUMN_WIDTH / 2 - 8 + 16
+    currentX += rowMetaColumnWidth.value / 2 - 8 + 16
   } else if ((isHover || isChecked || isRowCellSelected) && isRowDraggingEnabled.value) {
     regions.push({
       x: currentX,
@@ -791,11 +826,11 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     const ctx = defaultOffscreen2DContext
 
     const { width: commentCountWidth } = renderSingleLineText(ctx, {
-      x: initialX + ROW_META_COLUMN_WIDTH / 2 - 4,
+      x: initialX + rowMetaColumnWidth.value / 2 - 4 - rowColouringBoxTotalWidth,
       y: 0,
       render: false,
       text: commentCount,
-      maxWidth: ROW_META_COLUMN_WIDTH / 2,
+      maxWidth: rowMetaColumnWidth.value / 2 - rowColouringBoxTotalWidth,
       fontFamily: `600 ${reduceFontSize ? '10px' : '12px'} Inter`,
       textAlign: 'center',
       isTagLabel: true,
@@ -803,13 +838,13 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     })
 
     regions.push({
-      x: initialX + ROW_META_COLUMN_WIDTH - 4 - Math.max(20, commentCountWidth + 8),
+      x: initialX + rowMetaColumnWidth.value - 4 - Math.max(20, commentCountWidth + 8) - rowColouringBoxTotalWidth,
       width: Math.max(20, commentCountWidth + 8),
       action: 'comment',
     })
   } else {
     regions.push({
-      x: initialX + ROW_META_COLUMN_WIDTH - 4 - 20,
+      x: initialX + rowMetaColumnWidth.value - 4 - 20 - rowColouringBoxTotalWidth,
       width: 20,
       action: 'comment',
     })
@@ -852,6 +887,7 @@ const handleRowMetaClick = ({
             selectedRowInfo = {
               index: row.rowMeta.rowIndex,
               path,
+              isSelectionStarted: false,
             }
           }
 
@@ -949,7 +985,10 @@ async function handleMouseDown(e: MouseEvent) {
   editColumn.value = null
   columnOrder.value = null
   isCreateOrEditColumnDropdownOpen.value = false
-  overlayStyle.value = null
+  // skip resetting if add/edit column still visible
+  if (!isCreateOrEditColumnDropdownOpen.value) {
+    overlayStyle.value = null
+  }
   contextMenuTarget.value = null
   prevActiveCell = null
 
@@ -964,7 +1003,7 @@ async function handleMouseDown(e: MouseEvent) {
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column
-    if (x > ROW_META_COLUMN_WIDTH) {
+    if (x > rowMetaColumnWidth.value) {
       // If the user is trying to resize the column
       // If the user is trying to resize column, we will set the resizeableColumn to column object
       // The below operation will not interfere with other column operations
@@ -1007,7 +1046,7 @@ async function handleMouseDown(e: MouseEvent) {
   if (!row) return
   // onMouseDown event, we only handle the fillHandler and selectionHandler
   // and rowReorder. Other events should be handled in onMouseUp
-  if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
+  if (x < rowMetaColumnWidth.value + groupByColumns.value.length * 13) {
     if (clickType !== MouseClickType.SINGLE_CLICK) return
     handleRowMetaClick({ e, row, x, onlyDrag: true, group })
     return
@@ -1152,7 +1191,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   if (mouseUpListener) {
     document.removeEventListener('mouseup', mouseUpListener)
     mouseUpListener = null
-    selectedRowInfo = { index: null, path: [] }
+    selectedRowInfo = { index: null, path: [], isSelectionStarted: false }
   }
 
   await onMouseUpFillHandlerEnd()
@@ -1164,7 +1203,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   if (editEnabled.value) return
 
   if (onMouseUpSelectionHandler(e)) {
-    if (y <= COLUMN_HEADER_HEIGHT_IN_PX || y > height.value - 36 || x <= ROW_META_COLUMN_WIDTH) {
+    if (y <= COLUMN_HEADER_HEIGHT_IN_PX || y > height.value - 36 || x <= rowMetaColumnWidth.value) {
       // DO_NOTHING_HERE
     } else {
       requestAnimationFrame(triggerRefreshCanvas)
@@ -1199,7 +1238,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   // Handle all Column Header Operations
   if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
     // If x less than 80px, use is hovering over the row meta column
-    if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
+    if (x < rowMetaColumnWidth.value + groupByColumns.value.length * 13) {
       // If the click is not normal single click, return
       if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value || isGroupBy.value) return
       if (isBoxHovered({ x: isRowDraggingEnabled.value ? 4 + 26 : 10, y: 8, height: 16, width: 16 }, mousePosition)) {
@@ -1258,9 +1297,9 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
           return
         } else {
           const columnWidth = parseCellWidth(clickedColumn.width)
-          const iconOffsetX = xOffset + columnWidth - 24
+          const iconOffsetX = xOffset + columnWidth - 24 + groupByColumns.value.length * 13
           // check if clicked on the column menu icon
-          if (y <= 21 && y >= 9 && iconOffsetX <= x && iconOffsetX + 14 >= x) {
+          if (iconOffsetX <= x && iconOffsetX + 14 >= x) {
             if (isFieldNotEditable) return
 
             // if menu already in open state then close it on second click
@@ -1331,7 +1370,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     // If the click is not normal single click, return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 
-    if (clickedColumn) {
+    if (clickedColumn && clickedColumn.id !== 'row_number') {
       // if clicked on same aggregation field, close the dropdown
       if (
         prevMenuState.isDropdownVisible &&
@@ -1466,7 +1505,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     return
   }
 
-  if (x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13) {
+  if (x < rowMetaColumnWidth.value + groupByColumns.value.length * 13) {
     if (!row) return
     if (![MouseClickType.SINGLE_CLICK, MouseClickType.RIGHT_CLICK].includes(clickType)) return
 
@@ -1855,7 +1894,7 @@ const handleMouseMove = (e: MouseEvent) => {
 
   // check if hovering row meta column and set cursor
   if (
-    mousePosition.x < ROW_META_COLUMN_WIDTH + groupByColumns.value.length * 13 &&
+    mousePosition.x < rowMetaColumnWidth.value + groupByColumns.value.length * 13 &&
     mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX
   ) {
     // handle hovering on the aggregation dropdown
@@ -1887,15 +1926,29 @@ const handleMouseMove = (e: MouseEvent) => {
 
       const selectionEnd = Math.min(selectionStart + MAX_SELECTED_ROWS, Math.max(selectedRowInfo.index, row.rowMeta.rowIndex))
 
+      /**
+       * If selection is started and the selection is not changed, then don't do anything
+       */
+      if (selectionStart === selectionEnd && selectionStart === selectedRowInfo.index && selectedRowInfo.isSelectionStarted) {
+        return
+      }
+
       const dataCache = getDataCache(element.groupPath)
 
       dataCache.cachedRows.value.forEach((row) => {
         if (row.rowMeta.rowIndex >= selectionStart && row.rowMeta.rowIndex <= selectionEnd) {
           row.rowMeta.selected = true
-        } else {
+        } else if (selectedRowInfo.isSelectionStarted) {
+          /**
+           * If it is first drag selection, then we should not unselect other rows until we move cursor to next or prev row
+           */
           row.rowMeta.selected = false
         }
       })
+
+      if (!selectedRowInfo.isSelectionStarted) {
+        selectedRowInfo.isSelectionStarted = true
+      }
 
       requestAnimationFrame(triggerRefreshCanvas)
     }
@@ -1903,8 +1956,16 @@ const handleMouseMove = (e: MouseEvent) => {
 }
 
 const handleMouseLeave = () => {
-  activeCursor.value = 'auto'
+  setCursor('auto')
   hideTooltip()
+
+  // Reset hover row on mouse leave from canvas
+  hoverRow.value = {
+    path: [],
+    rowIndex: -2,
+  }
+
+  requestAnimationFrame(triggerRefreshCanvas)
 }
 
 const reloadViewDataHookHandler = withLoading(async (params) => {
@@ -1991,6 +2052,8 @@ async function expandRows({
     'newColumns': newColumns,
     'cellsOverwritten': cellsOverwritten,
     'rowsUpdated': rowsUpdated,
+    'isAddingEmptyRowPermitted': isAddingEmptyRowPermitted.value,
+    'meta': meta.value,
     'onUpdate:expand': closeDialog,
     'onUpdate:modelValue': closeDlg,
   })
@@ -2183,7 +2246,7 @@ const onNavigate = async (dir: NavigateDir) => {
     case NavigateDir.NEXT:
       if (activeCell.value.row < dataCache.totalRows.value - 1) {
         activeCell.value.row++
-      } else {
+      } else if (isAddingEmptyRowAllowed.value && isAddingEmptyRowPermitted.value && !removeInlineAddRecord.value) {
         addEmptyRow(undefined, false, undefined, defaultData, path)
         activeCell.value.row++
       }
@@ -2427,6 +2490,24 @@ defineExpose({
   scrollToRow: scrollToCell,
   openColumnCreate,
 })
+
+const routeQuery = computed(() => route.query as Record<string, string>)
+
+// Automatically expand the first row if the route query has expand=true and no rowId is specified
+watch(
+  [() => cachedRows.value.size, () => routeQuery.value.expand, () => routeQuery.value.rowId],
+  ([size, expand, rowId]) => {
+    if (expand === 'true' && !rowId && !isGroupBy.value && size > 0) {
+      const firstKey = cachedRows.value.keys().next().value
+      const firstRow = cachedRows.value?.get(firstKey)
+      if (firstRow) {
+        // expand the row using expandForm method
+        expandForm(firstRow, undefined, undefined, Array.isArray(firstRow.rowMeta?.path) ? firstRow.rowMeta.path : [])
+      }
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -2526,7 +2607,12 @@ defineExpose({
               willChange: 'top, left, width, height',
             }"
             class="nc-canvas-table-editable-cell-wrapper pointer-events-auto"
-            :class="{ [`row-height-${rowHeightEnum ?? 1}`]: true, 'on-stick': isClamped.isStuck }"
+            :class="{
+              [`row-height-${rowHeightEnum ?? 1}`]: true,
+              'on-stick ': isClamped.isStuck,
+              'border-[#3366ff]': isClamped.isStuck && editEnabled.isCellEditable,
+              'border-[#9AA2AF]': isClamped.isStuck && !editEnabled.isCellEditable,
+            }"
           >
             <div
               ref="activeCellElement"
@@ -2552,7 +2638,8 @@ defineExpose({
                     :row="editEnabled.row"
                     :path="editEnabled.path"
                     active
-                    :read-only="!isDataEditAllowed"
+                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable"
+                    :is-allowed="editEnabled.isCellEditable"
                     @save="
                       updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state, undefined, undefined, editEnabled.path)
                     "
@@ -2566,7 +2653,8 @@ defineExpose({
                     :path="editEnabled.path"
                     active
                     edit-enabled
-                    :read-only="!isDataEditAllowed"
+                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable"
+                    :is-allowed="editEnabled.isCellEditable"
                     @update:model-value="updateValue"
                     @save="updateOrSaveRow?.(...$event)"
                     @save-with-state="updateOrSaveRow?.(...$event)"
@@ -2592,6 +2680,7 @@ defineExpose({
         }`"
         placement="bottomRight"
         @visible-change="onVisibilityChange"
+        @update:visible="onVisibilityChange"
       >
         <div
           v-if="openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown"
@@ -2635,61 +2724,71 @@ defineExpose({
       </NcDropdown>
     </template>
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
-      <NcDropdown v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord">
-        <div class="flex shadow-nc-sm rounded-lg">
-          <NcButton
-            v-if="isMobileMode"
-            v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="nc-grid-add-new-row"
-            size="small"
-            type="secondary"
-            :shadow="false"
-            @click.stop="onNewRecordToFormClick()"
-          >
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="plus" />
-              New Record
+      <PermissionsTooltip
+        v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord"
+        :entity="PermissionEntity.TABLE"
+        :entity-id="meta?.id"
+        :permission="PermissionKey.TABLE_RECORD_ADD"
+        show-overlay
+      >
+        <template #default="{ isAllowed }">
+          <NcDropdown :disabled="!isAllowed">
+            <div class="flex shadow-nc-sm rounded-lg">
+              <NcButton
+                v-if="isMobileMode"
+                v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
+                class="nc-grid-add-new-row"
+                size="small"
+                type="secondary"
+                :shadow="false"
+                @click.stop="onNewRecordToFormClick()"
+              >
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="plus" />
+                  New Record
+                </div>
+              </NcButton>
+              <NcButton
+                v-else
+                v-e="[isAddNewRecordGridMode && !isGroupBy ? 'c:row:add:grid' : 'c:row:add:form']"
+                class="nc-grid-add-new-row"
+                size="small"
+                :class="{
+                  '!rounded-r-none !border-r-0': !isGroupBy,
+                }"
+                type="secondary"
+                :shadow="false"
+                @click.stop="isAddNewRecordGridMode && !isGroupBy ? addEmptyRow() : onNewRecordToFormClick()"
+              >
+                <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
+                  <GeneralIcon icon="plus" />
+                  <template v-if="isAddNewRecordGridMode || isGroupBy">
+                    {{ $t('activity.newRecord') }}
+                  </template>
+                  <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}</template>
+                </div>
+              </NcButton>
+              <NcButton
+                v-if="!isMobileMode && !isGroupBy"
+                size="small"
+                class="!rounded-l-none nc-add-record-more-info"
+                type="secondary"
+                :shadow="false"
+              >
+                <GeneralIcon icon="arrowUp" />
+              </NcButton>
             </div>
-          </NcButton>
-          <NcButton
-            v-else
-            v-e="[isAddNewRecordGridMode && !isGroupBy ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="nc-grid-add-new-row"
-            size="small"
-            :class="{
-              '!rounded-r-none !border-r-0': !isGroupBy,
-            }"
-            type="secondary"
-            :shadow="false"
-            @click.stop="isAddNewRecordGridMode && !isGroupBy ? addEmptyRow() : onNewRecordToFormClick()"
-          >
-            <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
-              <GeneralIcon icon="plus" />
-              <template v-if="isAddNewRecordGridMode || isGroupBy">
-                {{ $t('activity.newRecord') }}
-              </template>
-              <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}</template>
-            </div>
-          </NcButton>
-          <NcButton
-            v-if="!isMobileMode && !isGroupBy"
-            size="small"
-            class="!rounded-l-none nc-add-record-more-info"
-            type="secondary"
-            :shadow="false"
-          >
-            <GeneralIcon icon="arrowUp" />
-          </NcButton>
-        </div>
 
-        <template #overlay>
-          <AddNewRowMenu
-            :path="openAddNewRowDropdown"
-            :on-new-record-to-grid-click="onNewRecordToGridClick"
-            :on-new-record-to-form-click="onNewRecordToFormClick"
-          />
+            <template #overlay>
+              <AddNewRowMenu
+                :path="openAddNewRowDropdown"
+                :on-new-record-to-grid-click="onNewRecordToGridClick"
+                :on-new-record-to-form-click="onNewRecordToFormClick"
+              />
+            </template>
+          </NcDropdown>
         </template>
-      </NcDropdown>
+      </PermissionsTooltip>
     </div>
   </div>
 </template>
@@ -2699,7 +2798,7 @@ defineExpose({
   @apply sticky !text-small !leading-[18px] overflow-hidden;
 
   &.on-stick {
-    @apply bg-white border-2 !rounded border-[#3366ff];
+    @apply bg-white border-2 !rounded;
   }
 
   &.row-height-1 {

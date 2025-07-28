@@ -1,11 +1,17 @@
 import { beforeEach } from 'mocha';
 import request from 'supertest';
-import { ViewTypes } from 'nocodb-sdk';
+import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import init from '../../init';
 import { createProject } from '../../factory/base';
 import { createTable } from '../../factory/table';
-import { customColumns, updateGridViewColumn } from '../../factory/column';
+import {
+  createColumn,
+  createLtarColumn,
+  createRollupColumn,
+  customColumns,
+  updateGridViewColumn,
+} from '../../factory/column';
 import { createView } from '../../factory/view';
 import type {
   Base,
@@ -279,6 +285,34 @@ const verificationData = {
   },
 };
 
+async function setupVirtualColumns(
+  context,
+  base,
+  table,
+  relatedTable,
+  childTable,
+) {
+  // Create LTAR relationship
+  const ltarColumn = await createLtarColumn(context, {
+    title: 'LTARColumn',
+    parentTable: table,
+    childTable: childTable,
+    type: 'hm',
+  });
+
+  // Create Rollup column
+  const rollupColumn = await createRollupColumn(context, {
+    base,
+    title: 'RollupColumn',
+    rollupFunction: 'count',
+    table,
+    relatedTableName: childTable.table_name,
+    relatedTableColumnTitle: 'Title',
+  });
+
+  return { ltarColumn, rollupColumn };
+}
+
 function aggregationTests() {
   let context;
   let ctx: {
@@ -288,6 +322,8 @@ function aggregationTests() {
 
   let base: Base;
   let table: Model;
+  let relatedTable: Model;
+  let childTable: Model;
   let columns: Array<Column>;
   let gridView: View;
 
@@ -309,6 +345,27 @@ function aggregationTests() {
       columns: customColumns('aggregationBased'),
     });
 
+    // Create related tables
+    relatedTable = await createTable(context, base, {
+      table_name: 'RelatedTable',
+      title: 'RelatedTable',
+      columns: [
+        { column_name: 'Id', title: 'Id', uidt: UITypes.ID, ai: 1, pk: 1 },
+        { column_name: 'Title', title: 'Title', uidt: UITypes.SingleLineText },
+      ],
+    });
+
+    await relatedTable.getColumns(context);
+
+    childTable = await createTable(context, base, {
+      table_name: 'ChildTable',
+      title: 'ChildTable',
+      columns: [
+        { column_name: 'Id', title: 'Id', uidt: UITypes.ID, ai: 1, pk: 1 },
+        { column_name: 'Title', title: 'Title', uidt: UITypes.SingleLineText },
+      ],
+    });
+
     gridView = await createView(context, {
       table,
       type: ViewTypes.GRID,
@@ -328,6 +385,20 @@ function aggregationTests() {
       .post(`/api/v2/tables/${table.id}/records`)
       .set('xc-auth', context.token)
       .send(data)
+      .expect(200);
+
+    // Insert data into related table
+    await request(context.app)
+      .post(`/api/v2/tables/${relatedTable.id}/records`)
+      .set('xc-auth', context.token)
+      .send([{ Title: 'Related Record 1' }, { Title: 'Related Record 2' }])
+      .expect(200);
+
+    // Insert data into child table
+    await request(context.app)
+      .post(`/api/v2/tables/${childTable.id}/records`)
+      .set('xc-auth', context.token)
+      .send([{ Title: 'Child Record 1' }, { Title: 'Child Record 2' }])
       .expect(200);
   });
 
@@ -374,6 +445,124 @@ function aggregationTests() {
           y[1] instanceof Object ? y[1][db] : y[1],
           `Failed for ${colName} ${y[0]}`,
         );
+      }
+    }
+  });
+
+  it('should get aggregation data for virtual column types (formula, links, rollup)', async () => {
+    const table = await createTable(context, base, {
+      table_name: 'Table_Test',
+      title: 'Table_Test',
+      columns: [
+        { column_name: 'Id', title: 'Id', uidt: UITypes.ID, ai: 1, pk: 1 },
+        { column_name: 'Title', title: 'Title', uidt: UITypes.SingleLineText },
+        { column_name: 'Number', title: 'Number', uidt: UITypes.Number },
+      ],
+    });
+
+    await createColumn(context, table, {
+      column_name: 'FormulaColumn',
+      title: 'FormulaColumn',
+      uidt: UITypes.Formula,
+      formula_raw: 'Number + 10',
+    });
+
+    await setupVirtualColumns(context, base, table, relatedTable, childTable);
+
+    // Create grid view
+    const gridView = await createView(context, {
+      table: table,
+      type: ViewTypes.GRID,
+      title: 'Aggregation View',
+    });
+
+    // Get columns for table
+    const columns = await table.getColumns(ctx);
+    const gridViewColumns = (
+      await request(context.app)
+        .get(`/api/v1/db/meta/views/${gridView.id}/columns`)
+        .set('xc-auth', context.token)
+        .expect(200)
+    ).body.list;
+
+    // Insert test data with formula calculations
+    await request(context.app)
+      .post(`/api/v2/tables/${table.id}/records`)
+      .set('xc-auth', context.token)
+      .send([
+        { Title: 'Record 1', Number: 42 },
+        { Title: 'Record 2', Number: 100 },
+      ])
+      .expect(200);
+
+    // expected aggregation data for columns
+    const verificationData = {
+      FormulaColumn: {
+        count_unique: 2,
+        count_empty: 0,
+        count_filled: 2,
+        percent_unique: 100,
+        percent_filled: 100,
+        percent_empty: 0,
+        sum: 162, // (42+10) + (100+10) = 52 + 110 = 162
+        min: 52, // 42+10
+        max: 110, // 100+10
+        avg: 81, // (52+110)/2
+      },
+      LTARColumn: {
+        count_unique: 1, // Has some relationship entries
+        count_empty: 0,
+        count_filled: 2,
+        percent_unique: 50,
+        percent_filled: 100,
+        percent_empty: 0,
+      },
+      RollupColumn: {
+        count_unique: 1, // Will have count values
+        count_empty: 0,
+        count_filled: 2,
+        percent_unique: 50,
+        percent_filled: 100,
+        percent_empty: 0,
+      },
+    };
+
+    // Test aggregations for each column type
+    for (const [colName, expectedData] of Object.entries(verificationData)) {
+      const col = columns.find((c) => c.title === colName);
+      if (!col) continue; // Skip if column not found
+
+      for (const [aggregationType, expectedValue] of Object.entries(
+        expectedData,
+      )) {
+        await updateGridViewColumn(context, {
+          view: gridView,
+          column: gridViewColumns.find((c) => c.fk_column_id === col.id),
+          attr: { aggregation: aggregationType },
+        });
+
+        const aggregate = (
+          await request(context.app)
+            .get(`/api/v2/tables/${table.id}/aggregate`)
+            .query({ viewId: gridView.id })
+            .set('xc-auth', context.token)
+            .expect(200)
+        ).body;
+        if (
+          colName === 'FormulaColumn' &&
+          ['sum', 'min', 'max', 'avg'].includes(aggregationType)
+        ) {
+          expect(Number(aggregate[colName])).to.be.closeTo(
+            expectedValue as number,
+            1,
+            `Failed for ${colName} ${aggregationType}: expected ${expectedValue}, got ${aggregate[colName]}`,
+          );
+        } else {
+          expect(aggregate[colName]).to.equal(
+            expectedValue,
+            `Failed for ${colName} ${aggregationType}: expected ${expectedValue}, got ${aggregate[colName]}`,
+          );
+        }
       }
     }
   });

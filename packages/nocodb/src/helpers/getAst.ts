@@ -4,18 +4,24 @@ import {
   isLinksOrLTAR,
   isOrderCol,
   isSystemColumn,
+  NcApiVersion,
+  parseProp,
   RelationTypes,
+  ROW_COLORING_MODE,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
-import { NcApiVersion } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import type {
   Column,
   LinkToAnotherRecordColumn,
   LookupColumn,
   Model,
 } from '~/models';
-import type { NcContext } from '~/interface/config';
+import type { ViewMetaRowColoring } from '~/models/View';
+import { MetaTable } from '~/cli';
+import { NcError } from '~/helpers/catchError';
 import {
   CalendarRange,
   Filter,
@@ -25,7 +31,8 @@ import {
   KanbanViewColumn,
   View,
 } from '~/models';
-import { NcError } from '~/helpers/catchError';
+import RowColorCondition from '~/models/RowColorCondition';
+import Noco from '~/Noco';
 
 type Ast = {
   [key: string]: 1 | true | null | Ast;
@@ -50,6 +57,8 @@ const getAst = async (
     apiVersion = NcApiVersion.V2,
     extractOrderColumn = false,
     includeSortAndFilterColumns = false,
+    includeRowColorColumns = false,
+    skipSubstitutingColumnIds = false,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
@@ -64,6 +73,8 @@ const getAst = async (
     apiVersion?: NcApiVersion;
     extractOrderColumn?: boolean;
     includeSortAndFilterColumns?: boolean;
+    includeRowColorColumns?: boolean;
+    skipSubstitutingColumnIds?: boolean;
   },
 ): Promise<{
   ast: Ast;
@@ -73,6 +84,10 @@ const getAst = async (
   // set default values of dependencyFields and nested
   dependencyFields.nested = dependencyFields.nested || {};
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
+
+  const getFieldKey = (col: Column) => {
+    return skipSubstitutingColumnIds ? col.id : col.title;
+  };
 
   let coverImageId;
   let dependencyFieldsForCalenderView;
@@ -110,13 +125,24 @@ const getAst = async (
 
   if (!model.columns?.length) await model.getColumns(context);
 
+  const rowColoringColumnIds = new Set<string>();
+  if (view && includeRowColorColumns) {
+    const addingColumns = await getViewRowColorFields({ context, view });
+    for (const addColumn of addingColumns) {
+      rowColoringColumnIds.add(addColumn);
+    }
+  }
+
   // extract only pk and pv
   if (extractOnlyPrimaries) {
     const ast: Ast = {
       ...(model.primaryKeys
-        ? model.primaryKeys.reduce((o, pk) => ({ ...o, [pk.title]: 1 }), {})
+        ? model.primaryKeys.reduce(
+            (o, pk) => ({ ...o, [getFieldKey(pk)]: 1 }),
+            {},
+          )
         : {}),
-      ...(model.displayValue ? { [model.displayValue.title]: 1 } : {}),
+      ...(model.displayValue ? { [getFieldKey(model.displayValue)]: 1 } : {}),
     };
     await Promise.all(
       model.primaryKeys.map((c) =>
@@ -133,7 +159,7 @@ const getAst = async (
     const ast: Ast = {
       ...(dependencyFieldsForCalenderView || []).reduce((o, f) => {
         const col = model.columns.find((c) => c.id === f);
-        return { ...o, [col.title]: 1 };
+        return { ...o, [getFieldKey(col)]: 1 };
       }, {}),
     };
 
@@ -198,6 +224,7 @@ const getAst = async (
 
   const ast: Ast = await columns.reduce(async (obj, col: Column) => {
     let value: number | boolean | { [key: string]: any } = 1;
+    // TODO: also get from col.id
     const nestedFields =
       query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
     if (nestedFields && nestedFields !== '*') {
@@ -255,12 +282,15 @@ const getAst = async (
     }
     let isRequested;
 
-    const isInFields = fields?.length && fields.includes(col.title);
+    const isInFields =
+      fields?.length && (fields.includes(col.title) || fields.includes(col.id));
     const isSortOrFilterColumn =
       includeSortAndFilterColumns &&
       (sortColumnIds.includes(col.id) || filterColumnIds.includes(col.id));
 
     if (isSortOrFilterColumn) {
+      isRequested = true;
+    } else if (rowColoringColumnIds.has(col.id)) {
       isRequested = true;
     }
     // exclude system column and foreign key from API response for v3
@@ -301,7 +331,10 @@ const getAst = async (
         (!fields?.length || isInFields) &&
         value;
     } else if (fields?.length) {
-      isRequested = isInFields && value;
+      // For APIv3, always extract primary key dependencies even if not explicitly requested
+      // This is needed because APIv3 always returns the primary key as 'id' at root level
+      isRequested =
+        (isInFields && value) || (apiVersion === NcApiVersion.V3 && col.pk);
     } else {
       isRequested = value;
     }
@@ -311,11 +344,45 @@ const getAst = async (
 
     return {
       ...(await obj),
-      [col.title]: isRequested,
+      [getFieldKey(col)]: isRequested,
     };
   }, Promise.resolve({}));
 
   return { ast, dependencyFields, parsedQuery: dependencyFields };
+};
+
+const getViewRowColorFields = async (params: {
+  context: NcContext;
+  view: View;
+  ncMeta?: MetaService;
+}) => {
+  if (params.view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {
+    const viewMeta = parseProp(params.view.meta) as ViewMetaRowColoring;
+    return [viewMeta?.rowColoringInfo?.fk_column_id];
+  } else if (params.view.row_coloring_mode === ROW_COLORING_MODE.FILTER) {
+    const ncMeta = params.ncMeta ?? Noco.ncMeta;
+    const rowColorConditions = await RowColorCondition.getByViewId(
+      params.context,
+      params.view.id,
+    );
+    const filters = await ncMeta.metaList2(
+      params.context.workspace_id,
+      params.context.base_id,
+      MetaTable.FILTER_EXP,
+      {
+        xcCondition: (knex) =>
+          knex.whereIn(
+            'fk_row_color_condition_id',
+            rowColorConditions.map((k) => k.id),
+          ),
+      },
+    );
+    return filters
+      .filter((f) => f.fk_column_id)
+      .map((f) => f.fk_column_id as string)
+      .filter((value, index, array) => array.indexOf(value) === index);
+  }
+  return [] as string[];
 };
 
 const extractDependencies = async (

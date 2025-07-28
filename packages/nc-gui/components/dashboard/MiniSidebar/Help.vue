@@ -38,7 +38,7 @@ const helpItems = computed<CategoryItemType[]>(() => {
           title: t('labels.documentation'),
           icon: 'file',
           e: 'e:nocodb:docs-open',
-          link: 'https://docs.nocodb.com/',
+          link: 'https://nocodb.com/docs/product-docs',
         },
         {
           title: t('labels.apis'),
@@ -49,12 +49,12 @@ const helpItems = computed<CategoryItemType[]>(() => {
             {
               title: t('labels.dataApiV2'),
               e: 'c:nocodb:data-api-open',
-              link: 'https://data-apis-v2.nocodb.com/',
+              link: 'https://nocodb.com/apis/v2/data',
             },
             {
               title: t('labels.metaApiV2'),
               e: 'c:nocodb:meta-api-open',
-              link: 'https://meta-apis-v2.nocodb.com/',
+              link: 'https://nocodb.com/apis/v2/meta',
             },
           ],
         },

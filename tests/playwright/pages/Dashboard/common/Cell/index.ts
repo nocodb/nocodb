@@ -126,6 +126,10 @@ export class CellPageObject extends BasePage {
   }
 
   async verify({ index, columnHeader, value }: CellProps & { value: string | string[] }) {
+    if (this.parent instanceof GridPage) {
+      await this.parent.waitForRowSaveSpinnerToDisappear(index);
+    }
+
     const _verify = async text => {
       // await expect
       //   .poll(async () => {
@@ -387,6 +391,7 @@ export class CellPageObject extends BasePage {
     // For HM/MM columns
     else {
       await cell.locator('.nc-datatype-link').click();
+      await this.rootPage.locator('.nc-links-dropdown.active').waitFor({ state: 'visible' });
       await this.rootPage
         .locator(`[data-testid="nc-child-list-item"]`)
         .last()

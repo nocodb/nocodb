@@ -73,6 +73,7 @@ const rolePermissions = {
       airtableImport: true,
       jsonImport: true,
       excelImport: true,
+      nocodbImport: true,
       settingsPage: true,
       webhook: true,
       fieldEdit: true,
@@ -91,6 +92,11 @@ const rolePermissions = {
       baseAuditList: true,
 
       extensionList: true,
+
+      // Row colouring
+      rowColourUpdate: true,
+
+      projectOverviewTab: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -141,6 +147,7 @@ export const sourceRestrictions = {
     csvImport: true,
     jsonImport: true,
     excelImport: true,
+    nocodbImport: true,
     duplicateColumn: true,
     duplicateModel: true,
     tableDuplicate: true,
@@ -154,6 +161,7 @@ export const sourceRestrictions = {
     csvImport: true,
     jsonImport: true,
     excelImport: true,
+    nocodbImport: true,
     duplicateColumn: true,
     duplicateModel: true,
   },

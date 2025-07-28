@@ -43,6 +43,7 @@ export interface AppInfo {
   isOnPrem: boolean
   stripePublishableKey?: string
   marketingRootUrl?: string
+  openReplayKey?: string | null
 }
 
 export interface StoredState {
@@ -109,7 +110,8 @@ export interface Actions {
     tableId?: string
     viewId?: string
     automationId?: string
-    automation?: boolean
+    replace?: boolean
+    dashboardId?: string
   }) => void
   getBaseUrl: (workspaceId: string) => string | undefined
   getMainUrl: (workspaceId: string) => string | undefined

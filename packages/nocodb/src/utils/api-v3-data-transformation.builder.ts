@@ -357,8 +357,10 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
         isLocaleString: 'locale_string',
         richMode: 'rich_text',
         [LongTextAiMetaProp]: 'generate_text_using_ai',
-        // isLocaleString : 'thousand_separator',
         isDisplayTimezone: 'display_timezone',
+        is_multi: 'allow_multiple_users',
+        is_progress: 'show_as_progress',
+        max: 'max_value',
       },
       excluded: [
         'defaultViewColOrder',
@@ -500,7 +502,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
 export const columnOptionsV3ToV2Builder = builderGenerator({
   allowed: [
     'formula',
-    'qr_value_field_id',
+    'qrcode_value_field_id',
     'barcode_value_field_id',
     'relation_type',
     'related_table_id',
@@ -570,11 +572,14 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       '12hr_format': 'is12hrFormat',
       locale_string: 'isLocaleString',
       rich_text: 'richMode',
-
-      display_timezone: 'display_timezone',
+      display_timezone: 'isDisplayTimezone',
 
       // LingText
       generate_text_using_ai: LongTextAiMetaProp,
+
+      allow_multiple_users: 'is_multi',
+      show_as_progress: 'is_progress',
+      max_value: 'max',
 
       // duration_format: 'duration',
     },
@@ -586,6 +591,9 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       'icon',
       'iconIdx',
       'duration_format',
+      'is_multi',
+      'is_progress',
+      'max',
     ],
   },
   transformFn: (data) => {
@@ -596,14 +604,15 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       case UITypes.SingleSelect:
       case UITypes.MultiSelect:
         {
-          const choices = data.meta.choices.map((opt) => {
-            const res: Record<string, unknown> = {
-              title: opt.title,
-              color: opt.color,
-            };
-            if (opt.id) res.id = opt.id;
-            return res;
-          });
+          const choices =
+            meta.choices?.map((opt) => {
+              const res: Record<string, unknown> = {
+                title: opt.title,
+                color: opt.color,
+              };
+              if (opt.id) res.id = opt.id;
+              return res;
+            }) ?? [];
           colOptions = { options: choices };
         }
         break;
@@ -614,7 +623,7 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
     }
 
     if (data.uidt === UITypes.Checkbox) {
-      const { icon, ..._ } = data.meta as Record<string, any>;
+      const { icon, ..._ } = meta as Record<string, any>;
 
       if (icon) {
         const iconIdx = checkboxIconList.findIndex((ic) => ic.label === icon);
@@ -625,7 +634,7 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
         }
       }
     } else if (data.uidt === UITypes.Rating) {
-      const { icon, ..._ } = data.meta as Record<string, any>;
+      const { icon, ..._ } = meta as Record<string, any>;
 
       if (icon) {
         const iconIdx = ratingIconList.findIndex((ic) => ic.label === icon);
@@ -636,10 +645,7 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
         }
       }
     } else if (data.uidt === UITypes.Duration) {
-      const { duration, duration_format, ..._ } = data.meta as Record<
-        string,
-        any
-      >;
+      const { duration, duration_format, ..._ } = meta as Record<string, any>;
       const durationFormat = duration ?? duration_format;
       // extract option meta and include only label and color
       const durationIdx = durationOptions.findIndex(
@@ -658,7 +664,7 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
         integration_id,
         output_column_ids,
         ...commonProps
-      } = data.meta as Record<string, any>;
+      } = meta as Record<string, any>;
 
       // Set base meta properties
       Object.assign(meta, commonProps);

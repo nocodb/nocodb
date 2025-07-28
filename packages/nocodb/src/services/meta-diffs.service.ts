@@ -874,6 +874,17 @@ export class MetaDiffsService {
                   source_id: source.id,
                   table_name: change.tn,
                 });
+
+                // Skip relation creation if either the parent or child table is missing.
+                // This can happen if the database user has access limited to specific tables,
+                // making it unable to create the relation. In such cases, we simply skip.
+                if (!parentModel || !childModel) {
+                  logger?.(
+                    `Skipping relation creation for ${change.tn} and ${change.rtn} because one of the tables is missing or the database user lacks access.`,
+                  );
+                  return;
+                }
+
                 const parentCol = await parentModel
                   .getColumns(context)
                   .then((cols) =>

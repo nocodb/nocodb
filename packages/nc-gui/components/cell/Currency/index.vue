@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
+import { roundUpToPrecision } from 'nocodb-sdk'
 
 interface Props {
   modelValue: number | null | undefined
@@ -48,6 +49,7 @@ const currencyMeta = computed(() => {
   return {
     currency_locale: 'en-US',
     currency_code: 'USD',
+    precision: 2,
     ...parseProp(column?.value?.meta),
   }
 })
@@ -57,10 +59,16 @@ const currency = computed(() => {
     if (vModel.value === null || vModel.value === undefined || isNaN(vModel.value)) {
       return vModel.value
     }
+
+    // Round the value to the specified precision
+    const roundedValue = roundUpToPrecision(Number(vModel.value), currencyMeta.value.precision ?? 2)
+
     return new Intl.NumberFormat(currencyMeta.value.currency_locale || 'en-US', {
       style: 'currency',
       currency: currencyMeta.value.currency_code || 'USD',
-    }).format(vModel.value)
+      minimumFractionDigits: currencyMeta.value.precision ?? 2,
+      maximumFractionDigits: currencyMeta.value.precision ?? 2,
+    }).format(roundedValue)
   } catch (e) {
     return vModel.value
   }

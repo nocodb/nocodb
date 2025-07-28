@@ -14,13 +14,18 @@ import {
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
-const formatData = (list: Record<string, any>[]) =>
+const formatData = (
+  list: Record<string, any>[],
+  evaluateRowMetaRowColorInfoCallback?: (row: Record<string, any>) => RowMetaRowColorInfo,
+) =>
   list.map(
     (row) =>
       ({
         row: { ...row },
         oldRow: { ...row },
-        rowMeta: {},
+        rowMeta: {
+          ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
+        },
       } as Row),
   )
 
@@ -45,6 +50,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     const { isUIAllowed } = useRoles()
 
     const { isMobileMode } = useGlobal()
+
+    const { getValidSearchQueryForColumn } = useFieldQuery()
 
     const displayField = computed(() => meta.value?.columns?.find((c) => c.pv))
 
@@ -75,6 +82,28 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     const searchQuery = reactive({
       value: '',
       field: '',
+      isValidFieldQuery: true,
+    })
+
+    const validSearchQueryForDisplayField = computed(() => {
+      if (!displayField.value || !searchQuery.value?.trim()) {
+        searchQuery.isValidFieldQuery = true
+        return
+      }
+
+      const validSearchQuery = getValidSearchQueryForColumn(
+        displayField.value,
+        searchQuery.value.trim(),
+        meta.value as TableType,
+        { getWhereQueryAs: 'object' },
+      )
+
+      if (!validSearchQuery) {
+        searchQuery.isValidFieldQuery = false
+        return
+      }
+
+      return validSearchQuery as ValidSearchQueryForColumnReturnType
     })
 
     const pageDate = ref<dayjs.Dayjs>(timezoneDayjs.dayjsTz())
@@ -128,9 +157,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
 
-    const { sorts, nestedFilters, isSyncedTable } = useSmartsheetStoreOrThrow()
+    const { sorts, nestedFilters, isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
 
     const { sharedView, fetchSharedViewData, fetchSharedViewActiveDate, fetchSharedCalendarViewData } = useSharedView()
+
+    const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
     const calendarMetaData = ref<CalendarType>({})
 
@@ -346,28 +377,17 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         })
       }
 
-      if (displayField.value && searchQuery.value) {
+      if (displayField.value && ncIsObject(validSearchQueryForDisplayField.value)) {
         if (combinedFilters.length > 0) {
           combinedFilters = [
             {
               is_group: true,
               logical_op: 'and',
-              children: [
-                ...combinedFilters,
-                {
-                  fk_column_id: displayField.value.id,
-                  comparison_op: 'like',
-                  value: searchQuery.value,
-                },
-              ],
+              children: [...combinedFilters, validSearchQueryForDisplayField.value],
             },
           ]
         } else {
-          combinedFilters.push({
-            fk_column_id: displayField.value.id,
-            comparison_op: 'like',
-            value: searchQuery.value,
-          })
+          combinedFilters.push(validSearchQueryForDisplayField.value)
         }
       }
 
@@ -395,7 +415,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               filtersArr: [...nestedFilters.value, ...sideBarFilter.value],
               offset: params.offset,
             })
-        formattedSideBarData.value = [...formattedSideBarData.value, ...formatData(response!.list)]
+        formattedSideBarData.value = [
+          ...formattedSideBarData.value,
+          ...formatData(response!.list, getEvaluatedRowMetaRowColorInfo),
+        ]
       } catch (e) {
         console.log(e)
       }
@@ -633,6 +656,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                 next_date: nextDate,
                 to_date: toDate,
                 from_date: fromDate,
+                include_row_color: true,
               },
               {
                 ...queryParams.value,
@@ -649,7 +673,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               from_date: fromDate,
               filtersArr: nestedFilters.value,
             })
-        formattedData.value = formatData(res!.list)
+        formattedData.value = formatData(res!.list, getEvaluatedRowMetaRowColorInfo)
       } catch (e) {
         message.error(
           `${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(
@@ -752,13 +776,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               ...{},
               ...{},
               ...{ filterArrJson: JSON.stringify([...sideBarFilter.value]) },
+              include_row_color: true,
             })
           : await fetchSharedViewData({
               sortsArr: sorts.value,
               filtersArr: [...nestedFilters.value, ...sideBarFilter.value],
             })
 
-        formattedSideBarData.value = formatData(res!.list)
+        formattedSideBarData.value = formatData(res!.list, getEvaluatedRowMetaRowColorInfo)
       } catch (e) {
         message.error(
           `${t('msg.error.fetchingCalendarData')} ${await extractSdkResponseErrorMsg(
@@ -844,6 +869,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             Object.assign(row.row, updatedRowData)
             Object.assign(row.oldRow, updatedRowData)
           }
+          Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
           return row
         })
 
@@ -941,7 +967,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       await loadSidebarData()
     })
 
-    watch(searchQuery, async () => {
+    // Load Sidebar Data when search query or field changes, `isValidFieldQuery` is used only in the frontend to show error tooltip
+    watch([() => searchQuery.value, () => displayField.value?.id], async () => {
       await loadSidebarData()
     })
 
@@ -972,6 +999,25 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         }
       },
     )
+
+    /**
+     * This is used to update the rowMeta color info when the row colour info is updated
+     */
+    eventBus.on((event) => {
+      if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
+        return
+      }
+
+      formattedData.value = formattedData.value.map((row) => {
+        Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+        return row
+      })
+
+      formattedSideBarData.value = formattedSideBarData.value.map((row) => {
+        Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+        return row
+      })
+    })
 
     return {
       fetchActiveDates,

@@ -11,6 +11,12 @@ export const useNocoAi = createSharedComposable(() => {
 
   const { activeProjectId } = storeToRefs(basesStore)
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const isAiFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
+
+  const isAiBetaFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_BETA_FEATURES))
+
   const aiLoading = ref(false)
 
   const aiError = ref<string>('')
@@ -169,6 +175,11 @@ export const useNocoAi = createSharedComposable(() => {
     return []
   }
 
+  const completeScript = async (body: any) => {
+    const res = await $api.ai.completion(activeProjectId.value, body)
+    return res
+  }
+
   const predictNextFormulas = async (
     tableId: string,
     history?: string[],
@@ -212,11 +223,12 @@ export const useNocoAi = createSharedComposable(() => {
     description?: string,
     onTableCreate?: (firstTableMeta: TableType) => void,
     customBaseId?: string,
+    sourceId?: string,
   ) => {
     try {
       const baseId = customBaseId || activeProjectId.value
 
-      const res = await callAiSchemaApi('generateTables', { title, description }, baseId)
+      const res = await callAiSchemaApi('generateTables', { title, description, sourceId }, baseId)
 
       if (res?.length) {
         await onTableCreate?.(res[0])
@@ -226,7 +238,7 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
-  const createViews = async (views: SerializedAiViewType[], customBaseId?: string) => {
+  const createViews = async (views: SerializedAiViewType[], customBaseId?: string, sourceId?: string) => {
     try {
       const baseId = customBaseId || activeProjectId.value
 
@@ -234,6 +246,7 @@ export const useNocoAi = createSharedComposable(() => {
         'createViews',
         {
           views,
+          sourceId,
         },
         baseId,
       )
@@ -249,9 +262,10 @@ export const useNocoAi = createSharedComposable(() => {
     history?: string[],
     baseId?: string,
     prompt?: string,
+    sourceId?: string,
     skipMsgToast = true,
   ): Promise<{ title: string; selected: boolean }[]> => {
-    const res = await callAiUtilsApi('predictNextTables', { history, prompt }, baseId, skipMsgToast)
+    const res = await callAiUtilsApi('predictNextTables', { history, prompt, sourceId }, baseId, skipMsgToast)
 
     if (res?.tables) {
       return res.tables.map((title: string) => ({
@@ -269,9 +283,10 @@ export const useNocoAi = createSharedComposable(() => {
     baseId?: string,
     description?: string,
     type?: string,
+    sourceId?: string,
     skipMsgToast = true,
   ) => {
-    const res = await callAiSchemaApi('predictViews', { tableId, history, description, type }, baseId, skipMsgToast)
+    const res = await callAiSchemaApi('predictViews', { tableId, history, description, type, sourceId }, baseId, skipMsgToast)
 
     if (res?.views) {
       return res.views.map((view) => ({
@@ -383,5 +398,8 @@ export const useNocoAi = createSharedComposable(() => {
     repairFormula,
     predictViews,
     aiIntegrations,
+    completeScript,
+    isAiFeaturesEnabled,
+    isAiBetaFeaturesEnabled,
   }
 })

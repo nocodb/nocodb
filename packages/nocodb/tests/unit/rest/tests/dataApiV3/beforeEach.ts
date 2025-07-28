@@ -472,9 +472,27 @@ export const beforeEachUserBased = async (testContext: ITestContext) => {
   };
 };
 
-const FILE_PATH = path.join(__dirname, 'test.txt');
-export const beforeEachAttachment = async (_testContext: ITestContext) => {
-  console.time('#### attachmentTests');
-  fs.writeFileSync(FILE_PATH, 'test', `utf-8`);
-  console.timeEnd('#### attachmentTests');
+export const beforeEachAttachment = async (testContext: ITestContext) => {
+  const table = await createTable(testContext.context, testContext.base, {
+    table_name: 'attachmentBased',
+    title: 'attachmentBased',
+    columns: [
+      {
+        column_name: 'id',
+        title: 'Id',
+        uidt: UITypes.ID,
+        description: `id ${UITypes.ID}`,
+      },
+      {
+        uidt: UITypes.Attachment,
+        column_name: 'attachment',
+        title: 'Attachment',
+      },
+    ],
+  });
+  const columns = await table.getColumns(testContext.ctx);
+  return {
+    table,
+    columns,
+  };
 };

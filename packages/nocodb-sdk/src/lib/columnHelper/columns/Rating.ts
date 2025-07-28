@@ -4,6 +4,7 @@ import { parseIntValue, serializeIntValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
+import { ncIsNaN } from '~/lib/is';
 
 export class RatingHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -23,7 +24,7 @@ export class RatingHelper extends AbstractColumnHelper {
     const res = serializeIntValue(value ?? 0);
 
     if (res === null) {
-      if (params.isMultipleCellPaste) {
+      if (params.isMultipleCellPaste || params.serializeSearchQuery) {
         return null;
       } else {
         throw new SilentTypeConversionError();
@@ -31,6 +32,10 @@ export class RatingHelper extends AbstractColumnHelper {
     }
 
     if (res) {
+      if (params.serializeSearchQuery) {
+        return res;
+      }
+
       return Math.min(
         res,
         parseProp(params.col.meta)?.max || this.columnDefaultMeta.max
@@ -48,6 +53,10 @@ export class RatingHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string {
+    if (params.isAggregation && ncIsNaN(value)) {
+      value = 0;
+    }
+
     return `${parseIntValue(value, params.col) ?? ''}`;
   }
 

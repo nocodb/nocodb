@@ -1,8 +1,4 @@
 <script lang="ts" setup>
-const props = defineProps<{
-  isAutomation?: boolean
-}>()
-
 const basesStore = useBases()
 const { basesList } = storeToRefs(basesStore)
 
@@ -36,7 +32,6 @@ const handleNavigateToProject = async (base: NcProject) => {
     baseStore.baseUrl({
       id: base.id!,
       type: 'database',
-      isAutomation: props.isAutomation,
       isSharedBase: isSharedBase.value,
     }),
   )
@@ -60,6 +55,7 @@ const handleNavigateToProject = async (base: NcProject) => {
         option-label-key="title"
         search-input-placeholder="Search bases"
         class="min-w-64 !w-auto"
+        variant="medium"
         @change="handleNavigateToProject"
       >
         <template #listItem="{ option }">

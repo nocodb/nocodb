@@ -23,9 +23,7 @@ const vModel = useVModel(props, 'modelValue', emit)
 
 const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn } = useColumnCreateStoreOrThrow()
 
-const { aiIntegrationAvailable, generateRows } = useNocoAi()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { isAiBetaFeaturesEnabled, aiIntegrationAvailable, generateRows } = useNocoAi()
 
 const previewRow = ref<Row>({
   row: {},
@@ -113,10 +111,10 @@ const generate = async () => {
 
 const isPromptEnabled = computed(() => {
   if (isEdit.value) {
-    return isAIPromptCol(column.value) || isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+    return isAIPromptCol(column.value) || isAiBetaFeaturesEnabled.value
   }
 
-  return isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+  return isAiBetaFeaturesEnabled.value
 })
 
 onMounted(() => {

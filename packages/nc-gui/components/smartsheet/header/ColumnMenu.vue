@@ -1,13 +1,19 @@
 <script lang="ts" setup>
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import {
-  type ColumnReqType,
-  type ColumnType,
+  PlanFeatureTypes,
+  PlanLimitTypes,
+  PlanTitles,
+  RelationTypes,
+  UITypes,
   columnTypeName,
   isCrossBaseLink,
+  isLinksOrLTAR,
+  isSupportedDisplayValueColumn,
+  isSystemColumn,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
-import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSupportedDisplayValueColumn, isSystemColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean; column: ColumnType }>()
@@ -51,9 +57,11 @@ const showDeleteColumnModal = ref(false)
 
 const { gridViewCols } = useViewColumnsOrThrow()
 
-const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
+const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow()
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
+
+const { isTableAndFieldPermissionsEnabled } = usePermissions()
 
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
@@ -455,6 +463,14 @@ const changeTitleField = () => {
   changeTitleFieldMenu.value = true
 }
 
+const showFieldPermissionsModal = ref(false)
+
+const onFieldPermissions = () => {
+  isOpen.value = false
+
+  showFieldPermissionsModal.value = true
+}
+
 const onDeleteColumn = () => {
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
@@ -556,9 +572,62 @@ const onDeleteColumn = () => {
     >
       <div class="nc-column-edit-description nc-header-menu-item">
         <GeneralIcon icon="ncAlignLeft" class="opacity-80 !w-4.25 !h-4.25" />
-        {{ $t('labels.editDescription') }}
+        {{ $t('labels.editFieldDescription') }}
       </div>
     </NcMenuItem>
+
+    <NcTooltip
+      v-if="
+        isTableAndFieldPermissionsEnabled &&
+        isEeUI &&
+        isUIAllowed('fieldAlter') &&
+        !isSqlView &&
+        column.uidt !== UITypes.ForeignKey
+      "
+      :disabled="showEditRestrictedColumnTooltip(column)"
+      placement="right"
+      :arrow="false"
+    >
+      <template #title>
+        {{ $t('tooltip.dataInThisFieldCantBeManuallyEdited') }}
+      </template>
+
+      <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
+        <template #default="{ click }">
+          <NcMenuItem
+            :disabled="!showEditRestrictedColumnTooltip(column)"
+            @click="
+              click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
+                onFieldPermissions()
+              })
+            "
+          >
+            <div class="nc-column-field-permissions nc-header-menu-item w-full">
+              <GeneralIcon icon="ncLock" class="opacity-80 !w-4.25 !h-4.25" />
+              <div class="flex-1">
+                {{ $t('title.editFieldPermissions') }}
+              </div>
+
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+                :title="$t('upgrade.upgradeToUseTableAndFieldPermissions')"
+                :content="
+                  $t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
+                    plan: PlanTitles.PLUS,
+                  })
+                "
+                :on-click-callback="
+                  () => {
+                    isOpen = false
+                  }
+                "
+                size="xs"
+              />
+            </div>
+          </NcMenuItem>
+        </template>
+      </PaymentUpgradeBadgeProvider>
+    </NcTooltip>
 
     <NcMenuItem
       v-if="[UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)"
@@ -736,6 +805,14 @@ const onDeleteColumn = () => {
         key="dcxx"
         v-model:value="changeTitleFieldMenu"
         :use-meta-fields="meta?.id !== view?.fk_model_id"
+      />
+      <DlgFieldPermissions
+        v-if="column && meta && isEeUI"
+        key="dfp"
+        v-model:visible="showFieldPermissionsModal"
+        :field-id="column.id!"
+        :field-title="column.title!"
+        :field-uidt="column.uidt!"
       />
     </div>
   </NcMenu>

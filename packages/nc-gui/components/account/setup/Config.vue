@@ -86,7 +86,7 @@ const docLinks = computed(() => {
   return [
     {
       title: 'Application Setup',
-      url: `https://docs.nocodb.com/account-settings/oss-specific-details#configure-${plugin.value?.category?.toLowerCase()}`,
+      url: `https://nocodb.com/docs/product-docs/account-settings/oss-specific-details#configure-${plugin.value?.category?.toLowerCase()}`,
     },
     ...(plugin.value?.formDetails?.docs || []),
   ]

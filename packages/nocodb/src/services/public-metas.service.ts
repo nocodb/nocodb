@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  BoolType,
   isCreatedOrLastModifiedByCol,
   isLinksOrLTAR,
   ncIsObject,
@@ -37,6 +38,7 @@ export class PublicMetasService {
       relatedMetas?: { [ket: string]: Model };
       users?: { id: string; display_name: string; email: string }[];
       client?: string;
+      source?: Pick<Source, 'id' | 'type' | 'is_meta' | 'is_local'>;
     } = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
@@ -44,6 +46,10 @@ export class PublicMetasService {
     if (view.password && view.password !== param.password) {
       NcError.invalidSharedViewPassword();
     }
+
+    const base = await Base.get(context, view.base_id);
+
+    this.checkViewBaseType(view, base);
 
     view.lock_type = ViewLockType.Collaborative;
 
@@ -57,6 +63,12 @@ export class PublicMetasService {
 
     const source = await Source.get(context, view.model.source_id);
     view.client = source.type;
+    view.source = {
+      id: source.id,
+      type: source.type,
+      is_meta: source.is_meta,
+      is_local: source.is_local,
+    };
 
     // todo: return only required props
     view.password = undefined;
@@ -242,6 +254,16 @@ export class PublicMetasService {
       NcError.baseNotFound(param.sharedBaseUuid);
     }
 
+    this.checkBaseType(base);
+
     return { base_id: base.id };
+  }
+
+  public checkBaseType(_base: Base) {
+    // placeholder for future checks
+  }
+
+  public checkViewBaseType(_view: View, _base: Base) {
+    // placeholder for future checks
   }
 }

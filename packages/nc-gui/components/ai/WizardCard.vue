@@ -83,7 +83,7 @@ const handleChangeTab = (tab: string) => {
         }
       }
       &:not(.active-tab) {
-        @apply text-nc-content-purple-light border-transparent font-weight-500;
+        @apply text-nc-content-purple-medium border-transparent font-weight-500;
       }
     }
 

@@ -24,7 +24,7 @@ const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
-const clientMousePosition = inject(ClientMousePositionInj)
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
@@ -287,13 +287,17 @@ const handleCloseDropdown = (e: MouseEvent) => {
 const badgedVirtualColumns = [UITypes.Rollup, UITypes.Formula]
 const isBadgedVirtualColumn = computed(() => badgedVirtualColumns.includes(lookupColumn.value?.uidt as UITypes))
 
-const isPageDesignerLookup = inject(IsPageDesignerExtensionActiveInj, false)
+const extensionConfig = inject(ExtensionConfigInj, ref({ isPageDesignerPreviewPanel: false }))
 const { getPossibleAttachmentSrc } = useAttachment()
 const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])?.[0] ?? '')
 </script>
 
 <template>
-  <img v-if="isPageDesignerLookup && attachmentUrl" :src="attachmentUrl" class="object-contain h-full w-full" />
+  <img
+    v-if="extensionConfig.isPageDesignerPreviewPanel && attachmentUrl"
+    :src="attachmentUrl"
+    class="object-contain h-full w-full"
+  />
   <NcDropdown
     v-else
     :disabled="disableDropdown"

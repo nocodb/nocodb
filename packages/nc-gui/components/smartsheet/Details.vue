@@ -12,9 +12,15 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
+const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
+
+const { isTableAndFieldPermissionsEnabled } = usePermissions()
+
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
+
+const { hasV2Webhooks } = storeToRefs(useWebhooksStore())
 
 const indicator = h(LoadingOutlined, {
   style: {
@@ -23,11 +29,23 @@ const indicator = h(LoadingOutlined, {
   spin: true,
 })
 
+const shouldShowTab = computed(() => {
+  return {
+    field: isUIAllowed('fieldAdd') && !isSqlView.value,
+    permissions: isEeUI && isUIAllowed('fieldAdd') && !isSqlView.value && isTableAndFieldPermissionsEnabled.value,
+    webhook: isUIAllowed('hookList') && !isSqlView.value,
+  }
+})
+
 const openedSubTab = computed({
   get() {
     return openedViewsTab.value
   },
   set(val) {
+    if (val === 'permissions' && isTableAndFieldPermissionsEnabled.value && showUpgradeToUseTableAndFieldPermissions()) {
+      return
+    }
+
     onViewsTabChange(val)
   },
 })
@@ -36,12 +54,16 @@ watch(
   [openedSubTab, isBaseRolesLoaded],
   () => {
     // Re-enable this check for first render
+
+    const fieldTabCondition = openedSubTab.value !== 'field' || shouldShowTab.value.field
+    const permissionsTabCondition =
+      openedSubTab.value !== 'permissions' || (shouldShowTab.value.permissions && !blockTableAndFieldPermissions.value)
+    const webhookTabCondition = openedSubTab.value !== 'webhook' || shouldShowTab.value.webhook
+
     if (
       // check page access only after base roles are loaded
       isBaseRolesLoaded.value &&
-      ((openedSubTab.value === 'field' && !isUIAllowed('fieldAdd')) ||
-        (openedSubTab.value === 'webhook' && !isUIAllowed('hookList')) ||
-        (['field', 'webhook'].includes(openedSubTab.value) && isSqlView.value))
+      (!fieldTabCondition || !webhookTabCondition || !permissionsTabCondition)
     ) {
       onViewsTabChange('relation')
     }
@@ -62,8 +84,8 @@ watch(
       'nc-details-tab-left-sidebar-close': !isLeftSidebarOpen,
     }"
   >
-    <NcTabs v-model:activeKey="openedSubTab" centered class="nc-details-tab">
-      <a-tab-pane v-if="isUIAllowed('fieldAdd') && !isSqlView" key="field">
+    <NcTabs v-model:active-key="openedSubTab" centered class="nc-details-tab">
+      <a-tab-pane v-if="shouldShowTab.field" key="field">
         <template #tab>
           <div class="tab" data-testid="nc-fields-tab">
             <GeneralIcon icon="ncList" class="tab-icon" :class="{}" />
@@ -71,6 +93,24 @@ watch(
           </div>
         </template>
         <LazySmartsheetDetailsFields />
+      </a-tab-pane>
+      <a-tab-pane v-if="shouldShowTab.permissions" key="permissions">
+        <template #tab>
+          <div class="tab" data-testid="nc-permissions-tab">
+            <GeneralIcon icon="ncLock" class="tab-icon" :class="{}" />
+            <div>{{ $t('general.permissions') }}</div>
+          </div>
+        </template>
+
+        <PermissionsModalContent
+          v-if="meta?.id"
+          :table-id="meta.id"
+          class="!px-4 !pb-4"
+          permissions-table-wrapper-class="max-w-250"
+          permissions-field-wrapper-class="max-w-250 !top-4"
+          permissions-table-toolbar-class-name="pt-4"
+          style="height: calc(100vh - (var(--topbar-height) * 2))"
+        />
       </a-tab-pane>
       <a-tab-pane key="relation">
         <template #tab>
@@ -95,11 +135,12 @@ watch(
         </div>
       </a-tab-pane>
 
-      <a-tab-pane v-if="isUIAllowed('hookList') && !isSqlView" key="webhook">
+      <a-tab-pane v-if="shouldShowTab.webhook" key="webhook">
         <template #tab>
           <div class="tab" data-testid="nc-webhooks-tab">
-            <GeneralIcon icon="ncWebhook" class="tab-icon" :class="{}" />
+            <GeneralIcon icon="ncWebhook" class="tab-icon" />
             <div>{{ $t('objects.webhooks') }}</div>
+            <GeneralIcon v-if="hasV2Webhooks" icon="alertTriangleSolid" class="text-nc-content-orange-medium h-4 w-4" />
           </div>
         </template>
         <LazySmartsheetDetailsWebhooks />

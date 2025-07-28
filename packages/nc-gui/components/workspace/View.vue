@@ -13,7 +13,7 @@ const { t } = useI18n()
 
 const { hideSidebar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
 const workspaceStore = useWorkspace()
 
@@ -58,7 +58,10 @@ const tab = computed({
       })
     }
 
-    if (tab === 'collaborators') loadCollaborators({} as any, props.workspaceId)
+    if (tab === 'collaborators' && isUIAllowed('workspaceCollaborators')) {
+      loadCollaborators({} as any, props.workspaceId)
+    }
+
     router.push({ query: { ...route.value.query, tab } })
   },
 })
@@ -85,17 +88,23 @@ watch(
 )
 
 onMounted(() => {
-  until(() => currentWorkspace.value?.id)
+  until(() => currentWorkspace.value?.id && isBaseRolesLoaded.value)
     .toMatch((v) => !!v)
     .then(async () => {
-      await loadCollaborators({} as any, currentWorkspace.value!.id)
+      if (isUIAllowed('workspaceCollaborators')) {
+        await loadCollaborators({} as any, currentWorkspace.value!.id)
+      }
     })
 })
 
 watch(
   () => route.value.query?.tab,
-  (newTab) => {
-    if (!isWsAuditEnabled.value && newTab === 'audits') {
+  async (newTab) => {
+    await until(() => isBaseRolesLoaded.value).toBeTruthy()
+
+    if (!isUIAllowed('workspaceCollaborators')) {
+      tab.value = 'settings'
+    } else if (!isWsAuditEnabled.value && newTab === 'audits') {
       tab.value = 'collaborators'
     }
   },
@@ -170,7 +179,7 @@ onBeforeUnmount(() => {
       </NcPageHeader>
     </template>
 
-    <NcTabs v-model:activeKey="tab">
+    <NcTabs v-model:active-key="tab">
       <template #leftExtra>
         <div class="w-3"></div>
       </template>
@@ -199,7 +208,7 @@ onBeforeUnmount(() => {
         </a-tab-pane>
       </template>
 
-      <template v-if="isEeUI && !props.workspaceId && isPaymentEnabled && isUIAllowed('workspaceAuditList')">
+      <template v-if="isEeUI && !props.workspaceId && isWsAuditEnabled && isUIAllowed('workspaceAuditList')">
         <a-tab-pane key="audits" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
@@ -210,33 +219,31 @@ onBeforeUnmount(() => {
           <WorkspaceAudits v-if="isWsAuditEnabled" />
           <div v-else>&nbsp;</div>
         </a-tab-pane>
-
-        <template v-if="isWorkspaceSsoAvail">
-          <a-tab-pane key="sso" class="w-full">
-            <template #tab>
-              <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
-                <GeneralIcon icon="sso" class="flex-none h-4 w-4" />
-                {{ $t('title.sso') }}
-              </div>
-            </template>
-
-            <WorkspaceSso class="!h-[calc(100vh_-_92px)]" />
-          </a-tab-pane>
-        </template>
       </template>
 
-      <template v-if="isUIAllowed('workspaceManage')">
-        <a-tab-pane key="settings" class="w-full">
+      <template v-if="isWorkspaceSsoAvail && isUIAllowed('workspaceSSO')">
+        <a-tab-pane key="sso" class="w-full">
           <template #tab>
-            <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
-              <GeneralIcon icon="ncSettings" class="h-4 w-4" />
-              {{ $t('labels.settings') }}
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+              <GeneralIcon icon="sso" class="flex-none h-4 w-4" />
+              {{ $t('title.sso') }}
             </div>
           </template>
 
-          <WorkspaceSettings :workspace-id="currentWorkspace.id" />
+          <WorkspaceSso class="!h-[calc(100vh_-_92px)]" />
         </a-tab-pane>
       </template>
+
+      <a-tab-pane key="settings" class="w-full">
+        <template #tab>
+          <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
+            <GeneralIcon icon="ncSettings" class="h-4 w-4" />
+            {{ $t('labels.settings') }}
+          </div>
+        </template>
+
+        <WorkspaceSettings :workspace-id="currentWorkspace.id" />
+      </a-tab-pane>
     </NcTabs>
   </div>
 </template>

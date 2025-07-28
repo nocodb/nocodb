@@ -17,7 +17,7 @@ import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { Base, Store, User } from '~/models';
 import Noco from '~/Noco';
-import { isOnPrem, T } from '~/utils';
+import { isCloud, isOnPrem, T } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getInstance from '~/utils/getInstance';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
@@ -100,7 +100,10 @@ export class UtilsService {
           return response.data
             .map((x) => x.name)
             .filter(
-              (v) => validate(v) && !v.includes('finn') && !v.includes('beta'),
+              (v) =>
+                validate(v) &&
+                // also filter only XXX.XXX.XXX version. ex: 0.263.8
+                v.match(/^\d+\.\d+\.\d+$/),
             )
             .sort((x, y) => compareVersions(y, x));
         })
@@ -470,7 +473,7 @@ export class UtilsService {
       ee: Noco.isEE(),
       ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
       ncMaxAttachmentsAllowed: NC_MAX_ATTACHMENTS_ALLOWED,
-      isCloud: process.env.NC_CLOUD === 'true',
+      isCloud: isCloud,
       automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
       baseHostName: process.env.NC_BASE_HOST_NAME,
       disableEmailAuth: this.configService.get('auth.disableEmailAuth', {

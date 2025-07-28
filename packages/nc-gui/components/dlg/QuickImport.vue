@@ -14,9 +14,21 @@ interface Props {
   importDataOnly?: boolean
   transition?: string
   showBackBtn?: boolean
+  wrapClassName?: string
+  showSourceSelector?: boolean
 }
 
-const { importType, importDataOnly = false, baseId, sourceId, transition, showBackBtn, ...rest } = defineProps<Props>()
+const {
+  importType,
+  importDataOnly = false,
+  baseId,
+  sourceId,
+  transition,
+  showBackBtn,
+  wrapClassName = '',
+  showSourceSelector = true,
+  ...rest
+} = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'back'])
 
@@ -80,6 +92,12 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
 const isError = ref(false)
 
 const refMonacoEditor = ref()
+
+const sourceSelectorRef = ref()
+
+const customSourceId = computed(() => {
+  return sourceSelectorRef.value?.customSourceId || sourceId
+})
 
 const useForm = Form.useForm
 
@@ -690,7 +708,7 @@ watch(
     :closable="false"
     :width="templateEditorModal && importDataOnly ? '640px' : '448px'"
     class="!top-[12.5vh]"
-    wrap-class-name="nc-modal-quick-import"
+    :wrap-class-name="`nc-modal-quick-import ${wrapClassName}`"
     :transition-name="transition"
     @keydown.esc="dialogShow = false"
   >
@@ -704,7 +722,7 @@ watch(
         <GeneralIcon :icon="importMeta.icon" class="w-6 h-6" />
         {{ importMeta.header }}
         <a
-          href="https://docs.nocodb.com/tables/create-table-via-import/"
+          href="https://nocodb.com/docs/product-docs/tables/create-table-via-import"
           class="!text-nc-content-gray-subtle2 text-sm font-weight-500 ml-auto"
           target="_blank"
           rel="noopener"
@@ -729,7 +747,7 @@ watch(
           :quick-import-type="importType"
           :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
           :base-id="baseId"
-          :source-id="sourceId"
+          :source-id="customSourceId"
           :import-worker="importWorker"
           :table-icon="importMeta.icon"
           class="nc-quick-import-template-editor"
@@ -738,7 +756,7 @@ watch(
           @change="onChange"
         />
         <div v-else>
-          <NcTabs v-model:activeKey="activeTab" class="nc-quick-import-tabs" @update:active-key="handleResetImportError">
+          <NcTabs v-model:active-key="activeTab" class="nc-quick-import-tabs" @update:active-key="handleResetImportError">
             <a-tab-pane :key="ImportTypeTabs.upload" :disabled="preImportLoading" class="!h-full">
               <template #tab>
                 <div class="flex gap-2 items-center">
@@ -747,7 +765,7 @@ watch(
               </template>
               <div class="relative mt-5">
                 <a-upload-dragger
-                  v-model:fileList="importState.fileList"
+                  v-model:file-list="importState.fileList"
                   name="file"
                   class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-gray-200"
                   :class="{
@@ -1001,6 +1019,16 @@ watch(
       />
 
       <div v-if="!templateEditorModal" class="mt-5">
+        <div class="mb-4">
+          <NcListSourceSelector
+            ref="sourceSelectorRef"
+            :base-id="baseId"
+            :source-id="sourceId"
+            :show-source-selector="showSourceSelector"
+            force-layout="vertical"
+          />
+        </div>
+
         <NcButton type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">
           {{ $t('title.advancedSettings') }}
           <GeneralIcon
@@ -1067,7 +1095,7 @@ watch(
           size="small"
           class="nc-btn-import"
           :loading="preImportLoading"
-          :disabled="disablePreImportButton || preImportLoading"
+          :disabled="disablePreImportButton || preImportLoading || sourceSelectorRef?.selectedSource?.ncItemDisabled"
           @click="handlePreImport"
         >
           {{ importBtnText }}
@@ -1136,6 +1164,9 @@ watch(
 }
 .nc-import-collapse :deep(.ant-collapse-header) {
   display: none !important;
+}
+.nc-import-collapse :deep(.ant-collapse-content-box) {
+  @apply !pr-0.2;
 }
 span:has(> .nc-modern-drag-import) {
   display: flex;

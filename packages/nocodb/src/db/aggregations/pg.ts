@@ -23,7 +23,7 @@ export function genPgAggregateQuery({
   alias,
 }: {
   column: Column;
-  column_query: string;
+  column_query: string | Knex.QueryBuilder;
   baseModelSqlv2: BaseModelSqlv2;
   aggregation: string;
   parsedFormulaType?: FormulaDataTypes;

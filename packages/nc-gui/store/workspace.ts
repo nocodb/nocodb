@@ -43,6 +43,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
   const workspaceUserCount = ref<number | undefined>(undefined)
+  const workspaceOwnerCount = ref<number | undefined>(undefined)
+
+  const upgradeWsDlg = ref(false)
+  const upgradeWsJobId = ref<string | null>(null)
 
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'recent',
@@ -291,6 +295,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     lastPopulatedWorkspaceId,
     isWorkspaceSettingsPageOpened,
     workspaceUserCount,
+    workspaceOwnerCount,
     getPlanLimit,
     workspaceRole,
     moveToOrg,
@@ -300,6 +305,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isFeedPageOpened,
     deletingWorkspace,
     isWorkspacesLoading,
+    upgradeWsDlg,
+    upgradeWsJobId,
   }
 })
 

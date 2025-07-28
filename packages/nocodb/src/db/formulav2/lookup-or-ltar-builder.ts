@@ -1,5 +1,4 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-import { NcError } from 'src/helpers/catchError';
 import type { NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
@@ -7,14 +6,19 @@ import type {
   TAliasToColumnParam,
 } from '~/db/formulav2/formula-query-builder.types';
 import type {
+  BarcodeColumn,
   FormulaColumn,
   LinkToAnotherRecordColumn,
   LookupColumn,
+  QrCodeColumn,
   RollupColumn,
 } from '~/models';
+import { getRefColumnIfAlias } from '~/helpers';
+import { NcError } from '~/helpers/catchError';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
 import { Model } from '~/models';
+import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 
 export const lookupOrLtarBuilder =
   (
@@ -96,6 +100,15 @@ export const lookupOrLtarBuilder =
               ]),
             );
             lookupColumn = lookupColumn ?? parentModel.displayValue;
+
+            await extractLinkRelFiltersAndApply({
+              context,
+              column,
+              table: parentModel,
+              baseModel: parentBaseModel,
+              qb: selectQb,
+              alias,
+            });
           }
           break;
         case RelationTypes.HAS_MANY:
@@ -119,6 +132,15 @@ export const lookupOrLtarBuilder =
               ]),
             );
             lookupColumn = lookupColumn ?? childModel.displayValue;
+
+            await extractLinkRelFiltersAndApply({
+              context,
+              column,
+              table: childModel,
+              baseModel: childBaseModel,
+              qb: selectQb,
+              alias,
+            });
           }
           break;
         case RelationTypes.MANY_TO_MANY:
@@ -161,6 +183,15 @@ export const lookupOrLtarBuilder =
                 ]),
               );
             lookupColumn = lookupColumn ?? parentModel.displayValue;
+
+            await extractLinkRelFiltersAndApply({
+              context,
+              column,
+              table: parentModel,
+              baseModel: parentBaseModel,
+              qb: selectQb,
+              alias,
+            });
           }
           break;
       }
@@ -216,6 +247,15 @@ export const lookupOrLtarBuilder =
                 `${prevAlias}.${childColumn.column_name}`,
                 `${nestedAlias}.${parentColumn.column_name}`,
               );
+
+              await extractLinkRelFiltersAndApply({
+                context,
+                column: lookupColumn,
+                table: parentModel,
+                baseModel: parentBaseModel,
+                qb: selectQb,
+                alias,
+              });
             }
             break;
           case RelationTypes.HAS_MANY:
@@ -229,6 +269,15 @@ export const lookupOrLtarBuilder =
                 `${prevAlias}.${parentColumn.column_name}`,
                 `${nestedAlias}.${childColumn.column_name}`,
               );
+
+              await extractLinkRelFiltersAndApply({
+                context,
+                column: lookupColumn,
+                table: childModel,
+                baseModel: childBaseModel,
+                qb: selectQb,
+                alias,
+              });
             }
             break;
           case RelationTypes.MANY_TO_MANY: {
@@ -261,6 +310,15 @@ export const lookupOrLtarBuilder =
                 `${nestedAlias}.${parentColumn.column_name}`,
                 `${assocAlias}.${mmParentColumn.column_name}`,
               );
+
+            await extractLinkRelFiltersAndApply({
+              context,
+              column: lookupColumn,
+              table: parentModel,
+              baseModel: parentBaseModel,
+              qb: selectQb,
+              alias,
+            });
           }
         }
 
@@ -273,7 +331,6 @@ export const lookupOrLtarBuilder =
         lookupColumn = await nestedLookup.getLookupColumn(refContext);
         prevAlias = nestedAlias;
       }
-
       switch (lookupColumn.uidt) {
         case UITypes.Links:
         case UITypes.Rollup:
@@ -425,15 +482,6 @@ export const lookupOrLtarBuilder =
                 ]);
             }
 
-            selectQb.join(
-              knex.raw(`?? as ??`, [
-                parentBaseModel.getTnPath(parentModel.table_name),
-                nestedAlias,
-              ]),
-              `${nestedAlias}.${parentColumn.column_name}`,
-              `${prevAlias}.${childColumn.column_name}`,
-            );
-
             if (isArray) {
               const qb = selectQb;
               selectQb = (fn) =>
@@ -442,7 +490,7 @@ export const lookupOrLtarBuilder =
                     getAggregateFn(fn)({
                       qb,
                       knex,
-                      cn: lookupColumn.column_name,
+                      cn: cn ?? lookupColumn.column_name,
                     }),
                   )
                   .wrap('(', ')');
@@ -494,6 +542,53 @@ export const lookupOrLtarBuilder =
             }
           }
           break;
+        case UITypes.Barcode:
+        case UITypes.QrCode: {
+          const referenceColumn = await (
+            await lookupColumn.getColOptions<BarcodeColumn | QrCodeColumn>(
+              refContext,
+            )
+          ).getValueColumn(refContext);
+
+          if (isArray) {
+            const qb = selectQb;
+            selectQb = (fn) =>
+              knex
+                .raw(
+                  getAggregateFn(fn)({
+                    qb,
+                    knex,
+                    cn: `${prevAlias}.${referenceColumn.column_name}`,
+                  }),
+                )
+                .wrap('(', ')');
+          } else {
+            selectQb.select(`${prevAlias}.${referenceColumn.column_name}`);
+          }
+          break;
+        }
+        case UITypes.CreatedBy:
+        case UITypes.LastModifiedBy:
+        case UITypes.CreatedTime:
+        case UITypes.LastModifiedTime: {
+          const refCol = await getRefColumnIfAlias(context, lookupColumn);
+          if (isArray) {
+            const qb = selectQb;
+            selectQb = (fn) =>
+              knex
+                .raw(
+                  getAggregateFn(fn)({
+                    qb,
+                    knex,
+                    cn: `${prevAlias}.${refCol.column_name}`,
+                  }),
+                )
+                .wrap('(', ')');
+          } else {
+            selectQb.select(`${prevAlias}.${refCol.column_name}`);
+          }
+          break;
+        }
         default:
           {
             if (isArray) {

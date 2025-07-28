@@ -19,8 +19,6 @@ const { isUIAllowed } = useRoles()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const { isNew, commentsDrawer, baseRoles } = useExpandedFormStoreOrThrow()
@@ -28,14 +26,7 @@ const { isNew, commentsDrawer, baseRoles } = useExpandedFormStoreOrThrow()
 const viewsStore = useViewsStore()
 
 const isViewModeEnabled = computed(() => {
-  return (
-    !isNew.value &&
-    commentsDrawer.value &&
-    isUIAllowed('commentList', baseRoles.value) &&
-    !isPublic.value &&
-    (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE) ||
-      (isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE) && !isSqlView.value))
-  )
+  return isEeUI && !isNew.value && commentsDrawer.value && isUIAllowed('commentList', baseRoles.value) && !isPublic.value
 })
 
 const items = computed(() => {
@@ -45,13 +36,12 @@ const items = computed(() => {
       icon: modelValue.value === ExpandedFormMode.ATTACHMENT ? 'ncFileTextSolid' : 'ncFileText',
       value: ExpandedFormMode.ATTACHMENT,
       tooltip: 'File Preview',
-      hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_FILE_PREVIEW_MODE),
     },
     {
       icon: modelValue.value === ExpandedFormMode.DISCUSSION ? 'ncMessageSquare1Solid' : 'ncMessageSquare1Outline',
       value: ExpandedFormMode.DISCUSSION,
       tooltip: 'Discussion',
-      hidden: !isFeatureEnabled(FEATURE_FLAG.EXPANDED_FORM_DISCUSSION_MODE) || isSqlView.value,
+      hidden: isSqlView.value,
     },
   ].filter((i) => !i.hidden) as ItemType[]
 })

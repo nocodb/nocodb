@@ -60,7 +60,7 @@
   ],
   "servers": [
     {
-      "url": "http://localhost:8080"
+      "url": "https://app.nocodb.com"
     }
   ],
   "paths": {
@@ -5994,6 +5994,297 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
+      }
+    },
+    "/api/v1/db/meta/views/{viewId}/row-color": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "vw_wtdg2meyig5l4q"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true,
+          "description": "Unique View ID"
+        }
+      ],
+      "get": {
+        "summary": "Get row color info",
+        "operationId": "get-view-row-color",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "type": "object",
+                "properties": {
+                  "mode": "string",
+                  "fk_model_id": "string",
+                  "fk_view_id": "string"
+                },
+                "examples": {
+                  "Example 1": {
+                    "mode": "select",
+                    "fk_model_id": "mdipbdg6ketmv8",
+                    "fk_view_id": "vw6fqln9vdytdv8q"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB View"
+        ],
+        "description": "Get the row color info from view.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete row color info",
+        "operationId": "delete-view-row-color",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB View"
+        ],
+        "description": "Delete the row color info from view.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v1/db/meta/views/{viewId}/row-color-select": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "vw_wtdg2meyig5l4q"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true,
+          "description": "Unique View ID"
+        }
+      ],
+      "post": {
+        "summary": "Set view row color select",
+        "operationId": "view-row-color-select-add",
+        "tags": [
+          "DB View"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fk_column_id": {
+                    "type": "string",
+                    "description": "Column ID to use for row coloring"
+                  },
+                  "is_set_as_background": {
+                    "type": "boolean",
+                    "description": "Whether to use the color as background"
+                  }
+                },
+                "required": [
+                  "fk_column_id",
+                  "is_set_as_background"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/db/meta/views/{viewId}/row-color-conditions": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "vw_wtdg2meyig5l4q"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true,
+          "description": "Unique View ID"
+        }
+      ],
+      "post": {
+        "summary": "Add view row color condition",
+        "operationId": "view-row-color-condition-add",
+        "tags": [
+          "DB View"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "color": {
+                    "type": "string",
+                    "description": "Color to apply to matching rows"
+                  },
+                  "is_set_as_background": {
+                    "type": "boolean",
+                    "description": "Whether to use the color as background"
+                  },
+                  "nc_order": {
+                    "type": "number",
+                    "description": "Order of the condition"
+                  },
+                  "filter": {
+                    "type": "object",
+                    "properties": {
+                      "comparison_op": {
+                        "type": "string",
+                        "enum": [
+                          "eq",
+                          "neq",
+                          "gt",
+                          "gte",
+                          "lt",
+                          "lte",
+                          "like",
+                          "nlike",
+                          "in",
+                          "nin",
+                          "is",
+                          "isnot",
+                          "null",
+                          "notnull"
+                        ],
+                        "description": "Comparison operator"
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "Value to compare against"
+                      },
+                      "fk_column_id": {
+                        "type": "string",
+                        "description": "Column ID to filter on"
+                      }
+                    },
+                    "required": [
+                      "comparison_op",
+                      "value",
+                      "fk_column_id"
+                    ]
+                  }
+                },
+                "required": [
+                  "color",
+                  "is_set_as_background",
+                  "nc_order",
+                  "filter"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/db/meta/views/{viewId}/row-color-conditions/{id}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "vw_wtdg2meyig5l4q"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true,
+          "description": "Unique View ID"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "vw_wtdg2meyig5l4q"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Unique Row Color Condition ID"
+        }
+      ],
+      "patch": {
+        "summary": "Update view row color condition",
+        "operationId": "view-row-color-condition-update",
+        "tags": [
+          "DB View"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "color": {
+                    "type": "string",
+                    "description": "Color to apply to matching rows"
+                  },
+                  "is_set_as_background": {
+                    "type": "boolean",
+                    "description": "Whether to use the color as background"
+                  },
+                  "nc_order": {
+                    "type": "number",
+                    "description": "Order of the condition"
+                  }
+                },
+                "required": [
+                  "color",
+                  "is_set_as_background",
+                  "nc_order"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete view row color condition",
+        "operationId": "view-row-color-condition-delete",
+        "tags": [
+          "DB View"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
     },
     "/api/v1/db/meta/views/{viewId}/show-all": {
@@ -14590,140 +14881,6 @@
         "parameters": []
       }
     },
-    "/api/v1/db/meta/audits": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "get": {
-        "summary": "List Audits",
-        "operationId": "utils-audit-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "x-stoplight": {
-                        "id": "5zto1xohsngbu"
-                      },
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Audit",
-                        "x-stoplight": {
-                          "id": "d22zkup0c0l80"
-                        }
-                      }
-                    },
-                    "pageInfo": {
-                      "$ref": "#/components/schemas/Paginated",
-                      "description": "Pagination Info"
-                    }
-                  },
-                  "required": [
-                    "list"
-                  ]
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "list": [
-                        {
-                          "id": "adt_3sii7erfwrlegb",
-                          "user": "w@nocodb.com",
-                          "display_name": "NocoDB",
-                          "ip": null,
-                          "source_id": null,
-                          "base_id": "p_63b4q0qengen1x",
-                          "fk_model_id": "md_5mipbdg6ketmv8",
-                          "row_id": "1",
-                          "op_type": "COMMENT",
-                          "op_sub_type": null,
-                          "status": null,
-                          "description": "bar",
-                          "details": null,
-                          "created_at": "2023-03-13T09:39:14.225Z",
-                          "updated_at": "2023-03-13T09:39:14.225Z"
-                        },
-                        {
-                          "id": "adt_fezs668qbxj8gc",
-                          "user": "w@nocodb.com",
-                          "display_name": "NocoDB",
-                          "ip": null,
-                          "source_id": null,
-                          "base_id": "p_63b4q0qengen1x",
-                          "fk_model_id": "md_5mipbdg6ketmv8",
-                          "row_id": "1",
-                          "op_type": "COMMENT",
-                          "op_sub_type": null,
-                          "status": null,
-                          "description": "foo",
-                          "details": null,
-                          "created_at": "2023-03-13T09:39:13.321Z",
-                          "updated_at": "2023-03-13T09:39:13.321Z"
-                        }
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "List all audits",
-        "parameters": [
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "in": "query",
-            "name": "offset"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "in": "query",
-            "name": "limit"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "example": "10"
-            },
-            "in": "query",
-            "name": "row_id",
-            "required": true,
-            "description": "Row ID"
-          },
-          {
-            "schema": {
-              "$ref": "#/components/schemas/Id",
-              "example": "md_c6csq89tl37jm5"
-            },
-            "in": "query",
-            "name": "fk_model_id",
-            "required": true,
-            "description": "Foreign Key to Model"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "tags": [
-          "Utils"
-        ]
-      }
-    },
     "/api/v1/db/meta/comments": {
       "parameters": [
         {
@@ -15078,283 +15235,6 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/audits": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ],
-      "get": {
-        "summary": "List Audits in Project",
-        "operationId": "project-audit-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "type": "array",
-                      "uniqueItems": true,
-                      "items": {
-                        "$ref": "#/components/schemas/Audit"
-                      }
-                    },
-                    "pageInfo": {
-                      "$ref": "#/components/schemas/Paginated"
-                    }
-                  },
-                  "required": [
-                    "list",
-                    "pageInfo"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "List all audit data in the given project",
-        "parameters": [
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "in": "query",
-            "name": "offset"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "in": "query",
-            "name": "limit"
-          },
-          {
-            "schema": {
-              "properties": {
-                "created_at": {
-                  "type": "string",
-                  "description": "Sort direction",
-                  "enum": [
-                    "asc",
-                    "desc"
-                  ],
-                  "example": "desc"
-                },
-                "user": {
-                  "type": "string",
-                  "description": "Sort direction",
-                  "enum": [
-                    "asc",
-                    "desc"
-                  ],
-                  "example": "desc"
-                }
-              },
-              "type": "object"
-            },
-            "in": "query",
-            "name": "orderBy"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "tags": [
-          "Utils"
-        ]
-      }
-    },
-    "/api/v1/db/meta/projects/{baseId}/audits": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "p_124hhlkbeasewh",
-            "type": "string"
-          },
-          "name": "baseId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Base ID"
-        }
-      ],
-      "get": {
-        "summary": "List Audits in Base",
-        "operationId": "base-audit-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "type": "array",
-                      "uniqueItems": true,
-                      "items": {
-                        "$ref": "#/components/schemas/Audit"
-                      }
-                    },
-                    "pageInfo": {
-                      "$ref": "#/components/schemas/Paginated"
-                    }
-                  },
-                  "required": [
-                    "list",
-                    "pageInfo"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "List all audit data in the given base",
-        "parameters": [
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "in": "query",
-            "name": "offset"
-          },
-          {
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "in": "query",
-            "name": "limit"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "sourceId"
-          },
-          {
-            "schema": {
-              "properties": {
-                "created_at": {
-                  "type": "string",
-                  "description": "Sort direction",
-                  "enum": [
-                    "asc",
-                    "desc"
-                  ],
-                  "example": "desc"
-                },
-                "user": {
-                  "type": "string",
-                  "description": "Sort direction",
-                  "enum": [
-                    "asc",
-                    "desc"
-                  ],
-                  "example": "desc"
-                }
-              },
-              "type": "object"
-            },
-            "in": "query",
-            "name": "orderBy"
-          },
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ],
-        "tags": [
-          "Base"
-        ]
-      }
-    },
-    "/api/v1/db/meta/audits/rows/{rowId}/update": {
-      "parameters": [
-        {
-          "schema": {
-            "example": "1"
-          },
-          "name": "rowId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Row ID"
-        }
-      ],
-      "post": {
-        "summary": "Update Audit Row",
-        "operationId": "utils-audit-row-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Audit"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "user": "w@nocodb.com",
-                      "row_id": "1",
-                      "fk_model_id": "md_5mipbdg6ketmv8",
-                      "op_type": "COMMENT",
-                      "description": "Table Sheet-1 : field Column A got changed from foo to bar",
-                      "base_id": "p_63b4q0qengen1x",
-                      "id": "adt_vx58jpp0loo8qy"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Utils"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AuditRowUpdateReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "column_name": "baz",
-                    "fk_model_id": "md_ehn5izr99m7d45",
-                    "row_id": "1",
-                    "prev_value": "foo",
-                    "value": "bar"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Update Audit Row",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
     "/api/v1/db/meta/tables/{tableId}/hooks": {
       "parameters": [
         {
@@ -15644,7 +15524,8 @@
             "type": "string",
             "enum": [
               "v1",
-              "v2"
+              "v2",
+              "v3"
             ]
           },
           "name": "version",
@@ -16379,7 +16260,7 @@
                       "teleEnabled": false,
                       "errorReportingEnabled": true,
                       "auditEnabled": true,
-                      "ncSiteUrl": "http://localhost:8080",
+                      "ncSiteUrl": "https://app.nocodb.com",
                       "ee": false,
                       "ncAttachmentFieldSize": 20971520,
                       "ncMaxAttachmentsAllowed": 10
@@ -16477,7 +16358,7 @@
                       "teleEnabled": false,
                       "errorReportingEnabled": true,
                       "auditEnabled": true,
-                      "ncSiteUrl": "http://localhost:8080",
+                      "ncSiteUrl": "https://app.nocodb.com",
                       "ee": false,
                       "ncAttachmentFieldSize": 20971520,
                       "ncMaxAttachmentsAllowed": 10,
@@ -16508,8 +16389,7 @@
       "post": {
         "summary": "Error Reporting",
         "operationId": "utils-error-report",
-        "responses": {
-        },
+        "responses": {},
         "description": "Error Reporting",
         "tags": [
           "Utils",
@@ -19492,6 +19372,60 @@
         ]
       }
     },
+    "/api/v2/ai/bases/{baseId}/completion": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "w124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Base ID"
+        }
+      ],
+      "post": {
+        "summary": "AI Completion",
+        "operationId": "ai-completion",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ai"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "schema": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "AI Completion",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v2/ai/bases/{baseId}/schema": {
       "parameters": [
         {
@@ -20381,6 +20315,24 @@
           "name": "fk_model_id",
           "in": "query",
           "description": "Model ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "row_id",
+          "in": "query",
+          "description": "Row ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "cursor",
+          "in": "query",
+          "description": "Cursor",
           "required": false
         }
       ]
@@ -22353,6 +22305,10 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Column"
           },
+          "fk_widget_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Widget"
+          },
           "fk_parent_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Belong to which filter ID"
@@ -23679,11 +23635,13 @@
             "id": "string",
             "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
             "null": null,
-            "operation": "insert",
+            "operation": ["insert"],
             "retries": 10,
             "retry_interval": 60000,
             "timeout": 60000,
-            "title": "My Webhook"
+            "title": "My Webhook",
+            "trigger_field": false,
+            "trigger_fields": ["c2965755662b"]
           }
         ],
         "title": "Hook Model",
@@ -23737,16 +23695,16 @@
             ]
           },
           "operation": {
-            "enum": [
-              "insert",
-              "update",
-              "delete",
-              "bulkInsert",
-              "bulkUpdate",
-              "bulkDelete",
-              "trigger"
-            ],
-            "type": "string",
+            "type": "array",
+            "items": {
+              "enum": [
+                "insert",
+                "update",
+                "delete",
+                "trigger"
+              ],
+              "type": "string"
+            },
             "description": "Hook Operation",
             "example": "insert"
           },
@@ -23779,12 +23737,23 @@
             "x-stoplight": {
               "id": "socewqvadj91n"
             },
-            "example": "v2",
+            "example": "v3",
             "description": "Hook Version",
             "enum": [
               "v1",
-              "v2"
+              "v2",
+              "v3"
             ]
+          },
+          "trigger_field": {
+            "type": "boolean",
+            "description": "Is this hook only trigger when some fields are affected"
+          },
+          "trigger_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -23859,16 +23828,16 @@
             ]
           },
           "operation": {
-            "enum": [
-              "insert",
-              "update",
-              "delete",
-              "bulkInsert",
-              "bulkUpdate",
-              "bulkDelete",
-              "trigger"
-            ],
-            "type": "string",
+            "type": "array",
+            "items" : {
+              "enum": [
+                "insert",
+                "update",
+                "delete",
+                "trigger"
+              ],
+              "type": "string"
+            },
             "description": "Hook Operation",
             "example": "insert"
           },
@@ -23905,6 +23874,16 @@
               "id": "wwzoum7rrlwun"
             },
             "description": "Is this hook assoicated with some filters"
+          },
+          "trigger_field": {
+            "type": "boolean",
+            "description": "Is this hook only trigger when some fields are affected"
+          },
+          "trigger_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -24078,9 +24057,6 @@
               "insert",
               "update",
               "delete",
-              "bulkInsert",
-              "bulkUpdate",
-              "bulkDelete",
               "trigger"
             ],
             "example": "insert"
@@ -25947,6 +25923,65 @@
           "fk_custom_url_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "ID of custom url"
+          },
+          "permissions": {
+            "description": "List of permissions for the base",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Permission id"
+                },
+                "entity": {
+                  "type": "string",
+                  "description": "Permission entity"
+                },
+                "entity_id": {
+                  "type": "string",
+                  "description": "ID of the entity"
+                },
+                "permission": {
+                  "type": "string",
+                  "description": "Permission key"
+                },
+                "granted_type": {
+                  "type": "string",
+                  "description": "Type of permission granted"
+                },
+                "granted_role": {
+                  "type": "string",
+                  "description": "Role to which permission is granted",
+                  "nullable": true
+                },
+                "subjects": {
+                  "type": "array",
+                  "description": "List of subjects (users or groups) for the permission",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": ["user", "group"],
+                        "description": "Type of the subject"
+                      },
+                      "id": {
+                        "type": "string",
+                        "description": "ID of the subject"
+                      }
+                    },
+                    "required": ["type", "id"]
+                  }
+                }
+              },
+              "required": [
+                "entity",
+                "entity_id",
+                "permission",
+                "granted_type"
+              ]
+            }
           }
         },
         "x-stoplight": {
@@ -28084,6 +28119,14 @@
           "owned_by": {
             "$ref": "#/components/schemas/Id",
             "description": "ID of view owner user"
+          },
+          "row_coloring_mode": {
+            "type": "string",
+            "enum": [
+              "filter",
+              "select"
+            ],
+            "description": "The row coloring mode whether it is select, condition or not set"
           },
           "fk_custom_url_id": {
             "$ref": "#/components/schemas/StringOrNull",

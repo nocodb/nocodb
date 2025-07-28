@@ -71,7 +71,7 @@ export class TablesService {
     const source = base.sources.find((b) => b.id === model.source_id);
 
     if (model.base_id !== base.id) {
-      NcError.badRequest('Model does not belong to base');
+      NcError.get(context).invalidRequestBody('Model does not belong to base');
     }
 
     // if meta/description present update and return
@@ -91,11 +91,11 @@ export class TablesService {
 
     // allow user to only update meta json data when source is restricted changes to schema
     if (source?.is_schema_readonly) {
-      NcError.sourceMetaReadOnly(source.alias);
+      NcError.get(context).sourceMetaReadOnly(source.alias);
     }
 
     if (!param.table.table_name) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         'Missing table name `table_name` property in request body',
       );
     }
@@ -116,14 +116,14 @@ export class TablesService {
 
     // validate table name
     if (/^\s+|\s+$/.test(param.table.table_name)) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         'Leading or trailing whitespace not allowed in table names',
       );
     }
     const specialCharRegex = /[./\\]/g;
     if (specialCharRegex.test(param.table.table_name)) {
       const match = param.table.table_name.match(specialCharRegex);
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         'Following characters are not allowed ' +
           match.map((m) => JSON.stringify(m)).join(', '),
       );
@@ -144,7 +144,7 @@ export class TablesService {
         source_id: source.id,
       }))
     ) {
-      NcError.badRequest('Duplicate table name');
+      NcError.get(context).invalidRequestBody('Duplicate table name');
     }
 
     if (!param.table.title) {
@@ -162,7 +162,7 @@ export class TablesService {
         source_id: source.id,
       }))
     ) {
-      NcError.badRequest('Duplicate table alias');
+      NcError.get(context).invalidRequestBody('Duplicate table alias');
     }
 
     const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
@@ -177,7 +177,7 @@ export class TablesService {
     }
 
     if (param.table.table_name.length > tableNameLengthLimit) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `Table name exceeds ${tableNameLengthLimit} characters`,
       );
     }
@@ -240,7 +240,9 @@ export class TablesService {
     const table = await Model.getByIdOrName(context, { id: param.tableId });
 
     if (table?.synced && !param.forceDeleteSyncs) {
-      NcError.badRequest('Synced tables cannot be deleted');
+      NcError.get(context).invalidRequestBody(
+        'Synced tables cannot be deleted',
+      );
     }
 
     await table.getColumns(context);
@@ -278,7 +280,7 @@ export class TablesService {
         }),
       );
 
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `This is a many to many table for ${tables[0]?.title} (${relColumns[0]?.title}) & ${tables[1]?.title} (${relColumns[1]?.title}). You can disable "Show M2M tables" in base settings to avoid seeing this.`,
       );
     } else {
@@ -321,7 +323,7 @@ export class TablesService {
             .then((t) => t?.title),
         ),
       );
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `Table can't be deleted since Table is being referred in following tables : ${referredTables.join(
           ', ',
         )}. Delete LinkToAnotherRecord columns and try again.`,
@@ -537,8 +539,12 @@ export class TablesService {
     if (!param.table.title && param.table.table_name) {
       param.table.title = param.table.table_name;
     }
-
-    validatePayload('swagger.json#/components/schemas/TableReq', param.table);
+    validatePayload(
+      'swagger.json#/components/schemas/TableReq',
+      param.table,
+      false,
+      context,
+    );
 
     const tableCreatePayLoad: Omit<TableReqType, 'columns'> & {
       columns: (ColumnType & { cn?: string })[];
@@ -679,7 +685,9 @@ export class TablesService {
     }
 
     if (!tableCreatePayLoad.title) {
-      NcError.badRequest('Missing table `title` property in request body');
+      NcError.get(context).invalidRequestBody(
+        'Missing table `title` property in request body',
+      );
     }
 
     if (!tableCreatePayLoad.table_name) {
@@ -693,7 +701,7 @@ export class TablesService {
         source_id: source.id,
       }))
     ) {
-      NcError.badRequest('Duplicate table alias');
+      NcError.get(context).invalidRequestBody('Duplicate table alias');
     }
 
     if (source.type === 'databricks') {
@@ -711,25 +719,26 @@ export class TablesService {
     tableCreatePayLoad.table_name = DOMPurify.sanitize(
       tableCreatePayLoad.table_name,
     );
-
     // validate table name
     if (/^\s+|\s+$/.test(tableCreatePayLoad.table_name)) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         'Leading or trailing whitespace not allowed in table names',
       );
     }
     const specialCharRegex = /[./\\]/g;
-    if (specialCharRegex.test(param.table.table_name)) {
-      const match = param.table.table_name.match(specialCharRegex);
-      NcError.badRequest(
+    if (specialCharRegex.test(param.table.table_name ?? param.table.title)) {
+      const match = (param.table.title ?? param.table.table_name).match(
+        specialCharRegex,
+      );
+      NcError.get(context).invalidRequestBody(
         'Following characters are not allowed ' +
           match.map((m) => JSON.stringify(m)).join(', '),
       );
     }
 
     const replaceCharRegex = /[$?]/g;
-    if (replaceCharRegex.test(param.table.table_name)) {
-      tableCreatePayLoad.table_name = param.table.table_name.replace(
+    if (replaceCharRegex.test(tableCreatePayLoad.table_name)) {
+      tableCreatePayLoad.table_name = tableCreatePayLoad.table_name.replace(
         replaceCharRegex,
         '_',
       );
@@ -742,7 +751,7 @@ export class TablesService {
         source_id: source.id,
       }))
     ) {
-      NcError.badRequest('Duplicate table name');
+      NcError.get(context).invalidRequestBody('Duplicate table name');
     }
 
     if (!tableCreatePayLoad.title) {
@@ -766,7 +775,7 @@ export class TablesService {
     }
 
     if (tableCreatePayLoad.table_name.length > tableNameLengthLimit) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `Table name exceeds ${tableNameLengthLimit} characters`,
       );
     }
@@ -812,7 +821,7 @@ export class TablesService {
       }
 
       if (column.title && column.title.length > 255) {
-        NcError.badRequest(
+        NcError.get(context).invalidRequestBody(
           `Column title ${column.title} exceeds 255 characters`,
         );
       }

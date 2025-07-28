@@ -277,13 +277,13 @@ const handleScroll = (e) => {
               "
             >
               <div class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap">
-                <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
+                <GeneralIcon icon="ncCrown" class="flex-none h-4 w-4 mr-1" />
 
                 {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
               </div>
             </NcTooltip>
             <div v-else class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap">
-              <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
+              <GeneralIcon icon="ncCrown" class="flex-none h-4 w-4 mr-1" />
 
               {{ paidUsersCount }} {{ $t('general.paid') }}
               {{ paidUsersCount === 1 ? $t('general.seat').toLowerCase() : $t('general.seats').toLowerCase() }}
@@ -343,6 +343,8 @@ const handleScroll = (e) => {
           :custom-row="customRow"
           :bordered="false"
           class="flex-1 nc-collaborators-list"
+          :pagination="true"
+          :pagination-offset="25"
         >
           <template #emptyText>
             <a-empty :description="$t('title.noMembersFound')" />
@@ -380,7 +382,7 @@ const handleScroll = (e) => {
                     :overlay-inner-style="{ width: '180px' }"
                   >
                     <div v-if="activePlanTitle === PlanTitles.FREE" class="text-nc-content-gray-default">
-                      <GeneralIcon icon="star" class="flex-none mb-0.5" />
+                      <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
                     </div>
                     <NcBadge
                       v-else
@@ -388,7 +390,7 @@ const handleScroll = (e) => {
                       color="green"
                       class="text-nc-content-green-dark text-[10px] leading-[14px] !h-[18px] font-semibold"
                     >
-                      {{ $t('general.paid') }}
+                      <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
                     </NcBadge>
                   </NcTooltip>
                 </div>

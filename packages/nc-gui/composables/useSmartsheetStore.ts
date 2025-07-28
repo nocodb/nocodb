@@ -1,7 +1,7 @@
 import type { ColumnType, FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import type { SmartsheetStoreEvents } from '#imports'
+import { EventBusEnum, type SmartsheetStoreEvents } from '#imports'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
@@ -31,9 +31,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
     )
 
-    const { search } = useFieldQuery()
+    const { search, getValidSearchQueryForColumn } = useFieldQuery()
 
-    const eventBus = useEventBus<SmartsheetStoreEvents>(Symbol('SmartsheetStore'))
+    const eventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore)
 
     const isLocked = computed(
       () =>
@@ -107,18 +107,27 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       const col =
         (meta.value as TableType)?.columns?.find(({ id }) => id === search.value.field) ||
         (meta.value as TableType)?.columns?.find((v) => v.pv)
-      if (!col) return where
 
-      if (!search.value.query.trim()) return where
+      const searchQuery = search.value.query.trim()
 
-      // concat the where clause if query is present
-      if (sqlUi.value && ['text', 'string'].includes(sqlUi.value.getAbstractType(col)) && col.dt !== 'bigint') {
-        where = `${where ? `${where}~and` : ''}(${col.title},like,%${search.value.query.trim()}%)`
-      } else {
-        where = `${where ? `${where}~and` : ''}(${col.title},eq,${search.value.query.trim()})`
+      if (!col || !searchQuery) {
+        search.value.isValidFieldQuery = true
+
+        return where
       }
 
-      return where
+      const colWhereQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType, {
+        getWhereQueryAs: 'string',
+      }) as string
+
+      if (!colWhereQuery) {
+        search.value.isValidFieldQuery = false
+        return where
+      }
+
+      search.value.isValidFieldQuery = true
+
+      return `${where ? `${where}~and` : ''}${colWhereQuery}`
     })
 
     const isActionPaneActive = ref(false)
@@ -218,6 +227,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       totalRowsWithoutSearchQuery,
       fetchTotalRowsWithSearchQuery,
       gridEditEnabled,
+      getValidSearchQueryForColumn,
     }
   },
   'smartsheet-store',

@@ -13,15 +13,7 @@ const { api } = useApi()
 
 const base = inject(ProjectInj)!
 
-// For starred base we will have seperate isExpanded state
-const isExpanded = computed<boolean>({
-  get: () => {
-    return !!base.value.isExpanded
-  },
-  set: (val: boolean) => {
-    base.value.isExpanded = val
-  },
-})
+const isExpanded = ref(true)
 
 const basesStore = useBases()
 
@@ -142,7 +134,7 @@ const updateSourceTitle = async (sourceId: string) => {
  * @see {@link packages/nc-gui/components/smartsheet/topbar/TableListDropdown.vue} for a similar implementation
  * of table creation dialog. If this function is updated, consider updating the other implementation as well.
  */
-function openTableCreateDialog(sourceIndex?: number | undefined) {
+function openTableCreateDialog(sourceIndex?: number | undefined, showSourceSelector = true) {
   const isOpen = ref(true)
   let sourceId = base.value!.sources?.[0].id
   if (typeof sourceIndex === 'number') {
@@ -156,6 +148,7 @@ function openTableCreateDialog(sourceIndex?: number | undefined) {
     sourceId,
     'baseId': base.value!.id,
     'onCreate': closeDialog,
+    'showSourceSelector': showSourceSelector,
     'onUpdate:modelValue': () => closeDialog(),
   })
 
@@ -201,10 +194,10 @@ function openErdView(source: SourceType) {
   }
 }
 
-async function addNewProjectChildEntity() {
+async function addNewProjectChildEntity(showSourceSelector = true) {
   if (!projectNodeRef.value) return
 
-  projectNodeRef.value?.addNewProjectChildEntity?.()
+  projectNodeRef.value?.addNewProjectChildEntity?.(showSourceSelector)
 }
 
 watch(
@@ -238,6 +231,7 @@ const openBaseHomePage = async () => {
       id: base.value.id!,
       type: 'database',
       isSharedBase: isSharedBase.value,
+      projectPage: !isUIAllowed('projectOverviewTab') ? 'collaborator' : undefined,
     })}`,
     cmdOrCtrl
       ? {
@@ -246,6 +240,12 @@ const openBaseHomePage = async () => {
       : undefined,
   )
 }
+
+const isVisibleCreateNew = ref(false)
+
+const hasTableCreatePermission = computed(() => {
+  return isUIAllowed('tableCreate', { roles: base.value.project_role, source: base.value?.sources?.[0] })
+})
 </script>
 
 <template>
@@ -272,30 +272,36 @@ const openBaseHomePage = async () => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <DashboardTreeViewProjectHomeSearchInput :placeholder="`Search table, view${showCreateNewAsDropdown ? ', script' : ''}`" />
+      <DashboardTreeViewProjectHomeSearchInput placeholder="Search table, view" />
 
-      <div class="nc-project-home-section pt-1 !pb-2 xs:hidden flex flex-col gap-2">
-        <div
-          v-if="isUIAllowed('tableCreate', { roles: base.project_role, source: base?.sources?.[0] })"
-          class="flex items-center w-full"
-        >
-          <NcButton
-            type="text"
-            size="small"
-            full-width
-            class="nc-home-create-new-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden w-full !px-3"
-            @click="addNewProjectChildEntity"
-          >
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="ncPlusCircleSolid" />
+      <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 xs:hidden flex flex-col gap-2">
+        <div v-if="hasTableCreatePermission" class="flex items-center w-full">
+          <NcDropdown v-model:visible="isVisibleCreateNew">
+            <NcButton
+              type="text"
+              size="small"
+              full-width
+              class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden !w-full !px-3"
+              :class="isVisibleCreateNew ? 'active' : ''"
+              icon-position="right"
+            >
+              <template #icon>
+                <GeneralIcon icon="chevronDown" class="flex-none" />
+              </template>
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="ncPlusCircleSolid" />
 
-              {{
-                $t('general.createEntity', {
-                  entity: $t('objects.table'),
-                })
-              }}
-            </div>
-          </NcButton>
+                <div>{{ $t('labels.createNew') }}</div>
+              </div>
+            </NcButton>
+
+            <template #overlay>
+              <DashboardTreeViewProjectCreateNewMenu
+                v-model:visible="isVisibleCreateNew"
+                @new-table="addNewProjectChildEntity()"
+              />
+            </template>
+          </NcDropdown>
         </div>
         <NcButton
           v-e="['c:base:home']"
@@ -316,7 +322,7 @@ const openBaseHomePage = async () => {
             }"
           >
             <GeneralIcon icon="home1" class="!h-4 w-4" />
-            <div>Overview</div>
+            <div>{{ $t('general.overview') }}</div>
           </div>
         </NcButton>
       </div>
@@ -325,7 +331,7 @@ const openBaseHomePage = async () => {
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
       <div class="nc-project-home-section">
         <div class="nc-project-home-section-header !cursor-pointer" @click.stop="isExpanded = !isExpanded">
-          <div class="flex-1">Tables</div>
+          <div class="flex-1">{{ $t('objects.tables') }}</div>
 
           <GeneralIcon
             icon="chevronRight"
@@ -338,7 +344,7 @@ const openBaseHomePage = async () => {
             <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
               <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
                 <div class="transition-height duration-200">
-                  <DashboardTreeViewTableList :base="base" :source-index="0" />
+                  <DashboardTreeViewTableList :base="base" :source-index="0" :show-create-table-btn="hasTableCreatePermission" />
                 </div>
               </div>
 
@@ -348,7 +354,7 @@ const openBaseHomePage = async () => {
                     <template v-if="sourceIndex === 0"></template>
                     <a-collapse
                       v-else-if="source && source.enabled"
-                      v-model:activeKey="activeKey"
+                      v-model:active-key="activeKey"
                       v-e="['c:source:toggle-expand']"
                       class="!mx-0 !px-0 nc-sidebar-source-node"
                       :class="[{ hidden: searchActive && !!filterQuery }]"
@@ -501,6 +507,7 @@ const openBaseHomePage = async () => {
                                       v-if="showBaseOption(source)"
                                       v-model:base="base"
                                       :source="source"
+                                      :show-source-selector="false"
                                     />
                                   </NcMenu>
                                 </template>
@@ -513,7 +520,7 @@ const openBaseHomePage = async () => {
                                 size="xxsmall"
                                 class="nc-sidebar-node-btn"
                                 :class="{ '!opacity-100 !inline-block': isBasesOptionsOpen[source!.id!] }"
-                                @click.stop="openTableCreateDialog(sourceIndex)"
+                                @click.stop="openTableCreateDialog(sourceIndex, false)"
                               >
                                 <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
                               </NcButton>

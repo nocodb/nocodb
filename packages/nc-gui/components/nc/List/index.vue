@@ -1,92 +1,12 @@
 <script lang="ts" setup>
 import { useVirtualList } from '@vueuse/core'
-import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
-
-export type MultiSelectRawValueType = Array<string | number>
-
-export type RawValueType = string | number | MultiSelectRawValueType
-
-export interface NcListItemType {
-  value?: RawValueType
-  label?: string
-  ncItemDisabled?: boolean
-  ncItemTooltip?: string
-  [key: string]: any
-}
-
-/**
- * Props interface for the List component
- */
-export interface NcListProps {
-  /** The currently selected value */
-  value: RawValueType
-  /** The list of items to display */
-  list: NcListItemType[]
-  /**
-   * The key to use for accessing the value from a list item
-   * @default 'value'
-   */
-  optionValueKey?: string
-  /**
-   * The key to use for accessing the label from a list item
-   * @default 'label'
-   */
-  optionLabelKey?: string
-  /** Whether the list is open or closed */
-  open?: boolean
-  /**
-   * Whether to close the list after an item is selected
-   * @default true
-   */
-  closeOnSelect?: boolean
-  /** Placeholder text for the search input */
-  searchInputPlaceholder?: string
-  /** Show search input box always */
-  showSearchAlways?: boolean
-  /** Whether to show the currently selected option */
-  showSelectedOption?: boolean
-  /**
-   * The height of each item in the list, used for virtual list rendering.
-   * @default 38
-   */
-  itemHeight?: number
-  variant?: 'default' | 'small' | 'medium'
-  /** Custom filter function for list items */
-  filterOption?: (input: string, option: NcListItemType, index: Number) => boolean
-  /**
-   * Indicates whether the component allows multiple selections.
-   */
-  isMultiSelect?: boolean
-  /**
-   * The minimum number of items required in the list to enable search functionality.
-   */
-  minItemsForSearch?: number
-  /**
-   * Whether the list is locked and cannot be interacted with
-   */
-  isLocked?: boolean
-
-  /**
-   * Whether input should have border
-   */
-  inputBordered?: boolean
-
-  containerClassName?: string
-
-  itemClassName?: string
-
-  itemTooltipPlacement?: TooltipPlacement
-
-  /**
-   * Whether to hide the top divider
-   */
-  hideTopDivider?: boolean
-}
+import type { NcListProps } from '#imports'
 
 interface Emits {
   (e: 'update:value', value: RawValueType): void
   (e: 'update:open', open: boolean): void
   (e: 'change', option: NcListItemType): void
+  (e: 'escape', e: KeyboardEvent): void
 }
 
 const props = withDefaults(defineProps<NcListProps>(), {
@@ -100,11 +20,15 @@ const props = withDefaults(defineProps<NcListProps>(), {
   variant: 'default',
   isMultiSelect: false,
   minItemsForSearch: 4,
+  listWrapperClassName: '',
   containerClassName: '',
+  wrapperClassName: '',
   itemClassName: '',
   itemTooltipPlacement: 'right',
   isLocked: false,
   hideTopDivider: false,
+  itemFullWidth: false,
+  stopPropagationOnItemClick: false,
 })
 
 const emits = defineEmits<Emits>()
@@ -226,7 +150,11 @@ const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: numb
  * This function is responsible for handling the selection of an option from the list.
  * It updates the model value, emits a change event, and optionally closes the dropdown.
  */
-const handleSelectOption = (option: NcListItemType, index?: number) => {
+const handleSelectOption = (option: NcListItemType, index?: number, e?: MouseEvent) => {
+  if (e && props.stopPropagationOnItemClick) {
+    e.stopPropagation()
+  }
+
   if (props.isLocked) return
   if (!ncIsObject(option) || !(optionValueKey in option) || option.ncItemDisabled) return
   if (index !== undefined) {
@@ -371,16 +299,21 @@ watch(searchQuery, () => {
     handleAutoScrollOption()
   })
 })
+
+defineExpose({
+  list,
+})
 </script>
 
 <template>
   <div
     ref="listRef"
-    tabindex="0"
+    tabindex="-1"
     class="flex flex-col nc-list-root pt-2 w-64 !focus:(shadow-none outline-none)"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex])"
+    @keydown.esc="emits('escape', $event)"
   >
     <template v-if="isSearchEnabled">
       <div
@@ -397,9 +330,6 @@ watch(searchQuery, () => {
           v-model:value="searchQuery"
           :placeholder="searchInputPlaceholder"
           class="nc-toolbar-dropdown-search-field-input !pl-2 !pr-1.5 flex-1"
-          :class="{
-            '!pt-0': variant === 'small',
-          }"
           allow-clear
           :bordered="inputBordered"
           @keydown.enter.stop="handleKeydownEnter"
@@ -409,15 +339,20 @@ watch(searchQuery, () => {
         ></a-input>
         <slot name="headerExtraRight"> </slot>
       </div>
-      <NcDivider v-if="!hideTopDivider" />
+      <NcDivider v-if="!hideTopDivider" class="!my-1" />
     </template>
 
     <slot name="listHeader"></slot>
     <div
       class="nc-list-wrapper"
-      :class="{
-        'cursor-not-allowed': isLocked,
-      }"
+      :class="[
+        listWrapperClassName,
+        {
+          'cursor-not-allowed': isLocked,
+          'pb-1': variant === 'small',
+          'pb-2': variant !== 'small',
+        },
+      ]"
     >
       <template v-if="list.length">
         <div class="h-auto !max-h-[247px]">
@@ -427,19 +362,21 @@ watch(searchQuery, () => {
             :class="[
               containerClassName,
               {
-                'px-1 pb-1': variant === 'small',
-                'px-2 pb-2': variant !== 'small',
+                'px-1': variant === 'small',
+                'px-2': variant !== 'small',
+                '!px-0': itemFullWidth,
               },
             ]"
           >
-            <div v-bind="wrapperProps">
+            <div v-bind="wrapperProps" :class="wrapperClassName">
               <NcTooltip
                 v-for="{ data: option, index: idx } in virtualList"
                 :key="idx"
-                class="flex items-center gap-2 nc-list-item w-full px-2 rounded-md my-[2px] first-of-type:mt-0 last-of-type:mb-0"
+                class="flex items-center gap-2 nc-list-item w-full px-2 my-[2px] first-of-type:mt-0 last-of-type:mb-0"
                 :class="[
                   `nc-list-option-${idx}`,
                   {
+                    'rounded-md': !itemFullWidth,
                     'nc-list-option-selected': compareVModel(option[optionValueKey]),
                     'bg-gray-100 ':
                       !option?.ncItemDisabled && showHoverEffectOnSelectedOption && compareVModel(option[optionValueKey]),
@@ -455,8 +392,10 @@ watch(searchQuery, () => {
                 ]"
                 :placement="itemTooltipPlacement"
                 :disabled="!option?.ncItemTooltip"
-                @mouseover="handleResetHoverEffect(true, idx)"
-                @click="handleSelectOption(option, idx)"
+                :attrs="{
+                  onMouseover: () => handleResetHoverEffect(true, idx),
+                }"
+                @click="handleSelectOption(option, idx, $event)"
               >
                 <template #title>{{ option.ncItemTooltip }} </template>
                 <slot name="listItem" :option="option" :is-selected="compareVModel(option[optionValueKey])" :index="idx">
@@ -490,7 +429,7 @@ watch(searchQuery, () => {
       <template v-if="!list.length">
         <slot name="emptyState">
           <div class="h-full text-center flex items-center justify-center gap-3 mt-4">
-            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
+            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="emptyDescription || $t('labels.noData')" class="!my-0" />
           </div>
         </slot>
       </template>

@@ -31,6 +31,8 @@ export class DateTimeHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string | null {
+    if (params.serializeSearchQuery) return null;
+
     value = serializeDateOrDateTimeValue(value, params.col);
 
     if (value === null) {

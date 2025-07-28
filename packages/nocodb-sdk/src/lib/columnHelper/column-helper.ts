@@ -147,6 +147,23 @@ export class ColumnHelperClass {
     }
   }
 
+  /**
+   * Parses a plain cell value back into its original form.
+   * Converts a plain cell value into a display-friendly format.
+   *
+   * @param value - The value to be parsed from storage format.
+   * @param params - Additional parameters related to column parsing.
+   * @returns The parsed value in a display-friendly format.
+   */
+  parsePlainCellValue(value: any, params: SerializerOrParserFnProps['params']) {
+    const columnInstance = this.getColumn(params);
+    if (columnInstance) {
+      return columnInstance.parsePlainCellValue(value, params);
+    }
+
+    return value;
+  }
+
   populateFillHandle(params: {
     column: ColumnType;
     highlightedData: any[];

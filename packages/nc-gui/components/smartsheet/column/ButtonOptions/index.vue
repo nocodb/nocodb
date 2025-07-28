@@ -21,15 +21,15 @@ const buttonActionsType = {
   ...ButtonActionsType,
 }
 
+const vModel = useVModel(props, 'value', emit)
+
+const meta = inject(MetaInj, ref())
+
 const { t } = useI18n()
 
 const { getMeta } = useMetas()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const vModel = useVModel(props, 'value', emit)
-
-const meta = inject(MetaInj, ref())
+const { isAiBetaFeaturesEnabled } = useNocoAi()
 
 const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode } = useColumnCreateStoreOrThrow()
 
@@ -62,7 +62,7 @@ const isAiButtonEnabled = computed(() => {
     return true
   }
 
-  return isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+  return isAiBetaFeaturesEnabled.value
 })
 
 const isScriptButtonEnabled = computed(() => {
@@ -70,7 +70,7 @@ const isScriptButtonEnabled = computed(() => {
     return true
   }
 
-  return isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS)
+  return isAiBetaFeaturesEnabled.value
 })
 
 const buttonTypes = computed(() => [

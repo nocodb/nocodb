@@ -28,7 +28,7 @@ export class ApiTokensController {
   @Acl('baseApiTokenList')
   async apiTokenList(@Req() req: NcRequest) {
     return new PagedResponseImpl(
-      await this.apiTokensService.apiTokenList({ userId: req['user'].id }),
+      await this.apiTokensService.apiTokenList({ userId: req['user'].id, req }),
     );
   }
 

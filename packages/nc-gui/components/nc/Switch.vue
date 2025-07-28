@@ -87,6 +87,14 @@ const onChange = (e: boolean, updateValue = false) => {
 
   :deep(.ant-switch-handle) {
     @apply h-[12px] w-[12px] top-[2px] left-[calc(100%_-_26px)];
+
+    .ant-switch-loading-icon {
+      @apply top-[1px];
+
+      svg.anticon-spin {
+        @apply !w-[10px] !h-[10px];
+      }
+    }
   }
 
   :deep(.ant-switch-inner) {
@@ -109,6 +117,14 @@ const onChange = (e: boolean, updateValue = false) => {
 
   :deep(.ant-switch-handle) {
     @apply h-[10px] w-[10px] top-[2px] left-[calc(100%_-_24px)];
+
+    .ant-switch-loading-icon {
+      @apply top-[1px];
+
+      svg.anticon-spin {
+        @apply !w-[8px] !h-[8px];
+      }
+    }
   }
 
   :deep(.ant-switch-inner) {
@@ -130,6 +146,14 @@ const onChange = (e: boolean, updateValue = false) => {
 
   :deep(.ant-switch-handle) {
     @apply h-[6px] w-[6px] top-[2px] left-[calc(100%_-_16px)];
+
+    .ant-switch-loading-icon {
+      @apply top-[1px];
+
+      svg.anticon-spin {
+        @apply !w-[4px] !h-[4px];
+      }
+    }
   }
 
   :deep(.ant-switch-inner) {

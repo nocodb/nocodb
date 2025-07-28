@@ -1,4 +1,4 @@
-import { isAIPromptCol, NcApiVersion, UITypes } from 'nocodb-sdk';
+import { isAIPromptCol, UITypes } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Knex } from 'knex';
 import type { ButtonColumn, FormulaColumn, RollupColumn } from '~/models';

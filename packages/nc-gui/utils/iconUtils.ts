@@ -298,6 +298,8 @@ import NcOllama from '~icons/nc-icons/ollama'
 import NcGroq from '~icons/nc-icons/groq'
 import NcPosthog from '~icons/nc-icons/posthog'
 import NcNocodbPg from '~icons/nc-icons/nocodb-pg'
+import NcStopCircle from '~icons/nc-icons/stop-circle'
+import NcEnter from '~icons/nc-icons/enter'
 
 // Buttons Icons V2
 
@@ -559,6 +561,13 @@ import NcVerticalAlignTop from '~icons/nc-icons/align-vertical-top.svg'
 import NcVerticalAlignCenter from '~icons/nc-icons/align-vertical-center.svg'
 import NcVerticalAlignBottom from '~icons/nc-icons/align-vertical-bottom.svg'
 import NcAngleRotateCw from '~icons/nc-icons/angle-rotate-cw.svg'
+import NcCheckCircle2 from '~icons/nc-icons/check-2.svg'
+import NcMessageCircleFilled from '~icons/nc-icons-v2/message-circle-filled.svg'
+import NcChartScatterPlot from '~icons/nc-icons-v2/scatter-plot.svg'
+import NcChartDonut from '~icons/nc-icons-v2/chart-donut.svg'
+import NcChartBar from '~icons/nc-icons-v2/chart-bar.svg'
+import NcChartLine from '~icons/nc-icons-v2/chart-line.svg'
+import NcChartPie from '~icons/nc-icons-v2/chart-pie.svg'
 
 import NcSlash1 from '~icons/nc-icons/slash1'
 
@@ -594,6 +603,7 @@ import NcAutoAwesome from '~icons/nc-icons/auto_awesome'
 import NcPlusAi from '~icons/nc-icons/plus-ai'
 import NcPlusMultiple from '~icons/nc-icons/plus-multiple'
 import NcPlusSquareSolid from '~icons/nc-icons/plus-square-solid'
+import NcDashboards from '~icons/nc-icons/dashboards'
 
 /* file types */
 
@@ -727,6 +737,7 @@ import NcLogoZohoColored from '~icons/nc-icons-v2/zoho-colored.svg'
 import NcLogoZoho from '~icons/nc-icons-v2/zoho.svg'
 import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
 import NcBaseOutline from '~icons/nc-icons-v2/base-outline.svg'
+import NcBasePrivate from '~icons/nc-icons-v2/base-private.svg'
 import NcBaseOutlineDuo from '~icons/nc-icons-v2/base-outline-duo.svg'
 import NcSearchDuo from '~icons/nc-icons-v2/search-duo.svg'
 import NcSettingsDuo from '~icons/nc-icons-v2/settings-duo.svg'
@@ -736,6 +747,8 @@ import NcNotificationDuo from '~icons/nc-icons-v2/notification-duo.svg'
 import NcLayout from '~icons/nc-icons-v2/layout.svg'
 import NcPlusCircleSolid from '~icons/nc-icons-v2/plus-circle-solid.svg'
 import NcHeadphone from '~icons/nc-icons-v2/headphone'
+import NcPaintRoller from '~icons/nc-icons-v2/paint-roller.svg'
+import NcConditions from '~icons/nc-icons-v2/conditions.svg'
 
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
@@ -754,6 +767,9 @@ import MdiNcFlagOutline from '~icons/nc-icons/mdi-flag-outline'
 import MdiNcAttachFile from '~icons/nc-icons/mdi-attach'
 import MdiCloudKeyOutline from '~icons/mdi/cloud-key-outline'
 import NcDiscordForum from '~icons/nc-icons/discord-forum'
+import NcCrown from '~icons/nc-icons-v2/crown'
+import NcMultiCircle from '~icons/nc-icons-v2/multi-circle'
+import NcChatwoot from '~icons/nc-icons-v2/chatwoot'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1118,6 +1134,7 @@ export const iconMap = {
   'shrink': h('span', { class: 'material-symbols' }, 'close_fullscreen'),
   'check': NcCheck,
   'circleCheck': MdiCheckboxMarkedCircle,
+  'circleCheck3': NcCheckCircle2,
   'acl': h('span', { class: 'material-symbols' }, 'shield'),
   'sync': MsSync,
   'warning': MaterialSymbolsWarningOutlineRounded,
@@ -1221,6 +1238,7 @@ export const iconMap = {
   'asana': NcAsana,
   'box': NcBox,
   'githubSolid': NcGithubSolid,
+  'chatwoot': h(NcChatwoot, { stroke: 'transparent' }),
   'linear': NcLinear,
   'gitlab': NcGitlab,
   'googleCalendar': NcGoogleCalendar,
@@ -1287,6 +1305,7 @@ export const iconMap = {
   'iconTwitter': NcTwitterIcon,
   'iconDiscord': NcDiscordIcon,
   'attachFile': MdiNcAttachFile,
+  'dashboards': NcDashboards,
 
   // Nc-IconsV2 Buttons
   'ncColumns': NcColumnsIcon,
@@ -1368,7 +1387,7 @@ export const iconMap = {
   'ncKey2': NcKeyIcon,
   'ncCornerDownRight': NcCornerDownRightIcon,
   'ncArrowRight2': NcArrowRightIcon,
-  'ncStopCircle': NcStopCircleIcon,
+  'ncStopCircle2': NcStopCircleIcon,
   'ncLogOut': NcLogOutIcon,
   'ncArrowLeftCircle': NcArrowLeftCircleIcon,
   'ncBarChart2': NcBarChart2Icon,
@@ -1562,6 +1581,7 @@ export const iconMap = {
   'ncSpanner': NcSpanner,
   'ncScript': NcScript,
   'youtube': NcYoutube2Icon,
+  'ncEnter': NcEnter,
   'ncAutoAwesome': h(NcAutoAwesome, { stroke: 'transparent' }),
   'ncPlusAi': h(NcPlusAi, { stroke: 'transparent' }),
   'ncPlusMultiple': NcPlusMultiple,
@@ -1595,6 +1615,7 @@ export const iconMap = {
   'ncQuote': NcQuote,
   'ncAutomation': AutomationIcon,
   'ncWebhook': NcWebhook,
+  'ncMessageCircleFilled': NcMessageCircleFilled,
   'ncLogoAsanaColored': h(NcLogoAsanaColored, { stroke: 'transparent' }),
   'ncLogoAsana': h(NcLogoAsana, { stroke: 'transparent' }),
   'ncLogoBitbucketColored': h(NcLogoBitbucketColored, { stroke: 'transparent' }),
@@ -1687,7 +1708,10 @@ export const iconMap = {
   'ncLogoZohoColored': h(NcLogoZohoColored, { stroke: 'transparent' }),
   'ncLogoZoho': h(NcLogoZoho, { stroke: 'transparent' }),
   'ncSendAlt': h(NcSendAlt, { stroke: 'transparent' }),
+  'ncStopCircle': h(NcStopCircle, { stroke: 'transparent' }),
   'ncAiPlay': AiPlayIcon,
+  'ncPaintRoller': NcPaintRoller,
+  'ncConditions': NcConditions,
   'mdi-check-bold': MdiNcCropSquare,
   'mdi-crop-square': MdiNcCheckBold,
   'mdi-check-circle-outline': MdiNcCheckCircleOutline,
@@ -1705,6 +1729,7 @@ export const iconMap = {
   'sso': MdiCloudKeyOutline,
   'mcp': NcMCP,
   'ncBaseOutline': NcBaseOutline,
+  'ncBasePrivate': NcBasePrivate,
   'ncBaseOutlineDuo': NcBaseOutlineDuo,
   'ncSearchDuo': NcSearchDuo,
   'ncSettingsDuo': NcSettingsDuo,
@@ -1715,6 +1740,13 @@ export const iconMap = {
   'ncPlusCircleSolid': h(NcPlusCircleSolid, { stroke: 'transparent' }),
   'ncDiscordForum': NcDiscordForum,
   'ncHeadphone': NcHeadphone,
+  'ncCrown': NcCrown,
+  'ncMultiCircle': NcMultiCircle,
+  'ncChartScatterPlot': h(NcChartScatterPlot, { stroke: 'transparent' }),
+  'ncChartBar': h(NcChartBar, { stroke: 'transparent' }),
+  'ncChartLine': h(NcChartLine, { stroke: 'transparent' }),
+  'ncChartDonut': h(NcChartDonut, { stroke: 'transparent' }),
+  'ncChartPie': h(NcChartPie, { stroke: 'transparent' }),
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4272,6 +4304,10 @@ export const searchableMap = {
     icon: NcBaseOutline,
     keywords: ['base', 'database', 'storage', 'db'],
   },
+  ncBasePrivate: {
+    icon: NcBasePrivate,
+    keywords: ['base', 'database', 'storage', 'db', 'private', 'locked', 'secure'],
+  },
   ncBaseOutlineDuo: {
     icon: NcBaseOutlineDuo,
     keywords: ['base', 'database', 'storage', 'db'],
@@ -4303,6 +4339,22 @@ export const searchableMap = {
   ncHeadphone: {
     icon: NcHeadphone,
     keywords: ['headphone', 'call'],
+  },
+  ncPaintRoller: {
+    icon: NcPaintRoller,
+    keywords: ['paint', 'roller', 'color', 'paintbrush'],
+  },
+  ncConditions: {
+    icon: NcConditions,
+    keywords: ['conditions', 'filter', 'rule'],
+  },
+  ncCrown: {
+    icon: NcCrown,
+    keywords: ['crown', 'badge', 'award', 'achievement', 'honor', 'paid'],
+  },
+  ncMultiCircle: {
+    icon: NcMultiCircle,
+    keywords: ['multi', 'circle', 'multi-circle', 'multi-circle-outline'],
   },
 }
 

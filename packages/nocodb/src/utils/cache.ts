@@ -26,6 +26,15 @@ export default class SimpleLRUCache {
     this.keys.push(key);
   }
 
+  delete(key: string) {
+    if (!this.cache[key]) {
+      return;
+    }
+
+    delete this.cache[key];
+    this.keys = this.keys.filter((k) => k !== key);
+  }
+
   clear() {
     this.cache = {};
     this.keys = [];

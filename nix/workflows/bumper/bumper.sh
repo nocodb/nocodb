@@ -46,10 +46,10 @@ if [ ! -w "$package_path" ] || [ ! -r "$package_path" ]; then
 fi
 
 if early_escape_possible; then
-	echo "early escape success : nix bump commit is newer"
+	echo "early escape success, nix bump commit is newer"
 	exit 0
 else
-	echo "early esacpe failure : npm bump commit is newer, here we go again"
+	echo "npm bump commit is newer, updating hash"
 fi
 
 fake_hash="sha256-0000000000000000000000000000000000000000000="

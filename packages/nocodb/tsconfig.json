@@ -22,26 +22,13 @@
     "esModuleInterop": true,
     "jsx": "react",
     "paths": {
-      "src/*": [
-        "src/*"
-      ],
-      "~/*": [
-        "src/*"
-      ],
-      "@/*": [
-        "src/*"
-      ],
-      "@noco-local-integrations/*": [
-        "../noco-integrations/packages/*"
-      ],
-      "@noco-local-integrations/core": [
-        "../noco-integrations/core"
-      ]
+      "src/*": ["src/*"],
+      "~/*": ["src/*"],
+      "@/*": ["src/*"],
+      "@noco-local-integrations/*": ["../noco-integrations/packages/*"],
+      "@noco-local-integrations/core": ["../noco-integrations/core"]
     },
-    "typeRoots": [
-      "src/types",
-      "node_modules/@types"
-    ]
+    "typeRoots": ["src/types", "node_modules/@types"]
   },
   "include": ["src/**/*"],
   "exclude": ["src/ee", "src/ee-on-prem", "src/ee-cloud", "**/*.spec.ts"]

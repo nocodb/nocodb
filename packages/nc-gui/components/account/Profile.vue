@@ -146,92 +146,91 @@ const onCancel = () => {
     <div class="h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
       <div class="h-full nc-content-max-w p-6">
         <div class="flex flex-col w-150 mx-auto">
-          <div class="mt-5 border-1 rounded-2xl border-gray-200 p-6">
-            <div>
-              <div class="font-bold text-base text-nc-content-gray-emphasis mb-2" data-rec="true">
-                {{ $t('labels.accountDetails') }}
-              </div>
-              <div class="flex text-gray-500" data-rec="true">{{ $t('labels.controlAppearance') }}</div>
+          <div class="nc-settings-item-card-wrapper mt-5">
+            <div class="nc-settings-item-heading text-nc-content-gray-emphasis">
+              {{ $t('labels.accountDetails') }}
             </div>
 
-            <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="() => saveChanges()">
-              <div class="flex gap-4 mt-6">
-                <div>
-                  <GeneralIconSelector
-                    v-model:icon="form.icon"
-                    v-model:icon-type="form.iconType"
-                    v-model:image-cropper-data="imageCropperData"
-                    :default-active-tab="IconType.IMAGE"
-                    :tab-order="[IconType.IMAGE, IconType.ICON, IconType.EMOJI]"
-                    @submit="() => saveChanges(true)"
-                  >
-                    <template #default="{ isOpen }">
-                      <div
-                        class="border-1 w-26.25 h-26.25 flex-none rounded-full overflow-hidden transition-all duration-300 cursor-pointer"
-                        :class="{
-                          'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
-                          'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,
-                          'border-primary shadow-selected': isOpen,
-                        }"
-                      >
-                        <GeneralUserIcon
-                          size="xlarge"
-                          :user="user"
-                          class="!w-full !h-full !min-w-full select-none cursor-pointer"
-                        />
-                      </div>
-                    </template>
-                  </GeneralIconSelector>
-                </div>
+            <div class="nc-settings-item-card p-6">
+              <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="() => saveChanges()">
+                <div class="flex gap-4">
+                  <div>
+                    <GeneralIconSelector
+                      v-model:icon="form.icon"
+                      v-model:icon-type="form.iconType"
+                      v-model:image-cropper-data="imageCropperData"
+                      :default-active-tab="IconType.IMAGE"
+                      :tab-order="[IconType.IMAGE, IconType.ICON, IconType.EMOJI]"
+                      @submit="() => saveChanges(true)"
+                    >
+                      <template #default="{ isOpen }">
+                        <div
+                          class="border-1 w-26.25 h-26.25 flex-none rounded-full overflow-hidden transition-all duration-300 cursor-pointer"
+                          :class="{
+                            'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
+                            'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,
+                            'border-primary shadow-selected': isOpen,
+                          }"
+                        >
+                          <GeneralUserIcon
+                            size="xlarge"
+                            :user="user"
+                            class="!w-full !h-full !min-w-full select-none cursor-pointer"
+                          />
+                        </div>
+                      </template>
+                    </GeneralIconSelector>
+                  </div>
 
-                <div class="flex-1 flex flex-col gap-4">
-                  <div>
-                    <div class="text-gray-800 mb-2" data-rec="true">{{ $t('general.name') }}</div>
-                    <a-form-item name="title" :rules="formRules.title" class="!my-0">
+                  <div class="flex-1 flex flex-col gap-4">
+                    <div>
+                      <div class="text-gray-800 mb-2" data-rec="true">{{ $t('general.name') }}</div>
+                      <a-form-item name="title" :rules="formRules.title" class="!my-0">
+                        <a-input
+                          v-model:value="form.title"
+                          class="w-full !rounded-lg !px-4 h-10"
+                          :placeholder="$t('general.name')"
+                          data-testid="nc-account-settings-rename-input"
+                        />
+                      </a-form-item>
+                    </div>
+                    <div>
+                      <div class="text-gray-800 mb-2" data-rec="true">{{ $t('labels.accountEmailID') }}</div>
                       <a-input
-                        v-model:value="form.title"
+                        v-model:value="email"
                         class="w-full !rounded-lg !px-4 h-10"
-                        :placeholder="$t('general.name')"
-                        data-testid="nc-account-settings-rename-input"
+                        :placeholder="$t('labels.email')"
+                        disabled
+                        data-testid="nc-account-settings-email-input"
                       />
-                    </a-form-item>
-                  </div>
-                  <div>
-                    <div class="text-gray-800 mb-2" data-rec="true">{{ $t('labels.accountEmailID') }}</div>
-                    <a-input
-                      v-model:value="email"
-                      class="w-full !rounded-lg !px-4 h-10"
-                      :placeholder="$t('labels.email')"
-                      disabled
-                      data-testid="nc-account-settings-email-input"
-                    />
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="flex flex-row w-full justify-end mt-8 gap-4">
-                <NcButton
-                  v-if="isSaveChangesBtnEnabled"
-                  type="secondary"
-                  size="small"
-                  data-testid="nc-account-settings-cancel"
-                  :disabled="isProfileUpdating"
-                  @click="onCancel"
-                >
-                  {{ $t('general.cancel') }}
-                </NcButton>
-                <NcButton
-                  type="primary"
-                  html-type="submit"
-                  size="small"
-                  :disabled="isErrored || !isSaveChangesBtnEnabled || isProfileUpdating"
-                  :loading="isProfileUpdating"
-                  data-testid="nc-account-settings-save"
-                >
-                  <template #loading> {{ $t('general.saving') }} </template>
-                  {{ $t('general.save') }}
-                </NcButton>
-              </div>
-            </a-form>
+                <div class="flex flex-row w-full justify-end mt-8 gap-4">
+                  <NcButton
+                    v-if="isSaveChangesBtnEnabled"
+                    type="secondary"
+                    size="small"
+                    data-testid="nc-account-settings-cancel"
+                    :disabled="isProfileUpdating"
+                    @click="onCancel"
+                  >
+                    {{ $t('general.cancel') }}
+                  </NcButton>
+                  <NcButton
+                    type="primary"
+                    html-type="submit"
+                    size="small"
+                    :disabled="isErrored || !isSaveChangesBtnEnabled || isProfileUpdating"
+                    :loading="isProfileUpdating"
+                    data-testid="nc-account-settings-save"
+                  >
+                    <template #loading> {{ $t('general.saving') }} </template>
+                    {{ $t('general.save') }}
+                  </NcButton>
+                </div>
+              </a-form>
+            </div>
           </div>
         </div>
       </div>

@@ -4,15 +4,17 @@ import {
   getEquivalentUIType,
   isAIPromptCol,
   isDateMonthFormat,
+  isLinksOrLTAR,
   isNumericCol,
   UITypes,
 } from 'nocodb-sdk';
 import { FieldHandler } from './field-handler';
 import type { FilterOperationResult } from './field-handler/field-handler.interface';
-import type { FilterType } from 'nocodb-sdk';
+import type { FilterType, NcContext } from 'nocodb-sdk';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { Column, Model } from '~/models';
 import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
 import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
@@ -1306,3 +1308,14 @@ const parseConditionV2 = async (
     }
   }
 };
+
+export async function extractLinkRelFiltersAndApply(_: {
+  qb: Knex.QueryBuilder & Knex.QueryInterface;
+  column: Column<any>;
+  alias?: string;
+  table: Model;
+  context: NcContext;
+  baseModel: IBaseModelSqlV2;
+}) {
+  // do nothing, it's just a placeholder
+}

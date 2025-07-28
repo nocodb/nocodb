@@ -7,7 +7,10 @@ import {
   isVirtualCol,
   NcApiVersion,
   type NcContext,
+  ncIsNull,
+  ncIsNullOrUndefined,
   ncIsNumber,
+  ncIsUndefined,
   parseProp,
   RelationTypes,
   UITypes,
@@ -138,17 +141,28 @@ export function _wherePk(
   return where;
 }
 
-export function getCompositePkValue(primaryKeys: Column[], row) {
+export function getCompositePkValue(
+  primaryKeys: Column[],
+  row,
+  option?: {
+    skipSubstitutingColumnIds?: boolean;
+  },
+) {
   if (row === null || row === undefined) {
-    NcError.requiredFieldMissing(primaryKeys.map((c) => c.title).join(','));
+    NcError.requiredFieldMissing(
+      primaryKeys
+        .map((c) => (option?.skipSubstitutingColumnIds ? c.id : c.title))
+        .join(','),
+    );
   }
 
   if (typeof row !== 'object') return row;
 
+  const pkIdOrTitleKey = option?.skipSubstitutingColumnIds ? 'id' : 'title';
   if (primaryKeys.length > 1) {
     return primaryKeys
       .map((c) =>
-        (row[c.title] ?? row[c.column_name])
+        (row[c[pkIdOrTitleKey]] ?? row[c.column_name])
           ?.toString?.()
           .replaceAll('_', '\\_'),
       )
@@ -157,7 +171,7 @@ export function getCompositePkValue(primaryKeys: Column[], row) {
 
   return (
     primaryKeys[0] &&
-    (row[primaryKeys[0].title] ?? row[primaryKeys[0].column_name])
+    (row[primaryKeys[0][pkIdOrTitleKey]] ?? row[primaryKeys[0].column_name])
   );
 }
 
@@ -330,6 +344,9 @@ export const isPrimitiveType = (val) =>
   typeof val === 'string' || typeof val === 'number';
 
 export function transformObject(value, idToAliasMap) {
+  if (ncIsNullOrUndefined(value)) {
+    return value;
+  }
   const result = {};
   Object.entries(value).forEach(([k, v]) => {
     const btAlias = idToAliasMap[k];
@@ -344,13 +361,32 @@ export function transformObject(value, idToAliasMap) {
 
 export function extractSortsObject(
   context: NcContext,
-  _sorts: string | string[],
+  _sorts: string | string[] | { direction: string; field: string }[],
   aliasColObjMap: { [columnAlias: string]: Column },
   throwErrorIfInvalid = false,
+  apiVersion?: NcApiVersion,
 ): Sort[] {
   if (!_sorts?.length) return;
+  // Handle API V3 format: [{"direction": "asc", "field": "field_name"}, {"direction": "desc", "field": "field_id"}]
+  if (apiVersion === NcApiVersion.V3) {
+    try {
+      _sorts = JSON.parse(_sorts as string);
+    } catch (_e) {}
+    if (!Array.isArray(_sorts)) _sorts = [_sorts];
+    return (_sorts as { direction: string; field: string }[]).map((s) => {
+      const sort: SortType = {
+        direction: s.direction as 'asc' | 'desc' | 'count-desc' | 'count-asc',
+        fk_column_id: aliasColObjMap[s.field]?.id,
+      };
+      if (throwErrorIfInvalid && !sort.fk_column_id) {
+        NcError.get(context).fieldNotFound(s.field);
+      }
+      return new Sort(sort);
+    });
+  }
 
-  let sorts = _sorts;
+  // Handle V2 format
+  let sorts = _sorts as string | string[];
   if (!Array.isArray(sorts)) sorts = sorts.split(/\s*,\s*/);
 
   return sorts.map((s) => {
@@ -404,7 +440,7 @@ export function shouldSkipField(
   pkAndPvOnly = false,
 ) {
   if (fieldsSet && !pkAndPvOnly) {
-    return !fieldsSet.has(column.title);
+    return !fieldsSet.has(column.title) && !fieldsSet.has(column.id);
   } else {
     if (!pkAndPvOnly && column.system && isCreatedOrLastModifiedByCol(column))
       return true;
@@ -584,34 +620,45 @@ export const validateFuncOnColumn = async ({
   }
 };
 
-export const isFilterValueConsistOf = (
-  filterValue: any,
+export const isFilterValueConsistOf = <T extends string | string[]>(
+  filterValue: T,
   needle: string,
   option?: {
     replace?: string;
   },
-) => {
+): { exists: boolean; value?: T } => {
   const evalNeedle = needle.toLowerCase().trim();
+
   if (Array.isArray(filterValue)) {
-    const result = filterValue.find(
-      (k) => k.toLowerCase().trim() === evalNeedle,
-    );
+    const arr = filterValue as string[];
+    const result = arr.some((k) => k.toLowerCase().trim() === evalNeedle);
+
     if (result && option?.replace) {
-      filterValue.map((k) => k.replace(evalNeedle, option.replace));
+      const replaced = arr.map((k) =>
+        k.toLowerCase().trim() === evalNeedle ? option.replace! : k,
+      );
+      return { exists: true, value: replaced as T };
     }
-    return { exists: result, value: filterValue };
-  } else if (typeof filterValue === 'string') {
-    const result = filterValue
-      .split(',')
-      .find((k) => k.toLowerCase().trim() === evalNeedle);
-    if (result && option?.replace) {
-      filterValue = filterValue
-        .split(',')
-        .map((k) => k.replace(evalNeedle, option.replace))
-        .join(',');
-    }
+
     return { exists: result, value: filterValue };
   }
+
+  if (typeof filterValue === 'string') {
+    const parts = filterValue.split(',');
+    const result = parts.some((k) => k.toLowerCase().trim() === evalNeedle);
+
+    if (result && option?.replace) {
+      const replaced = parts
+        .map((k) =>
+          k.toLowerCase().trim() === evalNeedle ? option.replace! : k,
+        )
+        .join(',');
+      return { exists: true, value: replaced as T };
+    }
+
+    return { exists: result, value: filterValue };
+  }
+
   return { exists: false };
 };
 
@@ -629,3 +676,79 @@ export function generateRecursiveCTE(_params: {
 }) {
   return false;
 }
+
+export const dataWrapper = (data: any) => {
+  return {
+    getByColumnNameTitleOrId: (column: {
+      column_name: string;
+      id: string;
+      title: string;
+    }) => {
+      if (column.column_name in data) {
+        return data[column.column_name];
+      }
+
+      if (column.title in data) {
+        return data[column.title];
+      }
+
+      if (column.id in data) {
+        return data[column.id];
+      }
+
+      return undefined;
+    },
+    getColumnKeyName: (column: {
+      column_name: string;
+      id: string;
+      title: string;
+    }) => {
+      if (!ncIsNullOrUndefined(data?.[column.column_name])) {
+        return column.column_name;
+      }
+      if (!ncIsNullOrUndefined(data?.[column.title])) {
+        return column.title;
+      }
+      return column.id;
+    },
+
+    extractPksValue: (model: Model, asString: boolean = false) => {
+      // if data is not object return as it is
+      if (!data || typeof data !== 'object') {
+        if (asString && !ncIsNull(data) && !ncIsUndefined(data)) {
+          return `${data}`;
+        }
+        return data;
+      }
+
+      // data can be still inserted without PK
+
+      // if composite primary key return an object with all the primary keys
+      if (model.primaryKeys.length > 1) {
+        const pkValues = {};
+        for (const pk of model.primaryKeys) {
+          pkValues[pk.title] =
+            data[pk.title] ?? data[pk.column_name] ?? data[pk.id];
+        }
+        return asString
+          ? Object.values(pkValues)
+              .map((val) => val?.toString?.().replaceAll('_', '\\_'))
+              .join('___')
+          : pkValues;
+      } else if (model.primaryKey) {
+        let pkValue;
+        if (typeof data === 'object') {
+          pkValue =
+            data[model.primaryKey.title] ??
+            data[model.primaryKey.column_name] ??
+            data[model.primaryKey.id];
+        } else {
+          pkValue = data;
+        }
+        if (pkValue !== undefined) return asString ? `${pkValue}` : pkValue;
+      } else {
+        return 'N/A';
+      }
+    },
+  };
+};

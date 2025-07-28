@@ -11,7 +11,7 @@ export class EmailHelper extends SingleLineTextHelper {
   ): string | null {
     value = serializeStringValue(value);
 
-    if (parseProp(params.col.meta).validate) {
+    if (!params.serializeSearchQuery && parseProp(params.col.meta).validate) {
       return serializeEmail(value);
     }
     return value;

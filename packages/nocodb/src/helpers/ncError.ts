@@ -4,7 +4,6 @@ import { NcErrorV3 } from './ncErrorV3';
 import type { ErrorObject } from 'ajv';
 import type {
   BaseType,
-  NcContext,
   NcErrorArgs,
   PlanLimitExceededDetailsType,
   SourceType,
@@ -17,8 +16,8 @@ export class NcError {
   static _V3 = new NcErrorV3();
 
   // return ncError based on api version
-  static get(context: NcContext) {
-    if (context.api_version === NcApiVersion.V3) {
+  static get(context?: { api_version?: NcApiVersion }) {
+    if (context?.api_version === NcApiVersion.V3) {
       return NcError._V3;
     }
     return NcError._;
@@ -202,6 +201,9 @@ export class NcError {
 
   static allowedOnlySSOAccess(ncWorkspaceId: string): never {
     return NcError._.allowedOnlySSOAccess(ncWorkspaceId);
+  }
+  static allowedOnlySSOGeneratedToken(ncWorkspaceId: string): never {
+    return NcError._.allowedOnlySSOGeneratedToken(ncWorkspaceId);
   }
   static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
     return NcError._.maxInsertLimitExceeded(limit, args);

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { UITypes, isVirtualCol, parseStringDateTime } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes, isVirtualCol, parseStringDateTime } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -42,7 +42,7 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const { showExtraFields } = useLTARStoreOrThrow()!
+const { showExtraFields, relatedTableMeta } = useLTARStoreOrThrow()!
 
 interface Attachment {
   url: string
@@ -136,12 +136,14 @@ const displayValue = computed(() => {
                       class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
                       :column="field"
                       :hide-menu="true"
+                      hide-icon-tooltip
                     />
                     <LazySmartsheetHeaderCell
                       v-else
                       class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
                       :column="field"
                       :hide-menu="true"
+                      hide-icon-tooltip
                     />
                   </template>
                   <div class="nc-link-record-cell flex w-full max-w-full">
@@ -182,24 +184,31 @@ const displayValue = computed(() => {
           </NcTooltip>
         </div>
         <template v-if="(!isPublic && !readOnly) || isForm">
-          <NcTooltip class="z-10 flex">
-            <template #title> {{ isLinked ? 'Unlink' : 'Link' }}</template>
-
-            <button
-              tabindex="-1"
-              class="nc-list-item-link-unlink-btn p-1.5 flex rounded-lg transition-all"
-              :class="{
-                'bg-gray-200 text-gray-800 hover:(bg-red-100 text-red-500)': isLinked,
-                'bg-green-[#D4F7E0] text-[#17803D] hover:bg-green-200': !isLinked,
-              }"
-              @click="$emit('linkOrUnlink')"
-            >
-              <div v-if="isLoading" class="flex">
-                <MdiLoading class="flex-none w-4 h-4 !text-brand-500 animate-spin" />
-              </div>
-              <GeneralIcon v-else :icon="isLinked ? 'minus' : 'plus'" class="flex-none w-4 h-4 !font-extrabold" />
-            </button>
-          </NcTooltip>
+          <PermissionsTooltip
+            class="z-10 flex"
+            :entity="PermissionEntity.FIELD"
+            :entity-id="relatedTableMeta?.id"
+            :permission="PermissionKey.RECORD_FIELD_EDIT"
+            :default-tooltip="isLinked ? 'Unlink' : 'Link'"
+          >
+            <template #default="{ isAllowed }">
+              <button
+                tabindex="-1"
+                class="nc-list-item-link-unlink-btn p-1.5 flex rounded-lg transition-all"
+                :class="{
+                  'bg-gray-200 text-gray-800 hover:(bg-red-100 text-red-500)': isLinked,
+                  'bg-green-[#D4F7E0] text-[#17803D] hover:bg-green-200': !isLinked,
+                }"
+                :disabled="!isAllowed"
+                @click="$emit('linkOrUnlink')"
+              >
+                <div v-if="isLoading" class="flex">
+                  <MdiLoading class="flex-none w-4 h-4 !text-brand-500 animate-spin" />
+                </div>
+                <GeneralIcon v-else :icon="isLinked ? 'minus' : 'plus'" class="flex-none w-4 h-4 !font-extrabold" />
+              </button>
+            </template>
+          </PermissionsTooltip>
         </template>
       </div>
     </a-card>

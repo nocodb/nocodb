@@ -6,7 +6,7 @@ import { ref } from 'vue'
 import { forcedNextTick } from '../../utils/browserUtils'
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-const clientMousePosition = inject(ClientMousePositionInj)
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 
 const value = inject(CellValueInj, ref(0))
 
@@ -62,9 +62,11 @@ const hasEditPermission = computed(() => {
 })
 
 const textVal = computed(() => {
-  if (isForm?.value || isNew.value) {
+  if (isForm.value || isNew.value) {
     return state.value?.[colTitle.value]?.length
       ? `${+state.value?.[colTitle.value]?.length} ${t('msg.recordsLinked')}`
+      : isForm.value && !isExpandedFormOpen.value
+      ? t('title.linkRecords')
       : t('msg.noRecordsLinked')
   }
 
@@ -201,8 +203,8 @@ onUnmounted(() => {
             class="text-center nc-datatype-link underline-transparent nc-canvas-links-text font-weight-500"
             :class="{ '!text-gray-300': !textVal }"
             :tabindex="readOnly ? -1 : 0"
-            @click.stop.prevent="openChildList"
-            @keydown.enter.stop.prevent="openChildList"
+            @click.stop.prevent="isForm && !isExpandedFormOpen ? openListDlg() : openChildList()"
+            @keydown.enter.stop.prevent="isForm && !isExpandedFormOpen ? openListDlg() : openChildList"
           >
             {{ textVal }}
           </component>

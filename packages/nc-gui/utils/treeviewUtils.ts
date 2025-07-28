@@ -33,7 +33,7 @@ export const getSourceTooltip = (source: SourceType) => {
           'a',
           {
             className: '!text-current',
-            href: 'https://docs.nocodb.com/data-sources/connect-to-data-source#configuring-permissions',
+            href: 'https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source#configuring-permissions',
             target: '_blank',
           },
           'Learn more',
@@ -58,7 +58,7 @@ export const getSourceTooltip = (source: SourceType) => {
           'a',
           {
             className: '!text-current',
-            href: 'https://docs.nocodb.com/data-sources/connect-to-data-source#configuring-permissions',
+            href: 'https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source#configuring-permissions',
             target: '_blank',
           },
           'Learn more',
@@ -81,7 +81,7 @@ export const getSourceTooltip = (source: SourceType) => {
         'a',
         {
           className: '!text-current',
-          href: 'https://docs.nocodb.com/data-sources/connect-to-data-source#configuring-permissions',
+          href: 'https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source#configuring-permissions',
           target: '_blank',
         },
         'disabling schema editing',

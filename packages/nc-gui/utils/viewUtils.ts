@@ -1,4 +1,4 @@
-import { ViewTypes } from 'nocodb-sdk'
+import { type RowColoringInfo, ViewTypes } from 'nocodb-sdk'
 import { iconMap } from './iconUtils'
 import type { Language } from '~/lib/types'
 import UsersIcon from '~icons/nc-icons/users'
@@ -54,4 +54,12 @@ export const viewLockIcons = {
     icon: LockIcon,
     subtitle: 'msg.info.lockedView',
   },
+}
+
+export const defaultRowColorInfo: RowColoringInfo = {
+  mode: null,
+  conditions: [],
+  fk_column_id: null,
+  color: null,
+  is_set_as_background: null,
 }

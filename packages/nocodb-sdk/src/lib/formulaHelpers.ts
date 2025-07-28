@@ -338,6 +338,7 @@ export enum FormulaDataTypes {
   STRING = 'string',
   DATE = 'date',
   LOGICAL = 'logical',
+  ARRAY = 'array',
   COND_EXP = 'conditional_expression',
   NULL = 'null',
   BOOLEAN = 'boolean',
@@ -1311,6 +1312,66 @@ export const formulas: Record<string, FormulaMeta> = {
       'https://docs.nocodb.com/fields/field-types/formula/logical-functions#false',
   },
 
+  ARRAYUNIQUE: {
+    validation: {
+      args: {
+        rqd: 1,
+        type: FormulaDataTypes.ARRAY,
+      },
+    },
+    description: 'Return unique items from the given array',
+    syntax: 'ARRAYUNIQUE(value)',
+    examples: ['ARRAYUNIQUE({column})'],
+    returnType: FormulaDataTypes.ARRAY,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/array-functions#arrayunique',
+  },
+
+  ARRAYSORT: {
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+      },
+    },
+    description: 'Sort an array result',
+    syntax: 'ARRAYSORT(value, [direction])',
+    examples: ['ARRAYSORT({column}, "desc")'],
+    returnType: FormulaDataTypes.ARRAY,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/array-functions#arraysort',
+  },
+
+  ARRAYCOMPACT: {
+    validation: {
+      args: {
+        rqd: 1,
+        type: FormulaDataTypes.ARRAY,
+      },
+    },
+    description: 'Removes empty strings and null values from the array',
+    syntax: 'ARRAYCOMPACT(value)',
+    examples: ['ARRAYCOMPACT({column})'],
+    returnType: FormulaDataTypes.ARRAY,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/array-functions#arraycompact',
+  },
+
+  ARRAYSLICE: {
+    validation: {
+      args: {
+        min: 2,
+        max: 3,
+      },
+    },
+    description: 'Removes empty strings and null values from the array',
+    syntax: 'ARRAYSLICE(value, start, [end])',
+    examples: ['ARRAYSLICE({column})'],
+    returnType: FormulaDataTypes.ARRAY,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/array-functions#arrayslice',
+  },
+
   REGEX_MATCH: {
     validation: {
       args: {
@@ -1720,6 +1781,9 @@ async function extractColumnIdentifierType({
       break;
     // not supported
     case UITypes.Lookup:
+    case UITypes.LinkToAnotherRecord:
+      res.dataType = FormulaDataTypes.ARRAY;
+      break;
     case UITypes.Barcode:
     case UITypes.Button:
     case UITypes.Collaborator:

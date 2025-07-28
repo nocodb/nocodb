@@ -46,6 +46,7 @@ interface Props {
     fk_to_column_id: string | null // for ee only
   }>
   coverImageColumnId?: string
+  sourceId?: string
 }
 
 interface Emits {
@@ -85,8 +86,6 @@ const workspaceStore = useWorkspace()
 const { viewsByTable } = storeToRefs(useViewsStore())
 
 const { refreshCommandPalette } = useCommandPalette()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId, coverImageColumnId, baseId } = toRefs(props)
 
@@ -162,7 +161,7 @@ const typeAlias = computed(
     }[props.type]),
 )
 
-const { aiIntegrationAvailable, aiLoading, aiError, predictViews: _predictViews, createViews } = useNocoAi()
+const { isAiFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError, predictViews: _predictViews, createViews } = useNocoAi()
 
 const aiMode = ref(false)
 
@@ -236,7 +235,7 @@ const onAiEnter = async () => {
 
   if (activeTabSelectedViews.value.length) {
     try {
-      const data = await createViews(activeTabSelectedViews.value, baseId.value)
+      const data = await createViews(activeTabSelectedViews.value, baseId.value, props.sourceId)
 
       emits('created', ncIsArray(data) && data.length ? data[0] : undefined)
     } catch (e: any) {
@@ -581,6 +580,7 @@ const predictViews = async (): Promise<AiSuggestedViewType[]> => {
       baseId.value,
       activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
       viewType,
+      props.sourceId,
     )
   )
     .filter((v: AiSuggestedViewType) => !ncIsArrayIncludes(activeTabPredictedViews.value, v.title, 'title'))
@@ -874,41 +874,13 @@ const getPluralName = (name: string) => {
             </template>
           </template>
         </div>
-        <!-- <a
-          v-if="!form.copy_from_id"
-          class="text-sm !text-gray-600 !font-default !hover:text-gray-600"
-          :href="`https://docs.nocodb.com/views/view-types/${typeAlias}`"
-          target="_blank"
-        >
-          Docs
-        </a> -->
-        <div
-          v-if="!isAIViewCreateMode && isNecessaryColumnsPresent && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)"
-          :class="{
-            'cursor-wait': aiLoading,
-          }"
-        >
-          <NcButton
-            type="text"
-            size="small"
-            class="-my-1 !text-nc-content-purple-dark hover:text-nc-content-purple-dark"
-            :class="{
-              '!pointer-events-none !cursor-not-allowed': aiLoading,
-              '!bg-nc-bg-purple-dark hover:!bg-gray-100': aiMode,
-            }"
-            @click.stop="aiMode ? disableAiMode() : toggleAiMode(true)"
-          >
-            <div class="flex items-center justify-center">
-              <GeneralIcon icon="ncAutoAwesome" />
-              <span
-                class="overflow-hidden trasition-all ease duration-200"
-                :class="{ 'w-[0px] invisible': aiMode, 'ml-1 w-[78px]': !aiMode }"
-              >
-                Use NocoAI
-              </span>
-            </div>
-          </NcButton>
-        </div>
+        <AiToggleButton
+          v-if="!isAIViewCreateMode && isNecessaryColumnsPresent && isAiFeaturesEnabled"
+          :ai-mode="aiMode"
+          :ai-loading="aiLoading"
+          :off-tooltip="`Auto suggest views for ${meta?.title || 'the current table'}`"
+          @click="aiMode ? disableAiMode() : toggleAiMode(true)"
+        />
       </div>
       <a-form
         v-if="isNecessaryColumnsPresent"

@@ -28,6 +28,7 @@ import { PublicDataExportController } from '~/modules/jobs/jobs/data-export/publ
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
 import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
+import { AttachmentUrlUploadProcessor } from '~/modules/jobs/jobs/attachment-url-upload/attachment-url-upload.processor';
 
 // Job Processor
 import { JobsProcessor } from '~/modules/jobs/jobs.processor';
@@ -40,6 +41,7 @@ import { ThumbnailMigration } from '~/modules/jobs/migration-jobs/nc_job_002_thu
 import { OrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_005_order_column';
 import { RecoverOrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_007_recover_order_column';
 import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
+import { AuditMigration } from '~/modules/jobs/migration-jobs/nc_job_009_audit_migration';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -117,6 +119,7 @@ export const JobsModuleMetadata = {
     ThumbnailGeneratorProcessor,
     AttachmentCleanUpProcessor,
     UseWorkerProcessor,
+    AttachmentUrlUploadProcessor,
 
     // Migration Jobs
     InitMigrationJobs,
@@ -128,6 +131,7 @@ export const JobsModuleMetadata = {
     NoOpMigration,
     RecoverOrderColumnMigration,
     RecoverDisconnectedTableNames,
+    AuditMigration,
   ],
   exports: ['JobsService'],
 };

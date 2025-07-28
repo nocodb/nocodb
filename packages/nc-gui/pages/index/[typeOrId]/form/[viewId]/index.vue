@@ -107,7 +107,7 @@ p {
           }
         }
         &.layout-list {
-          @apply h-auto !pl-0 !py-1 !bg-transparent !dark:bg-none;
+          @apply h-auto !p-0 !bg-transparent !dark:bg-none;
         }
 
         .duration-cell-wrapper {
@@ -181,6 +181,10 @@ p {
             .nc-cell-field.nc-cell-link-preview {
               @apply px-3;
             }
+          }
+
+          &.nc-cell-attachment {
+            @apply pl-1;
           }
         }
         &.nc-virtual-cell {

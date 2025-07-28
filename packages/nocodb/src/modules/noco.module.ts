@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 // import { NotFoundHandlerModule } from './not-found-handler.module';
+import { ViewRowColorService } from '~/services/view-row-color.service';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
 
@@ -32,7 +33,6 @@ import { ApiDocsController } from '~/controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '~/controllers/api-tokens.controller';
 import { AttachmentsSecureController } from '~/controllers/attachments-secure.controller';
 import { AttachmentsController } from '~/controllers/attachments.controller';
-import { AuditsController } from '~/controllers/audits.controller';
 import { BaseUsersController } from '~/controllers/base-users.controller';
 import { BasesController } from '~/controllers/bases.controller';
 import { CachesController } from '~/controllers/caches.controller';
@@ -149,9 +149,12 @@ import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { ViewsV3Service } from '~/services/v3/views-v3.service';
+import { ViewRowColorController } from '~/controllers/view-row-color.controller';
+import { AttachmentUrlUploadHandler } from '~/services/emit-handler/attachment-url-upload.handler';
 
 /* ACL */
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { DataAttachmentV3Service } from '~/services/v3/data-attachment-v3.service';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -182,7 +185,6 @@ export const nocoModuleMetadata = {
           ...(process.env.NC_SECURE_ATTACHMENTS === 'true'
             ? [AttachmentsSecureController]
             : [AttachmentsController]),
-          AuditsController,
           SourcesController,
           CachesController,
           CalendarsController,
@@ -223,6 +225,7 @@ export const nocoModuleMetadata = {
 
           // MCP
           McpController,
+          ViewRowColorController,
 
           /* V3 APIs */
           BasesV3Controller,
@@ -313,6 +316,8 @@ export const nocoModuleMetadata = {
     NocoJobsService,
     McpTokenService,
     McpService,
+    ViewRowColorService,
+
     /* Datas */
     DataTableService,
     DatasService,
@@ -323,12 +328,16 @@ export const nocoModuleMetadata = {
     PublicDatasService,
     PublicDatasExportService,
     DataV3Service,
+    DataAttachmentV3Service,
 
     // use custom provider to avoid circular dependency
     {
       provide: 'FormulaColumnTypeChanger',
       useClass: FormulaColumnTypeChanger,
     },
+
+    /* emit handlers */
+    AttachmentUrlUploadHandler,
   ],
   exports: [
     /* Generic */
@@ -364,12 +373,16 @@ export const nocoModuleMetadata = {
     UtilsService,
     IntegrationsService,
     NocoJobsService,
+    ViewRowColorService,
 
     /* Datas */
     DatasService,
     BulkDataAliasService,
     DataTableService,
     DataV3Service,
+    DataAttachmentV3Service,
+
+    AttachmentUrlUploadHandler,
   ],
 };
 

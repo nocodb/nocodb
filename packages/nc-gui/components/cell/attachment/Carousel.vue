@@ -142,7 +142,7 @@ const initEmblaApi = (val: any) => {
 </script>
 
 <template>
-  <GeneralOverlay v-model="selectedFile" transition :z-index="isExpandedFormOpen ? 1000 : 50" class="bg-black bg-opacity-90">
+  <GeneralOverlay v-model="selectedFile" transition :z-index="isExpandedFormOpen ? 1000 : 504" class="bg-black bg-opacity-90">
     <div class="flex w-full h-full">
       <div
         v-if="selectedFile"

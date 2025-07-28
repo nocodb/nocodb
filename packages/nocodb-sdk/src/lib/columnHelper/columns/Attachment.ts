@@ -10,7 +10,7 @@ export class AttachmentHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
   serializeValue(value: any, params: SerializerOrParserFnProps['params']) {
-    if (!value) return null;
+    if (!value || params.serializeSearchQuery) return null;
 
     let parsedVal = [];
 
@@ -42,6 +42,9 @@ export class AttachmentHelper extends AbstractColumnHelper {
   }
 
   parsePlainCellValue(value: any): string {
-    return parseDefault(value) ?? '';
+    if (ncIsArray(value)) {
+      return value.map((v) => `${v.title}`).join(', ');
+    }
+    return value?.toString() ?? '';
   }
 }

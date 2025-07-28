@@ -293,7 +293,7 @@ watch(activeViewTab, (value) => {
                 <div class="text-sm font-normal text-gray-600 mb-2">
                   <div>
                     {{ $t('msg.connectIntegrations') }}
-                    <a href="https://docs.nocodb.com/category/integrations" target="_blank" rel="noopener noreferrer">{{
+                    <a href="https://nocodb.com/docs/product-docs/integrations" target="_blank" rel="noopener noreferrer">{{
                       $t('msg.learnMore')
                     }}</a>
                   </div>

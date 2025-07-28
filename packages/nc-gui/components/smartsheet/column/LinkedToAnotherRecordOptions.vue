@@ -276,6 +276,8 @@ const onCustomSwitchToggle = () => {
 }
 
 const onCustomSwitchLabelClick = () => {
+  if (isEdit.value) return
+
   vModel.value.is_custom_link = !vModel.value.is_custom_link
   onCustomSwitchToggle()
 }
@@ -322,6 +324,14 @@ const toggleCrossBase = () => {
 
   crossBase.value = !crossBase.value
   onCrossBaseToggle()
+}
+
+const handleScrollIntoView = () => {
+  filterRef.value?.$el?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+    inline: 'nearest',
+  })
 }
 </script>
 
@@ -541,14 +551,14 @@ const toggleCrossBase = () => {
                 :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER"
                 :content="
                   $t('upgrade.upgradeToAddLimitRecordSelection', {
-                    plan: getPlanTitle(PlanTitles.TEAM),
+                    plan: getPlanTitle(PlanTitles.PLUS),
                   })
                 "
               />
             </div>
           </template>
         </PaymentUpgradeBadgeProvider>
-        <div v-if="limitRecToCond" class="overflow-auto">
+        <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"
             v-model="vModel.filters"
@@ -558,6 +568,8 @@ const toggleCrossBase = () => {
             :link="true"
             :root-meta="meta"
             :link-col-id="vModel.id"
+            @add-filter="handleScrollIntoView"
+            @add-filter-group="handleScrollIntoView"
           />
         </div>
       </div>

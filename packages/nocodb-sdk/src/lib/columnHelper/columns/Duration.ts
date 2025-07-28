@@ -3,6 +3,7 @@ import { parseDurationValue, serializeDurationValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
+import { ncIsNaN } from '~/lib/is';
 
 export class DurationHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -16,7 +17,7 @@ export class DurationHelper extends AbstractColumnHelper {
     value = serializeDurationValue(value, params.col);
 
     if (value === null) {
-      if (params.isMultipleCellPaste) {
+      if (params.isMultipleCellPaste || params.serializeSearchQuery) {
         return null;
       } else {
         throw new SilentTypeConversionError();
@@ -37,6 +38,10 @@ export class DurationHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string {
+    if (params.isAggregation && ncIsNaN(value)) {
+      value = 0;
+    }
+
     return parseDurationValue(value, params.col) ?? '';
   }
 }

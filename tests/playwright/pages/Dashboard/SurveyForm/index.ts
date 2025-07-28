@@ -156,16 +156,18 @@ export class SurveyFormPage extends BasePage {
       verify: async ({ hasError, hasErrorMsg }: { hasError?: boolean; hasErrorMsg?: string | RegExp }) => {
         if (hasError !== undefined) {
           if (hasError) {
-            await expect(fieldErrorEl).toBeVisible();
+            await expect(fieldErrorEl.locator('.ant-form-item-explain-error').first()).toBeVisible();
           } else {
-            await expect(fieldErrorEl).not.toBeVisible();
+            await expect(fieldErrorEl.locator('.ant-form-item-explain-error').first()).not.toBeVisible();
           }
         }
 
         if (hasErrorMsg !== undefined) {
-          await expect(fieldErrorEl).toBeVisible();
+          await expect(fieldErrorEl.locator('.ant-form-item-explain-error').first()).toBeVisible();
 
-          await expect(fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg }).first()).toHaveText(hasErrorMsg);
+          await expect(
+            fieldErrorEl.locator('.ant-form-item-explain-error').filter({ hasText: hasErrorMsg }).first()
+          ).toHaveText(hasErrorMsg);
         }
       },
     };

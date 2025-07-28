@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
+import type { ColumnType, LinkToAnotherRecordType, RollupType, TableType } from 'nocodb-sdk'
 import {
   ColumnHelper,
-  type ColumnType,
-  type LinkToAnotherRecordType,
+  PlanFeatureTypes,
+  PlanTitles,
   RelationTypes,
-  type RollupType,
-  type TableType,
   UITypes,
+  getAvailableRollupForColumn,
   getRenderAsTextFunForUiType,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isVirtualCol,
 } from 'nocodb-sdk'
-import { getAvailableRollupForColumn, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -20,8 +22,15 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn, updateFieldName } =
-  useColumnCreateStoreOrThrow()
+const {
+  setAdditionalValidations,
+  validateInfos,
+  onDataTypeChange,
+  isEdit,
+  disableSubmitBtn,
+  updateFieldName,
+  setPostSaveOrUpdateCbk,
+} = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 
@@ -30,6 +39,12 @@ const { tables } = storeToRefs(baseStore)
 const { metas, getMeta } = useMetas()
 
 const { t } = useI18n()
+
+const { $e } = useNuxtApp()
+
+const { getPlanTitle } = useEeConfig()
+
+const filterRef = ref()
 
 setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: t('general.required') }],
@@ -93,12 +108,41 @@ const columns = computed<ColumnType[]>(() => {
   )
 })
 
+const limitRecToCond = computed({
+  get() {
+    return !!vModel.value.meta?.enableConditions
+  },
+  set(value) {
+    vModel.value.meta = vModel.value.meta || {}
+    vModel.value.meta.enableConditions = value
+    $e('c:rollup:limit-record-by-filter', { status: value })
+  },
+})
+
+// Provide related table meta for filter conditions
+provide(
+  MetaInj,
+  computed(() => {
+    if (!selectedTable.value) return {}
+
+    return metas.value[selectedTable.value.id] || {}
+  }),
+)
+
 onMounted(() => {
   if (isEdit.value) {
     vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
     vModel.value.fk_rollup_column_id = vModel.value.colOptions?.fk_rollup_column_id
     vModel.value.rollup_function = vModel.value.colOptions?.rollup_function
   }
+
+  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
+    await filterRef.value?.applyChanges(colId || column?.id, false)
+  })
+})
+
+onUnmounted(() => {
+  setPostSaveOrUpdateCbk(null)
 })
 
 const getNextColumnId = () => {
@@ -234,6 +278,20 @@ const enableFormattingOptions = computed(() => {
 
   return validFunctions.includes(vModel.value.rollup_function)
 })
+
+const onFilterLabelClick = () => {
+  if (!selectedTable.value) return
+
+  limitRecToCond.value = !limitRecToCond.value
+}
+
+const handleScrollIntoView = () => {
+  filterRef.value?.$el?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+    inline: 'nearest',
+  })
+}
 </script>
 
 <template>
@@ -378,6 +436,58 @@ const enableFormattingOptions = computed(() => {
         </NcSwitch>
       </div>
     </a-form-item>
+
+    <div v-if="isEeUI" class="w-full flex flex-col gap-4">
+      <div class="flex flex-col gap-2">
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER">
+          <template #default="{ click }">
+            <div class="flex gap-1 items-center whitespace-nowrap">
+              <NcSwitch
+                :checked="limitRecToCond"
+                :disabled="!selectedTable"
+                size="small"
+                data-testid="nc-rollup-limit-record-filters"
+                @change="
+                  (value) => {
+                    if (value && click(PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER)) return
+                    onFilterLabelClick()
+                  }
+                "
+              >
+                {{ $t('labels.onlyIncludeLinkedRecordsThatMeetSpecificConditions') }}
+              </NcSwitch>
+
+              <LazyPaymentUpgradeBadge
+                v-if="!limitRecToCond"
+                :feature="PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER"
+                :content="
+                  $t('upgrade.upgradeToIncludeLinkedRecordsThatMeetSpecificConditions', {
+                    plan: getPlanTitle(PlanTitles.PLUS),
+                  })
+                "
+                class="ml-1"
+              />
+            </div>
+          </template>
+        </PaymentUpgradeBadgeProvider>
+
+        <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
+          <LazySmartsheetToolbarColumnFilter
+            ref="filterRef"
+            v-model="vModel.filters"
+            class="!pl-10 !p-0 max-w-620px"
+            :auto-save="false"
+            :show-loading="false"
+            link
+            :show-dynamic-condition="false"
+            :root-meta="meta"
+            :link-col-id="vModel.id"
+            @add-filter="handleScrollIntoView"
+            @add-filter-group="handleScrollIntoView"
+          />
+        </div>
+      </div>
+    </div>
   </div>
   <div v-else>
     <a-alert type="warning" show-icon>
@@ -394,8 +504,12 @@ const enableFormattingOptions = computed(() => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 :deep(.ant-select-selector .ant-select-selection-item .nc-relation-details) {
   @apply hidden;
+}
+
+:deep(.nc-filter-grid) {
+  @apply !pr-0;
 }
 </style>

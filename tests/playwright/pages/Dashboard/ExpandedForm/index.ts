@@ -210,6 +210,7 @@ export class ExpandedFormPage extends BasePage {
 
   async openChildCard(param: { column: string; title: string }) {
     const childField = this.get().locator(`[data-testid="nc-expand-col-${param.column}"]`);
+    await childField.locator('.nc-datatype-link').waitFor({ state: 'visible' });
     await childField.locator('.nc-datatype-link').click();
 
     const card = await this.rootPage.locator(`.ant-card:has-text("${param.title}")`);

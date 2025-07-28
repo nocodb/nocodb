@@ -22,6 +22,7 @@ export function useKeyboardNavigation({
   expandForm,
   cachedGroups,
   isAddingEmptyRowAllowed,
+  isAddingEmptyRowPermitted,
   addEmptyRow,
   addNewColumn,
   onActiveCellChanged,
@@ -48,10 +49,11 @@ export function useKeyboardNavigation({
   copyValue: (target?: Cell, path?: Array<number>) => void
   clearCell: (ctx: { row: number; col: number; path?: Array<number> } | null, skipUpdate?: boolean) => Promise<void>
   clearSelectedRangeOfCells: (path?: Array<number>) => Promise<void>
-  makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+  makeCellEditable: MakeCellEditableFn
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
   cachedGroups: Ref<Map<number, CanvasGroup>>
   isAddingEmptyRowAllowed: ComputedRef<boolean>
+  isAddingEmptyRowPermitted: ComputedRef<boolean>
   addNewColumn: () => void
   addEmptyRow: (
     addAfter?: number,
@@ -182,7 +184,12 @@ export function useKeyboardNavigation({
       switch (e.keyCode) {
         case 82: {
           // ALT + R
-          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
+          if (
+            isAddingEmptyRowAllowed.value &&
+            isAddingEmptyRowPermitted.value &&
+            !removeInlineAddRecord.value &&
+            isAddingEmptyRowPermitted.value
+          ) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow(undefined, undefined, undefined, defaultData, groupPath)
             activeCell.value.row = totalRows.value
@@ -241,7 +248,7 @@ export function useKeyboardNavigation({
 
               const row = cachedRows.value.get(activeCell.value.row)
 
-              makeCellEditable(row, columns.value[activeCell.value.column]!)
+              makeCellEditable(row, columns.value[activeCell.value.column]!, true)
               selection.value.clear()
             }
           }
@@ -352,7 +359,7 @@ export function useKeyboardNavigation({
         let isAdded = false
         e.preventDefault()
         if (!e.shiftKey && activeCell.value.row === lastRow && activeCell.value.column === lastCol) {
-          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
+          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value && isAddingEmptyRowPermitted.value) {
             addEmptyRow(undefined, false, undefined, defaultData, groupPath)
             isAdded = true
           }

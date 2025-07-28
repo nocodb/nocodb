@@ -416,7 +416,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     <a-form-item
                       v-if="field.title && fieldMappings[field.title]"
                       :name="fieldMappings[field.title]"
-                      class="!my-0 nc-input-required-error"
+                      class="nc-input-required-error"
                       v-bind="validateInfos[fieldMappings[field.title]]"
                     >
                       <SmartsheetDivDataCell class="relative nc-form-data-cell" @click.stop="handleFocus">
@@ -445,18 +445,18 @@ const { message: templatedMessage } = useTemplatedMessage(
                           :read-only="field?.read_only"
                           @update:model-value="validateField(field.title)"
                         />
+                        <template v-if="field.uidt === UITypes.LongText" #help>
+                          <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-xs mt-2">
+                            <div class="hidden text-sm text-gray-500 md:flex flex-wrap items-center">
+                              {{ $t('general.shift') }} <span class="text-primary"> &nbsp;⇧&nbsp; </span> +
+                              {{ $t('general.enter') }}
+                              <span class="text-primary"> &nbsp;↵&nbsp; </span>
+                              {{ $t('msg.info.makeLineBreak') }}
+                            </div>
+                          </div>
+                        </template>
                       </SmartsheetDivDataCell>
                     </a-form-item>
-                    <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-xs my-2 px-1">
-                      <div
-                        v-if="field.uidt === UITypes.LongText"
-                        class="hidden text-sm text-gray-500 md:flex flex-wrap items-center"
-                      >
-                        {{ $t('general.shift') }} <MdiAppleKeyboardShift class="mx-1 text-primary" /> + {{ $t('general.enter') }}
-                        <MaterialSymbolsKeyboardReturn class="mx-1 text-primary" />
-                        {{ $t('msg.info.makeLineBreak') }}
-                      </div>
-                    </div>
                   </NcTooltip>
                 </div>
 
@@ -573,6 +573,18 @@ const { message: templatedMessage } = useTemplatedMessage(
 </template>
 
 <style lang="scss" scoped>
+:deep(.ant-form-item.nc-input-required-error) {
+  @apply !mt-0;
+
+  &:not(.ant-form-item-with-help) {
+    @apply !mb-7;
+  }
+
+  .ant-form-item-explain {
+    @apply !min-h-7;
+  }
+}
+
 .nc-input-required-error {
   max-width: 100%;
   white-space: pre-line;

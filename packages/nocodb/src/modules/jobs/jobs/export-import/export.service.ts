@@ -1,33 +1,26 @@
 import { Readable } from 'stream';
+import { Injectable } from '@nestjs/common';
+import debug from 'debug';
 import {
   isCrossBaseLink,
   isLinksOrLTAR,
   isSystemColumn,
   LongTextAiMetaProp,
+  NcApiVersion,
   RelationTypes,
   UITypes,
   ViewTypes,
+  type WidgetType,
 } from 'nocodb-sdk';
 import { unparse } from 'papaparse';
-import debug from 'debug';
-import { Injectable } from '@nestjs/common';
-import { NcApiVersion } from 'nocodb-sdk';
 import { elapsedTime, initTime } from '../../helpers';
-import type { LookupType, RollupType } from 'nocodb-sdk';
+import type { LookupType, NcRequest, RollupType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
-import type { LinkToAnotherRecordColumn } from '~/models';
-import {
-  Base,
-  BaseUser,
-  Comment,
-  Filter,
-  Hook,
-  Model,
-  Source,
-  View,
-} from '~/models';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import type { Column, LinkToAnotherRecordColumn } from '~/models';
+import type RowColorCondition from '~/models/RowColorCondition';
+import type { GetRowColorConditionsResult } from '~/helpers/rowColorViewHelpers';
+import { NcError } from '~/helpers/catchError';
 import {
   getViewAndModelByAliasOrId,
   serializeCellValue,
@@ -38,9 +31,23 @@ import {
   getEntityIdentifier,
 } from '~/helpers/exportImportHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { NcError } from '~/helpers/catchError';
+import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
+import {
+  Base,
+  BaseUser,
+  Comment,
+  Dashboard,
+  Filter,
+  Hook,
+  Model,
+  Script,
+  Source,
+  View,
+} from '~/models';
 import { DatasService } from '~/services/datas.service';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { parseMetaProp } from '~/utils/modelUtils';
+import { getWidgetHandler } from '~/db/widgets';
 
 @Injectable()
 export class ExportService {
@@ -48,12 +55,102 @@ export class ExportService {
 
   constructor(private datasService: DatasService) {}
 
+  async serializeScripts(context: NcContext) {
+    const serializedScripts = [];
+
+    const scripts = await Script.list(context, context.base_id);
+
+    for (const script of scripts) {
+      serializedScripts.push({
+        title: script.title,
+        script: script.script,
+        description: script.description,
+        meta: script.meta,
+      });
+    }
+
+    return serializedScripts;
+  }
+
+  async serializeDashboards(context: NcContext, param: any, req: NcRequest) {
+    const { idMap } = param;
+    const serializedDashboards = [];
+
+    const dashboards = await Dashboard.list(context, context.base_id);
+
+    for (const dashboard of dashboards) {
+      idMap.set(dashboard.id, `${dashboard.base_id}::${dashboard.id}`);
+
+      await dashboard.getWidgets(context);
+
+      const serializedWidgets = [];
+
+      for (const widget of dashboard.widgets) {
+        const handler = await getWidgetHandler({
+          widget: widget as WidgetType,
+          req,
+        });
+
+        const serializedWidget = await handler.serializeOrDeserializeWidget(
+          context,
+          widget as any,
+          idMap,
+        );
+
+        const filters = await Filter.getFilterObject(context, {
+          widgetId: widget.id,
+        });
+
+        const exportedFilters = [];
+
+        if (filters?.children?.length) {
+          for (const fl of filters.children) {
+            const tempFl = {
+              id: `${idMap.get(widget.id)}::${fl.id}`,
+              fk_column_id: idMap.get(fl.fk_column_id),
+              fk_parent_id: `${idMap.get(widget.id)}::${fl.fk_parent_id}`,
+              is_group: fl.is_group,
+              logical_op: fl.logical_op,
+              comparison_op: fl.comparison_op,
+              comparison_sub_op: fl.comparison_sub_op,
+              value: fl.value,
+            };
+
+            if (tempFl.is_group) {
+              delete tempFl.comparison_op;
+              delete tempFl.comparison_sub_op;
+              delete tempFl.value;
+            }
+            exportedFilters.push(tempFl);
+          }
+        }
+
+        serializedWidgets.push({
+          ...serializedWidget,
+          filters: exportedFilters,
+        });
+      }
+
+      serializedDashboards.push({
+        id: idMap.get(dashboard.id),
+        title: dashboard.title,
+        description: dashboard.description,
+        order: dashboard.order,
+        meta: dashboard.meta,
+        widgets: serializedWidgets,
+      });
+    }
+
+    return serializedDashboards;
+  }
+
   async serializeModels(
     context: NcContext,
     param: {
       modelIds: string[];
       excludeViews?: boolean;
       excludeHooks?: boolean;
+      excludeRowColorConditions?: boolean;
       excludeData?: boolean;
       excludeComments?: boolean;
       compatibilityMode?: boolean;
@@ -64,6 +161,7 @@ export class ExportService {
     const excludeData = param?.excludeData || false;
     const excludeViews = param?.excludeViews || false;
     const excludeHooks = param?.excludeHooks || false;
+    const excludeRowColorConditions = param?.excludeRowColorConditions || false;
     const excludeComments =
       param?.excludeComments || param?.excludeData || false;
 
@@ -386,6 +484,25 @@ export class ExportService {
         }
       }
 
+      let serializedRowColorConditions: {
+        result: GetRowColorConditionsResult;
+        filters: Filter[];
+        rowColorConditions: RowColorCondition[];
+      } = {
+        result: [],
+        filters: [],
+        rowColorConditions: [],
+      };
+      if (!excludeRowColorConditions) {
+        serializedRowColorConditions = await RowColorViewHelpers.withContext(
+          context,
+        ).getDuplicateRowColorConditions({
+          views: model.views,
+          idMap,
+          mapColumnId: true,
+        });
+      }
+
       const serializedHooks = [];
 
       if (!excludeHooks) {
@@ -394,15 +511,17 @@ export class ExportService {
         for (const hook of hooks) {
           idMap.set(hook.id, `${idMap.get(hook.fk_model_id)}::${hook.id}`);
 
-          const hookFilters = await hook.getFilters(context);
+          const hookFilters = await Filter.getFilterObject(context, {
+            hookId: hook.id,
+          });
           const export_filters = [];
 
-          if (hookFilters) {
-            for (const fl of hookFilters) {
+          if (hookFilters?.children?.length) {
+            for (const fl of hookFilters.children) {
               const tempFl = {
                 id: `${idMap.get(hook.id)}::${fl.id}`,
                 fk_column_id: idMap.get(fl.fk_column_id),
-                fk_parent_id: fl.fk_parent_id,
+                fk_parent_id: `${idMap.get(hook.id)}::${fl.fk_parent_id}`,
                 is_group: fl.is_group,
                 logical_op: fl.logical_op,
                 comparison_op: fl.comparison_op,
@@ -510,7 +629,10 @@ export class ExportService {
           id: idMap.get(view.id),
           is_default: view.is_default,
           type: view.type,
-          meta: view.meta,
+          meta: RowColorViewHelpers.withContext(context).mapMetaColumn({
+            meta: view.meta,
+            idMap,
+          }),
           order: view.order,
           title: view.title,
           show: view.show,
@@ -519,6 +641,7 @@ export class ExportService {
           sorts: view.sorts,
           lock_type: view.lock_type,
           owned_by: view.owned_by,
+          row_coloring_mode: view.row_coloring_mode,
           columns: view.columns.map((column) => {
             const {
               id,
@@ -538,12 +661,19 @@ export class ExportService {
           }),
           view: view.view,
         })),
+        rowColorConditions: {
+          filters: serializedRowColorConditions.filters,
+          rowColorConditions: serializedRowColorConditions.rowColorConditions,
+        },
         hooks: serializedHooks,
         comments: serializedComments,
+        idMap,
       });
     }
-
-    return serializedModels;
+    return {
+      serializedModels,
+      idMap,
+    };
   }
 
   async serializeUsers(context: NcContext, param: { baseId: string }) {
@@ -632,12 +762,13 @@ export class ExportService {
           .map((c) => c.title)
       : model.columns.filter((c) => !isLinksOrLTAR(c)).map((c) => c.title);
 
+    const refView = view ?? (await View.getDefaultView(context, model.id));
+
+    const viewCols = await refView.getColumns(context);
     if (dataExportMode) {
       const hideSystemFields = view.show_system_fields
         ? []
         : model.columns.filter((c) => isSystemColumn(c)).map((c) => c.id);
-
-      const viewCols = await view.getColumns(context);
 
       fields = viewCols
         .sort((a, b) => a.order - b.order)
@@ -749,6 +880,10 @@ export class ExportService {
     };
 
     const formatAndSerialize = async (data: any) => {
+      const includedColumns: {
+        col: Column;
+        viewOrder: number;
+      }[] = [];
       for (const row of data) {
         for (const [k, v] of Object.entries(row)) {
           const col = model.columns.find((c) => c.title === k);
@@ -758,10 +893,26 @@ export class ExportService {
               column: col,
               siteUrl: param.ncSiteUrl,
             });
+            includedColumns.push({
+              col,
+              viewOrder:
+                viewCols.find((vCol) => vCol.fk_column_id === col.id)?.order ??
+                includedColumns.length + 1,
+            });
           }
         }
       }
-      return { data };
+      const orderedColumns = includedColumns.sort(
+        (a, b) => a.viewOrder - b.viewOrder,
+      );
+      return {
+        data: data.map((row) => {
+          return orderedColumns.reduce((acc, cur) => {
+            acc[cur.col.title] = row[cur.col.title];
+            return acc;
+          }, {});
+        }),
+      };
     };
 
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -858,7 +1009,7 @@ export class ExportService {
             mmOffset,
             mmLimit,
             mmFields,
-            streamedHeaders ? false : true,
+            !streamedHeaders,
           );
 
           // avoid writing headers for same model multiple times
@@ -1053,9 +1204,12 @@ export class ExportService {
       (m) => m.source_id === source.id && !m.mm && m.type === 'table',
     );
 
-    const exportedModels = await this.serializeModels(context, {
-      modelIds: models.map((m) => m.id),
-    });
+    const { serializedModels: exportedModels } = await this.serializeModels(
+      context,
+      {
+        modelIds: models.map((m) => m.id),
+      },
+    );
 
     elapsedTime(
       hrTime,

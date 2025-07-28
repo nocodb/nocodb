@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const { sharedView, meta, nestedFilters } = useSharedView()
 
+const { xWhere } = useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
+
 const reloadEventHook = createEventHook()
 
 provide(ReloadViewDataHookInj, reloadEventHook)
@@ -15,11 +17,13 @@ provide(IsPublicInj, ref(true))
 
 useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
 
+useProvideViewGroupBy(sharedView, meta, xWhere, true)
+
 useProvideSmartsheetLtarHelpers(meta)
 
-useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
-
 useProvideKanbanViewStore(meta, sharedView, true)
+
+useViewRowColorProvider({ shared: true })
 </script>
 
 <template>

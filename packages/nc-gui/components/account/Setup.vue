@@ -13,7 +13,7 @@ const configs = computed(() => [
     key: 'email',
     description:
       'Configure your preferred email service to manage how your application sends alerts, notifications and other essential emails.',
-    docsLink: 'https://docs.nocodb.com/account-settings/oss-specific-details#configure-email',
+    docsLink: 'https://nocodb.com/docs/product-docs/account-settings/oss-specific-details#configure-email',
     buttonClick: () => {
       navigateTo(`/account/setup/email${emailConfigured.value ? `/${emailConfigured.value.title}` : ''}`)
     },
@@ -26,7 +26,7 @@ const configs = computed(() => [
     title: t('labels.configLabel', { label: t('labels.storage') }),
     key: 'storage',
     description: 'Set up and manage your preferred storage solution for securely handling and storing your application’s data.',
-    docsLink: 'https://docs.nocodb.com/account-settings/oss-specific-details#configure-storage',
+    docsLink: 'https://nocodb.com/docs/product-docs/account-settings/oss-specific-details#configure-storage',
     buttonClick: () => {
       navigateTo(`/account/setup/storage${storageConfigured.value ? `/${storageConfigured.value.title}` : ''}`)
     },
@@ -35,16 +35,6 @@ const configs = computed(() => [
     },
     configured: storageConfigured.value,
   },
-  // {
-  //   title: t('labels.switchToProd'),
-  //   key: 'switchToProd',
-  //   description: 'Switch to production-ready app database from existing application database.',
-  //   docsLink: 'https://docs.nocodb.com',
-  //   buttonClick: () => {
-  //     //  TODO: Implement the logic to switch to production
-  //   },
-  //   isPending: !(appInfo.value as any)?.prodReady,
-  // },
 ])
 
 onMounted(async () => {

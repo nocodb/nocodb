@@ -67,6 +67,14 @@ import * as nc_077_column_index_name from '~/meta/migrations/v2/nc_077_column_in
 import * as nc_078_mcp_tokens from '~/meta/migrations/v2/nc_078_mcp_tokens';
 import * as nc_079_cross_base_link from '~/meta/migrations/v2/nc_079_cross_base_link';
 import * as nc_080_sync_mappings from '~/meta/migrations/v2/nc_080_sync_mappings';
+import * as nc_081_audit from '~/meta/migrations/v2/nc_081_audit';
+import * as nc_082_row_color_conditions from '~/meta/migrations/v2/nc_082_row_color_conditions';
+import * as nc_083_permissions from '~/meta/migrations/v2/nc_083_permissions';
+import * as nc_084_hook_trigger_fields from '~/meta/migrations/v2/nc_084_hook_trigger_fields';
+import * as nc_085_base_default_role from '~/meta/migrations/v2/nc_085_base_default_role';
+import * as nc_086_dashboards_widgets from '~/meta/migrations/v2/nc_086_dashboards_widgets';
+import * as nc_087_widget_error from '~/meta/migrations/v2/nc_087_widget_error';
+import * as nc_088_add_sso_client_to_api_tokens from '~/meta/migrations/v2/nc_088_add_sso_client_to_api_tokens';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -145,6 +153,14 @@ export default class XcMigrationSourcev2 {
       'nc_078_mcp_tokens',
       'nc_079_cross_base_link',
       'nc_080_sync_mappings',
+      'nc_081_audit',
+      'nc_082_row_color_conditions',
+      'nc_083_permissions',
+      'nc_084_hook_trigger_fields',
+      'nc_085_base_default_role',
+      'nc_086_dashboards_widgets',
+      'nc_087_widget_error',
+      'nc_088_add_sso_client_to_api_tokens',
     ]);
   }
 
@@ -292,6 +308,22 @@ export default class XcMigrationSourcev2 {
         return nc_079_cross_base_link;
       case 'nc_080_sync_mappings':
         return nc_080_sync_mappings;
+      case 'nc_081_audit':
+        return nc_081_audit;
+      case 'nc_082_row_color_conditions':
+        return nc_082_row_color_conditions;
+      case 'nc_083_permissions':
+        return nc_083_permissions;
+      case 'nc_084_hook_trigger_fields':
+        return nc_084_hook_trigger_fields;
+      case 'nc_085_base_default_role':
+        return nc_085_base_default_role;
+      case 'nc_086_dashboards_widgets':
+        return nc_086_dashboards_widgets;
+      case 'nc_087_widget_error':
+        return nc_087_widget_error;
+      case 'nc_088_add_sso_client_to_api_tokens':
+        return nc_088_add_sso_client_to_api_tokens;
     }
   }
 }

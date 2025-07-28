@@ -1,17 +1,18 @@
+import { parseIntValue } from 'nocodb-sdk'
 import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
 
 export const FloatCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { value, x, y, width, height, pv, padding, textColor = '#4a5268', column } = props
 
-    const numericValue = Number(value?.toString())
-    if (value == null || isNaN(numericValue)) {
+    const numericValue = parseIntValue(value, column)
+    if (!isValidValue(numericValue)) {
       return {
         x,
         y,
       }
     }
-    const text = (parseProp(column.meta).isLocaleString ? numericValue.toLocaleString() : numericValue).toString()
+    const text = numericValue.toString()
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })

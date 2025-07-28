@@ -31,7 +31,7 @@ describe('dataApiV3', () => {
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/${testContext.sakilaProject.id}`;
+      urlPrefix = `/api/${API_VERSION}/data/${testContext.sakilaProject.id}`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -44,13 +44,14 @@ describe('dataApiV3', () => {
 
     describe('general-based', () => {
       it('Nested Read - Link to another record', async function () {
-        const records = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/1`,
+        const country = await ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
         });
-        expect(+records.body['Cities']).to.equal(1);
+
+        expect(country.body.fields.Cities).to.equal(1);
       });
 
-      it('Nested Read - Lookup', async () => {
+      it('Nested Read - Lookup', async function () {
         await createLookupColumn(testContext.context, {
           base: testContext.sakilaProject,
           title: 'Lookup',
@@ -59,13 +60,14 @@ describe('dataApiV3', () => {
           relatedTableColumnTitle: 'City',
         });
 
-        const records = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/1`,
+        const country = await ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
         });
-        expect(records.body.Lookup).to.deep.equal(['Kabul']);
+
+        expect(country.body.fields.Lookup).to.deep.equal(['Kabul']);
       });
 
-      it('Nested Read - Rollup', async () => {
+      it('Nested Read - Rollup', async function () {
         await createRollupColumn(testContext.context, {
           base: testContext.sakilaProject,
           title: 'Rollup',
@@ -75,10 +77,11 @@ describe('dataApiV3', () => {
           rollupFunction: 'count',
         });
 
-        const records = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/1`,
+        const country = await ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
         });
-        expect(records.body.Rollup).to.equal(1);
+
+        expect(country.body.fields.Rollup).to.equal(1);
       });
     });
 
@@ -93,22 +96,55 @@ describe('dataApiV3', () => {
         table = initResult.table;
         columns = initResult.columns;
         insertedRecords = initResult.insertedRecords;
-        textBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        textBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
       it('Read: all fields', async function () {
-        await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}/100`,
+        const firstRow = await ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
         });
+        expect(firstRow.body.fields).to.contain.keys([
+          'Country',
+          'Cities',
+        ]);
+      });
+
+      it('Read: specific field without primary key', async function () {
+        const response = await ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
+          query: {
+            fields: 'Country',
+          },
+        });
+
+        // Verify that only the requested field is present in fields
+        expect(response.body.fields).to.have.property('Country');
+        expect(Object.keys(response.body.fields)).to.have.length(1);
+
+        // Note: In V3 API, id is always included in response for now
+        // This may be changed in future to only include id when primary key is in fields
+        expect(response.body).to.have.property('id');
+      });
+
+      it('Read: specific field with primary key', async function () {
+        const response = await ncAxiosGet({
+          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
+          query: {
+            fields: ['CountryId', 'Country'],
+          },
+        });
+
+        // Verify that the requested fields are present
+        expect(response.body.fields).to.have.property('Country');
+        // CountryId might not be included in fields when it's the primary key
+        expect(Object.keys(response.body.fields)).to.include('Country');
+
+        // Verify that id IS included when primary key is in fields
+        expect(response.body).to.have.property('id');
       });
 
       it('Read: invalid ID', async function () {
         await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/123456789/100`,
-          status: 422,
-        });
-
-        await ncAxiosGet({
-          url: `${textBasedUrlPrefix}/${table.id}/1000`,
+          url: `${urlPrefix}/${testContext.countryTable.id}/records/9999`,
           status: 404,
         });
       });

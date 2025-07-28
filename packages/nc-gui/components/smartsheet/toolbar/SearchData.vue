@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn } from 'nocodb-sdk'
 
 const reloadData = inject(ReloadViewDataHookInj)!
+
+const reloadAggregate = inject(ReloadAggregateHookInj)
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -33,6 +34,10 @@ const isSearchButtonVisible = computed(() => {
   return !search.value.query && !showSearchBox.value
 })
 
+const isValidSearchQuery = computed(() => {
+  return search.value.query?.trim() && search.value.isValidFieldQuery
+})
+
 const isSearchResultVisible = computed(() => {
   return (
     !isDropdownOpen.value &&
@@ -42,14 +47,7 @@ const isSearchResultVisible = computed(() => {
   )
 })
 
-const columns = computed(
-  () =>
-    (meta.value as TableType)?.columns?.filter(
-      (column) =>
-        !isSystemColumn(column) &&
-        ![UITypes.Links, UITypes.Rollup, UITypes.DateTime, UITypes.Date, UITypes.Button].includes(column?.uidt as UITypes),
-    ) ?? [],
-)
+const columns = computed(() => (meta.value as TableType)?.columns?.filter((column) => isSearchableColumn(column)) ?? [])
 
 watch(
   () => activeView.value?.id,
@@ -70,6 +68,7 @@ watch(
 
 function onPressEnter() {
   reloadData.trigger({ shouldShowLoading: false, offset: 0 })
+  reloadAggregate?.trigger()
 }
 
 const displayColumn = computed(() => {
@@ -199,7 +198,7 @@ watch(
           'border-primary shadow-selected': isMobileMode && search.query.length !== 0,
         }"
       >
-        <div class="flex flex-row h-8">
+        <div class="flex flex-row h-8 relative">
           <NcDropdown
             v-model:visible="isDropdownOpen"
             :trigger="['click']"
@@ -244,6 +243,9 @@ watch(
               name="globalSearchQuery"
               size="small"
               class="!text-bodyDefaultSm !w-40 h-full nc-view-search-data !pl-0"
+              :class="{
+                '!pr-7': !isValidSearchQuery,
+              }"
               :placeholder="`${$t('general.searchIn')} ${displayColumnLabel ?? ''}`"
               :bordered="false"
               autocomplete="off"
@@ -252,6 +254,14 @@ watch(
             >
             </a-input>
           </form>
+          <NcTooltip
+            v-if="!isValidSearchQuery"
+            :title="$t('msg.error.invalidSearchQuery')"
+            class="absolute right-1 top-[50%] transform -translate-y-[50%] flex items-center pr-1"
+            placement="topRight"
+          >
+            <GeneralIcon icon="ncInfo" class="flex-none h-3.5 w-3.5 text-nc-content-red-medium" />
+          </NcTooltip>
         </div>
         <div v-if="isSearchResultVisible" class="border-t-1 border-nc-border-gray-medium py-1 px-3 flex gap-3">
           <div class="text-nc-content-gray text-bodySmBold">

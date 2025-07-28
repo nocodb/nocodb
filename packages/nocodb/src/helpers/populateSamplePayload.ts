@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { ncIsString, RelationTypes, UITypes } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type {
   LinkToAnotherRecordColumn,
@@ -7,6 +7,8 @@ import type {
 } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { Column, Model, View } from '~/models';
+import { sanitizeUserForHook } from '~/helpers/webhookHelpers';
+import { isEE } from '~/utils';
 
 export async function populateSamplePayload(
   context: NcContext,
@@ -46,12 +48,23 @@ export async function populateSamplePayload(
   return out;
 }
 
+export interface SampleUser {
+  id: string;
+  email: string;
+  display_name: string;
+  user_name: string;
+  roles?: string | Record<string, any>;
+}
+
 export async function populateSamplePayloadV2(
   context: NcContext,
   viewOrModel: View | Model,
   includeNested = false,
   operation = 'insert',
   scope = 'records',
+  includeUser = false,
+  user?: SampleUser,
+  version = 'v2',
 ) {
   const rows = {};
   let columns: Column[] = [];
@@ -71,9 +84,27 @@ export async function populateSamplePayloadV2(
 
   await model.getViews(context);
 
+  if (ncIsString(operation) && version === 'v3') {
+    operation = operation.replace('bulk', '').toLowerCase();
+  }
+
+  const sampleUser = includeUser
+    ? user || {
+        id: 'usr_sample_user_id',
+        email: 'user@example.com',
+        display_name: 'Sample User',
+        user_name: 'sample_user',
+        roles: 'user',
+      }
+    : null;
+
   const samplePayload = {
     type: `${scope}.after.${operation}`,
     id: uuidv4(),
+    ...(includeUser && isEE && sampleUser
+      ? { user: sanitizeUserForHook(sampleUser) }
+      : {}),
+    ...(version === 'v3' ? { version } : {}),
     data: {
       table_id: model.id,
       table_name: model.title,
@@ -91,7 +122,9 @@ export async function populateSamplePayloadV2(
   }
 
   let prevRows;
-  if (['update', 'bulkUpdate'].includes(operation)) {
+  if (
+    ['update', ...(version === 'v2' ? ['bulkUpdate'] : [])].includes(operation)
+  ) {
     prevRows = rows;
   }
 

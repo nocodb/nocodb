@@ -1,22 +1,34 @@
 <script setup lang="ts">
 import ErrorBoundary from './components/nc/ErrorBoundary.vue'
-import type { CommandPaletteType } from '~/lib/types'
 
 const router = useRouter()
 
 const route = router.currentRoute
 
-const cmdK = ref(false)
-
-const cmdL = ref(false)
-
 const disableBaseLayout = computed(() => route.value.path.startsWith('/nc/view') || route.value.path.startsWith('/nc/form'))
 
 useTheme()
 
+const { isExperimentalFeatureModalOpen, initializeFeatures } = useBetaFeatureToggle()
+
+initializeFeatures()
+
 const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope } = useCommandPalette()
 
+const { cmdK, cmdL, cmdJ, setActiveCmdView } = useCommand()
+
 applyNonSelectable()
+
+const { chatwootInit } = useProvideChatwoot()
+
+onMounted(() => {
+  window.addEventListener('chatwoot:ready', chatwootInit)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('chatwoot:ready', chatwootInit)
+})
+
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (cmdOrCtrl) {
@@ -72,26 +84,6 @@ function onScope(scope: string) {
   }
 }
 
-function setActiveCmdView(cmd: CommandPaletteType) {
-  if (cmd === 'cmd-k') {
-    cmdK.value = true
-    cmdL.value = false
-  } else if (cmd === 'cmd-l') {
-    cmdL.value = true
-    cmdK.value = false
-  } else {
-    cmdL.value = false
-    cmdK.value = false
-    document.dispatchEvent(
-      new KeyboardEvent('keydown', {
-        key: 'J',
-        ctrlKey: !isMac() || undefined,
-        metaKey: isMac() || undefined,
-      }),
-    )
-  }
-}
-
 // ref: https://github.com/vuejs/vue-cli/issues/7431#issuecomment-1793385162
 // Stop error resizeObserver
 const debounce = (callback: (...args: any[]) => void, delay: number) => {
@@ -125,6 +117,9 @@ const _ = (window as any).ResizeObserver
 
   <ErrorBoundary>
     <div>
+      <!-- Page Loading Indicator -->
+      <NcNuxtLoadingIndicator />
+
       <!-- Command Menu -->
       <CmdK
         ref="commandPalette"
@@ -139,7 +134,8 @@ const _ = (window as any).ResizeObserver
       <!-- Recent Views. Cycles through recently visited Views -->
       <CmdL v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
       <!-- Documentation. Integrated NocoDB Docs directly inside the Product -->
-      <CmdJ />
+      <CmdJ v-model:open="cmdJ" :set-active-cmd-view="setActiveCmdView" />
+      <DashboardFeatureExperimentation v-model:value="isExperimentalFeatureModalOpen" />
     </div>
   </ErrorBoundary>
 </template>

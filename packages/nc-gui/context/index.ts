@@ -23,15 +23,18 @@ export const IsGroupByInj: InjectionKey<Ref<boolean>> = Symbol('is-group-by-inje
 export const IsGroupByLabelInj: InjectionKey<Ref<boolean>> = Symbol('is-group-by-label-injection')
 export const IsGalleryInj: InjectionKey<Ref<boolean>> = Symbol('is-gallery-injection')
 export const IsKanbanInj: InjectionKey<Ref<boolean>> = Symbol('is-kanban-injection')
+export const IsDashboardInj: InjectionKey<Ref<boolean>> = Symbol('is-dashboard-injection')
 export const IsLockedInj: InjectionKey<Ref<boolean>> = Symbol('is-locked-injection')
 export const IsExpandedFormOpenInj: InjectionKey<Ref<boolean>> = Symbol('is-expanded-form-open-injection')
 export const IsExpandedBulkUpdateFormOpenInj: InjectionKey<Ref<boolean>> = Symbol('is-expanded-bulk-update-form-open-injection')
 export const CellValueInj: InjectionKey<Ref<any>> = Symbol('cell-value-injection')
 export const ActiveViewInj: InjectionKey<Ref<ViewType>> = Symbol('active-view-injection')
 export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injection')
+export const IsAllowedInj: InjectionKey<Ref<boolean>> = Symbol('is-allowed-injection')
 export const RawReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('raw-readonly-injection')
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
+
 /** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */
 export const ReloadViewDataHookInj: InjectionKey<
   EventHook<{
@@ -96,8 +99,9 @@ export const TreeViewInj: InjectionKey<{
   ) => void
   openViewDescriptionDialog: (view: ViewType) => void
   openAutomationDescriptionDialog?: (automation: any) => void
+  openDashboardDescriptionDialog?: (dashboard: any) => void
   openTableDescriptionDialog: (table: TableType) => void
-  contextMenuTarget: { type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }
+  contextMenuTarget: { type?: 'base' | 'table' | 'main' | 'layout'; value?: any }
   tableRenameId: Ref<string>
 }> = Symbol('tree-view-functions-injection')
 export const CalendarViewTypeInj: InjectionKey<Ref<'week' | 'month' | 'day' | 'year'>> = Symbol('calendar-view-type-injection')
@@ -134,9 +138,11 @@ export const CanvasCellEventDataInj: InjectionKey<
 // triggering this hook from within an editable cell will turn it into "selection state"
 export const CanvasSelectCellInj: InjectionKey<EventHook | undefined> = Symbol('canvas-select-cell-inj')
 
-export const IsPageDesignerExtensionActiveInj: InjectionKey<boolean> = Symbol('is-page-designer-extension-active')
 export const IsLinkRecordDropdownInj: InjectionKey<Ref<boolean>> = Symbol('is-link-record-dropdown-injection')
 
 export const PlanUpgraderClickHookInj: InjectionKey<EventHook<void>> = Symbol('plan-upgrader-click-hook-injection')
 
 export const IsMiniSidebarInj: InjectionKey<Ref<boolean>> = Symbol('is-mini-sidebar-injection')
+
+export const ExtensionConfigInj: InjectionKey<Ref<ExtensionConfigInjType> | ComputedRef<ExtensionConfigInjType>> =
+  Symbol('extension-config-injection')

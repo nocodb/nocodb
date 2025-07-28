@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type TableType, type ViewType, isAIPromptCol, isLinksOrLTAR } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, type TableType, type ViewType, isAIPromptCol, isLinksOrLTAR } from 'nocodb-sdk'
 import type { CellRange } from '../../../../../composables/useMultiSelect/cellRange'
 import type { ActionManager } from '../loaders/ActionManager'
 const props = defineProps<{
@@ -246,63 +246,109 @@ const execBulkAction = async (path: Array<number>) => {
         </div>
       </NcMenuItem>
 
-      <NcMenuItem
+      <PermissionsTooltip
         v-if="contextMenuCol == null && !isDataReadOnly && contextMenuPath !== null && selectedRows.length"
-        key="selete-selected-rows"
-        class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-        data-testid="nc-delete-row"
-        @click="deleteSelectedRows(contextMenuPath)"
+        :entity="PermissionEntity.TABLE"
+        :entity-id="meta?.id"
+        :permission="PermissionKey.TABLE_RECORD_DELETE"
+        placement="right"
       >
-        <div v-if="selectedRows.length === 1" v-e="['a:row:delete']" class="flex gap-2 items-center">
-          <GeneralIcon icon="delete" />
-          {{ $t('activity.deleteSelectedRow') }}
-        </div>
-        <div v-else v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
-          <GeneralIcon icon="delete" />
-          {{ $t('activity.deleteSelectedRow') }}
-        </div>
-      </NcMenuItem>
+        <template #default="{ isAllowed }">
+          <NcMenuItem
+            key="selete-selected-rows"
+            class="nc-base-menu-item"
+            :class="{
+              '!text-red-600 !hover:bg-red-50': isAllowed,
+            }"
+            data-testid="nc-delete-row"
+            :disabled="!isAllowed"
+            @click="deleteSelectedRows(contextMenuPath)"
+          >
+            <div v-if="selectedRows.length === 1" v-e="['a:row:delete']" class="flex gap-2 items-center">
+              <GeneralIcon icon="delete" />
+              {{ $t('activity.deleteSelectedRow') }}
+            </div>
+            <div v-else v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
+              <GeneralIcon icon="delete" />
+              {{ $t('activity.deleteSelectedRow') }}
+            </div>
+          </NcMenuItem>
+        </template>
+      </PermissionsTooltip>
     </template>
-    <NcMenuItem
+    <PermissionsTooltip
       v-if="vSelectedAllRecords && !isGroupBy"
-      key="delete-all-rows"
-      class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-      data-testid="nc-delete-all-row"
-      @click="deleteAllRecords(contextMenuPath)"
+      :entity="PermissionEntity.TABLE"
+      :entity-id="meta?.id"
+      :permission="PermissionKey.TABLE_RECORD_DELETE"
+      placement="right"
     >
-      <div v-e="['a:row:delete-all']" class="flex gap-2 items-center">
-        <GeneralIcon icon="delete" />
-        {{ $t('activity.deleteAllRecords') }}
-      </div>
-    </NcMenuItem>
+      <template #default="{ isAllowed }">
+        <NcMenuItem
+          key="delete-all-rows"
+          class="nc-base-menu-item"
+          :class="{
+            '!text-red-600 !hover:bg-red-50': isAllowed,
+          }"
+          data-testid="nc-delete-all-row"
+          :disabled="!isAllowed"
+          @click="deleteAllRecords(contextMenuPath)"
+        >
+          <div v-e="['a:row:delete-all']" class="flex gap-2 items-center">
+            <GeneralIcon icon="delete" />
+            {{ $t('activity.deleteAllRecords') }}
+          </div>
+        </NcMenuItem>
+      </template>
+    </PermissionsTooltip>
+
     <template
       v-if="isOrderColumnExists && hasEditPermission && !isDataReadOnly && isPrimaryKeyAvailable && selection.isSingleCell()"
     >
-      <NcMenuItem
+      <PermissionsTooltip
         v-if="contextMenuCol !== null && contextMenuRow !== null && contextMenuPath !== null"
-        key="insert-above"
-        class="nc-base-menu-item"
-        data-testid="context-menu-item-add-above"
-        @click="callAddNewRow(contextMenuTarget, 'above')"
+        :entity="PermissionEntity.TABLE"
+        :entity-id="meta?.id"
+        :permission="PermissionKey.TABLE_RECORD_ADD"
+        placement="right"
       >
-        <div v-e="['a:row:insert:above']" class="flex gap-2 items-center">
-          <GeneralIcon icon="ncChevronUp" />
-          {{ $t('general.insertAbove') }}
-        </div>
-      </NcMenuItem>
-
-      <NcMenuItem
-        v-if="contextMenuCol !== null && contextMenuPath !== null && contextMenuRow !== null && !isInsertBelowDisabled"
-        key="insert-below"
-        class="nc-base-menu-item"
-        data-testid="context-menu-item-add-below"
-        @click="callAddNewRow(contextMenuTarget, 'below')"
+        <template #default="{ isAllowed }">
+          <NcMenuItem
+            key="insert-above"
+            class="nc-base-menu-item"
+            data-testid="context-menu-item-add-above"
+            :disabled="!isAllowed"
+            @click="callAddNewRow(contextMenuTarget, 'above')"
+          >
+            <div v-e="['a:row:insert:above']" class="flex gap-2 items-center">
+              <GeneralIcon icon="ncChevronUp" />
+              {{ $t('general.insertAbove') }}
+            </div>
+          </NcMenuItem>
+        </template>
+      </PermissionsTooltip>
+      <PermissionsTooltip
+        v-if="contextMenuCol !== null && contextMenuRow !== null && contextMenuPath !== null && !isInsertBelowDisabled"
+        :entity="PermissionEntity.TABLE"
+        :entity-id="meta?.id"
+        :permission="PermissionKey.TABLE_RECORD_ADD"
+        placement="right"
       >
-        <div v-e="['a:row:insert:below']" class="flex gap-2 items-center">
-          <GeneralIcon icon="ncChevronDown" />
-          {{ $t('general.insertBelow') }}
-        </div>
-      </NcMenuItem>
+        <template #default="{ isAllowed }">
+          <NcMenuItem
+            key="insert-below"
+            class="nc-base-menu-item"
+            data-testid="context-menu-item-add-below"
+            :disabled="!isAllowed"
+            @click="callAddNewRow(contextMenuTarget, 'below')"
+          >
+            <div v-e="['a:row:insert:below']" class="flex gap-2 items-center">
+              <GeneralIcon icon="ncChevronDown" />
+              {{ $t('general.insertBelow') }}
+            </div>
+          </NcMenuItem>
+        </template>
+      </PermissionsTooltip>
       <NcDivider v-if="contextMenuCol !== null && contextMenuRow !== null" />
     </template>
 
@@ -364,55 +410,68 @@ const execBulkAction = async (path: Array<number>) => {
       </div>
     </NcMenuItem>
 
-    <NcMenuItem
+    <PermissionsTooltip
       v-if="contextMenuCol !== null && contextMenuPath && contextMenuRow !== null && hasEditPermission && !isDataReadOnly"
-      key="cell-paste"
-      class="nc-base-menu-item"
-      data-testid="context-menu-item-paste"
-      :disabled="disablePasteCell"
-      @click="paste"
+      :entity="PermissionEntity.FIELD"
+      :entity-id="columns[contextMenuCol]?.columnObj?.id"
+      :permission="PermissionKey.RECORD_FIELD_EDIT"
+      placement="right"
     >
-      <div v-e="['a:row:paste']" class="flex gap-2 items-center">
-        <GeneralIcon icon="paste" />
-        <!-- Paste -->
-        {{ $t('general.paste') }} {{ $t('objects.cell').toLowerCase() }}
-      </div>
-    </NcMenuItem>
+      <template #default="{ isAllowed }">
+        <NcMenuItem
+          key="cell-paste"
+          class="nc-base-menu-item"
+          data-testid="context-menu-item-paste"
+          :disabled="disablePasteCell || !isAllowed"
+          @click="paste"
+        >
+          <div v-e="['a:row:paste']" class="flex gap-2 items-center">
+            <GeneralIcon icon="paste" />
+            <!-- Paste -->
+            {{ $t('general.paste') }} {{ $t('objects.cell').toLowerCase() }}
+          </div>
+        </NcMenuItem>
+      </template>
+    </PermissionsTooltip>
 
-    <NcMenuItem
+    <PermissionsTooltip
       v-if="
-        (contextMenuCol != null && contextMenuRow !== null && contextMenuPath !== null) &&
-        hasEditPermission &&
-        selection.isSingleCell() &&
-        (isLinksOrLTAR(columns[contextMenuCol]?.columnObj!) || !columns[contextMenuCol]!.virtual) &&
-        !isDataReadOnly
+        contextMenuCol !== null && contextMenuRow !== null && contextMenuPath !== null && hasEditPermission && !isDataReadOnly
       "
-      key="cell-clear"
-      class="nc-base-menu-item"
-      :disabled="disableClearCell"
-      data-testid="context-menu-item-clear"
-      @click="clearCell(contextMenuTarget)"
+      :entity="PermissionEntity.FIELD"
+      :entity-id="columns[contextMenuCol]?.columnObj?.id"
+      :permission="PermissionKey.RECORD_FIELD_EDIT"
+      placement="right"
     >
-      <div v-e="['a:row:clear']" class="flex gap-2 items-center">
-        <GeneralIcon icon="close" />
-        {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
-      </div>
-    </NcMenuItem>
-    <NcMenuItem
-      v-else-if="
-        contextMenuCol !== null && contextMenuPath !== null && contextMenuRow !== null && hasEditPermission && !isDataReadOnly
-      "
-      key="cells-clear"
-      class="nc-base-menu-item"
-      :disabled="isSelectionReadOnly"
-      data-testid="context-menu-item-clear"
-      @click="clearSelectedRangeOfCells(contextMenuPath)"
-    >
-      <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">
-        <GeneralIcon icon="closeBox" class="text-gray-500" />
-        {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
-      </div>
-    </NcMenuItem>
+      <template #default="{ isAllowed }">
+        <NcMenuItem
+          v-if="selection.isSingleCell() && (isLinksOrLTAR(columns[contextMenuCol]?.columnObj!) || !columns[contextMenuCol]!.virtual)"
+          key="cell-clear"
+          class="nc-base-menu-item"
+          :disabled="disableClearCell || !isAllowed"
+          data-testid="context-menu-item-clear"
+          @click="clearCell(contextMenuTarget)"
+        >
+          <div v-e="['a:row:clear']" class="flex gap-2 items-center">
+            <GeneralIcon icon="close" />
+            {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
+          </div>
+        </NcMenuItem>
+        <NcMenuItem
+          v-else
+          key="cells-clear"
+          class="nc-base-menu-item"
+          :disabled="isSelectionReadOnly || !isAllowed"
+          data-testid="context-menu-item-clear"
+          @click="clearSelectedRangeOfCells(contextMenuPath)"
+        >
+          <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">
+            <GeneralIcon icon="closeBox" class="text-gray-500" />
+            {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
+          </div>
+        </NcMenuItem>
+      </template>
+    </PermissionsTooltip>
 
     <template
       v-if="
@@ -435,35 +494,48 @@ const execBulkAction = async (path: Array<number>) => {
 
     <template v-if="hasEditPermission && !isDataReadOnly">
       <NcDivider v-if="!(!contextMenuCol !== null && (selectedRows.length || vSelectedAllRecords))" />
-      <NcMenuItem
-        v-if="
-          contextMenuPath !== null &&
-          contextMenuCol !== null &&
-          contextMenuRow != null &&
-          (selection.isSingleCell() || selection.isSingleRow())
-        "
-        key="delete-row"
-        class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-        @click="confirmDeleteRow(contextMenuRow, contextMenuPath)"
+      <PermissionsTooltip
+        v-if="contextMenuPath !== null && contextMenuCol !== null && contextMenuRow != null"
+        :entity="PermissionEntity.TABLE"
+        :entity-id="meta?.id"
+        :permission="PermissionKey.TABLE_RECORD_DELETE"
+        placement="right"
       >
-        <div v-e="['a:row:delete']" class="flex gap-2 items-center">
-          <GeneralIcon icon="delete" />
-          <!-- Delete Row -->
-          {{ $t('activity.deleteRow') }}
-        </div>
-      </NcMenuItem>
-      <NcMenuItem
-        v-else-if="contextMenuCol !== null && contextMenuRow !== null && contextMenuPath"
-        key="delete-selected-row"
-        class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
-        @click="deleteSelectedRangeOfRows(contextMenuPath)"
-      >
-        <div v-e="['a:row:delete']" class="flex gap-2 items-center">
-          <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />
-          <!-- Delete Rows -->
-          {{ $t('activity.deleteRows') }}
-        </div>
-      </NcMenuItem>
+        <template #default="{ isAllowed }">
+          <NcMenuItem
+            v-if="selection.isSingleCell() || selection.isSingleRow()"
+            key="delete-row"
+            class="nc-base-menu-item"
+            :class="{
+              '!text-red-600 !hover:bg-red-50': isAllowed,
+            }"
+            :disabled="!isAllowed"
+            @click="confirmDeleteRow(contextMenuRow, contextMenuPath)"
+          >
+            <div v-e="['a:row:delete']" class="flex gap-2 items-center">
+              <GeneralIcon icon="delete" />
+              <!-- Delete Row -->
+              {{ $t('activity.deleteRow') }}
+            </div>
+          </NcMenuItem>
+          <NcMenuItem
+            v-else
+            key="delete-selected-row"
+            class="nc-base-menu-item"
+            :class="{
+              '!text-red-600 !hover:bg-red-50': isAllowed,
+            }"
+            :disabled="!isAllowed"
+            @click="deleteSelectedRangeOfRows(contextMenuPath)"
+          >
+            <div v-e="['a:row:delete']" class="flex gap-2 items-center">
+              <GeneralIcon icon="delete" />
+              <!-- Delete Rows -->
+              {{ $t('activity.deleteRows') }}
+            </div>
+          </NcMenuItem>
+        </template>
+      </PermissionsTooltip>
     </template>
   </NcMenu>
 </template>

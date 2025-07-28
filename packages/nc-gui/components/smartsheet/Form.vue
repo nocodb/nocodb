@@ -8,6 +8,8 @@ import {
   type AttachmentResType,
   type ColumnType,
   type LinkToAnotherRecordType,
+  PermissionEntity,
+  PermissionKey,
   PlanFeatureTypes,
   PlanLimitTypes,
   PlanTitles,
@@ -49,9 +51,11 @@ const { isUIAllowed } = useRoles()
 
 const { metas, getMeta } = useMetas()
 
-const { base } = storeToRefs(useBase())
+const { base, showBaseAccessRequestOverlay } = storeToRefs(useBase())
 
 const { getPossibleAttachmentSrc } = useAttachment()
+
+const { isAllowed } = usePermissions()
 
 const secondsRemain = ref(0)
 
@@ -183,6 +187,23 @@ const { open, onChange: onChangeFile } = useFileDialog({
   reset: true,
 })
 
+const isAllowedToAddRecord = computed(
+  () =>
+    !meta?.value?.id ||
+    isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD, {
+      isFormView: true,
+    }),
+)
+
+const disableFormSubmit = computed(
+  () =>
+    !isUIAllowed('dataInsert') ||
+    !visibleColumns.value.length ||
+    blockAddNewRecord.value ||
+    isSyncedTable.value ||
+    !isAllowedToAddRecord.value,
+)
+
 const editOrAddProviderRef = ref()
 
 const onVisibilityChange = (state: 'showAddColumn' | 'showEditColumn') => {
@@ -278,7 +299,7 @@ const getPrefillValue = (c: ColumnType, value: any) => {
 }
 
 const updatePreFillFormSearchParams = useDebounceFn(() => {
-  if (isLocked.value || !isUIAllowed('dataInsert')) return
+  if (isLocked.value || disableFormSubmit.value) return
 
   const preFilledData = { ...formState.value, ...state.value }
 
@@ -308,7 +329,8 @@ const updatePreFillFormSearchParams = useDebounceFn(() => {
 const isFormSubmitting = ref(false)
 
 async function submitForm() {
-  if (!isUIAllowed('dataInsert') || blockAddNewRecord.value) return
+  if (disableFormSubmit.value) return
+
   isFormSubmitting.value = true
 
   for (const col of localColumns.value) {
@@ -317,7 +339,7 @@ async function submitForm() {
     }
 
     // handle filter out conditionally hidden field data
-    if ((!col.visible || !col.show) && col.title) {
+    if ((!col.visible || !col.show || !col.permissions?.isAllowedToEdit) && col.title) {
       delete formState.value[col.title]
       delete state.value[col.title]
     }
@@ -982,6 +1004,16 @@ const { message: templatedMessage } = useTemplatedMessage(
                 :style="{background:(formViewData?.meta as Record<string,any>).background_color || '#F9F9FA'}"
               >
                 <div class="min-w-[616px] overflow-x-auto nc-form-scrollbar">
+                  <div v-if="!isAllowedToAddRecord" class="mb-6">
+                    <NcAlert
+                      type="warning"
+                      show-icon
+                      class="mt-6 bg-nc-bg-orange-light max-w-[max(33%,688px)] mx-auto"
+                      :message="$t('objects.permissions.formCannotAcceptSubmissions')"
+                      :description="$t('objects.permissions.formCannotAcceptSubmissionsDescription')"
+                    />
+                  </div>
+
                   <GeneralImageCropper
                     v-if="isEditable"
                     v-model:show-cropper="showCropper"
@@ -1025,7 +1057,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
                                     :content="
                                       $t('upgrade.upgradeToAddCustomBannerSubtitle', {
-                                        plan: getPlanTitle(PlanTitles.TEAM),
+                                        plan: getPlanTitle(PlanTitles.PLUS),
                                       })
                                     "
                                   />
@@ -1143,7 +1175,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                           :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
                                           :content="
                                             $t('upgrade.upgradeToAddCustomLogoSubtitle', {
-                                              plan: getPlanTitle(PlanTitles.TEAM),
+                                              plan: getPlanTitle(PlanTitles.PLUS),
                                             })
                                           "
                                           class="-my-1"
@@ -1430,7 +1462,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                         <NcButton
                           type="secondary"
                           size="small"
-                          :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length || isSyncedTable"
+                          :disabled="disableFormSubmit"
                           class="nc-form-clear nc-form-focus-element"
                           data-testid="nc-form-clear"
                           data-title="nc-form-clear"
@@ -1442,7 +1474,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                         <NcButton
                           type="primary"
                           size="small"
-                          :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length || blockAddNewRecord || isSyncedTable"
+                          :disabled="disableFormSubmit"
                           :loading="isFormSubmitting"
                           class="nc-form-submit nc-form-focus-element"
                           data-testid="nc-form-submit"
@@ -1477,7 +1509,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                 <!-- Form Field settings -->
                 <div v-if="activeField && activeColumn" :key="activeField?.id" class="nc-form-field-right-panel">
                   <!-- Field header -->
-                  <div class="px-3 pt-4 pb-2 flex items-center justify-between border-b border-gray-200 font-medium">
+                  <div class="px-4 pt-4 pb-2 flex items-center justify-between border-b border-gray-200 font-medium">
                     <div class="flex items-center">
                       <div class="text-gray-600 font-medium cursor-pointer select-none hover:underline" @click="activeRow = ''">
                         {{ $t('objects.viewType.form') }}
@@ -1662,16 +1694,18 @@ const { message: templatedMessage } = useTemplatedMessage(
                             @click.stop
                           >
                             <div class="w-4 h-4 flex-none mx-2"></div>
-                            <div class="flex-1 flex flex-row items-center truncate cursor-pointer">
-                              <div class="flex-1 font-base my-1.5">{{ $t('activity.selectAllFields') }}</div>
+                            <div class="flex-1 flex items-center justify-end truncate">
                               <div class="flex items-center px-2">
-                                <a-switch
+                                <NcSwitch
                                   :checked="visibleColumns.length === localColumns.length"
                                   size="small"
                                   class="nc-switch"
                                   :disabled="isLocked"
+                                  placement="right"
                                   @change="handleAddOrRemoveAllColumns"
-                                />
+                                >
+                                  <div class="font-base my-1.5 select-none">{{ $t('activity.selectAllFields') }}</div>
+                                </NcSwitch>
                               </div>
                             </div>
                           </div>
@@ -1827,7 +1861,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
                                     :content="
                                       $t('upgrade.upgradeToHideFormBrandingSubtitle', {
-                                        plan: getPlanTitle(PlanTitles.TEAM),
+                                        plan: getPlanTitle(PlanTitles.PLUS),
                                       })
                                     "
                                   />
@@ -1902,7 +1936,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                       :feature="PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION"
                                       :content="
                                         $t('upgrade.upgradeToAddRedirectUrlSubtitle', {
-                                          plan: getPlanTitle(PlanTitles.TEAM),
+                                          plan: getPlanTitle(PlanTitles.PLUS),
                                         })
                                       "
                                     />
@@ -1940,7 +1974,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               <div class="text-small leading-[18px] text-gray-400 pl-3">
                                 Use {record_id} to get ID of the newly created record.
                                 <a
-                                  href="https://docs.nocodb.com/views/view-types/form/#redirect-url"
+                                  href="https://nocodb.com/docs/product-docs/views/view-types/form#redirect-url"
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   class="!no-underline !hover:underline"
@@ -2043,7 +2077,7 @@ const { message: templatedMessage } = useTemplatedMessage(
       </div>
     </template>
     <div
-      v-if="user?.base_roles?.viewer || user?.base_roles?.commenter"
+      v-if="!showBaseAccessRequestOverlay && (user?.base_roles?.viewer || user?.base_roles?.commenter)"
       class="absolute inset-0 bg-black/40 z-500 grid place-items-center"
     >
       <div class="text-center bg-white px-6 py-8 rounded-xl max-w-lg">
@@ -2075,7 +2109,7 @@ const { message: templatedMessage } = useTemplatedMessage(
     }
   }
   &.layout-list {
-    @apply h-auto !pl-0 !py-1;
+    @apply h-auto !p-0;
   }
 
   &.nc-cell-geodata {

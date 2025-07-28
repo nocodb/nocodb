@@ -34,10 +34,14 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
+const isAllowed = inject(IsAllowedInj, ref(true))
+
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-const clientMousePosition = inject(ClientMousePositionInj)
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const cellEventHook = inject(CellEventHookInj, null)
@@ -291,7 +295,7 @@ const onCellEvent = (event?: Event) => {
 onMounted(() => {
   cellEventHook?.on(onCellEvent)
 
-  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value && !isEditColumn.value) {
     forcedNextTick(() => {
       if (onCellEvent(canvasCellEventData.event)) return
 
@@ -349,18 +353,18 @@ onUnmounted(() => {
       </NcButton>
     </div>
     <div class="flex">
-      <NcTooltip :disabled="isEditAllowed" :title="$t('tooltip.sourceDataIsReadonly')">
+      <NcTooltip :disabled="isEditAllowed || !isAllowed" :title="$t('tooltip.sourceDataIsReadonly')">
         <NcButton
           data-testid="attachment-cell-file-picker-button"
           type="secondary"
-          size="xsmall"
-          class="mb-1 !px-2"
+          size="small"
+          class="mb-1"
           :disabled="!isEditAllowed"
           @click="openAttachmentModal"
         >
           <div class="flex items-center gap-1.5 justify-center">
-            <GeneralIcon icon="upload" class="text-current opacity-80 h-3.5 w-3.5" />
-            <span class="text-tiny">
+            <GeneralIcon icon="upload" class="text-current opacity-80 h-4 w-4" />
+            <span>
               {{ $t('activity.uploadFiles') }}
             </span>
           </div>

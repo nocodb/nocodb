@@ -2,12 +2,10 @@ export const useAutomationStore = defineStore('automation', () => {
   // State
   const automations = ref<Map<string, any>>(new Map())
   const activeAutomation = ref<any | null>(null)
-  const isLoading = ref(false)
+  const isUpdatingAutomation = ref(false)
   const isLoadingAutomation = ref(false)
 
   // Getters
-  const isAutomationActive = computed(() => false)
-
   const activeBaseAutomations = computed(() => [])
 
   const activeAutomationId = computed(() => '')
@@ -33,11 +31,10 @@ export const useAutomationStore = defineStore('automation', () => {
     // State
     automations,
     activeAutomation,
-    isLoading,
+    isUpdatingAutomation,
     isLoadingAutomation,
 
     // Getters
-    isAutomationActive,
     activeBaseAutomations,
     activeAutomationId,
 

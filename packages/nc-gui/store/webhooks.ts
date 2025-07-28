@@ -15,6 +15,10 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
   const { getMeta } = useMetas()
   const { activeTable } = toRefs(useTablesStore())
 
+  const hasV2Webhooks = computed(() => {
+    return hooks.value.some((hook) => hook.version === 'v2')
+  })
+
   const createWebhookUrl = computed(() => {
     return navigateToWebhookRoute({
       openCreatePage: true,
@@ -68,6 +72,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     try {
       const newHook = await $api.dbTableWebhook.create(hook.fk_model_id!, {
         ...hook,
+        trigger_field: !!hook.trigger_field,
         title: generateUniqueTitle(`${hook.title} copy`, hooks.value, 'title', '_', true),
         active: hook.event === 'manual',
       } as HookReqType)
@@ -99,6 +104,8 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
 
   async function saveHooks({ hook: _hook, ogHook }: { hook: HookType; ogHook: HookType }) {
     if (!activeTable.value) throw new Error('activeTable is not defined')
+
+    _hook.trigger_field = !!_hook.trigger_field
 
     if (typeof _hook.notification === 'string') {
       _hook.notification = JSON.parse(_hook.notification)
@@ -229,6 +236,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     webhookMainUrl,
     isHooksLoading,
     navigateToWebhookRoute,
+    hasV2Webhooks,
   }
 })
 

@@ -1,4 +1,14 @@
-import type { CalendarType, FilterType, GalleryType, KanbanType, MapType, SortType, ViewType, ViewTypes } from 'nocodb-sdk'
+import type {
+  CalendarType,
+  FilterType,
+  GalleryType,
+  KanbanType,
+  MapType,
+  RowColoringInfo,
+  SortType,
+  ViewType,
+  ViewTypes,
+} from 'nocodb-sdk'
 import { ViewTypes as _ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
@@ -85,10 +95,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
     // For types in ViewPageType type
     if (!route.value.params?.slugs || route.value.params.slugs?.length === 0) return 'view'
 
-    if (route.value.params.slugs[0] === 'webhook') return 'webhook'
-    if (route.value.params.slugs[0] === 'field') return 'field'
-    if (route.value.params.slugs[0] === 'api') return 'api'
-    if (route.value.params.slugs[0] === 'relation') return 'relation'
+    if (['field', 'permissions', 'relation', 'api', 'webhook'].includes(route.value.params.slugs[0] as ViewPageType)) {
+      return route.value.params.slugs[0] as ViewPageType
+    }
 
     return 'view'
   })
@@ -135,6 +144,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const preFillFormSearchParams = ref('')
 
   const refreshViewTabTitle = createEventHook<void>()
+
+  const activeViewRowColorInfo = ref<RowColoringInfo>(defaultRowColorInfo)
 
   const loadViews = async ({
     tableId,
@@ -439,6 +450,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
       // for kanban view only
       fk_grp_col_id: string | null
       fk_geo_data_col_id: string | null
+      row_coloring_mode: string | null
+      meta?: any
 
       // for calendar view only
       calendar_range: Array<{
@@ -451,6 +464,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
       type: view.type,
       description: view.description || '',
       copy_from_id: view.id!,
+      row_coloring_mode: view.row_coloring_mode!,
+      meta: parseProp(view.meta)?.rowColoringInfo ? { rowColoringInfo: parseProp(view.meta).rowColoringInfo } : undefined,
       fk_grp_col_id: null,
       fk_geo_data_col_id: null,
       fk_cover_image_col_id: null,
@@ -546,6 +561,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     coverImageColumnId,
     baseId,
     tableId,
+    sourceId,
   }: {
     title?: string
     type: ViewTypes | 'AI'
@@ -558,6 +574,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     coverImageColumnId?: string
     baseId: string
     tableId: string
+    sourceId?: string
   }) => {
     if (!baseId || !tableId) return
 
@@ -574,6 +591,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       coverImageColumnId,
       'onUpdate:modelValue': closeDialog,
       'baseId': baseId,
+      'sourceId': sourceId,
       'onCreated': async (view?: ViewType) => {
         closeDialog()
 
@@ -647,6 +665,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     setCurrentViewExpandedFormAttachmentColumn,
     onOpenViewCreateModal,
     lastOpenedViewId,
+    activeViewRowColorInfo,
   }
 })
 

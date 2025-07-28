@@ -25,6 +25,11 @@ interface Props {
    * @returns A promise that resolves to a boolean indicating whether the copy operation was successful.
    */
   copyCustomUrl: (customUrl: string) => Promise<boolean>
+
+  /**
+   * Whether the custom URL is disabled.
+   */
+  disabled?: boolean
 }
 
 defineProps<Props>()

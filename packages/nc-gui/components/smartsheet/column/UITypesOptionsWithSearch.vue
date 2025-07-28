@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { UITypes, UITypesName, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import { UITypes, UITypesName, UITypesSearchTerms, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   options: typeof uiTypes
@@ -15,7 +15,10 @@ const searchQuery = ref('')
 const { isMetaReadOnly } = useRoles()
 
 const filteredOptions = computed(
-  () => options.value?.filter((c) => searchCompare([c.name, UITypesName[c.name]], searchQuery.value)) ?? [],
+  () =>
+    options.value?.filter((c) =>
+      searchCompare([c.name, UITypesName[c.name], ...(UITypesSearchTerms[c.name] || [])], searchQuery.value),
+    ) ?? [],
 )
 
 const inputRef = ref()

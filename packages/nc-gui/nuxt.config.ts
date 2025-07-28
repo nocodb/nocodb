@@ -15,6 +15,10 @@ export default defineNuxtConfig({
     compatibilityVersion: 4,
   },
 
+  ignore: [
+    // 'pages/playground/**/*'
+  ],
+
   modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt'],
   ssr: false,
 
@@ -116,7 +120,6 @@ export default defineNuxtConfig({
     'virtual:windi-devtools',
     '~/assets/css/global.css',
     '~/assets/style.scss',
-    '~/assets/css/typesense-docsearch.css',
   ],
 
   runtimeConfig: {
@@ -295,6 +298,8 @@ export default defineNuxtConfig({
         '@floating-ui/vue',
         'validator',
         '@stripe/stripe-js',
+        'typesense',
+        'vue3-moveable',
       ],
       esbuildOptions: {
         define: {

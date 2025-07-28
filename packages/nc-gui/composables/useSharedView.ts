@@ -1,4 +1,5 @@
 import {
+  type BaseType,
   type CalendarType,
   ExportTypes,
   type FilterType,
@@ -38,7 +39,10 @@ export function useSharedView() {
     pageSize: appInfoDefaultLimit,
   }))
 
-  const sharedView = useState<ViewType | undefined>('sharedView', () => undefined)
+  const sharedView = useState<(ViewType & { basePermissions: BaseType['permissions'] }) | undefined>(
+    'sharedView',
+    () => undefined,
+  )
 
   const sorts = ref<SortType[]>([])
 
@@ -128,6 +132,7 @@ export function useSharedView() {
           {
             id: viewMeta.source_id,
             type: viewMeta.client,
+            ...(viewMeta.source || {}),
           },
         ],
       })
@@ -180,6 +185,7 @@ export function useSharedView() {
         ...param,
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),
+        include_row_color: true,
       } as any,
       {
         headers: {
@@ -222,6 +228,7 @@ export function useSharedView() {
         ...param,
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),
+        include_row_color: true,
       } as any,
       {
         headers: {
@@ -379,7 +386,7 @@ export function useSharedView() {
 
   const fetchSharedViewGroupedData = async (
     columnId: string,
-    { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] },
+    { sortsArr, filtersArr, include_row_color }: { sortsArr: SortType[]; filtersArr: FilterType[]; include_row_color?: boolean },
   ) => {
     if (!sharedView.value) return
 
@@ -393,6 +400,7 @@ export function useSharedView() {
         offset: (page - 1) * pageSize,
         filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
+        include_row_color,
       } as any,
       {
         headers: {

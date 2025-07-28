@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { UITypes } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 const props = defineProps<{
@@ -387,7 +387,7 @@ const selectOption = (option) => {
             class="font-medium text-nc-content-gray cursor-pointer gap-2 flex items-center font-bold leading-6"
             data-testid="nc-calendar-sidebar-filter"
           >
-            <div>
+            <div class="truncate">
               <span class="capitalize">
                 {{ sideBarFilterOption !== 'allRecords' ? $t('objects.records') : '' }}
               </span>
@@ -441,16 +441,20 @@ const selectOption = (option) => {
           ref="searchRef"
           v-model:value="searchQuery.value"
           :class="{
-            '!border-brand-500': searchQuery.value.length > 0,
             '!hidden': !showSearch,
           }"
-          class="!rounded-lg !h-8 !placeholder:text-gray-500 !border-gray-200 !px-4"
+          class="!rounded-lg !h-8 !placeholder:text-gray-500 !px-4"
           data-testid="nc-calendar-sidebar-search"
           placeholder="Search records"
           @keydown.esc="toggleSearch"
         >
           <template #prefix>
             <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
+          </template>
+          <template v-if="searchQuery.value?.trim() && !searchQuery.isValidFieldQuery" #suffix>
+            <NcTooltip :title="$t('msg.error.invalidSearchQueryForDisplayField')" class="flex" placement="topRight">
+              <GeneralIcon icon="ncInfo" class="flex-noneh-4 w-4 text-nc-content-red-medium" />
+            </NcTooltip>
           </template>
         </a-input>
       </div>
@@ -459,21 +463,29 @@ const selectOption = (option) => {
 
         <div class="flex-1" />
 
-        <NcButton
+        <PermissionsTooltip
           v-if="isUIAllowed('dataEdit') && props.visible && !isSyncedTable"
-          v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
-          data-testid="nc-calendar-side-menu-new-btn"
-          class="!h-7 !rounded-md"
-          size="small"
-          type="secondary"
-          @click="newRecord"
+          :entity="PermissionEntity.TABLE"
+          :entity-id="meta?.id"
+          :permission="PermissionKey.TABLE_RECORD_ADD"
+          placement="left"
+          show-overlay
         >
-          <div class="flex items-center gap-2">
-            <component :is="iconMap.plus" />
+          <NcButton
+            v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
+            data-testid="nc-calendar-side-menu-new-btn"
+            class="!h-7 !rounded-md"
+            size="small"
+            type="secondary"
+            @click="newRecord"
+          >
+            <div class="flex items-center gap-2">
+              <component :is="iconMap.plus" />
 
-            Record
-          </div>
-        </NcButton>
+              Record
+            </div>
+          </NcButton>
+        </PermissionsTooltip>
       </div>
 
       <div

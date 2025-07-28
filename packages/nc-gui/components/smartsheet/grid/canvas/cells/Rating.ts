@@ -245,7 +245,7 @@ export const RatingCellRenderer: CellRenderer = {
     path,
     formula,
   }) {
-    if (!row || !column || readonly || formula) return false
+    if (!row || !column || readonly || formula || !column.isCellEditable) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const iconsData = getIconsData({ x, y, width, height, column: column.columnObj, padding: 10 })
@@ -284,7 +284,7 @@ export const RatingCellRenderer: CellRenderer = {
 
   async handleKeyDown(ctx) {
     const { e, row, column, updateOrSaveRow, readonly, path } = ctx
-    if (column.readonly || readonly) return
+    if (column.readonly || readonly || !column.isCellEditable) return
     const columnObj = column.columnObj
 
     if (/^[0-9]$/.test(e.key)) {

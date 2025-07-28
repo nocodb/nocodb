@@ -9,17 +9,8 @@ const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordEx
 
 /* stores */
 
-const {
-  saveComment,
-  loadAudits,
-  commentsDrawer,
-  isNew,
-  audits,
-  comments,
-  auditCommentGroups,
-  mightHaveMoreAudits,
-  loadMoreAudits,
-} = useExpandedFormStoreOrThrow()
+const { saveComment, commentsDrawer, isNew, audits, comments, auditCommentGroups, hasMoreAudits, loadMoreAudits } =
+  useExpandedFormStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -29,8 +20,7 @@ const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
 const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
 
-onMounted(async () => {
-  await loadAudits()
+onMounted(() => {
   scrollToBottom()
 })
 
@@ -91,7 +81,7 @@ export default {
       <div class="w-[680px] max-w-full flex-grow flex flex-col px-6 2xl:px-0">
         <div class="w-full h-0 flex-grow ml-15.8 border-l-1 border-gray-300" />
       </div>
-      <div v-if="mightHaveMoreAudits" class="w-[680px] max-w-full fflex-grow-0 flex-shrink-0 flex flex-col px-6 2xl:px-0">
+      <div v-if="hasMoreAudits" class="w-[680px] max-w-full fflex-grow-0 flex-shrink-0 flex flex-col px-6 2xl:px-0">
         <div class="w-full h-15 flex-grow-0 flex-shrink-0 ml-15.8 border-l-1 border-gray-300 relative">
           <NcButton
             size="small"

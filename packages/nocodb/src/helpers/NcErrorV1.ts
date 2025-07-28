@@ -1,4 +1,10 @@
-import { NcBaseError, NcErrorBase, NcErrorType } from 'nocodb-sdk';
+import {
+  NcBaseError,
+  NcBaseErrorv2,
+  NcErrorBase,
+  NcErrorType,
+} from 'nocodb-sdk';
+import type { ZodError } from 'zod';
 import type { ErrorObject } from 'ajv';
 import type { NcErrorArgs } from 'nocodb-sdk';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
@@ -19,6 +25,16 @@ export class AjvError extends NcBaseError {
   errors: ErrorObject[];
 }
 
+export class NcZodError extends NcBaseErrorv2 {
+  constructor(param: { message: string; errors: ZodError | ZodError[] }) {
+    super(param.message, 400, NcErrorType.INVALID_REQUEST_BODY, {
+      details: param.errors,
+    });
+    this.errors = Array.isArray(param.errors) ? param.errors : [param.errors];
+  }
+
+  errors: ZodError[];
+}
 export class NcErrorV1 extends NcErrorBase {
   constructor() {
     super();
@@ -100,5 +116,14 @@ export class NcErrorV1 extends NcErrorBase {
     humanReadableError: boolean;
   }): never {
     throw new AjvError(param);
+  }
+
+  zodError(param: { message: string; errors: ZodError | ZodError[] }): never {
+    throw new NcZodError(param);
+  }
+
+  override invalidRequestBody(message: string): never {
+    // backward compatibility for v1 and v2 apis
+    return this.badRequest(message);
   }
 }

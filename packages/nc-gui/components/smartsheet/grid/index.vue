@@ -121,13 +121,21 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, 
   if (rowId && !isPublic.value) {
     expandedFormRow.value = undefined
 
-    router.push({
+    const routeParams = {
       query: {
         ...routeQuery.value,
         rowId,
         path: path.join('-'),
+        // Remove expand from query to avoid triggering the expanded form on closing the dialog
+        expand: undefined,
       },
-    })
+    }
+    // if expand is true, replace the route to avoid adding a new history entry
+    if (routeQuery.value.expand) {
+      router.replace(routeParams)
+    } else {
+      router.push(routeParams)
+    }
   } else {
     expandedFormRow.value = row
     expandedFormDlg.value = true
@@ -282,11 +290,23 @@ const updateRowCommentCount = (count: number) => {
     syncVisibleData?.()
   } else {
     const aggCommentCountIndex = pAggCommentCount.value.findIndex((row) => row.row_id === routeQuery.value.rowId)
+
     const currentRowIndex = pData.value.findIndex(
       (row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === routeQuery.value.rowId,
     )
 
-    if (aggCommentCountIndex === -1 || currentRowIndex === -1) return
+    if (currentRowIndex === -1) return
+
+    if (aggCommentCountIndex === -1) {
+      pAggCommentCount.value.push({
+        row_id: routeQuery.value.rowId,
+        count,
+      })
+
+      pData.value[currentRowIndex]!.rowMeta.commentCount = count
+
+      return
+    }
 
     if (Number(pAggCommentCount.value[aggCommentCountIndex].count) === count) return
     pAggCommentCount.value[aggCommentCountIndex].count = count

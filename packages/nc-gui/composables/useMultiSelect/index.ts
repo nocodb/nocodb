@@ -98,11 +98,14 @@ export function useMultiSelect(
 
   const { meta: metaKey } = useMagicKeys()
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
+  const { isAiFeaturesEnabled } = useNocoAi()
 
   const { isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
 
-  const { blockExternalSourceRecordVisibility } = useEeConfig()
+  const { blockExternalSourceRecordVisibility, showUpgradeToAddMoreAttachmentsInCell, maxAttachmentsAllowedInCell } =
+    useEeConfig()
+
+  const { batchUploadFiles } = useAttachment()
 
   const aiMode = ref(false)
 
@@ -261,7 +264,7 @@ export function useMultiSelect(
 
           const textToCopy = valueToCopy(rowObj, columnObj)
 
-          await copy(textToCopy)
+          await copy(isValidValue(textToCopy) ? textToCopy : '')
           message.toast(
             t(`msg.toast.nCellCopied`, {
               n: 1,
@@ -474,6 +477,8 @@ export function useMultiSelect(
     // maybe TODO: extract to other function
     const rowsToPaste: Row[] = []
     let incrementIndex = 0
+    // We can use this if we want to avoid same info multiple times per column
+    const isColInfoShown = {} as Record<string, boolean>
     for (
       let rowIndex = rowToPaste.start + direction * rawMatrix.length;
       direction === 1 ? rowIndex <= rowToPaste.end : rowIndex >= rowToPaste.end;
@@ -489,6 +494,12 @@ export function useMultiSelect(
               to: cpCol.uidt as UITypes,
               column: cpCol,
               appInfo: unref(appInfo),
+              maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+              showUpgradeToAddMoreAttachmentsInCell,
+              isInfoShown: isColInfoShown[cpCol.title!],
+              markInfoShown: () => {
+                isColInfoShown[cpCol.title!] = true
+              },
             },
             isMysql(meta.value?.source_id),
             true,
@@ -514,6 +525,8 @@ export function useMultiSelect(
 
         isFillMode.value = false
         aiMode.value = false
+        // We can use this if we want to avoid same info multiple times per column
+        const isColInfoShown = {} as Record<string, boolean>
 
         if (fillRange._start === null || fillRange._end === null) return
 
@@ -626,6 +639,12 @@ export function useMultiSelect(
                       to: colObj.uidt as UITypes,
                       column: colObj,
                       appInfo: unref(appInfo),
+                      maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                      showUpgradeToAddMoreAttachmentsInCell,
+                      isInfoShown: isColInfoShown[colObj.title!],
+                      markInfoShown: () => {
+                        isColInfoShown[colObj.title!] = true
+                      },
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -1181,6 +1200,8 @@ export function useMultiSelect(
         const newRows: Row[] = []
         const propsToPaste: string[] = []
         let isInfoShown = false
+        // We can use this if we want to avoid same info multiple times per column
+        const isColInfoShown = {} as Record<string, boolean>
 
         for (let i = 0; i < selectionRowCount; i++) {
           const clipboardRowIndex = i % clipboardMatrix.length
@@ -1236,6 +1257,12 @@ export function useMultiSelect(
                     column,
                     appInfo: unref(appInfo),
                     oldValue: column.uidt === UITypes.Attachment ? targetRow.row[column.title!] : undefined,
+                    maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                    showUpgradeToAddMoreAttachmentsInCell,
+                    isInfoShown: isColInfoShown[column.title!],
+                    markInfoShown: () => {
+                      isColInfoShown[column.title!] = true
+                    },
                   },
                   isMysql(meta.value?.source_id),
                   true,
@@ -1611,6 +1638,8 @@ export function useMultiSelect(
                 files:
                   columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
                 oldValue: rowObj.row[columnObj.title!],
+                maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                showUpgradeToAddMoreAttachmentsInCell,
               },
               isMysql(meta.value?.source_id),
             )
@@ -1667,6 +1696,8 @@ export function useMultiSelect(
 
           let pasteValue
           let isInfoShown = false
+          // We can use this if we want to avoid same info multiple times per column
+          const isColInfoShown = {} as Record<string, boolean>
 
           const files = e.clipboardData?.files
 
@@ -1697,6 +1728,12 @@ export function useMultiSelect(
                       appInfo: unref(appInfo),
                       files,
                       oldValue: row.row[col.title],
+                      maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                      showUpgradeToAddMoreAttachmentsInCell,
+                      isInfoShown: isColInfoShown[col.title!],
+                      markInfoShown: () => {
+                        isColInfoShown[col.title!] = true
+                      },
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -1717,6 +1754,12 @@ export function useMultiSelect(
                       column: col,
                       appInfo: unref(appInfo),
                       oldValue: row.row[col.title],
+                      maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                      showUpgradeToAddMoreAttachmentsInCell,
+                      isInfoShown: isColInfoShown[col.title!],
+                      markInfoShown: () => {
+                        isColInfoShown[col.title!] = true
+                      },
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -1765,7 +1808,7 @@ export function useMultiSelect(
     }
 
     isFillMode.value = true
-    if (metaKey?.value && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)) {
+    if (metaKey?.value && isAiFeaturesEnabled.value) {
       aiMode.value = true
     }
 
@@ -1781,14 +1824,7 @@ export function useMultiSelect(
     const newAttachments: AttachmentType[] = []
 
     try {
-      const data = await api.storage.upload(
-        {
-          path: [NOCO, base.value.id, meta.value?.id, columnId].join('/'),
-        },
-        {
-          files,
-        },
-      )
+      const data = await batchUploadFiles(files, [NOCO, base.value.id, meta.value?.id, columnId].join('/'))
 
       // add suffix in duplicate file title
       for (const uploadedFile of data) {

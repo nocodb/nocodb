@@ -51,7 +51,14 @@ const cleanUpSakila = async (forceReset) => {
     );
 
     const audits =
-      sakilaProject && (await Audit.baseAuditList(sakilaProject.id, {}));
+      sakilaProject &&
+      (await Audit.baseAuditList(
+        {
+          workspace_id: sakilaProject.fk_workspace_id,
+          base_id: sakilaProject.id,
+        },
+        {},
+      ));
 
     if (audits?.length > 0 || forceReset) {
       // if PG, drop schema

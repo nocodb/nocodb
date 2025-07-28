@@ -2376,7 +2376,10 @@
       "anErrorOccuredWhileAirtableBaseImport": "Airtable-ൽ നിന്ന് ബേസ് ഇറക്കുമതി ചെയ്യുമ്പോൾ പിശക് സംഭവിച്ചു",
       "paymentFailed": "പെയ്മെന്റ് പരാജയപ്പെട്ടു",
       "paymentFailedSubtitle": "താങ്കളുടെ പേയ്മെന്റ് പ്രോസസ്സ് ചെയ്യുമ്പോൾ എന്തോ കുഴപ്പം സംഭവിച്ചു. വീണ്ടും ശ്രമിക്കുകയോ പിന്തുണയുമായി ബന്ധപ്പെടുകയോ ചെയ്യുക.",
-      "failedToCreateLookupFields": "Failed to create lookup fields"
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "അടിസ്ഥാന ഡാറ്റയുടെ മീറ്റാ വിവരങ്ങൾ വിജയകരമായി കയറ്റുമതി ചെയ്തു",

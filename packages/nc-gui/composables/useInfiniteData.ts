@@ -300,13 +300,49 @@ export function useInfiniteData(args: {
   const BATCH_SIZE = 50
   const BATCH_TIMEOUT = 200
 
+  async function loadBulkAggCommentsCount(allFormattedRows: Array<{ rows: Array<Row>; path: Array<number> }>) {
+    if (!isUIAllowed('commentCount') || isPublic?.value) return
+    if (allFormattedRows.length === 0) return
+
+    const allIds: string[] = []
+    const rowIdToRowMap = new Map<string, Row>()
+
+    for (const { rows } of allFormattedRows) {
+      for (const row of rows) {
+        const id = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
+        if (id) {
+          allIds.push(id)
+          rowIdToRowMap.set(id, row)
+        }
+      }
+    }
+
+    if (allIds.length === 0) return
+
+    try {
+      const aggCommentCount = await $api.utils.commentCount({
+        ids: allIds,
+        fk_model_id: meta.value!.id as string,
+      })
+
+      aggCommentCount?.forEach((commentData: Record<string, any>) => {
+        const row = rowIdToRowMap.get(commentData.row_id)
+        if (row) {
+          row.rowMeta.commentCount = +commentData.count || 0
+        }
+      })
+    } catch (e) {
+      console.error('Failed to load bulk aggregate comment count:', e)
+    }
+  }
+
   async function fetchChunkIndividually(chunkId: number, path: Array<number>) {
     const dataCache = getDataCache(path)
     dataCache.chunkStates.value[chunkId] = 'loading'
     const offset = chunkId * CHUNK_SIZE
 
     try {
-      const newItems = await loadData({ offset, limit: CHUNK_SIZE }, false)
+      const newItems = await loadData({ offset, limit: CHUNK_SIZE }, false, path)
       if (!newItems) {
         dataCache.chunkStates.value[chunkId] = undefined
         return
@@ -354,6 +390,9 @@ export function useInfiniteData(args: {
         ? await $api.dbDataTableBulkList.dbDataTableBulkList(meta.value.id!, { viewId: viewMeta.value?.id }, bulkRequests, {})
         : await fetchBulkListData({}, bulkRequests)
 
+      const allFormattedRows: Array<{ rows: Array<Row>; path: Array<number> }> = []
+      const processedChunks: Array<{ request: any; rows: Array<Row>; dataCache: any }> = []
+
       for (const request of batch) {
         try {
           const alias = `chunk_${request.chunkId}_${request.path.join('_')}`
@@ -366,6 +405,9 @@ export function useInfiniteData(args: {
               dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
             })
             dataCache.chunkStates.value[request.chunkId] = 'loaded'
+
+            allFormattedRows.push({ rows, path: request.path })
+            processedChunks.push({ request, rows, dataCache })
           } else {
             dataCache.chunkStates.value[request.chunkId] = undefined
           }
@@ -374,6 +416,23 @@ export function useInfiniteData(args: {
         } catch (error) {
           console.error(`Error processing chunk ${request.chunkId}:`, error)
           const dataCache = getDataCache(request.path)
+          dataCache.chunkStates.value[request.chunkId] = undefined
+          request.reject(error)
+        }
+      }
+
+      await loadBulkAggCommentsCount(allFormattedRows)
+
+      for (const { request, rows, dataCache } of processedChunks) {
+        try {
+          rows.forEach((item: any) => {
+            dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
+          })
+
+          dataCache.chunkStates.value[request.chunkId] = 'loaded'
+          request.resolve(undefined)
+        } catch (error) {
+          console.error(`Error caching chunk ${request.chunkId}:`, error)
           dataCache.chunkStates.value[request.chunkId] = undefined
           request.reject(error)
         }

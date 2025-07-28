@@ -130,8 +130,8 @@ export default class Base extends BaseCE {
     ]);
 
     // define base type as database if missing
-    if (!baseBody.type) {
-      baseBody.type = 'database';
+    if (!insertObj.type) {
+      insertObj.type = 'database';
     }
 
     if (!insertObj.order) {

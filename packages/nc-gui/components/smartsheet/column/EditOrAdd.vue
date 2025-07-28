@@ -547,15 +547,20 @@ const submitBtnLabel = computed(() => {
   }
 })
 
+const searchBasisInfoMap = ref<Record<string, string>>({})
+
 const filterOption = (input: string, option: { value: UITypes }) => {
-  return searchCompare(
-    [
-      option.value,
-      ...(UITypesName[option.value] ? [UITypesName[option.value]] : []),
-      ...(UITypesSearchTerms[option.value] || []),
-    ],
-    input,
-  )
+  delete searchBasisInfoMap.value[option.value]
+
+  const defaultFilter = searchCompare([option.value, ...(UITypesName[option.value] ? [UITypesName[option.value]] : [])], input)
+
+  if (defaultFilter) return true
+
+  return searchCompare([...(UITypesSearchTerms[option.value as string] || [])], input, (matchKeyword) => {
+    if (!matchKeyword) return
+
+    searchBasisInfoMap.value[option.value] = `Matched by keyword: ${matchKeyword}`
+  })
 }
 
 const triggerDescriptionEnable = () => {
@@ -1146,9 +1151,20 @@ const lookupRollupFilterEnabled = computed(() => {
                       "
                       class="nc-field-type-icon w-4 h-4 !opacity-90 text-current"
                     />
-                    <div class="flex-1">
+                    <div
+                      :class="{
+                        'flex-1': !searchBasisInfoMap[opt.name],
+                      }"
+                    >
                       {{ UITypesName[opt.name] }}
                     </div>
+
+                    <div v-if="searchBasisInfoMap[opt.name]" class="flex-1 flex">
+                      <NcTooltip :title="searchBasisInfoMap[opt.name]" class="flex cursor-help">
+                        <GeneralIcon icon="info" class="flex-none h-3.5 w-3.5 text-nc-content-gray-muted" />
+                      </NcTooltip>
+                    </div>
+
                     <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
                     <span
                       v-if="opt.isNew || (isAiButtonSelectOption(opt.name) && !isColumnTypeOpen)"

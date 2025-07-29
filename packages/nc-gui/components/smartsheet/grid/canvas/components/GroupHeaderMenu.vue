@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { generateGroupPath } from '../utils/groupby'
 import type { CanvasGroup } from '#imports'
 
 const props = defineProps<{
@@ -17,11 +18,13 @@ const toggleExpand = (group: CanvasGroup) => {
 }
 
 const expandAllGroup = () => {
-  emit('toggleExpandAll', group.value?.path, true)
+  const path = generateGroupPath(group.value)
+  emit('toggleExpandAll', path, true)
 }
 
 const collapseAllGroup = () => {
-  emit('toggleExpandAll', group.value?.path, false)
+  const path = generateGroupPath(group.value)
+  emit('toggleExpandAll', path, false)
 }
 </script>
 

@@ -1303,8 +1303,18 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
           requestAnimationFrame(triggerRefreshCanvas)
           return
         } else {
+          const rightPadding = 8
           const columnWidth = parseCellWidth(clickedColumn.width)
-          const iconOffsetX = xOffset + columnWidth - 24 + groupByColumns.value.length * 13
+          let rightOffset = xOffset + columnWidth - rightPadding
+          rightOffset -= 16
+          // TODO: remove this once the issue is fixed
+          // Groupby columns have a 13px for the fixed column
+          if (groupByColumns.value?.length === 1 && clickedColumn.fixed) {
+            rightOffset += 13
+          }
+
+          const iconOffsetX = rightOffset
+
           // check if clicked on the column menu icon
           if (iconOffsetX <= x && iconOffsetX + 14 >= x) {
             if (isFieldNotEditable) return
@@ -1423,12 +1433,16 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
 
         const diff = x - columnWidth
 
-        if (diff > 65 && diff < columnWidth + 65 && appInfo.value.isOnPrem) {
+        const isYInBounds = y > element.y + 8 && y < element.y + element.height - 8
+
+        if (diff > 65 && diff < columnWidth + 65 && isYInBounds && !appInfo.value.isOnPrem) {
           if (
             prevMenuState.isDropdownVisible &&
             prevMenuState.openGroupContextMenuDropdown &&
             prevMenuState.openGroupContextMenuDropdown.path?.join(',') === group?.path?.join(',')
           ) {
+            requestAnimationFrame(triggerRefreshCanvas)
+
             return
           }
           openGroupContextMenuDropdown.value = group
@@ -2465,7 +2479,7 @@ onClickOutside(
     }
     onActiveCellChanged()
     const aggregationOrColumnMenuOpen = document.querySelector(
-      '.canvas-aggregation, .canvas-header-column-menu, .canvas-header-add-new-row-menu',
+      '.canvas-aggregation, .canvas-header-column-menu, .canvas-header-add-new-row-menu, .canvas-group-context-menu',
     )
     if (!aggregationOrColumnMenuOpen && isNcDropdownOpen()) return
 
@@ -2483,6 +2497,7 @@ onClickOutside(
       '.canvas-aggregation',
       '.canvas-header-column-menu',
       '.canvas-header-add-new-row-menu',
+      '.canvas-group-context-menu',
     ],
   },
 )

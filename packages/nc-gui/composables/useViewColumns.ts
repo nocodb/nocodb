@@ -1,4 +1,5 @@
 import {
+  type ButtonType,
   type ColumnType,
   CommonAggregations,
   type GridColumnReqType,
@@ -334,32 +335,71 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       },
     })
 
+    const searchBasis = ref<'title' | 'buttonLabel' | 'description' | null>(null)
+
     const filteredFieldList = computed(() => {
-      return (
-        fields.value?.filter((field: Field) => {
-          if (!field.initialShow && isLocalMode.value) {
-            return false
-          }
+      const fieldsToFilter = fields.value || []
 
-          if (
-            metaColumnById?.value?.[field.fk_column_id!]?.pv &&
-            (!filterQuery.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase()))
-          ) {
-            return true
-          }
+      const baseFilter = (field: Field) => {
+        if (!field.initialShow && isLocalMode.value) {
+          return false
+        }
 
-          // hide system columns if not enabled
-          if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
-            return false
-          }
+        if (metaColumnById?.value?.[field.fk_column_id!]?.pv) {
+          return true
+        }
 
-          if (filterQuery.value === '') {
-            return true
-          } else {
-            return field.title.toLowerCase().includes(filterQuery.value.toLowerCase())
-          }
-        }) || []
-      )
+        // hide system columns if not enabled
+        if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
+          return false
+        }
+
+        return true
+      }
+
+      searchBasis.value = null
+      // Step 1: If no query, return all fields based on baseFilter
+      if (!filterQuery.value) return fieldsToFilter.filter(baseFilter)
+
+      // Step 2: Try matching by title
+      let result = fieldsToFilter.filter((field: Field) => {
+        if (!baseFilter(field)) return false
+
+        return searchCompare([field.title], filterQuery.value)
+      })
+
+      if (result.length > 0) {
+        searchBasis.value = 'title'
+        return result
+      }
+
+      // Step 3: Try matching label (only if it is button column)
+      result = fieldsToFilter.filter((field: Field) => {
+        if (!baseFilter(field)) return false
+        const column = metaColumnById?.value?.[field.fk_column_id!]
+        if (!column) return false
+
+        return isButton(column) && searchCompare([(column.colOptions as ButtonType)?.label], filterQuery.value)
+      })
+
+      if (result.length > 0) {
+        searchBasis.value = 'buttonLabel'
+        return result
+      }
+
+      // Step 4: Try matching description
+      result = fieldsToFilter.filter((field: Field) => {
+        if (!baseFilter(field)) return false
+
+        const column = metaColumnById?.value?.[field.fk_column_id!]
+
+        if (!column || !column.description) return false
+
+        return searchCompare([column.description], filterQuery.value)
+      })
+
+      searchBasis.value = result.length > 0 ? 'description' : null
+      return result
     })
 
     const numberOfHiddenFields = computed(() => {
@@ -515,6 +555,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       fieldsMap,
       loadViewColumns,
       filteredFieldList,
+      searchBasis,
       numberOfHiddenFields,
       filterQuery,
       showAll,

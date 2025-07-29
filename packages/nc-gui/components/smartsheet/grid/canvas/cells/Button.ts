@@ -241,6 +241,16 @@ export const ButtonCellRenderer: CellRenderer = {
     const isLoading = actionManager.isLoading(pk, column.id!)
     const afterActionStatus = actionManager.getAfterActionStatus(pk, column.id!)
 
+    if (afterActionStatus?.tooltip) {
+      Object.assign(cellRenderStore, {
+        invalidUrlTooltip: afterActionStatus.tooltip,
+      })
+    } else {
+      Object.assign(cellRenderStore, {
+        invalidUrlTooltip: '',
+      })
+    }
+
     let disabledState = isLoading || disabled?.isInvalid
     ctx.textAlign = 'left'
 
@@ -342,7 +352,7 @@ export const ButtonCellRenderer: CellRenderer = {
       }
     } else if (afterActionStatus) {
       spriteLoader.renderIcon(ctx, {
-        icon: afterActionStatus === 'success' ? 'ncCheck' : 'ncInfo',
+        icon: afterActionStatus.status === 'success' ? 'ncCheck' : 'ncInfo',
         size: iconSize,
         x: contentX,
         y: contentY,

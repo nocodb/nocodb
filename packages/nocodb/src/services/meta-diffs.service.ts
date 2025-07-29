@@ -276,7 +276,7 @@ export class MetaDiffsService {
       }
       for (const column of oldMeta.columns) {
         if (
-          [
+          (<UITypes[]>[
             UITypes.LinkToAnotherRecord,
             UITypes.Links,
             UITypes.Rollup,
@@ -285,8 +285,16 @@ export class MetaDiffsService {
             UITypes.QrCode,
             UITypes.Barcode,
             UITypes.Button,
-          ].includes(column.uidt) ||
-          isAIPromptCol(column)
+          ]).includes(column.uidt) ||
+          isAIPromptCol(column) ||
+          // skip alias columns of CreatedTime, LastModifiedTime, CreatedBy, LastModifiedBy
+          ((<UITypes[]>[
+            UITypes.CreatedTime,
+            UITypes.LastModifiedTime,
+            UITypes.LastModifiedBy,
+            UITypes.CreatedBy,
+          ]).includes(column.uidt) &&
+            !column.system)
         ) {
           if (isLinksOrLTAR(column.uidt)) {
             virtualRelationColumns.push(column);

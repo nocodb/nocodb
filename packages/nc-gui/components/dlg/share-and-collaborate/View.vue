@@ -20,8 +20,8 @@ if (isViewToolbar) {
   try {
     const store = useSmartsheetStoreOrThrow()
     view = store.view
-  } catch (e) {
-    console.error(e)
+  } catch (_e) {
+    // console.error(e)
   }
 }
 

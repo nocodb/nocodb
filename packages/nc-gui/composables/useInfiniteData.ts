@@ -400,7 +400,7 @@ export function useInfiniteData(args: {
           const dataCache = getDataCache(request.path)
 
           if (chunkData && chunkData.list) {
-            const rows = formatData(chunkData.list, chunkData.pageInfo)
+            const rows = formatData(chunkData.list, chunkData.pageInfo, undefined, request.path, getEvaluatedRowMetaRowColorInfo)
             rows.forEach((item: any) => {
               dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
             })

@@ -38,8 +38,7 @@ export class ActionManager {
 
   // key is rowId-columnId, value is startTime
   private loadingColumns = new Map<string, number>()
-  private successColumns = new Map<string, number>()
-  private errorColumns = new Map<string, number>()
+  private afterActionStatus = new Map<string, 'success' | 'error'>()
   private rafId: number | null = null
 
   private getKey(rowId: string, columnId: string): string {
@@ -59,16 +58,14 @@ export class ActionManager {
     rowIds.forEach((id) => {
       this.loadingColumns.set(this.getKey(id, columnId), startTime)
 
-      // If action is triggered again, clear success and error columns
-      this.successColumns.delete(this.getKey(id, columnId))
-      this.errorColumns.delete(this.getKey(id, columnId))
+      // If action is triggered again, clear after action status
+      this.afterActionStatus.delete(this.getKey(id, columnId))
 
       affectedColumnIds.forEach((colId) => {
         this.loadingColumns.set(this.getKey(id, colId), startTime)
 
-        // If action is triggered again, clear success and error columns
-        this.successColumns.delete(this.getKey(id, colId))
-        this.errorColumns.delete(this.getKey(id, colId))
+        // If action is triggered again, clear after action status
+        this.afterActionStatus.delete(this.getKey(id, columnId))
       })
     })
 
@@ -78,20 +75,20 @@ export class ActionManager {
       const res = await action()
 
       rowIds.forEach((id) => {
-        this.successColumns.set(this.getKey(id, columnId), startTime)
+        this.afterActionStatus.set(this.getKey(id, columnId), 'success')
 
         affectedColumnIds.forEach((colId) => {
-          this.successColumns.set(this.getKey(id, colId), startTime)
+          this.afterActionStatus.set(this.getKey(id, colId), 'success')
         })
       })
 
       // Remove success columns after 2 seconds
       ncDelay(2000).then(() => {
         rowIds.forEach((id) => {
-          this.successColumns.delete(this.getKey(id, columnId))
+          this.afterActionStatus.delete(this.getKey(id, columnId))
 
           affectedColumnIds.forEach((colId) => {
-            this.successColumns.delete(this.getKey(id, colId))
+            this.afterActionStatus.delete(this.getKey(id, colId))
           })
         })
       })
@@ -99,20 +96,20 @@ export class ActionManager {
       return res
     } catch (e) {
       rowIds.forEach((id) => {
-        this.errorColumns.set(this.getKey(id, columnId), startTime)
+        this.afterActionStatus.set(this.getKey(id, columnId), 'error')
 
         affectedColumnIds.forEach((colId) => {
-          this.errorColumns.set(this.getKey(id, colId), startTime)
+          this.afterActionStatus.set(this.getKey(id, colId), 'error')
         })
       })
 
       // Remove error columns after 3 seconds
       ncDelay(3000).then(() => {
         rowIds.forEach((id) => {
-          this.errorColumns.delete(this.getKey(id, columnId))
+          this.afterActionStatus.delete(this.getKey(id, columnId))
 
           affectedColumnIds.forEach((colId) => {
-            this.errorColumns.delete(this.getKey(id, colId))
+            this.afterActionStatus.delete(this.getKey(id, colId))
           })
         })
       })
@@ -129,18 +126,18 @@ export class ActionManager {
   }
 
   private startAnimationLoop() {
-    if (this.rafId === null && (this.loadingColumns.size > 0 || this.successColumns.size > 0 || this.errorColumns.size > 0)) {
+    if (this.rafId === null && (this.loadingColumns.size > 0 || this.afterActionStatus.size > 0)) {
       let cooldownTimeout: number | null = null
       let isCoolingDown = false
 
       const animate = () => {
-        if ((this.loadingColumns.size > 0 || this.successColumns.size > 0 || this.errorColumns.size > 0) && cooldownTimeout) {
+        if ((this.loadingColumns.size > 0 || this.afterActionStatus.size > 0) && cooldownTimeout) {
           clearTimeout(cooldownTimeout)
           cooldownTimeout = null
           isCoolingDown = false
         }
 
-        if (this.loadingColumns.size > 0 || this.successColumns.size > 0 || this.errorColumns.size > 0) {
+        if (this.loadingColumns.size > 0 || this.afterActionStatus.size > 0) {
           this.triggerRefreshCanvas()
           this.rafId = requestAnimationFrame(animate)
         } else if (!isCoolingDown) {
@@ -277,12 +274,8 @@ export class ActionManager {
     return this.loadingColumns.get(this.getKey(rowId, columnId)) ?? null
   }
 
-  isSuccess(rowId: string, columnId: string): boolean {
-    return this.successColumns.has(this.getKey(rowId, columnId))
-  }
-
-  isError(rowId: string, columnId: string): boolean {
-    return this.errorColumns.has(this.getKey(rowId, columnId))
+  getAfterActionStatus(rowId: string, columnId: string) {
+    return this.afterActionStatus.get(this.getKey(rowId, columnId))
   }
 
   clear() {

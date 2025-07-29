@@ -4,6 +4,8 @@ const route = router.currentRoute
 
 const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
+const { isUIAllowed } = useRoles()
+
 const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
 const { activeAutomationId } = storeToRefs(useAutomationStore())
@@ -101,7 +103,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <div v-if="!isSharedBase" class="flex gap-2 items-center empty:hidden">
           <LazySmartsheetTopbarCmdK v-if="!isNewSidebarEnabled" />
-          <LazySmartsheetTopbarDashboardState v-if="activeDashboardId" />
+          <LazySmartsheetTopbarDashboardState v-if="activeDashboardId && isUIAllowed('dashboardEdit')" />
           <LazySmartsheetTopbarScriptAction v-if="activeAutomationId && appInfo.ee" />
         </div>
         <LazySmartsheetTopbarShareProject v-if="!activeAutomationId" />

@@ -13,6 +13,8 @@ const { activeDashboardWidgets, selectedWidget } = storeToRefs(widgetStore)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const { isUIAllowed } = useRoles()
+
 // Track drag/resize state
 const isDragging = ref(false)
 const isResizing = ref(false)
@@ -243,7 +245,7 @@ watch(
       </GridItem>
     </GridLayout>
     <div
-      v-if="!activeDashboardWidgets.length && !isEditingDashboard && !isPublic"
+      v-if="!activeDashboardWidgets.length && !isEditingDashboard && !isPublic && isUIAllowed('dashboardEdit')"
       class="empty-state flex flex-col h-full items-center justify-center h-64 text-nc-content-gray-500"
     >
       <img :src="PlaceholderImage" class="w-120 mb-4" alt="Start building your dashboard" />
@@ -252,7 +254,7 @@ watch(
       <NcButton @click="dashboardStore.isEditingDashboard = true">Edit Dashboard</NcButton>
     </div>
     <div
-      v-if="isPublic && !activeDashboardWidgets.length"
+      v-if="(isPublic || !isUIAllowed('dashboardEdit')) && !activeDashboardWidgets.length"
       class="empty-state flex flex-col h-full items-center justify-center h-full text-nc-content-gray-500"
     >
       <img src="~assets/img/placeholder/no-search-result-found.png" class="w-120 mb-4" alt="Dashboard is empty" />

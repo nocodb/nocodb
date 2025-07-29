@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, PlanFeatureTypes } from 'nocodb-sdk';
 import type { ScriptType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Script from '~/models/Script';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { getFeature } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class ScriptsService {
@@ -30,6 +31,17 @@ export class ScriptsService {
     scriptBody: Partial<ScriptType>,
     req: NcRequest,
   ) {
+    const isPlansSupported = await getFeature(
+      PlanFeatureTypes.FEATURE_SCRIPTS,
+      context.workspace_id,
+    );
+
+    if (!isPlansSupported) {
+      NcError.badRequest(
+        'Scripts are available only on paid plans. Please upgrade your workspace plan to enable this feature.',
+      );
+    }
+
     const script = await Script.insert(context, baseId, {
       ...scriptBody,
       created_by: req.user.id,
@@ -94,6 +106,17 @@ export class ScriptsService {
 
     if (!script) {
       return NcError.notFound('Script not found');
+    }
+
+    const isPlansSupported = await getFeature(
+      PlanFeatureTypes.FEATURE_SCRIPTS,
+      context.workspace_id,
+    );
+
+    if (!isPlansSupported) {
+      NcError.badRequest(
+        'Scripts are available only on paid plans. Please upgrade your workspace plan to enable this feature.',
+      );
     }
 
     const existingScripts = await Script.list(context, script.base_id);

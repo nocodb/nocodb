@@ -6,6 +6,7 @@ import {
   generateUniqueCopyName,
   ncIsNull,
   ncIsUndefined,
+  PlanFeatureTypes,
   type WidgetType,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,6 +16,7 @@ import { NcError } from '~/helpers/catchError';
 import { getWidgetData, getWidgetHandler } from '~/db/widgets';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import config from '~/app.config';
+import { getFeature } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class DashboardsService {
@@ -44,6 +46,17 @@ export class DashboardsService {
     insertObj: Partial<Dashboard>,
     req: NcRequest,
   ) {
+    const isPlansSupported = await getFeature(
+      PlanFeatureTypes.FEATURE_DASHBOARD,
+      context.workspace_id,
+    );
+
+    if (!isPlansSupported) {
+      NcError.badRequest(
+        'Dashboards are available only on paid plans. Please upgrade your workspace plan to enable this feature.',
+      );
+    }
+
     if (!insertObj.created_by) {
       insertObj.created_by = req.user?.id;
     }
@@ -139,6 +152,17 @@ export class DashboardsService {
     insertObj: Partial<Widget>,
     req: NcRequest,
   ) {
+    const isPlansSupported = await getFeature(
+      PlanFeatureTypes.FEATURE_DASHBOARD,
+      context.workspace_id,
+    );
+
+    if (!isPlansSupported) {
+      NcError.badRequest(
+        'Dashboards are available only on paid plans. Please upgrade your workspace plan to enable this feature.',
+      );
+    }
+
     const widget = await Widget.insert(context, insertObj);
 
     const handler = await getWidgetHandler({

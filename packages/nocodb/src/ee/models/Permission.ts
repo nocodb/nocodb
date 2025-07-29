@@ -1,5 +1,4 @@
 import {
-  PermissionEntity,
   PermissionGrantedType,
   type PermissionKey,
   type PermissionRole,
@@ -8,6 +7,7 @@ import {
   type ProjectRoles,
   type WorkspaceUserRoles,
 } from 'nocodb-sdk';
+import type { PermissionEntity } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { Knex } from 'knex';
 import { extractProps } from '~/helpers/extractProps';

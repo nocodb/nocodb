@@ -8,6 +8,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const { showUpgradeToUseDashboard } = useEeConfig()
+
   const route = useRoute()
 
   const baseStore = useBases()
@@ -339,7 +341,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     scrollOnCreate?: boolean
     navigateToNewDashboard?: boolean
   }) {
-    if (!baseId) return
+    if (!baseId || showUpgradeToUseDashboard()) return
     const isDlgOpen = ref(true)
 
     const { close } = useDialog(DlgDashboardCreate, {

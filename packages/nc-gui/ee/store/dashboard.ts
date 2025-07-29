@@ -138,7 +138,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
       )
 
       const baseDashboards = dashboards.value.get(baseId) || []
-      baseDashboards.push(created as any)
+      baseDashboards.push({
+        ...created,
+        ___is_new: true,
+      } as any)
       dashboards.value.set(baseId, baseDashboards)
 
       ncNavigateTo({
@@ -146,6 +149,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
         baseId: activeProjectId.value,
         dashboardId: created.id,
       })
+      isEditingDashboard.value = true
 
       return created
     } catch (e) {

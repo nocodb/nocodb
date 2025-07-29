@@ -10,11 +10,28 @@ const baseStore = useBases()
 
 const { openedProject } = storeToRefs(baseStore)
 
-const { isEditingDashboard, activeDashboard } = storeToRefs(dashboardStore)
+const { isEditingDashboard, activeDashboard, activeBaseDashboards, dashboards } = storeToRefs(dashboardStore)
 
-const confirmUnsavedChangesBeforeLeaving = (from: RouteLocationNormalizedLoadedGeneric, next: NavigationGuardNext) => {
+const confirmUnsavedChangesBeforeLeaving = (
+  to: RouteLocationNormalizedLoadedGeneric,
+  from: RouteLocationNormalizedLoadedGeneric,
+  next: NavigationGuardNext,
+) => {
   if (!isEditingDashboard.value) {
     next()
+    return
+  }
+
+  const targetDashboardId = to.params.dashboardId as string
+  const targetDashboard = activeBaseDashboards.value.find((d) => d.id === targetDashboardId)
+  if (targetDashboard.___is_new) {
+    targetDashboard.___is_new = false
+    const baseDashboards = dashboards.value.get(targetDashboard?.base_id)
+    const index = baseDashboards.findIndex((d) => d.id === targetDashboardId)
+    baseDashboards[index] = targetDashboard
+    dashboards.value.set(targetDashboard?.base_id, baseDashboards)
+    next()
+    isEditingDashboard.value = true
     return
   }
 
@@ -49,12 +66,8 @@ const confirmUnsavedChangesBeforeLeaving = (from: RouteLocationNormalizedLoadedG
   })
 }
 
-onBeforeRouteLeave((_to, from, next) => {
-  confirmUnsavedChangesBeforeLeaving(from, next)
-})
-
-onBeforeRouteUpdate((_to, from, next) => {
-  confirmUnsavedChangesBeforeLeaving(from, next)
+onBeforeRouteLeave((to, from, next) => {
+  confirmUnsavedChangesBeforeLeaving(to, from, next)
 })
 
 watch(

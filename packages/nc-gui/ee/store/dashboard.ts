@@ -6,8 +6,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const { ncNavigateTo } = useGlobal()
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
   const { showUpgradeToUseDashboard } = useEeConfig()
 
   const route = useRoute()
@@ -20,6 +18,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
+  const isDashboardEnabled = computed(() => true)
+
   // State
   const dashboards = ref<Map<string, DashboardType[]>>(new Map())
 
@@ -29,8 +29,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
   })
 
   const isEditingDashboard = ref(false)
-
-  const isDashboardEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.DASHBOARD))
 
   const activeBaseDashboards = computed(() => {
     if (!activeProjectId.value && !sharedDashboardState.activeProjectId) return []

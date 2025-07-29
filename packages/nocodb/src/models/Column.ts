@@ -794,6 +794,33 @@ export default class Column<T = any> implements ColumnType {
     if (!col) {
       return;
     }
+    // If the column is one of CreatedBy, LastModifiedBy, CreatedAt, or LastModifiedAt
+    // and it is a system column, then delete its alias columns as well.
+    // This deletion is only performed through meta-sync because system columns
+    // cannot be deleted via API calls.
+    if (
+      (
+        [
+          UITypes.CreatedTime,
+          UITypes.LastModifiedTime,
+          UITypes.LastModifiedBy,
+          UITypes.CreatedBy,
+        ] as UITypes[]
+      ).includes(col.uidt) &&
+      col.system
+    ) {
+      const aliasCols = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COLUMNS,
+        {
+          condition: { uidt: col.uidt, system: false },
+        },
+      );
+      for (const aliasCol of aliasCols) {
+        await Column.delete(context, aliasCol.id, ncMeta);
+      }
+    }
 
     // todo: or instead of delete reset related foreign key value to null and handle in BaseModel
 

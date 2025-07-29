@@ -552,10 +552,10 @@ const searchBasisInfoMap = ref<Record<string, string>>({})
 const filterOption = (input: string, option: { value: UITypes }) => {
   delete searchBasisInfoMap.value[option.value]
 
-  const defaultFilter = searchCompare([option.value, ...(UITypesName[option.value] ? [UITypesName[option.value]] : [])], input)
+  // Step 1: apply default filter
+  if (searchCompare([option.value, ...(UITypesName[option.value] ? [UITypesName[option.value]] : [])], input)) return true
 
-  if (defaultFilter) return true
-
+  // Step 2: apply search basis options
   return searchCompare([...(UITypesSearchTerms[option.value as string] || [])], input, (matchKeyword) => {
     if (!matchKeyword) return
 

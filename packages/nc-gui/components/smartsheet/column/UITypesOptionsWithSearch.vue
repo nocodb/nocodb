@@ -20,10 +20,10 @@ const filteredOptions = computed(() => {
   searchBasisInfoMap.value = {}
 
   return (options.value || []).filter((c) => {
-    const defaultFilter = searchCompare([c.name, UITypesName[c.name]], searchQuery.value)
+    // Step 1: apply default filter
+    if (searchCompare([c.name, UITypesName[c.name]], searchQuery.value)) return true
 
-    if (defaultFilter) return true
-
+    // Step 2: apply search basis options
     return searchCompare([...(UITypesSearchTerms[c.name] || [])], searchQuery.value, (matchKeyword) => {
       if (!matchKeyword) return
 

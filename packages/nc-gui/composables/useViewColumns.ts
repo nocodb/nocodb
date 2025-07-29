@@ -367,29 +367,51 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const searchBasisIdMap = ref<Record<string, string>>({})
 
+    /**
+     * Apply search basis filter to the column
+     * @param column - The column to apply the search basis filter to
+     * @returns true if the column matches the search basis filter, false otherwise
+     */
+    const applySearchBasisFilter = (column?: ColumnType) => {
+      if (!column) return false
+
+      for (const basisOption of fieldSearchBasisOptions) {
+        if (!basisOption.filterCallback(filterQuery.value, column)) continue
+
+        searchBasisIdMap.value[column.id!] = basisOption.searchBasisInfo
+        return true
+      }
+
+      return false
+    }
+
     const filteredFieldList = computed(() => {
       searchBasisIdMap.value = {}
 
       return (fields.value || []).filter((field: Field) => {
-        // Step 1: If no query, return all fields based on baseFilter
-        if (!filterQuery.value) return true
-
-        // Step 2: Try matching by title - default search basis
-        if (searchCompare([field.title], filterQuery.value)) return true
-
+        if (!field.initialShow && isLocalMode.value) {
+          return false
+        }
         const column = metaColumnById?.value?.[field.fk_column_id!]
 
-        if (!column) return false
+        if (column?.pv) {
+          // Step 1: Apply default filter
+          if (!filterQuery.value || searchCompare([field.title], filterQuery.value)) return true
 
-        // Step 3: Try matching by search basis options
-        for (const basisOption of fieldSearchBasisOptions) {
-          if (!basisOption.filterCallback(filterQuery.value, column)) continue
-
-          searchBasisIdMap.value[field.fk_column_id!] = basisOption.searchBasisInfo
-          return true
+          // Step 2: Apply search basis options if default filter fails
+          return applySearchBasisFilter(column)
         }
 
-        return false
+        // hide system columns if not enabled
+        if (!showSystemFields.value && isSystemColumn(column)) {
+          return false
+        }
+
+        // Step 1: Apply default filter
+        if (!filterQuery.value || searchCompare([field.title], filterQuery.value)) return true
+
+        // Step 2: Apply search basis options if default filter fails
+        return applySearchBasisFilter(column)
       })
     })
 

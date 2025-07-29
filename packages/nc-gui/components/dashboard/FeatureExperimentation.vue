@@ -11,10 +11,22 @@ const { toggleFeature, features, isEngineeringModeOn } = useBetaFeatureToggle()
 
 const value = useVModel(props, 'value')
 
+const { appInfo } = useGlobal()
+
 const selectedFeatures = ref<Record<string, boolean>>({})
 
 // Add search functionality
 const searchQuery = ref('')
+
+const isEnabledOnPremFeature = (feature: BetaFeatureType) => {
+  if (appInfo.value.isOnPrem && feature.isOnPrem === false) return false
+
+  return true
+}
+
+const isFeatureVisible = (feature: BetaFeatureType) => {
+  return (!feature?.isEE || isEeUI) && (!feature?.isEngineering || isEngineeringModeOn.value) && isEnabledOnPremFeature(feature)
+}
 
 const filteredFeatures = computed(() => {
   if (!searchQuery.value) return features.value
@@ -40,6 +52,8 @@ const filteredFeatures = computed(() => {
 
   return features.value
     .filter((feature) => {
+      if (!isFeatureVisible(feature)) return false
+
       const title = feature.title.toLowerCase()
       const description = feature.description.toLowerCase()
       return title.includes(query) || description.includes(query)
@@ -50,10 +64,6 @@ const filteredFeatures = computed(() => {
       return scoreB - scoreA
     })
 })
-
-const isFeatureVisible = (feature: BetaFeatureType) => {
-  return (!feature?.isEE || isEeUI) && (!feature?.isEngineering || isEngineeringModeOn.value)
-}
 
 const isAllFeaturesEnabled = computed({
   get: () => {

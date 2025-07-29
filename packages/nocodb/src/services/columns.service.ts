@@ -306,6 +306,7 @@ export class ColumnsService implements IColumnsService {
       user: UserType;
       reuse?: ReusableParams;
       apiVersion?: NcApiVersion;
+      forceUpdateSystem?: boolean;
     },
   ): Promise<Model | Column<any>> {
     const reuse = param.reuse || {};
@@ -321,7 +322,7 @@ export class ColumnsService implements IColumnsService {
       }),
     );
 
-    if (table.synced && column.readonly) {
+    if (table.synced && column.readonly && !param.forceUpdateSystem) {
       NcError.badRequest(
         `The column '${
           column.title || column.column_name

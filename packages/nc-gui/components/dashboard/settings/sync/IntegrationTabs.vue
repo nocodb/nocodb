@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 const {
   formState,
-  syncConfigForm,
+  syncConfigEditForm,
   integrationConfigs,
   selectedIntegrationIndex,
   addIntegrationConfig,
@@ -52,7 +52,7 @@ const configs = computed(() => {
       </a-button>
     </div>
     <a-button
-      v-if="(!editMode || !editModeModified) && syncConfigForm.sync_category !== 'custom'"
+      v-if="(!editMode || !editModeModified) && syncConfigEditForm?.sync_category !== 'custom'"
       type="text"
       class="ml-2 flex items-center"
       @click="addIntegrationConfig"

@@ -41,9 +41,17 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
       }[] = [];
 
       const tableSchema = await knex
-        .select('*')
-        .from('information_schema.columns')
-        .where({ table_name: table });
+        .select('a.attname as column_name', 't.typname as data_type')
+        .from('pg_attribute as a')
+        .join('pg_class as c', 'a.attrelid', 'c.oid')
+        .join('pg_namespace as n', 'c.relnamespace', 'n.oid')
+        .join('pg_type as t', 'a.atttypid', 't.oid')
+        .where({
+          'c.relname': table,
+          'n.nspname': this.config.schema,
+        })
+        .andWhere('a.attnum', '>', 0) // exclude system columns
+        .andWhere('a.attisdropped', false); // exclude dropped columns
 
       for (const column of tableSchema) {
         const { uidt, abstractType } = this.autoDetectType(column.data_type);
@@ -296,12 +304,16 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     }
 
     if (key === 'tables') {
-      const qb = knex
+      const tables = await knex
         .select('table_name')
         .from('information_schema.tables')
-        .where({ table_schema: this.config.schema });
-
-      const tables = await qb;
+        .where({ table_schema: this.config.schema })
+        .unionAll([
+          knex
+            .select('matviewname as table_name')
+            .from('pg_matviews')
+            .where({ schemaname: this.config.schema })
+        ]);
 
       return tables.map((table: { table_name: string }) => ({
         label: table.table_name,

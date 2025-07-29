@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import type { NavigationGuardNext, RouteLocationNormalizedLoadedGeneric } from 'vue-router'
+import { useTitle } from '@vueuse/core'
 
 const { t } = useI18n()
 
 const dashboardStore = useDashboardStore()
 
-const { isEditingDashboard } = storeToRefs(dashboardStore)
+const baseStore = useBases()
+
+const { openedProject } = storeToRefs(baseStore)
+
+const { isEditingDashboard, activeDashboard } = storeToRefs(dashboardStore)
 
 const confirmUnsavedChangesBeforeLeaving = (from: RouteLocationNormalizedLoadedGeneric, next: NavigationGuardNext) => {
   if (!isEditingDashboard.value) {
@@ -51,6 +56,20 @@ onBeforeRouteLeave((_to, from, next) => {
 onBeforeRouteUpdate((_to, from, next) => {
   confirmUnsavedChangesBeforeLeaving(from, next)
 })
+
+watch(
+  () => activeDashboard.value?.title,
+  (title) => {
+    if (!title) return
+
+    const capitalizedTitle = `${title.charAt(0).toUpperCase()}${title.slice(1)} | ${openedProject.value?.title}`
+
+    useTitle(capitalizedTitle)
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

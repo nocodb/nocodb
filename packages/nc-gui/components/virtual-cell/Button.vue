@@ -150,7 +150,10 @@ const componentProps = computed(() => {
   }
 })
 
-const afterActionStatus = ref<'success' | 'error' | null>(null)
+const afterActionStatus = ref<{
+  status: 'success' | 'error'
+  tooltip?: string
+} | null>(null)
 
 const triggerAction = async () => {
   const colOptions = column.value.colOptions
@@ -164,15 +167,17 @@ const triggerAction = async () => {
 
       await $api.dbTableWebhook.trigger(cellValue.value?.fk_webhook_id, rowId!.value)
 
-      afterActionStatus.value = 'success'
+      afterActionStatus.value = { status: 'success' }
       ncDelay(2000).then(() => {
         afterActionStatus.value = null
       })
-    } catch (e) {
+    } catch (e: any) {
       console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e))
 
-      afterActionStatus.value = 'error'
+      const errorMsg = await extractSdkResponseErrorMsg(e)
+      message.error(errorMsg)
+
+      afterActionStatus.value = { status: 'error', tooltip: errorMsg }
       ncDelay(3000).then(() => {
         afterActionStatus.value = null
       })
@@ -194,14 +199,17 @@ const triggerAction = async () => {
 
       isExecutingId.value = id
 
-      afterActionStatus.value = 'success'
+      afterActionStatus.value = { status: 'success' }
       ncDelay(2000).then(() => {
         afterActionStatus.value = null
       })
-    } catch (e) {
+    } catch (e: any) {
       console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e))
-      afterActionStatus.value = 'error'
+
+      const errorMsg = await extractSdkResponseErrorMsg(e)
+      message.error(errorMsg)
+
+      afterActionStatus.value = { status: 'error', tooltip: errorMsg }
       ncDelay(3000).then(() => {
         afterActionStatus.value = null
       })
@@ -220,7 +228,11 @@ const triggerAction = async () => {
     class="w-full flex items-center"
   >
     <NcTooltip
-      :disabled="isAiButtonType ? isFieldAiIntegrationAvailable || isPublic || !isUIAllowed('dataEdit') : !invalidUrlTooltip"
+      :disabled="
+        isAiButtonType
+          ? isFieldAiIntegrationAvailable || isPublic || !isUIAllowed('dataEdit')
+          : !invalidUrlTooltip && !afterActionStatus?.tooltip
+      "
       class="flex"
     >
       <template #title>
@@ -229,7 +241,7 @@ const triggerAction = async () => {
             ? aiIntegrations.length
               ? $t('tooltip.aiIntegrationReConfigure')
               : $t('tooltip.aiIntegrationAddAndReConfigure')
-            : invalidUrlTooltip
+            : afterActionStatus?.tooltip || invalidUrlTooltip
         }}
       </template>
       <component
@@ -245,7 +257,7 @@ const triggerAction = async () => {
       >
         <GeneralIcon
           v-if="afterActionStatus"
-          :icon="afterActionStatus === 'success' ? 'ncCheck' : 'ncInfo'"
+          :icon="afterActionStatus.status === 'success' ? 'ncCheck' : 'ncInfo'"
           class="w-4 h-4 flex-none text-current"
         />
         <GeneralLoader

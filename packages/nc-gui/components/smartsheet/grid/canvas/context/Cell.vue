@@ -371,7 +371,7 @@ const execBulkAction = async (path: Array<number>) => {
         class="nc-base-menu-item"
         data-testid="context-menu-item-bulk"
         :disabled="isSelectionOnlyAI.disabled"
-        @click="execBulkAction(contextMenuPath)"
+        @click="execBulkAction(contextMenuPath || [])"
       >
         <div class="flex gap-2 items-center">
           <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
@@ -387,7 +387,7 @@ const execBulkAction = async (path: Array<number>) => {
       class="nc-base-menu-item"
       data-testid="context-menu-item-bulk-script"
       :disabled="isSelectionOnlyScript.disabled"
-      @click="execBulkAction(contextMenuPath)"
+      @click="execBulkAction(contextMenuPath || [])"
     >
       <div class="flex gap-2 items-center">
         <GeneralIcon icon="ncScript" class="h-4 w-4" />

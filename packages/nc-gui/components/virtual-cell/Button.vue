@@ -150,8 +150,11 @@ const componentProps = computed(() => {
   }
 })
 
+const afterActionStatus = ref<'success' | 'error' | null>(null)
+
 const triggerAction = async () => {
   const colOptions = column.value.colOptions
+  afterActionStatus.value = null
 
   if (colOptions.type === ButtonActionsType.Url) {
     confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target, appInfo.value?.allowLocalUrl)
@@ -160,9 +163,19 @@ const triggerAction = async () => {
       isLoading.value = true
 
       await $api.dbTableWebhook.trigger(cellValue.value?.fk_webhook_id, rowId!.value)
+
+      afterActionStatus.value = 'success'
+      ncDelay(2000).then(() => {
+        afterActionStatus.value = null
+      })
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
+
+      afterActionStatus.value = 'error'
+      ncDelay(3000).then(() => {
+        afterActionStatus.value = null
+      })
     } finally {
       isLoading.value = false
     }
@@ -180,9 +193,18 @@ const triggerAction = async () => {
       })
 
       isExecutingId.value = id
+
+      afterActionStatus.value = 'success'
+      ncDelay(2000).then(() => {
+        afterActionStatus.value = null
+      })
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
+      afterActionStatus.value = 'error'
+      ncDelay(3000).then(() => {
+        afterActionStatus.value = null
+      })
     } finally {
       isLoading.value = false
     }
@@ -221,8 +243,13 @@ const triggerAction = async () => {
         class="nc-cell-button nc-button-cell-link btn-cell-colors truncate flex items-center h-6"
         @click.prevent="triggerAction"
       >
+        <GeneralIcon
+          v-if="afterActionStatus"
+          :icon="afterActionStatus === 'success' ? 'ncCheck' : 'ncInfo'"
+          class="w-4 h-4 flex-none text-current"
+        />
         <GeneralLoader
-          v-if="
+          v-else-if="
             isLoading ||
             isExecuting ||
             (pk && generatingRows.includes(pk) && column?.id && generatingColumnRows.includes(column.id))

@@ -117,7 +117,7 @@
     "planLimitReached": "한도에 도달했습니다: 요금제 업그레이드",
     "planLimitReachedSubtitle": "더 많은 항목을 추가하려면 업그레이드하십시오",
     "upgradeToAddLimitRecordSelection": "필터를 사용하여 항목 선택을 제한하려면 {plan} 플랜으로 업그레이드하십시오.",
-    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "특정 조건을 충족하는 연결된 레코드를 포함하려면 {plan} 플랜으로 업그레이드하십시오.",
     "upgradeToAdd": "업그레이드하여 추가",
     "requestUpgradeToAdd": "추가하려면 업그레이드 요청",
     "upgradeToAddMoreExtensions": "현재 하나의 확장만 허용하는 무료 요금제를 사용 중입니다. 업그레이드하여 무제한 확장 기능을 잠금 해제하세요.",
@@ -262,7 +262,7 @@
     "install": "설치",
     "show": "보기",
     "access": "접근",
-    "visibility": "보임 여부",
+    "visibility": "표시 여부",
     "hide": "숨기기",
     "deprecated": "더 이상 사용되지 않음",
     "showAll": "모두 표시",
@@ -415,7 +415,7 @@
     "resources": "리소스",
     "community": "커뮤니티",
     "youtube": "유튜브",
-    "changelog": "변경 기록",
+    "changelog": "변경 내역",
     "contactSupport": "도움 받기",
     "proceedImport": "가져오기 진행",
     "inserting": "삽입",
@@ -425,7 +425,7 @@
     "record": "항목",
     "overview": "개요",
     "baseType": "기본 유형",
-    "beta": "Beta"
+    "beta": "베타"
   },
   "objects": {
     "script": "스크립트",
@@ -618,13 +618,13 @@
       "generalPermissionTooltip": "이 작업을 수행할 수 있는 권한이 없습니다",
       "uploadDataTooltip": "이 테이블에 데이터를 업로드할 수 있는 권한이 없습니다",
       "formCannotAcceptSubmissions": "양식은 제출을 수락할 수 없습니다.",
-      "formCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form.",
-      "resetTablePermissions": "Reset table permissions",
-      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
-      "resetFieldPermissions": "Reset field permissions",
-      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
-      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
-      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
+      "formCannotAcceptSubmissionsDescription": "테이블에 새 레코드를 추가하는 것이 제한되어 이 양식을 통해 응답을 제출할 수 없습니다.",
+      "resetTablePermissions": "테이블 권한 재설정",
+      "resetTablePermissionsDescription": "편집자 이상은 레코드를 만들고 삭제할 수 있습니다. 모든 사용자 지정 테이블 권한이 지워집니다.",
+      "resetFieldPermissions": "필드 권한 재설정",
+      "resetFieldPermissionsDescription": "편집 액세스 권한은 편집자 이상으로 설정됩니다.",
+      "confirmRevertPermissionsToDefault": "테이블에 대한 재설정 권한 확인 - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "이 필드는 아무도 편집할 권한이 없기 때문에 양식에서 숨겨져 있습니다."
     }
   },
   "datatype": {
@@ -877,7 +877,7 @@
     "upgradeWorkspaceToPlan": "{workspace} {plan} 플랜으로 업그레이드",
     "upgradeToPlanSubtitle": "이 플랜에 대해 즉시 요금이 청구됩니다.",
     "reactivateToPlan": "{plan} 요금제를 다시 활성화하시겠습니까?",
-    "whatsNew": "새로운 기능!",
+    "whatsNew": "새로운 소식",
     "currentUser": "현재 사용자",
     "filteredByLoggedInUser": "로그인한 사용자별로 필터링됨",
     "hideExtensions": "확장 프로그램 숨기기",
@@ -894,7 +894,7 @@
     "privateBaseAlertDescription": "이 베이스는 초대받은 사람만 참여할 수 있으며, 이 베이스에 초대된 멤버만 액세스하고 상호 작용할 수 있습니다. 모든 기본 소유자는 다른 사용자를 초대할 수 있습니다",
     "thisPrivateBaseHasBeenLocked": "이 개인 프로젝트는 잠겨 있습니다.",
     "thisPrivateBaseHasBeenLockedSubtext": "잠금을 해제하려면 {plan} 플랜으로 업그레이드하거나 이 베이스를 공유 베이스로 전환하십시오.",
-    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions"
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} 필드에는 사용자 지정 권한이 있습니다."
   },
   "labels": {
     "configurationError": "구성 오류",
@@ -951,7 +951,7 @@
     "recent": "최근",
     "limitRecordSelectionToView": "항목 선택을 보기로 제한",
     "limitRecordSelectionToFilters": "항목 선택을 필터로 제한",
-    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "특정 조건을 충족하는 연결된 레코드만 포함",
     "addedBy": "추가자",
     "whatsNew": "새로운 소식!",
     "newAction": "새 작업",
@@ -967,7 +967,7 @@
     "snapshotLimitDescription": "프로젝트 스냅샷은 한 번에 2개만 유지할 수 있습니다. 추가 스냅샷을 사용하려면 요금제를 업그레이드하세요.",
     "snapshotLimitReached": "스냅샷 한도에 도달했습니다",
     "confirmRestore": "복원 확인",
-    "visibilityAndDataHandling": "보임여부 및 데이터 처리",
+    "visibilityAndDataHandling": "표시여부 및 데이터 처리",
     "visibilityConfigLabel": "데이터 표시 및 기본 동작을 사용자 지정하기 위한 프로젝트별 추가 구성.",
     "snapShotSubText": "스냅샷은 베이스의 포괄적인 백업 역할을 하며 생성 당시의 상태를 캡처합니다. 스냅샷을 복원하면 지정된 작업 공간에 베이스의 새 인스턴스가 생성됩니다.",
     "newSnapshot": "새 스냅샷",
@@ -1219,7 +1219,7 @@
     "schemaName": "스키마 이름",
     "database": "데이터베이스",
     "action": "동작",
-    "actions": "행위",
+    "actions": "동작",
     "operation": "작업",
     "operationSub": "작업 하위",
     "operationType": "작업 유형",
@@ -1399,7 +1399,7 @@
     "createAiIntegration": "AI 연동 생성",
     "suggestTablesViews": "테이블 & 뷰 제안",
     "configureAiButton": "AI 버튼 구성",
-    "viewHide": "뷰 보임 여부 ",
+    "viewHide": "뷰 표시 여부 ",
     "osBrowser": "OS, 브라우저",
     "rowId": "행 ID",
     "showJsonPayload": "JSON 페이로드 표시",
@@ -1744,10 +1744,10 @@
     "goToPermissionsOverview": "Permissions Overview(권한 개요)로 이동합니다.",
     "goToBaseSettings": "기본 설정으로 이동",
     "convertToSharedBase": "공유 프로젝트로 변환",
-    "revertToDefault": "Revert to Default",
-    "viewFieldPermissions": "View field permissions",
-    "resetPermissions": "Reset permissions",
-    "confirmReset": "Confirm reset"
+    "revertToDefault": "기본값으로 되돌리기",
+    "viewFieldPermissions": "필드 권한 보기",
+    "resetPermissions": "권한 재설정",
+    "confirmReset": "재설정 확인"
   },
   "tooltip": {
     "includeUserHint": "웹훅을 트리거한 사용자는 페이로드에 'user' 개체로 포함됩니다.",
@@ -1823,7 +1823,7 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "이 테이블에서는 빈 레코드를 추가할 수 없습니다",
     "addLookupFields": "조회 필드 추가",
     "sourceVisibilityIsHidden": "데이터 원본 가시성이 숨겨짐",
-    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
+    "youDontHavePermissionToEditThisField": "이 필드를 편집할 수 있는 권한이 없습니다."
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",
@@ -1895,7 +1895,7 @@
     "noDashboards": "대시보드 없음"
   },
   "msg": {
-    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
+    "ssoTokenTooltip": "SSO 로그인 후 생성되며 SSO 사용 작업 영역에서 API에 액세스하는 데 사용할 수 있습니다.",
     "privateBaseAccessRestricted": "이것은 개인 기지입니다. 구성원을 보거나 초대할 수 있는 권한이 없습니다.",
     "userAlreadyExists": "\"{email}\"가 있는 사용자는 이미 액세스 권한이 있습니다.",
     "evaluateRecursively": "재귀적으로 평가",
@@ -1909,8 +1909,8 @@
     "nocoDBImportSuccess": "NocoDB Base에서 성공적으로 가져왔습니다.",
     "deleteAccountPermanently": "계정을 영구적으로 삭제하십시오",
     "learnMore": "더 보기",
-    "connectIntegrations": "NocoDB와 통합을 연결합니다.",
-    "manageConnections": "통합에 대한 연결을 관리합니다.",
+    "connectIntegrations": "NocoDB와 외부 서비스를 연동합니다.",
+    "manageConnections": "연동된 외부 서비스를 관리합니다.",
     "invalidConfiguration": "잘못된 버튼 구성",
     "invalidColumnConfiguration": "잘못된 필드 구성",
     "invalidTheme": "유효한 테마 선택",
@@ -2377,9 +2377,9 @@
       "paymentFailed": "결제 완료",
       "paymentFailedSubtitle": "결제를 처리하는 동안 문제가 발생했습니다. 다시 시도하거나 지원팀에 문의하세요.",
       "failedToCreateLookupFields": "조회 필드를 만들지 못했습니다.",
-      "invalidSearchQuery": "Invalid search query",
-      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
-      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
+      "invalidSearchQuery": "잘못된 검색 쿼리",
+      "invalidSearchQueryForVisibleFields": "표시되는 필드에 대한 잘못된 검색 쿼리",
+      "invalidSearchQueryForDisplayField": "표시 필드에 대한 잘못된 검색 쿼리"
     },
     "toast": {
       "exportMetadata": "프로젝트 메타 데이터를 성공적으로 내보냈습니다",

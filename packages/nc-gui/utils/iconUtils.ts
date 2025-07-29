@@ -749,6 +749,7 @@ import NcPlusCircleSolid from '~icons/nc-icons-v2/plus-circle-solid.svg'
 import NcHeadphone from '~icons/nc-icons-v2/headphone'
 import NcPaintRoller from '~icons/nc-icons-v2/paint-roller.svg'
 import NcConditions from '~icons/nc-icons-v2/conditions.svg'
+import NcSun from '~icons/nc-icons-v2/sun.svg'
 
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
@@ -1747,6 +1748,7 @@ export const iconMap = {
   'ncChartLine': h(NcChartLine, { stroke: 'transparent' }),
   'ncChartDonut': h(NcChartDonut, { stroke: 'transparent' }),
   'ncChartPie': h(NcChartPie, { stroke: 'transparent' }),
+  'ncSun': NcSun,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4355,6 +4357,10 @@ export const searchableMap = {
   ncMultiCircle: {
     icon: NcMultiCircle,
     keywords: ['multi', 'circle', 'multi-circle', 'multi-circle-outline'],
+  },
+  ncSun: {
+    icon: NcSun,
+    keywords: ['sun', 'sunny', 'weather', 'light', 'day', 'morning', 'summer', 'warm', 'warmth'],
   },
 }
 

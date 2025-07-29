@@ -32,6 +32,13 @@ const handleChange = () => {
     includeEmptyRecords: includeEmptyRecords.value,
   })
 }
+
+watch([() => selectedWidget.value?.fk_model_id], ([value], [oldValue]) => {
+  if (value !== oldValue) {
+    selectedFieldId.value = null
+  }
+  handleChange()
+})
 </script>
 
 <template>

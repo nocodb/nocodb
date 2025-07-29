@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DuplicateProcessor as DuplicateProcessorCE } from 'src/modules/jobs/jobs/export-import/duplicate.processor';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, generateUniqueCopyName } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Base, Source } from '~/models';
@@ -90,13 +90,20 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
     const { context, req, dashboardId } = job.data;
     const dashboard = await Dashboard.get(context, dashboardId);
 
+    const baseDashboards = await Dashboard.list(context, dashboard.base_id);
+
     await dashboard.getWidgets(context);
 
     try {
+      const newTitle = generateUniqueCopyName(dashboard.title, baseDashboards, {
+        accessor: (item) => item.title,
+      });
+
       const newDashboard = await this.dashboardService.dashboardCreate(
         context,
         {
           ...withoutId(dashboard),
+          title: newTitle,
         },
         req,
       );

@@ -15,6 +15,8 @@ const { activeTable } = storeToRefs(tablesStore)
 
 const { openNewScriptModal } = useAutomationStore()
 
+const { openNewDashboardModal } = useDashboardStore()
+
 const viewsStore = useViewsStore()
 const { loadViews, onOpenViewCreateModal } = viewsStore
 const { activeView } = storeToRefs(viewsStore)
@@ -123,6 +125,12 @@ const hasAutomationCreateAccess = computed(() => {
 
   return isUIAllowed('scriptCreateOrEdit')
 })
+
+const hasDashboardCreateAccess = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return true
+
+  return isUIAllowed('dashboardCreate')
+})
 </script>
 
 <template>
@@ -167,6 +175,28 @@ const hasAutomationCreateAccess = computed(() => {
               {{ $t('objects.table') }}
             </NcMenuItem>
           </NcTooltip>
+
+          <template v-if="isEeUI">
+            <NcTooltip
+              :title="
+                hasDashboardCreateAccess
+                  ? $t('tooltip.navigateToBaseToCreateDashboard')
+                  : $t('tooltip.youDontHaveAccessToCreateNewDashboard')
+              "
+              :disabled="!(!isBaseHomePage || !hasDashboardCreateAccess)"
+              placement="right"
+            >
+              <NcMenuItem
+                data-testid="mini-sidebar--dashboard-create"
+                :disabled="!isBaseHomePage || !hasDashboardCreateAccess"
+                @click="openNewDashboardModal({ baseId: openedProject?.id })"
+              >
+                <GeneralIcon icon="dashboards" />
+                {{ $t('general.dashboard') }}
+              </NcMenuItem>
+            </NcTooltip>
+          </template>
+
           <NcTooltip
             :title="
               hasViewCreateAccess ? $t('tooltip.navigateToTableToCreateView') : $t('tooltip.youDontHaveAccessToCreateNewView')
@@ -242,7 +272,7 @@ const hasAutomationCreateAccess = computed(() => {
                 @click="openNewScriptModal({ baseId: openedProject?.id })"
               >
                 <GeneralIcon icon="ncScript" />
-                {{ $t('general.scripts') }}
+                {{ $t('general.script') }}
               </NcMenuItem>
             </NcTooltip>
           </template>

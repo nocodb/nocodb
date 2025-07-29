@@ -16,7 +16,7 @@ import {
 import { ViewRowColorService } from './view-row-color.service';
 import type { NcContext } from '~/interface/config';
 import type { FormView, FormViewColumn, View } from '~/models';
-import { Base, Permission, Workspace } from '~/models';
+import { Base, Dashboard, Permission, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getFeature } from '~/helpers/paymentHelpers';
 
@@ -60,7 +60,41 @@ export class PublicMetasService extends PublicMetasServiceCE {
     return view;
   }
 
-  public checkViewBaseType(view: View, base: Base) {
+  async dashboardMetaGet(
+    context: NcContext,
+    param: { sharedDashboardUuid: string; password: string },
+  ) {
+    const dashboard = await Dashboard.getByUUID(
+      context,
+      param.sharedDashboardUuid,
+    );
+
+    if (!dashboard) {
+      NcError.dashboardNotFound(param.sharedDashboardUuid);
+    }
+
+    if (dashboard.password && dashboard.password !== param.password) {
+      return NcError.invalidSharedDashboardPassword();
+    }
+
+    const base = await Base.get(context, dashboard.base_id);
+
+    this.checkViewBaseType(dashboard, base);
+
+    await dashboard.getWidgets(context);
+
+    return dashboard;
+  }
+
+  public checkViewBaseType(view: View | Dashboard, base: Base) {
+    if (view instanceof Dashboard) {
+      if (base.default_role) {
+        NcError.notFound(
+          'The shared dashboard feature is not available for private bases. Please contact the base owner to request access.',
+        );
+      }
+      return;
+    }
     // block non-meta views in private base
     if (view.type !== ViewTypes.FORM && base.default_role) {
       NcError.notFound(

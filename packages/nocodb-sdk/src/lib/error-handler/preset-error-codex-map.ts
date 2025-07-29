@@ -87,6 +87,14 @@ export const presetErrorCodexMap: Partial<
     message: (resource: string, id: string) => `${resource} '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.WIDGET_NOT_FOUND]: {
+    message: (id: string) => `Widget '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.DASHBOARD_NOT_FOUND]: {
+    message: (id: string) => `Dashboard '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.REQUIRED_FIELD_MISSING]: {
     message: (field: string) => `Field '${field}' is required`,
     code: 422,
@@ -136,6 +144,10 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.INVALID_SHARED_VIEW_PASSWORD]: {
     message: 'Invalid shared view password',
+    code: 403,
+  },
+  [NcErrorType.INVALID_SHARED_DASHBOARD_PASSWORD]: {
+    message: 'Invalid shared dashboard password',
     code: 403,
   },
   [NcErrorType.INVALID_ATTACHMENT_JSON]: {

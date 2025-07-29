@@ -11,6 +11,10 @@ const widgetStore = useWidgetStore()
 const { isEditingDashboard, activeDashboardId } = storeToRefs(dashboardStore)
 const { activeDashboardWidgets, selectedWidget } = storeToRefs(widgetStore)
 
+const isPublic = inject(IsPublicInj, ref(false))
+
+const { isUIAllowed } = useRoles()
+
 // Track drag/resize state
 const isDragging = ref(false)
 const isResizing = ref(false)
@@ -49,6 +53,7 @@ const getWidgetComponent = (widget: WidgetType) => {
 }
 
 const handleMove = (i: string, newX: number, newY: number) => {
+  if (isPublic.value) return
   isDragging.value = true
   const layoutItem = layout.value.find((item) => item.i === i)
   if (layoutItem) {
@@ -58,6 +63,7 @@ const handleMove = (i: string, newX: number, newY: number) => {
 }
 
 const handleMoved = (i: string, newX: number, newY: number) => {
+  if (isPublic.value) return
   const widget = activeDashboardWidgets.value.find((w) => w.id === i)
   layout.value = layout.value.map((item) => {
     if (item.i === i) {
@@ -84,6 +90,7 @@ const handleMoved = (i: string, newX: number, newY: number) => {
 }
 
 const handleResize = (i: string, newH: number, newW: number) => {
+  if (isPublic.value) return
   isResizing.value = true
   const layoutItem = layout.value.find((item) => item.i === i)
   if (layoutItem) {
@@ -93,6 +100,7 @@ const handleResize = (i: string, newH: number, newW: number) => {
 }
 
 const handleResized = (i: string, newH: number, newW: number) => {
+  if (isPublic.value) return
   const widget = activeDashboardWidgets.value.find((w) => w.id === i)
   layout.value = layout.value.map((item) => {
     if (item.i === i) {
@@ -119,6 +127,7 @@ const handleResized = (i: string, newH: number, newW: number) => {
 }
 
 const onWidgetClick = (item: string) => {
+  if (isPublic.value) return
   // Prevent click if currently dragging or resizing
   if ((isDragging.value || isResizing.value) && !selectedWidget.value) {
     return
@@ -168,7 +177,7 @@ watch(
       i: widget.id!,
     }))
     nextTick(() => {
-      gridRef.value?.updateLayout()
+      gridRef.value?.layoutUpdate?.()
     })
   },
   {
@@ -194,10 +203,10 @@ watch(
       :col-num="!isEditingDashboard ? null : 4"
       :responsive="!isEditingDashboard"
       :cols="{ lg: 4, md: 3, sm: 2, xs: 1, xxs: 1 }"
-      :is-draggable="isEditingDashboard"
-      :is-resizable="isEditingDashboard"
+      :is-draggable="isEditingDashboard && !isPublic"
+      :is-resizable="isEditingDashboard && !isPublic"
       :vertical-compact="false"
-      use-css-transforms
+      :use-css-transforms="true"
     >
       <GridItem
         v-for="item in layout"
@@ -236,13 +245,21 @@ watch(
       </GridItem>
     </GridLayout>
     <div
-      v-if="!activeDashboardWidgets.length && !isEditingDashboard"
+      v-if="!activeDashboardWidgets.length && !isEditingDashboard && !isPublic && isUIAllowed('dashboardEdit')"
       class="empty-state flex flex-col h-full items-center justify-center h-64 text-nc-content-gray-500"
     >
       <img :src="PlaceholderImage" class="w-120 mb-4" alt="Start building your dashboard" />
       <h3 class="text-lg font-medium mb-2">Get started with Dashboards</h3>
       <p class="text-sm text-center">Start building your dashboard by adding widgets from the widget bar.</p>
       <NcButton @click="dashboardStore.isEditingDashboard = true">Edit Dashboard</NcButton>
+    </div>
+    <div
+      v-if="(isPublic || !isUIAllowed('dashboardEdit')) && !activeDashboardWidgets.length"
+      class="empty-state flex flex-col h-full items-center justify-center h-full text-nc-content-gray-500"
+    >
+      <img src="~assets/img/placeholder/no-search-result-found.png" class="w-120 mb-4" alt="Dashboard is empty" />
+      <h3 class="text-lg font-medium mb-2">This dashboard is empty</h3>
+      <p class="text-sm text-center">Ask the owner to add widgets to this dashboard</p>
     </div>
   </div>
 </template>

@@ -49,6 +49,14 @@ export class NcError {
     return NcError._.baseNotFound(id, args);
   }
 
+  static widgetNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.widgetNotFound(id, args);
+  }
+
+  static dashboardNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.dashboardNotFound(id, args);
+  }
+
   static sourceNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.sourceNotFound(id, args);
   }
@@ -126,6 +134,10 @@ export class NcError {
 
   static invalidSharedViewPassword(args?: NcErrorArgs): never {
     return NcError._.invalidSharedViewPassword(args);
+  }
+
+  static invalidSharedDashboardPassword(args?: NcErrorArgs): never {
+    return NcError._.invalidSharedDashboardPassword(args);
   }
 
   static invalidAttachmentJson(payload: string, args?: NcErrorArgs): never {

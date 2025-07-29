@@ -1,5 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AppHooksService as ApppHookServiceCE } from 'src/services/app-hooks/app-hooks.service';
+import type { AppEvents } from 'nocodb-sdk';
+import type {
+  ColumnEvent,
+  FilterEvent,
+  ProjectCreateEvent,
+  ProjectDeleteEvent,
+  ProjectInviteEvent,
+  ProjectUpdateEvent,
+  SortEvent,
+  TableEvent,
+  UserSigninEvent,
+  UserSignupEvent,
+  ViewEvent,
+  WelcomeEvent,
+  WorkspaceEvent,
+  WorkspaceUserInviteEvent,
+} from './interfaces';
+
 import type {
   ApiCreatedEvent,
   ApiTokenCreateEvent,
@@ -9,6 +27,10 @@ import type {
   CalendarViewUpdateEvent,
   ColumnDuplicateEvent,
   ColumnUpdateEvent,
+  DashboardCreateEvent,
+  DashboardDeleteEvent,
+  DashboardDuplicateEvent,
+  DashboardUpdateEvent,
   DataExportEvent,
   DataImportEvent,
   FilterUpdateEvent,
@@ -37,11 +59,13 @@ import type {
   ScriptUpdateEvent,
   SharedBaseDeleteEvent,
   SharedBaseEvent,
+  SharedDashboardEvent,
   SharedViewUpdateEvent,
   SnapshotDeleteEvent,
   SnapshotEvent,
   SnapshotRestoreEvent,
   SortUpdateEvent,
+  SourceEvent,
   SourceUpdateEvent,
   SyncSourceEvent,
   TableDuplicateEvent,
@@ -60,38 +84,16 @@ import type {
   ViewDuplicateEvent,
   ViewUpdateEvent,
   WebhookEvent,
+  WebhookUpdateEvent,
+  WidgetCreateEvent,
+  WidgetDeleteEvent,
+  WidgetDuplicateEvent,
+  WidgetUpdateEvent,
   WorkspaceRequestUpgradeEvent,
+  WorkspaceUpdateEvent,
   WorkspaceUserDeleteEvent,
   WorkspaceUserUpdateEvent,
 } from '~/services/app-hooks/interfaces';
-import type { AppEvents } from 'nocodb-sdk';
-import type {
-  ColumnEvent,
-  FilterEvent,
-  ProjectCreateEvent,
-  ProjectDeleteEvent,
-  ProjectInviteEvent,
-  ProjectUpdateEvent,
-  SortEvent,
-  TableEvent,
-  UserSigninEvent,
-  UserSignupEvent,
-  ViewEvent,
-  WelcomeEvent,
-  WorkspaceEvent,
-  WorkspaceUserInviteEvent,
-} from './interfaces';
-import type { SourceEvent } from '~/services/app-hooks/interfaces';
-import type { WorkspaceUpdateEvent } from '~/services/app-hooks/interfaces';
-import type { WebhookUpdateEvent } from '~/services/app-hooks/interfaces';
-import type { DashboardCreateEvent } from '~/services/app-hooks/interfaces';
-import type { DashboardUpdateEvent } from '~/services/app-hooks/interfaces';
-import type { DashboardDeleteEvent } from '~/services/app-hooks/interfaces';
-import type { DashboardDuplicateEvent } from '~/services/app-hooks/interfaces';
-import type { WidgetCreateEvent } from '~/services/app-hooks/interfaces';
-import type { WidgetUpdateEvent } from '~/services/app-hooks/interfaces';
-import type { WidgetDeleteEvent } from '~/services/app-hooks/interfaces';
-import type { WidgetDuplicateEvent } from '~/services/app-hooks/interfaces';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 
 @Injectable()
@@ -256,6 +258,14 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.DASHBOARD_DUPLICATE_FAIL
       | AppEvents.DASHBOARD_DUPLICATE_COMPLETE,
     listener: (data: DashboardDuplicateEvent) => void,
+  ): () => void;
+
+  on(
+    event:
+      | AppEvents.SHARED_DASHBOARD_GENERATE_LINK
+      | AppEvents.SHARED_DASHBOARD_DELETE_LINK
+      | AppEvents.SHARED_DASHBOARD_UPDATE_LINK,
+    listener: (data: SharedDashboardEvent) => void,
   ): () => void;
 
   on(
@@ -522,6 +532,14 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.DASHBOARD_DUPLICATE_FAIL
       | AppEvents.DASHBOARD_DUPLICATE_COMPLETE,
     data: DashboardDuplicateEvent,
+  ): void;
+
+  emit(
+    event:
+      | AppEvents.SHARED_DASHBOARD_DELETE_LINK
+      | AppEvents.SHARED_DASHBOARD_GENERATE_LINK
+      | AppEvents.SHARED_DASHBOARD_UPDATE_LINK,
+    data: SharedDashboardEvent,
   ): void;
 
   emit(event: AppEvents.WIDGET_CREATE, data: WidgetCreateEvent): void;

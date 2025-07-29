@@ -8,6 +8,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const { showUpgradeToUseDashboard } = useEeConfig()
+
   const route = useRoute()
 
   const baseStore = useBases()
@@ -18,22 +20,32 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const isDashboardEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.DASHBOARD))
-
   // State
   const dashboards = ref<Map<string, DashboardType[]>>(new Map())
+
+  const sharedDashboardState = reactive({
+    password: '',
+    activeProjectId: null,
+  })
+
   const isEditingDashboard = ref(false)
 
+  const isDashboardEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.DASHBOARD))
+
   const activeBaseDashboards = computed(() => {
-    if (!activeProjectId.value) return []
-    return dashboards.value.get(activeProjectId.value) || []
+    if (!activeProjectId.value && !sharedDashboardState.activeProjectId) return []
+    return dashboards.value.get(activeProjectId.value ?? sharedDashboardState.activeProjectId) || []
   })
 
   const activeDashboardId = computed(() => route.params.dashboardId as string)
 
   const activeDashboard = computed(() => {
-    if (!activeDashboardId.value || !activeProjectId.value) return null
-    return dashboards.value.get(activeProjectId.value)?.find((a) => a.id === activeDashboardId.value) || null
+    if (!activeDashboardId.value || (!activeProjectId.value && !sharedDashboardState.activeProjectId)) return null
+    return (
+      dashboards.value
+        .get(activeProjectId.value ?? sharedDashboardState.activeProjectId)
+        ?.find((a) => a.id === activeDashboardId.value || a.uuid === activeDashboardId.value) || null
+    )
   })
 
   const loadDashboards = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
@@ -93,6 +105,26 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
   }
 
+  const loadSharedDashboard = async (dashboardId: string, password: string) => {
+    let dashboard: null | any = null
+    sharedDashboardState.password = password
+    dashboard = await $api.public.sharedDashboardMetaGet(dashboardId, {
+      headers: {
+        'xc-password': password ?? sharedDashboardState.password,
+      },
+    })
+
+    const base_id = dashboard.base_id
+    sharedDashboardState.activeProjectId = base_id
+    const baseDashboards = dashboards.value.get(base_id) || []
+    const filtered = baseDashboards.filter((a) => a.id !== dashboardId)
+    filtered.push(dashboard)
+    filtered.sort((a, b) => a.order - b.order)
+    dashboards.value.set(base_id, filtered)
+
+    return dashboard
+  }
+
   const createDashboard = async (baseId: string, dashboardData: Partial<DashboardType>) => {
     if (!activeWorkspaceId.value) return null
     try {
@@ -106,7 +138,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
       )
 
       const baseDashboards = dashboards.value.get(baseId) || []
-      baseDashboards.push(created as any)
+      baseDashboards.push({
+        ...created,
+        ___is_new: true,
+      } as any)
       dashboards.value.set(baseId, baseDashboards)
 
       ncNavigateTo({
@@ -114,6 +149,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
         baseId: activeProjectId.value,
         dashboardId: created.id,
       })
+      isEditingDashboard.value = true
 
       return created
     } catch (e) {
@@ -309,7 +345,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     scrollOnCreate?: boolean
     navigateToNewDashboard?: boolean
   }) {
-    if (!baseId) return
+    if (!baseId || showUpgradeToUseDashboard()) return
     const isDlgOpen = ref(true)
 
     const { close } = useDialog(DlgDashboardCreate, {
@@ -353,6 +389,46 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
   }
 
+  const dashboardShare = async (
+    baseId: string,
+    dashboardId: string,
+    shareData: {
+      password?: string | null
+      custom_url_path?: string | null
+      uuid?: null
+    } = {},
+  ) => {
+    if (!activeWorkspaceId.value) return
+
+    try {
+      const response = await $api.internal.postOperation(
+        activeWorkspaceId.value,
+        baseId,
+        {
+          operation: 'dashboardShare',
+        },
+        {
+          id: dashboardId,
+          ...shareData,
+        },
+      )
+
+      const baseDashboards = dashboards.value.get(baseId)
+      if (baseDashboards) {
+        const dashboardIndex = baseDashboards.findIndex((d) => d.id === dashboardId)
+        if (dashboardIndex !== -1) {
+          baseDashboards[dashboardIndex] = { ...baseDashboards[dashboardIndex], ...response }
+          dashboards.value.set(baseId, [...baseDashboards])
+        }
+      }
+
+      return response
+    } catch (error) {
+      console.error('Error with dashboard sharing:', error)
+      throw error
+    }
+  }
+
   // Watch for active dashboard changes
   watch(activeDashboardId, async (dashboardId) => {
     if (!activeProjectId.value || !isDashboardEnabled.value) return
@@ -366,6 +442,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
     dashboards,
     activeDashboard,
     isEditingDashboard,
+    sharedDashboardState,
+    loadSharedDashboard,
 
     // Getters
     activeBaseDashboards,
@@ -381,6 +459,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     openDashboard,
     openNewDashboardModal,
     duplicateDashboard,
+    dashboardShare,
   }
 })
 

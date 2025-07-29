@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 import DashboardTreeViewDashboardList from './DashboardList.vue'
 
 const props = defineProps<{
@@ -22,9 +23,19 @@ const onExpand = async () => {
     <div v-e="['c:dashboard:toggle-expand']" class="nc-project-home-section-header w-full cursor-pointer" @click.stop="onExpand">
       <div>Dashboards</div>
       <div class="flex-1" />
+      <PaymentUpgradeBadge
+        :feature="PlanFeatureTypes.FEATURE_DASHBOARD"
+        :title="$t('upgrade.upgradeToUseDashboards')"
+        :content="
+          $t('upgrade.upgradeToUseDashboardsSubtitle', {
+            plan: PlanTitles.PLUS,
+          })
+        "
+        size="xs"
+      />
       <GeneralIcon
         icon="chevronRight"
-        class="flex-none nc-sidebar-source-node-btns text-nc-content-gray-muted cursor-pointer transform transition-transform duration-200 text-[20px]"
+        class="flex-none text-nc-content-gray-muted nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 text-[20px]"
         :class="{ '!rotate-90': isExpanded }"
       />
     </div>

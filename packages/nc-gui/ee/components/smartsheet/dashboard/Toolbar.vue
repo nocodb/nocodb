@@ -1,46 +1,20 @@
 <script setup lang="ts">
-import { ChartTypes, type WidgetType, WidgetTypes } from 'nocodb-sdk'
+import { ChartTypes, type WidgetType, WidgetTypes, getDefaultConfig } from 'nocodb-sdk'
 import { calculateNextPosition } from '~/utils/widgetUtils'
 
 const dashboardStore = useDashboardStore()
+
 const widgetStore = useWidgetStore()
+
+const tableStore = useTablesStore()
+
+const { getMeta } = useMetas()
 
 const { activeDashboard } = storeToRefs(dashboardStore)
 
 const { activeDashboardWidgets, selectedWidget } = storeToRefs(widgetStore)
 
-const getDefaultConfig = (widgetType: WidgetTypes, type?: ChartTypes) => {
-  switch (widgetType) {
-    case WidgetTypes.METRIC:
-      return {
-        dataSource: 'model',
-        metric: {
-          type: 'count',
-        },
-      }
-    case WidgetTypes.CHART:
-      return {
-        chartType: type,
-        dataSource: 'model',
-        data: {
-          value: {
-            type: 'count',
-          },
-          category: {
-            includeEmptyRecords: false,
-            orderBy: 'default',
-          },
-        },
-      }
-    case WidgetTypes.TEXT:
-      return {
-        content: 'Enter your text here...',
-        format: 'plain',
-      }
-    default:
-      return {}
-  }
-}
+const { activeTables } = storeToRefs(tableStore)
 
 const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
   if (!activeDashboard.value?.id) return
@@ -69,11 +43,20 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
 
   const position = calculateNextPosition(activeDashboardWidgets.value, positionMap[widgetType])
 
+  const modelId = activeTables.value?.[0]?.id
+
+  let meta = null
+
+  if (modelId) {
+    meta = await getMeta(modelId)
+  }
+
   const newWidget: Partial<WidgetType> = {
     title: getWidgetTitle(widgetType, type),
     type: widgetType,
     position: { ...positionMap[widgetType], ...position },
-    config: getDefaultConfig(widgetType, type),
+    config: getDefaultConfig(widgetType, type, meta?.columns),
+    fk_model_id: modelId,
   }
 
   selectedWidget.value = await widgetStore.createWidget(activeDashboard.value.id, newWidget)

@@ -5,7 +5,7 @@ export const useWidgetStore = defineStore('widget', () => {
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { activeDashboardId } = storeToRefs(useDashboardStore())
+  const { activeDashboardId, activeDashboard, sharedDashboardState } = storeToRefs(useDashboardStore())
 
   const bases = useBases()
 
@@ -15,7 +15,7 @@ export const useWidgetStore = defineStore('widget', () => {
 
   const activeDashboardWidgets = computed(() => {
     if (!activeDashboardId.value) return []
-    return widgets.value.get(activeDashboardId.value) || []
+    return widgets.value.get(activeDashboardId.value) || activeDashboard.value?.widgets || []
   })
 
   const selectedWidget = ref<WidgetType | null>(null)
@@ -213,10 +213,19 @@ export const useWidgetStore = defineStore('widget', () => {
   }
 
   const loadWidgetData = async (widgetId: string) => {
-    if (!activeWorkspaceId.value || !openedProject.value?.id) return null
-
+    if ((!activeWorkspaceId.value || !openedProject.value?.id) && !sharedDashboardState.value?.activeProjectId) {
+      return null
+    }
     try {
-      return await $api.internal.getOperation(activeWorkspaceId.value, openedProject.value.id, {
+      if (sharedDashboardState.value?.activeProjectId) {
+        return await $api.public.dataWidget(activeDashboardId.value, widgetId, {
+          headers: {
+            'xc-password': sharedDashboardState.value?.password,
+          },
+        })
+      }
+
+      return await $api.internal.getOperation(activeWorkspaceId.value!, openedProject.value.id!, {
         operation: 'widgetDataGet',
         widgetId,
       })

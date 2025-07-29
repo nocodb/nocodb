@@ -236,6 +236,7 @@ export const GenericFeatures = {
   [PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER]: false,
   [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: false,
   [PlanFeatureTypes.FEATURE_SCRIPTS]: false,
+  [PlanFeatureTypes.FEATURE_DASHBOARD]: false,
   [PlanFeatureTypes.FEATURE_SSO]: false,
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: false,
   [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]: false,

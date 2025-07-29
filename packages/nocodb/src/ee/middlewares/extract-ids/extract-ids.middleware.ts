@@ -31,6 +31,7 @@ import {
   Base,
   Column,
   Comment,
+  Dashboard,
   Domain,
   Extension,
   Filter,
@@ -244,6 +245,16 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.baseNotFound(req.params.sharedBaseUuid);
       }
       req.ncBaseId = base?.id;
+    } else if (params.sharedDashboardUuid) {
+      const dashboard = await Dashboard.getByUUID(
+        context,
+        req.params.sharedDashboardUuid,
+      );
+
+      if (!dashboard) {
+        NcError.dashboardNotFound(req.params.sharedDashboardUuid);
+      }
+      req.ncBaseId = dashboard?.base_id;
     } else if (params.hookId) {
       const hook = await Hook.get(context, params.hookId);
 

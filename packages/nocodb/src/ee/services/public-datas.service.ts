@@ -1,8 +1,9 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { ViewTypes } from 'nocodb-sdk';
+import { ViewTypes, type WidgetType } from 'nocodb-sdk';
 import { PublicDatasService as PublicDatasServiceCE } from 'src/services/public-datas.service';
+import type { NcRequest } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import { Base, Model, Source, View } from '~/models';
+import { Base, Dashboard, Model, Source, View, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
@@ -11,6 +12,7 @@ import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { DatasService } from '~/services/datas.service';
 import { AttachmentsService } from '~/services/attachments.service';
 import { PublicMetasService } from '~/services/public-metas.service';
+import { getWidgetData } from '~/db/widgets';
 
 @Injectable()
 export class PublicDatasService extends PublicDatasServiceCE {
@@ -140,5 +142,40 @@ export class PublicDatasService extends PublicDatasServiceCE {
       });
     }
     return await super.dataList(context, param);
+  }
+
+  async widgetData(
+    context: NcContext,
+    param: {
+      sharedDashboardUuid: string;
+      widgetId: string;
+      password?: string;
+      query: any;
+      req: NcRequest;
+    },
+  ) {
+    const { sharedDashboardUuid, widgetId, password } = param;
+    const dashboard = await Dashboard.getByUUID(context, sharedDashboardUuid);
+
+    if (!dashboard) NcError.dashboardNotFound(sharedDashboardUuid);
+
+    const base = await Base.get(context, dashboard.base_id);
+
+    this.publicMetasService.checkViewBaseType(dashboard, base);
+
+    if (dashboard.password && dashboard.password !== password) {
+      return NcError.invalidSharedDashboardPassword();
+    }
+
+    const widget = await Widget.get(context, widgetId);
+
+    if (!widget || widget.fk_dashboard_id !== dashboard.id) {
+      NcError.widgetNotFound(widgetId);
+    }
+
+    return await getWidgetData({
+      widget: widget as WidgetType,
+      req: param.req,
+    });
   }
 }

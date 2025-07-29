@@ -15,6 +15,7 @@ import type {
   WorkspaceType,
 } from 'nocodb-sdk';
 import type Snapshot from '~/models/Snapshot';
+import type { CustomUrl } from '~/models';
 
 export interface WorkspaceUserInviteEvent
   extends Optional<NcBaseEvent, 'context'> {
@@ -157,6 +158,13 @@ export interface WidgetDuplicateEvent extends NcBaseEvent {
   sourceWidget: WidgetType;
   destWidget: WidgetType;
   user: UserType;
+}
+
+export interface SharedDashboardEvent extends NcBaseEvent {
+  dashboard: DashboardType;
+  link?: string;
+  uuid?: string;
+  customUrl?: CustomUrl;
 }
 
 export * from 'src/services/app-hooks/interfaces';

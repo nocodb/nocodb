@@ -618,6 +618,51 @@
         }
       ]
     },
+    "/api/v2/db/public/shared-dashboard/{sharedDashboardUuid}/meta": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedDashboardUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared Dashboard UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared dashboard password"
+        }
+      ],
+      "get": {
+        "summary": "Get Share Dashboard Meta",
+        "operationId": "public-shared-dashboard-meta-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "description": "Get Share Dashboard Meta"
+      }
+    },
     "/api/v1/workspaces/{workspaceId}/invitations": {
       "post": {
         "summary": "Workspace user invite",
@@ -656,6 +701,63 @@
           "required": true
         }
       ]
+    },
+    "/api/v2/public/shared-dashboard/{sharedDashboardUuid}/widgets/{widgetId}/data": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedDashboardUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared Dashboard UUID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "widgetId",
+          "in": "path",
+          "required": true,
+          "description": "Widget Id"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Widget Data",
+        "operationId": "public-data-widget",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public"
+        ]
+      }
     },
     "/api/v1/workspaces/{workspaceId}/users/{userId}": {
       "get": {

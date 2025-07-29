@@ -90,6 +90,7 @@ export class InternalController extends InternalControllerCE {
       widgetDelete: 'base',
       widgetDuplicate: 'base',
       widgetDataGet: 'base',
+      dashboardShare: 'base',
     };
   }
 
@@ -362,6 +363,12 @@ export class InternalController extends InternalControllerCE {
           req,
         );
 
+      case 'dashboardShare':
+        return await this.dashboardsService.dashboardShare(
+          context,
+          payload,
+          req,
+        );
       default:
         return await super.internalAPIPost(
           context,

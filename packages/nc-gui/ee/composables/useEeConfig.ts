@@ -161,6 +161,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_SCRIPTS)
   })
 
+  const blockUseDashboards = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DASHBOARD)
+  })
+
   const blockPrivateBases = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_PRIVATE_BASES)
   })
@@ -868,6 +872,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseDashboard = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockUseDashboards.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseDashboards'),
+      content: t('upgrade.upgradeToUseDashboardsSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_DASHBOARD,
+    })
+
+    return true
+  }
+
   const showUpgradeToUsePrivateBases = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockPrivateBases.value) return
 
@@ -1002,5 +1021,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUserMayChargeAlert,
     maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell,
+    blockUseDashboards,
+    showUpgradeToUseDashboard,
   }
 })

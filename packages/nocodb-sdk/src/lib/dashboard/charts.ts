@@ -99,7 +99,7 @@ export interface BarChartConfig extends BaseChartConfig {
   chartType: ChartTypes.BAR;
   dataSource?: WidgetDataSourceTypes;
   data: BarChartDataConfig;
-  permission: ChartPermissionConfig;
+  permissions: ChartPermissionConfig;
   appearance: BarChartAppearanceConfig;
 }
 

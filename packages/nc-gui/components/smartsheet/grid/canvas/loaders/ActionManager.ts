@@ -1,7 +1,7 @@
-import type { ButtonType, TableType } from 'nocodb-sdk'
+import type { Api, ButtonType, TableType } from 'nocodb-sdk'
 
 export class ActionManager {
-  private api: ReturnType<typeof createApiInstance>
+  private api: Api<any>
   private readonly loadAutomation: (id: string) => Promise<any>
   private readonly generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>
   private readonly triggerRefreshCanvas: () => void
@@ -15,7 +15,7 @@ export class ActionManager {
   }
 
   constructor(
-    api: ReturnType<typeof createApiInstance>,
+    api: Api<any>,
     loadAutomation: (id: string) => Promise<any>,
     generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>,
     meta: Ref<TableType>,

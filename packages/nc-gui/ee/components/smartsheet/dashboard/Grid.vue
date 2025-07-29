@@ -177,7 +177,7 @@ watch(
       i: widget.id!,
     }))
     nextTick(() => {
-      gridRef.value?.updateLayout?.()
+      gridRef.value?.layoutUpdate?.()
     })
   },
   {
@@ -206,7 +206,7 @@ watch(
       :is-draggable="isEditingDashboard && !isPublic"
       :is-resizable="isEditingDashboard && !isPublic"
       :vertical-compact="false"
-      use-css-transforms
+      :use-css-transforms="true"
     >
       <GridItem
         v-for="item in layout"

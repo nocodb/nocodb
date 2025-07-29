@@ -1435,7 +1435,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
 
         const isYInBounds = y > element.y + 8 && y < element.y + element.height - 8
 
-        if (diff > 65 && diff < columnWidth + 65 && isYInBounds && !appInfo.value.isOnPrem) {
+        if (diff > 65 && diff < columnWidth + 65 && isYInBounds && appInfo.value.isOnPrem) {
           if (
             prevMenuState.isDropdownVisible &&
             prevMenuState.openGroupContextMenuDropdown &&

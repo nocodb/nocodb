@@ -268,7 +268,7 @@ export class ColumnsService extends ColumnsServiceCE {
           (param.column as LinkToAnotherColumnReqType).virtual,
           null,
           param.column['meta'],
-          true,
+          param.column.uidt === UITypes.Links,
           param.colExtra,
           parentColumn,
           true,

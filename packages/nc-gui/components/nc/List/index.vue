@@ -29,6 +29,7 @@ const props = withDefaults(defineProps<NcListProps>(), {
   hideTopDivider: false,
   itemFullWidth: false,
   stopPropagationOnItemClick: false,
+  searchBasisOptions: () => [] as NcListSearchBasisOptionType[],
 })
 
 const emits = defineEmits<Emits>()
@@ -63,6 +64,8 @@ const listRef = ref<HTMLDivElement>()
 
 const searchQuery = ref('')
 
+const searchBasisInfo = ref<string | null>(null)
+
 const inputRef = ref()
 
 const activeOptionIndex = ref(-1)
@@ -86,13 +89,35 @@ const keyDown = ref(false)
 const list = computed(() => {
   const query = searchQuery.value.toLowerCase()
 
-  return props.list.filter((item, i) => {
+  searchBasisInfo.value = null
+  // If no query, return all items
+  if (!query) return props.list
+
+  const defaultFilter = (item: NcListItemType, i: number, _array: NcListItemType[]) => {
     if (props?.filterOption) {
       return props.filterOption(query, item, i)
-    } else {
-      return searchCompare(item[optionLabelKey], query)
     }
-  })
+
+    return searchCompare(item[optionLabelKey], query)
+  }
+
+  let result = props.list.filter(defaultFilter)
+
+  // If search result is found based on default search basis or search basis options are not provided then return the result
+  if (result.length || !props.searchBasisOptions?.length) return result
+
+  for (const basisOption of props.searchBasisOptions) {
+    result = props.list.filter((item, i) => {
+      return basisOption.filterCallback(query, item, i)
+    })
+
+    if (result.length) {
+      searchBasisInfo.value = basisOption.searchBasisInfo ?? ''
+      return result
+    }
+  }
+
+  return result
 })
 
 const {
@@ -335,8 +360,13 @@ defineExpose({
           @keydown.enter.stop="handleKeydownEnter"
           @change="handleResetHoverEffect(false, 0)"
         >
-          <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
-        ></a-input>
+          <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template>
+          <template #suffix>
+            <NcTooltip v-if="searchBasisInfo" :title="searchBasisInfo" class="flex cursor-help ml-0.5" placement="topRight">
+              <GeneralIcon icon="info" class="flex-none h-3.5 w-3.5 text-primary" />
+            </NcTooltip>
+          </template>
+        </a-input>
         <slot name="headerExtraRight"> </slot>
       </div>
       <NcDivider v-if="!hideTopDivider" class="!my-1" />

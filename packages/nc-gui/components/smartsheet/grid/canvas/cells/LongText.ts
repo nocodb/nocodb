@@ -1,6 +1,5 @@
 import { isAIPromptCol } from 'nocodb-sdk'
 import { isBoxHovered, renderIconButton, renderMarkdown, renderMultiLineText, renderTagLabel } from '../utils/canvas'
-import { getI18n } from '../../../../../plugins/a.i18n'
 import { AILongTextCellRenderer } from './AILongText'
 
 export const LongTextCellRenderer: CellRenderer = {
@@ -183,7 +182,7 @@ export const LongTextCellRenderer: CellRenderer = {
     return false
   },
   handleHover: async (props) => {
-    const { row, column, value, mousePosition, getCellPosition, cellRenderStore, setCursor, selected } = props
+    const { row, column, value, mousePosition, getCellPosition, cellRenderStore, setCursor, selected, t } = props
 
     if (!selected && !isAIPromptCol(column?.columnObj)) {
       return
@@ -221,7 +220,7 @@ export const LongTextCellRenderer: CellRenderer = {
 
       const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
       const box = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
-      tryShowTooltip({ rect: box, mousePosition, text: getI18n().global.t('tooltip.expandShiftSpace') })
+      tryShowTooltip({ rect: box, mousePosition, text: t('tooltip.expandShiftSpace') })
     }
   },
 }

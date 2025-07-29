@@ -1,7 +1,6 @@
 import { isBoxHovered, renderIconButton, roundedRect } from '../utils/canvas'
 import { pxToRowHeight } from '../../../../../utils/cell'
 import type { RenderRectangleProps } from '../utils/types'
-import { getI18n } from '../../../../../plugins/a.i18n'
 
 interface Attachment {
   mimetype?: string
@@ -279,7 +278,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       })
     }
   },
-  async handleHover({ row, column, mousePosition, getCellPosition, value, selected, imageLoader }) {
+  async handleHover({ row, column, mousePosition, getCellPosition, value, selected, imageLoader, t }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
     if (!row || !column?.id || !mousePosition || !selected) return
@@ -322,7 +321,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       if (
         tryShowTooltip({
           rect: maximizeBox,
-          text: `${getI18n().global.t('activity.viewAttachment')} '${getI18n().global.t('tooltip.shiftSpace')}'`,
+          text: `${t('activity.viewAttachment')} '${t('tooltip.shiftSpace')}'`,
           mousePosition,
         })
       ) {
@@ -332,7 +331,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       if (
         tryShowTooltip({
           rect: attachBox,
-          text: getI18n().global.t('activity.addFiles'),
+          text: t('activity.addFiles'),
           mousePosition,
         })
       ) {

@@ -66,6 +66,10 @@ export default function () {
               type: 'Checkbox',
               default_value: true,
             },
+            {
+              title: 'Attachment',
+              type: 'Attachment',
+            },
           ],
         })
         .expect(200);
@@ -118,6 +122,77 @@ export default function () {
             ],
           });
         expect(response.body.type).to.eq('KANBAN');
+      });
+      it(`will create calendar view`, async () => {
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            type: 'CALENDAR',
+            options: {
+              dateRanges: [
+                {
+                  startDateFieldId: (
+                    await table.getColumns(ctx)
+                  ).find((col) => col.title === 'DateTime').id,
+                },
+              ],
+            },
+            sorts: [
+              {
+                field_id: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          });
+        expect(response.body.type).to.eq('CALENDAR');
+      });
+
+      it(`will create gallery view`, async () => {
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            type: 'GALLERY',
+            options: {
+              coverFieldId: (
+                await table.getColumns(ctx)
+              ).find((col) => col.title === 'Attachment').id,
+            },
+            sorts: [
+              {
+                field_id: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          });
+        expect(response.body.type).to.eq('GALLERY');
+      });
+
+      it.only(`will create form view`, async () => {
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            type: 'FORM',
+            options: {
+              formTitle: 'MyForm',
+            },
+            sorts: [
+              {
+                field_id: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          });
+        console.log(response.body)
+        expect(response.body.type).to.eq('FORM');
       });
     });
   });

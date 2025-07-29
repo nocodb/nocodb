@@ -7,7 +7,6 @@ import {
   renderSingleLineText,
 } from '../utils/canvas'
 import { showFieldEditWarning } from '../utils/cell'
-import { getI18n } from '../../../../../plugins/a.i18n'
 import { CheckboxCellRenderer } from './Checkbox'
 import { CurrencyRenderer } from './Currency'
 import { DateCellRenderer } from './Date'
@@ -255,7 +254,7 @@ export const FormulaCellRenderer: CellRenderer = {
     }
   },
   async handleHover(props) {
-    const { mousePosition, getCellPosition, column, row, selected } = props
+    const { mousePosition, getCellPosition, column, row, selected, t } = props
     const colObj = column.columnObj
     const colMeta = parseProp(colObj.meta)
     const error = parseProp(colObj.colOptions)?.error ?? ''
@@ -287,7 +286,7 @@ export const FormulaCellRenderer: CellRenderer = {
           height: 18,
         },
         mousePosition,
-        text: getI18n().global.t('tooltip.expandShiftSpace'),
+        text: t('tooltip.expandShiftSpace'),
       })
     }
 

@@ -1,7 +1,7 @@
-import type { ButtonType, TableType } from 'nocodb-sdk'
+import type { Api, ButtonType, TableType } from 'nocodb-sdk'
 
 export class ActionManager {
-  private api: ReturnType<typeof createApiInstance>
+  private api: Api<any>
   private readonly loadAutomation: (id: string) => Promise<any>
   private readonly generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>
   private readonly triggerRefreshCanvas: () => void
@@ -15,7 +15,7 @@ export class ActionManager {
   }
 
   constructor(
-    api: ReturnType<typeof createApiInstance>,
+    api: Api<any>,
     loadAutomation: (id: string) => Promise<any>,
     generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>,
     meta: Ref<TableType>,
@@ -38,6 +38,14 @@ export class ActionManager {
 
   // key is rowId-columnId, value is startTime
   private loadingColumns = new Map<string, number>()
+  private afterActionStatus = new Map<
+    string,
+    {
+      status: 'success' | 'error'
+      tooltip?: string
+    }
+  >()
+
   private rafId: number | null = null
 
   private getKey(rowId: string, columnId: string): string {
@@ -56,38 +64,82 @@ export class ActionManager {
 
     rowIds.forEach((id) => {
       this.loadingColumns.set(this.getKey(id, columnId), startTime)
+
+      // If action is triggered again, clear after action status
+      this.afterActionStatus.delete(this.getKey(id, columnId))
+
       affectedColumnIds.forEach((colId) => {
         this.loadingColumns.set(this.getKey(id, colId), startTime)
+
+        // If action is triggered again, clear after action status
+        this.afterActionStatus.delete(this.getKey(id, columnId))
       })
     })
 
     this.startAnimationLoop()
 
+    let isErrorOccured = false
+
     try {
-      return await action()
+      const res = await action()
+
+      rowIds.forEach((id) => {
+        this.afterActionStatus.set(this.getKey(id, columnId), { status: 'success' })
+
+        affectedColumnIds.forEach((colId) => {
+          this.afterActionStatus.set(this.getKey(id, colId), { status: 'success' })
+        })
+      })
+
+      return res
+    } catch (e: any) {
+      isErrorOccured = true
+
+      const errorMsg = await extractSdkResponseErrorMsg(e)
+      rowIds.forEach((id) => {
+        this.afterActionStatus.set(this.getKey(id, columnId), { status: 'error', tooltip: errorMsg ?? 'Something went wrong' })
+
+        affectedColumnIds.forEach((colId) => {
+          this.afterActionStatus.set(this.getKey(id, colId), { status: 'error', tooltip: errorMsg ?? 'Something went wrong' })
+        })
+      })
+
+      throw e
     } finally {
       rowIds.forEach((id) => {
         this.loadingColumns.delete(this.getKey(id, columnId))
+
         affectedColumnIds.forEach((colId) => {
           this.loadingColumns.delete(this.getKey(id, colId))
+        })
+      })
+
+      // Remove error columns after 3 seconds if error occured, otherwise after 2 seconds
+      ncDelay(isErrorOccured ? 3000 : 2000).then(() => {
+        rowIds.forEach((id) => {
+          this.afterActionStatus.delete(this.getKey(id, columnId))
+
+          affectedColumnIds.forEach((colId) => {
+            this.afterActionStatus.delete(this.getKey(id, colId))
+          })
         })
       })
     }
   }
 
   private startAnimationLoop() {
-    if (this.rafId === null && this.loadingColumns.size > 0) {
+    if (this.rafId === null && (this.loadingColumns.size > 0 || this.afterActionStatus.size > 0)) {
       let cooldownTimeout: number | null = null
       let isCoolingDown = false
 
       const animate = () => {
-        if (this.loadingColumns.size > 0 && cooldownTimeout) {
+        if ((this.loadingColumns.size > 0 || this.afterActionStatus.size > 0) && cooldownTimeout) {
           clearTimeout(cooldownTimeout)
           cooldownTimeout = null
           isCoolingDown = false
         }
 
-        if (this.loadingColumns.size > 0) {
+        if (this.loadingColumns.size > 0 || this.afterActionStatus.size > 0) {
           this.triggerRefreshCanvas()
           this.rafId = requestAnimationFrame(animate)
         } else if (!isCoolingDown) {
@@ -211,7 +263,7 @@ export class ActionManager {
           break
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Error executing button action', e)
     }
   }
@@ -222,6 +274,10 @@ export class ActionManager {
 
   getLoadingStartTime(rowId: string, columnId: string): number | null {
     return this.loadingColumns.get(this.getKey(rowId, columnId)) ?? null
+  }
+
+  getAfterActionStatus(rowId: string, columnId: string) {
+    return this.afterActionStatus.get(this.getKey(rowId, columnId))
   }
 
   clear() {

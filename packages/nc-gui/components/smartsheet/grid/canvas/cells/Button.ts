@@ -1,5 +1,4 @@
 import { ButtonActionsType, type ButtonType } from 'nocodb-sdk'
-import { getI18n } from '../../../../../plugins/a.i18n'
 import { defaultOffscreen2DContext, renderSpinner, truncateText } from '../utils/canvas'
 
 const buttonColorMap = {
@@ -224,8 +223,33 @@ const iconSpacing = 6
 
 export const ButtonCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props: CellRendererOptions) => {
-    const { x, y, width, column, spriteLoader, mousePosition, actionManager, pk, disabled, value, allowLocalUrl } = props
+    const {
+      x,
+      y,
+      width,
+      column,
+      spriteLoader,
+      mousePosition,
+      actionManager,
+      pk,
+      disabled,
+      value,
+      allowLocalUrl,
+      cellRenderStore,
+      t,
+    } = props
     const isLoading = actionManager.isLoading(pk, column.id!)
+    const afterActionStatus = actionManager.getAfterActionStatus(pk, column.id!)
+
+    if (afterActionStatus?.tooltip) {
+      Object.assign(cellRenderStore, {
+        invalidUrlTooltip: afterActionStatus.tooltip,
+      })
+    } else {
+      Object.assign(cellRenderStore, {
+        invalidUrlTooltip: '',
+      })
+    }
 
     let disabledState = isLoading || disabled?.isInvalid
     ctx.textAlign = 'left'
@@ -257,9 +281,13 @@ export const ButtonCellRenderer: CellRenderer = {
           require_tld: !allowLocalUrl,
         })
       )
+
+      Object.assign(cellRenderStore, {
+        invalidUrlTooltip: disabledState ? t('msg.error.invalidURL') : '',
+      })
     }
 
-    const hasIcon = !!buttonMeta.icon
+    const hasIcon = !!buttonMeta.icon || isLoading || afterActionStatus
     const hasLabel = !!buttonMeta.label
 
     const maxButtonWidth = width - 8
@@ -322,6 +350,15 @@ export const ButtonCellRenderer: CellRenderer = {
         renderSpinner(ctx, contentX, contentY, iconSize, colors.loader, loadingStartTime, 1.5)
         contentX += iconSize + (hasLabel ? iconSpacing : 0)
       }
+    } else if (afterActionStatus) {
+      spriteLoader.renderIcon(ctx, {
+        icon: afterActionStatus.status === 'success' ? 'ncCheck' : 'ncInfo',
+        size: iconSize,
+        x: contentX,
+        y: contentY,
+        color: colors.text,
+      })
+      contentX += iconSize + (hasLabel ? iconSpacing : 0)
     } else if (hasIcon) {
       spriteLoader.renderIcon(ctx, {
         icon: buttonMeta.icon,
@@ -344,7 +381,9 @@ export const ButtonCellRenderer: CellRenderer = {
     }
   },
   async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition, path, allowLocalUrl }) {
-    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return false
+    const isLoading = actionManager.isLoading(pk, column.id!)
+
+    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid || isLoading) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
@@ -401,7 +440,7 @@ export const ButtonCellRenderer: CellRenderer = {
     return true
   },
 
-  async handleHover({ column, getCellPosition, row, mousePosition }) {
+  async handleHover({ column, getCellPosition, row, mousePosition, t, cellRenderStore }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
 
@@ -410,7 +449,7 @@ export const ButtonCellRenderer: CellRenderer = {
     const isInvalid = column?.isInvalidColumn?.isInvalid
     const ignoreTooltip = column?.isInvalidColumn?.ignoreTooltip
 
-    if (!isInvalid || ignoreTooltip) return
+    if (!cellRenderStore.invalidUrlTooltip && (!isInvalid || ignoreTooltip)) return
 
     const { aiIntegrations } = useNocoAi()
 
@@ -427,6 +466,7 @@ export const ButtonCellRenderer: CellRenderer = {
     }
     const hasIcon = !!buttonMeta.icon
     const hasLabel = !!buttonMeta.label
+
     if (!hasLabel) return
     let contentWidth = 0
     let labelWidth = 0
@@ -443,9 +483,11 @@ export const ButtonCellRenderer: CellRenderer = {
       contentWidth += labelWidth
     }
 
-    const tooltip = aiIntegrations.value.length
-      ? getI18n().global.t('tooltip.aiIntegrationReConfigure')
-      : getI18n().global.t('tooltip.aiIntegrationAddAndReConfigure')
+    const tooltip = cellRenderStore.invalidUrlTooltip
+      ? cellRenderStore.invalidUrlTooltip
+      : aiIntegrations.value.length
+      ? t('tooltip.aiIntegrationReConfigure')
+      : t('tooltip.aiIntegrationAddAndReConfigure')
 
     const buttonWidth = Math.min(maxButtonWidth, Math.max(buttonMinWidth, contentWidth + horizontalPadding * 2))
 
@@ -457,7 +499,9 @@ export const ButtonCellRenderer: CellRenderer = {
   async handleKeyDown(ctx) {
     const { e, row, column, actionManager, pk, path } = ctx
     if (e.key === 'Enter') {
-      if (column.readonly || column.columnObj?.readonly) return false
+      const isLoading = actionManager.isLoading(pk, column.id!)
+
+      if (column.readonly || column.columnObj?.readonly || isLoading) return false
       await actionManager.executeButtonAction([pk], column, { row: [row], path, allowLocalUrl })
       return true
     }

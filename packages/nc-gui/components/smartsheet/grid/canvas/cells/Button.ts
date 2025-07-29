@@ -239,6 +239,8 @@ export const ButtonCellRenderer: CellRenderer = {
       t,
     } = props
     const isLoading = actionManager.isLoading(pk, column.id!)
+    const isSuccess = actionManager.isSuccess(pk, column.id!)
+    const isError = actionManager.isError(pk, column.id!)
 
     let disabledState = isLoading || disabled?.isInvalid
     ctx.textAlign = 'left'
@@ -276,7 +278,7 @@ export const ButtonCellRenderer: CellRenderer = {
       })
     }
 
-    const hasIcon = !!buttonMeta.icon
+    const hasIcon = !!buttonMeta.icon || isLoading || isSuccess || isError
     const hasLabel = !!buttonMeta.label
 
     const maxButtonWidth = width - 8
@@ -339,6 +341,15 @@ export const ButtonCellRenderer: CellRenderer = {
         renderSpinner(ctx, contentX, contentY, iconSize, colors.loader, loadingStartTime, 1.5)
         contentX += iconSize + (hasLabel ? iconSpacing : 0)
       }
+    } else if (isSuccess || isError) {
+      spriteLoader.renderIcon(ctx, {
+        icon: isSuccess ? 'ncCheck' : 'ncInfo',
+        size: iconSize,
+        x: contentX,
+        y: contentY,
+        color: colors.text,
+      })
+      contentX += iconSize + (hasLabel ? iconSpacing : 0)
     } else if (hasIcon) {
       spriteLoader.renderIcon(ctx, {
         icon: buttonMeta.icon,

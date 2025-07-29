@@ -27,7 +27,7 @@ const filteredOptions = computed(() => {
     return searchCompare([...(UITypesSearchTerms[c.name] || [])], searchQuery.value, (matchKeyword) => {
       if (!matchKeyword) return
 
-      searchBasisInfoMap.value[c.name] = 'Matched by keyword: ' + matchKeyword
+      searchBasisInfoMap.value[c.name] = `Matched by keyword: ${matchKeyword}`
     })
   })
 })

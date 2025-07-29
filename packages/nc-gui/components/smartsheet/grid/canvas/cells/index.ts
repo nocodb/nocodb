@@ -359,6 +359,7 @@ export function useGridCellHandler(params: {
         path: ctx.path ?? [],
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         baseRoles: baseRoles.value,
+        t,
       })
     }
     return false
@@ -388,6 +389,7 @@ export function useGridCellHandler(params: {
         openDetachedLongText,
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         path: ctx.path ?? [],
+        t,
       })
     } else {
       console.log('No handler found for cell type', ctx.column.columnObj.uidt)
@@ -424,6 +426,7 @@ export function useGridCellHandler(params: {
         setCursor,
         path: ctx.path ?? [],
         baseUsers: baseUsers.value,
+        t,
       })
     }
   }

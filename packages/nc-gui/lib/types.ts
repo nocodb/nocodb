@@ -834,7 +834,7 @@ interface NcListProps {
    *
    * - With the help of search basis we can search list items based on different fields properties which are not visible for user.
    * - Also we will show this info to user in tooltip.
-   * 
+   *
    * @example
    * ```ts
    * const searchBasisOptions: NcListSearchBasisOptionType[] = [

@@ -17,15 +17,6 @@ const FEATURES = [
     version: 1,
   },
   {
-    id: 'dashboard',
-    title: 'Dashboard',
-    isEngineering: true,
-    description: 'Build interactive dashboards with charts, widgets, and visualizations to monitor your data at a glance.',
-    enabled: false,
-    version: 1,
-    isEE: true,
-  },
-  {
     id: 'canvas_group_grid_view',
     title: 'Improved Group By',
     description: 'New and Improved groupby in grid view with enhanced scrolling and rendering capabilities.',

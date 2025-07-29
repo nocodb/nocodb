@@ -1,4 +1,5 @@
-import { WidgetType } from '.';
+import { ChartTypes, WidgetDataSourceTypes, WidgetType, WidgetTypes } from '.';
+import { ColumnType, UITypes } from '~/lib';
 
 export const calculateNextPosition = (
   existingWidgets: WidgetType[],
@@ -63,3 +64,125 @@ export const calculateNextPosition = (
   // Fallback: place at bottom-left
   return { x: 0, y: maxY };
 };
+
+const getDefaultConfig = (
+  widgetType: WidgetTypes,
+  chartType?: ChartTypes,
+  columns?: Array<ColumnType>
+) => {
+  switch (widgetType) {
+    case WidgetTypes.METRIC:
+      return {
+        dataSource: WidgetDataSourceTypes.MODEL,
+        metric: {
+          type: 'count' as const,
+          aggregation: 'count' as const,
+        },
+        appearance: {
+          type: 'filled' as const,
+          theme: 'purple' as const,
+        },
+      };
+
+    case WidgetTypes.CHART:
+      return getDefaultChartConfig(chartType, columns);
+
+    default:
+      return {};
+  }
+};
+
+const getDefaultChartConfig = (
+  chartType?: ChartTypes,
+  columns?: Array<ColumnType>
+) => {
+  const baseConfig = {
+    dataSource: WidgetDataSourceTypes.MODEL,
+  };
+
+  // Helper function to get the best column for category field
+  const getDefaultCategoryColumn = (columns?: Array<ColumnType>): string => {
+    if (!columns || columns.length === 0) return '';
+
+    // Priority 1: SingleSelect
+    const singleSelectColumn = columns.find(
+      (col) => col.uidt === UITypes.SingleSelect
+    );
+    if (singleSelectColumn) return singleSelectColumn.id;
+
+    // Priority 2: SingleLineText
+    const singleLineTextColumn = columns.find(
+      (col) => col.uidt === UITypes.SingleLineText
+    );
+    if (singleLineTextColumn) return singleLineTextColumn.id;
+
+    // Fallback: first column
+    return columns[0]?.id || '';
+  };
+
+  switch (chartType) {
+    case ChartTypes.PIE:
+      return {
+        ...baseConfig,
+        chartType: ChartTypes.PIE,
+        data: {
+          category: {
+            column_id: getDefaultCategoryColumn(columns),
+            orderBy: 'default' as const,
+            includeEmptyRecords: false,
+          },
+          value: {
+            type: 'count' as const,
+          },
+        },
+        appearance: {
+          size: 'medium' as const,
+          showCountInLegend: true,
+          showPercentageOnChart: true,
+          legendPosition: 'right' as const,
+          colorSchema: 'default' as const,
+          customColorSchema: [],
+        },
+        permissions: {
+          allowUserToPrint: true,
+          allowUsersToViewRecords: false,
+        },
+      };
+
+    case ChartTypes.DONUT:
+      return {
+        ...baseConfig,
+        chartType: ChartTypes.DONUT,
+        data: {
+          category: {
+            column_id: getDefaultCategoryColumn(columns),
+            orderBy: 'default' as const,
+            includeEmptyRecords: false,
+          },
+          value: {
+            type: 'count' as const,
+          },
+        },
+        appearance: {
+          size: 'medium' as const,
+          showCountInLegend: true,
+          showPercentageOnChart: true,
+          legendPosition: 'right' as const,
+          colorSchema: 'default' as const,
+          customColorSchema: [],
+        },
+        permissions: {
+          allowUserToPrint: true,
+          allowUsersToViewRecords: false,
+        },
+      };
+
+    default:
+      return {
+        ...baseConfig,
+        chartType,
+      };
+  }
+};
+
+export { getDefaultConfig };

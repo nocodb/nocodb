@@ -109,10 +109,6 @@ export default class Noco {
     return this.ee || process.env.NC_CLOUD === 'true';
   }
 
-  public static isOnPrem(): boolean {
-    return false;
-  }
-
   public static async loadEEState(): Promise<boolean> {
     try {
       return (this.ee = isEE);

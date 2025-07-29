@@ -287,9 +287,8 @@ export const useScriptExecutor = createSharedComposable(() => {
             worker.postMessage({ type: ScriptActionType.INPUT_RESOLVED, payload: { id: message.payload.id, value } })
           },
         }
-
-        if (message.payload.stepId) {
-          const step = activeSteps.value.get(message.payload.stepId)
+        if (message.stepId) {
+          const step = activeSteps.value.get(message.stepId)
           if (step) {
             step.content.children.push(inputItem)
             break
@@ -398,7 +397,7 @@ export const useScriptExecutor = createSharedComposable(() => {
     maxConcurrent: 10,
     autoStart: true,
     priorityLevels: 3,
-    timeout: 60000 * 5, // 5 minutes
+    timeout: 60000 * 30, // 30 minutes
     rateLimit: {
       enabled: true,
       maxRequestsPerWindow: 20,

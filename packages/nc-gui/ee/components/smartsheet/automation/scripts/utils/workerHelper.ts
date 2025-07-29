@@ -163,16 +163,22 @@ function generateV3ToV2Converter() {
   `
 }
 
-function generateWorkflowStepAPI() {
+function generateStepAPI() {
   return `
   let __nc_currentStepId = null;
   
-  const colorProperties = {
-    red: 'red', blue: 'blue', green: 'green', yellow: 'yellow', 
-    purple: 'purple', orange: 'orange', gray: 'gray'
+  // Export colors and icons as objects for easy access 
+  const colors = {
+    red: 'red',
+    blue: 'blue', 
+    green: 'green',
+    yellow: 'yellow',
+    purple: 'purple',
+    orange: 'orange',
+    gray: 'gray'
   };
   
-  const iconProperties = {
+  const icons = {
   // Layout & Structure
   columns: 'ncColumns',
   grid: 'ncGrid',
@@ -592,75 +598,58 @@ function generateWorkflowStepAPI() {
   twitch: 'ncLogoTwitch',
 };
   
-  const createStepProxy = (title, options = {}) => {
-    const executeStep = () => {
-      if (__nc_currentStepId) {
-        self.postMessage({
-          type: '${ScriptActionType.WORKFLOW_STEP_END}',
-          payload: { stepId: __nc_currentStepId }
-        });
-      }
-      
-      const stepId = Math.random().toString(36).substr(2, 9);
-      __nc_currentStepId = stepId;
-      
-      const payload = {
-        stepId,
-        title,
-        description: options.description,
-        icon: options.icon,
-        color: options.color
-      };
-      
-      Object.keys(payload).forEach(key => {
-        if (payload[key] === undefined) delete payload[key];
-      });      
-      self.postMessage({
-        type: '${ScriptActionType.WORKFLOW_STEP_START}',
-        payload
-      });
-      
-      return stepId;
-    };
-    
-    return new Proxy({}, {
-      get(target, prop) {
-        // Handle start execution
-        if (prop === 'start') {
-          return executeStep;
-        }
-        
-        // Handle color properties
-        if (prop in colorProperties) {
-          return createStepProxy(title, { 
-            ...options, 
-            color: colorProperties[prop] 
-          });
-        }
-        
-        // Handle icon properties  
-        if (prop in iconProperties) {
-          return createStepProxy(title, { 
-            ...options, 
-            icon: iconProperties[prop] 
-          });
-        }
-        
-        return target[prop];
-      }
-    });
-  };
-  
-  const step = (title, options = {}) => createStepProxy(title, options);
-  const workflowClear = () => {
+  const step = (config) => {
+    // End previous step if running
     if (__nc_currentStepId) {
       self.postMessage({
         type: '${ScriptActionType.WORKFLOW_STEP_END}',
         payload: { stepId: __nc_currentStepId }
       });
     }
-  }
-  const workflow = { step, clear: workflowClear };
+    
+    // Generate new step ID
+    const stepId = Math.random().toString(36).substr(2, 9);
+    __nc_currentStepId = stepId;
+    
+    // Prepare payload - handle both string and object input
+    let payload;
+    if (typeof config === 'string') {
+      payload = { stepId, title: config };
+    } else {
+      payload = {
+        stepId,
+        title: config.title,
+        description: config.description,
+        icon: config.icon,
+        color: config.color
+      };
+    }
+    
+    // Clean undefined values
+    Object.keys(payload).forEach(key => {
+      if (payload[key] === undefined) delete payload[key];
+    });
+    
+    // Send step start message
+    self.postMessage({
+      type: '${ScriptActionType.WORKFLOW_STEP_START}',
+      payload
+    });
+    
+    return stepId;
+  };
+  
+  const clear = () => {
+    if (__nc_currentStepId) {
+      self.postMessage({
+        type: '${ScriptActionType.WORKFLOW_STEP_END}',
+        payload: { stepId: __nc_currentStepId }
+      });
+      __nc_currentStepId = null;
+    }
+  };
+  
+  const script = { step, clear, colors, icons };
   `
 }
 
@@ -2474,7 +2463,7 @@ export function createWorkerCode(userCode: string, custom?: string): string {
     ${generateConsoleOverride()}
     ${generateOutput()}
     ${generateProgressAPIs()}
-    ${generateWorkflowStepAPI()}
+    ${generateStepAPI()}
     ${generateV3ToV2Converter()}
     ${generateInputMethods()}
     ${generateApiProxy()}

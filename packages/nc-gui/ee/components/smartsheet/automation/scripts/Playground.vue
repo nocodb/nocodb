@@ -48,7 +48,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
               'bg-nc-bg-orange-light border-nc-border-orange': item.content.color === 'orange',
               'bg-nc-bg-pink-light border-nc-border-pink': item.content.color === 'pink',
               'bg-nc-bg-maroon-light border-nc-border-maroon': item.content.color === 'maroon',
-              'bg-white border-nc-border-gray-medium': !item.content.color,
+              'bg-white border-nc-border-gray-dark': !item.content.color || item.content.color === 'gray',
             }"
             class="workflow-step-card border-1 rounded-lg overflow-hidden"
           >
@@ -62,7 +62,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
                 'border-nc-border-orange': item.content.color === 'orange',
                 'border-nc-border-pink': item.content.color === 'pink',
                 'border-nc-border-maroon': item.content.color === 'maroon',
-                'border-nc-border-gray-medium': !item.content.color,
+                'border-nc-border-gray-dark': !item.content.color || item.content.color === 'gray',
               }"
               class="step-header px-4 py-4 border-b border-gray-200"
             >

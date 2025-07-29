@@ -845,7 +845,7 @@ export class MetaDiffsService {
 
               // check if new type is compatible with old uidt
               const allowedDatatypes = sqlUi.getDataTypeListForUiType(
-                column.uidt,
+                column,
               );
 
               // if UIDT not compatible with new type then change uidt

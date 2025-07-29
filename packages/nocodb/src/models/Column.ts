@@ -814,11 +814,11 @@ export default class Column<T = any> implements ColumnType {
         context.base_id,
         MetaTable.COLUMNS,
         {
-          condition: { uidt: col.uidt },
+          condition: { uidt: col.uidt, system: false },
         },
       );
       for (const aliasCol of aliasCols) {
-        await Column.delete(context, aliasCol.fk_column_id, ncMeta);
+        await Column.delete(context, aliasCol.id, ncMeta);
       }
     }
 

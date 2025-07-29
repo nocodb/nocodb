@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { GridColumnReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { Column, GridViewColumn, View } from '~/models';
@@ -22,6 +23,7 @@ export class GridColumnsService {
       grid: GridColumnReqType;
       req: NcRequest;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/GridColumnReq',
@@ -31,17 +33,23 @@ export class GridColumnsService {
     const oldGridViewColumn = await GridViewColumn.get(
       context,
       param.gridViewColumnId,
+      ncMeta,
     );
 
-    const column = await Column.get(context, {
-      colId: oldGridViewColumn.fk_column_id,
-    });
+    const column = await Column.get(
+      context,
+      {
+        colId: oldGridViewColumn.fk_column_id,
+      },
+      ncMeta,
+    );
 
-    const view = await View.get(context, oldGridViewColumn.fk_view_id);
+    const view = await View.get(context, oldGridViewColumn.fk_view_id, ncMeta);
     const res = await GridViewColumn.update(
       context,
       param.gridViewColumnId,
       param.grid,
+      ncMeta,
     );
 
     this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {

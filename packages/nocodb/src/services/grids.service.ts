@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
 import type { GridUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -22,31 +23,36 @@ export class GridsService {
       req: NcRequest;
       ownedBy?: string;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.grid,
     );
 
-    const model = await Model.get(context, param.tableId);
+    const model = await Model.get(context, param.tableId, ncMeta);
 
-    const { id } = await View.insertMetaOnly(context, {
-      view: {
-        ...param.grid,
-        // todo: sanitize
-        fk_model_id: param.tableId,
-        type: ViewTypes.GRID,
-        base_id: model.base_id,
-        source_id: model.source_id,
-        created_by: param.req.user?.id,
-        owned_by: param.ownedBy || param.req.user?.id,
+    const { id } = await View.insertMetaOnly(
+      context,
+      {
+        view: {
+          ...param.grid,
+          // todo: sanitize
+          fk_model_id: param.tableId,
+          type: ViewTypes.GRID,
+          base_id: model.base_id,
+          source_id: model.source_id,
+          created_by: param.req.user?.id,
+          owned_by: param.ownedBy || param.req.user?.id,
+        },
+        model,
+        req: param.req,
       },
-      model,
-      req: param.req,
-    });
+      ncMeta,
+    );
 
     // populate  cache and add to list since the list cache already exist
-    const view = await View.get(context, id);
+    const view = await View.get(context, id, ncMeta);
     await NocoCache.appendToList(
       CacheScope.VIEW,
       [view.fk_model_id],

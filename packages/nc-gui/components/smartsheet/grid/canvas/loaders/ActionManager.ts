@@ -45,6 +45,7 @@ export class ActionManager {
       tooltip?: string
     }
   >()
+
   private rafId: number | null = null
 
   private getKey(rowId: string, columnId: string): string {

@@ -31,17 +31,6 @@ export class ScriptsService {
     scriptBody: Partial<ScriptType>,
     req: NcRequest,
   ) {
-    const isPlansSupported = await getFeature(
-      PlanFeatureTypes.FEATURE_SCRIPTS,
-      context.workspace_id,
-    );
-
-    if (!isPlansSupported) {
-      NcError.badRequest(
-        'Scripts are available only on paid plans. Please upgrade your workspace plan to enable this feature.',
-      );
-    }
-
     const script = await Script.insert(context, baseId, {
       ...scriptBody,
       created_by: req.user.id,
@@ -106,17 +95,6 @@ export class ScriptsService {
 
     if (!script) {
       return NcError.notFound('Script not found');
-    }
-
-    const isPlansSupported = await getFeature(
-      PlanFeatureTypes.FEATURE_SCRIPTS,
-      context.workspace_id,
-    );
-
-    if (!isPlansSupported) {
-      NcError.badRequest(
-        'Scripts are available only on paid plans. Please upgrade your workspace plan to enable this feature.',
-      );
     }
 
     const existingScripts = await Script.list(context, script.base_id);

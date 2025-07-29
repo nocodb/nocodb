@@ -46,17 +46,6 @@ export class DashboardsService {
     insertObj: Partial<Dashboard>,
     req: NcRequest,
   ) {
-    const isPlansSupported = await getFeature(
-      PlanFeatureTypes.FEATURE_DASHBOARD,
-      context.workspace_id,
-    );
-
-    if (!isPlansSupported) {
-      NcError.badRequest(
-        'Dashboards are available only on paid plans. Please upgrade your workspace plan to enable this feature.',
-      );
-    }
-
     if (!insertObj.created_by) {
       insertObj.created_by = req.user?.id;
     }
@@ -152,17 +141,6 @@ export class DashboardsService {
     insertObj: Partial<Widget>,
     req: NcRequest,
   ) {
-    const isPlansSupported = await getFeature(
-      PlanFeatureTypes.FEATURE_DASHBOARD,
-      context.workspace_id,
-    );
-
-    if (!isPlansSupported) {
-      NcError.badRequest(
-        'Dashboards are available only on paid plans. Please upgrade your workspace plan to enable this feature.',
-      );
-    }
-
     const widget = await Widget.insert(context, insertObj);
 
     const handler = await getWidgetHandler({

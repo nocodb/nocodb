@@ -357,15 +357,16 @@ export async function validateRollupPayload(
   }
 
   const relatedTable = await relatedColumn.getModel(context);
-  if (
-    !(await relatedTable.getColumns(context)).find(
-      (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id,
-    )
-  )
+
+  const rollupColumn = (await relatedTable.getColumns(context)).find(
+    (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id,
+  );
+
+  if (!rollupColumn)
     throw new Error('Rollup column not found in related table');
 
   if (
-    !getAvailableRollupForUiType(relatedColumn.uidt).includes(
+    !getAvailableRollupForUiType(rollupColumn.uidt).includes(
       (payload as RollupColumnReqType).rollup_function,
     )
   ) {

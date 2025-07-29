@@ -103,7 +103,7 @@ export function useInfiniteData(args: {
 
   const { user } = useGlobal()
 
-  const { fetchSharedViewData, fetchCount } = useSharedView()
+  const { fetchSharedViewData, fetchCount, fetchBulkListData } = useSharedView()
 
   const {
     nestedFilters,
@@ -264,7 +264,7 @@ export function useInfiniteData(args: {
 
   const getChunkIndex = (rowIndex: number) => Math.floor(rowIndex / CHUNK_SIZE)
 
-  const fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false) => {
+  const _fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false) => {
     const dataCache = getDataCache(path)
 
     if (dataCache.chunkStates.value[chunkId] && !forceFetch) return
@@ -287,6 +287,155 @@ export function useInfiniteData(args: {
       console.error('Error fetching chunk:', error)
       dataCache.chunkStates.value[chunkId] = undefined
     }
+  }
+
+  let pendingChunkRequests: Array<{
+    chunkId: number
+    path: Array<number>
+    forceFetch: boolean
+    resolve: (value: any) => void
+    reject: (error: any) => void
+  }> = []
+  let batchTimer: NodeJS.Timeout | null = null
+  const BATCH_SIZE = 50
+  const BATCH_TIMEOUT = 200
+
+  async function fetchChunkIndividually(chunkId: number, path: Array<number>) {
+    const dataCache = getDataCache(path)
+    dataCache.chunkStates.value[chunkId] = 'loading'
+    const offset = chunkId * CHUNK_SIZE
+
+    try {
+      const newItems = await loadData({ offset, limit: CHUNK_SIZE }, false)
+      if (!newItems) {
+        dataCache.chunkStates.value[chunkId] = undefined
+        return
+      }
+
+      newItems.forEach((item) => {
+        dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
+      })
+      dataCache.chunkStates.value[chunkId] = 'loaded'
+    } catch (error) {
+      console.error('Error fetching chunk:', error)
+      dataCache.chunkStates.value[chunkId] = undefined
+      throw error
+    }
+  }
+
+  async function processBatch() {
+    if (pendingChunkRequests.length === 0) return
+
+    if (batchTimer) {
+      clearTimeout(batchTimer)
+      batchTimer = null
+    }
+
+    const batch = [...pendingChunkRequests]
+    pendingChunkRequests = []
+
+    try {
+      const bulkRequests = []
+
+      for (let i = 0; i < batch.length; i++) {
+        const req = batch[i]
+        const where = await callbacks?.getWhereFilter?.(req.path)
+        bulkRequests.push({
+          where,
+          offset: req.chunkId * CHUNK_SIZE,
+          limit: CHUNK_SIZE,
+          alias: `chunk_${req.chunkId}_${req.path.join('_')}`,
+          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+        })
+      }
+
+      const bulkResponse = !isPublic?.value
+        ? await $api.dbDataTableBulkList.dbDataTableBulkList(meta.value.id!, { viewId: viewMeta.value?.id }, bulkRequests, {})
+        : await fetchBulkListData({}, bulkRequests)
+
+      for (const request of batch) {
+        try {
+          const alias = `chunk_${request.chunkId}_${request.path.join('_')}`
+          const chunkData = bulkResponse[alias]
+          const dataCache = getDataCache(request.path)
+
+          if (chunkData && chunkData.list) {
+            const rows = formatData(chunkData.list, chunkData.pageInfo)
+            rows.forEach((item: any) => {
+              dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
+            })
+            dataCache.chunkStates.value[request.chunkId] = 'loaded'
+          } else {
+            dataCache.chunkStates.value[request.chunkId] = undefined
+          }
+
+          request.resolve(undefined)
+        } catch (error) {
+          console.error(`Error processing chunk ${request.chunkId}:`, error)
+          const dataCache = getDataCache(request.path)
+          dataCache.chunkStates.value[request.chunkId] = undefined
+          request.reject(error)
+        }
+      }
+    } catch (error) {
+      console.error('Bulk chunk request failed, falling back to individual requests:', error)
+
+      const promises = batch.map((request) =>
+        fetchChunkIndividually(request.chunkId, request.path)
+          .then(() => request.resolve(undefined))
+          .catch((err) => request.reject(err)),
+      )
+
+      await Promise.allSettled(promises)
+    }
+  }
+
+  const fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false) => {
+    const dataCache = getDataCache(path)
+
+    if (dataCache.chunkStates.value[chunkId] && !forceFetch) return
+
+    const existingRequest = pendingChunkRequests.find((req) => req.chunkId === chunkId && req.path.join(',') === path.join(','))
+
+    if (existingRequest && !forceFetch) {
+      return new Promise<void>((resolve, reject) => {
+        const originalResolve = existingRequest.resolve
+        const originalReject = existingRequest.reject
+
+        existingRequest.resolve = (value) => {
+          originalResolve(value)
+          resolve(value)
+        }
+
+        existingRequest.reject = (error) => {
+          originalReject(error)
+          reject(error)
+        }
+      })
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      pendingChunkRequests.push({
+        chunkId,
+        path,
+        forceFetch,
+        resolve,
+        reject,
+      })
+
+      dataCache.chunkStates.value[chunkId] = 'loading'
+
+      if (pendingChunkRequests.length >= BATCH_SIZE) {
+        processBatch()
+      } else {
+        if (!batchTimer) {
+          batchTimer = setTimeout(() => {
+            processBatch()
+          }, BATCH_TIMEOUT)
+        }
+      }
+    })
   }
 
   const clearCache = (visibleStartIndex: number, visibleEndIndex: number, path: Array<number> = []) => {

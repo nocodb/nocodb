@@ -319,8 +319,10 @@ onMounted(() => {
 :deep(.ant-tabs-tab) {
   @apply pt-2 pb-3;
 }
-:deep(.ant-tabs-content:not(:has(.nc-project-overview-tab-content))) {
-  @apply nc-content-max-w;
+:deep(.ant-tabs-content) {
+  &:not(:has(.nc-project-overview-tab-content.ant-tabs-tabpane-active)) {
+    @apply nc-content-max-w;
+  }
 }
 :deep(.ant-tabs-tab .tab-title) {
   @apply text-gray-500;

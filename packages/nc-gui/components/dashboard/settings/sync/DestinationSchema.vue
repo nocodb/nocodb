@@ -1,7 +1,14 @@
 <script lang="ts" setup>
 import { UITypes } from 'nocodb-sdk'
 
-const { formState, integrationFetchDestinationSchema } = useSyncStoreOrThrow()
+const emit = defineEmits(['update:sync'])
+
+const { formState, editMode, integrationFetchDestinationSchema, updateSync, isLoading } = useSyncStoreOrThrow()
+
+const { clearAllMeta } = useMetas()
+
+const baseStore = useBase()
+const { loadTables } = baseStore
 
 // Initialize custom_schema if it doesn't exist
 if (!formState.value.config.custom_schema) {
@@ -27,7 +34,7 @@ interface CustomSyncSchema {
   }
 }
 
-const destinationSchema = computed<CustomSyncSchema>(() => formState.value.config.custom_schema)
+const destinationSchema = computed<CustomSyncSchema>(() => formState.value.config.custom_schema || {})
 
 const selectedTable = ref('')
 
@@ -250,19 +257,45 @@ const currentUpdatedAtColumn = computed(() => {
   return currentTable?.systemFields?.updatedAt
 })
 
-onMounted(async () => {
-  if (destinationSchema.value && Object.keys(destinationSchema.value).length > 0) {
-    // check formState.value.tables match with destinationSchema.value
-    const selectedTables = formState.value.config.tables || []
-    if (Object.keys(destinationSchema.value).every((table) => selectedTables.includes(table))) {
-      initializeSelectedTable()
-      return
-    }
-  }
+const onUpdateSync = async () => {
+  await updateSync()
+  // Reload tables to ensure the latest schema is reflected
+  await clearAllMeta()
+  await loadTables()
 
-  // Fetch the schema and set it in formState
-  const schema = await integrationFetchDestinationSchema(formState.value)
-  formState.value.config.custom_schema = schema
+  emit('update:sync')
+}
+
+onMounted(async () => {
+  if (editMode.value) {
+    // only append missing tables if edit mode is active
+    const schema = await integrationFetchDestinationSchema(formState.value)
+
+    for (const tableName in schema) {
+      if (!destinationSchema.value[tableName]) {
+        destinationSchema.value[tableName] = schema[tableName]
+      }
+    }
+
+    for (const tableName in destinationSchema.value) {
+      if (formState.value.config.tables && !formState.value.config.tables.includes(tableName)) {
+        delete formState.value.config.custom_schema[tableName]
+      }
+    }
+  } else {
+    if (destinationSchema.value && Object.keys(destinationSchema.value).length > 0) {
+      // check formState.value.tables match with destinationSchema.value
+      const selectedTables = formState.value.config.tables || []
+      if (Object.keys(destinationSchema.value).every((table) => selectedTables.includes(table))) {
+        initializeSelectedTable()
+        return
+      }
+    }
+
+    // Fetch the schema and set it in formState
+    const schema = await integrationFetchDestinationSchema(formState.value)
+    formState.value.config.custom_schema = schema
+  }
 
   // Initialize all columns and systemFields
   const updatedSchema = { ...destinationSchema.value }
@@ -376,6 +409,7 @@ onMounted(async () => {
               </td>
               <td class="center-column">
                 <a-checkbox
+                  :disabled="editMode"
                   :checked="isPrimaryKeyColumn(column.title)"
                   @update:checked="(checked) => togglePrimaryKey(column.title, checked)"
                 />
@@ -410,6 +444,10 @@ onMounted(async () => {
 
     <div v-else class="no-table">
       <p>No tables available for mapping</p>
+    </div>
+
+    <div v-if="editMode" class="flex justify-end mt-4">
+      <NcButton type="primary" :loading="isLoading" @click="onUpdateSync">Save Changes</NcButton>
     </div>
   </div>
 </template>

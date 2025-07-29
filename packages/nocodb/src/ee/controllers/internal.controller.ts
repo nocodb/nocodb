@@ -230,10 +230,6 @@ export class InternalController extends InternalControllerCE {
           req,
         );
       case 'updateSync':
-        if (!payload.syncConfigId) {
-          NcError.genericNotFound('SyncConfig', payload.syncConfigId);
-        }
-
         return await this.syncService.updateSync(
           context,
           payload.syncConfigId,

@@ -444,15 +444,16 @@ export class SyncModuleSyncDataProcessor {
 
             if (namespaces.length > 0) {
               for (const namespace of namespaces) {
+                const incrementalKey = wrapper.getIncrementalKey(
+                  syncMap.target_table as TARGET_TABLES,
+                );
                 const lastRecord = await this.dataTableService.dataList(
                   context,
                   {
                     modelId: model.id,
                     query: {
                       limit: 1,
-                      sort: `-${wrapper.getIncrementalKey(
-                        syncMap.target_table as TARGET_TABLES,
-                      )}`,
+                      sort: incrementalKey ? `-${incrementalKey}` : undefined,
                       filterArrJson: JSON.stringify([
                         {
                           comparison_op: 'eq',
@@ -480,24 +481,27 @@ export class SyncModuleSyncDataProcessor {
                     targetTableIncrementalValues[namespace] = {};
                   }
 
+                  const incrementalKey = wrapper.getIncrementalKey(
+                    syncMap.target_table as TARGET_TABLES,
+                  );
+
                   targetTableIncrementalValues[namespace][
                     syncMap.target_table
                   ] =
-                    lastRecord.list[0][
-                      wrapper.getIncrementalKey(
-                        syncMap.target_table as TARGET_TABLES,
-                      )
-                    ];
+                    incrementalKey && lastRecord.list[0][incrementalKey]
+                      ? lastRecord.list[0][incrementalKey]
+                      : undefined;
                 }
               }
             } else {
+              const incrementalKey = wrapper.getIncrementalKey(
+                syncMap.target_table as TARGET_TABLES,
+              );
               const lastRecord = await this.dataTableService.dataList(context, {
                 modelId: model.id,
                 query: {
                   limit: 1,
-                  sort: `-${wrapper.getIncrementalKey(
-                    syncMap.target_table as TARGET_TABLES,
-                  )}`,
+                  sort: incrementalKey ? `-${incrementalKey}` : undefined,
                   filterArrJson: JSON.stringify([
                     {
                       comparison_op: 'eq',
@@ -512,12 +516,13 @@ export class SyncModuleSyncDataProcessor {
               });
 
               if (lastRecord.list.length > 0) {
+                const incrementalKey = wrapper.getIncrementalKey(
+                  syncMap.target_table as TARGET_TABLES,
+                );
                 targetTableIncrementalValues[syncMap.target_table] =
-                  lastRecord.list[0][
-                    wrapper.getIncrementalKey(
-                      syncMap.target_table as TARGET_TABLES,
-                    )
-                  ];
+                  incrementalKey && lastRecord.list[0][incrementalKey]
+                    ? lastRecord.list[0][incrementalKey]
+                    : undefined;
               }
             }
           }
@@ -817,6 +822,105 @@ export class SyncModuleSyncDataProcessor {
         });
 
         throw error;
+      }
+    }
+  }
+
+  async refreshData(
+    job: Job<{ context: NcContext; syncConfigId: string; req: NcRequest }>,
+  ) {
+    const { context, syncConfigId, req } = job.data;
+
+    const syncConfig = await SyncConfig.get(context, syncConfigId);
+
+    if (!syncConfig) {
+      NcError.genericNotFound('SyncConfig', syncConfigId);
+    }
+
+    const integration = await Integration.get(
+      context,
+      syncConfig.fk_integration_id,
+    );
+    const wrapper = await integration.getIntegrationWrapper<SyncIntegration>();
+
+    // Get sync mappings for non-mm tables
+    const syncMappings = await SyncMapping.list(context, {
+      fk_sync_config_id: syncConfig.id,
+    });
+
+    for (const syncMapping of syncMappings) {
+      const model = await Model.get(context, syncMapping.fk_model_id);
+      if (!model || model.mm) continue;
+
+      await model.getColumns(context);
+
+      const columnsToRefresh = model.columns.filter(
+        (column) => column.readonly,
+      );
+      const dataToUpdate = [];
+
+      let completed = false;
+      let offset = 0;
+
+      while (!completed) {
+        // Get all existing records
+        const existingRecords = await this.dataTableService.dataList(context, {
+          baseId: model.base_id,
+          modelId: model.id,
+          query: {
+            limit: BATCH_SIZE,
+            offset,
+          },
+        });
+
+        if (existingRecords.list.length < BATCH_SIZE) {
+          completed = true;
+        }
+
+        // Update each record with new column data
+        for (const record of existingRecords.list) {
+          if (record.RemoteRaw) {
+            const rawData = JSON.parse(record.RemoteRaw);
+            const formattedData = await wrapper.formatData(
+              syncMapping.target_table as TARGET_TABLES,
+              rawData,
+            );
+
+            // Only update the readonly columns
+            const updateData = {};
+            for (const column of columnsToRefresh) {
+              if (formattedData.data[column.title] !== undefined) {
+                updateData[column.title] = formattedData.data[column.title];
+              }
+            }
+
+            if (Object.keys(updateData).length > 0) {
+              dataToUpdate.push({
+                Id: record.Id,
+                ...updateData,
+              });
+            }
+          }
+        }
+
+        if (dataToUpdate.length) {
+          await this.dataTableService.dataUpdate(context, {
+            baseId: model.base_id,
+            modelId: model.id,
+            body: dataToUpdate,
+            cookie: req,
+            apiVersion: NcApiVersion.V3,
+            internalFlags: {
+              allowSystemColumn: true,
+              skipHooks: true,
+            },
+          });
+        }
+
+        offset += BATCH_SIZE;
+
+        // slight delay to avoid overwhelming the database
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
   }

@@ -129,8 +129,8 @@ const onTrigger = async () => {
 }
 
 // select and focus title field on load
-onMounted(() => {
-  initialize()
+onMounted(async () => {
+  await initialize()
 })
 
 const isModalClosable = computed(() => {
@@ -167,10 +167,10 @@ const isModalClosable = computed(() => {
             <NcSelectTab v-model="editTab" :items="tabs" @update:model-value="onTabChange" />
           </div>
           <div class="w-3xl flex rounded-lg p-6 w-full border-1 border-nc-border-gray-medium relative">
-            <div
+            <!-- <div
               v-if="editTab === 'integrations' && syncConfigEditForm.sync_category === 'custom'"
               class="absolute inset-0 bg-gray-500/10 z-10 rounded-lg cursor-not-allowed"
-            ></div>
+            ></div> -->
             <template v-if="editTab === 'sync'">
               <div class="create-source bg-white relative flex flex-col gap-2 w-full max-w-[768px]">
                 <div v-if="editModeSync" class="sync-info bg-gray-100 p-4 rounded-lg w-full">

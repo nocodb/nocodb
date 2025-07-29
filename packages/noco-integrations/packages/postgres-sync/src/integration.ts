@@ -271,6 +271,11 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
       if (systemFields && systemFields.updatedAt) {
         return systemFields.updatedAt;
       }
+
+      // If no specific incremental key is defined, use the primary key
+      if (systemFields && systemFields.primaryKey) {
+        return systemFields.primaryKey[0]; // Use the first primary key as incremental key
+      }
     }
 
     return null;

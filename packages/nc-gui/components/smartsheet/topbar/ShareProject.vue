@@ -1,16 +1,11 @@
 <script setup lang="ts">
-const { isGrid, isForm, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
-
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 </script>
 
 <template>
-  <div
-    v-if="(isForm || isGrid || isKanban || isGallery || isMap || isCalendar) && !isPublic && !isMobileMode"
-    class="empty:hidden"
-  >
+  <div v-if="!isPublic && !isMobileMode" class="empty:hidden">
     <LazyGeneralShareProject is-view-toolbar />
   </div>
 </template>

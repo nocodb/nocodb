@@ -75,6 +75,7 @@ import * as nc_085_base_default_role from '~/meta/migrations/v2/nc_085_base_defa
 import * as nc_086_dashboards_widgets from '~/meta/migrations/v2/nc_086_dashboards_widgets';
 import * as nc_087_widget_error from '~/meta/migrations/v2/nc_087_widget_error';
 import * as nc_088_add_sso_client_to_api_tokens from '~/meta/migrations/v2/nc_088_add_sso_client_to_api_tokens';
+import * as nc_089_dashboard_sharing from '~/meta/migrations/v2/nc_089_dashboard_sharing';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -161,6 +162,7 @@ export default class XcMigrationSourcev2 {
       'nc_086_dashboards_widgets',
       'nc_087_widget_error',
       'nc_088_add_sso_client_to_api_tokens',
+      'nc_089_dashboard_sharing',
     ]);
   }
 
@@ -324,6 +326,8 @@ export default class XcMigrationSourcev2 {
         return nc_087_widget_error;
       case 'nc_088_add_sso_client_to_api_tokens':
         return nc_088_add_sso_client_to_api_tokens;
+      case 'nc_089_dashboard_sharing':
+        return nc_089_dashboard_sharing;
     }
   }
 }

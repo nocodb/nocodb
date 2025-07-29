@@ -142,6 +142,10 @@ enum AuditV1OperationTypes {
   DASHBOARD_DUPLICATE = 'DASHBOARD_DUPLICATE',
   DASHBOARD_DUPLICATE_ERROR = 'DASHBOARD_DUPLICATE_ERROR',
 
+  SHARED_DASHBOARD_CREATE = 'SHARED_DASHBOARD_CREATE',
+  SHARED_DASHBOARD_DELETE = 'SHARED_DASHBOARD_DELETE',
+  SHARED_DASHBOARD_UPDATE = 'SHARED_DASHBOARD_UPDATE',
+
   WIDGET_CREATE = 'WIDGET_CREATE',
   WIDGET_UPDATE = 'WIDGET_UPDATE',
   WIDGET_DELETE = 'WIDGET_DELETE',
@@ -962,6 +966,21 @@ export interface DashboardDuplicatePayload {
   error?: string;
 }
 
+export interface SharedDashboardCreatePayload {
+  dashboard_title: string;
+  dashboard_id: string;
+}
+
+export interface SharedDashboardUpdatePayload extends UpdatePayload {
+  dashboard_title: string;
+  dashboard_id: string;
+}
+
+export interface SharedDashboardDeletePayload {
+  dashboard_title: string;
+  dashboard_id: string;
+}
+
 export interface WidgetCreatePayload {
   widget_title: string;
   widget_id: string;
@@ -1170,6 +1189,15 @@ const descriptionTemplates = {
     audit: AuditV1<DashboardDuplicatePayload>
   ) =>
     `Dashboard '${audit.details.source_dashboard_title}' has been duplicated`,
+  [AuditV1OperationTypes.SHARED_DASHBOARD_CREATE]: (
+    audit: AuditV1<SharedDashboardCreatePayload>
+  ) => `Shared dashboard '${audit.details.dashboard_title}' has been created`,
+  [AuditV1OperationTypes.SHARED_DASHBOARD_DELETE]: (
+    audit: AuditV1<SharedDashboardDeletePayload>
+  ) => `Shared dashboard '${audit.details.dashboard_title}' has been deleted`,
+  [AuditV1OperationTypes.SHARED_DASHBOARD_UPDATE]: (
+    audit: AuditV1<SharedDashboardUpdatePayload>
+  ) => `Shared dashboard '${audit.details.dashboard_title}' has been updated`,
   [AuditV1OperationTypes.WIDGET_CREATE]: (
     audit: AuditV1<WidgetCreatePayload>
   ) => `Widget '${audit.details.widget_title}' has been created`,

@@ -12,14 +12,16 @@ const baseStore = useBase()
 const { base, isPrivateBase } = storeToRefs(baseStore)
 const { navigateToProjectPage } = baseStore
 const { activeView } = storeToRefs(useViewsStore())
+const dashboardStore = useDashboardStore()
+const { activeDashboard } = storeToRefs(dashboardStore)
 
 let view: Ref<ViewType | undefined>
 if (isViewToolbar) {
   try {
     const store = useSmartsheetStoreOrThrow()
     view = store.view
-  } catch (e) {
-    console.error(e)
+  } catch (_e) {
+    // console.error(e)
   }
 }
 
@@ -116,6 +118,27 @@ watch(showShareModal, (val) => {
 
         <DlgShareAndCollaborateSharePage />
       </div>
+
+      <div v-if="activeDashboard" class="share-dashboard">
+        <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
+          <LazyGeneralEmojiPicker class="nc-dashboard-icon" size="small" :emoji="activeDashboard?.meta?.icon" readonly>
+            <template #default>
+              <GeneralIcon icon="dashboards" class="w-4 text-nc-content-gray-subtle !text-[16px]" />
+            </template>
+          </LazyGeneralEmojiPicker>
+          <div>{{ $t('activity.shareDashboard') }}</div>
+          <div
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+          >
+            <span>
+              {{ activeDashboard.title }}
+            </span>
+          </div>
+        </div>
+        <DlgShareAndCollaborateShareDashboard />
+      </div>
+
       <div class="share-base">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
           <GeneralProjectIcon :color="parseProp(base.meta).iconColor" :type="base.type" class="nc-view-icon group-hover" />
@@ -169,6 +192,7 @@ watch(showShareModal, (val) => {
   }
 
   .share-view,
+  .share-dashboard,
   .share-base {
     @apply !border-1 border-gray-200 mx-3 rounded-lg mt-3 px-1 py-1;
   }

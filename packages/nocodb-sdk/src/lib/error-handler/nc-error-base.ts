@@ -65,6 +65,20 @@ export class NcErrorBase {
       ...args,
     });
   }
+
+  dashboardNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.DASHBOARD_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  widgetNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.WIDGET_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
   sourceNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.SOURCE_NOT_FOUND, {
       params: id,
@@ -198,6 +212,15 @@ export class NcErrorBase {
   invalidSharedViewPassword(args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.INVALID_SHARED_VIEW_PASSWORD,
+      {
+        ...args,
+      }
+    );
+  }
+
+  invalidSharedDashboardPassword(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.INVALID_SHARED_DASHBOARD_PASSWORD,
       {
         ...args,
       }

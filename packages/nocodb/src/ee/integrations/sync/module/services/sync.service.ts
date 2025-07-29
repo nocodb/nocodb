@@ -732,6 +732,8 @@ export class SyncModuleService {
               req,
             });
           }
+
+          await SyncMapping.delete(context, mapping.id);
         }
 
         for (const tableKey of tablesToModify) {

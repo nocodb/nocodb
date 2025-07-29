@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  ClientType,
   isAIPromptCol,
   isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
   RelationTypes,
+  SqlUiFactory,
   UITypes,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
@@ -711,6 +713,7 @@ export class MetaDiffsService {
 
     // @ts-ignore
     const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+    const sqlUi = SqlUiFactory.create({ client: source.type ?? ClientType.PG });
     const changes = await this.getMetaDiff(context, sqlClient, base, source);
 
     /* Get all relations */
@@ -839,7 +842,17 @@ export class MetaDiffsService {
                 { client: source.type },
                 {},
               );
-              column.uidt = metaFact.getUIDataType(column);
+
+              // check if new type is compatible with old uidt
+              const allowedDatatypes = sqlUi.getDataTypeListForUiType(
+                column.uidt,
+              );
+
+              // if UIDT not compatible with new type then change uidt
+              if (!allowedDatatypes?.includes(column.dt)) {
+                column.uidt = metaFact.getUIDataType(column);
+              }
+
               column.title = change.column.title;
               await Column.update(context, change.column.id, column);
             }

@@ -239,8 +239,7 @@ export const ButtonCellRenderer: CellRenderer = {
       t,
     } = props
     const isLoading = actionManager.isLoading(pk, column.id!)
-    const isSuccess = actionManager.isSuccess(pk, column.id!)
-    const isError = actionManager.isError(pk, column.id!)
+    const afterActionStatus = actionManager.getAfterActionStatus(pk, column.id!)
 
     let disabledState = isLoading || disabled?.isInvalid
     ctx.textAlign = 'left'
@@ -278,7 +277,7 @@ export const ButtonCellRenderer: CellRenderer = {
       })
     }
 
-    const hasIcon = !!buttonMeta.icon || isLoading || isSuccess || isError
+    const hasIcon = !!buttonMeta.icon || isLoading || afterActionStatus
     const hasLabel = !!buttonMeta.label
 
     const maxButtonWidth = width - 8
@@ -341,9 +340,9 @@ export const ButtonCellRenderer: CellRenderer = {
         renderSpinner(ctx, contentX, contentY, iconSize, colors.loader, loadingStartTime, 1.5)
         contentX += iconSize + (hasLabel ? iconSpacing : 0)
       }
-    } else if (isSuccess || isError) {
+    } else if (afterActionStatus) {
       spriteLoader.renderIcon(ctx, {
-        icon: isSuccess ? 'ncCheck' : 'ncInfo',
+        icon: afterActionStatus === 'success' ? 'ncCheck' : 'ncInfo',
         size: iconSize,
         x: contentX,
         y: contentY,

@@ -93,7 +93,7 @@ const isLocked = inject(IsLockedInj)
 
 const fieldSearchBasisOptions = computed<NcListSearchBasisOptionType[]>(() => [
   {
-    searchBasisInfo: t('msg.info.searchResultBasedOnButtonLabel'),
+    searchBasisInfo: t('msg.info.matchedByButtonLabel'),
     filterCallback: (query, option) => {
       if (!option) return false
 
@@ -103,7 +103,7 @@ const fieldSearchBasisOptions = computed<NcListSearchBasisOptionType[]>(() => [
     },
   },
   {
-    searchBasisInfo: t('msg.info.searchResultBasedOnFieldDescription'),
+    searchBasisInfo: t('msg.info.matchedByFieldDescription'),
     filterCallback: (query, option) => {
       if (!option) return false
 

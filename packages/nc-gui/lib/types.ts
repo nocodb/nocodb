@@ -839,7 +839,7 @@ interface NcListProps {
    * ```ts
    * const searchBasisOptions: NcListSearchBasisOptionType[] = [
    *  {
-   *    searchBasisInfo: t('msg.info.searchResultBasedOnButtonLabel'),
+   *    searchBasisInfo: t('msg.info.matchedByButtonLabel'),
    *    filterCallback: (query, option) => {
    *      if (!option) return false
    *
@@ -849,7 +849,7 @@ interface NcListProps {
    *    },
    *  },
    *  {
-   *    searchBasisInfo: t('msg.info.searchResultBasedOnFieldDescription'),
+   *    searchBasisInfo: t('msg.info.matchedByFieldDescription'),
    *    filterCallback: (query, option) => {
    *      if (!option) return false
    *

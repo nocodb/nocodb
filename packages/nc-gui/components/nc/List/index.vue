@@ -425,10 +425,27 @@ defineExpose({
                 @click="handleSelectOption(option, idx, $event)"
               >
                 <template #title>{{ option.ncItemTooltip }} </template>
-                <slot name="listItem" :option="option" :is-selected="compareVModel(option[optionValueKey])" :index="idx">
-                  <slot name="listItemExtraLeft" :option="option" :is-selected="compareVModel(option[optionValueKey])"> </slot>
+                <slot
+                  name="listItem"
+                  :option="option"
+                  :is-selected="compareVModel(option[optionValueKey])"
+                  :index="idx"
+                  :search-basis-info="searchBasisInfoMap[option[optionValueKey]]"
+                >
+                  <slot
+                    name="listItemExtraLeft"
+                    :option="option"
+                    :is-selected="compareVModel(option[optionValueKey])"
+                    :search-basis-info="searchBasisInfoMap[option[optionValueKey]]"
+                  >
+                  </slot>
 
-                  <slot name="listItemContent" :option="option" :is-selected="compareVModel(option[optionValueKey])">
+                  <slot
+                    name="listItemContent"
+                    :option="option"
+                    :is-selected="compareVModel(option[optionValueKey])"
+                    :search-basis-info="searchBasisInfoMap[option[optionValueKey]]"
+                  >
                     <NcTooltip
                       class="truncate"
                       :class="{
@@ -448,7 +465,13 @@ defineExpose({
                     </div>
                   </slot>
 
-                  <slot name="listItemExtraRight" :option="option" :is-selected="compareVModel(option[optionValueKey])"> </slot>
+                  <slot
+                    name="listItemExtraRight"
+                    :option="option"
+                    :is-selected="compareVModel(option[optionValueKey])"
+                    :search-basis-info="searchBasisInfoMap[option[optionValueKey]]"
+                  >
+                  </slot>
 
                   <slot name="listItemSelectedIcon" :option="option" :is-selected="compareVModel(option[optionValueKey])">
                     <GeneralIcon

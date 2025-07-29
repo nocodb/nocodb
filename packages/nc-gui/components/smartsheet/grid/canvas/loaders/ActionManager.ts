@@ -38,7 +38,13 @@ export class ActionManager {
 
   // key is rowId-columnId, value is startTime
   private loadingColumns = new Map<string, number>()
-  private afterActionStatus = new Map<string, 'success' | 'error'>()
+  private afterActionStatus = new Map<
+    string,
+    {
+      status: 'success' | 'error'
+      tooltip?: string
+    }
+  >()
   private rafId: number | null = null
 
   private getKey(rowId: string, columnId: string): string {
@@ -71,48 +77,32 @@ export class ActionManager {
 
     this.startAnimationLoop()
 
+    let isErrorOccured = false
+
     try {
       const res = await action()
 
       rowIds.forEach((id) => {
-        this.afterActionStatus.set(this.getKey(id, columnId), 'success')
+        this.afterActionStatus.set(this.getKey(id, columnId), { status: 'success' })
 
         affectedColumnIds.forEach((colId) => {
-          this.afterActionStatus.set(this.getKey(id, colId), 'success')
-        })
-      })
-
-      // Remove success columns after 2 seconds
-      ncDelay(2000).then(() => {
-        rowIds.forEach((id) => {
-          this.afterActionStatus.delete(this.getKey(id, columnId))
-
-          affectedColumnIds.forEach((colId) => {
-            this.afterActionStatus.delete(this.getKey(id, colId))
-          })
+          this.afterActionStatus.set(this.getKey(id, colId), { status: 'success' })
         })
       })
 
       return res
-    } catch (e) {
+    } catch (e: any) {
+      isErrorOccured = true
+
+      const errorMsg = await extractSdkResponseErrorMsg(e)
       rowIds.forEach((id) => {
-        this.afterActionStatus.set(this.getKey(id, columnId), 'error')
+        this.afterActionStatus.set(this.getKey(id, columnId), { status: 'error', tooltip: errorMsg ?? 'Something went wrong' })
 
         affectedColumnIds.forEach((colId) => {
-          this.afterActionStatus.set(this.getKey(id, colId), 'error')
+          this.afterActionStatus.set(this.getKey(id, colId), { status: 'error', tooltip: errorMsg ?? 'Something went wrong' })
         })
       })
 
-      // Remove error columns after 3 seconds
-      ncDelay(3000).then(() => {
-        rowIds.forEach((id) => {
-          this.afterActionStatus.delete(this.getKey(id, columnId))
-
-          affectedColumnIds.forEach((colId) => {
-            this.afterActionStatus.delete(this.getKey(id, colId))
-          })
-        })
-      })
       throw e
     } finally {
       rowIds.forEach((id) => {
@@ -120,6 +110,17 @@ export class ActionManager {
 
         affectedColumnIds.forEach((colId) => {
           this.loadingColumns.delete(this.getKey(id, colId))
+        })
+      })
+
+      // Remove error columns after 3 seconds if error occured, otherwise after 2 seconds
+      ncDelay(isErrorOccured ? 3000 : 2000).then(() => {
+        rowIds.forEach((id) => {
+          this.afterActionStatus.delete(this.getKey(id, columnId))
+
+          affectedColumnIds.forEach((colId) => {
+            this.afterActionStatus.delete(this.getKey(id, colId))
+          })
         })
       })
     }

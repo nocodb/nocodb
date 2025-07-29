@@ -173,7 +173,7 @@ export default function () {
         expect(response.body.type).to.eq('GALLERY');
       });
 
-      it.only(`will create form view`, async () => {
+      it(`will create form view`, async () => {
         const response = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
@@ -191,7 +191,6 @@ export default function () {
               },
             ],
           });
-        console.log(response.body)
         expect(response.body.type).to.eq('FORM');
       });
     });

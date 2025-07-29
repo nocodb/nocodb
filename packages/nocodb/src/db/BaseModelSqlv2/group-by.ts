@@ -16,9 +16,8 @@ import {
   getColumnName,
 } from '~/helpers/dbHelpers';
 import { BaseUser, Column, Filter, Sort } from '~/models';
-import { getAliasGenerator } from '~/utils';
+import { getAliasGenerator, isOnPrem } from '~/utils';
 import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
-import Noco from '~/Noco';
 
 export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
   const list = async (args: {
@@ -376,7 +375,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     // group by using the column aliases
     qb.groupBy(...groupBySelectors);
 
-    if (!Noco.isOnPrem()) {
+    if (!isOnPrem) {
       applyPaginate(qb, rest);
     }
 

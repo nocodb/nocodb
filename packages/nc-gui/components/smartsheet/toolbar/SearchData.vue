@@ -35,7 +35,7 @@ const isSearchButtonVisible = computed(() => {
 })
 
 const isValidSearchQuery = computed(() => {
-  return search.value.query?.trim() && search.value.isValidFieldQuery
+  return !search.value.query?.trim() || search.value.isValidFieldQuery
 })
 
 const isSearchResultVisible = computed(() => {

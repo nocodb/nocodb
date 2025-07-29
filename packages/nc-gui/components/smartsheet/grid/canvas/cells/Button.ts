@@ -1,5 +1,4 @@
 import { ButtonActionsType, type ButtonType } from 'nocodb-sdk'
-import { getI18n } from '../../../../../plugins/a.i18n'
 import { defaultOffscreen2DContext, renderSpinner, truncateText } from '../utils/canvas'
 
 const buttonColorMap = {
@@ -224,7 +223,21 @@ const iconSpacing = 6
 
 export const ButtonCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props: CellRendererOptions) => {
-    const { x, y, width, column, spriteLoader, mousePosition, actionManager, pk, disabled, value, allowLocalUrl } = props
+    const {
+      x,
+      y,
+      width,
+      column,
+      spriteLoader,
+      mousePosition,
+      actionManager,
+      pk,
+      disabled,
+      value,
+      allowLocalUrl,
+      cellRenderStore,
+      t,
+    } = props
     const isLoading = actionManager.isLoading(pk, column.id!)
 
     let disabledState = isLoading || disabled?.isInvalid
@@ -257,6 +270,10 @@ export const ButtonCellRenderer: CellRenderer = {
           require_tld: !allowLocalUrl,
         })
       )
+
+      Object.assign(cellRenderStore, {
+        invalidUrlTooltip: disabledState ? t('msg.error.invalidURL') : '',
+      })
     }
 
     const hasIcon = !!buttonMeta.icon
@@ -401,7 +418,7 @@ export const ButtonCellRenderer: CellRenderer = {
     return true
   },
 
-  async handleHover({ column, getCellPosition, row, mousePosition }) {
+  async handleHover({ column, getCellPosition, row, mousePosition, t, cellRenderStore }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
 
@@ -410,7 +427,7 @@ export const ButtonCellRenderer: CellRenderer = {
     const isInvalid = column?.isInvalidColumn?.isInvalid
     const ignoreTooltip = column?.isInvalidColumn?.ignoreTooltip
 
-    if (!isInvalid || ignoreTooltip) return
+    if (!cellRenderStore.invalidUrlTooltip && (!isInvalid || ignoreTooltip)) return
 
     const { aiIntegrations } = useNocoAi()
 
@@ -427,6 +444,7 @@ export const ButtonCellRenderer: CellRenderer = {
     }
     const hasIcon = !!buttonMeta.icon
     const hasLabel = !!buttonMeta.label
+
     if (!hasLabel) return
     let contentWidth = 0
     let labelWidth = 0
@@ -443,9 +461,11 @@ export const ButtonCellRenderer: CellRenderer = {
       contentWidth += labelWidth
     }
 
-    const tooltip = aiIntegrations.value.length
-      ? getI18n().global.t('tooltip.aiIntegrationReConfigure')
-      : getI18n().global.t('tooltip.aiIntegrationAddAndReConfigure')
+    const tooltip = cellRenderStore.invalidUrlTooltip
+      ? cellRenderStore.invalidUrlTooltip
+      : aiIntegrations.value.length
+      ? t('tooltip.aiIntegrationReConfigure')
+      : t('tooltip.aiIntegrationAddAndReConfigure')
 
     const buttonWidth = Math.min(maxButtonWidth, Math.max(buttonMinWidth, contentWidth + horizontalPadding * 2))
 

@@ -28,6 +28,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { $api } = useNuxtApp()
 
+const { t } = useI18n()
+
 const rowId = computed(() => {
   return extractPkFromRow(currentRow.value?.row, meta.value!.columns!)
 })
@@ -45,8 +47,10 @@ const pk = computed(() => {
   return extractPkFromRow(currentRow.value?.row, meta.value.columns)
 })
 
+const isAiButtonType = computed(() => column.value?.colOptions?.type === ButtonActionsType.Ai)
+
 const isFieldAiIntegrationAvailable = computed(() => {
-  if (column.value?.colOptions?.type !== ButtonActionsType.Ai) return true
+  if (!isAiButtonType.value) return true
 
   const fkIntegrationId = column.value?.colOptions?.fk_integration_id
 
@@ -96,6 +100,8 @@ const isExecuting = computed(
     fieldIDRowMapping.value.get(`${pk.value}:${column.value.id}`) === 'running',
 )
 
+const invalidUrlTooltip = ref('')
+
 const componentProps = computed(() => {
   if (column.value.colOptions.type === ButtonActionsType.Url) {
     let url = addMissingUrlSchma(cellValue.value?.url)
@@ -107,12 +113,14 @@ const componentProps = computed(() => {
       url = encodeURI(url)
     }
 
+    const isValidUrl = isValidURL(url, { require_tld: !appInfo.value?.allowLocalUrl })
+
+    invalidUrlTooltip.value = !isValidUrl ? t('msg.error.invalidURL') : ''
+
     return {
       href: url,
       target: '_blank',
-      ...(column.value?.colOptions.error || !isValidURL(url, { require_tld: !appInfo.value?.allowLocalUrl })
-        ? { disabled: true }
-        : {}),
+      ...(column.value?.colOptions.error || !isValidUrl ? { disabled: true } : {}),
     }
   } else if (column.value.colOptions.type === ButtonActionsType.Webhook) {
     return {
@@ -189,9 +197,18 @@ const triggerAction = async () => {
     }"
     class="w-full flex items-center"
   >
-    <NcTooltip :disabled="isFieldAiIntegrationAvailable || isPublic || !isUIAllowed('dataEdit')" class="flex">
+    <NcTooltip
+      :disabled="isAiButtonType ? isFieldAiIntegrationAvailable || isPublic || !isUIAllowed('dataEdit') : !invalidUrlTooltip"
+      class="flex"
+    >
       <template #title>
-        {{ aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure') }}
+        {{
+          isAiButtonType
+            ? aiIntegrations.length
+              ? $t('tooltip.aiIntegrationReConfigure')
+              : $t('tooltip.aiIntegrationAddAndReConfigure')
+            : invalidUrlTooltip
+        }}
       </template>
       <component
         :is="column.colOptions.type === ButtonActionsType.Url ? 'a' : 'button'"

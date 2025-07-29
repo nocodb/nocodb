@@ -511,6 +511,7 @@ interface CellRenderStore {
     hoverValue: number
   }
   ltar?: { oldX?: number; oldY?: number; x?: number; y?: number; width?: number; height?: number; value?: any }[]
+  [key: string]: any
 }
 
 type CursorType = CSSProperties['cursor']
@@ -555,6 +556,7 @@ interface CellRenderer {
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
     formula?: boolean
     allowLocalUrl?: boolean
+    t: Composer['t']
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent
@@ -577,6 +579,7 @@ interface CellRenderer {
     cellRenderStore: CellRenderStore
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
     allowLocalUrl?: boolean
+    t: Composer['t']
   }) => Promise<boolean | void>
   handleHover?: (options: {
     event: MouseEvent
@@ -602,6 +605,7 @@ interface CellRenderer {
     setCursor: SetCursorType
     path: Array<number>
     baseUsers?: (Partial<UserType> | Partial<User>)[]
+    t: Composer['t']
   }) => Promise<void>
   [key: string]: any
 }

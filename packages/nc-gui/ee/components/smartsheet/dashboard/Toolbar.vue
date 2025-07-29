@@ -43,7 +43,7 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
 
   const position = calculateNextPosition(activeDashboardWidgets.value, positionMap[widgetType])
 
-  const modelId = activeTables.value[0]?.id
+  const modelId = activeTables.value?.[0]?.id
 
   let meta = null
 
@@ -55,7 +55,7 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
     title: getWidgetTitle(widgetType, type),
     type: widgetType,
     position: { ...positionMap[widgetType], ...position },
-    config: getDefaultConfig(widgetType, type, meta.columns),
+    config: getDefaultConfig(widgetType, type, meta?.columns),
     fk_model_id: modelId,
   }
 

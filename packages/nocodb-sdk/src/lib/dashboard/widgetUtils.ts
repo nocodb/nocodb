@@ -102,7 +102,7 @@ const getDefaultChartConfig = (
 
   // Helper function to get the best column for category field
   const getDefaultCategoryColumn = (columns?: Array<ColumnType>): string => {
-    if (!columns || columns.length === 0) return '';
+    if (!columns || columns?.length === 0) return '';
 
     // Priority 1: SingleSelect
     const singleSelectColumn = columns.find(

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ChartTypes, ChartWidgetType } from 'nocodb-sdk'
 import { CHART_COLORS } from '~/lib/constants'
+import { truncateText } from '~/utils/stringUtils'
 
 interface Props {
   widget: ChartWidgetType<ChartTypes.PIE>
@@ -56,11 +57,12 @@ const legendConfig = computed(() => {
           const item = widgetData.value?.data?.find((d: any) => d.name === name)
           if (item) {
             const displayValue = item.formatted_value !== undefined ? item.formatted_value : item.value
-            return `${name}: ${displayValue}`
+            const truncatedName = truncateText(name, 30)
+            return `${truncatedName}: ${displayValue}`
           }
-          return name
+          return truncateText(name, 30)
         }
-      : undefined,
+      : (name: string) => truncateText(name, 40),
     textStyle: {
       fontSize: 12,
       color: '#666',

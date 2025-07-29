@@ -361,7 +361,9 @@ export const ButtonCellRenderer: CellRenderer = {
     }
   },
   async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition, path, allowLocalUrl }) {
-    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return false
+    const isLoading = actionManager.isLoading(pk, column.id!)
+
+    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid || isLoading) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
@@ -477,7 +479,9 @@ export const ButtonCellRenderer: CellRenderer = {
   async handleKeyDown(ctx) {
     const { e, row, column, actionManager, pk, path } = ctx
     if (e.key === 'Enter') {
-      if (column.readonly || column.columnObj?.readonly) return false
+      const isLoading = actionManager.isLoading(pk, column.id!)
+
+      if (column.readonly || column.columnObj?.readonly || isLoading) return false
       await actionManager.executeButtonAction([pk], column, { row: [row], path, allowLocalUrl })
       return true
     }

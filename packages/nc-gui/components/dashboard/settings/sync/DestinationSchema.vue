@@ -409,7 +409,6 @@ onMounted(async () => {
               </td>
               <td class="center-column">
                 <a-checkbox
-                  :disabled="editMode"
                   :checked="isPrimaryKeyColumn(column.title)"
                   @update:checked="(checked) => togglePrimaryKey(column.title, checked)"
                 />

@@ -308,6 +308,7 @@ export class ColumnsService implements IColumnsService {
       user: UserType;
       reuse?: ReusableParams;
       apiVersion?: NcApiVersion;
+      forceUpdateSystem?: boolean;
     },
   ): Promise<Model | Column<any>> {
     const reuse = param.reuse || {};

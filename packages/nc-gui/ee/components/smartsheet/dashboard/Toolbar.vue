@@ -51,8 +51,6 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
     meta = await getMeta(modelId)
   }
 
-  console.log(meta)
-
   const newWidget: Partial<WidgetType> = {
     title: getWidgetTitle(widgetType, type),
     type: widgetType,

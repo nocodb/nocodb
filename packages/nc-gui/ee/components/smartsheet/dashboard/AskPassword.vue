@@ -37,7 +37,7 @@ const onFinish = async () => {
 }
 
 const focus: VNodeRef = (el: typeof InputPassword) => {
-  return el && el?.focus?.()
+  return el?.focus?.()
 }
 </script>
 

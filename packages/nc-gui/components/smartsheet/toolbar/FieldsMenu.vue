@@ -878,7 +878,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                             />
                           </NcButton>
                         </div>
-                        <span @click.stop="conditionalToggleFieldVisibility(field)">
+                        <span @click.stop="conditionalToggleFieldVisibility(field)" class="flex children:flex-none">
                           <NcSwitch
                             :checked="field.show"
                             :disabled="field.isViewEssentialField || isLocked || isLoadingShowAllColumns"

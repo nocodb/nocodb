@@ -31,17 +31,19 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const isEditingDashboard = ref(false)
 
   const activeBaseDashboards = computed(() => {
-    if (!activeProjectId.value && !sharedDashboardState.activeProjectId) return []
-    return dashboards.value.get(activeProjectId.value ?? sharedDashboardState.activeProjectId) || []
+    const id = activeProjectId.value || sharedDashboardState.activeProjectId
+    if (!id) return []
+    return dashboards.value.get(id) || []
   })
 
   const activeDashboardId = computed(() => route.params.dashboardId as string)
 
   const activeDashboard = computed(() => {
-    if (!activeDashboardId.value || (!activeProjectId.value && !sharedDashboardState.activeProjectId)) return null
+    const id = activeProjectId.value || sharedDashboardState.activeProjectId
+    if (!id) return null
     return (
       dashboards.value
-        .get(activeProjectId.value ?? sharedDashboardState.activeProjectId)
+        .get(id)
         ?.find((a) => a.id === activeDashboardId.value || a.uuid === activeDashboardId.value) || null
     )
   })

@@ -166,6 +166,12 @@ const getWidgetPositionConfig = (item: string) => {
 
 const gridRef = ref()
 
+const windowSize = useWindowSize()
+
+const isResponsiveEnabled = computed(() => {
+  return !isEditingDashboard.value && windowSize.width.value < 1280
+})
+
 watch(
   [() => activeDashboardWidgets.value, () => isEditingDashboard.value, () => selectedWidget.value],
   () => {
@@ -200,8 +206,8 @@ watch(
       ref="gridRef"
       v-model:layout="layout"
       :row-height="80"
-      :col-num="!isEditingDashboard ? null : 4"
-      :responsive="!isEditingDashboard"
+      :col-num="4"
+      :responsive="isResponsiveEnabled"
       :cols="{ lg: 4, md: 3, sm: 2, xs: 1, xxs: 1 }"
       :is-draggable="isEditingDashboard && !isPublic"
       :is-resizable="isEditingDashboard && !isPublic"

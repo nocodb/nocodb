@@ -15,6 +15,7 @@ export interface DashboardType {
 
   password?: string;
   fk_custom_url_id?: string;
+  uuid?: string;
 }
 
 export enum WidgetTypes {

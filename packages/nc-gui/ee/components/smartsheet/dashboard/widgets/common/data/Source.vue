@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ViewTypes, type ViewType } from 'nocodb-sdk';
 import GroupedSettings from '../GroupedSettings.vue'
 
 const emit = defineEmits<{
@@ -68,6 +69,10 @@ const onDataChange = (type: 'model' | 'view') => {
   updateDataSource()
 }
 
+const filterView = (view: ViewType) => {
+  return view.type !== ViewTypes.FORM
+}
+
 const useDebouncedGetWidget = useDebounceFn(async () => {
   if (!selectedWidget.value?.id) {
     return
@@ -102,7 +107,7 @@ onMounted(async () => {
   <GroupedSettings title="Source">
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Table</label>
-      <NSelectTable v-model:value="selectedModelId" placeholder="Select source " @update:value="onDataChange('model')" />
+      <NcListTableSelector disable-label v-model:value="selectedModelId!" placeholder="Select source " @update:value="onDataChange('model')" />
     </div>
 
     <div class="flex flex-col gap-2 flex-1 min-w-0">
@@ -120,13 +125,7 @@ onMounted(async () => {
 
     <div v-if="selectedDataSourceType === 'view'" class="flex flex-col gap-2 flex-1 min-w-0">
       <label>View</label>
-      <NSelectView
-        v-model:value="selectedViewId"
-        :disabled="!selectedModelId"
-        :table-id="selectedModelId"
-        label-default-view-as-default
-        @update:value="onDataChange('view')"
-      />
+      <NcListViewSelector disable-label v-model:value="selectedViewId!" :disabled="!selectedModelId" :table-id="selectedModelId!" label-default-view-as-default @update:value="onDataChange('view')" :filter-view="filterView" />
     </div>
 
     <div v-if="selectedDataSourceType === 'filter'" class="flex flex-col gap-2 flex-1 min-w-0">

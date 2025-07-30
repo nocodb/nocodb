@@ -60,7 +60,7 @@ const filterAggregation = (value: string) => {
     AllAggregations.Unchecked,
     AllAggregations.DateRange,
     AllAggregations.MonthRange,
-  ].includes(value)
+  ].includes(value as any)
 }
 
 const filterField = (column: ColumnType) => {
@@ -113,27 +113,12 @@ watch(selectedValue, () => {
   <div v-if="selectedValue === 'summary'" class="flex gap-2 flex-1 min-w-0">
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Field</label>
-      <NSelectField
-        :key="modelId!"
-        v-model:value="selectedFieldId"
-        :disabled="!modelId"
-        :filter-column="filterField"
-        :table-id="modelId!"
-        @update:value="handleChange('field')"
-      />
+      <NcListColumnSelector disable-label :filter-column="filterField" v-model:value="selectedFieldId" :disabled="!modelId" :table-id="modelId!" @update:value="handleChange('field')" />
     </div>
 
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Type</label>
-
-      <NSelectAggregation
-        v-model:value="selectedAggregationType"
-        :disabled="!modelId"
-        :table-id="modelId"
-        :column-id="selectedFieldId"
-        :filter-option="filterAggregation"
-        @update:value="handleChange('aggregation')"
-      />
+      <NcListAggregationSelector disable-label :filter-column="filterAggregation" v-model:value="selectedAggregationType" :disabled="!modelId" :column-id="selectedFieldId!" :table-id="modelId!" @update:value="handleChange('aggregation')" />
     </div>
   </div>
 </template>

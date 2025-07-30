@@ -36,20 +36,12 @@ const filters = ref(selectedWidget.value?.config?.filters || [])
 const updateDataSource = () => {
   const dataSource = { type: selectedDataSourceType.value }
   if (selectedDataSourceType.value === 'model') {
-    if (selectedModelId.value) {
-      dataSource.fk_model_id = selectedModelId.value
-    }
+    dataSource.fk_model_id = selectedModelId.value || null
   } else if (selectedDataSourceType.value === 'view') {
-    if (selectedModelId.value) {
-      dataSource.fk_model_id = selectedModelId.value
-    }
-    if (selectedViewId.value) {
-      dataSource.fk_view_id = selectedViewId.value
-    }
+    dataSource.fk_model_id = selectedModelId.value || null
+    dataSource.fk_view_id = selectedViewId.value || null
   } else if (selectedDataSourceType.value === 'filter') {
-    if (selectedModelId.value) {
-      dataSource.fk_model_id = selectedModelId.value
-    }
+    dataSource.fk_model_id = selectedModelId.value || null
   }
 
   emit('update:source', dataSource)

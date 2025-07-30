@@ -4,22 +4,24 @@ import type { TableType } from 'nocodb-sdk'
 interface Props {
   baseId?: string
   tableId?: string
-  value?: string
-  showTableSelector?: boolean
+  value?: string | null | undefined
   forceLayout?: 'vertical' | 'horizontal'
   filterTable?: (table: TableType) => boolean
   forceLoadBaseTables?: boolean
   disableLabel?: boolean
+  autoSelect?: boolean
+  disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  showTableSelector: true,
   forceLoadBaseTables: false,
   disableLabel: false,
+  autoSelect: false,
+  disabled: false,
 })
 
 const emit = defineEmits<{
-  'update:value': [value: string | undefined]
+  'update:value': [value: string | null | undefined]
 }>()
 
 const { t } = useI18n()
@@ -68,19 +70,33 @@ const tableList = computedAsync(async () => {
 const selectedTable = computed(() => {
   if (!tableList.value || tableList.value.length === 0) return undefined
 
-  return tableList.value.find((table) => table.value === modelValue.value) || tableList.value[0]
+  return tableList.value.find((table) => table.value === modelValue.value) || undefined
 })
 
 watch(tableList, (newTableList) => {
-  if (!modelValue.value && newTableList && newTableList.length > 0) {
-    const newTableId = props.tableId || newTableList[0]?.value
+  if (newTableList && newTableList.length > 0) {
+    // Check if current value exists in the new table list
+    if (modelValue.value && !newTableList.find((table) => table.value === modelValue.value)) {
+      // Current value is not in the list, emit null to clear it
+      modelValue.value = null
+      emit('update:value', null)
+      return
+    }
 
-    const tableObj = newTableList.find((table) => table.value === newTableId)
+    // Auto-select logic (only if autoSelect is enabled and no current value)
+    if (!modelValue.value && props.autoSelect) {
+      const newTableId = props.tableId || newTableList[0]?.value
 
-    if (tableObj && tableObj.ncItemDisabled && tableObj.value === newTableList[0]?.value) {
-      modelValue.value = newTableList.find((table) => !table.ncItemDisabled)?.value || newTableList[0]?.value
-    } else {
-      modelValue.value = newTableId
+      const tableObj = newTableList.find((table) => table.value === newTableId)
+
+      if (tableObj && tableObj.ncItemDisabled && tableObj.value === newTableList[0]?.value) {
+        const selectedValue = newTableList.find((table) => !table.ncItemDisabled)?.value || newTableList[0]?.value
+        modelValue.value = selectedValue
+        emit('update:value', selectedValue)
+      } else {
+        modelValue.value = newTableId
+        emit('update:value', newTableId)
+      }
     }
   }
 }, { immediate: true })
@@ -95,7 +111,6 @@ defineExpose({
 
 <template>
   <a-form-item
-    v-if="selectedTable"
     name="tableId"
     class="!mb-0 nc-table-selector"
     :class="`nc-force-layout-${forceLayout}`"
@@ -109,19 +124,28 @@ defineExpose({
     </template>
     <NcListDropdown
       v-model:is-open="isOpenTableSelectDropdown"
-      :disabled="!showTableSelector"
+      :disabled="disabled"
       :default-slot-wrapper-class="
-        !showTableSelector
+        disabled
           ? 'text-nc-content-gray-muted cursor-not-allowed bg-nc-bg-gray-light children:opacity-60'
           : 'text-nc-content-gray'
       "
       :has-error="!!selectedTable?.ncItemDisabled"
     >
       <div class="flex-1 flex items-center gap-2 min-w-0">
-        <div class="min-w-5 flex items-center justify-center">
-          <NIconTable :table="selectedTable" class="text-gray-500" />
+        <div v-if="selectedTable" class="min-w-5 flex items-center justify-center">
+          <NIconTable :table="selectedTable || { title: '', table_name: '' }" class="text-gray-500" />
         </div>
-        <span :key="selectedTable?.value" class="text-sm flex-1 truncate">{{ selectedTable?.label || t('general.table') }}</span>
+        <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
+          <span v-if="selectedTable" :key="selectedTable?.value" class="text-sm flex-1 truncate" :class="{ 'text-nc-content-gray-muted': !selectedTable }">
+            {{ selectedTable?.label }}
+          </span>
+          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select table --</span>
+
+          <template #title>
+            {{ selectedTable?.label || 'Select table' }}
+          </template>
+        </NcTooltip>
 
         <GeneralIcon
           icon="ncChevronDown"

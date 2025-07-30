@@ -5,21 +5,23 @@ interface Props {
   tableId?: string
   viewId?: string
   value?: string
-  showViewSelector?: boolean
   forceLayout?: 'vertical' | 'horizontal'
   filterView?: (view: ViewType) => boolean
   ignoreLoading?: boolean
   forceFetchViews?: boolean
   labelDefaultViewAsDefault?: boolean
   disableLabel?: boolean
+  autoSelect?: boolean
+  disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  showViewSelector: true,
   ignoreLoading: false,
   forceFetchViews: false,
   labelDefaultViewAsDefault: false,
   disableLabel: false,
+  autoSelect: false,
+  disabled: false,
 })
 
 const emit = defineEmits<{
@@ -84,16 +86,30 @@ const selectedView = computed(() => {
 })
 
 watch(viewList, (newViewList) => {
-  if (!modelValue.value && newViewList && newViewList.length > 0) {
-    const newViewId = props.viewId || newViewList[0]?.value
+  if (newViewList && newViewList.length > 0) {
+    // Check if current value exists in the new view list
+    if (modelValue.value && !newViewList.find((view) => view.value === modelValue.value)) {
+      // Current value is not in the list, emit null to clear it
+      modelValue.value = undefined
+      emit('update:value', undefined)
+      return
+    }
 
-    const viewObj = newViewList.find((view) => view.value === newViewId)
+    // Auto-select logic (only if autoSelect is enabled and no current value)
+    if (!modelValue.value && props.autoSelect) {
+      const newViewId = props.viewId || newViewList[0]?.value
 
-    // Change view id only if it is default view selected initially and its not enabled
-    if (viewObj && viewObj.ncItemDisabled && viewObj.value === newViewList[0]?.value) {
-      modelValue.value = newViewList.find((view) => !view.ncItemDisabled)?.value || newViewList[0]?.value
-    } else {
-      modelValue.value = newViewId
+      const viewObj = newViewList.find((view) => view.value === newViewId)
+
+      // Change view id only if it is default view selected initially and its not enabled
+      if (viewObj && viewObj.ncItemDisabled && viewObj.value === newViewList[0]?.value) {
+        const selectedValue = newViewList.find((view) => !view.ncItemDisabled)?.value || newViewList[0]?.value
+        modelValue.value = selectedValue
+        emit('update:value', selectedValue)
+      } else {
+        modelValue.value = newViewId
+        emit('update:value', newViewId)
+      }
     }
   }
 }, { immediate: true })
@@ -108,7 +124,6 @@ defineExpose({
 
 <template>
   <a-form-item
-    v-if="selectedView"
     name="viewId"
     class="!mb-0 nc-view-selector"
     :class="`nc-force-layout-${forceLayout}`"
@@ -122,19 +137,28 @@ defineExpose({
     </template>
     <NcListDropdown
       v-model:is-open="isOpenViewSelectDropdown"
-      :disabled="!showViewSelector"
+      :disabled="disabled"
       :default-slot-wrapper-class="
-        !showViewSelector
+        disabled
           ? 'text-nc-content-gray-muted cursor-not-allowed bg-nc-bg-gray-light children:opacity-60'
           : 'text-nc-content-gray'
       "
       :has-error="!!selectedView?.ncItemDisabled"
     >
       <div class="flex-1 flex items-center gap-2 min-w-0">
-        <div class="min-w-5 flex items-center justify-center">
+        <div v-if="selectedView" class="min-w-5 flex items-center justify-center">
           <NIconView :view="selectedView" class="text-gray-500" />
         </div>
-        <span class="text-sm flex-1 truncate">{{ selectedView?.label || t('general.view') }}</span>
+        <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
+          <span v-if="selectedView" :key="selectedView?.value" class="text-sm flex-1 truncate" :class="{ 'text-nc-content-gray-muted': !selectedView }">
+            {{ selectedView?.label }}
+          </span>
+          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select view --</span>
+
+          <template #title>
+            {{ selectedView?.label || 'Select view' }}
+          </template>
+        </NcTooltip>
 
         <GeneralIcon
           icon="ncChevronDown"

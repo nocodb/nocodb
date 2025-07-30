@@ -5,17 +5,19 @@ interface Props {
   tableId?: string
   columnId?: string
   value?: string
-  showColumnSelector?: boolean
   forceLayout?: 'vertical' | 'horizontal'
   filterColumn?: (column: ColumnType) => boolean
   forceLoadTableFields?: boolean
   disableLabel?: boolean
+  autoSelect?: boolean
+  disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  showColumnSelector: true,
   forceLoadTableFields: false,
   disableLabel: false,
+  autoSelect: false,
+  disabled: false,
 })
 
 const emit = defineEmits<{
@@ -74,21 +76,35 @@ const columnList = computedAsync(async () => {
 const selectedColumn = computed(() => {
   if (!columnList.value || columnList.value.length === 0) return undefined
 
-  return columnList.value.find((column) => column.value === modelValue.value) || columnList.value[0]
+  return columnList.value.find((column) => column.value === modelValue.value) || undefined
 })
 
 // Watch for columnList changes and set initial value
 watch(columnList, (newColumnList) => {
-  if (!modelValue.value && newColumnList && newColumnList.length > 0) {
-    const newColumnId = props.columnId || newColumnList[0]?.value
+  if (newColumnList && newColumnList.length > 0) {
+    // Check if current value exists in the new column list
+    if (modelValue.value && !newColumnList.find((column) => column.value === modelValue.value)) {
+      // Current value is not in the list, emit null to clear it
+      modelValue.value = undefined
+      emit('update:value', undefined)
+      return
+    }
 
-    const columnObj = newColumnList.find((column) => column.value === newColumnId)
+    // Auto-select logic (only if autoSelect is enabled and no current value)
+    if (!modelValue.value && props.autoSelect) {
+      const newColumnId = props.columnId || newColumnList[0]?.value
 
-    // Change column id only if it is default column selected initially and its not enabled
-    if (columnObj && columnObj.ncItemDisabled && columnObj.value === newColumnList[0]?.value) {
-      modelValue.value = newColumnList.find((column) => !column.ncItemDisabled)?.value || newColumnList[0]?.value
-    } else {
-      modelValue.value = newColumnId
+      const columnObj = newColumnList.find((column) => column.value === newColumnId)
+
+      // Change column id only if it is default column selected initially and its not enabled
+      if (columnObj && columnObj.ncItemDisabled && columnObj.value === newColumnList[0]?.value) {
+        const selectedValue = newColumnList.find((column) => !column.ncItemDisabled)?.value || newColumnList[0]?.value
+        modelValue.value = selectedValue
+        emit('update:value', selectedValue)
+      } else {
+        modelValue.value = newColumnId
+        emit('update:value', newColumnId)
+      }
     }
   }
 }, { immediate: true })
@@ -103,7 +119,6 @@ defineExpose({
 
 <template>
   <a-form-item
-    v-if="selectedColumn"
     name="columnId"
     class="!mb-0 nc-column-selector"
     :class="`nc-force-layout-${forceLayout}`"
@@ -117,19 +132,28 @@ defineExpose({
     </template>
     <NcListDropdown
       v-model:is-open="isOpenColumnSelectDropdown"
-      :disabled="!showColumnSelector"
+      :disabled="disabled"
       :default-slot-wrapper-class="
-        !showColumnSelector
+        disabled
           ? 'text-nc-content-gray-muted cursor-not-allowed bg-nc-bg-gray-light children:opacity-60'
           : 'text-nc-content-gray'
       "
       :has-error="!!selectedColumn?.ncItemDisabled"
     >
       <div class="flex-1 flex items-center gap-2 min-w-0">
-        <div class="min-w-5 flex items-center justify-center">
+        <div v-if="selectedColumn" class="min-w-5 flex items-center justify-center">
           <NIconField :field="selectedColumn" class="text-gray-500" />
         </div>
-        <span class="text-sm flex-1 truncate">{{ selectedColumn?.label || t('general.column') }}</span>
+        <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only> 
+          <span v-if="selectedColumn" class="text-sm flex-1 truncate text-nc-content-gray-default">
+            {{ selectedColumn?.label }}
+          </span>
+          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select field --</span>
+
+          <template #title>
+            {{ selectedColumn?.label || 'Select field' }}
+          </template>
+        </NcTooltip>
 
         <GeneralIcon
           icon="ncChevronDown"

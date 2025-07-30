@@ -75,7 +75,7 @@ const saveValue = (targetValue: string) => {
   vModel.value = value
 }
 let savingHandle: any
-const onInputKeyUp = (e: KeyboardEvent) => {
+const onInputKeyUp = (e: KeyboardEvent, debounce = true) => {
   const target: HTMLInputElement = e.target as HTMLInputElement
   if (target) {
     // mac's double space insert period
@@ -87,9 +87,13 @@ const onInputKeyUp = (e: KeyboardEvent) => {
     if (savingHandle) {
       clearTimeout(savingHandle)
     }
-    savingHandle = setTimeout(() => {
+    if (!debounce) {
       saveValue(target.value)
-    }, 100)
+    } else {
+      savingHandle = setTimeout(() => {
+        saveValue(target.value)
+      }, 100)
+    }
   }
 }
 // Handle the arrow keys as its default behavior is to increment/decrement the value
@@ -132,6 +136,7 @@ const onInputKeyDown = (e: KeyboardEvent) => {
     e.stopPropagation()
     return
   }
+
   pasteText(target, e.key)
   e.preventDefault()
   e.stopPropagation()
@@ -153,6 +158,7 @@ const onInputPaste = (e: ClipboardEvent) => {
   e.stopPropagation()
   pasteText(target, value)
 }
+
 const onInputBlur = (e: FocusEvent) => {
   emits('blur', e)
   if (e.target) {
@@ -194,6 +200,7 @@ onMounted(() => {
     style="letter-spacing: 0.06rem; height: 24px !important"
     :style="inputStyle"
     :disabled="disabled"
+    @keydown.enter.exact="onInputKeyUp($event, false)"
     @keydown.left.stop
     @keydown.right.stop
     @keydown.delete.stop

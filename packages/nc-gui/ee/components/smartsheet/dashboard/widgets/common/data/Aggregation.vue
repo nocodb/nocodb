@@ -113,12 +113,12 @@ watch(selectedValue, () => {
   <div v-if="selectedValue === 'summary'" class="flex gap-2 flex-1 min-w-0">
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Field</label>
-      <NcListColumnSelector disable-label :filter-column="filterField" v-model:value="selectedFieldId" :disabled="!modelId" :table-id="modelId!" @update:value="handleChange('field')" />
+      <NcListColumnSelector disable-label  :filter-column="filterField" v-model:value="selectedFieldId" :disabled="!modelId" :table-id="modelId!" @update:value="handleChange('field')" />
     </div>
 
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Type</label>
-      <NcListAggregationSelector disable-label :filter-column="filterAggregation" v-model:value="selectedAggregationType" :disabled="!modelId" :column-id="selectedFieldId!" :table-id="modelId!" @update:value="handleChange('aggregation')" />
+      <NcListAggregationSelector disable-label :disabled="!modelId || !selectedFieldId" :filter-column="filterAggregation" v-model:value="selectedAggregationType" :column-id="selectedFieldId" :table-id="modelId" @update:value="handleChange('aggregation')" />
     </div>
   </div>
 </template>

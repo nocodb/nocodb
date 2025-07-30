@@ -17,15 +17,6 @@ const FEATURES = [
     version: 1,
   },
   {
-    id: 'dashboard',
-    title: 'Dashboard',
-    isEngineering: true,
-    description: 'Build interactive dashboards with charts, widgets, and visualizations to monitor your data at a glance.',
-    enabled: false,
-    version: 1,
-    isEE: true,
-  },
-  {
     id: 'canvas_group_grid_view',
     title: 'Improved Group By',
     description: 'New and Improved groupby in grid view with enhanced scrolling and rendering capabilities.',
@@ -59,17 +50,19 @@ const FEATURES = [
     title: 'AI features',
     description: 'Unlock AI features to enhance your NocoDB experience.',
     enabled: true,
-    version: 2,
+    version: 3,
     isEE: true,
+    isOnPrem: false,
   },
   {
     id: 'ai_beta_features',
     title: 'AI beta features',
     description: 'Unlock AI beta features to enhance your NocoDB experience.',
     enabled: false,
-    version: 1,
+    version: 2,
     isEngineering: true,
     isEE: true,
+    isOnPrem: false,
   },
   {
     id: 'row_action',
@@ -185,9 +178,14 @@ const STORAGE_KEY = 'featureToggleStates'
 export const useBetaFeatureToggle = createSharedComposable(() => {
   const features = ref<BetaFeatureType[]>(deepClone(FEATURES))
 
+  const { appInfo } = useGlobal()
+
   const featureStates = computed(() => {
     return features.value.reduce((acc, feature) => {
-      acc[feature.id] = feature.isEE && !isEeUI ? false : feature.enabled
+      const isEeFeatureEnabled = feature.isEE && !isEeUI ? false : feature.enabled
+      const isOnPremFeatureEnabled = !appInfo.value.isOnPrem || feature.isOnPrem !== false
+
+      acc[feature.id] = isEeFeatureEnabled && isOnPremFeatureEnabled
       return acc
     }, {} as Record<BetaFeatureId, boolean>)
   })

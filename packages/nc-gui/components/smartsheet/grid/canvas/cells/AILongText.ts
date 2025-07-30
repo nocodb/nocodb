@@ -1,4 +1,3 @@
-import { getI18n } from '../../../../../plugins/a.i18n'
 import {
   defaultOffscreen2DContext,
   isBoxHovered,
@@ -272,7 +271,7 @@ export const AILongTextCellRenderer: CellRenderer = {
     }
     return false
   },
-  async handleHover({ row, column, mousePosition, getCellPosition }) {
+  async handleHover({ row, column, mousePosition, getCellPosition, t }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
     if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return
@@ -280,7 +279,7 @@ export const AILongTextCellRenderer: CellRenderer = {
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
     const expandIconBox = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
     const regenerateIconBox = { x: x + width - 52, y: y + 7, width: 18, height: 18 }
-    tryShowTooltip({ text: getI18n().global.t('title.expand'), rect: expandIconBox, mousePosition })
+    tryShowTooltip({ text: t('title.expand'), rect: expandIconBox, mousePosition })
     tryShowTooltip({ text: 'Re-generate', rect: regenerateIconBox, mousePosition })
   },
   async handleKeyDown(ctx) {

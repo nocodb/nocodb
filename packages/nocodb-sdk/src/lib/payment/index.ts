@@ -47,6 +47,7 @@ export enum PlanFeatureTypes {
   FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER = 'feature_rollup_limit_records_by_filter',
   FEATURE_PERSONAL_VIEWS = 'feature_personal_views',
   FEATURE_SCRIPTS = 'feature_scripts',
+  FEATURE_DASHBOARD = 'feature_dashboard',
   FEATURE_SSO = 'feature_sso',
   FEATURE_WEBHOOK_CUSTOM_PAYLOAD = 'feature_webhook_custom_payload',
   FEATURE_WORKSPACE_CUSTOM_LOGO = 'feature_workspace_custom_logo',
@@ -220,6 +221,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to limit rollup records by filters.',
   [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: 'to use personal views.',
   [PlanFeatureTypes.FEATURE_SCRIPTS]: 'to enable scripts.',
+  [PlanFeatureTypes.FEATURE_DASHBOARD]: 'to use dashboards.',
   [PlanFeatureTypes.FEATURE_SSO]: 'to enable SSO (Single Sign-On).',
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]:
     'to send custom webhook payloads.',

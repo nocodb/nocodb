@@ -14,12 +14,23 @@ const searchQuery = ref('')
 
 const { isMetaReadOnly } = useRoles()
 
-const filteredOptions = computed(
-  () =>
-    options.value?.filter((c) =>
-      searchCompare([c.name, UITypesName[c.name], ...(UITypesSearchTerms[c.name] || [])], searchQuery.value),
-    ) ?? [],
-)
+const searchBasisInfoMap = ref<Record<string, string>>({})
+
+const filteredOptions = computed(() => {
+  searchBasisInfoMap.value = {}
+
+  return (options.value || []).filter((c) => {
+    // Step 1: apply default filter
+    if (searchCompare([c.name, UITypesName[c.name]], searchQuery.value)) return true
+
+    // Step 2: apply search basis options
+    return searchCompare([...(UITypesSearchTerms[c.name] || [])], searchQuery.value, (matchKeyword) => {
+      if (!matchKeyword) return
+
+      searchBasisInfoMap.value[c.name] = `Matched by keyword: ${matchKeyword}`
+    })
+  })
+})
 
 const inputRef = ref()
 
@@ -128,7 +139,20 @@ const { isSystem } = useColumnCreateStoreOrThrow()
               class="w-4 h-4"
               :class="isDisabledUIType(option.name) ? '!text-gray-400' : 'text-gray-700'"
             />
-            <div class="flex-1 text-sm">{{ UITypesName[option.name] }}</div>
+            <div
+              class="text-sm"
+              :class="{
+                'flex-1': !searchBasisInfoMap[option.name],
+              }"
+            >
+              {{ UITypesName[option.name] }}
+            </div>
+            <div v-if="searchBasisInfoMap[option.name]" class="flex-1 flex">
+              <NcTooltip :title="searchBasisInfoMap[option.name]" class="flex cursor-help">
+                <GeneralIcon icon="info" class="flex-none h-3.5 w-3.5 text-nc-content-gray-muted" />
+              </NcTooltip>
+            </div>
+
             <span v-if="option.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
             <span v-if="option.isNew" class="text-sm text-nc-content-purple-dark bg-purple-50 px-2 rounded-md">{{
               $t('general.new')

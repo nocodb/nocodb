@@ -305,7 +305,7 @@ const isColumnInvalid = (
         result.isInvalid = !colOptions.fk_webhook_id
       } else if (colOptions.type === ButtonActionsType.Url) {
         result.isInvalid = !!colOptions.error
-      } else if (colOptions.type === ButtonActionsType.AI) {
+      } else if (colOptions.type === ButtonActionsType.Ai) {
         result.isInvalid =
           !colOptions.fk_integration_id ||
           (isReadOnly

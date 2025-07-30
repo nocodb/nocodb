@@ -1,4 +1,5 @@
 import {
+  type ButtonType,
   type ColumnType,
   CommonAggregations,
   type GridColumnReqType,
@@ -33,6 +34,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const filterQuery = ref('')
 
     const { $api, $e } = useNuxtApp()
+
+    const { t } = useI18n()
 
     const { isUIAllowed } = useRoles()
 
@@ -334,32 +337,82 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       },
     })
 
+    const fieldSearchBasisOptions: {
+      searchBasisInfo: string
+      filterCallback: (query: string, option: ColumnType) => boolean
+    }[] = [
+      {
+        searchBasisInfo: t('msg.info.matchedByButtonLabel'),
+        filterCallback: (query, option) => {
+          if (!option) return false
+
+          const column = option as ColumnType
+
+          return isButton(column) && searchCompare([(column.colOptions as ButtonType)?.label], query)
+        },
+      },
+      {
+        searchBasisInfo: t('msg.info.matchedByFieldDescription'),
+        filterCallback: (query, option) => {
+          if (!option) return false
+
+          const column = option as ColumnType
+
+          if (!column.description) return false
+
+          return searchCompare([column.description], query)
+        },
+      },
+    ]
+
+    const searchBasisIdMap = ref<Record<string, string>>({})
+
+    /**
+     * Apply search basis filter to the column
+     * @param column - The column to apply the search basis filter to
+     * @returns true if the column matches the search basis filter, false otherwise
+     */
+    const applySearchBasisFilter = (column?: ColumnType) => {
+      if (!column) return false
+
+      for (const basisOption of fieldSearchBasisOptions) {
+        if (!basisOption.filterCallback(filterQuery.value, column)) continue
+
+        searchBasisIdMap.value[column.id!] = basisOption.searchBasisInfo
+        return true
+      }
+
+      return false
+    }
+
     const filteredFieldList = computed(() => {
-      return (
-        fields.value?.filter((field: Field) => {
-          if (!field.initialShow && isLocalMode.value) {
-            return false
-          }
+      searchBasisIdMap.value = {}
 
-          if (
-            metaColumnById?.value?.[field.fk_column_id!]?.pv &&
-            (!filterQuery.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase()))
-          ) {
-            return true
-          }
+      return (fields.value || []).filter((field: Field) => {
+        if (!field.initialShow && isLocalMode.value) {
+          return false
+        }
+        const column = metaColumnById?.value?.[field.fk_column_id!]
 
-          // hide system columns if not enabled
-          if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
-            return false
-          }
+        if (column?.pv) {
+          // Step 1: Apply default filter
+          if (!filterQuery.value || searchCompare([field.title], filterQuery.value)) return true
 
-          if (filterQuery.value === '') {
-            return true
-          } else {
-            return field.title.toLowerCase().includes(filterQuery.value.toLowerCase())
-          }
-        }) || []
-      )
+          // Step 2: Apply search basis options if default filter fails
+          return applySearchBasisFilter(column)
+        }
+
+        // hide system columns if not enabled
+        if (!showSystemFields.value && isSystemColumn(column)) {
+          return false
+        }
+
+        // Step 1: Apply default filter
+        if (!filterQuery.value || searchCompare([field.title], filterQuery.value)) return true
+
+        // Step 2: Apply search basis options if default filter fails
+        return applySearchBasisFilter(column)
+      })
     })
 
     const numberOfHiddenFields = computed(() => {
@@ -515,6 +568,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       fieldsMap,
       loadViewColumns,
       filteredFieldList,
+      searchBasisIdMap,
       numberOfHiddenFields,
       filterQuery,
       showAll,

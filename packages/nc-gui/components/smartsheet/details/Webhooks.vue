@@ -270,7 +270,13 @@ const getHookTypeText = (hook: HookType) => {
           class="bg-nc-bg-orange-light"
         >
           <template #action>
-            <NcButton type="link" size="xsmall" class="!hover:underline !font-bold">
+            <NcButton
+              type="link"
+              size="xsmall"
+              class="!hover:underline !font-bold"
+              target="_blank"
+              href="https://nocodb.com/docs/product-docs/automation/webhook/webhook-v2-vs-v3#upgrade-to-webhook-v3"
+            >
               {{ $t('activity.goToDocs') }}
             </NcButton>
           </template>

@@ -35,6 +35,7 @@ import {
 import { calculateGroupRowTop, comparePath, findGroupByPath, generateGroupPath, getDefaultGroupData } from './utils/groupby'
 import { CanvasElement, ElementTypes } from './utils/CanvasElement'
 import AddNewRowMenu from './components/AddNewRowMenu.vue'
+import GroupContextMenu from './components/GroupHeaderMenu.vue'
 import type { Row } from '#imports'
 
 const props = defineProps<{
@@ -122,6 +123,7 @@ const props = defineProps<{
     sort: string
   }>
   toggleExpand: (group: CanvasGroup) => void
+  toggleExpandAll: (path: Array<number>, expand: boolean) => void
   groupSyncCount: (group?: CanvasGroup) => Promise<void>
   fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => Promise<void>
   clearGroupCache: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => void
@@ -153,6 +155,7 @@ const {
   groupSyncCount: syncGroupCount,
   fetchMissingGroupChunks,
   clearGroupCache,
+  toggleExpandAll,
 } = props
 
 // VModels
@@ -185,6 +188,7 @@ const preloadColumn = ref<any>()
 const overlayStyle = ref<Record<string, any> | null>(null)
 const openAggregationField = ref<CanvasGridColumn | null>(null)
 const openAddNewRowDropdown = ref<Array<number> | null>(null)
+const openGroupContextMenuDropdown = ref<CanvasGroup | null>(null)
 const openColumnDropdownField = ref<ColumnType | null>(null)
 const _isDropdownVisible = ref(false)
 const contextMenuTarget = ref<{ row: number; col: number; path: Array<number> } | null>(null)
@@ -954,6 +958,7 @@ let prevMenuState: {
   openAggregationFieldId?: string
   openAddNewRowDropdown?: Array<number> | null
   isDropdownVisible?: boolean
+  openGroupContextMenuDropdown?: CanvasGroup | null
   editColumn?: unknown
   columnOrder?: unknown
 } = {}
@@ -972,6 +977,7 @@ async function handleMouseDown(e: MouseEvent) {
     // storing id since the value get alteredand it's reactive
     openAggregationFieldId: openAggregationField.value?.id,
     openAddNewRowDropdown: openAddNewRowDropdown.value,
+    openGroupContextMenuDropdown: openGroupContextMenuDropdown.value,
     isDropdownVisible: isDropdownVisible.value,
     editColumn: editColumn.value,
     columnOrder: columnOrder.value,
@@ -980,6 +986,7 @@ async function handleMouseDown(e: MouseEvent) {
   editEnabled.value = null
   openAggregationField.value = null
   openAddNewRowDropdown.value = null
+  openGroupContextMenuDropdown.value = null
   openColumnDropdownField.value = null
   isDropdownVisible.value = false
   editColumn.value = null
@@ -1296,8 +1303,18 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
           requestAnimationFrame(triggerRefreshCanvas)
           return
         } else {
+          const rightPadding = 8
           const columnWidth = parseCellWidth(clickedColumn.width)
-          const iconOffsetX = xOffset + columnWidth - 24 + groupByColumns.value.length * 13
+          let rightOffset = xOffset + columnWidth - rightPadding
+          rightOffset -= 16
+          // TODO: remove this once the issue is fixed
+          // Groupby columns have a 13px for the fixed column
+          if (groupByColumns.value?.length === 1 && clickedColumn.fixed) {
+            rightOffset += 13
+          }
+
+          const iconOffsetX = rightOffset
+
           // check if clicked on the column menu icon
           if (iconOffsetX <= x && iconOffsetX + 14 >= x) {
             if (isFieldNotEditable) return
@@ -1412,6 +1429,34 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 
       if ((clickedColumn && clickedColumn?.fixed) || !appInfo.value.ee) {
+        const columnWidth = parseCellWidth(clickedColumn.width)
+
+        const diff = x - columnWidth
+
+        const isYInBounds = y > element.y + 8 && y < element.y + element.height - 8
+
+        if (diff > 65 && diff < columnWidth + 65 && isYInBounds && appInfo.value.isOnPrem) {
+          if (
+            prevMenuState.isDropdownVisible &&
+            prevMenuState.openGroupContextMenuDropdown &&
+            prevMenuState.openGroupContextMenuDropdown.path?.join(',') === group?.path?.join(',')
+          ) {
+            requestAnimationFrame(triggerRefreshCanvas)
+
+            return
+          }
+          openGroupContextMenuDropdown.value = group
+          isDropdownVisible.value = true
+          overlayStyle.value = {
+            top: `${rect.top + y - 36}px`,
+            left: `${rect.left + xOffset}px`,
+            width: '300px',
+            height: `36px`,
+            position: 'fixed',
+          }
+          requestAnimationFrame(triggerRefreshCanvas)
+          return
+        }
         toggleExpand(group)
       } else if (clickedColumn) {
         // if clicked on same aggregation field, close the dropdown
@@ -2405,6 +2450,20 @@ function resetActiveCell(path?: Array<number>, force = false) {
   }
 }
 
+function toggleGroupExpand(group: CanvasGroup) {
+  toggleExpand(group)
+  isDropdownVisible.value = false
+  openGroupContextMenuDropdown.value = null
+  requestAnimationFrame(triggerRefreshCanvas)
+}
+
+const toggleGroupExpandAll = (path: number[], isExpand?: boolean) => {
+  isDropdownVisible.value = false
+  openGroupContextMenuDropdown.value = null
+  toggleExpandAll(path, isExpand)
+  requestAnimationFrame(triggerRefreshCanvas)
+}
+
 onClickOutside(
   wrapperRef,
   (e: MouseEvent) => {
@@ -2420,13 +2479,14 @@ onClickOutside(
     }
     onActiveCellChanged()
     const aggregationOrColumnMenuOpen = document.querySelector(
-      '.canvas-aggregation, .canvas-header-column-menu, .canvas-header-add-new-row-menu',
+      '.canvas-aggregation, .canvas-header-column-menu, .canvas-header-add-new-row-menu, .canvas-group-context-menu',
     )
     if (!aggregationOrColumnMenuOpen && isNcDropdownOpen()) return
 
     openColumnDropdownField.value = null
     openAggregationField.value = null
     openAddNewRowDropdown.value = null
+    openGroupContextMenuDropdown.value = null
     if (activeCell.value.row >= 0 || activeCell.value.column >= 0 || editEnabled.value) {
       resetActiveCell(activeCell.value.path, true)
     }
@@ -2437,6 +2497,7 @@ onClickOutside(
       '.canvas-aggregation',
       '.canvas-header-column-menu',
       '.canvas-header-add-new-row-menu',
+      '.canvas-group-context-menu',
     ],
   },
 )
@@ -2445,6 +2506,7 @@ onKeyStroke('Escape', () => {
   openColumnDropdownField.value = null
   openAggregationField.value = null
   openAddNewRowDropdown.value = null
+  openGroupContextMenuDropdown.value = null
   isDropdownVisible.value = false
 })
 
@@ -2673,17 +2735,31 @@ watch(
         :trigger="['click']"
         :visible="
           isDropdownVisible &&
-          !!(openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown)
+          !!(
+            openColumnDropdownField ||
+            isCreateOrEditColumnDropdownOpen ||
+            openAggregationField ||
+            openAddNewRowDropdown ||
+            openGroupContextMenuDropdown
+          )
         "
         :overlay-class-name="`!bg-transparent !min-w-[220px] ${
-          !openAggregationField && !openColumnDropdownField && !openAddNewRowDropdown ? '!border-none !shadow-none' : ''
+          !openAggregationField && !openColumnDropdownField && !openGroupContextMenuDropdown && !openAddNewRowDropdown
+            ? '!border-none !shadow-none'
+            : ''
         }`"
         placement="bottomRight"
         @visible-change="onVisibilityChange"
         @update:visible="onVisibilityChange"
       >
         <div
-          v-if="openColumnDropdownField || isCreateOrEditColumnDropdownOpen || openAggregationField || openAddNewRowDropdown"
+          v-if="
+            openColumnDropdownField ||
+            isCreateOrEditColumnDropdownOpen ||
+            openAggregationField ||
+            openAddNewRowDropdown ||
+            openGroupContextMenuDropdown
+          "
           :style="overlayStyle"
           class="hide pointer-events-none"
         ></div>
@@ -2703,6 +2779,13 @@ watch(
             :path="openAddNewRowDropdown"
             :on-new-record-to-grid-click="onNewRecordToGridClick"
             :on-new-record-to-form-click="onNewRecordToFormClick"
+          />
+          <GroupContextMenu
+            v-else-if="openGroupContextMenuDropdown"
+            class="canvas-group-context-menu"
+            :group="openGroupContextMenuDropdown"
+            @toggle-expand="toggleGroupExpand"
+            @toggle-expand-all="toggleGroupExpandAll"
           />
 
           <div v-if="isCreateOrEditColumnDropdownOpen" class="nc-edit-or-add-provider-wrapper">

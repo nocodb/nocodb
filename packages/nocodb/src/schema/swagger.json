@@ -29268,6 +29268,10 @@
             "type": "string",
             "description": "Workspace ID"
           },
+          "fk_dashboard_id": {
+            "type": "string",
+            "description": "Dashboard ID"
+          },
           "base_id": {
             "type": "string",
             "description": "Base ID"

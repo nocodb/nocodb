@@ -13,9 +13,9 @@ export const useWidgetStore = defineStore('widget', () => {
 
   const widgets = ref<Map<string, WidgetType[]>>(new Map<string, WidgetType[]>())
 
-  const activeDashboardWidgets = computed(() => {
+  const activeDashboardWidgets = computed<Array<WidgetType>>(() => {
     if (!activeDashboardId.value) return []
-    return widgets.value.get(activeDashboardId.value) || activeDashboard.value?.widgets || []
+    return widgets.value.get(activeDashboardId.value) || (activeDashboard.value as any)?.widgets || []
   })
 
   const selectedWidget = ref<WidgetType | null>(null)

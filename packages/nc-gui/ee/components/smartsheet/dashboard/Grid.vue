@@ -19,15 +19,20 @@ const { isUIAllowed } = useRoles()
 const isDragging = ref(false)
 const isResizing = ref(false)
 
-const layout = ref(
-  activeDashboardWidgets.value.map((widget) => ({
-    x: widget.position?.x,
-    y: widget.position?.y,
-    w: widget.position?.w,
-    h: widget.position?.h,
-    i: widget.id!,
-  })),
-)
+const layout = computed({
+  set: (value) => {
+    // layout.value = value
+  },
+  get: () => {
+    return activeDashboardWidgets.value.map((widget) => ({
+      x: widget.position?.x,
+      y: widget.position?.y,
+      w: widget.position?.w,
+      h: widget.position?.h,
+      i: widget.id!,
+    }))
+  },
+})
 
 const handleWidgetClick = (widget: WidgetType) => {
   if (isEditingDashboard.value) {
@@ -77,9 +82,9 @@ const handleMoved = (i: string, newX: number, newY: number) => {
   })
   if (widget) {
     widgetStore.updateWidgetPosition(activeDashboardId.value, i, {
-      ...widget.position,
-      x: newX!,
-      y: newY!,
+      ...widget.position!,
+      x: newX,
+      y: newY,
     })
   }
 
@@ -114,7 +119,7 @@ const handleResized = (i: string, newH: number, newW: number) => {
   })
   if (widget) {
     widgetStore.updateWidgetPosition(activeDashboardId.value, i, {
-      ...widget.position,
+      ...widget.position!,
       w: newW,
       h: newH,
     })
@@ -171,26 +176,6 @@ const windowSize = useWindowSize()
 const isResponsiveEnabled = computed(() => {
   return !isEditingDashboard.value && windowSize.width.value < 1280
 })
-
-watch(
-  [() => activeDashboardWidgets.value, () => isEditingDashboard.value, () => selectedWidget.value],
-  () => {
-    layout.value = activeDashboardWidgets.value.map((widget) => ({
-      x: widget.position?.x,
-      y: widget.position?.y,
-      w: widget.position?.w,
-      h: widget.position?.h,
-      i: widget.id!,
-    }))
-    nextTick(() => {
-      gridRef.value?.layoutUpdate?.()
-    })
-  },
-  {
-    deep: true,
-    immediate: true,
-  },
-)
 </script>
 
 <template>

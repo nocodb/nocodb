@@ -41,11 +41,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const activeDashboard = computed(() => {
     const id = activeProjectId.value || sharedDashboardState.activeProjectId
     if (!id) return null
-    return (
-      dashboards.value
-        .get(id)
-        ?.find((a) => a.id === activeDashboardId.value || a.uuid === activeDashboardId.value) || null
-    )
+    return dashboards.value.get(id)?.find((a) => a.id === activeDashboardId.value || a.uuid === activeDashboardId.value) || null
   })
 
   const loadDashboards = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {

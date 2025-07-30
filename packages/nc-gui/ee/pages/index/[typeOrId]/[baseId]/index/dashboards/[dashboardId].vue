@@ -22,7 +22,6 @@ const confirmUnsavedChangesBeforeLeaving = (
     return
   }
 
-
   const targetDashboardId = to.params.dashboardId as string
   const targetDashboard = activeBaseDashboards.value.find((d) => d.id === targetDashboardId) as any
   if (targetDashboard?.___is_new) {

@@ -198,7 +198,10 @@ const privateBaseMinPlanReq = computed(() => (isOnPrem.value ? PlanTitles.ENTERP
  */
 if (props.isCreateNewActionMenu) {
   watch([() => route.value.query?.basePrompt, () => route.value.query?.baseName], ([basePrompt, baseName]) => {
-    if (!(basePrompt as string)?.trim() || dialogShow.value) return
+    /**
+     * Avoid showing prefilled ai base create dialog if basePrompt is not available or if dialog is already shown or if rowId is present in the query params
+     */
+    if (!(basePrompt as string)?.trim() || dialogShow.value || route.value.query?.rowId) return
 
     aiModeInitialValue.value = {
       basePrompt: (basePrompt as string)?.trim() || '',

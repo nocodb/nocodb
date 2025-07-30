@@ -5,7 +5,7 @@ export * from '~/ee/models/Plan';
 export default Plan;
 
 export const EnterpriseStarterPlan = Plan.prepare({
-  title: PlanTitles.FREE,
+  title: PlanTitles.ENTERPRISE_STARTER,
   description: 'On-premise starter plan',
   meta: {
     ...(Object.fromEntries(

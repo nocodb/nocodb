@@ -29,7 +29,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ColumnsService } from '~/services/columns.service';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { TablesService } from '~/services/tables.service';
-import { isEE } from '~/utils';
+import { isEE, isOnPrem } from '~/utils';
 import { getWorkspaceDbServer } from '~/utils/cloudDb';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
@@ -294,6 +294,11 @@ export class BasesService extends BasesServiceCE {
         context.workspace_id,
       ))
     ) {
+      if (isOnPrem) {
+        NcError.badRequest(
+          'Setting a default role (private base) is not available in Enterprise Starter license. Please upgrade your license to enable this feature.',
+        );
+      }
       NcError.badRequest(
         'Setting a default role (private base) is only available on paid plans. Please upgrade your workspace plan to enable this feature.',
       );

@@ -6,9 +6,13 @@ import { PlanFeatureTypes, PlanTitles, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
+  isCreateNewActionMenu?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue'])
+
+const router = useRouter()
+const route = router.currentRoute
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -83,6 +87,20 @@ const modalSize = computed(() => (aiMode.value !== true ? 'small' : 'lg'))
 
 const input = ref<typeof Input>()
 
+const aiModeInitialValue = ref({
+  basePrompt: '',
+  baseName: '',
+})
+
+const handleResetInitialValue = () => {
+  aiModeInitialValue.value = {
+    basePrompt: '',
+    baseName: '',
+  }
+
+  // Reset query params
+  router.replace({ query: { ...route.value.query, basePrompt: undefined, baseName: undefined } })
+}
 const onInit = () => {
   // Clear errors
   setTimeout(async () => {
@@ -105,6 +123,13 @@ const onInit = () => {
 
 watch(dialogShow, async (n, o) => {
   if (n === o && !n) return
+
+  // If ai prompt is set, don't reset the aiMode value
+  if (n && aiModeInitialValue.value.basePrompt) return
+
+  if (!n) {
+    handleResetInitialValue()
+  }
 
   aiMode.value = null
 })
@@ -160,6 +185,25 @@ const selectedBaseAccessOption = computed(() => {
 })
 
 const privateBaseMinPlanReq = computed(() => (isOnPrem.value ? PlanTitles.ENTERPRISE : PlanTitles.BUSINESS))
+
+/**
+ * this `CreateProjectDlg` is used in multiple places and we are trying to show modal dialog based on the query params
+ * So to avoid multiple dialogs being shown, we are using `isCreateNewActionMenu` props
+ */
+if (props.isCreateNewActionMenu) {
+  watch([() => route.value.query?.basePrompt, () => route.value.query?.baseName], ([basePrompt, baseName]) => {
+    if (!(basePrompt as string)?.trim() || dialogShow.value) return
+
+    aiModeInitialValue.value = {
+      basePrompt: (basePrompt as string)?.trim() || '',
+      baseName: (baseName as string)?.trim() || '',
+    }
+
+    aiMode.value = true
+
+    dialogShow.value = true
+  })
+}
 </script>
 
 <template>
@@ -284,7 +328,9 @@ const privateBaseMinPlanReq = computed(() => (isOnPrem.value ? PlanTitles.ENTERP
       <WorkspaceProjectAiCreateProject
         v-model:ai-mode="aiMode"
         v-model:dialog-show="dialogShow"
+        :is-create-new-action-menu="isCreateNewActionMenu"
         :workspace-id="activeWorkspace.id"
+        :initial-value="aiModeInitialValue"
       />
     </template>
   </NcModal>

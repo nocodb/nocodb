@@ -286,6 +286,6 @@ const hasDashboardCreateAccess = computed(() => {
         </NcMenu>
       </template>
     </NcDropdown>
-    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
+    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" is-create-new-action-menu />
   </div>
 </template>

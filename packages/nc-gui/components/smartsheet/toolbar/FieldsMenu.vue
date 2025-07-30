@@ -38,6 +38,7 @@ const {
   showSystemFields,
   fields,
   filteredFieldList,
+  searchBasisIdMap,
   numberOfHiddenFields,
   filterQuery,
   showAll,
@@ -66,8 +67,16 @@ eventBus.on((event) => {
 
 const gridDisplayValueField = computed(() => {
   if (activeView.value?.type !== ViewTypes.GRID && activeView.value?.type !== ViewTypes.CALENDAR) return null
+
   const pvCol = Object.values(metaColumnById.value)?.find((col) => col?.pv)
+
   return filteredFieldList.value?.find((field) => field.fk_column_id === pvCol?.id)
+})
+
+const localFilteredFieldList = computed(() => {
+  return filteredFieldList.value.filter((el) =>
+    activeView.value?.type !== ViewTypes.CALENDAR ? el !== gridDisplayValueField.value : true,
+  )
 })
 
 const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
@@ -701,7 +710,7 @@ const onAddColumnDropdownVisibilityChange = () => {
           >
             <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1 ml-2" /> </template>
             <template #suffix>
-              <div class="pl-2 flex">
+              <div class="pl-2 flex items-center gap-2">
                 <NcSwitch
                   v-model:checked="showAllColumns"
                   :disabled="isDisabledShowAllColumns"
@@ -720,7 +729,7 @@ const onAddColumnDropdownVisibilityChange = () => {
         >
           <div class="nc-fields-list">
             <div
-              v-if="!fields?.filter((el) => el.title.toLowerCase().includes(filterQuery.toLowerCase())).length"
+              v-if="!localFilteredFieldList.length"
               class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
             >
               <img
@@ -742,11 +751,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             >
               <template #item="{ element: field }">
                 <div
-                  v-if="
-                    filteredFieldList
-                      .filter((el) => (activeView.type !== ViewTypes.CALENDAR ? el !== gridDisplayValueField : true))
-                      .includes(field)
-                  "
+                  v-if="localFilteredFieldList.includes(field)"
                   :key="field.id"
                   :data-testid="`nc-fields-menu-${field.title}`"
                   class="nc-fields-menu-item pl-2 flex flex-row items-center rounded-md"
@@ -790,7 +795,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                         <NcTooltip
                           class="pl-1 truncate"
                           :class="{
-                            'mr-3 flex-1': !showAddLookupDropdown(field),
+                            'mr-3 flex-1': !showAddLookupDropdown(field) && !searchBasisIdMap[field.fk_column_id!],
                           }"
                           show-on-truncate-only
                           :disabled="isDragging"
@@ -802,6 +807,11 @@ const onAddColumnDropdownVisibilityChange = () => {
                             {{ field.title }}
                           </template>
                         </NcTooltip>
+                        <div v-if="searchBasisIdMap[field.fk_column_id!]" class="flex-1 flex ml-1 mr-3">
+                          <NcTooltip :title="searchBasisIdMap[field.fk_column_id!]" class="flex cursor-help">
+                            <GeneralIcon icon="info" class="h-3.5 w-3.5 opacity-80 text-nc-content-gray-muted" />
+                          </NcTooltip>
+                        </div>
                         <div v-if="showAddLookupDropdown(field)" class="flex-1 flex mr-3">
                           <NcTooltip :disabled="isOpened">
                             <template #title>
@@ -868,7 +878,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                             />
                           </NcButton>
                         </div>
-                        <span @click.stop="conditionalToggleFieldVisibility(field)">
+                        <span class="flex children:flex-none" @click.stop="conditionalToggleFieldVisibility(field)">
                           <NcSwitch
                             :checked="field.show"
                             :disabled="field.isViewEssentialField || isLocked || isLoadingShowAllColumns"

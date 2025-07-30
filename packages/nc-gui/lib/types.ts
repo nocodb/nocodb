@@ -737,6 +737,18 @@ interface NcListItemType {
   [key: string]: any
 }
 
+interface NcListSearchBasisOptionType {
+  /**
+   * The search basis info to use for the list.
+   * This will tell user that the search is based on this property.
+   */
+  searchBasisInfo: string
+  /**
+   * The filter callback to use for the list.
+   */
+  filterCallback: (input: string, option: NcListItemType, index: Number) => boolean
+}
+
 /**
  * Props interface for the List component
  */
@@ -820,6 +832,42 @@ interface NcListProps {
    * Whether to stop propagation on item click
    */
   stopPropagationOnItemClick?: boolean
+
+  /**
+   * @Info - This will be used only if search result not found based on default search method.
+   *
+   * - With the help of search basis we can search list items based on different fields properties which are not visible for user.
+   * - Also we will show this info to user in tooltip.
+   *
+   * @example
+   * ```ts
+   * const searchBasisOptions: NcListSearchBasisOptionType[] = [
+   *  {
+   *    searchBasisInfo: t('msg.info.matchedByButtonLabel'),
+   *    filterCallback: (query, option) => {
+   *      if (!option) return false
+   *
+   *      const column = option as ColumnType
+   *
+   *      return isButton(column) && searchCompare([(column.colOptions as ButtonType)?.label], query)
+   *    },
+   *  },
+   *  {
+   *    searchBasisInfo: t('msg.info.matchedByFieldDescription'),
+   *    filterCallback: (query, option) => {
+   *      if (!option) return false
+   *
+   *      const column = option as ColumnType
+   *
+   *      if (!column.description) return false
+   *
+   *      return searchCompare([column.description], query)
+   *    },
+   *  }
+   * ]
+   * ```
+   */
+  searchBasisOptions?: NcListSearchBasisOptionType[]
 }
 
 // NcList type ends here
@@ -894,6 +942,7 @@ export type {
   PermissionSelectorUser,
   NcListProps,
   NcListItemType,
+  NcListSearchBasisOptionType,
   MultiSelectRawValueType,
   RawValueType,
   NcDropdownPlacement,

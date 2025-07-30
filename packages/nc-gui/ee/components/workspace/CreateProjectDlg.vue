@@ -24,7 +24,7 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { navigateToProject } = useGlobal()
 
-const { blockPrivateBases, showUpgradeToUsePrivateBases } = useEeConfig()
+const { blockPrivateBases, showUpgradeToUsePrivateBases, isOnPrem } = useEeConfig()
 
 const nameValidationRules = [
   {
@@ -158,6 +158,8 @@ const baseAccessOptions = computed(
 const selectedBaseAccessOption = computed(() => {
   return baseAccessOptions.value.find((option) => option.value === (formState.value.default_role?.toString() || ''))!
 })
+
+const privateBaseMinPlanReq = computed(() => (isOnPrem.value ? PlanTitles.ENTERPRISE : PlanTitles.BUSINESS))
 </script>
 
 <template>
@@ -241,7 +243,7 @@ const selectedBaseAccessOption = computed(() => {
                         <PaymentUpgradeBadge
                           v-if="blockPrivateBases && option.value === ProjectRoles.NO_ACCESS"
                           :feature="PlanFeatureTypes.FEATURE_PRIVATE_BASES"
-                          :plan-title="PlanTitles.BUSINESS"
+                          :plan-title="privateBaseMinPlanReq"
                           remove-click
                           size="sm"
                           class="!font-normal !text-bodyDefaultSm"

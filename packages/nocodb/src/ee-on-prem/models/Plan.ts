@@ -6,7 +6,7 @@ export default Plan;
 
 export const EnterpriseStarterPlan = Plan.prepare({
   title: PlanTitles.ENTERPRISE_STARTER,
-  description: 'On-premise starter plan',
+  description: 'Enterprise starter plan',
   meta: {
     ...(Object.fromEntries(
       Object.values(PlanLimitTypes).map((limit) => [limit, -1]),
@@ -34,10 +34,9 @@ export const FreePlan = Plan.prepare({
   free: false,
 });
 
-
 export const EnterprisePlan = Plan.prepare({
-  title: PlanTitles.FREE,
-  description: 'On-premise plan',
+  title: PlanTitles.ENTERPRISE,
+  description: 'Enterprise plan',
   meta: {
     ...(Object.fromEntries(
       Object.values(PlanLimitTypes).map((limit) => [limit, -1]),

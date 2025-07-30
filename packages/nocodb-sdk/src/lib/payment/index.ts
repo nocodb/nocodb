@@ -65,7 +65,7 @@ export enum PlanTitles {
   ENTERPRISE = 'Enterprise',
 
   // on-prem
-  ENTERPRISE_STARTER = 'Enterprise Starter',
+  ENTERPRISE_STARTER = 'EnterpriseStarter',
 }
 
 export enum PlanPriceLookupKeys {

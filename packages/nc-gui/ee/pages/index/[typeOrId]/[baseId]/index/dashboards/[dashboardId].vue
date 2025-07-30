@@ -23,8 +23,8 @@ const confirmUnsavedChangesBeforeLeaving = (
   }
 
   const targetDashboardId = to.params.dashboardId as string
-  const targetDashboard = activeBaseDashboards.value.find((d) => d.id === targetDashboardId)
-  if (targetDashboard.___is_new) {
+  const targetDashboard = activeBaseDashboards.value.find((d) => d.id === targetDashboardId) as any
+  if (targetDashboard?.___is_new) {
     targetDashboard.___is_new = false
     const baseDashboards = dashboards.value.get(targetDashboard?.base_id)
     const index = baseDashboards.findIndex((d) => d.id === targetDashboardId)

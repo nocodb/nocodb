@@ -220,9 +220,8 @@ const showReadonlyField = computed(() => {
 
     case 'percent': {
       return !(
-        !readOnly.value &&
-        editEnabled.value &&
-        (isExpandedFormOpen.value ? localEditEnabled.value || !parseProp(column.value?.meta).is_progress : true)
+        (!readOnly.value && editEnabled.value) ||
+        (isExpandedFormOpen.value && (localEditEnabled.value || parseProp(column.value?.meta).is_progress))
       )
     }
 

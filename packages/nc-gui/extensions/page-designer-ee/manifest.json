@@ -20,6 +20,12 @@
     "modalSize": "fullscreen",
     "contentMinHeight": "500px"
   },
+  "links": [
+    {
+      "title": "Documentation",
+      "href": "https://nocodb.com/docs/product-docs/extensions/page-designer"
+    }
+  ],
   "order": 8,
   "beta": false,
   "disabled": false,

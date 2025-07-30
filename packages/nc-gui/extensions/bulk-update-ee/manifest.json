@@ -16,7 +16,12 @@
       "height": 24
     }
   },
-  "links": [],
+  "links": [
+    {
+      "title": "Documentation",
+      "href": "https://nocodb.com/docs/product-docs/extensions/bulk-update"
+    }
+  ],
   "config": {
     "contentMinHeight": "310px"
   },

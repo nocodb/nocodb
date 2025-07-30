@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   Request,
@@ -63,6 +64,19 @@ export class ViewsV3Controller {
     const view = await this.viewsV3Service.create(context, {
       req,
       tableId,
+    });
+    return view;
+  }
+  @Patch(`${PREFIX_APIV3_METABASE}/views/:viewId`)
+  @Acl('viewUpdate')
+  async viewUpdate(
+    @TenantContext() context: NcContext,
+    @Param('viewId') viewId: string,
+    @Request() req,
+  ) {
+    const view = await this.viewsV3Service.update(context, {
+      viewId: viewId,
+      req,
     });
     return view;
   }

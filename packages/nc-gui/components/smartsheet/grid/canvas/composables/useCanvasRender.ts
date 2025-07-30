@@ -3046,30 +3046,52 @@ export function useCanvasRender({
           setCursor('pointer')
         }
 
-        const countRender = renderSingleLineText(ctx, {
-          text: `${group?.count ?? '-'}`,
-          x: xOffset + mergedWidth - 12,
-          y: contentY - 1,
-          height: GROUP_HEADER_HEIGHT,
-          verticalAlign: 'middle',
-          fontFamily: '600 12px Inter',
-          fillStyle: '#374151',
-          textAlign: 'right',
-        })
-        countWidth = countRender.width
+        if (!isMouseHoveringOverGroupHeader || !appInfo.value.isOnPrem) {
+          const countRender = renderSingleLineText(ctx, {
+            text: `${group?.count ?? '-'}`,
+            x: xOffset + mergedWidth - 12,
+            y: contentY - 1,
+            height: GROUP_HEADER_HEIGHT,
+            verticalAlign: 'middle',
+            fontFamily: '600 12px Inter',
+            fillStyle: '#374151',
+            textAlign: 'right',
+          })
+          countWidth = countRender.width
 
-        const contentRender = renderSingleLineText(ctx, {
-          text: 'Count',
-          x: xOffset + mergedWidth - 12 - countWidth - 8,
-          y: contentY - 1,
-          height: GROUP_HEADER_HEIGHT,
-          verticalAlign: 'middle',
-          textAlign: 'right',
-          fontFamily: '400 12px Inter',
-          fillStyle: '#6A7184',
-        })
+          const contentRender = renderSingleLineText(ctx, {
+            text: 'Count',
+            x: xOffset + mergedWidth - 12 - countWidth - 8,
+            y: contentY - 1,
+            height: GROUP_HEADER_HEIGHT,
+            verticalAlign: 'middle',
+            textAlign: 'right',
+            fontFamily: '400 12px Inter',
+            fillStyle: '#6A7184',
+          })
 
-        contentWidth = contentRender.width
+          contentWidth = contentRender.width
+        } else {
+          renderIconButton(ctx, {
+            buttonX: xOffset + mergedWidth - 12 - 24,
+            buttonY: contentY + 1,
+            buttonSize: 28,
+            icon: 'ncMoreVertical',
+            iconData: {
+              size: 16,
+              xOffset: 6,
+              yOffset: 6,
+              color: '#374151',
+            },
+            borderRadius: 8,
+            borderColor: '#ffffff',
+            background: '#ffffff',
+            hoveredBackground: '#f4f4f5',
+            mousePosition,
+            spriteLoader,
+            setCursor,
+          })
+        }
 
         ctx.save()
 

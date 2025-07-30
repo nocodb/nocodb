@@ -19,11 +19,22 @@ const { isUIAllowed } = useRoles()
 const isDragging = ref(false)
 const isResizing = ref(false)
 
+const windowSize = useWindowSize()
+
+const isResponsiveEnabled = computed(() => {
+  return !isEditingDashboard.value && windowSize.width.value < 1280
+})
+
+const responsive = ref()
+
 const layout = computed({
   set: (value) => {
-    // layout.value = value
+    responsive.value = value
   },
   get: () => {
+    if (isResponsiveEnabled.value) {
+      return responsive.value || []
+    }
     return activeDashboardWidgets.value.map((widget) => ({
       x: widget.position?.x,
       y: widget.position?.y,
@@ -171,11 +182,16 @@ const getWidgetPositionConfig = (item: string) => {
 
 const gridRef = ref()
 
-const windowSize = useWindowSize()
+watch(activeDashboardWidgets, () => {
+  responsive.value = activeDashboardWidgets.value.map((widget) => ({
+    x: widget.position?.x,
+    y: widget.position?.y,
+    w: widget.position?.w,
+    h: widget.position?.h,
+    i: widget.id!,
+  }))
+}, { immediate: true })
 
-const isResponsiveEnabled = computed(() => {
-  return !isEditingDashboard.value && windowSize.width.value < 1280
-})
 </script>
 
 <template>
@@ -191,7 +207,7 @@ const isResponsiveEnabled = computed(() => {
       ref="gridRef"
       v-model:layout="layout"
       :row-height="80"
-      :col-num="4"
+      :col-num="isResponsiveEnabled ? null : 4"
       :responsive="isResponsiveEnabled"
       :cols="{ lg: 4, md: 3, sm: 2, xs: 1, xxs: 1 }"
       :is-draggable="isEditingDashboard && !isPublic"

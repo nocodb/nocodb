@@ -121,6 +121,9 @@ const handleResetInitialValue = () => {
     baseName: '',
   }
 
+  /**
+   * We don't want to trigger route change here, so we are using `removeQueryParamsFromURL`
+   */
   removeQueryParamsFromURL(['basePrompt', 'baseName'])
 }
 

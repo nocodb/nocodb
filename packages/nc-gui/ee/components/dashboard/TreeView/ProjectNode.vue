@@ -1,15 +1,6 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
-import {
-  PlanLimitTypes,
-  PlanTitles,
-  ProjectRoles,
-  ProjectTypes,
-  RoleColors,
-  RoleIcons,
-  RoleLabels,
-  WorkspaceRolesToProjectRoles,
-} from 'nocodb-sdk'
+import { ProjectRoles, ProjectTypes, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import type { BaseType, SourceType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 
@@ -38,8 +29,6 @@ const { baseUrl } = useBase()
 const { setMenuContext, duplicateTable, contextMenuTarget, tableRenameId } = inject(TreeViewInj)!
 
 const { isMobileMode, user } = useGlobal()
-
-const { api } = useApi()
 
 const base = inject(ProjectInj)!
 

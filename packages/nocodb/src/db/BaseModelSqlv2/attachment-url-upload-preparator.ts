@@ -56,7 +56,7 @@ export class AttachmentUrlUploadPreparator {
       const columnKeyName = dataWrapper(data).getColumnKeyName(col);
       // remove temp_ ids so it doesn't get recorded in audit
       data[columnKeyName] = JSON.stringify(
-        attachmentData.filter((dt) => dt.id && !dt.id.startsWith('temp_')),
+        attachmentData.filter((dt) => !dt.id?.startsWith('temp_')),
       );
     }
     return { postInsertOps, preInsertOps, postInsertAuditOps };

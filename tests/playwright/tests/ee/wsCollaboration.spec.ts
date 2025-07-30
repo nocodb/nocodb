@@ -70,6 +70,8 @@ test.describe('Collaborators', () => {
     // wait for render
     await dashboard.rootPage.waitForTimeout(1000);
 
+    await dashboard.leftSidebar.verifyBaseListOpen(true);
+
     if (user.role.toLowerCase() === 'creator') {
       await expect(dashboard.leftSidebar.btn_newProject).toBeVisible();
       await dashboard.leftSidebar.clickTeamAndSettings();

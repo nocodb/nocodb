@@ -456,9 +456,6 @@ export const useEeConfig = createSharedComposable(() => {
 
   const handleOnPremUpgrade = ({
     currentPlanTitle,
-    newPlanTitle,
-    redirectToWorkspace: _redirectToWorkspace = true,
-    stopEventPropogation = false,
     title,
     content,
     requiredPlan,
@@ -467,8 +464,6 @@ export const useEeConfig = createSharedComposable(() => {
     currentPlanTitle?: PlanTitles
     newPlanTitle?: PlanTitles
     workspaceId?: string
-    redirectToWorkspace?: boolean
-    stopEventPropogation?: boolean
     requiredPlan?: PlanTitles
     content?: string
   } = {}) => {
@@ -494,15 +489,14 @@ export const useEeConfig = createSharedComposable(() => {
       'content': modalContent,
       'okClass': '!hidden',
       'cancelText': 'Close',
-      'onClickCancel': closeDialog,
-      'update:visible': closeDialog,
+      'onCancel': toggleDialog,
+      'update:visible': toggleDialog,
       'showIcon': false,
-      'stopEventPropogation': stopEventPropogation,
-      'focusBtn': null,
+      'maskClosable': true,
     })
 
-    function closeDialog() {
-      isOpen.value = false
+    function toggleDialog(show = false) {
+      isOpen.value = show
       close(1000)
     }
 

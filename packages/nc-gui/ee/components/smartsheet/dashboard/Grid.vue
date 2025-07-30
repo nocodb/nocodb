@@ -182,16 +182,19 @@ const getWidgetPositionConfig = (item: string) => {
 
 const gridRef = ref()
 
-watch(activeDashboardWidgets, () => {
-  responsive.value = activeDashboardWidgets.value.map((widget) => ({
-    x: widget.position?.x,
-    y: widget.position?.y,
-    w: widget.position?.w,
-    h: widget.position?.h,
-    i: widget.id!,
-  }))
-}, { immediate: true, deep: true })
-
+watch(
+  activeDashboardWidgets,
+  () => {
+    responsive.value = activeDashboardWidgets.value.map((widget) => ({
+      x: widget.position?.x,
+      y: widget.position?.y,
+      w: widget.position?.w,
+      h: widget.position?.h,
+      i: widget.id!,
+    }))
+  },
+  { immediate: true, deep: true },
+)
 </script>
 
 <template>

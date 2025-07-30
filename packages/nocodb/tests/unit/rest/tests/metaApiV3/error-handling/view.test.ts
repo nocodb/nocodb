@@ -6,7 +6,7 @@ import { Base, Model } from '~/models';
 import { RootScopes } from '~/utils/globals';
 
 export default function () {
-  describe.only(`error-handling: View v3`, () => {
+  describe(`error-handling: View v3`, () => {
     let context: Awaited<ReturnType<typeof init>>;
     let initBase: any;
     let API_PREFIX;
@@ -88,6 +88,41 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             type: 'GRID',
+            sorts: [
+              {
+                field_id: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          });
+        expect(response.status).to.eq(400);
+        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+      });
+      it(`will handle empty type`, async () => {
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            sorts: [
+              {
+                field_id: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          });
+        expect(response.status).to.eq(400);
+        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+      });
+      it(`will handle invalid type`, async () => {
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            type: 'NOGRID',
             sorts: [
               {
                 field_id: (

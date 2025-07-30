@@ -190,7 +190,7 @@ watch(activeDashboardWidgets, () => {
     h: widget.position?.h,
     i: widget.id!,
   }))
-}, { immediate: true })
+}, { immediate: true, deep: true })
 
 </script>
 

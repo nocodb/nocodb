@@ -92,15 +92,6 @@ const aiModeInitialValue = ref({
   baseName: '',
 })
 
-const handleResetInitialValue = () => {
-  aiModeInitialValue.value = {
-    basePrompt: '',
-    baseName: '',
-  }
-
-  // Reset query params
-  router.replace({ query: { ...route.value.query, basePrompt: undefined, baseName: undefined } })
-}
 const onInit = () => {
   // Clear errors
   setTimeout(async () => {
@@ -119,6 +110,18 @@ const onInit = () => {
     input.value?.$el?.focus()
     input.value?.$el?.select()
   }, 5)
+}
+
+const handleResetInitialValue = () => {
+  // Avoid unnecessary reset of initial value
+  if (!aiModeInitialValue.value.basePrompt && !route.value?.query?.basePrompt) return
+
+  aiModeInitialValue.value = {
+    basePrompt: '',
+    baseName: '',
+  }
+
+  removeQueryParamsFromURL(['basePrompt', 'baseName'])
 }
 
 watch(dialogShow, async (n, o) => {

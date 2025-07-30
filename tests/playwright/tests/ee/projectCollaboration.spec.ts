@@ -70,6 +70,7 @@ test.describe('Base Collaboration', () => {
 
     // tab access validation
     await baseViewPage.verifyAccess('Owner');
+    await baseViewPage.openOverview();
 
     await baseViewPage.tab_accessSettings.click();
 

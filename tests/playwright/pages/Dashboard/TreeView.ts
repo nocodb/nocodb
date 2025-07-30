@@ -377,11 +377,14 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.leftSidebar.verifyBaseListOpen(true);
 
     await this.get().getByTestId(`nc-sidebar-base-title-${title}`).click();
+
+    await this.dashboard.leftSidebar.action_base.waitFor({ state: 'visible' });
+
     await this.rootPage.waitForTimeout(1000);
 
-    // TODO: FIx why base click is not always registering
-    await this.get().getByTestId(`nc-sidebar-base-title-${title}`).click();
-    await this.rootPage.waitForTimeout(1000);
+    // // TODO: FIx why base click is not always registering
+    // await this.get().getByTestId(`nc-sidebar-base-title-${title}`).click();
+    // await this.rootPage.waitForTimeout(1000);
   }
 
   scopedProjectTitle({ title, context }: { title: string; context: NcContext }) {

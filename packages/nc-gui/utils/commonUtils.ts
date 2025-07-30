@@ -109,15 +109,25 @@ export const isUnicodeEmoji = (emoji: string) => {
  * searchCompare("test", undefined); // true
  * ```
  */
-export const searchCompare = (source?: NestedArray<string | number | undefined>, query?: string): boolean => {
+export const searchCompare = (
+  source?: NestedArray<string | number | undefined>,
+  query?: string,
+  onMatch?: (source: string | number | undefined) => void,
+): boolean => {
   if (ncIsArray(source)) {
-    return source.some((item) => searchCompare(item, query))
+    return source.some((item) => searchCompare(item, query, onMatch))
   }
 
-  return (source || '')
+  const isMatch = (source || '')
     .toString()
     .toLowerCase()
     .includes((query || '').toLowerCase())
+
+  if (isMatch && onMatch) {
+    onMatch(source)
+  }
+
+  return isMatch
 }
 
 /**

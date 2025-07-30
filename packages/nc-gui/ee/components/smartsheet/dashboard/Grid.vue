@@ -19,15 +19,31 @@ const { isUIAllowed } = useRoles()
 const isDragging = ref(false)
 const isResizing = ref(false)
 
-const layout = ref(
-  activeDashboardWidgets.value.map((widget) => ({
-    x: widget.position?.x,
-    y: widget.position?.y,
-    w: widget.position?.w,
-    h: widget.position?.h,
-    i: widget.id!,
-  })),
-)
+const windowSize = useWindowSize()
+
+const isResponsiveEnabled = computed(() => {
+  return !isEditingDashboard.value && windowSize.width.value < 1280
+})
+
+const responsive = ref()
+
+const layout = computed({
+  set: (value) => {
+    responsive.value = value
+  },
+  get: () => {
+    if (isResponsiveEnabled.value) {
+      return responsive.value || []
+    }
+    return activeDashboardWidgets.value.map((widget) => ({
+      x: widget.position?.x,
+      y: widget.position?.y,
+      w: widget.position?.w,
+      h: widget.position?.h,
+      i: widget.id!,
+    }))
+  },
+})
 
 const handleWidgetClick = (widget: WidgetType) => {
   if (isEditingDashboard.value) {
@@ -77,9 +93,9 @@ const handleMoved = (i: string, newX: number, newY: number) => {
   })
   if (widget) {
     widgetStore.updateWidgetPosition(activeDashboardId.value, i, {
-      ...widget.position,
-      x: newX!,
-      y: newY!,
+      ...widget.position!,
+      x: newX,
+      y: newY,
     })
   }
 
@@ -114,7 +130,7 @@ const handleResized = (i: string, newH: number, newW: number) => {
   })
   if (widget) {
     widgetStore.updateWidgetPosition(activeDashboardId.value, i, {
-      ...widget.position,
+      ...widget.position!,
       w: newW,
       h: newH,
     })
@@ -166,25 +182,16 @@ const getWidgetPositionConfig = (item: string) => {
 
 const gridRef = ref()
 
-watch(
-  [() => activeDashboardWidgets.value, () => isEditingDashboard.value, () => selectedWidget.value],
-  () => {
-    layout.value = activeDashboardWidgets.value.map((widget) => ({
-      x: widget.position?.x,
-      y: widget.position?.y,
-      w: widget.position?.w,
-      h: widget.position?.h,
-      i: widget.id!,
-    }))
-    nextTick(() => {
-      gridRef.value?.layoutUpdate?.()
-    })
-  },
-  {
-    deep: true,
-    immediate: true,
-  },
-)
+watch(activeDashboardWidgets, () => {
+  responsive.value = activeDashboardWidgets.value.map((widget) => ({
+    x: widget.position?.x,
+    y: widget.position?.y,
+    w: widget.position?.w,
+    h: widget.position?.h,
+    i: widget.id!,
+  }))
+}, { immediate: true, deep: true })
+
 </script>
 
 <template>
@@ -200,8 +207,8 @@ watch(
       ref="gridRef"
       v-model:layout="layout"
       :row-height="80"
-      :col-num="!isEditingDashboard ? null : 4"
-      :responsive="!isEditingDashboard"
+      :col-num="isResponsiveEnabled ? null : 4"
+      :responsive="isResponsiveEnabled"
       :cols="{ lg: 4, md: 3, sm: 2, xs: 1, xxs: 1 }"
       :is-draggable="isEditingDashboard && !isPublic"
       :is-resizable="isEditingDashboard && !isPublic"

@@ -22,12 +22,14 @@ const confirmUnsavedChangesBeforeLeaving = (
     return
   }
 
+
   const targetDashboardId = to.params.dashboardId as string
-  const targetDashboard = activeBaseDashboards.value.find((d) => d.id === targetDashboardId)
-  if (targetDashboard.___is_new) {
+  const targetDashboard = activeBaseDashboards.value.find((d) => d.id === targetDashboardId) as any
+  if (targetDashboard?.___is_new) {
     targetDashboard.___is_new = false
     const baseDashboards = dashboards.value.get(targetDashboard?.base_id)
-    const index = baseDashboards.findIndex((d) => d.id === targetDashboardId)
+    const index = baseDashboards?.findIndex((d) => d.id === targetDashboardId)
+    if (!index || index === -1 || !baseDashboards) return
     baseDashboards[index] = targetDashboard
     dashboards.value.set(targetDashboard?.base_id, baseDashboards)
     next()
@@ -65,6 +67,10 @@ const confirmUnsavedChangesBeforeLeaving = (
     'maskClosable': false,
   })
 }
+
+onBeforeRouteUpdate((to, from, next) => {
+  confirmUnsavedChangesBeforeLeaving(to, from, next)
+})
 
 onBeforeRouteLeave((to, from, next) => {
   confirmUnsavedChangesBeforeLeaving(to, from, next)

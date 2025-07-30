@@ -35,7 +35,7 @@ const slotHasChildren = (name?: string) => {
           <span
             style="mix-blend-mode: difference; color: #ffffff"
             :style="{
-              'margin-left': `${-Math.min(percentage, 50)}%`,
+              'margin-left': `${-Math.min(cPercentage, 50)}%`,
             }"
           >
             {{ `${percentage}%` }}
@@ -45,7 +45,7 @@ const slotHasChildren = (name?: string) => {
           <span
             style="mix-blend-mode: overlay; color: #ffffff"
             :style="{
-              'margin-left': `${-Math.min(percentage, 50)}%`,
+              'margin-left': `${-Math.min(cPercentage, 50)}%`,
             }"
           >
             {{ `${percentage}%` }}

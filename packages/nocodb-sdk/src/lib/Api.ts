@@ -4736,6 +4736,8 @@ export interface CustomUrlType {
   id?: string;
   /** Workspace ID */
   fk_workspace_id?: string;
+  /** Dashboard ID */
+  fk_dashboard_id?: string;
   /** Base ID */
   base_id?: string;
   /** Model ID */

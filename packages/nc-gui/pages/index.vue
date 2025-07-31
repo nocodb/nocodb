@@ -34,7 +34,7 @@ const autoNavigateToProject = async () => {
 
   if (!firstBase?.id) return
 
-  await basesStore.navigateToProject({ baseId: firstBase.id! })
+  await basesStore.navigateToProject({ baseId: firstBase.id!, query: extractAiBaseCreateQueryParams(route.value.query) })
 }
 
 const isSharedView = computed(() => {

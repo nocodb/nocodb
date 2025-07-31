@@ -332,6 +332,7 @@ watch(activeViewTab, (value) => {
                         search-input-placeholder="Search category"
                         :close-on-select="false"
                         is-multi-select
+                        variant="medium"
                       >
                         <template #listFooter>
                           <NcDivider class="!mt-0 !mb-2" />
@@ -425,11 +426,15 @@ watch(activeViewTab, (value) => {
                             <div v-if="!isDataReflectionEnabled && integration?.sub_type === SyncDataType.NOCODB"></div>
                             <div v-else-if="integration?.sub_type === SyncDataType.NOCODB" class="flex items-center">
                               <template v-if="dataReflectionEnabled">
-                                <GeneralIcon icon="check" class="text-primary text-lg" />
+                                <GeneralIcon icon="ncCheck" class="text-primary flex-none" />
                               </template>
-                              <div v-else class="action-btn !block">+</div>
+                              <div v-else class="action-btn !flex">
+                                <GeneralIcon icon="ncPlus" class="flex-none" />
+                              </div>
                             </div>
-                            <div v-else-if="integration?.isAvailable" class="action-btn">+</div>
+                            <div v-else-if="integration?.isAvailable" class="action-btn">
+                              <GeneralIcon icon="ncPlus" class="flex-none" />
+                            </div>
                             <div v-else class="">
                               <NcButton
                                 type="secondary"
@@ -592,7 +597,7 @@ watch(activeViewTab, (value) => {
         }
 
         .action-btn {
-          @apply hidden text-2xl text-gray-500 w-7 h-7 text-center flex-none;
+          @apply hidden text-gray-500 w-4 h-4 items-center;
         }
 
         &.is-available {
@@ -602,7 +607,7 @@ watch(activeViewTab, (value) => {
             box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
 
             .action-btn {
-              @apply block;
+              @apply flex;
             }
           }
 

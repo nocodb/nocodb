@@ -3,7 +3,11 @@ import path from 'path';
 import { NcApiVersion, UITypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import { createProject, createSakilaProject } from '../../../factory/base';
-import { createLtarColumn, customColumns } from '../../../factory/column';
+import {
+  createLtarColumn,
+  createLtarColumn2,
+  customColumns,
+} from '../../../factory/column';
 import { createBulkRows, listRow, rowMixedValue } from '../../../factory/row';
 import { createTable, getTable } from '../../../factory/table';
 import init from '../../../init';
@@ -242,7 +246,10 @@ export const beforeEachDateBased = async (testContext: ITestContext) => {
   };
 };
 
-export const beforeEachLinkBased = async (testContext: ITestContext) => {
+export const beforeEachLinkBased = async (
+  testContext: ITestContext,
+  useLtarColumn = false,
+) => {
   let tblCity: Model;
   let tblCountry: Model;
   let tblActor: Model;
@@ -332,15 +339,18 @@ export const beforeEachLinkBased = async (testContext: ITestContext) => {
       values: filmRecords,
     });
 
+    const createLtarColumnHandler = useLtarColumn
+      ? createLtarColumn2
+      : createLtarColumn;
     // Create links
     // Country <hm> City
-    await createLtarColumn(testContext.context, {
+    await createLtarColumnHandler(testContext.context, {
       title: 'Cities',
       parentTable: tblCountry,
       childTable: tblCity,
       type: 'hm',
     });
-    await createLtarColumn(testContext.context, {
+    await createLtarColumnHandler(testContext.context, {
       title: 'Films',
       parentTable: tblActor,
       childTable: tblFilm,

@@ -5,6 +5,11 @@ interface Props {
   dialogShow: boolean
   aiMode: boolean | null
   workspaceId?: string
+  isCreateNewActionMenu?: boolean
+  initialValue?: {
+    basePrompt: string
+    baseName: string
+  }
 }
 
 const props = withDefaults(defineProps<Props>(), {})
@@ -29,6 +34,8 @@ const { navigateToProject } = useGlobal()
 const { $e } = useNuxtApp()
 
 const { clone } = useUndoRedo()
+
+const { isWorkspaceLoading } = storeToRefs(useWorkspace())
 
 const { aiIntegrationAvailable, aiError, aiLoading, createSchema, predictSchema } = useNocoAi()
 
@@ -94,7 +101,7 @@ const defaultAiFormState = {
 
 const oldAiFormState = ref<typeof defaultAiFormState | null>(null)
 
-const aiFormState = ref(defaultAiFormState)
+const aiFormState = ref({ ...defaultAiFormState, prompt: props.initialValue?.basePrompt ?? '' })
 
 const isOldPromptChanged = computed(() => {
   return (
@@ -330,6 +337,16 @@ onMounted(() => {
 
     aiPromptInputRef.value?.focus()
   }, 5)
+
+  if (props.initialValue?.basePrompt) {
+    until(() => !isWorkspaceLoading.value)
+      .toBeTruthy()
+      .then(() => {
+        if (!aiIntegrationAvailable.value) return
+
+        onPredictSchema()
+      })
+  }
 
   until(() => leftPaneContentRef.value)
     .toBeTruthy()

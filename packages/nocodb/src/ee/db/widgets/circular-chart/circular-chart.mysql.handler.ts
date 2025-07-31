@@ -152,7 +152,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= 20 THEN CAST(category AS TEXT)
+          WHEN rn <= 10 THEN CAST(category AS CHAR)
           ELSE 'Others'
         END as final_category
       `),
@@ -161,7 +161,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= 20 THEN category
+          WHEN rn <= 10 THEN category
           ELSE NULL
         END as original_category
       `),
@@ -170,7 +170,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
         baseModel.dbDriver.raw(
           `
         CASE 
-          WHEN rn <= 20 THEN ??
+          WHEN rn <= 10 THEN ??
           ELSE 0
         END as final_value
       `,
@@ -181,7 +181,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
         baseModel.dbDriver.raw(
           `
         CASE 
-          WHEN rn > 20 THEN ??
+          WHEN rn > 10 THEN ??
           ELSE 0
         END as others_value
       `,
@@ -191,7 +191,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= 20 THEN record_count
+          WHEN rn <= 10 THEN record_count
           ELSE 0
         END as final_count
       `),
@@ -199,7 +199,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn > 20 THEN record_count
+          WHEN rn > 10 THEN record_count
           ELSE 0
         END as others_count
       `),
@@ -211,7 +211,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
 
     // Final aggregation
     const finalQuery = baseModel.dbDriver
-      .select({ category: baseModel.dbDriver.raw('CAST(final_category AS TEXT)') })
+      .select({ category: baseModel.dbDriver.raw('CAST(final_category AS CHAR)') })
       .select(baseModel.dbDriver.raw(`${maxExpression} as original_category`))
       .select(
         baseModel.dbDriver.raw('SUM(final_value) + SUM(others_value) as value'),
@@ -241,7 +241,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       skipUserConversion: true,
     });
 
-    const formattedData = [];
+    let formattedData = [];
 
     for (let i = 0; i < rawData.length; i++) {
       const row = rawData[i];
@@ -271,6 +271,10 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
         category: row.category,
         formattedCategory: formattedCategory,
       });
+    }
+
+    if (!chartData.category.includeOthers) {
+      formattedData = formattedData.filter((item) => item.category !== 'Others');
     }
 
     return {

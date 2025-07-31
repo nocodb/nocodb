@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ChartTypes } from 'nocodb-sdk'
 import GroupedSettings from '../../common/GroupedSettings.vue'
 
 const widgetStore = useWidgetStore()

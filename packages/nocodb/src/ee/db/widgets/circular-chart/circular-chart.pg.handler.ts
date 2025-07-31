@@ -158,7 +158,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= 20 THEN CAST(category AS TEXT)
+          WHEN rn <= 10 THEN CAST(category AS TEXT)
           ELSE 'Others'
         END as final_category
       `),
@@ -167,7 +167,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= 20 THEN category
+          WHEN rn <= 10 THEN category
           ELSE NULL
         END as original_category
       `),
@@ -176,7 +176,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
         baseModel.dbDriver.raw(
           `
         CASE 
-          WHEN rn <= 20 THEN ??
+          WHEN rn <= 10 THEN ??
           ELSE 0
         END as final_value
       `,
@@ -187,7 +187,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
         baseModel.dbDriver.raw(
           `
         CASE 
-          WHEN rn > 20 THEN ??
+          WHEN rn > 10 THEN ??
           ELSE 0
         END as others_value
       `,
@@ -197,7 +197,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= 20 THEN record_count
+          WHEN rn <= 10 THEN record_count
           ELSE 0
         END as final_count
       `),
@@ -205,7 +205,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn > 20 THEN record_count
+          WHEN rn > 10 THEN record_count
           ELSE 0
         END as others_count
       `),
@@ -247,7 +247,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       skipUserConversion: true,
     });
 
-    const formattedData = [];
+    let formattedData = [];
 
     for (let i = 0; i < rawData.length; i++) {
       const row = rawData[i];
@@ -277,6 +277,10 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
         category: row.category,
         formattedCategory: formattedCategory,
       });
+    }
+
+    if (!chartData.category.includeOthers) {
+      formattedData = formattedData.filter((item) => item.category !== 'Others');
     }
 
     return {

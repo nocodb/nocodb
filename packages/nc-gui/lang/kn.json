@@ -169,6 +169,8 @@
     "upgradeToUseDashboardsSubtitle": "Upgrade to the {plan} plan to use dashboards to visualize your data.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
   },
   "general": {
@@ -591,6 +593,7 @@
       "Team": "ತಂಡ",
       "Plus": "ಪ್ಲಸ್",
       "Business": "ವ್ಯವಹಾರ",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "ಎಂಟರ್‌ಪ್ರೈಸ್"
     },
     "currentPlan": {

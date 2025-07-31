@@ -380,7 +380,7 @@ export class DataV3Service {
       skipSubstitutingColumnIds?: boolean;
     },
   ): Promise<any> {
-    if ((!fields && typeof fields !== 'object') || Array.isArray(fields)) {
+    if (!fields || typeof fields !== 'object' || Array.isArray(fields)) {
       return fields ?? {};
     }
     const transformedFields = { ...fields };

@@ -466,6 +466,7 @@ export const useEeConfig = createSharedComposable(() => {
     workspaceId?: string
     requiredPlan?: PlanTitles
     content?: string
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
   } = {}) => {
     // if already on required plan it means we hit the limit so show higher plan
     if (requiredPlan && requiredPlan === (currentPlanTitle ?? activePlanTitle.value)) {

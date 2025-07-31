@@ -346,13 +346,17 @@ export const useBases = defineStore('basesStore', () => {
     bases.value.clear()
   }
 
-  const navigateToProject = async ({ baseId }: { baseId: string }) => {
+  const navigateToProject = async ({ baseId, page, query }: { baseId: string; page?: 'collaborators'; query?: any }) => {
     if (!baseId) return
 
     const base = bases.value.get(baseId)
     if (!base) return
 
-    return _navigateToProject({ workspaceId: base.fk_workspace_id, baseId })
+    return _navigateToProject({
+      workspaceId: base.fk_workspace_id,
+      baseId,
+      query: { ...(page ? { page } : {}), ...(query || {}) },
+    })
   }
 
   const toggleStarred = async (baseId: string) => {

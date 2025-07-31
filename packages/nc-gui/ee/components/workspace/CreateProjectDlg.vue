@@ -18,11 +18,15 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { t } = useI18n()
 
+const { isUIAllowed, isBaseRolesLoaded } = useRoles()
+
 const workspaceStore = useWorkspace()
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 const { createProject: _createProject } = basesStore
+
+const { isSharedBase } = storeToRefs(useBase())
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -49,6 +53,19 @@ const formState = ref({
 })
 
 const creating = ref(false)
+
+const aiMode = ref<boolean | null>(null)
+
+const modalSize = computed(() => (aiMode.value !== true ? 'small' : 'lg'))
+
+const input = ref<typeof Input>()
+
+const aiModeInitialValue = ref({
+  basePrompt: '',
+  baseName: '',
+})
+
+const hasBaseCreatePermission = computed(() => !!isBaseRolesLoaded.value && isUIAllowed('baseCreate') && !isSharedBase.value)
 
 const createProject = async () => {
   if (formState.value.title) {
@@ -80,17 +97,6 @@ const createProject = async () => {
     }, 500)
   }
 }
-
-const aiMode = ref<boolean | null>(null)
-
-const modalSize = computed(() => (aiMode.value !== true ? 'small' : 'lg'))
-
-const input = ref<typeof Input>()
-
-const aiModeInitialValue = ref({
-  basePrompt: '',
-  baseName: '',
-})
 
 const onInit = () => {
   // Clear errors
@@ -197,21 +203,27 @@ const privateBaseMinPlanReq = computed(() => (isOnPrem.value ? PlanTitles.ENTERP
  * So to avoid multiple dialogs being shown, we are using `isCreateNewActionMenu` props
  */
 if (props.isCreateNewActionMenu) {
-  watch([() => route.value.query?.basePrompt, () => route.value.query?.baseName], ([basePrompt, baseName]) => {
-    /**
-     * Avoid showing prefilled ai base create dialog if basePrompt is not available or if dialog is already shown or if rowId is present in the query params
-     */
-    if (!(basePrompt as string)?.trim() || dialogShow.value || route.value.query?.rowId) return
+  watch(
+    [() => route.value.query?.basePrompt, () => route.value.query?.baseName, () => hasBaseCreatePermission.value],
+    ([basePrompt, baseName, hasPermission]) => {
+      /**
+       * Avoid showing prefilled ai base create dialog if basePrompt is not available or if dialog is already shown or if rowId is present in the query params
+       */
+      if (!(basePrompt as string)?.trim() || dialogShow.value || route.value.query?.rowId || !hasPermission) return
 
-    aiModeInitialValue.value = {
-      basePrompt: trimMatchingQuotes(basePrompt as string),
-      baseName: trimMatchingQuotes(baseName as string),
-    }
+      aiModeInitialValue.value = {
+        basePrompt: trimMatchingQuotes(basePrompt as string),
+        baseName: trimMatchingQuotes(baseName as string),
+      }
 
-    aiMode.value = true
+      aiMode.value = true
 
-    dialogShow.value = true
-  })
+      dialogShow.value = true
+    },
+    {
+      immediate: true,
+    },
+  )
 }
 </script>
 

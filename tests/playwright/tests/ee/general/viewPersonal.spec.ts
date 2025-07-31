@@ -61,7 +61,7 @@ test.describe('Grid view personal', () => {
       // add all users as WS viewers
       await collaborationPage.addUsers(loginPage.prefixEmail(users[i].email), users[i].role);
     }
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     // create a grid view since the default view cannot be marked as personal
     await dashboard.viewSidebar.createGridView({ title: 'CountryGrid' });

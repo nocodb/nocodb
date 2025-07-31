@@ -104,7 +104,7 @@ describe('dataApiV3', () => {
         expect(rsp.body.records[0]).to.have.property('id', 401);
         expect(rsp.body.records[1]).to.have.property('id', 402);
         expect(rsp.body.records[2]).to.have.property('id', 403);
-        rsp.body.records.forEach(record => {
+        rsp.body.records.forEach((record) => {
           expect(record).to.have.property('fields');
         });
       });
@@ -191,7 +191,7 @@ describe('dataApiV3', () => {
         expect(rsp.body.records).to.have.length(2);
         expect(rsp.body.records[0]).to.have.property('id', 401);
         expect(rsp.body.records[1]).to.have.property('id', 402);
-        rsp.body.records.forEach(record => {
+        rsp.body.records.forEach((record) => {
           expect(record).to.have.property('fields');
         });
         const rspGet = await ncAxiosGet({
@@ -241,6 +241,11 @@ describe('dataApiV3', () => {
           ],
         });
         expect(rsp.body.records.length).to.greaterThan(0);
+        const getRsp = await ncAxiosGet({
+          url: `${urlPrefix}/${tblCountry.id}/records/${rsp.body.records[0].id}`,
+        });
+
+        expect(getRsp.body.fields.Cities.length).to.greaterThan(0);
       });
     });
 
@@ -275,9 +280,15 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records/401`,
         });
         expect(record.body.id).to.equal(401);
-        expect(record.body.fields.userFieldSingle[0].email).to.equal('a@nocodb.com');
-        expect(record.body.fields.userFieldMulti[0].email).to.equal('a@nocodb.com');
-        expect(record.body.fields.userFieldMulti[1].email).to.equal('b@nocodb.com');
+        expect(record.body.fields.userFieldSingle[0].email).to.equal(
+          'a@nocodb.com',
+        );
+        expect(record.body.fields.userFieldMulti[0].email).to.equal(
+          'a@nocodb.com',
+        );
+        expect(record.body.fields.userFieldMulti[1].email).to.equal(
+          'b@nocodb.com',
+        );
       });
 
       it('Create record : using ID', async function () {
@@ -309,7 +320,9 @@ describe('dataApiV3', () => {
         expect(record.body.fields.userFieldMulti[0].email).to.equal(
           'test@example.com',
         );
-        expect(record.body.fields.userFieldMulti[1].email).to.equal('a@nocodb.com');
+        expect(record.body.fields.userFieldMulti[1].email).to.equal(
+          'a@nocodb.com',
+        );
       });
     });
 

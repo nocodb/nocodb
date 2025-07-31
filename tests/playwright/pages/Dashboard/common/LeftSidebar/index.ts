@@ -5,6 +5,18 @@ import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { isEE } from '../../../../setup/db';
 import { NcContext } from '../../../../setup';
 
+type MiniSidebarActionType =
+  | 'ws'
+  | 'base'
+  | 'cmd-k'
+  | 'cmd-l'
+  | 'cmd-j'
+  | 'teamAndSettings'
+  | 'integration'
+  | 'feeds'
+  | 'notification'
+  | 'userInfo';
+
 export class LeftSidebarPage extends BasePage {
   readonly base: any;
   readonly dashboard: DashboardPage;
@@ -18,7 +30,7 @@ export class LeftSidebarPage extends BasePage {
 
   readonly miniSidebar: Locator;
 
-  readonly action_base: Locator;
+  readonly active_base: Locator;
 
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
@@ -33,7 +45,7 @@ export class LeftSidebarPage extends BasePage {
 
     this.miniSidebar = this.dashboard.get().getByTestId('nc-mini-sidebar');
 
-    this.action_base = this.get().locator('.nc-treeview-container.nc-treeview-container-active-base');
+    this.active_base = this.get().locator('.nc-treeview-container.nc-treeview-container-active-base');
   }
 
   get() {
@@ -177,11 +189,34 @@ export class LeftSidebarPage extends BasePage {
     await this.rootPage.waitForTimeout(3500);
   }
 
+  async getMiniSidebarActionLocator({ type }: { type: MiniSidebarActionType }): Promise<Locator | undefined> {
+    if (!(await this.isNewSidebar())) {
+      return undefined;
+    }
+
+    await this.miniSidebar.waitFor();
+
+    const locators = {
+      ws: this.miniSidebar.getByTestId('nc-workspace-menu'),
+      base: this.miniSidebar.getByTestId('nc-sidebar-project-btn'),
+      'cmd-k': this.miniSidebar.getByTestId('nc-sidebar-cmd-k-btn'),
+      'cmd-l': this.miniSidebar.getByTestId('nc-sidebar-cmd-l-btn'),
+      'cmd-j': this.miniSidebar.getByTestId('nc-sidebar-cmd-j-btn'),
+      teamAndSettings: this.miniSidebar.getByTestId('nc-sidebar-team-settings-btn'),
+      integration: this.miniSidebar.getByTestId('nc-sidebar-integrations-btn'),
+      feeds: this.miniSidebar.getByTestId('nc-sidebar-product-feed'),
+      notification: this.miniSidebar.getByTestId('nc-sidebar-notification-btn'),
+      userInfo: this.miniSidebar.getByTestId('nc-sidebar-userinfo'),
+    };
+
+    return locators[type];
+  }
+
   async miniSidebarActionClick({
     type,
     fallback,
   }: {
-    type: 'ws' | 'base' | 'cmd-k' | 'teamAndSettings' | 'integration' | 'feeds' | 'notification' | 'userInfo';
+    type: MiniSidebarActionType;
     fallback?: () => Promise<void>;
   }): Promise<boolean | void> {
     if (!(await this.isNewSidebar())) {
@@ -194,40 +229,28 @@ export class LeftSidebarPage extends BasePage {
 
     await this.miniSidebar.waitFor();
 
-    switch (type) {
-      case 'ws': {
-        await this.miniSidebar.getByTestId('nc-workspace-menu').click();
-        break;
-      }
-      case 'base': {
-        await this.miniSidebar.getByTestId('nc-sidebar-project-btn').click();
-        break;
-      }
-      case 'cmd-k': {
-        await this.miniSidebar.getByTestId('nc-sidebar-cmd-k-btn').click();
-        break;
-      }
-      case 'teamAndSettings': {
-        await this.miniSidebar.getByTestId('nc-sidebar-team-settings-btn').click();
-        break;
-      }
-      case 'integration': {
-        await this.miniSidebar.getByTestId('nc-sidebar-integrations-btn').click();
-        break;
-      }
-      case 'feeds': {
-        await this.miniSidebar.getByTestId('nc-sidebar-product-feed').click();
-        break;
-      }
-      case 'notification': {
-        await this.miniSidebar.getByTestId('nc-sidebar-notification-btn').click();
-        break;
-      }
-      case 'userInfo': {
-        await this.miniSidebar.getByTestId('nc-sidebar-userinfo').click();
-        break;
-      }
+    const miniSidebarActionLocator = await this.getMiniSidebarActionLocator({ type });
+
+    if (miniSidebarActionLocator) {
+      await miniSidebarActionLocator.click();
     }
+
     await this.rootPage.waitForTimeout(400);
+  }
+
+  async verifyMiniSidebarActions({
+    types = [],
+    isVisible = true,
+  }: {
+    types: MiniSidebarActionType[];
+    isVisible: boolean;
+  }) {
+    for (const type of types) {
+      const locator = await this.getMiniSidebarActionLocator({ type });
+
+      console.log('locator', locator);
+      if (isVisible) await expect(locator).toBeVisible();
+      else await expect(locator).not.toBeVisible();
+    }
   }
 }

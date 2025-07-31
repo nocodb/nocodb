@@ -391,7 +391,7 @@ export class TreeViewPage extends BasePage {
 
     await this.get().getByTestId(`nc-sidebar-base-title-${title}`).click();
 
-    await this.dashboard.leftSidebar.action_base.waitFor({ state: 'visible' });
+    await this.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
 
     await this.rootPage.waitForTimeout(1000);
 

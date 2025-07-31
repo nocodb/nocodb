@@ -127,7 +127,7 @@ export class MetricCommonHandler extends BaseWidgetHandler {
     let aggregationColumn;
 
     if (metric.type === 'count') {
-      query = qb.count();
+      query = qb.count('* as count')
     } else {
       aggregationColumn = await Column.get(context, {
         colId: metric.column_id,
@@ -155,7 +155,6 @@ export class MetricCommonHandler extends BaseWidgetHandler {
         aggregationColumn,
       );
     }
-
     return {
       data: data.count,
     };

@@ -4,6 +4,7 @@ import { MetricCommonHandler } from '~/db/widgets/metric/metric.common.handler';
 import { NcError } from '~/helpers/ncError';
 import { Model, Source } from '~/models';
 import { CircularChartPgHandler } from '~/db/widgets/circular-chart/circular-chart.pg.handler';
+import { CircularChartMysqlHandler } from '~/db/widgets/circular-chart/circular-chart.mysql.handler';
 import { CircularChartCommonHandler } from '~/db/widgets/circular-chart/circular-chart.common.handler';
 import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
 
@@ -31,10 +32,12 @@ export async function getWidgetHandler(params: {
       switch (widget.config.chartType) {
         case ChartTypes.PIE:
         case ChartTypes.DONUT:
-          if (source?.type !== 'pg') {
-            return new CircularChartCommonHandler();
+          if (source?.type === 'pg') {
+            return new CircularChartPgHandler();
+          } else if (['mysql', 'mysql2'].includes(source?.type)) {
+            return new CircularChartMysqlHandler();
           }
-          return new CircularChartPgHandler();
+          return new CircularChartCommonHandler();
         default:
           return new BaseWidgetHandler();
       }

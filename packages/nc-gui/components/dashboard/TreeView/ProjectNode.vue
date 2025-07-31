@@ -492,6 +492,7 @@ defineExpose({
           <div
             ref="baseNodeRefs"
             :class="{
+              'nc-project-header': isProjectHeader,
               'text-subHeading2 gap-2 hover:bg-nc-bg-gray-medium h-8 cursor-pointer px-1 max-w-full': isProjectHeader,
               'flex-grow w-full': isProjectHeader && editMode,
               'bg-nc-bg-gray-medium': isProjectHeader && isProjectNodeContextMenuOpen,

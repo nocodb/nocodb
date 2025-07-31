@@ -126,8 +126,9 @@ test.describe('Collaborators', () => {
     await dashboard.leftSidebar.verifyMiniSidebarActions({ types: ['cmd-k', 'teamAndSettings'], isVisible: true });
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: true });
 
-    await dashboard.sidebar.tableNode.clickOptions({ tableTitle: 'Features' });
+    await dashboard.sidebar.tableNode.clickOptions({ tableTitle: 'Features', baseTitle: 'Getting Started' });
     await dashboard.sidebar.tableNode.verifyTableOptions({
+      baseTitle: 'Getting Started',
       tableTitle: 'Features',
       isVisible: true,
       deleteVisible: true,
@@ -159,6 +160,7 @@ test.describe('Collaborators', () => {
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: false });
 
     await dashboard.sidebar.tableNode.verifyTableOptions({
+      baseTitle: 'Getting Started',
       tableTitle: 'Features',
       isVisible: false,
     });
@@ -187,6 +189,7 @@ test.describe('Collaborators', () => {
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: false });
 
     await dashboard.sidebar.tableNode.verifyTableOptions({
+      baseTitle: 'Getting Started',
       tableTitle: 'Features',
       isVisible: false,
     });
@@ -215,6 +218,7 @@ test.describe('Collaborators', () => {
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: false });
 
     await dashboard.sidebar.tableNode.verifyTableOptions({
+      baseTitle: 'Getting Started',
       tableTitle: 'Features',
       isVisible: false,
     });

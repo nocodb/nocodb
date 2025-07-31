@@ -161,4 +161,38 @@ export class SidebarProjectNodeObject extends BasePage {
       await this.clickOptions({ baseTitle });
     }
   }
+
+  async verifyActiveProject({ baseTitle, open = false }: { baseTitle: string; open?: boolean }) {
+    const isBaseListSidebar = await this.sidebar.dashboard.leftSidebar.verifyBaseListOpen(false);
+    // If base home page sidebar is open then verify base title is same as baseTitle
+    if (!isBaseListSidebar) {
+      const baseLocator = await this.get({ baseTitle }).getAttribute('class');
+
+      // If active project is same as baseTitle then return true
+      if (baseLocator?.includes('nc-project-header')) return true;
+
+      if (!open) return false;
+
+      // If it is not same base home page sidebar then go to base list and open
+      await this.sidebar.dashboard.leftSidebar.verifyBaseListOpen(true);
+    }
+
+    if (!open) return false;
+
+    await this.get({
+      baseTitle,
+    }).waitFor({ state: 'visible' });
+
+    await this.get({
+      baseTitle,
+    }).scrollIntoViewIfNeeded();
+
+    await this.get({
+      baseTitle,
+    }).click();
+
+    await this.sidebar.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
+
+    return true;
+  }
 }

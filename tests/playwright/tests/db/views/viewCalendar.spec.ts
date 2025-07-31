@@ -427,7 +427,7 @@ test.describe('Calendar View', () => {
     await calendar.sideMenu.verifySideBarRecords({ records: Array(12).fill('') });
   });
 
-  test.only('Calendar Operations Date Fields', async () => {
+  test('Calendar Operations Date Fields', async () => {
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
 
     await dashboard.treeView.openTable({ title: 'Social Media Calendar', baseTitle: `xcdb${context.workerId}` });

@@ -2,7 +2,7 @@
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import { computed } from '@vue/reactivity'
-import { PlanFeatureTypes, PlanTitles, ProjectRoles } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, ProjectRoles, trimMatchingQuotes } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -204,8 +204,8 @@ if (props.isCreateNewActionMenu) {
     if (!(basePrompt as string)?.trim() || dialogShow.value || route.value.query?.rowId) return
 
     aiModeInitialValue.value = {
-      basePrompt: (basePrompt as string)?.trim() || '',
-      baseName: (baseName as string)?.trim() || '',
+      basePrompt: trimMatchingQuotes(basePrompt as string),
+      baseName: trimMatchingQuotes(baseName as string),
     }
 
     aiMode.value = true

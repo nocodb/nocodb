@@ -151,3 +151,14 @@ export function generateUniqueCopyName<T = string>(
 export function escapeRegexString(string: string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+/**
+ * Trim matching quotes from the string
+ * @param str - The string to trim
+ * @returns The trimmed string
+ */
+export const trimMatchingQuotes = (str?: string | null): string => {
+  if (!str?.trim()) return '';
+
+  return str?.trim()?.replace(/^(['"])(.*)\1$/, '$2') ?? '';
+};

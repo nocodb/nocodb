@@ -1,9 +1,9 @@
 import { promisify } from 'util';
 import fs from 'fs';
 import knex from 'knex';
-import isEmpty from 'lodash/isEmpty';
-import mapKeys from 'lodash/mapKeys';
-import find from 'lodash/find';
+import isEmpty from 'es-toolkit/compat/isEmpty';
+import mapKeys from 'es-toolkit/compat/mapKeys';
+import find from 'es-toolkit/compat/find';
 import { customAlphabet } from 'nanoid';
 import KnexClient from '../KnexClient';
 import Debug from '../../../util/Debug';

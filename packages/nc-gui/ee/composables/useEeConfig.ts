@@ -38,6 +38,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isPaymentEnabled = computed(() => appInfo.value?.isCloud && !appInfo.value?.isOnPrem)
 
+  const isOnPrem = computed(() => appInfo.value?.isOnPrem)
+
   // Will only consider ws owner not super admin
   const isWsOwner = computed(() =>
     isUIAllowed('workspaceBilling', {
@@ -166,7 +168,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockPrivateBases = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_PRIVATE_BASES)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_PRIVATE_BASES)
   })
 
   const showUserMayChargeAlert = computed(() => {
@@ -261,7 +263,7 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   function getFeature(type: PlanFeatureTypes, workspace?: NcWorkspace | null) {
-    if (!isPaymentEnabled.value) return true
+    if (!isPaymentEnabled.value && !isOnPrem.value) return true
 
     if (!workspace) {
       workspace = activeWorkspace.value
@@ -450,6 +452,56 @@ export const useEeConfig = createSharedComposable(() => {
     }
 
     navigateTo(`/${workspaceId || activeWorkspaceId.value}/pricing${searchQuery ? `?${searchQuery}` : ''}`)
+  }
+
+  const handleOnPremUpgrade = ({
+    currentPlanTitle,
+    title,
+    content,
+    requiredPlan,
+  }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'focusBtn' | 'maskClosable' | 'keyboard'> & {
+    title?: string
+    currentPlanTitle?: PlanTitles
+    newPlanTitle?: PlanTitles
+    workspaceId?: string
+    requiredPlan?: PlanTitles
+    content?: string
+    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
+  } = {}) => {
+    // if already on required plan it means we hit the limit so show higher plan
+    if (requiredPlan && requiredPlan === (currentPlanTitle ?? activePlanTitle.value)) {
+      requiredPlan = undefined
+    }
+
+    const higherPlan = requiredPlan ?? HigherPlan[currentPlanTitle ?? activePlanTitle.value]
+    if (!higherPlan) {
+      return
+    }
+
+    const isOpen = ref(true)
+
+    const modalTitle = ref(title)
+
+    const modalContent = ref(content)
+
+    const { close } = useDialog(NcModalConfirm, {
+      'visible': isOpen,
+      'title': modalTitle,
+      'content': modalContent,
+      'okClass': '!hidden',
+      'cancelText': 'Close',
+      'onCancel': toggleDialog,
+      'update:visible': toggleDialog,
+      'showIcon': false,
+      'maskClosable': true,
+    })
+
+    function toggleDialog(show = false) {
+      isOpen.value = show
+      close(1000)
+    }
+
+    return true
   }
 
   const handleUpgradePlan = ({
@@ -890,15 +942,24 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUsePrivateBases = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockPrivateBases.value) return
 
-    handleUpgradePlan({
-      title: t('upgrade.upgradeToUsePrivateBases'),
-      content: t('upgrade.upgradeToUsePrivateBasesSubtitle', {
-        plan: PlanTitles.BUSINESS,
-      }),
-      callback,
-      requiredPlan: PlanTitles.BUSINESS,
-      limitOrFeature: PlanFeatureTypes.FEATURE_PRIVATE_BASES,
-    })
+    if (isOnPrem.value) {
+      handleOnPremUpgrade({
+        title: t('upgrade.upgradeLicenseToUsePrivateBases'),
+        content: t('upgrade.upgradeLicenseToUsePrivateBasesSubtitle'),
+        requiredPlan: PlanTitles.ENTERPRISE,
+        limitOrFeature: PlanFeatureTypes.FEATURE_PRIVATE_BASES,
+      })
+    } else {
+      handleUpgradePlan({
+        title: t('upgrade.upgradeToUsePrivateBases'),
+        content: t('upgrade.upgradeToUsePrivateBasesSubtitle', {
+          plan: PlanTitles.BUSINESS,
+        }),
+        callback,
+        requiredPlan: PlanTitles.BUSINESS,
+        limitOrFeature: PlanFeatureTypes.FEATURE_PRIVATE_BASES,
+      })
+    }
 
     return true
   }
@@ -978,6 +1039,7 @@ export const useEeConfig = createSharedComposable(() => {
     getPlanTitle,
     handleUpgradePlan,
     isPaymentEnabled,
+    isOnPrem,
     showUserPlanLimitExceededModal,
     isRecordLimitReached,
     isStorageLimitReached,

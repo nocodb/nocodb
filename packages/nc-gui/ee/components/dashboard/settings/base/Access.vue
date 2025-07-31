@@ -3,7 +3,7 @@ import { PlanFeatureTypes, PlanTitles, ProjectRoles } from 'nocodb-sdk'
 
 const { t } = useI18n()
 
-const { blockPrivateBases, showUpgradeToUsePrivateBases } = useEeConfig()
+const { blockPrivateBases, showUpgradeToUsePrivateBases, isOnPrem } = useEeConfig()
 
 const { base } = storeToRefs(useBase())
 
@@ -47,6 +47,8 @@ const baseTypeOptions = computed(() => [
     disabled: blockPrivateBases.value,
   },
 ])
+
+const privateBaseMinPlanReq = computed(() => (isOnPrem.value ? PlanTitles.ENTERPRISE : PlanTitles.BUSINESS))
 </script>
 
 <template>
@@ -91,7 +93,7 @@ const baseTypeOptions = computed(() => [
                 <PaymentUpgradeBadge
                   v-if="blockPrivateBases && option.value"
                   :feature="PlanFeatureTypes.FEATURE_PRIVATE_BASES"
-                  :plan-title="PlanTitles.BUSINESS"
+                  :plan-title="privateBaseMinPlanReq"
                   size="sm"
                   remove-click
                   class="!font-normal !text-bodyDefaultSm"

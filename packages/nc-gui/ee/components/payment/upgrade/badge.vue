@@ -37,7 +37,7 @@ const { disabled, removeClick } = toRefs(props)
 
 const planUpgraderClick = inject(PlanUpgraderClickHookInj, createEventHook())
 
-const { handleUpgradePlan, getFeature, getPlanTitle, isPaymentEnabled } = useEeConfig()
+const { handleUpgradePlan, getFeature, getPlanTitle, isPaymentEnabled, isOnPrem } = useEeConfig()
 
 const isFeatureEnabled = computed(() => {
   if (ncIsFunction(props.featureEnabledCallback)) {
@@ -78,7 +78,7 @@ planUpgraderClick.on(() => {
 
 <template>
   <NcBadge
-    v-if="!isFeatureEnabled && isPaymentEnabled"
+    v-if="!isFeatureEnabled && (isPaymentEnabled || isOnPrem)"
     :size="size"
     :border="false"
     class="nc-upgrade-badge cursor-pointer select-none"

@@ -52,6 +52,7 @@ export default class Noco {
   public readonly metaMgr: any;
   public readonly metaMgrv2: any;
   public env: string;
+  protected static _nestApp: INestApplication;
 
   protected config: any;
   protected requestContext: any;
@@ -89,6 +90,10 @@ export default class Noco {
     return this._ncMeta;
   }
 
+  public static get nestApp() {
+    return this._nestApp;
+  }
+
   public static get ncAudit(): AuditService {
     return this._ncAudit ?? this._ncMeta;
   }
@@ -121,6 +126,7 @@ export default class Noco {
       bufferLogs: true,
       bodyParser: false,
     });
+    Noco._nestApp = nestApp;
     this.initCustomLogger(nestApp);
     NcDebug.log('Custom logger initialized');
     nestApp.flushLogs();

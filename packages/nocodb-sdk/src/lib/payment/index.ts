@@ -57,11 +57,15 @@ export enum PlanFeatureTypes {
   FEATURE_PRIVATE_BASES = 'feature_private_bases',
 }
 
+// todo: separate as a new enum
 export enum PlanTitles {
   FREE = 'Free',
   PLUS = 'Plus',
   BUSINESS = 'Business',
   ENTERPRISE = 'Enterprise',
+
+  // on-prem
+  ENTERPRISE_STARTER = 'EnterpriseStarter',
 }
 
 export enum PlanPriceLookupKeys {

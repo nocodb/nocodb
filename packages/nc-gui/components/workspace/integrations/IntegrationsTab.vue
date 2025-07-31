@@ -311,7 +311,7 @@ watch(activeViewTab, (value) => {
                       <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
                     </template>
                   </a-input>
-                  <NcDropdown v-if="easterEggToggle && showFilter" v-model:visible="isOpenFilter">
+                  <NcDropdown v-if="easterEggToggle && showFilter" v-model:visible="isOpenFilter" placement="bottomRight">
                     <NcButton size="small" type="secondary">
                       <div class="flex items-center gap-2">
                         <GeneralIcon icon="filter" />

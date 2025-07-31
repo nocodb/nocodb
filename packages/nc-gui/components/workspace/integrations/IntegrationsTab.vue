@@ -425,16 +425,33 @@ watch(activeViewTab, (value) => {
                             </div>
                             <div v-if="!isDataReflectionEnabled && integration?.sub_type === SyncDataType.NOCODB"></div>
                             <div v-else-if="integration?.sub_type === SyncDataType.NOCODB" class="flex items-center">
-                              <template v-if="dataReflectionEnabled">
-                                <GeneralIcon icon="ncCheck" class="text-primary flex-none" />
-                              </template>
-                              <div v-else class="action-btn !flex">
+                              <NcButton
+                                v-if="dataReflectionEnabled"
+                                type="secondary"
+                                size="xs"
+                                class="integration-upvote-btn !rounded-lg !px-1 !py-0 selected"
+                              >
+                                <div class="flex items-center gap-2">
+                                  <GeneralIcon icon="ncCheck" class="text-primary flex-none" />
+                                </div>
+                              </NcButton>
+                              <NcButton v-else type="secondary" size="xs" class="action-btn !rounded-lg !px-1 !py-0">
+                                <div class="flex items-center gap-2">
+                                  <GeneralIcon icon="ncPlus" class="flex-none" />
+                                </div>
+                              </NcButton>
+                            </div>
+
+                            <NcButton
+                              v-else-if="integration?.isAvailable"
+                              type="secondary"
+                              size="xs"
+                              class="action-btn !rounded-lg !px-1 !py-0"
+                            >
+                              <div class="flex items-center gap-2">
                                 <GeneralIcon icon="ncPlus" class="flex-none" />
                               </div>
-                            </div>
-                            <div v-else-if="integration?.isAvailable" class="action-btn">
-                              <GeneralIcon icon="ncPlus" class="flex-none" />
-                            </div>
+                            </NcButton>
                             <div v-else class="">
                               <NcButton
                                 type="secondary"
@@ -597,7 +614,7 @@ watch(activeViewTab, (value) => {
         }
 
         .action-btn {
-          @apply hidden text-gray-500 w-4 h-4 items-center;
+          @apply hidden;
         }
 
         &.is-available {
@@ -607,7 +624,7 @@ watch(activeViewTab, (value) => {
             box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
 
             .action-btn {
-              @apply flex;
+              @apply inline-block;
             }
           }
 

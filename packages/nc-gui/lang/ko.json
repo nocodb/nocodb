@@ -169,6 +169,8 @@
     "upgradeToUseDashboardsSubtitle": "대시보드를 사용하여 데이터를 시각화하려면 {plan} 계획으로 업그레이드하십시오.",
     "upgradeToUsePrivateBases": "업그레이드하여 개인 프로젝트 잠금 해제",
     "upgradeToUsePrivateBasesSubtitle": "개인 프로젝트는 {plan} 플랜에서 사용할 수 있습니다. 지금 업그레이드하여 사용을 시작하십시오.",
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "이 셀에는 최대 {limit} {filePlural}까지만 업로드할 수 있습니다. 더 많은 파일을 추가하려면 {plan} 플랜으로 업그레이드합니다."
   },
   "general": {
@@ -591,6 +593,7 @@
       "Team": "팀",
       "Plus": "플러스",
       "Business": "비즈니스",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "엔터프라이즈"
     },
     "currentPlan": {

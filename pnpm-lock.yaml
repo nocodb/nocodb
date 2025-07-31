@@ -227,8 +227,8 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0(antlr4ng-cli@1.0.7)
       nocodb-sdk:
-        specifier: 0.264.2
-        version: 0.264.2(debug@4.4.1)
+        specifier: workspace:^
+        version: link:../nocodb-sdk
       papaparse:
         specifier: ^5.5.2
         version: 5.5.3
@@ -835,8 +835,8 @@ importers:
         specifier: 0.264.2
         version: 0.264.2
       nocodb-sdk:
-        specifier: 0.264.2
-        version: 0.264.2(debug@4.4.1)
+        specifier: workspace:^
+        version: link:../nocodb-sdk
       nodemailer:
         specifier: ^6.10.0
         version: 6.10.1
@@ -11096,10 +11096,6 @@ packages:
   nock@14.0.6:
     resolution: {integrity: sha512-67n1OfusL/ON57fwFJ6ZurSJa/msYVQmqlz9rCel2HJYj4Zeb8v9TcmRdEW+PV2i9Fm2358umSvzZukhw/E8DA==}
     engines: {node: '>=18.20.0 <20 || >=20.12.1'}
-
-  nocodb-sdk@0.264.2:
-    resolution: {integrity: sha512-nijDPWyDtDCcJ7D8FTGff9drFTRjidxYBJycgB5gBXlHmly6u3v8LC4s3Y2dsadOC+KSXLbek4Ti8VqPwidkKA==}
-    engines: {node: '>=18'}
 
   node-abi@3.75.0:
     resolution: {integrity: sha512-OhYaY5sDsIka7H7AtijtI9jwGYLyl29eQn/W623DiN/MIv5sUqc4g7BIDThX+gb7di9f6xK02nkp8sdfFWZLTg==}
@@ -27275,16 +27271,6 @@ snapshots:
       '@mswjs/interceptors': 0.39.4
       json-stringify-safe: 5.0.1
       propagate: 2.0.1
-
-  nocodb-sdk@0.264.2(debug@4.4.1):
-    dependencies:
-      axios: 1.9.0(debug@4.4.1)
-      chevrotain: 10.5.0
-      dayjs: 1.11.13
-      jsep: 1.4.0
-      validator: 13.15.15
-    transitivePeerDependencies:
-      - debug
 
   node-abi@3.75.0:
     dependencies:

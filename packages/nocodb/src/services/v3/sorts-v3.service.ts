@@ -22,9 +22,9 @@ export class SortsV3Service {
     SortCreateV3Type | SortUpdateV3Type,
     SortType
   >({
-    allowed: ['id', 'field_id', 'direction'],
+    allowed: ['id', 'fieldId', 'direction'],
     mappings: {
-      field_id: 'fk_column_id',
+      fieldId: 'fk_column_id',
     },
   });
 
@@ -69,7 +69,7 @@ export class SortsV3Service {
       sort = await Sort.get(context, param.sortId);
     } else {
       const sorts = await Sort.list(context, { viewId: param.viewId });
-      sort = sorts.find((s) => s.fk_column_id === param.sort.field_id);
+      sort = sorts.find((s) => s.fk_column_id === param.sort.fieldId);
     }
 
     if (!sort || sort.fk_view_id !== param.viewId) {
@@ -99,7 +99,7 @@ export class SortsV3Service {
     // check for existing filter with same field
     const sorts = await Sort.list(context, { viewId: param.viewId }, ncMeta);
     const existingSort = sorts.find(
-      (s) => s.fk_column_id === param.sort.field_id,
+      (s) => s.fk_column_id === param.sort.fieldId,
     );
     if (existingSort) {
       NcError.badRequest('Sort already exists for this field');
@@ -108,7 +108,7 @@ export class SortsV3Service {
     // check column exists
     const column = await Column.get(
       context,
-      { colId: param.sort.field_id },
+      { colId: param.sort.fieldId },
       ncMeta,
     );
 

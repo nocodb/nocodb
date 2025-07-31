@@ -79,16 +79,24 @@ const viewList = computedAsync(async () => {
   })
 })
 
-const selectedView = computed(() => {
-  if (!viewList.value || viewList.value.length === 0) return undefined
+const viewListMap = computed(() => {
+  if (!viewList.value || viewList.value.length === 0) return new Map()
+  
+  return new Map(viewList.value.map((view) => [view.value, view]))
+})
 
-  return viewList.value.find((view) => view.value === modelValue.value) || viewList.value[0]
+const selectedView = computed(() => {
+  if (!viewListMap.value || viewListMap.value.size === 0) return undefined
+
+  return viewListMap.value.get(modelValue.value) || viewList.value?.[0]
 })
 
 watch(viewList, (newViewList) => {
   if (newViewList && newViewList.length > 0) {
+    const newViewListMap = new Map(newViewList.map((view) => [view.value, view]))
+    
     // Check if current value exists in the new view list
-    if (modelValue.value && !newViewList.find((view) => view.value === modelValue.value)) {
+    if (modelValue.value && !newViewListMap.has(modelValue.value)) {
       // Current value is not in the list, emit null to clear it
       modelValue.value = undefined
       emit('update:value', undefined)
@@ -99,7 +107,7 @@ watch(viewList, (newViewList) => {
     if (!modelValue.value && props.autoSelect) {
       const newViewId = props.viewId || newViewList[0]?.value
 
-      const viewObj = newViewList.find((view) => view.value === newViewId)
+      const viewObj = newViewListMap.get(newViewId)
 
       // Change view id only if it is default view selected initially and its not enabled
       if (viewObj && viewObj.ncItemDisabled && viewObj.value === newViewList[0]?.value) {
@@ -119,6 +127,7 @@ defineExpose({
   selectedView,
   isOpenViewSelectDropdown,
   viewList,
+  viewListMap,
 })
 </script>
 
@@ -133,7 +142,9 @@ defineExpose({
     @dblclick.stop
   >
     <template v-if="!disableLabel" #label>
-      <div>{{ t('general.view') }}</div>
+      <div>
+        <slot name="label">{{ t('general.view') }}</slot>
+      </div>
     </template>
     <NcListDropdown
       v-model:is-open="isOpenViewSelectDropdown"

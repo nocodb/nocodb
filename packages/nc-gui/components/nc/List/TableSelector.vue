@@ -67,16 +67,24 @@ const tableList = computedAsync(async () => {
   })
 })
 
-const selectedTable = computed(() => {
-  if (!tableList.value || tableList.value.length === 0) return undefined
+const tableListMap = computed(() => {
+  if (!tableList.value || tableList.value.length === 0) return new Map()
+  
+  return new Map(tableList.value.map((table) => [table.value, table]))
+})
 
-  return tableList.value.find((table) => table.value === modelValue.value) || undefined
+const selectedTable = computed(() => {
+  if (!tableListMap.value || tableListMap.value.size === 0) return undefined
+
+  return tableListMap.value.get(modelValue.value) || undefined
 })
 
 watch(tableList, (newTableList) => {
   if (newTableList && newTableList.length > 0) {
+    const newTableListMap = new Map(newTableList.map((table) => [table.value, table]))
+    
     // Check if current value exists in the new table list
-    if (modelValue.value && !newTableList.find((table) => table.value === modelValue.value)) {
+    if (modelValue.value && !newTableListMap.has(modelValue.value)) {
       // Current value is not in the list, emit null to clear it
       modelValue.value = null
       emit('update:value', null)
@@ -87,7 +95,7 @@ watch(tableList, (newTableList) => {
     if (!modelValue.value && props.autoSelect) {
       const newTableId = props.tableId || newTableList[0]?.value
 
-      const tableObj = newTableList.find((table) => table.value === newTableId)
+      const tableObj = newTableListMap.get(newTableId)
 
       if (tableObj && tableObj.ncItemDisabled && tableObj.value === newTableList[0]?.value) {
         const selectedValue = newTableList.find((table) => !table.ncItemDisabled)?.value || newTableList[0]?.value
@@ -106,6 +114,7 @@ defineExpose({
   selectedTable,
   isOpenTableSelectDropdown,
   tableList,
+  tableListMap,
 })
 </script>
 
@@ -120,7 +129,9 @@ defineExpose({
     @dblclick.stop
   >
     <template v-if="!disableLabel" #label>
-      <div>{{ t('general.table') }}</div>
+      <div>
+        <slot name="label">{{ t('general.table') }}</slot>
+      </div>
     </template>
     <NcListDropdown
       v-model:is-open="isOpenTableSelectDropdown"

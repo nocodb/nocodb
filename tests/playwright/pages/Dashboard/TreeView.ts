@@ -166,8 +166,10 @@ export class TreeViewPage extends BasePage {
     if (skipOpeningModal) return;
 
     await this.dashboard.leftSidebar.miniSidebarActionClick({ type: 'base' });
+    await this.rootPage.waitForTimeout(500);
 
-    const verifyBaseListOpen = await this.dashboard.leftSidebar.verifyBaseListOpen();
+    await this.dashboard.leftSidebar.verifyBaseListOpen(true);
+    const verifyBaseListOpen = true;
 
     switch (type) {
       case 'table': {

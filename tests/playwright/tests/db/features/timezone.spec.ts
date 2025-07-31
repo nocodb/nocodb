@@ -157,7 +157,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
     if (!isSqlite(context)) return;
 
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
-    await dashboard.treeView.openTable({ title: 'dateTimeTable' });
+    await dashboard.treeView.openTable({ title: 'dateTimeTable', baseTitle: `xcdb${context.workerId}` });
 
     // DateTime inserted using API without timezone is converted to db-timezone (server timezone in case of sqlite)
     // Display value is converted to Asia/Tokyo
@@ -257,7 +257,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    */
   test('API insert, verify display value', async () => {
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
-    await dashboard.treeView.openTable({ title: 'dateTimeTable' });
+    await dashboard.treeView.openTable({ title: 'dateTimeTable', baseTitle: `xcdb${context.workerId}` });
 
     // DateTime inserted using API without timezone is converted to UTC
     // Display value is converted to Asia/Hong_Kong
@@ -548,7 +548,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     // insert a record to work with formula experiments
     //
     await dashboard.treeView.openBase({ title: `datetimetable01${counter}` });
-    await dashboard.treeView.openTable({ title: 'MyTable' });
+    await dashboard.treeView.openTable({ title: 'MyTable', baseTitle: `datetimetable01${counter}` });
 
     // Create formula column (dummy)
     api = new Api({
@@ -709,7 +709,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     const formattedOffset = getBrowserTimezoneOffset();
 
     await dashboard.treeView.openBase({ title: `datetimetable01${counter}` });
-    await dashboard.treeView.openTable({ title: 'MyTable' });
+    await dashboard.treeView.openTable({ title: 'MyTable', baseTitle: `datetimetable01${counter}` });
 
     if (isSqlite(context)) {
       // For SQLite, we assume that the browser timezone is the same as the server timezone
@@ -877,7 +877,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
     // insert a record to work with formula experiments
     //
     await dashboard.treeView.openBase({ title: 'datetimetable02' });
-    await dashboard.treeView.openTable({ title: 'MyTable' });
+    await dashboard.treeView.openTable({ title: 'MyTable', baseTitle: 'datetimetable02' });
     // Insert new row
     await dashboard.grid.cell.dateTime.setDateTime({
       index: 2,
@@ -1029,7 +1029,7 @@ test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as H
     await dashboard.rootPage.waitForTimeout(2000);
 
     await dashboard.treeView.openBase({ title: 'datetimetable03' });
-    await dashboard.treeView.openTable({ title: 'MyTable' });
+    await dashboard.treeView.openTable({ title: 'MyTable', baseTitle: 'datetimetable03' });
 
     // display value for datetime column without tz should be same as stored value
     // display value for datetime column with tz should be converted to browser timezone (HK in this case)

@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  ClientType,
   isAIPromptCol,
   isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
   RelationTypes,
+  SqlUiFactory,
   UITypes,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
@@ -276,7 +278,7 @@ export class MetaDiffsService {
       }
       for (const column of oldMeta.columns) {
         if (
-          [
+          (<UITypes[]>[
             UITypes.LinkToAnotherRecord,
             UITypes.Links,
             UITypes.Rollup,
@@ -285,8 +287,16 @@ export class MetaDiffsService {
             UITypes.QrCode,
             UITypes.Barcode,
             UITypes.Button,
-          ].includes(column.uidt) ||
-          isAIPromptCol(column)
+          ]).includes(column.uidt) ||
+          isAIPromptCol(column) ||
+          // skip alias columns of CreatedTime, LastModifiedTime, CreatedBy, LastModifiedBy
+          ((<UITypes[]>[
+            UITypes.CreatedTime,
+            UITypes.LastModifiedTime,
+            UITypes.LastModifiedBy,
+            UITypes.CreatedBy,
+          ]).includes(column.uidt) &&
+            !column.system)
         ) {
           if (isLinksOrLTAR(column.uidt)) {
             virtualRelationColumns.push(column);
@@ -703,6 +713,7 @@ export class MetaDiffsService {
 
     // @ts-ignore
     const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+    const sqlUi = SqlUiFactory.create({ client: source.type ?? ClientType.PG });
     const changes = await this.getMetaDiff(context, sqlClient, base, source);
 
     /* Get all relations */
@@ -831,7 +842,17 @@ export class MetaDiffsService {
                 { client: source.type },
                 {},
               );
-              column.uidt = metaFact.getUIDataType(column);
+
+              // check if new type is compatible with old uidt
+              const allowedDatatypes = sqlUi.getDataTypeListForUiType(
+                column,
+              );
+
+              // if UIDT not compatible with new type then change uidt
+              if (!allowedDatatypes?.includes(column.dt)) {
+                column.uidt = metaFact.getUIDataType(column);
+              }
+
               column.title = change.column.title;
               await Column.update(context, change.column.id, column);
             }

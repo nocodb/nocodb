@@ -134,6 +134,42 @@ export default function () {
         expect(response.status).to.eq(400);
         expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
       });
+
+      it(`will handle invalid sort field`, async () => {
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            type: 'GRID',
+            sorts: [
+              {
+                fields_id: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          });
+        expect(response.status).to.eq(400);
+        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+      });
+
+      it(`will handle invalid groups field`, async () => {
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            type: 'GRID',
+            options: {
+              groups: [{
+                field_id: 'asdmalmkdm'
+              }]
+            },
+          });
+        expect(response.status).to.eq(400);
+        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+      });
     });
   });
 }

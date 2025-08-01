@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isSystemColumn } from 'nocodb-sdk'
+import { isSystemColumn, type ColumnType } from 'nocodb-sdk'
 
 const emit = defineEmits<{
   'update:category': [category: any]
@@ -11,6 +11,7 @@ const modelId = computed(() => selectedWidget.value?.fk_model_id || null)
 const selectedFieldId = ref(selectedWidget.value?.config?.data?.category?.column_id || null)
 const selectedOrderValue = ref(selectedWidget.value?.config?.data?.category?.orderBy || 'default')
 const includeEmptyRecords = ref(selectedWidget.value?.config?.data?.category?.includeEmptyRecords || false)
+const includeOthers = ref(selectedWidget.value?.config?.data?.category?.includeOthers || true)
 
 const fieldOrderOptions = [
   { value: 'default', label: 'Default field order' },
@@ -30,6 +31,7 @@ const handleChange = () => {
     column_id: selectedFieldId.value,
     orderBy: selectedOrderValue.value,
     includeEmptyRecords: includeEmptyRecords.value,
+    includeOthers: includeOthers.value,
   })
 }
 
@@ -75,6 +77,19 @@ watch([() => selectedWidget.value?.fk_model_id], ([value], [oldValue]) => {
     <div>
       <NcSwitch v-model:checked="includeEmptyRecords" @change="handleChange">
         <span class="text-caption text-nc-content-gray select-none">Include empty records</span>
+      </NcSwitch>
+    </div>
+    <div class="flex items-center">
+      <NcSwitch class="flex items-center" v-model:checked="includeOthers" @change="handleChange">
+        <span class="text-caption text-nc-content-gray select-none">
+          <NcTooltip class="flex items-center">
+            <template #title>
+              By default the chart will show top 10 categories and remaining categories will be grouped as "Others".
+              Disabling this will hide "Others" category.
+            </template>
+            Include others
+          </NcTooltip>
+        </span>
       </NcSwitch>
     </div>
   </div>

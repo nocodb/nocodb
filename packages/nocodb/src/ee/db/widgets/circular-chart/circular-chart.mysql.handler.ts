@@ -12,17 +12,12 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
 import conditionV2 from '~/db/conditionV2';
 
-export class CircularChartPgHandler extends CircularChartCommonHandler {
+export class CircularChartMysqlHandler extends CircularChartCommonHandler {
   /**
    * Get the MAX function expression based on column type
    */
-  private getMaxExpressionForColumn(column: Column): string {
-    switch (column.uidt) {
-      case UITypes.Checkbox:
-        return 'BOOL_OR(original_category)';
-      default:
-        return 'MAX(original_category)';
-    }
+  private getMaxExpressionForColumn(_column: Column): string {
+    return 'MAX(original_category)';
   }
 
   async getWidgetData(params: {
@@ -152,13 +147,12 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       );
     }
 
-    // Cast TEXT to avoid type conflicts, preserve original for sorting
     const mainQuery = baseModel.dbDriver
       .select('*')
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN CAST(category AS TEXT)
+          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN CAST(category AS CHAR)
           ELSE 'Others'
         END as final_category
       `),
@@ -217,7 +211,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
 
     // Final aggregation
     const finalQuery = baseModel.dbDriver
-      .select({ category: baseModel.dbDriver.raw('(final_category)::TEXT') })
+      .select({ category: baseModel.dbDriver.raw('CAST(final_category AS CHAR)') })
       .select(baseModel.dbDriver.raw(`${maxExpression} as original_category`))
       .select(
         baseModel.dbDriver.raw('SUM(final_value) + SUM(others_value) as value'),

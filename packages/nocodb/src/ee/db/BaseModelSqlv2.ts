@@ -1375,6 +1375,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             action: 'delete',
             payload: null,
           },
+          scopes: [this.model.id],
         },
         this.context.socket_id,
       );
@@ -3320,6 +3321,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           action: 'update',
           payload: data,
         },
+        scopes: [this.model.id],
       },
       this.context.socket_id,
     );

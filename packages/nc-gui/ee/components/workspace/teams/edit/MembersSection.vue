@@ -200,25 +200,23 @@ const handleLeaveTeam = (team: TeamType) => {
   })
 }
 
-const handleRemoveSelectedMembersFromTeam = () => {
-  const selectedMemberIds = selectedRowConfig.value.selectedMembers.map((member) => member.fk_user_id!)
+const handleRemoveMemberFromTeam = (members: TeamMember[]) => {
+  if (!members.length) return
 
-  if (!selectedMemberIds.length) return
+  const removeMemberIds = members.map((member) => member.fk_user_id!)
 
   const selectedMemberNameOrCount =
-    selectedMemberIds.length > 1
-      ? `${selectedMemberIds.length} ${t('labels.members')}`
-      : extractUserDisplayNameOrEmail(selectedRowConfig.value.selectedMembers[0])
+    removeMemberIds.length > 1 ? `${removeMemberIds.length} ${t('labels.members')}` : extractUserDisplayNameOrEmail(members[0])
 
   handleConfirm({
     title: `${
-      selectedMemberIds.length > 1 ? t('objects.teams.removeMemberFromTeamPlural') : t('objects.teams.removeMemberFromTeam')
+      removeMemberIds.length > 1 ? t('objects.teams.removeMemberFromTeamPlural') : t('objects.teams.removeMemberFromTeam')
     }?`,
     okText: t('general.remove'),
     cancelText: t('labels.cancel'),
     okCallback: async () => {
       // Todo: api call
-      console.log('remove members from team', selectedRowConfig.value.selectedMembers)
+      console.log('remove members from team', members)
       await ncDelay(1000)
     },
     initialSlots: {
@@ -241,6 +239,10 @@ const handleRemoveSelectedMembersFromTeam = () => {
       ],
     },
   })
+}
+
+const handleRemoveSelectedMembersFromTeam = () => {
+  handleRemoveMemberFromTeam(selectedRowConfig.value.selectedMembers as TeamMember[])
 }
 
 onMounted(() => {
@@ -386,7 +388,7 @@ onMounted(() => {
                     </NcMenuItem>
                   </NcTooltip>
 
-                  <NcMenuItem class="!text-red-500 !hover:bg-red-50">
+                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="handleRemoveMemberFromTeam([record as TeamMember])">
                     <GeneralIcon icon="ncXSquare" />
                     {{ $t('activity.removeFromTeam') }}
                   </NcMenuItem>
@@ -397,13 +399,5 @@ onMounted(() => {
         </template>
       </template>
     </NcTable>
-
-    <!-- <NcModalConfirm
-      v-model:visible="isConfirmModalVisible"
-      :title="t('objects.teams.confirmLeaveTeamTitle')"
-      :content="t('objects.teams.confirmLeaveTeamSubtitle')"
-      :ok-text="t('activity.leaveTeam')"
-      :cancel-text="t('labels.cancel')"
-    /> -->
   </div>
 </template>

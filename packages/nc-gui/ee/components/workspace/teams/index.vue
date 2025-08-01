@@ -50,13 +50,15 @@ const orderBy = computed<Record<string, SordDirectionType>>({
     return sortDirection.value
   },
   set: (value: Record<string, SordDirectionType>) => {
+    const valueEntries = Object.entries(value)
+
     // Check if value is an empty object
-    if (Object.keys(value).length === 0) {
+    if (valueEntries.length === 0) {
       saveOrUpdateUserSort({})
       return
     }
 
-    const [field, direction] = Object.entries(value)[0]
+    const [field, direction] = valueEntries[0]!
 
     saveOrUpdateUserSort({
       field,
@@ -194,6 +196,7 @@ watch(isActive, () => {
   searchQuery.value = ''
 })
 
+// const mackEmails = 'test@nocodb.com,test-1@nocodb.com,test-2@nocodb.com,test-3@nocodb.com,user@nocodb.com'
 const mockTeamsList = [
   {
     id: '1',
@@ -208,7 +211,7 @@ const mockTeamsList = [
   {
     id: '2',
     title: 'Sales',
-    created_by: 'user@gmail.com',
+    created_by: 'user@nocodb.com',
     owners: ['user@nocodb.com'],
     members: [
       'ramesh@nocodb.com',
@@ -340,7 +343,7 @@ onMounted(async () => {
             </div>
           </div>
 
-          <div v-if="column.key === 'action'" @click.stop>
+          <div v-if="column.key === 'action'">
             <NcDropdown>
               <NcButton size="small" type="secondary">
                 <component :is="iconMap.ncMoreVertical" />

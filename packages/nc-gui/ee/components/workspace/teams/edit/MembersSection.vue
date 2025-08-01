@@ -114,6 +114,7 @@ onMounted(() => {
       disable-table-scroll
       force-sticky-header
       header-row-height="44px"
+      body-row-class-name="group"
       table-toolbar-class-name="pt-6"
       class="nc-field-permissions-table flex-1"
       :custom-row="customRow"
@@ -193,9 +194,11 @@ onMounted(() => {
         <template v-else-if="column.key === 'action'">
           <div v-if="column.key === 'action'" @click.stop>
             <NcDropdown placement="bottomRight">
-              <NcButton size="small" type="secondary">
-                <component :is="iconMap.ncMoreVertical" />
-              </NcButton>
+              <template #default="{ visible }">
+                <NcButton size="small" type="secondary" class="invisible group-hover:visible" :class="{ '!visible': visible }">
+                  <component :is="iconMap.ncMoreVertical" />
+                </NcButton>
+              </template>
               <template #overlay>
                 <NcMenu variant="medium">
                   <NcMenuItem>

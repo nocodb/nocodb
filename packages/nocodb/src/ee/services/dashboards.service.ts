@@ -6,7 +6,6 @@ import {
   generateUniqueCopyName,
   ncIsNull,
   ncIsUndefined,
-  PlanFeatureTypes,
   type WidgetType,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,7 +15,6 @@ import { NcError } from '~/helpers/catchError';
 import { getWidgetData, getWidgetHandler } from '~/db/widgets';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import config from '~/app.config';
-import { getFeature } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class DashboardsService {

@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, PlanFeatureTypes } from 'nocodb-sdk';
+import { AppEvents } from 'nocodb-sdk';
 import type { ScriptType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Script from '~/models/Script';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { getFeature } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class ScriptsService {

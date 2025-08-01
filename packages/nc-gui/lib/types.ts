@@ -702,6 +702,14 @@ interface NcListItemType {
   label?: string
   ncItemDisabled?: boolean
   ncItemTooltip?: string
+  /**
+   * If the item is a group header, this will be the title of the group
+   */
+  ncGroupHeader?: boolean
+  /**
+   * If the list has groups then we need to add `ncGroupHeaderLabel` in each item, will he user in sorting and filtering the list
+   */
+  ncGroupHeaderLabel?: string
   [key: string]: any
 }
 
@@ -725,6 +733,15 @@ interface NcListProps {
   value: RawValueType
   /** The list of items to display */
   list: NcListItemType[]
+  /**
+   * The order of the groups in the list, this will be used to sort the groups in the list
+   * @example
+   * ```ts
+   * const groupOrder = ['Group 1', 'Group 2', 'Group 3']
+   * ```
+   */
+  groupOrder?: string[]
+
   /**
    * The key to use for accessing the value from a list item
    * @default 'value'
@@ -753,6 +770,11 @@ interface NcListProps {
    * @default 38
    */
   itemHeight?: number
+  /**
+   * The height of the group header in the list
+   * @default 28
+   */
+  groupHeaderHeight?: number
   variant?: 'default' | 'small' | 'medium'
   /** Custom filter function for list items */
   filterOption?: (input: string, option: NcListItemType, index: Number) => boolean
@@ -781,6 +803,8 @@ interface NcListProps {
   wrapperClassName?: string
 
   itemClassName?: string
+
+  groupHeaderClassName?: string
 
   itemTooltipPlacement?: TooltipPlacement
 

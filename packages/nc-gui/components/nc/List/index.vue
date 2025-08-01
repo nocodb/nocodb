@@ -10,6 +10,7 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<NcListProps>(), {
+  list: () => [] as NcListItemType[],
   open: false,
   closeOnSelect: true,
   searchInputPlaceholder: 'Search',
@@ -24,6 +25,7 @@ const props = withDefaults(defineProps<NcListProps>(), {
   containerClassName: '',
   wrapperClassName: '',
   itemClassName: '',
+  groupHeaderClassName: '',
   itemTooltipPlacement: 'right',
   isLocked: false,
   hideTopDivider: false,
@@ -31,6 +33,8 @@ const props = withDefaults(defineProps<NcListProps>(), {
   stopPropagationOnItemClick: false,
   searchBasisOptions: () => [] as NcListSearchBasisOptionType[],
   theme: 'default',
+  groupOrder: () => [] as string[],
+  groupHeaderHeight: 24,
 })
 
 const emits = defineEmits<Emits>()
@@ -43,7 +47,7 @@ const vOpen = useVModel(props, 'open', emits)
 
 const { optionValueKey, optionLabelKey } = props
 
-const { closeOnSelect, showSelectedOption, containerClassName, itemClassName } = toRefs(props)
+const { closeOnSelect, showSelectedOption, containerClassName, itemClassName, groupHeaderClassName } = toRefs(props)
 
 const itemHeight = computed(() => {
   if (!props.itemHeight) {
@@ -83,6 +87,26 @@ const isSearchEnabled = computed(
 
 const keyDown = ref(false)
 
+const listGroups = computed(() => {
+  return (props.list ?? [])
+    .reduce((acc, item) => {
+      if (item.ncGroupHeaderLabel && !acc.includes(item.ncGroupHeaderLabel)) {
+        acc.push(item.ncGroupHeaderLabel)
+      }
+
+      return acc
+    }, [] as string[])
+    .sort((a, b) => {
+      // If group order is provided, then we can use it to sort the groups
+      if (props.groupOrder?.length) {
+        return props.groupOrder.indexOf(a) - props.groupOrder.indexOf(b)
+      }
+
+      // If no group order is provided, then we can use the default locale compare to sort the groups
+      return a.localeCompare(b)
+    })
+})
+
 /**
  * Default filter function that checks if the item matches the search query.
  * If a custom filter function is provided via props.filterOption, it will be used instead of the default filtering logic.
@@ -97,20 +121,8 @@ const defaultFilter = (item: NcListItemType, i: number, _array: NcListItemType[]
   return searchCompare(item[optionLabelKey], query)
 }
 
-/**
- * Computed property that filters the list of options based on the search query.
- *
- * @returns Filtered list of options
- */
-const list = computed(() => {
-  const query = searchQuery.value.toLowerCase()
-
-  searchBasisInfoMap.value = {}
-
-  // If no query, return all items
-  if (!query) return props.list ?? []
-
-  return (props.list ?? []).filter((item, i, array) => {
+const applyFilterOnList = (listToFilter: NcListItemType[], query: string) => {
+  return listToFilter.filter((item, i, array) => {
     // Step 1: apply default filter
     if (defaultFilter(item, i, array, query)) return true
 
@@ -125,6 +137,55 @@ const list = computed(() => {
 
     return false
   })
+}
+
+/**
+ * Computed property that filters the list of options based on the search query.
+ *
+ * @returns Filtered list of options
+ */
+const list = computed(() => {
+  const query = searchQuery.value.toLowerCase()
+
+  searchBasisInfoMap.value = {}
+
+  /**
+   * If the list has no groups, we can use default method to filter the list
+   */
+  if (!listGroups.value.length) {
+    // If no query, return all items
+    if (!query) return props.list ?? []
+
+    return applyFilterOnList(props.list ?? [], query)
+  }
+
+  /**
+   * If list has groups, then we have to append the group label items in the list and sort & filter accordingly
+   * We have to filter list first and then group, if group list is empty, then don't add that group label item in the list
+   */
+  const filteredList = applyFilterOnList(props.list ?? [], query)
+
+  const listWithGroups = listGroups.value.reduce((acc, group) => {
+    const groupList = filteredList.filter((item) => item.ncGroupHeaderLabel === group)
+
+    // If group list is empty, then don't add that group label item in the list
+    if (!groupList.length) return acc
+
+    // Push group label item in the list first
+    acc.push({
+      ncGroupHeaderLabel: group,
+      ncGroupHeader: true,
+      label: group,
+      value: group,
+    })
+
+    // Push group list items in the list
+    acc.push(...groupList)
+
+    return acc
+  }, [] as NcListItemType[])
+
+  return listWithGroups
 })
 
 const {
@@ -144,7 +205,9 @@ const {
  * @param value - The value to compare with the vModel value.
  * @returns {boolean} - True if the value matches the vModel value, false otherwise.
  */
-function compareVModel(value: string | number): boolean {
+function compareVModel(value: string | number, isGroupHeader = false): boolean {
+  if (isGroupHeader) return false
+
   if (props.isMultiSelect) {
     return (vModel.value as MultiSelectRawValueType).includes(value)
   }
@@ -188,7 +251,7 @@ const handleSelectOption = (option: NcListItemType, index?: number, e?: MouseEve
   }
 
   if (props.isLocked) return
-  if (!ncIsObject(option) || !(optionValueKey in option) || option.ncItemDisabled) return
+  if (!ncIsObject(option) || !(optionValueKey in option) || option.ncItemDisabled || option.ncGroupHeader) return
   if (index !== undefined) {
     activeOptionIndex.value = index
   }
@@ -307,7 +370,7 @@ watch(
     }
 
     if (vModel.value && !props.isMultiSelect) {
-      activeOptionIndex.value = list.value.findIndex((o) => compareVModel(o?.[optionValueKey]))
+      activeOptionIndex.value = list.value.findIndex((o) => compareVModel(o?.[optionValueKey], o?.ncGroupHeader))
 
       nextTick(() => {
         handleAutoScrollOption(true)
@@ -417,20 +480,32 @@ const handleEscape = (event: KeyboardEvent) => {
                 :class="[
                   `nc-list-option-${idx}`,
                   {
-                    'rounded-md': !itemFullWidth,
-                    'nc-list-option-selected': compareVModel(option[optionValueKey]),
+                    '': !option.ncGroupHeader,
+                    'nc-list-group-header text-nc-content-gray-muted text-bodySmBold relative border-t first:!border-t-0 border-nc-border-gray-medium flex items-center':
+                      option.ncGroupHeader,
+                    'rounded-md': !itemFullWidth && !option.ncGroupHeader,
+                    'nc-list-option-selected': compareVModel(option[optionValueKey], option.ncGroupHeader),
                     'bg-nc-bg-gray-light ':
-                      !option?.ncItemDisabled && showHoverEffectOnSelectedOption && compareVModel(option[optionValueKey]),
-                    'bg-nc-bg-gray-light nc-list-option-active': !option?.ncItemDisabled && activeOptionIndex === idx,
-                    'opacity-60 cursor-not-allowed': option?.ncItemDisabled,
-                    'hover:bg-nc-bg-gray-light cursor-pointer': !option?.ncItemDisabled,
-                    'py-2': variant === 'default',
-                    'py-[5px]': variant === 'medium',
-                    'py-[3px]': variant === 'small',
+                      !option?.ncItemDisabled &&
+                      showHoverEffectOnSelectedOption &&
+                      compareVModel(option[optionValueKey], option.ncGroupHeader),
+                    'bg-nc-bg-gray-light nc-list-option-active':
+                      !option?.ncItemDisabled && activeOptionIndex === idx && !option.ncGroupHeader,
+                    'opacity-60 cursor-not-allowed': !option?.ncItemDisabled && !option?.ncGroupHeader,
+                    'hover:bg-nc-bg-gray-light cursor-pointer': !option?.ncItemDisabled && !option?.ncGroupHeader,
+                    'py-2': variant === 'default' && !option.ncGroupHeader,
+                    'py-[5px]': variant === 'medium' && !option.ncGroupHeader,
+                    'py-[3px]': variant === 'small' && !option.ncGroupHeader,
+                    '-mx-1 px-3 w-[calc(100%_+_8px)]': variant === 'small' && option.ncGroupHeader,
+                    '-mx-2 px-4 w-[calc(100%_+_16px)]': variant !== 'small' && option.ncGroupHeader,
                     'pointer-events-none': isLocked,
                   },
                   `${itemClassName}`,
+                  `${option.ncGroupHeader ? groupHeaderClassName : ''}`,
                 ]"
+                :style="{
+                  minHeight: `${groupHeaderHeight ?? 28}px`,
+                }"
                 :placement="itemTooltipPlacement"
                 :disabled="!option?.ncItemTooltip"
                 :attrs="{
@@ -439,17 +514,23 @@ const handleEscape = (event: KeyboardEvent) => {
                 @click="handleSelectOption(option, idx, $event)"
               >
                 <template #title>{{ option.ncItemTooltip }} </template>
+                <slot v-if="option.ncGroupHeader" name="listItemGroupHeader" :option="option">
+                  <div>
+                    {{ option.ncGroupHeaderLabel }}
+                  </div>
+                </slot>
                 <slot
+                  v-else
                   name="listItem"
                   :option="option"
-                  :is-selected="compareVModel(option[optionValueKey])"
+                  :is-selected="compareVModel(option[optionValueKey], option.ncGroupHeader)"
                   :index="idx"
                   :search-basis-info="searchBasisInfoMap[option[optionValueKey]]"
                 >
                   <slot
                     name="listItemExtraLeft"
                     :option="option"
-                    :is-selected="compareVModel(option[optionValueKey])"
+                    :is-selected="compareVModel(option[optionValueKey], option.ncGroupHeader)"
                     :search-basis-info="searchBasisInfoMap[option[optionValueKey]]"
                   >
                   </slot>
@@ -457,7 +538,7 @@ const handleEscape = (event: KeyboardEvent) => {
                   <slot
                     name="listItemContent"
                     :option="option"
-                    :is-selected="compareVModel(option[optionValueKey])"
+                    :is-selected="compareVModel(option[optionValueKey], option.ncGroupHeader)"
                     :search-basis-info="searchBasisInfoMap[option[optionValueKey]]"
                   >
                     <NcTooltip
@@ -472,7 +553,7 @@ const handleEscape = (event: KeyboardEvent) => {
                       </template>
                       {{ option[optionLabelKey] }}
                     </NcTooltip>
-                    <div v-if="searchBasisInfoMap[option[optionValueKey]]" class="flex-1 flex">
+                    <div v-if="!option?.ncGroupHeader && searchBasisInfoMap[option[optionValueKey]]" class="flex-1 flex">
                       <NcTooltip :title="searchBasisInfoMap[option[optionValueKey]]" class="flex cursor-help">
                         <GeneralIcon icon="info" class="flex-none h-3.5 w-3.5 text-nc-content-gray-muted" />
                       </NcTooltip>
@@ -482,14 +563,18 @@ const handleEscape = (event: KeyboardEvent) => {
                   <slot
                     name="listItemExtraRight"
                     :option="option"
-                    :is-selected="compareVModel(option[optionValueKey])"
+                    :is-selected="compareVModel(option[optionValueKey], option.ncGroupHeader)"
                     :search-basis-info="searchBasisInfoMap[option[optionValueKey]]"
                   >
                   </slot>
 
-                  <slot name="listItemSelectedIcon" :option="option" :is-selected="compareVModel(option[optionValueKey])">
+                  <slot
+                    name="listItemSelectedIcon"
+                    :option="option"
+                    :is-selected="compareVModel(option[optionValueKey], option.ncGroupHeader)"
+                  >
                     <GeneralIcon
-                      v-if="showSelectedOption && compareVModel(option[optionValueKey])"
+                      v-if="showSelectedOption && compareVModel(option[optionValueKey], option.ncGroupHeader)"
                       id="nc-selected-item-icon"
                       icon="check"
                       class="flex-none text-primary w-4 h-4"

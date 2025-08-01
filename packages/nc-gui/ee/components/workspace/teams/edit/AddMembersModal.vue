@@ -24,12 +24,13 @@ const workspaceStore = useWorkspace()
 const { collaborators, collaboratorsMap } = storeToRefs(workspaceStore)
 
 const ncListData = computed<NcListItemType[]>(() => {
-  return (collaborators.value || []).map((coll) => {
+  return (collaborators.value || []).map((coll, i) => {
     const isDisabled = team.value.members.includes(coll.fk_user_id!) || team.value.members.includes(coll.email!)
     return {
       ...coll,
       ncItemDisabled: isDisabled,
       ncItemTooltip: isDisabled ? t('objects.teams.alreadyPartOfTeam') : '',
+      ncGroupHeaderLabel: i < 5 ? 'Members' : 'Teams',
     }
   })
 })
@@ -141,7 +142,7 @@ watch(
         :item-height="52"
         search-input-placeholder="Search user"
         is-multi-select
-        class="!w-auto"
+        class="!w-auto border-1 border-nc-border-gray-medium rounded-lg"
         :filter-option="filterOption"
         empty-description="No users found"
         item-tooltip-placement="left"

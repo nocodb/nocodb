@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { viewTypeAlias, ViewTypes } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk';
 import { GridsService } from '../grids.service';
 import { CalendarsService } from '../calendars.service';
 import { KanbansService } from '../kanbans.service';
@@ -86,8 +86,7 @@ export class ViewsV3Service {
       excludeEmptyObjectProps: true,
       transformFn: (viewData) => {
         const { view, ...formattedData } = viewData;
-
-        formattedData.type = viewTypeAlias[formattedData.type];
+        formattedData.type = viewTypeMap[formattedData.type];
 
         if (view) {
           // JSON stringify + parse again to remove all undefined child props
@@ -139,7 +138,7 @@ export class ViewsV3Service {
       excludeEmptyObjectProps: true,
       transformFn: (viewData) => {
         const { view, ...formattedData } = viewData;
-        formattedData.view_type = viewTypeAlias[formattedData.view_type];
+        formattedData.type = viewTypeMap[formattedData.type];
         const options = JSON.parse(
           JSON.stringify(this.viewOptionsBuilder().build(view)),
         );
@@ -193,7 +192,6 @@ export class ViewsV3Service {
       },
       transformFn: (viewData) => {
         const formattedData = viewData;
-        formattedData.view_type = viewTypeAlias[formattedData.view_type];
 
         if (formattedData?.calendar_range?.length) {
           formattedData.dateRanges = formattedData.calendar_range.map(
@@ -340,7 +338,7 @@ export class ViewsV3Service {
 
     const formattedView = this.viewBuilder().build(view);
 
-    if (view.type !== ViewTypes.FORM) {
+    if (viewTypeMap[view.type] !== ViewTypes.FORM) {
       // get filters
       const filters = await this.filtersV3Service.filterList(context, {
         viewId: view.id,
@@ -361,7 +359,7 @@ export class ViewsV3Service {
     formattedView.fields = viewColumnBuilder().build(viewColumnList);
 
     // extract the view specific infos
-    switch (view.type) {
+    switch (viewTypeMap[view.type]) {
       case ViewTypes.GRID:
         {
           // extract grid specific group by info
@@ -399,9 +397,6 @@ export class ViewsV3Service {
         }
         break;
     }
-
-    // group info
-    formattedView.type = viewTypeMap[formattedView.type];
     return formattedView;
   }
 

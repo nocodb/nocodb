@@ -2,12 +2,12 @@
 import type { UserInfoType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
 
+export interface TeamMember extends WorkspaceUserType, Omit<UserType, 'roles' | 'email' | 'id'> {}
+
 interface Props {
   team: TeamType
   tableToolbarClassName?: string
 }
-
-interface TeamMember extends WorkspaceUserType, Omit<UserType, 'roles' | 'email' | 'id'> {}
 
 const props = withDefaults(defineProps<Props>(), {})
 
@@ -33,6 +33,8 @@ const isLoading = ref(true)
 const searchQuery = ref('')
 
 const isOpenContextMenu = ref<Record<string, boolean>>({})
+
+const isAddMembersModalVisible = ref(false)
 
 const filterMembers = computed(() => {
   if (!searchQuery.value) return teamMembers.value ?? []
@@ -337,7 +339,13 @@ onMounted(() => {
 
             <div class="relative children:flex-none min-w-[150px] min-h-8 flex items-center justify-end">
               <div v-if="!selectedRowConfig.selectedRowCount">
-                <NcButton size="small" type="secondary" class="absolute" inner-class="!gap-2 text-nc-content-brand">
+                <NcButton
+                  size="small"
+                  type="secondary"
+                  class="absolute"
+                  inner-class="!gap-2 text-nc-content-brand"
+                  @click="isAddMembersModalVisible = true"
+                >
                   <template #icon>
                     <GeneralIcon icon="ncUserPlus" class="h-4 w-4" />
                   </template>
@@ -468,5 +476,7 @@ onMounted(() => {
         </template>
       </template>
     </NcTable>
+
+    <WorkspaceTeamsEditAddMembersModal v-model:visible="isAddMembersModalVisible" v-model:team="team" />
   </div>
 </template>

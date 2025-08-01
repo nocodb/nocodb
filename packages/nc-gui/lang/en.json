@@ -706,7 +706,10 @@
       "memberAssignedAsTeamOwner": "Member assigned as team owner",
       "teamOwner": "Team owner",
       "removeMemberFromTeam": "Remove member from team",
-      "removeMemberFromTeamPlural": "Remove members from team"
+      "removeMemberFromTeamPlural": "Remove members from team",
+      "addMembersToTeam": "Add members to Team",
+      "selectMembersToAddIntoTeam": "Select members to add into the {team} Team",
+      "alreadyPartOfTeam": "Already part of the team"
     }
   },
   "datatype": {

@@ -393,9 +393,9 @@ onMounted(() => {
                         placement="bottom"
                       >
                         <template #title>
-                          {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                          {{ extractUserDisplayNameOrEmail(op) }}
                         </template>
-                        {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                        {{ extractUserDisplayNameOrEmail(op) }}
                       </NcTooltip>
                     </div>
                     <NcTooltip
@@ -497,9 +497,9 @@ onMounted(() => {
                   placement="bottom"
                 >
                   <template #title>
-                    {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                    {{ extractUserDisplayNameOrEmail(op) }}
                   </template>
-                  {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                  {{ extractUserDisplayNameOrEmail(op) }}
                 </NcTooltip>
               </div>
               <NcTooltip

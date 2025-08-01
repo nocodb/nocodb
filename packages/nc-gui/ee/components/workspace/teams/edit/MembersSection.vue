@@ -39,6 +39,10 @@ const hasSoleTeamOwner = computed(() => {
   return team.value?.owners?.length < 2
 })
 
+const isTeamOwner = (member: TeamMember) => {
+  return team.value?.owners?.includes(member.fk_user_id!) || team.value?.owners?.includes(member.email!)
+}
+
 // NcTable columns configuration
 const membersColumns = [
   {
@@ -54,8 +58,8 @@ const membersColumns = [
   {
     key: 'workspace_role',
     title: t('labels.workspaceRole'),
-    basis: '25%',
-    minWidth: 252,
+    basis: '20%',
+    minWidth: 200,
     dataIndex: 'workspace_role',
   },
   {
@@ -113,7 +117,7 @@ const handleAssignAsTeamOwner = (member: TeamMember) => {
 
   message.success({
     title: t('objects.teams.memberAssignedAsTeamOwner'),
-    content: `${member.display_name || extractNameFromEmail(member.email)} is now a ${team.value?.title || 'team'} owner`,
+    content: `${extractUserDisplayNameOrEmail(member)} is now a ${team.value?.title || 'team'} owner`,
   })
 }
 
@@ -173,6 +177,10 @@ const handleLeaveTeam = (team: TeamType) => {
 
 onMounted(() => {
   loadTeamMembers()
+})
+
+watchEffect(() => {
+  console.log('filterMembers', filterMembers.value)
 })
 </script>
 
@@ -241,6 +249,7 @@ onMounted(() => {
           </div>
         </div>
       </template>
+
       <template #headerCell="{ column }">
         <template v-if="column.key === 'select'">
           <NcCheckbox
@@ -254,15 +263,26 @@ onMounted(() => {
           {{ column.title }}
         </template>
       </template>
+
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'select'">
           <NcCheckbox v-model:checked="selectedRows[record.fk_user_id!]" />
         </template>
         <template v-else-if="column.key === 'member_name'">
-          {{ record.display_name || extractNameFromEmail(record.email) }}
+          <div class="w-full flex items-center gap-4 overflow-hidden">
+            <NcUserInfo :user="record" :class="{ 'w-[calc(100%_-_100px)]': isTeamOwner(record) }" />
+
+            <NcTooltip
+              v-if="isTeamOwner(record)"
+              :title="$t('objects.teams.teamOwner')"
+              class="text-nc-content-gray-muted text-captionSm truncate"
+            >
+              {{ $t('objects.teams.teamOwner') }}
+            </NcTooltip>
+          </div>
         </template>
         <template v-else-if="column.key === 'workspace_role'">
-          {{ record.workspace_role }}
+          <RolesBadge :border="false" :role="record.roles" class="cursor-default" />
         </template>
         <template v-else-if="column.key === 'action'">
           <div v-if="column.key === 'action'" @click.stop>

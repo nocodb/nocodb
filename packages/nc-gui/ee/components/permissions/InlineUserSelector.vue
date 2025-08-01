@@ -50,7 +50,7 @@ async function calculateVisibleUsers() {
   for (const selectedUser of selectedUsersList.value) {
     const tagWidth = Math.min(
       estimateTagWidth({
-        text: selectedUser!.display_name?.trim() || extractNameFromEmail(selectedUser!.email),
+        text: extractUserDisplayNameOrEmail(selectedUser),
         iconWidth: 20,
         paddingX: 16,
       }),
@@ -179,10 +179,10 @@ watch(selectedUsersList, () => {
               </div>
               <NcTooltip class="truncate max-w-full !leading-5 !text-caption" show-on-truncate-only>
                 <template #title>
-                  {{ user?.display_name?.trim() || extractNameFromEmail(user?.email) }}
+                  {{ extractUserDisplayNameOrEmail(user) }}
                 </template>
                 <span :class="{ '!opacity-50': selectedBelowMinimumRoleUsers.includes(user?.id ?? '') }">
-                  {{ user?.display_name?.trim() || extractNameFromEmail(user?.email) }}
+                  {{ extractUserDisplayNameOrEmail(user) }}
                 </span>
               </NcTooltip>
             </span>

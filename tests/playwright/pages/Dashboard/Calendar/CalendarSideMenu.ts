@@ -10,6 +10,9 @@ export class CalendarSideMenuPage extends BasePage {
   readonly prev_btn: Locator;
   readonly next_btn: Locator;
   readonly searchToggleBtn: Locator;
+  readonly monthPrev_btn: Locator;
+  readonly monthNext_btn: Locator;
+
   constructor(parent: CalendarPage) {
     super(parent.rootPage);
     this.parent = parent;
@@ -18,6 +21,9 @@ export class CalendarSideMenuPage extends BasePage {
 
     this.next_btn = this.parent.toolbar.get().getByTestId('nc-calendar-next-btn');
     this.prev_btn = this.parent.toolbar.get().getByTestId('nc-calendar-prev-btn');
+
+    this.monthPrev_btn = this.get().locator('button.nc-button').first();
+    this.monthNext_btn = this.get().locator('button.nc-button').nth(1);
 
     this.searchToggleBtn = this.get().getByTestId('nc-calendar-sidebar-search-btn');
   }
@@ -50,6 +56,34 @@ export class CalendarSideMenuPage extends BasePage {
 
   async moveToDate({ date, action }: { date: string; action: 'prev' | 'next' }) {
     console.log(await this.parent.toolbar.getActiveDate());
+
+    // takes a while to move to date if we click one day at a time
+    // so we will move to the month first and then select the date
+    const dateStr = new Date(date);
+    const options = { month: 'long', year: 'numeric' };
+    console.log(dateStr.toLocaleDateString('en-US', options));
+
+    let dateHeaderStr = await this.get().locator('.nc-date-week-header').textContent();
+
+    while (dateHeaderStr !== dateStr.toLocaleDateString('en-US', options)) {
+      if (action === 'prev') {
+        console.log(await this.monthPrev_btn.count());
+        await this.monthPrev_btn.click();
+      } else {
+        console.log(await this.monthNext_btn.count());
+        await this.monthNext_btn.click();
+      }
+      dateHeaderStr = await this.get().locator('.nc-date-week-header').textContent();
+    }
+
+    // once the month is narrowed down, click on either the first or last date depending on how we intended to navigate
+    // we can click on date directly. but continuing with the existing logic as it verifies prev & next date movement as well
+    if (action === 'prev') {
+      await this.get().getByTestId('nc-calendar-date').last().click();
+    } else {
+      await this.get().getByTestId('nc-calendar-date').first().click();
+    }
+
     while ((await this.parent.toolbar.getActiveDate()) !== date) {
       if (action === 'prev') {
         await this.clickPrev();

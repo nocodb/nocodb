@@ -378,17 +378,25 @@ onMounted(() => {
                   <!-- Show leave team option only if logged in user is same as record user -->
                   <NcTooltip
                     v-if="record.fk_user_id === user?.id"
-                    :disabled="!hasSoleTeamOwner"
+                    :disabled="!(hasSoleTeamOwner && isTeamOwner(record as TeamMember))"
                     :title="t('objects.teams.soleTeamOwnerTooltip')"
                     placement="left"
                   >
-                    <NcMenuItem :disabled="hasSoleTeamOwner" @click="handleLeaveTeam(record as TeamType)">
+                    <NcMenuItem
+                      :disabled="(hasSoleTeamOwner && isTeamOwner(record as TeamMember))"
+                      :class="{ '!text-red-500 !hover:bg-red-50': !(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) }"
+                      @click="handleLeaveTeam(record as TeamType)"
+                    >
                       <GeneralIcon icon="ncLogOut" class="h-4 w-4" />
                       {{ $t('activity.leaveTeam') }}
                     </NcMenuItem>
                   </NcTooltip>
 
-                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="handleRemoveMemberFromTeam([record as TeamMember])">
+                  <NcMenuItem
+                    v-else
+                    class="!text-red-500 !hover:bg-red-50"
+                    @click="handleRemoveMemberFromTeam([record as TeamMember])"
+                  >
                     <GeneralIcon icon="ncXSquare" />
                     {{ $t('activity.removeFromTeam') }}
                   </NcMenuItem>

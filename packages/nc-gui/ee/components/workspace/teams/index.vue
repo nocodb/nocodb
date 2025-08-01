@@ -212,7 +212,7 @@ const mockTeamsList = [
     id: '2',
     title: 'Sales',
     created_by: 'user@nocodb.com',
-    owners: ['user@nocodb.com', 'ramesh@nocodb.com'],
+    owners: ['ramesh@nocodb.com'],
     members: [
       'ramesh@nocodb.com',
       'test@nocodb.com',
@@ -226,14 +226,6 @@ const mockTeamsList = [
     meta: {},
   },
 ]
-
-console.log(
-  'mockTeamsList',
-  mockTeamsList
-    .map((team) => team.members)
-    .flat()
-    .join(','),
-)
 
 onMounted(async () => {
   loadSorts()

@@ -472,7 +472,7 @@
                         "type": "Number",
                         "default_value": "34",
                         "options": {
-                          "locale_string": true
+                          "thousand_separator": true
                         }
                       },
                       {
@@ -684,7 +684,7 @@
                           "type": "Number",
                           "default_value": "34",
                           "options": {
-                            "locale_string": true
+                            "thousand_separator": true
                           }
                         },
                         {
@@ -973,7 +973,7 @@
                           "type": "Number",
                           "default_value": "34",
                           "options": {
-                            "locale_string": true
+                            "thousand_separator": true
                           }
                         },
                         {
@@ -5250,7 +5250,7 @@
       "FieldOptions_Number": {
         "type": "object",
         "properties": {
-          "locale_string": {
+          "thousand_separator": {
             "type": "boolean",
             "description": "Show thousand separator on the UI."
           }

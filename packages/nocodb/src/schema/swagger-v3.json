@@ -4295,7 +4295,7 @@
       "CreateField": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/FieldBase"
+            "$ref": "#/components/schemas/FieldBaseCreate"
           },
           {
             "oneOf": [
@@ -5199,8 +5199,19 @@
           }
         },
         "required": [
-          "title",
-          "type"
+          "title"
+        ]
+      },
+      "FieldBaseCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldBase"
+          }, {
+            "required": [
+              "title",
+              "type"
+            ]
+          }
         ]
       },
       "FieldOptions_LongText": {
@@ -6065,6 +6076,9 @@
           },
           {
             "oneOf": [
+              {
+                "$ref": "#/components/schemas/FieldOptions/SingleLineText"
+              },
               {
                 "properties": {
                   "type": {

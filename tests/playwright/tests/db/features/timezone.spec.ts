@@ -547,8 +547,11 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
 
     // insert a record to work with formula experiments
     //
-    await dashboard.treeView.openBase({ title: `datetimetable01${counter}` });
-    await dashboard.treeView.openTable({ title: 'MyTable', baseTitle: `datetimetable01${counter}` });
+    await dashboard.treeView.openTable({
+      title: 'MyTable',
+      baseTitle: `pgExtREST${context.workerId}`,
+      sourceTitle: `datetimetable01${counter}`,
+    });
 
     // Create formula column (dummy)
     api = new Api({
@@ -708,8 +711,11 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     // get timezone offset
     const formattedOffset = getBrowserTimezoneOffset();
 
-    await dashboard.treeView.openBase({ title: `datetimetable01${counter}` });
-    await dashboard.treeView.openTable({ title: 'MyTable', baseTitle: `datetimetable01${counter}` });
+    await dashboard.treeView.openTable({
+      title: 'MyTable',
+      baseTitle: `pgExtREST${context.workerId}`,
+      sourceTitle: `datetimetable01${counter}`,
+    });
 
     if (isSqlite(context)) {
       // For SQLite, we assume that the browser timezone is the same as the server timezone
@@ -876,8 +882,13 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
 
     // insert a record to work with formula experiments
     //
-    await dashboard.treeView.openBase({ title: 'datetimetable02' });
-    await dashboard.treeView.openTable({ title: 'MyTable', baseTitle: 'datetimetable02' });
+    // await dashboard.treeView.openBase({ title: 'datetimetable02' });
+    await dashboard.treeView.openTable({
+      title: 'MyTable',
+      baseTitle: `pgExtREST${context.workerId}`,
+      sourceTitle: `datetimetable02`,
+    });
+
     // Insert new row
     await dashboard.grid.cell.dateTime.setDateTime({
       index: 2,
@@ -1028,8 +1039,12 @@ test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as H
     await dashboard.rootPage.reload();
     await dashboard.rootPage.waitForTimeout(2000);
 
-    await dashboard.treeView.openBase({ title: 'datetimetable03' });
-    await dashboard.treeView.openTable({ title: 'MyTable', baseTitle: 'datetimetable03' });
+    // await dashboard.treeView.openBase({ title: 'datetimetable03' });
+    await dashboard.treeView.openTable({
+      title: 'MyTable',
+      baseTitle: `pgExtREST${context.workerId}`,
+      sourceTitle: `datetimetable03`,
+    });
 
     // display value for datetime column without tz should be same as stored value
     // display value for datetime column with tz should be converted to browser timezone (HK in this case)

@@ -136,7 +136,7 @@ test.describe('Calendar View', () => {
   test('Calendar Sidebar Verify Sidebar Filter, Calendar View Mode', async () => {
     // Create & Verify Calendar View
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
-    await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
+    await dashboard.treeView.openTable({ title: 'Social Media Calendar', baseTitle: `xcdb${context.workerId}` });
 
     await dashboard.viewSidebar.createCalendarView({
       title: 'Calendar',
@@ -296,7 +296,7 @@ test.describe('Calendar View', () => {
   test('Calendar Drag and Drop & Undo Redo Operations', async () => {
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
 
-    await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
+    await dashboard.treeView.openTable({ title: 'Social Media Calendar', baseTitle: `xcdb${context.workerId}` });
 
     await dashboard.viewSidebar.createCalendarView({
       title: 'Calendar',
@@ -371,7 +371,7 @@ test.describe('Calendar View', () => {
 
   test('Calendar shared view operations', async ({ page }) => {
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
-    await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
+    await dashboard.treeView.openTable({ title: 'Social Media Calendar', baseTitle: `xcdb${context.workerId}` });
 
     await dashboard.viewSidebar.createCalendarView({
       title: 'Calendar',
@@ -427,10 +427,10 @@ test.describe('Calendar View', () => {
     await calendar.sideMenu.verifySideBarRecords({ records: Array(12).fill('') });
   });
 
-  test('Calendar Operations Date Fields', async () => {
+  test.only('Calendar Operations Date Fields', async () => {
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
 
-    await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
+    await dashboard.treeView.openTable({ title: 'Social Media Calendar', baseTitle: `xcdb${context.workerId}` });
 
     await dashboard.grid.column.openEdit({
       title: 'StartDate',

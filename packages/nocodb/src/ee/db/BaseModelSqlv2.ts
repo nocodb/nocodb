@@ -3,6 +3,7 @@ import {
   AuditV1OperationTypes,
   convertDurationToSeconds,
   enumColors,
+  EventType,
   extractFilterFromXwhere,
   isAIPromptCol,
   isAttachment,
@@ -955,11 +956,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       response = await this.dbDriver.raw(query);
     }
 
-    NocoSocket.broadcastDataEvent(this.context, this.model.id, {
-      id: rowId,
-      action: 'reorder',
-      payload: row,
-      before: beforeRowId,
+    NocoSocket.broadcastEvent(this.context, {
+      event: EventType.DATA_EVENT,
+      payload: {
+        id: rowId,
+        action: 'reorder',
+        payload: row,
+        before: beforeRowId,
+      },
+      scopes: [this.model.id],
     });
 
     return response;
@@ -1169,14 +1174,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     await this.handleHooks('after.insert', null, data, req);
     const id = this.extractPksValues(data);
 
-    NocoSocket.broadcastDataEvent(
+    NocoSocket.broadcastEvent(
       this.context,
-      this.model.id,
       {
-        id,
-        action: 'add',
-        payload: data,
-        before: req?.query?.before,
+        event: EventType.DATA_EVENT,
+        payload: {
+          id,
+          action: 'add',
+          payload: data,
+          before: req?.query?.before,
+        },
+        scopes: [this.model.id],
       },
       this.context.socket_id,
     );
@@ -1220,13 +1228,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     for (const d of data) {
       const id = this.extractPksValues(d);
-      NocoSocket.broadcastDataEvent(
+      NocoSocket.broadcastEvent(
         this.context,
-        this.model.id,
         {
-          id,
-          action: 'add',
-          payload: d,
+          event: EventType.DATA_EVENT,
+          payload: {
+            id,
+            action: 'add',
+            payload: d,
+          },
+          scopes: [this.model.id],
         },
         this.context.socket_id,
       );
@@ -1302,13 +1313,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
     const id = this.extractPksValues(data);
 
-    NocoSocket.broadcastDataEvent(
+    NocoSocket.broadcastEvent(
       this.context,
-      this.model.id,
       {
-        id,
-        action: 'delete',
-        payload: null,
+        event: EventType.DATA_EVENT,
+        payload: {
+          id,
+          action: 'delete',
+          payload: null,
+        },
+        scopes: [this.model.id],
       },
       this.context.socket_id,
     );
@@ -1352,13 +1366,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     for (const d of data) {
       const id = this.extractPksValues(d);
-      NocoSocket.broadcastDataEvent(
+      NocoSocket.broadcastEvent(
         this.context,
-        this.model.id,
         {
-          id,
-          action: 'delete',
-          payload: null,
+          event: EventType.DATA_EVENT,
+          payload: {
+            id,
+            action: 'delete',
+            payload: null,
+          },
         },
         this.context.socket_id,
       );
@@ -3295,13 +3311,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       Object.assign(data, newData);
     }
 
-    NocoSocket.broadcastDataEvent(
+    NocoSocket.broadcastEvent(
       this.context,
-      this.model.id,
       {
-        id,
-        action: 'update',
-        payload: data,
+        event: EventType.DATA_EVENT,
+        payload: {
+          id,
+          action: 'update',
+          payload: data,
+        },
       },
       this.context.socket_id,
     );
@@ -3375,13 +3393,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     if (newData && newData.length > 0) {
       for (const data of newData) {
-        NocoSocket.broadcastDataEvent(
+        NocoSocket.broadcastEvent(
           this.context,
-          this.model.id,
           {
-            id: this.extractPksValues(data),
-            action: 'update',
-            payload: data,
+            event: EventType.DATA_EVENT,
+            payload: {
+              id: this.extractPksValues(data),
+              action: 'update',
+              payload: data,
+            },
+            scopes: [this.model.id],
           },
           this.context.socket_id,
         );

@@ -91,45 +91,31 @@ export default class NocoSocket {
     this.logger.log(`Socket ${socket.id} joined room ${event}`);
   }
 
-  public static broadcastDataEvent(
-    context: NcContext,
-    tableId: string,
-    args: Omit<PayloadForEvent<EventType.DATA_EVENT>, 'timestamp' | 'socketId'>,
-    socketId?: string,
-  ) {
-    const event = `${EventType.DATA_EVENT}:${context.workspace_id}:${context.base_id}:${tableId}`;
-    const payload = {
-      ...args,
-      timestamp: Date.now(),
-      socketId,
-    };
-
-    // Use static ioServer reference
-    if (this.ioServer) {
-      this.ioServer.to(event).emit(event, payload);
-    } else {
-      this.logger.warn(`No server instance available for event: ${event}`);
-    }
-  }
-
   public static broadcastEvent<T extends EventType>(
     context: NcContext,
-    eventType: T,
-    args: Prettify<Omit<PayloadForEvent<T>, 'timestamp' | 'socketId'>>,
+    params: {
+      event: T;
+      payload: Prettify<Omit<PayloadForEvent<T>, 'timestamp' | 'socketId'>>;
+      scopes?: string[];
+    },
     socketId?: string,
   ) {
-    const event = `${eventType}:${context.workspace_id}:${context.base_id}`;
-    const payload = {
-      ...args,
-      eventType,
+    const { event, payload, scopes = [] } = params;
+
+    const eventKey = `${event}:${context.workspace_id}:${context.base_id}${
+      scopes.length > 0 ? `:${scopes.join(':')}` : ''
+    }`;
+    const finalPayload = {
+      ...payload,
+      event,
       timestamp: Date.now(),
       socketId,
     };
 
     if (this.ioServer) {
-      this.ioServer.to(event).emit(event, payload);
+      this.ioServer.to(eventKey).emit(eventKey, finalPayload);
     } else {
-      this.logger.warn(`No server instance available for event: ${event}`);
+      this.logger.warn(`No server instance available for event: ${eventKey}`);
     }
   }
 

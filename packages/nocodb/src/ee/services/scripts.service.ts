@@ -45,11 +45,13 @@ export class ScriptsService {
 
     NocoSocket.broadcastEvent(
       context,
-      EventType.SCRIPT_EVENT,
       {
-        id: script.id,
-        action: 'create',
-        payload: script,
+        event: EventType.SCRIPT_EVENT,
+        payload: {
+          id: script.id,
+          action: 'create',
+          payload: script,
+        },
       },
       context.socket_id,
     );
@@ -81,11 +83,13 @@ export class ScriptsService {
 
     NocoSocket.broadcastEvent(
       context,
-      EventType.SCRIPT_EVENT,
       {
-        id: scriptId,
-        action: 'update',
-        payload: updatedScript,
+        event: EventType.SCRIPT_EVENT,
+        payload: {
+          id: scriptId,
+          action: 'update',
+          payload: updatedScript,
+        },
       },
       context.socket_id,
     );
@@ -111,11 +115,13 @@ export class ScriptsService {
 
     NocoSocket.broadcastEvent(
       context,
-      EventType.SCRIPT_EVENT,
       {
-        id: scriptId,
-        action: 'delete',
-        payload: script,
+        event: EventType.SCRIPT_EVENT,
+        payload: {
+          id: scriptId,
+          action: 'delete',
+          payload: script,
+        },
       },
       context.socket_id,
     );
@@ -149,11 +155,13 @@ export class ScriptsService {
 
     NocoSocket.broadcastEvent(
       context,
-      EventType.SCRIPT_EVENT,
       {
-        id: newScript.id,
-        action: 'create',
-        payload: newScript,
+        event: EventType.SCRIPT_EVENT,
+        payload: {
+          id: newScript.id,
+          action: 'create',
+          payload: newScript,
+        },
       },
       context.socket_id,
     );

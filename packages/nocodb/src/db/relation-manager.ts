@@ -1,4 +1,9 @@
-import { AuditOperationSubTypes, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  AuditOperationSubTypes,
+  EventType,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -927,10 +932,14 @@ export class RelationManager {
 
       for (const item of list) {
         const extractedId = baseModel.extractPksValues(item);
-        NocoSocket.broadcastDataEvent(baseModel.context, baseModel.model.id, {
-          action: 'update',
-          payload: item,
-          id: extractedId,
+        NocoSocket.broadcastEvent(baseModel.context, {
+          event: EventType.DATA_EVENT,
+          payload: {
+            action: 'update',
+            payload: item,
+            id: extractedId,
+          },
+          scopes: [baseModel.model.id],
         });
       }
     } catch (e) {

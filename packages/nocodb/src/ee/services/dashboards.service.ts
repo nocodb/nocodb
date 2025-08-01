@@ -64,11 +64,13 @@ export class DashboardsService {
 
     NocoSocket.broadcastEvent(
       context,
-      EventType.DASHBOARD_EVENT,
       {
-        id: dashboard.id,
-        action: 'create',
-        payload: dashboard as DashboardType,
+        event: EventType.DASHBOARD_EVENT,
+        payload: {
+          id: dashboard.id,
+          action: 'create',
+          payload: dashboard as DashboardType,
+        },
       },
       context.socket_id,
     );
@@ -104,11 +106,13 @@ export class DashboardsService {
 
     NocoSocket.broadcastEvent(
       context,
-      EventType.DASHBOARD_EVENT,
       {
-        id: dashboardId,
-        action: 'update',
-        payload: updatedDashboard as DashboardType,
+        event: EventType.DASHBOARD_EVENT,
+        payload: {
+          id: dashboardId,
+          action: 'update',
+          payload: updatedDashboard as DashboardType,
+        },
       },
       context.socket_id,
     );
@@ -138,11 +142,13 @@ export class DashboardsService {
 
     NocoSocket.broadcastEvent(
       context,
-      EventType.DASHBOARD_EVENT,
       {
-        id: dashboardId,
-        action: 'delete',
-        payload: dashboard as DashboardType,
+        event: EventType.DASHBOARD_EVENT,
+        payload: {
+          id: dashboardId,
+          action: 'delete',
+          payload: dashboard as DashboardType,
+        },
       },
       context.socket_id,
     );
@@ -204,12 +210,14 @@ export class DashboardsService {
 
     NocoSocket.broadcastEvent(
       context,
-      EventType.WIDGET_EVENT,
       {
-        id: widget.id,
-        dashboardId: widget.fk_dashboard_id,
-        action: 'create',
-        payload: widget as WidgetType,
+        event: EventType.WIDGET_EVENT,
+        payload: {
+          id: widget.id,
+          dashboardId: widget.fk_dashboard_id,
+          action: 'create',
+          payload: widget as WidgetType,
+        },
       },
       context.socket_id,
     );
@@ -276,12 +284,14 @@ export class DashboardsService {
 
     NocoSocket.broadcastEvent(
       context,
-      EventType.WIDGET_EVENT,
       {
-        id: newWidget.id,
-        dashboardId: newWidget.fk_dashboard_id,
-        action: 'create',
-        payload: newWidget as WidgetType,
+        event: EventType.WIDGET_EVENT,
+        payload: {
+          id: newWidget.id,
+          dashboardId: newWidget.fk_dashboard_id,
+          action: 'create',
+          payload: newWidget as WidgetType,
+        },
       },
       context.socket_id,
     );
@@ -333,12 +343,14 @@ export class DashboardsService {
 
     NocoSocket.broadcastEvent(
       context,
-      EventType.WIDGET_EVENT,
       {
-        id: widgetId,
-        dashboardId: updatedWidget.fk_dashboard_id,
-        action: 'update',
-        payload: updatedWidget as WidgetType,
+        event: EventType.WIDGET_EVENT,
+        payload: {
+          id: widgetId,
+          dashboardId: updatedWidget.fk_dashboard_id,
+          action: 'update',
+          payload: updatedWidget as WidgetType,
+        },
       },
       context.socket_id,
     );
@@ -363,12 +375,14 @@ export class DashboardsService {
 
     NocoSocket.broadcastEvent(
       context,
-      EventType.WIDGET_EVENT,
       {
-        id: widgetId,
-        dashboardId: widget.fk_dashboard_id,
-        action: 'delete',
-        payload: widget as WidgetType,
+        event: EventType.WIDGET_EVENT,
+        payload: {
+          id: widgetId,
+          dashboardId: widget.fk_dashboard_id,
+          action: 'delete',
+          payload: widget as WidgetType,
+        },
       },
       context.socket_id,
     );

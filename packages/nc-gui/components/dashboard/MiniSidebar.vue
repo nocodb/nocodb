@@ -211,7 +211,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </DashboardMiniSidebarItemWrapper>
         <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceIntegrations')">
           <NcTooltip
-            :title="isEeUI ? `${$t('objects.workspace')} ${$t('general.integrations')}` : $t('title.integrations')"
+            :title="isEeUI ? `${$t('objects.workspace')} ${$t('general.integrations')}` : $t('general.integrations')"
             placement="right"
             hide-on-click
             :arrow="false"

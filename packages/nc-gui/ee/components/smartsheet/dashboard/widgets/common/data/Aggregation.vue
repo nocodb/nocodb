@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, AggregationValue } from 'nocodb-sdk'
 import { AllAggregations, WidgetTypes, isSystemColumn } from 'nocodb-sdk'
 import TabbedSelect from '../TabbedSelect.vue'
 
@@ -44,7 +44,7 @@ const handleChange = (type: 'field' | 'aggregation') => {
   emit('update:aggregation', aggregation)
 }
 
-const filterAggregation = (value: string) => {
+const filterAggregation = (value: AggregationValue) => {
   if (selectedWidget.value?.type === WidgetTypes.METRIC) {
     return true
   }

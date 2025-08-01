@@ -34,11 +34,16 @@ export class TreeViewPage extends BasePage {
   private async openProjectContextMenu({ baseTitle }: { baseTitle: string }) {
     await this.dashboard.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).hover();
 
-    await this.dashboard
-      .get()
-      .getByTestId(`nc-sidebar-base-title-${baseTitle}`)
-      .locator('[data-testid="nc-sidebar-context-menu"]')
-      .click();
+    const baseTitleElement = this.dashboard.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`);
+
+    if (
+      (await baseTitleElement.isVisible()) &&
+      !(await baseTitleElement.locator('[data-testid="nc-sidebar-context-menu"]').isVisible())
+    ) {
+      return await baseTitleElement.click();
+    }
+
+    await baseTitleElement.locator('[data-testid="nc-sidebar-context-menu"]').click();
   }
 
   async isVisible() {
@@ -407,6 +412,8 @@ export class TreeViewPage extends BasePage {
   }
 
   async deleteProject(param: { title: string; context: NcContext }) {
+    await this.dashboard.leftSidebar.verifyBaseListOpen(true);
+
     param.title = this.scopedProjectTitle({ title: param.title, context: param.context });
 
     await this.openProjectContextMenu({ baseTitle: param.title });

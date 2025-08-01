@@ -115,17 +115,23 @@ export class TreeViewPage extends BasePage {
     networkResponse = false,
     mobileMode = false,
     baseTitle,
+    sourceTitle,
   }: {
     title: string;
     mode?: string;
     networkResponse?: boolean;
     mobileMode?: boolean;
     baseTitle?: string;
+    sourceTitle?: string;
   }) {
     await this.dashboard.leftSidebar.verifyBaseListOpen(!!baseTitle);
 
     if (baseTitle) {
       await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
+    }
+
+    if (sourceTitle) {
+      await this.dashboard.treeView.openSource({ title: sourceTitle });
     }
 
     if (mobileMode) {
@@ -479,5 +485,9 @@ export class TreeViewPage extends BasePage {
     const contextMenu = this.dashboard.get().locator('.ant-dropdown-menu.nc-scrollbar-md:visible');
     await contextMenu.waitFor();
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Settings")`).click();
+  }
+
+  async openSource(param: { title: string }) {
+    await this.get().getByTestId(`nc-sidebar-base-${param.title}`).click();
   }
 }

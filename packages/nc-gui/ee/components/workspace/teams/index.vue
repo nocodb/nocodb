@@ -212,7 +212,7 @@ const mockTeamsList = [
     id: '2',
     title: 'Sales',
     created_by: 'user@nocodb.com',
-    owners: ['user@nocodb.com'],
+    owners: ['user@nocodb.com', 'ramesh@nocodb.com'],
     members: [
       'ramesh@nocodb.com',
       'test@nocodb.com',
@@ -343,7 +343,7 @@ onMounted(async () => {
             </div>
           </div>
 
-          <div v-if="column.key === 'action'">
+          <div v-if="column.key === 'action'" @click.stop>
             <NcDropdown>
               <NcButton size="small" type="secondary">
                 <component :is="iconMap.ncMoreVertical" />

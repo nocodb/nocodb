@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { UserInfoType, UserType, WorkspaceUserType } from 'nocodb-sdk'
+import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
 
 interface Props {
   team: TeamType
@@ -14,6 +15,8 @@ const { team } = toRefs(props)
 
 const { t } = useI18n()
 
+const { user } = useGlobal()
+
 const workspaceStore = useWorkspace()
 
 const { collaborators } = storeToRefs(workspaceStore)
@@ -24,11 +27,18 @@ const isLoading = ref(true)
 
 const searchQuery = ref('')
 
+const isOpenContextMenu = ref<Record<string, boolean>>({})
+
 const filterMembers = computed(() => {
   if (!searchQuery.value) return teamMembers.value ?? []
 
   return teamMembers.value.filter((member) => searchCompare([member.display_name, member.email], searchQuery.value))
 })
+
+const hasSoleTeamOwner = computed(() => {
+  return team.value?.owners?.length < 2
+})
+
 // NcTable columns configuration
 const membersColumns = [
   {
@@ -96,6 +106,69 @@ const loadTeamMembers = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+const handleAssignAsTeamOwner = (member: TeamMember) => {
+  // Todo: api call
+
+  message.success({
+    title: t('objects.teams.memberAssignedAsTeamOwner'),
+    content: `${member.display_name || extractNameFromEmail(member.email)} is now a ${team.value?.title || 'team'} owner`,
+  })
+}
+
+const handleConfirm = ({
+  title,
+  content,
+  okText,
+  cancelText,
+  okProps: _okProps = {},
+  okCallback = () => Promise.resolve(),
+}: Partial<NcConfirmModalProps> & { okCallback?: () => Promise<void> }) => {
+  const isOpen = ref(true)
+
+  const okProps = ref({ loading: false, type: 'danger', ..._okProps })
+
+  const { close } = useDialog(resolveComponent('NcModalConfirm'), {
+    'visible': isOpen,
+    'title': title,
+    'content': content,
+    'okText': okText,
+    'cancelText': cancelText,
+    'onCancel': closeDialog,
+    'onOk': async () => {
+      okProps.value.loading = true
+
+      await okCallback()
+
+      okProps.value.loading = false
+
+      closeDialog()
+    },
+    'okProps': okProps,
+    'update:visible': closeDialog,
+    'showIcon': false,
+    'maskClosable': true,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
+const handleLeaveTeam = (team: TeamType) => {
+  handleConfirm({
+    title: t('objects.teams.confirmLeaveTeamTitle'),
+    content: t('objects.teams.confirmLeaveTeamSubtitle'),
+    okText: t('activity.leaveTeam'),
+    cancelText: t('labels.cancel'),
+    okCallback: async () => {
+      // Todo: api call
+      console.log('leave team', team)
+      await ncDelay(1000)
+    },
+  })
 }
 
 onMounted(() => {
@@ -193,18 +266,32 @@ onMounted(() => {
         </template>
         <template v-else-if="column.key === 'action'">
           <div v-if="column.key === 'action'" @click.stop>
-            <NcDropdown placement="bottomRight">
+            <NcDropdown v-model:visible="isOpenContextMenu[record.fk_user_id!]" placement="bottomRight">
               <template #default="{ visible }">
                 <NcButton size="small" type="secondary" class="invisible group-hover:visible" :class="{ '!visible': visible }">
                   <component :is="iconMap.ncMoreVertical" />
                 </NcButton>
               </template>
               <template #overlay>
-                <NcMenu variant="medium">
-                  <NcMenuItem>
+                <NcMenu variant="medium" @click="isOpenContextMenu[record.fk_user_id!] = false">
+                  <NcMenuItem @click="handleAssignAsTeamOwner(record as TeamMember)">
                     <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4" />
                     {{ $t('activity.assignAsTeamOwner') }}
                   </NcMenuItem>
+
+                  <!-- Show leave team option only if logged in user is same as record user -->
+                  <NcTooltip
+                    v-if="record.fk_user_id === user?.id"
+                    :disabled="!hasSoleTeamOwner"
+                    :title="t('objects.teams.soleTeamOwnerTooltip')"
+                    placement="left"
+                  >
+                    <NcMenuItem :disabled="hasSoleTeamOwner" @click="handleLeaveTeam(record as TeamType)">
+                      <GeneralIcon icon="ncLogOut" class="h-4 w-4" />
+                      {{ $t('activity.leaveTeam') }}
+                    </NcMenuItem>
+                  </NcTooltip>
+
                   <NcMenuItem class="!text-red-500 !hover:bg-red-50">
                     <GeneralIcon icon="ncXSquare" />
                     {{ $t('activity.removeFromTeam') }}
@@ -216,5 +303,13 @@ onMounted(() => {
         </template>
       </template>
     </NcTable>
+
+    <!-- <NcModalConfirm
+      v-model:visible="isConfirmModalVisible"
+      :title="t('objects.teams.confirmLeaveTeamTitle')"
+      :content="t('objects.teams.confirmLeaveTeamSubtitle')"
+      :ok-text="t('activity.leaveTeam')"
+      :cancel-text="t('labels.cancel')"
+    /> -->
   </div>
 </template>

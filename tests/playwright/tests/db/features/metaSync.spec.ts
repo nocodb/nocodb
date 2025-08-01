@@ -36,6 +36,8 @@ test.describe('Meta sync', () => {
   test('Meta sync', async () => {
     test.setTimeout(process.env.CI ? 100000 : 70000);
 
+    await dashboard.baseView.openOverview();
+
     await dashboard.baseView.tab_dataSources.click();
     await dashboard.baseView.dataSources.openMetaSync({ rowIndex: 0 });
 
@@ -250,6 +252,8 @@ test.describe('Meta sync', () => {
     await dbExec(
       `INSERT INTO table1 (id, col1, col2, col3, col4) VALUES (1,1,1,1,1), (2,2,2,2,2), (3,3,3,3,3), (4,4,4,4,4), (5,5,5,5,5), (6,6,6,6,6), (7,7,7,7,7), (8,8,8,8,8), (9,9,9,9,9);`
     );
+
+    await dashboard.baseView.openOverview();
 
     await dashboard.baseView.tab_dataSources.click();
     await dashboard.baseView.dataSources.openMetaSync({ rowIndex: 0 });

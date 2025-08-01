@@ -18,6 +18,8 @@ export class LeftSidebarPage extends BasePage {
 
   readonly miniSidebar: Locator;
 
+  readonly action_base: Locator;
+
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
@@ -30,6 +32,8 @@ export class LeftSidebarPage extends BasePage {
     this.modal_workspace = this.rootPage.locator('.nc-dropdown-workspace-menu');
 
     this.miniSidebar = this.dashboard.get().getByTestId('nc-mini-sidebar');
+
+    this.action_base = this.get().locator('.nc-treeview-container.nc-treeview-container-active-base');
   }
 
   get() {

@@ -700,6 +700,7 @@
       "confirmDeleteTeamTitle": "Are you sure you want to delete this team?",
       "confirmDeleteTeamSubtitle": "Members may still have access to bases if they were explicitly invited or hold a role at the workspace level.",
       "soleTeamOwnerTooltip": "You’re the sole owner of this team. Transfer ownership to another member before leaving.",
+      "thisIsTheOnlyTeamOwnerTooltip": "This is the only owner of this team. Transfer ownership to another member before removing it.",
       "removeFromTeamRestrictionTooltip": "You can’t remove all owners. Deselect at least one owner to proceed.",
       "memberAssignedAsTeamOwner": "Member assigned as team owner",
       "teamOwner": "Team owner",

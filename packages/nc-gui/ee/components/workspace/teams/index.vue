@@ -212,7 +212,7 @@ const mockTeamsList = [
     id: '2',
     title: 'Sales',
     created_by: 'user@nocodb.com',
-    owners: ['ramesh@nocodb.com'],
+    owners: ['user@nocodb.com'],
     members: [
       'ramesh@nocodb.com',
       'test@nocodb.com',

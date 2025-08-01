@@ -370,7 +370,7 @@ onMounted(() => {
               </template>
               <template #overlay>
                 <NcMenu variant="medium" @click="isOpenContextMenu[record.fk_user_id!] = false">
-                  <NcMenuItem @click="handleAssignAsTeamOwner(record as TeamMember)">
+                  <NcMenuItem v-if="!isTeamOwner(record as TeamMember)" @click="handleAssignAsTeamOwner(record as TeamMember)">
                     <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4" />
                     {{ $t('activity.assignAsTeamOwner') }}
                   </NcMenuItem>
@@ -392,14 +392,21 @@ onMounted(() => {
                     </NcMenuItem>
                   </NcTooltip>
 
-                  <NcMenuItem
+                  <NcTooltip
                     v-else
-                    class="!text-red-500 !hover:bg-red-50"
-                    @click="handleRemoveMemberFromTeam([record as TeamMember])"
+                    :disabled="!(hasSoleTeamOwner && isTeamOwner(record as TeamMember))"
+                    :title="t('objects.teams.thisIsTheOnlyTeamOwnerTooltip')"
+                    placement="left"
                   >
-                    <GeneralIcon icon="ncXSquare" />
-                    {{ $t('activity.removeFromTeam') }}
-                  </NcMenuItem>
+                    <NcMenuItem
+                      :disabled="(hasSoleTeamOwner && isTeamOwner(record as TeamMember))"
+                      :class="{ '!text-red-500 !hover:bg-red-50': !(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) }"
+                      @click="handleRemoveMemberFromTeam([record as TeamMember])"
+                    >
+                      <GeneralIcon icon="ncXSquare" />
+                      {{ $t('activity.removeFromTeam') }}
+                    </NcMenuItem>
+                  </NcTooltip>
                 </NcMenu>
               </template>
             </NcDropdown>

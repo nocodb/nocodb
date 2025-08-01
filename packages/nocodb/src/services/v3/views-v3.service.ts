@@ -110,6 +110,10 @@ export class ViewsV3Service {
         if (Object.keys(formattedData.options ?? {}).length === 0) {
           formattedData.options = undefined;
         }
+
+        formattedData.is_default = !formattedData.is_default
+          ? undefined
+          : formattedData.is_default;
         return formattedData;
       },
     });
@@ -357,6 +361,9 @@ export class ViewsV3Service {
     const viewColumnList = await View.getColumns(context, view.id);
 
     formattedView.fields = viewColumnBuilder().build(viewColumnList);
+    formattedView.is_default = !formattedView.is_default
+      ? undefined
+      : formattedView.is_default;
 
     // extract the view specific infos
     switch (viewTypeMap[view.type]) {

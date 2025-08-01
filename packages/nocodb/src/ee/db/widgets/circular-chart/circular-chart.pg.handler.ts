@@ -158,7 +158,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= 10 THEN CAST(category AS TEXT)
+          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN CAST(category AS TEXT)
           ELSE 'Others'
         END as final_category
       `),
@@ -167,7 +167,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= 10 THEN category
+          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN category
           ELSE NULL
         END as original_category
       `),
@@ -176,7 +176,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
         baseModel.dbDriver.raw(
           `
         CASE 
-          WHEN rn <= 10 THEN ??
+          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN ??
           ELSE 0
         END as final_value
       `,
@@ -187,7 +187,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
         baseModel.dbDriver.raw(
           `
         CASE 
-          WHEN rn > 10 THEN ??
+          WHEN rn > ${this.MAX_WIDGET_CATEGORY_COUNT} THEN ??
           ELSE 0
         END as others_value
       `,
@@ -197,7 +197,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= 10 THEN record_count
+          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN record_count
           ELSE 0
         END as final_count
       `),
@@ -205,7 +205,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn > 10 THEN record_count
+          WHEN rn > ${this.MAX_WIDGET_CATEGORY_COUNT} THEN record_count
           ELSE 0
         END as others_count
       `),

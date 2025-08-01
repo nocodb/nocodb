@@ -16,7 +16,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
   /**
    * Get the MAX function expression based on column type
    */
-  private getMaxExpressionForColumn(column: Column): string {
+  private getMaxExpressionForColumn(_column: Column): string {
     return 'MAX(original_category)';
   }
 
@@ -152,7 +152,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= 10 THEN CAST(category AS CHAR)
+          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN CAST(category AS CHAR)
           ELSE 'Others'
         END as final_category
       `),
@@ -161,7 +161,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= 10 THEN category
+          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN category
           ELSE NULL
         END as original_category
       `),
@@ -170,7 +170,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
         baseModel.dbDriver.raw(
           `
         CASE 
-          WHEN rn <= 10 THEN ??
+          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN ??
           ELSE 0
         END as final_value
       `,
@@ -181,7 +181,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
         baseModel.dbDriver.raw(
           `
         CASE 
-          WHEN rn > 10 THEN ??
+          WHEN rn > ${this.MAX_WIDGET_CATEGORY_COUNT} THEN ??
           ELSE 0
         END as others_value
       `,
@@ -191,7 +191,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= 10 THEN record_count
+          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN record_count
           ELSE 0
         END as final_count
       `),
@@ -199,7 +199,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn > 10 THEN record_count
+          WHEN rn > ${this.MAX_WIDGET_CATEGORY_COUNT} THEN record_count
           ELSE 0
         END as others_count
       `),

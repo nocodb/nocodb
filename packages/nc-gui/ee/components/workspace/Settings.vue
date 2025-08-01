@@ -14,13 +14,15 @@ const { orgId } = useOrganization()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { showUpgradeToUploadWsImage } = useEeConfig()
+const { isPaymentEnabled, activeSubscription, showUpgradeToUploadWsImage } = useEeConfig()
 
 const router = useRouter()
 
 const { isUIAllowed } = useRoles()
 
 const { user } = useGlobal()
+
+const { t } = useI18n()
 
 const leavedWsUserId = ref('')
 
@@ -187,8 +189,49 @@ const handleLeaveWorkspace = () => {
   })
 }
 
+const showCancelSubscriptionModal = () => {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('NcModalConfirm'), {
+    'visible': isOpen,
+    'title': t('title.cancelSubscriptionBeforeDeletingWorkspace'),
+    'content': t('title.cancelSubscriptionBeforeDeletingWorkspaceSubtext'),
+    'okText': t('activity.navigateToBilling'),
+    'cancelText': t('labels.cancel'),
+    'onCancel': closeDialog,
+    'onOk': async () => {
+      navigateTo(`/${currentWorkspace.value?.id}/settings?tab=billing&autoScroll=plan`)
+
+      closeDialog()
+    },
+    'update:visible': closeDialog,
+    'showIcon': false,
+    'maskClosable': true,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
+const shouldShowCancelSubscriptionModal = computed(() => {
+  return (
+    !currentWorkspace.value?.fk_org_id &&
+    isPaymentEnabled.value &&
+    activeSubscription.value &&
+    !activeSubscription.value.canceled_at
+  )
+})
+
 const handleDelete = () => {
   if (!currentWorkspace.value || !currentWorkspace.value.title) return
+
+  // If the workspace has active subscription, then ask user to cancel the subscription first
+  if (shouldShowCancelSubscriptionModal.value) {
+    return showCancelSubscriptionModal()
+  }
+
   toBeDeletedWorkspaceTitle.value = currentWorkspace.value.title
   isDeleteModalVisible.value = true
 

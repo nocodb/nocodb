@@ -115,19 +115,17 @@ export class TreeViewPage extends BasePage {
     networkResponse = false,
     mobileMode = false,
     baseTitle,
-    context,
   }: {
     title: string;
     mode?: string;
     networkResponse?: boolean;
     mobileMode?: boolean;
     baseTitle?: string;
-    context?: NcContext;
   }) {
     await this.dashboard.leftSidebar.verifyBaseListOpen(!!baseTitle);
 
-    if (baseTitle && context) {
-      await this.dashboard.treeView.openProject({ title, context });
+    if (baseTitle) {
+      await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
     }
 
     if (mobileMode) {

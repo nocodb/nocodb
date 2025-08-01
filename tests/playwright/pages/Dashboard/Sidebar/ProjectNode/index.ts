@@ -34,6 +34,8 @@ export class SidebarProjectNodeObject extends BasePage {
   }
 
   async verifyTableAddBtn({ baseTitle, visible }: { baseTitle: string; visible: boolean }) {
+    await this.sidebar.dashboard.leftSidebar.verifyBaseListOpen(true);
+
     await this.get({
       baseTitle,
     }).waitFor({ state: 'visible' });

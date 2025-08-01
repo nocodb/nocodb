@@ -44,6 +44,7 @@ test.describe('Erd', () => {
   };
 
   const openProjectErd = async () => {
+    await dashboard.baseView.openOverview();
     await dashboard.baseView.tab_dataSources.click();
     await dashboard.baseView.dataSources.openERD({ rowIndex: 0 });
 
@@ -53,7 +54,7 @@ test.describe('Erd', () => {
   };
 
   const openErdOfATable = async (tableName: string) => {
-    await dashboard.treeView.openTable({ title: tableName });
+    await dashboard.treeView.openTable({ title: tableName, baseTitle: context.base.title });
     await dashboard.grid.topbar.openDetailedTab();
     await dashboard.details.clickRelationsTab();
   };
@@ -278,8 +279,10 @@ test.describe('Erd', () => {
 
     // Create table and verify ERD
     await dashboard.treeView.createTable({ title: 'Test', baseTitle: context.base.title });
+
     // Verify in Settings ERD and table ERD
-    await dashboard.treeView.openProject({ title: context.base.title, context });
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: context.base.title, open: true });
+
     await openProjectErd();
     await dashboard.details.relations.verifyNode({
       tableName: `Test`,

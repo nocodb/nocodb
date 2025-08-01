@@ -64,7 +64,7 @@ test.describe('Shared base', () => {
   test('#1', async () => {
     let url = '';
     // share button visible only if a table is opened
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     // if (!isEE()) {
     //   url = await dashboard.grid.topbar.getSharedBaseUrl({ role: 'editor', enableSharedBase: true });
     //

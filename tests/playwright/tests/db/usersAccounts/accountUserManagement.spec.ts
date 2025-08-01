@@ -119,6 +119,8 @@ test.describe('User roles', () => {
     // wait for page rendering to complete after sign up
     await dashboard.rootPage.waitForTimeout(1000);
 
+    await dashboard.leftSidebar.verifyBaseListOpen(true);
+
     if (roleDb[roleIdx].role === 'Organization Level Creator') {
       await expect(dashboard.leftSidebar.btn_newProject).toBeVisible();
     } else {

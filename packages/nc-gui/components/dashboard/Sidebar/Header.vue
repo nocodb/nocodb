@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const workspaceStore = useWorkspace()
 
-const { isLeftSidebarOpen, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { activeWorkspace, isWorkspacesLoading } = storeToRefs(workspaceStore)
 
@@ -21,8 +21,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
     style="height: var(--topbar-height)"
   >
     <div v-if="!isWorkspacesLoading" class="flex flex-row items-center w-full">
-      <div v-if="isNewSidebarEnabled">Bases</div>
-      <WorkspaceMenu v-else />
+      <div>Bases</div>
 
       <div class="flex flex-grow min-w-1"></div>
 

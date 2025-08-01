@@ -268,7 +268,12 @@ onMounted(() => {
     >
       <template #tableToolbar>
         <div class="flex flex-col gap-4">
-          <div class="nc-modal-teams-edit-content-section-title text-bodyBold">{{ $t('labels.members') }}</div>
+          <div class="nc-modal-teams-edit-content-section-title text-bodyBold flex items-center gap-2">
+            {{ $t('labels.members') }}
+            <NcBadge v-if="!isLoading" size="xs" color="brand" :border="false" class="text-captionBold">
+              {{ teamMembers.length }}
+            </NcBadge>
+          </div>
 
           <div class="flex items-center justify-between min-h-8">
             <a-input

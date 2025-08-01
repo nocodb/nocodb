@@ -11,7 +11,12 @@ interface TeamMember extends WorkspaceUserType, Omit<UserType, 'roles' | 'email'
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const { team } = toRefs(props)
+const emits = defineEmits<{
+  (e: 'update:team', value: TeamType): void
+  (e: 'close'): void
+}>()
+
+const team = useVModel(props, 'team', emits)
 
 const { t } = useI18n()
 
@@ -19,7 +24,7 @@ const { user } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { collaborators, collaboratorsMap } = storeToRefs(workspaceStore)
+const { collaborators, collaboratorsMap, teams } = storeToRefs(workspaceStore)
 
 const teamMembers = ref<TeamMember[]>([])
 
@@ -121,7 +126,13 @@ const loadTeamMembers = async () => {
   try {
     // Todo: load team members
     await ncDelay(2000)
-    teamMembers.value = (collaborators.value || []) as TeamMember[]
+    teamMembers.value = ((collaborators.value || []) as TeamMember[]).filter(
+      (coll) =>
+        team.value.members.includes(coll.fk_user_id!) ||
+        team.value.members.includes(coll.email!) ||
+        team.value.owners.includes(coll.fk_user_id!) ||
+        team.value.owners.includes(coll.email!),
+    )
   } catch (error: any) {
     message.error(await extractSdkResponseErrorMsg(error))
   } finally {
@@ -130,6 +141,7 @@ const loadTeamMembers = async () => {
 }
 
 const handleAssignAsTeamOwner = (member: TeamMember) => {
+  team.value.owners.push(member.email!)
   // Todo: api call
 
   message.success({
@@ -186,7 +198,7 @@ const handleConfirm = ({
   }
 }
 
-const handleLeaveTeam = (team: TeamType) => {
+const handleLeaveTeam = (member: TeamMember) => {
   handleConfirm({
     title: t('objects.teams.confirmLeaveTeamTitle'),
     content: t('objects.teams.confirmLeaveTeamSubtitle'),
@@ -194,8 +206,26 @@ const handleLeaveTeam = (team: TeamType) => {
     cancelText: t('labels.cancel'),
     okCallback: async () => {
       // Todo: api call
-      console.log('leave team', team)
+      console.log('leave team', team.value)
       await ncDelay(1000)
+
+      team.value.owners = team.value.owners.filter((owner) => owner !== member.email && owner !== member.fk_user_id!)
+      team.value.members = team.value.members.filter(
+        (teamMember) => teamMember !== member.email && teamMember !== member.fk_user_id!,
+      )
+
+      teamMembers.value = teamMembers.value.filter(
+        (teamMember) => teamMember.email !== member.email && teamMember.fk_user_id !== member.fk_user_id,
+      )
+
+      delete selectedRows.value[member.fk_user_id!]
+
+      // If current user leaves the team then we have to close modal and remove team from list
+      emits('close')
+
+      teams.value = teams.value.filter((t) => t.id !== team.value.id)
+
+      console.log('team', team.value, teamMembers.value)
     },
   })
 }
@@ -204,6 +234,7 @@ const handleRemoveMemberFromTeam = (members: TeamMember[]) => {
   if (!members.length) return
 
   const removeMemberIds = members.map((member) => member.fk_user_id!)
+  const removeMemberEmails = members.map((member) => member.email!)
 
   const selectedMemberNameOrCount =
     removeMemberIds.length > 1 ? `${removeMemberIds.length} ${t('labels.members')}` : extractUserDisplayNameOrEmail(members[0])
@@ -217,7 +248,24 @@ const handleRemoveMemberFromTeam = (members: TeamMember[]) => {
     okCallback: async () => {
       // Todo: api call
       console.log('remove members from team', members)
+
       await ncDelay(1000)
+
+      team.value = {
+        ...team.value,
+        owners: team.value.owners.filter((owner) => !removeMemberIds.includes(owner) && !removeMemberEmails.includes(owner)),
+        members: team.value.members.filter((member) => !removeMemberIds.includes(member) && !removeMemberEmails.includes(member)),
+      }
+
+      teamMembers.value = teamMembers.value.filter(
+        (member) => !removeMemberIds.includes(member.fk_user_id!) && !removeMemberEmails.includes(member.email!),
+      )
+
+      members.forEach((member) => {
+        delete selectedRows.value[member.fk_user_id!]
+      })
+
+      console.log('team', team.value)
     },
     initialSlots: {
       content: () => [
@@ -357,6 +405,7 @@ onMounted(() => {
               v-if="isTeamOwner(record)"
               :title="$t('objects.teams.teamOwner')"
               class="text-nc-content-gray-muted text-captionSm truncate"
+              show-on-truncate-only
             >
               {{ $t('objects.teams.teamOwner') }}
             </NcTooltip>

@@ -171,6 +171,7 @@ const handleLeaveTeam = (team: TeamType) => {
       // Todo: api call
       console.log('leave team', team)
       await ncDelay(1000)
+      teams.value = teams.value.filter((t) => t.id !== team.id)
     },
   })
 }
@@ -348,7 +349,7 @@ onMounted(async () => {
                   </NcMenuItem>
                   <NcTooltip
                     :disabled="!hasSoleTeamOwner(record as TeamType)"
-                    :title="t('objects.teams.soleTeamOwnerTooltip')"
+                    :title="t('objects.teams.thisTeamHasOnlyOneOwnerTooltip')"
                     placement="left"
                   >
                     <NcMenuItem :disabled="hasSoleTeamOwner(record as TeamType)" @click="handleLeaveTeam(record as TeamType)">

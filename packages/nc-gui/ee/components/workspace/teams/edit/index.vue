@@ -89,8 +89,8 @@ const supportedDocs: SupportedDocsType[] = [
         <!-- Content -->
         <div class="flex-1 nc-modal-teams-edit-content">
           <template v-if="editTeam">
-            <WorkspaceTeamsEditGeneralSection :team="editTeam" />
-            <WorkspaceTeamsEditMembersSection :team="editTeam" />
+            <WorkspaceTeamsEditGeneralSection v-model:team="editTeam" />
+            <WorkspaceTeamsEditMembersSection v-model:team="editTeam" @close="vVisible = false" />
           </template>
         </div>
 

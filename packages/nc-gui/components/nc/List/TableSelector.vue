@@ -37,7 +37,6 @@ const isOpenTableSelectDropdown = ref(false)
 const handleValueUpdate = (value: any) => {
   const stringValue = String(value)
   modelValue.value = stringValue
-  emit('update:value', stringValue)
 }
 
 const tableList = computedAsync(async () => {
@@ -85,9 +84,8 @@ watch(tableList, (newTableList) => {
     
     // Check if current value exists in the new table list
     if (modelValue.value && !newTableListMap.has(modelValue.value)) {
-      // Current value is not in the list, emit null to clear it
+      // Current value is not in the list, set null to clear it
       modelValue.value = null
-      emit('update:value', null)
       return
     }
 
@@ -100,10 +98,8 @@ watch(tableList, (newTableList) => {
       if (tableObj && tableObj.ncItemDisabled && tableObj.value === newTableList[0]?.value) {
         const selectedValue = newTableList.find((table) => !table.ncItemDisabled)?.value || newTableList[0]?.value
         modelValue.value = selectedValue
-        emit('update:value', selectedValue)
       } else {
         modelValue.value = newTableId
-        emit('update:value', newTableId)
       }
     }
   }

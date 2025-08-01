@@ -36,7 +36,6 @@ const isOpenAggregationSelectDropdown = ref(false)
 const handleValueUpdate = (value: any) => {
   const stringValue = String(value)
   modelValue.value = stringValue
-  emit('update:value', stringValue)
 }
 
 const column = ref<ColumnType | null>(null)
@@ -121,9 +120,8 @@ watch(aggregationList, (newAggregationList) => {
     
     // Check if current value exists in the new aggregation list
     if (modelValue.value && !newAggregationListMap.has(modelValue.value)) {
-      // Current value is not in the list, emit null to clear it
+      // Current value is not in the list, set null to clear it
       modelValue.value = undefined
-      emit('update:value', undefined)
       return
     }
 
@@ -132,7 +130,6 @@ watch(aggregationList, (newAggregationList) => {
       const newAggregationValue = newAggregationList[0]?.value
 
       modelValue.value = newAggregationValue
-      emit('update:value', newAggregationValue)
     }
   }
 }, { immediate: true })

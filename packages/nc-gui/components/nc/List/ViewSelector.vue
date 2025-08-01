@@ -40,7 +40,6 @@ const isOpenViewSelectDropdown = ref(false)
 const handleValueUpdate = (value: any) => {
   const stringValue = String(value)
   modelValue.value = stringValue
-  emit('update:value', stringValue)
 }
 
 const viewList = computedAsync(async () => {
@@ -97,9 +96,8 @@ watch(viewList, (newViewList) => {
     
     // Check if current value exists in the new view list
     if (modelValue.value && !newViewListMap.has(modelValue.value)) {
-      // Current value is not in the list, emit null to clear it
+      // Current value is not in the list, set null to clear it
       modelValue.value = undefined
-      emit('update:value', undefined)
       return
     }
 
@@ -113,10 +111,8 @@ watch(viewList, (newViewList) => {
       if (viewObj && viewObj.ncItemDisabled && viewObj.value === newViewList[0]?.value) {
         const selectedValue = newViewList.find((view) => !view.ncItemDisabled)?.value || newViewList[0]?.value
         modelValue.value = selectedValue
-        emit('update:value', selectedValue)
       } else {
         modelValue.value = newViewId
-        emit('update:value', newViewId)
       }
     }
   }

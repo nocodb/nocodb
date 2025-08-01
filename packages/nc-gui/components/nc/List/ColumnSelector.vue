@@ -37,7 +37,6 @@ const isOpenColumnSelectDropdown = ref(false)
 const handleValueUpdate = (value: any) => {
   const stringValue = String(value)
   modelValue.value = stringValue
-  emit('update:value', stringValue)
 }
 
 const columnList = computedAsync(async () => {
@@ -92,9 +91,8 @@ watch(columnList, (newColumnList) => {
     
     // Check if current value exists in the new column list
     if (modelValue.value && !newColumnListMap.has(modelValue.value)) {
-      // Current value is not in the list, emit null to clear it
+      // Current value is not in the list, set null to clear it
       modelValue.value = undefined
-      emit('update:value', undefined)
       return
     }
 
@@ -108,10 +106,8 @@ watch(columnList, (newColumnList) => {
       if (columnObj && columnObj.ncItemDisabled && columnObj.value === newColumnList[0]?.value) {
         const selectedValue = newColumnList.find((column) => !column.ncItemDisabled)?.value || newColumnList[0]?.value
         modelValue.value = selectedValue
-        emit('update:value', selectedValue)
       } else {
         modelValue.value = newColumnId
-        emit('update:value', newColumnId)
       }
     }
   }

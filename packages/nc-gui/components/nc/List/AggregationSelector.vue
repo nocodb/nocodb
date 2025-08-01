@@ -6,17 +6,19 @@ interface Props {
   tableId?: string
   columnId?: string
   value?: string
-  showAggregationSelector?: boolean
   forceLayout?: 'vertical' | 'horizontal'
   filterAggregation?: (aggregation: string) => boolean
   forceLoadColumnMeta?: boolean
   disableLabel?: boolean
+  autoSelect?: boolean
+  disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  showAggregationSelector: true,
   forceLoadColumnMeta: false,
   disableLabel: false,
+  autoSelect: false,
+  disabled: false,
 })
 
 const emit = defineEmits<{
@@ -39,31 +41,37 @@ const handleValueUpdate = (value: any) => {
 
 const column = ref<ColumnType | null>(null)
 const isLoading = ref(false)
+const aggregationList = ref<Array<{ label: string; value: string; ncItemDisabled: boolean; ncItemTooltip: string }>>([])
 
-const aggregationList = computedAsync(async () => {
-  if (!props.tableId || !props.columnId) return []
+const loadAggregationList = async () => {
+  if (!props.tableId || !props.columnId) {
+    isLoading.value = false
+    aggregationList.value = []
+    return
+  }
 
   try {
     isLoading.value = true
 
-    const tableMeta = await getMeta(props.tableId)
+    const tableMeta = await getMeta(props.tableId, undefined, undefined, undefined, true)
     if (!tableMeta) {
-      console.error('Failed to fetch table metadata')
-      return []
+      aggregationList.value = []
+      return
     }
 
     const columnMeta = tableMeta.columns?.find((col) => col.id === props.columnId)
     if (!columnMeta) {
-      return []
+      aggregationList.value = []
+      return
     }
 
     column.value = columnMeta
 
     let availableAggregations: string[]
-    if (columnMeta.uidt === UITypes.Formula && columnMeta.colOptions?.parsed_tree) {
-      availableAggregations = getAvailableAggregations(columnMeta.uidt, columnMeta.colOptions.parsed_tree)
+    if (columnMeta.uidt === UITypes.Formula && columnMeta.colOptions && 'parsed_tree' in columnMeta.colOptions) {
+      availableAggregations = getAvailableAggregations(columnMeta.uidt, (columnMeta.colOptions as any).parsed_tree)
     } else {
-      availableAggregations = getAvailableAggregations(columnMeta.uidt)
+      availableAggregations = getAvailableAggregations(columnMeta.uidt!)
     }
 
     // Filter out None aggregation
@@ -74,7 +82,7 @@ const aggregationList = computedAsync(async () => {
       availableAggregations = availableAggregations.filter(props.filterAggregation)
     }
 
-    return availableAggregations.map((agg) => {
+    aggregationList.value = availableAggregations.map((agg) => {
       return {
         label: t(`aggregation_type.${agg}`),
         value: agg,
@@ -83,26 +91,44 @@ const aggregationList = computedAsync(async () => {
       }
     })
   } catch (error) {
-    console.error('Error fetching column metadata:', error)
-    return []
+    aggregationList.value = []
   } finally {
     isLoading.value = false
   }
-}, [])
+}
+
+
+watch([() => props.tableId, () => props.columnId], () => {
+  loadAggregationList()
+})
+
 
 const selectedAggregation = computed(() => {
   if (!aggregationList.value || aggregationList.value.length === 0) return undefined
 
-  return aggregationList.value.find((agg) => agg.value === modelValue.value) || aggregationList.value[0]
+  return aggregationList.value.find((agg) => agg.value === modelValue.value) || undefined
 })
 
 watch(aggregationList, (newAggregationList) => {
-  if (!modelValue.value && newAggregationList && newAggregationList.length > 0) {
-    const newAggregationValue = newAggregationList[0]?.value
+  if (newAggregationList && newAggregationList.length > 0) {
+    // Check if current value exists in the new aggregation list
+    if (modelValue.value && !newAggregationList.find((agg) => agg.value === modelValue.value)) {
+      // Current value is not in the list, emit null to clear it
+      modelValue.value = undefined
+      emit('update:value', undefined)
+      return
+    }
 
-    modelValue.value = newAggregationValue
+    // Auto-select logic (only if autoSelect is enabled and no current value)
+    if (!modelValue.value && props.autoSelect) {
+      const newAggregationValue = newAggregationList[0]?.value
+
+      modelValue.value = newAggregationValue
+      emit('update:value', newAggregationValue)
+    }
   }
 }, { immediate: true })
+
 
 defineExpose({
   modelValue,
@@ -127,17 +153,25 @@ defineExpose({
     </template>
     <NcListDropdown
       v-model:is-open="isOpenAggregationSelectDropdown"
-      :disabled="!showAggregationSelector || isLoading"
+      :disabled="isLoading || disabled"
       :default-slot-wrapper-class="
-        !showAggregationSelector || isLoading
+        isLoading || disabled
           ? 'text-nc-content-gray-muted cursor-not-allowed bg-nc-bg-gray-light children:opacity-60'
           : 'text-nc-content-gray'
       "
       :has-error="!!selectedAggregation?.ncItemDisabled"
     >
       <div class="flex-1 flex items-center gap-2 min-w-0">
-        <span :key="selectedAggregation?.value" class="text-sm flex-1 truncate">{{ selectedAggregation?.label || t('general.aggregation') }}</span>
+        <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
+          <span v-if="selectedAggregation" :key="selectedAggregation?.value" class="text-sm flex-1 truncate" :class="{ 'text-nc-content-gray-muted': !selectedAggregation }">
+          {{ selectedAggregation?.label }}
+        </span>
+        <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select aggregation --</span>
 
+        <template #title>
+          {{ selectedAggregation?.label || 'Select aggregation' }}
+        </template>
+      </NcTooltip>
         <GeneralIcon
           icon="ncChevronDown"
           class="flex-none h-4 w-4 transition-transform opacity-70"

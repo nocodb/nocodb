@@ -19,7 +19,7 @@ const { user } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { collaborators } = storeToRefs(workspaceStore)
+const { collaborators, collaboratorsMap } = storeToRefs(workspaceStore)
 
 const teamMembers = ref<TeamMember[]>([])
 
@@ -33,6 +33,12 @@ const filterMembers = computed(() => {
   if (!searchQuery.value) return teamMembers.value ?? []
 
   return teamMembers.value.filter((member) => searchCompare([member.display_name, member.email], searchQuery.value))
+})
+
+const teamOwners = computed(() => {
+  return team.value?.owners?.map((ownerIdOrEmail) =>
+    teamMembers.value.find((member) => member.fk_user_id === ownerIdOrEmail || member.email === ownerIdOrEmail),
+  )
 })
 
 const hasSoleTeamOwner = computed(() => {
@@ -78,15 +84,26 @@ const selectedRows = ref<{
 const selectedRowConfig = computed(() => {
   const selectedRowCount = Object.values(selectedRows.value).filter(Boolean).length
 
+  const selectedMembers = filterMembers.value.filter((member) => selectedRows.value[member.fk_user_id!])
+
   return {
     selectedRowCount,
+    selectedMembers,
+    selectedMembersMap: new Map(selectedMembers.map((member) => [member.fk_user_id!, member])),
     isAllSelected: teamMembers.value.length > 0 && selectedRowCount === teamMembers.value.length,
     isSomeSelected: selectedRowCount > 0 && selectedRowCount < teamMembers.value.length,
   }
 })
 
+const hasSelectedAllOwners = computed(() => {
+  return (
+    selectedRowConfig.value.selectedRowCount > 0 &&
+    teamOwners.value.every((member) => selectedRowConfig.value.selectedMembersMap.has(member?.fk_user_id!))
+  )
+})
+
 const toggleSelectAll = (value: boolean) => {
-  filterMembers.value.forEach((member, i) => {
+  filterMembers.value.forEach((member) => {
     selectedRows.value[member.fk_user_id!] = value
   })
 }
@@ -128,32 +145,40 @@ const handleConfirm = ({
   cancelText,
   okProps: _okProps = {},
   okCallback = () => Promise.resolve(),
+  initialSlots = {},
 }: Partial<NcConfirmModalProps> & { okCallback?: () => Promise<void> }) => {
   const isOpen = ref(true)
 
   const okProps = ref({ loading: false, type: 'danger', ..._okProps })
 
-  const { close } = useDialog(resolveComponent('NcModalConfirm'), {
-    'visible': isOpen,
-    'title': title,
-    'content': content,
-    'okText': okText,
-    'cancelText': cancelText,
-    'onCancel': closeDialog,
-    'onOk': async () => {
-      okProps.value.loading = true
+  const slots = ref<Record<string, () => VNode[]>>(initialSlots)
+  const { close } = useDialog(
+    resolveComponent('NcModalConfirm'),
+    {
+      'visible': isOpen,
+      'title': title,
+      'content': content,
+      'okText': okText,
+      'cancelText': cancelText,
+      'onCancel': closeDialog,
+      'onOk': async () => {
+        okProps.value.loading = true
 
-      await okCallback()
+        await okCallback()
 
-      okProps.value.loading = false
+        okProps.value.loading = false
 
-      closeDialog()
+        closeDialog()
+      },
+      'okProps': okProps,
+      'update:visible': closeDialog,
+      'showIcon': false,
+      'maskClosable': true,
     },
-    'okProps': okProps,
-    'update:visible': closeDialog,
-    'showIcon': false,
-    'maskClosable': true,
-  })
+    {
+      slots,
+    },
+  )
 
   function closeDialog() {
     isOpen.value = false
@@ -175,12 +200,51 @@ const handleLeaveTeam = (team: TeamType) => {
   })
 }
 
+const handleRemoveSelectedMembersFromTeam = () => {
+  const selectedMemberIds = selectedRowConfig.value.selectedMembers.map((member) => member.fk_user_id!)
+
+  if (!selectedMemberIds.length) return
+
+  const selectedMemberNameOrCount =
+    selectedMemberIds.length > 1
+      ? `${selectedMemberIds.length} ${t('labels.members')}`
+      : extractUserDisplayNameOrEmail(selectedRowConfig.value.selectedMembers[0])
+
+  handleConfirm({
+    title: `${
+      selectedMemberIds.length > 1 ? t('objects.teams.removeMemberFromTeamPlural') : t('objects.teams.removeMemberFromTeam')
+    }?`,
+    okText: t('general.remove'),
+    cancelText: t('labels.cancel'),
+    okCallback: async () => {
+      // Todo: api call
+      console.log('remove members from team', selectedRowConfig.value.selectedMembers)
+      await ncDelay(1000)
+    },
+    initialSlots: {
+      content: () => [
+        h(
+          'div',
+          {
+            class: 'text-nc-content-gray-subtle2',
+          },
+          [
+            h('div', {}, [
+              'Are you sure you want to remove ',
+              h('b', {}, selectedMemberNameOrCount),
+              ' from the ',
+              h('b', {}, team.value?.title),
+              ' team?',
+            ]),
+          ],
+        ),
+      ],
+    },
+  })
+}
+
 onMounted(() => {
   loadTeamMembers()
-})
-
-watchEffect(() => {
-  console.log('filterMembers', filterMembers.value)
 })
 </script>
 
@@ -235,8 +299,18 @@ watchEffect(() => {
                   </NcButton>
                   <template #overlay>
                     <NcMenu variant="medium">
-                      <NcTooltip :title="t('objects.teams.removeFromTeamRestrictionTooltip')" placement="right">
-                        <NcMenuItem class="!text-red-500 !hover:bg-red-50">
+                      <NcTooltip
+                        :title="t('objects.teams.removeFromTeamRestrictionTooltip')"
+                        placement="right"
+                        :disabled="!hasSelectedAllOwners"
+                      >
+                        <NcMenuItem
+                          :disabled="hasSelectedAllOwners"
+                          :class="{
+                            '!text-red-500 !hover:bg-red-50': !hasSelectedAllOwners,
+                          }"
+                          @click="handleRemoveSelectedMembersFromTeam"
+                        >
                           <GeneralIcon icon="ncXSquare" />
                           {{ $t('activity.removeFromTeam') }}
                         </NcMenuItem>

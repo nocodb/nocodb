@@ -702,7 +702,9 @@
       "soleTeamOwnerTooltip": "You’re the sole owner of this team. Transfer ownership to another member before leaving.",
       "removeFromTeamRestrictionTooltip": "You can’t remove all owners. Deselect at least one owner to proceed.",
       "memberAssignedAsTeamOwner": "Member assigned as team owner",
-      "teamOwner": "Team owner"
+      "teamOwner": "Team owner",
+      "removeMemberFromTeam": "Remove member from team",
+      "removeMemberFromTeamPlural": "Remove members from team"
     }
   },
   "datatype": {

@@ -103,16 +103,24 @@ watch([() => props.tableId, () => props.columnId], () => {
 })
 
 
-const selectedAggregation = computed(() => {
-  if (!aggregationList.value || aggregationList.value.length === 0) return undefined
+const aggregationListMap = computed(() => {
+  if (!aggregationList.value || aggregationList.value.length === 0) return new Map()
+  
+  return new Map(aggregationList.value.map((agg) => [agg.value, agg]))
+})
 
-  return aggregationList.value.find((agg) => agg.value === modelValue.value) || undefined
+const selectedAggregation = computed(() => {
+  if (!aggregationListMap.value || aggregationListMap.value.size === 0) return undefined
+
+  return aggregationListMap.value.get(modelValue.value) || undefined
 })
 
 watch(aggregationList, (newAggregationList) => {
   if (newAggregationList && newAggregationList.length > 0) {
+    const newAggregationListMap = new Map(newAggregationList.map((agg) => [agg.value, agg]))
+    
     // Check if current value exists in the new aggregation list
-    if (modelValue.value && !newAggregationList.find((agg) => agg.value === modelValue.value)) {
+    if (modelValue.value && !newAggregationListMap.has(modelValue.value)) {
       // Current value is not in the list, emit null to clear it
       modelValue.value = undefined
       emit('update:value', undefined)
@@ -135,6 +143,7 @@ defineExpose({
   selectedAggregation,
   isOpenAggregationSelectDropdown,
   aggregationList,
+  aggregationListMap,
 })
 </script>
 
@@ -149,7 +158,9 @@ defineExpose({
     @dblclick.stop
   >
     <template v-if="!disableLabel" #label>
-      <div>{{ t('general.aggregation') }}</div>
+      <div>
+        <slot name="label">{{ t('general.aggregation') }}</slot>
+      </div>
     </template>
     <NcListDropdown
       v-model:is-open="isOpenAggregationSelectDropdown"

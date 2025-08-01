@@ -73,17 +73,25 @@ const columnList = computedAsync(async () => {
   })
 })
 
-const selectedColumn = computed(() => {
-  if (!columnList.value || columnList.value.length === 0) return undefined
+const columnListMap = computed(() => {
+  if (!columnList.value || columnList.value.length === 0) return new Map()
+  
+  return new Map(columnList.value.map((column) => [column.value, column]))
+})
 
-  return columnList.value.find((column) => column.value === modelValue.value) || undefined
+const selectedColumn = computed(() => {
+  if (!columnListMap.value || columnListMap.value.size === 0) return undefined
+
+  return columnListMap.value.get(modelValue.value) || undefined
 })
 
 // Watch for columnList changes and set initial value
 watch(columnList, (newColumnList) => {
   if (newColumnList && newColumnList.length > 0) {
+    const newColumnListMap = new Map(newColumnList.map((column) => [column.value, column]))
+    
     // Check if current value exists in the new column list
-    if (modelValue.value && !newColumnList.find((column) => column.value === modelValue.value)) {
+    if (modelValue.value && !newColumnListMap.has(modelValue.value)) {
       // Current value is not in the list, emit null to clear it
       modelValue.value = undefined
       emit('update:value', undefined)
@@ -94,7 +102,7 @@ watch(columnList, (newColumnList) => {
     if (!modelValue.value && props.autoSelect) {
       const newColumnId = props.columnId || newColumnList[0]?.value
 
-      const columnObj = newColumnList.find((column) => column.value === newColumnId)
+      const columnObj = newColumnListMap.get(newColumnId)
 
       // Change column id only if it is default column selected initially and its not enabled
       if (columnObj && columnObj.ncItemDisabled && columnObj.value === newColumnList[0]?.value) {
@@ -114,6 +122,7 @@ defineExpose({
   selectedColumn,
   isOpenColumnSelectDropdown,
   columnList,
+  columnListMap,
 })
 </script>
 
@@ -128,7 +137,9 @@ defineExpose({
     @dblclick.stop
   >
     <template v-if="!disableLabel" #label>
-      <div>{{ t('general.column') }}</div>
+      <div>
+        <slot name="label">{{ t('general.column') }}</slot>
+      </div>
     </template>
     <NcListDropdown
       v-model:is-open="isOpenColumnSelectDropdown"

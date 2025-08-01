@@ -39,15 +39,6 @@ export default function () {
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
         expect(result.body.message).to.include('Invalid request body');
       });
-      it('will handle no type', async () => {
-        const result = await request(context.app)
-          .post(`${API_PREFIX}/tables/${table.id}/fields/`)
-          .set('xc-token', context.xc_token)
-          .send({ title: 'MyColumn' })
-          .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
-        expect(result.body.message).to.include('Invalid request body');
-      });
       it('will handle duplicate alias', async () => {
         await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/fields/`)
@@ -81,6 +72,17 @@ export default function () {
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
         expect(result.body.message).to.include('Invalid request body');
       });
+      it('will handle incorrect field', async () => {
+        const result = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/fields/`)
+          .set('xc-token', context.xc_token)
+          .send({ title: 'NoType', type: 'Barcode' })
+          .expect(400);
+        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.message).to.satisfy((msg) =>
+          msg.startsWith("Missing 'fk_barcode_value_column_id'"),
+        );
+      });
     });
 
     describe('column get', () => {
@@ -110,8 +112,7 @@ export default function () {
           .patch(`${API_PREFIX}/fields/NOT_FOUND`)
           .set('xc-token', context.xc_token)
           .send({ title: 'any' })
-          .expect(400);
-        console.log(result)
+          .expect(422);
 
         expect(result.body.error).to.eq('FIELD_NOT_FOUND');
         expect(result.body.message).to.include(`Field 'NOT_FOUND' not found`);

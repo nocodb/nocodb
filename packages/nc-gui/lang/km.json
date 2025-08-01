@@ -117,6 +117,7 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "ធ្វើបច្ចុប្បន្នភាពដើម្បីបន្ថែមកំណត់ត្រាបន្ថែម",
     "upgradeToAddLimitRecordSelection": "ដើម្បីកំណត់ការជ្រើសកំណត់ត្រាតាមតម្រង សូមធ្វើបច្ចុប្បន្នភាពទៅគម្រោង {plan}។",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "ធ្វើបច្ចុប្បន្នភាពដើម្បីបន្ថែម",
     "requestUpgradeToAdd": "ស្នើរសុំធ្វើបច្ចុប្បន្នភាពដើម្បី​បន្ថែម",
     "upgradeToAddMoreExtensions": "បច្ចុប្បន្ន អ្នកស្ថិតនៅលើគម្រោងឥតគិតថ្លៃ ដែលអនុញ្ញាតតែ Extension មួយ។ សូមធ្វើបច្ចុប្បន្នភាពដើម្បីដោះសោការបន្ថែមដោយគ្មានកំណត់។",
@@ -141,15 +142,15 @@
     "WorkspaceOwnerNotified": "បានជូនដំណឹងដល់ម្ចាស់ Workspace",
     "WorkspaceOwnerNotifiedSubtitle": "សំណើធ្វើបច្ចុប្បន្នភាពរបស់អ្នកត្រូវបានចែករំលែកជាមួយម្ចាស់ Workspace។",
     "failedToSendUpgradeRequest": "ផ្ញើសំណើធ្វើបច្ចុប្បន្នភាពមិនជោគជ័យ",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "ធ្វើបច្ចុប្បន្នភាពដើម្បីដោះសោការចូលដំណើរការទិន្នន័យពេញលេញ",
+    "upgradeToSeeMoreRecordInline": "ធ្វើបច្ចុប្បន្នភាពដើម្បីមើលកំណត់ត្រាទាំងអស់ពីប្រភពទិន្នន័យខាងក្រៅ",
     "upgradeToSeeMoreRecordSubtitle": "បើកចំហការមើលឃើញពេញលេញលើប្រភពដែលបានភ្ជាប់។ មើលកំណត់ត្រាទាំងអស់ ដោយធ្វើបច្ចុប្បន្នភាពទៅគម្រោង Plus។",
     "upgradeToSeeMoreRecordInlineSubtitle": "អ្នកកំពុងមើល {limit} នៃ {total} កំណត់ត្រា។ បើកចំហដើម្បីចូលដំណើរការកំណត់ត្រា {remaining} នៅសល់ ដោយធ្វើបច្ចុប្បន្នភាពទៅគម្រោង Plus។",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "គម្រោងឥតគិតថ្លៃអនុញ្ញាតអ្នកប្រើប្រភេទ Editor បានដល់ {limit} នាក់ សូមធ្វើបច្ចុប្បន្នភាពដើម្បីបានគ្មានកំណត់",
     "adjustCollaboratorRoles": "លៃតម្រូវតួនាទីអ្នកសហការគ្នា",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -163,9 +164,13 @@
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseDashboards": "Upgrade to use dashboards",
     "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUseDashboardsSubtitle": "Upgrade to the {plan} plan to use dashboards to visualize your data.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
   },
   "general": {
@@ -186,6 +191,7 @@
     "manual": "សៀវភៅណែនាំ",
     "trigger": "ចាប់ផ្តើម",
     "addLookupField": "បន្ថែម {count} វាលស្វែងរក",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "ស្ទីល",
     "label": "ស្លាកយោង",
     "role": "តួនាទី",
@@ -422,7 +428,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "ស្គ្រីប",
@@ -586,6 +593,7 @@
       "Team": "ក្រុម",
       "Plus": "Plus",
       "Business": "អាជីវកម្ម",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "សហគ្រាស"
     },
     "currentPlan": {
@@ -615,7 +623,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -850,8 +864,8 @@
     "onlyProceedIfYouTrustThisLink": "សូមបន្តតែបើអ្នកទុកចិត្តលីងនេះ។",
     "reAssignViewModalSubtitle": "បន្ទាប់ពីបានប្តូរអ្នកកាន់ ម្ចាស់បច្ចុប្បន្នមិនអាចកែប្រែការ​កំណត់​ទិដ្ឋភាពបាន​ទៀតទេ។",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "ភាពស្មោះត្រង់ផ្តល់អត្ថប្រយោជន៍ — រីករាយនឹងតម្លៃថេរ!",
     "loyaltyBannerSubtitle": "បើកចំហកន្លែងគ្មានកំណត់ កំណត់ត្រាបន្ថែម ទំហំផ្ទុកបន្ថែម Webhook លក្ខខណ្ឌ SSO សមាហរណកម្ម និងច្រើនទៀត!",
     "selectTimezone": "បង្ហាញតំបន់ពេលវេលា",
@@ -884,10 +898,11 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions"
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -941,13 +956,13 @@
     "recent": "ចុងក្រោយ",
     "limitRecordSelectionToView": "កំណត់ការជ្រើសកំណត់ត្រាទៅទិដ្ឋភាពមួយ",
     "limitRecordSelectionToFilters": "កំណត់ការជ្រើសកំណត់ត្រាតាមតម្រង",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "បានបន្ថែមដោយ",
     "whatsNew": "អ្វីថ្មី!",
     "newAction": "សកម្មភាពថ្មី",
     "actionLogs": "កំណត់ហេតុសកម្មភាព",
     "runScript": "រត្តូវស្គ្រីប",
     "scriptName": "ឈ្មោះស្គ្រីប",
-    "dashboardName": "ឈ្មោះផ្ទាំងគ្រប់យុត្តិធម៌",
     "enableSnowFall": "បើកផ្កាស៊ីញូ",
     "disableSnowFall": "បិទផ្កាស៊ីញូ",
     "snapshotCreationFailed": "បរាជ័យក្នុងការបង្កើត Snapshot",
@@ -1266,7 +1281,7 @@
       "joinCommunity": "ចូលរួមជាមួយសហគមន៍ NocoDB",
       "joinReddit": "/r/NocoDB",
       "followNocodb": "ធ្វើតាម NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(ជាសហគមន៍/បកប្រែដោយ AI)"
     },
     "twitter": "Twitter",
     "docReference": "ព័ត៌មាន ឯកសារ",
@@ -1401,7 +1416,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "បន្ថែមពី URL",
     "enterJson": "បញ្ចូល JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Base Airtable",
     "useSameTimezoneForAllMembers": "ប្រើតំបន់ពេលវេលាដូចគ្នាសម្រាប់សមាជិកទាំងអស់",
     "displayTimezone": "បង្ហាញតំបន់ពេល",
     "upgradePlan": "អាប់ក្រេដផែនការ",
@@ -1625,6 +1640,7 @@
     "changePwd": "ប្តូរពាក្យសម្ងាត់",
     "createView": "ចេះបង្កើតការមើល",
     "shareView": "ចែករំលែកទិដ្ឋភាព",
+    "shareDashboard": "Share Dashboard",
     "findRowByCodeScan": "ស្វែងរកកំណត់ត្រដោយស្កេនកូដ",
     "fillByCodeScan": "បំពេញដោយស្កេន",
     "listSharedView": "បញ្ជីទិដ្ឋភាពចែករំលែក",
@@ -1733,7 +1749,11 @@
     "changePlan": "ផ្លាស់ប្តូរគម្រោង",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1799,14 +1819,19 @@
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
     "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateDashboard": "Navigate to a base to a create dashboard",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewDashboard": "You don't have access to create new dashboard",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "ស្វែងរកនិមិត្តសញ្ញា",
@@ -1878,6 +1903,7 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
+    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
@@ -1911,6 +1937,7 @@
     "subscribeToOurWeeklyNewsletter": "ជាវព្រឹត្តិប័ត្រព័ត៌មានប្រចាំសប្តាហ៍របស់យើង",
     "verifyingPassword": "កំពុងផ្ទៀងផ្ទាត់ពាក្យសម្ងាត់",
     "thisSharedViewIsProtected": "ទិដ្ឋភាពអ្នកធ្វើឲ្យវាលផ្សាយនេះត្រូវបានការពារ",
+    "thisSharedDashboardIsProtected": "This shared dashboard is protected",
     "successfullySubmittedFormData": "ទិន្នន័យសំណុំមុខទទួលបានជោគជ័យ",
     "formViewNotSupportedOnMobile": "ទិដ្ឋភាពសំណុំមិនគាំទ្រនៅលើទូរស័ព្ទចល័ត",
     "calendarViewNotSupportedOnMobile": "ការមើលប្រតិទិន​មិនបាន​គាំទ្រ​លើ​ទូរស័ព្ទ​ដៃ",
@@ -2163,7 +2190,7 @@
       "addMultipleUsers": "អ្នកអាចបន្ថែមអ៊ីម៉ែលជាច្រើន ដោយបំបែកជាក្បៀស(,)",
       "enterTableName": "បញ្ចូលឈ្មោះតារាង",
       "enterScriptName": "បញ្ចូលឈ្មោះស្គ្រីប",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "បញ្ចូលឈ្មោះផ្ទាំងបង្អួច",
       "enterTableDescription": "បញ្ចូលពិពណ៌នាតារាង...",
       "enterScriptDescription": "បញ្ចូលការ​ពិពណ៌នា​ស្គ្រីប...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2241,7 +2268,9 @@
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
+      "matchedByButtonLabel": "Matched by button label",
+      "matchedByFieldDescription": "Matched by field description"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2357,7 +2386,11 @@
       "anErrorOccuredWhileImporting": "កំហុសបានកើតឡើងនៅពេល {type}",
       "anErrorOccuredWhileAirtableBaseImport": "កំហុសបានកើតឡើងខណៈនាំចូល Base ពី Airtable",
       "paymentFailed": "ការទូទាត់មិនជោគជ័យ",
-      "paymentFailedSubtitle": "មានបញ្ហា​នៅពេលកំពុងដំណើរការទូទាត់។ សូមព្យាយាមម្តងទៀត ឬទំនាក់ទំនងជាមួយក្រុមគាំទ្រ។"
+      "paymentFailedSubtitle": "មានបញ្ហា​នៅពេលកំពុងដំណើរការទូទាត់។ សូមព្យាយាមម្តងទៀត ឬទំនាក់ទំនងជាមួយក្រុមគាំទ្រ។",
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "ធាតុមូលដ្ឋានត្រូវបាននាំចេញដោយជោគជ័យ",
@@ -2371,6 +2404,7 @@
       "projInfo": "បានចម្លងព័ត៌មានមូលដ្ឋានទៅកាន់ក្រាល",
       "inviteUrlCopy": "បានចម្លង URL អញ្ជើញទៅកាន់ក្រាល",
       "createView": "បានបង្កើតទិដ្ឋភាពដោយជោគជ័យ",
+      "createField": "Field created successfully",
       "formEmailSMTP": "សូមបើកដំណើរការ SMTP plugin នៅក្នុង App store ដើម្បីអនុញ្ញាតការជូនដំណឹងអ៊ីមែល",
       "collabView": "បង្កើនទិដ្ឋភាពដំណើរការក្នុងអាជ្ញាធរជុំគ្នាបានជោគជ័យ",
       "lockedView": "បង្កើនទិដ្ឋភាពខ្លួនឯងបានជោគជ័យ",
@@ -2428,7 +2462,9 @@
       "paymentSuccessfulSubtitle": "ការទូទាត់របស់អ្នកបានដំណើរការរួច។ អ្នកអាចប្រើគម្រោងថ្មីរបស់អ្នកបានហើយ។",
       "upgradeSuccessful": "ធ្វើបច្ចុប្បន្នភាពជោគជ័យ",
       "upgradeSuccessfulSubtitle": "ការទូទាត់សម្រាប់ការធ្វើបច្ចុប្បន្នភាពរបស់អ្នកបានដំណើរការរួច។ អ្នកអាចប្រើគម្រោងថ្មីរបស់អ្នកបានហើយ។",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

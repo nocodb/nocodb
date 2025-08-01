@@ -56,6 +56,8 @@ const AllAggregations = {
   ...DateAggregations,
 };
 
+type AggregationValue = typeof AllAggregations[keyof typeof AllAggregations]
+
 const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
   let returnAggregations = [];
   if (type === UITypes.Formula && parsed_tree?.dataType) {
@@ -235,4 +237,5 @@ export {
   AttachmentAggregations,
   AllAggregations,
   formatAggregation,
+  AggregationValue,
 };

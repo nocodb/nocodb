@@ -19,6 +19,7 @@ interface PieChartDataConfig {
     column_id: string;
     orderBy?: 'default' | 'asc' | 'desc';
     includeEmptyRecords?: boolean;
+    includeOthers?: boolean;
   };
   value:
     | {

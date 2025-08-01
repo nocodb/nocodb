@@ -709,7 +709,9 @@
       "removeMemberFromTeamPlural": "Remove members from team",
       "addMembersToTeam": "Add members to Team",
       "selectMembersToAddIntoTeam": "Select members to add into the {team} Team",
-      "alreadyPartOfTeam": "Already part of the team"
+      "alreadyPartOfTeam": "Already part of the team",
+      "membersAddedToTeam": "Members added to team",
+      "nMembersHaveBeenAddedIntoTeam": "{n} members have been added into the {team} team"
     }
   },
   "datatype": {

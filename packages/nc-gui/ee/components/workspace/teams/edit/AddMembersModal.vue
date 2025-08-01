@@ -44,10 +44,22 @@ const isLoading = ref(false)
 // Handle add members
 const handleAddMembers = async () => {
   isLoading.value = true
+
+  const selectedUserEmails = selectedUsers.value.map((user) => user.email)
   try {
-    team.value.members.push(...selectedUsers.value.map((user) => user.email))
-    emits('update:team', team.value)
+    await ncDelay(2000)
+
+    team.value.members.push(...selectedUserEmails)
     // Todo: API call
+
+    emits('update:team', team.value)
+    message.success({
+      title: t('objects.teams.membersAddedToTeam'),
+      content: t('objects.teams.nMembersHaveBeenAddedIntoTeam', {
+        n: selectedUserEmails.length,
+        team: team.value.title,
+      }),
+    })
     visible.value = false
   } catch (e: any) {
     message.error('Failed to add members')

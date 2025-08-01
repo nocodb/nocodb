@@ -179,7 +179,7 @@ export default function () {
         expect(updateResponse2.body.sorts.length).to.greaterThan(0);
       });
 
-      it(`will create kanban view`, async () => {
+      it.only(`will create kanban view`, async () => {
         const response = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
@@ -202,6 +202,9 @@ export default function () {
             ],
           });
         expect(response.body.type).to.eq('KANBAN');
+        expect(response.body.options.stackBy.stackOrder.length).to.greaterThan(
+          0,
+        );
       });
 
       it(`will create calendar view`, async () => {

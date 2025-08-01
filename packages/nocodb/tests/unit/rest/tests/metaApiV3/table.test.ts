@@ -64,7 +64,7 @@ export default function () {
               type: 'Number',
               default_value: 34,
               options: {
-                locale_string: true,
+                thousand_separator: true,
               },
             },
           ],

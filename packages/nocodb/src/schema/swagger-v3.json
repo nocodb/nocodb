@@ -2451,13 +2451,19 @@
                     "properties": {
                       "direction": {
                         "type": "string",
-                        "enum": ["asc", "desc"]
+                        "enum": [
+                          "asc",
+                          "desc"
+                        ]
                       },
                       "field": {
                         "type": "string"
                       }
                     },
-                    "required": ["field", "direction"]
+                    "required": [
+                      "field",
+                      "direction"
+                    ]
                   }
                 },
                 {
@@ -2465,13 +2471,19 @@
                   "properties": {
                     "direction": {
                       "type": "string",
-                      "enum": ["asc", "desc"]
+                      "enum": [
+                        "asc",
+                        "desc"
+                      ]
                     },
                     "field": {
                       "type": "string"
                     }
                   },
-                  "required": ["field", "direction"]
+                  "required": [
+                    "field",
+                    "direction"
+                  ]
                 }
               ]
             },
@@ -3291,13 +3303,19 @@
                     "properties": {
                       "direction": {
                         "type": "string",
-                        "enum": ["asc", "desc"]
+                        "enum": [
+                          "asc",
+                          "desc"
+                        ]
                       },
                       "field": {
                         "type": "string"
                       }
                     },
-                    "required": ["field", "direction"]
+                    "required": [
+                      "field",
+                      "direction"
+                    ]
                   }
                 },
                 {
@@ -3305,13 +3323,19 @@
                   "properties": {
                     "direction": {
                       "type": "string",
-                      "enum": ["asc", "desc"]
+                      "enum": [
+                        "asc",
+                        "desc"
+                      ]
                     },
                     "field": {
                       "type": "string"
                     }
                   },
-                  "required": ["field", "direction"]
+                  "required": [
+                    "field",
+                    "direction"
+                  ]
                 }
               ]
             },
@@ -3433,7 +3457,9 @@
                       "example": true
                     }
                   },
-                  "required": ["success"],
+                  "required": [
+                    "success"
+                  ],
                   "additionalProperties": false
                 },
                 "examples": {
@@ -3470,7 +3496,9 @@
                         "example": "33"
                       }
                     },
-                    "required": ["id"],
+                    "required": [
+                      "id"
+                    ],
                     "additionalProperties": false
                   },
                   {
@@ -3484,7 +3512,9 @@
                           "example": "22"
                         }
                       },
-                      "required": ["id"],
+                      "required": [
+                        "id"
+                      ],
                       "additionalProperties": false
                     },
                     "minItems": 1,
@@ -3548,7 +3578,9 @@
                       "example": true
                     }
                   },
-                  "required": ["success"],
+                  "required": [
+                    "success"
+                  ],
                   "additionalProperties": false
                 },
                 "examples": {
@@ -3585,7 +3617,9 @@
                         "example": "33"
                       }
                     },
-                    "required": ["id"],
+                    "required": [
+                      "id"
+                    ],
                     "additionalProperties": false
                   },
                   {
@@ -3599,7 +3633,9 @@
                           "example": "33"
                         }
                       },
-                      "required": ["id"],
+                      "required": [
+                        "id"
+                      ],
                       "additionalProperties": false
                     },
                     "minItems": 1,
@@ -5184,6 +5220,42 @@
           },
           "type": {
             "type": "string",
+            "enum": [
+              "SingleLineText",
+              "LongText",
+              "PhoneNumber",
+              "URL",
+              "Email",
+              "Number",
+              "Decimal",
+              "Currency",
+              "Percent",
+              "Duration",
+              "Date",
+              "DateTime",
+              "Time",
+              "SingleSelect",
+              "MultiSelect",
+              "Rating",
+              "Checkbox",
+              "Attachment",
+              "Geometry",
+              "Links",
+              "Lookup",
+              "Rollup",
+              "Button",
+              "Formula",
+              "Barcode",
+              "Year",
+              "QrCode",
+              "CreatedAt",
+              "LastModifiedAt",
+              "CreatedBy",
+              "LastModifiedBy",
+              "LinkToAnotherRecord",
+              "User",
+              "JSON"
+            ],
             "description": "Field data type."
           },
           "description": {
@@ -5194,7 +5266,11 @@
             "description": "Description of the field."
           },
           "default_value": {
-            "type": ["string", "boolean", "number"],
+            "type": [
+              "string",
+              "boolean",
+              "number"
+            ],
             "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
           }
         },
@@ -5206,7 +5282,8 @@
         "allOf": [
           {
             "$ref": "#/components/schemas/FieldBase"
-          }, {
+          },
+          {
             "required": [
               "title",
               "type"
@@ -5732,7 +5809,9 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": ["formula"],
+                "enum": [
+                  "formula"
+                ],
                 "description": "Button type: formula"
               },
               "formula": {
@@ -5740,14 +5819,19 @@
                 "description": "Formula to execute"
               }
             },
-            "required": ["type", "formula"]
+            "required": [
+              "type",
+              "formula"
+            ]
           },
           {
             "type": "object",
             "properties": {
               "type": {
                 "type": "string",
-                "enum": ["webhook"],
+                "enum": [
+                  "webhook"
+                ],
                 "description": "Button type: webhook"
               },
               "button_hook_id": {
@@ -5755,14 +5839,19 @@
                 "description": "ID of the webhook to trigger"
               }
             },
-            "required": ["type", "button_hook_id"]
+            "required": [
+              "type",
+              "button_hook_id"
+            ]
           },
           {
             "type": "object",
             "properties": {
               "type": {
                 "type": "string",
-                "enum": ["ai"],
+                "enum": [
+                  "ai"
+                ],
                 "description": "Button type: AI"
               },
               "prompt": {
@@ -5794,7 +5883,11 @@
                 "description": "Color of the button"
               }
             },
-            "required": ["type", "prompt", "integration_id"]
+            "required": [
+              "type",
+              "prompt",
+              "integration_id"
+            ]
           }
         ],
         "discriminator": {
@@ -6571,19 +6664,31 @@
             }
           },
           "next": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Pagination token for next page"
           },
           "prev": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Pagination token for previous page"
           },
           "nestedNext": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Nested pagination token for next page"
           },
           "nestedPrev": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Nested pagination token for previous page"
           }
         }
@@ -6644,7 +6749,9 @@
             "description": "Record identifier"
           }
         },
-        "required": ["id"]
+        "required": [
+          "id"
+        ]
       },
       "DataInsertResponseV3": {
         "type": "object",
@@ -6742,11 +6849,17 @@
             ]
           },
           "next": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Pagination token for next page"
           },
           "prev": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Pagination token for previous page"
           }
         }

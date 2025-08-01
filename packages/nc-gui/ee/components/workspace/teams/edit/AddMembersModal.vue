@@ -23,10 +23,6 @@ const workspaceStore = useWorkspace()
 
 const { collaborators, collaboratorsMap } = storeToRefs(workspaceStore)
 
-watchEffect(()=>{
-    console.log('team', team.value)
-})
-
 const ncListData = computed<NcListItemType[]>(() => {
   return (collaborators.value || []).map((coll) => {
     const isDisabled = team.value.members.includes(coll.fk_user_id!) || team.value.members.includes(coll.email!)
@@ -50,6 +46,7 @@ const handleAddMembers = async () => {
   isLoading.value = true
   try {
     team.value.members.push(...selectedUsers.value.map((user) => user.email))
+    emits('update:team', team.value)
     // Todo: API call
     visible.value = false
   } catch (e: any) {
@@ -80,10 +77,12 @@ watch(
   (newValue) => {
     if (!newValue) return
 
+    selectedUserIds.value = []
+
     team.value.members.forEach((member) => {
       const user = collaboratorsMap.value[member]
 
-      if (user && !selectedUserIds.value.includes(user.fk_user_id!)) {
+      if (user) {
         selectedUserIds.value.push(user.fk_user_id!)
       }
     })

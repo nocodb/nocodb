@@ -252,15 +252,17 @@ const handleRemoveMemberFromTeam = (members: TeamMember[]) => {
       console.log('remove members from team', members)
 
       await ncDelay(1000)
+      team.value.members = team.value.members.filter(
+        (member) => !(removeMemberIds.includes(member) || removeMemberEmails.includes(member)),
+      )
+      team.value.owners = team.value.owners.filter(
+        (owner) => !(removeMemberIds.includes(owner) || removeMemberEmails.includes(owner)),
+      )
 
-      team.value = {
-        ...team.value,
-        owners: team.value.owners.filter((owner) => !removeMemberIds.includes(owner) && !removeMemberEmails.includes(owner)),
-        members: team.value.members.filter((member) => !removeMemberIds.includes(member) && !removeMemberEmails.includes(member)),
-      }
+      emits('update:team', team.value)
 
       teamMembers.value = teamMembers.value.filter(
-        (member) => !removeMemberIds.includes(member.fk_user_id!) && !removeMemberEmails.includes(member.email!),
+        (member) => !(removeMemberIds.includes(member.fk_user_id!) || removeMemberEmails.includes(member.email!)),
       )
 
       members.forEach((member) => {

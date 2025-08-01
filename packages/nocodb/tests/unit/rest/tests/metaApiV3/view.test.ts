@@ -153,7 +153,7 @@ export default function () {
             sorts: [],
           });
         expect(updateResponse.body.name).to.eq('MyView32');
-        expect((updateResponse.body.options.groups ?? []).length).to.eq(0);
+        expect((updateResponse.body.options?.groups ?? []).length).to.eq(0);
         expect((updateResponse.body.sorts ?? []).length).to.eq(0);
 
         const updateResponse2 = await request(context.app)

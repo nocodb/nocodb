@@ -342,7 +342,7 @@ export class ViewsV3Service {
 
     const formattedView = this.viewBuilder().build(view);
 
-    if (viewTypeMap[view.type] !== ViewTypes.FORM) {
+    if (view.type !== ViewTypes.FORM) {
       // get filters
       const filters = await this.filtersV3Service.filterList(context, {
         viewId: view.id,
@@ -366,7 +366,7 @@ export class ViewsV3Service {
       : formattedView.is_default;
 
     // extract the view specific infos
-    switch (viewTypeMap[view.type]) {
+    switch (view.type) {
       case ViewTypes.GRID:
         {
           // extract grid specific group by info
@@ -393,12 +393,6 @@ export class ViewsV3Service {
         break;
       case ViewTypes.KANBAN:
         {
-          if (formattedView.options?.stackBy) {
-            formattedView.options?.stackBy.meta[
-              formattedView.options?.stackBy.fieldId
-            ];
-            delete formattedView.options?.stackBy.meta;
-          }
         }
         break;
       case ViewTypes.FORM:
@@ -436,6 +430,17 @@ export class ViewsV3Service {
         true,
         context,
       );
+      if (
+        viewTypeMap[body.type] === ViewTypes.FORM &&
+        body.options.fieldsById
+      ) {
+        validatePayload(
+          `swagger-v3.json#/components/schemas/ViewColumnOption`,
+          body.options,
+          true,
+          context,
+        );
+      }
     }
 
     let requestBody = this.v3Tov2ViewBuilders.view().build(body);

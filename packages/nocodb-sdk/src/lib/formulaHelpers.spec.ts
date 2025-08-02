@@ -262,6 +262,39 @@ describe('Formula parsing and type validation', () => {
           length: 1,
         });
       }
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: 'CONCAT(CONCAT)',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+          trackPosition: true,
+        });
+      } catch (ex) {
+        expect(ex.message).toContain('Missing parentheses after function name');
+        expect(ex.extra.position).toEqual({
+          column: 13,
+          row: 0,
+          length: 1,
+        });
+      }
+    });
+    it(`will handle formula minimum argument`, async () => {
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: 'CONCAT(CONCAT())',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+          trackPosition: true,
+        });
+      } catch (ex) {
+        expect(ex.extra.position).toEqual({
+          column: 7,
+          row: 0,
+          length: 8,
+        });
+      }
     });
   });
 });

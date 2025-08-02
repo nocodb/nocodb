@@ -115,21 +115,26 @@ export const jsepIndexHook = {
       if (!env.node) {
         return;
       }
-      const needle: string = env.node.name ?? env.node.raw;
-      if (needle) {
-        for (const match of env.context.expr.matchAll(
-          new RegExp(`${needle}\\s*`, 'g')
-        )) {
-          if (match.index + match[0].length === this.index) {
-            env.node.indexStart = this.index - match[0].length;
-            env.node.nodeLength = match[0].length;
-          }
-        }
-      } else {
-        const needle = env.context.expr;
-        env.node.indexStart = this.index - needle.length;
-        env.node.nodeLength = needle.length;
+
+      // search needle, either the callee name, identifier raw, etc
+      const needle: string =
+        env.node.name ?? env.node.raw ?? env.node.callee?.name;
+      // current token index
+      let lastIndex = this.index;
+      if (env.node.arguments) {
+        // because arguments are always at the right side, we start from earliest argument
+        lastIndex = env.node.arguments
+          .map((k) => k.indexStart)
+          .filter((k) => k)
+          .reduce((acc, cur) => (acc < cur ? acc : cur), lastIndex);
       }
+      // get the last index of needle
+      const startIndex = (env.context.expr as string).lastIndexOf(
+        needle,
+        lastIndex
+      );
+      env.node.indexStart = startIndex;
+      env.node.nodeLength = lastIndex - startIndex;
       env.node.indexEnd = this.index;
       return env.node;
     });
@@ -1975,6 +1980,7 @@ export async function validateFormulaAndExtractTreeWithType({
           validation.args.min !== undefined &&
           validation.args.min > parsedTree.arguments.length
         ) {
+          console.log(parsedTree);
           throw new FormulaError(
             FormulaErrorType.MIN_ARG,
             {

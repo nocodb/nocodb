@@ -10,7 +10,7 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const automationStore = useAutomationStore()
 
-  const { loadAutomation, updateBaseSchema } = automationStore
+  const { loadAutomation, updateBaseSchema, } = automationStore
 
   const { activeProjectId } = storeToRefs(useBases())
 
@@ -20,7 +20,7 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const { activeTableId } = storeToRefs(useTablesStore())
 
-  const { activeAutomationId } = storeToRefs(automationStore)
+  const { activeAutomationId, activeBaseSchema } = storeToRefs(automationStore)
 
   const { aiIntegrations } = useNocoAi()
 
@@ -226,7 +226,7 @@ export const useScriptExecutor = createSharedComposable(() => {
     }
   }
 
-  function handleWorkerMessage(scriptId: string, message: any, worker: Worker, onWorkerDone: () => void) {
+  function handleWorkerMessage(scriptId: string, message: any, worker: Worker, onWorkerDone: () => void, executionContext?: { pk: string; fieldId: string; actionManager?: any; executionId?: string }) {
     const execution = activeExecutions.value.get(scriptId)
     if (!execution) {
       return
@@ -242,6 +242,15 @@ export const useScriptExecutor = createSharedComposable(() => {
         }
         activeSteps.value.set(message.payload.stepId, stepItem)
         execution.playground.push(stepItem)
+        
+        // Update ActionManager with current step title
+        if (executionContext?.actionManager && executionContext.pk && executionContext.fieldId) {
+          executionContext.actionManager.setCurrentStepTitle(
+            executionContext.pk,
+            executionContext.fieldId,
+            message.payload.title || 'Processing...'
+          )
+        }
         break
       }
       case ScriptActionType.WORKFLOW_STEP_END: {
@@ -412,9 +421,14 @@ export const useScriptExecutor = createSharedComposable(() => {
       pk: string
       fieldId: string
       priority?: number
+      actionManager?: any
+      executionId?: string
     },
   ) => {
     try {
+      if (!activeBaseSchema.value) {
+        await updateBaseSchema()
+      }
       if (typeof script === 'string') {
         script = (await loadAutomation(script)) as ScriptType
       }
@@ -450,8 +464,8 @@ export const useScriptExecutor = createSharedComposable(() => {
     
     const cursor = {
       activeBaseId: '${activeProjectId.value}',
-      activeViewId: ${activeViewTitleOrId.value},
-      activeTableId: ${activeTableId.value},
+      activeViewId: ${activeViewTitleOrId.value ? `'${activeViewTitleOrId.value}'` : 'null'},
+      activeTableId: ${activeTableId.value ? `'${activeTableId.value}'` : 'null'},
     }
     `
 
@@ -510,7 +524,7 @@ export const useScriptExecutor = createSharedComposable(() => {
                 isFinished.value = true
                 updateBaseSchema()
                 resolve()
-              })
+              }, extra)
             }
 
             worker.onerror = (error) => {

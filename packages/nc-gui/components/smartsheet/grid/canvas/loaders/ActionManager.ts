@@ -45,6 +45,8 @@ export class ActionManager {
       tooltip?: string
     }
   >()
+  // key is rowId-columnId, value is current step title
+  private currentStepTitles = new Map<string, string>()
 
   private rafId: number | null = null
 
@@ -108,9 +110,11 @@ export class ActionManager {
     } finally {
       rowIds.forEach((id) => {
         this.loadingColumns.delete(this.getKey(id, columnId))
+        this.currentStepTitles.delete(this.getKey(id, columnId))
 
         affectedColumnIds.forEach((colId) => {
           this.loadingColumns.delete(this.getKey(id, colId))
+          this.currentStepTitles.delete(this.getKey(id, colId))
         })
       })
 
@@ -179,6 +183,20 @@ export class ActionManager {
     }
   }
 
+  private getRecordDisplayValue(row?: Record<string, any>): string {
+    if (!row) return ''
+
+    const displayField = this.meta.value?.columns?.find(col => col.pv) ||
+      this.meta.value?.columns?.find(col => col.pk)
+
+    if (displayField && row.row[displayField.title!]) {
+      return String(row.row[displayField.title!])
+    }
+
+    const firstValue = Object.values(row.row).find(val => val !== null && val !== undefined && val !== '')
+    return firstValue ? String(firstValue) : ''
+  }
+
   async executeButtonAction(
     rowIds: string[],
     column: CanvasGridColumn,
@@ -206,7 +224,8 @@ export class ActionManager {
       colOptions.type = 'ai'
     }
 
-    const { runScript } = useScriptExecutor()
+    const { runScript, activeExecutions } = useScriptExecutor()
+    const { addScriptExecution } = useActionPane()
 
     try {
       switch (colOptions.type) {
@@ -229,11 +248,32 @@ export class ActionManager {
         case 'script': {
           const script = await this.loadAutomation(colOptions.fk_script_id)
           for (let i = 0; i < rowIds.length; i++) {
-            this.executeAction(rowIds[i]!, column.id, [], async () => {
-              await runScript(script, extra?.row?.[i], {
-                pk: rowIds[i]!,
-                fieldId: column.columnObj.id!,
-              })
+            const rowId = rowIds[i]!
+            const row = extra?.row?.[i]
+
+            const displayValue = this.getRecordDisplayValue(row) || `Record ${rowId}`
+
+            this.executeAction(rowId, column.id, [], async () => {
+              try {
+                const scriptExecutionId = await runScript(script, row, {
+                  pk: rowId,
+                  fieldId: column.columnObj.id!,
+                  actionManager: this,
+                })
+
+                addScriptExecution(scriptExecutionId, {
+                  recordId: rowId,
+                  displayValue,
+                  scriptId: script.id!,
+                  scriptName: script.title || 'Untitled Script',
+                  buttonFieldName: column.columnObj.title || 'Button'
+                })
+                // The script returns once it is added to the executionQueue
+                // Here we wait for the script to finish or error via polling
+                await pollUntil(() => activeExecutions.value.get(scriptExecutionId)?.status === 'finished' || activeExecutions.value.get(scriptExecutionId)?.status === 'error')
+              } catch (error) {
+                throw error
+              }
             })
           }
           break
@@ -280,7 +320,20 @@ export class ActionManager {
     return this.afterActionStatus.get(this.getKey(rowId, columnId))
   }
 
+  getCurrentStepTitle(rowId: string, columnId: string): string | undefined {
+    return this.currentStepTitles.get(this.getKey(rowId, columnId))
+  }
+
+  setCurrentStepTitle(rowId: string, columnId: string, title: string) {
+    this.currentStepTitles.set(this.getKey(rowId, columnId), title)
+  }
+
+  clearCurrentStepTitle(rowId: string, columnId: string) {
+    this.currentStepTitles.delete(this.getKey(rowId, columnId))
+  }
+
   clear() {
     this.loadingColumns.clear()
+    this.currentStepTitles.clear()
   }
 }

@@ -52,8 +52,6 @@ export class UsersService {
     }
   }
 
-
-
   async findOne(_email: string) {
     const email = _email.toLowerCase();
     const user = await this.metaService.metaGet(
@@ -483,12 +481,6 @@ export class UsersService {
     this.validateEmailPattern(email);
 
     let user = await User.getByEmail(email, ncMeta);
-
-    // Validate email deliverability if validation is enabled
-    const emailDeliverable = await EmailValidationHelper.validateAndStoreEmail(email, ncMeta);
-    if (!emailDeliverable) {
-      NcError.badRequest('The email address is not deliverable. Please use a valid email address.');
-    }
 
     if (user) {
       if (token) {

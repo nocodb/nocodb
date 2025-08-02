@@ -163,6 +163,7 @@ describe('Formula parsing and type validation', () => {
         expect(ex.extra.position).toEqual({
           column: 3,
           row: 0,
+          length: 1,
         });
       }
       try {
@@ -176,13 +177,14 @@ describe('Formula parsing and type validation', () => {
         expect(ex.extra.position).toEqual({
           column: 6,
           row: 0,
+          length: 1,
         });
       }
     });
     it(`will provide position for column not found`, async () => {
       try {
         await validateFormulaAndExtractTreeWithType({
-          formula: '1 + _',
+          formula: '1 + __a_',
           columns: [],
           clientOrSqlUi: 'mysql2',
           getMeta: async () => ({}),
@@ -191,6 +193,21 @@ describe('Formula parsing and type validation', () => {
         expect(ex.extra.position).toEqual({
           column: 4,
           row: 0,
+          length: 4,
+        });
+      }
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: '__a_',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+        });
+      } catch (ex) {
+        expect(ex.extra.position).toEqual({
+          column: 0,
+          row: 0,
+          length: 4,
         });
       }
     });

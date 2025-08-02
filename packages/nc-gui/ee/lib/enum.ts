@@ -17,6 +17,9 @@ export enum ScriptActionType {
 
   WORKFLOW_STEP_START = 'WORKFLOW_STEP_START',
   WORKFLOW_STEP_END = 'WORKFLOW_STEP_END',
+
+  RECORD_UPDATE_START = 'recordUpdateStart',
+  RECORD_UPDATE_COMPLETE = 'recordUpdateComplete',
 }
 export enum ScriptViewActionType {
   RELOAD_VIEW = 'reloadView',

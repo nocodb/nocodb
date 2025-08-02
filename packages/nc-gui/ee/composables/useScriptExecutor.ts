@@ -397,6 +397,33 @@ export const useScriptExecutor = createSharedComposable(() => {
         activeSteps.value.clear()
         onWorkerDone()
         break
+      case ScriptActionType.RECORD_UPDATE_START: {
+        const payload = message.payload
+        
+        // Mark each field as being updated via ActionManager
+        if (executionContext?.actionManager) {
+          for (const field of payload.fields) {
+            executionContext.actionManager.startCellUpdate(
+              payload.recordId,
+              field.id,
+              field.name,
+              scriptId
+            )
+          }
+        }
+        break
+      }
+      case ScriptActionType.RECORD_UPDATE_COMPLETE: {
+        const payload = message.payload
+        
+        // Mark each field update as complete via ActionManager
+        if (executionContext?.actionManager) {
+          for (const field of payload.fields) {
+            executionContext.actionManager.completeCellUpdate(payload.recordId, field.id)
+          }
+        }
+        break
+      }
       default:
         console.warn(`Unknown message type: ${(message as any).type}`)
     }
@@ -520,6 +547,11 @@ export const useScriptExecutor = createSharedComposable(() => {
                   })
                 }
 
+                // Clear any remaining cell updates for this script via ActionManager (canvas only)
+                if (extra?.actionManager) {
+                  extra.actionManager.clearScriptCellUpdates(scriptId)
+                }
+
                 isRunning.value = false
                 isFinished.value = true
                 updateBaseSchema()
@@ -539,6 +571,11 @@ export const useScriptExecutor = createSharedComposable(() => {
                   error,
                   worker: null,
                 })
+              }
+
+              // Clear any remaining cell updates for this script via ActionManager (canvas only)
+              if (extra?.actionManager) {
+                extra.actionManager.clearScriptCellUpdates(scriptId)
               }
 
               isRunning.value = false

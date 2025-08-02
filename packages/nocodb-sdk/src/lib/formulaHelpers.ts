@@ -1344,8 +1344,7 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'ARRAYCOMPACT(value)',
     examples: ['ARRAYCOMPACT({column})'],
     returnType: FormulaDataTypes.ARRAY,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/array-functions#arraycompact',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/array-functions#arraycompact`,
   },
 
   ARRAYSLICE: {
@@ -1359,8 +1358,7 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'ARRAYSLICE(value, start, [end])',
     examples: ['ARRAYSLICE({column})'],
     returnType: FormulaDataTypes.ARRAY,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/array-functions#arrayslice',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/array-functions#arrayslice`,
   },
 
   REGEX_MATCH: {

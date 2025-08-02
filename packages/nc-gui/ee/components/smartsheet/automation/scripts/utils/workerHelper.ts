@@ -2555,9 +2555,9 @@ export function createWorkerCode(userCode: string, custom?: string): string {
     ${generateViewActions()}
     ${generateRemoteFetch()}
     ${generalHelpers()}
-    ${custom || ''}
     ${generateBaseModels()}
     ${generateBaseObject()}
+    ${custom || ''}
     ${generateSessionApi()}
     ${generateMessageHandler(userCode)}
   `

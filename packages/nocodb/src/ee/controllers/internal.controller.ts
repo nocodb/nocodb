@@ -380,6 +380,9 @@ export class InternalController extends InternalControllerCE {
           context,
           req,
           payload.id,
+          payload.rowId,
+          payload.tableId,
+          payload.viewId,
         );
       default:
         return await super.internalAPIPost(

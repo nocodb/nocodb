@@ -191,7 +191,7 @@ export class ScriptsService {
     return newScript;
   }
 
-  async executeScript(context: NcContext, req: NcRequest, scriptId: string) {
+  async executeScript(context: NcContext, req: NcRequest, scriptId: string, rowId?: string, tableId?: string, viewId?: string) {
     const script = await Script.get(context, scriptId);
 
     if (!script) {
@@ -207,6 +207,9 @@ export class ScriptsService {
         headers: req.headers,
         ncSiteUrl: req.ncSiteUrl,
       },
+      rowId,
+      tableId,
+      viewId,
     });
 
     return {

@@ -489,6 +489,9 @@ export const useScriptExecutor = createSharedComposable(() => {
           id: script.id,
         },{
           id: script.id,
+          rowId: extra?.pk,
+          tableId: activeTableId.value,
+          viewId: activeViewTitleOrId.value,
         } )
 
         if (job) {
@@ -553,10 +556,16 @@ export const useScriptExecutor = createSharedComposable(() => {
     }
     `
 
-          if (row) {
-            runCustomCode = `
-      ${runCustomCode}
-    cursor.row = (${JSON.stringify(row)})
+    let v3Row = null
+
+    if (extra?.pk) {
+      v3Row = await internalApi.dbDataTableRowRead(activeProjectId.value, activeTableId.value, extra.pk)
+    }
+
+          if (v3Row) {
+            runCustomCode = `${runCustomCode}
+            const ____table = base.getTable('${activeTableId.value}')
+            cursor.row = new NocoDBRecord(${JSON.stringify(v3Row)}, ____table)
     `
           }
 

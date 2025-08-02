@@ -237,4 +237,7 @@ export type AttachmentUrlUploadJobData = AttachmentUrlUploadParam & JobData;
 export interface ExecuteScriptJobData extends JobData {
   scriptId: string;
   req: NcRequest;
+  rowId?: string;
+  tableId?: string;
+  viewId?: string;
 }

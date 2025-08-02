@@ -14,7 +14,7 @@ export class ScriptExecutionProcessor {
   constructor(private readonly jobsLogService: JobsLogService) {}
 
   async job(job: Job<ExecuteScriptJobData>) {
-    const { context, req, scriptId } = job.data;
+    const { context, req, scriptId, rowId, tableId, viewId } = job.data;
 
     if (!process.env.E2B_API_KEY) {
       this.logger.error('E2B_API_KEY is not set');
@@ -37,6 +37,9 @@ export class ScriptExecutionProcessor {
       baseSchema,
       req.user,
       req,
+      rowId,
+      tableId,
+      viewId,
     );
     const sbx = await Sandbox.create({
       apiKey: process.env.E2B_API_KEY,

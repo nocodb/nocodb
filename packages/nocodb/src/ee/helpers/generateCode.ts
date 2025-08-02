@@ -1985,11 +1985,32 @@ function generateApiProxy(req: NcRequest): string {
 `;
 }
 
+function generateCustomCode(baseSchema: any, rowId?: string, tableId?: string, viewId?: string) {
+  return `
+
+   const cursor = {
+    activeBaseId: '${baseSchema!.id}',
+    activeViewId: ${viewId ? `'${viewId}'` : 'null'},
+    activeTableId: ${tableId ? `'${tableId}'` : 'null'},
+  }
+
+
+  if (${rowId ? 'true' : 'false'}) {
+    const ____row = await api.dbDataTableRowRead('${baseSchema!.id}', '${tableId}', ${rowId})
+    const ____table = base.getTable('${tableId}')
+    cursor.row = new NocoDBRecord(____row, ____table)
+  }
+  `
+}
+
 export function createSandboxCode(
   userCode: string,
   baseSchema: any,
   user: any,
   req: NcRequest,
+  rowId?: string,
+  tableId?: string,
+  viewId?: string,
 ): string {
   return `  
     ${generateConsoleOutput()}
@@ -1999,6 +2020,7 @@ export function createSandboxCode(
     ${generalHelpers()}
     ${generateBaseModels()}
     ${generateBaseObject(baseSchema)}
+    ${generateCustomCode(baseSchema, rowId, tableId, viewId)}
     ${generateSessionApi(user)}
     ${generateMessageHandler(userCode)}
   `;

@@ -13,6 +13,8 @@ export const useAutomationStore = defineStore('automation', () => {
 
   const { showUpgradeToUseScripts } = useEeConfig()
 
+  const isBackendExecutionEnabled = ref(false)
+
   // State
   const automations = ref<Map<string, (ScriptType & { _dirty?: string | number })[]>>(new Map())
   const isUpdatingAutomation = ref(false)
@@ -398,6 +400,7 @@ export const useAutomationStore = defineStore('automation', () => {
     isLoadingAutomation,
     isSettingsOpen,
     activeBaseSchema,
+    isBackendExecutionEnabled,
 
     // Getters
     activeBaseAutomations,

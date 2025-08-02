@@ -12,7 +12,7 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const automationStore = useAutomationStore()
 
-  const { loadAutomation, updateBaseSchema, } = automationStore
+  const { loadAutomation, updateBaseSchema } = automationStore
 
   const { activeProjectId } = storeToRefs(useBases())
 
@@ -22,14 +22,11 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const { activeTableId } = storeToRefs(useTablesStore())
 
-  const { activeAutomationId, activeBaseSchema } = storeToRefs(automationStore)
+  const { activeAutomationId, activeBaseSchema, isBackendExecutionEnabled } = storeToRefs(automationStore)
 
   const { aiIntegrations } = useNocoAi()
 
   const isPublic = inject(IsPublicInj, ref(false))
-
-  const isServerSideExecution = ref(true)
-
 
   const { transform } = useEsbuild()
 
@@ -479,7 +476,7 @@ export const useScriptExecutor = createSharedComposable(() => {
       })
 
       // Check if server-side execution is enabled
-      if (isServerSideExecution.value) {
+      if (isBackendExecutionEnabled.value) {
         isRunning.value = true
         isFinished.value = false
         
@@ -770,6 +767,6 @@ export const useScriptExecutor = createSharedComposable(() => {
     activeSteps,
     libCode,
     fieldIDRowMapping,
-    isServerSideExecution,
+    isBackendExecutionEnabled,
   }
 })

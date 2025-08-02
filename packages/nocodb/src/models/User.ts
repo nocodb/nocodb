@@ -74,7 +74,6 @@ export default class User implements UserType {
       'roles',
       'token_version',
       'meta',
-      'email_validation',
     ]);
 
     if (insertObj.email) {
@@ -85,7 +84,7 @@ export default class User implements UserType {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
-      prepareForDb(insertObj, ['meta', 'email_validation']),
+      prepareForDb(insertObj, ['meta']),
     );
 
     await NocoCache.del(CacheScope.INSTANCE_META);
@@ -118,7 +117,6 @@ export default class User implements UserType {
       'display_name',
       'avatar',
       'meta',
-      'email_validation',
     ]);
 
     if (updateObj.email) {
@@ -144,7 +142,7 @@ export default class User implements UserType {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
-      prepareForDb(updateObj, ['meta', 'email_validation']),
+      prepareForDb(updateObj, ['meta']),
       id,
     );
 
@@ -152,6 +150,34 @@ export default class User implements UserType {
     await this.clearCache(id, ncMeta);
 
     return this.get(id, ncMeta);
+  }
+
+  /**
+   * Update email validation data - restricted method for email validation system only
+   */
+  public static async updateEmailValidation(
+    userId: string,
+    emailValidationData: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!userId) NcError.badRequest('userId is required');
+
+    // get existing user for cache clearing
+    const existingUser = await this.get(userId, ncMeta);
+    if (!existingUser) NcError.userNotFound(userId);
+
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USERS,
+      prepareForDb({ email_validation: emailValidationData ?? null }, ['email_validation']),
+      userId,
+    );
+
+    // clear user cache
+    await this.clearCache(userId, ncMeta);
+
+    return this.get(userId, ncMeta);
   }
 
   public static async getByEmail(_email: string, ncMeta = Noco.ncMeta) {

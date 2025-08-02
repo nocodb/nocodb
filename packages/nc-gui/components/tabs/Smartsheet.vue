@@ -88,6 +88,8 @@ const grid = ref()
 
 const extensionPaneRef = ref()
 
+const actionPaneRef = ref()
+
 const onDrop = async (event: DragEvent) => {
   event.preventDefault()
   try {
@@ -171,16 +173,20 @@ const { leftSidebarWidth, windowSize } = storeToRefs(useSidebarStore())
 
 const { isPanelExpanded, extensionPanelSize } = useExtensions()
 
+const { isPanelExpanded: isActionPanelExpanded, actionPanelSize } = useActionPane()
+
 const contentSize = computed(() => {
   if (isPanelExpanded.value && extensionPanelSize.value) {
     return 100 - extensionPanelSize.value
+  } else if (isActionPanelExpanded.value && actionPanelSize.value) {
+    return 100 - actionPanelSize.value
   } else {
     return 100
   }
 })
 
 const contentMaxSize = computed(() => {
-  if (!isPanelExpanded.value) {
+  if (!isPanelExpanded.value && !isActionPanelExpanded.value) {
     return 100
   } else {
     return ((windowSize.value - leftSidebarWidth.value - 300) / (windowSize.value - leftSidebarWidth.value)) * 100
@@ -191,12 +197,16 @@ const onResize = () => {
   if (isPanelExpanded.value && !extensionPaneRef.value?.isReady) {
     extensionPaneRef.value?.onReady()
   }
+  if (isActionPanelExpanded.value && !actionPaneRef.value?.isReady) {
+    actionPaneRef.value?.onReady()
+  }
 }
 
 const onResized = (sizes: { min: number; max: number; size: number }[]) => {
   if (sizes.length === 2) {
-    if (!sizes[1].size) return
-    if (isPanelExpanded.value) extensionPanelSize.value = sizes[1].size
+    if (!sizes[1]?.size) return
+    if (isPanelExpanded.value) extensionPanelSize.value = sizes[1]!.size
+    if (isActionPanelExpanded.value) actionPanelSize.value = sizes[1]!.size
   }
 }
 
@@ -205,6 +215,12 @@ const onReady = () => {
     // wait until extension pane animation complete
     setTimeout(() => {
       extensionPaneRef.value?.onReady()
+    }, 300)
+  }
+  if (isActionPanelExpanded.value && actionPaneRef.value) {
+    // wait until action pane animation complete
+    setTimeout(() => {
+      actionPaneRef.value?.onReady()
     }, 300)
   }
 }
@@ -257,6 +273,7 @@ const onReady = () => {
           </div>
         </Pane>
         <ExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
+        <ActionsPane v-if="isActionPanelExpanded" ref="actionPaneRef" />
       </Splitpanes>
       <SmartsheetDetails v-else />
     </div>

@@ -224,6 +224,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     automationId,
     replace,
     dashboardId,
+    newTab,
   }: {
     workspaceId?: string
     baseId?: string
@@ -233,6 +234,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     dashboardId?: string
     query?: string
     replace?: boolean
+    newTab?: boolean
   }) => {
     const tablePath = tableId ? `/${tableId}${viewId ? `/${viewId}` : ''}` : ''
     const automationPath = automationId ? `/automations/${automationId}` : ''
@@ -253,11 +255,15 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       path = _workspaceId ? `/${workspaceId}${queryParams}` : `/${queryParams}`
     }
 
-    // if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
-    //   location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}${state.appInfo.value.dashboardPath}#${path}`
-    // } else {
-    navigateTo(path, { replace })
-    // }
+    if (newTab) {
+      window.open(`${window.location.origin}#${path}`, '_blank')
+    } else {
+      // if (state.appInfo.value.baseHostName && location.hostname !== `${workspaceId}.${state.appInfo.value.baseHostName}`) {
+      //   location.href = `https://${workspaceId}.${state.appInfo.value.baseHostName}${state.appInfo.value.dashboardPath}#${path}`
+      // } else {
+      navigateTo(path, { replace })
+      // }
+    }
   }
 
   const getBaseUrl = (workspaceId: string) => {

@@ -14,6 +14,12 @@ const emits = defineEmits<{
 const selectedScript = useVModel(props, 'selectedScript', emits)
 const vModel = useVModel(props, 'modelValue', emits)
 
+const { ncNavigateTo } = useGlobal()
+
+const baseStore = useBases()
+
+const { openedProject } = storeToRefs(baseStore)
+
 const isScriptSelectionDropdownOpen = ref(false)
 
 const automationStore = useAutomationStore()
@@ -26,14 +32,17 @@ const isScriptModal = ref(false)
 
 const newScript = () => {
   selectedScript.value = undefined
-  isScriptModal.value = true
-  isScriptCreateModalOpen.value = true
+
 }
 
 const editScript = () => {
   if (selectedScript.value) {
-    isScriptCreateModalOpen.value = true
-    isScriptModal.value = true
+    ncNavigateTo({
+      baseId: openedProject.value!.id,
+      workspaceId: openedProject.value!.fk_workspace_id,
+      automationId: selectedScript.value.id,
+      newTab: true,
+    })
   }
 }
 

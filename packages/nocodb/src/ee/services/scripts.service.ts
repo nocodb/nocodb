@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType } from 'nocodb-sdk';
+import { AppEvents, ButtonActionsType, EventType } from 'nocodb-sdk';
 import type { ScriptType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Script from '~/models/Script';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
+import { ButtonColumn } from '~/models';
 
 @Injectable()
 export class ScriptsService {
@@ -102,6 +103,17 @@ export class ScriptsService {
 
     if (!script) {
       return NcError.notFound('Script not found');
+    }
+
+    const buttonCols = await ButtonColumn.buttonUsages(context, scriptId);
+
+    if (buttonCols.length) {
+      for (const button of buttonCols) {
+        await ButtonColumn.update(context, button.fk_column_id, {
+          fk_script_id: null,
+          type: ButtonActionsType.Script,
+        });
+      }
     }
 
     await Script.delete(context, scriptId);

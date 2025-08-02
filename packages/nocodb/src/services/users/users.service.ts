@@ -29,6 +29,7 @@ import { extractProps } from '~/helpers/extractProps';
 import deepClone from '~/helpers/deepClone';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
+import { EmailValidationHelper } from '~/helpers/emailValidation';
 @Injectable()
 export class UsersService {
   logger = new Logger(UsersService.name);
@@ -48,6 +49,56 @@ export class UsersService {
       if (!regex.test(email)) {
         NcError.forbidden('Not allowed to signup/signin with this email');
       }
+    }
+  }
+
+  async validateEmailDeliverability(
+    email: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    try {
+      if (!EmailValidationHelper.isEnabled()) {
+        return true;
+      }
+
+      const result = await EmailValidationHelper.validateEmail(email, ncMeta);
+
+      if (!result.isDeliverable) {
+        this.logger.warn(
+          `Email registration blocked for ${email}: ${result.reason} (score: ${result.score})`,
+        );
+        NcError.badRequest(
+          `The email address ${email} is not deliverable. Please use a valid email address.`,
+        );
+      }
+
+      if (result.state === 'risky' && result.score < 50) {
+        this.logger.warn(
+          `High-risk email registration blocked for ${email}: ${result.reason} (score: ${result.score})`,
+        );
+        NcError.badRequest(
+          `The email address ${email} appears to be high-risk. Please use a different email address.`,
+        );
+      }
+
+      if (
+        result.isDisposable &&
+        !EmailValidationHelper.getConfig().allowDisposable
+      ) {
+        this.logger.warn(`Disposable email registration blocked for ${email}`);
+        NcError.badRequest(
+          `Disposable email addresses are not allowed. Please use a permanent email address.`,
+        );
+      }
+
+      return true;
+    } catch (e) {
+      this.logger.error(
+        `Email deliverability check failed for ${email}:`,
+        e.message,
+      );
+      // In case of error, allow registration to proceed
+      return true;
     }
   }
 
@@ -451,11 +502,14 @@ export class UsersService {
     }
   }
 
-  async signup(param: {
-    body: SignUpReqType;
-    req: any;
-    res: any;
-  }): Promise<any> {
+  async signup(
+    param: {
+      body: SignUpReqType;
+      req: any;
+      res: any;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SignUpReq', param.body);
 
     const { email: _email, token, ignore_subscribe } = param.req.body;
@@ -476,8 +530,9 @@ export class UsersService {
 
     this.validateEmailPattern(email);
 
-    let user = await User.getByEmail(email);
+    let user = await User.getByEmail(email, ncMeta);
 
+    await this.validateEmailDeliverability(email, ncMeta);
     if (user) {
       if (token) {
         if (token !== user.invite_token) {

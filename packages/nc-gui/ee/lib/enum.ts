@@ -15,8 +15,8 @@ export enum ScriptActionType {
   ACTION = 'action',
   ACTION_COMPLETE = 'action_complete',
 
-  WORKFLOW_STEP_START = 'WORKFLOW_STEP_START',
-  WORKFLOW_STEP_END = 'WORKFLOW_STEP_END',
+  WORKFLOW_STEP_START = 'workflowStepStart',
+  WORKFLOW_STEP_END = 'workflowStepEnd',
 
   RECORD_UPDATE_START = 'recordUpdateStart',
   RECORD_UPDATE_COMPLETE = 'recordUpdateComplete',

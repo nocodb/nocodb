@@ -8,6 +8,8 @@ import { ScriptActionType } from '~/lib/enum'
 export const useScriptExecutor = createSharedComposable(() => {
   const { internalApi, api } = useApi()
 
+  const { $poller } = useNuxtApp()
+
   const automationStore = useAutomationStore()
 
   const { loadAutomation, updateBaseSchema, } = automationStore
@@ -25,6 +27,9 @@ export const useScriptExecutor = createSharedComposable(() => {
   const { aiIntegrations } = useNocoAi()
 
   const isPublic = inject(IsPublicInj, ref(false))
+
+  const isServerSideExecution = ref(true)
+
 
   const { transform } = useEsbuild()
 
@@ -473,6 +478,61 @@ export const useScriptExecutor = createSharedComposable(() => {
         playground: [],
       })
 
+      // Check if server-side execution is enabled
+      if (isServerSideExecution.value) {
+        isRunning.value = true
+        isFinished.value = false
+        
+        if (!activeWorkspace.value?.id) {
+          throw new Error('Active workspace not found')
+        }
+        
+        const job = await api.internal.postOperation(activeWorkspace.value.id, activeProjectId.value, {
+          operation: 'executeScript',
+          id: script.id,
+        },{
+          id: script.id,
+        } )
+
+        if (job) {
+          // Monitor job status
+          $poller.subscribe({ id: job.id }, async (data) => {
+            if (data.status !== 'close') {
+              if (data.status === JobStatus.COMPLETED) {
+                isFinished.value = true
+                isRunning.value = false
+              } else if (data.status === JobStatus.FAILED) {
+                const execution = activeExecutions.value.get(scriptId)
+                if (execution) {
+                  activeExecutions.value.set(scriptId, {
+                    ...execution,
+                    status: 'error',
+                    worker: null,
+                  })
+                }
+                isRunning.value = false
+                isFinished.value = true
+              } else if (data.data?.message) {
+                handleWorkerMessage(scriptId, data.data.message, null as any, () => {
+                  const execution = activeExecutions.value.get(scriptId)
+                  if (execution) {
+                    activeExecutions.value.set(scriptId, {
+                      ...execution,
+                      status: 'finished',
+                      worker: null,
+                    })
+                  }
+
+                  isRunning.value = false
+                  isFinished.value = true
+                })
+              }
+            }
+          })
+        }
+        return scriptId
+      }
+
       const executeScript = async () => {
         try {
           isFinished.value = false
@@ -710,5 +770,6 @@ export const useScriptExecutor = createSharedComposable(() => {
     activeSteps,
     libCode,
     fieldIDRowMapping,
+    isServerSideExecution,
   }
 })

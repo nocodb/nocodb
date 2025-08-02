@@ -52,6 +52,7 @@ export enum JobTypes {
   UpdateUsageStats = 'update-usage-stats',
   CloudDbMigrate = 'cloud-db-migrate',
   AttachmentUrlUpload = 'attachment-url-upload',
+  ExecuteScript = 'execute-script'
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -232,3 +233,8 @@ export interface SyncDataSyncModuleJobData extends JobData {
 }
 
 export type AttachmentUrlUploadJobData = AttachmentUrlUploadParam & JobData;
+
+export interface ExecuteScriptJobData extends JobData {
+  scriptId: string;
+  req: NcRequest;
+}

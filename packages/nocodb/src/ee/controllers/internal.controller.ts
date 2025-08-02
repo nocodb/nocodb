@@ -91,6 +91,7 @@ export class InternalController extends InternalControllerCE {
       widgetDuplicate: 'base',
       widgetDataGet: 'base',
       dashboardShare: 'base',
+      executeScript: 'base',
     };
   }
 
@@ -373,6 +374,12 @@ export class InternalController extends InternalControllerCE {
           context,
           payload,
           req,
+        );
+      case 'executeScript':
+        return await this.scriptsService.executeScript(
+          context,
+          req,
+          payload.id,
         );
       default:
         return await super.internalAPIPost(

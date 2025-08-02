@@ -14,6 +14,8 @@ import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-im
 import { SyncModuleSyncDataProcessor } from '~/integrations/sync/module/services/sync.processor';
 import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stats.processor';
 import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.processor';
+import { ScriptExecutionProcessor } from '~/modules/jobs/jobs/script-execution.processor';
+
 
 @Module({
   ...JobsModuleMetadata,
@@ -34,6 +36,7 @@ import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.pr
     SyncModuleSyncDataProcessor,
     UpdateUsageStatsProcessor,
     CloudDbMigrateProcessor,
+    ScriptExecutionProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],
 })

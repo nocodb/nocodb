@@ -54,4 +54,5 @@ export type InternalPOSTResponseType = Promise<
   | {
       data: any;
     }
+  | { id: JobId; name?: string }
 >;

@@ -52,55 +52,7 @@ export class UsersService {
     }
   }
 
-  async validateEmailDeliverability(
-    email: string,
-    ncMeta = Noco.ncMeta,
-  ): Promise<boolean> {
-    try {
-      if (!EmailValidationHelper.isEnabled()) {
-        return true;
-      }
 
-      const result = await EmailValidationHelper.validateEmail(email, ncMeta);
-
-      if (!result.isDeliverable) {
-        this.logger.warn(
-          `Email registration blocked for ${email}: ${result.reason} (score: ${result.score})`,
-        );
-        NcError.badRequest(
-          `The email address ${email} is not deliverable. Please use a valid email address.`,
-        );
-      }
-
-      if (result.state === 'risky' && result.score < 50) {
-        this.logger.warn(
-          `High-risk email registration blocked for ${email}: ${result.reason} (score: ${result.score})`,
-        );
-        NcError.badRequest(
-          `The email address ${email} appears to be high-risk. Please use a different email address.`,
-        );
-      }
-
-      if (
-        result.isDisposable &&
-        !EmailValidationHelper.getConfig().allowDisposable
-      ) {
-        this.logger.warn(`Disposable email registration blocked for ${email}`);
-        NcError.badRequest(
-          `Disposable email addresses are not allowed. Please use a permanent email address.`,
-        );
-      }
-
-      return true;
-    } catch (e) {
-      this.logger.error(
-        `Email deliverability check failed for ${email}:`,
-        e.message,
-      );
-      // In case of error, allow registration to proceed
-      return true;
-    }
-  }
 
   async findOne(_email: string) {
     const email = _email.toLowerCase();
@@ -532,7 +484,12 @@ export class UsersService {
 
     let user = await User.getByEmail(email, ncMeta);
 
-    await this.validateEmailDeliverability(email, ncMeta);
+    // Validate email deliverability if validation is enabled
+    const emailDeliverable = await EmailValidationHelper.validateAndStoreEmail(email, ncMeta);
+    if (!emailDeliverable) {
+      NcError.badRequest('The email address is not deliverable. Please use a valid email address.');
+    }
+
     if (user) {
       if (token) {
         if (token !== user.invite_token) {

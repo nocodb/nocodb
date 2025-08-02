@@ -153,7 +153,7 @@ watch(
         </template>
 
         <template #listItemContent="{ option }">
-          <NcUserInfo :user="option as UserType" class="w-[calc(100%_-_24px)]" />
+          <NcUserInfo :user="option as UserType" :disabled="option.ncItemDisabled" class="w-[calc(100%_-_24px)]" />
         </template>
         <template #listItemExtraRight="{ option }">
           <div class="flex items-center gap-1">

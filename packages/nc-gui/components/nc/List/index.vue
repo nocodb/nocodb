@@ -34,7 +34,7 @@ const props = withDefaults(defineProps<NcListProps>(), {
   searchBasisOptions: () => [] as NcListSearchBasisOptionType[],
   theme: 'default',
   groupOrder: () => [] as string[],
-  groupHeaderHeight: 24,
+  groupHeaderHeight: 28,
 })
 
 const emits = defineEmits<Emits>()
@@ -198,6 +198,30 @@ const {
 })
 
 /**
+ * Revised wrapper props to fix scroll area issue
+ *
+ * `useVirtualList` support only constant item height and in our case group height height is different so,
+ * to fix scroll area we have to calculate the height of the wrapper props
+ */
+const revisedWrapperProps = computed(() => {
+  const virtualListHeight = virtualList.value.length * (itemHeight.value + 2)
+
+  const groupHeaders = virtualList.value.filter((item) => item.data.ncGroupHeader)
+
+  const groupHeaderHeight = groupHeaders.length * (props.groupHeaderHeight + 2)
+
+  const totalHeight = parseFloat(virtualListHeight.toString()) - groupHeaders.length * (itemHeight.value + 2) + groupHeaderHeight
+
+  return {
+    ...(wrapperProps.value || {}),
+    style: {
+      ...(wrapperProps.value?.style || {}),
+      height: `${totalHeight}px`,
+    },
+  }
+})
+
+/**
  * Compares the given value with the current vModel value.
  * If the component is in multi-select mode, it checks if the value is included in the vModel array.
  * Otherwise, it performs a direct equality check.
@@ -288,16 +312,42 @@ const handleAutoScrollOption = (useDelay = false) => {
   }, 150)
 }
 
-// Todo: skip arrowUp/.arrowDown on disabled options
-// const getNextEnabledOptionIndex = (currentIndex: number, increment = true) => {}
+/**
+ * Get the next enabled option index
+ *
+ * @param currentIndex - The current option index
+ * @param increment - Whether to increment the index
+ * @returns The next enabled option index
+ * @Note Important: Skip disabled and group header options
+ * Increment - true
+ * - If current option is the last option, then return the first enabled option index
+ *
+ * Increment - false
+ * - If current option is the first option, then return the last enabled option index
+ */
+const getNextEnabledOptionIndex = (currentIndex: number, increment = true) => {
+  const listLength = list.value.length
+
+  let nextIndex = -1
+
+  if (increment) {
+    nextIndex = currentIndex === listLength - 1 ? 0 : currentIndex + 1
+  } else {
+    nextIndex = currentIndex === 0 ? listLength - 1 : currentIndex - 1
+  }
+
+  if (list.value[nextIndex]?.ncItemDisabled || list.value[nextIndex]?.ncGroupHeader) {
+    return getNextEnabledOptionIndex(nextIndex, increment)
+  }
+
+  return nextIndex
+}
 
 const onArrowDown = () => {
   keyDown.value = true
   handleResetHoverEffect()
 
-  if (activeOptionIndex.value === list.value.length - 1) return
-
-  activeOptionIndex.value = Math.min(activeOptionIndex.value + 1, list.value.length - 1)
+  activeOptionIndex.value = getNextEnabledOptionIndex(activeOptionIndex.value, true)
   handleAutoScrollOption()
 
   ncDelay(100).then(() => {
@@ -309,9 +359,7 @@ const onArrowUp = () => {
   keyDown.value = true
   handleResetHoverEffect()
 
-  if (activeOptionIndex.value === 0) return
-
-  activeOptionIndex.value = Math.max(activeOptionIndex.value - 1, 0)
+  activeOptionIndex.value = getNextEnabledOptionIndex(activeOptionIndex.value, false)
   handleAutoScrollOption()
 
   ncDelay(100).then(() => {
@@ -472,7 +520,7 @@ const handleEscape = (event: KeyboardEvent) => {
               },
             ]"
           >
-            <div v-bind="wrapperProps" :class="wrapperClassName">
+            <div v-bind="revisedWrapperProps" :class="wrapperClassName">
               <NcTooltip
                 v-for="{ data: option, index: idx } in virtualList"
                 :key="idx"
@@ -480,8 +528,7 @@ const handleEscape = (event: KeyboardEvent) => {
                 :class="[
                   `nc-list-option-${idx}`,
                   {
-                    '': !option.ncGroupHeader,
-                    'nc-list-group-header text-nc-content-gray-muted text-bodySmBold relative border-t first:!border-t-0 border-nc-border-gray-medium flex items-center':
+                    'nc-list-group-header text-nc-content-gray-muted text-bodySmBold border-t first:!border-t-transparent !border-t-nc-border-gray-medium flex items-center':
                       option.ncGroupHeader,
                     'rounded-md': !itemFullWidth && !option.ncGroupHeader,
                     'nc-list-option-selected': compareVModel(option[optionValueKey], option.ncGroupHeader),
@@ -491,7 +538,7 @@ const handleEscape = (event: KeyboardEvent) => {
                       compareVModel(option[optionValueKey], option.ncGroupHeader),
                     'bg-nc-bg-gray-light nc-list-option-active':
                       !option?.ncItemDisabled && activeOptionIndex === idx && !option.ncGroupHeader,
-                    'opacity-60 cursor-not-allowed': !option?.ncItemDisabled && !option?.ncGroupHeader,
+                    'opacity-60 cursor-not-allowed': option?.ncItemDisabled && !option?.ncGroupHeader,
                     'hover:bg-nc-bg-gray-light cursor-pointer': !option?.ncItemDisabled && !option?.ncGroupHeader,
                     'py-2': variant === 'default' && !option.ncGroupHeader,
                     'py-[5px]': variant === 'medium' && !option.ncGroupHeader,
@@ -504,12 +551,12 @@ const handleEscape = (event: KeyboardEvent) => {
                   `${option.ncGroupHeader ? groupHeaderClassName : ''}`,
                 ]"
                 :style="{
-                  minHeight: `${groupHeaderHeight ?? 28}px`,
+                  minHeight: `${groupHeaderHeight}px`,
                 }"
                 :placement="itemTooltipPlacement"
                 :disabled="!option?.ncItemTooltip"
                 :attrs="{
-                  onMouseover: () => handleResetHoverEffect(true, idx),
+                  onMouseover: () => !option.ncGroupHeader && handleResetHoverEffect(true, idx),
                 }"
                 @click="handleSelectOption(option, idx, $event)"
               >

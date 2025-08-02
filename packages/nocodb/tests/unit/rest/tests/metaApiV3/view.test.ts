@@ -179,6 +179,41 @@ export default function () {
         expect(updateResponse2.body.sorts.length).to.greaterThan(0);
       });
 
+      it(`will create grid view with orderedFields`, async () => {
+        const singleSelectColumn = (await table.getColumns(ctx)).find(
+          (col) => col.title === 'SingleSelect',
+        );
+        const titleColumn = (await table.getColumns(ctx)).find(
+          (col) => col.title === 'Title',
+        );
+        const dateTimeColumn = (await table.getColumns(ctx)).find(
+          (col) => col.title === 'DateTime',
+        );
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            type: 'GRID',
+            orderedFields: [
+              {
+                fieldId: singleSelectColumn.id,
+              },
+              {
+                fieldId: dateTimeColumn.id,
+                show: false,
+              },
+              {
+                fieldId: titleColumn.id,
+              },
+            ],
+          });
+        expect(response.body.type).to.eq('GRID');
+        expect(response.body.fields[0].fieldId).to.eq(singleSelectColumn.id);
+        expect(response.body.fields[1].fieldId).to.eq(dateTimeColumn.id);
+        expect(response.body.fields[2].fieldId).to.eq(titleColumn.id);
+      });
+
       it(`will create kanban view`, async () => {
         const response = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/views`)

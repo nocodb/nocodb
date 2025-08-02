@@ -74,8 +74,6 @@ const availableFunctions = formulaList
 
 const availableBinOps = ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!=', '&']
 
-const autocomplete = ref(false)
-
 const variableListRef = ref<(typeof AntListItem)[]>([])
 
 const sugOptionsRef = ref<(typeof AntListItem)[]>([])
@@ -240,6 +238,8 @@ onMounted(async () => {
       'minimap': {
         enabled: false,
       },
+      // Don't suggest words from the document, shown when typing COUNT(C
+      'wordBasedSuggestions': 'off',
     })
 
     editor.layout({
@@ -263,7 +263,6 @@ onMounted(async () => {
 
       // IF cursor is inside string, don't show any suggestions
       if (isCursorInsideString(text, offset)) {
-        autocomplete.value = false
         suggestion.value = []
       } else {
         handleInput()
@@ -431,7 +430,6 @@ function appendText(item: Record<string, any>) {
   } else {
     insertStringAtPosition(editor, text, true)
   }
-  autocomplete.value = false
   wordToComplete.value = ''
 
   if (item.type === 'function' || item.type === 'op') {
@@ -488,7 +486,6 @@ function handleInput() {
 
   // IF cursor is inside string, don't show any suggestions
   if (isCursorInsideString(text, offset)) {
-    autocomplete.value = false
     suggestion.value = []
     return
   }
@@ -516,8 +513,6 @@ function handleInput() {
   } else if (!showFunctionList.value) {
     showFunctionList.value = true
   }
-
-  autocomplete.value = !!suggestion.value.length
 }
 
 function selectText() {
@@ -1021,9 +1016,7 @@ watch(
   @apply !text-gray-500 !text-xs !font-medium;
   font-family: 'Inter';
 }
-/*
-.monaco-editor .overflowingContentWidgets {
+.monaco-hover {
   position: fixed;
-  z-index: 100;
-}*/
+}
 </style>

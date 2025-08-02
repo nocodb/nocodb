@@ -182,6 +182,21 @@ describe('Formula parsing and type validation', () => {
           length: 1,
         });
       }
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: 'CONCAT)',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+          trackPosition: true,
+        });
+      } catch (ex) {
+        expect(ex.extra.position).toEqual({
+          column: 6,
+          row: 0,
+          length: 1,
+        });
+      }
     });
     it(`will provide position for column not found`, async () => {
       try {

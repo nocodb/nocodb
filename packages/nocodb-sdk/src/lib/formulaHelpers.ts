@@ -112,6 +112,9 @@ export const jsepIndexHook = {
   init(jsep) {
     // Match identifier in following pattern: {abc-cde}
     jsep.hooks.add('after-expression', function escapedIdentifier(env) {
+      if (!env.node) {
+        return;
+      }
       const needle: string = env.node.name ?? env.node.raw;
       if (needle) {
         for (const match of env.context.expr.matchAll(

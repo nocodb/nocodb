@@ -10,7 +10,6 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import config from '~/app.config';
 import { extractDisplayNameFromEmail } from '~/utils';
-import { EmailValidationHelper } from '~/helpers/emailValidation';
 
 type TemplateComponent<K extends keyof typeof MailTemplates> =
   (typeof MailTemplates)[K];
@@ -28,10 +27,6 @@ export class MailService {
       this.logger.error('Email Plugin not configured / active');
       return null;
     }
-  }
-
-  async shouldSkipEmail(email: string): Promise<boolean> {
-    return await EmailValidationHelper.shouldSkipEmail(email, Noco.ncMeta);
   }
 
   async renderMail<K extends keyof typeof MailTemplates>(
@@ -172,14 +167,6 @@ export class MailService {
         }
         case MailEvent.RESET_PASSWORD: {
           const { user, req } = payload;
-
-          // Verify email before sending
-          if (await this.shouldSkipEmail(user.email)) {
-            this.logger.warn(
-              `Password reset email skipped for ${user.email} due to verification failure`,
-            );
-            return false;
-          }
 
           await mailerAdapter.mailSend({
             to: user.email,

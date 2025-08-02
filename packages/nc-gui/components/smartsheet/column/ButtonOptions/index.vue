@@ -57,6 +57,16 @@ const selectedWebhook = ref<HookType>()
 
 const selectedScript = ref<ScriptType>()
 
+const defaultEditorError = {
+  isError: false,
+  message: '',
+  position: {
+    column: -1,
+    row: -1,
+  },
+}
+const editorError = ref(defaultEditorError)
+
 const isAiButtonEnabled = computed(() => {
   if (isEdit.value) {
     return true
@@ -132,12 +142,20 @@ const validators = {
                 columns: supportedColumns.value,
                 clientOrSqlUi: sqlUi.value,
                 getMeta,
+                trackPosition: true,
               })
+              editorError.value = { ...defaultEditorError }
             } catch (e: any) {
-              if (e instanceof FormulaError && e.extra?.key) {
-                throw new Error(t(e.extra.key, e.extra))
+              const errorMessage = e instanceof FormulaError && e.extra?.key ? t(e.extra.key, e.extra) : e.message
+              if (e instanceof FormulaError && e.extra?.position) {
+                editorError.value = {
+                  isError: true,
+                  message: errorMessage,
+                  position: e.extra.position,
+                }
+              } else {
+                editorError.value = { ...defaultEditorError }
               }
-
               throw new Error(e.message)
             }
           } else if (vModel.value.type === ButtonActionsType.Ai) {
@@ -521,6 +539,7 @@ const handleUpdateActionType = () => {
         editor-height="50px"
         :disabled-formulas="['URL()', 'URLENCODE()']"
         disable-suggestion-headers
+        :editor-error="editorError"
         :label="$t('labels.urlFormula')"
         :error="validateInfos.formula_raw?.validateStatus === 'error'"
       />

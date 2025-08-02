@@ -149,4 +149,152 @@ describe('Formula parsing and type validation', () => {
       expect(result.dataType).toBe(FormulaDataTypes.STRING);
     });
   });
+
+  describe('errors', () => {
+    it(`will provide position for syntax error`, async () => {
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: '1 +',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+          trackPosition: true,
+        });
+      } catch (ex) {
+        expect(ex.extra.position).toEqual({
+          column: 3,
+          row: 0,
+          length: 1,
+        });
+      }
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: '(1 + 1',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+          trackPosition: true,
+        });
+      } catch (ex) {
+        expect(ex.extra.position).toEqual({
+          column: 6,
+          row: 0,
+          length: 1,
+        });
+      }
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: 'CONCAT)',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+          trackPosition: true,
+        });
+      } catch (ex) {
+        expect(ex.extra.position).toEqual({
+          column: 6,
+          row: 0,
+          length: 1,
+        });
+      }
+    });
+    it(`will provide position for column not found`, async () => {
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: '1 + __a_',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+          trackPosition: true,
+        });
+      } catch (ex) {
+        expect(ex.extra.position).toEqual({
+          column: 4,
+          row: 0,
+          length: 4,
+        });
+      }
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: '__a_',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+          trackPosition: true,
+        });
+      } catch (ex) {
+        expect(ex.extra.position).toEqual({
+          column: 0,
+          row: 0,
+          length: 4,
+        });
+      }
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: 'CONCAT(__a_  , "A")',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+          trackPosition: true,
+        });
+      } catch (ex) {
+        expect(ex.extra.position).toEqual({
+          column: 7,
+          row: 0,
+          length: 6,
+        });
+      }
+    });
+    it(`will handle formula missing parentheses`, async () => {
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: 'CONCAT',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+          trackPosition: true,
+        });
+      } catch (ex) {
+        expect(ex.message).toContain('Missing parentheses after function name');
+        expect(ex.extra.position).toEqual({
+          column: 6,
+          row: 0,
+          length: 1,
+        });
+      }
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: 'CONCAT(CONCAT)',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+          trackPosition: true,
+        });
+      } catch (ex) {
+        expect(ex.message).toContain('Missing parentheses after function name');
+        expect(ex.extra.position).toEqual({
+          column: 13,
+          row: 0,
+          length: 1,
+        });
+      }
+    });
+    it(`will handle formula minimum argument`, async () => {
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: 'CONCAT(CONCAT())',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+          trackPosition: true,
+        });
+      } catch (ex) {
+        expect(ex.extra.position).toEqual({
+          column: 7,
+          row: 0,
+          length: 8,
+        });
+      }
+    });
+  });
 });

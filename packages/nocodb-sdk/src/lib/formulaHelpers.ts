@@ -107,6 +107,32 @@ export type ParsedFormulaNode =
 const OCURLY_CODE = 123; // '{'
 const CCURLY_CODE = 125; // '}'
 
+export const jsepIndexHook = {
+  name: 'indexing',
+  init(jsep) {
+    // Match identifier in following pattern: {abc-cde}
+    jsep.hooks.add('after-expression', function escapedIdentifier(env) {
+      const needle: string = env.node.name ?? env.node.raw;
+      if (needle) {
+        for (const match of env.context.expr.matchAll(
+          new RegExp(`${needle}\\s*`, 'g')
+        )) {
+          if (match.index + match[0].length === this.index) {
+            env.node.indexStart = this.index - match[0].length;
+            env.node.nodeLength = match[0].length;
+          }
+        }
+      } else {
+        const needle = env.context.expr;
+        env.node.indexStart = this.index - needle.length;
+        env.node.nodeLength = needle.length;
+      }
+      env.node.indexEnd = this.index;
+      return env.node;
+    });
+  },
+} as jsep.IPlugin;
+
 export const jsepCurlyHook = {
   name: 'curly',
   init(jsep) {
@@ -1809,13 +1835,15 @@ export function handleFormulaError({
 }) {
   let position: number;
   let identifierLength: number;
-  if (error.extra?.columnName) {
-    const identifierMatch = formula.match(
-      new RegExp(`\\b${error.extra?.columnName}\\b`)
-    );
+  if (error.extra?.position) {
+    position = error.extra.position.index;
+    identifierLength = error.extra.position.length;
+  } else if (error.extra?.columnName ?? error.extra?.calleeName) {
+    const needle = error.extra?.columnName ?? error.extra?.calleeName;
+    const identifierMatch = formula.match(new RegExp(`\\b${needle}\\b`));
     if (typeof identifierMatch?.index === 'number') {
       position = identifierMatch.index;
-      identifierLength = error.extra.columnName.length;
+      identifierLength = needle.length;
     }
   } else {
     const message: string = error.message;
@@ -1852,12 +1880,14 @@ export async function validateFormulaAndExtractTreeWithType({
   columns,
   clientOrSqlUi,
   getMeta,
+  trackPosition,
 }: {
   formula: string;
   columns: ColumnType[];
   clientOrSqlUi: ClientTypeOrSqlUI;
   column?: ColumnType;
   getMeta: (tableId: string) => Promise<any>;
+  trackPosition?: boolean;
 }): Promise<ParsedFormulaNode> {
   const sqlUI =
     typeof clientOrSqlUi === 'string'
@@ -1885,13 +1915,31 @@ export async function validateFormulaAndExtractTreeWithType({
       if (!formulas[calleeName]) {
         throw new FormulaError(
           FormulaErrorType.INVALID_FUNCTION_NAME,
-          {},
+          {
+            calleeName,
+            position:
+              (parsedTree as any).indexStart >= 0
+                ? {
+                    index: (parsedTree as any).indexStart,
+                    length: (parsedTree as any).nodeLength,
+                  }
+                : undefined,
+          },
           `Function ${calleeName} is not available`
         );
       } else if (sqlUI?.getUnsupportedFnList().includes(calleeName)) {
         throw new FormulaError(
           FormulaErrorType.INVALID_FUNCTION_NAME,
-          {},
+          {
+            calleeName,
+            position:
+              (parsedTree as any).indexStart >= 0
+                ? {
+                    index: (parsedTree as any).indexStart,
+                    length: (parsedTree as any).nodeLength,
+                  }
+                : undefined,
+          },
           `Function ${calleeName} is unavailable for your database`
         );
       }
@@ -1910,6 +1958,13 @@ export async function validateFormulaAndExtractTreeWithType({
               key: 'msg.formula.requiredArgumentsFormula',
               requiredArguments: validation.args.rqd,
               calleeName,
+              position:
+                (parsedTree as any).indexStart >= 0
+                  ? {
+                      index: (parsedTree as any).indexStart,
+                      length: (parsedTree as any).nodeLength,
+                    }
+                  : undefined,
             },
             'Required arguments missing'
           );
@@ -1923,6 +1978,13 @@ export async function validateFormulaAndExtractTreeWithType({
               key: 'msg.formula.minRequiredArgumentsFormula',
               minRequiredArguments: validation.args.min,
               calleeName,
+              position:
+                (parsedTree as any).indexStart >= 0
+                  ? {
+                      index: (parsedTree as any).indexStart,
+                      length: (parsedTree as any).nodeLength,
+                    }
+                  : undefined,
             },
             'Minimum arguments required'
           );
@@ -1936,6 +1998,13 @@ export async function validateFormulaAndExtractTreeWithType({
               key: 'msg.formula.maxRequiredArgumentsFormula',
               maxRequiredArguments: validation.args.max,
               calleeName,
+              position:
+                (parsedTree as any).indexStart >= 0
+                  ? {
+                      index: (parsedTree as any).indexStart,
+                      length: (parsedTree as any).nodeLength,
+                    }
+                  : undefined,
             },
             'Maximum arguments missing'
           );
@@ -2038,22 +2107,44 @@ export async function validateFormulaAndExtractTreeWithType({
         res.dataType = formulas[calleeName].returnType as FormulaDataTypes;
       }
     } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
-      const col = (colIdToColMap[(parsedTree as IdentifierNode).name] ||
-        colAliasToColMap[(parsedTree as IdentifierNode).name]) as Record<
-        string,
-        any
-      >;
+      const identifierName = (parsedTree as IdentifierNode).name;
+      const col = (colIdToColMap[identifierName] ||
+        colAliasToColMap[identifierName]) as Record<string, any>;
 
       if (!col) {
+        if (formulas[identifierName]) {
+          throw new FormulaError(
+            FormulaErrorType.INVALID_SYNTAX,
+            {
+              key: 'msg.formula.formulaMissingParentheses',
+              calleeName: identifierName,
+              position:
+                (parsedTree as any).indexStart >= 0
+                  ? {
+                      index: (parsedTree as any).indexEnd,
+                      length: 1,
+                    }
+                  : undefined,
+            },
+            `Missing parentheses after function name "${JSON.stringify(
+              identifierName
+            )}"`
+          );
+        }
         throw new FormulaError(
           FormulaErrorType.INVALID_COLUMN,
           {
             key: 'msg.formula.columnNotAvailable',
-            columnName: (parsedTree as IdentifierNode).name,
+            columnName: identifierName,
+            position:
+              (parsedTree as any).indexStart >= 0
+                ? {
+                    index: (parsedTree as any).indexStart,
+                    length: (parsedTree as any).nodeLength,
+                  }
+                : undefined,
           },
-          `Invalid column name/id ${JSON.stringify(
-            (parsedTree as IdentifierNode).name
-          )} in formula`
+          `Invalid column name/id ${JSON.stringify(identifierName)} in formula`
         );
       }
 
@@ -2212,6 +2303,9 @@ export async function validateFormulaAndExtractTreeWithType({
   try {
     // register jsep curly hook
     jsep.plugins.register(jsepCurlyHook);
+    if (trackPosition) {
+      jsep.plugins.register(jsepIndexHook);
+    }
     const parsedFormula = jsep(formula);
     // TODO: better jsep expression handling
     const result = await validateAndExtract(
@@ -2219,7 +2313,9 @@ export async function validateFormulaAndExtractTreeWithType({
     );
     return result;
   } catch (ex) {
-    handleFormulaError({ formula, error: ex });
+    if (trackPosition) {
+      handleFormulaError({ formula, error: ex });
+    }
     throw ex;
   }
 }

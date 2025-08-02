@@ -132,6 +132,7 @@ const validators = {
                 columns: supportedColumns.value,
                 clientOrSqlUi: sqlUi.value,
                 getMeta,
+                trackPosition: true,
               })
             } catch (e: any) {
               if (e instanceof FormulaError && e.extra?.key) {

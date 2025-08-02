@@ -3041,8 +3041,7 @@ class PGClient extends KnexClient {
         );
       }
 
-      // for now, wipe attachment value
-      if (n.dt !== o.dt || n.uidt === UITypes.Attachment) {
+      if (n.dt !== o.dt) {
         query += this.genQuery(
           `\nALTER TABLE ?? ALTER COLUMN ?? DROP DEFAULT;\n`,
           [t, n.cn],

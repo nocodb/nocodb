@@ -12,6 +12,7 @@ import UITypes from './UITypes';
 import dayjs from 'dayjs';
 import { SqlUiFactory } from './sqlUi';
 import { dateFormats } from './dateTimeHelper';
+import { getRowColPositionFromIndex } from './stringHelpers';
 
 type SqlUI = ReturnType<(typeof SqlUiFactory)['create']>;
 type ClientTypeOrSqlUI =
@@ -209,6 +210,7 @@ export enum FormulaErrorType {
   CIRCULAR_REFERENCE = 'CIRCULAR_REFERENCE',
   INVALID_FUNCTION_NAME = 'INVALID_FUNCTION_NAME',
   INVALID_COLUMN = 'INVALID_COLUMN',
+  INVALID_SYNTAX = 'INVALID_SYNTAX',
 }
 
 export function substituteColumnIdWithAliasInFormula(
@@ -1796,6 +1798,51 @@ async function extractColumnIdentifierType({
   return res;
 }
 
+const REGEX_ERROR_AT_CHARACTER = /\sat character (\d+)/;
+
+export function handleFormulaError({
+  formula,
+  error,
+}: {
+  formula: string;
+  error;
+}) {
+  let position: number;
+  if (error.extra?.columnName) {
+    const identifierMatch = formula.match(
+      new RegExp(`\\b${error.extra?.columnName}\\b`)
+    );
+    if (typeof identifierMatch?.index === 'number') {
+      position = identifierMatch.index;
+    }
+  } else {
+    const message: string = error.message;
+
+    // check for error character at
+    const errorAtRegex = message.match(REGEX_ERROR_AT_CHARACTER);
+    if (errorAtRegex?.[0]) {
+      position = Number(errorAtRegex[1]);
+    }
+  }
+  if (position) {
+    const colRowPosition = getRowColPositionFromIndex({
+      stack: formula,
+      position,
+    });
+
+    throw new FormulaError(
+      error.type ?? FormulaErrorType.INVALID_SYNTAX,
+      {
+        ...(error.extra ?? {}),
+        position: colRowPosition,
+      },
+      'Required arguments missing'
+    );
+  } else {
+    throw error;
+  }
+}
+
 export async function validateFormulaAndExtractTreeWithType({
   formula,
   column,
@@ -2159,14 +2206,19 @@ export async function validateFormulaAndExtractTreeWithType({
     return res;
   };
 
-  // register jsep curly hook
-  jsep.plugins.register(jsepCurlyHook);
-  const parsedFormula = jsep(formula);
-  // TODO: better jsep expression handling
-  const result = await validateAndExtract(
-    parsedFormula as unknown as ParsedFormulaNode
-  );
-  return result;
+  try {
+    // register jsep curly hook
+    jsep.plugins.register(jsepCurlyHook);
+    const parsedFormula = jsep(formula);
+    // TODO: better jsep expression handling
+    const result = await validateAndExtract(
+      parsedFormula as unknown as ParsedFormulaNode
+    );
+    return result;
+  } catch (ex) {
+    handleFormulaError({ formula, error: ex });
+    throw ex;
+  }
 }
 
 function handleBinaryExpressionForDateAndTime(params: {

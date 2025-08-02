@@ -62,6 +62,7 @@ export class ValidatedEmailAdapter implements IEmailAdapter {
 
   /**
    * Check if email should be skipped based on stored validation data
+   * If no validation data exists, perform validation and store result
    */
   private async shouldSkipEmail(
     email: string,
@@ -72,8 +73,11 @@ export class ValidatedEmailAdapter implements IEmailAdapter {
       const user = await User.getByEmail(email, ncMeta);
 
       if (!user || !user.email_validation) {
-        // No stored validation data, allow email
-        return false;
+        // No stored validation data - validate directly and store result
+        logger.debug(`No validation data found for ${email}, validating now...`);
+
+        const isDeliverable = await EmailValidationHelper.validateAndStoreEmail(email, ncMeta);
+        return !isDeliverable; // Skip if not deliverable
       }
 
       const validationData =
@@ -174,9 +178,9 @@ export class EmailValidationHelper {
             : user.email_validation;
         // Check if validation is recent (within 30 days)
         const checkedAt = new Date(existingValidation.checkedAt);
-        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
 
-        if (checkedAt > thirtyDaysAgo) {
+        if (checkedAt > sixtyDaysAgo) {
           logger.debug(`Using cached validation for ${email}`);
           return this.isEmailDeliverable(existingValidation);
         }

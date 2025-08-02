@@ -29,7 +29,6 @@ import { extractProps } from '~/helpers/extractProps';
 import deepClone from '~/helpers/deepClone';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
-import { EmailValidationHelper } from '~/helpers/emailValidation';
 @Injectable()
 export class UsersService {
   logger = new Logger(UsersService.name);
@@ -452,14 +451,11 @@ export class UsersService {
     }
   }
 
-  async signup(
-    param: {
-      body: SignUpReqType;
-      req: any;
-      res: any;
-    },
-    ncMeta = Noco.ncMeta,
-  ): Promise<any> {
+  async signup(param: {
+    body: SignUpReqType;
+    req: any;
+    res: any;
+  }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SignUpReq', param.body);
 
     const { email: _email, token, ignore_subscribe } = param.req.body;
@@ -480,7 +476,7 @@ export class UsersService {
 
     this.validateEmailPattern(email);
 
-    let user = await User.getByEmail(email, ncMeta);
+    let user = await User.getByEmail(email);
 
     if (user) {
       if (token) {

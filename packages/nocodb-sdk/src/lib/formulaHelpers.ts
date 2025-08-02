@@ -26,6 +26,8 @@ type ClientTypeOrSqlUI =
   | 'snowflake'
   | SqlUI;
 
+export const API_DOC_PREFIX = 'https://nocodb.com/docs/product-docs/fields';
+
 export const StringOperators = ['||', '&'] as const;
 export const ArithmeticOperators = ['+', '-', '*', '/'] as const;
 export const ComparisonOperators = [
@@ -416,8 +418,7 @@ interface FormulaMeta {
 
 export const formulas: Record<string, FormulaMeta> = {
   AVG: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#avg',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#avg`,
     validation: {
       args: {
         min: 1,
@@ -434,8 +435,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   ADD: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#add',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#add`,
     validation: {
       args: {
         min: 1,
@@ -452,8 +452,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   DATEADD: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/date-functions#dateadd',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#dateadd`,
     validation: {
       args: {
         rqd: 3,
@@ -510,8 +509,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.DATE,
   },
   DATESTR: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/date-functions#datestr',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#datestr`,
     validation: {
       args: {
         rqd: 1,
@@ -523,8 +521,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   DAY: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/date-functions#day',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#day`,
     validation: {
       args: {
         rqd: 1,
@@ -536,8 +533,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   MONTH: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/date-functions#month',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#month`,
     validation: {
       args: {
         rqd: 1,
@@ -549,8 +545,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   YEAR: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/date-functions#year',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#year`,
     validation: {
       args: {
         rqd: 1,
@@ -562,8 +557,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   HOUR: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/date-functions#hour',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#hour`,
     validation: {
       args: {
         rqd: 1,
@@ -575,8 +569,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   DATETIME_DIFF: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/date-functions#datetime_diff',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#datetime_diff`,
 
     validation: {
       args: {
@@ -657,8 +650,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   AND: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/conditional-expressions#and',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/conditional-expressions#and`,
 
     validation: {
       args: {
@@ -671,8 +663,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.COND_EXP,
   },
   OR: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/conditional-expressions#or',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/conditional-expressions#or`,
 
     validation: {
       args: {
@@ -685,8 +676,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.COND_EXP,
   },
   CONCAT: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#concat',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#concat`,
 
     validation: {
       args: {
@@ -702,8 +692,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   TRIM: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#trim',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#trim`,
 
     validation: {
       args: {
@@ -720,8 +709,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   UPPER: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#upper',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#upper`,
 
     validation: {
       args: {
@@ -735,8 +723,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   LOWER: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#lower',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#lower`,
 
     validation: {
       args: {
@@ -750,8 +737,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   LEN: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#len',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#len`,
 
     validation: {
       args: {
@@ -765,8 +751,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   MIN: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#min',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#min`,
 
     validation: {
       args: {
@@ -780,8 +765,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   MAX: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#max',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#max`,
 
     validation: {
       args: {
@@ -795,8 +779,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   CEILING: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#ceiling',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#ceiling`,
 
     validation: {
       args: {
@@ -811,8 +794,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   FLOOR: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#floor',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#floor`,
 
     validation: {
       args: {
@@ -826,8 +808,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   ROUND: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#round',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#round`,
 
     validation: {
       args: {
@@ -847,8 +828,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   MOD: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#mod',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#mod`,
 
     validation: {
       args: {
@@ -863,8 +843,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   REPEAT: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#repeat',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#repeat`,
 
     validation: {
       args: {
@@ -892,8 +871,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   LOG: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#log',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#log`,
 
     validation: {
       args: {
@@ -907,8 +885,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   EXP: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#exp',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#exp`,
 
     validation: {
       args: {
@@ -922,8 +899,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   POWER: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#power',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#power`,
 
     validation: {
       args: {
@@ -937,8 +913,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   SQRT: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#sqrt',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#sqrt`,
 
     validation: {
       args: {
@@ -952,8 +927,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   ABS: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#abs',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#abs`,
 
     validation: {
       args: {
@@ -967,8 +941,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   NOW: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/date-functions#now',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#now`,
 
     validation: {
       args: {
@@ -982,8 +955,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.DATE,
   },
   REPLACE: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#replace',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#replace`,
 
     validation: {
       args: {
@@ -1001,8 +973,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   SEARCH: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#search',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#search`,
 
     validation: {
       args: {
@@ -1020,8 +991,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   INT: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#int',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#int`,
 
     validation: {
       args: {
@@ -1035,8 +1005,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
   },
   RIGHT: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#right',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#right`,
 
     validation: {
       args: {
@@ -1050,8 +1019,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   LEFT: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#left',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#left`,
 
     validation: {
       args: {
@@ -1065,8 +1033,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   SUBSTR: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#substr',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#substr`,
 
     validation: {
       args: {
@@ -1090,8 +1057,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   MID: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#mid',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#mid`,
 
     validation: {
       args: {
@@ -1109,8 +1075,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   ISBLANK: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#isblank',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#isblank`,
 
     validation: {
       args: {
@@ -1123,8 +1088,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.BOOLEAN,
   },
   ISNOTBLANK: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#isnotblank',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#isnotblank`,
 
     validation: {
       args: {
@@ -1137,8 +1101,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.BOOLEAN,
   },
   IF: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/conditional-expressions#if',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/conditional-expressions#if`,
 
     validation: {
       args: {
@@ -1178,8 +1141,7 @@ export const formulas: Record<string, FormulaMeta> = {
     },
   },
   SWITCH: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/conditional-expressions#switch',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/conditional-expressions#switch`,
 
     validation: {
       args: {
@@ -1224,8 +1186,7 @@ export const formulas: Record<string, FormulaMeta> = {
     },
   },
   URL: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#url',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#url`,
 
     validation: {
       args: {
@@ -1246,8 +1207,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   URLENCODE: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#urlencode',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#urlencode`,
 
     validation: {
       args: {
@@ -1264,8 +1224,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   WEEKDAY: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/date-functions#weekday',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/date-functions#weekday`,
 
     validation: {
       args: {
@@ -1329,8 +1288,7 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['TRUE()'],
     returnType: FormulaDataTypes.NUMERIC,
     // TODO: Add docs url
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/logical-functions#true',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/logical-functions#true`,
   },
 
   FALSE: {
@@ -1344,8 +1302,7 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['FALSE()'],
     returnType: FormulaDataTypes.NUMERIC,
     // TODO: Add docs url
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/logical-functions#false',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/logical-functions#false`,
   },
 
   ARRAYUNIQUE: {
@@ -1359,8 +1316,7 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'ARRAYUNIQUE(value)',
     examples: ['ARRAYUNIQUE({column})'],
     returnType: FormulaDataTypes.ARRAY,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/array-functions#arrayunique',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/array-functions#arrayunique`,
   },
 
   ARRAYSORT: {
@@ -1374,8 +1330,7 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'ARRAYSORT(value, [direction])',
     examples: ['ARRAYSORT({column}, "desc")'],
     returnType: FormulaDataTypes.ARRAY,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/array-functions#arraysort',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/array-functions#arraysort`,
   },
 
   ARRAYCOMPACT: {
@@ -1420,8 +1375,7 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'REGEX_MATCH(string, regex)',
     examples: ['REGEX_MATCH({title}, "abc.*")'],
     returnType: FormulaDataTypes.NUMERIC,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#regex_match',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#regex_match`,
   },
 
   REGEX_EXTRACT: {
@@ -1436,8 +1390,7 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'REGEX_EXTRACT(string, regex)',
     examples: ['REGEX_EXTRACT({title}, "abc.*")'],
     returnType: FormulaDataTypes.STRING,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#regex_extract',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#regex_extract`,
   },
   REGEX_REPLACE: {
     validation: {
@@ -1451,8 +1404,7 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'REGEX_MATCH(string, regex, replacement)',
     examples: ['REGEX_EXTRACT({title}, "abc.*", "abcd")'],
     returnType: FormulaDataTypes.STRING,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/string-functions#regex_replace',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#regex_replace`,
   },
   BLANK: {
     validation: {
@@ -1465,8 +1417,7 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['BLANK()'],
     returnType: FormulaDataTypes.NULL,
     // TODO: Add docs url
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/logical-functions#blank',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/logical-functions#blank`,
   },
   XOR: {
     validation: {
@@ -1481,8 +1432,7 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['XOR(TRUE(), FALSE(), TRUE())'],
     returnType: FormulaDataTypes.BOOLEAN,
     // TODO: Add docs url
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/logical-functions#xor',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/logical-functions#xor`,
   },
   EVEN: {
     validation: {
@@ -1496,8 +1446,7 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'EVEN(value)',
     examples: ['EVEN({column})'],
     returnType: FormulaDataTypes.NUMERIC,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#even',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#even`,
   },
   ODD: {
     validation: {
@@ -1511,8 +1460,7 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'ODD(value)',
     examples: ['ODD({column})'],
     returnType: FormulaDataTypes.NUMERIC,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#odd',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#odd`,
   },
   RECORD_ID: {
     validation: {
@@ -1539,8 +1487,7 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'COUNTA(value1, [value2, ...])',
     examples: ['COUNTA({field1}, {field2})'],
     returnType: FormulaDataTypes.NUMERIC,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#counta',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#counta`,
   },
   COUNT: {
     validation: {
@@ -1552,8 +1499,7 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'COUNT(value1, [value2, ...])',
     examples: ['COUNT({field1}, {field2})'],
     returnType: FormulaDataTypes.NUMERIC,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#count',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#count`,
   },
   COUNTALL: {
     validation: {
@@ -1565,8 +1511,7 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'COUNTALL(value1, [value2, ...])',
     examples: ['COUNTALL({field1}, {field2})'],
     returnType: FormulaDataTypes.NUMERIC,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#countall',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#countall`,
   },
   ROUNDDOWN: {
     validation: {
@@ -1581,8 +1526,7 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'ROUNDDOWN(value, [precision])',
     examples: ['ROUNDDOWN({field1})', 'ROUNDDOWN({field1}, 2)'],
     returnType: FormulaDataTypes.NUMERIC,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#rounddown',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#rounddown`,
   },
   ROUNDUP: {
     validation: {
@@ -1597,8 +1541,7 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'ROUNDUP(value, [precision])',
     examples: ['ROUNDUP({field1})', 'ROUNDUP({field1}, 2)'],
     returnType: FormulaDataTypes.NUMERIC,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#roundup',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#roundup`,
   },
   VALUE: {
     validation: {
@@ -1611,12 +1554,10 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'VALUE(value)',
     examples: ['VALUE({field})', 'VALUE("abc10000%")', 'VALUE("$10000")'],
     returnType: FormulaDataTypes.NUMERIC,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#value',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/numeric-functions#value`,
   },
   JSON_EXTRACT: {
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/json-functions#json_extract',
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/json-functions#json_extract`,
     validation: {
       args: {
         min: 2,

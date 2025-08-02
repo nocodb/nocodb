@@ -8,6 +8,7 @@ const ignoreKeys = new Set([
   'email_verification_token',
   'created_at',
   'updated_at',
+  'email_validation',
 ]);
 
 // remove password and other confidential details

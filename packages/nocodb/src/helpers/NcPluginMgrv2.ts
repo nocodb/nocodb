@@ -1,6 +1,5 @@
 import { PluginCategory } from 'nocodb-sdk';
 import { NcError } from './catchError';
-import { ValidatedEmailAdapter } from '~/helpers/emailValidation';
 import type {
   IEmailAdapter,
   IStorageAdapterV2,
@@ -10,6 +9,7 @@ import type {
   // XcStoragePlugin,
   // XcWebhookNotificationPlugin
 } from '~/types/nc-plugin';
+import { ValidatedEmailAdapter } from '~/helpers/emailValidation';
 import BackblazePluginConfig from '~/plugins/backblaze';
 import DiscordPluginConfig from '~/plugins/discord';
 import GcsPluginConfig from '~/plugins/gcs';

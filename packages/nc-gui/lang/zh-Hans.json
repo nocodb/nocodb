@@ -170,8 +170,8 @@
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
     "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
-    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
+    "upgradeLicenseToUsePrivateBasesSubtitle": "企业入门许可证不提供专用基地。升级许可证密钥即可开始使用。",
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "您最多只能向该单元上传 {limit} {filePlural} 。升级到 {plan} 计划可添加更多文件。"
   },
   "general": {
     "script": "脚本",
@@ -627,7 +627,7 @@
       "resetTablePermissions": "Reset table permissions",
       "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
       "resetFieldPermissions": "Reset field permissions",
-      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "resetFieldPermissionsDescription": "编辑权限将设置为编辑及以上。",
       "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }

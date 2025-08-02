@@ -17,7 +17,7 @@ import { isCursorInsideString } from '../../../utils/formulaUtils'
 
 interface Props {
   error?: boolean
-  editorError: { isError: boolean; message: string; position: { column: number; row: number; length: number } }
+  editorError?: { isError: boolean; message: string; position: { column: number; row: number; length: number } }
   value: string
   label?: string
   editorHeight?: string
@@ -678,7 +678,7 @@ const enableAI = async () => {
 // set monaco module markers every editor error change
 watch(
   () => props.editorError,
-  (value, _oldValue) => {
+  (value) => {
     if (value?.isError) {
       monacoEditor.setModelMarkers(editor.getModel()!, 'owner', [
         {
@@ -696,7 +696,7 @@ watch(
   },
 )
 const validationErrorDisplay = computed(() => {
-  return props.editorError.isError ? { validateStatus: 'success' } : validateInfos.formula_raw
+  return props.editorError?.isError ? { validateStatus: 'success' } : validateInfos.formula_raw
 })
 </script>
 

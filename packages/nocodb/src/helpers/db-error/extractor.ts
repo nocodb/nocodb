@@ -37,7 +37,10 @@ export class DBErrorExtractor {
     dbErrorLogger: this.logger,
   });
 
-  extractDbError(error: any, option?: { clientType: ClientType }) {
+  extractDbError(
+    error: any,
+    option?: { clientType?: ClientType; ignoreDefault?: boolean },
+  ) {
     const clientType = option?.clientType;
     let extractResult: DBErrorExtractResult;
     if (clientType) {
@@ -51,7 +54,7 @@ export class DBErrorExtractor {
         },
       );
     }
-    if (!extractResult) {
+    if (!extractResult && !option?.ignoreDefault) {
       extractResult = this.defaultExtractor.extract(error);
     }
     return extractResult;

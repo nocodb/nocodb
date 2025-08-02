@@ -1,10 +1,12 @@
-export type DBErrorExtractResult = {
-  message: string;
-  error: string;
-  details?: any;
-  code?: string;
-  httpStatus: number;
-} | void;
+export type DBErrorExtractResult =
+  | {
+      message: string;
+      error: string;
+      details?: any;
+      code?: string;
+      httpStatus: number;
+    }
+  | undefined;
 export interface IClientDbErrorExtractor {
   extract(error: any): DBErrorExtractResult;
 }

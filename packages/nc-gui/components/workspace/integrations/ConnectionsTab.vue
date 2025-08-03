@@ -262,7 +262,7 @@ onKeyStroke('ArrowDown', onDown)
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-6 nc-workspace-connections">
+  <div class="h-full flex flex-col gap-6 nc-workspace-connections nc-content-max-w mx-auto">
     <div class="flex flex-col justify-between gap-2 mx-1">
       <div class="text-sm font-normal text-gray-600">
         <div>

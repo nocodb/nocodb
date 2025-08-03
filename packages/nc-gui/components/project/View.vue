@@ -320,7 +320,7 @@ onMounted(() => {
   @apply pt-2 pb-3;
 }
 :deep(.ant-tabs-content) {
-  &:not(:has(.nc-project-overview-tab-content)) {
+  &:not(:has(.nc-project-overview-tab-content.ant-tabs-tabpane-active)) {
     @apply nc-content-max-w;
   }
 }

@@ -62,7 +62,7 @@ watch(
 </script>
 
 <template>
-  <div class="w-full flex p-6 nc-base-settings overflow-auto gap-8">
+  <div class="w-full flex p-6 nc-base-settings overflow-auto nc-scrollbar-thin gap-8">
     <!-- Left Pane -->
     <div class="flex flex-col">
       <div class="h-full flex flex-col gap-1 w-60">

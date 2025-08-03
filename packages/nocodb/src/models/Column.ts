@@ -1675,19 +1675,12 @@ export default class Column<T = any> implements ColumnType {
 
       for (const linkCol of ltarColumns) {
         refTableIds.add((linkCol as LinksColumn).fk_related_model_id);
-        //
-        // await View.clearSingleQueryCache(
-        //   context,
-        //   (linkCol as LinksColumn).fk_related_model_id,
-        //   null,
-        //   ncMeta,
-        // );
       }
     }
 
     const relationColIds = new Set<string>();
 
-    // get ltar relation columns
+    // get LTAR relation columns
     {
       if (oldCol.pv) {
         // Get LTAR columns in which current column is referenced as foreign key
@@ -1712,7 +1705,7 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
-    // get ltar relation column id of Lookup
+    // get LTAR/Links relation column id of Lookup
     {
       const lkColumns = await ncMeta.metaList2(
         context.workspace_id,
@@ -1722,7 +1715,7 @@ export default class Column<T = any> implements ColumnType {
           xcCondition: {
             _and: [
               {
-                fk_lookup_column_id: { eq: oldCol.fk_model_id },
+                fk_lookup_column_id: { eq: oldCol.id },
               },
             ],
           },
@@ -1734,7 +1727,7 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
-    // get ltar relation column id of Lookup
+    // get LTAR/Links relation column id of Rollup
     {
       const rlColumns = await ncMeta.metaList2(
         context.workspace_id,
@@ -1744,7 +1737,7 @@ export default class Column<T = any> implements ColumnType {
           xcCondition: {
             _and: [
               {
-                fk_rollup_column_id: { eq: oldCol.fk_model_id },
+                fk_rollup_column_id: { eq: oldCol.id },
               },
             ],
           },

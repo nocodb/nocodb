@@ -227,8 +227,8 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0(antlr4ng-cli@1.0.7)
       nocodb-sdk:
-        specifier: workspace:^
-        version: link:../nocodb-sdk
+        specifier: 0.264.3
+        version: 0.264.3(debug@4.4.1)
       papaparse:
         specifier: ^5.5.2
         version: 5.5.3
@@ -832,11 +832,11 @@ importers:
         specifier: ^3.3.8
         version: 3.3.11
       nc-lib-gui:
-        specifier: 0.264.2
-        version: 0.264.2
+        specifier: 0.264.3
+        version: 0.264.3
       nocodb-sdk:
-        specifier: workspace:^
-        version: link:../nocodb-sdk
+        specifier: 0.264.3
+        version: 0.264.3(debug@4.4.1)
       nodemailer:
         specifier: ^6.10.0
         version: 6.10.1
@@ -11037,8 +11037,8 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  nc-lib-gui@0.264.2:
-    resolution: {integrity: sha512-LlPZ7xEWQok/NUg4psdh3hbVgnYcpbsIK6GAth6pUd6p0D5FxWq4g0m8QRK9ZImPzMsy65dp75/IduzXu5OEpA==}
+  nc-lib-gui@0.264.3:
+    resolution: {integrity: sha512-/+lMu71alNZ/9QTVsMJSM7hRPmaCIjX038aY5O1MmHi7HTvyU9WzOu2CCfgJtG8oz//N1dj4U5xf3jjzb9bpaQ==}
 
   negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
@@ -11096,6 +11096,10 @@ packages:
   nock@14.0.6:
     resolution: {integrity: sha512-67n1OfusL/ON57fwFJ6ZurSJa/msYVQmqlz9rCel2HJYj4Zeb8v9TcmRdEW+PV2i9Fm2358umSvzZukhw/E8DA==}
     engines: {node: '>=18.20.0 <20 || >=20.12.1'}
+
+  nocodb-sdk@0.264.3:
+    resolution: {integrity: sha512-lk0r6f3GCvH3pUJByRjNylT2qHBiVbS25mj5THUlod+glLgjPGm/X1+XTyLGWklLHb7f/PocGI74F82gfndhnw==}
+    engines: {node: '>=18'}
 
   node-abi@3.75.0:
     resolution: {integrity: sha512-OhYaY5sDsIka7H7AtijtI9jwGYLyl29eQn/W623DiN/MIv5sUqc4g7BIDThX+gb7di9f6xK02nkp8sdfFWZLTg==}
@@ -27111,7 +27115,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  nc-lib-gui@0.264.2:
+  nc-lib-gui@0.264.3:
     dependencies:
       express: 4.21.2
     transitivePeerDependencies:
@@ -27271,6 +27275,16 @@ snapshots:
       '@mswjs/interceptors': 0.39.4
       json-stringify-safe: 5.0.1
       propagate: 2.0.1
+
+  nocodb-sdk@0.264.3(debug@4.4.1):
+    dependencies:
+      axios: 1.9.0(debug@4.4.1)
+      chevrotain: 10.5.0
+      dayjs: 1.11.13
+      jsep: 1.4.0
+      validator: 13.15.15
+    transitivePeerDependencies:
+      - debug
 
   node-abi@3.75.0:
     dependencies:

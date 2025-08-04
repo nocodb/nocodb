@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isSystemColumn } from 'nocodb-sdk'
+import { isSystemColumn, isAttachment, isQrCode, isBarcode, isButton, type ColumnType } from 'nocodb-sdk'
 
 const emit = defineEmits<{
   'update:category': [category: any]
@@ -46,13 +46,13 @@ watch([() => selectedWidget.value?.fk_model_id], ([value], [oldValue]) => {
     <div class="text-nc-content-gray text-bodyBold">Category</div>
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Field</label>
-      <NSelectField
-        :key="modelId"
+      <NcListColumnSelector
         v-model:value="selectedFieldId"
         :disabled="!modelId"
-        :table-id="modelId"
+        :table-id="modelId!"
         :filter-column="filterField"
         @update:value="handleChange"
+        disable-label
       />
     </div>
 

@@ -21,6 +21,11 @@ export class ScriptExecutionProcessor {
       return;
     }
 
+    if (!process.env.E2B_TEMPLATE_ID) {
+      this.logger.error('E2B_TEMPLATE_ID is not set');
+      return;
+    }
+
     const script = await Script.get(context, scriptId);
 
     const sendLog = (log) => {
@@ -41,11 +46,11 @@ export class ScriptExecutionProcessor {
       tableId,
       viewId,
     );
-    const sbx = await Sandbox.create({
+
+    const templateID = process.env.E2B_TEMPLATE_ID;
+    const sbx = await Sandbox.create(templateID, {
       apiKey: process.env.E2B_API_KEY,
     });
-
-    await sbx.commands.run('npm install nc-sdk-v2');
 
     await sbx.runCode(sandboxCode, {
       language: 'javascript',

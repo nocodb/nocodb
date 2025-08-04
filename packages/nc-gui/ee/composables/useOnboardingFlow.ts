@@ -1,38 +1,51 @@
+export interface OnboardingOptionType {
+  value: string
+  icon?: IconMapKey
+  iconColor?: string
+  /**
+   * `Undefined` will be considered as `iconMap`
+   */
+  iconType?: 'indexedStepProgressBar' | 'iconMap'
+}
+
+export interface OnboardingRightSectionType {
+  themeColor?: 'brand' | 'orange' | 'green' | 'purple' | 'pink'
+  moscot?: 'welcome' | 'collaboration' | 'tableGrid'
+  imageName?: 'grid' | 'gallery' | 'calendar' | 'kanban'
+}
+
+export interface OnboardingQuestionType {
+  id: number
+  question: string
+  inputType: 'singleSelect' | 'multiSelect'
+  /**
+   * MinSelection to enable next button if it is multiSelect input type
+   */
+  minSelection?: number
+  options?: OnboardingOptionType[] | (() => OnboardingOptionType[])
+  rightSection: OnboardingRightSectionType | (() => OnboardingRightSectionType)
+}
+
 export const useOnboardingFlow = createSharedComposable(() => {
   const { $e } = useNuxtApp()
+
+  const router = useRouter()
+
+  const route = router.currentRoute
+
+  /**
+   * If true, the onboarding flow will be shown in home page - `/`
+   */
+  const showOnboardingFlowLocalState = ref(true)
+
+  const showOnboardingFlow = computed(() => {
+    return showOnboardingFlowLocalState.value && route.value.name === 'index'
+  })
 
   // Timestamp when the onboarding flow is started
   const startedAt = ref()
 
   const formStore = ref<{ [questionId: string]: string | string[] }>({})
-
-  interface OnboardingOptionType {
-    value: string
-    icon?: IconMapKey
-    iconColor?: string
-    /**
-     * `Undefined` will be considered as `iconMap`
-     */
-    iconType?: 'indexedStepProgressBar' | 'iconMap'
-  }
-
-  interface OnboardingRightSectionType {
-    themeColor?: 'brand' | 'orange' | 'green' | 'purple' | 'pink'
-    moscot?: 'welcome' | 'collaboration' | 'tableGrid'
-    imageName?: 'grid' | 'gallery' | 'calendar' | 'kanban'
-  }
-
-  interface OnboardingQuestionType {
-    id: number
-    question: string
-    inputType: 'singleSelect' | 'multiSelect'
-    /**
-     * MinSelection to enable next button if it is multiSelect input type
-     */
-    minSelection?: number
-    options?: OnboardingOptionType[] | (() => OnboardingOptionType[])
-    rightSection: OnboardingRightSectionType | (() => OnboardingRightSectionType)
-  }
 
   const questions = computed<OnboardingQuestionType[]>(() => {
     return [
@@ -133,6 +146,12 @@ export const useOnboardingFlow = createSharedComposable(() => {
     }, {} as { [questionId: number]: OnboardingQuestionType })
   })
 
+  const steps = computed(() => {
+    return ncArrayFrom(Math.ceil(questions.value.length / 2)).map((_, index) => index + 1)
+  })
+
+  const stepper = useStepper(steps)
+
   const onInitOnboardingFlow = async () => {
     startedAt.value = Date.now()
   }
@@ -151,14 +170,20 @@ export const useOnboardingFlow = createSharedComposable(() => {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
   }
 
-  const onCompleteOnboardingFlow = async () => {
+  const onCompleteOnboardingFlow = async (skipped: boolean = false) => {
     /**
      * Time taken in minutes (mm:ss)
      */
     const timeTaken = formatTimeSpent(startedAt.value, Date.now())
 
-    console.log('timeTaken', timeTaken)
+    console.log('timeTaken', timeTaken, skipped)
+
+    if (skipped) {
+      showOnboardingFlowLocalState.value = false
+
+      // window.location.reload()
+    }
   }
 
-  return { onInitOnboardingFlow, onCompleteOnboardingFlow, questions, questionsMap }
+  return { showOnboardingFlow, questions, questionsMap, stepper, onInitOnboardingFlow, onCompleteOnboardingFlow }
 })

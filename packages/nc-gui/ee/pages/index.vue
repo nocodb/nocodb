@@ -12,6 +12,8 @@ const route = router.currentRoute
 
 const { ncNavigateTo } = useGlobal()
 
+const { showOnboardingFlow } = useOnboardingFlow()
+
 const workspaceStore = useWorkspace()
 const { populateWorkspace } = workspaceStore
 const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId, activeWorkspace, isWorkspacesLoading } =
@@ -72,7 +74,7 @@ const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) 
 }
 
 watch(
-  [activeWorkspaceId, () => !!activeWorkspace.value],
+  [activeWorkspaceId, () => !!activeWorkspace.value, () => showOnboardingFlow.value],
   async ([newId, newWorkspace], [oldId]) => {
     if (newId === 'nc') {
       workspaceStore.setLoadingState(false)
@@ -93,6 +95,12 @@ watch(
       basesStore.clearBases()
       collaborators.value = []
       // return
+    }
+
+    console.log('showOnboardignFlow.value', route.value)
+    // If show onboarding flow is true, don't navigate to workspace
+    if (showOnboardingFlow.value) {
+      return
     }
 
     if (newWorkspace && lastPopulatedWorkspaceId.value !== newId && (newId || workspaceStore.workspacesList.length)) {
@@ -170,7 +178,9 @@ watch(
 
 <template>
   <div>
-    <NuxtLayout name="dashboard">
+    <AuthOnboarding v-if="showOnboardingFlow" />
+
+    <NuxtLayout v-else name="dashboard">
       <template #sidebar>
         <DashboardSidebar />
       </template>

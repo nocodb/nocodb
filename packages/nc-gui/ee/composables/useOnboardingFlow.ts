@@ -30,6 +30,10 @@ export interface OnboardingQuestionType {
   minSelection?: number
   options?: OnboardingOptionType[] | ((state?: { [questionId: string]: string | string[] }) => OnboardingOptionType[])
   rightSection: OnboardingRightSectionType | ((state?: { [questionId: string]: string | string[] }) => OnboardingRightSectionType)
+  iconSize?: {
+    width: number
+    height: number
+  }
 }
 
 export const useOnboardingFlow = createSharedComposable(() => {
@@ -85,6 +89,10 @@ export const useOnboardingFlow = createSharedComposable(() => {
           themeColor: 'orange',
           moscot: 'moscotWelcomeOrange',
           imageName: 'grid',
+        },
+        iconSize: {
+          width: 40,
+          height: 40,
         },
       },
       {

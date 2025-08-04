@@ -40,6 +40,7 @@ const isOptionSelected = (option: OnboardingOptionType) => {
       <template v-for="option of options" :key="option.value">
         <AuthOnboardingQuestionOption
           :option="option"
+          :icon-size="question.iconSize"
           @click="onSelectOption(option, question, questionIndex)"
           :class="{
             '!justify-center': !anyOptionHasIcon,

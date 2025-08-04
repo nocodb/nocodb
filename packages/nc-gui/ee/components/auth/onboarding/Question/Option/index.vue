@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 interface Props {
   option: OnboardingOptionType
+  iconSize?: OnboardingQuestionType['iconSize']
 }
 
 const props = withDefaults(defineProps<Props>(), {})
@@ -9,8 +10,13 @@ const { option } = toRefs(props)
 </script>
 
 <template>
-  <div class="nc-onboarding-option">
-    <AuthOnboardingQuestionOptionIcon :option="option" />
+  <div
+    class="nc-onboarding-option"
+    :class="{
+      '!px-2': option.iconColor,
+    }"
+  >
+    <AuthOnboardingQuestionOptionIcon :option="option" :icon-size="iconSize" />
     {{ option.value }}
   </div>
 </template>

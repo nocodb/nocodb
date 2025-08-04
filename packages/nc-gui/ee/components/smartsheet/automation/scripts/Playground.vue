@@ -57,7 +57,7 @@ const resolveExternalInput = (id: string, value: string | Record<string, any> | 
   const { activeExecutions } = useScriptExecutor()
 
   // Find the execution that contains this input item
-  for (const [scriptId, execution] of activeExecutions.value) {
+  for (const [_, execution] of activeExecutions.value) {
     const result = findInputItemInPlayground(execution.playground, id)
     if (result) {
       const { item } = result

@@ -28,8 +28,8 @@ export interface OnboardingQuestionType {
    * MinSelection to enable next button if it is multiSelect input type
    */
   minSelection?: number
-  options?: OnboardingOptionType[] | (() => OnboardingOptionType[])
-  rightSection: OnboardingRightSectionType | (() => OnboardingRightSectionType)
+  options?: OnboardingOptionType[] | ((state?: { [questionId: string]: string | string[] }) => OnboardingOptionType[])
+  rightSection: OnboardingRightSectionType | ((state?: { [questionId: string]: string | string[] }) => OnboardingRightSectionType)
 }
 
 export const useOnboardingFlow = createSharedComposable(() => {
@@ -89,12 +89,12 @@ export const useOnboardingFlow = createSharedComposable(() => {
       },
       {
         id: 2,
-        question: 'Hey! What do you plan on using NocoDB for?',
+        question: 'What best describes your role currently?',
         inputType: 'singleSelect',
-        options: () => {
-          const firstQuestionAns = formState.value[1]
+        options: (state = formState.value) => {
+          const firstQuestionAns = state[1] ?? ''
 
-          if (firstQuestionAns === 'personal') {
+          if (searchCompare('personal', firstQuestionAns as string)) {
             return [
               'Undergraduate student',
               'Graduate student',
@@ -109,7 +109,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
             ].map((value) => ({ value }))
           }
 
-          if (firstQuestionAns === 'school') {
+          if (searchCompare('school', firstQuestionAns as string)) {
             return ['Undergraduate student', 'Graduate student', 'Faculty', 'Other'].map((value) => ({ value }))
           }
 
@@ -123,15 +123,18 @@ export const useOnboardingFlow = createSharedComposable(() => {
             'Business Owner',
           ].map((value) => ({ value }))
         },
-        rightSection: () => {
+        rightSection: (state = formState.value) => {
           let themeColor: OnboardingRightSectionType['themeColor'] = 'orange'
           let moscot: OnboardingRightSectionType['moscot'] = 'moscotWelcomeOrange'
-          if (formState.value[1] === 'personal') {
+
+          const firstQuestionAns = state[1] ?? ''
+
+          if (searchCompare('personal', firstQuestionAns as string)) {
             themeColor = 'green'
             moscot = 'moscotWelcomeGreen'
           }
 
-          if (formState.value[1] === 'school') {
+          if (searchCompare('school', firstQuestionAns as string)) {
             themeColor = 'purple'
             moscot = 'moscotWelcomePurple'
           }
@@ -172,8 +175,60 @@ export const useOnboardingFlow = createSharedComposable(() => {
     return index
   })
 
+  const visibleQuestions = computed(() => {
+    let currentVisibleQuestions: OnboardingQuestionType[] = []
+    const index = (stepper.index.value + 1) * 2 - 1
+
+    const question = questions.value[index]!
+    if (ncIsUndefined(formState.value[question.id])) {
+      currentVisibleQuestions.push(questions.value[index - 1]!)
+
+      return currentVisibleQuestions
+    }
+
+    currentVisibleQuestions.push(question)
+
+    currentVisibleQuestions.unshift(questions.value[index - 1]!)
+
+    return currentVisibleQuestions
+  })
+
   const onInitOnboardingFlow = async () => {
     startedAt.value = Date.now()
+  }
+
+  const onSelectOption = (option: OnboardingOptionType, question: OnboardingQuestionType, questionIndex: number) => {
+    if (question.inputType === 'singleSelect') {
+      formState.value[question.id] = option.value
+    }
+
+    if (question.inputType === 'multiSelect') {
+      const currentValue = (formState.value[question.id] || []) as string[]
+
+      if (currentValue.includes(option.value)) {
+        formState.value[question.id] = currentValue.filter((value) => value !== option.value)
+      } else {
+        formState.value[question.id] = [...currentValue, option.value]
+      }
+    }
+
+    const nextQuestion = questions.value[questionIndex + 1]
+
+    if (!nextQuestion) return
+
+    if (questionIndex % 2 !== 0) {
+      if (!stepper.isLast) {
+        if (question.inputType === 'singleSelect') {
+          stepper.goToNext()
+        } else if (question.inputType === 'multiSelect') {
+          if ((formState.value[question.id]?.length ?? 0) >= (nextQuestion.minSelection ?? 0)) {
+            stepper.goToNext()
+          }
+        }
+      }
+    } else if (ncIsUndefined(formState.value[nextQuestion.id]) || question.id === 1) {
+      formState.value[nextQuestion.id] = nextQuestion.inputType === 'singleSelect' ? '' : []
+    }
   }
 
   /**
@@ -214,5 +269,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
     onInitOnboardingFlow,
     onCompleteOnboardingFlow,
     lastVisibleQuestionIndex,
+    visibleQuestions,
+    onSelectOption,
   }
 })

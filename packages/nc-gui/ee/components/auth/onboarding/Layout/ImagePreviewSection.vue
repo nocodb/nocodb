@@ -13,7 +13,7 @@ import moscotCollaboration from '~/assets/img/moscot/collabe.png'
 import moscotGridTableOrange from '~/assets/img/moscot/grid-table-orange.png'
 import moscotGridTableBrand from '~/assets/img/moscot/grid-table-brand.png'
 
-const { questions, lastVisibleQuestionIndex } = useOnboardingFlow()
+const { questions, lastVisibleQuestionIndex, formState } = useOnboardingFlow()
 
 const currentQuestion = computed(() => questions.value[lastVisibleQuestionIndex.value]!)
 
@@ -27,7 +27,7 @@ const rightSectionInfo = computed<OnboardingRightSectionType>(() => {
   }
 
   return ncIsFunction(currentQuestion.value.rightSection)
-    ? currentQuestion.value.rightSection()
+    ? currentQuestion.value.rightSection(formState.value)
     : currentQuestion.value.rightSection
 })
 

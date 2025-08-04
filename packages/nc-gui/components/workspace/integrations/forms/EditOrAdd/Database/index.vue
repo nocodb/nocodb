@@ -331,7 +331,7 @@ function applyConfigFix(fix: any) {
 
 const testConnectionError = ref()
 
-const testConnection = async (retry = 0, initialConfig = null) => {
+const testConnection = async (retry = 0, initialConfig = null, initialError = null) => {
   try {
     await validate()
   } catch (e) {
@@ -373,7 +373,7 @@ const testConnection = async (retry = 0, initialConfig = null) => {
   } catch (e: any) {
     // take a copy of the current config
     const config = initialConfig || JSON.parse(JSON.stringify(formState.value.dataSource))
-    await handleConnectionError(e, retry, config)
+    await handleConnectionError(e, retry, config, initialError || e)
   } finally {
     testingConnection.value = false
   }
@@ -381,26 +381,22 @@ const testConnection = async (retry = 0, initialConfig = null) => {
 
 const MAX_CONNECTION_RETRIES = 3
 
-async function handleConnectionError(e: any, retry: number, initialConfig: any): Promise<void> {
-  if (retry >= MAX_CONNECTION_RETRIES) {
-    testSuccess.value = false
-    testConnectionError.value = await extractSdkResponseErrorMsg(e)
-    // reset the connection config to initial state
-    formState.value.dataSource = initialConfig
-    return
-  }
-
-  const fix = generateConfigFix(e)
-
-  if (fix) {
-    applyConfigFix(fix)
-    // Retry the connection after applying the fix
-    return testConnection(retry + 1, initialConfig)
+async function handleConnectionError(e: any, retry: number, initialConfig: any, initialError: any): Promise<void> {
+  if (retry < MAX_CONNECTION_RETRIES) {
+    const fix = generateConfigFix(e)
+    if (fix) {
+      applyConfigFix(fix)
+      // Retry the connection after applying the fix
+      return testConnection(retry + 1, initialConfig, initialError)
+    }
   }
 
   // If no fix is available, or fix did not resolve the issue
+  // then reset to initial state
+  formState.value.dataSource = initialConfig || formState.value.dataSource
   testSuccess.value = false
-  testConnectionError.value = await extractSdkResponseErrorMsg(e)
+  // extract error message from initial call
+  testConnectionError.value = await extractSdkResponseErrorMsg(initialError || e)
 }
 
 const handleImportURL = async () => {

@@ -115,7 +115,7 @@ export function _wherePk(
         }
       }
       where[primaryKeys[i].column_name] = ids[i];
-      return where;
+      continue;
     }
 
     // Cast the id to string.

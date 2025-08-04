@@ -23,6 +23,7 @@ import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stat
 import { DataExportCleanUpProcessor } from '~/modules/jobs/jobs/data-export-clean-up/data-export-clean-up.processor';
 import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.processor';
 import { ScriptExecutionProcessor } from '~/modules/jobs/jobs/script-execution.processor';
+import { ActionExecutionProcessor } from '~/modules/jobs/jobs/action-execution.processor';
 
 @Injectable()
 export class JobsMap extends JobsMapCE {
@@ -50,6 +51,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly cloudDbMigrateProcessor: CloudDbMigrateProcessor,
     protected readonly attachmentUrlUploadProcessor: AttachmentUrlUploadProcessor,
     protected readonly scriptExecutionProcessor: ScriptExecutionProcessor,
+    protected readonly actionExecutionProcessor: ActionExecutionProcessor,
   ) {
     super(
       duplicateProcessor,
@@ -122,6 +124,9 @@ export class JobsMap extends JobsMapCE {
       },
       [JobTypes.ExecuteScript]: {
         this: this.scriptExecutionProcessor,
+      },
+      [JobTypes.ExecuteAction]: {
+        this: this.actionExecutionProcessor,
       },
     };
   }

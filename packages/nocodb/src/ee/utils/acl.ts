@@ -230,6 +230,9 @@ const permissionScopes = {
     // Webhooks
     'hookTrigger',
 
+    // Actions
+    'triggerAction',
+
     // AI
     'aiUtils',
     'aiData',
@@ -511,6 +514,7 @@ const rolePermissions:
       baseSchema: true,
 
       hookTrigger: true,
+      triggerAction: true,
 
       // Sync
       triggerSync: true,

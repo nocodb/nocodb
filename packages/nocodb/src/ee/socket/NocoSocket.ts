@@ -41,54 +41,59 @@ export default class NocoSocket {
   }
 
   private static async subscribeEvent(socket: NcSocket, event: string) {
-    const eventHelper = event.split(':');
-    if (eventHelper.length < 3) {
-      this.logger.warn(`Invalid event format: ${event}`);
-      return;
-    }
+    try {
+      const eventHelper = event.split(':');
+      if (eventHelper.length < 3) {
+        this.logger.warn(`Invalid event format: ${event}`);
+        return;
+      }
 
-    const user = socket.user;
-    if (!user || !user.id) {
-      this.logger.warn(`User not authenticated for event: ${event}`);
-      return;
-    }
+      const user = socket.user;
+      if (!user || !user.id) {
+        this.logger.warn(`User not authenticated for event: ${event}`);
+        return;
+      }
 
-    const eventType = eventHelper[0];
-    const workspaceId = eventHelper[1];
-    const baseId = eventHelper[2];
+      const eventType = eventHelper[0];
+      const workspaceId = eventHelper[1];
+      const baseId = eventHelper[2];
 
-    const userWithRole = await User.getWithRoles(
-      {
-        workspace_id: workspaceId,
-        base_id: baseId,
-      },
-      user.id,
-      {
-        user,
-        workspaceId,
-        baseId,
-      },
-    );
-
-    // Check permissions based on event type
-    if (
-      [
-        EventType.DATA_EVENT,
-        EventType.DASHBOARD_EVENT,
-        EventType.WIDGET_EVENT,
-        EventType.SCRIPT_EVENT,
-      ].includes(eventType as EventType) &&
-      userWithRole.base_roles?.[ProjectRoles.NO_ACCESS]
-    ) {
-      this.logger.warn(
-        `User ${user.id} has no access to base ${baseId} in workspace ${workspaceId}`,
+      const userWithRole = await User.getWithRoles(
+        {
+          workspace_id: workspaceId,
+          base_id: baseId,
+        },
+        user.id,
+        {
+          user,
+          workspaceId,
+          baseId,
+        },
       );
-      return;
-    }
 
-    // Use native Socket.IO rooms
-    socket.join(event);
-    this.logger.log(`Socket ${socket.id} joined room ${event}`);
+      // Check permissions based on event type
+      if (
+        [
+          EventType.DATA_EVENT,
+          EventType.DASHBOARD_EVENT,
+          EventType.WIDGET_EVENT,
+          EventType.SCRIPT_EVENT,
+        ].includes(eventType as EventType) &&
+        userWithRole.base_roles?.[ProjectRoles.NO_ACCESS]
+      ) {
+        this.logger.warn(
+          `User ${user.id} has no access to base ${baseId} in workspace ${workspaceId}`,
+        );
+        return;
+      }
+
+      // Use native Socket.IO rooms
+      socket.join(event);
+      this.logger.log(`Socket ${socket.id} joined room ${event}`);
+    } catch (error) {
+      this.logger.error(`Error subscribing to event ${event}:`, error);
+      sendConnectionError(socket, error, 'SUBSCRIBE_ERROR');
+    }
   }
 
   public static broadcastEvent<T extends EventType>(

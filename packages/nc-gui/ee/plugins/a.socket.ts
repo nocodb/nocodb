@@ -21,15 +21,23 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         transports: ['websocket'],
       })
 
-      socket.on('connect', () => {
-        // Emit handshake event to set up user context
+      const handshake = (backoff = 0) => {
         socket.emit('handshake', { token }, (response: any) => {
-          if (response.status === 'ok') {
-            console.log('Handshake successful:', response.message)
-          } else {
-            console.error('Handshake failed:', response.message)
+          if (response.status !== 'ok') {
+            console.error('Handshake failed')
+            if (backoff < 5) {
+              setTimeout(() => handshake(backoff + 1), backoff * 1000)
+            } else {
+              console.error('Max handshake attempts reached, disconnecting socket')
+              socket.disconnect()
+            }
           }
         })
+      }
+
+      socket.on('connect', () => {
+        // Emit handshake event to set up user context
+        handshake()
       })
 
       socket.on('connect_error', () => {

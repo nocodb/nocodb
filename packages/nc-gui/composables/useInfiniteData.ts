@@ -3,6 +3,7 @@ import {
   type Api,
   type ColumnType,
   type DataPayload,
+  EventType,
   type FilterType,
   type LinkToAnotherRecordType,
   NcApiVersion,
@@ -2026,15 +2027,23 @@ export function useInfiniteData(args: {
     }
   })
 
+  const activeChannel = ref<string | null>(null)
+
   watch(
     meta,
     (newMeta, oldMeta) => {
       if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
         if (oldMeta?.id && oldMeta.id === newMeta.id) return
 
-        $ncSocket.subscribe(`event-data:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`)
+        if (activeChannel.value) {
+          $ncSocket.offMessage(activeChannel.value)
+        }
 
-        $ncSocket.onMessage(`event-data:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`, (data: DataPayload) => {
+        activeChannel.value = `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`
+
+        $ncSocket.subscribe(activeChannel.value)
+
+        $ncSocket.onMessage(activeChannel.value, (data: DataPayload) => {
           const { id, action, payload, before } = data
 
           if (action === 'add') {

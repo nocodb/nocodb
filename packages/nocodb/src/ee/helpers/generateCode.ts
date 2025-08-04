@@ -593,10 +593,8 @@ function generateStepAPI() {
   const step = (config) => {
     // End previous step if running
     if (__nc_currentStepId) {
-      self.postMessage({
-        type: '${ScriptActionType.WORKFLOW_STEP_END}',
-        payload: { stepId: __nc_currentStepId }
-      });
+      originalConsoleLog(createStructuredMessage('${ScriptActionType.WORKFLOW_STEP_END}', { stepId: __nc_currentStepId }));
+      __nc_currentStepId = null;
     }
     
     // Generate new step ID

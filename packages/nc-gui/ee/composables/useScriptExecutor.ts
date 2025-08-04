@@ -570,8 +570,10 @@ export const useScriptExecutor = createSharedComposable(() => {
 
           if (v3Row) {
             runCustomCode = `${runCustomCode}
-            const ____table = base.getTable('${activeTableId.value}')
-            cursor.row = new NocoDBRecord(${JSON.stringify(v3Row)}, ____table)
+            if (${v3Row ? 'true' : 'false'}) {
+              const ____table = base.getTable('${activeTableId.value}')
+              cursor.row = new NocoDBRecord(${JSON.stringify(v3Row)}, ____table)
+            }
     `
           }
 

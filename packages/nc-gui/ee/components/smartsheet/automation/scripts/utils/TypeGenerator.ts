@@ -2724,7 +2724,7 @@ declare interface Cursor {
    * The currently selected row data, if any.
    * Will be null if not executed as actions in a button.
    */
-  readonly row: Record<string, unknown> | null
+  readonly row: NocoDBRecord | null
 }
 
 /**

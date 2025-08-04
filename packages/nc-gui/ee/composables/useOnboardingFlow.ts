@@ -10,7 +10,13 @@ export interface OnboardingOptionType {
 
 export interface OnboardingRightSectionType {
   themeColor?: 'brand' | 'orange' | 'green' | 'purple' | 'pink'
-  moscot?: 'welcome' | 'collaboration' | 'tableGrid'
+  moscot?:
+    | 'moscotWelcomeGreen'
+    | 'moscotWelcomeOrange'
+    | 'moscotWelcomePurple'
+    | 'moscotCollaboration'
+    | 'moscotGridTableBrand'
+    | 'moscotGridTableOrange'
   imageName?: 'grid' | 'gallery' | 'calendar' | 'kanban'
 }
 
@@ -45,7 +51,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
   // Timestamp when the onboarding flow is started
   const startedAt = ref()
 
-  const formStore = ref<{ [questionId: string]: string | string[] }>({})
+  const formState = ref<{ [questionId: string]: string | string[] }>({})
 
   const questions = computed<OnboardingQuestionType[]>(() => {
     return [
@@ -77,7 +83,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
         ],
         rightSection: {
           themeColor: 'orange',
-          moscot: 'welcome',
+          moscot: 'moscotWelcomeOrange',
           imageName: 'grid',
         },
       },
@@ -86,7 +92,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
         question: 'Hey! What do you plan on using NocoDB for?',
         inputType: 'singleSelect',
         options: () => {
-          const firstQuestionAns = formStore.value[1]
+          const firstQuestionAns = formState.value[1]
 
           if (firstQuestionAns === 'personal') {
             return [
@@ -119,18 +125,20 @@ export const useOnboardingFlow = createSharedComposable(() => {
         },
         rightSection: () => {
           let themeColor: OnboardingRightSectionType['themeColor'] = 'orange'
-
-          if (formStore.value[1] === 'personal') {
+          let moscot: OnboardingRightSectionType['moscot'] = 'moscotWelcomeOrange'
+          if (formState.value[1] === 'personal') {
             themeColor = 'green'
+            moscot = 'moscotWelcomeGreen'
           }
 
-          if (formStore.value[1] === 'school') {
+          if (formState.value[1] === 'school') {
             themeColor = 'purple'
+            moscot = 'moscotWelcomePurple'
           }
 
           return {
             themeColor,
-            moscot: 'welcome',
+            moscot,
             imageName: 'grid',
           }
         },
@@ -151,6 +159,18 @@ export const useOnboardingFlow = createSharedComposable(() => {
   })
 
   const stepper = useStepper(steps)
+
+  const lastVisibleQuestionIndex = computed(() => {
+    const index = (stepper.index.value + 1) * 2 - 1
+
+    const question = questions.value[index]!
+
+    if (ncIsUndefined(formState.value[question.id])) {
+      return index - 1
+    }
+
+    return index
+  })
 
   const onInitOnboardingFlow = async () => {
     startedAt.value = Date.now()
@@ -185,5 +205,14 @@ export const useOnboardingFlow = createSharedComposable(() => {
     }
   }
 
-  return { showOnboardingFlow, questions, questionsMap, stepper, onInitOnboardingFlow, onCompleteOnboardingFlow }
+  return {
+    showOnboardingFlow,
+    questions,
+    questionsMap,
+    formState,
+    stepper,
+    onInitOnboardingFlow,
+    onCompleteOnboardingFlow,
+    lastVisibleQuestionIndex,
+  }
 })

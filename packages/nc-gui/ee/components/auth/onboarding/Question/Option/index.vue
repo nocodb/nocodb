@@ -17,7 +17,17 @@ const { option } = toRefs(props)
     }"
   >
     <AuthOnboardingQuestionOptionIcon :option="option" :icon-size="iconSize" />
-    {{ option.value }}
+    <div v-if="option.description" class="flex flex-col gap-1">
+      <div class="text-bodyDefaultSmBold text-nc-content-gray-subtle">
+        {{ option.value }}
+      </div>
+      <div class="text-bodyDefaultSm text-nc-content-gray-subtle2">
+        {{ option.description }}
+      </div>
+    </div>
+    <div v-else class="text-bodyBold text-nc-content-gray">
+      {{ option.value }}
+    </div>
   </div>
 </template>
 
@@ -27,12 +37,12 @@ const { option } = toRefs(props)
 
   box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.08);
 
-  &:hover {
+  &:hover:not(.nc-selected) {
     @apply bg-nc-bg-gray-extralight;
   }
 
   &.nc-selected {
-    @apply border-nc-border-brand !shadow-selected;
+    @apply border-nc-border-brand bg-nc-bg-brand !shadow-selected;
   }
 }
 </style>

@@ -530,7 +530,10 @@ export default class User extends UserCE implements UserType {
       workspace_roles: workspaceRoles ? workspaceRoles : null,
       base_roles: baseRoles
         ? baseRoles
-        : mapWorkspaceRolesObjToProjectRolesObj(workspaceRoles),
+        : // inherit workspace roles if baseId is provided, otherwise null
+        args.baseId
+        ? mapWorkspaceRolesObjToProjectRolesObj(workspaceRoles)
+        : null,
       org_roles: orgRoles ? orgRoles : null,
     } as any;
   }

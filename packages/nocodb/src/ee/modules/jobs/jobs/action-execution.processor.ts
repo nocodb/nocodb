@@ -1,24 +1,27 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Sandbox } from '@e2b/code-interpreter';
 import { ButtonActionsType } from 'nocodb-sdk';
+import { WebhookHandlerProcessor } from './webhook-handler/webhook-handler.processor';
 import type { Job } from 'bull';
-import type { ExecuteActionJobData, HandleWebhookJobData } from '~/interface/Jobs';
+import type {
+  ExecuteActionJobData,
+  HandleWebhookJobData,
+} from '~/interface/Jobs';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { JobTypes } from '~/interface/Jobs';
-import { ButtonColumn, Model, View, Hook, Script } from '~/models';
+import { ButtonColumn, Hook, Model, Script, View } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import { NcError } from '~/helpers/ncError';
 import { getBaseSchema } from '~/helpers/scriptHelper';
 import { createSandboxCode } from '~/helpers/generateCode';
 import { parseSandboxOutputToWorkerMessage } from '~/helpers/sandboxParser';
-import { WebhookHandlerProcessor } from './webhook-handler/webhook-handler.processor';
 
 const BATCH_SIZE = 1000;
 
 @Injectable()
 export class ActionExecutionProcessor {
   private readonly logger = new Logger(ActionExecutionProcessor.name);
-  
+
   constructor(
     private readonly jobsLogService: JobsLogService,
     private readonly datasService: DatasService,
@@ -48,9 +51,23 @@ export class ActionExecutionProcessor {
         NcError.notFound('View not found');
       }
       if (buttonColumn.type === ButtonActionsType.Webhook) {
-        await this.processWebhookActionStream(context, buttonColumn, model, view, req, sendLog);
+        await this.processWebhookActionStream(
+          context,
+          buttonColumn,
+          model,
+          view,
+          req,
+          sendLog,
+        );
       } else if (buttonColumn.type === ButtonActionsType.Script) {
-        await this.processScriptActionStream(context, buttonColumn, model, view, req, sendLog);
+        await this.processScriptActionStream(
+          context,
+          buttonColumn,
+          model,
+          view,
+          req,
+          sendLog,
+        );
       } else {
         sendLog(`Unsupported action type: ${buttonColumn.type}`);
         return;
@@ -84,7 +101,7 @@ export class ActionExecutionProcessor {
       });
 
       const records = recordsData.list || [];
-      
+
       if (records.length === 0) {
         hasMoreRecords = false;
         break;
@@ -94,19 +111,22 @@ export class ActionExecutionProcessor {
         const record = records[i];
 
         // Extract Pk of the Record
-       //  const pk = record[model.pk];
-       const pk  = 'pk'
-        
+        //  const pk = record[model.pk];
+        const pk = 'pk';
+
         try {
           await processRecord(record, i, pk);
         } catch (error) {
-          this.logger.error(`Record processing failed for record ${totalProcessed + i + 1}:`, error);
+          this.logger.error(
+            `Record processing failed for record ${totalProcessed + i + 1}:`,
+            error,
+          );
         }
       }
 
       totalProcessed += records.length;
       offset += BATCH_SIZE;
-      
+
       // Check if we have more records
       if (records.length < BATCH_SIZE) {
         hasMoreRecords = false;
@@ -171,7 +191,6 @@ export class ActionExecutionProcessor {
     req: any,
     sendLog: (log: string) => void,
   ) {
-
     if (!process.env.E2B_API_KEY) {
       sendLog('E2B_API_KEY is not set');
       return;
@@ -200,7 +219,7 @@ export class ActionExecutionProcessor {
 
     try {
       const baseSchema = await getBaseSchema(context);
-      
+
       const totalProcessed = await this.processBatchedRecords(
         context,
         model,
@@ -222,16 +241,33 @@ export class ActionExecutionProcessor {
           await sandbox.runCode(sandboxCode, {
             language: 'javascript',
             onError: (error) => {
-              sendLog(`Script error for record ${totalProcessed + recordIndex + 1}: ${error}`);
-              this.logger.error(`Script execution error for record ${totalProcessed + recordIndex + 1}:`, error);
+              sendLog(
+                `Script error for record ${
+                  totalProcessed + recordIndex + 1
+                }: ${error}`,
+              );
+              this.logger.error(
+                `Script execution error for record ${
+                  totalProcessed + recordIndex + 1
+                }:`,
+                error,
+              );
             },
             onStdout: (data) => {
               const parsedMessage = parseSandboxOutputToWorkerMessage(data);
-              sendLog(`Record ${totalProcessed + recordIndex + 1} output: ${JSON.stringify(parsedMessage)}`);
+              sendLog(
+                `Record ${
+                  totalProcessed + recordIndex + 1
+                } output: ${JSON.stringify(parsedMessage)}`,
+              );
             },
             onStderr: (data) => {
               const parsedMessage = parseSandboxOutputToWorkerMessage(data);
-              sendLog(`Record ${totalProcessed + recordIndex + 1} error: ${JSON.stringify(parsedMessage)}`);
+              sendLog(
+                `Record ${
+                  totalProcessed + recordIndex + 1
+                } error: ${JSON.stringify(parsedMessage)}`,
+              );
             },
           });
         },
@@ -241,7 +277,9 @@ export class ActionExecutionProcessor {
       sendLog(`Script processing completed for all ${totalProcessed} records`);
     } finally {
       // Note: Sandbox cleanup is handled automatically by E2B
-      sendLog('Script execution completed, sandbox will be cleaned up automatically');
+      sendLog(
+        'Script execution completed, sandbox will be cleaned up automatically',
+      );
     }
   }
 }

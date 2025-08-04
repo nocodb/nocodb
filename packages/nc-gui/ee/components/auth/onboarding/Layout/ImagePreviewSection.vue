@@ -17,8 +17,13 @@ const { questions, lastVisibleQuestionIndex, formState } = useOnboardingFlow()
 
 const currentQuestion = computed(() => questions.value[lastVisibleQuestionIndex.value]!)
 
-const rightSectionInfo = computed<OnboardingRightSectionType>(() => {
-  if (!currentQuestion.value || !currentQuestion.value.rightSection) {
+/**
+ * Next question is used to preload images to avoid flickering
+ */
+const nextQuestion = computed(() => questions.value[lastVisibleQuestionIndex.value + 1])
+
+const getRightSectionInfo = (question: OnboardingQuestionType): OnboardingRightSectionType => {
+  if (!question || !question.rightSection) {
     return {
       themeColor: 'orange',
       moscot: 'moscotWelcomeOrange',
@@ -26,17 +31,23 @@ const rightSectionInfo = computed<OnboardingRightSectionType>(() => {
     }
   }
 
-  return ncIsFunction(currentQuestion.value.rightSection)
-    ? currentQuestion.value.rightSection(formState.value)
-    : currentQuestion.value.rightSection
+  return ncIsFunction(question.rightSection) ? question.rightSection(formState.value) : question.rightSection
+}
+
+const rightSectionInfo = computed<OnboardingRightSectionType>(() => {
+  return getRightSectionInfo(currentQuestion.value)
+})
+
+const nextQuestionRightSectionInfo = computed<OnboardingRightSectionType | undefined>(() => {
+  return nextQuestion.value ? getRightSectionInfo(nextQuestion.value) : undefined
 })
 
 const bgColorClass = computed(() => {
-  return onboardingFlowColoursMapping[rightSectionInfo.value.themeColor || 'orange'].lightBg
+  return onboardingFlowColoursMapping[rightSectionInfo.value.themeColor || 'orange']?.lightBg
 })
 
-const moscotImage = computed(() => {
-  switch (rightSectionInfo.value.moscot) {
+const getMoscotImage = (moscot: OnboardingRightSectionType['moscot']) => {
+  switch (moscot) {
     case 'moscotWelcomeGreen':
       return moscotWelcomeGreen
     case 'moscotWelcomePurple':
@@ -50,6 +61,14 @@ const moscotImage = computed(() => {
     default:
       return moscotWelcomeOrange
   }
+}
+
+const moscotImage = computed(() => {
+  return getMoscotImage(rightSectionInfo.value.moscot)
+})
+
+const nextQuestionMoscotImage = computed(() => {
+  return nextQuestionRightSectionInfo.value ? getMoscotImage(nextQuestionRightSectionInfo.value.moscot) : undefined
 })
 
 const moscotImageSize = computed(() => {
@@ -73,8 +92,8 @@ const moscotImageSize = computed(() => {
   }
 })
 
-const viewImage = computed(() => {
-  switch (rightSectionInfo.value.imageName) {
+const getViewImage = (imageName: OnboardingRightSectionType['imageName']) => {
+  switch (imageName) {
     case 'grid':
       return gridImage
     case 'gallery':
@@ -86,6 +105,14 @@ const viewImage = computed(() => {
     default:
       return gridImage
   }
+}
+
+const viewImage = computed(() => {
+  return getViewImage(rightSectionInfo.value.imageName)
+})
+
+const nextQuestionViewImage = computed(() => {
+  return nextQuestionRightSectionInfo.value ? getViewImage(nextQuestionRightSectionInfo.value.imageName) : undefined
 })
 </script>
 
@@ -96,6 +123,11 @@ const viewImage = computed(() => {
       <div class="h-full w-full relative">
         <img alt="moscot image" :src="moscotImage" class="nc-moscot-image" :style="moscotImageSize" />
       </div>
+    </div>
+    <div class="hidden">
+      <!-- Pre-render images to avoid flickering -->
+      <img v-if="nextQuestionMoscotImage" alt="prerender moscot image" :src="nextQuestionMoscotImage" />
+      <img v-if="nextQuestionViewImage" alt="prerender view image" :src="nextQuestionViewImage" />
     </div>
   </div>
 </template>

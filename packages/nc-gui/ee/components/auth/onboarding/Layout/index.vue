@@ -1,11 +1,15 @@
 <script lang="ts" setup>
-const { stepper, onCompleteOnboardingFlow } = useOnboardingFlow()
+const { stepper, onCompleteOnboardingFlow, isFilledQuestionAnswer, isFilledVisibleOptions, questionsMap } = useOnboardingFlow()
 
 const { index: stepIndex, steps, isLast, isFirst, goToNext, goToPrevious } = stepper
 
+const isFilledSecondScreenOptions = computed(() => {
+  return questionsMap.value[2] ? isFilledQuestionAnswer(questionsMap.value[2]) : false
+})
+
 const progress = computed(() => {
   return {
-    percentage: (stepIndex.value / steps.value.length) * 100,
+    percentage: ((stepIndex.value + (isFilledVisibleOptions.value ? 1 : 0)) / steps.value.length) * 100,
     text: `${stepIndex.value + 1} / ${steps.value.length}`,
   }
 })
@@ -37,11 +41,10 @@ const progress = computed(() => {
       <slot name="footer">
         <footer class="flex flex-col justify-end w-full max-w-[640px] mx-auto px-4 pb-6 lg:(pb-12 px-8) sticky bottom-0 bg-white">
           <div
-            v-if="!isLast || true"
             class="flex items-center"
             :class="{
-              'justify-center': stepIndex === 0,
-              'justify-between': stepIndex > 0,
+              'justify-center': stepIndex === 0 && !isFilledSecondScreenOptions,
+              'justify-between': stepIndex > 0 || isFilledSecondScreenOptions,
             }"
           >
             <NcButton v-if="stepIndex === 0" type="text" size="small" @click="onCompleteOnboardingFlow(true)">
@@ -49,16 +52,28 @@ const progress = computed(() => {
                 {{ $t('general.skip') }}
               </div>
             </NcButton>
-            <template v-else>
-              <NcButton type="text" size="small" :disabled="isFirst" @click="goToPrevious()">
-                {{ $t('general.back') }}
-              </NcButton>
-              <NcButton type="text" size="small" :disabled="isLast" @click="goToNext()">
+            <NcButton v-else type="text" size="small" :disabled="isFirst" @click="goToPrevious()">
+              <template #icon>
+                <GeneralIcon icon="ncArrowLeft" class="w-4 h-4" />
+              </template>
+              {{ $t('general.back') }}
+            </NcButton>
+            <template v-if="stepIndex !== 0 || isFilledSecondScreenOptions">
+              <NcButton
+                v-if="!isLast"
+                type="primary"
+                size="small"
+                :disabled="isLast || !isFilledVisibleOptions"
+                @click="goToNext()"
+              >
                 <div class="flex items-center gap-2">
-                  {{ $t('general.next') }}
-                  <div class="h-full bg-nc-bg-gray-medium">↵</div>
+                  {{ $t('labels.next') }}
+                  <div class="h-full rounded px-1 py-0.5">
+                    <GeneralIcon icon="ncEnter" class="w-4 h-4" />
+                  </div>
                 </div>
               </NcButton>
+              <div v-else></div>
             </template>
           </div>
         </footer>

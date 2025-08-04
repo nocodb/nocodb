@@ -1,11 +1,16 @@
 export interface OnboardingOptionType {
   value: string
+  description?: string
   icon?: IconMapKey
   iconColor?: string
   /**
    * `Undefined` will be considered as `iconMap`
    */
   iconType?: 'indexedStepProgressBar' | 'iconMap'
+  /**
+   * `resetOnSelect` will be helpful if option is `None of the above` or `Other` to reset previous selection if user select this option
+   */
+  resetOnSelect?: boolean
 }
 
 export interface OnboardingRightSectionType {
@@ -25,7 +30,7 @@ export interface OnboardingQuestionType {
   question: string
   inputType: 'singleSelect' | 'multiSelect'
   /**
-   * MinSelection to enable next button if it is multiSelect input type
+   * MinSelection to auto navigate to next question if it is multiSelect input type
    */
   minSelection?: number
   options?: OnboardingOptionType[] | ((state?: { [questionId: string]: string | string[] }) => OnboardingOptionType[])
@@ -154,6 +159,147 @@ export const useOnboardingFlow = createSharedComposable(() => {
           }
         },
       },
+      {
+        id: 3,
+        question: 'How many people are in your team?',
+        inputType: 'singleSelect',
+        options: ['Only me', '2-5', '6-10', '11-15', '16-25', '26-50', '51-100', '101+'].map((value) => ({ value })),
+        rightSection: {
+          themeColor: 'orange',
+          moscot: 'moscotCollaboration',
+          imageName: 'gallery',
+        },
+      },
+      {
+        id: 4,
+        question: 'How many people work at your company?',
+        inputType: 'singleSelect',
+        options: ['1-19', '20-49', '50-99', '100-250', '251-500', '500-1500', '1500+'].map((value) => ({ value })),
+        rightSection: {
+          themeColor: 'orange',
+          moscot: 'moscotCollaboration',
+          imageName: 'gallery',
+        },
+      },
+      {
+        id: 5,
+        question: 'How experienced are you with app building?',
+        inputType: 'singleSelect',
+        options: [
+          {
+            value: 'Beginer',
+            iconType: 'indexedStepProgressBar',
+          },
+          {
+            value: 'Intermediate',
+            iconType: 'indexedStepProgressBar',
+          },
+          {
+            value: 'Advanced',
+            iconType: 'indexedStepProgressBar',
+          },
+          {
+            value: 'Expert',
+            iconType: 'indexedStepProgressBar',
+          },
+        ],
+        rightSection: {
+          themeColor: 'orange',
+          moscot: 'moscotGridTableOrange',
+          imageName: 'calendar',
+        },
+      },
+      {
+        id: 6,
+        question: 'Which tools are you familiar with?',
+        inputType: 'multiSelect',
+        options: [
+          {
+            value: 'Airtable',
+          },
+          {
+            value: 'Baserow',
+          },
+          {
+            value: 'Monday',
+          },
+          {
+            value: 'Softr',
+          },
+          {
+            value: 'Notion',
+          },
+          {
+            value: 'Coda',
+          },
+          {
+            value: 'Retool',
+          },
+          {
+            value: 'n8n',
+          },
+          {
+            value: 'Zapier',
+          },
+          {
+            value: 'Make',
+          },
+          {
+            value: 'Other',
+            resetOnSelect: true,
+          },
+          {
+            value: 'None of the above',
+            resetOnSelect: true,
+          },
+        ],
+        minSelection: 3,
+        rightSection: {
+          themeColor: 'orange',
+          moscot: 'moscotGridTableOrange',
+          imageName: 'calendar',
+        },
+      },
+      {
+        id: 7,
+        question: 'How do you want to build your database?',
+        inputType: 'singleSelect',
+        options: [
+          {
+            value: 'Build with AI',
+            description: 'Describe what you want—AI will generate the structure for you',
+            icon: 'ncAutoAwesome',
+            iconColor: 'purple',
+          },
+          {
+            value: 'Start with Template',
+            description: 'Pick from ready-made setups tailored to popular use cases.',
+            icon: 'ncLayout',
+            iconColor: 'orange',
+          },
+          {
+            value: 'Import Data',
+            description: 'Bring your existing spreadsheets or databases into NocoDB.',
+            icon: 'ncDownload',
+            iconColor: 'green',
+          },
+          {
+            value: 'Start from Scratch',
+            description: 'Begin with a blank canvas and build your base your way.',
+            icon: 'ncPlus',
+            iconColor: 'brand',
+          },
+        ],
+        rightSection: {
+          themeColor: 'brand',
+          moscot: 'moscotGridTableBrand',
+          imageName: 'kanban',
+        },
+        iconSize: {
+          width: 32,
+          height: 32,
+        },
+      },
     ]
   })
 
@@ -176,7 +322,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
     const question = questions.value[index]!
 
-    if (ncIsUndefined(formState.value[question.id])) {
+    if (!question || ncIsUndefined(formState.value[question.id])) {
       return index - 1
     }
 
@@ -188,7 +334,8 @@ export const useOnboardingFlow = createSharedComposable(() => {
     const index = (stepper.index.value + 1) * 2 - 1
 
     const question = questions.value[index]!
-    if (ncIsUndefined(formState.value[question.id])) {
+
+    if (!question || ncIsUndefined(formState.value[question.id])) {
       currentVisibleQuestions.push(questions.value[index - 1]!)
 
       return currentVisibleQuestions
@@ -201,11 +348,30 @@ export const useOnboardingFlow = createSharedComposable(() => {
     return currentVisibleQuestions
   })
 
+  const isFilledQuestionAnswer = (question: OnboardingQuestionType) => {
+    return (
+      !ncIsUndefined(formState.value[question.id]) &&
+      (question.inputType === 'singleSelect'
+        ? !!formState.value[question.id]
+        : (formState.value[question.id] as string[]).length >= 1)
+    )
+  }
+
+  const isFilledVisibleOptions = computed(() => {
+    if (stepper.isLast.value) return true
+
+    return visibleQuestions.value.every((question) => {
+      return isFilledQuestionAnswer(question)
+    })
+  })
+
   const onInitOnboardingFlow = async () => {
     startedAt.value = Date.now()
   }
 
-  const onSelectOption = (option: OnboardingOptionType, question: OnboardingQuestionType, questionIndex: number) => {
+  const onSelectOption = (option: OnboardingOptionType, question: OnboardingQuestionType, currentStepQuestionIndex: number) => {
+    let autoNavigateToNextQuestion = true
+
     if (question.inputType === 'singleSelect') {
       formState.value[question.id] = option.value
     }
@@ -213,25 +379,47 @@ export const useOnboardingFlow = createSharedComposable(() => {
     if (question.inputType === 'multiSelect') {
       const currentValue = (formState.value[question.id] || []) as string[]
 
+      const resetOnSelectOptionValues =
+        (ncIsFunction(question.options) ? question.options(formState.value) : question.options)
+          ?.filter((op) => op.resetOnSelect)
+          .map((op) => op.value) || []
+
       if (currentValue.includes(option.value)) {
         formState.value[question.id] = currentValue.filter((value) => value !== option.value)
+        autoNavigateToNextQuestion = false
       } else {
-        formState.value[question.id] = [...currentValue, option.value]
+        if (option.resetOnSelect) {
+          autoNavigateToNextQuestion = false
+          formState.value[question.id] = [option.value]
+        } else {
+          formState.value[question.id] = [
+            ...currentValue.filter((value) => !resetOnSelectOptionValues.includes(value)),
+            option.value,
+          ]
+        }
       }
     }
 
-    const nextQuestion = questions.value[questionIndex + 1]
+    const nextQuestionIndex = questions.value.findIndex((q) => q.id === question.id) + 1
+
+    const nextQuestion = questions.value[nextQuestionIndex]
 
     if (!nextQuestion) return
 
-    if (questionIndex % 2 !== 0) {
-      if (!stepper.isLast) {
-        if (question.inputType === 'singleSelect') {
+    if (currentStepQuestionIndex % 2 !== 0) {
+      /**
+       * Don't auto navigate to next question if:
+       * 1. It is the last question
+       * 2. User has not selected any option
+       * 3. Next question is already filled (maybe they have click back button)
+       */
+      if (stepper.isLast.value || !autoNavigateToNextQuestion || !nextQuestion || isFilledQuestionAnswer(nextQuestion)) return
+
+      if (question.inputType === 'singleSelect') {
+        stepper.goToNext()
+      } else if (question.inputType === 'multiSelect') {
+        if ((formState.value[question.id]?.length ?? 0) >= (question.minSelection ?? 1)) {
           stepper.goToNext()
-        } else if (question.inputType === 'multiSelect') {
-          if ((formState.value[question.id]?.length ?? 0) >= (nextQuestion.minSelection ?? 0)) {
-            stepper.goToNext()
-          }
         }
       }
     } else if (ncIsUndefined(formState.value[nextQuestion.id]) || question.id === 1) {
@@ -278,6 +466,8 @@ export const useOnboardingFlow = createSharedComposable(() => {
     onCompleteOnboardingFlow,
     lastVisibleQuestionIndex,
     visibleQuestions,
+    isFilledVisibleOptions,
     onSelectOption,
+    isFilledQuestionAnswer,
   }
 })

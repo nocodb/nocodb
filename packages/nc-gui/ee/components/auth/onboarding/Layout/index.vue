@@ -1,10 +1,4 @@
 <script lang="ts" setup>
-interface Props {}
-
-const props = withDefaults(defineProps<Props>(), {})
-
-const {} = toRefs(props)
-
 const { stepper, onCompleteOnboardingFlow } = useOnboardingFlow()
 
 const { index: stepIndex, steps, isLast } = stepper
@@ -12,12 +6,8 @@ const { index: stepIndex, steps, isLast } = stepper
 const progress = computed(() => {
   return {
     percentage: (stepIndex.value / steps.value.length) * 100,
-    text: `${stepIndex.value} / ${steps.value.length}`,
+    text: `${stepIndex.value + 1} / ${steps.value.length}`,
   }
-})
-
-watchEffect(() => {
-  console.log('steps', stepper)
 })
 </script>
 

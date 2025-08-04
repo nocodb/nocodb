@@ -62,9 +62,7 @@ export default function () {
         if (isEE) {
           expect(result.body.error).to.eq('FORBIDDEN');
           expect(
-            result.body.message.startsWith(
-              'Forbidden - You do not have permission to perform the action "baseCreate" ',
-            ),
+            result.body.message.startsWith('Forbidden - Unauthorized access'),
           ).to.eq(true);
         } else {
           expect(result.body.error).to.eq('PERMISSION_DENIED');

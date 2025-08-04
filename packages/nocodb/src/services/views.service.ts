@@ -268,7 +268,7 @@ export class ViewsService {
     const view = await View.get(context, param.viewId);
 
     if (!view) {
-      NcError.viewNotFound(param.viewId);
+      NcError.get(context).viewNotFound(param.viewId);
     }
 
     await View.delete(context, param.viewId);

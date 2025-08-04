@@ -2098,6 +2098,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           skipPaginateWrapper: true,
           params: ctx.params,
           model: this.model,
+          apiVersion: args.apiVersion,
         });
       } else if (['pg', 'postgres', 'postgresql'].includes(source.type)) {
         chunkData = await singleQueryList(this.context, {
@@ -2105,6 +2106,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           skipPaginateWrapper: true,
           params: ctx.params,
           model: this.model,
+          apiVersion: args.apiVersion,
         });
       } else {
         // Fallback to regular list function

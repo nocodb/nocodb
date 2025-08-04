@@ -32,7 +32,6 @@ const isScriptModal = ref(false)
 
 const newScript = () => {
   selectedScript.value = undefined
-
 }
 
 const editScript = () => {

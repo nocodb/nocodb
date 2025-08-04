@@ -228,7 +228,13 @@ export const useScriptExecutor = createSharedComposable(() => {
     }
   }
 
-  function handleWorkerMessage(scriptId: string, message: any, worker: Worker, onWorkerDone: () => void, executionContext?: { pk: string; fieldId: string; actionManager?: any; executionId?: string }) {
+  function handleWorkerMessage(
+    scriptId: string,
+    message: any,
+    worker: Worker,
+    onWorkerDone: () => void,
+    executionContext?: { pk: string; fieldId: string; actionManager?: any; executionId?: string },
+  ) {
     const execution = activeExecutions.value.get(scriptId)
     if (!execution) {
       return
@@ -244,13 +250,13 @@ export const useScriptExecutor = createSharedComposable(() => {
         }
         activeSteps.value.set(message.payload.stepId, stepItem)
         execution.playground.push(stepItem)
-        
+
         // Update ActionManager with current step title
         if (executionContext?.actionManager && executionContext.pk && executionContext.fieldId) {
           executionContext.actionManager.setCurrentStepTitle(
             executionContext.pk,
             executionContext.fieldId,
-            message.payload.title || 'Processing...'
+            message.payload.title || 'Processing...',
           )
         }
         break
@@ -401,23 +407,18 @@ export const useScriptExecutor = createSharedComposable(() => {
         break
       case ScriptActionType.RECORD_UPDATE_START: {
         const payload = message.payload
-        
+
         // Mark each field as being updated via ActionManager
         if (executionContext?.actionManager) {
           for (const field of payload.fields) {
-            executionContext.actionManager.startCellUpdate(
-              payload.recordId,
-              field.id,
-              field.name,
-              scriptId
-            )
+            executionContext.actionManager.startCellUpdate(payload.recordId, field.id, field.name, scriptId)
           }
         }
         break
       }
       case ScriptActionType.RECORD_UPDATE_COMPLETE: {
         const payload = message.payload
-        
+
         // Mark each field update as complete via ActionManager
         if (executionContext?.actionManager) {
           for (const field of payload.fields) {
@@ -479,20 +480,25 @@ export const useScriptExecutor = createSharedComposable(() => {
       if (isBackendExecutionEnabled.value) {
         isRunning.value = true
         isFinished.value = false
-        
+
         if (!activeWorkspace.value?.id) {
           throw new Error('Active workspace not found')
         }
-        
-        const job = await api.internal.postOperation(activeWorkspace.value.id, activeProjectId.value, {
-          operation: 'executeScript',
-          id: script.id,
-        },{
-          id: script.id,
-          rowId: extra?.pk,
-          tableId: activeTableId.value,
-          viewId: activeViewTitleOrId.value,
-        } )
+
+        const job = await api.internal.postOperation(
+          activeWorkspace.value.id,
+          activeProjectId.value,
+          {
+            operation: 'executeScript',
+            id: script.id,
+          },
+          {
+            id: script.id,
+            rowId: extra?.pk,
+            tableId: activeTableId.value,
+            viewId: activeViewTitleOrId.value,
+          },
+        )
 
         if (job) {
           // Monitor job status
@@ -556,11 +562,11 @@ export const useScriptExecutor = createSharedComposable(() => {
     }
     `
 
-    let v3Row = null
+          let v3Row = null
 
-    if (extra?.pk) {
-      v3Row = await internalApi.dbDataTableRowRead(activeProjectId.value, activeTableId.value, extra.pk)
-    }
+          if (extra?.pk) {
+            v3Row = await internalApi.dbDataTableRowRead(activeProjectId.value, activeTableId.value, extra.pk)
+          }
 
           if (v3Row) {
             runCustomCode = `${runCustomCode}
@@ -600,29 +606,35 @@ export const useScriptExecutor = createSharedComposable(() => {
             worker.postMessage({ type: 'run', scriptId })
 
             worker.onmessage = (e) => {
-              handleWorkerMessage(scriptId, e.data, worker, () => {
-                worker.terminate()
-                URL.revokeObjectURL(workerUrl)
+              handleWorkerMessage(
+                scriptId,
+                e.data,
+                worker,
+                () => {
+                  worker.terminate()
+                  URL.revokeObjectURL(workerUrl)
 
-                const execution = activeExecutions.value.get(scriptId)
-                if (execution) {
-                  activeExecutions.value.set(scriptId, {
-                    ...execution,
-                    status: 'finished',
-                    worker: null,
-                  })
-                }
+                  const execution = activeExecutions.value.get(scriptId)
+                  if (execution) {
+                    activeExecutions.value.set(scriptId, {
+                      ...execution,
+                      status: 'finished',
+                      worker: null,
+                    })
+                  }
 
-                // Clear any remaining cell updates for this script via ActionManager (canvas only)
-                if (extra?.actionManager) {
-                  extra.actionManager.clearScriptCellUpdates(scriptId)
-                }
+                  // Clear any remaining cell updates for this script via ActionManager (canvas only)
+                  if (extra?.actionManager) {
+                    extra.actionManager.clearScriptCellUpdates(scriptId)
+                  }
 
-                isRunning.value = false
-                isFinished.value = true
-                updateBaseSchema()
-                resolve()
-              }, extra)
+                  isRunning.value = false
+                  isFinished.value = true
+                  updateBaseSchema()
+                  resolve()
+                },
+                extra,
+              )
             }
 
             worker.onerror = (error) => {

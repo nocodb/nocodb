@@ -11,7 +11,10 @@ import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 @Injectable()
 export class ScriptsService {
-  constructor(protected readonly appHooksService: AppHooksService, @Inject('JobsService') private readonly jobsService: IJobsService) {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    @Inject('JobsService') private readonly jobsService: IJobsService,
+  ) {}
 
   async listScripts(context: NcContext, baseId: string) {
     return await Script.list(context, baseId);
@@ -191,7 +194,14 @@ export class ScriptsService {
     return newScript;
   }
 
-  async executeScript(context: NcContext, req: NcRequest, scriptId: string, rowId?: string, tableId?: string, viewId?: string) {
+  async executeScript(
+    context: NcContext,
+    req: NcRequest,
+    scriptId: string,
+    rowId?: string,
+    tableId?: string,
+    viewId?: string,
+  ) {
     const script = await Script.get(context, scriptId);
 
     if (!script) {

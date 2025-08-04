@@ -16,7 +16,6 @@ import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stat
 import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.processor';
 import { ScriptExecutionProcessor } from '~/modules/jobs/jobs/script-execution.processor';
 
-
 @Module({
   ...JobsModuleMetadata,
   imports: [...JobsModuleMetadata.imports],

@@ -52,7 +52,7 @@ export enum JobTypes {
   UpdateUsageStats = 'update-usage-stats',
   CloudDbMigrate = 'cloud-db-migrate',
   AttachmentUrlUpload = 'attachment-url-upload',
-  ExecuteScript = 'execute-script'
+  ExecuteScript = 'execute-script',
 }
 
 export const SKIP_STORING_JOB_META = [

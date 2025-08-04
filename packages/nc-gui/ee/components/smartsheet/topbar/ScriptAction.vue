@@ -14,10 +14,7 @@ const toggleScriptSettings = () => {
 
 <template>
   <div v-if="!isLoadingAutomation && activeAutomation" class="flex items-center gap-2">
-
-    <NcSwitch v-model:checked="isBackendExecutionEnabled">
-      Server
-    </NcSwitch>
+    <NcSwitch v-model:checked="isBackendExecutionEnabled"> Server </NcSwitch>
 
     <NcButton
       v-if="shouldShowSettings"

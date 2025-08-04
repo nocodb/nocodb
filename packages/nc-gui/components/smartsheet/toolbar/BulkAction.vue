@@ -1,1 +1,3 @@
-<template><div></div></template>
+<template>
+  <NcSpanHidden />
+</template>

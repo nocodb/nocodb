@@ -1,25 +1,24 @@
 <script setup lang="ts">
-import type { ButtonType, ColumnType } from 'nocodb-sdk'
-import { ButtonActionsType, UITypes, isActionButtonCol } from 'nocodb-sdk'
+import { ButtonActionsType, type ButtonType, type ColumnType, hasInputCalls, isActionButtonCol } from 'nocodb-sdk'
 
 const open = ref(false)
 
 const { isMobileMode } = useGlobal()
 
-const { isActionPaneActive } = useSmartsheetStoreOrThrow()
-
-const { $api } = useNuxtApp()
+const { isPanelExpanded: isActionPaneActive } = useActionPane()
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const { view, meta, xWhere } = useSmartsheetStoreOrThrow()
+const { view, meta } = useSmartsheetStoreOrThrow()
+const { isUIAllowed } = useRoles()
+const { hooks } = useWebhooksStore()
 
-const buttonActionColumns = computed(
-  () =>
-    (meta.value?.columns ?? []).filter((col) => isActionButtonCol(col)) as (ColumnType & {
-      colOptions: ButtonType
-    })[],
-)
+const buttonActionColumns = computed(() => {
+  return (meta.value?.columns ?? []).filter((col) => isActionButtonCol(col)) as (ColumnType & {
+    colOptions: ButtonType
+  })[]
+})
+
 useMenuCloseOnEsc(open)
 
 const isToolbarIconMode = inject(
@@ -27,91 +26,10 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const { isAiFeaturesEnabled } = useNocoAi()
-
-const isAiButtonEnabled = computed(() => {
-  return isAiFeaturesEnabled.value
-})
-
-const { t } = useI18n()
-
-const buttonTypes = computed(() => [
-  {
-    label: t('labels.runWebHook'),
-    value: ButtonActionsType.Webhook,
-    icon: 'webhook',
-  },
-  ...(isAiButtonEnabled.value
-    ? [
-        {
-          label: t('labels.generateFieldDataUsingAi'),
-          value: ButtonActionsType.Ai,
-          icon: 'ncAutoAwesome',
-        },
-      ]
-    : []),
-  ...(isEeUI
-    ? [
-        {
-          label: t('labels.runScript'),
-          value: ButtonActionsType.Script,
-          icon: 'ncScript',
-        },
-      ]
-    : []),
-])
-
-const isNewFieldOpen = ref(false)
-
-const isColumnDropdownVisible = reactive({
-  update: false,
-  create: false,
-})
-
-const editOrAddProviderRef = ref()
-
-const onVisibilityChange = (status: 'update' | 'create') => {
-  isColumnDropdownVisible[status] = !(editOrAddProviderRef.value && !editOrAddProviderRef.value?.shouldKeepModalOpen())
-}
-
-const saveColumnCallback = (column: ColumnType) => {
-  if (editOrAddProviderRef.value) {
-    editOrAddProviderRef.value?.saveColumn(column)
-  }
-}
-
-const activeColumn = ref<ColumnType>()
-
-const overlayElement = ref()
-
-const newColumn = (button: { label: string; value: ButtonActionsType }) => {
-  activeColumn.value = {
-    type: button.value,
-    uidt: UITypes.Button,
-  }
-
-  if (!isColumnDropdownVisible.create) {
-    isColumnDropdownVisible.create = true
-  }
-}
-
-const editColumn = (
-  column: ColumnType & {
-    colOptions: ButtonType
-  },
-) => {
-  activeColumn.value = column
-  if (!isColumnDropdownVisible.update) {
-    isColumnDropdownVisible.update = true
-  }
-}
-
 const activeActionPane = () => {
   isActionPaneActive.value = true
   open.value = false
 }
-
-const { base } = storeToRefs(useBase())
 
 const { loadAutomation } = useAutomationStore()
 
@@ -124,68 +42,87 @@ const executionStatus = ref(
   >(),
 )
 
-const { runScript } = useScriptExecutor()
+const buttonInputStatus = ref(new Map<string, { hasInputCalls: boolean; isLoading: boolean }>())
 
-const executeScript = async (
-  button: ColumnType & {
-    colOptions: ButtonType
-  },
-) => {
-  executionStatus.value.set(button.id!, {
-    status: 'loading',
-  })
+const loadButtonAutomations = async () => {
+  for (const button of buttonActionColumns.value) {
+    if (button.colOptions.type === ButtonActionsType.Script && button.colOptions.fk_script_id && button.id) {
+      buttonInputStatus.value.set(button.id, { hasInputCalls: false, isLoading: true })
 
-  const processedPks = new Set()
-  const CHUNK_SIZE = 50
-  let offset = 0
-
-  try {
-    const automation = await loadAutomation(button.colOptions.fk_script_id!)
-
-    while (true) {
-      const data = await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, view.value!.id!, {
-        where: xWhere.value,
-        limit: CHUNK_SIZE,
-        offset,
-      })
-
-      if (data.list.length === 0) break
-
-      for (const row of data.list) {
-        const pk = extractPkFromRow(row, meta.value?.columns ?? [])
-        if (!processedPks.has(pk)) {
-          runScript(automation, row, {
-            pk,
-            fieldId: button.id,
-          }).then(() => {
-            processedPks.add(pk)
-          })
+      try {
+        const automation = await loadAutomation(button.colOptions.fk_script_id)
+        if (automation?.script) {
+          const hasInput = hasInputCalls(automation.script)
+          buttonInputStatus.value.set(button.id, { hasInputCalls: hasInput, isLoading: false })
+        } else {
+          buttonInputStatus.value.set(button.id, { hasInputCalls: false, isLoading: false })
         }
+      } catch (error) {
+        buttonInputStatus.value.set(button.id, { hasInputCalls: false, isLoading: false })
       }
-
-      if (data.list.length < CHUNK_SIZE) break
-      offset += CHUNK_SIZE
+    } else if (button.colOptions.type === ButtonActionsType.Webhook && button.colOptions.fk_webhook_id && button.id) {
+      buttonInputStatus.value.set(button.id, { hasInputCalls: false, isLoading: true })
+      
+      try {
+        const webhookExists = hooks.some((hook: any) => hook.id === button.colOptions.fk_webhook_id)
+        
+        if (webhookExists) {
+          buttonInputStatus.value.set(button.id, { hasInputCalls: false, isLoading: false })
+        } else {
+          buttonInputStatus.value.set(button.id, { hasInputCalls: true, isLoading: false })
+        }
+      } catch (error) {
+        buttonInputStatus.value.set(button.id, { hasInputCalls: true, isLoading: false })
+      }
     }
-
-    executionStatus.value.set(button.id, {
-      status: 'success',
-    })
-  } catch (error) {
-    console.error('Bulk execution failed:', error)
-    executionStatus.value.set(button.id, {
-      status: 'error',
-    })
   }
 }
+
+const isButtonDisabled = (button: ColumnType & { colOptions: ButtonType }) => {
+  const status = buttonInputStatus.value.get(button.id!)
+  
+  if (button.colOptions.type === ButtonActionsType.Webhook && !isUIAllowed('hookTrigger')) {
+    return true
+  }
+  
+  return (
+    executionStatus.value.get(button.id!)?.status === 'loading' ||
+    status?.isLoading ||
+    status?.hasInputCalls
+  )
+}
+
+const getTooltipMessage = (button: ColumnType & { colOptions: ButtonType }) => {
+  if (button.colOptions.type === ButtonActionsType.Webhook && !isUIAllowed('hookTrigger')) {
+    return 'You do not have permission to trigger webhooks.'
+  }
+  if (button.colOptions.type === ButtonActionsType.Script && buttonInputStatus.value.get(button.id!)?.hasInputCalls) {
+    return 'This script requires user input and cannot be run as a bulk action. Please execute it from individual records instead.'
+  }
+  if (button.colOptions.type === ButtonActionsType.Webhook && buttonInputStatus.value.get(button.id!)?.hasInputCalls) {
+    return 'This webhook is not available.'
+  }
+  return ''
+}
+
+const shouldShowTooltip = (button: ColumnType & { colOptions: ButtonType }) => {
+  return isButtonDisabled(button) && getTooltipMessage(button) !== ''
+}
+
+watch(
+  () => buttonActionColumns.value.length,
+  () => {
+    loadButtonAutomations()
+  },
+  { immediate: true },
+)
 
 const executeAction = async (
   button: ColumnType & {
     colOptions: ButtonType
   },
 ) => {
-  if (button.colOptions.type === ButtonActionsType.Script) {
-    await executeScript(button)
-  }
+  // Execute Action
 }
 </script>
 
@@ -210,8 +147,6 @@ const executeAction = async (
         <div class="flex items-center gap-1 min-h-5">
           <div class="flex items-center gap-2">
             <component :is="iconMap.ncPlay" class="h-4 w-4 text-inherit" />
-
-            <!-- Sort -->
             <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
               $t('activity.runActions')
             }}</span>
@@ -228,104 +163,29 @@ const executeAction = async (
       >
         <div class="pt-2 pb-2 nc-action-list max-h-[max(80vh,30rem)] min-w-102" data-testid="nc-actions-menu">
           <div v-for="button in buttonActionColumns" :key="button.id" class="px-3 flex pb-2">
-            <NcButton
-              :disabled="executionStatus.get(button.id)?.status === 'loading'"
-              class="w-full !rounded-r-none"
-              type="secondary"
-              full-width
-              size="small"
-              :loading="executionStatus.get(button.id)?.status === 'loading'"
-              @click="executeAction(button)"
-            >
-              <div class="flex gap-2 w-full items-center">
-                <GeneralIcon v-if="button.colOptions.icon" :icon="button.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
-                {{ button.colOptions.label }}
-              </div>
-
-              <div class="flex-1" />
-            </NcButton>
-
-            <NcButton size="small" class="!rounded-l-none !border-l-0" type="secondary" @click="editColumn(button)">
-              <GeneralIcon icon="ncEdit" />
-            </NcButton>
-          </div>
-
-          <a-dropdown
-            v-model:visible="isColumnDropdownVisible.update"
-            :disabled="isLocked"
-            :trigger="[]"
-            placement="right"
-            overlay-class-name="nc-dropdown-edit-column"
-            @visible-change="onVisibilityChange('update')"
-          >
-            <template #overlay>
-              <div ref="overlayElement" class="nc-edit-or-add-provider-wrapper">
-                <LazySmartsheetColumnEditOrAddProvider
-                  v-if="isColumnDropdownVisible.update"
-                  ref="editOrAddProviderRef"
-                  :column="activeColumn"
-                  @submit="saveColumnCallback"
-                  @cancel="isColumnDropdownVisible.update = false"
-                  @click.stop
-                  @keydown.stop
-                />
-              </div>
-            </template>
-          </a-dropdown>
-
-          <NcDivider />
-
-          <div class="px-2">
-            <NcButton full-width class="w-full new-btn-action" type="text" size="small" @click="isNewFieldOpen = !isNewFieldOpen">
-              <div class="flex items-center !w-full justify-between gap-3">
-                <div class="flex text-nc-content-brand gap-2 items-center">
-                  <GeneralIcon icon="ncPlus" />
-                  {{ $t('labels.newAction') }}
-                </div>
-                <div class="flex-1" />
-                <GeneralIcon icon="arrowDown" />
-              </div>
-            </NcButton>
-
-            <a-dropdown
-              v-model:visible="isColumnDropdownVisible.create"
-              :disabled="isLocked"
-              :trigger="[]"
-              placement="right"
-              overlay-class-name="nc-dropdown-add-column"
-              @visible-change="onVisibilityChange('create')"
-            >
-              <template #overlay>
-                <div ref="overlayElement" class="nc-edit-or-add-provider-wrapper">
-                  <LazySmartsheetColumnEditOrAddProvider
-                    v-if="isColumnDropdownVisible.create"
-                    ref="editOrAddProviderRef"
-                    :preload="activeColumn"
-                    @submit="saveColumnCallback"
-                    @cancel="isColumnDropdownVisible.create = false"
-                    @click.stop
-                    @keydown.stop
-                  />
-                </div>
+            <NcTooltip class="w-full" :disabled="!shouldShowTooltip(button)" placement="right">
+              <template #title>
+                <span>{{ getTooltipMessage(button) }}</span>
               </template>
-            </a-dropdown>
-            <div
-              :class="{
-                '!h-0': !isNewFieldOpen,
-                'h-28.5': isNewFieldOpen,
-              }"
-              class="pl-3.5 overflow-hidden transition-all"
-            >
-              <div
-                v-for="button in buttonTypes"
-                :key="button.label"
-                class="flex px-4 cursor-pointer hover:bg-nc-bg-gray-light items-center rounded-md gap-2 py-2"
-                @click="() => newColumn(button)"
+              <NcButton
+                :disabled="isButtonDisabled(button)"
+                class="w-full"
+                type="secondary"
+                full-width
+                size="small"
+                :loading="executionStatus.get(button.id)?.status === 'loading' || buttonInputStatus.get(button.id)?.isLoading"
+                @click="executeAction(button)"
               >
-                <GeneralIcon class="w-4 h-4 text-nc-content-gray-subtle" :icon="button.icon" />
-                <div class="flex-1 text-nc-content-gray">{{ button.label }}</div>
-              </div>
-            </div>
+                <div class="flex gap-2 w-full items-center">
+                  <GeneralIcon v-if="button.colOptions.icon" :icon="button.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
+                  <div class="flex flex-col items-start">
+                    {{ button.colOptions.label }}
+                  </div>
+                </div>
+
+                <div class="flex-1" />
+              </NcButton>
+            </NcTooltip>
           </div>
           <NcDivider />
           <div class="px-2">

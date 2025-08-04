@@ -124,7 +124,7 @@
     "mysql2": "^3.14.1",
     "nanoid": "^3.3.8",
     "nc-lib-gui": "0.264.3",
-    "nocodb-sdk": "0.264.3",
+    "nocodb-sdk": "workspace:^",
     "nodemailer": "^6.10.0",
     "object-hash": "^3.0.0",
     "object-sizeof": "^2.6.5",

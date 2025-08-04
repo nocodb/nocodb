@@ -1,6 +1,6 @@
 import { type ScriptType } from 'nocodb-sdk'
 import { DlgAutomationCreate } from '#components'
-import { parseScript, validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
+import { parseScript, validateConfigValues } from 'nocodb-sdk'
 
 export const useAutomationStore = defineStore('automation', () => {
   const { $api, $e } = useNuxtApp()

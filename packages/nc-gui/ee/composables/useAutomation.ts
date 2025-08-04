@@ -1,6 +1,6 @@
 import type { ScriptType } from 'nocodb-sdk'
 import { ScriptActionType } from '~/lib/enum'
-import { parseScript, validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
+import { validateConfigValues, parseScript } from 'nocodb-sdk'
 import type { ScriptInputFileUploadResult } from '~/lib/types'
 
 const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: ScriptType) => {

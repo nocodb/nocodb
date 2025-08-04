@@ -1,54 +1,6 @@
 import type { ScriptActionType, ScriptInputType, ScriptViewActionType } from '~/lib/enum'
 import type { IconMapKey } from '~/utils/iconUtils'
 
-interface ScriptConfigItemBase {
-  type: 'table' | 'field' | 'view' | 'text' | 'number' | 'select'
-  key: string
-  label?: string
-  description?: string
-}
-
-export interface ScriptConfigItemTable extends ScriptConfigItemBase {
-  type: 'table'
-}
-
-export interface ScriptConfigItemField extends ScriptConfigItemBase {
-  type: 'field'
-  parentTable: string
-}
-
-export interface ScriptConfigItemView extends ScriptConfigItemBase {
-  type: 'view'
-  parentTable: string
-}
-
-export interface ScriptConfigItemSelect extends ScriptConfigItemBase {
-  type: 'select'
-  options: Array<{ value: string; label?: string }>
-}
-
-export interface ScriptConfigItemNumber extends ScriptConfigItemBase {
-  type: 'number'
-}
-
-export interface ScriptConfigItemText extends ScriptConfigItemBase {
-  type: 'text'
-}
-
-export type ScriptConfigItem =
-  | ScriptConfigItemTable
-  | ScriptConfigItemField
-  | ScriptConfigItemView
-  | ScriptConfigItemSelect
-  | ScriptConfigItemNumber
-  | ScriptConfigItemText
-
-export interface ScriptConfig {
-  title: string
-  description?: string
-  items: ScriptConfigItem[]
-}
-
 export type Prettify<T> = {
   [K in keyof T]: T[K]
 } & {}
@@ -220,5 +172,17 @@ export interface DynamicInputProps {
   content: InputContent
   onResolve: (value: string | Record<string, any> | ScriptInputFileUploadResult) => void
 }
+
+export {
+  ScriptConfigItemBase,
+  ScriptConfigItemTable,
+  ScriptConfigItemField,
+  ScriptConfigItemView,
+  ScriptConfigItemSelect,
+  ScriptConfigItemNumber,
+  ScriptConfigItemText,
+  ScriptConfigItem,
+  ScriptConfig,
+} from 'nocodb-sdk'
 
 export * from '../../lib/types'

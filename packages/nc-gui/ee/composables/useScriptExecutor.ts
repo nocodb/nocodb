@@ -1,7 +1,7 @@
 import type { ScriptType } from 'nocodb-sdk'
 import { createWorkerCode, generateIntegrationsCode } from '~/components/smartsheet/automation/scripts/utils/workerHelper'
 import { generateLibCode } from '~/components/smartsheet/automation/scripts/utils/editorUtils'
-import { replaceConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
+import { replaceConfigValues } from 'nocodb-sdk'
 import type { CallApiAction, ScriptPlaygroundItem, ViewActionPayload, WorkflowStepItem } from '~/lib/types'
 import { ScriptActionType } from '~/lib/enum'
 

@@ -164,7 +164,7 @@ export default async function applyAggregation({
       aggType,
       alias: alias,
     });
-  } else if (knex.client.config.client === 'mysql2') {
+  } else if (['mysql', 'mysql2'].includes(knex.client.config.client)) {
     return genMysql2AggregatedQuery({
       column,
       baseModelSqlv2,

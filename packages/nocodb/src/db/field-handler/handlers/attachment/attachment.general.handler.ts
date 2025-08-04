@@ -41,14 +41,21 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
       if (typeof value === 'string') {
         value = JSON.parse(value);
       } else if (!Array.isArray(value)) {
-        throwError();
+        // do not throw error, but set it as empty array
+        value = [];
       }
+    } catch (e) {
+      // do not throw error, but set it as empty array
+      value = [];
+    }
+    try {
       if (typeof oldValue === 'string') {
         oldValue = JSON.parse(oldValue);
       }
       oldValueMap = new Map(oldValue.map((val) => [val.id, val]));
     } catch (e) {
-      throwError();
+      // do not throw error, but set it as empty map
+      oldValueMap = new Map();
     }
 
     let tempIndex = 1;

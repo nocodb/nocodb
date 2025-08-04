@@ -311,7 +311,7 @@ watch(activeViewTab, (value) => {
                       <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
                     </template>
                   </a-input>
-                  <NcDropdown v-if="easterEggToggle && showFilter" v-model:visible="isOpenFilter">
+                  <NcDropdown v-if="easterEggToggle && showFilter" v-model:visible="isOpenFilter" placement="bottomRight">
                     <NcButton size="small" type="secondary">
                       <div class="flex items-center gap-2">
                         <GeneralIcon icon="filter" />
@@ -332,6 +332,7 @@ watch(activeViewTab, (value) => {
                         search-input-placeholder="Search category"
                         :close-on-select="false"
                         is-multi-select
+                        variant="medium"
                       >
                         <template #listFooter>
                           <NcDivider class="!mt-0 !mb-2" />
@@ -424,12 +425,33 @@ watch(activeViewTab, (value) => {
                             </div>
                             <div v-if="!isDataReflectionEnabled && integration?.sub_type === SyncDataType.NOCODB"></div>
                             <div v-else-if="integration?.sub_type === SyncDataType.NOCODB" class="flex items-center">
-                              <template v-if="dataReflectionEnabled">
-                                <GeneralIcon icon="check" class="text-primary text-lg" />
-                              </template>
-                              <div v-else class="action-btn !block">+</div>
+                              <NcButton
+                                v-if="dataReflectionEnabled"
+                                type="secondary"
+                                size="xs"
+                                class="integration-upvote-btn !rounded-lg !px-1 !py-0 selected"
+                              >
+                                <div class="flex items-center gap-2">
+                                  <GeneralIcon icon="ncCheck" class="text-primary flex-none" />
+                                </div>
+                              </NcButton>
+                              <NcButton v-else type="secondary" size="xs" class="action-btn !rounded-lg !px-1 !py-0">
+                                <div class="flex items-center gap-2">
+                                  <GeneralIcon icon="ncPlus" class="flex-none" />
+                                </div>
+                              </NcButton>
                             </div>
-                            <div v-else-if="integration?.isAvailable" class="action-btn">+</div>
+
+                            <NcButton
+                              v-else-if="integration?.isAvailable"
+                              type="secondary"
+                              size="xs"
+                              class="action-btn !rounded-lg !px-1 !py-0"
+                            >
+                              <div class="flex items-center gap-2">
+                                <GeneralIcon icon="ncPlus" class="flex-none" />
+                              </div>
+                            </NcButton>
                             <div v-else class="">
                               <NcButton
                                 type="secondary"
@@ -592,7 +614,7 @@ watch(activeViewTab, (value) => {
         }
 
         .action-btn {
-          @apply hidden text-2xl text-gray-500 w-7 h-7 text-center flex-none;
+          @apply hidden;
         }
 
         &.is-available {
@@ -602,7 +624,7 @@ watch(activeViewTab, (value) => {
             box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
 
             .action-btn {
-              @apply block;
+              @apply inline-block;
             }
           }
 

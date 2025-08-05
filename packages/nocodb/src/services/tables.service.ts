@@ -88,6 +88,21 @@ export class TablesService {
         context,
       });
 
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'table_update',
+            payload: {
+              ...model,
+              ...param.table,
+            },
+          },
+        },
+        context.socket_id,
+      );
+
       return true;
     }
 
@@ -239,6 +254,21 @@ export class TablesService {
       req: param.req,
       context,
     } as any);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_update',
+          payload: {
+            ...model,
+            order: param.order,
+          },
+        },
+      },
+      context.socket_id,
+    );
 
     return res;
   }

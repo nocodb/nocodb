@@ -21,7 +21,7 @@ export const useRealtime = createSharedComposable(() => {
 
   watch(
     baseId,
-    async () => {
+    () => {
       if (!baseId.value) return
 
       if (activeMetaChannel.value) {
@@ -48,6 +48,9 @@ export const useRealtime = createSharedComposable(() => {
             if (index !== -1) {
               tables[index] = updatedTable
             }
+
+            tables.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+
             baseTables.value.set(baseId.value, tables)
           } else {
             loadProjectTables(baseId.value, true)
@@ -83,9 +86,11 @@ export const useRealtime = createSharedComposable(() => {
           const views = viewsByTable.value.get(event.payload.fk_model_id) || []
           views.push(event.payload)
         } else if (event.action === 'view_update') {
-          const view = viewsByTable.value.get(event.payload.fk_model_id)?.find((v) => v.id === event.payload.id)
+          const tableViews = viewsByTable.value.get(event.payload.fk_model_id)
+          const view = tableViews?.find((v) => v.id === event.payload.id)
           if (view) {
             Object.assign(view, event.payload)
+            tableViews?.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
           }
         } else if (event.action === 'view_delete') {
           const views = viewsByTable.value.get(event.payload.fk_model_id)

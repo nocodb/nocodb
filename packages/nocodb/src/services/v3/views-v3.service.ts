@@ -138,7 +138,7 @@ export class ViewsV3Service {
       },
       excludeEmptyObjectProps: true,
       transformFn: (viewData) => {
-        const { view, ...formattedData } = viewData;
+        const { view, meta, ...formattedData } = viewData;
         formattedData.type = viewTypeMap[formattedData.type];
         const options = JSON.parse(
           JSON.stringify(this.viewOptionsBuilder().build(view)),
@@ -147,6 +147,7 @@ export class ViewsV3Service {
         if (Object.keys(options).length > 0) {
           formattedData.options = options;
         }
+        // TODO: handle meta
         return formattedData;
       },
     });

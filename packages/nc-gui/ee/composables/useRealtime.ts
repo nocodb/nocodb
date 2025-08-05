@@ -15,7 +15,7 @@ export const useRealtime = createSharedComposable(() => {
 
   const viewStore = useViewsStore()
   const { changeView } = viewStore
-  const { viewsByTable, activeView } = storeToRefs(viewStore)
+  const { viewsByTable, activeViewTitleOrId } = storeToRefs(viewStore)
 
   const activeMetaChannel = ref<string | null>(null)
 
@@ -90,17 +90,20 @@ export const useRealtime = createSharedComposable(() => {
         } else if (event.action === 'view_delete') {
           const views = viewsByTable.value.get(event.payload.fk_model_id)
           if (views) {
+            if (activeViewTitleOrId.value === event.payload.id) {
+              const firstView = views[0]
+              if (firstView) {
+                changeView({
+                  viewId: firstView.id || null,
+                  tableId: firstView.fk_model_id,
+                  baseId: firstView.base_id || baseId.value,
+                })
+              }
+            }
+
             const index = views.findIndex((v) => v.id === event.payload.id)
             if (index !== -1) {
               views.splice(index, 1)
-            }
-            const firstView = views[0]
-            if (firstView) {
-              changeView({
-                viewId: firstView.id || null,
-                tableId: firstView.fk_model_id,
-                baseId: firstView.base_id || baseId.value,
-              })
             }
           }
         }

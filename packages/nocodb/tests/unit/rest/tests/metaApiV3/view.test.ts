@@ -87,7 +87,7 @@ export default function () {
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
           .send({
-            name: 'MyView',
+            title: 'MyView',
             type: 'grid',
             sorts: [
               {
@@ -103,7 +103,7 @@ export default function () {
           .patch(`${API_PREFIX}/views/${response.body.id}`)
           .set('xc-token', context.xc_token)
           .send({
-            name: 'MyView32',
+            title: 'MyView32',
             sorts: [
               {
                 field_id: (
@@ -112,7 +112,7 @@ export default function () {
               },
             ],
           });
-        expect(updateResponse.body.name).to.eq('MyView32');
+        expect(updateResponse.body.title).to.eq('MyView32');
       });
 
       it(`will create + update grid view with groups`, async () => {
@@ -123,7 +123,7 @@ export default function () {
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
           .send({
-            name: 'MyView',
+            title: 'MyView',
             type: 'grid',
             options: {
               groups: [
@@ -146,13 +146,13 @@ export default function () {
           .patch(`${API_PREFIX}/views/${response.body.id}`)
           .set('xc-token', context.xc_token)
           .send({
-            name: 'MyView32',
+            title: 'MyView32',
             options: {
               groups: [],
             },
             sorts: [],
           });
-        expect(updateResponse.body.name).to.eq('MyView32');
+        expect(updateResponse.body.title).to.eq('MyView32');
         expect((updateResponse.body.options?.groups ?? []).length).to.eq(0);
         expect((updateResponse.body.sorts ?? []).length).to.eq(0);
 
@@ -174,7 +174,7 @@ export default function () {
               },
             ],
           });
-        expect(updateResponse2.body.name).to.eq('MyView32');
+        expect(updateResponse2.body.title).to.eq('MyView32');
         expect(updateResponse2.body.options.groups.length).to.greaterThan(0);
         expect(updateResponse2.body.sorts.length).to.greaterThan(0);
       });
@@ -192,7 +192,7 @@ export default function () {
         const requestPayload = {
           url: `${API_PREFIX}/tables/${table.id}/views`,
           body: {
-            name: 'MyView',
+            title: 'MyView',
             type: 'grid',
             options: {
               groups: [
@@ -230,7 +230,7 @@ export default function () {
         const requestPayload = {
           url: `${API_PREFIX}/tables/${table.id}/views`,
           body: {
-            name: 'MyView',
+            title: 'MyView',
             type: 'kanban',
             options: {
               stack_by: {
@@ -262,7 +262,7 @@ export default function () {
         const requestPayload = {
           url: `${API_PREFIX}/tables/${table.id}/views`,
           body: {
-            name: 'MyView',
+            title: 'MyView',
             type: 'calendar',
             options: {
               date_ranges: [
@@ -293,7 +293,7 @@ export default function () {
         const requestPayload = {
           url: `${API_PREFIX}/tables/${table.id}/views`,
           body: {
-            name: 'MyView',
+            title: 'MyView',
             type: 'gallery',
             options: {
               cover_field_id: (await table.getColumns(ctx)).find(
@@ -321,7 +321,7 @@ export default function () {
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
           .send({
-            name: 'MyView',
+            title: 'MyView',
             type: 'form',
             options: {
               form_title: 'MyForm',
@@ -343,7 +343,7 @@ export default function () {
         const requestPayload = {
           url: `${API_PREFIX}/tables/${table.id}/views`,
           body: {
-            name: 'MyView',
+            title: 'MyView',
             type: 'form',
             options: {
               form_title: 'MyForm',
@@ -404,7 +404,7 @@ export default function () {
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
           .send({
-            name: 'MyView',
+            title: 'MyView',
             type: 'grid',
             sorts: [
               {

@@ -139,9 +139,7 @@ export class ViewsV3Service {
         'view',
         'type',
       ],
-      mappings: {
-        title: 'name',
-      },
+      mappings: {},
       excludeEmptyObjectProps: true,
       transformFn: (viewData) => {
         const { view, meta, ...formattedData } = viewData;
@@ -154,6 +152,12 @@ export class ViewsV3Service {
           formattedData.owned_by = undefined;
         }
 
+        const { rowColoringInfo: _rowColoringInfo, ...optionMeta } = meta ?? {};
+        if (Object.keys(optionMeta ?? {}).length > 0) {
+          formattedData.options = {
+            ...optionMeta,
+          };
+        }
         if (Object.keys(options).length > 0) {
           formattedData.options = options;
         }
@@ -256,7 +260,7 @@ export class ViewsV3Service {
       allowed: [
         'id',
         'type',
-        'name',
+        'title',
         'description',
         'sorts',
         'groups',
@@ -267,9 +271,7 @@ export class ViewsV3Service {
         'created_at',
         'updated_at',
       ],
-      mappings: {
-        name: 'title',
-      },
+      mappings: {},
       booleanProps: ['submit_another_form', 'show_blank_form'],
       nestedExtract: {
         form_hide_branding: ['view', 'meta', 'hide_branding'],

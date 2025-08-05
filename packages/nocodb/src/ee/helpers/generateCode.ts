@@ -1973,7 +1973,6 @@ function generateSessionApi(user: any): string {
 
 function generateApiProxy(req: NcRequest): string {
   return `
-  import { InternalApi } from 'nc-sdk-v2'
   const api = (new InternalApi({
     baseURL: "${req.ncSiteUrl}",
     headers: {
@@ -2016,8 +2015,11 @@ export function createSandboxCode(
   rowId?: string,
   tableId?: string,
   viewId?: string,
+  executionId?: string,
 ): string {
   return `  
+    import { InternalApi } from 'nc-sdk-v2'
+    await (async () => {
     ${generateConsoleOutput()}
     ${generateStepAPI()}
     ${generateV3ToV2Converter()}
@@ -2028,5 +2030,6 @@ export function createSandboxCode(
     ${generateCustomCode(baseSchema, rowId, tableId, viewId)}
     ${generateSessionApi(user)}
     ${generateMessageHandler(userCode)}
+    })()
   `;
 }

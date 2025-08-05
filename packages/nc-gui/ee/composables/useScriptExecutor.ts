@@ -791,5 +791,6 @@ export const useScriptExecutor = createSharedComposable(() => {
     libCode,
     fieldIDRowMapping,
     isBackendExecutionEnabled,
+    handleWorkerMessage,
   }
 })

@@ -3,7 +3,7 @@ const { isRunning, runScript, stopExecution } = useScriptStoreOrThrow()
 
 const automationStore = useAutomationStore()
 
-const { activeAutomation, isLoadingAutomation, isSettingsOpen, isBackendExecutionEnabled } = storeToRefs(automationStore)
+const { activeAutomation, isLoadingAutomation, isSettingsOpen } = storeToRefs(automationStore)
 
 const { isValidConfig, shouldShowSettings, restartScript } = useScriptStoreOrThrow()
 
@@ -14,8 +14,6 @@ const toggleScriptSettings = () => {
 
 <template>
   <div v-if="!isLoadingAutomation && activeAutomation" class="flex items-center gap-2">
-    <NcSwitch v-model:checked="isBackendExecutionEnabled"> Server </NcSwitch>
-
     <NcButton
       v-if="shouldShowSettings"
       :class="{ '!bg-brand-50 !hover:bg-brand-100/70 !text-brand-500': isSettingsOpen }"

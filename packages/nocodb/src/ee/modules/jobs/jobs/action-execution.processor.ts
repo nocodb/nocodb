@@ -321,6 +321,7 @@ export class ActionExecutionProcessor {
             await sandbox.runCode(sandboxCode, {
               language: 'javascript',
               onError: (error) => {
+                console.log('onError', error);
                 sendActionMessage({
                   type: 'ACTION_EXECUTION_ERROR',
                   executionId,
@@ -334,6 +335,7 @@ export class ActionExecutionProcessor {
                 });
               },
               onStdout: (data) => {
+                console.log('data', data);
                 const parsedMessage = parseSandboxOutputToWorkerMessage(data);
                 if (parsedMessage) {
                   sendActionMessage({
@@ -347,6 +349,8 @@ export class ActionExecutionProcessor {
                 }
               },
               onStderr: (data) => {
+                console.log('stderr', data);
+
                 const parsedMessage = parseSandboxOutputToWorkerMessage(data);
                 if (parsedMessage) {
                   sendActionMessage({

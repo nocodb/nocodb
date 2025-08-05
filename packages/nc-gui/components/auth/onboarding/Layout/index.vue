@@ -3,6 +3,8 @@ const { stepper, onCompleteOnboardingFlow, isFilledQuestionAnswer, isFilledVisib
 
 const { index: stepIndex, steps, isLast, isFirst, goToNext, goToPrevious } = stepper
 
+const imagePreviewSectionRef = ref()
+
 const isFilledSecondScreenOptions = computed(() => {
   return questionsMap.value[2] ? isFilledQuestionAnswer(questionsMap.value[2]) : false
 })
@@ -13,11 +15,30 @@ const progress = computed(() => {
     text: `${stepIndex.value + 1} / ${steps.value.length}`,
   }
 })
+
+useEventListener('keydown', (event) => {
+  if (!isFilledVisibleOptions.value) return
+
+  if (event.key === 'Enter') {
+    if (isLast.value) {
+      onCompleteOnboardingFlow(false)
+    } else {
+      goToNext()
+    }
+  }
+})
 </script>
 
 <template>
   <div class="w-full flex items-stretch h-full">
-    <div class="w-full lg:(w-1/2) transition-width duration-250 h-full flex flex-col gap-[120px] nc-scrollbar-thin relative">
+    <div class="hidden lg:block w-1/2">
+      <slot name="imagePreviewSection">
+        <AuthOnboardingLayoutImagePreviewSection ref="imagePreviewSectionRef" />
+      </slot>
+    </div>
+    <div
+      class="w-full lg:(w-1/2) transition-width duration-250 h-full flex flex-col gap-[120px] nc-scrollbar-thin relative border-l-1 border-nc-border-gray-medium"
+    >
       <header
         class="px-4 pt-6 lg:(pt-12 px-8) flex items-center justify-between w-full max-w-[672px] lg:max-w-[704px] mx-auto sticky top-0 lg:-top-4 bg-white"
       >
@@ -30,7 +51,7 @@ const progress = computed(() => {
             status="normal"
             stroke-color="#3366FF"
             trail-color="#F0F3FF"
-            :format="() => progress.text"
+            :show-info="false"
           />
         </div>
       </header>
@@ -62,28 +83,21 @@ const progress = computed(() => {
             </NcButton>
             <template v-if="stepIndex !== 0 || isFilledSecondScreenOptions">
               <NcButton
-                v-if="!isLast"
                 type="primary"
                 size="small"
-                :disabled="isLast || !isFilledVisibleOptions"
-                @click="goToNext()"
+                :disabled="!isFilledVisibleOptions"
+                @click="isLast ? onCompleteOnboardingFlow(false) : goToNext()"
               >
                 <div class="flex items-center gap-2">
-                  {{ $t('labels.next') }}
+                  {{ isLast ? $t('general.finish') : $t('labels.next') }}
                   <div class="h-full rounded px-1 py-0.5">
                     <GeneralIcon icon="ncEnter" class="w-4 h-4" />
                   </div>
                 </div>
               </NcButton>
-              <div v-else></div>
             </template>
           </div>
         </footer>
-      </slot>
-    </div>
-    <div class="hidden lg:block w-1/2 border-l">
-      <slot name="imagePreviewSection">
-        <AuthOnboardingLayoutImagePreviewSection />
       </slot>
     </div>
   </div>

@@ -174,6 +174,14 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
+  {
+    id: 'signup_onboarding_flow',
+    title: 'Signup Onboarding Flow',
+    description: 'Allows user to onboarding flow on signup.',
+    enabled: false,
+    version: 1,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

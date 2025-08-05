@@ -97,7 +97,6 @@ watch(
       // return
     }
 
-    console.log('showOnboardignFlow.value', route.value)
     // If show onboarding flow is true, don't navigate to workspace
     if (showOnboardingFlow.value) {
       return

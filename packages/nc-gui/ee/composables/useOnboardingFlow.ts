@@ -48,13 +48,19 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
   const route = router.currentRoute
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const isEnabledOnboardingFlow = computed(() => {
+    return isFeatureEnabled(FEATURE_FLAG.SIGNUP_ONBOARDING_FLOW)
+  })
+
   /**
    * If true, the onboarding flow will be shown in home page - `/`
    */
-  const showOnboardingFlowLocalState = ref(true)
+  const showOnboardingFlowLocalState = ref(false)
 
   const showOnboardingFlow = computed(() => {
-    return showOnboardingFlowLocalState.value && route.value.name === 'index'
+    return isEnabledOnboardingFlow.value && showOnboardingFlowLocalState.value && route.value.name === 'index'
   })
 
   // Timestamp when the onboarding flow is started
@@ -457,6 +463,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
   }
 
   return {
+    showOnboardingFlowLocalState,
     showOnboardingFlow,
     questions,
     questionsMap,
@@ -469,5 +476,6 @@ export const useOnboardingFlow = createSharedComposable(() => {
     isFilledVisibleOptions,
     onSelectOption,
     isFilledQuestionAnswer,
+    isEnabledOnboardingFlow,
   }
 })

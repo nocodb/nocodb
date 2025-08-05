@@ -21,6 +21,8 @@ const showNextButton = computed(() => {
   return stepIndex.value !== 0 || isFilledSecondScreenOptions.value || Object.keys(formState.value).length > 2
 })
 
+const isDisabledSkipButton = ref(false)
+
 useEventListener('keydown', (event) => {
   if (event.key === 'Enter') {
     if (!event.shiftKey && isFilledVisibleOptions.value) {
@@ -36,6 +38,32 @@ useEventListener('keydown', (event) => {
     }
   }
 })
+
+let timer: any
+
+/**
+ * To avoid accidental skip of onboarding flow while pressing back button continuously,
+ * disable skip button for 2 second
+ */
+watch(
+  () => stepIndex.value,
+  (newIndex, oldIndex, cleanup) => {
+    if (newIndex !== 0 || oldIndex === undefined) {
+      isDisabledSkipButton.value = false
+      return
+    }
+
+    isDisabledSkipButton.value = true
+
+    timer = setTimeout(() => {
+      isDisabledSkipButton.value = false
+    }, 2000)
+
+    cleanup(() => {
+      clearTimeout(timer)
+    })
+  },
+)
 </script>
 
 <template>
@@ -79,7 +107,13 @@ useEventListener('keydown', (event) => {
               'justify-between': showNextButton,
             }"
           >
-            <NcButton v-if="stepIndex === 0" type="text" size="small" @click="onCompleteOnboardingFlow(true)">
+            <NcButton
+              v-if="stepIndex === 0"
+              type="text"
+              size="small"
+              :disabled="isDisabledSkipButton"
+              @click="onCompleteOnboardingFlow(true)"
+            >
               <div class="opacity-50">
                 {{ $t('general.skip') }}
               </div>

@@ -193,38 +193,4 @@ export class ScriptsService {
 
     return newScript;
   }
-
-  async executeScript(
-    context: NcContext,
-    req: NcRequest,
-    scriptId: string,
-    rowId?: string,
-    tableId?: string,
-    viewId?: string,
-  ) {
-    const script = await Script.get(context, scriptId);
-
-    if (!script) {
-      return NcError.notFound('Script not found');
-    }
-
-    const job = await this.jobsService.add(JobTypes.ExecuteScript, {
-      context,
-      scriptId,
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        headers: req.headers,
-        ncSiteUrl: req.ncSiteUrl,
-      },
-      rowId,
-      tableId,
-      viewId,
-    });
-
-    return {
-      id: job.id,
-      name: job.name,
-    };
-  }
 }

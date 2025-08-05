@@ -93,7 +93,6 @@ export class InternalController extends InternalControllerCE {
       widgetDuplicate: 'base',
       widgetDataGet: 'base',
       dashboardShare: 'base',
-      executeScript: 'base',
       triggerAction: 'base',
     };
   }
@@ -377,15 +376,6 @@ export class InternalController extends InternalControllerCE {
           context,
           payload,
           req,
-        );
-      case 'executeScript':
-        return await this.scriptsService.executeScript(
-          context,
-          req,
-          payload.id,
-          payload.rowId,
-          payload.tableId,
-          payload.viewId,
         );
       case 'triggerAction':
         return await this.actionsService.triggerAction(context, payload, req);

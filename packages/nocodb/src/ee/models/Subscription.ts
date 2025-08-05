@@ -424,7 +424,7 @@ export default class Subscription {
               _or: [
                 {
                   status: {
-                    in: ['active', 'trialing', 'incomplete'],
+                    in: ['active', 'trialing', 'incomplete', 'past_due'],
                   },
                 },
               ],
@@ -436,7 +436,9 @@ export default class Subscription {
 
     if (
       !subscription ||
-      !['active', 'trialing', 'incomplete'].includes(subscription.status)
+      !['active', 'trialing', 'incomplete', 'past_due'].includes(
+        subscription.status,
+      )
     )
       return null;
 

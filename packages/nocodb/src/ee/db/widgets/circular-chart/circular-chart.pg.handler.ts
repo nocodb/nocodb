@@ -58,9 +58,12 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       colId: chartData.category.column_id,
     });
 
-    const filters = await Filter.rootFilterListByWidget(context, {
-      widgetId: widget.id,
-    });
+    const filters =
+      dataSource === 'filter'
+        ? await Filter.rootFilterListByWidget(context, {
+            widgetId: widget.id,
+          })
+        : [];
 
     const categoryColumnNameQuery = await getColumnNameQuery({
       baseModelSqlv2: baseModel,

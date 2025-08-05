@@ -116,7 +116,6 @@ const findInputItemInPlayground = (items: any[], id: string): { item: any; index
       {
         'border-l-1 border-nc-border-gray-medium': !compact && scriptStore?.isCreateEditScriptAllowed,
         'p-6 h-[91svh] bg-nc-bg-gray-extralight max-w-130': !compact,
-        'p-4': compact,
       },
       containerClass,
     ]"

@@ -77,6 +77,7 @@ async function signUp() {
        * Onboarding flow is shown only for new users
        */
       showOnboardingFlowLocalState.value = true
+      await navigateTo('/')
 
       return
     }

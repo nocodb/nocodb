@@ -422,10 +422,14 @@ export const useOnboardingFlow = createSharedComposable(() => {
       if (stepper.isLast.value || !autoNavigateToNextQuestion || !nextQuestion || isFilledQuestionAnswer(nextQuestion)) return
 
       if (question.inputType === 'singleSelect') {
-        stepper.goToNext()
+        ncDelay(500).then(() => {
+          stepper.goToNext()
+        })
       } else if (question.inputType === 'multiSelect') {
         if ((formState.value[question.id]?.length ?? 0) >= (question.minSelection ?? 1)) {
-          stepper.goToNext()
+          ncDelay(500).then(() => {
+            stepper.goToNext()
+          })
         }
       }
     } else if (ncIsUndefined(formState.value[nextQuestion.id]) || question.id === 1) {

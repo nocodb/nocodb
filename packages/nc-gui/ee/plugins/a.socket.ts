@@ -55,12 +55,13 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     },
     onMessage: (evt: string, handler: (...args: any[]) => void) => {
       if (!socket) return
-      socket.on(evt, (...args: any[]) => {
+      const localHandler = (...args: any[]) => {
         // if socketId is same skip the event
         if (args[0]?.socketId && args[0].socketId === socket.id) return
         handler(...args)
-      })
-      messageHandlers.set(evt, handler)
+      }
+      socket.on(evt, localHandler)
+      messageHandlers.set(evt, localHandler)
     },
     offMessage: (evt: string) => {
       const handler = messageHandlers.get(evt)

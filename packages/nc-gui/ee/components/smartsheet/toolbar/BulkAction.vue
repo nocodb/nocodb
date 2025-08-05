@@ -5,7 +5,7 @@ const open = ref(false)
 
 const { isMobileMode } = useGlobal()
 
-const { isPanelExpanded: isActionPaneActive } = useActionPane()
+const { isPanelExpanded: isActionPaneActive, addScriptExecution } = useActionPane()
 
 const workspaceStore = useWorkspace()
 
@@ -42,8 +42,7 @@ const activeActionPane = () => {
 const { loadAutomation } = useAutomationStore()
 const { api } = useApi()
 const { $poller } = useNuxtApp()
-const { addScriptExecution } = useActionPane()
-const { activeExecutions, handleWorkerMessage } = useScriptExecutor()
+const { activeExecutions, handleWorkerMessage, eventBus } = useScriptExecutor()
 
 const executionStatus = ref(
   new Map<
@@ -126,75 +125,89 @@ watch(
 )
 
 const handleBulkActionMessage = async (message: any, button: ColumnType & { colOptions: ButtonType }) => {
-  try {
-    const parsedMessage = typeof message === 'string' ? JSON.parse(message) : message
+  const parsedMessage = typeof message === 'string' ? JSON.parse(message) : message
 
-    switch (parsedMessage.type) {
-      case 'ACTION_EXECUTION_START':
-        {
-          const recordId = parsedMessage.payload.recordId
-          const executionId = parsedMessage.executionId
+  switch (parsedMessage.type) {
+    case 'ACTION_EXECUTION_START':
+      {
+        const recordId = parsedMessage.payload.recordId
+        const executionId = parsedMessage.executionId
 
-          // Create execution in useScriptExecutor activeExecutions
-          activeExecutions.value.set(executionId, {
-            status: 'running',
-            result: null,
-            error: null,
-            worker: null, // No worker for backend execution
-            pk: recordId,
-            fieldId: button.id!,
-            playground: [],
-          })
+        activeExecutions.value.set(executionId, {
+          status: 'running',
+          result: null,
+          error: null,
+          worker: null,
+          pk: recordId,
+          fieldId: button.id!,
+          playground: [],
+        })
 
-          // Also add to Action Pane for UI display
-          addScriptExecution(executionId, {
+        addScriptExecution(
+          executionId,
+          {
             recordId,
             displayValue: parsedMessage.payload.displayValue,
-            scriptId: parsedMessage.payload.scriptId || button.id!,
-            scriptName: parsedMessage.payload.scriptName || button.colOptions.label || 'Action',
+            scriptId: parsedMessage.payload.scriptId,
+            scriptName: parsedMessage.payload.scriptName || 'Action',
             buttonFieldName: parsedMessage.payload.buttonFieldName || button.colOptions.label || 'Button',
+          },
+          false,
+        )
+
+        eventBus.emit(SmartsheetScriptActions.BUTTON_ACTION_START, {
+          rowId: recordId,
+          columnId: button.id,
+          executionId,
+        })
+      }
+      break
+
+    case 'ACTION_EXECUTION_MESSAGE':
+      {
+        const executionId = parsedMessage.executionId
+
+        if (executionId && activeExecutions.value.has(executionId) && parsedMessage.payload.message) {
+          handleWorkerMessage(
+            executionId,
+            parsedMessage.payload.message,
+            null, // No worker for backend execution
+            () => {}, // No onWorkerDone callback
+            {
+              pk: parsedMessage.payload.recordId,
+              fieldId: button.id!,
+              executionId,
+            },
+          )
+        }
+      }
+      break
+
+    case 'ACTION_EXECUTION_COMPLETE':
+    case 'ACTION_EXECUTION_ERROR':
+      {
+        const executionId = parsedMessage.executionId
+
+        if (executionId && activeExecutions.value.has(executionId)) {
+          const execution = activeExecutions.value.get(executionId)!
+          const isError = parsedMessage.type === 'ACTION_EXECUTION_ERROR'
+
+          activeExecutions.value.set(executionId, {
+            ...execution,
+            status: isError ? 'error' : 'finished',
+            error: isError ? parsedMessage.payload.error : undefined,
+          })
+
+          const eventType = isError ? SmartsheetScriptActions.BUTTON_ACTION_ERROR : SmartsheetScriptActions.BUTTON_ACTION_COMPLETE
+          eventBus.emit(eventType, {
+            rowId: execution.pk!,
+            columnId: button.id,
+            success: !isError,
+            error: isError ? parsedMessage.payload.error : undefined,
           })
         }
-        break
-
-      case 'ACTION_EXECUTION_MESSAGE':
-        {
-          const executionId = parsedMessage.executionId
-
-          if (executionId && activeExecutions.value.has(executionId) && parsedMessage.payload.message) {
-            await handleWorkerMessage(
-              executionId,
-              parsedMessage.payload.message,
-              null, // No worker for backend execution
-              () => {}, // No onWorkerDone callback
-              {
-                pk: parsedMessage.payload.recordId,
-                fieldId: button.id!,
-                executionId,
-              },
-            )
-          }
-        }
-        break
-
-      case 'ACTION_EXECUTION_COMPLETE':
-      case 'ACTION_EXECUTION_ERROR':
-        {
-          const executionId = parsedMessage.executionId
-
-          if (executionId && activeExecutions.value.has(executionId)) {
-            const execution = activeExecutions.value.get(executionId)!
-            activeExecutions.value.set(executionId, {
-              ...execution,
-              status: parsedMessage.type === 'ACTION_EXECUTION_ERROR' ? 'error' : 'finished',
-              error: parsedMessage.type === 'ACTION_EXECUTION_ERROR' ? parsedMessage.payload.error : undefined,
-            })
-          }
-        }
-        break
-    }
-  } catch (error) {
-    console.error('Error handling bulk action message:', error)
+      }
+      break
   }
 }
 
@@ -207,6 +220,10 @@ const executeAction = async (
 
   try {
     executionStatus.value.set(button.id, { status: 'loading' })
+
+    eventBus.emit(SmartsheetScriptActions.BULK_ACTION_START, {
+      columnId: button.id,
+    })
 
     const response = await api.internal.postOperation(
       activeWorkspace.value.id,
@@ -222,12 +239,20 @@ const executeAction = async (
     )
 
     if (response?.id) {
+      if (!isActionPaneActive.value) {
+        isActionPaneActive.value = true
+      }
       // Poll for job completion and handle messages
       await $poller.subscribe({ id: response.id }, async (data: any) => {
         if (data.status !== 'close') {
           if ([JobStatus.COMPLETED, JobStatus.FAILED].includes(data.status)) {
             executionStatus.value.set(button.id!, {
               status: data.status === JobStatus.COMPLETED ? 'success' : 'error',
+            })
+
+            eventBus.emit(SmartsheetScriptActions.BULK_ACTION_END, {
+              columnId: button.id,
+              success: data.status === JobStatus.COMPLETED,
             })
 
             setTimeout(
@@ -246,6 +271,11 @@ const executeAction = async (
   } catch (error: any) {
     console.error('Error executing bulk action:', error)
     executionStatus.value.set(button.id!, { status: 'error' })
+
+    eventBus.emit(SmartsheetScriptActions.BULK_ACTION_END, {
+      columnId: button.id,
+      success: false,
+    })
 
     setTimeout(() => {
       executionStatus.value.delete(button.id!)

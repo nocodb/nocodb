@@ -91,6 +91,18 @@ export enum SmartsheetScriptActions {
 
   RELOAD_VIEW = 'reload-view',
   RELOAD_ROW = 'reload-row',
+
+  UPDATE_STEP_TITLE = 'update-step-title',
+  START_CELL_UPDATE = 'start-cell-update',
+  COMPLETE_CELL_UPDATE = 'complete-cell-update',
+  CLEAR_SCRIPT_CELL_UPDATES = 'clear-script-cell-updates',
+
+  BULK_ACTION_START = 'bulk-action-start',
+  BULK_ACTION_END = 'bulk-action-end',
+  BUTTON_ACTION_START = 'button-action-start',
+  BUTTON_ACTION_COMPLETE = 'button-action-complete',
+  BUTTON_ACTION_PROGRESS = 'button-action-progress',
+  BUTTON_ACTION_ERROR = 'button-action-error',
 }
 
 export enum DataSourcesSubTab {
@@ -203,4 +215,5 @@ export enum WorkspaceIconType {
 export const EventBusEnum = {
   SmartsheetStore: Symbol('SmartsheetStore'),
   Realtime: Symbol('Realtime'),
+  SmartsheetActions: Symbol('SmartSheetActions'),
 }

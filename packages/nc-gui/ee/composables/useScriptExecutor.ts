@@ -1,9 +1,9 @@
 import type { ScriptType } from 'nocodb-sdk'
+import { replaceConfigValues } from 'nocodb-sdk'
 import { createWorkerCode, generateIntegrationsCode } from '~/components/smartsheet/automation/scripts/utils/workerHelper'
 import { generateLibCode } from '~/components/smartsheet/automation/scripts/utils/editorUtils'
-import { replaceConfigValues } from 'nocodb-sdk'
 import type { CallApiAction, ScriptPlaygroundItem, ViewActionPayload, WorkflowStepItem } from '~/lib/types'
-import { ScriptActionType } from '~/lib/enum'
+import { EventBusEnum, ScriptActionType, SmartsheetScriptActions } from '~/lib/enum'
 
 export const useScriptExecutor = createSharedComposable(() => {
   const { internalApi, api } = useApi()
@@ -28,7 +28,7 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const { transform } = useEsbuild()
 
-  const eventBus = useEventBus<SmartsheetScriptActions>(Symbol('SmartSheetActions'))
+  const eventBus = useEventBus<SmartsheetScriptActions>(EventBusEnum.SmartsheetActions)
 
   const libCode = ref<string>('')
   const customCode = ref<string>('')
@@ -231,7 +231,7 @@ export const useScriptExecutor = createSharedComposable(() => {
     message: any,
     worker: Worker,
     onWorkerDone: () => void,
-    executionContext?: { pk: string; fieldId: string; actionManager?: any; executionId?: string },
+    executionContext?: { pk: string; fieldId: string; executionId?: string },
   ) {
     const execution = activeExecutions.value.get(scriptId)
     if (!execution) {
@@ -250,13 +250,11 @@ export const useScriptExecutor = createSharedComposable(() => {
         execution.playground.push(stepItem)
 
         // Update ActionManager with current step title
-        if (executionContext?.actionManager && executionContext.pk && executionContext.fieldId) {
-          executionContext.actionManager.setCurrentStepTitle(
-            executionContext.pk,
-            executionContext.fieldId,
-            message.payload.title || 'Processing...',
-          )
-        }
+        eventBus.emit(SmartsheetScriptActions.UPDATE_STEP_TITLE, {
+          pk: executionContext?.pk,
+          fieldId: executionContext?.fieldId,
+          title: message.payload.title || 'Processing...',
+        })
         break
       }
       case ScriptActionType.WORKFLOW_STEP_END: {
@@ -407,21 +405,27 @@ export const useScriptExecutor = createSharedComposable(() => {
         const payload = message.payload
 
         // Mark each field as being updated via ActionManager
-        if (executionContext?.actionManager) {
-          for (const field of payload.fields) {
-            executionContext.actionManager.startCellUpdate(payload.recordId, field.id, field.name, scriptId)
-          }
+        for (const field of payload.fields) {
+          eventBus.emit(SmartsheetScriptActions.START_CELL_UPDATE, {
+            recordId: payload.recordId,
+            fieldId: field.id,
+            fieldName: field.name,
+            scriptId,
+          })
         }
+
         break
       }
       case ScriptActionType.RECORD_UPDATE_COMPLETE: {
         const payload = message.payload
 
         // Mark each field update as complete via ActionManager
-        if (executionContext?.actionManager) {
-          for (const field of payload.fields) {
-            executionContext.actionManager.completeCellUpdate(payload.recordId, field.id)
-          }
+
+        for (const field of payload.fields) {
+          eventBus.emit(SmartsheetScriptActions.COMPLETE_CELL_UPDATE, {
+            recordId: payload.recordId,
+            fieldId: field.id,
+          })
         }
         break
       }
@@ -449,7 +453,6 @@ export const useScriptExecutor = createSharedComposable(() => {
       pk: string
       fieldId: string
       priority?: number
-      actionManager?: any
       executionId?: string
     },
   ) => {
@@ -561,9 +564,9 @@ export const useScriptExecutor = createSharedComposable(() => {
                   }
 
                   // Clear any remaining cell updates for this script via ActionManager (canvas only)
-                  if (extra?.actionManager) {
-                    extra.actionManager.clearScriptCellUpdates(scriptId)
-                  }
+                  eventBus.emit(SmartsheetScriptActions.CLEAR_SCRIPT_CELL_UPDATES, {
+                    scriptId,
+                  })
 
                   isRunning.value = false
                   isFinished.value = true
@@ -589,9 +592,9 @@ export const useScriptExecutor = createSharedComposable(() => {
               }
 
               // Clear any remaining cell updates for this script via ActionManager (canvas only)
-              if (extra?.actionManager) {
-                extra.actionManager.clearScriptCellUpdates(scriptId)
-              }
+              eventBus.emit(SmartsheetScriptActions.CLEAR_SCRIPT_CELL_UPDATES, {
+                scriptId,
+              })
 
               isRunning.value = false
               isFinished.value = true

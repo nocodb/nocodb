@@ -37,9 +37,11 @@ const isOptionSelected = (option: OnboardingOptionType) => {
   <div class="flex flex-col gap-6">
     <h3 class="my-0 text-heading3 text-nc-content-gray-emphasis">{{ question.question }}</h3>
     <div class="flex flex-wrap gap-4 children:(w-[calc(50%-8px)] flex-none)">
-      <template v-for="option of options" :key="option.value">
+      <template v-for="(option, index) of options" :key="option.value">
         <AuthOnboardingQuestionOption
           :option="option"
+          :index="index"
+          :total-options="options.length"
           :icon-size="question.iconSize"
           @click="onSelectOption(option, question, questionIndex)"
           :class="{

@@ -524,13 +524,16 @@ export default class User extends UserCE implements UserType {
       }
     }
 
+    // If baseRoles is undefined, inherit the workspace roles when a baseId is provided; otherwise, return null
+    if (args.baseId && !baseRoles) {
+      baseRoles = mapWorkspaceRolesObjToProjectRolesObj(workspaceRoles);
+    }
+
     return {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
       workspace_roles: workspaceRoles ? workspaceRoles : null,
-      base_roles: baseRoles
-        ? baseRoles
-        : mapWorkspaceRolesObjToProjectRolesObj(workspaceRoles),
+      base_roles: baseRoles ?? null,
       org_roles: orgRoles ? orgRoles : null,
     } as any;
   }

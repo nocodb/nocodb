@@ -1,5 +1,5 @@
 export interface OnboardingOptionIconType {
-  icon: IconMapKey | VNode
+  icon?: IconMapKey | VNode
   iconColor?: string
   /**
    * @default 'left'
@@ -99,7 +99,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
   /**
    * If true, the onboarding flow will be shown in home page - `/`
    */
-  const showOnboardingFlowLocalState = ref(false)
+  const showOnboardingFlowLocalState = ref(true)
 
   const showOnboardingFlow = computed(() => {
     return isEnabledOnboardingFlow.value && showOnboardingFlowLocalState.value && route.value.name === 'index'
@@ -119,23 +119,39 @@ export const useOnboardingFlow = createSharedComposable(() => {
         options: [
           {
             value: 'Work',
-            icon: 'ncBriefcase',
-            iconColor: 'orange',
+            icons: [
+              {
+                icon: 'ncBriefcase',
+                iconColor: 'orange',
+              },
+            ],
           },
           {
             value: 'School',
-            icon: 'ncGraduationCap',
-            iconColor: 'purple',
+            icons: [
+              {
+                icon: 'ncGraduationCap',
+                iconColor: 'purple',
+              },
+            ],
           },
           {
             value: 'Non-Profit',
-            icon: 'ncHeart',
-            iconColor: 'pink',
+            icons: [
+              {
+                icon: 'ncHeart',
+                iconColor: 'pink',
+              },
+            ],
           },
           {
             value: 'Personal',
-            icon: 'ncUser',
-            iconColor: 'green',
+            icons: [
+              {
+                icon: 'ncUser',
+                iconColor: 'green',
+              },
+            ],
           },
         ],
         rightSection: {
@@ -312,8 +328,9 @@ export const useOnboardingFlow = createSharedComposable(() => {
           imageName: 'grid',
         },
         iconSize: {
-          width: 40,
-          height: 40,
+          width: 24,
+          height: 24,
+          fullWidth: true,
         },
         config: {
           optionsInEachRow: 1,
@@ -348,19 +365,35 @@ export const useOnboardingFlow = createSharedComposable(() => {
         options: [
           {
             value: 'Beginer',
-            iconType: 'indexedStepProgressBar',
+            icons: [
+              {
+                iconType: 'indexedStepProgressBar',
+              },
+            ],
           },
           {
             value: 'Intermediate',
-            iconType: 'indexedStepProgressBar',
+            icons: [
+              {
+                iconType: 'indexedStepProgressBar',
+              },
+            ],
           },
           {
             value: 'Advanced',
-            iconType: 'indexedStepProgressBar',
+            icons: [
+              {
+                iconType: 'indexedStepProgressBar',
+              },
+            ],
           },
           {
             value: 'Expert',
-            iconType: 'indexedStepProgressBar',
+            icons: [
+              {
+                iconType: 'indexedStepProgressBar',
+              },
+            ],
           },
         ],
         rightSection: {
@@ -377,15 +410,27 @@ export const useOnboardingFlow = createSharedComposable(() => {
         options: [
           {
             value: 'OpenAI',
-            icon: 'openai',
+            icons: [
+              {
+                icon: 'openai',
+              },
+            ],
           },
           {
             value: 'Claude',
-            icon: 'claude',
+            icons: [
+              {
+                icon: 'claude',
+              },
+            ],
           },
           {
             value: 'Gemini',
-            icon: 'ncLogoGeminiAiColored',
+            icons: [
+              {
+                icon: 'ncLogoGeminiAiColored',
+              },
+            ],
           },
           {
             value: 'Clay',
@@ -395,7 +440,11 @@ export const useOnboardingFlow = createSharedComposable(() => {
           },
           {
             value: 'Manus.im',
-            icon: 'ncLogoManusIm',
+            icons: [
+              {
+                icon: 'ncLogoManusIm',
+              },
+            ],
           },
           {
             value: 'Glean',
@@ -417,22 +466,38 @@ export const useOnboardingFlow = createSharedComposable(() => {
           },
           {
             value: 'Langchain',
-            icon: 'ncLogoLangchain',
+            icons: [
+              {
+                icon: 'ncLogoLangchain',
+              },
+            ],
           },
           {
             value: 'Huggingface',
-            icon: 'ncLogoHuggingface',
+            icons: [
+              {
+                icon: 'ncLogoHuggingface',
+              },
+            ],
           },
           {
             value: 'CrewAI',
-            icon: 'ncLogoCrewAi',
+            icons: [
+              {
+                icon: 'ncLogoCrewAi',
+              },
+            ],
           },
           {
             value: 'Loveable',
           },
           {
             value: 'Replit.ai',
-            icon: 'ncLogoReplitAi',
+            icons: [
+              {
+                icon: 'ncLogoReplitAi',
+              },
+            ],
           },
           {
             value: 'Bolt.new',
@@ -440,7 +505,20 @@ export const useOnboardingFlow = createSharedComposable(() => {
           {
             value: 'None of the above',
             resetOnSelect: true,
-            icon: h('div', {}, '🤨'),
+            icons: [
+              {
+                iconType: 'vNode',
+                icon: h(
+                  'div',
+                  {
+                    style: {
+                      fontSize: '20px',
+                    },
+                  },
+                  '🤨',
+                ),
+              },
+            ],
             iconPosition: 'right',
           },
         ],
@@ -470,27 +548,43 @@ export const useOnboardingFlow = createSharedComposable(() => {
           {
             value: 'Build with AI',
             description: 'Describe what you want—AI will generate the structure for you',
-            icon: 'ncAutoAwesome',
-            iconColor: 'purple',
+            icons: [
+              {
+                icon: 'ncAutoAwesome',
+                iconColor: 'purple',
+              },
+            ],
           },
           // TODO: @rameshmane7218 Enable this when we have templates
           // {
           //   value: 'Start with Template',
           //   description: 'Pick from ready-made setups tailored to popular use cases.',
-          //   icon: 'ncLayout',
-          //   iconColor: 'orange',
+          //   icons: [
+          //     {
+          //       icon: 'ncLayout',
+          //       iconColor: 'orange',
+          //     },
+          //   ],
           // },
           {
             value: 'Import Data',
             description: 'Bring your existing spreadsheets or databases into NocoDB.',
-            icon: 'ncDownload',
-            iconColor: 'green',
+            icons: [
+              {
+                icon: 'ncDownload',
+                iconColor: 'green',
+              },
+            ],
           },
           {
             value: 'Start from Scratch',
             description: 'Begin with a blank canvas and build your base your way.',
-            icon: 'ncPlus',
-            iconColor: 'brand',
+            icons: [
+              {
+                icon: 'ncPlus',
+                iconColor: 'brand',
+              },
+            ],
           },
         ],
         rightSection: {

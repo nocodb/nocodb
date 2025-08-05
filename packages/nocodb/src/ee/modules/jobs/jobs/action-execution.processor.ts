@@ -18,6 +18,7 @@ import { parseSandboxOutputToWorkerMessage } from '~/helpers/sandboxParser';
 import { dataWrapper } from '~/helpers/dbHelpers';
 
 const BATCH_SIZE = 1000;
+const CONCURRENCY_LIMIT = 5;
 
 @Injectable()
 export class ActionExecutionProcessor {
@@ -124,13 +125,53 @@ export class ActionExecutionProcessor {
         break;
       }
 
-      for (let i = 0; i < records.length; i++) {
-        const record = records[i];
+      await this.processRecordsWithConcurrency(
+        records,
+        totalProcessed,
+        model,
+        buttonColumn,
+        processRecord,
+        sendActionMessage,
+      );
+
+      totalProcessed += records.length;
+      offset += BATCH_SIZE;
+
+      // Check if we have more records
+      if (records.length < BATCH_SIZE) {
+        hasMoreRecords = false;
+      }
+    }
+
+    return totalProcessed;
+  }
+
+  private async processRecordsWithConcurrency<T>(
+    records: any[],
+    baseIndex: number,
+    model: Model,
+    buttonColumn: ButtonColumn,
+    processRecord: (
+      record: any,
+      recordIndex: number,
+      pk: string,
+      executionId: string,
+    ) => Promise<T>,
+    sendActionMessage: (message: any) => void,
+  ): Promise<void> {
+    const semaphore = new Array(CONCURRENCY_LIMIT).fill(null);
+    let currentIndex = 0;
+
+    const processNext = async (): Promise<void> => {
+      while (currentIndex < records.length) {
+        const recordIndex = currentIndex++;
+        const record = records[recordIndex];
+        const globalIndex = baseIndex + recordIndex;
 
         const pk = dataWrapper(record).extractPksValue(model, true);
-        const executionId = `${pk}-${buttonColumn.id}-${Date.now()}-${
-          totalProcessed + i
-        }`;
+        const executionId = `${pk}-${
+          buttonColumn.id
+        }-${Date.now()}-${globalIndex}`;
 
         const displayValue = this.getRecordDisplayValue(record, model);
 
@@ -151,10 +192,10 @@ export class ActionExecutionProcessor {
         });
 
         try {
-          await processRecord(record, totalProcessed + i, pk, executionId);
+          await processRecord(record, globalIndex, pk, executionId);
         } catch (error) {
           this.logger.error(
-            `Record processing failed for record ${totalProcessed + i + 1}:`,
+            `Record processing failed for record ${globalIndex + 1}:`,
             error,
           );
 
@@ -169,17 +210,10 @@ export class ActionExecutionProcessor {
           });
         }
       }
+    };
 
-      totalProcessed += records.length;
-      offset += BATCH_SIZE;
-
-      // Check if we have more records
-      if (records.length < BATCH_SIZE) {
-        hasMoreRecords = false;
-      }
-    }
-
-    return totalProcessed;
+    const workers = semaphore.map(() => processNext());
+    await Promise.all(workers);
   }
 
   private async processWebhookActionStream(

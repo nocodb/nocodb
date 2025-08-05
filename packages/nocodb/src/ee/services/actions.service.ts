@@ -35,7 +35,7 @@ export class ActionsService {
 
     const view = await View.get(context, payload.view_id);
 
-    if (!view || payload.button_id !== view.fk_model_id) {
+    if (!view || payload.table_id !== view.fk_model_id) {
       NcError.notFound('View not found');
     }
 

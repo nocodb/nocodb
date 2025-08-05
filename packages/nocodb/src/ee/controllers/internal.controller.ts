@@ -388,11 +388,7 @@ export class InternalController extends InternalControllerCE {
           payload.viewId,
         );
       case 'triggerAction':
-        return await this.actionsService.triggerAction(
-          context,
-          payload,
-          req,
-        );
+        return await this.actionsService.triggerAction(context, payload, req);
       default:
         return await super.internalAPIPost(
           context,

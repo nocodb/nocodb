@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Sandbox } from '@e2b/code-interpreter';
 import { ButtonActionsType } from 'nocodb-sdk';
 import { WebhookHandlerProcessor } from './webhook-handler/webhook-handler.processor';
@@ -15,6 +15,7 @@ import { NcError } from '~/helpers/ncError';
 import { getBaseSchema } from '~/helpers/scriptHelper';
 import { createSandboxCode } from '~/helpers/generateCode';
 import { parseSandboxOutputToWorkerMessage } from '~/helpers/sandboxParser';
+import { dataWrapper } from '~/helpers/dbHelpers';
 
 const BATCH_SIZE = 1000;
 
@@ -35,6 +36,10 @@ export class ActionExecutionProcessor {
       this.jobsLogService.sendLog(job, { message: log });
     };
 
+    const sendActionMessage = (message: any) => {
+      this.jobsLogService.sendLog(job, { message: JSON.stringify(message) });
+    };
+
     try {
       const buttonColumn = await ButtonColumn.read(context, buttonId);
       if (!buttonColumn) {
@@ -50,6 +55,7 @@ export class ActionExecutionProcessor {
       if (!view) {
         NcError.notFound('View not found');
       }
+
       if (buttonColumn.type === ButtonActionsType.Webhook) {
         await this.processWebhookActionStream(
           context,
@@ -58,6 +64,7 @@ export class ActionExecutionProcessor {
           view,
           req,
           sendLog,
+          sendActionMessage,
         );
       } else if (buttonColumn.type === ButtonActionsType.Script) {
         await this.processScriptActionStream(
@@ -67,6 +74,7 @@ export class ActionExecutionProcessor {
           view,
           req,
           sendLog,
+          sendActionMessage,
         );
       } else {
         sendLog(`Unsupported action type: ${buttonColumn.type}`);
@@ -84,11 +92,20 @@ export class ActionExecutionProcessor {
     model: Model,
     view: View,
     sendLog: (log: string) => void,
-    processRecord: (record: any, recordIndex: number, pk: string) => Promise<T>,
+    sendActionMessage: (message: any) => void,
+    buttonColumn: ButtonColumn,
+    req: any,
+    processRecord: (
+      record: any,
+      recordIndex: number,
+      pk: string,
+      executionId: string,
+    ) => Promise<T>,
   ): Promise<number> {
     let offset = 0;
     let totalProcessed = 0;
     let hasMoreRecords = true;
+    await model.getColumns(context);
 
     while (hasMoreRecords) {
       const recordsData = await this.datasService.dataList(context, {
@@ -102,7 +119,7 @@ export class ActionExecutionProcessor {
 
       const records = recordsData.list || [];
 
-      if (records.length === 0) {
+      if (records?.length === 0) {
         hasMoreRecords = false;
         break;
       }
@@ -110,17 +127,46 @@ export class ActionExecutionProcessor {
       for (let i = 0; i < records.length; i++) {
         const record = records[i];
 
-        // Extract Pk of the Record
-        //  const pk = record[model.pk];
-        const pk = 'pk';
+        const pk = dataWrapper(record).extractPksValue(model, true);
+        const executionId = `${pk}-${buttonColumn.id}-${Date.now()}-${
+          totalProcessed + i
+        }`;
+
+        const displayValue = this.getRecordDisplayValue(record, model);
+
+        sendActionMessage({
+          type: 'ACTION_EXECUTION_START',
+          executionId,
+          payload: {
+            recordId: pk,
+            displayValue,
+            scriptId: buttonColumn.fk_script_id,
+            scriptName:
+              buttonColumn.type === ButtonActionsType.Script
+                ? buttonColumn.label || 'Script Action'
+                : buttonColumn.label || 'Webhook Action',
+            buttonFieldName: buttonColumn.label || 'Button',
+            startTime: new Date().toISOString(),
+          },
+        });
 
         try {
-          await processRecord(record, i, pk);
+          await processRecord(record, totalProcessed + i, pk, executionId);
         } catch (error) {
           this.logger.error(
             `Record processing failed for record ${totalProcessed + i + 1}:`,
             error,
           );
+
+          sendActionMessage({
+            type: 'ACTION_EXECUTION_COMPLETE',
+            executionId,
+            status: 'error',
+            payload: {
+              recordId: pk,
+              error: error.message || 'Processing failed',
+            },
+          });
         }
       }
 
@@ -143,6 +189,7 @@ export class ActionExecutionProcessor {
     view: View,
     req: any,
     sendLog: (log: string) => void,
+    sendActionMessage: (message: any) => void,
   ) {
     if (!buttonColumn.fk_webhook_id) {
       sendLog('No webhook configured for this button');
@@ -160,7 +207,10 @@ export class ActionExecutionProcessor {
       model,
       view,
       sendLog,
-      async (record, recordIndex) => {
+      sendActionMessage,
+      buttonColumn,
+      req,
+      async (record, recordIndex, pk, executionId) => {
         const webhookJobData: HandleWebhookJobData = {
           jobName: JobTypes.HandleWebhook,
           context,
@@ -175,10 +225,35 @@ export class ActionExecutionProcessor {
 
         const mockJob = {
           data: webhookJobData,
-          id: `action-webhook-${Date.now()}-${recordIndex}`,
+          id: `action-webhook-${Date.now()}-${recordIndex}-${pk}`,
         } as Job<HandleWebhookJobData>;
 
-        await this.webhookHandlerProcessor.job(mockJob);
+        try {
+          await this.webhookHandlerProcessor.job(mockJob);
+
+          // Send completion message
+          sendActionMessage({
+            type: 'ACTION_EXECUTION_COMPLETE',
+            executionId,
+            status: 'success',
+            payload: {
+              recordId: pk,
+              message: 'Webhook executed successfully',
+            },
+          });
+        } catch (error) {
+          // Send error message
+          sendActionMessage({
+            type: 'ACTION_EXECUTION_COMPLETE',
+            executionId,
+            status: 'error',
+            payload: {
+              recordId: pk,
+              error: error.message || 'Webhook execution failed',
+            },
+          });
+          throw error;
+        }
       },
     );
   }
@@ -190,6 +265,7 @@ export class ActionExecutionProcessor {
     view: View,
     req: any,
     sendLog: (log: string) => void,
+    sendActionMessage: (message: any) => void,
   ) {
     if (!process.env.E2B_API_KEY) {
       sendLog('E2B_API_KEY is not set');
@@ -203,6 +279,7 @@ export class ActionExecutionProcessor {
 
     const script = await Script.get(context, buttonColumn.fk_script_id);
     if (!script) {
+      sendLog(`Script ${buttonColumn.fk_script_id} not found`);
       return;
     }
 
@@ -214,72 +291,120 @@ export class ActionExecutionProcessor {
       });
     } catch (error) {
       this.logger.error('Sandbox creation failed:', error);
+      sendLog(`Sandbox creation failed: ${error.message}`);
       return;
     }
 
     try {
       const baseSchema = await getBaseSchema(context);
 
-      const totalProcessed = await this.processBatchedRecords(
+      await this.processBatchedRecords(
         context,
         model,
         view,
         sendLog,
-        async (record, recordIndex, totalProcessed) => {
-          // Create sandbox code for this specific record
+        sendActionMessage,
+        buttonColumn,
+        req,
+        async (record, recordIndex, pk, executionId) => {
           const sandboxCode = createSandboxCode(
             script.script,
             baseSchema,
             req.user,
             req,
-            record.id || record.Id, // Handle different ID formats
+            pk,
             model.id,
             view.id,
           );
 
-          // Execute the script for this record using the shared sandbox
-          await sandbox.runCode(sandboxCode, {
-            language: 'javascript',
-            onError: (error) => {
-              sendLog(
-                `Script error for record ${
-                  totalProcessed + recordIndex + 1
-                }: ${error}`,
-              );
-              this.logger.error(
-                `Script execution error for record ${
-                  totalProcessed + recordIndex + 1
-                }:`,
-                error,
-              );
-            },
-            onStdout: (data) => {
-              const parsedMessage = parseSandboxOutputToWorkerMessage(data);
-              sendLog(
-                `Record ${
-                  totalProcessed + recordIndex + 1
-                } output: ${JSON.stringify(parsedMessage)}`,
-              );
-            },
-            onStderr: (data) => {
-              const parsedMessage = parseSandboxOutputToWorkerMessage(data);
-              sendLog(
-                `Record ${
-                  totalProcessed + recordIndex + 1
-                } error: ${JSON.stringify(parsedMessage)}`,
-              );
-            },
-          });
-        },
-        ' in shared sandbox',
-      );
+          try {
+            await sandbox.runCode(sandboxCode, {
+              language: 'javascript',
+              onError: (error) => {
+                sendActionMessage({
+                  type: 'ACTION_EXECUTION_ERROR',
+                  executionId,
+                  payload: {
+                    recordId: pk,
+                    error:
+                      (error as any)?.message ||
+                      error?.toString() ||
+                      'Script execution error',
+                  },
+                });
+              },
+              onStdout: (data) => {
+                const parsedMessage = parseSandboxOutputToWorkerMessage(data);
+                if (parsedMessage) {
+                  sendActionMessage({
+                    type: 'ACTION_EXECUTION_MESSAGE',
+                    executionId,
+                    payload: {
+                      recordId: pk,
+                      message: parsedMessage,
+                    },
+                  });
+                }
+              },
+              onStderr: (data) => {
+                const parsedMessage = parseSandboxOutputToWorkerMessage(data);
+                if (parsedMessage) {
+                  sendActionMessage({
+                    type: 'ACTION_EXECUTION_MESSAGE',
+                    executionId,
+                    payload: {
+                      recordId: pk,
+                      message: parsedMessage,
+                    },
+                  });
+                }
+              },
+            });
 
-      sendLog(`Script processing completed for all ${totalProcessed} records`);
-    } finally {
-      // Note: Sandbox cleanup is handled automatically by E2B
-      sendLog(
-        'Script execution completed, sandbox will be cleaned up automatically',
+            sendActionMessage({
+              type: 'ACTION_EXECUTION_COMPLETE',
+              executionId,
+              status: 'success',
+              payload: {
+                recordId: pk,
+                message: 'Script executed successfully',
+              },
+            });
+          } catch (error) {
+            sendActionMessage({
+              type: 'ACTION_EXECUTION_COMPLETE',
+              executionId,
+              status: 'error',
+              payload: {
+                recordId: pk,
+                error: error.message || 'Script execution failed',
+              },
+            });
+            throw error;
+          }
+        },
       );
+    } catch (error) {
+      this.logger.error('Script execution failed:', error);
+      sendLog(`Script execution failed: ${error.message}`);
+    } finally {
+      if (sandbox) {
+        try {
+          await sandbox.kill();
+        } catch (error) {
+          this.logger.warn('Failed to close sandbox:', error);
+        }
+      }
     }
+  }
+
+  private getRecordDisplayValue(record: any, model: Model): string {
+    const displayField =
+      model.columns?.find((col) => col.pv) ||
+      model.columns?.find((col) => col.pk);
+
+    return displayField?.title in record
+      ? record[displayField.title]
+      : 'Record';
   }
 }

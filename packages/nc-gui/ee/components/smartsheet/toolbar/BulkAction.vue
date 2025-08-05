@@ -7,6 +7,14 @@ const { isMobileMode } = useGlobal()
 
 const { isPanelExpanded: isActionPaneActive } = useActionPane()
 
+const workspaceStore = useWorkspace()
+
+const { activeWorkspace } = storeToRefs(workspaceStore)
+
+const basesStore = useBase()
+
+const { base } = storeToRefs(basesStore)
+
 const isLocked = inject(IsLockedInj, ref(false))
 
 const { view, meta } = useSmartsheetStoreOrThrow()
@@ -32,6 +40,10 @@ const activeActionPane = () => {
 }
 
 const { loadAutomation } = useAutomationStore()
+const { api } = useApi()
+const { $poller } = useNuxtApp()
+const { addScriptExecution } = useActionPane()
+const { activeExecutions, handleWorkerMessage } = useScriptExecutor()
 
 const executionStatus = ref(
   new Map<
@@ -62,10 +74,10 @@ const loadButtonAutomations = async () => {
       }
     } else if (button.colOptions.type === ButtonActionsType.Webhook && button.colOptions.fk_webhook_id && button.id) {
       buttonInputStatus.value.set(button.id, { hasInputCalls: false, isLoading: true })
-      
+
       try {
         const webhookExists = hooks.some((hook: any) => hook.id === button.colOptions.fk_webhook_id)
-        
+
         if (webhookExists) {
           buttonInputStatus.value.set(button.id, { hasInputCalls: false, isLoading: false })
         } else {
@@ -80,16 +92,12 @@ const loadButtonAutomations = async () => {
 
 const isButtonDisabled = (button: ColumnType & { colOptions: ButtonType }) => {
   const status = buttonInputStatus.value.get(button.id!)
-  
+
   if (button.colOptions.type === ButtonActionsType.Webhook && !isUIAllowed('hookTrigger')) {
     return true
   }
-  
-  return (
-    executionStatus.value.get(button.id!)?.status === 'loading' ||
-    status?.isLoading ||
-    status?.hasInputCalls
-  )
+
+  return executionStatus.value.get(button.id!)?.status === 'loading' || status?.isLoading || status?.hasInputCalls
 }
 
 const getTooltipMessage = (button: ColumnType & { colOptions: ButtonType }) => {
@@ -117,12 +125,132 @@ watch(
   { immediate: true },
 )
 
+const handleBulkActionMessage = async (message: any, button: ColumnType & { colOptions: ButtonType }) => {
+  try {
+    const parsedMessage = typeof message === 'string' ? JSON.parse(message) : message
+
+    switch (parsedMessage.type) {
+      case 'ACTION_EXECUTION_START':
+        {
+          const recordId = parsedMessage.payload.recordId
+          const executionId = parsedMessage.executionId
+
+          // Create execution in useScriptExecutor activeExecutions
+          activeExecutions.value.set(executionId, {
+            status: 'running',
+            result: null,
+            error: null,
+            worker: null, // No worker for backend execution
+            pk: recordId,
+            fieldId: button.id!,
+            playground: [],
+          })
+
+          // Also add to Action Pane for UI display
+          addScriptExecution(executionId, {
+            recordId,
+            displayValue: parsedMessage.payload.displayValue,
+            scriptId: parsedMessage.payload.scriptId || button.id!,
+            scriptName: parsedMessage.payload.scriptName || button.colOptions.label || 'Action',
+            buttonFieldName: parsedMessage.payload.buttonFieldName || button.colOptions.label || 'Button',
+          })
+        }
+        break
+
+      case 'ACTION_EXECUTION_MESSAGE':
+        {
+          const executionId = parsedMessage.executionId
+
+          if (executionId && activeExecutions.value.has(executionId) && parsedMessage.payload.message) {
+            await handleWorkerMessage(
+              executionId,
+              parsedMessage.payload.message,
+              null, // No worker for backend execution
+              () => {}, // No onWorkerDone callback
+              {
+                pk: parsedMessage.payload.recordId,
+                fieldId: button.id!,
+                executionId,
+              },
+            )
+          }
+        }
+        break
+
+      case 'ACTION_EXECUTION_COMPLETE':
+      case 'ACTION_EXECUTION_ERROR':
+        {
+          const executionId = parsedMessage.executionId
+
+          if (executionId && activeExecutions.value.has(executionId)) {
+            const execution = activeExecutions.value.get(executionId)!
+            activeExecutions.value.set(executionId, {
+              ...execution,
+              status: parsedMessage.type === 'ACTION_EXECUTION_ERROR' ? 'error' : 'finished',
+              error: parsedMessage.type === 'ACTION_EXECUTION_ERROR' ? parsedMessage.payload.error : undefined,
+            })
+          }
+        }
+        break
+    }
+  } catch (error) {
+    console.error('Error handling bulk action message:', error)
+  }
+}
+
 const executeAction = async (
   button: ColumnType & {
     colOptions: ButtonType
   },
 ) => {
-  // Execute Action
+  if (!button.id || !base?.value?.id) return
+
+  try {
+    executionStatus.value.set(button.id, { status: 'loading' })
+
+    const response = await api.internal.postOperation(
+      activeWorkspace.value.id,
+      base.value?.id,
+      {
+        operation: 'triggerAction',
+      },
+      {
+        button_id: button.id,
+        table_id: meta.value?.id,
+        view_id: view.value?.id,
+      },
+    )
+
+    if (response?.id) {
+      // Poll for job completion and handle messages
+      await $poller.subscribe({ id: response.id }, async (data: any) => {
+        if (data.status !== 'close') {
+          if ([JobStatus.COMPLETED, JobStatus.FAILED].includes(data.status)) {
+            executionStatus.value.set(button.id!, {
+              status: data.status === JobStatus.COMPLETED ? 'success' : 'error',
+            })
+
+            setTimeout(
+              () => {
+                executionStatus.value.delete(button.id!)
+              },
+              data.status === JobStatus.COMPLETED ? 2000 : 3000,
+            )
+          } else if (data?.data?.message) {
+            // Handle bulk action messages
+            await handleBulkActionMessage(data.data.message, button)
+          }
+        }
+      })
+    }
+  } catch (error: any) {
+    console.error('Error executing bulk action:', error)
+    executionStatus.value.set(button.id!, { status: 'error' })
+
+    setTimeout(() => {
+      executionStatus.value.delete(button.id!)
+    }, 3000)
+  }
 }
 </script>
 

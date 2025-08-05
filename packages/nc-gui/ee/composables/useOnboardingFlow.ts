@@ -277,12 +277,13 @@ export const useOnboardingFlow = createSharedComposable(() => {
             icon: 'ncAutoAwesome',
             iconColor: 'purple',
           },
-          {
-            value: 'Start with Template',
-            description: 'Pick from ready-made setups tailored to popular use cases.',
-            icon: 'ncLayout',
-            iconColor: 'orange',
-          },
+          // TODO: @rameshmane7218 Enable this when we have templates
+          // {
+          //   value: 'Start with Template',
+          //   description: 'Pick from ready-made setups tailored to popular use cases.',
+          //   icon: 'ncLayout',
+          //   iconColor: 'orange',
+          // },
           {
             value: 'Import Data',
             description: 'Bring your existing spreadsheets or databases into NocoDB.',
@@ -410,7 +411,17 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
     const nextQuestion = questions.value[nextQuestionIndex]
 
-    if (!nextQuestion) return
+    if (!nextQuestion) {
+      if (stepper.isLast.value) {
+        onCompleteOnboardingFlow(false, () => {
+          if (option.value === 'Start from Scratch') {
+            showOnboardingFlowLocalState.value = false
+          }
+        })
+      }
+
+      return
+    }
 
     if (currentStepQuestionIndex % 2 !== 0) {
       /**
@@ -451,19 +462,33 @@ export const useOnboardingFlow = createSharedComposable(() => {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
   }
 
-  const onCompleteOnboardingFlow = async (skipped: boolean = false) => {
-    /**
-     * Time taken in minutes (mm:ss)
-     */
-    const timeTaken = formatTimeSpent(startedAt.value, Date.now())
+  const postCompleteOnboardingFlow = (skipped: boolean = false) => {
+    const formattedQuestionAnswers = questions.value.map((q) => {
+      const answer = formState.value[q.id]
 
-    console.log('timeTaken', timeTaken, skipped)
+      return {
+        question: q.question,
+        answer,
+      }
+    })
+
+    const data = {
+      timeTaken: formatTimeSpent(startedAt.value, Date.now()),
+      skipped,
+      questions: formattedQuestionAnswers,
+    }
+
+    $e('a:auth:onboarding-flow', data)
+  }
+
+  const onCompleteOnboardingFlow = async (skipped: boolean = false, callback?: () => void) => {
+    postCompleteOnboardingFlow(skipped)
 
     if (skipped) {
       showOnboardingFlowLocalState.value = false
-
-      // window.location.reload()
     }
+
+    callback?.()
   }
 
   return {

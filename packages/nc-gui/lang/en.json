@@ -963,6 +963,7 @@
     "actionLogs": "Action Logs",
     "runScript": "Run Script",
     "scriptName": "Script name",
+    "dashboardName": "Dashboard name",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",

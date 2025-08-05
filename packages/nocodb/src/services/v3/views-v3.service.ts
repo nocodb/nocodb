@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   ncIsNullOrUndefined,
   parseProp,
+  RowHeight,
+  RowHeightMap,
   viewTypeAlias,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -154,6 +156,9 @@ export class ViewsV3Service {
 
     this.viewOptionsBuilder = builderGenerator({
       allowed: [
+        // grid
+        'row_height',
+        // form
         'heading',
         'subheading',
         'success_msg',
@@ -270,6 +275,7 @@ export class ViewsV3Service {
       allowed: [
         // calendar
         'date_ranges',
+        'row_height',
 
         // kanban
         'stack_by',
@@ -431,6 +437,7 @@ export class ViewsV3Service {
     switch (view.type) {
       case ViewTypes.GRID:
         {
+          formattedView.options = formattedView.options ?? {};
           // extract grid specific group by info
           const group = viewColumnList
             .filter((c) => (c as GridViewColumn).group_by)
@@ -444,9 +451,10 @@ export class ViewsV3Service {
               direction: (c as GridViewColumn).group_by_sort,
             }));
           if (group && group.length > 0) {
-            formattedView.options = formattedView.options ?? {};
             formattedView.options.groups = group;
           }
+          formattedView.options.row_height =
+            RowHeightMap[formattedView.options.row_height ?? RowHeight.SHORT];
         }
         break;
       case ViewTypes.GALLERY:
@@ -571,6 +579,9 @@ export class ViewsV3Service {
               );
             }
             groups = requestBody.options.groups;
+          }
+          if (!ncIsNullOrUndefined(requestBody.row_height)) {
+            requestBody.row_height = RowHeightMap[requestBody.row_height];
           }
           insertedV2View = await this.gridsService.gridViewCreate(
             context,

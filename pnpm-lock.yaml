@@ -228,15 +228,6 @@ importers:
       '@vvo/tzdb':
         specifier: ^6.161.0
         version: 6.161.0
-      acorn:
-        specifier: ^8.14.0
-        version: 8.14.1
-      acorn-loose:
-        specifier: ^8.4.0
-        version: 8.4.0
-      acorn-walk:
-        specifier: ^8.3.4
-        version: 8.3.4
       ant-design-vue:
         specifier: ^3.2.20
         version: 3.2.20(vue@3.5.14(typescript@5.8.3))

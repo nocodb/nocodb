@@ -5584,7 +5584,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           if (d[col.id]?.length) {
             d[col.id] = d[col.id].filter(
-              (attr) => attr.id && !attr.id?.startsWith('temp_'),
+              (attr) => !attr.id?.startsWith('temp_'),
             );
             for (let i = 0; i < d[col.id].length; i++) {
               if (typeof d[col.id][i] === 'string') {

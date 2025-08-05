@@ -8,7 +8,7 @@ const props = withDefaults(defineProps<Props>(), {})
 
 const { question, questionIndex } = toRefs(props)
 
-const { questionsMap, formState, onSelectOption, stepper, lastVisibleQuestionIndex } = useOnboardingFlow()
+const { formState, onSelectOption } = useOnboardingFlow()
 
 const options = computed(() => {
   if (ncIsFunction(question.value.options)) {
@@ -40,7 +40,13 @@ const isOptionSelected = (option: OnboardingOptionType) => {
 <template>
   <div class="flex flex-col gap-6">
     <h3 class="my-0 text-heading3 text-nc-content-gray-emphasis">{{ question.question }}</h3>
-    <div class="flex flex-wrap gap-4 children:(w-[calc(50%-8px)] flex-none)">
+    <div
+      class="flex flex-wrap gap-4"
+      :class="{
+        'children:(w-[calc(50%-8px)] flex-none)': !question.config?.optionsInEachRow || question.config?.optionsInEachRow === 2,
+        'flex-col items-center children:(w-[60%] flex-none)': question.config?.optionsInEachRow === 1,
+      }"
+    >
       <template v-for="(option, index) of options" :key="option.value">
         <AuthOnboardingQuestionOption
           :option="option"

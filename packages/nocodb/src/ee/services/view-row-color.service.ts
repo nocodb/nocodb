@@ -6,9 +6,6 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { ViewRowColorService as ViewRowColorServiceCE } from 'src/services/view-row-color.service';
-import type { MetaService } from '~/meta/meta.service';
-import type { Column, Filter, SelectOption } from '~/models';
-import type { ViewMetaRowColoring } from '~/models/View';
 import type {
   ColumnReqType,
   FilterType,
@@ -17,12 +14,15 @@ import type {
   RowColoringInfoFilter,
   RowColoringInfoFilterRow,
 } from 'nocodb-sdk';
+import type { MetaService } from '~/meta/meta.service';
+import type { Column, Filter, SelectOption } from '~/models';
+import type { ViewMetaRowColoring } from '~/models/View';
 import { MetaTable } from '~/cli';
 import { NcError } from '~/helpers/catchError';
+import { extractProps } from '~/helpers/extractProps';
 import { Model, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
-import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()
 export class ViewRowColorService extends ViewRowColorServiceCE {

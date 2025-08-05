@@ -18,7 +18,13 @@ const { option } = toRefs(props)
       '!px-2 !rounded-xl': option.iconColor,
     }"
   >
-    <AuthOnboardingQuestionOptionIcon :option="option" :index="index" :total-options="totalOptions" :icon-size="iconSize" />
+    <AuthOnboardingQuestionOptionIcon
+      v-if="!option.iconPosition || option.iconPosition === 'left'"
+      :option="option"
+      :index="index"
+      :total-options="totalOptions"
+      :icon-size="iconSize"
+    />
     <div v-if="option.description" class="flex flex-col gap-1">
       <div class="text-bodyDefaultSmBold text-nc-content-gray-subtle">
         {{ option.value }}
@@ -30,6 +36,14 @@ const { option } = toRefs(props)
     <div v-else class="text-bodyBold text-nc-content-gray">
       {{ option.value }}
     </div>
+
+    <AuthOnboardingQuestionOptionIcon
+      v-if="option.iconPosition === 'right'"
+      :option="option"
+      :index="index"
+      :total-options="totalOptions"
+      :icon-size="iconSize"
+    />
   </div>
 </template>
 

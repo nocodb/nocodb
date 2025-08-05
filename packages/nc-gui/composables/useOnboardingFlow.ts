@@ -1,3 +1,21 @@
+export interface OnboardingOptionIconType {
+  icon: IconMapKey | VNode
+  iconColor?: string
+  /**
+   * @default 'left'
+   */
+  iconPosition?: 'left' | 'right'
+  /**
+   * `Undefined` will be considered as `iconMap`
+   */
+  iconType?: 'indexedStepProgressBar' | 'iconMap' | 'vNode' | 'image'
+  /**
+   * If `iconType` is `image`, then `img` is required
+   * Add only imported image else full path required
+   */
+  img?: string
+}
+
 export interface OnboardingOptionType {
   value: string
   description?: string
@@ -14,6 +32,11 @@ export interface OnboardingOptionType {
   /**
    * `resetOnSelect` will be helpful if option is `None of the above` or `Other` to reset previous selection if user select this option
    */
+
+  /**
+   * Allow multiple icons to be shown in the option
+   */
+  icons?: OnboardingOptionIconType[]
   resetOnSelect?: boolean
 }
 
@@ -189,6 +212,115 @@ export const useOnboardingFlow = createSharedComposable(() => {
       },
       {
         id: 3,
+        question: 'Which department are you in',
+        inputType: 'singleSelect',
+        options: [
+          {
+            value: 'Human Resources',
+            iconPosition: 'right',
+            icons: [
+              {
+                icon: 'ncLogoWorkdayColoredOutline',
+              },
+              {
+                icon: 'lever',
+              },
+            ],
+          },
+          {
+            value: 'Marketing',
+            iconPosition: 'right',
+            icons: [
+              {
+                icon: 'hubspot',
+              },
+              {
+                icon: 'ncLogoMailchimpColored',
+              },
+            ],
+          },
+          {
+            value: 'Sales',
+            iconPosition: 'right',
+          },
+          {
+            value: 'Product',
+            iconPosition: 'right',
+          },
+          {
+            value: 'Finance',
+            iconPosition: 'right',
+          },
+          {
+            value: 'Design',
+            iconPosition: 'right',
+          },
+          {
+            value: 'Data Analyst',
+            iconPosition: 'right',
+          },
+          {
+            value: 'Engineering',
+            iconPosition: 'right',
+            icons: [
+              {
+                icon: 'ncLogoDockerColored',
+              },
+              {
+                icon: 'ncLogoJiraColored',
+              },
+              {
+                icon: 'ncLogoGithubColored',
+              },
+            ],
+          },
+          {
+            value: 'Legal',
+            iconPosition: 'right',
+          },
+          {
+            value: 'Customer Support',
+            iconPosition: 'right',
+            icons: [
+              {
+                icon: 'ncLogoFreshdeskColored',
+              },
+              {
+                icon: 'ncLogoIntercomColored',
+              },
+              {
+                icon: 'ncLogoZendeskColored',
+              },
+            ],
+          },
+          {
+            value: 'Operations',
+            iconPosition: 'right',
+            icons: [
+              {
+                icon: 'ncLogoNotionColored',
+              },
+              {
+                icon: 'ncLogoAsanaColored',
+              },
+            ],
+          },
+        ],
+        rightSection: {
+          themeColor: 'orange',
+          moscot: 'moscotWelcomeOrange',
+          imageName: 'grid',
+        },
+        iconSize: {
+          width: 40,
+          height: 40,
+        },
+        config: {
+          optionsInEachRow: 1,
+        },
+      },
+      {
+        id: 4,
         question: 'How many people work at your company?',
         inputType: 'singleSelect',
         options: ['0-10', '11-50', '51-250', '251-1000', '1000+'].reverse().map((value) => ({ value })),
@@ -199,7 +331,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
         },
       },
       {
-        id: 4,
+        id: 5,
         question: 'How many people are in your team?',
         inputType: 'singleSelect',
         options: ['20+', '11-20', '1-10', 'Only me'].map((value) => ({ value })),
@@ -210,7 +342,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
         },
       },
       {
-        id: 5,
+        id: 6,
         question: 'How experienced are you with app building?',
         inputType: 'singleSelect',
         options: [
@@ -238,7 +370,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
         },
       },
       {
-        id: 6,
+        id: 7,
         question: 'Choose AI Tools That You Are Familiar With',
         description: 'Unlocks Free Access To NocoAI 🎉 ',
         inputType: 'multiSelect',
@@ -331,7 +463,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
       /*
       // Commenting for now
       {
-        id: 7,
+        id: 8,
         question: 'How do you want to build your database?',
         inputType: 'singleSelect',
         options: [

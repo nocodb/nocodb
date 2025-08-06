@@ -262,6 +262,7 @@ const deleteDashboard = () => {
           @mouseleave="showDashboardNodeTooltip = true"
         >
           <LazyGeneralEmojiPicker
+            :key="props.dashboard?.meta?.icon"
             class="nc-dashboard-icon"
             size="small"
             :emoji="props.dashboard?.meta?.icon"

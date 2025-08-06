@@ -288,8 +288,9 @@ const deleteScript = () => {
           @dblclick.stop
         >
           <LazyGeneralEmojiPicker
+            :key="props.script?.meta?.icon"
             :clearable="true"
-            :emoji="props.view?.meta?.icon"
+            :emoji="props.script?.meta?.icon"
             :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
             class="nc-script-icon"
             size="small"

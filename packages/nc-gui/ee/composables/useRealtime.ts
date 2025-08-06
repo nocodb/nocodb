@@ -152,6 +152,9 @@ export const useRealtime = createSharedComposable(() => {
         const updatedAutomations = existingAutomations.map((d) =>
           d.id === id ? { ...d, ...automation, _dirty: d._dirty ? +d._dirty + 1 : 1 } : d,
         )
+
+        updatedAutomations.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+
         automations.value.set(baseId, updatedAutomations)
         break
       }
@@ -190,6 +193,9 @@ export const useRealtime = createSharedComposable(() => {
       }
       case 'update': {
         const updatedDashboards = existingDashboards.map((d) => (d.id === id ? { ...d, ...dashboard } : d))
+
+        updatedDashboards.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+
         dashboards.value.set(baseId, updatedDashboards)
         break
       }

@@ -124,7 +124,9 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
 
   currentItem.order = _nextOrder
 
-  await $api.script.update(baseId.value, currentItem.id, { order: _nextOrder })
+  await updateAutomation(baseId.value, currentItem.id, {
+    order: currentItem.order,
+  })
 
   markItem(currentItem.id)
 

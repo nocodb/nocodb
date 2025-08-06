@@ -124,6 +124,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       socket_id: req.headers['xc-socket-id'],
     };
     req.ncApiVersion = context.api_version;
+    req.ncSocketId = context.socket_id;
 
     // this is a special route for ws operations we pass 'nc' as base id
     const isInternalApi = !!req.path?.startsWith('/api/v2/internal');

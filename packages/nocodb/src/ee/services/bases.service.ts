@@ -4,6 +4,7 @@ import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
+  EventType,
   IntegrationsType,
   ncIsUndefined,
   PlanFeatureTypes,
@@ -34,6 +35,7 @@ import { getWorkspaceDbServer } from '~/utils/cloudDb';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { getToolDir } from '~/utils/nc-config';
+import NocoSocket from '~/socket/NocoSocket';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -279,6 +281,19 @@ export class BasesService extends BasesServiceCE {
       context,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'base_create',
+          payload: base,
+        },
+        workspaceEvent: true,
+      },
+      param.req.ncSocketId,
+    );
+
     return base;
   }
 
@@ -370,6 +385,19 @@ export class BasesService extends BasesServiceCE {
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'base_delete',
+          payload: base,
+        },
+        workspaceEvent: true,
+      },
+      context.socket_id,
+    );
 
     return true;
   }

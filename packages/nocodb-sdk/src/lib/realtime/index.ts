@@ -46,7 +46,22 @@ export interface DataPayload extends BaseSocketPayload {
 }
 
 export interface MetaPayload extends BaseSocketPayload {
-  action: 'table_create' | 'table_update' | 'table_delete' | 'column_add' | 'column_update' | 'column_delete' | 'view_create' | 'view_update' | 'view_delete';
+  action:
+    | 'table_create'
+    | 'table_update'
+    | 'table_delete'
+    | 'column_add'
+    | 'column_update'
+    | 'column_delete'
+    | 'view_create'
+    | 'view_update'
+    | 'view_delete'
+    | 'base_create'
+    | 'base_update'
+    | 'base_delete'
+    | 'workspace_create'
+    | 'workspace_update'
+    | 'workspace_delete';
   payload: Partial<TableType | ViewType>;
 }
 

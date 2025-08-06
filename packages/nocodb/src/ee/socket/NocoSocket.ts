@@ -43,7 +43,7 @@ export default class NocoSocket {
   private static async subscribeEvent(socket: NcSocket, event: string) {
     try {
       const eventHelper = event.split(':');
-      if (eventHelper.length < 3) {
+      if (eventHelper.length < 2) {
         this.logger.warn(`Invalid event format: ${event}`);
         return;
       }
@@ -56,6 +56,7 @@ export default class NocoSocket {
 
       const eventType = eventHelper[0];
       const workspaceId = eventHelper[1];
+      // Base ID is optional, if not provided, it will be undefined
       const baseId = eventHelper[2];
 
       const userWithRole = await User.getWithRoles(
@@ -102,14 +103,15 @@ export default class NocoSocket {
       event: T;
       payload: Prettify<Omit<PayloadForEvent<T>, 'timestamp' | 'socketId'>>;
       scopes?: string[];
+      workspaceEvent?: boolean;
     },
     socketId?: string,
   ) {
-    const { event, payload, scopes = [] } = params;
+    const { event, payload, scopes = [], workspaceEvent } = params;
 
-    const eventKey = `${event}:${context.workspace_id}:${context.base_id}${
-      scopes.length > 0 ? `:${scopes.join(':')}` : ''
-    }`;
+    const eventKey = `${event}:${context.workspace_id}${
+      workspaceEvent ? '' : `:${context.base_id}`
+    }${scopes.length > 0 ? `:${scopes.join(':')}` : ''}`;
     const finalPayload = {
       ...payload,
       event,

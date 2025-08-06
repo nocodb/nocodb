@@ -15,7 +15,7 @@ export default class NocoSocket {
 
   public static handleConnection(socket: NcSocket) {
     this.clients.set(socket.id, socket);
-    this.logger.log(`Client connected: ${socket.id}`);
+    this.logger.debug(`Client connected: ${socket.id}`);
 
     socket.once('handshake', async (args, callback) => {
       if (callback && typeof callback === 'function') {
@@ -89,7 +89,7 @@ export default class NocoSocket {
 
       // Use native Socket.IO rooms
       socket.join(event);
-      this.logger.log(`Socket ${socket.id} joined room ${event}`);
+      this.logger.debug(`Socket ${socket.id} joined room ${event}`);
     } catch (error) {
       this.logger.error(`Error subscribing to event ${event}:`, error);
       sendConnectionError(socket, error, 'SUBSCRIBE_ERROR');
@@ -144,7 +144,7 @@ export default class NocoSocket {
 
     // Handle connection errors
     socket.on('disconnect', (reason: string) => {
-      this.logger.log(`Client ${socket.id} disconnected: ${reason}`);
+      this.logger.debug(`Client ${socket.id} disconnected: ${reason}`);
       if (reason === 'io server disconnect') {
         // Server initiated disconnect
         sendConnectionError(

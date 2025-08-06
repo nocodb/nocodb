@@ -19,8 +19,6 @@ const { loadProject } = baseStore
 // create a new sidebar state
 const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
-useRealtime()
-
 const dropdownOpen = ref(false)
 
 onKeyStroke(

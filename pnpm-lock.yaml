@@ -832,8 +832,8 @@ importers:
         specifier: ^3.3.8
         version: 3.3.11
       nc-lib-gui:
-        specifier: 0.264.2
-        version: 0.264.2
+        specifier: 0.264.3
+        version: 0.264.3
       nocodb-sdk:
         specifier: workspace:^
         version: link:../nocodb-sdk
@@ -11037,8 +11037,8 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  nc-lib-gui@0.264.2:
-    resolution: {integrity: sha512-LlPZ7xEWQok/NUg4psdh3hbVgnYcpbsIK6GAth6pUd6p0D5FxWq4g0m8QRK9ZImPzMsy65dp75/IduzXu5OEpA==}
+  nc-lib-gui@0.264.3:
+    resolution: {integrity: sha512-/+lMu71alNZ/9QTVsMJSM7hRPmaCIjX038aY5O1MmHi7HTvyU9WzOu2CCfgJtG8oz//N1dj4U5xf3jjzb9bpaQ==}
 
   negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
@@ -27111,7 +27111,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  nc-lib-gui@0.264.2:
+  nc-lib-gui@0.264.3:
     dependencies:
       express: 4.21.2
     transitivePeerDependencies:

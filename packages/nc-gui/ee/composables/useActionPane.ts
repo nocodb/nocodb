@@ -8,6 +8,10 @@ export const useActionPane = createSharedComposable(() => {
     return isFeatureEnabled(FEATURE_FLAG.VIEW_ACTIONS)
   })
 
+  const isRowActionsEnabled = computed(() => {
+    return isFeatureEnabled(FEATURE_FLAG.ROW_ACTIONS)
+  })
+
   const actionPanelSize = ref(40)
   const isPanelExpanded = ref(false)
 
@@ -112,5 +116,6 @@ export const useActionPane = createSharedComposable(() => {
     clearAllExecutions,
     executions,
     isViewActionsEnabled,
+    isRowActionsEnabled,
   }
 })

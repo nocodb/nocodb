@@ -89,16 +89,6 @@ watch(isScriptModal, (newVal) => {
             show-selected-option
             @selected="onSelectScript"
           >
-            <!-- v-if="isUIAllowed('scriptCreate')" TODO: Add ACL -->
-            <template #bottom>
-              <a-divider style="margin: 4px 0" />
-              <div class="flex items-center text-brand-500 text-sm cursor-pointer" @click="newScript">
-                <div class="w-full flex justify-between items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100">
-                  {{ $t('general.create') }} {{ $t('objects.script').toLowerCase() }}
-                  <GeneralIcon icon="plus" class="flex-none" />
-                </div>
-              </div>
-            </template>
           </NcListWithSearch>
         </template>
         <div

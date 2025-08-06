@@ -109,12 +109,12 @@ watch(isPanelExpanded, (newValue) => {
             </div>
           </div>
 
-          <div v-else class="text-center text-gray-500 mt-8">
-            <div class="mb-4">
-              <GeneralIcon icon="play" class="w-12 h-12 mx-auto text-gray-300" />
+          <div v-else class="text-center flex items-center h-full justify-center flex-col mt-8 gap-4">
+            <GeneralIcon icon="play" class="w-12 h-12 mx-auto text-nc-content-gray-subtle" />
+            <div class="flex flex-col gap-1">
+              <div class="text-nc-content-gray-emphasis text-lg font-semibold">Script Actions</div>
+              <div class="text-sm text-nc-content-gray-subtle">Execute scripts and view their progress in real-time</div>
             </div>
-            <div class="text-base font-medium mb-2">Script Actions</div>
-            <div class="text-sm text-gray-400">Execute scripts and view their progress in real-time</div>
           </div>
         </div>
       </div>

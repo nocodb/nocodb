@@ -509,7 +509,7 @@ export class MetaService extends MetaServiceCE {
     if (!idOrCondition) {
       this.logHelper(workspace_id, base_id, target, query);
 
-      return query.first();
+      return null;
     }
 
     if (typeof idOrCondition !== 'object') {

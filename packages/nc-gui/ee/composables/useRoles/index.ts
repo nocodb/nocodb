@@ -172,6 +172,7 @@ export const useRolesShared = createSharedComposable(() => {
           featureFlags: res.featureFlags,
           meta: res.meta,
           identity_hash: res.identity_hash,
+          is_new_user: res.is_new_user,
         } as User
       }
     } catch (e) {

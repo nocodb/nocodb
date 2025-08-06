@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { onUnmounted } from '@vue/runtime-core'
-
 definePageMeta({
   hideHeader: true,
   hasSidebar: true,
@@ -143,12 +141,6 @@ const isSharedFormView = computed(() => {
 const { sharedBaseId } = useCopySharedBase()
 
 const isDuplicateDlgOpen = ref(false)
-
-let timerRef: any
-
-onUnmounted(() => {
-  if (timerRef) clearTimeout(timerRef)
-})
 
 onMounted(async () => {
   if (route.value.meta.public) return

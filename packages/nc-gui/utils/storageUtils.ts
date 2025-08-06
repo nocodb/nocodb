@@ -24,12 +24,12 @@ export const ncLastVisitedBase = (): {
   return {
     key,
     get: () => {
-      return sessionStorage.getItem(key)
+      return localStorage.getItem(key)
     },
     set: (value: string | null | undefined) => {
       if (!value) return
 
-      sessionStorage.setItem(key, value)
+      localStorage.setItem(key, value)
     },
   }
 }

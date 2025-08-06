@@ -107,9 +107,12 @@ export class MetricCommonHandler extends BaseWidgetHandler {
       source,
     });
 
-    const filters = await Filter.rootFilterListByWidget(context, {
-      widgetId: widget.id,
-    });
+    const filters =
+      dataSource === 'filter'
+        ? await Filter.rootFilterListByWidget(context, {
+            widgetId: widget.id,
+          })
+        : [];
 
     const qb = baseModel.dbDriver(baseModel.tnPath);
 

@@ -36,7 +36,7 @@ interface AttachmentObject {
   signedUrl?: string;
 }
 
-const thumbnailMimes = ['image/'];
+const thumbnailMimes = ['image/', 'application/pdf'];
 
 // ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html - extended with some more characters
 const normalizeFilename = (filename: string) => {

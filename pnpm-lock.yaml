@@ -664,7 +664,7 @@ importers:
         version: 1.11.0(encoding@0.1.13)
       knex:
         specifier: ^3.1.0
-        version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)
+        version: 3.1.0(mysql@2.18.1)(pg@8.16.0)(sqlite3@5.1.7)
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -673,7 +673,7 @@ importers:
     dependencies:
       knex:
         specifier: ^3.1.0
-        version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)
+        version: 3.1.0(mysql@2.18.1)(pg@8.16.0)(sqlite3@5.1.7)
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -847,6 +847,9 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.13.2
         version: 1.13.2
+      '@napi-rs/canvas':
+        specifier: ^0.1.76
+        version: 0.1.76
       '@nest-lab/throttler-storage-redis':
         specifier: ^1.1.0
         version: 1.1.0(@nestjs/common@10.4.19(class-transformer@0.3.1)(class-validator@0.14.0)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.19(@nestjs/common@10.4.19(class-transformer@0.3.1)(class-validator@0.14.0)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/platform-express@10.4.19)(@nestjs/websockets@10.4.19)(encoding@0.1.13)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/throttler@6.4.0(@nestjs/common@10.4.19(class-transformer@0.3.1)(class-validator@0.14.0)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@10.4.19(@nestjs/common@10.4.19(class-transformer@0.3.1)(class-validator@0.14.0)(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/platform-express@10.4.19)(@nestjs/websockets@10.4.19)(encoding@0.1.13)(reflect-metadata@0.2.2)(rxjs@7.8.1))(reflect-metadata@0.2.2))(ioredis@5.6.1)(reflect-metadata@0.2.2)
@@ -1162,6 +1165,9 @@ importers:
       pdf-parse:
         specifier: ^1.1.1
         version: 1.1.1
+      pdfjs-dist:
+        specifier: ^5.4.54
+        version: 5.4.54
       pg:
         specifier: ^8.13.1
         version: 8.16.0
@@ -1228,6 +1234,9 @@ importers:
       twilio:
         specifier: ^4.23.0
         version: 4.23.0(debug@4.4.1)
+      unpdf:
+        specifier: ^1.1.0
+        version: 1.1.0(@napi-rs/canvas@0.1.76)
       unstructured-client:
         specifier: ^0.16.0
         version: 0.16.0(zod@3.25.7)
@@ -1390,7 +1399,7 @@ importers:
         version: 8.3.4
       axios:
         specifier: ^1.9.0
-        version: 1.9.0
+        version: 1.9.0(debug@4.4.1)
       chevrotain:
         specifier: ^10.5.0
         version: 10.5.0
@@ -1466,7 +1475,7 @@ importers:
     dependencies:
       axios:
         specifier: 1.9.0
-        version: 1.9.0
+        version: 1.9.0(debug@4.4.1)
     devDependencies:
       '@biomejs/biome':
         specifier: ^1.9.4
@@ -4991,6 +5000,70 @@ packages:
     resolution: {integrity: sha512-Jkb27iSn7JPdkqlTqKfhncFfnEZsIJVYxsFbUSWEkxdIPdsyngrhoDBk0/BGD2FQcRH99vlRrkHpNTyKqI+0/w==}
     engines: {node: '>=18'}
 
+  '@napi-rs/canvas-android-arm64@0.1.76':
+    resolution: {integrity: sha512-7EAfkLBQo2QoEzpHdInFbfEUYTXsiO2hvtFo1D9zfTzcQM8n5piZdOpJ3EIkmpe8yLoSV8HLyUQtq4bv11x6Tg==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [android]
+
+  '@napi-rs/canvas-darwin-arm64@0.1.76':
+    resolution: {integrity: sha512-Cs8WRMzaWSJWeWY8tvnCe+TuduHUbB0xFhZ0FmOrNy2prPxT4A6aU3FQu8hR9XJw8kKZ7v902wzaDmy9SdhG8A==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@napi-rs/canvas-darwin-x64@0.1.76':
+    resolution: {integrity: sha512-ya+T6gV9XAq7YAnMa2fKhWXAuRR5cpRny2IoHacoMxgtOARnUkJO/k3hIb52FtMoq7UxLi5+IFGVHU6ZiMu4Ag==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@napi-rs/canvas-linux-arm-gnueabihf@0.1.76':
+    resolution: {integrity: sha512-fgnPb+FKVuixACvkHGldJqYXExORBwvqGgL0K80uE6SGH2t0UKD2auHw2CtBy14DUzfg82PkupO2ix2w7kB+Xw==}
+    engines: {node: '>= 10'}
+    cpu: [arm]
+    os: [linux]
+
+  '@napi-rs/canvas-linux-arm64-gnu@0.1.76':
+    resolution: {integrity: sha512-r8OxIenvBPOa4I014k1ZWTCz2dB0ZTsxMP7+ovMOKO7jkl1Z+YZo2OTAqxArpMhN0wdEeI3Lw9zUcn2HgwEgDA==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@napi-rs/canvas-linux-arm64-musl@0.1.76':
+    resolution: {integrity: sha512-smxwzKfHYaOYG7QXUuDPrFEC7WqjL3Lx4AM6mk8/FxDAS+8o0eoZJwSu+zXsaBLimEQUozEYgEGtJ2JJ0RdL4A==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@napi-rs/canvas-linux-riscv64-gnu@0.1.76':
+    resolution: {integrity: sha512-G2PsFwsP+r4syEoNLStV3n1wtNAClwf8s/qB57bexG08R4f4WaiBd+x+d4iYS0Y5o90YIEm8/ewZn4bLIa0wNQ==}
+    engines: {node: '>= 10'}
+    cpu: [riscv64]
+    os: [linux]
+
+  '@napi-rs/canvas-linux-x64-gnu@0.1.76':
+    resolution: {integrity: sha512-SNK+vgge4DnuONYdYE3Y09LivGgUiUPQDU+PdGNZJIzIi0hRDLcA59eag8LGeQfPmJW84c1aZD04voihybKFog==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@napi-rs/canvas-linux-x64-musl@0.1.76':
+    resolution: {integrity: sha512-tWHLBI9iVoR1NsfpHz1MGERTkqcca8akbH/CzX6JQUNC+lJOeYYXeRuK8hKqMIg1LI+4QOMAtHNVeZu8NvjEug==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+
+  '@napi-rs/canvas-win32-x64-msvc@0.1.76':
+    resolution: {integrity: sha512-ifM5HOGw2hP5QLQzCB41Riw3Pq5yKAAjZpn+lJC0sYBmyS2s/Kq6KpTOKxf0CuptkI1wMcRcYQfhLRdeWiYvIg==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+
+  '@napi-rs/canvas@0.1.76':
+    resolution: {integrity: sha512-YIk5okeNN53GzjvWmAyCQFE9xrLeQXzYpudX4TiLvqaz9SqXgIgxIuKPe4DKyB5nccsQMIev7JGKTzZaN5rFdw==}
+    engines: {node: '>= 10'}
+
   '@napi-rs/wasm-runtime@0.2.10':
     resolution: {integrity: sha512-bCsCyeZEwVErsGmyPNSzwfwFn4OdxBj0mmv6hOFucB/k81Ojdu68RbZdxYsRQUPc9l6SU5F/cG+bXgWs3oUgsQ==}
 
@@ -5957,36 +6030,42 @@ packages:
     engines: {node: '>= 10.0.0'}
     cpu: [arm]
     os: [linux]
+    libc: [glibc]
 
   '@parcel/watcher-linux-arm-musl@2.5.1':
     resolution: {integrity: sha512-6E+m/Mm1t1yhB8X412stiKFG3XykmgdIOqhjWj+VL8oHkKABfu/gjFj8DvLrYVHSBNC+/u5PeNrujiSQ1zwd1Q==}
     engines: {node: '>= 10.0.0'}
     cpu: [arm]
     os: [linux]
+    libc: [musl]
 
   '@parcel/watcher-linux-arm64-glibc@2.5.1':
     resolution: {integrity: sha512-LrGp+f02yU3BN9A+DGuY3v3bmnFUggAITBGriZHUREfNEzZh/GO06FF5u2kx8x+GBEUYfyTGamol4j3m9ANe8w==}
     engines: {node: '>= 10.0.0'}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@parcel/watcher-linux-arm64-musl@2.5.1':
     resolution: {integrity: sha512-cFOjABi92pMYRXS7AcQv9/M1YuKRw8SZniCDw0ssQb/noPkRzA+HBDkwmyOJYp5wXcsTrhxO0zq1U11cK9jsFg==}
     engines: {node: '>= 10.0.0'}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@parcel/watcher-linux-x64-glibc@2.5.1':
     resolution: {integrity: sha512-GcESn8NZySmfwlTsIur+49yDqSny2IhPeZfXunQi48DMugKeZ7uy1FX83pO0X22sHntJ4Ub+9k34XQCX+oHt2A==}
     engines: {node: '>= 10.0.0'}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@parcel/watcher-linux-x64-musl@2.5.1':
     resolution: {integrity: sha512-n0E2EQbatQ3bXhcH2D1XIAANAcTZkQICBPVaxMeaCVBtOpBZpWJuf7LwyWPSBDITb7In8mqQgJ7gH8CILCURXg==}
     engines: {node: '>= 10.0.0'}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@parcel/watcher-wasm@2.4.1':
     resolution: {integrity: sha512-/ZR0RxqxU/xxDGzbzosMjh4W6NdYFMqq2nvo2b8SLi7rsl/4jkL8S5stIikorNkdR50oVDvqb/3JT05WM+CRRA==}
@@ -6532,6 +6611,7 @@ packages:
     resolution: {integrity: sha512-pBKnS2Fbn9cDtWe1KcD1qRjQlJwQhP9pFW2KpxdjE7qXbaO11IHtem6dLZwdpNqbDn9QgyfdVGXBDvBaP1tGwA==}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@rspack/binding-linux-arm64-gnu@1.4.6':
     resolution: {integrity: sha512-ZrrCn5b037ImZfZ3MShJrRw4d5M3Tq2rFJupr+SGMg7GTl2T6xEmo3ER/evHlT6e0ETi6tRWPxC9A1125jbSQA==}
@@ -6542,6 +6622,7 @@ packages:
     resolution: {integrity: sha512-0B+iiINW0qOEkBE9exsRcdmcHtYIWAoJGnXrz9tUiiewRxX0Cmm0MjD2HAVUAggJZo+9IN8RGz5PopCjJ/dn1g==}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@rspack/binding-linux-arm64-musl@1.4.6':
     resolution: {integrity: sha512-0a30oR6ZmZrqmsOHQYrbZPCxAgnqAiqlbFozdhHs+Yu2bS7SDiLpdjMg0PHwLZT2+siiMWsLodFZlXRJE54oAQ==}
@@ -6552,6 +6633,7 @@ packages:
     resolution: {integrity: sha512-82izGJw/qxJ4xaHJy/A4MF7aTRT9tE6VlWoWM4rJmqRszfujN/w54xJRie9jkt041TPvJWGNpYD4Hjpt0/n/oA==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@rspack/binding-linux-x64-gnu@1.4.6':
     resolution: {integrity: sha512-u6pq1aq7bX+NABVDDTOzH64KMj1KJn8fUWO+FaX7Kr7PBjhmxNRs4OaWZjbXEY6COhMYEJZ04h4DhY+lRzcKjA==}
@@ -6562,6 +6644,7 @@ packages:
     resolution: {integrity: sha512-V9nDg63iPI6Z7kM11UPV5kBdOdLXPIu3IgI2ObON5Rd4KEZr7RLo/Q4HKzj0IH27Zwl5qeBJdx69zZdu66eOqg==}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@rspack/binding-linux-x64-musl@1.4.6':
     resolution: {integrity: sha512-rjP/1dWKB828kzd4/QpDYNVasUAKDj0OeRJGh5L/RluSH3pEqhxm5FwvndpmFDv6m3iPekZ4IO26UrpGJmE9fw==}
@@ -7254,24 +7337,28 @@ packages:
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   '@swc/core-linux-arm64-musl@1.10.0':
     resolution: {integrity: sha512-EbrX9A5U4cECCQQfky7945AW9GYnTXtCUXElWTkTYmmyQK87yCyFfY8hmZ9qMFIwxPOH6I3I2JwMhzdi8Qoz7g==}
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   '@swc/core-linux-x64-gnu@1.10.0':
     resolution: {integrity: sha512-TaxpO6snTjjfLXFYh5EjZ78se69j2gDcqEM8yB9gguPYwkCHi2Ylfmh7iVaNADnDJFtjoAQp0L41bTV/Pfq9Cg==}
     engines: {node: '>=10'}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@swc/core-linux-x64-musl@1.10.0':
     resolution: {integrity: sha512-IEGvDd6aEEKEyZFZ8oCKuik05G5BS7qwG5hO5PEMzdGeh8JyFZXxsfFXbfeAqjue4UaUUrhnoX+Ze3M2jBVMHw==}
     engines: {node: '>=10'}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   '@swc/core-win32-arm64-msvc@1.10.0':
     resolution: {integrity: sha512-UkQ952GSpY+Z6XONj9GSW8xGSkF53jrCsuLj0nrcuw7Dvr1a816U/9WYZmmcYS8tnG2vHylhpm6csQkyS8lpCw==}
@@ -15428,6 +15515,10 @@ packages:
     resolution: {integrity: sha512-v6ZJ/efsBpGrGGknjtq9J/oC8tZWq0KWL5vQrk2GlzLEQPUDB1ex+13Rmidl1neNN358Jn9EHZw5y07FFtaC7A==}
     engines: {node: '>=6.8.1'}
 
+  pdfjs-dist@5.4.54:
+    resolution: {integrity: sha512-TBAiTfQw89gU/Z4LW98Vahzd2/LoCFprVGvGbTgFt+QCB1F+woyOPmNNVgLa6djX9Z9GGTnj7qE1UzpOVJiINw==}
+    engines: {node: '>=20.16.0 || >=22.3.0'}
+
   pdfobject-vue@0.0.4:
     resolution: {integrity: sha512-sk3IqtwyC1j7Gu0rkskOgWnJgDNtCkdwkxvnLGI3xK0pMhgleNw2IWpH41FSNVuE0h5zdjjakpXsv+YH0cbXfA==}
     peerDependencies:
@@ -18193,6 +18284,14 @@ packages:
   unixify@1.0.0:
     resolution: {integrity: sha512-6bc58dPYhCMHHuwxldQxO3RRNZ4eCogZ/st++0+fcC1nr0jiGUtAdBJ2qzmLQWSxbtz42pWt4QQMiZ9HvZf5cg==}
     engines: {node: '>=0.10.0'}
+
+  unpdf@1.1.0:
+    resolution: {integrity: sha512-wxBX1QXUspcT091+yRmtxiUm0yDfnoz0NFMguT58mtJFpwWA2dk8PaLJpUO8MZqF/et56FIjrc2Z/OeEaFte0g==}
+    peerDependencies:
+      '@napi-rs/canvas': ^0.1.69
+    peerDependenciesMeta:
+      '@napi-rs/canvas':
+        optional: true
 
   unpipe@1.0.0:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
@@ -22686,6 +22785,12 @@ snapshots:
       '@babel/core': 7.26.7
       '@babel/helper-plugin-utils': 7.26.5
 
+  '@babel/plugin-syntax-bigint@7.8.3(@babel/core@7.27.1)':
+    dependencies:
+      '@babel/core': 7.27.1
+      '@babel/helper-plugin-utils': 7.26.5
+    optional: true
+
   '@babel/plugin-syntax-class-properties@7.12.13(@babel/core@7.26.7)':
     dependencies:
       '@babel/core': 7.26.7
@@ -25042,6 +25147,49 @@ snapshots:
       is-node-process: 1.2.0
       outvariant: 1.4.3
       strict-event-emitter: 0.5.1
+
+  '@napi-rs/canvas-android-arm64@0.1.76':
+    optional: true
+
+  '@napi-rs/canvas-darwin-arm64@0.1.76':
+    optional: true
+
+  '@napi-rs/canvas-darwin-x64@0.1.76':
+    optional: true
+
+  '@napi-rs/canvas-linux-arm-gnueabihf@0.1.76':
+    optional: true
+
+  '@napi-rs/canvas-linux-arm64-gnu@0.1.76':
+    optional: true
+
+  '@napi-rs/canvas-linux-arm64-musl@0.1.76':
+    optional: true
+
+  '@napi-rs/canvas-linux-riscv64-gnu@0.1.76':
+    optional: true
+
+  '@napi-rs/canvas-linux-x64-gnu@0.1.76':
+    optional: true
+
+  '@napi-rs/canvas-linux-x64-musl@0.1.76':
+    optional: true
+
+  '@napi-rs/canvas-win32-x64-msvc@0.1.76':
+    optional: true
+
+  '@napi-rs/canvas@0.1.76':
+    optionalDependencies:
+      '@napi-rs/canvas-android-arm64': 0.1.76
+      '@napi-rs/canvas-darwin-arm64': 0.1.76
+      '@napi-rs/canvas-darwin-x64': 0.1.76
+      '@napi-rs/canvas-linux-arm-gnueabihf': 0.1.76
+      '@napi-rs/canvas-linux-arm64-gnu': 0.1.76
+      '@napi-rs/canvas-linux-arm64-musl': 0.1.76
+      '@napi-rs/canvas-linux-riscv64-gnu': 0.1.76
+      '@napi-rs/canvas-linux-x64-gnu': 0.1.76
+      '@napi-rs/canvas-linux-x64-musl': 0.1.76
+      '@napi-rs/canvas-win32-x64-msvc': 0.1.76
 
   '@napi-rs/wasm-runtime@0.2.10':
     dependencies:
@@ -30274,14 +30422,6 @@ snapshots:
 
   aws4fetch@1.0.20: {}
 
-  axios@1.9.0:
-    dependencies:
-      follow-redirects: 1.15.9(debug@4.4.1)
-      form-data: 4.0.1
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
-
   axios@1.9.0(debug@4.4.1):
     dependencies:
       follow-redirects: 1.15.9(debug@4.4.1)
@@ -30311,6 +30451,20 @@ snapshots:
       slash: 3.0.0
     transitivePeerDependencies:
       - supports-color
+
+  babel-jest@29.7.0(@babel/core@7.27.1):
+    dependencies:
+      '@babel/core': 7.27.1
+      '@jest/transform': 29.7.0
+      '@types/babel__core': 7.20.1
+      babel-plugin-istanbul: 6.1.1
+      babel-preset-jest: 29.6.3(@babel/core@7.27.1)
+      chalk: 4.1.2
+      graceful-fs: 4.2.11
+      slash: 3.0.0
+    transitivePeerDependencies:
+      - supports-color
+    optional: true
 
   babel-plugin-istanbul@6.1.1:
     dependencies:
@@ -30390,11 +30544,35 @@ snapshots:
       '@babel/plugin-syntax-optional-chaining': 7.8.3(@babel/core@7.26.7)
       '@babel/plugin-syntax-top-level-await': 7.14.5(@babel/core@7.26.7)
 
+  babel-preset-current-node-syntax@1.0.1(@babel/core@7.27.1):
+    dependencies:
+      '@babel/core': 7.27.1
+      '@babel/plugin-syntax-async-generators': 7.8.4(@babel/core@7.27.1)
+      '@babel/plugin-syntax-bigint': 7.8.3(@babel/core@7.27.1)
+      '@babel/plugin-syntax-class-properties': 7.12.13(@babel/core@7.27.1)
+      '@babel/plugin-syntax-import-meta': 7.10.4(@babel/core@7.27.1)
+      '@babel/plugin-syntax-json-strings': 7.8.3(@babel/core@7.27.1)
+      '@babel/plugin-syntax-logical-assignment-operators': 7.10.4(@babel/core@7.27.1)
+      '@babel/plugin-syntax-nullish-coalescing-operator': 7.8.3(@babel/core@7.27.1)
+      '@babel/plugin-syntax-numeric-separator': 7.10.4(@babel/core@7.27.1)
+      '@babel/plugin-syntax-object-rest-spread': 7.8.3(@babel/core@7.27.1)
+      '@babel/plugin-syntax-optional-catch-binding': 7.8.3(@babel/core@7.27.1)
+      '@babel/plugin-syntax-optional-chaining': 7.8.3(@babel/core@7.27.1)
+      '@babel/plugin-syntax-top-level-await': 7.14.5(@babel/core@7.27.1)
+    optional: true
+
   babel-preset-jest@29.6.3(@babel/core@7.26.7):
     dependencies:
       '@babel/core': 7.26.7
       babel-plugin-jest-hoist: 29.6.3
       babel-preset-current-node-syntax: 1.0.1(@babel/core@7.26.7)
+
+  babel-preset-jest@29.6.3(@babel/core@7.27.1):
+    dependencies:
+      '@babel/core': 7.27.1
+      babel-plugin-jest-hoist: 29.6.3
+      babel-preset-current-node-syntax: 1.0.1(@babel/core@7.27.1)
+    optional: true
 
   bail@2.0.2: {}
 
@@ -38491,6 +38669,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  pdfjs-dist@5.4.54:
+    optionalDependencies:
+      '@napi-rs/canvas': 0.1.76
+
   pdfobject-vue@0.0.4(pdfobject@2.3.0)(vue@3.5.14(typescript@5.8.3)):
     dependencies:
       pdfobject: 2.3.0
@@ -41405,10 +41587,10 @@ snapshots:
       typescript: 5.8.3
       yargs-parser: 21.1.1
     optionalDependencies:
-      '@babel/core': 7.26.7
+      '@babel/core': 7.27.1
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
-      babel-jest: 29.7.0(@babel/core@7.26.7)
+      babel-jest: 29.7.0(@babel/core@7.27.1)
 
   ts-loader@9.5.2(typescript@5.8.3)(webpack@5.99.6(@swc/core@1.10.0)(esbuild@0.25.4)):
     dependencies:
@@ -41893,6 +42075,10 @@ snapshots:
   unixify@1.0.0:
     dependencies:
       normalize-path: 2.1.1
+
+  unpdf@1.1.0(@napi-rs/canvas@0.1.76):
+    optionalDependencies:
+      '@napi-rs/canvas': 0.1.76
 
   unpipe@1.0.0: {}
 

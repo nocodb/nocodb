@@ -1,9 +1,9 @@
-import { EventType, type ScriptPayload, type ScriptType } from 'nocodb-sdk'
+import { type ScriptType } from 'nocodb-sdk'
 import { DlgAutomationCreate } from '#components'
 import { parseScript, validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
 
 export const useAutomationStore = defineStore('automation', () => {
-  const { $api, $e, $ncSocket } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
   const route = useRoute()
   const { ncNavigateTo } = useGlobal()
   const bases = useBases()
@@ -14,7 +14,7 @@ export const useAutomationStore = defineStore('automation', () => {
   const { showUpgradeToUseScripts } = useEeConfig()
 
   // State
-  const automations = ref<Map<string, ScriptType[]>>(new Map())
+  const automations = ref<Map<string, (ScriptType & { _dirty?: string | number })[]>>(new Map())
   const isUpdatingAutomation = ref(false)
   const isLoadingAutomation = ref(false)
   const isSettingsOpen = ref(false)
@@ -287,8 +287,10 @@ export const useAutomationStore = defineStore('automation', () => {
   }
 
   const updateBaseSchema = async () => {
+    if (!activeWorkspaceId.value || !activeProjectId.value) return
+
     try {
-      activeBaseSchema.value = await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value, {
+      activeBaseSchema.value = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
         operation: 'baseSchema',
       })
     } catch (e) {
@@ -387,77 +389,6 @@ export const useAutomationStore = defineStore('automation', () => {
       close(1000)
     }
   }
-
-  const handleScriptEvent = (payload: ScriptPayload, baseId: string) => {
-    const { id, action, payload: automation } = payload
-    const existingAutomations = automations.value.get(baseId) || []
-
-    switch (action) {
-      case 'create': {
-        const updatedAutomations = [...existingAutomations, automation]
-        automations.value.set(baseId, updatedAutomations)
-        break
-      }
-      case 'update': {
-        const updatedAutomations = existingAutomations.map((d) =>
-          d.id === id ? { ...d, ...automation, _dirty: d._dirty ? d._dirty + 1 : 1 } : d,
-        )
-        automations.value.set(baseId, updatedAutomations)
-        break
-      }
-      case 'delete': {
-        const updatedAutomations = existingAutomations.filter((d) => d.id !== id)
-        automations.value.set(baseId, updatedAutomations)
-        if (activeAutomationId.value === id) {
-          const nextAutomation = updatedAutomations[0]
-          if (nextAutomation) {
-            ncNavigateTo({
-              workspaceId: activeWorkspaceId.value,
-              baseId,
-              automationId: nextAutomation.id,
-            })
-          } else {
-            ncNavigateTo({
-              workspaceId: activeWorkspaceId.value,
-              baseId,
-            })
-          }
-        }
-        break
-      }
-    }
-  }
-
-  const setupRealtimeSubscription = (baseId: string) => {
-    if (!activeWorkspaceId.value || !$ncSocket || !baseId) return
-
-    const eventKey = `${EventType.SCRIPT_EVENT}:${activeWorkspaceId.value}:${baseId}`
-
-    $ncSocket.subscribe(eventKey)
-
-    $ncSocket.onMessage(eventKey, (payload: ScriptPayload) => {
-      if (payload.eventType === EventType.SCRIPT_EVENT) {
-        handleScriptEvent(payload as ScriptPayload, baseId)
-      }
-    })
-  }
-
-  watch(
-    activeProjectId,
-    (newBaseId, oldBaseId) => {
-      if (newBaseId && newBaseId !== oldBaseId) {
-        setupRealtimeSubscription(newBaseId)
-      }
-    },
-    { immediate: true },
-  )
-
-  onUnmounted(() => {
-    if (activeProjectId.value && activeWorkspaceId.value && $ncSocket) {
-      const eventKey = `${EventType.SCRIPT_EVENT}:${activeWorkspaceId.value}:${activeProjectId.value}`
-      $ncSocket.offMessage(eventKey)
-    }
-  })
 
   return {
     // State

@@ -1,9 +1,8 @@
-import { EventType } from 'nocodb-sdk'
-import type { DashboardPayload, DashboardType } from 'nocodb-sdk'
+import type { DashboardType } from 'nocodb-sdk'
 import { DlgDashboardCreate } from '#components'
 
 export const useDashboardStore = defineStore('dashboard', () => {
-  const { $api, $e, $poller, $ncSocket } = useNuxtApp()
+  const { $api, $e, $poller } = useNuxtApp()
 
   const { ncNavigateTo } = useGlobal()
 
@@ -328,75 +327,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
       throw e
     }
   }
-
-  const handleDashboardEvent = (payload: DashboardPayload, baseId: string) => {
-    const { id, action, payload: dashboard } = payload
-    const existingDashboards = dashboards.value.get(baseId) || []
-
-    switch (action) {
-      case 'create': {
-        const updatedDashboards = [...existingDashboards, dashboard]
-        dashboards.value.set(baseId, updatedDashboards)
-        break
-      }
-      case 'update': {
-        const updatedDashboards = existingDashboards.map((d) => (d.id === id ? { ...d, ...dashboard } : d))
-        dashboards.value.set(baseId, updatedDashboards)
-        break
-      }
-      case 'delete': {
-        const updatedDashboards = existingDashboards.filter((d) => d.id !== id)
-        dashboards.value.set(baseId, updatedDashboards)
-        if (activeDashboardId.value === id) {
-          const nextDashboard = updatedDashboards[0]
-          if (nextDashboard) {
-            ncNavigateTo({
-              workspaceId: activeWorkspaceId.value,
-              baseId,
-              dashboardId: nextDashboard.id,
-            })
-          } else {
-            ncNavigateTo({
-              workspaceId: activeWorkspaceId.value,
-              baseId,
-            })
-          }
-        }
-        break
-      }
-    }
-  }
-
-  const setupRealtimeSubscription = (baseId: string) => {
-    if (!activeWorkspaceId.value || !$ncSocket || !baseId) return
-
-    const eventKey = `${EventType.DASHBOARD_EVENT}:${activeWorkspaceId.value}:${baseId}`
-
-    $ncSocket.subscribe(eventKey)
-
-    $ncSocket.onMessage(eventKey, (payload: DashboardPayload) => {
-      if (payload.eventType === EventType.DASHBOARD_EVENT) {
-        handleDashboardEvent(payload as DashboardPayload, baseId)
-      }
-    })
-  }
-
-  watch(
-    activeProjectId,
-    (newBaseId, oldBaseId) => {
-      if (newBaseId && newBaseId !== oldBaseId) {
-        setupRealtimeSubscription(newBaseId)
-      }
-    },
-    { immediate: true },
-  )
-
-  onUnmounted(() => {
-    if (activeProjectId.value && activeWorkspaceId.value && $ncSocket) {
-      const eventKey = `${EventType.DASHBOARD_EVENT}:${activeWorkspaceId.value}:${activeProjectId.value}`
-      $ncSocket.offMessage(eventKey)
-    }
-  })
 
   async function openNewDashboardModal({
     baseId,

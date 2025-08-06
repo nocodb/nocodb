@@ -1,4 +1,4 @@
-import { ScriptType, TableType, UserType, ViewType } from '~/lib/Api';
+import { ScriptType, UserType } from '~/lib/Api';
 import { DashboardType, WidgetType } from '~/lib';
 
 export enum EventType {
@@ -17,7 +17,7 @@ export enum EventType {
 export interface BaseSocketPayload {
   timestamp: number;
   socketId?: string;
-  eventType?: EventType;
+  event?: EventType;
 }
 
 // Connection event payloads
@@ -45,7 +45,7 @@ export interface DataPayload extends BaseSocketPayload {
   before?: string;
 }
 
-export interface MetaPayload extends BaseSocketPayload {
+export interface MetaPayload<T = any> extends BaseSocketPayload {
   action:
     | 'table_create'
     | 'table_update'
@@ -62,7 +62,7 @@ export interface MetaPayload extends BaseSocketPayload {
     | 'workspace_create'
     | 'workspace_update'
     | 'workspace_delete';
-  payload: Partial<TableType | ViewType>;
+  payload: T;
 }
 
 export interface DashboardPayload extends BaseSocketPayload {

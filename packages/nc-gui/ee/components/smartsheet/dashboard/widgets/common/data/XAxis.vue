@@ -53,11 +53,10 @@ const sortOrderOptions = [
   <GroupedSettings title="X-axis">
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Field</label>
-      <NSelectField
-        :key="modelId!"
+      <NcListColumnSelector
         v-model:value="selectedFieldId"
-        :disabled="!modelId"
-        :table-id="modelId!"
+        disable-label
+        :table-id="modelId"
         @update:value="handleChange('field')"
       />
     </div>

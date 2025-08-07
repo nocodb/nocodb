@@ -231,19 +231,31 @@ watch(
   <template v-else-if="content.type === ScriptInputType.TABLE">
     <div class="flex flex-col gap-2">
       <label class="text-caption text-nc-content-gray-subtle2">{{ content.label }}</label>
-      <NSelectTable :disabled="isResolved" @change="resolveInput" />
+      <NcListTableSelector v-model:value="inputValue" disable-label :disabled="isResolved" @update:value="resolveInput" />
     </div>
   </template>
   <template v-else-if="content.type === ScriptInputType.VIEW">
     <div class="flex flex-col gap-2">
       <label class="text-caption text-nc-content-gray-subtle2">{{ content.label }}</label>
-      <NSelectView :table-id="content.tableId" :disabled="isResolved" @change="resolveInput" />
+      <NcListViewSelector
+        v-model:value="inputValue"
+        disable-label
+        :table-id="content.tableId"
+        :disabled="isResolved"
+        @update:value="resolveInput"
+      />
     </div>
   </template>
   <template v-else-if="content.type === ScriptInputType.FIELD">
     <div class="flex flex-col gap-2">
       <label class="text-caption text-nc-content-gray-subtle2">{{ content.label }}</label>
-      <NSelectField :table-id="content.tableId" :disabled="isResolved" @change="resolveInput" />
+      <NcListColumnSelector
+        v-model:value="inputValue"
+        disable-label
+        :table-id="content.tableId"
+        :disabled="isResolved"
+        @update:value="resolveInput"
+      />
     </div>
   </template>
   <template v-else-if="content.type === ScriptInputType.RECORD">

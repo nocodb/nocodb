@@ -45,6 +45,7 @@ const handleTableChange = (key: string, value: string | null) => {
 }
 
 const handleFieldOrViewChange = (item: ScriptConfigItemField | ScriptConfigItemView, value: string | null) => {
+  if (!value) return
   if (value && item.parentTable) {
     const tableId = configValue.value[item.parentTable]?.value
     if (tableId) {
@@ -121,7 +122,11 @@ onMounted(() => {
             <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <NSelectTable :value="getValue(item.key)" @change="(value) => handleTableChange(item.key, value)" />
+            <NcListTableSelector
+              disable-label
+              :value="getValue(item.key)"
+              @update:value="(value) => handleTableChange(item.key, value)"
+            />
           </div>
         </template>
 
@@ -133,11 +138,12 @@ onMounted(() => {
             <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <NSelectView
+            <NcListViewSelector
+              disable-label
               :value="getValue(item.key)"
-              :table-id="getValue(item.parentTable)"
               :disabled="canShowFieldOrView(item)"
-              @change="(value) => handleFieldOrViewChange(item, value)"
+              :table-id="getValue(item.parentTable)"
+              @update:value="(value) => handleFieldOrViewChange(item, value)"
             />
           </div>
         </template>
@@ -150,11 +156,12 @@ onMounted(() => {
             <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <NSelectField
-              :value="getValue(item.key)"
-              :table-id="getValue(item.parentTable)"
+            <NcListColumnSelector
               :disabled="canShowFieldOrView(item)"
-              @change="(value) => handleFieldOrViewChange(item, value)"
+              disable-label
+              :table-id="getValue(item.parentTable)"
+              :value="getValue(item.key)"
+              @update:value="(value) => handleFieldOrViewChange(item, value)"
             />
           </div>
         </template>

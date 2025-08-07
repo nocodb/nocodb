@@ -110,6 +110,13 @@ const handleFileDeleteStart = () => {
         class="!w-full !m-0 rounded-t-[5px] justify-center"
         :class="previewClassOverride ? `${previewClassOverride}` : ''"
       />
+      <LazyCellAttachmentPreviewPdfThumbnail
+        v-else-if="isPdf(attachment.title, attachment.mimetype)"
+        :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
+        object-fit="contain"
+        class="!w-full !m-0 rounded-t-[5px] justify-center"
+        :class="previewClassOverride ? `${previewClassOverride}` : ''"
+      />
       <GeneralIcon
         v-else-if="isAudio(attachment.title, attachment.mimetype)"
         class="text-white"

@@ -172,6 +172,7 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
         path,
         replace,
       })
+    }
   }
 
   const getBaseUrl = (workspaceId: string) => {

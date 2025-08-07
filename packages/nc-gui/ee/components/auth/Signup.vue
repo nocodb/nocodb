@@ -85,10 +85,10 @@ async function signUp() {
           continueAfterOnboardingFlow = `/${workspace.id}`
 
           if (base?.id) {
-            continueAfterOnboardingFlow = `${continueAfterOnboardingFlow}/${base.id}`
+            continueAfterOnboardingFlow += `/${base.id}`
 
             if (table?.id) {
-              continueAfterOnboardingFlow = `${continueAfterOnboardingFlow}/${table.id}`
+              continueAfterOnboardingFlow += `/${table.id}`
             }
           }
         }

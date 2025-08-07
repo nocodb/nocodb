@@ -20,7 +20,7 @@ const { appInfo } = useGlobal()
 
 const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
 
-const { toggleActionPanel, isPanelExpanded: isActionPanelExpanded } = useActionPane()
+const { toggleActionPanel, isPanelExpanded: isActionPanelExpanded, isViewActionsEnabled } = useActionPane()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -104,7 +104,14 @@ const topbarBreadcrumbItemWidth = computed(() => {
         </NcButton>
 
         <NcButton
-          v-if="!isSharedBase && !activeAutomationId && !activeDashboardId && openedViewsTab === 'view' && !isMobileMode"
+          v-if="
+            !isSharedBase &&
+            !activeAutomationId &&
+            !activeDashboardId &&
+            openedViewsTab === 'view' &&
+            !isMobileMode &&
+            isViewActionsEnabled
+          "
           v-e="['c:action-toggle']"
           type="secondary"
           size="small"

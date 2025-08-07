@@ -51,7 +51,6 @@ export enum JobTypes {
   UpdateUsageStats = 'update-usage-stats',
   CloudDbMigrate = 'cloud-db-migrate',
   AttachmentUrlUpload = 'attachment-url-upload',
-  ExecuteScript = 'execute-script',
   ExecuteAction = 'execute-action',
 }
 
@@ -232,14 +231,6 @@ export interface SyncDataSyncModuleJobData extends JobData {
 }
 
 export type AttachmentUrlUploadJobData = AttachmentUrlUploadParam & JobData;
-
-export interface ExecuteScriptJobData extends JobData {
-  scriptId: string;
-  req: NcRequest;
-  rowId?: string;
-  tableId?: string;
-  viewId?: string;
-}
 
 export interface ExecuteActionJobData extends JobData {
   req: NcRequest;

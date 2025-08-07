@@ -5,8 +5,6 @@ export const useAutomationStore = defineStore('automation', () => {
   const isUpdatingAutomation = ref(false)
   const isLoadingAutomation = ref(false)
 
-  const isBackendExecutionEnabled = ref(false)
-
   // Getters
   const activeBaseAutomations = computed(() => [])
 
@@ -35,7 +33,6 @@ export const useAutomationStore = defineStore('automation', () => {
     activeAutomation,
     isUpdatingAutomation,
     isLoadingAutomation,
-    isBackendExecutionEnabled,
 
     // Getters
     activeBaseAutomations,
@@ -51,8 +48,3 @@ export const useAutomationStore = defineStore('automation', () => {
     openNewScriptModal,
   }
 })
-
-// Enable HMR
-if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useAutomationStore, import.meta.hot))
-}

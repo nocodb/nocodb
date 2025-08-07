@@ -231,9 +231,11 @@ async function handleQuery(
     const responses = [];
     try {
       for (const q of query) {
-        responses.push(
-          raw ? await trx.raw(q) : await execAndGetRows(trx, config, q),
-        );
+        if (raw) {
+          responses.push(await trx.raw(q));
+        } else {
+          responses.push(...(await execAndGetRows(trx, config, q)));
+        }
       }
       await trx.commit();
       return responses;

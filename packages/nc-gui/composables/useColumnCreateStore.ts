@@ -80,12 +80,18 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const additionalValidations = ref<ValidationsObj>({})
 
+    const avoidShowingToastMsgForValidations = ref<{ [key: string]: boolean }>({})
+
     const setAdditionalValidations = (validations: ValidationsObj) => {
       additionalValidations.value = { ...additionalValidations.value, ...validations }
     }
 
     const removeAdditionalValidation = (key: string) => {
       delete additionalValidations.value[key]
+    }
+
+    const setAvoidShowingToastMsgForValidations = (validations: { [key: string]: boolean }) => {
+      avoidShowingToastMsgForValidations.value = { ...avoidShowingToastMsgForValidations.value, ...validations }
     }
 
     const setPostSaveOrUpdateCbk = (cbk: typeof postSaveOrUpdateCbk) => {
@@ -195,6 +201,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     // actions
     const generateNewColumnMeta = (ignoreUidt = false) => {
       setAdditionalValidations({})
+      setAvoidShowingToastMsgForValidations({})
       formState.value = {
         meta: {},
         ...sqlUi.value.getNewColumn(1),
@@ -348,14 +355,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         let skipToast = false
         const errorMsgs = (e.errorFields || [])
           .filter((f) => {
-            const isCdfError = f?.name === 'cdf'
-            const isLinkTableRequiredError = f?.name === 'childId' && f?.errors?.includes(t('general.required'))
-
-            if (isLinkTableRequiredError) {
+            if (avoidShowingToastMsgForValidations.value[f?.name ?? '']) {
               skipToast = true
             }
 
-            return !isCdfError && !isLinkTableRequiredError
+            return f?.name !== 'cdf' && !avoidShowingToastMsgForValidations.value[f?.name ?? '']
           })
           .map((e: any) => e.errors?.join(', '))
           .filter(Boolean)
@@ -519,6 +523,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       onUidtOrIdTypeChange,
       setAdditionalValidations,
       removeAdditionalValidation,
+      setAvoidShowingToastMsgForValidations,
       resetFields,
       validate,
       validateInfos,

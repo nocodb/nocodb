@@ -11,7 +11,7 @@ const { t } = useI18n()
 
 const vModel = useVModel(props, 'value', emit)
 
-const { validateInfos, setAdditionalValidations } = useColumnCreateStoreOrThrow()
+const { validateInfos, setAdditionalValidations, setAvoidShowingToastMsgForValidations } = useColumnCreateStoreOrThrow()
 
 setAdditionalValidations({
   'meta.singular': [
@@ -38,6 +38,11 @@ setAdditionalValidations({
       },
     },
   ],
+})
+
+setAvoidShowingToastMsgForValidations({
+  'meta.singular': true,
+  'meta.plural': true,
 })
 
 // set default value

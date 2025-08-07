@@ -31,8 +31,16 @@ const crossBase = ref((vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_
 
 const { basesList } = storeToRefs(useBases())
 
-const { setAdditionalValidations, setPostSaveOrUpdateCbk, validateInfos, onDataTypeChange, sqlUi, isXcdbBase, updateFieldName } =
-  useColumnCreateStoreOrThrow()
+const {
+  setAdditionalValidations,
+  setAvoidShowingToastMsgForValidations,
+  setPostSaveOrUpdateCbk,
+  validateInfos,
+  onDataTypeChange,
+  sqlUi,
+  isXcdbBase,
+  updateFieldName,
+} = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 const { tables } = storeToRefs(baseStore)
@@ -49,6 +57,10 @@ const { metas, getMeta } = useMetas()
 if (!isEdit.value) {
   setAdditionalValidations({
     childId: [{ required: true, message: t('general.required') }],
+  })
+
+  setAvoidShowingToastMsgForValidations({
+    childId: true,
   })
 }
 
@@ -268,6 +280,7 @@ const onCustomSwitchToggle = () => {
       ...cusValidators,
       ...(vModel.value.type === RelationTypes.MANY_TO_MANY ? cusJuncTableValidations : {}),
     })
+
     vModel.value.virtual = true
   } else
     setAdditionalValidations({

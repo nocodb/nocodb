@@ -1,6 +1,6 @@
 import { PluginCategory } from 'nocodb-sdk';
 import { NcError } from './catchError';
-import { ValidatedEmailAdapter } from './emailValidation';
+import { ValidatedEmailAdapter } from '~/helpers/emailValidation';
 import type {
   IEmailAdapter,
   IStorageAdapterV2,
@@ -248,6 +248,7 @@ class NcPluginMgrv2 {
     const originalAdapter = plugin.getAdapter();
 
     // Wrap with validation adapter for automatic email validation
+    // Use EE implementation if available, otherwise CE placeholder
     return new ValidatedEmailAdapter(originalAdapter);
   }
 

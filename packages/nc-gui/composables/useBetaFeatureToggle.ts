@@ -17,15 +17,6 @@ const FEATURES = [
     version: 1,
   },
   {
-    id: 'dashboard',
-    title: 'Dashboard',
-    isEngineering: true,
-    description: 'Build interactive dashboards with charts, widgets, and visualizations to monitor your data at a glance.',
-    enabled: false,
-    version: 1,
-    isEE: true,
-  },
-  {
     id: 'dark_mode',
     title: 'Dark Mode',
     isEngineering: true,

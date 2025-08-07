@@ -261,8 +261,18 @@ export function useCanvasTable({
   const isPublicView = inject(IsPublicInj, ref(false))
   const readOnly = inject(ReadonlyInj, ref(false))
 
+  const { eventBus: scriptEventBus } = useScriptExecutor()
+
   const { loadAutomation } = automationStore
-  const actionManager = new ActionManager($api, loadAutomation, generateRows, meta, triggerRefreshCanvas, getDataCache)
+  const actionManager = new ActionManager(
+    $api,
+    loadAutomation,
+    generateRows,
+    meta,
+    triggerRefreshCanvas,
+    getDataCache,
+    scriptEventBus,
+  )
 
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 

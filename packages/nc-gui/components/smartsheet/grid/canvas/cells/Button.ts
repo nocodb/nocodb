@@ -238,6 +238,9 @@ export const ButtonCellRenderer: CellRenderer = {
       cellRenderStore,
       t,
     } = props
+
+    const isQueued = actionManager.isQueued(pk, column.id!)
+
     const isLoading = actionManager.isLoading(pk, column.id!)
     const afterActionStatus = actionManager.getAfterActionStatus(pk, column.id!)
 
@@ -251,14 +254,14 @@ export const ButtonCellRenderer: CellRenderer = {
       })
     }
 
-    let disabledState = isLoading || disabled?.isInvalid
+    let disabledState = isLoading || disabled?.isInvalid || isQueued
     ctx.textAlign = 'left'
 
     const colOptions = column.colOptions as ButtonType
     if (!colOptions) return
 
     const buttonMeta = {
-      label: colOptions.label || '',
+      label: isQueued ? 'Queued...' : colOptions?.label || '',
       icon: colOptions.icon,
       theme: colOptions.theme || 'solid',
       color: colOptions.color || 'brand',

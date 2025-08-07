@@ -14,6 +14,8 @@ export class ActionManager {
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
 
+  private eventBus?: any
+
   constructor(
     api: Api<any>,
     loadAutomation: (id: string) => Promise<any>,
@@ -27,6 +29,7 @@ export class ActionManager {
       selectedRows: ComputedRef<Array<Row>>
       isRowSortRequiredRows: ComputedRef<Array<Row>>
     },
+    eventBus?: any,
   ) {
     this.api = api
     this.loadAutomation = loadAutomation
@@ -34,9 +37,85 @@ export class ActionManager {
     this.meta = meta
     this.triggerRefreshCanvas = triggerRefreshCanvas
     this.getDataCache = getDataCache
+    this.eventBus = eventBus
+
+    if (this.eventBus) {
+      this.eventBus.on((event, payload) => {
+        switch (event) {
+          case SmartsheetScriptActions.BULK_ACTION_START: {
+            const columnId = payload.columnId
+            this.activeBulkExecs.set(columnId, true)
+            this.startAnimationLoop()
+            break
+          }
+          case SmartsheetScriptActions.BULK_ACTION_END: {
+            if (payload.columnId) {
+              this.activeBulkExecs.delete(payload.columnId)
+              this.clearBulkRowStatesForColumn(payload.columnId)
+            }
+            break
+          }
+          case SmartsheetScriptActions.BUTTON_ACTION_START: {
+            const columnId = payload.columnId
+            const rowId = payload.rowId
+
+            // Set individual row to loading state
+            this.setBulkRowState(rowId, columnId, {
+              status: 'loading',
+              startTime: Date.now(),
+              stepTitle: payload.stepTitle,
+            })
+            break
+          }
+          case SmartsheetScriptActions.BUTTON_ACTION_PROGRESS: {
+            console.log('BUTTON_ACTION_PROGRESS', payload)
+            // Update step title for the specific row
+            const rowState = this.getBulkRowState(payload.rowId, payload.columnId)
+            if (rowState) {
+              this.setBulkRowState(payload.rowId, payload.columnId, {
+                ...rowState,
+                stepTitle: payload.stepTitle,
+              })
+            }
+            break
+          }
+          case SmartsheetScriptActions.BUTTON_ACTION_COMPLETE: {
+            // Set individual row to success/error state
+            this.setBulkRowState(payload.rowId, payload.columnId, {
+              status: payload.success ? 'success' : 'error',
+              error: payload.error,
+            })
+            break
+          }
+          case SmartsheetScriptActions.BUTTON_ACTION_ERROR: {
+            // Set individual row to error state
+            this.setBulkRowState(payload.rowId, payload.columnId, {
+              status: 'error',
+              error: payload.error,
+            })
+            break
+          }
+          case SmartsheetScriptActions.UPDATE_STEP_TITLE: {
+            this.setCurrentStepTitle(payload.pk, payload.fieldId, payload.title)
+            break
+          }
+          case SmartsheetScriptActions.START_CELL_UPDATE: {
+            this.startCellUpdate(payload.recordId, payload.fieldId, payload.fieldName, payload.scriptId)
+            break
+          }
+          case SmartsheetScriptActions.COMPLETE_CELL_UPDATE: {
+            this.completeCellUpdate(payload.recordId, payload.fieldId)
+            break
+          }
+          case SmartsheetScriptActions.CLEAR_SCRIPT_CELL_UPDATES: {
+            this.clearScriptCellUpdates(payload.scriptId)
+            break
+          }
+        }
+      })
+    }
   }
 
-  // key is rowId-columnId, value is startTime
   private loadingColumns = new Map<string, number>()
   private afterActionStatus = new Map<
     string,
@@ -49,6 +128,19 @@ export class ActionManager {
   // key is rowId-columnId, value is current step title
   private currentStepTitles = new Map<string, string>()
   private cellUpdates = new Map<string, { fieldName: string; scriptExecutionId: string; startTime: number }>()
+
+  // Track active bulk executions by column
+  private activeBulkExecs = new Map<string, boolean>() // columnId -> isActive
+
+  private bulkRowStates = new Map<
+    string,
+    {
+      status: 'queued' | 'loading' | 'success' | 'error'
+      startTime?: number
+      stepTitle?: string
+      error?: string
+    }
+  >()
 
   private rafId: number | null = null
 
@@ -76,7 +168,7 @@ export class ActionManager {
         this.loadingColumns.set(this.getKey(id, colId), startTime)
 
         // If action is triggered again, clear after action status
-        this.afterActionStatus.delete(this.getKey(id, columnId))
+        this.afterActionStatus.delete(this.getKey(id, colId))
       })
     })
 
@@ -134,18 +226,22 @@ export class ActionManager {
   }
 
   private startAnimationLoop() {
-    if (this.rafId === null && (this.loadingColumns.size > 0 || this.afterActionStatus.size > 0)) {
+    const hasActivity = this.loadingColumns.size > 0 || this.afterActionStatus.size > 0 || this.activeBulkExecs.size > 0
+
+    if (this.rafId === null && hasActivity) {
       let cooldownTimeout: number | null = null
       let isCoolingDown = false
 
       const animate = () => {
-        if ((this.loadingColumns.size > 0 || this.afterActionStatus.size > 0) && cooldownTimeout) {
+        const currentActivity = this.loadingColumns.size > 0 || this.afterActionStatus.size > 0 || this.activeBulkExecs.size > 0
+
+        if (currentActivity && cooldownTimeout) {
           clearTimeout(cooldownTimeout)
           cooldownTimeout = null
           isCoolingDown = false
         }
 
-        if (this.loadingColumns.size > 0 || this.afterActionStatus.size > 0) {
+        if (currentActivity) {
           this.triggerRefreshCanvas()
           this.rafId = requestAnimationFrame(animate)
         } else if (!isCoolingDown) {
@@ -259,7 +355,7 @@ export class ActionManager {
                 const scriptExecutionId = await runScript(script, row, {
                   pk: rowId,
                   fieldId: column.columnObj.id!,
-                  actionManager: this,
+                  executionId: `${rowId}-${column.columnObj.id!}-${Date.now()}`,
                 })
 
                 addScriptExecution(scriptExecutionId, {
@@ -314,19 +410,56 @@ export class ActionManager {
   }
 
   isLoading(rowId: string, columnId: string): boolean {
-    return this.loadingColumns.has(this.getKey(rowId, columnId))
+    const key = this.getKey(rowId, columnId)
+    const isDirectLoading = this.loadingColumns.has(key)
+    const bulkRowState = this.getBulkRowState(rowId, columnId)
+    const isBulkLoading = bulkRowState?.status === 'loading'
+
+    return isDirectLoading || isBulkLoading
   }
 
   getLoadingStartTime(rowId: string, columnId: string): number | null {
-    return this.loadingColumns.get(this.getKey(rowId, columnId)) ?? null
+    const key = this.getKey(rowId, columnId)
+    const directLoadingTime = this.loadingColumns.get(key)
+    const bulkRowState = this.getBulkRowState(rowId, columnId)
+    const bulkLoadingTime = bulkRowState?.startTime
+
+    return directLoadingTime ?? bulkLoadingTime ?? null
   }
 
   getAfterActionStatus(rowId: string, columnId: string) {
-    return this.afterActionStatus.get(this.getKey(rowId, columnId))
+    const key = this.getKey(rowId, columnId)
+    const directStatus = this.afterActionStatus.get(key)
+
+    if (directStatus) {
+      return directStatus
+    }
+
+    // Check bulk row state for success/error
+    const bulkRowState = this.getBulkRowState(rowId, columnId)
+    if (bulkRowState?.status === 'success') {
+      return { status: 'success' as const }
+    } else if (bulkRowState?.status === 'error') {
+      return { status: 'error' as const, tooltip: bulkRowState.error ?? 'Something went wrong' }
+    }
+
+    return undefined
+  }
+
+  isQueued(rowId: string, columnId: string): boolean {
+    const isBulkExecutionRunning = this.isBulkExecutionRunning(columnId)
+
+    const key = this.getKey(rowId, columnId)
+    return isBulkExecutionRunning && !this.bulkRowStates.has(key)
   }
 
   getCurrentStepTitle(rowId: string, columnId: string): string | undefined {
-    return this.currentStepTitles.get(this.getKey(rowId, columnId))
+    const key = this.getKey(rowId, columnId)
+    const directStepTitle = this.currentStepTitles.get(key)
+    const bulkRowState = this.getBulkRowState(rowId, columnId)
+
+    // Return bulk step title if available, otherwise direct step title
+    return bulkRowState?.stepTitle ?? directStepTitle
   }
 
   setCurrentStepTitle(rowId: string, columnId: string, title: string) {
@@ -337,7 +470,6 @@ export class ActionManager {
     this.currentStepTitles.delete(this.getKey(rowId, columnId))
   }
 
-  // Cell update tracking methods
   startCellUpdate(recordId: string, fieldId: string, fieldName: string, scriptExecutionId: string) {
     const cellKey = `${recordId}:${fieldId}`
     this.cellUpdates.set(cellKey, { fieldName, scriptExecutionId, startTime: Date.now() })
@@ -359,9 +491,9 @@ export class ActionManager {
   }
 
   clearScriptCellUpdates(scriptExecutionId: string) {
-    for (const [cellKey, updateInfo] of this.cellUpdates.entries()) {
-      if (updateInfo.scriptExecutionId === scriptExecutionId) {
-        this.cellUpdates.delete(cellKey)
+    for (const [key, value] of this.cellUpdates.entries()) {
+      if (value.scriptExecutionId === scriptExecutionId) {
+        this.cellUpdates.delete(key)
       }
     }
   }
@@ -370,5 +502,53 @@ export class ActionManager {
     this.loadingColumns.clear()
     this.currentStepTitles.clear()
     this.cellUpdates.clear()
+    this.activeBulkExecs.clear()
+    this.bulkRowStates.clear()
+  }
+
+  isBulkExecutionRunning(columnId: string): boolean {
+    return this.activeBulkExecs.get(columnId) ?? false
+  }
+
+  getBulkRowState(
+    rowId: string,
+    columnId: string,
+  ):
+    | {
+        status: 'queued' | 'loading' | 'success' | 'error'
+        startTime?: number
+        stepTitle?: string
+        error?: string
+      }
+    | undefined {
+    const key = this.getKey(rowId, columnId)
+    return this.bulkRowStates.get(key)
+  }
+
+  setBulkRowState(
+    rowId: string,
+    columnId: string,
+    state: {
+      status: 'queued' | 'loading' | 'success' | 'error'
+      startTime?: number
+      stepTitle?: string
+      error?: string
+    },
+  ) {
+    const key = this.getKey(rowId, columnId)
+    this.bulkRowStates.set(key, state)
+  }
+
+  clearBulkRowState(rowId: string, columnId: string) {
+    const key = this.getKey(rowId, columnId)
+    this.bulkRowStates.delete(key)
+  }
+
+  clearBulkRowStatesForColumn(columnId: string) {
+    for (const [key, value] of this.bulkRowStates.entries()) {
+      if (key.endsWith(`-${columnId}`)) {
+        this.bulkRowStates.delete(key)
+      }
+    }
   }
 }

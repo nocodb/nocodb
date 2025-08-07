@@ -2,6 +2,7 @@ import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   CloudOrgUserRoles,
+  EventType,
   IconType,
   IntegrationsType,
   ProjectRoles,
@@ -48,6 +49,7 @@ import { JobTypes } from '~/interface/Jobs';
 import NocoCache from '~/cache/NocoCache';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { generateRandomTxt, verifyTXTRecord } from '~/utils';
+import NocoSocket from '../socket/NocoSocket';
 
 const mockUser = {
   id: '1',
@@ -297,6 +299,21 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
       workspaces.push(workspace);
     }
+
+    for (const workspace of workspaces) {
+      NocoSocket.broadcastEventToWorkspaceUsers(
+        { workspace_id: workspace.id, base_id: null },
+        {
+          event: EventType.USER_EVENT,
+          payload: {
+            action: 'workspace_create',
+            payload: workspace,
+          },
+        },
+        param.req.ncSocketId,
+      );
+    }
+
     return isBulkMode ? workspaces : workspaces[0];
   }
 
@@ -590,6 +607,21 @@ export class WorkspacesService implements OnApplicationBootstrap {
       } as WorkspaceType,
       req: param.req,
     });
+
+    NocoSocket.broadcastEventToWorkspaceUsers(
+      { workspace_id: existingWorkspace.id, base_id: null },
+      {
+        event: EventType.USER_EVENT,
+        payload: {
+          action: 'workspace_update',
+          payload: {
+            ...existingWorkspace,
+            ...workspace,
+          },
+        },
+      },
+      param.req.ncSocketId,
+    );
 
     return updatedWorkspace;
   }

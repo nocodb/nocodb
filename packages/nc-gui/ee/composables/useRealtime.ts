@@ -6,7 +6,7 @@ export const useRealtime = createSharedComposable(() => {
   const { user, ncNavigateTo } = useGlobal()
 
   const workspaceStore = useWorkspace()
-  const { activeWorkspaceId } = storeToRefs(workspaceStore)
+  const { activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
   const { bases } = storeToRefs(useBases())
 
   const { setMeta } = useMetas()
@@ -235,6 +235,16 @@ export const useRealtime = createSharedComposable(() => {
   }
 
   const handleUserEvent = (event: any) => {
+    if (event.action === 'workspace_create') {
+      workspaces.value.set(event.payload.id, event.payload)
+    } else if (event.action === 'workspace_update') {
+      const updatedWorkspace = event.payload
+      const workspace = workspaces.value.get(updatedWorkspace.id)
+      if (workspace) {
+        Object.assign(workspace, updatedWorkspace)
+      }
+    }
+    
     if (event.workspaceId === activeWorkspaceId.value) {
       if (event.action === 'base_create') {
         bases.value.set(event.payload.id, event.payload)

@@ -35,8 +35,7 @@ const emits = defineEmits<{
 const isSelected = useVModel(props, 'selected', emits)
 const isDragging = useVModel(props, 'dragging', emits)
 
-const { getPossibleAttachmentSrc } = useAttachment()
-const { FileIcon, downloadAttachment, renameFileInline, renameFile, removeFile, isEditAllowed } = useAttachmentCell()!
+const { downloadAttachment, renameFileInline, renameFile, removeFile, isEditAllowed } = useAttachmentCell()!
 
 const isRenamingFile = ref(false)
 const renameTitle = ref('')
@@ -103,37 +102,13 @@ const handleFileDeleteStart = () => {
       class="nc-attachment h-full flex justify-center items-center overflow-hidden"
       @click.stop="emits('clicked')"
     >
-      <LazyCellAttachmentPreviewImage
-        v-if="isImage(attachment.title, attachment.mimetype)"
-        :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
+      <LazyCellAttachmentPreviewThumbnail
+        :attachment="attachment"
+        thumbnail="card_cover"
+        :class="previewClassOverride ? `${previewClassOverride}` : ''"
         object-fit="contain"
         class="!w-full !m-0 rounded-t-[5px] justify-center"
-        :class="previewClassOverride ? `${previewClassOverride}` : ''"
       />
-      <LazyCellAttachmentPreviewPdfThumbnail
-        v-else-if="isPdf(attachment.title, attachment.mimetype)"
-        :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
-        object-fit="contain"
-        class="!w-full !m-0 rounded-t-[5px] justify-center"
-        :class="previewClassOverride ? `${previewClassOverride}` : ''"
-      />
-      <GeneralIcon
-        v-else-if="isAudio(attachment.title, attachment.mimetype)"
-        class="text-white"
-        icon="ncFileTypeAudio"
-        :height="45"
-        :width="45"
-      />
-      <GeneralIcon
-        v-else-if="isVideo(attachment.title, attachment.mimetype)"
-        class="text-white"
-        icon="ncFileTypeVideo"
-        :height="45"
-        :width="45"
-      />
-      <component :is="FileIcon(attachment.icon)" v-else-if="attachment.icon" :height="45" :width="45" class="text-white" />
-
-      <GeneralIcon v-else icon="ncFileTypeUnknown" :height="45" :width="45" class="text-white" />
     </div>
 
     <div class="relative px-1 pb-1 items-center flex" :title="attachment.title">

@@ -52,6 +52,10 @@ export class OnboardingFlowPage extends BasePage {
     return this.rootPage.getByTestId('nc-onboarding-flow-container');
   }
 
+  async isOnboardingFlowVisible() {
+    return (await this.get().count()) > 0;
+  }
+
   /**
    * Check if current question is single select
    */
@@ -156,7 +160,18 @@ export class OnboardingFlowPage extends BasePage {
   /**
    * Complete the onboarding flow by navigating through all questions
    */
-  async completeOnboardingFlow() {
+  async completeOnboardingFlow({ ifAvailable = true }: { ifAvailable?: boolean } = {}) {
+    /**
+     * `ifAvailable` signup flow can be available at signin page also sometimes to we have to check first and then act
+     */
+    if (ifAvailable) {
+      await this.rootPage.waitForLoadState('networkidle');
+
+      if (await this.isOnboardingFlowVisible()) {
+        return;
+      }
+    }
+
     await this.get().waitFor({ state: 'visible' });
 
     // Navigate through all questions
@@ -195,7 +210,24 @@ export class OnboardingFlowPage extends BasePage {
   /**
    * Skip the onboarding flow
    */
-  async skipOnboardingFlow({ verify = false }: { verify?: boolean } = {}) {
+  async skipOnboardingFlow({
+    verify = false,
+    ifAvailable = true,
+  }: {
+    verify?: boolean;
+    /**
+     * `ifAvailable` signup flow can be available at signin page also sometimes to we have to check first and then act
+     */
+    ifAvailable?: boolean;
+  } = {}) {
+    if (ifAvailable) {
+      await this.rootPage.waitForLoadState('networkidle');
+
+      if (await this.isOnboardingFlowVisible()) {
+        return;
+      }
+    }
+
     await this.get().waitFor({ state: 'visible' });
 
     await this.waitForResponse({

@@ -1,5 +1,6 @@
-import type { AuditType, ColumnType, MetaType, PlanLimitExceededDetailsType, TableType } from 'nocodb-sdk'
+import type { AuditType, ColumnType, DataPayload, MetaType, PlanLimitExceededDetailsType, TableType } from 'nocodb-sdk'
 import {
+  EventType,
   PermissionEntity,
   PermissionKey,
   PlanLimitTypes,
@@ -13,7 +14,7 @@ import dayjs from 'dayjs'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
   (meta: Ref<TableType>, _row: Ref<Row>, maintainDefaultViewOrder: Ref<boolean>, useMetaFields: boolean) => {
-    const { $e, $state, $api } = useNuxtApp()
+    const { $e, $state, $api, $ncSocket } = useNuxtApp()
 
     const { t } = useI18n()
 
@@ -36,6 +37,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const saveRowAndStay = ref(0)
 
     const changedColumns = ref(new Set<string>())
+
+    const localOnlyChanges = ref<Record<string, any>>({})
 
     const basesStore = useBases()
 
@@ -764,6 +767,66 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     })
 
+    const activeChannel = ref<string | null>(null)
+
+    watch(
+      meta,
+      (newMeta, oldMeta) => {
+        if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
+          if (oldMeta?.id && oldMeta.id === newMeta.id) return
+
+          if (activeChannel.value) {
+            $ncSocket.offMessage(activeChannel.value)
+          }
+
+          activeChannel.value = `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`
+
+          $ncSocket.subscribe(activeChannel.value)
+
+          $ncSocket.onMessage(activeChannel.value, (data: DataPayload) => {
+            const { id, action, payload, before } = data
+
+            const activePk = extractPkFromRow(row.value.row, meta.value?.columns as ColumnType[])
+
+            if (`${id}` === activePk) {
+              if (action === 'update') {
+                try {
+                  if (payload) {
+                    // Merge payload with local row, but preserve locally changed columns
+                    const mergedRow = { ...row.value.row, ...payload }
+                    for (const col of changedColumns.value) {
+                      if (row.value.row.hasOwnProperty(col)) {
+                        mergedRow[col] = row.value.row[col]
+                        if (row.value.row[col] !== payload[col]) {
+                          // localOnlyChanges.value[col] = payload[col]
+                        }
+                      }
+                    }
+                    Object.assign(row.value, {
+                      row: mergedRow,
+                      oldRow: { ...mergedRow },
+                    })
+                    // Do NOT clear changedColumns here, as we want to preserve local changes
+                  } else {
+                    console.warn('No payload provided for update action')
+                  }
+                } catch (e) {
+                  console.error('Failed to update cached row on socket event', e)
+                }
+              } else if (action === 'delete') {
+                try {
+                  //
+                } catch (e) {
+                  console.error('Failed to delete cached row on socket event', e)
+                }
+              }
+            }
+          })
+        }
+      },
+      { immediate: true },
+    )
+
     return {
       ...rowStore,
       loadComments,
@@ -788,6 +851,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       displayValue,
       save,
       changedColumns,
+      localOnlyChanges,
       loadRow,
       primaryKey,
       saveRowAndStay,

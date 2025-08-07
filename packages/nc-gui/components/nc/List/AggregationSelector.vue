@@ -198,7 +198,7 @@ defineExpose({
           :value="modelValue || selectedAggregation?.value || ''"
           :list="aggregationList"
           variant="medium"
-          class="!w-auto !max-w-xs"
+          class="!w-auto"
           wrapper-class-name="!h-auto"
           @update:value="handleValueUpdate"
           @escape="onEsc"

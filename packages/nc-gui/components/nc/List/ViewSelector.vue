@@ -87,7 +87,9 @@ const viewListMap = computed(() => {
 const selectedView = computed(() => {
   if (!viewListMap.value || viewListMap.value.size === 0) return undefined
 
-  return viewListMap.value.get(modelValue.value) || viewList.value?.[0]
+  if (!modelValue.value) return undefined
+
+  return viewListMap.value.get(modelValue.value)
 })
 
 watch(
@@ -158,7 +160,7 @@ defineExpose({
     >
       <div class="flex-1 flex items-center gap-2 min-w-0">
         <div v-if="selectedView" class="min-w-5 flex items-center justify-center">
-          <NIconView :view="selectedView" class="text-gray-500" />
+          <NcIconView :view="selectedView" class="text-gray-500" />
         </div>
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
           <span
@@ -188,7 +190,7 @@ defineExpose({
           :value="modelValue || selectedView?.value || ''"
           :list="viewList"
           variant="medium"
-          class="!w-auto !max-w-xs"
+          class="!w-auto"
           wrapper-class-name="!h-auto"
           @update:value="handleValueUpdate"
           @escape="onEsc"
@@ -196,7 +198,7 @@ defineExpose({
           <template #item="{ item }">
             <div class="w-full flex items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
-                <NIconView :view="item" class="text-gray-500" />
+                <NcIconView :view="item" class="text-gray-500" />
               </div>
               <NcTooltip class="flex-1 overflow-hidden whitespace-nowrap text-ellipsis" show-on-truncate-only>
                 <template #title>{{ item.label }}</template>

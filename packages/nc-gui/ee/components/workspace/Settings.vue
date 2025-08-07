@@ -234,13 +234,16 @@ const showCancelSubscriptionModal = () => {
   }
 }
 
+const hasActiveSubscription = computed(() => {
+  return !currentWorkspace.value?.fk_org_id && isPaymentEnabled.value && activeSubscription.value
+})
+
 const shouldShowCancelSubscriptionModal = computed(() => {
-  return (
-    !currentWorkspace.value?.fk_org_id &&
-    isPaymentEnabled.value &&
-    activeSubscription.value &&
-    !activeSubscription.value.canceled_at
-  )
+  return hasActiveSubscription.value && !activeSubscription.value.canceled_at
+})
+
+const isWorkspaceMarkedForSubscriptionCancellation = computed(() => {
+  return hasActiveSubscription.value && activeSubscription.value.canceled_at
 })
 
 const handleDelete = () => {
@@ -451,7 +454,22 @@ const onCancel = () => {
   >
     <div class="flex flex-col items-center justify-center h-full !p-6">
       <div class="text-lg font-semibold self-start mb-5">Delete Workspace</div>
-      <span class="self-start mb-2">
+
+      <div v-if="isWorkspaceMarkedForSubscriptionCancellation || true" class="text-nc-content-gray-subtle">
+        <p>
+          This workspace is marked for subscription cancellation and will remain on your current plan ({{
+            $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title}`)
+          }}) until the end of the subscription period.
+        </p>
+
+        <p>
+          The subscription is not transferable, and there will be no refund. If you proceed with deleting this workspace now, you
+          will lose access to it immediately and permanently.
+        </p>
+
+        <p>By continuing with deletion, you acknowledge and agree to these terms.</p>
+      </div>
+      <span class="self-start mb-2 text-nc-content-gray-subtle">
         Enter workspace name to delete - <b class="select-none"> ‘{{ toBeDeletedWorkspaceTitle }}’ </b>
       </span>
       <a-form class="w-full h-full" no-style :model="form" @finish="onDelete">

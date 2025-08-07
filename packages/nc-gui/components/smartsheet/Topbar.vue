@@ -8,7 +8,7 @@ const { isUIAllowed } = useRoles()
 
 const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
-const { activeAutomationId } = storeToRefs(useAutomationStore())
+const { activeAutomationId, isBackendExecutionEnabled } = storeToRefs(useAutomationStore())
 
 const { activeDashboardId, isEditingDashboard } = storeToRefs(useDashboardStore())
 

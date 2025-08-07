@@ -5,6 +5,8 @@ export const useAutomationStore = defineStore('automation', () => {
   const isUpdatingAutomation = ref(false)
   const isLoadingAutomation = ref(false)
 
+  const isBackendExecutionEnabled = ref(false)
+
   // Getters
   const activeBaseAutomations = computed(() => [])
 
@@ -33,6 +35,7 @@ export const useAutomationStore = defineStore('automation', () => {
     activeAutomation,
     isUpdatingAutomation,
     isLoadingAutomation,
+    isBackendExecutionEnabled,
 
     // Getters
     activeBaseAutomations,

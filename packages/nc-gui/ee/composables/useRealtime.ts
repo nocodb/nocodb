@@ -10,7 +10,7 @@ export const useRealtime = createSharedComposable(() => {
   const { bases } = storeToRefs(useBases())
 
   const { setMeta } = useMetas()
-  const { tables: _tables, baseId } = storeToRefs(useBase())
+  const { tables: _tables, baseId, base } = storeToRefs(useBase())
 
   const tableStore = useTablesStore()
   const { loadProjectTables, navigateToTable } = tableStore
@@ -134,6 +134,11 @@ export const useRealtime = createSharedComposable(() => {
         if (index !== -1) {
           views.splice(index, 1)
         }
+      }
+    } else if (event.action === 'permission_update') {
+      const { payload, baseId } = event
+      if (base.value?.id === baseId) {
+        base.value.permissions = payload
       }
     }
   }

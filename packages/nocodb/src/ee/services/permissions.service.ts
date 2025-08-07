@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  EventType,
   PermissionEntity,
   PermissionGrantedType,
   PermissionKey,
@@ -10,6 +11,7 @@ import Noco from '~/Noco';
 import { NcError } from '~/helpers/ncError';
 import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class PermissionsService {
@@ -173,6 +175,21 @@ export class PermissionsService {
       throw error;
     }
 
+    const perms = await Permission.list(context, context.base_id, ncMeta);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'permission_update',
+          baseId: context.base_id,
+          payload: perms,
+        },
+      },
+      context.socket_id,
+    );
+
     return permission;
   }
 
@@ -215,6 +232,21 @@ export class PermissionsService {
 
       throw error;
     }
+
+    const perms = await Permission.list(context, context.base_id, ncMeta);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'permission_update',
+          baseId: context.base_id,
+          payload: perms,
+        },
+      },
+      context.socket_id,
+    );
   }
 
   async bulkDropPermissions(
@@ -246,5 +278,20 @@ export class PermissionsService {
 
       throw error;
     }
+
+    const perms = await Permission.list(context, context.base_id, ncMeta);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'permission_update',
+          baseId: context.base_id,
+          payload: perms,
+        },
+      },
+      context.socket_id,
+    );
   }
 }

@@ -226,7 +226,7 @@ export const usePermissionSelector = (
 
   // Watch for changes
   watch(
-    [() => base.value, () => currentValue.value],
+    [() => base.value, () => currentValue.value, () => base.value?.permissions],
     () => {
       initializePermissionState()
     },

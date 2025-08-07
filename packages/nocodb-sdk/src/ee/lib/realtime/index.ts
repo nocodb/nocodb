@@ -56,6 +56,7 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'view_create'
     | 'view_update'
     | 'view_delete'
+    | 'permission_update'
     | 'base_create'
     | 'base_update'
     | 'base_delete'
@@ -63,6 +64,7 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'workspace_update'
     | 'workspace_delete';
   payload: T;
+  baseId?: string;
 }
 
 export interface DashboardPayload extends BaseSocketPayload {

@@ -51,6 +51,10 @@ export default class User implements UserType {
   // Email validation data as JSON string
   email_validation?: MetaType;
 
+
+  created_at?: string;
+  updated_at?: string;
+
   constructor(data: User) {
     Object.assign(this, data);
   }

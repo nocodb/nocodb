@@ -145,7 +145,7 @@ defineExpose({
     >
       <div class="flex-1 flex items-center gap-2 min-w-0">
         <div v-if="selectedTable" class="min-w-5 flex items-center justify-center">
-          <NIconTable :table="selectedTable || { title: '', table_name: '' }" class="text-gray-500" />
+          <NcIconTable :table="selectedTable || { title: '', table_name: '' }" class="text-gray-500" />
         </div>
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
           <span
@@ -175,7 +175,7 @@ defineExpose({
           :value="modelValue || selectedTable?.value || ''"
           :list="tableList"
           variant="medium"
-          class="!w-auto !max-w-xs"
+          class="!w-auto"
           wrapper-class-name="!h-auto"
           @update:value="handleValueUpdate"
           @escape="onEsc"
@@ -183,7 +183,7 @@ defineExpose({
           <template #item="{ item }">
             <div class="w-full flex items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
-                <NIconTable :table="item" class="text-gray-500" />
+                <NcIconTable :table="item" class="text-gray-500" />
               </div>
               <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                 <template #title>{{ item.label }}</template>

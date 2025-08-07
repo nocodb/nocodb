@@ -17,6 +17,7 @@
     "/api/v3/meta/workspaces/{workspaceId}/bases": {
       "get": {
         "summary": "List bases",
+        "operationId": "bases-list",
         "description": "Retrieve a list of bases associated with a specific workspace.",
         "tags": [
           "Bases"
@@ -93,6 +94,7 @@
       "post": {
         "summary": "Create base",
         "description": "Create a new base in a specified workspace. The request requires the workspace identifier in the path and base details in the request body.",
+        "operationId": "base-create",
         "tags": [
           "Bases"
         ],
@@ -165,6 +167,7 @@
       "get": {
         "summary": "Get base meta",
         "description": "Retrieve meta details of a specific base using its unique identifier.",
+        "operationId": "base-read",
         "tags": [
           "Bases"
         ],
@@ -225,6 +228,7 @@
       "patch": {
         "summary": "Update base",
         "description": "Update properties of a specific base. You can modify fields such as the title and metadata of the base. The baseId parameter identifies the base to be updated, and the new details must be provided in the request body. At least one of title or meta must be provided.",
+        "operationId": "base-update",
         "parameters": [
           {
             "name": "baseId",
@@ -298,6 +302,7 @@
       "delete": {
         "summary": "Delete base",
         "description": "Delete a specific base using its unique identifier. Once deleted, the base and its associated data cannot be recovered.",
+        "operationId": "base-delete",
         "tags": [
           "Bases"
         ],
@@ -329,6 +334,7 @@
       "get": {
         "summary": "List tables",
         "description": "Retrieve list of all tables within the specified base.",
+        "operationId": "tables-list",
         "tags": [
           "Tables"
         ],
@@ -398,6 +404,7 @@
       "post": {
         "summary": "Create table",
         "description": "Create a new table within the specified base by providing the required table details in the request body.",
+        "operationId": "table-create",
         "parameters": [
           {
             "name": "base_id",
@@ -877,6 +884,7 @@
       "get": {
         "summary": "Get table schema",
         "description": "Retrieve the details of a specific table.",
+        "operationId": "table-read",
         "tags": [
           "Tables"
         ],
@@ -1164,6 +1172,7 @@
       "patch": {
         "summary": "Update table",
         "description": "Update the details of a specific table.",
+        "operationId": "table-update",
         "tags": [
           "Tables"
         ],
@@ -1268,6 +1277,7 @@
       "delete": {
         "summary": "Delete table",
         "description": "Delete a specific table.",
+        "operationId": "table-delete",
         "tags": [
           "Tables"
         ],
@@ -1298,6 +1308,7 @@
     "/api/v3/meta/bases/{baseId}/tables/{tableId}/views": {
       "get": {
         "summary": "List views",
+        "operationId": "views-list",
         "tags": [
           "Views"
         ],
@@ -1357,6 +1368,7 @@
       "post": {
         "summary": "Create field",
         "description": "Create a new field within the specified table.",
+        "operationId": "field-create",
         "tags": [
           "Fields"
         ],
@@ -1457,6 +1469,7 @@
       "get": {
         "summary": "Get field",
         "description": "Retrieve the details of a specific field.",
+        "operationId": "field-read",
         "tags": [
           "Fields"
         ],
@@ -1502,6 +1515,7 @@
       "patch": {
         "summary": "Update field",
         "description": "Update the details of a specific field.",
+        "operationId": "field-update",
         "tags": [
           "Fields"
         ],
@@ -1600,6 +1614,7 @@
       "delete": {
         "summary": "Delete field",
         "description": "Delete a specific field.",
+        "operationId": "field-delete",
         "tags": [
           "Fields"
         ],
@@ -1640,6 +1655,7 @@
       "get": {
         "summary": "List view filters",
         "description": "Retrieve a list of all filters and groups for a specific view.",
+        "operationId": "view-filters-list",
         "tags": [
           "View Filters"
         ],
@@ -1723,6 +1739,7 @@
       "post": {
         "summary": "Create filter",
         "description": "Create a new filter or filter-group for a specific view.",
+        "operationId": "view-filter-create",
         "tags": [
           "View Filters"
         ],
@@ -1778,6 +1795,7 @@
       "patch": {
         "summary": "Update filter",
         "description": "Update the details of an existing filter or group.",
+        "operationId": "view-filter-update",
         "tags": [
           "View Filters"
         ],
@@ -1836,6 +1854,7 @@
       "delete": {
         "summary": "Delete filter",
         "description": "Delete an existing filter or filter-group.",
+        "operationId": "view-filter-delete",
         "tags": [
           "View Filters"
         ],
@@ -1874,6 +1893,7 @@
       "put": {
         "summary": "Replace filter",
         "description": "Replace filters for a specific view. All the existing filters will be overwritten with the new filters specified in this request.",
+        "operationId": "view-filter-replace",
         "tags": [
           "View Filters"
         ],
@@ -1924,6 +1944,7 @@
     "/api/v3/meta/bases/{baseId}/views/{viewId}/sorts": {
       "get": {
         "summary": "List view sorts",
+        "operationId": "view-sorts-list",
         "tags": [
           "View Sorts"
         ],
@@ -1987,6 +2008,7 @@
       },
       "post": {
         "summary": "Add sort",
+        "operationId": "view-sort-create",
         "description": "Create a new sort for a specific view.",
         "tags": [
           "View Sorts"
@@ -2051,6 +2073,7 @@
       "delete": {
         "summary": "Delete sort",
         "description": "Delete an existing sort.",
+        "operationId": "view-sort-delete",
         "tags": [
           "View Sorts"
         ],
@@ -2089,6 +2112,7 @@
       "patch": {
         "summary": "Update sort",
         "description": "Update the details of an existing sort.",
+        "operationId": "view-sort-update",
         "tags": [
           "View Sorts"
         ],
@@ -2157,6 +2181,7 @@
       "get": {
         "summary": "List base users",
         "description": "Retrieve a list of users associated with a specific base.",
+        "operationId": "base-users-list",
         "tags": [
           "Base Users"
         ],
@@ -2228,6 +2253,7 @@
       "post": {
         "summary": "Invite users to a base",
         "description": "Invite new users to a specific base using their email address.",
+        "operationId": "base-users-invite",
         "parameters": [
           {
             "name": "base_id",
@@ -2281,6 +2307,7 @@
       "patch": {
         "summary": "Update users in a base",
         "description": "Update roles for existing users in a base.",
+        "operationId": "base-users-update",
         "parameters": [
           {
             "name": "base_id",
@@ -2334,6 +2361,7 @@
       "delete": {
         "summary": "Delete users from a base",
         "description": "Remove users from a specific base using their IDs.",
+        "operationId": "base-users-delete",
         "parameters": [
           {
             "name": "base_id",

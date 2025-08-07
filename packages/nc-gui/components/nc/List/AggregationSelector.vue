@@ -75,7 +75,7 @@ const loadAggregationList = async () => {
 
     // Filter out None aggregation
     availableAggregations = availableAggregations.filter((agg) => agg !== CommonAggregations.None)
-    
+
     // Apply custom filter if provided
     if (props.filterAggregation) {
       availableAggregations = availableAggregations.filter(props.filterAggregation)
@@ -96,15 +96,13 @@ const loadAggregationList = async () => {
   }
 }
 
-
 watch([() => props.tableId, () => props.columnId], () => {
   loadAggregationList()
 })
 
-
 const aggregationListMap = computed(() => {
   if (!aggregationList.value || aggregationList.value.length === 0) return new Map()
-  
+
   return new Map(aggregationList.value.map((agg) => [agg.value, agg]))
 })
 
@@ -114,26 +112,29 @@ const selectedAggregation = computed(() => {
   return aggregationListMap.value.get(modelValue.value) || undefined
 })
 
-watch(aggregationList, (newAggregationList) => {
-  if (newAggregationList && newAggregationList.length > 0) {
-    const newAggregationListMap = new Map(newAggregationList.map((agg) => [agg.value, agg]))
-    
-    // Check if current value exists in the new aggregation list
-    if (modelValue.value && !newAggregationListMap.has(modelValue.value)) {
-      // Current value is not in the list, set null to clear it
-      modelValue.value = undefined
-      return
+watch(
+  aggregationList,
+  (newAggregationList) => {
+    if (newAggregationList && newAggregationList.length > 0) {
+      const newAggregationListMap = new Map(newAggregationList.map((agg) => [agg.value, agg]))
+
+      // Check if current value exists in the new aggregation list
+      if (modelValue.value && !newAggregationListMap.has(modelValue.value)) {
+        // Current value is not in the list, set null to clear it
+        modelValue.value = undefined
+        return
+      }
+
+      // Auto-select logic (only if autoSelect is enabled and no current value)
+      if (!modelValue.value && props.autoSelect) {
+        const newAggregationValue = newAggregationList[0]?.value
+
+        modelValue.value = newAggregationValue
+      }
     }
-
-    // Auto-select logic (only if autoSelect is enabled and no current value)
-    if (!modelValue.value && props.autoSelect) {
-      const newAggregationValue = newAggregationList[0]?.value
-
-      modelValue.value = newAggregationValue
-    }
-  }
-}, { immediate: true })
-
+  },
+  { immediate: true },
+)
 
 defineExpose({
   modelValue,
@@ -171,15 +172,20 @@ defineExpose({
     >
       <div class="flex-1 flex items-center gap-2 min-w-0">
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
-          <span v-if="selectedAggregation" :key="selectedAggregation?.value" class="text-sm flex-1 truncate" :class="{ 'text-nc-content-gray-muted': !selectedAggregation }">
-          {{ selectedAggregation?.label }}
-        </span>
-        <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select aggregation --</span>
+          <span
+            v-if="selectedAggregation"
+            :key="selectedAggregation?.value"
+            class="text-sm flex-1 truncate"
+            :class="{ 'text-nc-content-gray-muted': !selectedAggregation }"
+          >
+            {{ selectedAggregation?.label }}
+          </span>
+          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select aggregation --</span>
 
-        <template #title>
-          {{ selectedAggregation?.label || 'Select aggregation' }}
-        </template>
-      </NcTooltip>
+          <template #title>
+            {{ selectedAggregation?.label || 'Select aggregation' }}
+          </template>
+        </NcTooltip>
         <GeneralIcon
           icon="ncChevronDown"
           class="flex-none h-4 w-4 transition-transform opacity-70"

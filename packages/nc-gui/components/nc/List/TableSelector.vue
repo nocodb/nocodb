@@ -41,14 +41,14 @@ const handleValueUpdate = (value: any) => {
 
 const tableList = computedAsync(async () => {
   let tables: TableType[]
-  
+
   if (props.baseId) {
     await tableStore.loadProjectTables(props.baseId, props.forceLoadBaseTables)
     tables = baseTables.value.get(props.baseId) || []
   } else {
     tables = activeTables.value || []
   }
-  
+
   if (props.filterTable) {
     tables = tables.filter(props.filterTable)
   }
@@ -68,7 +68,7 @@ const tableList = computedAsync(async () => {
 
 const tableListMap = computed(() => {
   if (!tableList.value || tableList.value.length === 0) return new Map()
-  
+
   return new Map(tableList.value.map((table) => [table.value, table]))
 })
 
@@ -78,32 +78,36 @@ const selectedTable = computed(() => {
   return tableListMap.value.get(modelValue.value) || undefined
 })
 
-watch(tableList, (newTableList) => {
-  if (newTableList && newTableList.length > 0) {
-    const newTableListMap = new Map(newTableList.map((table) => [table.value, table]))
-    
-    // Check if current value exists in the new table list
-    if (modelValue.value && !newTableListMap.has(modelValue.value)) {
-      // Current value is not in the list, set null to clear it
-      modelValue.value = null
-      return
-    }
+watch(
+  tableList,
+  (newTableList) => {
+    if (newTableList && newTableList.length > 0) {
+      const newTableListMap = new Map(newTableList.map((table) => [table.value, table]))
 
-    // Auto-select logic (only if autoSelect is enabled and no current value)
-    if (!modelValue.value && props.autoSelect) {
-      const newTableId = props.tableId || newTableList[0]?.value
+      // Check if current value exists in the new table list
+      if (modelValue.value && !newTableListMap.has(modelValue.value)) {
+        // Current value is not in the list, set null to clear it
+        modelValue.value = null
+        return
+      }
 
-      const tableObj = newTableListMap.get(newTableId)
+      // Auto-select logic (only if autoSelect is enabled and no current value)
+      if (!modelValue.value && props.autoSelect) {
+        const newTableId = props.tableId || newTableList[0]?.value
 
-      if (tableObj && tableObj.ncItemDisabled && tableObj.value === newTableList[0]?.value) {
-        const selectedValue = newTableList.find((table) => !table.ncItemDisabled)?.value || newTableList[0]?.value
-        modelValue.value = selectedValue
-      } else {
-        modelValue.value = newTableId
+        const tableObj = newTableListMap.get(newTableId)
+
+        if (tableObj && tableObj.ncItemDisabled && tableObj.value === newTableList[0]?.value) {
+          const selectedValue = newTableList.find((table) => !table.ncItemDisabled)?.value || newTableList[0]?.value
+          modelValue.value = selectedValue
+        } else {
+          modelValue.value = newTableId
+        }
       }
     }
-  }
-}, { immediate: true })
+  },
+  { immediate: true },
+)
 
 defineExpose({
   modelValue,
@@ -144,7 +148,12 @@ defineExpose({
           <NIconTable :table="selectedTable || { title: '', table_name: '' }" class="text-gray-500" />
         </div>
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
-          <span v-if="selectedTable" :key="selectedTable?.value" class="text-sm flex-1 truncate" :class="{ 'text-nc-content-gray-muted': !selectedTable }">
+          <span
+            v-if="selectedTable"
+            :key="selectedTable?.value"
+            class="text-sm flex-1 truncate"
+            :class="{ 'text-nc-content-gray-muted': !selectedTable }"
+          >
             {{ selectedTable?.label }}
           </span>
           <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select table --</span>

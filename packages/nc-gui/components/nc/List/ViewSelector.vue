@@ -46,10 +46,10 @@ const viewList = computedAsync(async () => {
   if (!props.tableId) return []
 
   try {
-    await viewsStore.loadViews({ 
-      tableId: props.tableId, 
-      ignoreLoading: props.ignoreLoading, 
-      force: props.forceFetchViews 
+    await viewsStore.loadViews({
+      tableId: props.tableId,
+      ignoreLoading: props.ignoreLoading,
+      force: props.forceFetchViews,
     })
   } catch (e) {
     console.error(e)
@@ -57,11 +57,11 @@ const viewList = computedAsync(async () => {
   }
 
   let viewsList: ViewType[] = viewsByTable.value.get(props.tableId) || []
-  
+
   if (props.labelDefaultViewAsDefault) {
     viewsList = viewsList.map((v) => ({ ...v, title: v.is_default ? 'Default View' : v.title }))
   }
-  
+
   if (props.filterView) {
     viewsList = viewsList.filter(props.filterView)
   }
@@ -80,7 +80,7 @@ const viewList = computedAsync(async () => {
 
 const viewListMap = computed(() => {
   if (!viewList.value || viewList.value.length === 0) return new Map()
-  
+
   return new Map(viewList.value.map((view) => [view.value, view]))
 })
 
@@ -90,33 +90,37 @@ const selectedView = computed(() => {
   return viewListMap.value.get(modelValue.value) || viewList.value?.[0]
 })
 
-watch(viewList, (newViewList) => {
-  if (newViewList && newViewList.length > 0) {
-    const newViewListMap = new Map(newViewList.map((view) => [view.value, view]))
-    
-    // Check if current value exists in the new view list
-    if (modelValue.value && !newViewListMap.has(modelValue.value)) {
-      // Current value is not in the list, set null to clear it
-      modelValue.value = undefined
-      return
-    }
+watch(
+  viewList,
+  (newViewList) => {
+    if (newViewList && newViewList.length > 0) {
+      const newViewListMap = new Map(newViewList.map((view) => [view.value, view]))
 
-    // Auto-select logic (only if autoSelect is enabled and no current value)
-    if (!modelValue.value && props.autoSelect) {
-      const newViewId = props.viewId || newViewList[0]?.value
+      // Check if current value exists in the new view list
+      if (modelValue.value && !newViewListMap.has(modelValue.value)) {
+        // Current value is not in the list, set null to clear it
+        modelValue.value = undefined
+        return
+      }
 
-      const viewObj = newViewListMap.get(newViewId)
+      // Auto-select logic (only if autoSelect is enabled and no current value)
+      if (!modelValue.value && props.autoSelect) {
+        const newViewId = props.viewId || newViewList[0]?.value
 
-      // Change view id only if it is default view selected initially and its not enabled
-      if (viewObj && viewObj.ncItemDisabled && viewObj.value === newViewList[0]?.value) {
-        const selectedValue = newViewList.find((view) => !view.ncItemDisabled)?.value || newViewList[0]?.value
-        modelValue.value = selectedValue
-      } else {
-        modelValue.value = newViewId
+        const viewObj = newViewListMap.get(newViewId)
+
+        // Change view id only if it is default view selected initially and its not enabled
+        if (viewObj && viewObj.ncItemDisabled && viewObj.value === newViewList[0]?.value) {
+          const selectedValue = newViewList.find((view) => !view.ncItemDisabled)?.value || newViewList[0]?.value
+          modelValue.value = selectedValue
+        } else {
+          modelValue.value = newViewId
+        }
       }
     }
-  }
-}, { immediate: true })
+  },
+  { immediate: true },
+)
 
 defineExpose({
   modelValue,
@@ -157,7 +161,12 @@ defineExpose({
           <NIconView :view="selectedView" class="text-gray-500" />
         </div>
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
-          <span v-if="selectedView" :key="selectedView?.value" class="text-sm flex-1 truncate" :class="{ 'text-nc-content-gray-muted': !selectedView }">
+          <span
+            v-if="selectedView"
+            :key="selectedView?.value"
+            class="text-sm flex-1 truncate"
+            :class="{ 'text-nc-content-gray-muted': !selectedView }"
+          >
             {{ selectedView?.label }}
           </span>
           <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select view --</span>

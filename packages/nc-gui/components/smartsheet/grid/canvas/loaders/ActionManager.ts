@@ -47,6 +47,7 @@ export class ActionManager {
   >()
   // key is rowId-columnId, value is current step title
   private currentStepTitles = new Map<string, string>()
+  private cellUpdates = new Map<string, { fieldName: string; scriptExecutionId: string, startTime: number }>()
 
   private rafId: number | null = null
 
@@ -332,8 +333,38 @@ export class ActionManager {
     this.currentStepTitles.delete(this.getKey(rowId, columnId))
   }
 
+  // Cell update tracking methods
+  startCellUpdate(recordId: string, fieldId: string, fieldName: string, scriptExecutionId: string) {
+    const cellKey = `${recordId}:${fieldId}`
+    this.cellUpdates.set(cellKey, { fieldName, scriptExecutionId, startTime: Date.now() })
+  }
+
+  completeCellUpdate(recordId: string, fieldId: string) {
+    const cellKey = `${recordId}:${fieldId}`
+    this.cellUpdates.delete(cellKey)
+  }
+
+  getCellUpdateStartTime(recordId: string, fieldId: string): number | null {
+    const cellKey = `${recordId}:${fieldId}`
+    return this.cellUpdates.get(cellKey)?.startTime ?? null
+  }
+
+  isCellUpdating(recordId: string, fieldId: string): boolean {
+    const cellKey = `${recordId}:${fieldId}`
+    return this.cellUpdates.has(cellKey)
+  }
+
+  clearScriptCellUpdates(scriptExecutionId: string) {
+    for (const [cellKey, updateInfo] of this.cellUpdates.entries()) {
+      if (updateInfo.scriptExecutionId === scriptExecutionId) {
+        this.cellUpdates.delete(cellKey)
+      }
+    }
+  }
+
   clear() {
     this.loadingColumns.clear()
     this.currentStepTitles.clear()
+    this.cellUpdates.clear()
   }
 }

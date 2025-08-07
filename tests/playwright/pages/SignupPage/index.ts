@@ -2,13 +2,16 @@ import { Page } from '@playwright/test';
 import BasePage from '../Base';
 import { ProjectsPage } from '../ProjectsPage';
 import { expect } from '@playwright/test';
+import { OnboardingFlowPage } from '../OnboardingFlowPage';
 
 export class SignupPage extends BasePage {
   readonly projectsPage: ProjectsPage;
+  readonly onboardingFlowPage: OnboardingFlowPage;
 
   constructor(rootPage: Page) {
     super(rootPage);
     this.projectsPage = new ProjectsPage(rootPage);
+    this.onboardingFlowPage = new OnboardingFlowPage(rootPage);
   }
 
   prefixEmail(email: string) {
@@ -51,7 +54,9 @@ export class SignupPage extends BasePage {
       await this.rootPage.waitForLoadState('networkidle');
 
       if (skipOnboardingFlow) {
-        // await this.rootPage.locator('button:has-text("Skip")').click();
+        await this.onboardingFlowPage.skipOnboardingFlow();
+      } else {
+        await this.onboardingFlowPage.completeOnboardingFlow();
       }
     }
   }

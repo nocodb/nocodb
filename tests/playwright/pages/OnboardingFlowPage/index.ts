@@ -122,6 +122,11 @@ export class OnboardingFlowPage extends BasePage {
       await expect(option).toHaveClass(/nc-selected/);
     }
 
+    // If it is last question then no need to navigate to next question as we need to perform finish action
+    if (await this.isLastQuestion()) {
+      return;
+    }
+
     await this.navigateToNextQuestion();
 
     // Wait for auto-navigation (500ms delay as per useOnboardingFlow)
@@ -152,10 +157,10 @@ export class OnboardingFlowPage extends BasePage {
    * Complete the onboarding flow by navigating through all questions
    */
   async completeOnboardingFlow() {
+    await this.get().waitFor({ state: 'visible' });
+
     // Navigate through all questions
-    let questionIndex = 0;
-    let flag = true;
-    while (flag) {
+    for (let questionIndex = 0; questionIndex < 25; questionIndex++) {
       await this.verifyQuestionIndex(questionIndex);
 
       const questionType = await this.getCurrentQuestionType();
@@ -165,12 +170,7 @@ export class OnboardingFlowPage extends BasePage {
         await this.handleMultiSelectQuestion({ optionIndexes: [0, 1] });
       }
 
-      /**
-       * `questionIndex > 25` condition will not be reached in the actual flow,
-       * but it's a safety net to prevent infinite loops in case of unexpected behavior.
-       */
-      if ((await this.isLastQuestion()) || questionIndex > 25) {
-        flag = false;
+      if (await this.isLastQuestion()) {
         break;
       }
 
@@ -196,6 +196,8 @@ export class OnboardingFlowPage extends BasePage {
    * Skip the onboarding flow
    */
   async skipOnboardingFlow({ verify = false }: { verify?: boolean } = {}) {
+    await this.get().waitFor({ state: 'visible' });
+
     await this.waitForResponse({
       uiAction: () => this.skipButton.click(),
       httpMethodsToMatch: ['PATCH'],

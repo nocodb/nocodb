@@ -8,6 +8,7 @@ const up = async (knex: Knex) => {
     table.string('title', 255).notNullable();
     table.string('fk_org_id', 20);
     table.string('fk_workspace_id', 20);
+    table.string('fk_created_by', 20).index('nc_teams_created_by_idx');
     table.timestamps(true, true);
 
     // Indexes for fast lookups

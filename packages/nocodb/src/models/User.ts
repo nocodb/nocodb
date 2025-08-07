@@ -48,6 +48,9 @@ export default class User implements UserType {
   is_deleted?: boolean;
   meta?: MetaType;
 
+  // Email validation data as JSON string
+  email_validation?: string | string;
+
   constructor(data: User) {
     Object.assign(this, data);
   }
@@ -71,6 +74,7 @@ export default class User implements UserType {
       'roles',
       'token_version',
       'meta',
+      'email_validation',
     ]);
 
     if (insertObj.email) {
@@ -114,6 +118,7 @@ export default class User implements UserType {
       'display_name',
       'avatar',
       'meta',
+      'email_validation',
     ]);
 
     if (updateObj.email) {

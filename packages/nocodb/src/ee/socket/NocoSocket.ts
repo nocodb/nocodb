@@ -1,5 +1,12 @@
 import { Logger } from '@nestjs/common';
-import { EventType, type PayloadForEvent, ProjectRoles } from 'nocodb-sdk';
+import {
+  EventType,
+  extractRolesObj,
+  type PayloadForEvent,
+  ProjectRoles,
+  WorkspaceRolesToProjectRoles,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import { sendConnectionError, sendWelcomeMessage } from './genericEvents';
 import type { Server } from 'socket.io';
 import type { NcContext, NcSocket } from '~/interface/config';
@@ -7,6 +14,8 @@ import type { Prettify } from '~/types/utils';
 import { verifyJwt } from '~/services/users/helpers';
 import { BaseUser, User, WorkspaceUser } from '~/models';
 import Noco from '~/Noco';
+import { getProjectRolePower } from 'src/utils/roleHelper';
+import { getWorkspaceRolePower } from '../utils/roleHelper';
 
 export default class NocoSocket {
   private static logger: Logger = new Logger(NocoSocket.name);
@@ -109,23 +118,28 @@ export default class NocoSocket {
     },
     socketId?: string,
   ) {
-    const { event, payload, scopes = [] } = params;
+    try {
+      const { event, payload, scopes = [] } = params;
 
-    const eventKey = `${event}:${context.workspace_id}:${context.base_id}${
-      scopes.length > 0 ? `:${scopes.join(':')}` : ''
-    }`;
+      const eventKey = `${event}:${context.workspace_id}:${context.base_id}${
+        scopes.length > 0 ? `:${scopes.join(':')}` : ''
+      }`;
 
-    const finalPayload = {
-      ...payload,
-      event,
-      timestamp: Date.now(),
-      socketId,
-    };
+      const finalPayload = {
+        ...payload,
+        event,
+        timestamp: Date.now(),
+        socketId,
+      };
 
-    if (this.ioServer) {
-      this.ioServer.to(eventKey).emit(eventKey, finalPayload);
-    } else {
-      this.logger.warn(`No server instance available for event: ${eventKey}`);
+      if (this.ioServer) {
+        this.ioServer.to(eventKey).emit(eventKey, finalPayload);
+      } else {
+        this.logger.warn(`No server instance available for event: ${eventKey}`);
+      }
+    } catch (error) {
+      this.logger.error(`Error broadcasting event ${params.event}`);
+      this.logger.error(error);
     }
   }
 
@@ -137,21 +151,26 @@ export default class NocoSocket {
     },
     socketId?: string,
   ) {
-    const { event, payload } = params;
+    try {
+      const { event, payload } = params;
 
-    const eventKey = `user:${userId}`;
+      const eventKey = `user:${userId}`;
 
-    const finalPayload = {
-      ...payload,
-      event,
-      timestamp: Date.now(),
-      socketId,
-    };
+      const finalPayload = {
+        ...payload,
+        event,
+        timestamp: Date.now(),
+        socketId,
+      };
 
-    if (this.ioServer) {
-      this.ioServer.to(eventKey).emit(eventKey, finalPayload);
-    } else {
-      this.logger.warn(`No server instance available for event: ${eventKey}`);
+      if (this.ioServer) {
+        this.ioServer.to(eventKey).emit(eventKey, finalPayload);
+      } else {
+        this.logger.warn(`No server instance available for event: ${eventKey}`);
+      }
+    } catch (error) {
+      this.logger.error(`Error broadcasting event to user ${userId}`);
+      this.logger.error(error);
     }
   }
 
@@ -162,17 +181,32 @@ export default class NocoSocket {
       payload: Prettify<Omit<PayloadForEvent<T>, 'timestamp' | 'socketId'>>;
     },
     socketId?: string,
+    minimumRole = WorkspaceUserRoles.VIEWER,
   ) {
-    const users = await WorkspaceUser.userList({
-      fk_workspace_id: context.workspace_id,
-    });
+    try {
+      const users = await WorkspaceUser.userList({
+        fk_workspace_id: context.workspace_id,
+      });
 
-    Object.assign(params.payload, {
-      workspaceId: context.workspace_id,
-    });
+      Object.assign(params.payload, {
+        workspaceId: context.workspace_id,
+      });
 
-    for (const user of users) {
-      this.broadcastEventToUser(user.id, params, socketId);
+      for (const user of users) {
+        if (
+          getWorkspaceRolePower({
+            workspace_roles: extractRolesObj(user.roles),
+          }) >=
+          getWorkspaceRolePower({
+            workspace_roles: extractRolesObj(minimumRole),
+          })
+        ) {
+          this.broadcastEventToUser(user.id, params, socketId);
+        }
+      }
+    } catch (error) {
+      this.logger.error(`Error broadcasting event to workspace users`);
+      this.logger.error(error);
     }
   }
 
@@ -183,18 +217,33 @@ export default class NocoSocket {
       payload: Prettify<Omit<PayloadForEvent<T>, 'timestamp' | 'socketId'>>;
     },
     socketId?: string,
+    minimumRole = ProjectRoles.VIEWER,
   ) {
-    const users = await BaseUser.getUsersList(context, {
-      base_id: context.base_id,
-    });
+    try {
+      const users = await BaseUser.getUsersList(context, {
+        base_id: context.base_id,
+      });
 
-    Object.assign(params.payload, {
-      baseId: context.base_id,
-      workspaceId: context.workspace_id,
-    });
+      Object.assign(params.payload, {
+        baseId: context.base_id,
+        workspaceId: context.workspace_id,
+      });
 
-    for (const user of users) {
-      this.broadcastEventToUser(user.id, params, socketId);
+      for (const user of users) {
+        const userRole =
+          user.roles ??
+          WorkspaceRolesToProjectRoles[user.workspace_roles] ??
+          ProjectRoles.NO_ACCESS;
+        if (
+          getProjectRolePower({ base_roles: extractRolesObj(userRole) }) >=
+          getProjectRolePower({ base_roles: extractRolesObj(minimumRole) })
+        ) {
+          this.broadcastEventToUser(user.id, params, socketId);
+        }
+      }
+    } catch (error) {
+      this.logger.error(`Error broadcasting event to base users`);
+      this.logger.error(error);
     }
   }
 

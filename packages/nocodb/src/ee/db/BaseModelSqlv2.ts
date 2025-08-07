@@ -956,7 +956,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       response = await this.dbDriver.raw(query);
     }
 
-    NocoSocket.broadcastEvent(this.context, {
+    /* NocoSocket.broadcastEvent(this.context, {
       event: EventType.DATA_EVENT,
       payload: {
         id: rowId,
@@ -965,7 +965,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         before: beforeRowId,
       },
       scopes: [this.model.id],
-    });
+    }); */
 
     return response;
   }
@@ -1174,7 +1174,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     await this.handleHooks('after.insert', null, data, req);
     const id = this.extractPksValues(data);
 
-    NocoSocket.broadcastEvent(
+    /* NocoSocket.broadcastEvent(
       this.context,
       {
         event: EventType.DATA_EVENT,
@@ -1187,7 +1187,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         scopes: [this.model.id],
       },
       this.context.socket_id,
-    );
+    ); */
 
     const filteredAuditData = removeBlankPropsAndMask(insertData || data, [
       'CreatedAt',
@@ -1226,7 +1226,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
     await this.handleHooks('after.bulkInsert', null, data, req);
 
-    for (const d of data) {
+    /* for (const d of data) {
       const id = this.extractPksValues(d);
       NocoSocket.broadcastEvent(
         this.context,
@@ -1241,7 +1241,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         },
         this.context.socket_id,
       );
-    }
+    } */
 
     if (await this.isDataAuditEnabled()) {
       let parentAuditId;
@@ -1313,7 +1313,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
     const id = this.extractPksValues(data);
 
-    NocoSocket.broadcastEvent(
+    /* NocoSocket.broadcastEvent(
       this.context,
       {
         event: EventType.DATA_EVENT,
@@ -1325,7 +1325,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         scopes: [this.model.id],
       },
       this.context.socket_id,
-    );
+    ); */
 
     if (await this.isDataAuditEnabled()) {
       await Audit.insert(
@@ -1364,7 +1364,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       await this.handleHooks('after.bulkDelete', null, data, req);
     }
 
-    for (const d of data) {
+    /* for (const d of data) {
       const id = this.extractPksValues(d);
       NocoSocket.broadcastEvent(
         this.context,
@@ -1379,7 +1379,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         },
         this.context.socket_id,
       );
-    }
+    } */
 
     if (await this.isDataAuditEnabled()) {
       const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
@@ -3314,7 +3314,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       Object.assign(data, newData);
     }
 
-    NocoSocket.broadcastEvent(
+    /* NocoSocket.broadcastEvent(
       this.context,
       {
         event: EventType.DATA_EVENT,
@@ -3326,7 +3326,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         scopes: [this.model.id],
       },
       this.context.socket_id,
-    );
+    ); */
 
     // disable external source audit in cloud
     if (await this.isDataAuditEnabled()) {
@@ -3395,7 +3395,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       await this.handleHooks('after.bulkUpdate', prevData, newData, req);
     }
 
-    if (newData && newData.length > 0) {
+    /* if (newData && newData.length > 0) {
       for (const data of newData) {
         NocoSocket.broadcastEvent(
           this.context,
@@ -3411,7 +3411,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           this.context.socket_id,
         );
       }
-    }
+    } */
 
     // disable external source audit in cloud
     if ((await this.isDataAuditEnabled()) && newData && newData.length > 0) {

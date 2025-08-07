@@ -49,7 +49,7 @@ export default class User implements UserType {
   meta?: MetaType;
 
   // Email validation data as JSON string
-  email_validation?: string | string;
+  email_validation?: MetaType;
 
   constructor(data: User) {
     Object.assign(this, data);
@@ -85,7 +85,7 @@ export default class User implements UserType {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
-      prepareForDb(insertObj),
+      prepareForDb(insertObj, ['meta', 'email_validation']),
     );
 
     await NocoCache.del(CacheScope.INSTANCE_META);
@@ -144,7 +144,7 @@ export default class User implements UserType {
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
-      prepareForDb(updateObj),
+      prepareForDb(updateObj, ['meta', 'email_validation']),
       id,
     );
 
@@ -174,6 +174,7 @@ export default class User implements UserType {
 
       if (user) {
         user.meta = parseMetaProp(user);
+        user.email_validation = parseMetaProp(user, 'email_validation');
       }
 
       await NocoCache.set(`${CacheScope.USER}:${email}`, user);
@@ -229,6 +230,7 @@ export default class User implements UserType {
 
       if (user) {
         user.meta = parseMetaProp(user);
+        user.email_validation = parseMetaProp(user, 'email_validation');
       }
 
       await NocoCache.set(`${CacheScope.USER}:${userId}`, user);

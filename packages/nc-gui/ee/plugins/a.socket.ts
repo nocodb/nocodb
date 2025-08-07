@@ -31,6 +31,10 @@ export default defineNuxtPlugin(async (nuxtApp) => {
               console.error('Max handshake attempts reached, disconnecting socket')
               socket.disconnect()
             }
+          } else {
+            subscribedChannels.forEach((channel) => {
+              socket.emit('event:subscribe', channel)
+            })
           }
         })
       }

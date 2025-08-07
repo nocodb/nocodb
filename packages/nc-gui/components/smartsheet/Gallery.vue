@@ -17,7 +17,6 @@ const { isViewDataLoading } = storeToRefs(useViewsStore())
 const { isSqlView, xWhere, isExternalSource, isSyncedTable } = useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
 const route = useRoute()
-const { getPossibleAttachmentSrc } = useAttachment()
 const router = useRouter()
 
 const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility, showAsBluredRecord } = useEeConfig()
@@ -484,23 +483,16 @@ const handleOpenNewRecordForm = () => {
                           </NcButton>
                         </div>
                       </template>
-                      <template v-for="(attachment, index) in attachments(record)">
-                        <LazyCellAttachmentPreviewImage
-                          v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
-                          :key="`carousel-${record.rowMeta.rowIndex}-${index}`"
+                      <template
+                        v-for="(attachment, index) in attachments(record)"
+                        :key="`carousel-${record.rowMeta.rowIndex}-${index}`"
+                      >
+                        <LazyCellAttachmentPreviewThumbnail
+                          :attachment="attachment"
                           class="h-52"
+                          thumbnail="card_cover"
                           image-class="!w-full"
                           :object-fit="coverImageObjectFitStyle"
-                          :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
-                          @click="expandFormClick($event, record)"
-                        />
-                        <LazyCellAttachmentPreviewPdfThumbnail
-                          v-else-if="isPdf(attachment.title, attachment.mimetype ?? attachment.type)"
-                          :key="`carousel-pdf-${record.rowMeta.rowIndex}-${index}`"
-                          class="h-52"
-                          image-class="!w-full"
-                          :object-fit="coverImageObjectFitStyle"
-                          :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
                           @click="expandFormClick($event, record)"
                         />
                       </template>

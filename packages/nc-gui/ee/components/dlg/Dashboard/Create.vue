@@ -14,6 +14,9 @@ interface Emits {
   (event: 'created', value: DashboardType): void
 }
 
+const baseStore = useBase()
+const { baseId: activeBaseId } = storeToRefs(baseStore)
+
 const baseId = toRef(props, 'baseId')
 
 const dialogShow = useVModel(props, 'modelValue', emits)
@@ -99,6 +102,12 @@ onMounted(() => {
     inputEl.value?.focus()
     inputEl.value?.select()
   })
+})
+
+watch(activeBaseId, () => {
+  if (activeBaseId.value !== props.baseId) {
+    dialogShow.value = false
+  }
 })
 </script>
 

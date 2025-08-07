@@ -54,7 +54,12 @@ const handleChange = () => {
 
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Group by field</label>
-      <NSelectField :key="modelId" v-model:value="groupByField" :disabled="!modelId" :table-id="modelId" />
+      <NcListColumnSelector
+        v-model:value="groupByField"
+        disable-label
+        :table-id="modelId"
+        @update:value="groupByField = $event"
+      />
     </div>
 
     <div>

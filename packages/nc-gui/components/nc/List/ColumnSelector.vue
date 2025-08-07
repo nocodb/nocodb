@@ -41,14 +41,14 @@ const handleValueUpdate = (value: any) => {
 
 const columnList = computedAsync(async () => {
   let fields: ColumnType[]
-  
+
   if (props.tableId) {
     const tableMeta = await loadTableMeta(props.tableId)
     fields = tableMeta?.columns || []
   } else {
     fields = activeTable.value?.columns || []
   }
-  
+
   if (props.filterColumn) {
     fields = fields.filter(props.filterColumn)
   } else {
@@ -57,10 +57,8 @@ const columnList = computedAsync(async () => {
 
   return fields.map((column) => {
     const isDisabled = Boolean(column.system && !column.pk)
-    
-    const ncItemTooltip = isDisabled
-      ? t('tooltip.systemColumnNotEditable')
-      : ''
+
+    const ncItemTooltip = isDisabled ? t('tooltip.systemColumnNotEditable') : ''
 
     return {
       label: column.title || column.column_name,
@@ -74,7 +72,7 @@ const columnList = computedAsync(async () => {
 
 const columnListMap = computed(() => {
   if (!columnList.value || columnList.value.length === 0) return new Map()
-  
+
   return new Map(columnList.value.map((column) => [column.value, column]))
 })
 
@@ -85,33 +83,37 @@ const selectedColumn = computed(() => {
 })
 
 // Watch for columnList changes and set initial value
-watch(columnList, (newColumnList) => {
-  if (newColumnList && newColumnList.length > 0) {
-    const newColumnListMap = new Map(newColumnList.map((column) => [column.value, column]))
-    
-    // Check if current value exists in the new column list
-    if (modelValue.value && !newColumnListMap.has(modelValue.value)) {
-      // Current value is not in the list, set null to clear it
-      modelValue.value = undefined
-      return
-    }
+watch(
+  columnList,
+  (newColumnList) => {
+    if (newColumnList && newColumnList.length > 0) {
+      const newColumnListMap = new Map(newColumnList.map((column) => [column.value, column]))
 
-    // Auto-select logic (only if autoSelect is enabled and no current value)
-    if (!modelValue.value && props.autoSelect) {
-      const newColumnId = props.columnId || newColumnList[0]?.value
+      // Check if current value exists in the new column list
+      if (modelValue.value && !newColumnListMap.has(modelValue.value)) {
+        // Current value is not in the list, set null to clear it
+        modelValue.value = undefined
+        return
+      }
 
-      const columnObj = newColumnListMap.get(newColumnId)
+      // Auto-select logic (only if autoSelect is enabled and no current value)
+      if (!modelValue.value && props.autoSelect) {
+        const newColumnId = props.columnId || newColumnList[0]?.value
 
-      // Change column id only if it is default column selected initially and its not enabled
-      if (columnObj && columnObj.ncItemDisabled && columnObj.value === newColumnList[0]?.value) {
-        const selectedValue = newColumnList.find((column) => !column.ncItemDisabled)?.value || newColumnList[0]?.value
-        modelValue.value = selectedValue
-      } else {
-        modelValue.value = newColumnId
+        const columnObj = newColumnListMap.get(newColumnId)
+
+        // Change column id only if it is default column selected initially and its not enabled
+        if (columnObj && columnObj.ncItemDisabled && columnObj.value === newColumnList[0]?.value) {
+          const selectedValue = newColumnList.find((column) => !column.ncItemDisabled)?.value || newColumnList[0]?.value
+          modelValue.value = selectedValue
+        } else {
+          modelValue.value = newColumnId
+        }
       }
     }
-  }
-}, { immediate: true })
+  },
+  { immediate: true },
+)
 
 defineExpose({
   modelValue,
@@ -151,7 +153,7 @@ defineExpose({
         <div v-if="selectedColumn" class="min-w-5 flex items-center justify-center">
           <NIconField :field="selectedColumn" class="text-gray-500" />
         </div>
-        <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only> 
+        <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
           <span v-if="selectedColumn" class="text-sm flex-1 truncate text-nc-content-gray-default">
             {{ selectedColumn?.label }}
           </span>

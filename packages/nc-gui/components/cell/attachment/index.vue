@@ -468,12 +468,12 @@ onUnmounted(() => {
             }"
           >
             <LazyCellAttachmentPreviewThumbnail
-              icon-width="24"
-              icon-height="24"
+              :icon-width="24"
+              :icon-height="24"
               class="nc-attachment rounded-lg w-full h-full object-cover overflow-hidden"
               :alt="item.title || `#${i}`"
               :attachment="item"
-              thumbnail="tiny"
+              :thumbnail="attachmentSize"
               object-fit="contain"
               @click="() => onFileClick(item)"
             />

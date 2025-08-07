@@ -16,7 +16,6 @@ const emits = defineEmits<{
   (e: 'update:isFileContentMenuOpen', value: boolean): void
   (e: 'expand', value: boolean): void
 }>()
-const { getPossibleAttachmentSrc } = useAttachment()
 const isFileContentMenuOpen = useVModel(props, 'isFileContentMenuOpen', emits)
 
 const { isExpanded, attachment, selectedField, attachmentIndex } = toRefs(props)

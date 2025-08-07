@@ -229,29 +229,56 @@ export const LookupCellRenderer: CellRenderer = {
       for (const v of arrValue) {
         const point = lookupRenderer({ ...renderProps, value: v, x, y, width })
 
-        if (point?.x && !point?.nextLine) {
-          if (point?.x >= _x + _width - padding * 2 - 50) {
+        if (renderOnly1Row.includes(lookupColumn.uidt)) {
+          if (point?.x) {
+            x = point?.x
+          }
+        } else if (point?.x && !point?.nextLine) {
+          if (point?.x >= _x + _width - padding * 4 - (line + 1 > maxLines && count < arrValue.length ? 50 - ellipsisWidth : 0)) {
+            if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
+              flag = true
+
+              if (point?.x) {
+                x = point?.x + padding
+              } else {
+                x = _x + _width - padding - ellipsisWidth
+              }
+
+              break
+            }
+
             x = _x
-            width = _width
+            width = _width - ellipsisWidth
             y = point?.y && y !== point?.y && point?.y - y >= 24 ? point?.y : y + 24
             line += 1
-            if (renderOnly1Row.includes(lookupColumn.uidt)) break
           } else {
             width = _x + _width - (point?.x - 2 * 4) - padding * 2
             x = point?.x
           }
         } else {
+          if (line + 1 > maxLines || renderOnly1Row.includes(lookupColumn.uidt)) {
+            if (!point?.nextLine) {
+              flag = true
+            }
+            break
+          }
+
           x = _x
           y += 24
           width = _width
           line += 1
-          if (renderOnly1Row.includes(lookupColumn.uidt)) break
         }
 
         if (line > maxLines) {
+          flag = true
+
           break
         }
         count++
+      }
+
+      if (flag && count < arrValue.length) {
+        handleRenderEllipsis()
       }
     }
 

@@ -30,7 +30,7 @@ const normalizeFilename = (filename: string) => {
   return filename.replace(/[\\/:*?"<>'`#|%~{}[\]^]/g, '_');
 };
 
-const thumbnailMimes = ['image/'];
+const thumbnailMimes = ['image/', 'application/pdf'];
 
 const mb = 1024 * 1024;
 

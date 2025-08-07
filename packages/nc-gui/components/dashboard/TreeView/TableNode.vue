@@ -683,7 +683,6 @@ async function onRename() {
                                 isOptionsOpen = false
                               }
                             "
-                            size="xs"
                           />
                         </div>
                       </NcMenuItem>

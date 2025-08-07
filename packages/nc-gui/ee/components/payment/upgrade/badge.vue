@@ -29,7 +29,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   planTitle: PlanTitles.PLUS,
-  size: 'sm',
+  size: 'xs',
   content: '',
 })
 

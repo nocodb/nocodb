@@ -63,7 +63,6 @@ const { getPlanTitle } = useEeConfig()
                 })
               "
               :on-click-callback="() => emit('cancel')"
-              size="xs"
             />
             <span v-else />
           </template>

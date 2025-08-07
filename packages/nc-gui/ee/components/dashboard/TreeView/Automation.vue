@@ -144,7 +144,6 @@ watch(activeAutomationId, () => {
               plan: PlanTitles.PLUS,
             })
           "
-          size="xs"
         />
 
         <div class="flex items-center">
@@ -183,7 +182,6 @@ watch(activeAutomationId, () => {
             plan: PlanTitles.PLUS,
           })
         "
-        size="xs"
       />
       <GeneralIcon
         icon="chevronRight"

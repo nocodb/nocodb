@@ -31,7 +31,6 @@ const onExpand = async () => {
             plan: PlanTitles.PLUS,
           })
         "
-        size="xs"
       />
       <GeneralIcon
         icon="chevronRight"

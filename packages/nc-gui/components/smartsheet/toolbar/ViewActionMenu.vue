@@ -470,7 +470,6 @@ defineOptions({
                       })
                     "
                     :on-click-callback="() => emits('closeModal')"
-                    size="xs"
                   />
                 </div>
               </NcMenuItem>
@@ -507,7 +506,6 @@ defineOptions({
                       })
                     "
                     :on-click-callback="() => emits('closeModal')"
-                    size="xs"
                   />
                 </div>
               </NcMenuItem>

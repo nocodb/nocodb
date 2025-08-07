@@ -40,10 +40,15 @@ const validators = {
   ],
 }
 
-const { setAdditionalValidations, validateInfos, isPg } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, validateInfos, isPg } = useColumnCreateStoreOrThrow()
 
 setAdditionalValidations({
   ...validators,
+})
+
+setAvoidShowingToastMsgForValidations({
+  'meta.currency_locale': true,
+  'meta.currency_code': true,
 })
 
 const currencyList = currencyCodes || []

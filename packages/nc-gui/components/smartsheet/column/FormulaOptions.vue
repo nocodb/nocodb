@@ -27,7 +27,7 @@ vModel.value.meta = {
   ...(vModel.value.meta || {}),
 }
 
-const { setAdditionalValidations, sqlUi, column, validateInfos } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, sqlUi, column, validateInfos } = useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 
@@ -161,6 +161,10 @@ watch(
 // set additional validations
 setAdditionalValidations({
   ...validators,
+})
+
+setAvoidShowingToastMsgForValidations({
+  formula_raw: true,
 })
 
 const activeKey = ref('formula')

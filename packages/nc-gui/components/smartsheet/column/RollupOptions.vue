@@ -24,6 +24,7 @@ const meta = inject(MetaInj, ref())
 
 const {
   setAdditionalValidations,
+  setAvoidShowingToastMsgForValidations,
   validateInfos,
   onDataTypeChange,
   isEdit,
@@ -50,6 +51,12 @@ setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: t('general.required') }],
   fk_rollup_column_id: [{ required: true, message: t('general.required') }],
   rollup_function: [{ required: true, message: t('general.required') }],
+})
+
+setAvoidShowingToastMsgForValidations({
+  fk_relation_column_id: true,
+  fk_rollup_column_id: true,
+  rollup_function: true,
 })
 
 if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = null

@@ -125,8 +125,13 @@ const handleFileDeleteStart = () => {
         :width="45"
       />
       <component :is="FileIcon(attachment.icon)" v-else-if="attachment.icon" :height="45" :width="45" class="text-white" />
-
-      <GeneralIcon v-else icon="ncFileTypeUnknown" :height="45" :width="45" class="text-white" />
+      <GeneralIcon
+        :icon ="getAttachmentIcon(attachment.title, attachment.mimetype)"
+        v-else
+        :height="45"
+        :width="45"
+        class="text-white"
+      />
     </div>
 
     <div class="relative px-1 pb-1 items-center flex" :title="attachment.title">

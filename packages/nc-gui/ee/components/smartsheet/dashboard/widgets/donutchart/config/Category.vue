@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isSystemColumn, isAttachment, isQrCode, isBarcode, isButton, type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, isAttachment, isBarcode, isButton, isQrCode, isSystemColumn } from 'nocodb-sdk'
 
 const emit = defineEmits<{
   'update:category': [category: any]
@@ -51,8 +51,8 @@ watch([() => selectedWidget.value?.fk_model_id], ([value], [oldValue]) => {
         :disabled="!modelId"
         :table-id="modelId!"
         :filter-column="filterField"
-        @update:value="handleChange"
         disable-label
+        @update:value="handleChange"
       />
     </div>
 

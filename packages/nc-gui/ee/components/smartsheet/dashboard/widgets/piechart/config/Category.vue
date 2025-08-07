@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { isAttachment, isButton, isBarcode, isQrCode, isSystemColumn } from 'nocodb-sdk'
+import { isAttachment, isBarcode, isButton, isQrCode, isSystemColumn } from 'nocodb-sdk'
 
 const emit = defineEmits<{
   'update:category': [category: any]
@@ -54,8 +54,8 @@ watch([() => selectedWidget.value?.fk_model_id], ([value], [oldValue]) => {
         :disabled="!modelId"
         :table-id="modelId!"
         :filter-column="filterField"
-        @update:value="handleChange"
         disable-label
+        @update:value="handleChange"
       />
     </div>
 
@@ -81,12 +81,12 @@ watch([() => selectedWidget.value?.fk_model_id], ([value], [oldValue]) => {
       </NcSwitch>
     </div>
     <div class="flex items-center">
-      <NcSwitch class="flex items-center" v-model:checked="includeOthers" @change="handleChange">
+      <NcSwitch v-model:checked="includeOthers" class="flex items-center" @change="handleChange">
         <span class="text-caption text-nc-content-gray select-none">
           <NcTooltip class="flex items-center">
             <template #title>
-              By default the chart will show top 10 categories and remaining categories will be grouped as "Others".
-              Disabling this will hide "Others" category.
+              By default the chart will show top 10 categories and remaining categories will be grouped as "Others". Disabling
+              this will hide "Others" category.
             </template>
             Include others
           </NcTooltip>

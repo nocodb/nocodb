@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, AggregationValue } from 'nocodb-sdk'
+import type { AggregationValue, ColumnType } from 'nocodb-sdk'
 import { AllAggregations, WidgetTypes, isSystemColumn } from 'nocodb-sdk'
 import TabbedSelect from '../TabbedSelect.vue'
 
@@ -113,12 +113,27 @@ watch(selectedValue, () => {
   <div v-if="selectedValue === 'summary'" class="flex gap-2 flex-1 min-w-0">
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Field</label>
-      <NcListColumnSelector disable-label  :filter-column="filterField" v-model:value="selectedFieldId" :disabled="!modelId" :table-id="modelId!" @update:value="handleChange('field')" />
+      <NcListColumnSelector
+        v-model:value="selectedFieldId"
+        disable-label
+        :filter-column="filterField"
+        :disabled="!modelId"
+        :table-id="modelId!"
+        @update:value="handleChange('field')"
+      />
     </div>
 
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Type</label>
-      <NcListAggregationSelector disable-label :disabled="!modelId || !selectedFieldId" :filter-column="filterAggregation" v-model:value="selectedAggregationType" :column-id="selectedFieldId" :table-id="modelId" @update:value="handleChange('aggregation')" />
+      <NcListAggregationSelector
+        v-model:value="selectedAggregationType"
+        disable-label
+        :disabled="!modelId || !selectedFieldId"
+        :filter-column="filterAggregation"
+        :column-id="selectedFieldId"
+        :table-id="modelId"
+        @update:value="handleChange('aggregation')"
+      />
     </div>
   </div>
 </template>

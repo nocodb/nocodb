@@ -132,6 +132,7 @@ import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
+import { supportsThumbnails } from '~/utils/attachmentUtils';
 
 dayjs.extend(utc);
 
@@ -5580,11 +5581,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     attachmentColumns: Record<string, any>[],
     d: Record<string, any>,
   ) {
-    // Helper function to check if attachment supports thumbnails
-    const supportsThumbnails = (attachment: any) => {
-      return attachment.mimetype?.startsWith('image/') || attachment.mimetype?.startsWith('application/pdf');
-    };
-
     try {
       if (d) {
         const promises = [];

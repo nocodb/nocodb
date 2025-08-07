@@ -3,7 +3,7 @@ import { type DashboardPayload, EventType, type MetaPayload, type ScriptPayload,
 export const useRealtime = createSharedComposable(() => {
   const { $ncSocket, $eventBus } = useNuxtApp()
 
-  const { ncNavigateTo } = useGlobal()
+  const { user, ncNavigateTo } = useGlobal()
 
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
@@ -26,34 +26,10 @@ export const useRealtime = createSharedComposable(() => {
   const { automations, activeAutomationId } = storeToRefs(useAutomationStore())
   const { widgets, selectedWidget } = storeToRefs(useWidgetStore())
 
-  const activeWorkspaceMetaChannel = ref<string | null>(null)
   const activeBaseMetaChannel = ref<string | null>(null)
   const activeAutomationChannel = ref<string | null>(null)
   const activeDashboardChannel = ref<string | null>(null)
   const activeWidgetChannel = ref<string | null>(null)
-
-  const handleWorkspaceMetaEvent = (event: MetaPayload) => {
-    if (event.action === 'base_create') {
-      bases.value.set(event.payload.id, event.payload)
-    } else if (event.action === 'base_update') {
-      const updatedBase = event.payload
-      const base = bases.value.get(updatedBase.id)
-      if (base) {
-        Object.assign(base, updatedBase)
-      }
-    } else if (event.action === 'base_delete') {
-      const deletedBaseId = event.payload.id
-      bases.value.delete(deletedBaseId)
-
-      if (baseId.value === deletedBaseId) {
-        ncNavigateTo({
-          workspaceId: activeWorkspaceId.value,
-          baseId: undefined,
-          tableId: undefined,
-        })
-      }
-    }
-  }
 
   const handleBaseMetaEvent = (event: MetaPayload) => {
     if (event.action === 'table_create') {
@@ -258,19 +234,36 @@ export const useRealtime = createSharedComposable(() => {
     }
   }
 
+  const handleUserEvent = (event: any) => {
+    if (event.workspaceId === activeWorkspaceId.value) {
+      if (event.action === 'base_create') {
+        bases.value.set(event.payload.id, event.payload)
+      } else if (event.action === 'base_update') {
+        const updatedBase = event.payload
+        const base = bases.value.get(updatedBase.id)
+        if (base) {
+          Object.assign(base, updatedBase)
+        }
+      } else if (event.action === 'base_delete') {
+        const deletedBaseId = event.payload.id
+        bases.value.delete(deletedBaseId)
+
+        if (baseId.value === deletedBaseId) {
+          ncNavigateTo({
+            workspaceId: activeWorkspaceId.value,
+            baseId: undefined,
+            tableId: undefined,
+          })
+        }
+      }
+    }
+  }
+
   watch(
     [activeWorkspaceId, baseId],
     () => {
-      if (activeWorkspaceId.value) {
-        // Handle workspace meta events
-        if (activeWorkspaceMetaChannel.value) {
-          $ncSocket.offMessage(activeWorkspaceMetaChannel.value)
-        }
-
-        activeWorkspaceMetaChannel.value = `${EventType.META_EVENT}:${activeWorkspaceId.value}`
-        $ncSocket.subscribe(activeWorkspaceMetaChannel.value)
-
-        $ncSocket.onMessage(activeWorkspaceMetaChannel.value, handleWorkspaceMetaEvent)
+      if (user.value?.id) {
+        $ncSocket.onMessage(`user:${user.value.id}`, handleUserEvent)
       }
 
       if (baseId.value) {

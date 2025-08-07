@@ -6,6 +6,7 @@ export enum EventType {
   CONNECTION_WELCOME = 'connection-welcome',
   CONNECTION_ERROR = 'connection-error',
   NOTIFICATION = 'notification',
+  USER_EVENT = 'event-user',
   DATA_EVENT = 'event-data',
   META_EVENT = 'event-meta',
   DASHBOARD_EVENT = 'event-dashboard',
@@ -56,7 +57,13 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'view_create'
     | 'view_update'
     | 'view_delete'
-    | 'permission_update'
+    | 'permission_update';
+  payload: T;
+  baseId?: string;
+}
+
+export interface UserEventPayload<T = any> extends BaseSocketPayload {
+  action:
     | 'base_create'
     | 'base_update'
     | 'base_delete'
@@ -65,6 +72,7 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'workspace_delete';
   payload: T;
   baseId?: string;
+  workspaceId?: string;
 }
 
 export interface DashboardPayload extends BaseSocketPayload {
@@ -104,6 +112,7 @@ export type SocketEventPayloadMap = {
   [EventType.DASHBOARD_EVENT]: DashboardPayload;
   [EventType.WIDGET_EVENT]: WidgetPayload;
   [EventType.SCRIPT_EVENT]: ScriptPayload;
+  [EventType.USER_EVENT]: UserEventPayload;
   [key: string]: BaseSocketPayload;
 };
 

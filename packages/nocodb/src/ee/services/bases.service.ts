@@ -281,15 +281,14 @@ export class BasesService extends BasesServiceCE {
       context,
     });
 
-    NocoSocket.broadcastEvent(
+    NocoSocket.broadcastEventToBaseUsers(
       context,
       {
-        event: EventType.META_EVENT,
+        event: EventType.USER_EVENT,
         payload: {
           action: 'base_create',
           payload: base,
         },
-        workspaceEvent: true,
       },
       param.req.ncSocketId,
     );
@@ -366,6 +365,18 @@ export class BasesService extends BasesServiceCE {
       NcError.workspaceNotFound(base.fk_workspace_id);
     }
 
+    let baseUsers;
+
+    try {
+      baseUsers = await BaseUser.getUsersList(
+        context,
+        {
+          base_id: base.id,
+        },
+        ncMeta,
+      );
+    } catch {}
+
     const transaction = await ncMeta.startTransaction();
 
     try {
@@ -386,18 +397,21 @@ export class BasesService extends BasesServiceCE {
       context,
     });
 
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.META_EVENT,
-        payload: {
-          action: 'base_delete',
-          payload: base,
+    for (const user of baseUsers || []) {
+      NocoSocket.broadcastEventToUser(
+        user.id,
+        {
+          event: EventType.USER_EVENT,
+          payload: {
+            action: 'base_delete',
+            payload: base,
+            baseId: context.base_id,
+            workspaceId: context.workspace_id,
+          },
         },
-        workspaceEvent: true,
-      },
-      context.socket_id,
-    );
+        context.socket_id,
+      );
+    }
 
     return true;
   }

@@ -5,7 +5,7 @@ import type { Server } from 'socket.io';
 import type { NcContext, NcSocket } from '~/interface/config';
 import type { Prettify } from '~/types/utils';
 import { verifyJwt } from '~/services/users/helpers';
-import { User } from '~/models';
+import { BaseUser, User, WorkspaceUser } from '~/models';
 import Noco from '~/Noco';
 
 export default class NocoSocket {
@@ -22,6 +22,9 @@ export default class NocoSocket {
         try {
           socket.user = verifyJwt(args?.token, Noco.getConfig()); // Attach user to socket handshake
           sendWelcomeMessage(socket);
+
+          // join for user-specific events
+          socket.join(`user:${socket.user.id}`);
 
           // Set up event handlers for this client
           this.setupClientEventHandlers(socket);
@@ -103,15 +106,15 @@ export default class NocoSocket {
       event: T;
       payload: Prettify<Omit<PayloadForEvent<T>, 'timestamp' | 'socketId'>>;
       scopes?: string[];
-      workspaceEvent?: boolean;
     },
     socketId?: string,
   ) {
-    const { event, payload, scopes = [], workspaceEvent } = params;
+    const { event, payload, scopes = [] } = params;
 
-    const eventKey = `${event}:${context.workspace_id}${
-      workspaceEvent ? '' : `:${context.base_id}`
-    }${scopes.length > 0 ? `:${scopes.join(':')}` : ''}`;
+    const eventKey = `${event}:${context.workspace_id}:${context.base_id}${
+      scopes.length > 0 ? `:${scopes.join(':')}` : ''
+    }`;
+
     const finalPayload = {
       ...payload,
       event,
@@ -123,6 +126,75 @@ export default class NocoSocket {
       this.ioServer.to(eventKey).emit(eventKey, finalPayload);
     } else {
       this.logger.warn(`No server instance available for event: ${eventKey}`);
+    }
+  }
+
+  public static broadcastEventToUser<T extends EventType>(
+    userId: string,
+    params: {
+      event: T;
+      payload: Prettify<Omit<PayloadForEvent<T>, 'timestamp' | 'socketId'>>;
+    },
+    socketId?: string,
+  ) {
+    const { event, payload } = params;
+
+    const eventKey = `user:${userId}`;
+
+    const finalPayload = {
+      ...payload,
+      event,
+      timestamp: Date.now(),
+      socketId,
+    };
+
+    if (this.ioServer) {
+      this.ioServer.to(eventKey).emit(eventKey, finalPayload);
+    } else {
+      this.logger.warn(`No server instance available for event: ${eventKey}`);
+    }
+  }
+
+  public static async broadcastEventToWorkspaceUsers<T extends EventType>(
+    context: NcContext,
+    params: {
+      event: T;
+      payload: Prettify<Omit<PayloadForEvent<T>, 'timestamp' | 'socketId'>>;
+    },
+    socketId?: string,
+  ) {
+    const users = await WorkspaceUser.userList({
+      fk_workspace_id: context.workspace_id,
+    });
+
+    Object.assign(params.payload, {
+      workspaceId: context.workspace_id,
+    });
+
+    for (const user of users) {
+      this.broadcastEventToUser(user.id, params, socketId);
+    }
+  }
+
+  public static async broadcastEventToBaseUsers<T extends EventType>(
+    context: NcContext,
+    params: {
+      event: T;
+      payload: Prettify<Omit<PayloadForEvent<T>, 'timestamp' | 'socketId'>>;
+    },
+    socketId?: string,
+  ) {
+    const users = await BaseUser.getUsersList(context, {
+      base_id: context.base_id,
+    });
+
+    Object.assign(params.payload, {
+      baseId: context.base_id,
+      workspaceId: context.workspace_id,
+    });
+
+    for (const user of users) {
+      this.broadcastEventToUser(user.id, params, socketId);
     }
   }
 

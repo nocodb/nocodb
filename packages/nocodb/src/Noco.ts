@@ -1,5 +1,7 @@
 import '~/instrument';
 import path from 'path';
+import { promisify } from 'util';
+import { exec } from 'child_process';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
@@ -61,6 +63,7 @@ export default class Noco {
   public static sharp: typeof Sharp;
   public static canvas: any;
   public static isPdfjsInitialized: boolean;
+  public static isOfficeThumbnailGenerationAvailable: boolean;
 
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
@@ -160,6 +163,16 @@ export default class Noco {
       console.error(e);
       console.error(
         'Canvas is not available for your platform, thumbnail generation will be skipped',
+      );
+    }
+
+    try {
+      await promisify(exec)('soffice --version', { timeout: 5000 });
+      this.isOfficeThumbnailGenerationAvailable = true;
+    } catch (error) {
+      this.isOfficeThumbnailGenerationAvailable = false;
+      console.warn(
+        `LibreOffice not available - document thumbnails will not be generated`,
       );
     }
 

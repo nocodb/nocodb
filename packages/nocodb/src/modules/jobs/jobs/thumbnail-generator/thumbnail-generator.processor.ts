@@ -8,12 +8,15 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 import { ImageThumbnailGenerator } from '~/modules/jobs/jobs/thumbnail-generator/generators/image-thumbnail-generator';
 import { PdfThumbnailGenerator } from '~/modules/jobs/jobs/thumbnail-generator/generators/pdf-thumbnail-generator';
+import { OfficeDocumentThumbnailGenerator } from '~/modules/jobs/jobs/thumbnail-generator/generators/office-thumbnail-generator';
 import Noco from '~/Noco';
+import { isOfficeDocument } from '~/utils/attachmentUtils';
 
 export class ThumbnailGeneratorProcessor {
   private logger = new Logger(ThumbnailGeneratorProcessor.name);
   private imageGenerator = new ImageThumbnailGenerator();
   private pdfGenerator = new PdfThumbnailGenerator();
+  private officeGenerator = new OfficeDocumentThumbnailGenerator();
 
   async job(job: Job<ThumbnailGeneratorJobData>) {
     const { attachments, scope } = job.data;
@@ -83,6 +86,15 @@ export class ThumbnailGeneratorProcessor {
             relativePath,
             storageAdapter,
           );
+
+        case isOfficeDocument(mimeType, fileExtension) &&
+          Noco.isOfficeThumbnailGenerationAvailable:
+          return await this.officeGenerator.generateThumbnails(
+            file,
+            relativePath,
+            storageAdapter,
+          );
+
         default:
           this.logger.warn({
             message: `Unknown file type, skipping thumbnail generation`,

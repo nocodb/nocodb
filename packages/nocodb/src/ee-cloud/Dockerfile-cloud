@@ -48,7 +48,10 @@ ENV NC_TOOL_DIR=/usr/app/data/
 RUN apk --update --no-cache add \
     dumb-init \
     curl \
-    jq
+    jq \
+    libreoffice \
+    ttf-liberation \
+    fontconfig
 
 # Copy packaged production code & main entry file
 COPY --from=builder /usr/src/app/ /usr/src/app/

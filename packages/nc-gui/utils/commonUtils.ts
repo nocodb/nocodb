@@ -168,12 +168,7 @@ export const extractNameFromEmail = (email?: string) => {
   return email?.slice(0, email.indexOf('@'))
 }
 
-
-
-export const pollUntil = <T>(
-  conditionFn: () => T | null | undefined | false, 
-  interval: number = 100
-): Promise<T> => {
+export const pollUntil = <T>(conditionFn: () => T | null | undefined | false, interval: number = 100): Promise<T> => {
   return new Promise((resolve, reject) => {
     const check = () => {
       try {
@@ -187,7 +182,7 @@ export const pollUntil = <T>(
         reject(error)
       }
     }
-    
+
     check()
   })
 }

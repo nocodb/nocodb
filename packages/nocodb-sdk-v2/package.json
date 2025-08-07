@@ -20,11 +20,11 @@
   "main": "./dist/index.cjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "generate:sdk": "node script/build.js",
-    "build": "rslib build",
+    "build": "pnpm generate:sdk && pnpm format && rslib build",
     "check": "biome check --write",
     "dev": "rslib build --watch",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "generate:sdk": "node script/build.js"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

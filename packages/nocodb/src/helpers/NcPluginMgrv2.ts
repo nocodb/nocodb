@@ -1,5 +1,6 @@
 import { PluginCategory } from 'nocodb-sdk';
 import { NcError } from './catchError';
+import { ValidatedEmailAdapter } from './emailValidation';
 import type {
   IEmailAdapter,
   IStorageAdapterV2,
@@ -244,7 +245,10 @@ class NcPluginMgrv2 {
     }
 
     await plugin.init(pluginData?.input);
-    return plugin.getAdapter();
+    const originalAdapter = plugin.getAdapter();
+
+    // Wrap with validation adapter for automatic email validation
+    return new ValidatedEmailAdapter(originalAdapter);
   }
 
   public static async webhookNotificationAdapters(

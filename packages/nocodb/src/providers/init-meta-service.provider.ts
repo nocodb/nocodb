@@ -16,6 +16,7 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import { updateMigrationJobsState } from '~/helpers/migrationJobs';
 import { initBaseBehavior } from '~/helpers/initBaseBehaviour';
 import initDataSourceEncryption from '~/helpers/initDataSourceEncryption';
+import { initEmailValidationFromEnv } from '~/helpers/emailValidation';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 export const InitMetaServiceProvider: FactoryProvider = {
@@ -153,6 +154,10 @@ export const InitMetaServiceProvider: FactoryProvider = {
     // encrypt datasource if secret is set
     await initDataSourceEncryption(metaService);
     NcDebug.log('Datasource encryption initialized');
+
+    // initialize email validation from environment variables
+    initEmailValidationFromEnv();
+    NcDebug.log('Email validation initialized from environment');
 
     return metaService;
   },

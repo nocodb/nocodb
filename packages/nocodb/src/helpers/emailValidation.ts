@@ -4,6 +4,7 @@ import type { IEmailAdapter } from '~/types/nc-plugin';
 import type { XcEmail } from '~/interface/IEmailAdapter';
 import User from '~/models/User';
 import Noco from '~/Noco';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 const logger = new Logger('EmailValidation');
 
@@ -15,6 +16,12 @@ export interface EmailValidationResult {
   score: number;
   reason?: string;
   state: 'deliverable' | 'undeliverable' | 'risky' | 'unknown';
+  // Additional Emailable API fields
+  acceptAll?: boolean;
+  free?: boolean;
+  didYouMean?: string;
+  mailboxFull?: boolean;
+  noReply?: boolean;
 }
 
 export interface EmailValidationConfig {
@@ -74,16 +81,18 @@ export class ValidatedEmailAdapter implements IEmailAdapter {
 
       if (!user || !user.email_validation) {
         // No stored validation data - validate directly and store result
-        logger.debug(`No validation data found for ${email}, validating now...`);
+        logger.debug(
+          `No validation data found for ${email}, validating now...`,
+        );
 
-        const isDeliverable = await EmailValidationHelper.validateAndStoreEmail(email, ncMeta);
+        const isDeliverable = await EmailValidationHelper.validateAndStoreEmail(
+          email,
+          ncMeta,
+        );
         return !isDeliverable; // Skip if not deliverable
       }
 
-      const validationData =
-        typeof user.email_validation === 'string'
-          ? JSON.parse(user.email_validation)
-          : user.email_validation;
+      const validationData = parseMetaProp(user, 'email_validation');
       const config = EmailValidationHelper.getConfig();
 
       // Check validation results against configuration
@@ -95,11 +104,11 @@ export class ValidatedEmailAdapter implements IEmailAdapter {
         return true; // Skip low score emails
       }
 
-      if (!config.allowDisposable && validationData.isDisposable) {
+      if (!config.allowDisposable && validationData.isDisposable === true) {
         return true; // Skip disposable emails if not allowed
       }
 
-      if (!config.allowRole && validationData.isRole) {
+      if (!config.allowRole && validationData.isRole === true) {
         return true; // Skip role emails if not allowed
       }
 
@@ -189,14 +198,30 @@ export class EmailValidationHelper {
       // Perform API validation
       const result = await this.validateEmail(email);
 
-      // Store validation result
-      const validationData = {
+      // Store validation result - only include meaningful values
+      const validationData: any = {
         status: result.state,
         score: result.score,
         checkedAt: new Date().toISOString(),
-        isDisposable: result.isDisposable,
-        isRole: result.isRole,
       };
+
+      // Only store flags that are true (exclude false values to save space)
+      if (result.isDisposable) validationData.isDisposable = true;
+      if (result.isRole) validationData.isRole = true;
+      if (result.acceptAll) validationData.acceptAll = true;
+      if (result.free) validationData.free = true;
+      if (result.mailboxFull) validationData.mailboxFull = true;
+      if (result.noReply) validationData.noReply = true;
+
+      // Only store reason if it provides useful information
+      if (result.reason && result.reason !== 'accepted_email') {
+        validationData.reason = result.reason;
+      }
+
+      // Only store typo suggestions if they exist
+      if (result.didYouMean) {
+        validationData.didYouMean = result.didYouMean;
+      }
 
       if (user) {
         await User.update(
@@ -236,11 +261,11 @@ export class EmailValidationHelper {
       return false;
     }
 
-    if (!config.allowDisposable && validationData.isDisposable) {
+    if (!config.allowDisposable && validationData.isDisposable === true) {
       return false;
     }
 
-    if (!config.allowRole && validationData.isRole) {
+    if (!config.allowRole && validationData.isRole === true) {
       return false;
     }
 
@@ -274,13 +299,19 @@ export class EmailValidationHelper {
       const data = response.data;
 
       return {
-        isValid: data.deliverable,
-        isDeliverable: data.deliverable,
+        isValid: data.state === 'deliverable',
+        isDeliverable: data.state === 'deliverable',
         isDisposable: data.disposable || false,
         isRole: data.role || false,
         score: data.score || 0,
         reason: data.reason,
         state: data.state || 'unknown',
+        // Additional Emailable API fields
+        acceptAll: data.accept_all || false,
+        free: data.free || false,
+        didYouMean: data.did_you_mean || null,
+        mailboxFull: data.mailbox_full || false,
+        noReply: data.no_reply || false,
       };
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -301,6 +332,11 @@ export class EmailValidationHelper {
         isRole: false,
         score: 50,
         state: 'unknown',
+        acceptAll: false,
+        free: false,
+        didYouMean: null,
+        mailboxFull: false,
+        noReply: false,
       };
     }
   }

@@ -40,6 +40,8 @@ const rowHeight = inject(RowHeightInj, ref(1) as any)
 
 provide(RowHeightInj, providedHeightRef)
 
+const dropdownInitialHeight = ref(0)
+
 const relationColumn = computed(() => {
   if (column.value?.fk_model_id) {
     return metas.value[column.value.fk_model_id]?.columns?.find(
@@ -238,8 +240,13 @@ onUnmounted(() => {
 
 watch(dropdownVisible, (val) => {
   setTimeout(() => {
-    if (val && dropdownOverlayRef.value)
+    if (val && dropdownOverlayRef.value) {
       dropdownOverlayRef.value?.querySelector<HTMLInputElement>('.lookup-search-input input')?.focus()
+
+      if (dropdownOverlayRef.value.clientHeight) {
+        dropdownInitialHeight.value = dropdownOverlayRef.value.clientHeight
+      }
+    }
   }, 200)
 })
 
@@ -430,6 +437,9 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
         ref="dropdownOverlayRef"
         class="w-[300px] max-h-[320px] flex flex-col rounded-sm lookup-dropdown outline-none"
         :class="[randomClass]"
+        :style="{
+          minHeight: dropdownInitialHeight ? `${dropdownInitialHeight}px` : undefined,
+        }"
         tabindex="0"
         @keydown.esc="dropdownVisible = false"
       >
@@ -439,10 +449,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
           </template>
         </a-input>
         <div class="flex flex-wrap gap-2 items-start overflow-y-auto px-3 py-2">
-          <div
-            v-if="search && !filteredArrValues.length"
-            class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
-          >
+          <div v-if="search && !filteredArrValues.length" class="px-2 text-gray-500 flex flex-col items-center gap-6 text-center">
             <img
               src="~assets/img/placeholder/no-search-result-found.png"
               class="!w-[164px] flex-none"

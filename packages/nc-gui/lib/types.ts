@@ -521,7 +521,7 @@ type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorTy
 type MakeCellEditableFn = (row: Row, clickedColumn: CanvasGridColumn, showEditCellRestrictionTooltip?: boolean) => void
 
 interface CellRenderFn {
-  (ctx: CanvasRenderingContext2D, options: CellRendererOptions): void | { x?: number; y?: number }
+  (ctx: CanvasRenderingContext2D, options: CellRendererOptions): void | { x?: number; y?: number; nextLine?: boolean }
 }
 
 interface CellRenderer {

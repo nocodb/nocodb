@@ -247,7 +247,7 @@ const handleDelete = () => {
   if (!currentWorkspace.value || !currentWorkspace.value.title) return
 
   // If the workspace has active subscription, then ask user to cancel the subscription first
-  if (true || shouldShowCancelSubscriptionModal.value) {
+  if (shouldShowCancelSubscriptionModal.value) {
     return showCancelSubscriptionModal()
   }
 

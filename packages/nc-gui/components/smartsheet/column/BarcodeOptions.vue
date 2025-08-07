@@ -13,7 +13,8 @@ const { fields, metaColumnById } = useViewColumnsOrThrow()
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { setAdditionalValidations, validateInfos, column, isEdit } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, validateInfos, column, isEdit } =
+  useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 
@@ -50,6 +51,11 @@ watch(columnsAllowedAsBarcodeValue, (newColumnsAllowedAsBarcodeValue) => {
 setAdditionalValidations({
   fk_barcode_value_column_id: [{ required: true, message: t('general.required') }],
   barcode_format: [{ required: true, message: t('general.required') }],
+})
+
+setAvoidShowingToastMsgForValidations({
+  fk_barcode_value_column_id: true,
+  barcode_format: true,
 })
 
 const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeValue.value?.length)

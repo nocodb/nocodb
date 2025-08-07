@@ -21,6 +21,7 @@ const { getPlanTitle } = useEeConfig()
 
 const {
   setAdditionalValidations,
+  setAvoidShowingToastMsgForValidations,
   validateInfos,
   onDataTypeChange,
   isEdit,
@@ -40,6 +41,11 @@ const filterRef = ref()
 setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: t('general.required') }],
   fk_lookup_column_id: [{ required: true, message: t('general.required') }],
+})
+
+setAvoidShowingToastMsgForValidations({
+  fk_relation_column_id: true,
+  fk_lookup_column_id: true,
 })
 
 if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = null

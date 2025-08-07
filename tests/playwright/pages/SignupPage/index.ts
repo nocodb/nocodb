@@ -55,10 +55,12 @@ export class SignupPage extends BasePage {
 
       if (skipOnboardingFlow) {
         // Singup flow has to be visible after signup so we have to make `ifAvailable = false` so that it doesn't check for onboarding flow visibility
-        await this.onboardingFlowPage.skipOnboardingFlow({ ifAvailable: false });
+        // make it false once we enable onboarding flow tests
+        await this.onboardingFlowPage.skipOnboardingFlow({ ifAvailable: true });
       } else {
         // Singup flow has to be visible after signup so we have to make `ifAvailable = false` so that it doesn't check for onboarding flow visibility
-        await this.onboardingFlowPage.completeOnboardingFlow({ ifAvailable: false });
+        // make it false once we enable onboarding flow tests
+        await this.onboardingFlowPage.completeOnboardingFlow({ ifAvailable: true });
       }
     }
   }

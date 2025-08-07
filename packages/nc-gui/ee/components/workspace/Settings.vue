@@ -455,7 +455,7 @@ const onCancel = () => {
     <div class="flex flex-col items-center justify-center h-full !p-6">
       <div class="text-lg font-semibold self-start mb-5">Delete Workspace</div>
 
-      <div v-if="isWorkspaceMarkedForSubscriptionCancellation || true" class="text-nc-content-gray-subtle">
+      <div v-if="isWorkspaceMarkedForSubscriptionCancellation" class="text-nc-content-gray-subtle">
         <p>
           This workspace is marked for subscription cancellation and will remain on your current plan ({{
             $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title}`)

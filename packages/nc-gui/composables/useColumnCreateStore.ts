@@ -345,8 +345,18 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       try {
         if (!(await validate())) return
       } catch (e: any) {
+        let skipToast = false
         const errorMsgs = (e.errorFields || [])
-          .filter((f) => f?.name !== 'cdf')
+          .filter((f) => {
+            const isCdfError = f?.name === 'cdf'
+            const isLinkTableRequiredError = f?.name === 'childId' && f?.errors?.includes(t('general.required'))
+
+            if (isLinkTableRequiredError) {
+              skipToast = true
+            }
+
+            return !isCdfError && !isLinkTableRequiredError
+          })
           .map((e: any) => e.errors?.join(', '))
           .filter(Boolean)
           .join(', ')
@@ -355,6 +365,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           message.error(errorMsgs)
           return
         }
+
+        if (skipToast) return
 
         if (!fromKanbanStack?.value || (fromKanbanStack.value && !e.outOfDate)) {
           message.error(t('msg.error.formValidationFailed'))

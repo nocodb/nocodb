@@ -192,22 +192,41 @@ const handleLeaveWorkspace = () => {
 const showCancelSubscriptionModal = () => {
   const isOpen = ref(true)
 
-  const { close } = useDialog(resolveComponent('NcModalConfirm'), {
-    'visible': isOpen,
-    'title': t('title.cancelSubscriptionBeforeDeletingWorkspace'),
-    'content': t('title.cancelSubscriptionBeforeDeletingWorkspaceSubtext'),
-    'okText': t('activity.navigateToBilling'),
-    'cancelText': t('labels.cancel'),
-    'onCancel': closeDialog,
-    'onOk': async () => {
-      navigateTo(`/${currentWorkspace.value?.id}/settings?tab=billing&autoScroll=plan`)
-
-      closeDialog()
-    },
-    'update:visible': closeDialog,
-    'showIcon': false,
-    'maskClosable': true,
+  const slots = ref({
+    content: () => [
+      h('div', {}, [
+        h('span', {}, `${t('title.cancelSubscriptionBeforeDeletingWorkspaceSubtext')} `),
+        h(
+          'a',
+          {
+            href: 'https://nocodb.com/docs/product-docs/workspaces/billing#change-payment-method',
+            target: '_blank',
+          },
+          `${t('msg.learnMore')}`,
+        ),
+      ]),
+    ],
   })
+
+  const { close } = useDialog(
+    resolveComponent('NcModalConfirm'),
+    {
+      'visible': isOpen,
+      'title': t('title.cancelSubscriptionBeforeDeletingWorkspace'),
+      'okText': t('activity.navigateToBilling'),
+      'cancelText': t('labels.cancel'),
+      'onCancel': closeDialog,
+      'onOk': async () => {
+        navigateTo(`/${currentWorkspace.value?.id}/settings?tab=billing&autoScroll=plan`)
+
+        closeDialog()
+      },
+      'update:visible': closeDialog,
+      'showIcon': false,
+      'maskClosable': true,
+    },
+    { slots },
+  )
 
   function closeDialog() {
     isOpen.value = false
@@ -228,7 +247,7 @@ const handleDelete = () => {
   if (!currentWorkspace.value || !currentWorkspace.value.title) return
 
   // If the workspace has active subscription, then ask user to cancel the subscription first
-  if (shouldShowCancelSubscriptionModal.value) {
+  if (true || shouldShowCancelSubscriptionModal.value) {
     return showCancelSubscriptionModal()
   }
 

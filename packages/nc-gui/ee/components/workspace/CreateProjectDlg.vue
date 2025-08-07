@@ -245,8 +245,6 @@ const privateBaseMinPlanReq = computed(() => (isOnPrem.value ? PlanTitles.ENTERP
                           :feature="PlanFeatureTypes.FEATURE_PRIVATE_BASES"
                           :plan-title="privateBaseMinPlanReq"
                           remove-click
-                          size="sm"
-                          class="!font-normal !text-bodyDefaultSm"
                         />
                         <GeneralIcon v-else-if="isSelected" icon="check" class="text-primary h-4 w-4" />
                       </div>

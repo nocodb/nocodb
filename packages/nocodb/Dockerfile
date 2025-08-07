@@ -85,7 +85,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-ins
   fontconfig \
   fonts-dejavu-core \
   fonts-liberation \
-  libreoffice \
+  libreoffice \ `#required for thumbnail generation`\
   wget `# for convenience of downstream users` \
   && curl -L "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_$(dpkg --print-architecture)" -o /usr/local/bin/dasel \
   && chmod +x /usr/local/bin/dasel \

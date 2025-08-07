@@ -52,7 +52,7 @@ RUN apk --update --no-cache add \
     dumb-init \
     curl \
     jq \
-    libreoffice \
+    libreoffice \ `#required for thumbnail generation`\
     ttf-liberation \
     ttf-dejavu \
     fontconfig && \

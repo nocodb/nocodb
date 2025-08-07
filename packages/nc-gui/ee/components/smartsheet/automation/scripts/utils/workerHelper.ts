@@ -1443,7 +1443,7 @@ Object.freeze(UITypes);
     
     async updateOptionsAsync(options) {
       try {
-        await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, { id: this.id, type: this.type, title: this.name, options: options });
+        await api.fieldUpdate(this.#table.base.id, this.id, { id: this.id, type: this.type, title: this.name, options: options });
         return this
       } catch (e) {
         throw new Error(\`Failed to update field options: \${e.message}\`);
@@ -1452,7 +1452,7 @@ Object.freeze(UITypes);
     
     async updateDescriptionAsync(description) {
       try {
-        await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: this.name, description });
+        await api.fieldUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: this.name, description });
         this.description = description;
         return this;
       } catch (e) {
@@ -1462,7 +1462,7 @@ Object.freeze(UITypes);
     
     async updateNameAsync(name) {
       try {
-        await api.v3MetaBasesFieldsPartialUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: name });
+        await api.fieldUpdate(this.#table.base.id, this.id, {  id: this.id, type: this.type, title: name });
         this.name = name;
         return this;
       } catch (e) {
@@ -1605,7 +1605,7 @@ Object.freeze(UITypes);
       field.title = field.name
       delete field.name
       try {
-        const data = await api.v3MetaBasesTablesFieldsCreate(this.id, this.#base.id, field);
+        const data = await api.fieldCreate(this.id, this.#base.id, field);
         const newField = new Field({id: data.id, name: data.title, type: data.type, description: data.description, options: data.options, primary_key: false, primary_value: false, is_system_field: false}, this);
         this.#all_fields.push(newField);
         this.fields = this.#all_fields.filter(f => !f.is_system_field);
@@ -1880,7 +1880,7 @@ Object.freeze(UITypes);
       }
       
       try {
-        const res = await api.v3MetaBasesTablesCreate(this.id, {
+        const res = await api.tableCreate(this.id, {
           title: name,
           fields: fields
         })

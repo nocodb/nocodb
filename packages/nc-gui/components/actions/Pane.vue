@@ -64,10 +64,10 @@ watch(isPanelExpanded, (newValue) => {
             <div
               v-for="execution in executions"
               :key="execution.executionId"
-              class="border-1 border-nc-border-gray-light rounded-lg bg-white p-4"
+              class="border-1 border-nc-border-gray-light shadow-sm rounded-lg bg-white p-4"
             >
-              <div class="flex items-start gap-3">
-                <div class="flex-shrink-0 mt-0.5">
+              <div class="flex flex-col">
+                <div class="flex items-center gap-2 mb-2">
                   <div
                     class="w-6 h-6 rounded-full flex items-center justify-center"
                     :class="{
@@ -87,32 +87,25 @@ watch(isPanelExpanded, (newValue) => {
                       }"
                     />
                   </div>
-                </div>
-                <div class="flex-1 items-center min-w-0">
-                  <div class="flex items-center gap-2 mb-2">
-                    <div class="text-sm font-semibold text-nc-content-gray-emphasis truncate">{{ execution.displayValue }}</div>
-                    <span
-                      class="px-2 py-1 text-xs rounded-full"
-                      :class="{
-                        'bg-blue-100 text-blue-800': execution.status === 'running',
-                        'bg-green-100 text-green-800': execution.status === 'completed',
-                        'bg-red-100 text-red-800': execution.status === 'error',
-                      }"
-                    >
-                      {{ execution.status === 'running' ? 'Running' : execution.status === 'completed' ? 'Completed' : 'Error' }}
-                    </span>
-                  </div>
-                  <div v-if="execution.playground.length > 0" class="mt-3">
-                    <SmartsheetAutomationScriptsPlayground
-                      :playground="execution.playground"
-                      :is-running="execution.status === 'running'"
-                      :is-finished="execution.status === 'completed' || execution.status === 'finished'"
-                      :show-run-button="false"
-                      :compact="true"
-                    />
+                  <div class="text-md font-bold text-nc-content-gray-emphasis truncate">{{ execution.displayValue }}</div>
+                  <div
+                    class="rounded-md px-2 flex items-center gap-3 py-1 text-xs text-nc-content-gray-subtle bg-nc-bg-gray-light"
+                  >
+                    <GeneralIcon icon="cellButton" class="text-nc-content-gray-subtle" />
+                    {{ execution.buttonFieldName }}
                   </div>
                 </div>
               </div>
+
+              <SmartsheetAutomationScriptsPlayground
+                v-if="execution.playground.length > 0"
+                class="mt-2"
+                :playground="execution.playground"
+                :is-running="execution.status === 'running'"
+                :is-finished="execution.status === 'completed' || execution.status === 'finished'"
+                :show-run-button="false"
+                :compact="true"
+              />
             </div>
           </div>
 

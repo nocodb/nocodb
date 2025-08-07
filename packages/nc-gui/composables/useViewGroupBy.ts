@@ -163,7 +163,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             console.error(e)
           }
         } else {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${curr.key})`
+          acc += `${acc.length ? '~and' : '@'}(${curr.title},gb_eq,"${curr.key}")`
         }
         return acc
       }, existing)
@@ -214,6 +214,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 column_name: groupby.column.title!,
                 key: valueToTitle(curr[groupby.column.title!], groupby.column),
                 column_uidt: groupby.column.uidt,
+                column_id: groupby.column.id,
               },
             ],
             aggregations: curr.aggregations ?? {},

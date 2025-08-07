@@ -44,6 +44,11 @@ ENV NC_DOCKER 0.6
 ENV NODE_ENV production
 ENV PORT 8080
 ENV NC_TOOL_DIR=/usr/app/data/
+ENV HOME=/tmp
+
+# Create non-root user
+RUN addgroup -g 1001 -S nocodb && \
+   adduser -S nocodb -u 1001 -G nocodb
 
 RUN apk --update --no-cache add \
     dumb-init \
@@ -51,11 +56,19 @@ RUN apk --update --no-cache add \
     jq \
     libreoffice \
     ttf-liberation \
-    fontconfig
+    ttf-dejavu \
+    fontconfig && \
+    fc-cache -f -v
+
+# Set proper permissions
+RUN chown -R nocodb:nocodb /usr/src/app
 
 # Copy packaged production code & main entry file
 COPY --from=builder /usr/src/app/ /usr/src/app/
 COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
+
+# Switch to non-root user
+USER nocodb
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

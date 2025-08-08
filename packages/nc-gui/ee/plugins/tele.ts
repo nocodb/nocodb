@@ -122,10 +122,14 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   const router = useRouter()
 
+  let workspaceStore: ReturnType<useWorkspace>
+
   const route = router.currentRoute
   const tele = {
     emit(evt: string, data: Record<string, any>) {
       try {
+        workspaceStore = workspaceStore ?? useWorkspace()
+
         eventBatcher.enqueueEvent({
           event: evt,
           ...(data || {}),
@@ -135,6 +139,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
           workspace_id: route.value?.params?.typeOrId ?? undefined,
           table_id: route.value?.params?.viewId ?? undefined,
           view_id: route.value?.params?.viewTitle ?? undefined,
+          plan: workspaceStore?.activeWorkspace?.payment?.plan?.title,
         })
       } catch {}
     },

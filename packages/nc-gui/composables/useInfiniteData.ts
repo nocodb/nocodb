@@ -67,6 +67,7 @@ export function useInfiniteData(args: {
     syncVisibleData?: () => void
     getCount?: (path: Array<number>) => void
     getWhereFilter?: (path: Array<number>, ignoreWhereFilter?: boolean) => Promise<string>
+    getWhereFilterArr?: (path: Array<number>) => Promise<string>
     reloadAggregate?: (params: {
       fields?: Array<{ title: string; aggregation?: string | undefined }>
       path: Array<number>
@@ -375,14 +376,17 @@ export function useInfiniteData(args: {
 
       for (let i = 0; i < batch.length; i++) {
         const req = batch[i]
-        const where = await callbacks?.getWhereFilter?.(req.path)
+        // const where = await callbacks?.getWhereFilter?.(req.path)
+        const filterArrJson = await callbacks?.getWhereFilterArr(req.path)
         bulkRequests.push({
-          where,
+          // where,
           offset: req.chunkId * CHUNK_SIZE,
           limit: CHUNK_SIZE,
           alias: `chunk_${req.chunkId}_${req.path.join('_')}`,
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-          ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+          ...(isUIAllowed('filterSync')
+            ? { filterArrJson: JSON.stringify(filterArrJson) }
+            : { filterArrJson: JSON.stringify([...nestedFilters.value, ...filterArrJson]) }),
         })
       }
 
@@ -592,7 +596,8 @@ export function useInfiniteData(args: {
   ): Promise<Row[]> {
     if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return []
 
-    const whereFilter = await callbacks?.getWhereFilter?.(path)
+    // const whereFilter = await callbacks?.getWhereFilter?.(path)
+    const jsonWhereFilterArr = await callbacks?.getWhereFilterArr?.(path)
 
     if (!disableSmartsheet && !path.length && params.offset && blockExternalSourceRecordVisibility(isExternalSource.value)) {
       if (!isAlreadyShownUpgradeModal.value && params.offset >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
@@ -620,16 +625,18 @@ export function useInfiniteData(args: {
         ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            ...(isUIAllowed('filterSync')
+              ? { filterArrJson: JSON.stringify(jsonWhereFilterArr) }
+              : { filterArrJson: JSON.stringify([...nestedFilters.value, ...jsonWhereFilterArr]) }),
             includeSortAndFilterColumns: true,
-            where: whereFilter,
+            // where: whereFilter,
             include_row_color: true,
           } as any)
         : await fetchSharedViewData(
             {
               sortsArr: sorts.value,
-              filtersArr: nestedFilters.value,
-              where: whereFilter,
+              filtersArr: [...nestedFilters.value, ...jsonWhereFilterArr],
+              // where: whereFilter,
               offset: params.offset,
               limit: params.limit,
             },

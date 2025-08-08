@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc.js';
 import equal from 'fast-deep-equal';
-import groupBy from 'lodash/groupBy';
+import groupBy from 'es-toolkit/compat/groupBy';
 import {
   AuditOperationSubTypes,
   AuditV1OperationTypes,

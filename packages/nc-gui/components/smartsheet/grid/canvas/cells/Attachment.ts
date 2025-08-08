@@ -1,7 +1,7 @@
 import { isBoxHovered, renderIconButton, roundedRect } from '../utils/canvas'
 import { pxToRowHeight } from '../../../../../utils/cell'
 import type { RenderRectangleProps } from '../utils/types'
-import { isPdf, isVideo, isAudio, isWord, isExcel, isPresentation, isZip } from '../../../../../utils/fileUtils'
+import { isAudio, isExcel, isPdf, isPresentation, isVideo, isWord, isZip } from '../../../../../utils/fileUtils'
 import useAttachment from '../../../../../composables/useAttachment'
 
 interface Attachment {
@@ -197,16 +197,14 @@ export const AttachmentCellRenderer: CellRenderer = {
       const itemX = rowStartX + col * (itemSize + gap)
       const itemY = y + verticalPadding + row * (itemSize + gap)
 
-      if (isImage(item.title, item.mimetype || item.type)) {
-        const size = getAttachmentSize(rowHeight!)
-        const url = getPossibleAttachmentSrc(item, size)
+      const size = getAttachmentSize(rowHeight!)
+      const thumbnailUrls = getPossibleAttachmentSrc(item, size)
 
-        if (!url?.length) {
-          renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
-          return
-        }
+      let thumbnailLoaded = false
 
-        const img = imageLoader.loadOrGetImage(url)
+      // Try to load thumbnail if URLs are available
+      if (thumbnailUrls?.length && thumbnailUrls[0]) {
+        const img = imageLoader.loadOrGetImage(thumbnailUrls[0])
         if (img) {
           ctx.strokeStyle = '#D5D5D9'
           ctx.lineWidth = 1
@@ -225,45 +223,12 @@ export const AttachmentCellRenderer: CellRenderer = {
             },
             'contain',
           )
-        } else {
-          renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
+          thumbnailLoaded = true
         }
-      } else if (isPdfFile(item.title, item.mimetype || item.type)) {
-        // Try to load PDF thumbnail, fallback to PDF icon if not available
-        const size = getAttachmentSize(rowHeight!)
-        const thumbnailUrls = getPossibleAttachmentSrc(item, size)
+      }
 
-        let thumbnailLoaded = false
-        if (thumbnailUrls?.length && thumbnailUrls[0]) {
-          // Try to load the first available thumbnail URL
-          const img = imageLoader.loadOrGetImage(thumbnailUrls[0])
-          if (img) {
-            ctx.strokeStyle = '#D5D5D9'
-            ctx.lineWidth = 1
-            imageLoader.renderImage(
-              ctx,
-              img,
-              itemX,
-              itemY,
-              itemSize,
-              itemSize,
-              4,
-              {
-                border: true,
-                borderColor: '#D5D5D9',
-                borderWidth: 1,
-              },
-              'contain',
-            )
-            thumbnailLoaded = true
-          }
-        }
-
-        // If no thumbnail loaded, show PDF icon
-        if (!thumbnailLoaded) {
-          renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
-        }
-      } else {
+      // If no thumbnail loaded, show appropriate file type icon
+      if (!thumbnailLoaded) {
         renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
       }
 

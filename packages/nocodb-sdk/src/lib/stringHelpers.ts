@@ -15,6 +15,24 @@ export enum AppendToLengthSuffix {
   dot = 'dot',
 }
 
+/**
+ * get a row & column given a numeric position
+ * row & column start at 0
+ */
+export function getRowColPositionFromIndex({
+  stack,
+  position,
+}: {
+  stack: string;
+  position: number;
+}) {
+  const parts = stack.substring(0, position).split('\n');
+  return {
+    column: parts[parts.length - 1].length,
+    row: parts.length - 1,
+  };
+}
+
 export async function appendToLength(param: {
   value: string;
   appendage: string;

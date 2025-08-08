@@ -493,7 +493,7 @@ const colMeta = computed(() => {
   return fields.value.map((col) => {
     return {
       isVirtualCol: isVirtualCol(col),
-      isReadonly: isReadonly(col),
+      isReadonly: isReadonlyVirtualColumn(col),
     }
   })
 })
@@ -1080,7 +1080,7 @@ async function clearSelectedRangeOfCells() {
       }
 
       // skip readonly columns
-      if (isReadonly(col)) continue
+      if (isReadonlyVirtualColumn(col)) continue
 
       if (col.readonly) continue
 

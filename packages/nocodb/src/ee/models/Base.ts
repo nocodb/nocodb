@@ -69,6 +69,11 @@ export default class Base extends BaseCE {
                 },
               },
               {
+                is_snapshot: {
+                  neq: true,
+                },
+              },
+              {
                 _or: [
                   {
                     deleted: {
@@ -78,11 +83,6 @@ export default class Base extends BaseCE {
                   {
                     deleted: {
                       eq: null,
-                    },
-                  },
-                  {
-                    is_snapshot: {
-                      neq: true,
                     },
                   },
                 ],

@@ -9,6 +9,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import { Base } from '~/models';
 
 export default class Subscription {
   id: string;
@@ -238,6 +239,10 @@ export default class Subscription {
       },
     );
 
+    const bases = await Base.list(workspaceId, ncMeta);
+
+    const activeBaseIds = (bases ?? []).map((b) => b.id);
+
     const baseUsers = await ncMeta.metaList2(
       workspaceId,
       RootScopes.WORKSPACE,
@@ -245,6 +250,15 @@ export default class Subscription {
       {
         condition: {
           fk_workspace_id: workspaceId,
+        },
+        xcCondition: {
+          _and: [
+            {
+              base_id: {
+                in: activeBaseIds,
+              },
+            },
+          ],
         },
       },
     );

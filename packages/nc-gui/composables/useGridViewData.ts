@@ -102,8 +102,7 @@ export function useGridViewData(
     callbacks: {
       syncVisibleData,
       getCount,
-      getWhereFilter: getGroupFilter,
-      getWhereFilterArr: getGroupFilterJsonArr,
+      getWhereFilterArr: getGroupFilterArr,
       reloadAggregate: triggerAggregateReload,
       findGroupByPath: (path?: Array<number>) => {
         return findGroupByPath(cachedGroups.value, path)
@@ -251,7 +250,7 @@ export function useGridViewData(
     return buildNestedWhere(group, ignoreWhereFilter ? '' : where?.value)
   }
 
-  async function getGroupFilterJsonArr(path: Array<number> = [], ignoreWhereFilter = false) {
+  async function getGroupFilterArr(path: Array<number> = [], ignoreWhereFilter = false) {
     let group = findGroupByPath(cachedGroups.value, path)
 
     if (!group) {

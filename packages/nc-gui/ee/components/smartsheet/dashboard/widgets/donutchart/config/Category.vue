@@ -19,7 +19,14 @@ const fieldOrderOptions = [
 ]
 
 const filterField = (column: ColumnType) => {
-  if (isSystemColumn(column) || isAttachment(column) || isQrCode(column) || isBarcode(column) || isButton(column)) {
+  if (
+    isSystemColumn(column) ||
+    isAttachment(column) ||
+    isQrCode(column) ||
+    isBarcode(column) ||
+    isButton(column) ||
+    isJSON(column)
+  ) {
     return false
   }
   return true

@@ -24,15 +24,16 @@ export abstract class BaseThumbnailGenerator {
     try {
       // Get the thumbnail buffer from the subclass
       const thumbnailBuffer = await this.generateThumbnailBuffer(file);
-      
+
       const sharp = Noco.sharp;
-      if (!sharp) {
-        this.logger.warn('Sharp not available, skipping thumbnail generation');
-        return null;
-      }
 
       const thumbnailPaths = {
-        card_cover: path.join('nc', 'thumbnails', relativePath, 'card_cover.jpg'),
+        card_cover: path.join(
+          'nc',
+          'thumbnails',
+          relativePath,
+          'card_cover.jpg',
+        ),
         small: path.join('nc', 'thumbnails', relativePath, 'small.jpg'),
         tiny: path.join('nc', 'thumbnails', relativePath, 'tiny.jpg'),
       };
@@ -42,10 +43,18 @@ export abstract class BaseThumbnailGenerator {
       for (const [size, thumbnailPath] of Object.entries(thumbnailPaths)) {
         let height;
         switch (size) {
-          case 'card_cover': height = 512; break;
-          case 'small': height = 128; break;
-          case 'tiny': height = 64; break;
-          default: height = 32; break;
+          case 'card_cover':
+            height = 512;
+            break;
+          case 'small':
+            height = 128;
+            break;
+          case 'tiny':
+            height = 64;
+            break;
+          default:
+            height = 32;
+            break;
         }
 
         const resizedImage = await sharpImage

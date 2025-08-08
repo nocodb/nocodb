@@ -24,13 +24,12 @@ import { JobTypes } from '~/interface/Jobs';
 import { Audit, FileReference } from '~/models';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { RootScopes } from '~/utils/globals';
+import { supportsThumbnails } from '~/utils/attachmentUtils';
 
 // ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html - extended with some more characters
 const normalizeFilename = (filename: string) => {
   return filename.replace(/[\\/:*?"<>'`#|%~{}[\]^]/g, '_');
 };
-
-const thumbnailMimes = ['image/', 'application/pdf'];
 
 const mb = 1024 * 1024;
 
@@ -95,11 +94,7 @@ export class DataAttachmentV3Service {
             size: downloadedAttachment.fileSize,
           };
           processedAttachments.push(processedAttachment);
-          if (
-            thumbnailMimes.some((type) =>
-              downloadedAttachment.mimeType.startsWith(type),
-            )
-          ) {
+          if (supportsThumbnails({ mimetype: downloadedAttachment.mimeType })) {
             generateThumbnailAttachments.push(processedAttachment);
           }
         }
@@ -260,7 +255,7 @@ export class DataAttachmentV3Service {
         size: fileSize,
       };
       processedAttachments.push(processedAttachment);
-      if (thumbnailMimes.some((type) => mimeType.startsWith(type))) {
+      if (supportsThumbnails({ mimetype: mimeType })) {
         generateThumbnailAttachments.push(processedAttachment);
       }
     } catch (error) {

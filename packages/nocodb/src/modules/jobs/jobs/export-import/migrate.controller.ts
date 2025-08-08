@@ -71,4 +71,52 @@ export class MigrateController {
       req,
     });
   }
+
+  @Post(['/api/v2/meta/migrate/:baseId/:sourceId'])
+  @HttpCode(200)
+  @Acl('migrateBase')
+  async migrateSource(
+    @TenantContext() context: NcContext,
+    @Param('baseId') baseId: string,
+    @Param('sourceId') sourceId: string,
+    @Req() req: NcRequest,
+    @Body()
+    body: {
+      migrationUrl: string;
+    },
+  ) {
+    const base = await Base.get(context, baseId);
+
+    if (!base) {
+      throw new Error(`Base not found for id '${baseId}'`);
+    }
+
+    const sources = await base.getSources();
+
+    const source = sources.find((s) => s.id === sourceId);
+
+    if (!source) {
+      throw new Error(`Source not found!`);
+    }
+
+    const url = new URL(body.migrationUrl);
+
+    const instanceUrl = url.origin;
+
+    // secret query param
+    const secret = url.searchParams.get('secret');
+
+    if (!instanceUrl || !secret) {
+      throw new Error(`Invalid migration url`);
+    }
+
+    return await this.migrateService.migrateBase({
+      context,
+      base,
+      source,
+      secret: secret,
+      instanceUrl: instanceUrl,
+      req,
+    });
+  }
 }

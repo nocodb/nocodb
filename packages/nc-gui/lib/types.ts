@@ -247,6 +247,7 @@ interface GroupNestedIn {
   column_name: string
   key: string
   column_uidt: string
+  column_id: string
   groupIndex?: number
 }
 

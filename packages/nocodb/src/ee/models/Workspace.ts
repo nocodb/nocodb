@@ -592,6 +592,10 @@ export default class Workspace implements WorkspaceType {
     let stats = await NocoCache.getHash(
       `${CacheScope.RESOURCE_STATS}:workspace:${id}`,
     );
+
+    const bases = await Base.list(id, ncMeta);
+    const activeBaseIds = bases.map((base) => base.id);
+
     if (!stats) {
       stats = await ncMeta.knexConnection
         .select({
@@ -599,41 +603,17 @@ export default class Workspace implements WorkspaceType {
             .knexConnection(MetaTable.HOOKS)
             .count('*')
             .where('fk_workspace_id', id)
-            // exclude webhook from deleted bases
-            .whereNotIn(
-              'base_id',
-              ncMeta
-                .knexConnection(MetaTable.PROJECT)
-                .select('id')
-                .where('deleted', true)
-                .where('fk_workspace_id', id),
-            ),
+            .whereIn('base_id', activeBaseIds),
           [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.EXTENSIONS)
             .count('*')
             .where('fk_workspace_id', id)
-            // exclude extensions from deleted bases
-            .whereNotIn(
-              'base_id',
-              ncMeta
-                .knexConnection(MetaTable.PROJECT)
-                .select('id')
-                .where('deleted', true)
-                .where('fk_workspace_id', id),
-            ),
+            .whereIn('base_id', activeBaseIds),
           [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.SNAPSHOT)
             .count('*')
             .where('fk_workspace_id', id)
-            // exclude snapshots from deleted bases
-            .whereNotIn(
-              'base_id',
-              ncMeta
-                .knexConnection(MetaTable.PROJECT)
-                .select('id')
-                .where('deleted', true)
-                .where('fk_workspace_id', id),
-            ),
+            .whereIn('base_id', activeBaseIds),
           [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.SOURCES)
             .count('*')
@@ -644,15 +624,7 @@ export default class Workspace implements WorkspaceType {
             .where((qb) => {
               qb.where('is_local', false).orWhereNull('is_local');
             })
-            // exclude sources from deleted bases
-            .whereNotIn(
-              'base_id',
-              ncMeta
-                .knexConnection(MetaTable.PROJECT)
-                .select('id')
-                .where('deleted', true)
-                .where('fk_workspace_id', id),
-            ),
+            .whereIn('base_id', activeBaseIds),
           [PlanLimitTypes.LIMIT_EDITOR]: ncMeta
             .knexConnection(`${MetaTable.WORKSPACE_USER} AS wu`)
             .leftJoin(
@@ -727,6 +699,9 @@ export default class Workspace implements WorkspaceType {
       `${CacheScope.STORAGE_STATS}:workspace:${id}`,
     );
 
+    const bases = await Base.list(id, ncMeta);
+    const activeBaseIds = bases.map((base) => base.id);
+
     if (!storage) {
       storage = await ncMeta.knexConnection
         .select({
@@ -734,6 +709,7 @@ export default class Workspace implements WorkspaceType {
             .knexConnection(MetaTable.FILE_REFERENCES)
             .sum('file_size')
             .where('fk_workspace_id', id)
+            .whereIn('base_id', activeBaseIds)
             .where('deleted', false),
         })
         .first();

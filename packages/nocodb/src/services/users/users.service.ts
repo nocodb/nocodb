@@ -100,6 +100,7 @@ export class UsersService {
     params: {
       display_name?: string;
       avatar?: string;
+      is_new_user?: boolean;
       meta?: MetaType;
     };
     req: NcRequest;

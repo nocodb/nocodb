@@ -84,7 +84,7 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
 
               return callback(null, {
                 ...sanitiseUserObj(user),
-                provider: 'cognito',
+                provider: 'openid',
               });
             } catch (err) {
               return callback(new Error('Token validation failed'));

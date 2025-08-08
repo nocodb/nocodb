@@ -23,7 +23,6 @@ export default class User extends UserCE implements UserType {
   bio?: string;
   location?: string;
   website?: string;
-  is_new_user?: boolean;
 
   protected static castType(user: User): User {
     return user && new User(user);
@@ -48,7 +47,6 @@ export default class User extends UserCE implements UserType {
       'bio',
       'location',
       'website',
-      'is_new_user',
       'meta',
     ]);
 
@@ -93,7 +91,6 @@ export default class User extends UserCE implements UserType {
       'bio',
       'location',
       'website',
-      'is_new_user',
       'meta',
     ]);
 
@@ -192,7 +189,6 @@ export default class User extends UserCE implements UserType {
         `${MetaTable.USERS}.bio`,
         `${MetaTable.USERS}.location`,
         `${MetaTable.USERS}.website`,
-        `${MetaTable.USERS}.is_new_user`,
         `${MetaTable.USERS}.meta`,
       )
       .select(
@@ -237,7 +233,6 @@ export default class User extends UserCE implements UserType {
         'bio',
         'location',
         'website',
-        'is_new_user',
         'meta',
       ],
     );

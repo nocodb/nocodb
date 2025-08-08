@@ -278,6 +278,15 @@ const initEmblaApi = (val: any) => {
                     :srcs="getPossibleAttachmentSrc(item, 'tiny')"
                     @error="triggerReload"
                   />
+                  <LazyCellAttachmentPreviewPdfThumbnail
+                    v-else-if="isPdf(item.title, item.mimetype)"
+                    class="nc-attachment-img-wrapper h-12"
+                    object-fit="contain"
+                    controls
+                    :alt="item.title"
+                    :srcs="getPossibleAttachmentSrc(item, 'tiny')"
+                    @error="triggerReload"
+                  />
                   <div
                     v-else-if="isVideo(item.title, item.mimetype)"
                     class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
@@ -290,13 +299,6 @@ const initEmblaApi = (val: any) => {
                     class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
                   >
                     <GeneralIcon class="text-white" icon="ncVolume2" />
-                  </div>
-
-                  <div
-                    v-else-if="isPdf(item.title, item.mimetype)"
-                    class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
-                  >
-                    <GeneralIcon class="text-white" icon="pdfFile" />
                   </div>
 
                   <div v-else class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200">

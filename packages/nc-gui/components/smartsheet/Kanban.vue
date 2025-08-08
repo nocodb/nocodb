@@ -868,6 +868,14 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                             :object-fit="coverImageObjectFitStyle"
                                             :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
                                           />
+                                          <LazyCellAttachmentPreviewPdfThumbnail
+                                            v-else-if="isPdf(attachment.title, attachment.mimetype ?? attachment.type)"
+                                            :key="`pdf-${attachment.path}`"
+                                            class="h-52"
+                                            image-class="!w-full"
+                                            :object-fit="coverImageObjectFitStyle"
+                                            :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
+                                          />
                                         </template>
                                       </a-carousel>
                                     </template>

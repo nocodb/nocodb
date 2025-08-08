@@ -899,7 +899,9 @@
     "privateBaseAlertDescription": "이 베이스는 초대받은 사람만 참여할 수 있으며, 이 베이스에 초대된 멤버만 액세스하고 상호 작용할 수 있습니다. 모든 기본 소유자는 다른 사용자를 초대할 수 있습니다",
     "thisPrivateBaseHasBeenLocked": "이 개인 프로젝트는 잠겨 있습니다.",
     "thisPrivateBaseHasBeenLockedSubtext": "잠금을 해제하려면 {plan} 플랜으로 업그레이드하거나 이 베이스를 공유 베이스로 전환하십시오.",
-    "mOfNFieldsHaveCustomPermissions": "{m}/{n} 필드에는 사용자 지정 권한이 있습니다."
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} 필드에는 사용자 지정 권한이 있습니다.",
+    "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
   },
   "labels": {
     "configurationError": "구성 오류",
@@ -1753,7 +1755,8 @@
     "revertToDefault": "기본값으로 되돌리기",
     "viewFieldPermissions": "필드 권한 보기",
     "resetPermissions": "권한 재설정",
-    "confirmReset": "재설정 확인"
+    "confirmReset": "재설정 확인",
+    "navigateToBilling": "Navigate to billing"
   },
   "tooltip": {
     "includeUserHint": "웹훅을 트리거한 사용자는 페이로드에 'user' 개체로 포함됩니다.",

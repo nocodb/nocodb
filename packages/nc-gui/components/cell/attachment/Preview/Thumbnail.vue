@@ -79,66 +79,6 @@ const onError = async () => {
         @error="onError"
       />
 
-      <GeneralIcon
-        v-else-if="isImage(attachment.title, attachment.mimetype)"
-        class="text-white"
-        icon="ncFileTypeImage"
-        :height="iconHeight"
-        :width="iconWidth"
-      />
-
-      <GeneralIcon
-        v-else-if="isPdf(attachment.title, attachment.mimetype)"
-        class="text-white"
-        icon="ncFileTypePdf"
-        :height="iconHeight"
-        :width="iconWidth"
-      />
-
-      <GeneralIcon
-        v-else-if="isAudio(attachment.title, attachment.mimetype)"
-        class="text-white"
-        icon="ncFileTypeAudio"
-        :height="iconHeight"
-        :width="iconWidth"
-      />
-      <GeneralIcon
-        v-else-if="isVideo(attachment.title, attachment.mimetype)"
-        class="text-white"
-        icon="ncFileTypeVideo"
-        :height="iconHeight"
-        :width="iconWidth"
-      />
-
-      <GeneralIcon
-        v-else-if="isWord(attachment.title, attachment.mimetype)"
-        class="text-white"
-        icon="ncFileTypeWord"
-        :height="iconHeight"
-        :width="iconWidth"
-      />
-      <GeneralIcon
-        v-else-if="isExcel(attachment.title, attachment.mimetype)"
-        class="text-white"
-        icon="ncFileTypeCsv"
-        :height="iconHeight"
-        :width="iconWidth"
-      />
-
-      <GeneralIcon
-        v-else-if="isPresentation(attachment.title, attachment.mimetype)"
-        class="text-white"
-        icon="ncFileTypePresentation"
-        :height="iconHeight"
-        :width="iconWidth"
-      />
-      <GeneralIcon
-        v-else-if="isZip(attachment.title, attachment.mimetype)"
-        class="text-white"
-        icon="ncFileTypeZip"
-        :height="iconHeight"
-        :width="iconWidth"
-      />
       <component
         :is="FileIcon(attachment.icon)"
         v-else-if="attachment.icon"
@@ -147,7 +87,13 @@ const onError = async () => {
         class="text-white"
       />
 
-      <GeneralIcon v-else icon="ncFileTypeUnknown" :height="iconHeight" :width="iconWidth" class="text-white" />
+      <GeneralIcon
+        v-else
+        class="text-white"
+        :icon="getAttachmentIcon(attachment.title, attachment.mimetype)"
+        :height="iconHeight"
+        :width="iconWidth"
+      />
     </div>
   </div>
 </template>

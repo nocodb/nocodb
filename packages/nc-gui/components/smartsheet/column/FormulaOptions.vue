@@ -27,7 +27,8 @@ vModel.value.meta = {
   ...(vModel.value.meta || {}),
 }
 
-const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, sqlUi, column, validateInfos } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, sqlUi, column, validateInfos } =
+  useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 

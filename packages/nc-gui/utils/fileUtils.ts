@@ -176,8 +176,10 @@ export const getReadableFileSize = (sizeInBytes: number) => {
   return `${(sizeInBytes / 1024 ** i).toFixed(2) * 1} ${['B', 'KB', 'MB', 'GB', 'TB'][i]}`
 }
 
-export const getAttachmentIcon = (  title: MaybeRefOrGetter<string | undefined>,
-                                    mimetype: MaybeRefOrGetter<string | undefined>,) => {
+export const getAttachmentIcon = (
+  title: MaybeRefOrGetter<string | undefined>,
+  mimetype: MaybeRefOrGetter<string | undefined>,
+) => {
   if (isImage(toValue(title) || '', toValue(mimetype))) {
     return 'ncFileTypeImage'
   }

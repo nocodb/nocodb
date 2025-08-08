@@ -23,6 +23,7 @@ export default class User extends UserCE implements UserType {
   bio?: string;
   location?: string;
   website?: string;
+  is_new_user?: boolean;
 
   protected static castType(user: User): User {
     return user && new User(user);
@@ -47,8 +48,14 @@ export default class User extends UserCE implements UserType {
       'bio',
       'location',
       'website',
+      'is_new_user',
       'meta',
     ]);
+
+    // Set is_new_user to true for new users if not explicitly set
+    if (insertObj.is_new_user === undefined) {
+      insertObj.is_new_user = true;
+    }
 
     if (insertObj.email) {
       insertObj.email = insertObj.email.toLowerCase();
@@ -85,6 +92,7 @@ export default class User extends UserCE implements UserType {
       'bio',
       'location',
       'website',
+      'is_new_user',
       'meta',
     ]);
 
@@ -183,6 +191,7 @@ export default class User extends UserCE implements UserType {
         `${MetaTable.USERS}.bio`,
         `${MetaTable.USERS}.location`,
         `${MetaTable.USERS}.website`,
+        `${MetaTable.USERS}.is_new_user`,
         `${MetaTable.USERS}.meta`,
       )
       .select(
@@ -227,6 +236,7 @@ export default class User extends UserCE implements UserType {
         'bio',
         'location',
         'website',
+        'is_new_user',
         'meta',
       ],
     );

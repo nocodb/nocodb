@@ -44,6 +44,8 @@ export default class User implements UserType {
   blocked?: boolean;
   blocked_reason?: string;
 
+  is_new_user?: boolean;
+
   deleted_at?: Date;
   is_deleted?: boolean;
   meta?: MetaType;
@@ -70,8 +72,14 @@ export default class User implements UserType {
       'email_verified',
       'roles',
       'token_version',
+      'is_new_user',
       'meta',
     ]);
+
+    // Set is_new_user to true for new users if not explicitly set
+    if (insertObj.is_new_user === undefined) {
+      insertObj.is_new_user = true;
+    }
 
     if (insertObj.email) {
       insertObj.email = insertObj.email.toLowerCase();
@@ -113,6 +121,7 @@ export default class User implements UserType {
       'token_version',
       'display_name',
       'avatar',
+      'is_new_user',
       'meta',
     ]);
 
@@ -292,6 +301,7 @@ export default class User implements UserType {
         `${MetaTable.USERS}.updated_at`,
         `${MetaTable.USERS}.roles`,
         `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.is_new_user`,
         `${MetaTable.USERS}.meta`,
       )
       .select(

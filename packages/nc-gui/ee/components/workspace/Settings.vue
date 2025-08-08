@@ -14,13 +14,15 @@ const { orgId } = useOrganization()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { showUpgradeToUploadWsImage } = useEeConfig()
+const { isPaymentEnabled, activeSubscription, showUpgradeToUploadWsImage } = useEeConfig()
 
 const router = useRouter()
 
 const { isUIAllowed } = useRoles()
 
 const { user } = useGlobal()
+
+const { t } = useI18n()
 
 const leavedWsUserId = ref('')
 
@@ -187,8 +189,71 @@ const handleLeaveWorkspace = () => {
   })
 }
 
+const showCancelSubscriptionModal = () => {
+  const isOpen = ref(true)
+
+  const slots = ref({
+    content: () => [
+      h('div', {}, [
+        h('span', {}, `${t('title.cancelSubscriptionBeforeDeletingWorkspaceSubtext')} `),
+        h(
+          'a',
+          {
+            href: 'https://nocodb.com/docs/product-docs/workspaces/billing#change-payment-method',
+            target: '_blank',
+          },
+          `${t('msg.learnMore')}`,
+        ),
+      ]),
+    ],
+  })
+
+  const { close } = useDialog(
+    resolveComponent('NcModalConfirm'),
+    {
+      'visible': isOpen,
+      'title': t('title.cancelSubscriptionBeforeDeletingWorkspace'),
+      'okText': t('activity.navigateToBilling'),
+      'cancelText': t('labels.cancel'),
+      'onCancel': closeDialog,
+      'onOk': async () => {
+        navigateTo(`/${currentWorkspace.value?.id}/settings?tab=billing&autoScroll=plan`)
+
+        closeDialog()
+      },
+      'update:visible': closeDialog,
+      'showIcon': false,
+      'maskClosable': true,
+    },
+    { slots },
+  )
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
+const hasActiveSubscription = computed(() => {
+  return !currentWorkspace.value?.fk_org_id && isPaymentEnabled.value && activeSubscription.value
+})
+
+const shouldShowCancelSubscriptionModal = computed(() => {
+  return hasActiveSubscription.value && !activeSubscription.value.canceled_at
+})
+
+const isWorkspaceMarkedForSubscriptionCancellation = computed(() => {
+  return hasActiveSubscription.value && activeSubscription.value.canceled_at
+})
+
 const handleDelete = () => {
   if (!currentWorkspace.value || !currentWorkspace.value.title) return
+
+  // If the workspace has active subscription, then ask user to cancel the subscription first
+  if (shouldShowCancelSubscriptionModal.value) {
+    return showCancelSubscriptionModal()
+  }
+
   toBeDeletedWorkspaceTitle.value = currentWorkspace.value.title
   isDeleteModalVisible.value = true
 
@@ -389,7 +454,22 @@ const onCancel = () => {
   >
     <div class="flex flex-col items-center justify-center h-full !p-6">
       <div class="text-lg font-semibold self-start mb-5">Delete Workspace</div>
-      <span class="self-start mb-2">
+
+      <div v-if="isWorkspaceMarkedForSubscriptionCancellation" class="text-nc-content-gray-subtle">
+        <p>
+          This workspace is marked for subscription cancellation and will remain on your current plan ({{
+            $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title}`)
+          }}) until the end of the subscription period.
+        </p>
+
+        <p>
+          The subscription is not transferable, and there will be no refund. If you proceed with deleting this workspace now, you
+          will lose access to it immediately and permanently.
+        </p>
+
+        <p>By continuing with deletion, you acknowledge and agree to these terms.</p>
+      </div>
+      <span class="self-start mb-2 text-nc-content-gray-subtle">
         Enter workspace name to delete - <b class="select-none"> ‘{{ toBeDeletedWorkspaceTitle }}’ </b>
       </span>
       <a-form class="w-full h-full" no-style :model="form" @finish="onDelete">

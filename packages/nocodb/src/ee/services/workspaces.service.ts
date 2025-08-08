@@ -608,7 +608,8 @@ export class WorkspacesService implements OnApplicationBootstrap {
       ncMeta,
     );
 
-    if (subscription) {
+    // If subscription is active and not canceled, then do not allow deletion
+    if (subscription && !subscription.canceled_at) {
       NcError.badRequest(
         'Workspace cannot be deleted as it has an active subscription',
       );

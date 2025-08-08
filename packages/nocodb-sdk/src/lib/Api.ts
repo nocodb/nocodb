@@ -4157,6 +4157,7 @@ export interface UserType {
   location?: string;
   website?: string;
   avatar?: string;
+  is_new_user?: boolean;
   /** Access token version */
   token_version?: string;
   /** Meta data for user */

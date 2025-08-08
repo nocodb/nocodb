@@ -899,7 +899,9 @@
     "privateBaseAlertDescription": "Эта база доступна только по приглашениям - только приглашенные участники этой базы могут получить к ней доступ и взаимодействовать с ней. Любой владелец базы может приглашать других",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
-    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions"
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
+    "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1753,7 +1755,8 @@
     "revertToDefault": "Revert to Default",
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
-    "confirmReset": "Confirm reset"
+    "confirmReset": "Confirm reset",
+    "navigateToBilling": "Navigate to billing"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

@@ -242,7 +242,7 @@ const onExcludeView = (view: any) => {
 
 const finalSchema = computed(() => {
   const schema = {
-    title: predictedSchema.value.title,
+    title: props.initialValue?.baseName || predictedSchema.value.title,
     tables: predictedSchema.value.tables.filter((table: any) => !table.excluded),
     relationships: predictedSchema.value.relationships.filter((relationship: { from: string; to: string }) => {
       const fromTable = predictedSchema.value.tables.find((table: { title: string }) => table.title === relationship.from)

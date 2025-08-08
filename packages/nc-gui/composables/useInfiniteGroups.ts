@@ -383,8 +383,7 @@ export const useInfiniteGroups = (
       } else if (curr.column_uidt === UITypes.Checkbox) {
         acc.push({
           fk_column_id: curr.column_id,
-          comparison_op: 'is',
-          value: curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked',
+          comparison_op: curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked',
         })
       } else if (
         [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(curr.column_uidt as UITypes)

@@ -5,7 +5,7 @@ import {
   isAIPromptCol,
   isLinksOrLTAR,
   isOrderCol,
-  isReadonly,
+  isReadonlyVirtualColumn,
   isSystemColumn,
   isVirtualCol,
 } from 'nocodb-sdk'
@@ -1127,7 +1127,7 @@ export function useCanvasTable({
         }
 
         // skip readonly columns
-        if (isReadonly(colObj)) continue
+        if (isReadonlyVirtualColumn(colObj)) continue
 
         if (colObj.readonly) continue
 

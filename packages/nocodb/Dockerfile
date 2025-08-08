@@ -68,16 +68,30 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
     NC_DOCKER=0.6 \
     NC_TOOL_DIR=/usr/app/data/ \
     NODE_ENV=production \
-    PORT=8080
+    PORT=8080 \
+    HOME=/tmp
 
-# Install additional runtime dependencies
-RUN apt-get update && apt-get install -y \
-    dumb-init \
-    curl \
-    wget \
-    && curl -L "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_$(dpkg --print-architecture)" -o /usr/local/bin/dasel \
-    && chmod +x /usr/local/bin/dasel \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Create non-root user
+RUN groupadd -g 1001 nocodb && \
+   useradd -r -u 1001 -g nocodb nocodb
+
+# Install runtime dependencies
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
+  ca-certificates `# required by wget for HTTPS support` \
+  curl \
+  dumb-init \
+  fontconfig \
+  fonts-dejavu-core \
+  fonts-liberation \
+  libreoffice \
+  wget `# for convenience of downstream users` \
+  && curl -L "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_$(dpkg --print-architecture)" -o /usr/local/bin/dasel \
+  && chmod +x /usr/local/bin/dasel \
+  && fc-cache -f -v \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Set proper permissions
+RUN chown -R nocodb:nocodb /usr/src/app
 
 # Copy litestream binary and config file
 COPY --link --from=lt-builder /usr/src/lt /usr/local/bin/litestream
@@ -87,9 +101,11 @@ COPY --link ./docker/litestream.yml /etc/litestream.yml
 COPY --link --from=builder /usr/src/app/ /usr/src/app/
 COPY --link --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 
+# Switch to non-root user
+USER nocodb
+
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-# Start Nocodb
+# Start NocoDB
 CMD ["/usr/src/appEntry/start.sh"]
-

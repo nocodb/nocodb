@@ -163,7 +163,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             console.error(e)
           }
         } else {
-          acc += `${acc.length ? '~and' : ''}(${curr.title},gb_eq,${curr.key})`
+          acc += `${acc.length ? '~and' : '@'}(${curr.title},gb_eq,"${curr.key}")`
         }
         return acc
       }, existing)

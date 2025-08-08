@@ -188,3 +188,13 @@ export const estimateTagWidth = ({
 
   return totalWidth
 }
+
+/**
+ * Remove query params from the URL
+ * @param keysToRemove - The keys to remove from the URL
+ */
+export const removeQueryParamsFromURL = (keysToRemove: string[]) => {
+  const url = new URL(window.location.href)
+  keysToRemove.forEach((key) => url.searchParams.delete(key))
+  window.history.replaceState({}, '', url.toString())
+}

@@ -113,7 +113,7 @@ export const useInfiniteGroups = (
     if (!groupCol || !view.value?.id || !base.value?.id) return
 
     try {
-      const nestedWhere = where.value
+      const nestedGrpWhereArr = buildNestedFilterArr(parentGroup) ?? []
 
       const response = isPublic.value
         ? await $api.public.dataGroupBy(
@@ -126,7 +126,7 @@ export const useInfiniteGroups = (
               column_name: groupCol.column.title,
               subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
               sortArrJson: JSON.stringify(sorts.value),
-              filterArrJson: JSON.stringify([...nestedFilters.value, ...buildNestedFilterArr(parentGroup) ]),
+              filterArrJson: JSON.stringify([...(nestedFilters.value ?? []), ...nestedGrpWhereArr]),
             },
             {
               headers: {
@@ -141,7 +141,7 @@ export const useInfiniteGroups = (
             sort: `${getSortParams(groupCol.sort)}${groupCol.column.title}` as any,
             column_name: groupCol.column.title,
             sortArrJson: JSON.stringify(sorts.value),
-            filterArrJson: JSON.stringify([...nestedFilters.value, ...buildNestedFilterArr(parentGroup) ]),
+            filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...nestedGrpWhereArr]),
             subGroupColumnName: groupByColumns.value[level + 1]?.column.title,
           })
 
@@ -369,7 +369,7 @@ export const useInfiniteGroups = (
     }, existing)
   }
 
-  function buildNestedFilterArr(group: CanvasGroup, existing: any[] = []): string {
+  function buildNestedFilterArr(group: CanvasGroup, existing: FilterType[] = []): FilterType[] {
     // Use nestedIn array instead of traversing parents
     if (!group?.nestedIn?.length) return existing
 
@@ -381,8 +381,6 @@ export const useInfiniteGroups = (
           comparison_op: 'gb_null',
         })
       } else if (curr.column_uidt === UITypes.Checkbox) {
-        // acc += `${acc.length ? '~and' : '@'}(${curr.title},${curr.key === GROUP_BY_VARS.TRUE ? 'checked' : 'notchecked'})`
-
         acc.push({
           fk_column_id: curr.column_id,
           comparison_op: 'is',
@@ -391,7 +389,6 @@ export const useInfiniteGroups = (
       } else if (
         [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(curr.column_uidt as UITypes)
       ) {
-        // acc += `${acc.length ? '~and' : '@'}(${curr.title},gb_eq,exactDate,"${sanitiseValue(curr.key)}")`
         acc.push({
           fk_column_id: curr.column_id,
           comparison_op: 'gb_eq',
@@ -401,9 +398,6 @@ export const useInfiniteGroups = (
       } else if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(curr.column_uidt as UITypes)) {
         try {
           const value = JSON.parse(curr.key)
-          // acc += `${acc.length ? '~and' : '@'}(${curr.title},gb_eq,"${sanitiseValue(
-          //   (Array.isArray(value) ? value : [value]).map((v: any) => v.id).join(','),
-          // )}")`
 
           acc.push({
             fk_column_id: curr.column_id,
@@ -414,14 +408,13 @@ export const useInfiniteGroups = (
           console.error(e)
         }
       } else {
-        // acc += `${acc.length ? '~and' : '@'}(${curr.title},gb_eq,"${sanitiseValue(curr.key)}")`
         acc.push({
           fk_column_id: curr.column_id,
           comparison_op: 'gb_eq',
           value: curr.key,
         })
       }
-      return acc
+      return acc ?? []
     }, existing)
   }
 
@@ -577,10 +570,7 @@ export const useInfiniteGroups = (
             {
               where: where?.value,
               column_name: groupCol.column.title,
-              filterArrJson: JSON.stringify([
-                ...(nestedFilters.value || []),
-                ...buildNestedFilterArr(group)
-              ]),
+              filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...groupFilterArr]),
             },
             {
               headers: {
@@ -645,7 +635,7 @@ export const useInfiniteGroups = (
       const aggregationParams = batchGroups.map((group) => ({
         where: where?.value,
         alias: aggregationAliasMapper.generateAlias(createGroupUniqueIdentifier(group)),
-        filterArrJson: JSON.stringify([...nestedFilters.value, ...buildNestedFilterArr(group)]),
+        filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...buildNestedFilterArr(group)]),
       }))
 
       try {

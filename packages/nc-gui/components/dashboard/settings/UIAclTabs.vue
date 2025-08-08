@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { storeToRefs } from 'pinia'
-
 const { base } = storeToRefs(useBase())
 </script>
 

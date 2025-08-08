@@ -274,7 +274,7 @@ export function useGridViewData(
           }
 
           if (!currentGroup.isExpanded || !currentGroup.groups) {
-            return ''
+            return []
           }
 
           parentGroup = currentGroup
@@ -288,7 +288,7 @@ export function useGridViewData(
         group = findGroupByPath(cachedGroups.value, path)
       } catch (error) {
         console.error(`Failed to load group for path ${path}:`, error)
-        return ''
+        return []
       }
     }
 

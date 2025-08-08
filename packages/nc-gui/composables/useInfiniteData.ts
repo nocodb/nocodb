@@ -2,6 +2,7 @@ import type { ComputedRef, Ref } from 'vue'
 import {
   type Api,
   type ColumnType,
+  type FilterType,
   type LinkToAnotherRecordType,
   NcApiVersion,
   type PaginatedType,

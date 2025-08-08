@@ -95,11 +95,11 @@ export const extractAiBaseCreateQueryParams = (query: any) => {
   const searchQuery = {} as Record<string, string>
 
   if (query?.basePrompt) {
-    searchQuery['basePrompt'] = query?.basePrompt as string
+    searchQuery.basePrompt = query?.basePrompt as string
   }
 
   if (query?.baseName) {
-    searchQuery['baseName'] = query?.baseName as string
+    searchQuery.baseName = query?.baseName as string
   }
 
   return searchQuery

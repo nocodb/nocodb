@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-definePageMeta({
-  requiresAuth: false,
-  public: true,
-})
+const props = defineProps({ error: Object })
+
+console.log('error', props)
 </script>
 
 <template>

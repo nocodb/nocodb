@@ -334,38 +334,47 @@ const [useProvideSyncStore, useSyncStore] = useInjectionState(
         return
       }
 
-      const { syncConfig, integration } = await $api.internal.postOperation(
-        wsId,
-        bsId,
-        {
-          operation: 'updateSync',
-        },
-        {
-          syncConfigId: editTab.value === 'sync-settings' ? syncConfigEditForm.value?.id : formState.value.syncConfigId,
-          ...(editTab.value === 'sync-settings' ? syncConfigEditForm.value : {}),
-          ...(editTab.value === 'integrations'
-            ? { syncConfigId: formState.value.syncConfigId ?? syncConfigEditForm.value?.id, config: formState.value }
-            : {}),
-        },
-      )
+      isLoading.value = true
 
-      if (integration && integrationConfigs.value[selectedIntegrationIndex.value]) {
-        formState.value.syncConfigId = syncConfig.id
-        formState.value.parentSyncConfigId = syncConfig.fk_parent_sync_config_id
+      try {
+        const { syncConfig, integration } = await $api.internal.postOperation(
+          wsId,
+          bsId,
+          {
+            operation: 'updateSync',
+          },
+          {
+            syncConfigId: editTab.value === 'sync-settings' ? syncConfigEditForm.value?.id : formState.value.syncConfigId,
+            ...(editTab.value === 'sync-settings' ? syncConfigEditForm.value : {}),
+            ...(editTab.value === 'integrations'
+              ? { syncConfigId: formState.value.syncConfigId ?? syncConfigEditForm.value?.id, config: formState.value }
+              : {}),
+          },
+        )
 
-        Object.assign(formState.value, integration)
-        Object.assign(integrationConfigs.value[selectedIntegrationIndex.value]!, formState.value)
+        if (integration && integrationConfigs.value[selectedIntegrationIndex.value]) {
+          formState.value.syncConfigId = syncConfig.id
+          formState.value.parentSyncConfigId = syncConfig.fk_parent_sync_config_id
+
+          Object.assign(formState.value, integration)
+          Object.assign(integrationConfigs.value[selectedIntegrationIndex.value]!, formState.value)
+        }
+
+        if (formState.value.syncConfigId === syncConfig.id) {
+          editModeSync.value = syncConfig
+        }
+
+        syncConfigEditFormChanged.value = false
+
+        editModeModified.value = false
+
+        await loadConfig(selectedIntegrationIndex.value)
+      } catch (error) {
+        message.error(`Something went wrong while updating sync!`)
+        console.error('Error updating sync:', error)
       }
 
-      if (formState.value.syncConfigId === syncConfig.id) {
-        editModeSync.value = syncConfig
-      }
-
-      syncConfigEditFormChanged.value = false
-
-      editModeModified.value = false
-
-      await loadConfig(selectedIntegrationIndex.value)
+      isLoading.value = false
     }
 
     const deleteSync = async (syncConfigId: string) => {

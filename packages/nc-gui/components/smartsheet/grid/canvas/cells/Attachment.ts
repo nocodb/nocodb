@@ -63,10 +63,6 @@ function isImage(title?: string, mimetype?: string) {
   return mimetype?.includes('image/') || title?.match(/\.(jpg|jpeg|png|gif|webp)$/i)
 }
 
-function isPdfFile(title?: string, mimetype?: string) {
-  return mimetype === 'application/pdf' || title?.toLowerCase().endsWith('.pdf')
-}
-
 function renderFallback(
   item: Attachment,
   {

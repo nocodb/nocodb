@@ -139,7 +139,13 @@ const onError = async () => {
         :height="iconHeight"
         :width="iconWidth"
       />
-      <component :is="FileIcon(attachment.icon)" v-else-if="attachment.icon" :height="iconHeight" :width="iconWidth" class="text-white" />
+      <component
+        :is="FileIcon(attachment.icon)"
+        v-else-if="attachment.icon"
+        :height="iconHeight"
+        :width="iconWidth"
+        class="text-white"
+      />
 
       <GeneralIcon v-else icon="ncFileTypeUnknown" :height="iconHeight" :width="iconWidth" class="text-white" />
     </div>

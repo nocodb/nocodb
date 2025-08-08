@@ -1,6 +1,10 @@
+<script setup lang="ts">
+defineProps<{ title?: string; subtitle?: string; containerClass?: string; actionButtonClass?: string }>()
+</script>
+
 <template>
   <div class="nc-h-screen grid place-items-center text-center">
-    <div class="flex flex-col items-center gap-6">
+    <div class="flex flex-col items-center gap-6" :class="containerClass">
       <slot name="icon">
         <img width="48" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
       </slot>
@@ -10,8 +14,13 @@
           {{ $t('title.thisPageDoesNotExist') }}
         </slot>
       </div>
+      <div class="text-xl text-nc-content-gray-subtle">
+        <slot name="subtitle"> {{ $t('title.thisPageDoesNotExistSubtile') }} </slot>
+      </div>
 
-      <NcButton @click="navigateTo('/')">Go back home</NcButton>
+      <slot name="actions">
+        <NcButton @click="navigateTo('/')" :class="actionButtonClass">{{ $t('activity.goBackHome') }}</NcButton>
+      </slot>
     </div>
   </div>
 </template>

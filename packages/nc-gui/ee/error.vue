@@ -3,7 +3,7 @@ withDefaults(defineProps<{ error: Record<string, any> }>(), { error: () => ({}) 
 </script>
 
 <template>
-  <GeneralPageDoesNotExist>
+  <GeneralPageDoesNotExist action-button-class="mt-2">
     <template #title>
       {{
         error.statusCode !== 404 ? '404 - Page Not Found' : error.statusMessage ?? error.message ?? `Error ${error.statusCode}`

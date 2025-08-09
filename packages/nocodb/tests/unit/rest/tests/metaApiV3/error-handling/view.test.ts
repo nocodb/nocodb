@@ -120,6 +120,55 @@ export default function () {
           'Missing view `title` property in request body',
         );
       });
+      it(`will handle duplicate name`, async () => {
+        const response1 = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'MyView',
+            type: 'grid',
+          });
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'MyView',
+            type: 'grid',
+          });
+        expect(response.status).to.eq(400);
+        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(response.body.message).to.eq(
+          `View title 'MyView' already exists`,
+        );
+        const response2 = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'MyView32',
+            type: 'grid',
+          });
+        expect(response2.status).to.eq(200);
+        const updateResponse1 = await request(context.app)
+          .patch(`${API_PREFIX}/views/${response2.body.id}`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'MyView32',
+            type: 'grid',
+          });
+        expect(updateResponse1.status).to.eq(200);
+        const updateResponse = await request(context.app)
+          .patch(`${API_PREFIX}/views/${response2.body.id}`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'MyView',
+            type: 'grid',
+          });
+        expect(updateResponse.status).to.eq(400);
+        expect(updateResponse.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(updateResponse.body.message).to.eq(
+          `View title 'MyView' already exists`,
+        );
+      });
       it(`will handle empty type`, async () => {
         const response = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/views`)

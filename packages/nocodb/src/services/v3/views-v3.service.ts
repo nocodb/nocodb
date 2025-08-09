@@ -591,6 +591,16 @@ export class ViewsV3Service {
         'Missing view `title` property in request body',
       );
     }
+    const existingViewTitle = await View.getByTitleOrId(
+      context,
+      { fk_model_id: tableId, titleOrId: body.title },
+      ncMeta,
+    );
+    if (existingViewTitle) {
+      NcError.get(context).invalidRequestBody(
+        `View title '${body.title}' already exists`,
+      );
+    }
 
     const viewTypeCode =
       viewTypeMap[(body.type as any as string).toLowerCase()];
@@ -1073,6 +1083,17 @@ export class ViewsV3Service {
       NcError.get(context).invalidRequestBody(
         'Missing view `title` property in request body',
       );
+    } else if ('title' in body && body.title !== existingView.title) {
+      const existingViewTitle = await View.getByTitleOrId(
+        context,
+        { fk_model_id: existingView.fk_model_id, titleOrId: body.title },
+        ncMeta,
+      );
+      if (existingViewTitle) {
+        NcError.get(context).invalidRequestBody(
+          `View title '${body.title}' already exists`,
+        );
+      }
     }
 
     const viewTypeCode = existingView.type;

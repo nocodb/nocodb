@@ -114,10 +114,14 @@ const viewImage = computed(() => {
 const nextQuestionViewImage = computed(() => {
   return nextQuestionRightSectionInfo.value ? getViewImage(nextQuestionRightSectionInfo.value.imageName) : undefined
 })
+
+defineExpose({
+  bgColorClass,
+})
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center h-full relative" :class="[bgColorClass]">
+  <div class="flex flex-col items-center justify-center h-full relative overflow-hidden" :class="[bgColorClass]">
     <div class="nc-view-image-box" :style="{ backgroundImage: `url(${viewImage})` }"></div>
     <div class="nc-view-image-box nc-moscot-image-box">
       <div class="h-full w-full relative">

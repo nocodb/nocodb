@@ -947,8 +947,6 @@ export const useOnboardingFlow = createSharedComposable(() => {
   watch(
     () => user.value?.is_new_user,
     (isNewUser) => {
-      console.log('isNewUser', isNewUser, isEnabledOnboardingFlow.value)
-
       if (!isNewUser || !isEnabledOnboardingFlow.value) {
         if (showOnboardingFlowLocalState.value) {
           resetOnboardingFlow()
@@ -972,9 +970,6 @@ export const useOnboardingFlow = createSharedComposable(() => {
           continueAfterOnboardingFlow,
         },
       })
-
-      // Todo: @rameshmane7218 remove later
-      console.log('new user', isNewUser, user.value, route.value, localStorage.getItem('continueAfterSignIn'))
     },
     {
       immediate: true,

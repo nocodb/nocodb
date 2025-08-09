@@ -404,6 +404,7 @@ export class ViewsV3Service {
       'swagger-v3.json#/components/schemas/ViewCreate',
       body,
       true,
+      context,
     );
     if (body.options) {
       const optionsSchemaName =
@@ -412,6 +413,7 @@ export class ViewsV3Service {
         `swagger-v3.json#/components/schemas/${optionsSchemaName}`,
         body.options,
         true,
+        context,
       );
     }
 
@@ -575,6 +577,7 @@ export class ViewsV3Service {
       'swagger-v3.json#/components/schemas/ViewUpdate',
       body,
       true,
+      context,
     );
 
     const existingView = await View.get(context, viewId, ncMeta);
@@ -589,6 +592,7 @@ export class ViewsV3Service {
         `swagger-v3.json#/components/schemas/${optionsSchemaName}`,
         body.options,
         true,
+        context,
       );
     }
 

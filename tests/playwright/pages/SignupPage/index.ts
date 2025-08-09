@@ -54,9 +54,11 @@ export class SignupPage extends BasePage {
       await this.rootPage.waitForLoadState('networkidle');
 
       if (skipOnboardingFlow) {
-        await this.onboardingFlowPage.skipOnboardingFlow();
+        // Singup flow has to be visible after signup so we have to make `ifAvailable = false` so that it doesn't check for onboarding flow visibility
+        await this.onboardingFlowPage.skipOnboardingFlow({ ifAvailable: false });
       } else {
-        await this.onboardingFlowPage.completeOnboardingFlow();
+        // Singup flow has to be visible after signup so we have to make `ifAvailable = false` so that it doesn't check for onboarding flow visibility
+        await this.onboardingFlowPage.completeOnboardingFlow({ ifAvailable: false });
       }
     }
   }

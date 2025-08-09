@@ -926,10 +926,17 @@ export const useOnboardingFlow = createSharedComposable(() => {
     $e('a:auth:onboarding-flow', data)
   }
 
+  const resetOnboardingFlow = () => {
+    showOnboardingFlowLocalState.value = false
+    formState.value = {}
+    stepper.index.value = 0
+    startedAt.value = undefined
+  }
+
   const onCompleteOnboardingFlow = async (skipped: boolean = false) => {
     postCompleteOnboardingFlow(skipped)
 
-    showOnboardingFlowLocalState.value = false
+    resetOnboardingFlow()
 
     if (route.value.query?.continueAfterOnboardingFlow) {
       await navigateTo(route.value.query.continueAfterOnboardingFlow as string)

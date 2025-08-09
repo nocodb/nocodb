@@ -137,6 +137,7 @@ export const useRolesShared = createSharedComposable(() => {
         base_roles: res.base_roles,
         display_name: res.display_name,
         meta: res.meta,
+        is_new_user: res.is_new_user,
       } as User
     }
   }

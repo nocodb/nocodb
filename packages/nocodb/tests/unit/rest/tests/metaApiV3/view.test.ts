@@ -91,7 +91,7 @@ export default function () {
             type: 'GRID',
             sorts: [
               {
-                field_id: (
+                fieldId: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -106,7 +106,7 @@ export default function () {
             name: 'MyView32',
             sorts: [
               {
-                field_id: (
+                fieldId: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -128,14 +128,14 @@ export default function () {
             options: {
               groups: [
                 {
-                  field: titleColumn.id,
+                  fieldId: titleColumn.id,
                   direction: 'asc',
                 },
               ],
             },
             sorts: [
               {
-                field_id: titleColumn.id,
+                fieldId: titleColumn.id,
               },
             ],
           });
@@ -163,14 +163,14 @@ export default function () {
             options: {
               groups: [
                 {
-                  field: titleColumn.id,
+                  fieldId: titleColumn.id,
                   direction: 'asc',
                 },
               ],
             },
             sorts: [
               {
-                field_id: titleColumn.id,
+                fieldId: titleColumn.id,
               },
             ],
           });
@@ -195,7 +195,7 @@ export default function () {
             },
             sorts: [
               {
-                field_id: (
+                fieldId: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -222,7 +222,7 @@ export default function () {
             },
             sorts: [
               {
-                field_id: (
+                fieldId: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -245,7 +245,7 @@ export default function () {
             },
             sorts: [
               {
-                field_id: (
+                fieldId: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -266,7 +266,7 @@ export default function () {
             },
             sorts: [
               {
-                field_id: (
+                fieldId: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },

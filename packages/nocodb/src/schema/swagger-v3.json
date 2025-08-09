@@ -1983,12 +1983,12 @@
                       "list": [
                         {
                           "id": "so3o7c6po0tktghc",
-                          "field_id": "c580jyan91qwrbx",
+                          "fieldId": "c580jyan91qwrbx",
                           "order": "asc"
                         },
                         {
                           "id": "so1n4x4w7dou8p0v",
-                          "field_id": "caymvuj3az60wyk",
+                          "fieldId": "caymvuj3az60wyk",
                           "order": "desc"
                         }
                       ]
@@ -2043,7 +2043,7 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "field_id": "c580jyan91qwrbx",
+                    "fieldId": "c580jyan91qwrbx",
                     "order": "asc"
                   }
                 }
@@ -4764,7 +4764,7 @@
             "description": "Unique identifier for the sort.",
             "readOnly": true
           },
-          "field_id": {
+          "fieldId": {
             "type": "string",
             "format": "uuid",
             "description": "Identifier for the field being sorted."
@@ -4780,14 +4780,14 @@
         },
         "required": [
           "id",
-          "field_id",
+          "fieldId",
           "direction"
         ]
       },
       "SortCreate": {
         "type": "object",
         "properties": {
-          "field_id": {
+          "fieldId": {
             "type": "string",
             "description": "Identifier for the field being sorted."
           },
@@ -4801,7 +4801,7 @@
           }
         },
         "required": [
-          "field_id"
+          "fieldId"
         ]
       },
       "SortUpdate": {
@@ -4811,7 +4811,7 @@
             "type": "string",
             "description": "Unique identifier for the sort."
           },
-          "field_id": {
+          "fieldId": {
             "type": "string",
             "format": "uuid",
             "description": "Identifier for the field being sorted."
@@ -5101,7 +5101,9 @@
             "items": {
               "type": "object",
               "properties": {
-                "field": "string",
+                "fieldId": {
+                  "type": "string"
+                },
                 "direction": {
                   "type": "string",
                   "enum": [
@@ -5111,7 +5113,7 @@
                 }
               },
               "required": [
-                "field"
+                "fieldId"
               ]
             }
           }
@@ -5123,10 +5125,14 @@
           "stackBy": {
             "type": "object",
             "properties": {
-              "fieldId": "string"
+              "fieldId": {
+                "type": "string"
+              }
             }
           },
-          "coverFieldId": "string"
+          "coverFieldId": {
+            "type": "string"
+          }
         },
         "required": [
           "stackBy"
@@ -5140,8 +5146,12 @@
             "items": {
               "type": "object",
               "properties": {
-                "startDateFieldId": "string",
-                "endDateFieldId": "string"
+                "startDateFieldId": {
+                  "type": "string"
+                },
+                "endDateFieldId": {
+                  "type": "string"
+                }
               },
               "required": [
                 "startDateFieldId"
@@ -5156,7 +5166,9 @@
       "ViewOptionsGallery": {
         "type": "object",
         "properties": {
-          "coverFieldId": "string"
+          "coverFieldId": {
+            "type": "string"
+          }
         }
       },
       "ViewOptionsForm": {

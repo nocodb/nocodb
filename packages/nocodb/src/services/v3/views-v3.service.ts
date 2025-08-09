@@ -362,8 +362,8 @@ export class ViewsV3Service {
                 ((c2 as GridViewColumn).group_by_order || Infinity),
             )
             .map((c) => ({
-              field_id: c.fk_column_id,
-              sort: (c as GridViewColumn).group_by_sort,
+              fieldId: c.fk_column_id,
+              direction: (c as GridViewColumn).group_by_sort,
             }));
           formattedView.options = formattedView.options ?? {};
           formattedView.options.groups = group;
@@ -471,7 +471,7 @@ export class ViewsV3Service {
                     group_by_sort: group.direction,
                   },
                   gridViewColumnId: gridColumns.find(
-                    (col) => col.fk_column_id === group.field,
+                    (col) => col.fk_column_id === group.fieldId,
                   ).id,
                   req,
                 },
@@ -659,7 +659,7 @@ export class ViewsV3Service {
                       group_by_sort: group.direction,
                     },
                     gridViewColumnId: gridColumns.find(
-                      (col) => col.fk_column_id === group.field,
+                      (col) => col.fk_column_id === group.fieldId,
                     ).id,
                     req,
                   },

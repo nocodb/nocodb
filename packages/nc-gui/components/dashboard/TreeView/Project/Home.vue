@@ -284,6 +284,7 @@ const hasTableCreatePermission = computed(() => {
               class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden !w-full !px-3"
               :class="isVisibleCreateNew ? 'active' : ''"
               icon-position="right"
+              data-testid="nc-home-create-new-btn"
             >
               <template #icon>
                 <GeneralIcon icon="chevronDown" class="flex-none" />

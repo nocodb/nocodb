@@ -66,6 +66,7 @@ export class SidebarProjectNodeObject extends BasePage {
     settingsVisible,
     deleteVisible,
     copyProjectInfoVisible,
+    clickBaseTitle = true,
   }: {
     baseTitle: string;
     renameVisible?: boolean;
@@ -77,6 +78,7 @@ export class SidebarProjectNodeObject extends BasePage {
     settingsVisible?: boolean;
     deleteVisible?: boolean;
     copyProjectInfoVisible?: boolean;
+    clickBaseTitle?: boolean;
   }) {
     await this.get({
       baseTitle,
@@ -151,8 +153,12 @@ export class SidebarProjectNodeObject extends BasePage {
     if (copyProjectInfoVisible) await expect(copyProjectInfoLocator).toBeVisible();
     else await expect(copyProjectInfoLocator).toHaveCount(0);
 
-    await this.get({
-      baseTitle,
-    }).click();
+    if (clickBaseTitle) {
+      await this.get({
+        baseTitle,
+      }).click();
+    } else {
+      await this.clickOptions({ baseTitle });
+    }
   }
 }

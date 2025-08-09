@@ -169,7 +169,9 @@ export class WorkspacePage extends BasePage {
       expect(await settings.isVisible()).toBeTruthy();
     } else {
       expect(await billing.isVisible()).toBeFalsy();
-      expect(await settings.isVisible()).toBeFalsy();
+
+      // Settings tab is visible for all users in the workspace
+      expect(await settings.isVisible()).toBeTruthy();
     }
 
     await this.rootPage.waitForTimeout(1000);

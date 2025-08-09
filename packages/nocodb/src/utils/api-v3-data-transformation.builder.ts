@@ -802,7 +802,7 @@ export const viewColumnBuilder = builderGenerator<
     'required',
   ],
   mappings: {
-    fk_column_id: 'fieldId',
+    fk_column_id: 'field_id',
   },
   excludeNullProps: true,
   booleanProps: ['show', 'required'],

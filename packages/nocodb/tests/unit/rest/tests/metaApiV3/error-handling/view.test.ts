@@ -107,7 +107,7 @@ export default function () {
             name: 'MyView',
             sorts: [
               {
-                fieldId: (
+                field_id: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -122,10 +122,10 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             name: 'MyView',
-            type: 'NOGRID',
+            type: 'nogrid',
             sorts: [
               {
-                fieldId: (
+                field_id: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -141,10 +141,10 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             name: 'MyView',
-            type: 'GRID',
+            type: 'grid',
             sorts: [
               {
-                fieldIds: (
+                field_ids: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -160,10 +160,10 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             name: 'MyView',
-            type: 'GRID',
+            type: 'grid',
             sorts: [
               {
-                fieldId: (
+                field_id: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -179,11 +179,11 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             name: 'MyView',
-            type: 'GRID',
+            type: 'grid',
             options: {
               groups: [
                 {
-                  fieldIds: 'asdmalmkdm',
+                  field_ids: 'asdmalmkdm',
                 },
               ],
             },
@@ -198,11 +198,11 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             name: 'MyView',
-            type: 'GRID',
+            type: 'grid',
             options: {
               groups: [
                 {
-                  fieldId: 'NOT_EXISTS',
+                  field_id: 'NOT_EXISTS',
                 },
               ],
             },
@@ -217,7 +217,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             name: 'MyView',
-            type: 'GRID',
+            type: 'grid',
           });
         expect(response.status).to.eq(422);
         expect(response.body.error).to.eq('VIEW_NOT_FOUND');

@@ -5,6 +5,7 @@ import {
   LongTextAiMetaProp,
   ratingIconList,
   UITypes,
+  VIEW_GRID_DEFAULT_WIDTH,
 } from 'nocodb-sdk';
 import type {
   ColumnType,
@@ -807,10 +808,12 @@ export const viewColumnBuilder = builderGenerator<
   excludeNullProps: true,
   booleanProps: ['show', 'required'],
   transformFn: (formattedData) => {
-    if (
+    if (formattedData.width === VIEW_GRID_DEFAULT_WIDTH + 'px') {
+      formattedData.width = undefined;
+    } else if (
       formattedData.width &&
       typeof formattedData.width === 'string' &&
-      formattedData.width != ''
+      formattedData.width !== ''
     ) {
       const numberStrWidth = formattedData.width.replace('px', '').trim();
       const numberWidth = Number(numberStrWidth);

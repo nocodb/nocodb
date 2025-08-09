@@ -129,6 +129,7 @@ import {
 import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
+import { supportsThumbnails } from '~/utils/attachmentUtils';
 
 dayjs.extend(utc);
 
@@ -5604,7 +5605,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       }),
                     );
 
-                    if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
+                    if (!supportsThumbnails(lookedUpAttachment)) {
                       continue;
                     }
 
@@ -5646,7 +5647,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       }),
                     );
 
-                    if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
+                    if (!supportsThumbnails(lookedUpAttachment)) {
                       continue;
                     }
 
@@ -5687,7 +5688,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     }),
                   );
 
-                  if (!attachment.mimetype?.startsWith('image/')) {
+                  if (!supportsThumbnails(attachment)) {
                     continue;
                   }
 

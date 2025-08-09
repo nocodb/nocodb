@@ -419,6 +419,7 @@ function columnTypeSpecificTests() {
           email: context.user.email,
           display_name: context.user.display_name,
           meta: context.user.meta,
+          deleted: context.user.deleted,
         });
 
         expect(columns.columns[defaultTableColumns.length + 1].title).to.equal(

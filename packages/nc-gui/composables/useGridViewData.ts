@@ -102,6 +102,7 @@ export function useGridViewData(
     callbacks: {
       syncVisibleData,
       getCount,
+      getWhereFilter: async (_path?: Array<number>) => where?.value ?? '',
       getWhereFilterArr: getGroupFilterArr,
       reloadAggregate: triggerAggregateReload,
       findGroupByPath: (path?: Array<number>) => {

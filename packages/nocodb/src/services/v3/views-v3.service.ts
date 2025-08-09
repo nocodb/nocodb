@@ -11,7 +11,7 @@ import type { ApiV3DataTransformationBuilder } from 'src/utils/data-transformati
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { GridViewColumn } from '~/models';
 import Noco from '~/Noco';
-import { View } from '~/models';
+import { Sort, View } from '~/models';
 import {
   builderGenerator,
   viewColumnBuilder,
@@ -108,7 +108,7 @@ export class ViewsV3Service {
     this.viewBuilder = builderGenerator({
       allowed: [
         'id',
-        'view_name',
+        'title',
         'view_type',
         'lock_type',
         'description',
@@ -123,7 +123,9 @@ export class ViewsV3Service {
         'view',
         'type',
       ],
-      mappings: {},
+      mappings: {
+        title: 'name',
+      },
       transformFn: (viewData) => {
         const formattedData = viewData;
         formattedData.view_type = viewTypeAlias[formattedData.view_type];
@@ -315,7 +317,6 @@ export class ViewsV3Service {
 
   async getView(context: NcContext, param: { viewId: string; req: NcRequest }) {
     const view = await View.get(context, param.viewId);
-
     // todo: check for GUI permissions, since we are handling at ui level we can ignore for now
 
     if (!view) {
@@ -362,7 +363,8 @@ export class ViewsV3Service {
               field_id: c.fk_column_id,
               sort: (c as GridViewColumn).group_by_sort,
             }));
-          formattedView.group = group;
+          formattedView.options = formattedView.options ?? {};
+          formattedView.options.groups = group;
         }
         break;
       case ViewTypes.GALLERY:
@@ -426,7 +428,7 @@ export class ViewsV3Service {
                 `options.groups maximal 3 fields`,
               );
             }
-            groups = requestBody.options;
+            groups = requestBody.options.groups;
           }
           insertedV2View = await this.gridsService.gridViewCreate(
             context,
@@ -438,6 +440,11 @@ export class ViewsV3Service {
             trxNcMeta,
           );
           if (groups && groups.length > 0) {
+            const gridColumns = await this.gridColumnsService.columnList(
+              context,
+              { gridViewId: insertedV2View.id },
+              trxNcMeta,
+            );
             let order = 1;
             for (const group of groups) {
               await this.gridColumnsService.gridColumnUpdate(
@@ -448,7 +455,9 @@ export class ViewsV3Service {
                     group_by_order: order++,
                     group_by_sort: group.direction,
                   },
-                  gridViewColumnId: group.field,
+                  gridViewColumnId: gridColumns.find(
+                    (col) => col.fk_column_id === group.field,
+                  ).id,
                   req,
                 },
                 trxNcMeta,
@@ -556,10 +565,12 @@ export class ViewsV3Service {
     //   true,
     // );
 
+    const existingView = await View.get(context, viewId, ncMeta);
+    if (!existingView) {
+      NcError.get(context).viewNotFound(viewId);
+    }
     let requestBody = this.v3Tov2ViewBuilders.view().build(body);
 
-    requestBody.type =
-      viewTypeMap[(requestBody.type as any as string).toUpperCase()];
     requestBody.options = requestBody.options ?? {};
     requestBody = {
       ...requestBody,
@@ -568,22 +579,28 @@ export class ViewsV3Service {
 
     const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
     try {
-      let insertedV2View: View;
-      switch (requestBody.type) {
+      await this.viewsService.viewUpdate(context, {
+        viewId,
+        view: requestBody,
+        user: context.user,
+        req,
+      });
+
+      switch (existingView.type) {
         case ViewTypes.GRID: {
           let groups: any[];
           if (
             requestBody.options.groups &&
-            requestBody.options.groups.length > 0
+            Array.isArray(requestBody.options.groups)
           ) {
             if (requestBody.options.groups.length > 3) {
               NcError.get(context).invalidRequestBody(
                 `options.groups maximal 3 fields`,
               );
             }
-            groups = requestBody.options;
+            groups = requestBody.options.groups;
           }
-          insertedV2View = await this.gridsService.gridViewUpdate(
+          await this.gridsService.gridViewUpdate(
             context,
             {
               grid: requestBody,
@@ -592,33 +609,42 @@ export class ViewsV3Service {
             },
             trxNcMeta,
           );
-          if (groups && groups.length > 0) {
+          if (groups && Array.isArray(groups)) {
             await this.gridColumnsService.gridColumnClearGroupBy(
               context,
               { viewId },
-              ncMeta,
+              trxNcMeta,
             );
-            let order = 1;
-            for (const group of groups) {
-              await this.gridColumnsService.gridColumnUpdate(
+            if (groups.length > 0) {
+              const gridColumns = await this.gridColumnsService.columnList(
                 context,
-                {
-                  grid: {
-                    group_by: true,
-                    group_by_order: order++,
-                    group_by_sort: group.direction,
-                  },
-                  gridViewColumnId: group.field,
-                  req,
-                },
+                { gridViewId: viewId },
                 trxNcMeta,
               );
+              let order = 1;
+              for (const group of groups) {
+                await this.gridColumnsService.gridColumnUpdate(
+                  context,
+                  {
+                    grid: {
+                      group_by: true,
+                      group_by_order: order++,
+                      group_by_sort: group.direction,
+                    },
+                    gridViewColumnId: gridColumns.find(
+                      (col) => col.fk_column_id === group.field,
+                    ).id,
+                    req,
+                  },
+                  trxNcMeta,
+                );
+              }
             }
           }
           break;
         }
         case ViewTypes.CALENDAR: {
-          insertedV2View = await this.calendarsService.calendarViewUpdate(
+          await this.calendarsService.calendarViewUpdate(
             context,
             {
               calendar: requestBody,
@@ -630,7 +656,7 @@ export class ViewsV3Service {
           break;
         }
         case ViewTypes.KANBAN: {
-          insertedV2View = await this.kanbansService.kanbanViewUpdate(
+          await this.kanbansService.kanbanViewUpdate(
             context,
             {
               kanbanViewId: viewId,
@@ -642,7 +668,7 @@ export class ViewsV3Service {
           break;
         }
         case ViewTypes.GALLERY: {
-          insertedV2View = await this.galleriesService.galleryViewUpdate(
+          await this.galleriesService.galleryViewUpdate(
             context,
             {
               galleryViewId: viewId,
@@ -654,7 +680,7 @@ export class ViewsV3Service {
           break;
         }
         case ViewTypes.FORM: {
-          insertedV2View = await this.formsService.formViewUpdate(
+          await this.formsService.formViewUpdate(
             context,
             {
               formViewId: viewId,
@@ -675,12 +701,12 @@ export class ViewsV3Service {
 
       // if sort is empty array, we clear sort
       if (requestBody.sorts && Array.isArray(requestBody.sorts)) {
-        await this.sortsV3Service.sortClear(context, { viewId }, ncMeta);
+        await Sort.deleteAll(context, viewId, trxNcMeta);
         for (const sort of requestBody.sorts) {
           await this.sortsV3Service.sortCreate(
             context,
             {
-              viewId: insertedV2View.id,
+              viewId,
               req,
               sort,
             },
@@ -692,7 +718,7 @@ export class ViewsV3Service {
       if (!ncMeta) {
         await trxNcMeta.commit();
       }
-      return this.getView(context, { viewId: insertedV2View.id, req });
+      return this.getView(context, { viewId, req });
     } catch (ex) {
       await trxNcMeta.rollback();
       throw ex;

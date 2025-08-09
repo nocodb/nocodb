@@ -81,8 +81,8 @@ export default function () {
       });
     });
 
-    describe('view create', () => {
-      it(`will create grid view`, async () => {
+    describe.only('view create + update', () => {
+      it(`will create + update grid view`, async () => {
         const response = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
@@ -98,6 +98,90 @@ export default function () {
             ],
           });
         expect(response.body.type).to.eq('GRID');
+
+        const updateResponse = await request(context.app)
+          .patch(`${API_PREFIX}/views/${response.body.id}`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView32',
+            sorts: [
+              {
+                field_id: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          });
+        expect(updateResponse.body.name).to.eq('MyView32');
+      });
+      it(`will create + update grid view with groups`, async () => {
+        const titleColumn = (await table.getColumns(ctx)).find(
+          (col) => col.title === 'Title',
+        );
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            type: 'GRID',
+            options: {
+              groups: [
+                {
+                  field: titleColumn.id,
+                  direction: 'asc',
+                },
+              ],
+            },
+            sorts: [
+              {
+                field_id: titleColumn.id,
+              },
+            ],
+          });
+        expect(response.body.type).to.eq('GRID');
+        expect(response.body.options.groups.length).to.greaterThan(0);
+
+        const updateResponse = await request(context.app)
+          .patch(`${API_PREFIX}/views/${response.body.id}`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView32',
+            options: {
+              groups: [],
+            },
+            sorts: [
+              {
+                field_id: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          });
+        expect(updateResponse.body.name).to.eq('MyView32');
+        expect((updateResponse.body.options.groups ?? []).length).to.eq(0);
+
+        const updateResponse2 = await request(context.app)
+          .patch(`${API_PREFIX}/views/${response.body.id}`)
+          .set('xc-token', context.xc_token)
+          .send({
+            options: {
+              groups: [
+                {
+                  field: titleColumn.id,
+                  direction: 'asc',
+                },
+              ],
+            },
+            sorts: [
+              {
+                field_id: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          });
+        expect(updateResponse2.body.name).to.eq('MyView32');
+        expect(updateResponse2.body.options.groups.length).to.greaterThan(0);
       });
       it(`will create kanban view`, async () => {
         const response = await request(context.app)

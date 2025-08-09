@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
-import { MetaTable } from 'src/cli';
 import type { GridColumnReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import { MetaTable } from '~/cli';
+import NocoCache from '~/cache/NocoCache';
+import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { Column, GridViewColumn, View } from '~/models';
@@ -14,8 +16,12 @@ import Noco from '~/Noco';
 export class GridColumnsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async columnList(context: NcContext, param: { gridViewId: string }) {
-    return await GridViewColumn.list(context, param.gridViewId);
+  async columnList(
+    context: NcContext,
+    param: { gridViewId: string },
+    ncMeta?: MetaService,
+  ) {
+    return await GridViewColumn.list(context, param.gridViewId, ncMeta);
   }
 
   async gridColumnUpdate(
@@ -53,7 +59,6 @@ export class GridColumnsService {
       param.grid,
       ncMeta,
     );
-
     this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {
       oldViewColumn: oldGridViewColumn,
       // todo: improve and move it to one place rather than repetition
@@ -93,7 +98,11 @@ export class GridColumnsService {
     if (context.workspace_id) {
       qb.andWhere('fk_workspace_id', '=', context.workspace_id);
     }
+
+    await NocoCache.deepDel(
+      `${CacheScope.GRID_VIEW_COLUMN}:${param.viewId}`,
+      CacheDelDirection.PARENT_TO_CHILD,
+    );
     return await qb;
-    // TODO: maybe clear cache?
   }
 }

@@ -140,7 +140,7 @@ export const UserFieldCellRenderer: CellRenderer = {
 
       if (enableBackground) {
         roundedRect(ctx, x, y + 6.5, circleSize, circleSize, circleRadius, {
-          backgroundColor: isDeleted ? '#BBBBBB' : bgColor,
+          backgroundColor: isDeleted ? themeV3Colors.gray[300] : bgColor,
         })
       }
 
@@ -169,6 +169,13 @@ export const UserFieldCellRenderer: CellRenderer = {
         })
         needsPlaceholder = false
       } else if (isDeleted) {
+        spriteLoader.renderIcon(ctx, {
+          icon: 'ncSlash',
+          size: iconSize,
+          x: x + 2.5,
+          y: y + 6 + (tagHeight - iconSize) / 2,
+          color: themeV3Colors.gray[500],
+        })
         needsPlaceholder = false
       } else if (initials) {
         renderSingleLineText(ctx, {
@@ -201,7 +208,7 @@ export const UserFieldCellRenderer: CellRenderer = {
         textAlign: 'left',
         verticalAlign: 'middle',
         fontFamily: '500 13px Inter',
-        fillStyle: '#0b1d05',
+        fillStyle: isDeleted ? themeV3Colors.gray[500] : '#0b1d05',
         height,
       })
 
@@ -244,11 +251,11 @@ export const UserFieldCellRenderer: CellRenderer = {
     width = width - padding * 2
     const meta = parseProp(column?.columnObj.meta)
     const isMultiple = meta?.is_multi ?? false
-    const users = getSelectedUsers(column?.extra?.optionsMap || {}, value)
+    const users = getSelectedUsers(column?.columnObj?.extra?.optionsMap || {}, value)
 
     if (!users.length) return
 
-    const boxes: (RenderRectangleProps & { display_name?: string; email: string })[] = []
+    const boxes: (RenderRectangleProps & { display_name?: string; email: string; deleted?: boolean })[] = []
     const ctx = defaultOffscreen2DContext
 
     let line = 1
@@ -279,6 +286,7 @@ export const UserFieldCellRenderer: CellRenderer = {
         height: tagHeight,
         display_name: user.display_name?.trim(),
         email: user.email,
+        deleted: user.deleted,
       })
 
       x = x + minTagWidth + tagSpacingX
@@ -297,7 +305,9 @@ export const UserFieldCellRenderer: CellRenderer = {
           h('div', { class: !hoveredBox.display_name ? 'hidden' : 'text-small' }, hoveredBox.display_name),
           h('div', { class: ` ${!hoveredBox.display_name ? 'text-small' : 'text-tiny text-gray-200'}` }, hoveredBox.email),
         ]),
-        h('div', { class: 'text-tiny text-gray-200' }, `Has ${getUserRole(hoveredBox.email)} role in base`),
+        hoveredBox.deleted
+          ? h('div', { class: 'text-tiny text-gray-200' }, `Removed`)
+          : h('div', { class: 'text-tiny text-gray-200' }, `Has ${getUserRole(hoveredBox.email)} role in base`),
       ]),
       mousePosition,
     })

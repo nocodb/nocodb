@@ -11,6 +11,7 @@ const props = withDefaults(
     disabled?: boolean
     iconBgColor?: string
     showPlaceholderIcon?: boolean
+    isDeleted?: boolean
   }>(),
   {
     user: () => ({}),
@@ -20,6 +21,7 @@ const props = withDefaults(
     disabled: false,
     iconBgColor: '#F4F4F5',
     showPlaceholderIcon: false,
+    isDeleted: false,
   },
 )
 
@@ -40,6 +42,13 @@ const userIcon = computed<{
   icon: any
   iconType: IconType | string
 }>(() => {
+  if (props.isDeleted) {
+    return {
+      icon: 'ncSlash',
+      iconType: IconType.ICON,
+    }
+  }
+
   if (!user.value.meta) {
     return {
       icon: '',
@@ -57,7 +66,7 @@ const userIcon = computed<{
 })
 
 const backgroundColor = computed(() => {
-  if (props.disabled) {
+  if (props.disabled || props.isDeleted) {
     return '#bbbbbb'
   }
 
@@ -90,7 +99,7 @@ const backgroundColor = computed(() => {
 })
 
 const usernameInitials = computed(() => {
-  if (props.disabled) {
+  if (props.disabled || props.isDeleted) {
     return ''
   }
 
@@ -180,6 +189,7 @@ const usernameInitials = computed(() => {
         'w-5 h-5': size === 'base',
         'w-12 h-12': size === 'large',
         'w-14 h-14': size === 'xlarge',
+        '!opacity-50': isDeleted,
       }"
     />
     <div

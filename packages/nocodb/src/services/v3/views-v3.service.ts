@@ -370,7 +370,8 @@ export class ViewsV3Service {
           field.validators = field.meta.validators;
           delete field.meta;
         }
-        return field;
+        field = JSON.parse(JSON.stringify(field));
+        return Object.keys(field).length > 0 ? field : undefined;
       },
     }) as any;
   }

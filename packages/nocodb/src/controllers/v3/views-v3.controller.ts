@@ -1,7 +1,9 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
+  Post,
   Query,
   Request,
   UseGuards,
@@ -46,6 +48,21 @@ export class ViewsV3Controller {
     const view = await this.viewsV3Service.getView(context, {
       viewId: viewId,
       req,
+    });
+    return view;
+  }
+
+  @Post(`${PREFIX_APIV3_METABASE}/tables/:tableId/views`)
+  @Acl('viewInsert')
+  async viewInsert(
+    @TenantContext() context: NcContext,
+    @Param('tableId') tableId: string,
+    @Body() body: any,
+    @Request() req,
+  ) {
+    const view = await this.viewsV3Service.create(context, {
+      req,
+      tableId,
     });
     return view;
   }

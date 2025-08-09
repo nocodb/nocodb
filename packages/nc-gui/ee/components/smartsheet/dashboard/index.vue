@@ -5,15 +5,23 @@ const route = useRoute()
 const dashboardStore = useDashboardStore()
 const widgetStore = useWidgetStore()
 
-const { selectedWidget } = storeToRefs(widgetStore)
+const { selectedWidget, widgets } = storeToRefs(widgetStore)
 const { activeDashboard, isEditingDashboard } = storeToRefs(dashboardStore)
 
 provide(IsDashboardInj, ref(true))
 
-watchEffect(() => {
+const isLoading = ref(true)
+
+watchEffect(async () => {
   const dashboardId = route.params.dashboardId as string
   if (dashboardId && activeDashboard.value?.id === dashboardId) {
-    widgetStore.loadWidgets({ dashboardId })
+    // Only show loading state if the widgets are not already loaded
+    // Else it would be a jarring ui, as the loading state would be shown for a split second
+    if (!widgets.value.has(dashboardId)) {
+      isLoading.value = true
+    }
+    await widgetStore.loadWidgets({ dashboardId })
+    isLoading.value = false
   }
 })
 </script>
@@ -27,8 +35,14 @@ watchEffect(() => {
     }"
     class="flex bg-nc-bg-gray-light flex-1"
   >
-    <div class="p-4 flex-1 h-full overflow-y-auto">
-      <SmartsheetDashboardGrid />
+    <div
+      class="p-4 flex-1 h-full overflow-y-auto"
+      :class="{
+        'flex items-center justify-center': isLoading,
+      }"
+    >
+      <GeneralLoader v-if="isLoading" size="xlarge" />
+      <SmartsheetDashboardGrid v-else />
     </div>
 
     <SmartsheetDashboardWidgetEditor v-if="selectedWidget" :key="selectedWidget?.id" />

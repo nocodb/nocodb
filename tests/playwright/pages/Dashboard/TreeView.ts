@@ -32,6 +32,8 @@ export class TreeViewPage extends BasePage {
   }
 
   private async openProjectContextMenu({ baseTitle }: { baseTitle: string }) {
+    await this.dashboard.leftSidebar.verifyBaseListOpen(true);
+
     await this.dashboard.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).hover();
 
     const baseTitleElement = this.dashboard.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`);
@@ -437,6 +439,9 @@ export class TreeViewPage extends BasePage {
     await this.rootPage.waitForTimeout(10000);
 
     await this.rootPage.locator('div.ant-modal-content').locator(`button.ant-btn:has-text("Go to Base")`).click();
+
+    // Wait for sidebar transition to complete
+    await this.rootPage.waitForTimeout(2000);
   }
 
   async openProjectSourceSettings(param: { title: string; context: NcContext }) {

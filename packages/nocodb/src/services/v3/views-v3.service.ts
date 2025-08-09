@@ -478,15 +478,19 @@ export class ViewsV3Service {
           break;
         }
         case ViewTypes.KANBAN: {
-          insertedV2View = await this.kanbansService.kanbanViewCreate(context, {
-            tableId,
-            kanban: {
-              ...requestBody,
-              ...this.v3Tov2ViewBuilders.kanban().build(requestBody.options),
+          insertedV2View = await this.kanbansService.kanbanViewCreate(
+            context,
+            {
+              tableId,
+              kanban: {
+                ...requestBody,
+                ...this.v3Tov2ViewBuilders.kanban().build(requestBody.options),
+              },
+              req: req,
+              user: context.user,
             },
-            req: req,
-            user: context.user,
-          });
+            trxNcMeta,
+          );
           break;
         }
         case ViewTypes.GALLERY: {
@@ -501,19 +505,24 @@ export class ViewsV3Service {
               req: req,
               user: context.user,
             },
+            trxNcMeta,
           );
           break;
         }
         case ViewTypes.FORM: {
-          insertedV2View = await this.formsService.formViewCreate(context, {
-            tableId,
-            body: {
-              ...requestBody,
-              ...this.v3Tov2ViewBuilders.form().build(requestBody.options),
+          insertedV2View = await this.formsService.formViewCreate(
+            context,
+            {
+              tableId,
+              body: {
+                ...requestBody,
+                ...this.v3Tov2ViewBuilders.form().build(requestBody.options),
+              },
+              req: req,
+              user: context.user,
             },
-            req: req,
-            user: context.user,
-          });
+            trxNcMeta,
+          );
           break;
         }
         default: {

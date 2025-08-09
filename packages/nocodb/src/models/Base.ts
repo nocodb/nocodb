@@ -6,6 +6,7 @@ import {
   BaseUser,
   CustomUrl,
   DataReflection,
+  FileReference,
   MCPToken,
   Source,
 } from '~/models';
@@ -330,6 +331,8 @@ export default class Base implements BaseType {
 
     await MCPToken.bulkDelete({ base_id: baseId }, ncMeta);
 
+    await FileReference.bulkDelete(context, { base_id: baseId }, ncMeta);
+
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
     });
@@ -506,6 +509,8 @@ export default class Base implements BaseType {
     cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
       logger.error('Failed to clean base schema cache for base');
     });
+
+    await FileReference.bulkDelete(context, { base_id: baseId }, ncMeta);
 
     return await ncMeta.metaDelete(
       context.workspace_id,

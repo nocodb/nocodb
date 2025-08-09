@@ -137,6 +137,9 @@ export const useRolesShared = createSharedComposable(() => {
         base_roles: res.base_roles,
         display_name: res.display_name,
         meta: res.meta,
+        /**
+         * Add `is_new_user` in user object only if it is dashboard
+         */
         is_new_user: res.is_new_user,
       } as User
     }

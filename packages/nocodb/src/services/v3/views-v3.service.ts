@@ -83,14 +83,18 @@ export class ViewsV3Service {
         },
         skipTransformFor: ['allowCSVDownload'],
       },
+      excludeEmptyObjectProps: true,
       transformFn: (viewData) => {
         const { view, ...formattedData } = viewData;
 
         formattedData.type = viewTypeAlias[formattedData.type];
 
         if (view) {
-          formattedData.options = this.viewOptionsBuilder().build(
-            formattedData.view,
+          // JSON stringify + parse again to remove all undefined child props
+          formattedData.options = JSON.parse(
+            JSON.stringify(
+              this.viewOptionsBuilder().build(formattedData.view) ?? {},
+            ),
           );
         }
 
@@ -104,6 +108,9 @@ export class ViewsV3Service {
           formattedData.meta = undefined;
         }
 
+        if (Object.keys(formattedData.options ?? {}).length === 0) {
+          formattedData.options = undefined;
+        }
         return formattedData;
       },
     });
@@ -129,14 +136,17 @@ export class ViewsV3Service {
       mappings: {
         title: 'name',
       },
+      excludeEmptyObjectProps: true,
       transformFn: (viewData) => {
-        const formattedData = viewData;
+        const { view, ...formattedData } = viewData;
         formattedData.view_type = viewTypeAlias[formattedData.view_type];
-        const options = this.viewOptionsBuilder().build(formattedData.view);
+        const options = JSON.parse(
+          JSON.stringify(this.viewOptionsBuilder().build(view)),
+        );
+
         if (Object.keys(options).length > 0) {
           formattedData.options = options;
         }
-        delete formattedData.view;
         return formattedData;
       },
     });
@@ -366,8 +376,10 @@ export class ViewsV3Service {
               fieldId: c.fk_column_id,
               direction: (c as GridViewColumn).group_by_sort,
             }));
-          formattedView.options = formattedView.options ?? {};
-          formattedView.options.groups = group;
+          if (group && group.length > 0) {
+            formattedView.options = formattedView.options ?? {};
+            formattedView.options.groups = group;
+          }
         }
         break;
       case ViewTypes.GALLERY:

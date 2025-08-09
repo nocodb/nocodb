@@ -19,11 +19,11 @@ const options = computed(() => {
 })
 
 const anyOptionHasIcon = computed(() => {
-  return options.value.some((option) => option.iconType || (!option.iconType && option.icon))
+  return options.value.some((option) => option.icons?.length)
 })
 
 const anyOptionHasBgColor = computed(() => {
-  return options.value.some((option) => option.iconColor)
+  return options.value.some((option) => option.icons?.some((icon) => icon.iconColor))
 })
 
 const isOptionSelected = (option: OnboardingOptionType) => {

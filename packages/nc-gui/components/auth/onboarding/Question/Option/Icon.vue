@@ -1,29 +1,28 @@
 <script lang="ts" setup>
 interface Props {
-  option: OnboardingOptionType
-  index: number
+  iconItem: OnboardingOptionIconType
+  optionIndex: number
   totalOptions: number
   iconSize?: OnboardingQuestionType['iconSize']
 }
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const { option, iconSize } = toRefs(props)
+const { iconItem, optionIndex, totalOptions, iconSize } = toRefs(props)
 
 const showIconMapIcon = computed(() => {
-  return (!option.value.iconType || option.value.iconType === 'iconMap') && option.value.icon
+  return (!iconItem.value.iconType || iconItem.value.iconType === 'iconMap') && iconItem.value.icon
 })
 
 const shouldShowIcon = computed(() => {
-  return option.value.iconType || (!option.value.iconType && option.value.icon) || option.value.icons?.length
+  return iconItem.value.iconType || (!iconItem.value.iconType && iconItem.value.icon)
 })
 
-const iconColor = computed(() => {
-  return option.value.iconColor ? onboardingFlowColoursMapping[option.value.iconColor]?.content ?? '' : ''
-})
-
-const bgColorClass = computed(() => {
-  return option.value.iconColor ? onboardingFlowColoursMapping[option.value.iconColor]?.lightBg ?? '' : ''
+const iconColors = computed(() => {
+  return {
+    textColorClass: iconItem.value.iconColor ? onboardingFlowColoursMapping[iconItem.value.iconColor]?.content ?? '' : '',
+    bgColorClass: iconItem.value.iconColor ? onboardingFlowColoursMapping[iconItem.value.iconColor]?.lightBg ?? '' : '',
+  }
 })
 </script>
 
@@ -33,9 +32,9 @@ const bgColorClass = computed(() => {
       v-if="showIconMapIcon"
       class="flex items-center justify-center"
       :class="[
-        bgColorClass,
+        iconColors.bgColorClass,
         {
-          'rounded-l-lg': bgColorClass,
+          'rounded-l-lg': iconColors.bgColorClass,
         },
       ]"
       :style="{
@@ -44,29 +43,30 @@ const bgColorClass = computed(() => {
       }"
     >
       <GeneralIcon
-        :icon="option.icon! as IconMapKey"
+        :icon="iconItem.icon! as IconMapKey"
         class="flex-none"
         :class="[
-          iconColor,
+          iconColors.textColorClass,
           {
             'w-full h-full': iconSize?.fullWidth,
           },
         ]"
       />
     </div>
-    <div v-else-if="option.iconType === 'indexedStepProgressBar'" class="flex items-stretch gap-0.5">
+    <div v-else-if="iconItem.iconType === 'indexedStepProgressBar'" class="flex items-stretch gap-0.5">
       <div
         v-for="i in totalOptions"
         :key="i"
         class="flex-none w-3 h-3"
         :class="{
-          'bg-green-600': i <= index + 1,
-          'bg-nc-bg-gray-dark': i > index + 1,
+          'bg-green-600': i <= optionIndex + 1,
+          'bg-nc-bg-gray-dark': i > optionIndex + 1,
           'rounded-l-full': i === 1,
           'rounded-r-full': i === totalOptions,
         }"
       ></div>
     </div>
+    <component :is="iconItem.icon" v-else-if="iconItem.iconType === 'vNode'" class="flex-none" />
     <div v-else></div>
   </div>
 </template>

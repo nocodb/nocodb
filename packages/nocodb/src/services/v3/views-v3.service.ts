@@ -586,6 +586,12 @@ export class ViewsV3Service {
       }
     }
 
+    if (!body.title) {
+      NcError.get(context).invalidRequestBody(
+        'Missing view `title` property in request body',
+      );
+    }
+
     const viewTypeCode =
       viewTypeMap[(body.type as any as string).toLowerCase()];
 
@@ -1062,6 +1068,11 @@ export class ViewsV3Service {
           context,
         );
       }
+    }
+    if ('title' in body && !body.title) {
+      NcError.get(context).invalidRequestBody(
+        'Missing view `title` property in request body',
+      );
     }
 
     const viewTypeCode = existingView.type;

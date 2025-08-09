@@ -51,7 +51,6 @@ export class NcErrorV3 extends NcErrorV1 {
     errors: ErrorObject[];
     humanReadableError: boolean;
   }): never {
-    console.log(JSON.stringify( param.errors))
     throw new AjvErrorV3(param);
   }
 

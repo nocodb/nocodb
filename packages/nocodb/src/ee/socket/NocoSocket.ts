@@ -14,8 +14,8 @@ import type { Prettify } from '~/types/utils';
 import { verifyJwt } from '~/services/users/helpers';
 import { BaseUser, User, WorkspaceUser } from '~/models';
 import Noco from '~/Noco';
-import { getProjectRolePower } from 'src/utils/roleHelper';
-import { getWorkspaceRolePower } from '../utils/roleHelper';
+import { getProjectRolePower } from '~/utils/roleHelper';
+import { getWorkspaceRolePower } from '~/utils/roleHelper';
 
 export default class NocoSocket {
   private static logger: Logger = new Logger(NocoSocket.name);

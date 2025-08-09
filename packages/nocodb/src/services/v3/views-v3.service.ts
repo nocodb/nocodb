@@ -110,6 +110,10 @@ export class ViewsV3Service {
           formattedData.options = undefined;
         }
 
+        if (formattedData.lock_type !== 'personal') {
+          formattedData.owned_by = undefined;
+        }
+
         formattedData.is_default = !formattedData.is_default
           ? undefined
           : formattedData.is_default;
@@ -145,6 +149,10 @@ export class ViewsV3Service {
         const options = JSON.parse(
           JSON.stringify(this.viewOptionsBuilder().build(view)),
         );
+
+        if (formattedData.lock_type !== 'personal') {
+          formattedData.owned_by = undefined;
+        }
 
         if (Object.keys(options).length > 0) {
           formattedData.options = options;

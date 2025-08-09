@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -55,8 +56,9 @@ export class ViewsV3Controller {
   }
 
   @Post(`${PREFIX_APIV3_METABASE}/tables/:tableId/views`)
-  @Acl('viewInsert')
-  async viewInsert(
+  @HttpCode(200)
+  @Acl('viewCreate')
+  async viewCreate(
     @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
     @Body() body: any,

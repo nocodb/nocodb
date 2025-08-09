@@ -5073,7 +5073,7 @@
             },
             "required": [
               "type",
-              "name"
+              "title"
             ]
           },
           {

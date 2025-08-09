@@ -6,6 +6,7 @@ import { KanbansService } from '../kanbans.service';
 import { GalleriesService } from '../galleries.service';
 import { FormsService } from '../forms.service';
 import { GridColumnsService } from '../grid-columns.service';
+import { ViewColumnsService } from '../view-columns.service';
 import type { ViewColumnOptionV3Type, ViewCreateV3Type } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { ApiV3DataTransformationBuilder } from 'src/utils/data-transformation.builder';
@@ -50,6 +51,7 @@ export class ViewsV3Service {
 
   constructor(
     protected readonly viewsService: ViewsService,
+    protected readonly viewColumnsService: ViewColumnsService,
     protected filtersV3Service: FiltersV3Service,
     protected sortsV3Service: SortsV3Service,
     protected gridsService: GridsService,
@@ -761,18 +763,31 @@ export class ViewsV3Service {
         }
         break;
       }
-      // TODO:
-      case ViewTypes.KANBAN: {
-        break;
-      }
-      case ViewTypes.CALENDAR: {
-        break;
-      }
-      case ViewTypes.GALLERY: {
-        break;
-      }
-      case ViewTypes.FORM: {
-        break;
+      case ViewTypes.KANBAN:
+      case ViewTypes.CALENDAR:
+      case ViewTypes.GALLERY:
+      case ViewTypes.FORM:
+      default: {
+        const viewColumns = await this.viewColumnsService.columnList(
+          context,
+          { viewId: param.viewId },
+          ncMeta,
+        );
+        for (const [columnId, col] of Object.entries(param.updateViewColumns)) {
+          const viewColumn = viewColumns.find(
+            (c) => c.fk_column_id === columnId,
+          );
+          await this.viewColumnsService.columnUpdate(
+            context,
+            {
+              columnId: viewColumn.id,
+              column: col,
+              viewId: param.viewId,
+              req: param.req,
+            },
+            ncMeta,
+          );
+        }
       }
     }
   }

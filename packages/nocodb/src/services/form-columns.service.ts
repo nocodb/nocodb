@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { Column, FormViewColumn, View } from '~/models';
@@ -18,6 +19,7 @@ export class FormColumnsService {
       formViewColumn: FormViewColumn;
       req: NcRequest;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/FormColumnReq',
@@ -26,18 +28,24 @@ export class FormColumnsService {
     const oldFormViewColumn = await FormViewColumn.get(
       context,
       param.formViewColumnId,
+      ncMeta,
     );
 
-    const view = await View.get(context, oldFormViewColumn.fk_view_id);
+    const view = await View.get(context, oldFormViewColumn.fk_view_id, ncMeta);
 
-    const column = await Column.get(context, {
-      colId: oldFormViewColumn.fk_column_id,
-    });
+    const column = await Column.get(
+      context,
+      {
+        colId: oldFormViewColumn.fk_column_id,
+      },
+      ncMeta,
+    );
 
     const res = await FormViewColumn.update(
       context,
       param.formViewColumnId,
       param.formViewColumn,
+      ncMeta,
     );
 
     this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {

@@ -11,6 +11,8 @@ const { isExperimentalFeatureModalOpen, initializeFeatures, isFeatureEnabled } =
 
 initializeFeatures()
 
+useAntDvTheme()
+
 const isDarkModeEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.DARK_MODE))
 
 if (isDarkModeEnabled.value) {

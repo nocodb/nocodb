@@ -1109,4 +1109,13 @@ export class ViewsV3Service {
       throw ex;
     }
   }
+
+  async delete(context: NcContext, param: { req: NcRequest; viewId: string }) {
+    const { req, viewId } = param;
+    await this.viewsService.viewDelete(context, {
+      viewId,
+      user: context.user,
+      req,
+    });
+  }
 }

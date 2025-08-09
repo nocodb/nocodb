@@ -212,7 +212,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const hook = await Hook.get(context, params.hookId);
 
       if (!hook) {
-        NcError.hookNotFound(params.hookId);
+        NcError.get(context).hookNotFound(params.hookId);
       }
 
       req.ncBaseId = hook.base_id;
@@ -224,7 +224,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       );
 
       if (!gridViewColumn) {
-        NcError.fieldNotFound(params.gridViewColumnId);
+        NcError.get(context).fieldNotFound(params.gridViewColumnId);
       }
 
       req.ncBaseId = gridViewColumn.base_id;
@@ -236,7 +236,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       );
 
       if (!formViewColumn) {
-        NcError.fieldNotFound(params.formViewColumnId);
+        NcError.get(context).fieldNotFound(params.formViewColumnId);
       }
 
       req.ncBaseId = formViewColumn.base_id;
@@ -248,7 +248,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       );
 
       if (!galleryViewColumn) {
-        NcError.fieldNotFound(params.galleryViewColumnId);
+        NcError.get(context).fieldNotFound(params.galleryViewColumnId);
       }
 
       req.ncBaseId = galleryViewColumn.base_id;
@@ -257,7 +257,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const column = await Column.get(context, { colId: params.columnId });
 
       if (!column) {
-        NcError.fieldNotFound(params.columnId);
+        NcError.get(context).fieldNotFound(params.columnId);
       }
 
       req.ncBaseId = column.base_id;

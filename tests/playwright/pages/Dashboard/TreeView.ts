@@ -237,7 +237,11 @@ export class TreeViewPage extends BasePage {
     }
   }
 
-  async deleteTable({ title }: { title: string }) {
+  async deleteTable({ title, baseTitle }: { title: string; baseTitle?: string }) {
+    if (baseTitle) {
+      await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
+    }
+
     const tableTitle = title.replace(/ /g, '');
 
     await this.waitForTableOptions({ title });
@@ -260,7 +264,11 @@ export class TreeViewPage extends BasePage {
     await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
-  async renameTable({ title, newTitle }: { title: string; newTitle: string }) {
+  async renameTable({ title, newTitle, baseTitle }: { title: string; newTitle: string; baseTitle?: string }) {
+    if (baseTitle) {
+      await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
+    }
+
     const tableTitle = title.replace(/ /g, '');
 
     await this.waitForTableOptions({ title });

@@ -360,6 +360,7 @@ export function useCanvasTable({
                   isEeUI && displayColumnConfigMeta.isDisplayTimezone
                     ? getTimeZoneFromName(displayColumnConfigMeta.timezone)
                     : undefined,
+                isDisplayTimezone: isEeUI ? displayColumnConfigMeta.isDisplayTimezone : undefined,
               }
               displayColumnConfig.extra = extra
             }

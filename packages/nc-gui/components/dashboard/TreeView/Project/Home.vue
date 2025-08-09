@@ -313,6 +313,7 @@ const hasTableCreatePermission = computed(() => {
             '!text-brand-600 !bg-brand-50 !hover:bg-brand-50': activeProjectId === base.id && baseViewOpen,
             '!hover:(bg-gray-200 text-gray-700)': !(activeProjectId === base.id && baseViewOpen),
           }"
+          data-testid="nc-sidebar-base-overview-btn"
           @click="openBaseHomePage"
         >
           <div

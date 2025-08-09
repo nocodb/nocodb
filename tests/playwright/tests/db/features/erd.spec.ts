@@ -44,6 +44,7 @@ test.describe('Erd', () => {
   };
 
   const openProjectErd = async () => {
+    await dashboard.baseView.openOverview();
     await dashboard.baseView.tab_dataSources.click();
     await dashboard.baseView.dataSources.openERD({ rowIndex: 0 });
 

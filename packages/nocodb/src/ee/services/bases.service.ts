@@ -286,8 +286,10 @@ export class BasesService extends BasesServiceCE {
       {
         event: EventType.USER_EVENT,
         payload: {
-          action: 'base_create',
-          payload: base,
+          action: 'base_user_add',
+          payload: {
+            base,
+          },
         },
       },
       param.req.ncSocketId,
@@ -365,7 +367,7 @@ export class BasesService extends BasesServiceCE {
       NcError.workspaceNotFound(base.fk_workspace_id);
     }
 
-    let baseUsers;
+    let baseUsers: BaseUser[];
 
     try {
       baseUsers = await BaseUser.getUsersList(
@@ -399,12 +401,12 @@ export class BasesService extends BasesServiceCE {
 
     for (const user of baseUsers || []) {
       NocoSocket.broadcastEventToUser(
-        user.id,
+        user.fk_user_id,
         {
           event: EventType.USER_EVENT,
           payload: {
-            action: 'base_delete',
-            payload: base,
+            action: 'base_user_remove',
+            payload: user,
             baseId: context.base_id,
             workspaceId: context.workspace_id,
           },

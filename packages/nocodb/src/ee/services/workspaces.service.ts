@@ -49,7 +49,7 @@ import { JobTypes } from '~/interface/Jobs';
 import NocoCache from '~/cache/NocoCache';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { generateRandomTxt, verifyTXTRecord } from '~/utils';
-import NocoSocket from '../socket/NocoSocket';
+import NocoSocket from '~/socket/NocoSocket';
 
 const mockUser = {
   id: '1',
@@ -306,8 +306,13 @@ export class WorkspacesService implements OnApplicationBootstrap {
         {
           event: EventType.USER_EVENT,
           payload: {
-            action: 'workspace_create',
-            payload: workspace,
+            action: 'workspace_user_add',
+            payload: {
+              workspace: {
+                ...workspace,
+                roles: WorkspaceUserRoles.OWNER,
+              },
+            },
           },
         },
         param.req.ncSocketId,
@@ -647,6 +652,17 @@ export class WorkspacesService implements OnApplicationBootstrap {
       );
     }
 
+    let workspaceUsers: WorkspaceUser[];
+
+    try {
+      workspaceUsers = await WorkspaceUser.userList(
+        {
+          fk_workspace_id: workspace.id,
+        },
+        ncMeta,
+      );
+    } catch (e) {}
+
     const transaction = await ncMeta.startTransaction();
 
     try {
@@ -670,6 +686,21 @@ export class WorkspacesService implements OnApplicationBootstrap {
       workspace,
       req: param.req,
     });
+
+    for (const user of workspaceUsers) {
+      NocoSocket.broadcastEventToUser(
+        user.fk_user_id,
+        {
+          event: EventType.USER_EVENT,
+          payload: {
+            action: 'workspace_user_remove',
+            payload: user,
+            workspaceId: workspace.id,
+          },
+        },
+        param.req.ncSocketId,
+      );
+    }
 
     return true;
   }

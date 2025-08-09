@@ -64,12 +64,14 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
 
 export interface UserEventPayload<T = any> extends BaseSocketPayload {
   action:
-    | 'base_create'
     | 'base_update'
-    | 'base_delete'
-    | 'workspace_create'
+    | 'base_user_add'
+    | 'base_user_remove'
+    | 'base_user_update'
     | 'workspace_update'
-    | 'workspace_delete';
+    | 'workspace_user_add'
+    | 'workspace_user_remove'
+    | 'workspace_user_update';
   payload: T;
   baseId?: string;
   workspaceId?: string;

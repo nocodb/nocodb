@@ -2,6 +2,7 @@ import { BaseUsersService as BaseUsersServiceCE } from 'src/services/base-users/
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  EventType,
   extractRolesObj,
   OrderedProjectRoles,
   OrgUserRoles,
@@ -25,6 +26,7 @@ import { PaymentService } from '~/modules/payment/payment.service';
 import { checkSeatLimit } from '~/helpers/paymentHelpers';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class BaseUsersService extends BaseUsersServiceCE {
@@ -203,7 +205,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
               transaction,
             );
 
-            postOperations.push(() =>
+            postOperations.push(() => {
               this.mailService
                 .sendMail({
                   mailEvent: MailEvent.BASE_ROLE_UPDATE,
@@ -218,8 +220,19 @@ export class BaseUsersService extends BaseUsersServiceCE {
                     newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
                   },
                 })
-                .catch(() => {}),
-            );
+                .catch(() => {});
+              NocoSocket.broadcastEventToBaseUsers(
+                context,
+                {
+                  event: EventType.USER_EVENT,
+                  payload: {
+                    action: 'base_user_update',
+                    payload: baseUser,
+                  },
+                },
+                context.socket_id,
+              );
+            });
           } else {
             await checkSeatLimit(
               workspace.id,
@@ -310,7 +323,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
 
           emailUserMap.set(email, user);
 
-          await BaseUser.insert(
+          const newBaseUser = await BaseUser.insert(
             context,
             {
               base_id: param.baseId,
@@ -321,7 +334,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
             transaction,
           );
 
-          postOperations.push(() =>
+          postOperations.push(() => {
             this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
               base,
               user,
@@ -329,8 +342,22 @@ export class BaseUsersService extends BaseUsersServiceCE {
               req: param.req,
               invitedBy: param.req?.user,
               context,
-            }),
-          );
+            });
+            NocoSocket.broadcastEventToBaseUsers(
+              context,
+              {
+                event: EventType.USER_EVENT,
+                payload: {
+                  action: 'base_user_add',
+                  payload: {
+                    baseUser: newBaseUser,
+                    base,
+                  },
+                },
+              },
+              context.socket_id,
+            );
+          });
 
           if (emails.length === 1) {
             postOperations.push(() =>
@@ -564,6 +591,25 @@ export class BaseUsersService extends BaseUsersServiceCE {
       context,
     });
 
+    const newBaseUser = await BaseUser.get(
+      context,
+      param.baseId,
+      param.userId,
+      ncMeta,
+    );
+
+    NocoSocket.broadcastEventToBaseUsers(
+      context,
+      {
+        event: EventType.USER_EVENT,
+        payload: {
+          action: 'base_user_update',
+          payload: newBaseUser,
+        },
+      },
+      context.socket_id,
+    );
+
     return {
       msg: 'User has been updated successfully',
     };
@@ -675,6 +721,26 @@ export class BaseUsersService extends BaseUsersServiceCE {
       req: param.req,
       context,
     });
+
+    // base user is not deleted fully as it is scoped to workspace hence we get inherited role
+    const newBaseUser = await BaseUser.get(
+      context,
+      base_id,
+      param.userId,
+      ncMeta,
+    );
+
+    NocoSocket.broadcastEventToBaseUsers(
+      context,
+      {
+        event: EventType.USER_EVENT,
+        payload: {
+          action: 'base_user_remove',
+          payload: newBaseUser,
+        },
+      },
+      context.socket_id,
+    );
 
     return true;
   }

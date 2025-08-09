@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { nanoid } from 'nanoid';
 import {
   AppEvents,
+  EventType,
   getUpgradeMessage,
   LoyaltyPriceReverseLookupKeyMap,
   PlanOrder,
@@ -32,6 +33,7 @@ import { CacheGetType, CacheScope } from '~/utils/globals';
 import { acquireLock, releaseLock } from '~/helpers/lockHelpers';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { TelemetryService } from '~/services/telemetry.service';
+import NocoSocket from '~/socket/NocoSocket';
 
 const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder', {
   apiVersion: '2025-05-28.basil',
@@ -1980,6 +1982,21 @@ export class PaymentService {
               await this.getNextInvoice(workspaceOrOrgId),
             );
           }
+
+          if (workspaceOrOrg.entity === 'workspace') {
+            const workspace = await Workspace.get(workspaceOrOrg.id);
+
+            NocoSocket.broadcastEventToWorkspaceUsers(
+              { workspace_id: workspaceOrOrg.id, base_id: null },
+              {
+                event: EventType.USER_EVENT,
+                payload: {
+                  action: 'workspace_update',
+                  payload: workspace,
+                },
+              },
+            );
+          }
           break;
         }
 
@@ -2042,6 +2059,21 @@ export class PaymentService {
             await this.updateNextInvoice(
               subRec.id,
               await this.getNextInvoice(workspaceOrOrgId),
+            );
+          }
+
+          if (workspaceOrOrg.entity === 'workspace') {
+            const workspace = await Workspace.get(workspaceOrOrg.id);
+
+            NocoSocket.broadcastEventToWorkspaceUsers(
+              { workspace_id: workspaceOrOrg.id, base_id: null },
+              {
+                event: EventType.USER_EVENT,
+                payload: {
+                  action: 'workspace_update',
+                  payload: workspace,
+                },
+              },
             );
           }
 

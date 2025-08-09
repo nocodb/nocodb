@@ -3669,12 +3669,14 @@ export default function (API_VERSION: 'v2' | 'v3') {
         'id',
         'display_name',
         'meta',
+        'deleted',
       ]);
       expect(insertedRecords[0].userFieldMulti[0]).to.have.keys([
         'email',
         'id',
         'display_name',
         'meta',
+        'deleted',
       ]);
     });
 

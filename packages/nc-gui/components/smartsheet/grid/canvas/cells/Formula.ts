@@ -72,13 +72,23 @@ export const FormulaCellRenderer: CellRenderer = {
 
     // If Custom Formatting is applied to the column, render the cell using the display type cell renderer
     if (colMeta?.display_type) {
+      const updatedColumn = {
+        ...column,
+        uidt: colMeta?.display_type || UITypes.LongText,
+        ...(colMeta.display_column_meta || {}),
+      }
+
+      if (updatedColumn.uidt === UITypes.DateTime) {
+        updatedColumn.extra = {
+          ...(updatedColumn.extra || {}),
+          timezone: isEeUI ? getTimeZoneFromName(updatedColumn?.meta?.timezone) : undefined,
+          isDisplayTimezone: isEeUI ? updatedColumn?.meta?.isDisplayTimezone : undefined,
+        }
+      }
+
       getDisplayValueCellRenderer(column).render(ctx, {
         ...props,
-        column: {
-          ...column,
-          uidt: colMeta?.display_type || UITypes.LongText,
-          ...colMeta.display_column_meta,
-        },
+        column: updatedColumn,
         readonly: true,
         formula: true,
       })

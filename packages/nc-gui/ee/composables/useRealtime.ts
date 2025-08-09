@@ -309,6 +309,8 @@ export const useRealtime = createSharedComposable(() => {
       } else if (event.action === 'base_user_update') {
         const { payload, baseId } = event
 
+        $eventBus.realtimeEventBus.emit('base_user_update', { baseUser: payload, baseId })
+
         const baseUsers = basesUser.value.get(baseId)
         if (baseUsers) {
           const user = baseUsers.find((u) => u.id === payload.id)

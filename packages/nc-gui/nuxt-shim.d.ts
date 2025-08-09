@@ -42,6 +42,7 @@ declare module '#app' {
     }
     $eventBus: {
       smartsheetStoreEventBus: UseEventBusReturn<string, any>
+      realtimeEventBus: UseEventBusReturn<string, any>
     }
   }
 }

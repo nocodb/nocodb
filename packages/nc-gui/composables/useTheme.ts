@@ -6,7 +6,16 @@ export const useTheme = createSharedComposable(() => {
   const selectedTheme = ref<ThemeMode>('system')
   const systemPreference = ref<'light' | 'dark'>('light')
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const isThemeEnabled = computed(() => {
+    return isFeatureEnabled(FEATURE_FLAG.DARK_MODE)
+  })
+
   const isDark = computed(() => {
+    if (!isThemeEnabled.value) {
+      return false
+    }
     if (selectedTheme.value === 'system') {
       return systemPreference.value === 'dark'
     }
@@ -63,5 +72,6 @@ export const useTheme = createSharedComposable(() => {
     setTheme,
     toggleTheme,
     init,
+    isThemeEnabled,
   }
 })

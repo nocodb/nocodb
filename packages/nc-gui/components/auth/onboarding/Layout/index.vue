@@ -45,25 +45,22 @@ let timer: any
  * To avoid accidental skip of onboarding flow while pressing back button continuously,
  * disable skip button for 2 second
  */
-watch(
-  () => stepIndex.value,
-  (newIndex, oldIndex, cleanup) => {
-    if (newIndex !== 0 || oldIndex === undefined) {
-      isDisabledSkipButton.value = false
-      return
-    }
+watch(stepIndex, (newIndex, oldIndex, cleanup) => {
+  if (newIndex !== 0 || oldIndex === undefined) {
+    isDisabledSkipButton.value = false
+    return
+  }
 
-    isDisabledSkipButton.value = true
+  isDisabledSkipButton.value = true
 
-    timer = setTimeout(() => {
-      isDisabledSkipButton.value = false
-    }, 2000)
+  timer = setTimeout(() => {
+    isDisabledSkipButton.value = false
+  }, 2000)
 
-    cleanup(() => {
-      clearTimeout(timer)
-    })
-  },
-)
+  cleanup(() => {
+    clearTimeout(timer)
+  })
+})
 </script>
 
 <template>
@@ -161,5 +158,3 @@ watch(
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped></style>

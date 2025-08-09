@@ -6,9 +6,9 @@ interface Props {
   iconSize?: OnboardingQuestionType['iconSize']
 }
 
-const props = withDefaults(defineProps<Props>(), {})
+const props = defineProps<Props>()
 
-const { iconItem, optionIndex, totalOptions, iconSize } = toRefs(props)
+const { iconItem } = toRefs(props)
 
 const showIconMapIcon = computed(() => {
   return (!iconItem.value.iconType || iconItem.value.iconType === 'iconMap') && iconItem.value.icon
@@ -80,5 +80,3 @@ const iconColors = computed(() => {
     <div v-else></div>
   </div>
 </template>
-
-<style lang="scss" scoped></style>

@@ -246,6 +246,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     </div>
     <div class="flex flex-col items-center">
       <DashboardMiniSidebarItemWrapper>
+        <DashboardMiniSidebarTheme />
+      </DashboardMiniSidebarItemWrapper>
+
+      <DashboardMiniSidebarItemWrapper>
         <NcTooltip :title="$t('general.help')" placement="right" hide-on-click :arrow="false">
           <DashboardMiniSidebarHelp />
         </NcTooltip>

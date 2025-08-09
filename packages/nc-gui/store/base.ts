@@ -4,15 +4,11 @@ import { isString } from '@vue/shared'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useBase = defineStore('baseStore', () => {
-  const { $e } = useNuxtApp()
-
   const { api, isLoading } = useApi()
 
   const router = useRouter()
 
   const route = router.currentRoute
-
-  const { setTheme, theme } = useTheme()
 
   const { loadRoles } = useRoles()
 
@@ -197,7 +193,7 @@ export const useBase = defineStore('baseStore', () => {
   }
 
   async function saveTheme(_theme: Partial<ThemeConfig>) {
-    const fullTheme = {
+    /* const fullTheme = {
       primaryColor: theme.value.primaryColor,
       accentColor: theme.value.accentColor,
       ..._theme,
@@ -210,10 +206,9 @@ export const useBase = defineStore('baseStore', () => {
         theme: fullTheme,
       },
     })
-
+*/
     // setTheme(fullTheme)
-
-    $e('c:themes:change')
+    // $e('c:themes:change')
   }
 
   async function hasEmptyOrNullFilters() {
@@ -224,7 +219,7 @@ export const useBase = defineStore('baseStore', () => {
     // base.value = {}
     // tables.value = []
     baseMetaInfo.value = undefined
-    setTheme()
+    // setTheme()
   }
 
   const setProject = (baseVal: BaseType) => {

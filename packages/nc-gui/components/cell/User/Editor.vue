@@ -36,13 +36,17 @@ const activeCell = inject(ActiveCellInj, ref(false))
 
 const basesStore = useBases()
 
-const baseStore = useBase()
-
 const { basesUser } = storeToRefs(basesStore)
 
-const { idUserMap } = storeToRefs(baseStore)
-
 const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
+
+const idUserMap = computed(() => {
+  return baseUsers.value.reduce((acc, user) => {
+    acc[user.id] = user
+    acc[user.email] = user
+    return acc
+  }, {} as Record<string, any>)
+})
 
 // use both ActiveCellInj or EditModeInj to determine the active state
 // since active will be false in case of form view

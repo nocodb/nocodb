@@ -134,7 +134,7 @@ export default class BaseUser {
     baseId: string,
     userId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<BaseUser & { is_mapped?: boolean }> {
+  ): Promise<BaseUser & { is_mapped?: boolean; deleted?: boolean }> {
     let baseUser =
       baseId &&
       userId &&
@@ -207,7 +207,7 @@ export default class BaseUser {
       user_ids?: string[];
     },
     ncMeta = Noco.ncMeta,
-  ): Promise<(Partial<User> & BaseUser)[]> {
+  ): Promise<(Partial<User> & BaseUser & { deleted?: boolean })[]> {
     const cachedList = await NocoCache.getList(CacheScope.BASE_USER, [base_id]);
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;

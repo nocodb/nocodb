@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { viewTypeAlias, ViewTypes } from 'nocodb-sdk';
+import { OnGlobalQueueStalled } from '@nestjs/bull';
 import { GridsService } from '../grids.service';
 import { CalendarsService } from '../calendars.service';
 import { KanbansService } from '../kanbans.service';
@@ -39,8 +40,10 @@ export class ViewsV3Service {
   protected logger = new Logger(ViewsV3Service.name);
   private builder;
   private viewBuilder;
+  private viewOptionsBuilder;
   private v3Tov2ViewBuilders: {
     view?: () => ApiV3DataTransformationBuilder<any, any>;
+    options?: () => ApiV3DataTransformationBuilder<any, any>;
     calendar?: () => ApiV3DataTransformationBuilder<any, any>;
     kanban?: () => ApiV3DataTransformationBuilder<any, any>;
     form?: () => ApiV3DataTransformationBuilder<any, any>;
@@ -124,6 +127,22 @@ export class ViewsV3Service {
         'updated_at',
         'view',
         'type',
+      ],
+      mappings: {},
+      transformFn: (viewData) => {
+        const formattedData = viewData;
+        console.log(formattedData);
+        formattedData.view_type = viewTypeAlias[formattedData.view_type];
+        const options = this.viewOptionsBuilder().build(formattedData.view);
+        if (Object.keys(options).length > 0) {
+          formattedData.options = options;
+        }
+        delete formattedData.view;
+        return formattedData;
+      },
+    });
+    this.viewOptionsBuilder = builderGenerator({
+      allowed: [
         'heading',
         'subheading',
         'success_msg',
@@ -141,21 +160,18 @@ export class ViewsV3Service {
         'fk_grp_col_id',
       ],
       mappings: {
-        heading: 'form_heading',
-        subheading: 'form_sub_heading',
-        success_msg: 'form_success_message',
-        redirect_url: 'form_redirect_url',
+        heading: 'formTitle',
+        subheading: 'formDescription',
+        success_msg: 'thankYouMessage',
         redirect_after_secs: 'form_redirect_after_secs',
         email: 'form_send_response_email',
-        submit_another_form: 'form_show_another',
-        show_blank_form: 'form_show_blank',
+        submit_another_form: 'submitAnotherForm',
+        show_blank_form: 'showBlankForm',
         hide_banner: 'form_hide_banner',
         hide_branding: 'form_hide_branding',
         banner_image_url: 'form_banner_image_url',
         logo_url: 'form_logo_url',
         background_color: 'form_background_color',
-
-        date_range: 'calendar_range',
 
         fk_cover_image_col_id: 'cover_image_field_id',
         fk_grp_col_id: 'kanban_stack_by_field_id',
@@ -167,14 +183,17 @@ export class ViewsV3Service {
         form_hide_banner: ['view', 'meta', 'hide_banner'],
       },
       transformFn: (viewData) => {
-        const { view, ...formattedData } = viewData;
+        const formattedData = viewData;
         formattedData.view_type = viewTypeAlias[formattedData.view_type];
 
-        if (view?.calendar_range?.length) {
-          formattedData.calendar_range = view.calendar_range.map((range) => ({
-            start_field_id: range.fk_from_column_id ?? undefined,
-            end_field_id: range.fk_to_column_id ?? undefined,
-          }));
+        if (formattedData?.calendar_range?.length) {
+          formattedData.dateRanges = formattedData.calendar_range.map(
+            (range) => ({
+              startDateFieldId: range.fk_from_column_id ?? undefined,
+              endDateFieldId: range.fk_to_column_id ?? undefined,
+            }),
+          );
+          formattedData.calendar_range = undefined;
         }
 
         // if description empty then set it to undefined
@@ -185,6 +204,13 @@ export class ViewsV3Service {
         // if meta empty then set it to undefined
         if (!formattedData.meta || !Object.keys(formattedData.meta).length) {
           formattedData.meta = undefined;
+        }
+
+        if (formattedData.redirect_url) {
+          formattedData.redirectOnSubmit = {
+            url: formattedData.redirect_url,
+          };
+          formattedData.redirect_url = undefined;
         }
 
         return formattedData;
@@ -217,6 +243,63 @@ export class ViewsV3Service {
       },
       transformFn: (viewData) => {
         return viewData;
+      },
+    }) as any;
+
+    this.v3Tov2ViewBuilders.options = builderGenerator<any, any>({
+      allowed: [
+        // calendar
+        'dateRanges',
+
+        // kanban
+        'stackBy',
+
+        // gallery
+        'coverFieldId',
+
+        // form
+        'formTitle',
+        'formDescription',
+        'submitButtonLabel',
+        'thankYouMessage',
+        'redirectOnSubmit',
+        'submitAnotherForm',
+        'showBlankForm',
+      ],
+      mappings: {
+        // calendar
+        dateRanges: 'calendar_range',
+
+        // gallery
+        coverFieldId: 'fk_cover_image_col_id',
+
+        // form
+        formTitle: 'heading',
+        formDescription: 'subheading',
+        thankYouMessage: 'success_msg',
+        submitAnotherForm: 'submit_another_form',
+        showBlankForm: 'show_blank_form',
+      },
+      transformFn: (options) => {
+        const result = {
+          ...options,
+          // calendar
+          ...(options.calendar_range?.length ?? 0 > 0
+            ? {
+                calendar_range: options.calendar_range.map((range) => ({
+                  fk_from_column_id: range.startDateFieldId,
+                  fk_to_column_id: range.endDateFieldId,
+                })),
+              }
+            : {}),
+          // kanban
+          ...(options.stackBy.fieldId
+            ? { fk_grp_col_id: options.stackBy.fieldId }
+            : {}),
+        };
+
+        options.stackBy = undefined;
+        return result;
       },
     }) as any;
 
@@ -327,10 +410,7 @@ export class ViewsV3Service {
 
     await view.getViewWithInfo(context);
 
-    const formattedView = this.viewBuilder().build({
-      ...view.view,
-      ...view,
-    });
+    const formattedView = this.viewBuilder().build(view);
 
     if (view.type !== ViewTypes.FORM) {
       // get filters
@@ -553,6 +633,7 @@ export class ViewsV3Service {
       return this.getView(context, { viewId: insertedV2View.id, req });
     } catch (ex) {
       await trxNcMeta.rollback();
+      throw ex;
     }
   }
 }

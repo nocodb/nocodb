@@ -558,13 +558,14 @@ onMounted(() => {
                 :class="{
                   '!bg-white': val === CURRENT_USER_TOKEN,
                 }"
+                :is-deleted="!isCollaborator(val)"
                 :disabled="!isCollaborator(val)"
                 :show-placeholder-icon="val === CURRENT_USER_TOKEN"
               />
             </div>
             <span
               :class="{
-                'text-gray-600': !isCollaborator(val) && val !== CURRENT_USER_TOKEN,
+                'text-gray-500': !isCollaborator(val) && val !== CURRENT_USER_TOKEN,
                 'text-nc-content-brand': val === CURRENT_USER_TOKEN,
                 'font-600': isInFilter,
               }"

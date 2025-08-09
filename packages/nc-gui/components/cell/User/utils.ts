@@ -116,7 +116,7 @@ export const getSelectedUsers = (
             acc.push({
               label,
               value: item.id,
-              deleted: user?.deleted,
+              deleted: user?.deleted || item?.deleted,
               meta: item?.meta,
               display_name: item?.display_name,
               email: item?.email,

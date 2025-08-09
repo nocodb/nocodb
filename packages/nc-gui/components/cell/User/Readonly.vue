@@ -180,7 +180,8 @@ const isCollaborator = (userIdOrEmail) => {
           >
             <div class="flex-none">
               <GeneralUserIcon
-                :disabled="!isCollaborator(selectedOpt.value)"
+                :is-deleted="!isCollaborator(selectedOpt.value) || selectedOpt.deleted"
+                :disabled="!isCollaborator(selectedOpt.value) || selectedOpt.deleted"
                 size="auto"
                 :user="{
                   display_name: !selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : '',
@@ -200,7 +201,8 @@ const isCollaborator = (userIdOrEmail) => {
               </template>
               <span
                 :class="{
-                  'text-gray-600': !isCollaborator(selectedOpt.value) && selectedOpt.value !== CURRENT_USER_TOKEN,
+                  'text-gray-500':
+                    (!isCollaborator(selectedOpt.value) || selectedOpt.deleted) && selectedOpt.value !== CURRENT_USER_TOKEN,
                   'text-nc-content-brand': selectedOpt.value === CURRENT_USER_TOKEN,
                   'font-600': isInFilter,
                 }"

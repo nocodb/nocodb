@@ -129,6 +129,9 @@ defineExpose({
           alt="moscot image"
           :src="moscotImage"
           class="nc-moscot-image transition-width duration-350 ease-linear"
+          :class="{
+            '!-left-[234px]': rightSectionInfo.moscot === 'moscotCollaboration',
+          }"
           :style="moscotImageSize"
         />
       </div>

@@ -8,14 +8,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   }
   const { isMobileMode, leftSidebarSize: _leftSidebarSize, isLeftSidebarOpen: _isLeftSidebarOpen } = useGlobal()
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
-  const isNewSidebarEnabled = computed(() => {
-    return isFeatureEnabled(FEATURE_FLAG.IMPROVED_SIDEBAR_UI)
-  })
-
   const miniSidebarWidth = computed(() => {
-    return isNewSidebarEnabled.value ? MINI_SIDEBAR_WIDTH : 0
+    return MINI_SIDEBAR_WIDTH
   })
 
   const tablesStore = useTablesStore()
@@ -110,7 +104,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     hideMiniSidebar,
     hideSidebar,
     showTopbar,
-    isNewSidebarEnabled,
     miniSidebarWidth,
   }
 })

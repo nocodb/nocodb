@@ -284,6 +284,7 @@ const hasTableCreatePermission = computed(() => {
               class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden !w-full !px-3"
               :class="isVisibleCreateNew ? 'active' : ''"
               icon-position="right"
+              data-testid="nc-home-create-new-btn"
             >
               <template #icon>
                 <GeneralIcon icon="chevronDown" class="flex-none" />
@@ -313,6 +314,7 @@ const hasTableCreatePermission = computed(() => {
             '!text-brand-600 !bg-brand-50 !hover:bg-brand-50': activeProjectId === base.id && baseViewOpen,
             '!hover:(bg-gray-200 text-gray-700)': !(activeProjectId === base.id && baseViewOpen),
           }"
+          data-testid="nc-sidebar-base-overview-btn"
           @click="openBaseHomePage"
         >
           <div

@@ -4,8 +4,6 @@ import { isString } from '@vue/shared'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useBase = defineStore('baseStore', () => {
-  const { $e } = useNuxtApp()
-
   const { api, isLoading } = useApi()
 
   const router = useRouter()

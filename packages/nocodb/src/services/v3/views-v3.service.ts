@@ -267,6 +267,7 @@ export class ViewsV3Service {
         'type',
         'title',
         'description',
+        'filters',
         'sorts',
         'groups',
         'options',
@@ -785,6 +786,16 @@ export class ViewsV3Service {
           },
           trxNcMeta,
         );
+      }
+      if (requestBody.filters) {
+        await this.filtersV3Service.insertFilterGroup({
+          context,
+          param: {
+            viewId: insertedV2View.id,
+          },
+          groupOrFilter: requestBody.filters,
+          viewId: insertedV2View.id,
+        });
       }
       if (
         ![ViewTypes.FORM].includes(requestBody.type) &&

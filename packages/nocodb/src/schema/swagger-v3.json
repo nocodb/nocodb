@@ -6529,7 +6529,6 @@
           }
         },
         "required": [
-          "id",
           "field_id",
           "operator",
           "value"

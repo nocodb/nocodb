@@ -17,13 +17,17 @@ const progress = computed(() => {
 })
 
 useEventListener('keydown', (event) => {
-  if (!isFilledVisibleOptions.value) return
-
   if (event.key === 'Enter') {
-    if (isLast.value) {
-      onCompleteOnboardingFlow(false)
-    } else {
-      goToNext()
+    if (!event.shiftKey && isFilledVisibleOptions.value) {
+      if (isLast.value) {
+        onCompleteOnboardingFlow(false)
+      } else {
+        goToNext()
+      }
+    }
+
+    if (event.shiftKey && !isFirst.value) {
+      goToPrevious()
     }
   }
 })

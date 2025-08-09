@@ -81,8 +81,8 @@ const moscotImageSize = computed(() => {
     case 'moscotGridTableBrand':
     case 'moscotGridTableOrange':
       return {
-        height: '358px',
-        width: '480px',
+        height: '335px',
+        width: '440px',
       }
     default:
       return {
@@ -125,7 +125,12 @@ defineExpose({
     <div class="nc-view-image-box" :style="{ backgroundImage: `url(${viewImage})` }"></div>
     <div class="nc-view-image-box nc-moscot-image-box">
       <div class="h-full w-full relative">
-        <img alt="moscot image" :src="moscotImage" class="nc-moscot-image" :style="moscotImageSize" />
+        <img
+          alt="moscot image"
+          :src="moscotImage"
+          class="nc-moscot-image transition-width duration-350 ease-linear"
+          :style="moscotImageSize"
+        />
       </div>
     </div>
     <div class="hidden">

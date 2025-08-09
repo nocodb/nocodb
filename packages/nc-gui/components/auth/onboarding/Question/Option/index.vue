@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 interface Props {
   option: OnboardingOptionType
+  index: number
+  totalOptions: number
   iconSize?: OnboardingQuestionType['iconSize']
 }
 
@@ -16,7 +18,7 @@ const { option } = toRefs(props)
       '!px-2 !rounded-xl': option.iconColor,
     }"
   >
-    <AuthOnboardingQuestionOptionIcon :option="option" :icon-size="iconSize" />
+    <AuthOnboardingQuestionOptionIcon :option="option" :index="index" :total-options="totalOptions" :icon-size="iconSize" />
     <div v-if="option.description" class="flex flex-col gap-1">
       <div class="text-bodyDefaultSmBold text-nc-content-gray-subtle">
         {{ option.value }}

@@ -38,6 +38,7 @@ export interface OnboardingQuestionType {
   iconSize?: {
     width: number
     height: number
+    fullWidth?: boolean
   }
 }
 
@@ -57,7 +58,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
   /**
    * If true, the onboarding flow will be shown in home page - `/`
    */
-  const showOnboardingFlowLocalState = ref(false)
+  const showOnboardingFlowLocalState = ref(true)
 
   const showOnboardingFlow = computed(() => {
     return isEnabledOnboardingFlow.value && showOnboardingFlowLocalState.value && route.value.name === 'index'
@@ -222,33 +223,43 @@ export const useOnboardingFlow = createSharedComposable(() => {
         options: [
           {
             value: 'Airtable',
+            icon: 'importAirtable',
           },
           {
             value: 'Baserow',
+            icon: 'ncLogoBaserowColored',
           },
           {
             value: 'Monday',
+            icon: 'importMonday',
           },
           {
             value: 'Softr',
+            icon: 'ncLogoSoftrColored',
           },
           {
             value: 'Notion',
+            icon: 'ncLogoNotionColored',
           },
           {
             value: 'Coda',
+            icon: 'ncLogoCodaColored',
           },
           {
             value: 'Retool',
+            icon: 'ncLogoRetoolColored',
           },
           {
             value: 'n8n',
+            icon: 'ncLogoN8nColored',
           },
           {
             value: 'Zapier',
+            icon: 'ncLogoZapierColored',
           },
           {
             value: 'Make',
+            icon: 'ncLogoMakeColored',
           },
           {
             value: 'Other',
@@ -264,6 +275,11 @@ export const useOnboardingFlow = createSharedComposable(() => {
           themeColor: 'orange',
           moscot: 'moscotGridTableOrange',
           imageName: 'calendar',
+        },
+        iconSize: {
+          width: 24,
+          height: 24,
+          fullWidth: true,
         },
       },
       {

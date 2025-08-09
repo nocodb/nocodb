@@ -698,11 +698,10 @@ export default class Workspace implements WorkspaceType {
     let storage = await NocoCache.getHash(
       `${CacheScope.STORAGE_STATS}:workspace:${id}`,
     );
-
-    const bases = await Base.list(id, ncMeta);
-    const activeBaseIds = bases.map((base) => base.id);
-
     if (!storage) {
+      const bases = await Base.list(id, ncMeta);
+      const activeBaseIds = bases.map((base) => base.id);
+
       storage = await ncMeta.knexConnection
         .select({
           [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: ncMeta

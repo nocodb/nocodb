@@ -29,11 +29,13 @@ export class SignupPage extends BasePage {
     password,
     withoutPrefix,
     expectedError,
+    skipOnboardingFlow = true,
   }: {
     email: string;
     password: string;
     withoutPrefix?: boolean;
     expectedError?: string;
+    skipOnboardingFlow?: boolean;
   }) {
     if (!withoutPrefix) email = this.prefixEmail(email);
 
@@ -47,6 +49,10 @@ export class SignupPage extends BasePage {
       await expect(signUp.getByTestId('nc-signup-error')).toHaveText(expectedError);
     } else {
       await this.rootPage.waitForLoadState('networkidle');
+
+      if (skipOnboardingFlow) {
+        // await this.rootPage.locator('button:has-text("Skip")').click();
+      }
     }
   }
 }

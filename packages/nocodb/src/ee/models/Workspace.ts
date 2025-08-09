@@ -593,10 +593,10 @@ export default class Workspace implements WorkspaceType {
       `${CacheScope.RESOURCE_STATS}:workspace:${id}`,
     );
 
-    const bases = await Base.list(id, ncMeta);
-    const activeBaseIds = bases.map((base) => base.id);
-
     if (!stats) {
+      const bases = await Base.list(id, ncMeta);
+      const activeBaseIds = bases.map((base) => base.id);
+
       stats = await ncMeta.knexConnection
         .select({
           [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: ncMeta

@@ -15,6 +15,7 @@ import type {
   ViewColumnUpdateReqType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { CalendarViewColumn, Column, View } from '~/models';
@@ -25,8 +26,12 @@ import Noco from '~/Noco';
 export class ViewColumnsService {
   constructor(private appHooksService: AppHooksService) {}
 
-  async columnList(context: NcContext, param: { viewId: string }) {
-    return await View.getColumns(context, param.viewId, undefined);
+  async columnList(
+    context: NcContext,
+    param: { viewId: string },
+    ncMeta?: MetaService,
+  ) {
+    return await View.getColumns(context, param.viewId, ncMeta);
   }
 
   async columnAdd(
@@ -69,13 +74,14 @@ export class ViewColumnsService {
       req: NcRequest;
       internal?: boolean;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewColumnUpdateReq',
       param.column,
     );
 
-    const view = await View.get(context, param.viewId);
+    const view = await View.get(context, param.viewId, ncMeta);
 
     if (!view) {
       NcError.viewNotFound(param.viewId);
@@ -85,23 +91,30 @@ export class ViewColumnsService {
       context,
       param.viewId,
       param.columnId,
+      ncMeta,
     );
 
-    const column = await Column.get(context, {
-      colId: oldViewColumn.fk_column_id,
-    });
+    const column = await Column.get(
+      context,
+      {
+        colId: oldViewColumn.fk_column_id,
+      },
+      ncMeta,
+    );
 
     const result = await View.updateColumn(
       context,
       param.viewId,
       param.columnId,
       param.column,
+      ncMeta,
     );
 
     const viewColumn = await View.getColumn(
       context,
       param.viewId,
       param.columnId,
+      ncMeta,
     );
 
     this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {

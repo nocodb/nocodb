@@ -1,7 +1,12 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Param,
+  Patch,
+  Post,
   Query,
   Request,
   UseGuards,
@@ -44,6 +49,50 @@ export class ViewsV3Controller {
     @Request() req,
   ) {
     const view = await this.viewsV3Service.getView(context, {
+      viewId: viewId,
+      req,
+    });
+    return view;
+  }
+
+  @Post(`${PREFIX_APIV3_METABASE}/tables/:tableId/views`)
+  @HttpCode(200)
+  @Acl('viewCreate')
+  async viewCreate(
+    @TenantContext() context: NcContext,
+    @Param('tableId') tableId: string,
+    @Body() body: any,
+    @Request() req,
+  ) {
+    const view = await this.viewsV3Service.create(context, {
+      req,
+      tableId,
+    });
+    return view;
+  }
+
+  @Patch(`${PREFIX_APIV3_METABASE}/views/:viewId`)
+  @Acl('viewUpdate')
+  async viewUpdate(
+    @TenantContext() context: NcContext,
+    @Param('viewId') viewId: string,
+    @Request() req,
+  ) {
+    const view = await this.viewsV3Service.update(context, {
+      viewId: viewId,
+      req,
+    });
+    return view;
+  }
+
+  @Delete(`${PREFIX_APIV3_METABASE}/views/:viewId`)
+  @Acl('viewDelete')
+  async viewDelete(
+    @TenantContext() context: NcContext,
+    @Param('viewId') viewId: string,
+    @Request() req,
+  ) {
+    const view = await this.viewsV3Service.delete(context, {
       viewId: viewId,
       req,
     });

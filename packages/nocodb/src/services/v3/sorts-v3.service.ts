@@ -6,6 +6,7 @@ import type {
   SortUpdateV3Type,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { Column, Sort } from '~/models';
 import { SortsService } from '~/services/sorts.service';
 import {
@@ -87,6 +88,7 @@ export class SortsV3Service {
   async sortCreate(
     context: NcContext,
     param: { viewId: string; sort: SortCreateV3Type; req: NcRequest },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger-v3.json#/components/schemas/SortCreate',
@@ -95,7 +97,7 @@ export class SortsV3Service {
     );
 
     // check for existing filter with same field
-    const sorts = await Sort.list(context, { viewId: param.viewId });
+    const sorts = await Sort.list(context, { viewId: param.viewId }, ncMeta);
     const existingSort = sorts.find(
       (s) => s.fk_column_id === param.sort.field_id,
     );
@@ -104,16 +106,24 @@ export class SortsV3Service {
     }
 
     // check column exists
-    const column = await Column.get(context, { colId: param.sort.field_id });
+    const column = await Column.get(
+      context,
+      { colId: param.sort.field_id },
+      ncMeta,
+    );
 
     if (!column) {
       NcError.notFound('Column not found');
     }
 
-    const sort = await this.sortsService.sortCreate(context, {
-      ...param,
-      sort: this.revBuilder().build(param.sort) as SortReqType,
-    });
+    const sort = await this.sortsService.sortCreate(
+      context,
+      {
+        ...param,
+        sort: this.revBuilder().build(param.sort) as SortReqType,
+      },
+      ncMeta,
+    );
     return sortBuilder().build(sort);
   }
 

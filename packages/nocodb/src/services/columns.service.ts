@@ -321,8 +321,8 @@ export class ColumnsService implements IColumnsService {
       }),
     );
 
-    if (table.synced && column.readonly) {
-      NcError.badRequest(
+    if (table.synced && column.readonly && !param.forceUpdateSystem) {
+      NcError.get(context).invalidRequestBody(
         `The column '${
           column.title || column.column_name
         }' is a synced column and cannot be updated.`,
@@ -428,13 +428,13 @@ export class ColumnsService implements IColumnsService {
       param.column.column_name &&
       param.column.column_name.length > mxColumnLength
     ) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `Column name ${param.column.column_name} exceeds ${mxColumnLength} characters`,
       );
     }
 
     if (param.column.title && param.column.title.length > 255) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `Column title ${param.column.title} exceeds 255 characters`,
       );
     }
@@ -450,7 +450,7 @@ export class ColumnsService implements IColumnsService {
         exclude_id: param.columnId,
       }))
     ) {
-      NcError.badRequest('Duplicate column name');
+      NcError.get(context).invalidRequestBody('Duplicate column name');
     }
     if (
       param.column.title &&
@@ -461,7 +461,7 @@ export class ColumnsService implements IColumnsService {
       }))
     ) {
       // This error will be thrown if there are more than one column linking to the same table. You have to delete one of them
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `Duplicate column alias for table ${table.title} and column is ${param.column.title}. Please change the name of this column and retry.`,
       );
     }
@@ -1940,7 +1940,12 @@ export class ColumnsService implements IColumnsService {
       param.column.title = param.column.column_name;
     }
 
-    validatePayload('swagger.json#/components/schemas/ColumnReq', param.column);
+    validatePayload(
+      'swagger.json#/components/schemas/ColumnReq',
+      param.column,
+      false,
+      context,
+    );
 
     const reuse = param.reuse || {};
 
@@ -1959,7 +1964,7 @@ export class ColumnsService implements IColumnsService {
       source?.is_schema_readonly &&
       !readonlyMetaAllowedTypes.includes(param.column.uidt as UITypes)
     ) {
-      NcError.sourceMetaReadOnly(source.alias);
+      NcError.get(context).sourceMetaReadOnly(source.alias);
     }
 
     const base = await reuseOrSave('base', reuse, async () =>
@@ -2012,13 +2017,13 @@ export class ColumnsService implements IColumnsService {
         param.column.column_name &&
         param.column.column_name.length > mxColumnLength
       ) {
-        NcError.badRequest(
+        NcError.get(context).invalidRequestBody(
           `Column name ${param.column.column_name} exceeds ${mxColumnLength} characters`,
         );
       }
 
       if (param.column.title && param.column.title.length > 255) {
-        NcError.badRequest(
+        NcError.get(context).invalidRequestBody(
           `Column title ${param.column.title} exceeds 255 characters`,
         );
       }
@@ -2031,7 +2036,7 @@ export class ColumnsService implements IColumnsService {
         fk_model_id: param.tableId,
       }))
     ) {
-      NcError.badRequest('Duplicate column name');
+      NcError.get(context).invalidRequestBody('Duplicate column name');
     }
     if (
       !(await Column.checkAliasAvailable(context, {
@@ -2039,7 +2044,7 @@ export class ColumnsService implements IColumnsService {
         fk_model_id: param.tableId,
       }))
     ) {
-      NcError.badRequest('Duplicate column alias');
+      NcError.get(context).invalidRequestBody('Duplicate column alias');
     }
 
     let colBody: any = param.column;
@@ -2094,7 +2099,7 @@ export class ColumnsService implements IColumnsService {
         break;
 
       case UITypes.QrCode:
-        validateParams(['fk_qr_value_column_id'], param.column);
+        validateParams(['fk_qr_value_column_id'], param.column, context);
 
         savedColumn = await Column.insert(context, {
           ...colBody,
@@ -2102,7 +2107,7 @@ export class ColumnsService implements IColumnsService {
         });
         break;
       case UITypes.Barcode:
-        validateParams(['fk_barcode_value_column_id'], param.column);
+        validateParams(['fk_barcode_value_column_id'], param.column, context);
 
         savedColumn = await Column.insert(context, {
           ...colBody,
@@ -2204,7 +2209,7 @@ export class ColumnsService implements IColumnsService {
             colBody.error = e.message;
             colBody.parsed_tree = null;
             if (!param.suppressFormulaError) {
-              NcError.badRequest('Invalid URL Formula');
+              NcError.get(context).invalidRequestBody('Invalid URL Formula');
             }
           }
         } else if (colBody.type === ButtonActionsType.Webhook) {
@@ -2238,7 +2243,9 @@ export class ColumnsService implements IColumnsService {
                 const column = table.columns.find((c) => c.title === p1);
 
                 if (!column) {
-                  NcError.badRequest(`Field '${p1}' not found`);
+                  NcError.get(context).invalidRequestBody(
+                    `Field '${p1}' not found`,
+                  );
                 }
 
                 return `{${column.id}}`;
@@ -2379,14 +2386,14 @@ export class ColumnsService implements IColumnsService {
               if (colBody.uidt === UITypes.SingleSelect) {
                 try {
                   if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
-                    NcError.badRequest(
+                    NcError.get(context).invalidRequestBody(
                       `Default value '${colBody.cdf}' is not a select option.`,
                     );
                   }
                 } catch (e) {
                   colBody.cdf = colBody.cdf.replace(/^'/, '').replace(/'$/, '');
                   if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
-                    NcError.badRequest(
+                    NcError.get(context).invalidRequestBody(
                       `Default value '${colBody.cdf}' is not a select option.`,
                     );
                   }
@@ -2395,7 +2402,7 @@ export class ColumnsService implements IColumnsService {
                 try {
                   for (const cdf of colBody.cdf.split(',')) {
                     if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
-                      NcError.badRequest(
+                      NcError.get(context).invalidRequestBody(
                         `Default value '${cdf}' is not a select option.`,
                       );
                     }
@@ -2404,7 +2411,7 @@ export class ColumnsService implements IColumnsService {
                   colBody.cdf = colBody.cdf.replace(/^'/, '').replace(/'$/, '');
                   for (const cdf of colBody.cdf.split(',')) {
                     if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
-                      NcError.badRequest(
+                      NcError.get(context).invalidRequestBody(
                         `Default value '${cdf}' is not a select option.`,
                       );
                     }
@@ -2431,7 +2438,9 @@ export class ColumnsService implements IColumnsService {
                 return titles.indexOf(item) !== titles.lastIndexOf(item);
               })
             ) {
-              NcError.badRequest('Duplicates are not allowed!');
+              NcError.get(context).invalidRequestBody(
+                'Duplicates are not allowed!',
+              );
             }
 
             // Restrict empty options
@@ -2440,7 +2449,9 @@ export class ColumnsService implements IColumnsService {
                 return item === '';
               })
             ) {
-              NcError.badRequest('Empty options are not allowed!');
+              NcError.get(context).invalidRequestBody(
+                'Empty options are not allowed!',
+              );
             }
 
             // Trim end of enum/set
@@ -2461,7 +2472,9 @@ export class ColumnsService implements IColumnsService {
                 ? `${colBody.colOptions.options
                     .map((o) => {
                       if (o.title.includes(',')) {
-                        NcError.badRequest("Illegal char(',') for MultiSelect");
+                        NcError.get(context).invalidRequestBody(
+                          "Illegal char(',') for MultiSelect",
+                        );
                       }
                       return `'${o.title.replace(/'/gi, "''")}'`;
                     })
@@ -2502,7 +2515,7 @@ export class ColumnsService implements IColumnsService {
               });
 
               if (emailsNotPresent.length) {
-                NcError.badRequest(
+                NcError.get(context).invalidRequestBody(
                   `The following default users are not part of workspace: ${emailsNotPresent.join(
                     ', ',
                   )}`,
@@ -2533,7 +2546,9 @@ export class ColumnsService implements IColumnsService {
                 const column = table.columns.find((c) => c.title === p1);
 
                 if (!column) {
-                  NcError.badRequest(`Field '${p1}' not found`);
+                  NcError.get(context).invalidRequestBody(
+                    `Field '${p1}' not found`,
+                  );
                 }
 
                 return `{${column.id}}`;
@@ -2649,6 +2664,10 @@ export class ColumnsService implements IColumnsService {
 
     const column = await Column.get(context, { colId: param.columnId }, ncMeta);
 
+    if (!column) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
     const { applyRowColorInvolvement } =
       await this.viewRowColorService.checkIfColumnInvolved({
         context,
@@ -2657,7 +2676,7 @@ export class ColumnsService implements IColumnsService {
       });
 
     if ((column.system || isSystemColumn(column)) && !param.forceDeleteSystem) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `The column '${
           column.title || column.column_name
         }' is a system column and cannot be deleted.`,
@@ -2682,11 +2701,11 @@ export class ColumnsService implements IColumnsService {
       source?.is_schema_readonly &&
       !readonlyMetaAllowedTypes.includes(column.uidt)
     ) {
-      NcError.sourceMetaReadOnly(source.alias);
+      NcError.get(context).sourceMetaReadOnly(source.alias);
     }
 
     if (table.synced && column.readonly && !param.forceDeleteSystem) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `The column '${
           column.title || column.column_name
         }' is a synced column and cannot be deleted.`,
@@ -3633,7 +3652,7 @@ export class ColumnsService implements IColumnsService {
   ) {
     let savedColumn: Column;
 
-    validateParams(['parentId', 'childId', 'type'], param.column);
+    validateParams(['parentId', 'childId', 'type'], param.column, context);
 
     const reuse = param.reuse ?? {};
 

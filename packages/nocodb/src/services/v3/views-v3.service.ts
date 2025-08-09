@@ -19,6 +19,18 @@ import { NcError } from '~/helpers/catchError';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 
+const viewTypeMap = {
+  GRID: ViewTypes.GRID,
+  GALLERY: ViewTypes.GALLERY,
+  KANBAN: ViewTypes.KANBAN,
+  CALENDAR: ViewTypes.CALENDAR,
+  FORM: ViewTypes.FORM,
+  [ViewTypes.GRID]: 'GRID',
+  [ViewTypes.GALLERY]: 'GALLERY',
+  [ViewTypes.KANBAN]: 'KANBAN',
+  [ViewTypes.CALENDAR]: 'CALENDAR',
+  [ViewTypes.FORM]: 'FORM',
+};
 @Injectable()
 export class ViewsV3Service {
   protected logger = new Logger(ViewsV3Service.name);
@@ -375,7 +387,7 @@ export class ViewsV3Service {
     }
 
     // group info
-
+    formattedView.type = viewTypeMap[formattedView.type];
     return formattedView;
   }
 
@@ -383,6 +395,10 @@ export class ViewsV3Service {
     const { req, tableId } = param;
     const { body } = req;
     const requestBody = this.v3Tov2ViewBuilders.view().build(body);
+
+    requestBody.type =
+      viewTypeMap[(requestBody.type as any as string).toUpperCase()];
+    requestBody.options = requestBody.options ?? {};
     let insertedV2View: View;
     switch (requestBody.type) {
       case ViewTypes.GRID: {
@@ -481,14 +497,16 @@ export class ViewsV3Service {
       }
     }
 
-    if (requestBody.sorts) {
-      await this.sortsV3Service.sortCreate(context, {
-        viewId: insertedV2View.id,
-        req,
-        sort: requestBody.sorts,
-      });
+    if (requestBody.sorts && requestBody.sorts.length > 0) {
+      for (const sort of requestBody.sorts) {
+        await this.sortsV3Service.sortCreate(context, {
+          viewId: insertedV2View.id,
+          req,
+          sort,
+        });
+      }
     }
 
-    return insertedV2View;
+    return this.getView(context, { viewId: insertedV2View.id, req });
   }
 }

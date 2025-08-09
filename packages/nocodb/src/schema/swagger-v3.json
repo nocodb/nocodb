@@ -4790,7 +4790,6 @@
         "properties": {
           "field_id": {
             "type": "string",
-            "format": "uuid",
             "description": "Identifier for the field being sorted."
           },
           "direction": {
@@ -4803,8 +4802,7 @@
           }
         },
         "required": [
-          "field_id",
-          "direction"
+          "field_id"
         ]
       },
       "SortUpdate": {

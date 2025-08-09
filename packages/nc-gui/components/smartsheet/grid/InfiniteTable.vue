@@ -10,8 +10,6 @@ import {
   type ViewType,
   ViewTypes,
   isAIPromptCol,
-  isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isOrderCol,
   isSystemColumn,

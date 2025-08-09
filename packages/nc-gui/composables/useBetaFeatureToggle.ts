@@ -33,13 +33,6 @@ const FEATURES = [
     version: 1,
   },
   {
-    id: 'improved_sidebar_ui',
-    title: 'Improved Sidebar',
-    description: 'New and Improved sidebar for better UI experience',
-    enabled: !ncIsPlaywright(),
-    version: 2,
-  },
-  {
     id: 'link_to_another_record',
     title: 'Link To Another Record',
     description: 'Show linked record display value in Link fields.',

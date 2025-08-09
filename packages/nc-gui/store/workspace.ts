@@ -23,10 +23,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const lastPopulatedWorkspaceId = ref<string | null>(null)
 
-  const { setTheme, theme } = useTheme()
-
-  const { $e } = useNuxtApp()
-
   const { appInfo, ncNavigateTo } = useGlobal()
 
   const workspaces = ref<Map<string, any>>(new Map())
@@ -179,7 +175,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const moveWorkspace = async (..._args: any) => {}
 
   async function saveTheme(_theme: Partial<ThemeConfig>) {
-    const fullTheme = {
+    // Not Implemented
+    /* const fullTheme = {
       primaryColor: theme.value.primaryColor,
       accentColor: theme.value.accentColor,
       ..._theme,
@@ -194,7 +191,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     setTheme(fullTheme)
 
-    $e('c:themes:change')
+    $e('c:themes:change') */
   }
 
   async function clearWorkspaces() {

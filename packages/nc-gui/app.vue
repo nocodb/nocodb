@@ -7,11 +7,15 @@ const route = router.currentRoute
 
 const disableBaseLayout = computed(() => route.value.path.startsWith('/nc/view') || route.value.path.startsWith('/nc/form'))
 
-useTheme()
-
-const { isExperimentalFeatureModalOpen, initializeFeatures } = useBetaFeatureToggle()
+const { isExperimentalFeatureModalOpen, initializeFeatures, isFeatureEnabled } = useBetaFeatureToggle()
 
 initializeFeatures()
+
+const isDarkModeEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.DARK_MODE))
+
+if (isDarkModeEnabled.value) {
+  useTheme()
+}
 
 const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope } = useCommandPalette()
 

@@ -51,7 +51,6 @@ export function useGridViewData(
     toggleExpand,
     groupByColumns,
     isGroupBy,
-    buildNestedWhere,
     buildNestedFilterArr,
     clearGroupCache,
     syncCount: groupSyncCount,

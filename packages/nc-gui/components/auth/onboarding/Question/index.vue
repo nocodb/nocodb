@@ -58,12 +58,12 @@ const isOptionSelected = (option: OnboardingOptionType) => {
           :index="index"
           :total-options="options.length"
           :icon-size="question.iconSize"
-          @click="onSelectOption(option, question, questionIndex)"
           :class="{
             '!justify-center': !anyOptionHasIcon,
             'nc-selected': isOptionSelected(option),
             'nc-has-icon-bg-color': anyOptionHasBgColor,
           }"
+          @click="onSelectOption(option, question, questionIndex)"
         />
       </template>
     </div>

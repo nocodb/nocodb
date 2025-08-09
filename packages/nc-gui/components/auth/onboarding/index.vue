@@ -48,9 +48,9 @@ onMounted(() => {
         <Transition :name="transitionName ?? ''" mode="out-in">
           <AuthOnboardingQuestion
             :key="stepper.index.value"
+            :ref="onSelectRef"
             :question="visibleQuestion"
             :question-index="stepper.index.value"
-            :ref="onSelectRef"
           />
         </Transition>
       </div>

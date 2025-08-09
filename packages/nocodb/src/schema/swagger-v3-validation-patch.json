@@ -33,6 +33,26 @@
                   "FORM"
                 ],
                 "description": "Type of the view."
+              },
+              "orderedFields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "fieldId": {
+                      "type": "string"
+                    },
+                    "show": {
+                      "type": "boolean"
+                    },
+                    "width": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "fieldId"
+                  ]
+                }
               }
             },
             "required": [

@@ -6,11 +6,11 @@ import { KanbansService } from '../kanbans.service';
 import { GalleriesService } from '../galleries.service';
 import { FormsService } from '../forms.service';
 import { GridColumnsService } from '../grid-columns.service';
-import type { ViewColumnOptionV3Type } from 'nocodb-sdk';
+import type { ViewColumnOptionV3Type, ViewCreateV3Type } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { ApiV3DataTransformationBuilder } from 'src/utils/data-transformation.builder';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { GridViewColumn } from '~/models';
+import type { Column, GridViewColumn } from '~/models';
 import Noco from '~/Noco';
 import { Model, Sort, View } from '~/models';
 import {
@@ -422,6 +422,7 @@ export class ViewsV3Service {
       true,
       context,
     );
+    let modelColumns: Column[];
     if (body.options) {
       const optionsSchemaName =
         'ViewOptions' + body.type[0] + body.type.substring(1).toLowerCase();
@@ -441,15 +442,17 @@ export class ViewsV3Service {
           true,
           context,
         );
-        await this.validateFieldsById(
-          context,
-          {
-            tableId: param.tableId,
-            req: param.req,
-            fieldsById: body.options.fieldsById,
-          },
-          ncMeta,
-        );
+        modelColumns = (
+          await this.validateFieldsById(
+            context,
+            {
+              tableId: param.tableId,
+              req: param.req,
+              fieldsById: body.options.fieldsById,
+            },
+            ncMeta,
+          )
+        ).modelColumns;
       }
     }
 
@@ -464,6 +467,17 @@ export class ViewsV3Service {
       ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
     };
 
+    const updateViewColumns = await this.getUpdateViewColumnCreate(
+      context,
+      {
+        req,
+        tableId,
+        modelColumns,
+        orderedFields: body.orderedFields,
+        fieldsById: body.options?.fieldsById,
+      },
+      ncMeta,
+    );
     const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
     try {
       let insertedV2View: View;
@@ -589,6 +603,18 @@ export class ViewsV3Service {
         }
       }
 
+      if (updateViewColumns && Object.keys(updateViewColumns).length > 0) {
+        await this.saveUpdatedViewColumns(
+          context,
+          {
+            updateViewColumns,
+            req: param.req,
+            viewId: insertedV2View.id,
+            viewType: requestBody.type,
+          },
+          trxNcMeta,
+        );
+      }
       if (requestBody.sorts && requestBody.sorts.length > 0) {
         for (const sort of requestBody.sorts) {
           await this.sortsV3Service.sortCreate(
@@ -634,6 +660,121 @@ export class ViewsV3Service {
         columnKeys.find((col) => !existingColumnKeys.includes(col)),
       );
     }
+    return { modelColumns: columns };
+  }
+
+  async getUpdateViewColumnCreate(
+    context: NcContext,
+    param: {
+      req: NcRequest;
+      tableId: string;
+      modelColumns?: { id: string; order: number }[];
+      orderedFields?: ViewCreateV3Type['orderedFields'];
+      fieldsById?: ViewColumnOptionV3Type['fieldsById'];
+    },
+    ncMeta?: MetaService,
+  ) {
+    const result: Record<
+      string,
+      {
+        width?: number;
+        show?: boolean;
+        order?: number;
+      } & Record<string, any>
+    > = {};
+    if (
+      (param.orderedFields ?? []).length === 0 &&
+      Object.keys(param.fieldsById ?? {}).length === 0
+    ) {
+      return {};
+    }
+    const modelColumns =
+      param.modelColumns ??
+      (await (
+        await Model.get(context, param.tableId, ncMeta)
+      ).getColumns(context, ncMeta));
+    if ((param.orderedFields ?? []).length > 0) {
+      // we get the order by array index
+      const orderedFieldMap = (param.orderedFields ?? []).reduce(
+        (acc, val, idx) => {
+          acc[val.fieldId] = { ...val, order: idx };
+          return acc;
+        },
+        {},
+      );
+      // get the next orders by array index + length
+      // for the rest of the columns not mentioned in ordered field map
+      const unorderedFieldMap = modelColumns
+        .sort((a, b) => a.order - b.order)
+        .map((k) => k.id)
+        .filter((id) => !orderedFieldMap[id])
+        .reduce((cur, id, idx) => {
+          cur[id] = {
+            order: idx + (param.orderedFields ?? []).length,
+          };
+          return cur;
+        }, {});
+      Object.assign(orderedFieldMap, unorderedFieldMap);
+      for (const modelColumn of modelColumns) {
+        if (modelColumn.order !== orderedFieldMap[modelColumn.id].order) {
+          // TODO: map the properties using builder
+          result[modelColumn.id] = orderedFieldMap[modelColumn.id];
+        }
+      }
+    }
+    for (const [colId, col] of Object.entries(param.fieldsById ?? {})) {
+      result[colId] = {
+        ...result[colId],
+        // TODO: map the properties using builder
+        ...col,
+      };
+    }
+    return result;
+  }
+
+  async saveUpdatedViewColumns(
+    context: NcContext,
+    param: {
+      req: NcRequest;
+      viewId: string;
+      viewType: ViewTypes;
+      updateViewColumns: Record<string, any>;
+    },
+    ncMeta?: MetaService,
+  ) {
+    switch (param.viewType) {
+      case ViewTypes.GRID: {
+        const gridColumns = await this.gridColumnsService.columnList(
+          context,
+          { gridViewId: param.viewId },
+          ncMeta,
+        );
+        for (const [columnId, col] of Object.entries(param.updateViewColumns)) {
+          const viewColumn = gridColumns.find(
+            (c) => c.fk_column_id === columnId,
+          );
+          await this.gridColumnsService.gridColumnUpdate(
+            context,
+            { gridViewColumnId: viewColumn.id, grid: col, req: param.req },
+            ncMeta,
+          );
+        }
+        break;
+      }
+      // TODO:
+      case ViewTypes.KANBAN: {
+        break;
+      }
+      case ViewTypes.CALENDAR: {
+        break;
+      }
+      case ViewTypes.GALLERY: {
+        break;
+      }
+      case ViewTypes.FORM: {
+        break;
+      }
+    }
   }
 
   async update(
@@ -665,6 +806,23 @@ export class ViewsV3Service {
         true,
         context,
       );
+      if (existingView.type === ViewTypes.FORM && body.options.fieldsById) {
+        validatePayload(
+          `swagger-v3.json#/components/schemas/ViewColumnOption`,
+          body.options,
+          true,
+          context,
+        );
+        await this.validateFieldsById(
+          context,
+          {
+            tableId: existingView.fk_model_id,
+            req: param.req,
+            fieldsById: body.options.fieldsById,
+          },
+          ncMeta,
+        );
+      }
     }
 
     let requestBody = this.v3Tov2ViewBuilders.view().build(body);

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { parseProp, ViewTypes } from 'nocodb-sdk';
+import { ncIsNullOrUndefined, parseProp, ViewTypes } from 'nocodb-sdk';
 import { GridsService } from '../grids.service';
 import { CalendarsService } from '../calendars.service';
 import { KanbansService } from '../kanbans.service';
@@ -47,6 +47,7 @@ export class ViewsV3Service {
   private v3Tov2ViewBuilders: {
     view?: () => ApiV3DataTransformationBuilder<any, any>;
     options?: () => ApiV3DataTransformationBuilder<any, any>;
+    formFieldByIds?: () => ApiV3DataTransformationBuilder<any, any>;
   } = {};
 
   constructor(
@@ -314,6 +315,37 @@ export class ViewsV3Service {
         };
 
         return result;
+      },
+    }) as any;
+
+    this.v3Tov2ViewBuilders.formFieldByIds = builderGenerator<any, any>({
+      allowed: [
+        'alias',
+        'description',
+        'required',
+        'allowScannerInput',
+        'isList',
+        'isLimitOption',
+        'validators',
+        'isList',
+        'isLimitOption',
+      ],
+      mappings: {
+        alias: 'label', // label
+        allowScannerInput: 'enable_scanner',
+      },
+      transformFn: (field) => {
+        if (!ncIsNullOrUndefined(field.isList)) {
+          field.meta = field.meta ?? {};
+          field.meta.isList = field.isList;
+          field.isList = undefined;
+        }
+        if (!ncIsNullOrUndefined(field.isLimitOption)) {
+          field.meta = field.meta ?? {};
+          field.meta.isLimitOption = field.isLimitOption;
+          field.isLimitOption = undefined;
+        }
+        return field;
       },
     }) as any;
   }
@@ -719,16 +751,19 @@ export class ViewsV3Service {
       Object.assign(orderedFieldMap, unorderedFieldMap);
       for (const modelColumn of modelColumns) {
         if (modelColumn.order !== orderedFieldMap[modelColumn.id].order) {
-          // TODO: map the properties using builder
-          result[modelColumn.id] = orderedFieldMap[modelColumn.id];
+          result[modelColumn.id] = {
+            ...orderedFieldMap[modelColumn.id],
+            ...(orderedFieldMap[modelColumn.id].width
+              ? { width: orderedFieldMap[modelColumn.id].width + 'px' }
+              : {}),
+          };
         }
       }
     }
     for (const [colId, col] of Object.entries(param.fieldsById ?? {})) {
       result[colId] = {
         ...result[colId],
-        // TODO: map the properties using builder
-        ...col,
+        ...this.v3Tov2ViewBuilders.formFieldByIds().build(col),
       };
     }
     return result;

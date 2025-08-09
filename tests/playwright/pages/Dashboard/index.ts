@@ -112,6 +112,9 @@ export class DashboardPage extends BasePage {
   }
 
   async clickOnBaseMenuLink() {
+    // Open base list sidebar if it is not open
+    await this.leftSidebar.verifyBaseListOpen(true);
+
     const baseMenuLocator = this.rootPage.locator(`.base-title-node:has-text("${this.base.title}")`).first();
 
     await baseMenuLocator.waitFor({ state: 'visible' });

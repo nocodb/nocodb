@@ -199,7 +199,7 @@ type Shade = keyof (typeof themeV3Colors)[ThemeV3ColorKeys]
  * @param shade - The shade of the color to get
  * @returns The color
  */
-export function getThemeV3RandomColor(randomNumber: number = 1, shade: Shade = 600): string {
+export function getThemeV3RandomColor(randomNumber = 1, shade: Shade = 600): string {
   const colorGroups = Object.keys(themeV3Colors).filter((key) => key !== 'base') as ThemeV3ColorKeys[]
 
   const groupIndex = Math.floor(Math.random() * 1000 * randomNumber) % colorGroups.length

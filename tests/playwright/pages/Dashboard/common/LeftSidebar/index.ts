@@ -55,11 +55,16 @@ export class LeftSidebarPage extends BasePage {
       await this.miniSidebarActionClick({ type: 'base' });
     }
 
+    // Wait for the sidebar list transition to complete
+    await this.rootPage.waitForTimeout(500);
+
     return isListOpen;
   }
 
   async createProject({ title, context }: { title: string; context: NcContext }) {
     title = isEE() ? title : `nc-${context.workerId}-${title}`;
+    await this.verifyBaseListOpen(true);
+
     await this.btn_newProject.click();
 
     if (isEE()) {
@@ -73,6 +78,11 @@ export class LeftSidebarPage extends BasePage {
       .locator('.ant-modal-content:has-text(" Create Base")')
       .locator('button.ant-btn-primary')
       .click();
+
+    await this.rootPage.locator('.nc-sidebar-header.nc-active-project').waitFor({ state: 'visible' });
+
+    // Open base list if it's not already open
+    await this.verifyBaseListOpen(true);
   }
 
   async clickTeamAndSettings() {

@@ -4897,7 +4897,7 @@
           }
         }
       },
-      "ViewColumnOption": {
+      "ViewOptionBase": {
         "type": "object",
         "properties": {
           "fields_by_id": {
@@ -4944,13 +4944,22 @@
                 }
               }
             }
+          },
+          "row_height": {
+            "type": "string",
+            "enum": [
+              "short",
+              "medium",
+              "tall",
+              "extra"
+            ]
           }
         }
       },
       "ViewBaseOptions": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/ViewColumnOption"
+            "$ref": "#/components/schemas/ViewOptionBase"
           },
           {
             "oneOf": [

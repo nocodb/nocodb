@@ -37,6 +37,7 @@ import { validatePayload } from '~/helpers';
 import { FormColumnsService } from '~/services/form-columns.service';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 import { nestedFilterBuilder } from '~/utils/api-v3-data-transformation.builder';
+import { withoutId } from '~/helpers/exportImportHelpers';
 
 const viewTypeMap = {
   grid: ViewTypes.GRID,
@@ -578,17 +579,12 @@ export class ViewsV3Service {
         true,
         context,
       );
-      if (
-        viewTypeMap[body.type] === ViewTypes.FORM &&
-        body.options.fields_by_id
-      ) {
-        validatePayload(
-          `swagger-v3.json#/components/schemas/ViewColumnOption`,
-          body.options,
-          true,
-          context,
-        );
-      }
+      validatePayload(
+        `swagger-v3.json#/components/schemas/ViewOptionBase`,
+        body.options,
+        true,
+        context,
+      );
     }
 
     if (!body.title) {
@@ -626,7 +622,7 @@ export class ViewsV3Service {
       ncMeta,
     );
 
-    let requestBody = this.v3Tov2ViewBuilders.view().build(body);
+    let requestBody = withoutId(this.v3Tov2ViewBuilders.view().build(body));
     requestBody.type = viewTypeCode;
     requestBody.options = requestBody.options ?? {};
     requestBody = {
@@ -795,7 +791,7 @@ export class ViewsV3Service {
             {
               viewId: insertedV2View.id,
               req,
-              sort,
+              sort: withoutId(sort),
             },
             trxNcMeta,
           );
@@ -1283,7 +1279,7 @@ export class ViewsV3Service {
             {
               viewId,
               req,
-              sort,
+              sort: withoutId(sort),
             },
             trxNcMeta,
           );

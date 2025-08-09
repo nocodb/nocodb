@@ -743,6 +743,11 @@ import NcLogoRetoolColored from '~icons/nc-icons-v2/retool-colored.svg'
 import NcLogoN8nColored from '~icons/nc-icons-v2/n8n-colored.svg'
 import NcLogoZapierColored from '~icons/nc-icons-v2/zapier-colored.svg'
 import NcLogoMakeColored from '~icons/nc-icons-v2/make-colored.svg'
+import NcLogoCrewAi from '~icons/nc-icons-v2/crew-ai-colored.svg'
+import NcLogoManusIm from '~icons/nc-icons-v2/manus-im.svg'
+import NcLogoHuggingface from '~icons/nc-icons-v2/huggingface-colored.svg'
+import NcLogoReplitAi from '~icons/nc-icons-v2/replit-ai-colored.svg'
+import NcLogoLangchain from '~icons/nc-icons-v2/langchain.svg'
 
 import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
 import NcBaseOutline from '~icons/nc-icons-v2/base-outline.svg'
@@ -1305,10 +1310,10 @@ export const iconMap = {
   'intercom': NcIntercom,
   'dropbox': NcDropbox,
   'gift': NcIconsGift,
-  'openai': NcOpenai,
-  'claude': NcClaude,
-  'ollama': NcOllama,
-  'groq': NcGroq,
+  'openai': h(NcOpenai, { stroke: 'transparent' }),
+  'claude': h(NcClaude, { stroke: 'transparent' }),
+  'ollama': h(NcOllama, { stroke: 'transparent' }),
+  'groq': h(NcGroq, { stroke: 'transparent' }),
   'posthog': h(NcPosthog, { stroke: 'transparent' }),
   'nocodbPg': h(NcNocodbPg, { stroke: 'transparent' }),
   'refreshCw': NcRefreshCW,
@@ -1726,6 +1731,11 @@ export const iconMap = {
   'ncLogoN8nColored': h(NcLogoN8nColored, { stroke: 'transparent' }),
   'ncLogoZapierColored': h(NcLogoZapierColored, { stroke: 'transparent' }),
   'ncLogoMakeColored': h(NcLogoMakeColored, { stroke: 'transparent' }),
+  'ncLogoCrewAi': h(NcLogoCrewAi, { stroke: 'transparent' }),
+  'ncLogoManusIm': h(NcLogoManusIm, { stroke: 'transparent' }),
+  'ncLogoHuggingface': h(NcLogoHuggingface, { stroke: 'transparent' }),
+  'ncLogoReplitAi': h(NcLogoReplitAi, { stroke: 'transparent' }),
+  'ncLogoLangchain': h(NcLogoLangchain, { stroke: 'transparent' }),
 
   'ncSendAlt': h(NcSendAlt, { stroke: 'transparent' }),
   'ncStopCircle': h(NcStopCircle, { stroke: 'transparent' }),

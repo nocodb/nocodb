@@ -248,7 +248,6 @@ export class LeftSidebarPage extends BasePage {
     for (const type of types) {
       const locator = await this.getMiniSidebarActionLocator({ type });
 
-      console.log('locator', locator);
       if (isVisible) await expect(locator).toBeVisible();
       else await expect(locator).not.toBeVisible();
     }

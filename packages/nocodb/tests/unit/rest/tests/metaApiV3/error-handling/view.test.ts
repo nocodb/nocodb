@@ -104,7 +104,7 @@ export default function () {
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
           .send({
-            name: 'MyView',
+            title: 'MyView',
             sorts: [
               {
                 field_id: (
@@ -121,7 +121,7 @@ export default function () {
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
           .send({
-            name: 'MyView',
+            title: 'MyView',
             type: 'nogrid',
             sorts: [
               {
@@ -140,7 +140,7 @@ export default function () {
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
           .send({
-            name: 'MyView',
+            title: 'MyView',
             type: 'grid',
             sorts: [
               {
@@ -159,7 +159,7 @@ export default function () {
           .post(`${API_PREFIX}/tables/NOTEXISTSTABLE/views`)
           .set('xc-token', context.xc_token)
           .send({
-            name: 'MyView',
+            title: 'MyView',
             type: 'grid',
             sorts: [
               {
@@ -178,7 +178,7 @@ export default function () {
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
           .send({
-            name: 'MyView',
+            title: 'MyView',
             type: 'grid',
             options: {
               groups: [
@@ -197,7 +197,7 @@ export default function () {
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
           .send({
-            name: 'MyView',
+            title: 'MyView',
             type: 'grid',
             options: {
               groups: [
@@ -216,7 +216,7 @@ export default function () {
           .patch(`${API_PREFIX}/views/NOTFOUNDID`)
           .set('xc-token', context.xc_token)
           .send({
-            name: 'MyView',
+            title: 'MyView',
             type: 'grid',
           });
         expect(response.status).to.eq(422);

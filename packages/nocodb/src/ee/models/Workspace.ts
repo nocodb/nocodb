@@ -736,4 +736,11 @@ export default class Workspace implements WorkspaceType {
       ),
     };
   }
+
+  public static async clearWorkspaceStatsCache(id: string) {
+    await Promise.all([
+      NocoCache.del(`${CacheScope.RESOURCE_STATS}:workspace:${id}`),
+      NocoCache.del(`${CacheScope.STORAGE_STATS}:workspace:${id}`),
+    ]);
+  }
 }

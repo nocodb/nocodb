@@ -354,6 +354,7 @@ export class TreeViewPage extends BasePage {
     param.baseTitle = param.baseTitle ?? context.base.title;
 
     const count = param.role.toLowerCase() === 'creator' || param.role.toLowerCase() === 'owner' ? 1 : 0;
+    await this.dashboard.leftSidebar.verifyBaseListOpen(true);
     const pjtNode = await this.getProject({ title: param.baseTitle });
     await pjtNode.hover();
 
@@ -361,6 +362,8 @@ export class TreeViewPage extends BasePage {
       // add new table button & context menu is visible only for owner & creator
       await expect(pjtNode.locator('[data-testid="nc-sidebar-add-base-entity"]')).toHaveCount(count);
       await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(1);
+
+      await this.openProject({ title: param.baseTitle, context });
 
       // table context menu
       await this.dashboard.sidebar.tableNode.verifyTableOptions({

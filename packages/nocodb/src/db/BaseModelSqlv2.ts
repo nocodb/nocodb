@@ -5528,7 +5528,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   protected _convertUserFormat(
     userColumns: Column[],
-    baseUsers: Partial<User & { deleted?: boolean }>[],
+    baseUsers: Partial<User>[],
     d: Record<string, any>,
     apiVersion?: NcApiVersion,
   ) {
@@ -5541,7 +5541,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           d[col.id] = d[col.id].split(',');
 
           d[col.id] = d[col.id].map((fid) => {
-            const { id, email, display_name, meta, deleted } = baseUsers.find(
+            const { id, email, display_name, meta } = baseUsers.find(
               (u) => u.id === fid,
             );
 
@@ -5557,7 +5557,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               email,
               display_name: display_name?.length ? display_name : null,
               meta: metaObj,
-              deleted,
             };
           });
 

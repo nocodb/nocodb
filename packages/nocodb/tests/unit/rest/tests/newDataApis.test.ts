@@ -2964,13 +2964,15 @@ function userFieldBased() {
       'email',
       'id',
       'display_name',
-      'meta'
+      'meta',
+      'deleted',
     ]);
     expect(insertedRecords[0].userFieldMulti[0]).to.have.keys([
       'email',
       'id',
       'display_name',
-      'meta'
+      'meta',
+      'deleted',
     ]);
   });
 

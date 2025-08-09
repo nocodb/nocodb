@@ -4,6 +4,8 @@ definePageMeta({
   hasSidebar: true,
 })
 
+const { showOnboardingFlow } = useOnboardingFlow()
+
 const { isSharedBase, isSharedErd } = storeToRefs(useBase())
 
 const basesStore = useBases()
@@ -58,6 +60,11 @@ const { sharedBaseId } = useCopySharedBase()
 const isDuplicateDlgOpen = ref(false)
 
 async function handleRouteTypeIdChange() {
+  // Avoid loading bases if onboarding flow is shown
+  if (showOnboardingFlow.value) {
+    return
+  }
+
   // avoid loading bases for shared views
   if (isSharedView.value) {
     return
@@ -82,12 +89,9 @@ async function handleRouteTypeIdChange() {
   }
 }
 
-watch(
-  () => route.value.params.typeOrId,
-  () => {
-    handleRouteTypeIdChange()
-  },
-)
+watch([() => route.value.params.typeOrId, () => showOnboardingFlow.value], () => {
+  handleRouteTypeIdChange()
+})
 
 // onMounted is needed instead having this function called through
 // immediate watch, because if route is changed during page transition
@@ -117,7 +121,9 @@ watch(
 
 <template>
   <div>
-    <NuxtLayout v-if="isSharedFormView">
+    <AuthOnboarding v-if="showOnboardingFlow" />
+
+    <NuxtLayout v-else-if="isSharedFormView">
       <NuxtPage />
     </NuxtLayout>
     <NuxtLayout v-else-if="isSharedView" name="shared-view">

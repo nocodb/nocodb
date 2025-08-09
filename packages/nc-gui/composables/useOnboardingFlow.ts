@@ -942,6 +942,10 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
     postCompleteOnboardingFlow(skipped)
 
+    /**
+     * Mark `is_new_user` as `false` in user object after onboarding flow is completed
+     * So that user will not see onboarding flow again
+     */
     try {
       await updateUserProfile({
         attrs: {
@@ -972,6 +976,11 @@ export const useOnboardingFlow = createSharedComposable(() => {
       }
 
       showOnboardingFlowLocalState.value = true
+
+      // If current route is root route then no need to navigate to root route again
+      if (route.value.name === 'index') {
+        return
+      }
 
       const continueAfterOnboardingFlow = route.value.query.continueAfterOnboardingFlow ?? route.value.fullPath
 

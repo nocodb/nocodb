@@ -14,7 +14,11 @@ import { GalleriesService } from '../galleries.service';
 import { FormsService } from '../forms.service';
 import { GridColumnsService } from '../grid-columns.service';
 import { ViewColumnsService } from '../view-columns.service';
-import type { ViewColumnOptionV3Type, ViewCreateV3Type } from 'nocodb-sdk';
+import type {
+  RowColoringInfo,
+  ViewColumnOptionV3Type,
+  ViewCreateV3Type,
+} from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { ApiV3DataTransformationBuilder } from 'src/utils/data-transformation.builder';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -31,6 +35,7 @@ import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { validatePayload } from '~/helpers';
 import { FormColumnsService } from '~/services/form-columns.service';
+import { ViewRowColorService } from '~/services/view-row-color.service';
 
 const viewTypeMap = {
   grid: ViewTypes.GRID,
@@ -51,6 +56,7 @@ export class ViewsV3Service {
     view?: () => ApiV3DataTransformationBuilder<any, any>;
     options?: () => ApiV3DataTransformationBuilder<any, any>;
     formFieldByIds?: () => ApiV3DataTransformationBuilder<any, any>;
+    rowColors?: () => ApiV3DataTransformationBuilder<RowColoringInfo, any>;
   } = {};
   private v2Tov3ViewBuilders: {
     formFieldByIds?: () => ApiV3DataTransformationBuilder<any, any>;
@@ -61,6 +67,7 @@ export class ViewsV3Service {
     protected readonly viewColumnsService: ViewColumnsService,
     protected filtersV3Service: FiltersV3Service,
     protected sortsV3Service: SortsV3Service,
+    protected viewRowColorService: ViewRowColorService,
     protected gridsService: GridsService,
     protected gridColumnsService: GridColumnsService,
     protected formColumnsService: FormColumnsService,
@@ -376,6 +383,38 @@ export class ViewsV3Service {
       },
     }) as any;
 
+    this.v3Tov2ViewBuilders.rowColors = builderGenerator<RowColoringInfo, any>({
+      allowed: [
+        'mode',
+        'selectColumn',
+        'options',
+        'is_set_as_background',
+        'conditions',
+      ],
+      mappings: {
+        is_set_as_background: 'apply_as_row_background',
+      },
+      transformFn: (info) => {
+        const { ...formattedInfo } = info;
+        formattedInfo.mode = formattedInfo.mode.toLowerCase();
+        if (formattedInfo.selectColumn) {
+          formattedInfo.field_id = formattedInfo.selectColumn.id;
+          delete formattedInfo.selectColumn;
+        } else {
+          formattedInfo.conditions = formattedInfo.conditions.map((cond) => {
+            return {
+              id: cond.id,
+              apply_as_row_background: cond.is_set_as_background,
+              color: cond.color,
+              conditions: cond.nestedConditions,
+            };
+          });
+        }
+
+        return formattedInfo;
+      },
+    }) as any;
+
     this.v2Tov3ViewBuilders.formFieldByIds = builderGenerator<any, any>({
       allowed: ['label', 'description', 'required', 'enable_scanner', 'meta'],
       mappings: {
@@ -436,6 +475,16 @@ export class ViewsV3Service {
       });
 
       formattedView.sorts = sorts?.length ? sorts : undefined;
+
+      const rowColor = await this.viewRowColorService.getByViewId({
+        context,
+        fk_view_id: view.id,
+      });
+      if (rowColor) {
+        formattedView.row_coloring = this.v3Tov2ViewBuilders
+          .rowColors()
+          .build(rowColor);
+      }
     }
 
     const viewColumnList = await View.getColumns(context, view.id);

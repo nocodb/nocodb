@@ -49,7 +49,7 @@ useEventListener('keydown', (event) => {
       class="w-full lg:(w-1/2) transition-width duration-250 h-full flex flex-col gap-[120px] nc-scrollbar-thin relative border-l-1 border-nc-border-gray-medium"
     >
       <header
-        class="px-4 pt-6 lg:(pt-12 px-8) flex items-center justify-between w-full max-w-[672px] lg:max-w-[704px] mx-auto sticky top-0 lg:-top-4 bg-white"
+        class="px-4 pt-6 lg:(pt-12 px-8) flex items-center justify-between w-full max-w-[672px] lg:max-w-[704px] mx-auto sticky top-0 lg:-top-4 bg-white z-10"
       >
         <GeneralIcon icon="nocodb1" class="w-12 h-12 flex-none" />
 
@@ -70,7 +70,7 @@ useEventListener('keydown', (event) => {
 
       <slot name="footer">
         <footer
-          class="flex flex-col justify-end w-full max-w-[672px] lg:max-w-[704px] mx-auto px-4 pb-6 lg:(pb-12 px-8) sticky bottom-0 bg-white"
+          class="flex flex-col justify-end w-full max-w-[672px] lg:max-w-[704px] mx-auto px-4 pb-6 lg:(pb-12 px-8) sticky bottom-0 bg-white z-10"
         >
           <div
             class="flex items-center"

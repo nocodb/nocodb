@@ -558,12 +558,11 @@ export class ViewsV3Service {
     const { req, viewId } = param;
     const { body } = req;
 
-    // TODO: enable validate payload
-    // validatePayload(
-    //   'swagger-v3.json#/components/schemas/ViewCreate',
-    //   body,
-    //   true,
-    // );
+    validatePayload(
+      'swagger-v3.json#/components/schemas/ViewUpdate',
+      body,
+      true,
+    );
 
     const existingView = await View.get(context, viewId, ncMeta);
     if (!existingView) {

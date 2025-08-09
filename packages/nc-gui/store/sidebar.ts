@@ -18,6 +18,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     return isNewSidebarEnabled.value ? MINI_SIDEBAR_WIDTH : 0
   })
 
+  const isFullScreen = ref(false)
+
   const tablesStore = useTablesStore()
   const isLeftSidebarOpen = computed({
     get() {
@@ -112,6 +114,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     showTopbar,
     isNewSidebarEnabled,
     miniSidebarWidth,
+    isFullScreen,
   }
 })
 

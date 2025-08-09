@@ -36,13 +36,17 @@ watchEffect(async () => {
     class="flex bg-nc-bg-gray-light flex-1"
   >
     <div
-      class="p-4 flex-1 h-full overflow-y-auto"
+      class="p-4 flex-1 h-full relative overflow-y-auto"
       :class="{
         'flex items-center justify-center': isLoading,
       }"
     >
-      <GeneralLoader v-if="isLoading" size="xlarge" />
-      <SmartsheetDashboardGrid v-else />
+      <general-overlay v-show="isLoading" :model-value="isLoading" inline transition class="!bg-opacity-15 rounded-xl overflow-hidden">
+        <div class="flex flex-col items-center justify-center h-full w-full !bg-white !bg-opacity-80">
+          <a-spin size="large" />
+        </div>
+      </general-overlay>
+      <SmartsheetDashboardGrid v-if="!isLoading" />
     </div>
 
     <SmartsheetDashboardWidgetEditor v-if="selectedWidget" :key="selectedWidget?.id" />

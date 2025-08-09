@@ -31,12 +31,14 @@ import {
 } from '~/utils/api-v3-data-transformation.builder';
 import { ViewsService } from '~/services/views.service';
 import { NcError } from '~/helpers/catchError';
-import { FiltersV3Service } from '~/services/v3/filters-v3.service';
+import {
+  addDummyRootAndNest,
+  FiltersV3Service,
+} from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { validatePayload } from '~/helpers';
 import { FormColumnsService } from '~/services/form-columns.service';
 import { ViewRowColorService } from '~/services/view-row-color.service';
-import { nestedFilterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { withoutId } from '~/helpers/exportImportHelpers';
 
 const viewTypeMap = {
@@ -405,7 +407,7 @@ export class ViewsV3Service {
               id: cond.id,
               apply_as_row_background: cond.is_set_as_background,
               color: cond.color,
-              filters: nestedFilterBuilder().build(cond.nestedConditions),
+              filters: addDummyRootAndNest(cond.conditions),
             };
           });
         }

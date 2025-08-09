@@ -771,6 +771,7 @@ import NcDiscordForum from '~icons/nc-icons/discord-forum'
 import NcCrown from '~icons/nc-icons-v2/crown'
 import NcMultiCircle from '~icons/nc-icons-v2/multi-circle'
 import NcChatwoot from '~icons/nc-icons-v2/chatwoot'
+import NcGraduationCap from '~icons/nc-icons-v2/graduation-cap'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1749,6 +1750,7 @@ export const iconMap = {
   'ncChartDonut': h(NcChartDonut, { stroke: 'transparent' }),
   'ncChartPie': h(NcChartPie, { stroke: 'transparent' }),
   'ncSun': NcSun,
+  'ncGraduationCap': NcGraduationCap,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4361,6 +4363,10 @@ export const searchableMap = {
   ncSun: {
     icon: NcSun,
     keywords: ['sun', 'sunny', 'weather', 'light', 'day', 'morning', 'summer', 'warm', 'warmth'],
+  },
+  ncGraduationCap: {
+    icon: NcGraduationCap,
+    keywords: ['graduation', 'cap', 'school', 'education', 'academic'],
   },
 }
 

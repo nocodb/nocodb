@@ -48,6 +48,9 @@ export interface DataPayload extends BaseSocketPayload {
 
 export interface MetaPayload<T = any> extends BaseSocketPayload {
   action:
+    | 'source_create'
+    | 'source_update'
+    | 'source_delete'
     | 'table_create'
     | 'table_update'
     | 'table_delete'

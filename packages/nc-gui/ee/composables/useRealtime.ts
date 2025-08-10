@@ -33,7 +33,40 @@ export const useRealtime = createSharedComposable(() => {
   const activeWidgetChannel = ref<string | null>(null)
 
   const handleBaseMetaEvent = (event: MetaPayload) => {
-    if (event.action === 'table_create') {
+    if (event.action === 'source_create') {
+      const { payload } = event
+      const baseId = payload.base_id
+      if (baseId) {
+        const baseObj = bases.value.get(baseId)
+        if (baseObj) {
+          baseObj.sources!.push(payload)
+        }
+      }
+    } else if (event.action === 'source_update') {
+      const { payload } = event
+      const baseId = payload.base_id
+      if (baseId) {
+        const baseObj = bases.value.get(baseId)
+        if (baseObj) {
+          const sourceObj = baseObj.sources!.find((s) => s.id === payload.id)
+          if (sourceObj) {
+            Object.assign(sourceObj, payload)
+          }
+        }
+      }
+    } else if (event.action === 'source_delete') {
+      const { payload } = event
+      const baseId = payload.base_id
+      if (baseId) {
+        const baseObj = bases.value.get(baseId)
+        if (baseObj) {
+          const index = baseObj.sources!.findIndex((s) => s.id === payload.id)
+          if (index !== -1) {
+            baseObj.sources!.splice(index, 1)
+          }
+        }
+      }
+    } else if (event.action === 'table_create') {
       const tables = baseTables.value.get(activeBaseId.value)
       if (!tables) {
         loadProjectTables(activeBaseId.value, true)

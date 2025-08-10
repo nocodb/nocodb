@@ -27,6 +27,7 @@ export const useRealtime = createSharedComposable(() => {
   const { automations, activeAutomationId } = storeToRefs(useAutomationStore())
   const { widgets, selectedWidget } = storeToRefs(useWidgetStore())
 
+  const activeUserChannel = ref<string | null>(null)
   const activeBaseMetaChannel = ref<string | null>(null)
   const activeAutomationChannel = ref<string | null>(null)
   const activeDashboardChannel = ref<string | null>(null)
@@ -100,11 +101,19 @@ export const useRealtime = createSharedComposable(() => {
           navigateToTable({
             tableId: updatedTables[0].id,
           })
+          Modal.info({
+            title: `Table no longer available`,
+            content: `${event.payload.title} may have been deleted or your access removed.`,
+          })
         } else {
           ncNavigateTo({
             workspaceId: activeWorkspaceId.value,
             baseId: activeBaseId.value,
             tableId: undefined,
+          })
+          Modal.info({
+            title: `Table no longer available`,
+            content: `${event.payload.title} may have been deleted or your access removed.`,
           })
         }
       } else {
@@ -184,10 +193,18 @@ export const useRealtime = createSharedComposable(() => {
               baseId,
               automationId: nextAutomation.id,
             })
+            Modal.info({
+              title: `Automation no longer available`,
+              content: `${automation.title} may have been deleted or your access removed.`,
+            })
           } else {
             ncNavigateTo({
               workspaceId: activeWorkspaceId.value,
               baseId,
+            })
+            Modal.info({
+              title: `Automation no longer available`,
+              content: `${automation.title} may have been deleted or your access removed.`,
             })
           }
         }
@@ -225,10 +242,18 @@ export const useRealtime = createSharedComposable(() => {
               baseId,
               dashboardId: nextDashboard.id,
             })
+            Modal.info({
+              title: `Dashboard no longer available`,
+              content: `${dashboard.title} may have been deleted or your access removed.`,
+            })
           } else {
             ncNavigateTo({
               workspaceId: activeWorkspaceId.value,
               baseId,
+            })
+            Modal.info({
+              title: `Dashboard no longer available`,
+              content: `${dashboard.title} may have been deleted or your access removed.`,
             })
           }
         }
@@ -306,6 +331,10 @@ export const useRealtime = createSharedComposable(() => {
             baseId: undefined,
             tableId: undefined,
           })
+          Modal.info({
+            title: `Workspace no longer available`,
+            content: `${payload.title} may have been deleted or your access removed.`,
+          })
         }
       } else {
         if (activeWorkspaceId.value === workspaceId) {
@@ -361,6 +390,10 @@ export const useRealtime = createSharedComposable(() => {
               baseId: undefined,
               tableId: undefined,
             })
+            Modal.info({
+              title: `Base no longer available`,
+              content: `${payload.title} may have been deleted or your access removed.`,
+            })
           }
         }
       } else if (event.action === 'base_user_remove') {
@@ -374,6 +407,10 @@ export const useRealtime = createSharedComposable(() => {
               workspaceId: activeWorkspaceId.value,
               baseId: undefined,
               tableId: undefined,
+            })
+            Modal.info({
+              title: `Base no longer available`,
+              content: `${payload.title} may have been deleted or your access removed.`,
             })
           }
         } else {
@@ -393,8 +430,13 @@ export const useRealtime = createSharedComposable(() => {
   watch(
     [activeWorkspaceId, activeBaseId],
     () => {
+      if (activeUserChannel.value) {
+        $ncSocket.offMessage(activeUserChannel.value)
+      }
+
       if (user.value?.id) {
-        $ncSocket.onMessage(`user:${user.value.id}`, handleUserEvent)
+        activeUserChannel.value = `user:${user.value.id}`
+        $ncSocket.onMessage(activeUserChannel.value, handleUserEvent)
       }
 
       if (activeBaseId.value) {

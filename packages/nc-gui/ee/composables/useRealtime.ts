@@ -400,9 +400,9 @@ export const useRealtime = createSharedComposable(() => {
         const { payload, baseId } = event
 
         if (payload.fk_user_id === user.value?.id) {
-          bases.value.delete(baseId)
-
           if (activeBaseId.value === baseId) {
+            const baseTitle = bases.value.get(baseId)?.title
+
             ncNavigateTo({
               workspaceId: activeWorkspaceId.value,
               baseId: undefined,
@@ -410,9 +410,11 @@ export const useRealtime = createSharedComposable(() => {
             })
             Modal.info({
               title: `Base no longer available`,
-              content: `${payload.title} may have been deleted or your access removed.`,
+              content: `${baseTitle} may have been deleted or your access removed.`,
             })
           }
+
+          bases.value.delete(baseId)
         } else {
           const baseUsers = basesUser.value.get(baseId)
 

@@ -454,6 +454,11 @@ export const useBases = defineStore('basesStore', () => {
       () => route.value.params.automationId,
     ],
     ([newBaseId, newTableId, newViewId, newAutomationId], [oldBaseId, oldTableId, oldViewId, oldAutomationId]) => {
+      if (!activeProjectId.value) {
+        showProjectList.value = true
+        return
+      }
+
       const shouldShowProjectList = !(
         (newBaseId && newBaseId !== oldBaseId) ||
         newTableId !== oldTableId ||

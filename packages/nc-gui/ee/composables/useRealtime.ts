@@ -313,14 +313,14 @@ export const useRealtime = createSharedComposable(() => {
 
         const baseUsers = basesUser.value.get(baseId)
         if (baseUsers) {
-          const user = baseUsers.find((u) => u.id === payload.id)
+          const user = baseUsers.find((u) => u.id === payload.fk_user_id)
           if (user) {
             Object.assign(user, payload)
           }
         }
 
-        if (payload.id === user.value?.id && payload.roles === 'no-access') {
-          bases.value.delete(payload.id)
+        if (payload.fk_user_id === user.value?.id && payload.roles === 'no-access') {
+          bases.value.delete(baseId)
 
           if (activeBaseId.value === baseId) {
             ncNavigateTo({
@@ -333,8 +333,8 @@ export const useRealtime = createSharedComposable(() => {
       } else if (event.action === 'base_user_remove') {
         const { payload, baseId } = event
 
-        if (payload.id === user.value?.id) {
-          bases.value.delete(payload.id)
+        if (payload.fk_user_id === user.value?.id) {
+          bases.value.delete(baseId)
 
           if (activeBaseId.value === baseId) {
             ncNavigateTo({
@@ -347,7 +347,7 @@ export const useRealtime = createSharedComposable(() => {
           const baseUsers = basesUser.value.get(baseId)
 
           if (baseUsers) {
-            const user = baseUsers.find((u) => u.id === payload.id)
+            const user = baseUsers.find((u) => u.id === payload.fk_user_id)
             if (user) {
               baseUsers.splice(baseUsers.indexOf(user), 1)
             }

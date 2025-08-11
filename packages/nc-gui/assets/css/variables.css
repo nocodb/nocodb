@@ -9,6 +9,9 @@
 
 /* Refrence tokens - Light */
 :root {
+  --color-bg: #ffffff;
+  --color-text: #000000;
+
   --color-base-black: #000000;
   --color-base-white: #ffffff;
 
@@ -146,6 +149,9 @@
 
 /* Refrence tokens - Dark */
 [theme='dark'] {
+  --color-bg: #121212;
+  --color-text: #ffffff;
+
   --color-base-black: #ffffff;
   --color-base-white: #171717;
 

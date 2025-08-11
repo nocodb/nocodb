@@ -1,6 +1,7 @@
 @import 'ant-design-vue/dist/antd.variable.min.css';
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
+@import './css/antdv-theme.scss';
 
 html {
   overflow: hidden;
@@ -968,13 +969,15 @@ svg.nc-virtual-cell-icon {
   @apply !flex !flex-col !items-start w-full !space-y-0.5 !max-w-full;
 
   &.nc-user-select-list {
-    .ant-checkbox-wrapper,.ant-radio-wrapper { 
+    .ant-checkbox-wrapper,
+    .ant-radio-wrapper {
       @apply !h-12 !py-1.5;
     }
   }
 
   &:not(.nc-user-select-list) {
-    .ant-checkbox-wrapper,.ant-radio-wrapper { 
+    .ant-checkbox-wrapper,
+    .ant-radio-wrapper {
       @apply !h-9;
     }
   }
@@ -982,7 +985,7 @@ svg.nc-virtual-cell-icon {
   .ant-checkbox-wrapper {
     @apply !m-0 !mr-0 !items-center w-full !max-w-full pl-2 rounded-lg hover:bg-gray-100;
 
-    &:not(.nc-hidden-option){
+    &:not(.nc-hidden-option) {
       @apply !flex;
     }
 
@@ -1006,7 +1009,7 @@ svg.nc-virtual-cell-icon {
   .ant-radio-wrapper {
     @apply !m-0 !mr-0 !items-center w-full !max-w-full pl-2 rounded-lg hover:bg-gray-100;
 
-    &:not(.nc-hidden-option){
+    &:not(.nc-hidden-option) {
       @apply !flex;
     }
 
@@ -1031,7 +1034,8 @@ svg.nc-virtual-cell-icon {
     @apply text-gray-800;
   }
 }
-.nc-toolbar-dropdown-search-field-input, .nc-general-search-field-input {
+.nc-toolbar-dropdown-search-field-input,
+.nc-general-search-field-input {
   .nc-search-icon {
     @apply text-gray-500;
   }

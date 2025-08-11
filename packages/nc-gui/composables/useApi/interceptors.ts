@@ -3,7 +3,7 @@ const DbNotFoundMsg = 'Database config not found'
 
 const TIMEOUT_RETRY_COUNT = 1
 
-export function addAxiosInterceptors(api: Api<any>) {
+export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
   const state = useGlobal()
   const router = useRouter()
   const route = router.currentRoute
@@ -14,7 +14,7 @@ export function addAxiosInterceptors(api: Api<any>) {
 
   axiosInstance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
-    config.headers['xc-socket-id'] = $ncSocket?.id() || null
+    config.headers['xc-socket-id'] = skipSocket ? null : $ncSocket?.id() || null
 
     if (state.token.value && !config.headers['xc-short-token']) {
       config.headers['xc-auth'] = state.token.value

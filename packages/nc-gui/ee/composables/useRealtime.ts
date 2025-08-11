@@ -5,6 +5,8 @@ export const useRealtime = createSharedComposable(() => {
 
   const { user, ncNavigateTo } = useGlobal()
 
+  const { showInfoModal } = useNcConfirmModal()
+
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
   const basesStore = useBases()
@@ -101,7 +103,7 @@ export const useRealtime = createSharedComposable(() => {
           navigateToTable({
             tableId: updatedTables[0].id,
           })
-          Modal.info({
+          showInfoModal({
             title: `Table no longer available`,
             content: `${event.payload.title} may have been deleted or your access removed.`,
           })
@@ -111,7 +113,7 @@ export const useRealtime = createSharedComposable(() => {
             baseId: activeBaseId.value,
             tableId: undefined,
           })
-          Modal.info({
+          showInfoModal({
             title: `Table no longer available`,
             content: `${event.payload.title} may have been deleted or your access removed.`,
           })
@@ -193,7 +195,7 @@ export const useRealtime = createSharedComposable(() => {
               baseId,
               automationId: nextAutomation.id,
             })
-            Modal.info({
+            showInfoModal({
               title: `Automation no longer available`,
               content: `${automation.title} may have been deleted or your access removed.`,
             })
@@ -202,7 +204,7 @@ export const useRealtime = createSharedComposable(() => {
               workspaceId: activeWorkspaceId.value,
               baseId,
             })
-            Modal.info({
+            showInfoModal({
               title: `Automation no longer available`,
               content: `${automation.title} may have been deleted or your access removed.`,
             })
@@ -242,7 +244,7 @@ export const useRealtime = createSharedComposable(() => {
               baseId,
               dashboardId: nextDashboard.id,
             })
-            Modal.info({
+            showInfoModal({
               title: `Dashboard no longer available`,
               content: `${dashboard.title} may have been deleted or your access removed.`,
             })
@@ -251,7 +253,7 @@ export const useRealtime = createSharedComposable(() => {
               workspaceId: activeWorkspaceId.value,
               baseId,
             })
-            Modal.info({
+            showInfoModal({
               title: `Dashboard no longer available`,
               content: `${dashboard.title} may have been deleted or your access removed.`,
             })
@@ -331,7 +333,7 @@ export const useRealtime = createSharedComposable(() => {
             baseId: undefined,
             tableId: undefined,
           })
-          Modal.info({
+          showInfoModal({
             title: `Workspace no longer available`,
             content: `${payload.title} may have been deleted or your access removed.`,
           })
@@ -390,7 +392,7 @@ export const useRealtime = createSharedComposable(() => {
               baseId: undefined,
               tableId: undefined,
             })
-            Modal.info({
+            showInfoModal({
               title: `Base no longer available`,
               content: `${payload.title} may have been deleted or your access removed.`,
             })
@@ -408,7 +410,7 @@ export const useRealtime = createSharedComposable(() => {
               baseId: undefined,
               tableId: undefined,
             })
-            Modal.info({
+            showInfoModal({
               title: `Base no longer available`,
               content: `${baseTitle} may have been deleted or your access removed.`,
             })

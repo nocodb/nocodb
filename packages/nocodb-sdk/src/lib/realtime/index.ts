@@ -1,4 +1,4 @@
-import { UserType } from '~/lib/Api';
+import { ScriptType, UserType } from '~/lib/Api';
 import { DashboardType, WidgetType } from '~/lib';
 
 export enum EventType {
@@ -9,6 +9,7 @@ export enum EventType {
   DATA_EVENT = 'event-data',
   DASHBOARD_EVENT = 'event-dashboard',
   WIDGET_EVENT = 'event-widget',
+  SCRIPT_EVENT = 'event-script',
 }
 
 // Base payload interface for all socket events
@@ -56,6 +57,12 @@ export interface WidgetPayload extends BaseSocketPayload {
   payload: WidgetType;
 }
 
+export interface ScriptPayload extends BaseSocketPayload {
+  id: string;
+  action: 'create' | 'update' | 'delete';
+  payload: ScriptType;
+}
+
 // Union type for all socket event payloads
 export type SocketEventPayload =
   | ConnectionWelcomePayload
@@ -71,6 +78,7 @@ export type SocketEventPayloadMap = {
   [EventType.DATA_EVENT]: DataPayload;
   [EventType.DASHBOARD_EVENT]: DashboardPayload;
   [EventType.WIDGET_EVENT]: WidgetPayload;
+  [EventType.SCRIPT_EVENT]: ScriptPayload;
   [key: string]: BaseSocketPayload;
 };
 

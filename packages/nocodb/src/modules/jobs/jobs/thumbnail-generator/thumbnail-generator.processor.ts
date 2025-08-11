@@ -81,8 +81,15 @@ export class ThumbnailGeneratorProcessor {
             storageAdapter,
           );
 
-        case isOfficeDocument(mimeType, fileExtension) &&
-          Noco.isOfficeThumbnailGenerationAvailable:
+        case isOfficeDocument(mimeType, fileExtension):
+          if (!Noco.isOfficeThumbnailGenerationAvailable) {
+            this.logger.warn({
+              message: `Thumbnail generation is not available for this file, skipping thumbnail generation`,
+              mimetype: mimeType,
+              filename: attachment.title,
+            });
+            return null;
+          }
           return await this.officeGenerator.generateThumbnails(
             file,
             relativePath,

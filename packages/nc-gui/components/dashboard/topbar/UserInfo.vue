@@ -68,6 +68,7 @@ const accountUrl = computed(() => {
             'active border-primary shadow-selected': isMenuOpen,
           }"
           data-testid="nc-sidebar-userinfo"
+          :data-email="user?.email"
         >
           <GeneralUserIcon :user="user" size="medium" class="!w-full !h-full !min-w-full cursor-pointer" />
         </div>

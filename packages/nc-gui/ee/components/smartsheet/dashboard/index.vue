@@ -41,7 +41,13 @@ watchEffect(async () => {
         'flex items-center justify-center': isLoading,
       }"
     >
-      <general-overlay v-show="isLoading" :model-value="isLoading" inline transition class="!bg-opacity-15 rounded-xl overflow-hidden">
+      <general-overlay
+        v-show="isLoading"
+        :model-value="isLoading"
+        inline
+        transition
+        class="!bg-opacity-15 rounded-xl overflow-hidden"
+      >
         <div class="flex flex-col items-center justify-center h-full w-full !bg-white !bg-opacity-80">
           <a-spin size="large" />
         </div>

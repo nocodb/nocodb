@@ -15,6 +15,14 @@ const scrollLeft = toRef(props, 'scrollLeft')
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const { metas } = useMetas()
+
+const baseStore = useBase()
+
+const { isMysql, isPg } = baseStore
+
+const { meta } = useSmartsheetStoreOrThrow()
+
 const getAddnlMargin = (depth: number) => {
   if (props.maxDepth === 3) {
     switch (depth) {
@@ -88,7 +96,15 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
               </span>
 
               <span class="text-gray-600 font-semibold text-[12px]">
-                {{ formatAggregation(field.aggregation, group.aggregations[column.title], column) }}
+                {{
+                  getFormattedAggrationValue(field.aggregation, group.aggregations[column.title], column, [], {
+                    meta,
+                    metas,
+                    isMysql,
+                    isPg,
+                    col: column,
+                  })
+                }}
               </span>
             </div>
 
@@ -99,7 +115,15 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
                 </span>
 
                 <span class="font-semibold text-[12px]">
-                  {{ formatAggregation(field.aggregation, group.aggregations[column.title], column) }}
+                  {{
+                    getFormattedAggrationValue(field.aggregation, group.aggregations[column.title], column, [], {
+                      meta,
+                      metas,
+                      isMysql,
+                      isPg,
+                      col: column,
+                    })
+                  }}
                 </span>
               </div>
             </template>

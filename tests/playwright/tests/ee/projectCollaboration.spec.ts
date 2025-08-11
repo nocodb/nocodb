@@ -96,7 +96,7 @@ test.describe('Base Collaboration', () => {
     await dashboard.treeView.openProject({ title: context.base.title, context });
     await dashboard.baseView.verifyAccess(user.role);
 
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     await dashboard.treeView.validateRoleAccess({
       role: user.role,
       baseTitle: context.base.title,

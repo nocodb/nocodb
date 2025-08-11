@@ -95,7 +95,10 @@ test.describe('Checkbox - cell, filter, sort', () => {
   });
 
   test('Checkbox', async () => {
-    await dashboard.treeView.openTable({ title: 'Sheet-1' });
+    await dashboard.treeView.openTable({
+      title: 'Sheet-1',
+      baseTitle: context.base.title,
+    });
 
     // Create Checkbox column
     await dashboard.grid.column.create({

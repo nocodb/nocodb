@@ -41,7 +41,7 @@ test.describe.skip('Mobile Mode', () => {
     await toolbar.verifyFieldsButtonIsVisibleWithoutTextButIcon();
 
     // operations (like creating views, toolbar operations, open treeview for opening tables) still work as expected
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await dashboard.viewSidebar.createFormView({ title: 'CountryForm' });
 
@@ -61,7 +61,11 @@ test.describe.skip('Mobile Mode', () => {
       fields: ['LastUpdate', 'Country', 'Cities'],
     });
 
-    await dashboard.treeView.openTable({ mobileMode: true, title: 'test-table-for-mobile-mode' });
+    await dashboard.treeView.openTable({
+      mobileMode: true,
+      title: 'test-table-for-mobile-mode',
+      baseTitle: context.base.title,
+    });
 
     // changing back to non-mobile mode leads to the original appearance
     await dashboard.toggleMobileMode();

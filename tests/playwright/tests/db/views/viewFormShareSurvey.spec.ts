@@ -20,7 +20,7 @@ test.describe('Share form', () => {
 
   test('Survey', async () => {
     if (enableQuickRun()) test.skip();
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await dashboard.viewSidebar.createFormView({
       title: 'Country Form',

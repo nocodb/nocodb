@@ -27,7 +27,7 @@ test.describe.skip('Attachment column', () => {
     await accountLicensePage.saveLicenseKey('1234567890');
     await dashboard.goto();
 
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     await dashboard.grid.column.create({
       title: 'testAttach',
       type: 'Attachment',

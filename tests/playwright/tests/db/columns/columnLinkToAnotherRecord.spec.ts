@@ -27,7 +27,7 @@ test.describe('LTAR create & update', () => {
     await dashboard.rootPage.waitForTimeout(1000);
     await dashboard.treeView.createTable({ title: 'Sheet2', baseTitle: context.base.title });
 
-    await dashboard.treeView.openTable({ title: 'Sheet1' });
+    await dashboard.treeView.openTable({ title: 'Sheet1', baseTitle: context.base.title });
     await dashboard.grid.addNewRow({ index: 0, value: '1a' });
     await dashboard.grid.addNewRow({ index: 1, value: '1b' });
     await dashboard.grid.addNewRow({ index: 2, value: '1c' });
@@ -46,7 +46,7 @@ test.describe('LTAR create & update', () => {
       relationType: 'Many to Many',
     });
 
-    await dashboard.treeView.openTable({ title: 'Sheet2', networkResponse: false });
+    await dashboard.treeView.openTable({ title: 'Sheet2', networkResponse: false, baseTitle: context.base.title });
     await dashboard.grid.column.create({
       title: 'Link2-1hm',
       type: 'Links',
@@ -153,7 +153,7 @@ test.describe('LTAR create & update', () => {
       }
     }
 
-    await dashboard.treeView.openTable({ title: 'Sheet1' });
+    await dashboard.treeView.openTable({ title: 'Sheet1', baseTitle: context.base.title });
 
     // Verify fields and toggle the visibility
     await dashboard.grid.toolbar.clickFields();
@@ -265,7 +265,7 @@ test.describe('Links after edit record', () => {
    */
   test('Existing LTAR table verification', async () => {
     // open table
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     await verifyRow({
       index: 0,
       value: {

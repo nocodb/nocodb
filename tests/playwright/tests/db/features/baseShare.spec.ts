@@ -23,7 +23,7 @@ test.describe('Shared base', () => {
     //   mode: 'shareBase',
     // });
 
-    await dashboard.treeView.openTable({ title: 'Country', mode: 'shareBase' });
+    await dashboard.treeView.openTable({ title: 'Country', mode: 'shareBase', baseTitle: context.base.title });
 
     await dashboard.viewSidebar.validateRoleAccess({
       role: role.toLowerCase(),
@@ -92,7 +92,7 @@ test.describe('Shared base', () => {
     //   }
     //
     //   await dashboard.treeView.openProject({ title: context.base.title, context });
-    //   await dashboard.treeView.openTable({ title: 'Country' });
+    //   await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title  });
     // }
 
     url = await dashboard.grid.topbar.getSharedBaseUrl({ role: 'viewer', enableSharedBase: false });

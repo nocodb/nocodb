@@ -289,7 +289,7 @@ const deleteScript = () => {
         >
           <LazyGeneralEmojiPicker
             :clearable="true"
-            :emoji="props.view?.meta?.icon"
+            :emoji="props.script?.meta?.icon"
             :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
             class="nc-script-icon"
             size="small"

@@ -141,6 +141,20 @@ const formatAggregation = (
    */
   columnHelperParams?: SerializerOrParserFnProps['params']
 ) => {
+  if (column.uidt === UITypes.Formula) {
+    if ((column?.meta as any)?.display_type) {
+      const childColumn = {
+        uidt: (column?.meta as any)?.display_type,
+        ...(column?.meta as any)?.display_column_meta,
+      };
+
+      return formatAggregation(aggregation, value, childColumn, {
+        ...columnHelperParams,
+        col: childColumn,
+      });
+    }
+  }
+
   if (
     [DateAggregations.EarliestDate, DateAggregations.LatestDate].includes(
       aggregation
@@ -202,6 +216,7 @@ const formatAggregation = (
       UITypes.Percent,
       UITypes.Duration,
       UITypes.Rollup,
+      UITypes.Time,
     ].includes(column.uidt as UITypes)
   ) {
     return ColumnHelper.parsePlainCellValue(value, {

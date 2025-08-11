@@ -6,7 +6,7 @@ import type {
 } from '~/interface/Jobs';
 import type { Job } from 'bull';
 import { JobTypes } from '~/interface/Jobs';
-import { Base, Source } from '~/models';
+import { Base, Source, Workspace } from '~/models';
 import Snapshot from '~/models/Snapshot';
 import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.processor';
 import { TelemetryService } from '~/services/telemetry.service';
@@ -63,6 +63,8 @@ export class SnapshotProcessor {
       });
 
       throw err;
+    } finally {
+      await Workspace.clearWorkspaceStatsCache(context.workspace_id);
     }
 
     this.debugLog(`job completed for ${job.id} (${JobTypes.CreateSnapshot})`);

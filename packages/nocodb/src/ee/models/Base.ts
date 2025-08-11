@@ -17,6 +17,7 @@ import {
   BaseUser,
   CustomUrl,
   DataReflection,
+  FileReference,
   MCPToken,
   ModelStat,
   Permission,
@@ -395,6 +396,8 @@ export default class Base extends BaseCE {
       logger.error('Failed to clean command palette cache');
     });
 
+    await FileReference.bulkDelete(context, { base_id: baseId }, ncMeta);
+
     await Snapshot.clearFromStats(context, baseId, ncMeta);
 
     await Source.clearFromStats(context, baseId, ncMeta);
@@ -442,6 +445,8 @@ export default class Base extends BaseCE {
     CustomUrl.bulkDelete({ base_id: baseId }, ncMeta).catch(() => {
       logger.error(`Failed to delete custom urls of baseId: ${baseId}`);
     });
+
+    await FileReference.bulkDelete(context, { base_id: baseId }, ncMeta);
 
     await DataReflection.revokeBase(base.fk_workspace_id, base.id, ncMeta);
 

@@ -58,6 +58,9 @@ export interface NcConfirmModalProps extends NcModalProps {
   /** Additional class for the OK button */
   okClass?: string
 
+  /** Whether to show the OK button */
+  showOkBtn?: boolean
+
   okProps?: Partial<NcButtonProps>
 
   /** Text for the Cancel button */
@@ -65,6 +68,9 @@ export interface NcConfirmModalProps extends NcModalProps {
 
   /** Additional class for the Cancel button */
   cancelClass?: string
+
+  /** Whether to show the Cancel button */
+  showCancelBtn?: boolean
 
   cancelProps?: Partial<NcButtonProps>
 
@@ -89,15 +95,18 @@ const props = withDefaults(defineProps<NcConfirmModalProps>(), {
 
   okText: '',
   okClass: '',
+  showOkBtn: true,
 
   cancelText: '',
   cancelClass: '',
+  showCancelBtn: true,
+
   focusBtn: 'ok',
 })
 
 const emits = defineEmits<Emits>()
 
-const { visible: _visible, ...restProps } = props
+const { visible: _visible, showOkBtn: _showOkBtn, showCancelBtn: _showCancelBtn, ...restProps } = props
 
 const initialFocus = ref<boolean>(false)
 
@@ -124,7 +133,7 @@ const vModel = computed({
   },
 })
 
-const { type } = toRefs(props)
+const { type, showCancelBtn, showOkBtn } = toRefs(props)
 
 const iconName = computed<IconMapKey>(() => {
   if (type.value === 'success') {
@@ -157,14 +166,14 @@ const onClickCancel = () => {
 
 /** Watches for cancel button reference and sets focus if applicable */
 watch(cancelBtnRef, () => {
-  if (!cancelBtnRef.value?.$el || props.focusBtn !== 'cancel') return
+  if (!showCancelBtn.value || !cancelBtnRef.value?.$el || props.focusBtn !== 'cancel') return
   ;(cancelBtnRef.value?.$el as HTMLButtonElement)?.focus()
   initialFocus.value = true
 })
 
 /** Watches for OK button reference and sets focus if applicable */
 watch(okBtnRef, () => {
-  if (!okBtnRef.value?.$el || props.focusBtn !== 'ok') return
+  if (!showOkBtn.value || !okBtnRef.value?.$el || props.focusBtn !== 'ok') return
   ;(okBtnRef.value?.$el as HTMLButtonElement)?.focus()
   initialFocus.value = true
 })
@@ -232,6 +241,7 @@ useSelectedCellKeydownListener(
 
       <div class="flex flex-row w-full justify-end gap-2">
         <NcButton
+          v-if="showCancelBtn"
           ref="cancelBtnRef"
           :type="cancelProps?.type ?? 'secondary'"
           size="small"
@@ -243,6 +253,7 @@ useSelectedCellKeydownListener(
           {{ cancelText || $t('general.cancel') }}
         </NcButton>
         <NcButton
+          v-if="showOkBtn"
           ref="okBtnRef"
           :type="okProps?.type ?? 'primary'"
           size="small"

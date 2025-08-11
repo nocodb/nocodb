@@ -27,6 +27,14 @@ const vPaginationData = useVModel(props, 'paginationData', emits)
 
 const disablePagination = toRef(props, 'disablePagination')
 
+const { metas } = useMetas()
+
+const baseStore = useBase()
+
+const { isMysql, isPg } = baseStore
+
+const { meta } = useSmartsheetStoreOrThrow()
+
 const { updateAggregate, getAggregations, visibleFieldsComputed, displayFieldComputed } = useViewAggregateOrThrow()
 
 const scrollLeft = toRef(props, 'scrollLeft')
@@ -177,10 +185,18 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
                 <div style="direction: rtl" class="flex gap-2 text-nowrap truncate overflow-hidden items-center">
                   <span class="text-gray-600 text-[12px] font-semibold">
                     {{
-                      formatAggregation(
+                      getFormattedAggrationValue(
                         displayFieldComputed.field.aggregation,
                         displayFieldComputed.value,
                         displayFieldComputed.column,
+                        [],
+                        {
+                          meta,
+                          metas,
+                          isMysql,
+                          isPg,
+                          col: displayFieldComputed.column,
+                        },
                       )
                     }}
                   </span>
@@ -197,10 +213,18 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
 
                     <span class="text-[12px] font-semibold">
                       {{
-                        formatAggregation(
+                        getFormattedAggrationValue(
                           displayFieldComputed.field.aggregation,
                           displayFieldComputed.value,
                           displayFieldComputed.column,
+                          [],
+                          {
+                            meta,
+                            metas,
+                            isMysql,
+                            isPg,
+                            col: displayFieldComputed.column,
+                          },
                         )
                       }}
                     </span>
@@ -277,7 +301,15 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
                 </span>
 
                 <span class="text-gray-600 font-semibold text-[12px]">
-                  {{ formatAggregation(field.aggregation, value, column) }}
+                  {{
+                    getFormattedAggrationValue(field.aggregation, value, column, [], {
+                      meta,
+                      metas,
+                      isMysql,
+                      isPg,
+                      col: column,
+                    })
+                  }}
                 </span>
               </div>
 
@@ -288,7 +320,15 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
                   </span>
 
                   <span class="font-semibold text-[12px]">
-                    {{ formatAggregation(field.aggregation, value, column) }}
+                    {{
+                      getFormattedAggrationValue(field.aggregation, value, column, [], {
+                        meta,
+                        metas,
+                        isMysql,
+                        isPg,
+                        col: column,
+                      })
+                    }}
                   </span>
                 </div>
               </template>

@@ -692,6 +692,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       try {
         // todo: audit
 
+         if (Object.keys(currentRow.value.row).length === 0) {
+          refreshCurrentRow()
+        }
+
         childrenListOffsetCount.value = childrenListOffsetCount.value - 1
         childrenExcludedOffsetCount.value = childrenExcludedOffsetCount.value - 1
 

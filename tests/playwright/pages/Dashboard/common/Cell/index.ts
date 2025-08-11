@@ -405,7 +405,7 @@ export class CellPageObject extends BasePage {
             .locator('button.nc-list-item-link-unlink-btn')
             .click({ force: true, timeout: 3000 }),
         requestUrlPathToMatch: '/api/v1/db/data/noco',
-        httpMethodsToMatch: ['GET'],
+        httpMethodsToMatch: ['DELETE'],
       });
 
       await this.rootPage.keyboard.press('Escape');

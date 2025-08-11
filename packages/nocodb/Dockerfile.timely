@@ -97,14 +97,24 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
     NODE_ENV=production \
     PORT=8080
 
+
+# Create non-root user
+RUN groupadd -g 1001 -r nocodb && \
+    useradd -r -u 1001 -g nocodb nocodb
+
 # Install runtime dependencies
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates `# required by wget for HTTPS support` \
     curl \
     dumb-init \
     wget `# for convenience of downstream users` \
+    # required for thumbnail generation
+    libreoffice \
+    fonts-dejavu \
+    fonts-liberation \
     && curl -L "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_$(dpkg --print-architecture)" -o /usr/local/bin/dasel \
     && chmod +x /usr/local/bin/dasel \
+    && fc-cache -f -v \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Copy litestream binary and config file
@@ -116,6 +126,12 @@ COPY --link --from=builder     /usr/src/app/                      /usr/src/app/
 COPY --link --from=builder     /usr/src/appEntry/                 /usr/src/appEntry/
 COPY --link --from=bin-builder /usr/src/app/node_modules/sqlite3/ /usr/src/app/node_modules/sqlite3/
 COPY --link --from=bin-builder /usr/src/app/node_modules/sharp/   /usr/src/app/node_modules/sharp/
+
+# Set proper permissions
+RUN chown -R nocodb:nocodb /usr/src/app
+
+# Switch to non-root user
+USER nocodb
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

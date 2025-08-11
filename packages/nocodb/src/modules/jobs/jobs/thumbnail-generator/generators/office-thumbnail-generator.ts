@@ -7,14 +7,16 @@ import { BaseThumbnailGenerator } from '~/modules/jobs/jobs/thumbnail-generator/
 
 /**
  * Office document thumbnail generator for DOCX, DOC, XLSX, PPTX, etc.
+ * Uses LibreOffice's built-in format detection instead of manual file type detection.
  */
 export class OfficeDocumentThumbnailGenerator extends BaseThumbnailGenerator {
   private execAsync = promisify(exec);
 
   protected async generateThumbnailBuffer(file: Buffer): Promise<Buffer> {
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'doc-thumbnail-'));
-    const fileExt = await this.detectFileExtension(file);
-    const inputPath = path.join(tempDir, `input${fileExt}`);
+    const uniqueId = Math.random().toString(36).substring(2, 15);
+    const inputFileName = `input-${uniqueId}`;
+    const inputPath = path.join(tempDir, inputFileName);
 
     try {
       await fs.writeFile(inputPath, file);
@@ -46,8 +48,8 @@ export class OfficeDocumentThumbnailGenerator extends BaseThumbnailGenerator {
         this.logger.warn(`LibreOffice stderr: ${stderr}`);
       }
 
-      // Find the output file
-      const outputFileName = path.basename(inputPath, fileExt) + '.png';
+      // Find the output file - LibreOffice creates PNG with same base name
+      const outputFileName = `${inputFileName}.png`;
       const outputPath = path.join(tempDir, outputFileName);
 
       // Verify output file exists
@@ -59,45 +61,5 @@ export class OfficeDocumentThumbnailGenerator extends BaseThumbnailGenerator {
     } finally {
       await fs.rm(tempDir, { recursive: true, force: true });
     }
-  }
-
-  private async detectFileExtension(buffer: Buffer): Promise<string> {
-    // More robust file type detection
-    const header = buffer.toString('hex', 0, 16);
-
-    // ZIP-based formats (Office 2007+)
-    if (buffer.toString('ascii', 0, 2) === 'PK') {
-      try {
-        const content = buffer.toString('ascii', 0, 2000);
-        if (content.includes('word/document.xml')) return '.docx';
-        if (content.includes('xl/workbook.xml')) return '.xlsx';
-        if (content.includes('ppt/presentation.xml')) return '.pptx';
-      } catch {
-        return '.docx'; // Default for ZIP files
-      }
-    }
-
-    // Legacy Office formats
-    if (header.startsWith('d0cf11e0a1b11ae1')) {
-      return '.doc'; // Could also be .xls or .ppt, but .doc is most common
-    }
-
-    // RTF
-    if (buffer.toString('ascii', 0, 5) === '{\\rtf') {
-      return '.rtf';
-    }
-
-    // OpenDocument formats
-    if (buffer.toString('ascii', 0, 2) === 'PK') {
-      const content = buffer.toString('ascii', 0, 1000);
-      if (content.includes('manifest.xml') && content.includes('odt'))
-        return '.odt';
-      if (content.includes('manifest.xml') && content.includes('ods'))
-        return '.ods';
-      if (content.includes('manifest.xml') && content.includes('odp'))
-        return '.odp';
-    }
-
-    return '.docx'; // Safe default
   }
 }

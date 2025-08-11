@@ -32,6 +32,7 @@ export interface NcRequest extends Partial<Request> {
   clientIp?: string;
   query?: Record<string, any>;
   skipAudit?: boolean;
+  socketId?: string;
 }
 
 export type NcRecord<T = any> = Record<string, T>;

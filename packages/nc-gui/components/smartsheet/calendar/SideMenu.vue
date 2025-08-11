@@ -509,7 +509,7 @@ const selectOption = (option) => {
           '!h-[calc(100svh-16.6rem)]':
             height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
         }"
-        class="nc-scrollbar-md pl-4 pr-4 overflow-y-auto"
+        class="nc-scrollbar-md px-4 pb-4 overflow-y-auto"
         data-testid="nc-calendar-side-menu-list"
         @scroll="sideBarListScrollHandle"
       >

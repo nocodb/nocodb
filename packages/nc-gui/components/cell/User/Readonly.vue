@@ -23,13 +23,17 @@ const isInFilter = inject(IsInFilterInj, ref(false))
 
 const basesStore = useBases()
 
-const baseStore = useBase()
-
 const { basesUser } = storeToRefs(basesStore)
 
-const { idUserMap } = storeToRefs(baseStore)
-
 const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
+
+const idUserMap = computed(() => {
+  return baseUsers.value.reduce((acc, user) => {
+    acc[user.id] = user
+    acc[user.email] = user
+    return acc
+  }, {} as Record<string, any>)
+})
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -180,6 +184,7 @@ const isCollaborator = (userIdOrEmail) => {
           >
             <div class="flex-none">
               <GeneralUserIcon
+                :is-deleted="!isCollaborator(selectedOpt.value)"
                 :disabled="!isCollaborator(selectedOpt.value)"
                 size="auto"
                 :user="{
@@ -200,7 +205,7 @@ const isCollaborator = (userIdOrEmail) => {
               </template>
               <span
                 :class="{
-                  'text-gray-600': !isCollaborator(selectedOpt.value) && selectedOpt.value !== CURRENT_USER_TOKEN,
+                  'text-gray-500': !isCollaborator(selectedOpt.value) && selectedOpt.value !== CURRENT_USER_TOKEN,
                   'text-nc-content-brand': selectedOpt.value === CURRENT_USER_TOKEN,
                   'font-600': isInFilter,
                 }"

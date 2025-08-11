@@ -147,6 +147,7 @@ export class PublicMetasService {
         meta: ncIsObject(u.meta)
           ? extractProps(u.meta, ['icon', 'iconType'])
           : null,
+        deleted: u.deleted,
       }));
     }
 

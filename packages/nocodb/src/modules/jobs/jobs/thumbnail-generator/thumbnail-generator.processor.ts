@@ -2,6 +2,7 @@ import path from 'path';
 import { Readable } from 'stream';
 import { Logger } from '@nestjs/common';
 import slash from 'slash';
+import { renderPageAsImage } from 'unpdf';
 import type { IStorageAdapterV2 } from '~/types/nc-plugin';
 import type { Job } from 'bull';
 import type { AttachmentResType, PublicAttachmentScope } from 'nocodb-sdk';
@@ -12,6 +13,91 @@ import Noco from '~/Noco';
 
 export class ThumbnailGeneratorProcessor {
   private logger = new Logger(ThumbnailGeneratorProcessor.name);
+
+  private isPdfFile(attachment: AttachmentResType): boolean {
+    return (
+      attachment.mimetype === 'application/pdf' ||
+      (attachment.title && attachment.title.toLowerCase().endsWith('.pdf'))
+    );
+  }
+
+  private async generatePdfThumbnail(
+    file: Buffer,
+    relativePath: string,
+    storageAdapter: IStorageAdapterV2,
+  ): Promise<{ [key: string]: string }> {
+    try {
+      const imageBuffer = await renderPageAsImage(
+        new Uint8Array(file),
+        1,
+        {
+          canvasImport: () => Noco.canvas,
+          scale: 4.0,
+        },
+      );
+
+      const thumbnailPaths = {
+        card_cover: path.join(
+          'nc',
+          'thumbnails',
+          relativePath,
+          'card_cover.jpg',
+        ),
+        small: path.join('nc', 'thumbnails', relativePath, 'small.jpg'),
+        tiny: path.join('nc', 'thumbnails', relativePath, 'tiny.jpg'),
+      };
+
+      const sharp = Noco.sharp;
+      if (!sharp) {
+        return null;
+      }
+
+      const sharpImage = sharp(Buffer.from(imageBuffer), {
+        limitInputPixels: false,
+      });
+
+      for (const [size, thumbnailPath] of Object.entries(thumbnailPaths)) {
+        let height;
+        switch (size) {
+          case 'card_cover':
+            height = 512;
+            break;
+          case 'small':
+            height = 128;
+            break;
+          case 'tiny':
+            height = 64;
+            break;
+          default:
+            height = 32;
+            break;
+        }
+
+        const resizedImage = await sharpImage
+          .resize(undefined, height, {
+            fit: sharp.fit.cover,
+            kernel: 'lanczos3',
+          })
+          .toBuffer();
+
+        await (storageAdapter as any).fileCreateByStream(
+          slash(thumbnailPath),
+          Readable.from(resizedImage),
+          {
+            mimetype: 'image/jpeg',
+          },
+        );
+      }
+
+      return thumbnailPaths;
+    } catch (error) {
+      this.logger.error({
+        message: `Failed to generate PDF thumbnail for ${relativePath}`,
+        error: error?.message,
+      });
+      return null;
+    }
+  }
 
   async job(job: Job<ThumbnailGeneratorJobData>) {
     const { attachments, scope } = job.data;
@@ -56,6 +142,10 @@ export class ThumbnailGeneratorProcessor {
         storageAdapter,
         scope,
       );
+
+      if (this.isPdfFile(attachment)) {
+        return await this.generatePdfThumbnail(file, relativePath, storageAdapter);
+      }
 
       const thumbnailPaths = {
         card_cover: path.join(

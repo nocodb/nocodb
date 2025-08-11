@@ -25,7 +25,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   const configValue = ref<Record<string, any>>({})
 
   const config = computed(() => {
-    return parseScript(activeAutomation.value?.code) ?? {}
+    return parseScript(activeAutomation.value?.script) ?? {}
   })
 
   const isCreateEditScriptAllowed = computed(() => {
@@ -107,7 +107,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
 
     activeExecutionId.value = await executeScript({
       ...activeAutomation.value,
-      script: activeAutomation.value.code,
+      script: activeAutomation.value.script,
     })
   }
 

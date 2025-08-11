@@ -56,6 +56,8 @@ export const supportsThumbnails = (attachment: any) => {
     : '';
 
   return (
-    mimetype?.startsWith('image/') || mimetype?.startsWith('application/pdf')
+    mimetype?.startsWith('image/') ||
+    mimetype?.startsWith('application/pdf') ||
+    isOfficeDocument(mimetype || '', fileExtension)
   );
 };

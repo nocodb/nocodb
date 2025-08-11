@@ -120,13 +120,6 @@ const handleClick = () => {
   }
 }
 
-useEventListener('keydown', (e: KeyboardEvent) => {
-  if (isActiveInputElementExist()) return
-  if (e.shiftKey && e.altKey && e.code === 'KeyE') {
-    value.value = !value.value
-  }
-})
-
 onUnmounted(() => {
   if (clickTimer.value) clearTimeout(clickTimer.value)
 })

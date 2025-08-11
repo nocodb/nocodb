@@ -57,11 +57,6 @@ jobs:
         run: sed -i '/^use-node-version/d' .npmrc
       - name: install dependencies
         run: pnpm bootstrap
-      - name: build nocodb-sdk
-        working-directory: ./packages/nocodb-sdk
-        run: |
-          pnpm run generate:sdk:ee
-          pnpm run build:ee:main
       - name: run unit tests
         working-directory: ./packages/nocodb
         run: pnpm run test

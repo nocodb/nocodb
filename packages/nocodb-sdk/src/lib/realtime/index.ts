@@ -1,4 +1,4 @@
-import { UserType } from "~/lib/Api";
+import { UserType } from '~/lib/Api';
 
 export enum EventType {
   HANDSHAKE = 'handshake',
@@ -33,10 +33,10 @@ export interface ConnectionErrorPayload extends BaseSocketPayload {
 }
 
 export interface DataPayload extends BaseSocketPayload {
-  id: string
-  action: 'add' | 'update' | 'delete'
-  payload: Record<string, any>
-  before?: string
+  id: string;
+  action: 'add' | 'update' | 'delete' | 'reorder';
+  payload: Record<string, any>;
+  before?: string;
 }
 
 // Union type for all socket event payloads
@@ -55,4 +55,3 @@ export type SocketEventPayloadMap = {
 
 // Helper type to get payload type for a specific event
 export type PayloadForEvent<T extends EventType> = SocketEventPayloadMap[T];
-

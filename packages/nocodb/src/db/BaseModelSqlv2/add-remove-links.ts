@@ -1,5 +1,6 @@
 import {
   AuditV1OperationTypes,
+  EventType,
   isLinksOrLTAR,
   ncIsNullOrUndefined,
   RelationTypes,
@@ -930,10 +931,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
       for (const item of list) {
         const extractedId = baseModel.extractPksValues(item);
-        NocoSocket.broadcastDataEvent(baseModel.context, baseModel.model.id, {
-          action: 'update',
-          payload: item,
-          id: extractedId,
+        NocoSocket.broadcastEvent(baseModel.context, {
+          event: EventType.DATA_EVENT,
+          payload: {
+            action: 'update',
+            payload: item,
+            id: extractedId,
+          },
+          scopes: [baseModel.model.id],
         });
       }
     } catch (e) {

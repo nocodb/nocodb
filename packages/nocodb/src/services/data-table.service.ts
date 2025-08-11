@@ -488,6 +488,15 @@ export class DataTableService {
         },
         param.query,
       )) as number;
+    } else if (!column.meta?.bt) {
+      data = await baseModel.ooRead(
+        {
+          colId: column.id,
+          id: param.rowId,
+          apiVersion: param.apiVersion,
+        },
+        param.query as any,
+      );
     } else {
       data = await baseModel.btRead(
         {

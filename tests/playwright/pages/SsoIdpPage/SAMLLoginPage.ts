@@ -33,6 +33,6 @@ export class SAMLLoginPage extends BasePage {
       signIn.locator(`#btn-sign-in`).click(),
     ]);
 
-    await this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]:has-text("${email.split('@')[0]}")`);
+    await this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"][data-email^="${email.split('@')[0]}"]`).waitFor();
   }
 }

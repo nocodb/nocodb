@@ -501,22 +501,22 @@ export const useRealtime = createSharedComposable(() => {
     { immediate: true },
   )
 
+  const unsubscribeActiveChannels = (): void => {
+    ;[
+      activeUserChannel.value,
+      activeBaseMetaChannel.value,
+      activeAutomationChannel.value,
+      activeDashboardChannel.value,
+      activeWidgetChannel.value,
+    ]
+      .filter(Boolean)
+      .forEach((channel) => {
+        $ncSocket.offMessage(channel!)
+      })
+  }
+
   onBeforeUnmount(() => {
-    if (activeUserChannel.value) {
-      $ncSocket.offMessage(activeUserChannel.value)
-    }
-    if (activeBaseMetaChannel.value) {
-      $ncSocket.offMessage(activeBaseMetaChannel.value)
-    }
-    if (activeAutomationChannel.value) {
-      $ncSocket.offMessage(activeAutomationChannel.value)
-    }
-    if (activeDashboardChannel.value) {
-      $ncSocket.offMessage(activeDashboardChannel.value)
-    }
-    if (activeWidgetChannel.value) {
-      $ncSocket.offMessage(activeWidgetChannel.value)
-    }
+    unsubscribeActiveChannels()
   })
 
   return {}

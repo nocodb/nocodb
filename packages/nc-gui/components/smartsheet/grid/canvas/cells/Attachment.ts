@@ -1,6 +1,8 @@
 import { isBoxHovered, renderIconButton, roundedRect } from '../utils/canvas'
 import { pxToRowHeight } from '../../../../../utils/cell'
 import type { RenderRectangleProps } from '../utils/types'
+import { isPdf, isVideo, isAudio, isWord, isExcel, isPresentation, isZip } from '../../../../../utils/fileUtils'
+import useAttachment from '../../../../../composables/useAttachment'
 
 interface Attachment {
   mimetype?: string
@@ -59,6 +61,10 @@ function getAttachmentSize(rowHeight: number) {
 
 function isImage(title?: string, mimetype?: string) {
   return mimetype?.includes('image/') || title?.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+}
+
+function isPdfFile(title?: string, mimetype?: string) {
+  return mimetype === 'application/pdf' || title?.toLowerCase().endsWith('.pdf')
 }
 
 function renderFallback(
@@ -220,6 +226,41 @@ export const AttachmentCellRenderer: CellRenderer = {
             'contain',
           )
         } else {
+          renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
+        }
+      } else if (isPdfFile(item.title, item.mimetype || item.type)) {
+        // Try to load PDF thumbnail, fallback to PDF icon if not available
+        const size = getAttachmentSize(rowHeight!)
+        const thumbnailUrls = getPossibleAttachmentSrc(item, size)
+
+        let thumbnailLoaded = false
+        if (thumbnailUrls?.length && thumbnailUrls[0]) {
+          // Try to load the first available thumbnail URL
+          const img = imageLoader.loadOrGetImage(thumbnailUrls[0])
+          if (img) {
+            ctx.strokeStyle = '#D5D5D9'
+            ctx.lineWidth = 1
+            imageLoader.renderImage(
+              ctx,
+              img,
+              itemX,
+              itemY,
+              itemSize,
+              itemSize,
+              4,
+              {
+                border: true,
+                borderColor: '#D5D5D9',
+                borderWidth: 1,
+              },
+              'contain',
+            )
+            thumbnailLoaded = true
+          }
+        }
+
+        // If no thumbnail loaded, show PDF icon
+        if (!thumbnailLoaded) {
           renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
         }
       } else {

@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { TableType } from 'nocodb-sdk'
+import { type TableType } from 'nocodb-sdk'
 import type { SidebarTableNode } from '~/lib/types'
 import { DlgTableCreate } from '#components'
 

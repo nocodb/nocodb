@@ -3,6 +3,7 @@ import {
   AuditV1OperationTypes,
   convertDurationToSeconds,
   enumColors,
+  EventType,
   extractFilterFromXwhere,
   isAIPromptCol,
   isAttachment,
@@ -64,7 +65,10 @@ import {
   ModelStat,
   Permission,
 } from '~/models';
-import { getSingleQueryReadFn } from '~/services/data-opt/pg-helpers';
+import {
+  getSingleQueryReadFn,
+  singleQueryList,
+} from '~/services/data-opt/pg-helpers';
 import { canUseOptimisedQuery, removeBlankPropsAndMask } from '~/utils';
 import {
   UPDATE_WORKSPACE_COUNTER,
@@ -90,11 +94,15 @@ import {
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { getProjectRole } from '~/utils/roleHelper';
+import NocoSocket from '~/socket/NocoSocket';
+import { chunkArray } from '~/utils/tsUtils';
+import { singleQueryList as mysqlSingleQueryList } from '~/services/data-opt/mysql-helpers';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 const ORDER_STEP_INCREMENT = 1;
 const MAX_RECURSION_DEPTH = 2;
+const READ_CHUNK_SIZE = 100;
 
 export function replaceDynamicFieldWithValue(
   row: any,
@@ -948,6 +956,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       response = await this.dbDriver.raw(query);
     }
 
+    /* NocoSocket.broadcastEvent(this.context, {
+      event: EventType.DATA_EVENT,
+      payload: {
+        id: rowId,
+        action: 'reorder',
+        payload: row,
+        before: beforeRowId,
+      },
+      scopes: [this.model.id],
+    }); */
+
     return response;
   }
 
@@ -1154,6 +1173,22 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }): Promise<void> {
     await this.handleHooks('after.insert', null, data, req);
     const id = this.extractPksValues(data);
+
+    /* NocoSocket.broadcastEvent(
+      this.context,
+      {
+        event: EventType.DATA_EVENT,
+        payload: {
+          id,
+          action: 'add',
+          payload: data,
+          before: req?.query?.before,
+        },
+        scopes: [this.model.id],
+      },
+      this.context.socket_id,
+    ); */
+
     const filteredAuditData = removeBlankPropsAndMask(insertData || data, [
       'CreatedAt',
       'UpdatedAt',
@@ -1190,6 +1225,24 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
     await this.handleHooks('after.bulkInsert', null, data, req);
+
+    /* for (const d of data) {
+      const id = this.extractPksValues(d);
+      NocoSocket.broadcastEvent(
+        this.context,
+        {
+          event: EventType.DATA_EVENT,
+          payload: {
+            id,
+            action: 'add',
+            payload: d,
+          },
+          scopes: [this.model.id],
+        },
+        this.context.socket_id,
+      );
+    } */
+
     if (await this.isDataAuditEnabled()) {
       let parentAuditId;
       if (!req.ncParentAuditId) {
@@ -1259,6 +1312,21 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
     const id = this.extractPksValues(data);
+
+    /* NocoSocket.broadcastEvent(
+      this.context,
+      {
+        event: EventType.DATA_EVENT,
+        payload: {
+          id,
+          action: 'delete',
+          payload: null,
+        },
+        scopes: [this.model.id],
+      },
+      this.context.socket_id,
+    ); */
+
     if (await this.isDataAuditEnabled()) {
       await Audit.insert(
         await generateAuditV1Payload<DataDeletePayload>(
@@ -1295,6 +1363,23 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     if (!isBulkAllOperation) {
       await this.handleHooks('after.bulkDelete', null, data, req);
     }
+
+    /* for (const d of data) {
+      const id = this.extractPksValues(d);
+      NocoSocket.broadcastEvent(
+        this.context,
+        {
+          event: EventType.DATA_EVENT,
+          payload: {
+            id,
+            action: 'delete',
+            payload: null,
+          },
+          scopes: [this.model.id],
+        },
+        this.context.socket_id,
+      );
+    } */
 
     if (await this.isDataAuditEnabled()) {
       const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
@@ -1960,13 +2045,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             insertData: datas?.[0],
           });
         } else {
-          await this.afterBulkInsert(
-            insertDatas.map((r, i) => {
-              return { ...(r || {}), ...(responses?.[i] || {}) };
-            }),
-            this.dbDriver,
-            cookie,
-          );
+          const insertResponses = await this.chunkList({
+            pks: responses.map((d) => this.extractPksValues(d)),
+          });
+
+          await this.afterBulkInsert(insertResponses, this.dbDriver, cookie);
         }
       }
 
@@ -1979,6 +2062,71 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // await this.errorInsertb(e, data, null);
       throw e;
     }
+  }
+
+  async chunkList(args: {
+    pks: string[];
+    chunkSize?: number;
+    apiVersion?: NcApiVersion;
+    args?: Record<string, any>;
+  }) {
+    const { pks, chunkSize = 1000 } = args;
+
+    const data = [];
+
+    const chunkedPks = chunkArray(pks, chunkSize);
+
+    const source = await this.getSource();
+
+    for (const chunk of chunkedPks) {
+      let chunkData;
+
+      const ctx = {
+        source,
+        params: {
+          pks: chunk.join(','),
+          apiVersion: args.apiVersion,
+          ...(args.args || {}),
+        },
+        limitOverride: chunk.length,
+        ignoreViewFilterAndSort: true,
+      };
+
+      if (['mysql', 'mysql2'].includes(source.type)) {
+        chunkData = await mysqlSingleQueryList(this.context, {
+          ...ctx,
+          skipPaginateWrapper: true,
+          params: ctx.params,
+          model: this.model,
+          apiVersion: args.apiVersion,
+        });
+      } else if (['pg', 'postgres', 'postgresql'].includes(source.type)) {
+        chunkData = await singleQueryList(this.context, {
+          ...ctx,
+          skipPaginateWrapper: true,
+          params: ctx.params,
+          model: this.model,
+          apiVersion: args.apiVersion,
+        });
+      } else {
+        // Fallback to regular list function
+        chunkData = await this.list(
+          {
+            pks: chunk.join(','),
+            apiVersion: args.apiVersion,
+            ...(args.args || {}),
+          },
+          {
+            limitOverride: chunk.length,
+            ignoreViewFilterAndSort: true,
+          },
+        );
+      }
+
+      data.push(...chunkData);
+    }
+
+    return data;
   }
 
   async bulkUpsert(
@@ -2304,7 +2452,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } = {},
   ) {
     const queries: string[] = [];
-    const readChunkSize = 100;
 
     try {
       const columns = await this.model.getColumns(this.context);
@@ -2349,8 +2496,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         pkAndData.push({ pk: pkValues, data: d });
       }
 
-      for (let i = 0; i < pkAndData.length; i += readChunkSize) {
-        const chunk = pkAndData.slice(i, i + readChunkSize);
+      for (let i = 0; i < pkAndData.length; i += READ_CHUNK_SIZE) {
+        const chunk = pkAndData.slice(i, i + READ_CHUNK_SIZE);
         const pksToRead = chunk.map((v) => v.pk);
 
         const oldRecords = await this.list(
@@ -2471,8 +2618,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (!raw) {
-        for (let i = 0; i < updatePkValues.length; i += readChunkSize) {
-          const pksChunk = updatePkValues.slice(i, i + readChunkSize);
+        for (let i = 0; i < updatePkValues.length; i += READ_CHUNK_SIZE) {
+          const pksChunk = updatePkValues.slice(i, i + READ_CHUNK_SIZE);
 
           const updatedRecords = await this.list(
             { pks: pksChunk.join(',') },
@@ -2710,7 +2857,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const deleted = [];
       const res = [];
       const pkAndData: { pk: any; data: any }[] = [];
-      const readChunkSize = 100;
+
       for (const [i, d] of deleteIds.entries()) {
         const pkValues = getCompositePkValue(
           this.model.primaryKeys,
@@ -2726,7 +2873,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
         pkAndData.push({ pk: pkValues, data: d });
 
-        if (pkAndData.length >= readChunkSize || i === deleteIds.length - 1) {
+        if (pkAndData.length >= READ_CHUNK_SIZE || i === deleteIds.length - 1) {
           const tempToRead = pkAndData.splice(0, pkAndData.length);
           const oldRecords = await this.list(
             {
@@ -3167,6 +3314,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       Object.assign(data, newData);
     }
 
+    /* NocoSocket.broadcastEvent(
+      this.context,
+      {
+        event: EventType.DATA_EVENT,
+        payload: {
+          id,
+          action: 'update',
+          payload: data,
+        },
+        scopes: [this.model.id],
+      },
+      this.context.socket_id,
+    ); */
+
     // disable external source audit in cloud
     if (await this.isDataAuditEnabled()) {
       const formattedOldData = formatDataForAudit(oldData, this.model.columns);
@@ -3233,6 +3394,24 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     if (!isBulkAllOperation) {
       await this.handleHooks('after.bulkUpdate', prevData, newData, req);
     }
+
+    /* if (newData && newData.length > 0) {
+      for (const data of newData) {
+        NocoSocket.broadcastEvent(
+          this.context,
+          {
+            event: EventType.DATA_EVENT,
+            payload: {
+              id: this.extractPksValues(data),
+              action: 'update',
+              payload: data,
+            },
+            scopes: [this.model.id],
+          },
+          this.context.socket_id,
+        );
+      }
+    } */
 
     // disable external source audit in cloud
     if ((await this.isDataAuditEnabled()) && newData && newData.length > 0) {

@@ -172,7 +172,10 @@ export default class Workspace implements WorkspaceType {
 
       const storageStats = await this.getStorageStats(workspaceData.id, ncMeta);
 
-      const recordStats = await ModelStat.getWorkspaceSum(workspaceData.id);
+      const recordStats = await ModelStat.getWorkspaceSum(
+        workspaceData.id,
+        ncMeta,
+      );
 
       workspaceData.stats = {
         ...periodStats,

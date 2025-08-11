@@ -5,12 +5,12 @@ import { addAxiosInterceptors as addAxiosInterceptorsCE } from '../../../composa
 const dataApiRegex = /\/api\/v1\/data\/\w+\/\w+\/\w+\/views\/\w+/i
 const reqLatencyKey = Symbol('reqLatencyKey')
 
-export function addAxiosInterceptors(api: Api<any> | InternalApi<any>) {
+export function addAxiosInterceptors(api: Api<any> | InternalApi<any>, skipSocket = false) {
   const { setTiming } = useApiTiming()
   const { getBaseUrl } = useGlobal()
   const router = useRouter()
 
-  addAxiosInterceptorsCE(api)
+  addAxiosInterceptorsCE(api, skipSocket)
 
   api.instance.interceptors.request.use((config) => {
     if (!/(?:\/jobs\/listen|\/auth\/cognito)$/.test(config.url)) {

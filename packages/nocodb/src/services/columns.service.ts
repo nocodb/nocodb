@@ -3,6 +3,7 @@ import { pluralize, singularize } from 'inflection';
 import {
   AppEvents,
   ButtonActionsType,
+  EventType,
   FormulaDataTypes,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
@@ -88,6 +89,7 @@ import {
 } from '~/utils/dataConversion';
 import { MetaTable } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
+import NocoSocket from '~/socket/NocoSocket';
 
 export type { ReusableParams } from '~/services/columns.service.type';
 
@@ -1865,6 +1867,18 @@ export class ColumnsService implements IColumnsService {
       columns: table.columns,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'column_update',
+          payload: table,
+        },
+      },
+      context.socket_id,
+    );
+
     await applyRowColorInvolvement();
 
     if (param.apiVersion === NcApiVersion.V3) {
@@ -2617,6 +2631,18 @@ export class ColumnsService implements IColumnsService {
       });
     }
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'column_add',
+          payload: table,
+        },
+      },
+      context.socket_id,
+    );
+
     if (param.apiVersion === NcApiVersion.V3) {
       if (savedColumn)
         return (await Column.get(context, {
@@ -3187,6 +3213,18 @@ export class ColumnsService implements IColumnsService {
         columns: table.columns,
       });
     }
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'column_delete',
+          payload: table,
+        },
+      },
+      context.socket_id,
+    );
 
     await applyRowColorInvolvement();
 

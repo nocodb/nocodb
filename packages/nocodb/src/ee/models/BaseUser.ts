@@ -256,6 +256,7 @@ export default class BaseUser extends BaseUserCE {
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,
         `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.id as fk_user_id`,
 
         `${MetaTable.USERS}.invite_token`,
         `${MetaTable.USERS}.roles as main_roles`,

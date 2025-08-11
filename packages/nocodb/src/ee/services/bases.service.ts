@@ -4,6 +4,7 @@ import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
+  EventType,
   IntegrationsType,
   ncIsUndefined,
   PlanFeatureTypes,
@@ -34,6 +35,7 @@ import { getWorkspaceDbServer } from '~/utils/cloudDb';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { getToolDir } from '~/utils/nc-config';
+import NocoSocket from '~/socket/NocoSocket';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -279,6 +281,20 @@ export class BasesService extends BasesServiceCE {
       context,
     });
 
+    NocoSocket.broadcastEventToBaseUsers(
+      context,
+      {
+        event: EventType.USER_EVENT,
+        payload: {
+          action: 'base_user_add',
+          payload: {
+            base,
+          },
+        },
+      },
+      param.req.ncSocketId,
+    );
+
     return base;
   }
 
@@ -351,6 +367,18 @@ export class BasesService extends BasesServiceCE {
       NcError.workspaceNotFound(base.fk_workspace_id);
     }
 
+    let baseUsers: BaseUser[] = [];
+
+    try {
+      baseUsers = await BaseUser.getUsersList(
+        context,
+        {
+          base_id: base.id,
+        },
+        ncMeta,
+      );
+    } catch {}
+
     const transaction = await ncMeta.startTransaction();
 
     try {
@@ -370,6 +398,22 @@ export class BasesService extends BasesServiceCE {
       req: param.req,
       context,
     });
+
+    for (const user of baseUsers || []) {
+      NocoSocket.broadcastEventToUser(
+        user.fk_user_id,
+        {
+          event: EventType.USER_EVENT,
+          payload: {
+            action: 'base_user_remove',
+            payload: user,
+            baseId: context.base_id,
+            workspaceId: context.workspace_id,
+          },
+        },
+        context.socket_id,
+      );
+    }
 
     return true;
   }

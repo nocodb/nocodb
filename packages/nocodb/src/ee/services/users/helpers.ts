@@ -26,6 +26,14 @@ export function genJwt(
   );
 }
 
+export function verifyJwt(token: string, config: NcConfig): User {
+  try {
+    return jwt.verify(token, config.auth.jwt.secret) as User;
+  } catch (error) {
+    throw new Error('Invalid token');
+  }
+}
+
 export function randomTokenString(): string {
   return crypto.randomBytes(40).toString('hex');
 }

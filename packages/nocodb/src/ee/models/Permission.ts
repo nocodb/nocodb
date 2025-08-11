@@ -20,7 +20,6 @@ import {
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/ncError';
-import { Model } from '~/models';
 
 export default class Permission {
   id: string;
@@ -233,6 +232,7 @@ export default class Permission {
         [baseId],
         processedPermissions,
       );
+
       return processedPermissions.map(
         (permission) => new Permission(permission),
       );

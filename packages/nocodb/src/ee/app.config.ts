@@ -36,7 +36,7 @@ const config: AppConfig = {
     },
     meta_gui: {
       ttl: +process.env.NC_META_GUI_API_TTL || 1000,
-      max_apis: +process.env.NC_META_GUI_COUNT || 30,
+      max_apis: +process.env.NC_META_GUI_COUNT || 1000,
       block_duration: +process.env.NC_META_GUI_BLOCK_DURATION || 0,
     },
     public: {

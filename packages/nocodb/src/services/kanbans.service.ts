@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, UITypes, ViewTypes } from 'nocodb-sdk';
+import { AppEvents, EventType, UITypes, ViewTypes } from 'nocodb-sdk';
 import type {
   KanbanUpdateReqType,
   UserType,
@@ -12,6 +12,7 @@ import { NcError } from '~/helpers/catchError';
 import { KanbanView, Model, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class KanbansService {
@@ -95,6 +96,18 @@ export class KanbansService {
       owner,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_create',
+          payload: view,
+        },
+      },
+      context.socket_id,
+    );
 
     return view;
   }

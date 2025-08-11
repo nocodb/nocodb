@@ -1,4 +1,4 @@
-import type { WidgetType } from 'nocodb-sdk'
+import { type WidgetType } from 'nocodb-sdk'
 
 export const useWidgetStore = defineStore('widget', () => {
   const { $api } = useNuxtApp()
@@ -225,7 +225,7 @@ export const useWidgetStore = defineStore('widget', () => {
         })
       }
 
-      return await $api.internal.getOperation(activeWorkspaceId.value!, openedProject.value.id!, {
+      return await $api.internal.getOperation(activeWorkspaceId.value!, openedProject.value!.id!, {
         operation: 'widgetDataGet',
         widgetId,
       })
@@ -248,12 +248,12 @@ export const useWidgetStore = defineStore('widget', () => {
     loadWidgets,
     getWidget,
     createWidget,
+    duplicateWidget,
     updateWidget,
     deleteWidget,
     updateWidgetPosition,
     clearWidgets,
     loadWidgetData,
-    duplicateWidget,
   }
 })
 

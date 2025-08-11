@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   AppEvents,
   CloudOrgUserRoles,
+  EventType,
   extractRolesObj,
   HigherPlan,
   NON_SEAT_ROLES,
@@ -44,6 +45,7 @@ import { MailEvent } from '~/interface/Mail';
 import { PaymentService } from '~/modules/payment/payment.service';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -250,6 +252,27 @@ export class WorkspaceUsersService {
       oldWorkspaceUser: workspaceUser,
     });
 
+    NocoSocket.broadcastEventToWorkspaceUsers(
+      {
+        workspace_id: workspace.id,
+        base_id: null,
+      },
+      {
+        event: EventType.USER_EVENT,
+        payload: {
+          action: 'workspace_user_update',
+          payload: {
+            workspaceUser: {
+              ...workspaceUser,
+              roles: param.roles,
+            },
+            workspace,
+          },
+        },
+      },
+      param.req.ncSocketId,
+    );
+
     return workspaceUser;
   }
 
@@ -308,6 +331,14 @@ export class WorkspaceUsersService {
     const transaction = await ncMeta.startTransaction();
 
     const cacheTransaction: (() => Promise<any>)[] = [];
+
+    let workspaceUsers: WorkspaceUser[];
+
+    try {
+      workspaceUsers = await WorkspaceUser.userList({
+        fk_workspace_id: workspaceId,
+      });
+    } catch (e) {}
 
     let res;
 
@@ -374,6 +405,21 @@ export class WorkspaceUsersService {
       user,
       req: param.req,
     } as WorkspaceUserDeleteEvent);
+
+    for (const user of workspaceUsers) {
+      NocoSocket.broadcastEventToUser(
+        user.fk_user_id,
+        {
+          event: EventType.USER_EVENT,
+          payload: {
+            action: 'workspace_user_remove',
+            payload: user,
+            workspaceId: workspace.id,
+          },
+        },
+        param.req.ncSocketId,
+      );
+    }
 
     return res;
   }
@@ -656,6 +702,30 @@ export class WorkspaceUsersService {
         invitedBy: param.req?.user,
         req: param.req,
       });
+
+      const workspaceUser = await WorkspaceUser.get(
+        workspace.id,
+        user.id,
+        ncMeta,
+      );
+
+      NocoSocket.broadcastEventToWorkspaceUsers(
+        {
+          workspace_id: workspace.id,
+          base_id: null,
+        },
+        {
+          event: EventType.USER_EVENT,
+          payload: {
+            action: 'workspace_user_add',
+            payload: {
+              workspaceUser,
+              workspace,
+            },
+          },
+        },
+        param.req.ncSocketId,
+      );
     }
 
     if (emails.length === 1) {

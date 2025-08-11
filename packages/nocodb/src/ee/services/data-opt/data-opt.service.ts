@@ -51,9 +51,15 @@ export class DataOptService {
     }
     try {
       if (['mysql', 'mysql2'].includes(ctx.source.type)) {
-        return await mysqlSingleQueryList(context, { ...ctx, params });
+        return (await mysqlSingleQueryList(context, {
+          ...ctx,
+          params,
+        })) as PagedResponseImpl<Record<string, any>>;
       }
-      return await singleQueryList(context, { ...ctx, params });
+      return (await singleQueryList(context, {
+        ...ctx,
+        params,
+      })) as PagedResponseImpl<Record<string, any>>;
     } catch (e) {
       if (
         ctx.validateFormula ||

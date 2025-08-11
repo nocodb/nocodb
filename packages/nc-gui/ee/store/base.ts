@@ -324,6 +324,7 @@ export const useBase = defineStore('baseStore', () => {
     base,
     sources,
     tables,
+    baseId,
     loadRoles,
     loadProject,
     updateProject,

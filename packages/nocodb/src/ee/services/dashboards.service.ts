@@ -3,20 +3,21 @@ import { ConfigService } from '@nestjs/config';
 import {
   AppEvents,
   calculateNextPosition,
+  EventType,
   generateUniqueCopyName,
   ncIsNull,
   ncIsUndefined,
-  PlanFeatureTypes,
   type WidgetType,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
+import type { DashboardType } from 'nocodb-sdk';
 import type { AppConfig, NcContext, NcRequest } from '~/interface/config';
 import { CustomUrl, Dashboard, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getWidgetData, getWidgetHandler } from '~/db/widgets';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import config from '~/app.config';
-import { getFeature } from '~/helpers/paymentHelpers';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class DashboardsService {
@@ -61,6 +62,19 @@ export class DashboardsService {
       user: req.user,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.DASHBOARD_EVENT,
+        payload: {
+          id: dashboard.id,
+          action: 'create',
+          payload: dashboard as DashboardType,
+        },
+      },
+      context.socket_id,
+    );
+
     return dashboard;
   }
 
@@ -90,6 +104,19 @@ export class DashboardsService {
       req,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.DASHBOARD_EVENT,
+        payload: {
+          id: dashboardId,
+          action: 'update',
+          payload: updatedDashboard as DashboardType,
+        },
+      },
+      context.socket_id,
+    );
+
     return updatedDashboard;
   }
 
@@ -112,6 +139,19 @@ export class DashboardsService {
       req: req,
       user: context.user,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.DASHBOARD_EVENT,
+        payload: {
+          id: dashboardId,
+          action: 'delete',
+          payload: dashboard as DashboardType,
+        },
+      },
+      context.socket_id,
+    );
 
     return true;
   }
@@ -167,6 +207,20 @@ export class DashboardsService {
       user: context.user,
       req,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.WIDGET_EVENT,
+        payload: {
+          id: widget.id,
+          dashboardId: widget.fk_dashboard_id,
+          action: 'create',
+          payload: widget as WidgetType,
+        },
+      },
+      context.socket_id,
+    );
 
     return widget;
   }
@@ -228,6 +282,20 @@ export class DashboardsService {
       user: context.user,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.WIDGET_EVENT,
+        payload: {
+          id: newWidget.id,
+          dashboardId: newWidget.fk_dashboard_id,
+          action: 'create',
+          payload: newWidget as WidgetType,
+        },
+      },
+      context.socket_id,
+    );
+
     return newWidget;
   }
 
@@ -273,6 +341,20 @@ export class DashboardsService {
       req,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.WIDGET_EVENT,
+        payload: {
+          id: widgetId,
+          dashboardId: updatedWidget.fk_dashboard_id,
+          action: 'update',
+          payload: updatedWidget as WidgetType,
+        },
+      },
+      context.socket_id,
+    );
+
     return updatedWidget;
   }
 
@@ -290,6 +372,20 @@ export class DashboardsService {
       user: context.user,
       req,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.WIDGET_EVENT,
+        payload: {
+          id: widgetId,
+          dashboardId: widget.fk_dashboard_id,
+          action: 'delete',
+          payload: widget as WidgetType,
+        },
+      },
+      context.socket_id,
+    );
 
     return true;
   }

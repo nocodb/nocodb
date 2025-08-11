@@ -20,6 +20,7 @@ export function createApiInstance<SecurityDataType = any>({
       new InternalApi({
         baseURL,
       }),
+      true,
     )
   }
 

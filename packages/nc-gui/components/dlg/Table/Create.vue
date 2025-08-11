@@ -42,7 +42,9 @@ const customSourceId = computed(() => {
 
 const workspaceStore = useWorkspace()
 
-const { isMysql, isPg, isSnowflake } = useBase()
+const baseStore = useBase()
+const { isMysql, isPg, isSnowflake } = baseStore
+const { baseId } = storeToRefs(baseStore)
 
 const { loadProjectTables, addTable } = useTablesStore()
 
@@ -423,6 +425,12 @@ const handleRefreshOnError = () => {
     default:
   }
 }
+
+watch(baseId, () => {
+  if (baseId.value !== props.baseId) {
+    dialogShow.value = false
+  }
+})
 </script>
 
 <template>

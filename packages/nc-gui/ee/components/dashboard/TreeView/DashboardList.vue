@@ -122,7 +122,7 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
 
   currentItem.order = _nextOrder
 
-  await updateDashboard(currentItem.id, {
+  await updateDashboard(baseId.value, currentItem.id, {
     order: _nextOrder,
   })
 

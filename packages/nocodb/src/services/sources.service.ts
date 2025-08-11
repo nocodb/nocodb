@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  EventType,
   IntegrationsType,
   validateAndExtractSSLProp,
 } from 'nocodb-sdk';
@@ -13,6 +14,7 @@ import { syncBaseMigration } from '~/helpers/syncMigration';
 import { Base, Integration, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class SourcesService {
@@ -69,6 +71,18 @@ export class SourcesService {
       context,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'source_update',
+          payload: source,
+        },
+      },
+      context.socket_id,
+    );
+
     return source;
   }
 
@@ -116,6 +130,18 @@ export class SourcesService {
     try {
       const source = await Source.get(context, param.sourceId, false, ncMeta);
       await source.softDelete(context, ncMeta);
+
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'source_delete',
+            payload: source,
+          },
+        },
+        context.socket_id,
+      );
     } catch (e) {
       NcError.badRequest(e);
     }
@@ -227,6 +253,18 @@ export class SourcesService {
         integration,
         context,
       });
+
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'source_create',
+            payload: source,
+          },
+        },
+        context.socket_id,
+      );
     } catch (e) {
       error = e;
     }

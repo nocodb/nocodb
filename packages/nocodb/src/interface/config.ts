@@ -1,7 +1,8 @@
+import type { Socket } from 'socket.io';
 import type { Handler } from 'express';
 import type * as e from 'express';
 import type { Knex } from 'knex';
-import type { NcContext, NcRequest } from 'nocodb-sdk';
+import type { NcContext, NcRequest, UserType } from 'nocodb-sdk';
 
 export interface Route {
   path: string;
@@ -324,4 +325,8 @@ export interface AppConfig {
   dashboardPath: string;
 }
 
-export { NcContext, NcRequest };
+interface NcSocket extends Socket {
+  user?: UserType;
+}
+
+export { NcContext, NcRequest, NcSocket };

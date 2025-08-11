@@ -1,4 +1,4 @@
-import type { ScriptType } from 'nocodb-sdk'
+import { type ScriptType } from 'nocodb-sdk'
 import { DlgAutomationCreate } from '#components'
 import { parseScript, validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
 
@@ -14,7 +14,7 @@ export const useAutomationStore = defineStore('automation', () => {
   const { showUpgradeToUseScripts } = useEeConfig()
 
   // State
-  const automations = ref<Map<string, ScriptType[]>>(new Map())
+  const automations = ref<Map<string, (ScriptType & { _dirty?: string | number })[]>>(new Map())
   const isUpdatingAutomation = ref(false)
   const isLoadingAutomation = ref(false)
   const isSettingsOpen = ref(false)
@@ -194,7 +194,10 @@ export const useAutomationStore = defineStore('automation', () => {
       const baseAutomations = automations.value.get(baseId) || []
       const index = baseAutomations.findIndex((a) => a.id === automationId)
       if (index !== -1) {
-        baseAutomations[index] = updated as unknown as ScriptType
+        baseAutomations[index] = {
+          ...baseAutomations[index],
+          ...updated,
+        } as unknown as ScriptType
         automations.value.set(baseId, baseAutomations)
       }
 
@@ -284,8 +287,10 @@ export const useAutomationStore = defineStore('automation', () => {
   }
 
   const updateBaseSchema = async () => {
+    if (!activeWorkspaceId.value || !activeProjectId.value) return
+
     try {
-      activeBaseSchema.value = await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value, {
+      activeBaseSchema.value = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
         operation: 'baseSchema',
       })
     } catch (e) {

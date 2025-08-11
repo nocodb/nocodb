@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, ViewTypes } from 'nocodb-sdk';
+import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
 import type {
   CalendarUpdateReqType,
   UserType,
@@ -12,6 +12,7 @@ import { NcError } from '~/helpers/catchError';
 import { CalendarView, Model, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class CalendarsService {
@@ -75,6 +76,18 @@ export class CalendarsService {
       context,
       owner,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_create',
+          payload: view,
+        },
+      },
+      context.socket_id,
+    );
 
     return view;
   }

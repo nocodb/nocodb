@@ -90,17 +90,16 @@ export default class Script extends ScriptCE implements ScriptType {
         },
       );
 
-      scriptsList = scriptsList
-        .map((script) => {
-          script = prepareForResponse(script, ['meta', 'config']);
-          return new Script(script);
-        })
-        .sort((a, b) => a.order - b.order);
+      scriptsList = scriptsList.map((script) =>
+        prepareForResponse(script, ['meta', 'config']),
+      );
 
       await NocoCache.setList(CacheScope.SCRIPTS, [baseId], scriptsList);
     }
 
-    return scriptsList;
+    scriptsList.sort((a, b) => a.order - b.order);
+
+    return scriptsList?.map((script) => new Script(script));
   }
 
   static async delete(context: NcContext, scriptId: any, ncMeta = Noco.ncMeta) {

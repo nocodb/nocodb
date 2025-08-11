@@ -652,7 +652,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       );
     }
 
-    let workspaceUsers: WorkspaceUser[];
+    let workspaceUsers: WorkspaceUser[] = [];
 
     try {
       workspaceUsers = await WorkspaceUser.userList(

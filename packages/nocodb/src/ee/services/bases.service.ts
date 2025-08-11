@@ -367,7 +367,7 @@ export class BasesService extends BasesServiceCE {
       NcError.workspaceNotFound(base.fk_workspace_id);
     }
 
-    let baseUsers: BaseUser[];
+    let baseUsers: BaseUser[] = [];
 
     try {
       baseUsers = await BaseUser.getUsersList(

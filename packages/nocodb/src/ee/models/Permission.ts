@@ -232,6 +232,10 @@ export default class Permission {
         [baseId],
         processedPermissions,
       );
+
+      return processedPermissions.map(
+        (permission) => new Permission(permission),
+      );
     }
 
     return permissionList.map((permission) => new Permission(permission));

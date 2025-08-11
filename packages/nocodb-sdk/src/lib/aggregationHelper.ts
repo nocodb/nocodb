@@ -56,7 +56,7 @@ const AllAggregations = {
   ...DateAggregations,
 };
 
-type AggregationValue = typeof AllAggregations[keyof typeof AllAggregations]
+type AggregationValue = (typeof AllAggregations)[keyof typeof AllAggregations];
 
 const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
   let returnAggregations = [];
@@ -122,7 +122,7 @@ const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
       break;
     case UITypes.Button:
     case UITypes.Attachment:
-      return [CommonAggregations.None];
+      return [CommonAggregations.None, AttachmentAggregations.AttachmentSize];
   }
 
   if (!returnAggregations.length) {

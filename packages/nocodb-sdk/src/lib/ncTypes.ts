@@ -18,6 +18,7 @@ export interface NcContext {
 
 export interface NcRequest extends Partial<Request> {
   context: NcContext;
+  ncSocketId?: string;
   ncWorkspaceId?: string;
   ncBaseId?: string;
   ncSourceId?: string;

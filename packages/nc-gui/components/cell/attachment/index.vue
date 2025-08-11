@@ -468,7 +468,7 @@ onUnmounted(() => {
             <LazyCellAttachmentPreviewThumbnail
               :icon-width="24"
               :icon-height="24"
-              class="nc-attachment rounded-lg w-full h-full object-cover overflow-hidden"
+              class="nc-attachment rounded-lg overflow-hidden"
               :alt="item.title || `#${i}`"
               :attachment="item"
               :thumbnail="attachmentSize"

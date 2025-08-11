@@ -602,7 +602,10 @@ onBeforeUnmount(() => {
                 >
                   <template #item="{ element: baseItem }">
                     <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
-                      <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
+                      <ProjectWrapper
+                        :base-role="baseItem.project_role || extractBaseRoleFromWorkspaceRole(baseItem.workspace_role)"
+                        :base="baseItem"
+                      >
                         <DashboardTreeViewProjectNode />
                       </ProjectWrapper>
                     </div>

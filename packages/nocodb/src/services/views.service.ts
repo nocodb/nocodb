@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, ProjectRoles, ViewTypes } from 'nocodb-sdk';
+import { AppEvents, EventType, ProjectRoles, ViewTypes } from 'nocodb-sdk';
 import type {
   SharedViewReqType,
   UserType,
@@ -17,6 +17,7 @@ import {
   User,
   View,
 } from '~/models';
+import NocoSocket from '~/socket/NocoSocket';
 
 // todo: move
 async function xcVisibilityMetaGet(
@@ -244,6 +245,19 @@ export class ViewsService {
       context,
       owner,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_update',
+          payload: result,
+        },
+      },
+      context.socket_id,
+    );
+
     return result;
   }
 
@@ -287,6 +301,18 @@ export class ViewsService {
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_delete',
+          payload: view,
+        },
+      },
+      context.socket_id,
+    );
 
     return true;
   }

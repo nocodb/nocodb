@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import {
   AppEvents,
+  EventType,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -41,6 +42,7 @@ import {
   getUniqueColumnName,
 } from '~/helpers/getUniqueName';
 import { MetaTable } from '~/utils/globals';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class TablesService {
@@ -196,12 +198,26 @@ export class TablesService {
       param.table.table_name,
     );
 
+    const result = await Model.get(context, param.tableId);
+
     this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
       table: param.table,
       prevTable: model,
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_update',
+          payload: result,
+        },
+      },
+      context.socket_id,
+    );
 
     return true;
   }
@@ -374,6 +390,14 @@ export class TablesService {
         });
       }
 
+      result = await table.delete(context, ncMeta);
+      await ncMeta.commit();
+    } catch (e) {
+      await ncMeta.rollback();
+      throw e;
+    }
+
+    if (result) {
       this.appHooksService.emit(AppEvents.TABLE_DELETE, {
         table,
         user: param.user,
@@ -381,12 +405,19 @@ export class TablesService {
         context,
       });
 
-      result = await table.delete(context, ncMeta);
-      await ncMeta.commit();
-    } catch (e) {
-      await ncMeta.rollback();
-      throw e;
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'table_delete',
+            payload: table,
+          },
+        },
+        context.socket_id,
+      );
     }
+
     return result;
   }
 
@@ -949,6 +980,18 @@ export class TablesService {
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_create',
+          payload: result,
+        },
+      },
+      context.socket_id,
+    );
 
     return result;
   }

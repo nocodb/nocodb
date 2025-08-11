@@ -83,6 +83,9 @@ const { metas, getMeta } = useMetas()
 
 const workspaceStore = useWorkspace()
 
+const baseStore = useBase()
+const { baseId: activeBaseId } = storeToRefs(baseStore)
+
 const { viewsByTable } = storeToRefs(useViewsStore())
 
 const { refreshCommandPalette } = useCommandPalette()
@@ -804,6 +807,12 @@ const getPluralName = (name: string) => {
   }
   return name
 }
+
+watch(activeBaseId, () => {
+  if (activeBaseId.value !== props.baseId) {
+    vModel.value = false
+  }
+})
 </script>
 
 <template>

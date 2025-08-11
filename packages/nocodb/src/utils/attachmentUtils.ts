@@ -1,3 +1,5 @@
+import path from 'path';
+
 /**
  * Checks if a file is an Office document based on MIME type and file extension
  * @param mimeType - The MIME type of the file
@@ -128,7 +130,7 @@ export function isOfficeDocument(
   ];
 
   // Normalize file extension to lowercase and ensure it starts with a dot
-  const normalizedExtension = fileExtension.toLowerCase().startsWith('.')
+  const normalizedExtension = fileExtension.startsWith('.')
     ? fileExtension.toLowerCase()
     : `.${fileExtension.toLowerCase()}`;
 
@@ -144,9 +146,7 @@ export const supportsThumbnails = (attachment: any) => {
     attachment.title || attachment.filename || attachment.name || '';
 
   // Extract file extension from filename
-  const fileExtension = filename.includes('.')
-    ? filename.substring(filename.lastIndexOf('.'))
-    : '';
+  const fileExtension = path.extname(filename);
 
   return (
     mimetype?.startsWith('image/') ||

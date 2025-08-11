@@ -36,6 +36,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       currentRow.value = row.value
     }
 
+    if (isEeUI) {
+      _reloadData = (_params: { shouldShowLoading?: boolean }) => {}
+    }
+
     // state
     const { metas, getMeta } = useMetas()
 
@@ -55,7 +59,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const path = inject(GroupPathInj, ref([]))
 
     // In canvas _reloadData will not work as we unmount editable component so on undo/redo we have to manually trigger view reload
-    const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
+    const reloadViewDataTrigger = isEeUI ? createEventHook() : inject(ReloadViewDataHookInj, createEventHook())
 
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 

@@ -16,6 +16,8 @@ import {
   getRelatedLinksColumn,
 } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
+import NocoSocket from '~/socket/NocoSocket';
+import getAst from '~/helpers/getAst';
 
 export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
   const validateRefIds = (
@@ -278,11 +280,15 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             cookie,
           });
 
+          await broadcastLinkUpdates(parentBaseModel, childIds as string[]);
+
           await childBaseModel.updateLastModified({
             model: childTable,
             rowIds: [rowId],
             cookie,
           });
+
+          await broadcastLinkUpdates(childBaseModel, [rowId]);
 
           auditConfig.parentModel =
             baseModel.model.id === parentTable.id ? parentTable : childTable;
@@ -370,6 +376,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: [rowId],
             cookie,
           });
+
+          await broadcastLinkUpdates(parentBaseModel, [rowId]);
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -424,6 +432,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: [rowId],
             cookie,
           });
+          await broadcastLinkUpdates(parentBaseModel, [rowId]);
         }
         break;
     }
@@ -681,11 +690,16 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: childIds,
             cookie,
           });
+
+          await broadcastLinkUpdates(parentBaseModel, childIds as string[]);
+
           await childBaseModel.updateLastModified({
             model: childTable,
             rowIds: [rowId],
             cookie,
           });
+
+          await broadcastLinkUpdates(childBaseModel, [rowId]);
 
           auditConfig.parentModel =
             baseModel.model.id === parentTable.id ? parentTable : childTable;
@@ -779,6 +793,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: [rowId],
             cookie,
           });
+
+          await broadcastLinkUpdates(parentBaseModel, [rowId]);
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -836,6 +852,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: [childIds[0]],
             cookie,
           });
+
+          await broadcastLinkUpdates(parentBaseModel, [childIds[0] as string]);
         }
         break;
     }
@@ -894,8 +912,38 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       childAuditObj,
     );
   };
+
+  const broadcastLinkUpdates = async (
+    baseModel: IBaseModelSqlV2,
+    ids: Array<string>,
+  ) => {
+    try {
+      const ast = await getAst(baseModel.context, {
+        model: baseModel.model,
+      });
+
+      const list = await baseModel.chunkList({
+        pks: ids,
+        chunkSize: 100,
+        args: ast.dependencyFields,
+      });
+
+      for (const item of list) {
+        const extractedId = baseModel.extractPksValues(item);
+        NocoSocket.broadcastDataEvent(baseModel.context, baseModel.model.id, {
+          action: 'update',
+          payload: item,
+          id: extractedId,
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return {
     addLinks,
+    broadcastLinkUpdates,
     removeLinks,
   };
 };

@@ -2728,6 +2728,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     pks: string[];
     chunkSize?: number;
     apiVersion?: NcApiVersion;
+    args?: Record<string, any>;
   }) {
     const { pks, chunkSize = 1000 } = args;
 
@@ -2740,6 +2741,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         {
           pks: chunk.join(','),
           apiVersion: args.apiVersion,
+          ...(args.args || {}),
         },
         {
           limitOverride: chunk.length,

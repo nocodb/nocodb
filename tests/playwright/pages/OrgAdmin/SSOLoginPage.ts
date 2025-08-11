@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 import BasePage from '../Base';
 import { ProjectsPage } from '../ProjectsPage';
 
@@ -28,16 +28,13 @@ export class CloudSSOLoginPage extends BasePage {
     await signIn.locator('[data-testid="nc-form-org-sso-signin__email"]').fill(email);
 
     await Promise.all([
-      this.rootPage.waitForNavigation({ url: /localhost:3000/ }),
+      this.rootPage.waitForNavigation({ url: /localhost:3000/, waitUntil: 'networkidle' }),
       signIn.getByTestId('nc-form-signin__submit').click(),
     ]);
 
     const userInfoMenu = this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]`);
     await userInfoMenu.waitFor();
 
-    await this.rootPage.waitForFunction(
-      async selector => (await selector.getAttribute('data-email'))?.startsWith(email.split('@')[0]),
-      userInfoMenu
-    );
+    await expect(userInfoMenu).toHaveAttribute('data-email', email);
   }
 }

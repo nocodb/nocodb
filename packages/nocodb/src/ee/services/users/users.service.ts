@@ -53,7 +53,6 @@ import NocoCache from '~/cache/NocoCache';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import { TelemetryService } from '~/services/telemetry.service';
-import { handleOrphanBasesAfterUserDeletion } from '~/ee/utils/orphanBaseHandler';
 
 async function listUserBases(
   fk_user_id: string,
@@ -675,9 +674,6 @@ export class UsersService extends UsersServiceCE {
           );
         }
       }
-
-      // Handle orphan bases after user deletion from all workspaces
-      await handleOrphanBasesAfterUserDeletion(user.id, transaction);
 
       /* TODO: We don't have a way to transfer integrations to another user yet - hence we are skipping this for now
 

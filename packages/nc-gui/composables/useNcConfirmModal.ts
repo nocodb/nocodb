@@ -13,7 +13,7 @@ const useNcConfirmModal = () => {
     okText,
     okClass = '!px-4',
     cancelText,
-    showIcon = false,
+    showIcon = true,
     maskClosable = true,
     keyboard = true,
     showCancelBtn = false,

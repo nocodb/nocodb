@@ -488,7 +488,10 @@ export class DataTableService {
         },
         param.query,
       )) as number;
-    } else if (!column.meta?.bt) {
+    } else if (
+      colOptions.type !== RelationTypes.BELONGS_TO &&
+      !column.meta?.bt
+    ) {
       data = await baseModel.ooRead(
         {
           colId: column.id,

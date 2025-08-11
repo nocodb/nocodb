@@ -48,8 +48,6 @@ const cellEventHook = inject(CellEventHookInj, null)
 
 const { isMobileMode } = useGlobal()
 
-const { getPossibleAttachmentSrc } = useAttachment()
-
 const {
   isPublic,
   isForm,
@@ -467,25 +465,16 @@ onUnmounted(() => {
               'h-[64px]': rowHeight === 4 || rowHeight === 6,
             }"
           >
-            <LazyCellAttachmentPreviewImage
-              v-if="isImage(item.title, item.mimetype ?? item.type)"
-              :alt="item.title || `#${i}`"
-              object-fit="contain"
+            <LazyCellAttachmentPreviewThumbnail
+              icon-width="24"
+              icon-height="24"
               class="nc-attachment rounded-lg w-full h-full object-cover overflow-hidden"
-              :srcs="getPossibleAttachmentSrc(item, attachmentSize)"
+              :alt="item.title || `#${i}`"
+              :attachment="item"
+              thumbnail="tiny"
+              object-fit="contain"
               @click="() => onFileClick(item)"
             />
-            <LazyCellAttachmentPreviewPdfThumbnail
-              v-else-if="isPdf(item.title, item.mimetype ?? item.type)"
-              :alt="item.title || `#${i}`"
-              object-fit="contain"
-              class="nc-attachment rounded-lg w-full h-full object-cover overflow-hidden"
-              :srcs="getPossibleAttachmentSrc(item, attachmentSize)"
-              @click="() => onFileClick(item)"
-            />
-            <div v-else class="nc-attachment h-full w-full flex items-center justify-center" @click="onFileClick(item)">
-              <CellAttachmentIconView :item="item" class="max-h-full max-w-full" />
-            </div>
           </div>
         </NcTooltip>
       </div>

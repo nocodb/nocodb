@@ -66,10 +66,10 @@ test.describe('Source Restrictions', () => {
     // reload page to reflect source changes
     await dashboard.rootPage.reload();
 
-    await dashboard.treeView.verifyTable({ title: 'Actor' });
+    await dashboard.treeView.verifyTable({ title: 'Actor', baseTitle: context.base.title });
 
     // open table and verify that it is readonly
-    await dashboard.treeView.openTable({ title: 'Actor' });
+    await dashboard.treeView.openTable({ title: 'Actor', baseTitle: context.base.title });
 
     await dashboard.grid
       .get()
@@ -108,7 +108,7 @@ test.describe('Source Restrictions', () => {
     // reload page to reflect source changes
     await dashboard.rootPage.reload();
 
-    await dashboard.treeView.verifyTable({ title: 'Country' });
+    await dashboard.treeView.verifyTable({ title: 'Country', baseTitle: context.base.title });
 
     // open table and verify that it is readonly
     await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });

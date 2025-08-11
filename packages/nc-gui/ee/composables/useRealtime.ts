@@ -98,7 +98,6 @@ export const useRealtime = createSharedComposable(() => {
       if (tables) {
         const updatedTables = tables.filter((t) => t.id !== deletedTableId)
         baseTables.value.set(activeBaseId.value, updatedTables)
-
         if (activeTableId.value === deletedTableId && updatedTables.length > 0 && updatedTables[0]?.id) {
           navigateToTable({
             tableId: updatedTables[0].id,
@@ -106,6 +105,7 @@ export const useRealtime = createSharedComposable(() => {
           showInfoModal({
             title: `Table no longer available`,
             content: `${event.payload.title} may have been deleted or your access removed.`,
+            key: `table-no-longer-available-${deletedTableId}`,
           })
         } else {
           ncNavigateTo({
@@ -116,6 +116,7 @@ export const useRealtime = createSharedComposable(() => {
           showInfoModal({
             title: `Table no longer available`,
             content: `${event.payload.title} may have been deleted or your access removed.`,
+            key: `table-no-longer-available-${deletedTableId}`,
           })
         }
       } else {
@@ -198,6 +199,7 @@ export const useRealtime = createSharedComposable(() => {
             showInfoModal({
               title: `Automation no longer available`,
               content: `${automation.title} may have been deleted or your access removed.`,
+              key: `automation-no-longer-available-${id}`,
             })
           } else {
             ncNavigateTo({
@@ -207,6 +209,7 @@ export const useRealtime = createSharedComposable(() => {
             showInfoModal({
               title: `Automation no longer available`,
               content: `${automation.title} may have been deleted or your access removed.`,
+              key: `automation-no-longer-available-${id}`,
             })
           }
         }
@@ -247,6 +250,7 @@ export const useRealtime = createSharedComposable(() => {
             showInfoModal({
               title: `Dashboard no longer available`,
               content: `${dashboard.title} may have been deleted or your access removed.`,
+              key: `dashboard-no-longer-available-${id}`,
             })
           } else {
             ncNavigateTo({
@@ -256,6 +260,7 @@ export const useRealtime = createSharedComposable(() => {
             showInfoModal({
               title: `Dashboard no longer available`,
               content: `${dashboard.title} may have been deleted or your access removed.`,
+              key: `dashboard-no-longer-available-${id}`,
             })
           }
         }
@@ -336,6 +341,7 @@ export const useRealtime = createSharedComposable(() => {
           showInfoModal({
             title: `Workspace no longer available`,
             content: `${payload.title} may have been deleted or your access removed.`,
+            key: `workspace-no-longer-available-${workspaceId}`,
           })
         }
       } else {
@@ -395,6 +401,7 @@ export const useRealtime = createSharedComposable(() => {
             showInfoModal({
               title: `Base no longer available`,
               content: `${payload.title} may have been deleted or your access removed.`,
+              key: `base-no-longer-available-${baseId}`,
             })
           }
         }
@@ -413,6 +420,7 @@ export const useRealtime = createSharedComposable(() => {
             showInfoModal({
               title: `Base no longer available`,
               content: `${baseTitle} may have been deleted or your access removed.`,
+              key: `base-no-longer-available-${baseId}`,
             })
           }
 

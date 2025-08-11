@@ -149,6 +149,7 @@ export class ScriptsService {
     const newScript = await Script.insert(context, script.base_id, {
       title: newTitle,
       script: script.script,
+      meta: script.meta,
       description: script.description,
       created_by: req.user.id,
     });

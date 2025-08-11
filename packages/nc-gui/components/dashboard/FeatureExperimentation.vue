@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { onKeyDown } from '@vueuse/core'
-
 interface Props {
   value?: boolean
 }
@@ -121,12 +119,6 @@ const handleClick = () => {
     }
   }
 }
-
-onKeyDown('Alt', (e) => {
-  if (e.shiftKey) {
-    value.value = !value.value
-  }
-})
 
 onUnmounted(() => {
   if (clickTimer.value) clearTimeout(clickTimer.value)

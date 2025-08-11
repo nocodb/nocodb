@@ -284,10 +284,7 @@ export type TableUpdate = {
 };
 
 export interface Sort {
-  /**
-   * Unique identifier for the sort.
-   * @format uuid
-   */
+  /** Unique identifier for the sort. */
   id: string;
   /**
    * Identifier for the field being sorted.
@@ -299,13 +296,10 @@ export interface Sort {
 }
 
 export interface SortCreate {
-  /**
-   * Identifier for the field being sorted.
-   * @format uuid
-   */
+  /** Identifier for the field being sorted. */
   field_id: string;
   /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
-  direction: 'asc' | 'desc';
+  direction?: 'asc' | 'desc';
 }
 
 export interface SortUpdate {
@@ -329,156 +323,16 @@ export interface ViewSummary {
   /** Name of the view. */
   title?: string;
   /** Type of the view. */
-  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
+  view_type?: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
 }
 
-/** GRID View */
-export type View = (
-  | {
-      fields: {
-        /**
-         * Field ID for GRID view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is hidden in GRID view. */
-        is_hidden?: boolean;
-      }[];
-      group?: {
-        /**
-         * Field ID for grouping in GRID view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Sorting order for the group. */
-        sort?: 'asc' | 'desc';
-      }[];
-    }
-  | {
-      fields: {
-        /**
-         * Field ID displayed in GALLERY view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is the cover image. */
-        cover_image?: boolean;
-      }[];
-      /**
-       * Field ID for the cover image.
-       * @format uuid
-       */
-      cover_image_field_id?: string;
-    }
-  | {
-      fields: {
-        /**
-         * Field ID used in KANBAN view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is used for stacking in KANBAN. */
-        is_stack_by?: boolean;
-      }[];
-      /**
-       * Field ID for the cover image.
-       * @format uuid
-       */
-      cover_image_field_id?: string;
-      /**
-       * Field ID used for stacking in KANBAN view.
-       * @format uuid
-       */
-      kanban_stack_by_field_id?: string;
-    }
-  | {
-      fields: {
-        /**
-         * Field ID displayed in CALENDAR view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is used for date ranges. */
-        is_date_field?: boolean;
-      }[];
-      calendar_range?: {
-        /**
-         * Field ID for the start date.
-         * @format uuid
-         */
-        start_field_id?: string;
-        /**
-         * Field ID for the end date.
-         * @format uuid
-         */
-        end_field_id?: string;
-      }[];
-    }
-  | {
-      fields: {
-        /**
-         * Field ID used in FORM view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is required in the form. */
-        is_required?: boolean;
-      }[];
-      /** Heading for the form. */
-      form_heading?: string;
-      /** Subheading for the form. */
-      form_sub_heading?: string;
-      /** Success message shown after form submission. */
-      form_success_message?: string;
-      /**
-       * URL to redirect to after form submission.
-       * @format uri
-       */
-      form_redirect_url?: string;
-      /** Seconds to wait before redirecting. */
-      form_redirect_after_secs?: number;
-      /** Whether to send a response email. */
-      form_send_response_email?: boolean;
-      /** Whether to show another form after submission. */
-      form_show_another?: boolean;
-      /** Whether to show a blank form after submission. */
-      form_show_blank?: boolean;
-      /** Whether to hide the banner on the form. */
-      form_hide_banner?: boolean;
-      /** Whether to hide branding on the form. */
-      form_hide_branding?: boolean;
-      /**
-       * URL of the banner image for the form.
-       * @format uri
-       */
-      form_banner_image_url?: string;
-      /**
-       * URL of the logo for the form.
-       * @format uri
-       */
-      form_logo_url?: string;
-      /**
-       * Background color for the form.
-       * @pattern ^#[0-9A-Fa-f]{6}$
-       */
-      form_background_color?: string;
-    }
-) & {
-  /**
-   * Unique identifier for the view.
-   * @format uuid
-   */
-  id?: string;
-  /** Name of the view. */
-  view_name?: string;
-  /** Type of the view. */
-  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
+export interface ViewBase {
+  /** Title of the view. */
+  title?: string;
   /** Lock type of the view. */
-  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
+  lock_type?: 'collabarative' | 'locked' | 'personal';
   /** Description of the view. */
   description?: string;
-  /** Indicates if this is the default view. */
-  is_default?: boolean;
   meta?: {
     /** Description for locked views. */
     locked_view_description?: string;
@@ -488,6 +342,88 @@ export type View = (
      */
     locked_by_user_id?: string;
   };
+  /** Sort options for the view. */
+  sorts?: SortCreate[];
+}
+
+export interface ViewOptionBase {
+  fields_by_id?: Record<
+    string,
+    {
+      alias?: string;
+      description?: string;
+      required?: boolean;
+      allow_scanner_input?: boolean;
+      is_list?: boolean;
+      is_limit_option?: boolean;
+      validators?: {
+        type?: string;
+        value?: any;
+        message?: string;
+        regex?: string | null;
+      }[];
+    }
+  >;
+  row_height?: 'short' | 'medium' | 'tall' | 'extra';
+}
+
+export type ViewBaseOptions = ViewOptionBase &
+  (
+    | {
+        type?: 'grid';
+        options?: ViewOptionsGrid;
+      }
+    | {
+        type?: 'kanban';
+        options?: ViewOptionsKanban;
+      }
+    | {
+        type?: 'calendar';
+        options?: ViewOptionsCalendar;
+      }
+    | {
+        type?: 'gallery';
+        options?: ViewOptionsGallery;
+      }
+    | {
+        type?: 'form';
+        options?: ViewOptionsForm;
+      }
+  );
+
+export type ViewCreate = ViewBase & {
+  /** Type of the view. */
+  type: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
+  fields?: {
+    field_id: string;
+    show?: boolean;
+    width?: number;
+  }[];
+} & ViewBaseOptions;
+
+export type ViewUpdate = ViewBase & {
+  /**
+   * Unique identifier for the view.
+   * @format uuid
+   */
+  id?: string;
+  fields?: {
+    field_id: string;
+    show?: boolean;
+    width?: number;
+  }[];
+} & ViewBaseOptions;
+
+export type View = ViewBase & {
+  /**
+   * Unique identifier for the view.
+   * @format uuid
+   */
+  id?: string;
+  /** Type of the view. */
+  type?: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
+  /** Indicates if this is the default view. */
+  is_default?: boolean;
   /**
    * User ID of the creator.
    * @format uuid
@@ -508,21 +444,76 @@ export type View = (
    * @format date-time
    */
   updated_at?: string;
-  /** Filters applied to the view. */
-  filters?: Filter[];
-  /** Sort options for the view. */
-  sorts?: Sort[];
-};
+} & ViewBaseOptions;
 
-export interface ViewCreate {
-  /** Name of the view. */
-  view_name?: string;
-  /** Type of the view. */
-  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
-  /** Lock type of the view. */
-  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
-  /** Description of the view. */
-  description?: string;
+export interface ViewOptionsGrid {
+  groups?: {
+    field_id: string;
+    direction?: 'asc' | 'desc';
+    row_height?: 'short' | 'medium' | 'tall' | 'extra';
+  }[];
+}
+
+export interface ViewOptionsKanban {
+  stack_by: {
+    field_id?: string;
+  };
+  cover_field_id?: string;
+  stack_order?: string[];
+}
+
+export interface ViewOptionsCalendar {
+  date_ranges: {
+    start_date_field_id: string;
+    end_date_field_id?: string;
+  }[];
+}
+
+export interface ViewOptionsGallery {
+  cover_field_id?: string;
+}
+
+export interface ViewOptionsForm {
+  /** Heading for the form. */
+  form_title?: string;
+  /** Subheading for the form. */
+  form_description?: string;
+  /** Success message shown after form submission. */
+  thank_you_message?: string;
+  /** Seconds to wait before redirecting. */
+  form_redirect_after_secs?: number;
+  /** Whether to send a response email. */
+  form_send_response_email?: boolean;
+  /** Whether to show another form after submission. */
+  submit_another_form?: boolean;
+  /** Whether to show a blank form after submission. */
+  show_blank_form?: boolean;
+  /** Whether to hide the banner on the form. */
+  form_hide_banner?: boolean;
+  /** Whether to hide branding on the form. */
+  form_hide_branding?: boolean;
+  /**
+   * URL of the banner image for the form.
+   * @format uri
+   */
+  form_banner_image_url?: string;
+  /**
+   * URL of the logo for the form.
+   * @format uri
+   */
+  form_logo_url?: string;
+  /**
+   * Background color for the form.
+   * @pattern ^#[0-9A-Fa-f]{6}$
+   */
+  form_background_color?: string;
+  redirect_on_submit?: {
+    /**
+     * URL to redirect to after form submission.
+     * @format uri
+     */
+    url?: string;
+  };
 }
 
 export interface FieldBase {
@@ -1160,7 +1151,7 @@ export type FieldUpdate = FieldBase &
 
 export interface Filter {
   /** Unique identifier for the filter. */
-  id: string;
+  id?: string;
   /** Parent ID of the filter, specifying this filters group association. */
   parent_id?: string;
   /** Field ID to which this filter applies. Defaults to **root**. */

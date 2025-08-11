@@ -23,6 +23,8 @@ const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope
 
 const { cmdK, cmdL, cmdJ, setActiveCmdView } = useCommand()
 
+useRealtime()
+
 applyNonSelectable()
 
 const { chatwootInit } = useProvideChatwoot()

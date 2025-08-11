@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { type DashboardType, ProjectRoles, type ScriptType, type TableType, type ViewType, stringifyRolesObj } from 'nocodb-sdk'
+import {
+  type DashboardType,
+  ProjectRoles,
+  type ScriptType,
+  type TableType,
+  type ViewType,
+  extractBaseRoleFromWorkspaceRole,
+} from 'nocodb-sdk'
 import ProjectWrapper from '../ProjectWrapper.vue'
 import { useRouter } from '#app'
 
@@ -595,7 +602,10 @@ onBeforeUnmount(() => {
                 >
                   <template #item="{ element: baseItem }">
                     <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
-                      <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
+                      <ProjectWrapper
+                        :base-role="baseItem.project_role || extractBaseRoleFromWorkspaceRole(baseItem.workspace_role)"
+                        :base="baseItem"
+                      >
                         <DashboardTreeViewProjectNode />
                       </ProjectWrapper>
                     </div>
@@ -622,7 +632,10 @@ onBeforeUnmount(() => {
                 >
                   <template #item="{ element: baseItem }">
                     <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
-                      <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
+                      <ProjectWrapper
+                        :base-role="baseItem.project_role || extractBaseRoleFromWorkspaceRole(baseItem.workspace_role)"
+                        :base="baseItem"
+                      >
                         <DashboardTreeViewProjectNode />
                       </ProjectWrapper>
                     </div>
@@ -651,7 +664,10 @@ onBeforeUnmount(() => {
                 >
                   <template #item="{ element: baseItem }">
                     <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
-                      <ProjectWrapper :base-role="baseItem.project_role || stringifyRolesObj(workspaceRoles)" :base="baseItem">
+                      <ProjectWrapper
+                        :base-role="baseItem.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles)"
+                        :base="baseItem"
+                      >
                         <DashboardTreeViewProjectNode />
                       </ProjectWrapper>
                     </div>
@@ -676,7 +692,10 @@ onBeforeUnmount(() => {
           v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
           class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
         >
-          <ProjectWrapper :base-role="openedBase?.project_role || stringifyRolesObj(workspaceRoles)" :base="openedBase">
+          <ProjectWrapper
+            :base-role="openedBase?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles)"
+            :base="openedBase"
+          >
             <DashboardTreeViewProjectHome>
               <template #footer>
                 <slot name="footer"></slot>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { type ScriptType, type TableType, type ViewType, stringifyRolesObj } from 'nocodb-sdk'
+import { type ScriptType, type TableType, type ViewType, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 import ProjectWrapper from './ProjectWrapper.vue'
 
 const { isUIAllowed } = useRoles()
@@ -362,7 +362,10 @@ const onMove = async (
           >
             <template #item="{ element: baseItem }">
               <div :key="baseItem.id">
-                <ProjectWrapper :base-role="baseItem.project_role || baseItem.workspace_role" :base="baseItem">
+                <ProjectWrapper
+                  :base-role="baseItem.project_role || extractBaseRoleFromWorkspaceRole(baseItem.workspace_role)"
+                  :base="baseItem"
+                >
                   <DashboardTreeViewProjectNode />
                 </ProjectWrapper>
               </div>
@@ -385,7 +388,10 @@ const onMove = async (
         >
           <template #item="{ element: baseItem }">
             <div :key="baseItem.id">
-              <ProjectWrapper :base-role="baseItem.project_role || stringifyRolesObj(workspaceRoles)" :base="baseItem">
+              <ProjectWrapper
+                :base-role="baseItem.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles)"
+                :base="baseItem"
+              >
                 <DashboardTreeViewProjectNode />
               </ProjectWrapper>
             </div>

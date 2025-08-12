@@ -381,7 +381,7 @@ const handleOpenNewRecordForm = () => {
   <div
     ref="scrollContainer"
     data-testid="nc-gallery-wrapper"
-    class="flex flex-col w-full nc-gallery select-none relative nc-scrollbar-md bg-gray-50 h-[calc(100svh-93px)]"
+    class="flex flex-col w-full nc-gallery select-none relative nc-scrollbar-md bg-nc-bg-gray-extralight h-[calc(100svh-93px)]"
   >
     <NcDropdown
       v-model:visible="contextMenu"
@@ -408,7 +408,7 @@ const handleOpenNewRecordForm = () => {
             <template #default="{ isAllowed }">
               <NcMenuItem
                 :class="{
-                  '!text-red-600 !hover:bg-red-50': isAllowed,
+                  '!text-red-600 !hover:bg-nc-bg-red-light': isAllowed,
                 }"
                 :disabled="!isAllowed"
                 @click="deleteRow(contextMenuTarget.index)"
@@ -441,7 +441,7 @@ const handleOpenNewRecordForm = () => {
             >
               <LazySmartsheetRow :row="record">
                 <a-card
-                  class="!rounded-xl h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
+                  class="!rounded-xl h-full !border-nc-border-gray-medium !bg-nc-bg-default border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
                   :body-style="{ padding: '12px !important', flex: 1, display: 'flex' }"
                   :data-testid="`nc-gallery-card-${record.rowMeta.rowIndex}`"
                   :style="{
@@ -454,7 +454,11 @@ const handleOpenNewRecordForm = () => {
                   <template v-if="galleryData?.fk_cover_image_col_id" #cover>
                     <a-carousel
                       v-if="!reloadAttachments && attachments(record).length"
-                      class="gallery-carousel !border-b-1 !border-gray-200 min-h-52 !bg-white"
+                      class="gallery-carousel !border-b-1 !border-nc-border-gray-medium min-h-52 !bg-nc-bg-default"
+                      :style="{
+                        ...extractRowBackgroundColorStyle(record).rowBgColor,
+                        ...extractRowBackgroundColorStyle(record).rowBorderColor,
+                      }"
                       arrows
                     >
                       <template #customPaging>
@@ -471,7 +475,7 @@ const handleOpenNewRecordForm = () => {
                             size="xsmall"
                             class="!absolute !left-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
                           >
-                            <GeneralIcon icon="arrowLeft" class="text-gray-700 w-4 h-4" />
+                            <GeneralIcon icon="arrowLeft" class="text-nc-content-inverted-secondary w-4 h-4" />
                           </NcButton>
                         </div>
                       </template>
@@ -482,7 +486,7 @@ const handleOpenNewRecordForm = () => {
                             size="xsmall"
                             class="!absolute !right-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
                           >
-                            <GeneralIcon icon="arrowRight" class="text-gray-700 w-4 h-4" />
+                            <GeneralIcon icon="arrowRight" class="text-nc-content-inverted-secondary w-4 h-4" />
                           </NcButton>
                         </div>
                       </template>
@@ -500,7 +504,7 @@ const handleOpenNewRecordForm = () => {
                     </a-carousel>
                     <div
                       v-else
-                      class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center !bg-white"
+                      class="h-52 w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center !bg-nc-bg-default"
                     >
                       <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                     </div>
@@ -538,14 +542,14 @@ const handleOpenNewRecordForm = () => {
                           <LazySmartsheetVirtualCell
                             v-if="isVirtualCol(displayField)"
                             v-model="record.row[displayField.title]"
-                            class="!text-brand-500"
+                            class="!text-nc-content-brand"
                             :column="displayField"
                             :row="record"
                           />
                           <LazySmartsheetCell
                             v-else
                             v-model="record.row[displayField.title]"
-                            class="!text-brand-500"
+                            class="!text-nc-content-brand"
                             :column="displayField"
                             :edit-enabled="false"
                             :read-only="true"
@@ -572,14 +576,14 @@ const handleOpenNewRecordForm = () => {
                           </div>
                           <div
                             v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col)"
-                            class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
+                            class="flex flex-row w-full text-nc-content-gray items-center justify-start min-h-7 py-1"
                           >
                             <LazySmartsheetVirtualCell
                               v-if="isVirtualCol(col)"
                               v-model="record.row[col.title]"
                               :column="col"
                               :row="record"
-                              class="!text-gray-800"
+                              class="!text-nc-content-gray"
                             />
                             <LazySmartsheetCell
                               v-else
@@ -587,7 +591,7 @@ const handleOpenNewRecordForm = () => {
                               :column="col"
                               :edit-enabled="false"
                               :read-only="true"
-                              class="!text-gray-800"
+                              class="!text-nc-content-gray"
                             />
                           </div>
                           <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
@@ -676,7 +680,7 @@ const handleOpenNewRecordForm = () => {
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div > div) {
-  @apply bg-brand-500 opacity-100;
+  @apply bg-nc-content-brand opacity-100;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li) {
@@ -696,7 +700,7 @@ const handleOpenNewRecordForm = () => {
   box-shadow: 0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02);
 
   &:hover {
-    @apply !border-gray-300;
+    @apply !border-nc-border-gray-dark;
     box-shadow: 0px 0px 24px 0px rgba(0, 0, 0, 0.1), 0px 0px 8px 0px rgba(0, 0, 0, 0.04);
 
     .nc-action-icon {
@@ -706,7 +710,7 @@ const handleOpenNewRecordForm = () => {
 }
 
 .nc-card-display-value-wrapper {
-  @apply my-0 text-xl leading-8 text-gray-600;
+  @apply my-0 text-xl leading-8 text-nc-content-gray-subtle2;
 
   .nc-cell,
   .nc-virtual-cell {
@@ -716,10 +720,10 @@ const handleOpenNewRecordForm = () => {
     :deep(input),
     :deep(textarea),
     :deep(.nc-cell-field-link) {
-      @apply !text-xl leading-8 text-gray-600;
+      @apply !text-xl leading-8 text-nc-content-gray-subtle2;
 
       &:not(.ant-select-selection-search-input) {
-        @apply !text-xl leading-8 text-gray-600;
+        @apply !text-xl leading-8 text-nc-content-gray-subtle2;
       }
     }
   }

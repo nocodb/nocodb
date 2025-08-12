@@ -30,7 +30,7 @@ loadSettings()
   <div class="flex flex-col">
     <NcPageHeader>
       <template #icon>
-        <GeneralIcon icon="settings" class="flex-none text-[20px] text-gray-700 h-5 w-5" />
+        <GeneralIcon icon="settings" class="flex-none text-[20px] h-5 w-5" />
       </template>
       <template #title>
         <span data-rec="true">

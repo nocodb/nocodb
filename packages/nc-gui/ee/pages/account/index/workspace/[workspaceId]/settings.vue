@@ -8,7 +8,7 @@ const workspaceId = computed(() => (route.params.workspaceId ?? '') as string)
   <div class="h-full flex flex-col">
     <NcPageHeader>
       <template #icon>
-        <GeneralIcon icon="ncDollarSign" class="flex-none text-gray-700 text-[20px] h-5 w-5" />
+        <GeneralIcon icon="ncDollarSign" class="flex-none text-[20px] h-5 w-5" />
       </template>
       <template #title>
         <span data-rec="true"> {{ $t('general.billing') }} </span>

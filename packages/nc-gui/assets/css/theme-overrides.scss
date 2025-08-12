@@ -11,8 +11,9 @@ body {
   @apply !bg-nc-bg-default !text-nc-content-gray;
 }
 
-// Drawer
-.ant-drawer-content {
+// Drawer & Modal
+.ant-drawer-content,
+.ant-modal-content {
   @apply !bg-nc-bg-default;
 }
 

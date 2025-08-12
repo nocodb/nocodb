@@ -40,6 +40,9 @@ declare module '#app' {
       onMessage: (evt: string, handler: (...args: any[]) => void) => void
       offMessage: (evt: string) => void
     }
+    $eventBus: {
+      smartsheetStoreEventBus: UseEventBusReturn<string, any>
+    }
   }
 }
 

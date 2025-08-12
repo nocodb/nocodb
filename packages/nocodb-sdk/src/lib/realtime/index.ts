@@ -1,4 +1,4 @@
-import { ScriptType, UserType } from '~/lib/Api';
+import { ScriptType, TableType, UserType, ViewType } from '~/lib/Api';
 import { DashboardType, WidgetType } from '~/lib';
 
 export enum EventType {
@@ -45,6 +45,11 @@ export interface DataPayload extends BaseSocketPayload {
   before?: string;
 }
 
+export interface MetaPayload extends BaseSocketPayload {
+  action: 'table_create' | 'table_update' | 'table_delete' | 'column_add' | 'column_update' | 'column_delete' | 'view_create' | 'view_update' | 'view_delete';
+  payload: Partial<TableType | ViewType>;
+}
+
 export interface DashboardPayload extends BaseSocketPayload {
   id: string;
   action: 'create' | 'update' | 'delete';
@@ -69,6 +74,7 @@ export type SocketEventPayload =
   | ConnectionWelcomePayload
   | ConnectionErrorPayload
   | DataPayload
+  | MetaPayload
   | DashboardPayload
   | WidgetPayload;
 
@@ -77,6 +83,7 @@ export type SocketEventPayloadMap = {
   [EventType.CONNECTION_WELCOME]: ConnectionWelcomePayload;
   [EventType.CONNECTION_ERROR]: ConnectionErrorPayload;
   [EventType.DATA_EVENT]: DataPayload;
+  [EventType.META_EVENT]: MetaPayload;
   [EventType.DASHBOARD_EVENT]: DashboardPayload;
   [EventType.WIDGET_EVENT]: WidgetPayload;
   [EventType.SCRIPT_EVENT]: ScriptPayload;

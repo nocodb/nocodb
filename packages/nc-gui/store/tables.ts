@@ -1,12 +1,12 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { type TableType } from 'nocodb-sdk'
+import { EventType, type TableType } from 'nocodb-sdk'
 import type { SidebarTableNode } from '~/lib/types'
 import { DlgTableCreate } from '#components'
 
 export const useTablesStore = defineStore('tablesStore', () => {
   const { includeM2M, ncNavigateTo } = useGlobal()
   const { api } = useApi()
-  const { $e, $api } = useNuxtApp()
+  const { $e, $api, $ncSocket } = useNuxtApp()
   const { addUndo, defineProjectScope } = useUndoRedo()
   const { refreshCommandPalette } = useCommandPalette()
 
@@ -300,6 +300,69 @@ export const useTablesStore = defineStore('tablesStore', () => {
       close(1000)
     }
   }
+
+  const activeChannel = ref<string | null>(null)
+
+  watch(
+    () => basesStore.activeProjectId,
+    async (baseId) => {
+      if (!baseId) return
+
+      if (activeChannel.value) {
+        $ncSocket.offMessage(activeChannel.value)
+      }
+
+      activeChannel.value = `${EventType.META_EVENT}:${workspaceStore.activeWorkspaceId}:${baseId}`
+
+      $ncSocket.subscribe(activeChannel.value)
+
+      $ncSocket.onMessage(activeChannel.value, (event) => {
+        if (event.action === 'table_create') {
+          const tables = baseTables.value.get(baseId)
+          if (!tables) {
+            loadProjectTables(baseId, true)
+          } else {
+            tables.push(event.payload)
+            baseTables.value.set(baseId, tables)
+          }
+        } else if (event.action === 'table_update') {
+          const updatedTable = event.payload
+          const tables = baseTables.value.get(baseId)
+          if (tables) {
+            const index = tables.findIndex((t) => t.id === updatedTable.id)
+            if (index !== -1) {
+              tables[index] = updatedTable
+            }
+            baseTables.value.set(baseId, tables)
+          } else {
+            loadProjectTables(baseId, true)
+          }
+        } else if (event.action === 'table_delete') {
+          const deletedTableId = event.payload.id
+          const tables = baseTables.value.get(baseId)
+          if (tables) {
+            const updatedTables = tables.filter((t) => t.id !== deletedTableId)
+            baseTables.value.set(baseId, updatedTables)
+
+            if (activeTableId.value === deletedTableId && updatedTables.length > 0 && updatedTables[0]?.id) {
+              navigateToTable({
+                tableId: updatedTables[0].id,
+              })
+            } else {
+              ncNavigateTo({
+                workspaceId: workspaceStore.activeWorkspaceId,
+                baseId,
+                tableId: undefined,
+              })
+            }
+          } else {
+            loadProjectTables(baseId, true)
+          }
+        }
+      })
+    },
+    { immediate: true },
+  )
 
   return {
     baseTables,

@@ -19,8 +19,6 @@ const logout = async () => {
 
 const { hooks } = useNuxtApp()
 
-useRealtime()
-
 const isDashboard = computed(() => !!route.params.typeOrId)
 
 /** when page suspensions have finished, check if a sidebar element was teleported into the layout */

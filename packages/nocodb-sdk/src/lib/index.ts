@@ -10,6 +10,7 @@ export * from '~/lib/formulaHelpers';
 export * from '~/lib/regex';
 export * from '~/lib/payment';
 export * from '~/lib/permission';
+export * from '~/lib/realtime';
 export {
   default as UITypes,
   UITypesName,

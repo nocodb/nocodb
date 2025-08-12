@@ -79,6 +79,20 @@ export class WorkspaceUsersV3Service {
           NcError.badRequest('Either email or user_id is required');
         }
 
+        // check if the user is already a member of the workspace
+        const existingWorkspaceUser = await WorkspaceUser.get(
+          param.workspaceId,
+          user?.id,
+          ncMeta,
+        );
+
+        // if already exists and has a role then return error
+        if (existingWorkspaceUser?.roles) {
+          throw new Error(
+            `${user.email} with role ${existingWorkspaceUser.roles} already exists in this workspace`,
+          );
+        }
+
         // Set default role if not provided
         if (!workspaceUser.workspace_role) {
           workspaceUser.workspace_role = WorkspaceUserRoles.NO_ACCESS;

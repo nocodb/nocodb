@@ -10,7 +10,7 @@ const props = defineProps<{
 
 const baseId = toRef(props, 'baseId')
 
-const { $e, $api } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 

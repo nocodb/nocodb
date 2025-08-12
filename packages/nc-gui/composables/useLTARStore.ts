@@ -692,7 +692,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       try {
         // todo: audit
 
-         if (Object.keys(currentRow.value.row).length === 0) {
+        if (Object.keys(currentRow.value.row).length === 0) {
           refreshCurrentRow()
         }
 

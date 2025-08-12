@@ -784,7 +784,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           $ncSocket.subscribe(activeChannel.value)
 
           $ncSocket.onMessage(activeChannel.value, (data: DataPayload) => {
-            const { id, action, payload, before } = data
+            const { id, action, payload } = data
 
             const activePk = extractPkFromRow(row.value.row, meta.value?.columns as ColumnType[])
 
@@ -795,7 +795,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                     // Merge payload with local row, but preserve locally changed columns
                     const mergedRow = { ...row.value.row, ...payload }
                     for (const col of changedColumns.value) {
-                      if (row.value.row.hasOwnProperty(col)) {
+                      if (Object.prototype.hasOwnProperty.call(row.value.row, col)) {
                         mergedRow[col] = row.value.row[col]
                         if (row.value.row[col] !== payload[col]) {
                           // localOnlyChanges.value[col] = payload[col]

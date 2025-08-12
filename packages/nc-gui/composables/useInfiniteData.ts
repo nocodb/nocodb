@@ -2080,7 +2080,7 @@ export function useInfiniteData(args: {
               }
 
               // If no order is found, append to the end
-              const newRowIndex = dataCache.cachedRows.value.size
+              const newRowIndex = dataCache.totalRows.value
               dataCache.cachedRows.value.set(newRowIndex, {
                 row: payload,
                 oldRow: {},

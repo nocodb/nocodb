@@ -10,7 +10,10 @@ export class BaseWidgetHandler {
     return [];
   }
 
-  async getWidgetData(_params: { widget: WidgetType; req: NcRequest }) {
+  async getWidgetData(
+    _context: NcContext,
+    _params: { widget: WidgetType; req: NcRequest },
+  ) {
     return {};
   }
 

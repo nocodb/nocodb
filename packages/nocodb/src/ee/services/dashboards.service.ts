@@ -183,7 +183,7 @@ export class DashboardsService {
   ) {
     const widget = await Widget.insert(context, insertObj);
 
-    const handler = await getWidgetHandler({
+    const handler = await getWidgetHandler(context, {
       widget: widget as WidgetType,
       req,
     });
@@ -257,7 +257,7 @@ export class DashboardsService {
       ...(widget.description && { description: widget.description }),
     });
 
-    const handler = await getWidgetHandler({
+    const handler = await getWidgetHandler(context, {
       widget: newWidget as WidgetType,
       req,
     });
@@ -313,7 +313,7 @@ export class DashboardsService {
 
     const updatedWidget = await Widget.update(context, widgetId, updateObj);
 
-    const handler = await getWidgetHandler({
+    const handler = await getWidgetHandler(context, {
       widget: updatedWidget as WidgetType,
       req,
     });
@@ -397,7 +397,7 @@ export class DashboardsService {
       NcError.get(context).widgetNotFound(widgetId);
     }
 
-    return await getWidgetData({ widget: widget as WidgetType, req });
+    return await getWidgetData(context, { widget: widget as WidgetType, req });
   }
 
   async dashboardShare(

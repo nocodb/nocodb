@@ -2,6 +2,7 @@ import { formatAggregation, UITypes } from 'nocodb-sdk';
 import type {
   ChartTypes,
   ChartWidgetType,
+  NcContext,
   NcRequest,
   Widget,
 } from 'nocodb-sdk';
@@ -25,14 +26,16 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
     }
   }
 
-  async getWidgetData(params: {
-    widget:
-      | Widget<ChartWidgetType, ChartTypes.PIE>
-      | Widget<ChartWidgetType, ChartTypes.DONUT>;
-    req: NcRequest;
-  }) {
-    const { widget, req } = params;
-    const context = req.context;
+  async getWidgetData(
+    context: NcContext,
+    params: {
+      widget:
+        | Widget<ChartWidgetType, ChartTypes.PIE>
+        | Widget<ChartWidgetType, ChartTypes.DONUT>;
+      req: NcRequest;
+    },
+  ) {
+    const { widget } = params;
     const { config } = widget;
 
     const { dataSource, data: chartData } = config;
@@ -68,7 +71,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
     const categoryColumnNameQuery = await getColumnNameQuery({
       baseModelSqlv2: baseModel,
       column: categoryColumn,
-      context: req.context,
+      context: context,
     });
 
     let aggregationColumn = null;
@@ -283,7 +286,9 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
     }
 
     if (!chartData.category.includeOthers) {
-      formattedData = formattedData.filter((item) => item.category !== 'Others');
+      formattedData = formattedData.filter(
+        (item) => item.category !== 'Others',
+      );
     }
 
     return {

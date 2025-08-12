@@ -86,7 +86,7 @@ export class ExportService {
       const serializedWidgets = [];
 
       for (const widget of dashboard.widgets) {
-        const handler = await getWidgetHandler({
+        const handler = await getWidgetHandler(context, {
           widget: widget as WidgetType,
           req,
         });

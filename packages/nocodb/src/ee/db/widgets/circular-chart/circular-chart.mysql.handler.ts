@@ -2,6 +2,7 @@ import { formatAggregation, UITypes } from 'nocodb-sdk';
 import type {
   ChartTypes,
   ChartWidgetType,
+  NcContext,
   NcRequest,
   Widget,
 } from 'nocodb-sdk';
@@ -20,14 +21,16 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
     return 'MAX(original_category)';
   }
 
-  async getWidgetData(params: {
-    widget:
-      | Widget<ChartWidgetType, ChartTypes.PIE>
-      | Widget<ChartWidgetType, ChartTypes.DONUT>;
-    req: NcRequest;
-  }) {
+  async getWidgetData(
+    context: NcContext,
+    params: {
+      widget:
+        | Widget<ChartWidgetType, ChartTypes.PIE>
+        | Widget<ChartWidgetType, ChartTypes.DONUT>;
+      req: NcRequest;
+    },
+  ) {
     const { widget, req } = params;
-    const context = req.context;
     const { config } = widget;
 
     const { dataSource, data: chartData } = config;
@@ -214,7 +217,9 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
 
     // Final aggregation
     const finalQuery = baseModel.dbDriver
-      .select({ category: baseModel.dbDriver.raw('CAST(final_category AS CHAR)') })
+      .select({
+        category: baseModel.dbDriver.raw('CAST(final_category AS CHAR)'),
+      })
       .select(baseModel.dbDriver.raw(`${maxExpression} as original_category`))
       .select(
         baseModel.dbDriver.raw('SUM(final_value) + SUM(others_value) as value'),
@@ -277,7 +282,9 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
     }
 
     if (!chartData.category.includeOthers) {
-      formattedData = formattedData.filter((item) => item.category !== 'Others');
+      formattedData = formattedData.filter(
+        (item) => item.category !== 'Others',
+      );
     }
 
     return {

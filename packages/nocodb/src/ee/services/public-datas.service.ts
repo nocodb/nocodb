@@ -173,7 +173,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
       NcError.widgetNotFound(widgetId);
     }
 
-    return await getWidgetData({
+    return await getWidgetData(context, {
       widget: widget as WidgetType,
       req: param.req,
     });

@@ -5,6 +5,8 @@ import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transfo
 import { BaseUser } from '~/models';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
+import { getFeature, PlanFeatureTypes } from '~/ee/helpers/paymentHelpers';
+import { NcError } from '~/helpers/ncError';
 
 export class BaseMemberHelpers extends BaseMemberHelpersCE {
   constructor() {
@@ -44,6 +46,16 @@ export class BaseMemberHelpers extends BaseMemberHelpersCE {
     },
     ncMeta?: MetaService,
   ) {
+    if (
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
+        context.workspace_id,
+      ))
+    ) {
+      NcError.get(context).invalidRequestBody(
+        'Accessing member management api is only available on paid plans. Please upgrade your workspace plan to enable this feature.',
+      );
+    }
     const baseUsers = await BaseUser.getUsersList(
       context,
       {

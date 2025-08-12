@@ -923,6 +923,7 @@ watch(activeBaseId, () => {
               :disabled="isMetaLoading"
               :loading="isMetaLoading"
               dropdown-match-select-width
+              show-search
               :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
               :placeholder="$t('placeholder.selectCoverImageField')"
               class="nc-select-shadow w-full nc-gallery-cover-image-field-select"
@@ -959,6 +960,7 @@ watch(activeBaseId, () => {
               v-model:value="form.fk_grp_col_id"
               :disabled="isMetaLoading"
               :loading="isMetaLoading"
+              show-search
               dropdown-match-select-width
               :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
               :placeholder="$t('placeholder.selectGroupField')"
@@ -1020,6 +1022,7 @@ watch(activeBaseId, () => {
                   v-model:value="range.fk_from_column_id"
                   class="nc-select-shadow w-full nc-from-select !rounded-lg"
                   dropdown-class-name="!rounded-lg"
+                  show-search
                   :placeholder="$t('placeholder.notSelected')"
                   data-testid="nc-calendar-range-from-field-select"
                   @click.stop
@@ -1081,6 +1084,7 @@ watch(activeBaseId, () => {
                       v-model:value="range.fk_to_column_id"
                       class="nc-select-shadow w-full flex-1"
                       allow-clear
+                      show-search
                       :disabled="isMetaLoading"
                       :loading="isMetaLoading"
                       :placeholder="$t('placeholder.notSelected')"

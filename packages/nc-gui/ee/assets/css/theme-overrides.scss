@@ -1,15 +1,19 @@
+body {
+  @apply bg-nc-bg-default text-[var(--color-text)];
+}
+
 .ant-layout-content {
   @apply !bg-nc-bg-default;
 }
 
 // Dropdown
 .ant-dropdown {
-  @apply !bg-nc-bg-default;
+  @apply !bg-nc-bg-default !text-nc-content-gray;
 }
 
 // Dropdown Menu
 .ant-dropdown-menu.ant-dropdown-menu-root {
-  @apply !bg-nc-bg-default;
+  @apply !bg-nc-bg-default !text-nc-content-gray;
 
   .ant-dropdown-menu-item {
     &:not(.ant-dropdown-menu-item-disabled) {

@@ -18,10 +18,6 @@ body,
     sans-serif;
 }
 
-body {
-  background-color: var(--color-bg);
-}
-
 /*
 Apply Inter for rtl
 */

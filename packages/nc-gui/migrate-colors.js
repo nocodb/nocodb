@@ -1,6 +1,14 @@
 const fs = require('fs')
 const glob = require('glob')
 
+/**
+ * @example
+ * ```zsh
+ * cd packages/nc-gui
+ * node migrate-colors.js convert ./components/dlg/
+ * ```
+ */
+
 // Define conflict resolution strategies
 const CONFLICT_STRATEGIES = {
   ASK_USER: 'ask_user',

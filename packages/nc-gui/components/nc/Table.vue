@@ -225,7 +225,7 @@ watch(
         :class="[
           tableToolbarClassName,
           {
-            'sticky z-5 top-0 bg-white': forceStickyHeader,
+            'sticky z-5 top-0 bg-nc-bg-default': forceStickyHeader,
           },
         ]"
       >

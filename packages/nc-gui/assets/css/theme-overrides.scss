@@ -66,15 +66,17 @@ body {
   // Dropdown Menu
   .ant-dropdown-menu.ant-dropdown-menu-root {
     .ant-dropdown-menu-item {
-      @apply hover:bg-nc-bg-gray-light;
+      &.ant-dropdown-menu-item-disabled {
+        @apply !text-nc-content-gray-disabled hover:bg-transparent;
+      }
 
       &:not(.ant-dropdown-menu-item-disabled) {
-        @apply hover:text-nc-content-gray-extreme text-nc-content-gray;
-      }
-    }
+        @apply hover:(bg-nc-bg-gray-light text-nc-content-gray-extreme) text-nc-content-gray;
 
-    .ant-dropdown-menu-submenu-title {
-      @apply hover:bg-nc-bg-gray-light;
+        .ant-dropdown-menu-submenu-title {
+          @apply hover:bg-nc-bg-gray-light;
+        }
+      }
     }
   }
 }

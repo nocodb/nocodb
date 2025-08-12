@@ -151,7 +151,7 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
         </NcButton>
       </component>
 
-      <div v-if="!isMobileMode" class="text-gray-500">
+      <div v-if="!isMobileMode" class="text-nc-content-gray-muted">
         <a-select
           ref="pageListRef"
           v-model:value="current"
@@ -162,7 +162,7 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
           @dropdown-visible-change="pageListDropdownVisibleChange"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-500 nc-select-expand-btn" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-muted nc-select-expand-btn" />
           </template>
         </a-select>
         <span class="mx-1"> {{ mode !== 'full' ? '/' : 'of' }} </span>
@@ -203,7 +203,7 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
         </NcButton>
       </component>
     </template>
-    <div v-if="showSizeChanger && !isMobileMode" class="text-gray-500">
+    <div v-if="showSizeChanger && !isMobileMode" class="text-nc-content-gray-muted">
       <a-select
         ref="pageSizeRef"
         v-model:value="localPageSize"
@@ -214,7 +214,7 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
         @dropdown-visible-change="pageSizeDropdownVisibleChange"
       >
         <template #suffixIcon>
-          <GeneralIcon icon="arrowDown" class="text-gray-500 nc-select-page-size-expand-btn" />
+          <GeneralIcon icon="arrowDown" class="text-nc-content-gray-muted nc-select-page-size-expand-btn" />
         </template>
       </a-select>
     </div>
@@ -223,7 +223,7 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
 
 <style lang="scss" scoped>
 :deep(.ant-select-selector) {
-  @apply !border-gray-200 !rounded-lg !h-[25px];
+  @apply !border-nc-border-gray-medium !rounded-lg !h-[25px];
 }
 
 .nc-pagination-icon {
@@ -232,7 +232,7 @@ const pageSizeDropdownVisibleChange = (value: boolean) => {
 
 :deep(.nc-button:not(:disabled)) {
   .nc-pagination-icon {
-    @apply !text-gray-500;
+    @apply !text-nc-content-gray-muted;
   }
 }
 </style>

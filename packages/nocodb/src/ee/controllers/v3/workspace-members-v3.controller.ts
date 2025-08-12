@@ -66,7 +66,7 @@ export class WorkspaceMembersV3Controller {
   ): Promise<any> {
     await this.canExecute(context);
 
-    this.validatePayload(workspaceUsers);
+    this.validatePayload(workspaceUsers, false);
 
     return await this.workspaceMemberssV3Service.userInvite(context, {
       workspaceId,
@@ -130,15 +130,20 @@ export class WorkspaceMembersV3Controller {
     workspaceUsers:
       | { user_id?: string; email?: string }[]
       | { user_id?: string; email?: string },
+    idOnly = true,
   ) {
     // check email or id is present
     if (
       !workspaceUsers ||
       (Array.isArray(workspaceUsers) ? workspaceUsers : [workspaceUsers]).some(
-        (user) => !user.user_id && !user.email,
+        (user) => {
+          if (idOnly) return !user.user_id;
+          return !user.user_id && !user.email;
+        },
       )
     ) {
-      NcError.badRequest('Either email or user_id is required');
+      if (idOnly) NcError.badRequest('user_id is required');
+      else NcError.badRequest('Either email or user_id is required');
     }
   }
 }

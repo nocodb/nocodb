@@ -11,7 +11,12 @@ import { createUser } from '../../../factory/user';
 // Delete : http://localhost:8080/api/v3/meta/bases/{base_id}/users
 
 export default function () {
-  describe(`Base Users v3`, () => {
+  const isEE = !!process.env.EE;
+  if (!isEE) {
+    return true;
+  }
+
+  describe.skip(`Base Users v3`, () => {
     let context: any = {};
     let baseId: string;
 

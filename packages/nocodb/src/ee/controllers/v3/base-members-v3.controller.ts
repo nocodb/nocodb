@@ -9,7 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { BaseRolesV3Type } from 'nocodb-sdk';
+import { BaseRolesV3Type, PlanFeatureTypes } from 'nocodb-sdk';
 import type {
   BaseMemberCreateV3Type,
   BaseMemberDeleteV3Type,
@@ -22,11 +22,25 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { BaseMembersV3Service } from '~/services/v3/base-members-v3.service';
+import { getFeature } from '~/ee/helpers/paymentHelpers';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
 export class BaseMembersV3Controller {
   constructor(protected readonly baseMembersV3Service: BaseMembersV3Service) {}
+
+  async canExecute(context: NcContext) {
+    if (
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
+        context.workspace_id,
+      ))
+    ) {
+      NcError.get(context).badRequest(
+        'Accessing member management api is only available on paid plans. Please upgrade your workspace plan to enable this feature.',
+      );
+    }
+  }
 
   @Post(['/api/v3/meta/bases/:baseId/members'])
   @HttpCode(200)
@@ -38,6 +52,7 @@ export class BaseMembersV3Controller {
     @Body()
     baseMembers: BaseMemberCreateV3Type | BaseMemberCreateV3Type[number],
   ): Promise<any> {
+    await this.canExecute(context);
     this.validatePayload(baseMembers);
 
     return await this.baseMembersV3Service.userInvite(context, {
@@ -59,6 +74,7 @@ export class BaseMembersV3Controller {
     @Body()
     baseMembers: BaseMemberUpdateV3Type | BaseMemberUpdateV3Type[number],
   ): Promise<any> {
+    await this.canExecute(context);
     this.validatePayload(baseMembers);
 
     return await this.baseMembersV3Service.baseMemberUpdate(context, {
@@ -77,6 +93,7 @@ export class BaseMembersV3Controller {
     @Body()
     baseMembers: BaseMemberDeleteV3Type | BaseMemberDeleteV3Type[number],
   ): Promise<any> {
+    await this.canExecute(context);
     this.validatePayload(baseMembers);
 
     await this.baseMembersV3Service.baseMemberUpdate(context, {

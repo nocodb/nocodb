@@ -23,6 +23,7 @@ import { SSOClientService } from '~/services/sso-client.service';
 import { SsoClientController } from '~/controllers/sso-client.controller';
 import { OrgSSOClientService } from '~/services/org-sso-client.service';
 import { PermissionsService } from '~/services/permissions.service';
+import { BaseMembersV3Controller } from '~/controllers/v3/base-members-v3.controller';
 
 /* Datas */
 import { DataOptService } from '~/services/data-opt/data-opt.service';
@@ -99,6 +100,8 @@ export const nocoModuleEeMetadata = {
 
     /* Snapshot */
     SnapshotController,
+
+    BaseMembersV3Controller,
 
     ...nocoModuleMetadata.controllers,
   ],

@@ -131,10 +131,10 @@ export class BasesService {
       context,
     });
 
-    NocoSocket.broadcastEventToBaseUsers(
+    NocoSocket.broadcastEvent(
       context,
       {
-        event: EventType.USER_EVENT,
+        event: EventType.META_EVENT,
         payload: {
           action: 'base_update',
           payload: {
@@ -142,6 +142,7 @@ export class BasesService {
             ...data,
           },
         },
+        workspaceEvent: true,
       },
       context.socket_id,
     );

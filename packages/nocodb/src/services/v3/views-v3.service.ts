@@ -1238,6 +1238,21 @@ export class ViewsV3Service {
         );
       }
 
+      if ('filters' in requestBody) {
+        await this.filtersV3Service.filterDeleteAll(
+          context,
+          { viewId: existingView.id },
+          ncMeta,
+        );
+        await this.filtersV3Service.insertFilterGroup({
+          context,
+          param: {
+            viewId: existingView.id,
+          },
+          groupOrFilter: requestBody.filters,
+          viewId: existingView.id,
+        });
+      }
       // if sort is empty array, we clear sort
       if (
         ![ViewTypes.FORM].includes(existingView.type) &&

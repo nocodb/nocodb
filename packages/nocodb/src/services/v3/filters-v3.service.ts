@@ -494,4 +494,14 @@ export class FiltersV3Service {
       ...param,
     });
   }
+
+  async filterDeleteAll(
+    context: NcContext,
+    param: {
+      viewId: string;
+    },
+    ncMeta?: MetaService,
+  ) {
+    return Filter.deleteAll(context, param.viewId, ncMeta);
+  }
 }

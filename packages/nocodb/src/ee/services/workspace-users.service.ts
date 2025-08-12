@@ -15,7 +15,6 @@ import {
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
-import { ProjectRoles } from 'nocodb-sdk';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import type { WorkspaceUserDeleteEvent } from '~/services/app-hooks/interfaces';

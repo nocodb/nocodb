@@ -3,6 +3,7 @@ import { ChartTypes, type ChartWidgetConfig, type WidgetType, WidgetTypes } from
 import MetricWidget from './widgets/metrics/index.vue'
 import DonutChartWidget from './widgets/donutchart/index.vue'
 import PieChartWidget from './widgets/piechart/index.vue'
+import TextWidget from './widgets/text/index.vue'
 import PlaceholderImage from '~/assets/img/dashboards/placeholder.svg'
 
 const dashboardStore = useDashboardStore()
@@ -55,6 +56,8 @@ const getWidgetComponent = (widget: WidgetType) => {
   switch (widget.type) {
     case WidgetTypes.METRIC:
       return MetricWidget
+    case WidgetTypes.TEXT:
+      return TextWidget
     case WidgetTypes.CHART:
       switch ((widget.config as ChartWidgetConfig).chartType) {
         case ChartTypes.PIE:
@@ -173,6 +176,14 @@ const getWidgetPositionConfig = (item: string) => {
         minH: 5,
         maxW: 2,
         maxH: 6,
+      }
+    }
+    case WidgetTypes.TEXT: {
+      return {
+        minW: 2,
+        minH: 1,
+        maxW: 4,
+        maxH: 4,
       }
     }
     default:

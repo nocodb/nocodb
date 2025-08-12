@@ -39,6 +39,12 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
       w: 2,
       h: 5,
     },
+    [WidgetTypes.TEXT]: {
+      x: 0,
+      y: 0,
+      w: 2,
+      h: 1,
+    },
   }
 
   const position = calculateNextPosition(activeDashboardWidgets.value, positionMap[widgetType])
@@ -61,7 +67,7 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
 
   selectedWidget.value = await widgetStore.createWidget(activeDashboard.value.id, newWidget)
 }
-// const addTextWidget = () => createWidget(WidgetTypes.TEXT)
+const addTextWidget = () => createWidget(WidgetTypes.TEXT)
 const addNumberWidget = () => createWidget(WidgetTypes.METRIC)
 // const addBarChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.BAR)
 // const addLineChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.LINE)
@@ -72,12 +78,12 @@ const addDonutChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.DON
 
 <template>
   <div class="dashboard-toolbar bg-white border-b-1 border-nc-border-gray-medium h-12 p-2 gap-2 flex">
-    <!--    <NcButton size="small" type="text" @click="addTextWidget">
+    <NcButton size="small" type="text" @click="addTextWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="cellText" class="w-5 h-5" />
         Text
       </div>
-    </NcButton> -->
+    </NcButton>
     <NcButton size="small" type="text" @click="addNumberWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <div class="text-nc-content-gray font-bold leading-3.5 px-2 py-1 border-1 border-nc-border-gray-medium rounded-md">

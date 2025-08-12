@@ -20,9 +20,9 @@ export interface DashboardType {
 
 export enum WidgetTypes {
   CHART = 'chart',
-  TABLE = 'table',
   METRIC = 'metric',
   TEXT = 'text',
+  TABLE = 'table',
   IFRAME = 'iframe',
 }
 
@@ -71,9 +71,35 @@ export interface MetricWidgetConfig {
   };
 }
 
+export enum TextWidgetTypes {
+  H1 = 'H1',
+  H2 = 'H2',
+  H3 = 'H3',
+  H4 = 'H4',
+  H5 = 'H5',
+  H6 = 'H6',
+}
+
 export interface TextWidgetConfig {
   content: string;
-  format: 'markdown' | 'html' | 'plain';
+  type: TextWidgetTypes;
+  formatting: {
+    horizontalAlign: 'flex-start' | 'center' | 'flex-end';
+    verticalAlign: 'flex-start' | 'center' | 'flex-end';
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+    strikethrough: boolean;
+  };
+  appearance: {
+    font: {
+      family: string;
+      weight: 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
+      size: number;
+      lineHeight: number;
+    };
+    color: string;
+  };
 }
 
 export interface IframeWidgetConfig {

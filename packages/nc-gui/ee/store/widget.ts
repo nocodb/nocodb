@@ -1,4 +1,4 @@
-import { type WidgetType } from 'nocodb-sdk'
+import { type WidgetType, type WidgetTypes } from 'nocodb-sdk'
 
 export const useWidgetStore = defineStore('widget', () => {
   const { $api } = useNuxtApp()
@@ -119,24 +119,24 @@ export const useWidgetStore = defineStore('widget', () => {
     }
   }
 
-  const updateWidget = async (
+  const updateWidget = async <T extends WidgetTypes>(
     dashboardId = activeDashboardId.value,
     widgetId: string,
-    updates: Partial<WidgetType>,
+    updates: Partial<WidgetType<T>>,
     options?: {
       skipNetworkCall?: boolean
     },
-  ) => {
+  ): Promise<WidgetType<T> | null> => {
     if (!activeWorkspaceId.value || !openedProject.value?.id) return null
 
     try {
-      const widget = widgets.value.get(dashboardId)?.find((w) => w.id === widgetId)
+      const widget = widgets.value.get(dashboardId)?.find((w) => w.id === widgetId) as WidgetType<T> | undefined
       const updated = options?.skipNetworkCall
-        ? {
+        ? ({
             ...widget,
             ...updates,
-          }
-        : await $api.internal.postOperation(
+          } as WidgetType<T>)
+        : ((await $api.internal.postOperation(
             activeWorkspaceId.value,
             openedProject.value.id,
             {
@@ -147,17 +147,17 @@ export const useWidgetStore = defineStore('widget', () => {
               id: widgetId,
               widgetId,
             },
-          )
+          )) as WidgetType<T>)
 
       const dashboardWidgets = widgets.value.get(dashboardId) || []
       const index = dashboardWidgets.findIndex((w) => w.id === widgetId)
       if (index !== -1) {
-        dashboardWidgets[index] = updated as unknown as WidgetType
+        dashboardWidgets[index] = updated
         widgets.value.set(dashboardId, dashboardWidgets)
       }
 
       if (selectedWidget.value?.id === widgetId) {
-        selectedWidget.value = updated as unknown as WidgetType
+        selectedWidget.value = updated
       }
 
       return updated

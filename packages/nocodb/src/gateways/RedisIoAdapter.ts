@@ -11,10 +11,8 @@ export class RedisIoAdapter extends IoAdapter {
   async connectToRedis(): Promise<void> {
     let pubClient;
 
-    const redisUrl = getRedisURL();
-
-    if (redisUrl) {
-      pubClient = new Redis(redisUrl);
+    if (getRedisURL()) {
+      pubClient = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
     } else {
       pubClient = new RedisMock();
     }

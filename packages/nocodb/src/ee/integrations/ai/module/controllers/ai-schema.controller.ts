@@ -97,6 +97,8 @@ export class AiSchemaController {
 
       context.base_id = base.id;
 
+      req.user.base_roles = { owner: true };
+
       return await this.aiSchemaService.createSchema(context, {
         baseId: context.base_id,
         schema: body.input,
@@ -144,6 +146,9 @@ export class AiSchemaController {
       });
 
       context.base_id = base.id;
+
+      // assign owner as we created base
+      req.user.base_roles = { owner: true };
 
       return await this.aiSchemaService.createSchema(context, {
         baseId: context.base_id,

@@ -11,6 +11,8 @@ import NocoCache from '~/cache/NocoCache';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { Base } from '~/models';
 
+const NOCODB_SKIP_SEAT = process.env.NOCODB_SKIP_SEAT === 'true';
+
 export default class Subscription {
   id: string;
   fk_workspace_id: string;
@@ -298,6 +300,32 @@ export default class Subscription {
         NON_SEAT_ROLES.includes(role)
       ) {
         nonSeatUsersMap.set(userId, true);
+      }
+    }
+
+    if (NOCODB_SKIP_SEAT) {
+      const users = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.USERS,
+        {
+          xcCondition: {
+            _and: [
+              {
+                id: {
+                  in: Array.from(seatUsersMap.keys()),
+                },
+              },
+            ],
+          },
+        },
+      );
+
+      for (const user of users) {
+        if (user.email?.includes('@nocodb.com')) {
+          seatUsersMap.delete(user.id);
+          nonSeatUsersMap.set(user.id, true);
+        }
       }
     }
 

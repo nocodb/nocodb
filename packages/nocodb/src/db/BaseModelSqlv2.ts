@@ -88,6 +88,7 @@ import {
   dataWrapper,
   extractSortsObject,
   formatDataForAudit,
+  getBaseModelSqlFromModelId,
   getCompositePkValue,
   getListArgs,
   haveFormulaColumn,
@@ -6128,6 +6129,57 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
 
     return addOrRemoveLinks(this).removeLinks(params);
+  }
+
+  async ooRead(
+    { colId, id }: { colId; id; apiVersion?: NcApiVersion },
+    _args: { limit?; offset?; fieldSet?: Set<string> } = {},
+  ) {
+    try {
+      await this.model.getColumns(this.context);
+
+      const relColumn = this.model.columnsById[colId];
+      if (!relColumn) {
+        NcError.get(this.context).fieldNotFound(colId);
+      }
+      const relColOptions = (await relColumn.getColOptions(
+        this.context,
+      )) as LinkToAnotherRecordColumn;
+      const relatedContext = await relColOptions.getRelContext(this.context);
+      const relatedBaseModel = await getBaseModelSqlFromModelId({
+        modelId: relColOptions.fk_related_model_id,
+        context: relatedContext.refContext,
+      });
+      const joinIds = [
+        relColOptions.fk_child_column_id,
+        relColOptions.fk_parent_column_id,
+      ];
+      const relatedColumn = (
+        await relatedBaseModel.model.getColumns(relatedBaseModel.context)
+      ).find((col) => joinIds.includes(col.id));
+
+      const row = await relatedBaseModel.execAndParse(
+        relatedBaseModel
+          .dbDriver(
+            relatedBaseModel.getTnPath(relatedBaseModel.model.table_name),
+          )
+          .where(relatedColumn.column_name, '=', id),
+        null,
+        { raw: true, first: true },
+      );
+
+      // validate rowId
+      if (!row) {
+        return {};
+      }
+
+      return relatedBaseModel.readByPk(
+        relatedBaseModel.extractPksValues(row, true),
+        row.id,
+      );
+    } catch (e) {
+      throw e;
+    }
   }
 
   async btRead(

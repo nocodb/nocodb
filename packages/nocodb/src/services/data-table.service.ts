@@ -488,6 +488,18 @@ export class DataTableService {
         },
         param.query,
       )) as number;
+    } else if (
+      colOptions.type !== RelationTypes.BELONGS_TO &&
+      !column.meta?.bt
+    ) {
+      data = await baseModel.ooRead(
+        {
+          colId: column.id,
+          id: param.rowId,
+          apiVersion: param.apiVersion,
+        },
+        param.query as any,
+      );
     } else {
       data = await baseModel.btRead(
         {

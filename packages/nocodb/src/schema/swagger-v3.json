@@ -2214,7 +2214,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/BaseUser"
+                    "$ref": "#/components/schemas/BaseMember"
                   },
                   "description": "List of successfully invited users."
                 }
@@ -2255,7 +2255,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/BaseUserUpdate"
+                "$ref": "#/components/schemas/BaseMemberUpdate"
               }
             }
           }
@@ -2268,7 +2268,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/BaseUser"
+                    "$ref": "#/components/schemas/BaseMember"
                   },
                   "description": "List of successfully updated users."
                 }
@@ -4488,7 +4488,7 @@
           "list": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BaseUser"
+              "$ref": "#/components/schemas/BaseMember"
             }
           }
         },

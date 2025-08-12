@@ -2309,7 +2309,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/BaseUserDelete"
+                "$ref": "#/components/schemas/BaseMemberDelete"
               }
             }
           }
@@ -4503,12 +4503,12 @@
           "properties": {
             "user_id": {
               "type": "string",
-              "description": "Unique identifier for the user. Can be provided optionally during creation."
+              "description": "User unique identifier for the member. Can be provided optionally during creation."
             },
             "email": {
               "type": "string",
               "format": "email",
-              "description": "Email address of the user. Used as a primary identifier if 'id' is not provided."
+              "description": "User Email address. Used as a primary identifier if 'id' is not provided."
             },
             "user_name": {
               "type": "string",
@@ -4523,35 +4523,30 @@
           ],
           "oneOf": [
             {
-              "title": "Invite User with ID",
+              "title": "Invite Member with ID",
               "required": [
                 "user_id"
               ]
             },
             {
-              "title": "Invite User with Email",
+              "title": "Invite Member with Email",
               "required": [
                 "email"
               ]
             }
           ],
-          "description": "An object representing a new user to be created."
+          "description": "An object representing a new member to be created."
         },
-        "description": "Array of users to be created."
+        "description": "Array of members to be created."
       },
-      "BaseUserUpdate": {
+      "BaseMemberUpdate": {
         "type": "array",
         "items": {
           "type": "object",
           "properties": {
-            "id": {
+            "user_id": {
               "type": "string",
-              "description": "Unique identifier for the user. Used as a primary identifier if provided."
-            },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "description": "Email address of the user. Used as a primary identifier if 'id' is not provided."
+              "description": "Unique user identifier for the member."
             },
             "base_role": {
               "$ref": "#/components/schemas/BaseRoles"
@@ -4562,48 +4557,31 @@
           ],
           "oneOf": [
             {
-              "title": "Update User using ID",
+              "title": "Update member using user ID",
               "required": [
-                "id"
-              ]
-            },
-            {
-              "title": "Update User using Email",
-              "required": [
-                "email"
+                "user_id"
               ]
             }
           ],
-          "description": "An object representing updates for an existing user."
+          "description": "An object representing updates for an existing member."
         },
-        "description": "Array of user updates."
+        "description": "Array of member updates."
       },
-      "BaseUserDelete": {
+      "BaseMemberDelete": {
         "type": "array",
         "items": {
           "type": "object",
           "properties": {
-            "id": {
+            "user_id": {
               "type": "string",
-              "description": "Unique identifier for the user."
-            },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "description": "Email address of the user."
+              "description": "User unique identifier for the member."
             }
           },
           "oneOf": [
             {
               "title": "Update User using ID",
               "required": [
-                "id"
-              ]
-            },
-            {
-              "title": "Update User using Email",
-              "required": [
-                "email"
+                "user_id"
               ]
             }
           ]

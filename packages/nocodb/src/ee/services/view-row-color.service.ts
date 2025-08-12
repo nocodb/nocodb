@@ -140,7 +140,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     color: string;
     is_set_as_background: boolean;
     nc_order: number;
-    filter: FilterType;
+    filter?: FilterType;
     ncMeta?: MetaService;
   }) {
     const ncMeta = params.ncMeta ?? Noco.ncMeta;
@@ -180,27 +180,29 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       );
       const rowColoringConditionId = rowColoringCondition.id;
 
-      const filterToInsert = {
-        ...extractProps(params.filter as any, [
-          'comparison_op',
-          'comparison_sub_op',
-          'value',
-          'fk_parent_id',
-          'is_group',
-          'logical_op',
-          'base_id',
-          'source_id',
-          'order',
-        ]),
-        fk_row_color_condition_id: rowColoringConditionId,
-      } as Filter;
+      if (params.filter) {
+        const filterToInsert = {
+          ...extractProps(params.filter as any, [
+            'comparison_op',
+            'comparison_sub_op',
+            'value',
+            'fk_parent_id',
+            'is_group',
+            'logical_op',
+            'base_id',
+            'source_id',
+            'order',
+          ]),
+          fk_row_color_condition_id: rowColoringConditionId,
+        } as Filter;
 
-      await ncMetaTrans.metaInsert2(
-        params.context.workspace_id,
-        params.context.base_id,
-        MetaTable.FILTER_EXP,
-        filterToInsert,
-      );
+        await ncMetaTrans.metaInsert2(
+          params.context.workspace_id,
+          params.context.base_id,
+          MetaTable.FILTER_EXP,
+          filterToInsert,
+        );
+      }
 
       if (!view.row_coloring_mode) {
         await View.update(

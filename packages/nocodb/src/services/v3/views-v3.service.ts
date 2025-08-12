@@ -7,7 +7,6 @@ import {
   viewTypeAlias,
   ViewTypes,
 } from 'nocodb-sdk';
-import { handleFieldsRequestBody } from './view-v3/fields.helper';
 import type {
   RowColoringInfo,
   ViewCreateV3Type,
@@ -17,6 +16,8 @@ import type { MetaService } from '~/meta/meta.service';
 import type { ApiV3DataTransformationBuilder } from '~/utils/data-transformation.builder';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Column, GridViewColumn } from '~/models';
+import { handleFieldsRequestBody } from '~/services/v3/view-v3/fields.helper';
+import { ViewRowColorV3Service } from '~/services/v3/view-row-color-v3.service';
 import { GridsService } from '~/services/grids.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { KanbansService } from '~/services/kanbans.service';
@@ -71,6 +72,7 @@ export class ViewsV3Service {
   constructor(
     protected readonly viewsService: ViewsService,
     protected readonly viewColumnsService: ViewColumnsService,
+    protected readonly viewRowColorV3Service: ViewRowColorV3Service,
     protected filtersV3Service: FiltersV3Service,
     protected sortsV3Service: SortsV3Service,
     protected viewRowColorService: ViewRowColorService,
@@ -790,6 +792,17 @@ export class ViewsV3Service {
           trxNcMeta,
         );
       }
+      if (body.row_coloring) {
+        await this.viewRowColorV3Service.replace(
+          context,
+          {
+            viewId: insertedV2View.id,
+            body: body.row_coloring,
+            req,
+          },
+          trxNcMeta,
+        );
+      }
       if (requestBody.filters) {
         await this.filtersV3Service.insertFilterGroup({
           context,
@@ -1252,6 +1265,17 @@ export class ViewsV3Service {
           groupOrFilter: requestBody.filters,
           viewId: existingView.id,
         });
+      }
+      if ('row_coloring' in body) {
+        await this.viewRowColorV3Service.replace(
+          context,
+          {
+            viewId: existingView.id,
+            body: body.row_coloring,
+            req,
+          },
+          trxNcMeta,
+        );
       }
       // if sort is empty array, we clear sort
       if (

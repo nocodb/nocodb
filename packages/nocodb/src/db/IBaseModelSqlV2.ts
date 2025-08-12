@@ -15,7 +15,7 @@ import type {
 } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
-import type { Column, Model, View } from '~/models';
+import type { Column, Model, Source, View } from '~/models';
 
 export interface IBaseModelSqlV2 {
   context: NcContext;
@@ -302,8 +302,6 @@ export interface IBaseModelSqlV2 {
     apiVersion?: NcApiVersion;
     args?: any;
   }): Promise<any[]>;
-
-  broadcastLinkUpdates(ids: Array<string>): Promise<void>;
 
   get viewId(): string;
   get dbDriver(): CustomKnex;

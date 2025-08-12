@@ -19,10 +19,6 @@
       "description": "Operations related to bases"
     },
     {
-      "name": "Workspaces",
-      "description": "Operations related to workspaces"
-    },
-    {
       "name": "Workspace Members",
       "description": "Operations related to workspace members"
     }
@@ -177,13 +173,13 @@
         }
       }
     },
-    "/api/v3/meta/workspaces/{workspaceId}": {
+    "/api/v3/meta/workspaces/{workspaceId}?include[]=members": {
       "get": {
         "summary": "Get workspace metadata",
-        "operationId": "workspace-read",
+        "operationId": "workspace-members-read",
         "description": "Retrieve metadata for a specific workspace. Optionally include workspace members.",
         "tags": [
-          "Workspaces"
+          "Workspace Members"
         ],
         "parameters": [
           {
@@ -234,14 +230,6 @@
                   ]
                 },
                 "examples": {
-                  "Basic Workspace": {
-                    "value": {
-                      "id": "w6dw3fo0",
-                      "title": "My Workspace",
-                      "created_at": "2025-01-16T06:04:18.000Z",
-                      "updated_at": "2025-01-16T06:04:18.000Z"
-                    }
-                  },
                   "Workspace with Members": {
                     "value": {
                       "id": "w6dw3fo0",

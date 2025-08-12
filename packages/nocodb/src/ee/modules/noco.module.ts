@@ -34,6 +34,12 @@ import { WorkspacesController } from '~/controllers/workspaces.controller';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { WorkspaceUsersController } from '~/controllers/workspace-users.controller';
 
+/* Workspace V3 */
+import { WorkspaceV3Service } from '~/ee/services/v3/workspace-v3.service';
+import { WorkspaceUsersV3Service } from '~/ee/services/v3/workspace-users-v3.service';
+import { WorkspaceV3Controller } from '~/ee/controllers/v3/workspace-v3.controller';
+import { WorkspaceUsersV3Controller } from '~/ee/controllers/v3/workspace-users-v3.controller';
+
 /* Snapshot */
 import { SnapshotController } from '~/controllers/snapshot.controller';
 import { SnapshotService } from '~/services/snapshot.service';
@@ -72,6 +78,10 @@ export const nocoModuleEeMetadata = {
     WorkspacesService,
     WorkspaceUsersService,
 
+    /* Workspace V3 */
+    WorkspaceV3Service,
+    WorkspaceUsersV3Service,
+
     /* Snapshot */
     SnapshotService,
 
@@ -98,6 +108,10 @@ export const nocoModuleEeMetadata = {
     WorkspacesController,
     WorkspaceUsersController,
 
+    /* Workspace V3 */
+    WorkspaceV3Controller,
+    WorkspaceUsersV3Controller,
+
     /* Snapshot */
     SnapshotController,
 
@@ -116,6 +130,10 @@ export const nocoModuleEeMetadata = {
     /* Workspaces */
     WorkspacesService,
     WorkspaceUsersService,
+
+    /* Workspace V3 */
+    WorkspaceV3Service,
+    WorkspaceUsersV3Service,
 
     /* Orgs */
     OrgsService,

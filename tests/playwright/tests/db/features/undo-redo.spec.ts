@@ -596,7 +596,7 @@ test.describe('Undo Redo - LTAR', () => {
     const isMac = await grid.isMacOs();
     await dashboard.grid.waitForResponse({
       uiAction: async () => await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
-      httpMethodsToMatch: ['GET'],
+      httpMethodsToMatch: ['DELETE', 'POST'],
       requestUrlPathToMatch: `/api/v1/db/data/noco`,
       responseJsonMatcher: json => json.pageInfo,
     });

@@ -12,6 +12,7 @@ import {
   AuditV1OperationTypes,
   convertDurationToSeconds,
   enumColors,
+  EventType,
   extractFilterFromXwhere,
   isAIPromptCol,
   isAttachment,
@@ -130,6 +131,7 @@ import {
 import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
+import NocoSocket from '~/socket/NocoSocket';
 
 dayjs.extend(utc);
 
@@ -2729,6 +2731,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     pks: string[];
     chunkSize?: number;
     apiVersion?: NcApiVersion;
+    args?: Record<string, any>;
   }) {
     const { pks, chunkSize = 1000 } = args;
 
@@ -2741,6 +2744,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         {
           pks: chunk.join(','),
           apiVersion: args.apiVersion,
+          ...(args.args || {}),
         },
         {
           limitOverride: chunk.length,
@@ -6992,6 +6996,37 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         oldAttachments.filter((at) => at.id).map((at) => at.id),
       );
     }
+  }
+
+  private async broadcastLinkUpdateAwaited(ids: Array<string>) {
+    const ast = await getAst(this.context, {
+      model: this.model,
+    });
+
+    const list = await this.chunkList({
+      pks: ids,
+      chunkSize: 100,
+      args: ast.dependencyFields,
+    });
+
+    for (const item of list) {
+      const extractedId = this.extractPksValues(item);
+      NocoSocket.broadcastEvent(this.context, {
+        event: EventType.DATA_EVENT,
+        payload: {
+          action: 'update',
+          payload: item,
+          id: extractedId,
+        },
+        scopes: [this.model.id],
+      });
+    }
+  }
+
+  public async broadcastLinkUpdates(ids: Array<string>) {
+    this.broadcastLinkUpdateAwaited(ids).catch((e) => {
+      logger.error(e);
+    });
   }
 
   protected async bulkAudit({

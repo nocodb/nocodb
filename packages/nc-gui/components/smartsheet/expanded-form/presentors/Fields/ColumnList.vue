@@ -9,7 +9,7 @@ const props = defineProps<{
   isHiddenCol?: boolean
 }>()
 
-const { changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
+const { changedColumns, localOnlyChanges, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
@@ -21,6 +21,14 @@ const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || is
 
 const showCol = (col: ColumnType) => {
   return props.showColCallback?.(col) || !isVirtualCol(col) || !isNew.value || isLinksOrLTAR(col)
+}
+
+const revertLocalOnlyChanges = (col: string) => {
+  if (localOnlyChanges.value[col]) {
+    _row.value.row[col] = localOnlyChanges.value[col]
+    changedColumns.value.delete(col)
+    delete localOnlyChanges.value[col]
+  }
 }
 </script>
 
@@ -37,14 +45,14 @@ const showCol = (col: ColumnType) => {
     <div
       class="flex items-start nc-expanded-cell min-h-[32px]"
       :class="{
-        'flex-row sm:(gap-x-2) <lg:(flex-col w-full)': !props.forceVerticalMode,
+        'flex-row <lg:(flex-col w-full)': !props.forceVerticalMode,
         'flex-col w-full': props.forceVerticalMode,
       }"
     >
       <div
         class="flex-none flex items-center rounded-lg overflow-hidden"
         :class="{
-          'w-45 <lg:(w-full px-0 mb-2) h-[32px] xs:(h-auto)': !props.forceVerticalMode,
+          'w-45 <lg:(w-full px-0 mb-2) h-[32px] xs:(h-auto) sm:(mx-2)': !props.forceVerticalMode,
           'w-full px-0 mb-2 h-auto': props.forceVerticalMode,
         }"
       >
@@ -128,6 +136,13 @@ const showCol = (col: ColumnType) => {
           </template>
         </PermissionsTooltip>
       </NcTooltip>
+      <div
+        v-if="col.title && localOnlyChanges[col.title]"
+        class="flex h-full items-center justify-center cursor-pointer relative"
+        @click="revertLocalOnlyChanges(col.title)"
+      >
+        <GeneralIcon class="absolute right-0 top-0 text-gray-500 hover:text-gray-700 my-auto" icon="reload" />
+      </div>
     </div>
   </div>
 </template>

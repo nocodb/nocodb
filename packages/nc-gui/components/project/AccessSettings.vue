@@ -25,7 +25,7 @@ const { orgId, org } = storeToRefs(orgStore)
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
-const { $api } = useNuxtApp()
+const { $api, $eventBus } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -303,6 +303,23 @@ watch(projectPageTab, () => {
   if (!userSearchText.value) return
 
   userSearchText.value = ''
+})
+
+const evtListener = (event: string, data: any) => {
+  const { baseId } = data
+
+  if (baseId !== currentBase.value?.id) return
+  // Handle the event
+  loadCollaborators()
+}
+
+onMounted(() => {
+  loadSorts()
+  $eventBus.realtimeEventBus.on(evtListener)
+})
+
+onBeforeUnmount(() => {
+  $eventBus.realtimeEventBus.off(evtListener)
 })
 </script>
 

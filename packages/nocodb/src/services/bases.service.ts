@@ -4,6 +4,7 @@ import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
+  EventType,
   extractRolesObj,
   IntegrationsType,
   OrgUserRoles,
@@ -29,6 +30,7 @@ import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { TablesService } from '~/services/tables.service';
 import { stringifyMetaProp } from '~/utils/modelUtils';
+import NocoSocket from '~/socket/NocoSocket';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -128,6 +130,21 @@ export class BasesService {
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEventToBaseUsers(
+      context,
+      {
+        event: EventType.USER_EVENT,
+        payload: {
+          action: 'base_update',
+          payload: {
+            ...base,
+            ...data,
+          },
+        },
+      },
+      context.socket_id,
+    );
 
     return result;
   }

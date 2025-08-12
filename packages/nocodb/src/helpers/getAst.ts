@@ -125,6 +125,13 @@ const getAst = async (
 
   if (!model.columns?.length) await model.getColumns(context);
 
+  if (includeSortAndFilterColumns) {
+    const orderCol = model.columns.find((c) => isOrderCol(c));
+    if (orderCol) {
+      sortColumnIds.push(orderCol.id);
+    }
+  }
+
   const rowColoringColumnIds = new Set<string>();
   if (view && includeRowColorColumns) {
     const addingColumns = await getViewRowColorFields({ context, view });

@@ -1,7 +1,6 @@
 import type { ColumnType, FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { EventBusEnum, type SmartsheetStoreEvents } from '#imports'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
@@ -14,7 +13,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   ) => {
     const isPublic = inject(IsPublicInj, ref(false))
 
-    const { $api } = useNuxtApp()
+    const { $api, $eventBus } = useNuxtApp()
 
     const router = useRouter()
     const route = router.currentRoute
@@ -33,7 +32,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { search, getValidSearchQueryForColumn } = useFieldQuery()
 
-    const eventBus = useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore)
+    const eventBus = $eventBus.smartsheetStoreEventBus
 
     const isLocked = computed(
       () =>

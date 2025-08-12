@@ -20,7 +20,7 @@ const selectable = computed(() => props.selectable ?? false)
 
 <style lang="scss">
 .nc-menu {
-  @apply bg-white !rounded-md !py-1.5;
+  @apply !rounded-md !py-1.5;
 
   &:not(.nc-variant-default) {
     @apply flex flex-col gap-0.5 !py-1 min-w-[144px];

@@ -77,6 +77,9 @@ export default defineNuxtPlugin(() => {
               ingestPoint: 'https://opr.nocodb.com/ingest',
               resourceBaseHref: 'https://cdn.nocodb.com',
               inlineCss: 3,
+              canvas: {
+                disableCanvas: true,
+              },
             })
 
             tracker.start()

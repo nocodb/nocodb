@@ -52,9 +52,11 @@ export class BasesV3Controller {
   async baseGet(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
+    @Query('include') qsInclude?: string[],
   ) {
     const base = await this.baseV3Service.getProjectWithInfo(context, {
       baseId: baseId,
+      qsInclude,
       includeConfig: false,
     });
 

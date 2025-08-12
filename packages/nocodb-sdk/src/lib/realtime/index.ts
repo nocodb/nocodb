@@ -1,4 +1,5 @@
 import { UserType } from '~/lib/Api';
+import { DashboardType, WidgetType } from '~/lib';
 
 export enum EventType {
   HANDSHAKE = 'handshake',
@@ -6,12 +7,15 @@ export enum EventType {
   CONNECTION_ERROR = 'connection-error',
   NOTIFICATION = 'notification',
   DATA_EVENT = 'event-data',
+  DASHBOARD_EVENT = 'event-dashboard',
+  WIDGET_EVENT = 'event-widget',
 }
 
 // Base payload interface for all socket events
 export interface BaseSocketPayload {
   timestamp: number;
   socketId?: string;
+  eventType?: EventType;
 }
 
 // Connection event payloads
@@ -39,17 +43,34 @@ export interface DataPayload extends BaseSocketPayload {
   before?: string;
 }
 
+export interface DashboardPayload extends BaseSocketPayload {
+  id: string;
+  action: 'create' | 'update' | 'delete';
+  payload: DashboardType;
+}
+
+export interface WidgetPayload extends BaseSocketPayload {
+  id: string;
+  dashboardId: string;
+  action: 'create' | 'update' | 'delete';
+  payload: WidgetType;
+}
+
 // Union type for all socket event payloads
 export type SocketEventPayload =
   | ConnectionWelcomePayload
   | ConnectionErrorPayload
-  | DataPayload;
+  | DataPayload
+  | DashboardPayload
+  | WidgetPayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = {
   [EventType.CONNECTION_WELCOME]: ConnectionWelcomePayload;
   [EventType.CONNECTION_ERROR]: ConnectionErrorPayload;
   [EventType.DATA_EVENT]: DataPayload;
+  [EventType.DASHBOARD_EVENT]: DashboardPayload;
+  [EventType.WIDGET_EVENT]: WidgetPayload;
   [key: string]: BaseSocketPayload;
 };
 

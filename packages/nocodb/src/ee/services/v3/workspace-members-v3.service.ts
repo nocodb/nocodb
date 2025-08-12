@@ -11,8 +11,8 @@ import { validatePayload } from '~/helpers';
 import WorkspaceUser from '~/ee/models/WorkspaceUser';
 
 @Injectable()
-export class WorkspaceUsersV3Service {
-  protected readonly logger = new Logger(WorkspaceUsersV3Service.name);
+export class WorkspaceMembersV3Service {
+  protected readonly logger = new Logger(WorkspaceMembersV3Service.name);
   protected builder: () => ApiV3DataTransformationBuilder<
     WorkspaceUser,
     Partial<WorkspaceUser>

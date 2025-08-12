@@ -16,14 +16,14 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { WorkspaceUsersV3Service } from '~/ee/services/v3/workspace-users-v3.service';
 import { getFeature } from '~/helpers/paymentHelpers';
+import { WorkspaceMembersV3Service } from '~/services/v3/workspace-members-v3.service';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
-export class WorkspaceUsersV3Controller {
+export class WorkspaceMembersV3Controller {
   constructor(
-    protected readonly workspaceUsersV3Service: WorkspaceUsersV3Service,
+    protected readonly workspaceMemberssV3Service: WorkspaceMembersV3Service,
   ) {}
 
   async canExecute(context: NcContext) {
@@ -48,7 +48,7 @@ export class WorkspaceUsersV3Controller {
   //   @Param('workspaceId')
   //   workspaceId: string,
   // ) {
-  //   return await this.workspaceUsersV3Service.userList(context, {
+  //   return await this.workspaceMemberssV3Service.userList(context, {
   //     workspaceId,
   //   });
   // }
@@ -68,7 +68,7 @@ export class WorkspaceUsersV3Controller {
 
     this.validatePayload(workspaceUsers);
 
-    return await this.workspaceUsersV3Service.userInvite(context, {
+    return await this.workspaceMemberssV3Service.userInvite(context, {
       workspaceId,
       workspaceUsers: Array.isArray(workspaceUsers)
         ? workspaceUsers
@@ -94,7 +94,7 @@ export class WorkspaceUsersV3Controller {
 
     this.validatePayload(workspaceUsers);
 
-    return await this.workspaceUsersV3Service.workspaceUserUpdate(context, {
+    return await this.workspaceMemberssV3Service.workspaceUserUpdate(context, {
       workspaceUsers: Array.isArray(workspaceUsers)
         ? workspaceUsers
         : [workspaceUsers],
@@ -117,7 +117,7 @@ export class WorkspaceUsersV3Controller {
 
     this.validatePayload(workspaceUsers);
 
-    await this.workspaceUsersV3Service.workspaceUserDelete(context, {
+    return await this.workspaceMemberssV3Service.workspaceUserDelete(context, {
       workspaceId,
       req,
       workspaceUsers: Array.isArray(workspaceUsers)

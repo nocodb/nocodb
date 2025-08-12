@@ -92,4 +92,3 @@ ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 # Start Nocodb
 CMD ["/usr/src/appEntry/start.sh"]
-

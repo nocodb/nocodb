@@ -1,5 +1,7 @@
 import '~/instrument';
 import path from 'path';
+import { promisify } from 'util';
+import { exec } from 'child_process';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
@@ -9,6 +11,7 @@ import { IoAdapter } from '@nestjs/platform-socket.io';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
 import { NcDebug } from 'nc-gui/utils/debug';
+import { definePDFJSModule } from 'unpdf';
 import type { INestApplication } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
@@ -58,6 +61,9 @@ export default class Noco {
   protected requestContext: any;
 
   public static sharp: typeof Sharp;
+  public static canvas: any;
+  public static isPdfjsInitialized: boolean;
+  public static isOfficeThumbnailGenerationAvailable: boolean;
 
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
@@ -141,6 +147,27 @@ export default class Noco {
     } catch {
       console.error(
         'Sharp is not available for your platform, thumbnail generation will be skipped',
+      );
+    }
+
+    try {
+      this.canvas = await import('@napi-rs/canvas');
+      await definePDFJSModule(() => import('pdfjs-dist/legacy/build/pdf.mjs'));
+      this.isPdfjsInitialized = true;
+    } catch (e) {
+      console.error(e);
+      console.error(
+        'Canvas is not available for your platform, thumbnail generation will be skipped',
+      );
+    }
+
+    try {
+      await promisify(exec)('soffice --version', { timeout: 5000 });
+      this.isOfficeThumbnailGenerationAvailable = true;
+    } catch (error) {
+      this.isOfficeThumbnailGenerationAvailable = false;
+      console.warn(
+        `LibreOffice not available - document thumbnails will not be generated`,
       );
     }
 

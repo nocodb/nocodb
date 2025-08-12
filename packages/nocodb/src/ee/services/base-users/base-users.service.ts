@@ -730,6 +730,20 @@ export class BaseUsersService extends BaseUsersServiceCE {
       ncMeta,
     );
 
+    // broadcast to user which we removed
+    NocoSocket.broadcastEventToUser(
+      param.userId,
+      {
+        event: EventType.USER_EVENT,
+        payload: {
+          action: 'base_user_remove',
+          payload: newBaseUser,
+        },
+      },
+      context.socket_id,
+    );
+
+    // broadcast to base users
     NocoSocket.broadcastEventToBaseUsers(
       context,
       {

@@ -46,7 +46,6 @@ import { PaymentService } from '~/modules/payment/payment.service';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
-import { ProjectRoles } from 'nocodb-sdk';
 import { handleOrphanBases } from '~/ee/utils/orphanBaseHandler';
 
 @Injectable()
@@ -278,8 +277,6 @@ export class WorkspaceUsersService {
     return workspaceUser;
   }
 
-
-
   async delete(
     param: { workspaceId: string; userId: string; req: NcRequest },
     ncMeta = Noco.ncMeta,
@@ -335,14 +332,6 @@ export class WorkspaceUsersService {
     const transaction = await ncMeta.startTransaction();
 
     const cacheTransaction: (() => Promise<any>)[] = [];
-
-    let workspaceUsers: WorkspaceUser[];
-
-    try {
-      workspaceUsers = await WorkspaceUser.userList({
-        fk_workspace_id: workspaceId,
-      });
-    } catch (e) {}
 
     let res;
 
@@ -413,20 +402,36 @@ export class WorkspaceUsersService {
       req: param.req,
     } as WorkspaceUserDeleteEvent);
 
-    for (const user of workspaceUsers) {
-      NocoSocket.broadcastEventToUser(
-        user.fk_user_id,
-        {
-          event: EventType.USER_EVENT,
-          payload: {
-            action: 'workspace_user_remove',
-            payload: user,
-            workspaceId: workspace.id,
-          },
+    // broadcast to user which we removed
+    NocoSocket.broadcastEventToUser(
+      user.id,
+      {
+        event: EventType.USER_EVENT,
+        payload: {
+          action: 'workspace_user_remove',
+          payload: user,
+          workspaceId: workspace.id,
         },
-        param.req.ncSocketId,
-      );
-    }
+      },
+      param.req.ncSocketId,
+    );
+
+    // broadcast to workspace users
+    NocoSocket.broadcastEventToWorkspaceUsers(
+      {
+        workspace_id: workspace.id,
+        base_id: null,
+      },
+      {
+        event: EventType.USER_EVENT,
+        payload: {
+          action: 'workspace_user_remove',
+          payload: user,
+          workspaceId: workspace.id,
+        },
+      },
+      param.req.ncSocketId,
+    );
 
     return res;
   }

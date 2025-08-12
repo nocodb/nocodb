@@ -244,6 +244,7 @@ export const GenericFeatures = {
   [PlanFeatureTypes.FEATURE_ROW_COLOUR]: false,
   [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]: false,
   [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: false,
+  [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]: false,
 } as const;
 
 export const GraceLimits = {

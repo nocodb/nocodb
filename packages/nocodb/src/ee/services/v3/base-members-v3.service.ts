@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
-import { BaseUsersV3Service as BaseUsersV3ServiceCE } from 'src/services/v3/base-users-v3.service';
+import { BaseMembersV3Service as BaseMembersV3ServiceCE } from 'src/services/v3/base-members-v3.service';
 import type { ProjectUserReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Noco from '~/Noco';
@@ -12,7 +12,7 @@ import { WorkspaceUser } from '~/models';
 import { validatePayload } from '~/helpers';
 
 @Injectable()
-export class BaseUsersV3Service extends BaseUsersV3ServiceCE {
+export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
   constructor(
     protected baseUsersService: BaseUsersService,
     protected workspaceUsersService: WorkspaceUsersService,

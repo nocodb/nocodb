@@ -4,6 +4,8 @@ import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 // import { NotFoundHandlerModule } from './not-found-handler.module';
+import { BaseMembersV3Controller } from '~/controllers/v3/base-members-v3.controller';
+import { BaseMembersV3Service } from '~/services/v3/base-members-v3.service';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
@@ -124,7 +126,6 @@ import { IntegrationsController } from '~/controllers/integrations.controller';
 import { OldDatasController } from '~/controllers/old-datas/old-datas.controller';
 import { OldDatasService } from '~/controllers/old-datas/old-datas.service';
 import { PublicDatasController } from '~/controllers/public-datas.controller';
-import { BaseUsersV3Controller } from '~/controllers/v3/base-users-v3.controller';
 import { BasesV3Controller } from '~/controllers/v3/bases-v3.controller';
 import { ColumnsV3Controller } from '~/controllers/v3/columns-v3.controller';
 import { Datav3Controller } from '~/controllers/v3/data-v3.controller';
@@ -141,7 +142,6 @@ import { FormulaColumnTypeChanger } from '~/services/formula-column-type-changer
 import { IntegrationsService } from '~/services/integrations.service';
 import { PublicDatasExportService } from '~/services/public-datas-export.service';
 import { PublicDatasService } from '~/services/public-datas.service';
-import { BaseUsersV3Service } from '~/services/v3/base-users-v3.service';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
@@ -206,7 +206,7 @@ export const nocoModuleMetadata = {
           OrgUsersController,
           PluginsController,
           BaseUsersController,
-          BaseUsersV3Controller,
+          BaseMembersV3Controller,
           BasesController,
           PublicMetasController,
           ViewsController,
@@ -292,7 +292,7 @@ export const nocoModuleMetadata = {
     OrgUsersService,
     PluginsService,
     BaseUsersService,
-    BaseUsersV3Service,
+    BaseMembersV3Service,
     BasesService,
     PublicMetasService,
     ViewsService,

@@ -20,17 +20,11 @@ export class WorkspaceUsersV3Service {
 
   constructor(protected workspaceUsersService: WorkspaceUsersService) {
     this.builder = builderGenerator({
-      allowed: [
-        'user_email',
-        'user_id',
-        'created_at',
-        'updated_at',
-        'workspace_role',
-      ],
+      allowed: ['email', 'fk_user_id', 'created_at', 'updated_at', 'roles'],
       mappings: {
-        user_email: 'email',
-        user_id: 'fk_user_id',
-        workspace_role: 'roles',
+        email: 'user_email',
+        fk_user_id: 'user_id',
+        roles: 'workspace_role',
       },
       transformFn(data) {
         return data;
@@ -54,7 +48,11 @@ export class WorkspaceUsersV3Service {
     context: NcContext,
     param: {
       workspaceId: string;
-      workspaceUsers: any[];
+      workspaceUsers: {
+        user_id?: string;
+        user_email?: string;
+        workspace_role: string;
+      }[];
       req: NcRequest;
     },
   ): Promise<any> {
@@ -69,14 +67,14 @@ export class WorkspaceUsersV3Service {
     try {
       for (const workspaceUser of param.workspaceUsers) {
         let user: User;
-        if (workspaceUser.id) {
-          user = await User.get(workspaceUser.id, ncMeta);
+        if (workspaceUser.user_id) {
+          user = await User.get(workspaceUser.user_id, ncMeta);
           if (!user) {
-            NcError.userNotFound(workspaceUser.id);
+            NcError.userNotFound(workspaceUser.user_id);
           }
-          workspaceUser.email = user.email;
-        } else if (workspaceUser.email) {
-          user = await User.getByEmail(workspaceUser.email, ncMeta);
+          workspaceUser.user_email = user.email;
+        } else if (workspaceUser.user_email) {
+          user = await User.getByEmail(workspaceUser.user_email, ncMeta);
         } else {
           NcError.badRequest('Either email or id is required');
         }
@@ -90,7 +88,7 @@ export class WorkspaceUsersV3Service {
           {
             workspaceId: param.workspaceId,
             body: {
-              email: workspaceUser.email,
+              email: workspaceUser.user_email,
               roles: workspaceUser.workspace_role,
             },
             siteUrl: param.req.ncSiteUrl,
@@ -100,7 +98,7 @@ export class WorkspaceUsersV3Service {
           ncMeta,
         );
 
-        user = await User.getByEmail(workspaceUser.email, ncMeta);
+        user = await User.getByEmail(workspaceUser.user_email, ncMeta);
         userIds.push(user.id);
       }
       await ncMeta.commit();
@@ -125,7 +123,11 @@ export class WorkspaceUsersV3Service {
   async workspaceUserUpdate(
     context: NcContext,
     param: {
-      workspaceUsers: any[];
+      workspaceUsers: {
+        user_id?: string;
+        user_email?: string;
+        workspace_role: string;
+      }[];
       req: any;
       workspaceId: string;
     },
@@ -140,14 +142,14 @@ export class WorkspaceUsersV3Service {
     const userIds = [];
     try {
       for (const workspaceUser of param.workspaceUsers) {
-        let userId = workspaceUser.id;
+        let userId = workspaceUser.user_id;
 
-        if (!workspaceUser.id && workspaceUser.email) {
-          const user = await User.getByEmail(workspaceUser.email, ncMeta);
+        if (!workspaceUser.user_id && workspaceUser.user_email) {
+          const user = await User.getByEmail(workspaceUser.user_email, ncMeta);
           if (user) {
             userId = user.id;
           } else {
-            NcError.userNotFound(workspaceUser.email);
+            NcError.userNotFound(workspaceUser.user_email);
           }
         }
 
@@ -157,7 +159,7 @@ export class WorkspaceUsersV3Service {
           {
             workspaceId: param.workspaceId,
             userId,
-            roles: workspaceUser.workspace_role,
+            roles: workspaceUser.workspace_role as WorkspaceUserRoles,
             siteUrl: param.req.ncSiteUrl,
             req: param.req,
           },
@@ -187,7 +189,11 @@ export class WorkspaceUsersV3Service {
   async workspaceUserDelete(
     context: NcContext,
     param: {
-      workspaceUsers: any[];
+      workspaceUsers: {
+        user_id?: string;
+        user_email?: string;
+        workspace_role: string;
+      }[];
       workspaceId: string;
       req: any;
     },
@@ -201,14 +207,14 @@ export class WorkspaceUsersV3Service {
     const ncMeta = await Noco.ncMeta.startTransaction();
     try {
       for (const workspaceUser of param.workspaceUsers) {
-        let userId = workspaceUser.id;
+        let userId = workspaceUser.user_id;
 
-        if (!workspaceUser.id && workspaceUser.email) {
-          const user = await User.getByEmail(workspaceUser.email, ncMeta);
+        if (!workspaceUser.user_id && workspaceUser.user_email) {
+          const user = await User.getByEmail(workspaceUser.user_email, ncMeta);
           if (user) {
             userId = user.id;
           } else {
-            NcError.userNotFound(workspaceUser.email);
+            NcError.userNotFound(workspaceUser.user_email);
           }
         }
 

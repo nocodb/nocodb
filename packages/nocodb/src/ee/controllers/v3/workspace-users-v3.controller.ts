@@ -106,14 +106,14 @@ export class WorkspaceUsersV3Controller {
 
   private validatePayload(
     workspaceUsers:
-      | { id?: string; email?: string }[]
-      | { id?: string; email?: string },
+      | { user_id?: string; user_email?: string }[]
+      | { user_id?: string; user_email?: string },
   ) {
     // check email or id is present
     if (
       !workspaceUsers ||
       (Array.isArray(workspaceUsers) ? workspaceUsers : [workspaceUsers]).some(
-        (user) => !user.id && !user.email,
+        (user) => !user.user_id && !user.user_email,
       )
     ) {
       NcError.badRequest('Either email or id is required');

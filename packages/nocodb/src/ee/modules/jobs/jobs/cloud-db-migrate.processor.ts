@@ -105,6 +105,9 @@ export class CloudDbMigrateProcessor {
             // if dbServer has no conditions, skip
             if (!dbServer.conditions) return false;
 
+            // if no conditions are specified, skip
+            if (Object.keys(conditions).length === 0) return false;
+
             // check if required conditions are met
             return Object.keys(conditions).every(
               (key) => conditions[key] === dbServer.conditions[key],

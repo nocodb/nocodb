@@ -10,4 +10,33 @@
 // Dropdown Menu
 .ant-dropdown-menu.ant-dropdown-menu-root {
   @apply !bg-nc-bg-default;
+
+  .ant-dropdown-menu-item {
+    &:not(.ant-dropdown-menu-item-disabled) {
+      @apply hover:text-nc-content-gray-extreme text-nc-content-gray-subtle;
+    }
+  }
+}
+
+// Dark theme specific style
+[theme='dark'] {
+  // Divider
+  .ant-divider {
+    @apply border-nc-border-gray-light;
+  }
+
+  // Dropdown Menu
+  .ant-dropdown-menu.ant-dropdown-menu-root {
+    .ant-dropdown-menu-item {
+      @apply hover:bg-nc-bg-gray-light;
+
+      &:not(.ant-dropdown-menu-item-disabled) {
+        @apply hover:text-nc-content-gray-extreme text-nc-content-gray;
+      }
+    }
+
+    .ant-dropdown-menu-submenu-title {
+      @apply hover:bg-nc-bg-gray-light;
+    }
+  }
 }

@@ -14,6 +14,7 @@
 
   --color-base-black: #000000;
   --color-base-white: #ffffff;
+  --color-base-none: #ffffff00;
 
   --color-brand-50: #f0f3ff;
   --color-brand-100: #d6e0ff;
@@ -125,7 +126,144 @@
   --color-yellow-800: #654c17;
   --color-yellow-900: #32260c;
 
+  --spacing-00: 0px;
+  --spacing-01: 2px;
+  --spacing-02: 4px;
+  --spacing-03: 8px;
+  --spacing-04: 12px;
+  --spacing-05: 16px;
+  --spacing-06: 24px;
+  --spacing-07: 32px;
+  --spacing-08: 40px;
+  --spacing-09: 48px;
+  --spacing-10: 64px;
+  --spacing-11: 80px;
+  --spacing-12: 96px;
+  --spacing-13: 160px;
+
+  --font-size-h1: 64px;
+  --font-size-h2: 40px;
+  --font-size-h3: 24px;
+}
+
+/* Refrence tokens - Dark test */
+[theme='dark'] {
+  --color-bg: #121212;
+  --color-text: #ffffff;
+
+  --color-base-black: #ffffff;
+  --color-base-white: #171717;
   --color-base-none: #ffffff00;
+
+  --color-brand-50: #141a57;
+  --color-brand-100: #19288f;
+  --color-brand-200: #1727b6;
+  --color-brand-300: #1b43f5;
+  --color-brand-400: #3366ff;
+  --color-brand-500: #598eff;
+  --color-brand-600: #8eb6ff;
+  --color-brand-700: #bcd2ff;
+  --color-brand-800: #d9e5ff;
+  --color-brand-900: #eef4ff;
+
+  --color-grey-50: #eef4ff;
+  --color-grey-100: #2a2c2e;
+  --color-grey-200: #3b3d40;
+  --color-grey-300: #505257;
+  --color-grey-400: #6c6f75;
+  --color-grey-500: #989ca5;
+  --color-grey-600: #c5cbd6;
+  --color-grey-700: #d5dce8;
+  --color-grey-800: #e2e9f6;
+  --color-grey-900: #e9f0fd;
+
+  --color-green-50: #052e15;
+  --color-green-100: #15522c;
+  --color-green-200: #167f3c;
+  --color-green-300: #17a248;
+  --color-green-400: #27d665;
+  --color-green-500: #27d665;
+  --color-green-600: #87eeab;
+  --color-green-700: #dcfce7;
+  --color-green-800: #bcf6cf;
+  --color-green-900: #bcf6cf;
+
+  --color-red-50: #4b0804;
+  --color-red-100: #881b14;
+  --color-red-200: #a5180f;
+  --color-red-300: #c8180d;
+  --color-red-400: #ff4a3f;
+  --color-red-500: #ff6d64;
+  --color-red-600: #ffa39d;
+  --color-red-700: #ffc8c5;
+  --color-red-800: #ffe1df;
+  --color-red-900: #fff2f1;
+
+  --color-maroon-50: #fff2f1;
+  --color-maroon-100: #72294a;
+  --color-maroon-200: #b33771;
+  --color-maroon-300: #be4480;
+  --color-maroon-400: #d2629f;
+  --color-maroon-500: #df87ba;
+  --color-maroon-600: #ecb5d6;
+  --color-maroon-700: #f4d6e9;
+  --color-maroon-800: #f4d6e9;
+  --color-maroon-900: #fbf4f8;
+
+  --color-blue-50: #062e4b;
+  --color-blue-100: #02588a;
+  --color-blue-200: #0069a7;
+  --color-blue-300: #0084ce;
+  --color-blue-400: #06a5f1;
+  --color-blue-500: #36bfff;
+  --color-blue-600: #78d3ff;
+  --color-blue-700: #b8e6ff;
+  --color-blue-800: #dff2ff;
+  --color-blue-900: #eff9ff;
+
+  --color-orange-50: #431107;
+  --color-orange-100: #7c2812;
+  --color-orange-200: #992e13;
+  --color-orange-300: #c1380d;
+  --color-orange-400: #f86817;
+  --color-orange-500: #fa8231;
+  --color-orange-600: #fcb475;
+  --color-orange-700: #fed3aa;
+  --color-orange-800: #ffebd5;
+  --color-orange-900: #fff6ed;
+
+  --color-pink-50: #570037;
+  --color-pink-100: #8d0e5e;
+  --color-pink-200: #aa0a6e;
+  --color-pink-300: #ce0887;
+  --color-pink-400: #fc3ac6;
+  --color-pink-500: #ff65da;
+  --color-pink-600: #ffa0eb;
+  --color-pink-700: #ffcbf5;
+  --color-pink-800: #fee5f9;
+  --color-pink-900: #fef1fb;
+
+  --color-purple-50: #3a0962;
+  --color-purple-100: #571e85;
+  --color-purple-200: #6924a5;
+  --color-purple-300: #9137e6;
+  --color-purple-400: #a658f4;
+  --color-purple-500: #be86fa;
+  --color-purple-600: #d7b6fc;
+  --color-purple-700: #e8d6fe;
+  --color-purple-800: #f3e8ff;
+  --color-purple-900: #faf5ff;
+
+  --color-yellow-50: #451403;
+  --color-yellow-100: #782c0f;
+  --color-yellow-300: #d96506;
+  --color-yellow-200: #b44409;
+  --color-yellow-400: #f58a0b;
+  --color-yellow-500: #fbad24;
+  --color-yellow-600: #fcbe3a;
+  --color-yellow-700: #fddc8a;
+  --color-yellow-800: #feeec7;
+  --color-yellow-900: #fff9eb;
 
   --spacing-00: 0px;
   --spacing-01: 2px;
@@ -148,7 +286,7 @@
 }
 
 /* Refrence tokens - Dark */
-[theme='dark'] {
+[theme='dark-old'] {
   --color-bg: #121212;
   --color-text: #ffffff;
 

@@ -10,6 +10,7 @@ import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { WorkspaceUser } from '~/models';
 import { validatePayload } from '~/helpers';
+import { V3_META_REQUEST_LIMIT } from '~/constants';
 
 @Injectable()
 export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
@@ -34,6 +35,9 @@ export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
       true,
     );
 
+    if (param.baseMembers?.length > V3_META_REQUEST_LIMIT) {
+      NcError.get(context).maxInsertLimitExceeded(V3_META_REQUEST_LIMIT);
+    }
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {

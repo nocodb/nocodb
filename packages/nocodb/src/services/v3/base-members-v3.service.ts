@@ -142,6 +142,9 @@ export class BaseMembersV3Service {
       true,
     );
 
+    if (param.baseMembers?.length > V3_META_REQUEST_LIMIT) {
+      NcError.get(context).maxInsertLimitExceeded(V3_META_REQUEST_LIMIT);
+    }
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {

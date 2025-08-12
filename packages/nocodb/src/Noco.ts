@@ -129,11 +129,6 @@ export default class Noco {
 
     Noco._nestApp = nestApp;
 
-    const redisIoAdapter = new RedisIoAdapter(nestApp);
-    await redisIoAdapter.connectToRedis();
-
-    nestApp.useWebSocketAdapter(redisIoAdapter);
-
     this.initCustomLogger(nestApp);
     NcDebug.log('Custom logger initialized');
     nestApp.flushLogs();

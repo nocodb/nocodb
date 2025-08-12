@@ -127,7 +127,9 @@ const getAst = async (
 
   if (includeSortAndFilterColumns) {
     const orderCol = model.columns.find((c) => isOrderCol(c));
-    sortColumnIds.push(orderCol.id);
+    if (orderCol) {
+      sortColumnIds.push(orderCol.id);
+    }
   }
 
   const rowColoringColumnIds = new Set<string>();

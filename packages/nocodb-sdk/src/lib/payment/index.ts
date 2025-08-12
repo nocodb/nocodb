@@ -55,6 +55,7 @@ export enum PlanFeatureTypes {
   FEATURE_ROW_COLOUR = 'feature_row_colour',
   FEATURE_TABLE_AND_FIELD_PERMISSIONS = 'feature_table_and_field_permissions',
   FEATURE_PRIVATE_BASES = 'feature_private_bases',
+  FEATURE_API_MEMBER_MANAGEMENT = 'feature_api_member_management',
 }
 
 // todo: separate as a new enum
@@ -194,7 +195,8 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_VIEW_PER_TABLE]: 'to add more views in a table.',
   [PlanLimitTypes.LIMIT_FILTER_PER_VIEW]: 'to add more filters in a view.',
   [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 'to add more sort rules in a view.',
-  [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 'to add more attachments in a cell.',
+  [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]:
+    'to add more attachments in a cell.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -237,6 +239,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]:
     'to use table and field permissions.',
   [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: 'to use private bases.',
+  [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]:
+    'to use member management api.',
 };
 
 export const getUpgradeMessage = (

@@ -324,9 +324,8 @@ export const useRealtime = createSharedComposable(() => {
 
       // if current user is removed from workspace
       if (payload.fk_user_id === user.value?.id) {
-        workspaces.value.delete(workspaceId)
-
         if (activeWorkspaceId.value === workspaceId) {
+          const workspace = workspaces.value.get(workspaceId)
           ncNavigateTo({
             workspaceId: undefined,
             baseId: undefined,
@@ -334,9 +333,11 @@ export const useRealtime = createSharedComposable(() => {
           })
           showInfoModal({
             title: `Workspace no longer available`,
-            content: `${payload.title} may have been deleted or your access removed.`,
+            content: `${workspace?.title} may have been deleted or your access removed.`,
           })
         }
+
+        workspaces.value.delete(workspaceId)
       } else {
         if (activeWorkspaceId.value === workspaceId) {
           await workspaceStore.loadCollaborators({} as any, workspaceId)

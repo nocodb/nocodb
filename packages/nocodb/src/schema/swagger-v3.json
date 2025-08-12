@@ -3785,6 +3785,23 @@
               ]
             },
             "description": "List of data sources associated with this base. This information will be included only if one or more external data sources are associated with the base."
+          },
+          "individual_members": {
+            "type": "object",
+            "properties": {
+              "base_members": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BaseMember"
+                }
+              },
+              "workspace_members": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BaseMember"
+                }
+              }
+            }
           }
         },
         "required": [

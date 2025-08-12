@@ -136,6 +136,10 @@ watch(
   { immediate: true },
 )
 
+onMounted(() => {
+  loadAggregationList()
+})
+
 defineExpose({
   modelValue,
   selectedAggregation,

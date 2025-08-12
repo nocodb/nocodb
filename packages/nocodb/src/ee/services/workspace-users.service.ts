@@ -46,6 +46,8 @@ import { PaymentService } from '~/modules/payment/payment.service';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { ProjectRoles } from 'nocodb-sdk';
+import { handleOrphanBases } from '~/ee/utils/orphanBaseHandler';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -276,6 +278,8 @@ export class WorkspaceUsersService {
     return workspaceUser;
   }
 
+
+
   async delete(
     param: { workspaceId: string; userId: string; req: NcRequest },
     ncMeta = Noco.ncMeta,
@@ -382,6 +386,9 @@ export class WorkspaceUsersService {
       }
 
       res = await WorkspaceUser.softDelete(workspaceId, userId, transaction);
+
+      // Handle orphan bases after user deletion
+      await handleOrphanBases(workspaceId, userId, transaction);
 
       cacheTransaction.push(() =>
         NocoCache.del(`${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`),

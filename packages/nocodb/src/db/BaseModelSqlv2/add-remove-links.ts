@@ -5,6 +5,7 @@ import {
   ncIsNullOrUndefined,
   RelationTypes,
 } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { AuditOperationSubTypes, NcRequest } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';
@@ -19,6 +20,8 @@ import {
 import { Model } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';
 import getAst from '~/helpers/getAst';
+
+const logger = new Logger('addOrRemoveLinks');
 
 export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
   const validateRefIds = (
@@ -942,7 +945,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         });
       }
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
   };
 

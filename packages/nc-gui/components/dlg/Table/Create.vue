@@ -44,7 +44,7 @@ const workspaceStore = useWorkspace()
 
 const baseStore = useBase()
 const { isMysql, isPg, isSnowflake } = baseStore
-const { baseId } = storeToRefs(baseStore)
+const { baseId: _baseId } = storeToRefs(baseStore)
 
 const { loadProjectTables, addTable } = useTablesStore()
 
@@ -426,8 +426,8 @@ const handleRefreshOnError = () => {
   }
 }
 
-watch(baseId, () => {
-  if (baseId.value !== props.baseId) {
+watch(_baseId, () => {
+  if (_baseId.value !== props.baseId) {
     dialogShow.value = false
   }
 })

@@ -7,7 +7,6 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { WorkspaceV3Service } from '~/ee/services/v3/workspace-v3.service';
 import { getFeature } from '~/helpers/paymentHelpers';
-import { getFeature } from '~/ee/helpers/paymentHelpers';
 import { NcError } from '~/helpers/catchError';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)

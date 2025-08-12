@@ -17,7 +17,7 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { WorkspaceUsersV3Service } from '~/ee/services/v3/workspace-users-v3.service';
-import { getFeature } from '~/ee/helpers/paymentHelpers';
+import { getFeature } from '~/helpers/paymentHelpers';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()

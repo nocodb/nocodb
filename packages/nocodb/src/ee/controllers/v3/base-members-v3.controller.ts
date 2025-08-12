@@ -22,7 +22,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { BaseMembersV3Service } from '~/services/v3/base-members-v3.service';
-import { getFeature } from '~/ee/helpers/paymentHelpers';
+import { getFeature } from '~/helpers/paymentHelpers';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()

@@ -253,7 +253,7 @@ export default class BaseUser extends BaseUserCE {
       'deleted',
     ];
 
-    if (!isNoneList && !baseUsers.length) {
+    if (strict_in_record || (!isNoneList && !baseUsers.length)) {
       const queryBuilder = ncMeta.knex(MetaTable.USERS).select(
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,
@@ -309,10 +309,12 @@ export default class BaseUser extends BaseUserCE {
         return this.castType(baseUser);
       });
 
-      await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers, [
-        'base_id',
-        'id',
-      ]);
+      if (!strict_in_record) {
+        await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers, [
+          'base_id',
+          'id',
+        ]);
+      }
     }
 
     // if default_role is present, override workspace roles with the default roles

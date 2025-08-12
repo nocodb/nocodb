@@ -24,28 +24,28 @@ export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
     context: NcContext,
     param: {
       baseId: string;
-      baseUsers: any[];
+      baseMembers: any[];
       req: NcRequest;
     },
   ): Promise<any> {
     validatePayload(
-      'swagger-v3.json#/components/schemas/BaseUserCreate',
-      param.baseUsers,
+      'swagger-v3.json#/components/schemas/BaseMemberCreate',
+      param.baseMembers,
       true,
     );
 
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {
-      for (const baseUser of param.baseUsers) {
+      for (const baseUser of param.baseMembers) {
         // if workspace user is not provided, then we need to invite the user to workspace with NO_ACCESS role
         // if (!baseUser.workspace_role) {
         // get the user from workspace
         let user: User;
-        if (baseUser.id) {
-          user = await User.get(baseUser.id, ncMeta);
+        if (baseUser.user_id) {
+          user = await User.get(baseUser.user_id, ncMeta);
           if (!user) {
-            NcError.userNotFound(baseUser.id);
+            NcError.userNotFound(baseUser.user_id);
           }
           baseUser.email = user.email;
         } else if (baseUser.email) {

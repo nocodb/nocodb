@@ -2201,7 +2201,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/BaseUserCreate"
+                "$ref": "#/components/schemas/BaseMemberCreate"
               }
             }
           }
@@ -2407,13 +2407,19 @@
                     "properties": {
                       "direction": {
                         "type": "string",
-                        "enum": ["asc", "desc"]
+                        "enum": [
+                          "asc",
+                          "desc"
+                        ]
                       },
                       "field": {
                         "type": "string"
                       }
                     },
-                    "required": ["field", "direction"]
+                    "required": [
+                      "field",
+                      "direction"
+                    ]
                   }
                 },
                 {
@@ -2421,13 +2427,19 @@
                   "properties": {
                     "direction": {
                       "type": "string",
-                      "enum": ["asc", "desc"]
+                      "enum": [
+                        "asc",
+                        "desc"
+                      ]
                     },
                     "field": {
                       "type": "string"
                     }
                   },
-                  "required": ["field", "direction"]
+                  "required": [
+                    "field",
+                    "direction"
+                  ]
                 }
               ]
             },
@@ -3247,13 +3259,19 @@
                     "properties": {
                       "direction": {
                         "type": "string",
-                        "enum": ["asc", "desc"]
+                        "enum": [
+                          "asc",
+                          "desc"
+                        ]
                       },
                       "field": {
                         "type": "string"
                       }
                     },
-                    "required": ["field", "direction"]
+                    "required": [
+                      "field",
+                      "direction"
+                    ]
                   }
                 },
                 {
@@ -3261,13 +3279,19 @@
                   "properties": {
                     "direction": {
                       "type": "string",
-                      "enum": ["asc", "desc"]
+                      "enum": [
+                        "asc",
+                        "desc"
+                      ]
                     },
                     "field": {
                       "type": "string"
                     }
                   },
-                  "required": ["field", "direction"]
+                  "required": [
+                    "field",
+                    "direction"
+                  ]
                 }
               ]
             },
@@ -3389,7 +3413,9 @@
                       "example": true
                     }
                   },
-                  "required": ["success"],
+                  "required": [
+                    "success"
+                  ],
                   "additionalProperties": false
                 },
                 "examples": {
@@ -3426,7 +3452,9 @@
                         "example": "33"
                       }
                     },
-                    "required": ["id"],
+                    "required": [
+                      "id"
+                    ],
                     "additionalProperties": false
                   },
                   {
@@ -3440,7 +3468,9 @@
                           "example": "22"
                         }
                       },
-                      "required": ["id"],
+                      "required": [
+                        "id"
+                      ],
                       "additionalProperties": false
                     },
                     "minItems": 1,
@@ -3504,7 +3534,9 @@
                       "example": true
                     }
                   },
-                  "required": ["success"],
+                  "required": [
+                    "success"
+                  ],
                   "additionalProperties": false
                 },
                 "examples": {
@@ -3541,7 +3573,9 @@
                         "example": "33"
                       }
                     },
-                    "required": ["id"],
+                    "required": [
+                      "id"
+                    ],
                     "additionalProperties": false
                   },
                   {
@@ -3555,7 +3589,9 @@
                           "example": "33"
                         }
                       },
-                      "required": ["id"],
+                      "required": [
+                        "id"
+                      ],
                       "additionalProperties": false
                     },
                     "minItems": 1,
@@ -4417,10 +4453,10 @@
           "views"
         ]
       },
-      "BaseUser": {
+      "BaseMember": {
         "type": "object",
         "properties": {
-          "id": {
+          "user_id": {
             "type": "string",
             "description": "Unique identifier for the user."
           },
@@ -4433,39 +4469,20 @@
             "type": "string",
             "description": "Display name of the user."
           },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of when the user was created."
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of when the user access was last updated."
-          },
           "base_role": {
             "$ref": "#/components/schemas/BaseRoles"
-          },
-          "workspace_role": {
-            "$ref": "#/components/schemas/WorkspaceRoles"
-          },
-          "workspace_id": {
-            "type": "string",
-            "description": "Unique identifier for the workspace."
           }
         },
         "required": [
-          "id",
+          "user_id",
           "email",
           "created_at",
           "updated_at",
-          "base_role",
-          "workspace_role",
-          "workspace_id"
+          "base_role"
         ]
       },
       "BaseUserDeleteRequest": {},
-      "BaseUserList": {
+      "BaseMemberList": {
         "type": "object",
         "properties": {
           "list": {
@@ -4479,12 +4496,12 @@
           "users"
         ]
       },
-      "BaseUserCreate": {
+      "BaseMemberCreate": {
         "type": "array",
         "items": {
           "type": "object",
           "properties": {
-            "id": {
+            "user_id": {
               "type": "string",
               "description": "Unique identifier for the user. Can be provided optionally during creation."
             },
@@ -4508,7 +4525,7 @@
             {
               "title": "Invite User with ID",
               "required": [
-                "id"
+                "user_id"
               ]
             },
             {
@@ -5150,7 +5167,11 @@
             "description": "Description of the field."
           },
           "default_value": {
-            "type": ["string", "boolean", "number"],
+            "type": [
+              "string",
+              "boolean",
+              "number"
+            ],
             "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
           }
         },
@@ -5677,7 +5698,9 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": ["formula"],
+                "enum": [
+                  "formula"
+                ],
                 "description": "Button type: formula"
               },
               "formula": {
@@ -5685,14 +5708,19 @@
                 "description": "Formula to execute"
               }
             },
-            "required": ["type", "formula"]
+            "required": [
+              "type",
+              "formula"
+            ]
           },
           {
             "type": "object",
             "properties": {
               "type": {
                 "type": "string",
-                "enum": ["webhook"],
+                "enum": [
+                  "webhook"
+                ],
                 "description": "Button type: webhook"
               },
               "button_hook_id": {
@@ -5700,14 +5728,19 @@
                 "description": "ID of the webhook to trigger"
               }
             },
-            "required": ["type", "button_hook_id"]
+            "required": [
+              "type",
+              "button_hook_id"
+            ]
           },
           {
             "type": "object",
             "properties": {
               "type": {
                 "type": "string",
-                "enum": ["ai"],
+                "enum": [
+                  "ai"
+                ],
                 "description": "Button type: AI"
               },
               "prompt": {
@@ -5739,7 +5772,11 @@
                 "description": "Color of the button"
               }
             },
-            "required": ["type", "prompt", "integration_id"]
+            "required": [
+              "type",
+              "prompt",
+              "integration_id"
+            ]
           }
         ],
         "discriminator": {
@@ -6513,19 +6550,31 @@
             }
           },
           "next": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Pagination token for next page"
           },
           "prev": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Pagination token for previous page"
           },
           "nestedNext": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Nested pagination token for next page"
           },
           "nestedPrev": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Nested pagination token for previous page"
           }
         }
@@ -6586,7 +6635,9 @@
             "description": "Record identifier"
           }
         },
-        "required": ["id"]
+        "required": [
+          "id"
+        ]
       },
       "DataInsertResponseV3": {
         "type": "object",
@@ -6684,11 +6735,17 @@
             ]
           },
           "next": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Pagination token for next page"
           },
           "prev": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Pagination token for previous page"
           }
         }

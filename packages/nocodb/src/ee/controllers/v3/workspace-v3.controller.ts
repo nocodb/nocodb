@@ -12,7 +12,9 @@ export class WorkspaceV3Controller {
   constructor(protected readonly workspaceV3Service: WorkspaceV3Service) {}
 
   @Get(['/api/v3/meta/workspaces/:workspaceId'])
-  @Acl('workspaceRead')
+  @Acl('workspaceRead', {
+    scope: 'workspace',
+  })
   async workspaceRead(
     @TenantContext()
     context: NcContext,

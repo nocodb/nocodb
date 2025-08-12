@@ -39,7 +39,9 @@ export class WorkspaceUsersV3Controller {
 
   @Post(['/api/v3/meta/workspaces/:workspaceId/members'])
   @HttpCode(200)
-  @Acl('workspaceUserInvite')
+  @Acl('workspaceUserInvite', {
+    scope: 'workspace',
+  })
   async userInvite(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
@@ -58,7 +60,9 @@ export class WorkspaceUsersV3Controller {
   }
 
   @Patch(['/api/v3/meta/workspaces/:workspaceId/members'])
-  @Acl('workspaceUserUpdate')
+  @Acl('workspaceUserUpdate', {
+    scope: 'workspace',
+  })
   async workspaceUserUpdate(
     @TenantContext()
     context: NcContext,
@@ -80,7 +84,9 @@ export class WorkspaceUsersV3Controller {
   }
 
   @Delete(['/api/v3/meta/workspaces/:workspaceId/members'])
-  @Acl('workspaceUserDelete')
+  @Acl('workspaceUserDelete', {
+    scope: 'workspace',
+  })
   async workspaceUserDelete(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,

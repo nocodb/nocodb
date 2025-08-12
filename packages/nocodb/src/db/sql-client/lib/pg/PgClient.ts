@@ -1,8 +1,8 @@
 import { nanoid } from 'nanoid';
 import knex from 'knex';
-import isEmpty from 'lodash/isEmpty';
-import mapKeys from 'lodash/mapKeys';
-import find from 'lodash/find';
+import isEmpty from 'es-toolkit/compat/isEmpty';
+import mapKeys from 'es-toolkit/compat/mapKeys';
+import find from 'es-toolkit/compat/find';
 import { ncIsNullOrUndefined, UITypes } from 'nocodb-sdk';
 import KnexClient from '~/db/sql-client/lib/KnexClient';
 import Debug from '~/db/util/Debug';

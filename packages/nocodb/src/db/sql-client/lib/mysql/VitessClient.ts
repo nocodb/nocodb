@@ -1,4 +1,4 @@
-import mapKeys from 'lodash/mapKeys';
+import mapKeys from 'es-toolkit/compat/mapKeys';
 import Debug from '../../../util/Debug';
 import Result from '../../../util/Result';
 import MysqlClient from './MysqlClient';

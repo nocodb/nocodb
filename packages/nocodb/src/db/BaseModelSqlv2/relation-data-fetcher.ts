@@ -1,5 +1,5 @@
 import { extractFilterFromXwhere, NcApiVersion } from 'nocodb-sdk';
-import groupBy from 'lodash/groupBy';
+import groupBy from 'es-toolkit/compat/groupBy';
 import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';

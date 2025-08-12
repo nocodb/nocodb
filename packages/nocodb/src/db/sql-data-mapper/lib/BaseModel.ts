@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types,prefer-const */
-import groupBy from 'lodash/groupBy';
+import groupBy from 'es-toolkit/compat/groupBy';
 import { customValidators } from 'src/db/util/customValidators';
 import type { Knex } from 'knex';
 import type Filter from '~/models/Filter';

@@ -1,9 +1,9 @@
 import path from 'path';
 import { promisify } from 'util';
 import knex from 'knex';
-import isEmpty from 'lodash/isEmpty';
-import mapKeys from 'lodash/mapKeys';
-import find from 'lodash/find';
+import isEmpty from 'es-toolkit/compat/isEmpty';
+import mapKeys from 'es-toolkit/compat/mapKeys';
+import find from 'es-toolkit/compat/find';
 import jsonfile from 'jsonfile';
 import mkdirp from 'mkdirp';
 import { nanoid } from 'nanoid';

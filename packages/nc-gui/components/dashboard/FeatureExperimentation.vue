@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { onKeyDown } from '@vueuse/core'
-
 interface Props {
   value?: boolean
 }
@@ -122,8 +120,9 @@ const handleClick = () => {
   }
 }
 
-onKeyDown('Alt', (e) => {
-  if (e.shiftKey) {
+useEventListener('keydown', (e: KeyboardEvent) => {
+  if (isActiveInputElementExist()) return
+  if (e.shiftKey && e.altKey && e.code === 'KeyE') {
     value.value = !value.value
   }
 })

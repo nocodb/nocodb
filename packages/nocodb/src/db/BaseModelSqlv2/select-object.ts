@@ -1,5 +1,6 @@
 import { ButtonActionsType, UITypes } from 'nocodb-sdk';
 import genRollupSelectv2 from '../genRollupSelectv2';
+import type { ColumnType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type {
   BarcodeColumn,
@@ -70,8 +71,20 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         viewOrTableColumn instanceof Column
           ? viewOrTableColumn
           : await Column.get(baseModel.context, {
-              colId: (viewOrTableColumn as GridViewColumn).fk_column_id,
+              colId:
+                (viewOrTableColumn as GridViewColumn).fk_column_id ??
+                (viewOrTableColumn as ColumnType).id,
             });
+
+      if (!column) {
+        logger.warn(
+          `Column not found for viewOrTableColumn: ${JSON.stringify(
+            viewOrTableColumn,
+          )}`,
+        );
+        continue;
+      }
+
       // hide if column marked as hidden in view
       // of if column is system field and system field is hidden
       if (

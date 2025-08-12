@@ -68,6 +68,7 @@
     "@react-email/components": "0.0.41",
     "@react-email/render": "^1.1.2",
     "@sentry/nestjs": "^9.27.0",
+    "@socket.io/redis-adapter": "^8.3.0",
     "@types/chai": "^4.3.20",
     "airtable": "^0.12.2",
     "ajv": "^8.17.1",

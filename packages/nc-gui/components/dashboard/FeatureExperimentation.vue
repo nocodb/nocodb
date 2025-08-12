@@ -151,7 +151,9 @@ onUnmounted(() => {
         </nc-button>
       </div>
 
-      <div class="text-sm font-weight-500 text-nc-content-gray-subtle2 leading-5 m-4 mb-0 flex items-center justify-between gap-3 pr-3">
+      <div
+        class="text-sm font-weight-500 text-nc-content-gray-subtle2 leading-5 m-4 mb-0 flex items-center justify-between gap-3 pr-3"
+      >
         <span>
           {{ $t('labels.toggleExperimentalFeature') }}
         </span>

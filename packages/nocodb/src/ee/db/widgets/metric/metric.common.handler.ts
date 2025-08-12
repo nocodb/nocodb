@@ -79,12 +79,14 @@ export class MetricCommonHandler extends BaseWidgetHandler {
     return errors.length > 0 ? errors : undefined;
   }
 
-  async getWidgetData(params: {
-    widget: WidgetType<WidgetTypes.METRIC>;
-    req: NcRequest;
-  }) {
-    const { widget, req } = params;
-    const context = req.context;
+  async getWidgetData(
+    context: NcContext,
+    params: {
+      widget: WidgetType<WidgetTypes.METRIC>;
+      req: NcRequest;
+    },
+  ) {
+    const { widget } = params;
     const { config } = widget;
     const { dataSource, metric } = config;
 
@@ -130,7 +132,7 @@ export class MetricCommonHandler extends BaseWidgetHandler {
     let aggregationColumn;
 
     if (metric.type === 'count') {
-      query = qb.count('* as count')
+      query = qb.count('* as count');
     } else {
       aggregationColumn = await Column.get(context, {
         colId: metric.column_id,

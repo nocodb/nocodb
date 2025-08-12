@@ -1,5 +1,5 @@
 import { ChartTypes, WidgetTypes } from 'nocodb-sdk';
-import type { NcRequest, WidgetType } from 'nocodb-sdk';
+import type { NcContext, NcRequest, WidgetType } from 'nocodb-sdk';
 import { MetricCommonHandler } from '~/db/widgets/metric/metric.common.handler';
 import { NcError } from '~/helpers/ncError';
 import { Model, Source } from '~/models';
@@ -8,13 +8,15 @@ import { CircularChartMysqlHandler } from '~/db/widgets/circular-chart/circular-
 import { CircularChartCommonHandler } from '~/db/widgets/circular-chart/circular-chart.common.handler';
 import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
 
-export async function getWidgetHandler(params: {
-  widget: WidgetType;
-  req: NcRequest;
-  idMap?: Map<string, string>;
-}) {
-  const { widget, req, idMap } = params;
-  const context = req.context;
+export async function getWidgetHandler(
+  context: NcContext,
+  params: {
+    widget: WidgetType;
+    req: NcRequest;
+    idMap?: Map<string, string>;
+  },
+) {
+  const { widget, idMap } = params;
 
   const modelId = idMap?.get(widget.fk_model_id) || widget.fk_model_id;
 
@@ -46,21 +48,24 @@ export async function getWidgetHandler(params: {
   }
 }
 
-export async function getWidgetData(params: {
-  widget: WidgetType;
-  req: NcRequest;
-}) {
+export async function getWidgetData(
+  context: NcContext,
+  params: {
+    widget: WidgetType;
+    req: NcRequest;
+  },
+) {
   const { widget, req } = params;
 
-  const handler = await getWidgetHandler({ widget, req });
+  const handler = await getWidgetHandler(context, { widget, req });
 
-  const errors = await handler.validateWidgetData(req.context, widget as any);
+  const errors = await handler.validateWidgetData(context, widget as any);
 
   if (errors?.length > 0) {
     NcError.badRequest('Widget validation failed');
   }
 
-  return await handler.getWidgetData({
+  return await handler.getWidgetData(context, {
     widget: widget as any,
     req,
   });

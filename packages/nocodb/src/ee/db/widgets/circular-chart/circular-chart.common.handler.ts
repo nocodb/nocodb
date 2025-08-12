@@ -11,7 +11,6 @@ import { Column, Model, View } from '~/models';
 import { validateAggregationColType } from '~/db/aggregation';
 
 export class CircularChartCommonHandler extends BaseWidgetHandler {
-
   protected MAX_WIDGET_CATEGORY_COUNT = 10;
 
   async validateWidgetData(

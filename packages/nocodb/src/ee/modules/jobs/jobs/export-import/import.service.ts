@@ -113,7 +113,7 @@ export class ImportService extends ImportServiceCE {
       for (const wg of widgets) {
         const { filters, ...widget } = wg;
 
-        const handler = await getWidgetHandler({
+        const handler = await getWidgetHandler(context, {
           widget: widget as WidgetType,
           req,
           idMap,

@@ -28,16 +28,20 @@ export class CloudOpenIDLoginPage extends BasePage {
 
   async signIn({ email }: { email: string }) {
     const signIn = this.get();
-    await signIn.locator('[name="login"]').waitFor();
+    const loginLocator = signIn.locator('[name="login"]');
+    await loginLocator.waitFor({ state: 'visible' });
 
-    await signIn.locator(`[name="login"]`).fill(email);
+    await loginLocator.fill(email);
     await signIn.locator(`[name="password"]`).fill('dummy-password');
 
     await signIn.locator(`[type="submit"]`).click();
+
+    await loginLocator.waitFor({ state: 'hidden' });
+
     const authorize = this.get();
 
     await Promise.all([
-      this.rootPage.waitForNavigation({ url: /localhost:3000/ }),
+      this.rootPage.waitForNavigation({ url: /localhost:3000/, waitUntil: 'networkidle' }),
       authorize.locator(`[type="submit"]`).click(),
     ]);
 

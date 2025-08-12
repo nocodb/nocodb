@@ -11,6 +11,11 @@ body {
   @apply !bg-nc-bg-default !text-nc-content-gray;
 }
 
+// Drawer
+.ant-drawer-content {
+  @apply !bg-nc-bg-default;
+}
+
 // Dropdown Menu
 .ant-dropdown-menu.ant-dropdown-menu-root {
   @apply !bg-nc-bg-default !text-nc-content-gray;
@@ -41,7 +46,7 @@ body {
   input,
   textarea,
   .ant-input-affix-wrapper {
-    @apply bg-nc-bg-default text-nc-content-gray;
+    @apply !bg-transparent text-nc-content-gray;
   }
 
   .ant-input-affix-wrapper {

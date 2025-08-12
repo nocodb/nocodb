@@ -11,6 +11,11 @@ body {
   @apply !bg-nc-bg-default !text-nc-content-gray;
 }
 
+// Drawer
+.ant-drawer-content {
+  @apply !bg-nc-bg-default;
+}
+
 // Dropdown Menu
 .ant-dropdown-menu.ant-dropdown-menu-root {
   @apply !bg-nc-bg-default !text-nc-content-gray;
@@ -24,6 +29,34 @@ body {
 
 // Dark theme specific style
 [theme='dark'] {
+  /* Change autocomplete styles in WebKit */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus {
+    border: 1px solid var(--nc-border-grey-medium);
+    -webkit-text-fill-color: var(--nc-content-grey-default);
+  }
+
+  input,
+  textarea,
+  .ant-input-affix-wrapper {
+    @apply !bg-transparent text-nc-content-gray;
+  }
+
+  .ant-input-affix-wrapper {
+    @apply border-nc-border-gray-medium;
+
+    .anticon {
+      @apply text-nc-content-gray-subtle;
+    }
+  }
+
   // Divider
   .ant-divider {
     @apply border-nc-border-gray-light;

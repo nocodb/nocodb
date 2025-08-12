@@ -1,4 +1,5 @@
 import type { Socket } from 'socket.io';
+import type { Handshake } from 'socket.io/dist/socket-types';
 import type { Handler } from 'express';
 import type * as e from 'express';
 import type { Knex } from 'knex';
@@ -326,7 +327,7 @@ export interface AppConfig {
 }
 
 interface NcSocket extends Socket {
-  user?: UserType;
+  handshake: Handshake & NcRequest;
 }
 
 export { NcContext, NcRequest, NcSocket };

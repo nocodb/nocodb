@@ -21,13 +21,14 @@ export class WorkspaceUsersV3Service {
   constructor(protected workspaceUsersService: WorkspaceUsersService) {
     this.builder = builderGenerator({
       allowed: [
-        'email',
+        'user_email',
         'user_id',
         'created_at',
         'updated_at',
         'workspace_role',
       ],
       mappings: {
+        user_email: 'email',
         user_id: 'fk_user_id',
         workspace_role: 'roles',
       },

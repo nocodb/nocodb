@@ -3,8 +3,7 @@ import type { NcContext } from '~/interface/config';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { NcError } from '~/helpers/catchError';
-import { Workspace } from '~/models/Workspace';
-import { WorkspaceUser } from '~/models/WorkspaceUser';
+import { Workspace, WorkspaceUser } from '~/models';
 
 @Injectable()
 export class WorkspaceV3Service {
@@ -34,7 +33,7 @@ export class WorkspaceV3Service {
     const workspace = await Workspace.get(param.workspaceId);
 
     if (!workspace) {
-      throw new NcError('Workspace not found');
+      NcError.workspaceNotFound(param.workspaceId);
     }
 
     const result: any = {
@@ -52,7 +51,7 @@ export class WorkspaceV3Service {
       });
 
       const members = workspaceUsers.map((user) => ({
-        email: user.email,
+        user_email: user.email,
         user_id: user.fk_user_id,
         created_at: user.created_at,
         updated_at: user.updated_at,

@@ -1,14 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { NcContext, NcRequest } from 'src/interface/config';
-import type { ApiV3DataTransformationBuilder } from 'src/utils/api-v3-data-transformation.builder';
-import Noco from 'src/Noco';
-import { NcError } from 'src/helpers/catchError';
-import { User } from 'src/models';
-import { builderGenerator } from 'src/utils/api-v3-data-transformation.builder';
-import { WorkspaceUsersService } from 'src/ee/services/workspace-users.service';
-import { validatePayload } from 'src/helpers';
-import WorkspaceUser from 'src/ee/models/WorkspaceUser';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
+import type { NcContext, NcRequest } from '~/interface/config';
+import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
+import Noco from '~/Noco';
+import { NcError } from '~/helpers/catchError';
+import { User } from '~/models';
+import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
+import { WorkspaceUsersService } from '~/ee/services/workspace-users.service';
+import { validatePayload } from '~/helpers';
+import WorkspaceUser from '~/ee/models/WorkspaceUser';
 
 @Injectable()
 export class WorkspaceUsersV3Service {
@@ -21,25 +21,17 @@ export class WorkspaceUsersV3Service {
   constructor(protected workspaceUsersService: WorkspaceUsersService) {
     this.builder = builderGenerator({
       allowed: [
-        'id',
         'email',
-        'name',
+        'user_id',
         'created_at',
         'updated_at',
-        'workspace_roles',
-        'workspace_id',
-        'display_name',
-        'invite_accepted',
-        'invite_token',
+        'workspace_role',
       ],
       mappings: {
-        workspace_roles: 'roles',
-        display_name: 'name',
+        user_id: 'fk_user_id',
+        workspace_role: 'roles',
       },
       transformFn(data) {
-        if (!data.name) {
-          data.name = undefined;
-        }
         return data;
       },
     });
@@ -121,9 +113,11 @@ export class WorkspaceUsersV3Service {
       fk_workspace_id: param.workspaceId,
       include_deleted: false,
     });
-    
-    const invitedUsers = allUsers.filter(user => userIds.includes(user.fk_user_id));
-    
+
+    const invitedUsers = allUsers.filter((user) =>
+      userIds.includes(user.fk_user_id),
+    );
+
     return this.builder().build(invitedUsers);
   }
 
@@ -181,9 +175,11 @@ export class WorkspaceUsersV3Service {
       fk_workspace_id: param.workspaceId,
       include_deleted: false,
     });
-    
-    const updatedUsers = allUsers.filter(user => userIds.includes(user.fk_user_id));
-    
+
+    const updatedUsers = allUsers.filter((user) =>
+      userIds.includes(user.fk_user_id),
+    );
+
     return this.builder().build(updatedUsers);
   }
 

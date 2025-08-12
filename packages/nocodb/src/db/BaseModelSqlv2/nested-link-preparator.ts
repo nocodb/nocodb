@@ -31,7 +31,7 @@ export class NestedLinkPreparator {
           baseModel.context,
         );
 
-        const { refContext } = colOptions.getRelContext(baseModel.context)
+        const { refContext } = colOptions.getRelContext(baseModel.context);
 
         const refModel = await Model.get(
           refContext,
@@ -55,13 +55,10 @@ export class NestedLinkPreparator {
           continue;
         }
 
-        const refBaseModel = await Model.getBaseModelSQL(
-          refContext,
-          {
-            model: refModel,
-            dbDriver: baseModel.dbDriver,
-          },
-        );
+        const refBaseModel = await Model.getBaseModelSQL(refContext, {
+          model: refModel,
+          dbDriver: baseModel.dbDriver,
+        });
 
         switch (colOptions.type) {
           case RelationTypes.BELONGS_TO:

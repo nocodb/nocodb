@@ -1,19 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcContext } from '~/interface/config';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { NcError } from '~/helpers/catchError';
-import { Workspace } from '~/ee/models/Workspace';
-import { WorkspaceUser } from '~/ee/models/WorkspaceUser';
-import { WorkspaceUserRoles } from 'nocodb-sdk';
+import { Workspace } from '~/models/Workspace';
+import { WorkspaceUser } from '~/models/WorkspaceUser';
 
 @Injectable()
 export class WorkspaceV3Service {
   protected readonly logger = new Logger(WorkspaceV3Service.name);
-  protected builder: () => ApiV3DataTransformationBuilder<
-    any,
-    Partial<any>
-  >;
+  protected builder: () => ApiV3DataTransformationBuilder<any, Partial<any>>;
 
   constructor() {
     this.builder = builderGenerator({
@@ -36,7 +32,7 @@ export class WorkspaceV3Service {
     param: { workspaceId: string; include?: string[] },
   ) {
     const workspace = await Workspace.get(param.workspaceId);
-    
+
     if (!workspace) {
       throw new NcError('Workspace not found');
     }
@@ -55,7 +51,7 @@ export class WorkspaceV3Service {
         include_deleted: false,
       });
 
-      const members = workspaceUsers.map(user => ({
+      const members = workspaceUsers.map((user) => ({
         email: user.email,
         user_id: user.fk_user_id,
         created_at: user.created_at,

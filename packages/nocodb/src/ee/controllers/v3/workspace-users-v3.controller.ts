@@ -9,7 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import type { NcContext, NcRequest } from '~/interface/config';
+import { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -50,7 +50,9 @@ export class WorkspaceUsersV3Controller {
 
     return await this.workspaceUsersV3Service.userInvite(context, {
       workspaceId,
-      workspaceUsers: Array.isArray(workspaceUsers) ? workspaceUsers : [workspaceUsers],
+      workspaceUsers: Array.isArray(workspaceUsers)
+        ? workspaceUsers
+        : [workspaceUsers],
       req,
     });
   }
@@ -69,7 +71,9 @@ export class WorkspaceUsersV3Controller {
     this.validatePayload(workspaceUsers);
 
     return await this.workspaceUsersV3Service.workspaceUserUpdate(context, {
-      workspaceUsers: Array.isArray(workspaceUsers) ? workspaceUsers : [workspaceUsers],
+      workspaceUsers: Array.isArray(workspaceUsers)
+        ? workspaceUsers
+        : [workspaceUsers],
       workspaceId,
       req,
     });
@@ -88,7 +92,9 @@ export class WorkspaceUsersV3Controller {
     return await this.workspaceUsersV3Service.workspaceUserDelete(context, {
       workspaceId,
       req,
-      workspaceUsers: Array.isArray(workspaceUsers) ? workspaceUsers : [workspaceUsers],
+      workspaceUsers: Array.isArray(workspaceUsers)
+        ? workspaceUsers
+        : [workspaceUsers],
     });
   }
 

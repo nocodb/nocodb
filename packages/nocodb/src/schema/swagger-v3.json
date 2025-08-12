@@ -13,6 +13,20 @@
       "url": "https://app.nocodb.com"
     }
   ],
+  "tags": [
+    {
+      "name": "Bases",
+      "description": "Operations related to bases"
+    },
+    {
+      "name": "Workspaces",
+      "description": "Operations related to workspaces"
+    },
+    {
+      "name": "Workspace Members",
+      "description": "Operations related to workspace members"
+    }
+  ],
   "paths": {
     "/api/v3/meta/workspaces/{workspaceId}/bases": {
       "get": {
@@ -148,6 +162,388 @@
                       "created_at": "2024-12-28 09:52:29+00:00",
                       "updated_at": "2024-12-28 09:52:29+00:00",
                       "workspace_id": "w6dw3fo0"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/workspaces/{workspaceId}": {
+      "get": {
+        "summary": "Get workspace metadata",
+        "operationId": "workspace-read",
+        "description": "Retrieve metadata for a specific workspace. Optionally include workspace members.",
+        "tags": [
+          "Workspaces"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace."
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "enum": ["members"]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": ["members"]
+                  }
+                }
+              ]
+            },
+            "description": "Include additional data. Use 'members' to include workspace member information.",
+            "example": "members"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace metadata retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Workspace"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkspaceWithMembers"
+                    }
+                  ]
+                },
+                "examples": {
+                  "Basic Workspace": {
+                    "value": {
+                      "id": "w6dw3fo0",
+                      "title": "My Workspace",
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z"
+                    }
+                  },
+                  "Workspace with Members": {
+                    "value": {
+                      "id": "w6dw3fo0",
+                      "title": "My Workspace",
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z",
+                      "individual_members": {
+                        "workspace_members": [
+                          {
+                            "email": "user@example.com",
+                            "user_id": "usrL2PNC5o3H4lBEi",
+                            "created_at": "2025-01-16T06:04:18.000Z",
+                            "updated_at": "2025-01-16T06:04:18.000Z",
+                            "workspace_role": "workspace-level-owner"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/workspaces/{workspaceId}/members": {
+      "get": {
+        "summary": "List workspace members",
+        "operationId": "workspace-members-list",
+        "description": "Retrieve a list of members associated with a specific workspace.",
+        "tags": [
+          "Workspace Members"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request was successful, and a list of workspace members is returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WorkspaceUser"
+                      },
+                      "description": "List of workspace members."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      },
+      "post": {
+        "summary": "Add workspace members",
+        "description": "Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body.",
+        "operationId": "workspace-members-invite",
+        "tags": [
+          "Workspace Members"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace where the members will be added."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/WorkspaceUserCreate"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/WorkspaceUserCreate"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "email": "user@example.com",
+                    "workspace_role": "workspace-level-viewer"
+                  }
+                },
+                "Example 2": {
+                  "value": [
+                    {
+                      "email": "user1@example.com",
+                      "workspace_role": "workspace-level-editor"
+                    },
+                    {
+                      "email": "user2@example.com",
+                      "workspace_role": "workspace-level-viewer"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace members were added successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkspaceUser"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update workspace members",
+        "description": "Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body.",
+        "operationId": "workspace-members-update",
+        "tags": [
+          "Workspace Members"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace where the members will be updated."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/WorkspaceUserUpdate"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/WorkspaceUserUpdate"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "id": "user123",
+                    "workspace_role": "workspace-level-editor"
+                  }
+                },
+                "Example 2": {
+                  "value": [
+                    {
+                      "id": "user123",
+                      "workspace_role": "workspace-level-editor"
+                    },
+                    {
+                      "id": "user456",
+                      "workspace_role": "workspace-level-viewer"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace members were updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkspaceUser"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete workspace members",
+        "description": "Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body.",
+        "operationId": "workspace-members-delete",
+        "tags": [
+          "Workspace Members"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace where the members will be removed."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/WorkspaceUserDelete"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/WorkspaceUserDelete"
+                    }
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "id": "user123"
+                  }
+                },
+                "Example 2": {
+                  "value": [
+                    {
+                      "id": "user123"
+                    },
+                    {
+                      "id": "user456"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace members were removed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "The user has been deleted successfully"
                     }
                   }
                 }
@@ -6860,6 +7256,194 @@
           "commenter",
           "no-access"
         ]
+      },
+      "Workspace": {
+        "type": "object",
+        "description": "Basic workspace information",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the workspace"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workspace was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workspace was last updated"
+          }
+        },
+        "required": ["id", "title", "created_at", "updated_at"]
+      },
+      "WorkspaceWithMembers": {
+        "type": "object",
+        "description": "Workspace information including member details",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Workspace"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "individual_members": {
+                "type": "object",
+                "properties": {
+                  "workspace_members": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/WorkspaceMember"
+                    },
+                    "description": "List of workspace members"
+                  }
+                },
+                "required": ["workspace_members"]
+              }
+            },
+            "required": ["individual_members"]
+          }
+        ]
+      },
+      "WorkspaceMember": {
+        "type": "object",
+        "description": "Individual workspace member information",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of the member"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "Unique identifier for the user"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the user was added to the workspace"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the user was last updated in the workspace"
+          },
+          "workspace_role": {
+            "$ref": "#/components/schemas/WorkspaceRoles",
+            "description": "Role assigned to the user in the workspace"
+          }
+        },
+        "required": ["email", "user_id", "created_at", "updated_at", "workspace_role"]
+      },
+      "WorkspaceUser": {
+        "type": "object",
+        "description": "Workspace user information",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the user"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of the user"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the user"
+          },
+          "workspace_roles": {
+            "$ref": "#/components/schemas/WorkspaceRoles",
+            "description": "Workspace roles assigned to the user"
+          },
+          "workspace_id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the user was added to the workspace"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the user was last updated in the workspace"
+          },
+          "invite_accepted": {
+            "type": "boolean",
+            "description": "Whether the user has accepted the workspace invitation"
+          },
+          "invite_token": {
+            "type": "string",
+            "description": "Invitation token for the user"
+          }
+        },
+        "required": ["id", "email", "workspace_roles"]
+      },
+      "WorkspaceUserCreate": {
+        "type": "object",
+        "description": "Request body for creating workspace users",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the user (optional if email is provided)"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of the user (optional if id is provided)"
+          },
+          "user_name": {
+            "type": "string",
+            "description": "Name of the user (optional)"
+          },
+          "workspace_role": {
+            "$ref": "#/components/schemas/WorkspaceRoles",
+            "description": "Workspace role to assign to the user"
+          }
+        },
+        "required": ["workspace_role"]
+      },
+      "WorkspaceUserUpdate": {
+        "type": "object",
+        "description": "Request body for updating workspace users",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the user (optional if email is provided)"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of the user (optional if id is provided)"
+          },
+          "workspace_role": {
+            "$ref": "#/components/schemas/WorkspaceRoles",
+            "description": "New workspace role to assign to the user"
+          }
+        },
+        "required": ["workspace_role"]
+      },
+      "WorkspaceUserDelete": {
+        "type": "object",
+        "description": "Request body for deleting workspace users",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the user (optional if email is provided)"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of the user (optional if id is provided)"
+          }
+        }
       },
       "WorkspaceRoles": {
         "type": "string",

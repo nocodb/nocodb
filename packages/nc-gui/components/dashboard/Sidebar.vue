@@ -37,7 +37,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none w-full h-full font-medium z-2"
+    class="nc-sidebar flex flex-col bg-nc-bg-gray-extralight outline-r-1 outline-nc-border-gray-light select-none w-full h-full font-medium z-2"
     :style="{
       outlineWidth: '1px',
     }"
@@ -94,7 +94,7 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .nc-sidebar-top-button {
-  @apply flex flex-row mx-1 px-3.5 rounded-md items-center py-0.75 my-0.5 gap-x-2 hover:bg-gray-200 cursor-pointer;
+  @apply flex flex-row mx-1 px-3.5 rounded-md items-center py-0.75 my-0.5 gap-x-2 hover:bg-nc-bg-gray-medium cursor-pointer;
 }
 
 .nc-sidebar-bottom-section {

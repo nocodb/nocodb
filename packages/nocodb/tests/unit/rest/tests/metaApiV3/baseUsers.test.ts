@@ -34,14 +34,14 @@ export default function () {
     async function _validateBaseUser(user) {
       expect(user).to.be.an('object');
       expect(Object.keys(user)).to.include.members([
-        'id',
+        'user_id',
         'email',
         'base_role',
         'created_at',
-        ...(isEE() ? ['workspace_role', 'workspace_id'] : []),
+        ...(isEE() ? ['workspace_role'] : []),
       ]);
 
-      expect(user).to.have.property('id').that.is.a('string');
+      expect(user).to.have.property('user_id').that.is.a('string');
       expect(user)
         .to.have.property('email')
         .that.is.a('string')
@@ -63,7 +63,6 @@ export default function () {
             'workspace-level-viewer',
             'workspace-level-no-access',
           ]);
-        expect(user).to.have.property('workspace_id', context.fk_workspace_id);
       }
 
       // Validate date fields are valid ISO strings
@@ -73,7 +72,7 @@ export default function () {
     it('List Base Users v3', async () => {
       // Get base users
       const getBaseUsers = await request(context.app)
-        .get(`/api/v3/meta/bases/${baseId}/users`)
+        .get(`/api/v3/meta/bases/${baseId}?include[]=members`)
         .set('xc-token', context.xc_token)
         .expect(200);
 
@@ -81,11 +80,11 @@ export default function () {
       // console.log(JSON.stringify(getBaseUsers.body, null, 2));
 
       // Validation
-      const baseUsers = getBaseUsers.body.list;
+      const baseMembers = getBaseUsers.body.individual_members.base_members;
 
       // Ensure base users list is an array
-      expect(baseUsers).to.be.an('array').that.is.not.empty;
-      await _validateBaseUser(baseUsers[0]);
+      expect(baseMembers).to.be.an('array').that.is.not.empty;
+      await _validateBaseUser(baseMembers[0]);
     });
     it('Invite Base User v3 - Email, Single', async () => {
       // Invite base user

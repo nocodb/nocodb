@@ -86,7 +86,7 @@ export class BaseMembersV3Controller {
         ? baseMembers
         : [baseMembers]
       ).map((user) => ({
-        id: user.user_id,
+        user_id: user.user_id,
         base_role: BaseRolesV3Type.NoAccess,
       })),
     });

@@ -140,6 +140,7 @@ export class BaseMembersV3Service {
       'swagger-v3.json#/components/schemas/BaseMemberUpdate',
       param.baseMembers,
       true,
+      context,
     );
 
     if (param.baseMembers?.length > V3_META_REQUEST_LIMIT) {

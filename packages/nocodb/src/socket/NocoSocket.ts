@@ -3,5 +3,5 @@ export default class NocoSocket {
 
   public static handleConnection(..._args: unknown[]) {}
 
-  public static broadcastDataEvent(..._args: unknown[]) {}
+  public static broadcastEvent(..._args: unknown[]) {}
 }

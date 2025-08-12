@@ -7,6 +7,7 @@ export enum EventType {
   CONNECTION_ERROR = 'connection-error',
   NOTIFICATION = 'notification',
   DATA_EVENT = 'event-data',
+  META_EVENT = 'event-meta',
   DASHBOARD_EVENT = 'event-dashboard',
   WIDGET_EVENT = 'event-widget',
   SCRIPT_EVENT = 'event-script',

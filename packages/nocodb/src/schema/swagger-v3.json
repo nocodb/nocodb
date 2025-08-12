@@ -2250,7 +2250,7 @@
             "description": "Server error."
           }
         }
-      },
+      }
     },
     "/api/v3/meta/bases/{base_id}/members": {
       "post": {

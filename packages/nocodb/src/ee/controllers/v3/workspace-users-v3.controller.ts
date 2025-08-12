@@ -23,6 +23,21 @@ export class WorkspaceUsersV3Controller {
   constructor(
     protected readonly workspaceUsersV3Service: WorkspaceUsersV3Service,
   ) {}
+
+
+  async canExecute(context: NcContext) {
+    if (
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
+        context.workspace_id,
+      ))
+    ) {
+      NcError.get(context).invalidRequestBody(
+        'Accessing member management api is only available on paid plans. Please upgrade your workspace plan to enable this feature.',
+      );
+    }
+  }
+
   //
   // @Get(['/api/v3/meta/workspaces/:workspaceId/members'])
   // @Acl('workspaceUserList')
@@ -48,6 +63,9 @@ export class WorkspaceUsersV3Controller {
     @Req() req: NcRequest,
     @Body() workspaceUsers: any | any[],
   ): Promise<any> {
+
+    await this.canExecute(context);
+
     this.validatePayload(workspaceUsers);
 
     return await this.workspaceUsersV3Service.userInvite(context, {
@@ -72,6 +90,8 @@ export class WorkspaceUsersV3Controller {
     req: NcRequest,
     @Body() workspaceUsers: any | any[],
   ): Promise<any> {
+    await this.canExecute(context);
+
     this.validatePayload(workspaceUsers);
 
     return await this.workspaceUsersV3Service.workspaceUserUpdate(context, {
@@ -93,6 +113,9 @@ export class WorkspaceUsersV3Controller {
     @Req() req: NcRequest,
     @Body() workspaceUsers: any | any[],
   ): Promise<any> {
+
+    await this.canExecute(context);
+
     this.validatePayload(workspaceUsers);
 
     return await this.workspaceUsersV3Service.workspaceUserDelete(context, {

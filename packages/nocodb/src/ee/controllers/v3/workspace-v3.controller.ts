@@ -10,6 +10,23 @@ import { WorkspaceV3Service } from '~/ee/services/v3/workspace-v3.service';
 @Controller()
 export class WorkspaceV3Controller {
   constructor(protected readonly workspaceV3Service: WorkspaceV3Service) {}
+  /**
+   * Validates if the user has access to the member management API.
+   * This method checks if the feature is enabled for the workspace.
+   * If not, it throws an error indicating that the feature is only available on paid plans.
+   */
+  async canExecute(context: NcContext) {
+    if (
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
+        context.workspace_id,
+      ))
+    ) {
+      NcError.get(context).invalidRequestBody(
+        'Accessing member management api is only available on paid plans. Please upgrade your workspace plan to enable this feature.',
+      );
+    }
+  }
 
   @Get(['/api/v3/meta/workspaces/:workspaceId'])
   @Acl('workspaceRead', {
@@ -22,6 +39,8 @@ export class WorkspaceV3Controller {
     workspaceId: string,
     @Query('include') include?: string | string[],
   ) {
+    await this.canExecute(context);
+
     // Handle both single string and array of strings for include parameter
     const includeArray = Array.isArray(include)
       ? include

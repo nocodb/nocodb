@@ -1,6 +1,7 @@
 import { UserType } from "~/lib/Api";
 
 export enum EventType {
+  HANDSHAKE = 'handshake',
   CONNECTION_WELCOME = 'connection-welcome',
   CONNECTION_ERROR = 'connection-error',
   NOTIFICATION = 'notification',

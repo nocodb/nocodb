@@ -117,7 +117,7 @@ export class WorkspaceUsersV3Controller {
 
     this.validatePayload(workspaceUsers);
 
-    return await this.workspaceUsersV3Service.workspaceUserDelete(context, {
+    await this.workspaceUsersV3Service.workspaceUserDelete(context, {
       workspaceId,
       req,
       workspaceUsers: Array.isArray(workspaceUsers)

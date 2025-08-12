@@ -27,16 +27,16 @@
   --color-brand-800: #142966;
   --color-brand-900: #0a1433;
 
-  --color-grey-50: #f9f9fa;
-  --color-grey-100: #f4f4f5;
-  --color-grey-200: #e7e7e9;
-  --color-grey-300: #d5d5d9;
-  --color-grey-400: #9aa2af;
-  --color-grey-500: #6a7184;
-  --color-grey-600: #4a5268;
-  --color-grey-700: #374151;
-  --color-grey-800: #1f293a;
-  --color-grey-900: #101015;
+  --color-gray-50: #f9f9fa;
+  --color-gray-100: #f4f4f5;
+  --color-gray-200: #e7e7e9;
+  --color-gray-300: #d5d5d9;
+  --color-gray-400: #9aa2af;
+  --color-gray-500: #6a7184;
+  --color-gray-600: #4a5268;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f293a;
+  --color-gray-900: #101015;
 
   --color-green-50: #ecfff2;
   --color-green-100: #d4f7e0;
@@ -166,16 +166,16 @@
   --color-brand-800: #d9e5ff;
   --color-brand-900: #eef4ff;
 
-  --color-grey-50: #1d1d1f;
-  --color-grey-100: #2a2c2e;
-  --color-grey-200: #3b3d40;
-  --color-grey-300: #505257;
-  --color-grey-400: #6c6f75;
-  --color-grey-500: #989ca5;
-  --color-grey-600: #c5cbd6;
-  --color-grey-700: #d5dce8;
-  --color-grey-800: #e2e9f6;
-  --color-grey-900: #e9f0fd;
+  --color-gray-50: #1d1d1f;
+  --color-gray-100: #2a2c2e;
+  --color-gray-200: #3b3d40;
+  --color-gray-300: #505257;
+  --color-gray-400: #6c6f75;
+  --color-gray-500: #989ca5;
+  --color-gray-600: #c5cbd6;
+  --color-gray-700: #d5dce8;
+  --color-gray-800: #e2e9f6;
+  --color-gray-900: #e9f0fd;
 
   --color-green-50: #052e15;
   --color-green-100: #15522c;
@@ -304,16 +304,16 @@
   --color-brand-800: #ccd9ff;
   --color-brand-900: #e5ecff;
 
-  --color-grey-50: #0d1117;
-  --color-grey-100: #161b22;
-  --color-grey-200: #21262d;
-  --color-grey-300: #30363d;
-  --color-grey-400: #484f58;
-  --color-grey-500: #6e7681;
-  --color-grey-600: #8b949e;
-  --color-grey-700: #b1bac4;
-  --color-grey-800: #c9d1d9;
-  --color-grey-900: #f0f6fc;
+  --color-gray-50: #0d1117;
+  --color-gray-100: #161b22;
+  --color-gray-200: #21262d;
+  --color-gray-300: #30363d;
+  --color-gray-400: #484f58;
+  --color-gray-500: #6e7681;
+  --color-gray-600: #8b949e;
+  --color-gray-700: #b1bac4;
+  --color-gray-800: #c9d1d9;
+  --color-gray-900: #f0f6fc;
 
   --color-green-50: #0f331c;
   --color-green-100: #174d2a;
@@ -429,25 +429,25 @@
 :root,
 [theme='dark'] {
   --nc-content-grey-extreme: var(--color-base-black);
-  --nc-content-grey-emphasis: var(--color-grey-900);
-  --nc-content-grey-default: var(--color-grey-800);
-  --nc-content-grey-subtle: var(--color-grey-700);
-  --nc-content-grey-subtle-2: var(--color-grey-600);
-  --nc-content-grey-muted: var(--color-grey-500);
+  --nc-content-grey-emphasis: var(--color-gray-900);
+  --nc-content-grey-default: var(--color-gray-800);
+  --nc-content-grey-subtle: var(--color-gray-700);
+  --nc-content-grey-subtle-2: var(--color-gray-600);
+  --nc-content-grey-muted: var(--color-gray-500);
 
   --nc-content-brand-default: var(--color-brand-500);
-  --nc-content-brand-hover: var(--color-grey-300);
+  --nc-content-brand-hover: var(--color-gray-300);
   --nc-content-brand-disabled: var(--color-brand-600);
 
   --nc-content-inverted-primary-default: var(--color-base-white);
-  --nc-content-inverted-secondary-default: var(--color-grey-700);
-  --nc-content-inverted-secondary-hover: var(--color-grey-700);
+  --nc-content-inverted-secondary-default: var(--color-gray-700);
+  --nc-content-inverted-secondary-hover: var(--color-gray-700);
 
-  --nc-background-grey-extra-light: var(--color-grey-50);
-  --nc-background-grey-light: var(--color-grey-100);
-  --nc-background-grey-medium: var(--color-grey-200);
-  --nc-background-grey-dark: var(--color-grey-300);
-  --nc-background-grey-extra-dark: var(--color-grey-400);
+  --nc-background-grey-extra-light: var(--color-gray-50);
+  --nc-background-grey-light: var(--color-gray-100);
+  --nc-background-grey-medium: var(--color-gray-200);
+  --nc-background-grey-dark: var(--color-gray-300);
+  --nc-background-grey-extra-dark: var(--color-gray-400);
 
   --nc-background-default: var(--color-base-white);
   --nc-background-brand: var(--color-brand-50);
@@ -509,25 +509,25 @@
   --nc-content-maroon-light: var(--color-maroon-300);
 
   --nc-content-inverted-primary-hover: var(--color-base-white);
-  --nc-content-inverted-primary-disabled: var(--color-grey-400);
-  --nc-content-inverted-secondary-disabled: var(--color-grey-400);
+  --nc-content-inverted-primary-disabled: var(--color-gray-400);
+  --nc-content-inverted-secondary-disabled: var(--color-gray-400);
 
   --nc-fill-primary-default: var(--color-brand-500);
   --nc-fill-primary-hover: var(--color-brand-600);
-  --nc-fill-primary-disabled: var(--color-grey-300);
+  --nc-fill-primary-disabled: var(--color-gray-300);
   --nc-fill-primary-disabled-2: var(--color-brand-200);
 
   --nc-fill-secondary-default: var(--color-base-white);
-  --nc-fill-secondary-hover: var(--color-grey-50);
+  --nc-fill-secondary-hover: var(--color-gray-50);
   --nc-fill-secondary-disabled: var(--color-base-white);
 
   --nc-fill-warning-default: var(--color-red-500);
   --nc-fill-warning-hover: var(--color-red-600);
-  --nc-fill-warning-disabled: var(--color-grey-50);
+  --nc-fill-warning-disabled: var(--color-gray-50);
 
   --nc-fill-success-default: var(--color-green-500);
   --nc-fill-success-hover: var(--color-green-600);
-  --nc-fill-success-disabled: var(--color-grey-50);
+  --nc-fill-success-disabled: var(--color-gray-50);
 
   --nc-fill-coloured-red-dark: var(--color-red-700);
   --nc-fill-coloured-red-medium: var(--color-red-500);
@@ -565,11 +565,11 @@
 
   --nc-border-brand: var(--color-brand-500);
 
-  --nc-border-grey-extra-light: var(--color-grey-50);
-  --nc-border-grey-light: var(--color-grey-100);
-  --nc-border-grey-medium: var(--color-grey-200);
-  --nc-border-grey-dark: var(--color-grey-300);
-  --nc-border-grey-extra-dark: var(--color-grey-400);
+  --nc-border-grey-extra-light: var(--color-gray-50);
+  --nc-border-grey-light: var(--color-gray-100);
+  --nc-border-grey-medium: var(--color-gray-200);
+  --nc-border-grey-dark: var(--color-gray-300);
+  --nc-border-grey-extra-dark: var(--color-gray-400);
 
   --nc-border-coloured-red: var(--color-red-500);
   --nc-border-coloured-green: var(--color-green-500);

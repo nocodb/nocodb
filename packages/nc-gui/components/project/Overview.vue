@@ -98,7 +98,7 @@ const onCreateSyncClick = () => {
           @click="openTableCreateDialog()"
         >
           <template #icon>
-            <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-brand-500" />
+            <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-nc-content-brand" />
           </template>
         </ProjectActionItem>
 
@@ -111,7 +111,7 @@ const onCreateSyncClick = () => {
           @click="isImportModalOpen = true"
         >
           <template #icon>
-            <GeneralIcon icon="download" class="!h-7.5 !w-7.5 !text-orange-700" />
+            <GeneralIcon icon="download" class="!h-7.5 !w-7.5 !text-nc-content-orange-dark" />
           </template>
         </ProjectActionItem>
 
@@ -134,7 +134,7 @@ const onCreateSyncClick = () => {
             @click="onCreateBaseClick"
           >
             <template #icon>
-              <GeneralIcon icon="server1" class="!h-7 !w-7 !text-green-700" />
+              <GeneralIcon icon="server1" class="!h-7 !w-7 !text-nc-content-green-dark" />
             </template>
           </ProjectActionItem>
         </NcTooltip>
@@ -148,7 +148,7 @@ const onCreateSyncClick = () => {
           @click="onCreateSyncClick"
         >
           <template #icon>
-            <GeneralIcon icon="ncZap" class="!h-7 !w-7 !text-green-700" />
+            <GeneralIcon icon="ncZap" class="!h-7 !w-7 !text-nc-content-green-dark" />
           </template>
         </ProjectActionItem>
         <ProjectActionCreateEmptyScript />

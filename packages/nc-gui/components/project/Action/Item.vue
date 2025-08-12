@@ -37,14 +37,14 @@ defineProps<{
 
 <style lang="scss" scoped>
 .nc-base-view-all-table-btn {
-  @apply flex-none flex flex-col gap-y-3 p-4 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[230px] max-w-[245px] text-gray-800  transition-all duration-300;
+  @apply flex-none flex flex-col gap-y-3 p-4 bg-nc-bg-gray-extralight rounded-xl border-1 border-nc-border-gray-light min-w-[230px] max-w-[245px] text-nc-content-gray  transition-all duration-300;
 
   &.disabled {
-    @apply bg-gray-50 text-gray-400 hover:(bg-gray-50 text-gray-400) cursor-not-allowed;
+    @apply bg-nc-bg-gray-extralight text-[var(--color-gray-400)] hover:(bg-nc-bg-gray-extralight text-gray-400) cursor-not-allowed;
   }
 
   &:hover:not(.loading) {
-    @apply bg-gray-100 border-gray-200;
+    @apply bg-nc-bg-gray-light border-nc-border-gray-medium;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
 
@@ -57,11 +57,11 @@ defineProps<{
   }
 
   .label {
-    @apply text-base font-bold whitespace-nowrap text-gray-800;
+    @apply text-base font-bold whitespace-nowrap text-nc-content-gray;
   }
 
   .subtext {
-    @apply text-xs text-gray-600;
+    @apply text-xs text-nc-content-gray-subtle2;
   }
 
   :deep(.ant-skeleton-title) {

@@ -38,7 +38,7 @@ const isActionVisible = computed(() => {
     @click="openNewDashboardModal"
   >
     <template #icon>
-      <GeneralIcon icon="dashboards" class="!h-8 !w-8 !text-brand-500" />
+      <GeneralIcon icon="dashboards" class="!h-8 !w-8 !text-nc-content-brand" />
     </template>
   </ProjectActionItem>
 </template>

@@ -51,7 +51,7 @@ export class WorkspaceV3Service {
       });
 
       const members = workspaceUsers.map((user) => ({
-        user_email: user.email,
+        email: user.email,
         user_id: user.fk_user_id,
         created_at: user.created_at,
         updated_at: user.updated_at,

@@ -22,7 +22,7 @@ export class WorkspaceUsersV3Service {
     this.builder = builderGenerator({
       allowed: ['email', 'fk_user_id', 'created_at', 'updated_at', 'roles'],
       mappings: {
-        email: 'user_email',
+        email: 'email',
         fk_user_id: 'user_id',
         roles: 'workspace_role',
       },
@@ -50,7 +50,7 @@ export class WorkspaceUsersV3Service {
       workspaceId: string;
       workspaceUsers: {
         user_id?: string;
-        user_email?: string;
+        email?: string;
         workspace_role: string;
       }[];
       req: NcRequest;
@@ -72,11 +72,11 @@ export class WorkspaceUsersV3Service {
           if (!user) {
             NcError.userNotFound(workspaceUser.user_id);
           }
-          workspaceUser.user_email = user.email;
-        } else if (workspaceUser.user_email) {
-          user = await User.getByEmail(workspaceUser.user_email, ncMeta);
+          workspaceUser.email = user.email;
+        } else if (workspaceUser.email) {
+          user = await User.getByEmail(workspaceUser.email, ncMeta);
         } else {
-          NcError.badRequest('Either email or id is required');
+          NcError.badRequest('Either email or user_id is required');
         }
 
         // Set default role if not provided
@@ -88,7 +88,7 @@ export class WorkspaceUsersV3Service {
           {
             workspaceId: param.workspaceId,
             body: {
-              email: workspaceUser.user_email,
+              email: workspaceUser.email,
               roles: workspaceUser.workspace_role,
             },
             siteUrl: param.req.ncSiteUrl,
@@ -98,7 +98,7 @@ export class WorkspaceUsersV3Service {
           ncMeta,
         );
 
-        user = await User.getByEmail(workspaceUser.user_email, ncMeta);
+        user = await User.getByEmail(workspaceUser.email, ncMeta);
         userIds.push(user.id);
       }
       await ncMeta.commit();
@@ -125,7 +125,7 @@ export class WorkspaceUsersV3Service {
     param: {
       workspaceUsers: {
         user_id?: string;
-        user_email?: string;
+        email?: string;
         workspace_role: string;
       }[];
       req: any;
@@ -144,12 +144,12 @@ export class WorkspaceUsersV3Service {
       for (const workspaceUser of param.workspaceUsers) {
         let userId = workspaceUser.user_id;
 
-        if (!workspaceUser.user_id && workspaceUser.user_email) {
-          const user = await User.getByEmail(workspaceUser.user_email, ncMeta);
+        if (!workspaceUser.user_id && workspaceUser.email) {
+          const user = await User.getByEmail(workspaceUser.email, ncMeta);
           if (user) {
             userId = user.id;
           } else {
-            NcError.userNotFound(workspaceUser.user_email);
+            NcError.userNotFound(workspaceUser.email);
           }
         }
 
@@ -191,7 +191,7 @@ export class WorkspaceUsersV3Service {
     param: {
       workspaceUsers: {
         user_id?: string;
-        user_email?: string;
+        email?: string;
         workspace_role: string;
       }[];
       workspaceId: string;
@@ -209,12 +209,12 @@ export class WorkspaceUsersV3Service {
       for (const workspaceUser of param.workspaceUsers) {
         let userId = workspaceUser.user_id;
 
-        if (!workspaceUser.user_id && workspaceUser.user_email) {
-          const user = await User.getByEmail(workspaceUser.user_email, ncMeta);
+        if (!workspaceUser.user_id && workspaceUser.email) {
+          const user = await User.getByEmail(workspaceUser.email, ncMeta);
           if (user) {
             userId = user.id;
           } else {
-            NcError.userNotFound(workspaceUser.user_email);
+            NcError.userNotFound(workspaceUser.email);
           }
         }
 

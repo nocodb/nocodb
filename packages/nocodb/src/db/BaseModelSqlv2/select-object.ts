@@ -1,4 +1,4 @@
-import { ButtonActionsType, ColumnType, UITypes } from "nocodb-sdk";
+import { ButtonActionsType, UITypes } from 'nocodb-sdk';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import type { ColumnType } from 'nocodb-sdk';
 import type { Knex } from 'knex';

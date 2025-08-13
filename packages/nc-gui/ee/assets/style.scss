@@ -121,7 +121,7 @@ body,
 .ant-layout,
 main {
   --tw-bg-opacity: 1;
-  
+
   @apply m-0 h-full w-full bg-nc-bg-default text-nc-content-gray;
 }
 
@@ -136,10 +136,10 @@ main {
 .nc-input-shadow {
   &.ant-input {
     &:not(:hover):not(:focus):not(:disabled) {
-      @apply shadow-default border-gray-200;
+      @apply shadow-default border-nc-border-gray-medium;
     }
     &:hover:not(:focus):not(:disabled) {
-      @apply border-gray-200 shadow-hover;
+      @apply border-nc-border-gray-medium shadow-hover;
     }
     &:not(.nc-ai-input):focus {
       @apply shadow-selected ring-0;
@@ -151,11 +151,11 @@ main {
 
   &.ant-input-affix-wrapper {
     &:not(:hover):not(.ant-input-affix-wrapper-focused):not(.ant-input-affix-wrapper-disabled) {
-      @apply shadow-default border-gray-200;
+      @apply shadow-default border-nc-border-gray-medium;
     }
 
     &:hover:not(.ant-input-affix-wrapper-focused):not(.ant-input-affix-wrapper-disabled) {
-      @apply border-gray-200 shadow-hover;
+      @apply border-nc-border-gray-medium shadow-hover;
     }
     &:not(.nc-ai-input):focus {
       @apply shadow-selected ring-0;
@@ -179,7 +179,7 @@ main {
   }
 
   .ant-input::placeholder {
-    @apply text-gray-500;
+    @apply text-nc-content-gray-muted;
   }
 }
 

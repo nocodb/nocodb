@@ -275,49 +275,6 @@
       }
     },
     "/api/v3/meta/workspaces/{workspaceId}/members": {
-      "get": {
-        "summary": "List workspace members",
-        "operationId": "workspace-members-list",
-        "description": "Retrieve a list of members associated with a specific workspace.",
-        "tags": [
-          "Workspace Members"
-        ],
-        "parameters": [
-          {
-            "name": "workspaceId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the workspace."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "The request was successful, and a list of workspace members is returned.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/WorkspaceUser"
-                      },
-                      "description": "List of workspace members."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "The server encountered an unexpected error while processing the request."
-          }
-        }
-      },
       "post": {
         "summary": "Add workspace members",
         "description": "Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body.",

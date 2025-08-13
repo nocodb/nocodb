@@ -1051,15 +1051,15 @@ svg.nc-virtual-cell-icon {
 .ant-switch:focus-visible,
 .ant-switch-checked:focus-visible {
   &.nc-ai-input {
-    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #7d26cd;
+    box-shadow: 0 0 0 2px var(--nc-bg-default), 0 0 0 4px #7d26cd;
   }
   &:not(.nc-ai-input) {
-    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
+    box-shadow: 0 0 0 2px var(--nc-bg-default), 0 0 0 4px #3366ff;
   }
 }
 
 .ant-switch {
-  background: #e7e7e9 !important;
+  background: var(--nc-bg-gray-medium) !important;
 }
 
 .ant-switch-checked {

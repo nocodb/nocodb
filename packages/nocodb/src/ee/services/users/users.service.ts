@@ -782,8 +782,6 @@ export class UsersService extends UsersServiceCE {
     }
   }
 
-
-
   protected clearCookie(param: { res: any; req: NcRequest }) {
     param.res.clearCookie('refresh_token', {
       httpOnly: true,

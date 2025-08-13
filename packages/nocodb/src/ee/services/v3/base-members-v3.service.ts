@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
-import { BaseUsersV3Service as BaseUsersV3ServiceCE } from 'src/services/v3/base-users-v3.service';
+import { BaseMembersV3Service as BaseMembersV3ServiceCE } from 'src/services/v3/base-members-v3.service';
 import type { ProjectUserReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Noco from '~/Noco';
@@ -10,9 +10,10 @@ import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { WorkspaceUser } from '~/models';
 import { validatePayload } from '~/helpers';
+import { V3_META_REQUEST_LIMIT } from '~/constants';
 
 @Injectable()
-export class BaseUsersV3Service extends BaseUsersV3ServiceCE {
+export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
   constructor(
     protected baseUsersService: BaseUsersService,
     protected workspaceUsersService: WorkspaceUsersService,
@@ -24,28 +25,31 @@ export class BaseUsersV3Service extends BaseUsersV3ServiceCE {
     context: NcContext,
     param: {
       baseId: string;
-      baseUsers: any[];
+      baseMembers: any[];
       req: NcRequest;
     },
   ): Promise<any> {
     validatePayload(
-      'swagger-v3.json#/components/schemas/BaseUserCreate',
-      param.baseUsers,
+      'swagger-v3.json#/components/schemas/BaseMemberCreate',
+      param.baseMembers,
       true,
     );
 
+    if (param.baseMembers?.length > V3_META_REQUEST_LIMIT) {
+      NcError.get(context).maxInsertLimitExceeded(V3_META_REQUEST_LIMIT);
+    }
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {
-      for (const baseUser of param.baseUsers) {
+      for (const baseUser of param.baseMembers) {
         // if workspace user is not provided, then we need to invite the user to workspace with NO_ACCESS role
         // if (!baseUser.workspace_role) {
         // get the user from workspace
         let user: User;
-        if (baseUser.id) {
-          user = await User.get(baseUser.id, ncMeta);
+        if (baseUser.user_id) {
+          user = await User.get(baseUser.user_id, ncMeta);
           if (!user) {
-            NcError.userNotFound(baseUser.id);
+            NcError.userNotFound(baseUser.user_id);
           }
           baseUser.email = user.email;
         } else if (baseUser.email) {

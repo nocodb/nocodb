@@ -63,6 +63,10 @@ export interface Base {
     /** Integration ID for the data source. */
     integration_id: string;
   }[];
+  individual_members?: {
+    base_members?: BaseMember[];
+    workspace_members?: BaseMember[];
+  };
 }
 
 export interface BaseMetaRes {
@@ -156,9 +160,9 @@ export interface Table {
   views: ViewSummary[];
 }
 
-export interface BaseUser {
+export interface BaseMember {
   /** Unique identifier for the user. */
-  id: string;
+  user_id: string;
   /**
    * Email address of the user.
    * @format email
@@ -166,36 +170,22 @@ export interface BaseUser {
   email: string;
   /** Display name of the user. */
   user_name?: string;
-  /**
-   * Timestamp of when the user was created.
-   * @format date-time
-   */
-  created_at: string;
-  /**
-   * Timestamp of when the user access was last updated.
-   * @format date-time
-   */
-  updated_at: string;
   /** Base roles for the user. */
   base_role: BaseRoles;
-  /** Workspace roles for the user. */
-  workspace_role: WorkspaceRoles;
-  /** Unique identifier for the workspace. */
-  workspace_id: string;
 }
 
 export type BaseUserDeleteRequest = any;
 
-export interface BaseUserList {
-  list?: BaseUser[];
+export interface BaseMemberList {
+  list?: BaseMember[];
 }
 
-/** Array of users to be created. */
-export type BaseUserCreate = {
-  /** Unique identifier for the user. Can be provided optionally during creation. */
-  id?: string;
+/** Array of members to be created. */
+export type BaseMemberCreate = {
+  /** User unique identifier for the member. Can be provided optionally during creation. */
+  user_id?: string;
   /**
-   * Email address of the user. Used as a primary identifier if 'id' is not provided.
+   * User Email address. Used as a primary identifier if 'id' is not provided.
    * @format email
    */
   email?: string;
@@ -205,27 +195,17 @@ export type BaseUserCreate = {
   base_role: BaseRoles;
 }[];
 
-/** Array of user updates. */
-export type BaseUserUpdate = {
-  /** Unique identifier for the user. Used as a primary identifier if provided. */
-  id?: string;
-  /**
-   * Email address of the user. Used as a primary identifier if 'id' is not provided.
-   * @format email
-   */
-  email?: string;
+/** Array of member updates. */
+export type BaseMemberUpdate = {
+  /** Unique user identifier for the member. */
+  user_id?: string;
   /** Base roles for the user. */
   base_role: BaseRoles;
 }[];
 
-export type BaseUserDelete = {
-  /** Unique identifier for the user. */
-  id?: string;
-  /**
-   * Email address of the user.
-   * @format email
-   */
-  email?: string;
+export type BaseMemberDelete = {
+  /** User unique identifier for the member. */
+  user_id?: string;
 }[];
 
 export interface TableMetaReq {
@@ -1246,6 +1226,105 @@ export interface Paginated {
   nestedPrev?: string;
 }
 
+/** Basic workspace information */
+export interface Workspace {
+  /** Unique identifier for the workspace */
+  id: string;
+  /** Title of the workspace */
+  title: string;
+  /**
+   * Timestamp when the workspace was created
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the workspace was last updated
+   * @format date-time
+   */
+  updated_at: string;
+}
+
+/** Workspace information including member details */
+export type WorkspaceWithMembers = Workspace & {
+  individual_members: {
+    /** List of workspace members */
+    workspace_members: WorkspaceMember[];
+  };
+};
+
+/** Individual workspace member information */
+export interface WorkspaceMember {
+  /**
+   * Email address of the member
+   * @format email
+   */
+  email: string;
+  /** Unique identifier for the user */
+  user_id: string;
+  /**
+   * Timestamp when the user was added to the workspace
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the user was last updated in the workspace
+   * @format date-time
+   */
+  updated_at: string;
+  /** Role assigned to the user in the workspace */
+  workspace_role: WorkspaceRoles;
+}
+
+/** Workspace user information */
+export interface WorkspaceUser {
+  /**
+   * Email address of the user
+   * @format email
+   */
+  email: string;
+  /** Unique identifier for the user */
+  user_id: string;
+  /**
+   * Timestamp when the user was added to the workspace
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the user was last updated in the workspace
+   * @format date-time
+   */
+  updated_at: string;
+  /** Role assigned to the user in the workspace */
+  workspace_role: WorkspaceRoles;
+}
+
+/** Array of workspace users to be created. */
+export type WorkspaceUserCreate = {
+  /** Unique identifier for the user (optional if email is provided) */
+  user_id?: string;
+  /**
+   * Email address of the user (optional if user_id is provided)
+   * @format email
+   */
+  email?: string;
+  /** Workspace role to assign to the user */
+  workspace_role: WorkspaceRoles;
+}[];
+
+/** Array of workspace user updates. */
+export type WorkspaceUserUpdate = {
+  /** Unique identifier for the user */
+  user_id: string;
+  /** New workspace role to assign to the user */
+  workspace_role: WorkspaceRoles;
+}[];
+
+/** Array of workspace users to be deleted. */
+export type WorkspaceUserDelete = {
+  /** Unique identifier for the user */
+  user_id: string;
+}[];
+
 type BaseFieldOptionsButton = object;
 
 type BaseFieldOptionsButtonTypeMapping<Key, Type> = {
@@ -1469,6 +1548,105 @@ export class InternalApi<
       this.request<Base, void>({
         path: `/api/v3/meta/workspaces/${workspaceId}/bases`,
         method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Retrieves metadata for a specified workspace, with an option to include its members. Notes: - To include member details, use the query parameter `include[]=members`. - Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     *
+     * @tags Workspace Members
+     * @name WorkspaceMembersRead
+     * @summary Get workspace metadata
+     * @request GET:/api/v3/meta/workspaces/{workspaceId}?include[]=members
+     */
+    workspaceMembersRead: (
+      workspaceId: string,
+      query?: {
+        /**
+         * Include additional data. Use 'members' to include workspace member information.
+         * @example "members"
+         */
+        include?: 'members' | 'members'[];
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<Workspace | WorkspaceWithMembers, void>({
+        path: `/api/v3/meta/workspaces/${workspaceId}?include[]=members`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body. Notes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     *
+     * @tags Workspace Members
+     * @name WorkspaceMembersInvite
+     * @summary Add workspace members
+     * @request POST:/api/v3/meta/workspaces/{workspaceId}/members
+     */
+    workspaceMembersInvite: (
+      workspaceId: string,
+      data: WorkspaceUserCreate,
+      params: RequestParams = {},
+    ) =>
+      this.request<WorkspaceUser[], void>({
+        path: `/api/v3/meta/workspaces/${workspaceId}/members`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body. Notes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     *
+     * @tags Workspace Members
+     * @name WorkspaceMembersUpdate
+     * @summary Update workspace members
+     * @request PATCH:/api/v3/meta/workspaces/{workspaceId}/members
+     */
+    workspaceMembersUpdate: (
+      workspaceId: string,
+      data: WorkspaceUserUpdate,
+      params: RequestParams = {},
+    ) =>
+      this.request<WorkspaceUser[], void>({
+        path: `/api/v3/meta/workspaces/${workspaceId}/members`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body. Notes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     *
+     * @tags Workspace Members
+     * @name WorkspaceMembersDelete
+     * @summary Delete workspace members
+     * @request DELETE:/api/v3/meta/workspaces/{workspaceId}/members
+     */
+    workspaceMembersDelete: (
+      workspaceId: string,
+      data: WorkspaceUserDelete,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          /** @example "The user has been deleted successfully" */
+          msg?: string;
+        },
+        void
+      >({
+        path: `/api/v3/meta/workspaces/${workspaceId}/members`,
+        method: 'DELETE',
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -1923,36 +2101,36 @@ export class InternalApi<
       }),
 
     /**
-     * @description Retrieve a list of users associated with a specific base.
+     * @description Retrieve all details of a specific base, including its members. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
      *
      * @tags Base Users
      * @name BaseUsersList
-     * @summary List base users
-     * @request GET:/api/v3/meta/bases/{base_id}/users
+     * @summary List base members
+     * @request GET:/api/v3/meta/bases/{baseId}?include[]=members
      */
     baseUsersList: (baseId: string, params: RequestParams = {}) =>
-      this.request<BaseUserList, void>({
-        path: `/api/v3/meta/bases/${baseId}/users`,
+      this.request<Base, void>({
+        path: `/api/v3/meta/bases/${baseId}?include[]=members`,
         method: 'GET',
         format: 'json',
         ...params,
       }),
 
     /**
-     * @description Invite new users to a specific base using their email address.
+     * @description Invite new users to a specific base using their User ID or Email address. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
      *
      * @tags Base Users
      * @name BaseUsersInvite
      * @summary Invite users to a base
-     * @request POST:/api/v3/meta/bases/{base_id}/users
+     * @request POST:/api/v3/meta/bases/{base_id}/members
      */
     baseUsersInvite: (
       baseId: string,
-      data: BaseUserCreate,
+      data: BaseMemberCreate,
       params: RequestParams = {},
     ) =>
-      this.request<BaseUser[], void>({
-        path: `/api/v3/meta/bases/${baseId}/users`,
+      this.request<BaseMember[], void>({
+        path: `/api/v3/meta/bases/${baseId}/members`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -1961,20 +2139,20 @@ export class InternalApi<
       }),
 
     /**
-     * @description Update roles for existing users in a base.
+     * @description Update roles for existing users in a base. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
      *
      * @tags Base Users
      * @name BaseUsersUpdate
      * @summary Update users in a base
-     * @request PATCH:/api/v3/meta/bases/{base_id}/users
+     * @request PATCH:/api/v3/meta/bases/{base_id}/members
      */
     baseUsersUpdate: (
       baseId: string,
-      data: BaseUserUpdate,
+      data: BaseMemberUpdate,
       params: RequestParams = {},
     ) =>
-      this.request<BaseUser[], void>({
-        path: `/api/v3/meta/bases/${baseId}/users`,
+      this.request<BaseMember[], void>({
+        path: `/api/v3/meta/bases/${baseId}/members`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -1983,16 +2161,16 @@ export class InternalApi<
       }),
 
     /**
-     * @description Remove users from a specific base using their IDs.
+     * @description Remove users from a specific base using their IDs. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
      *
      * @tags Base Users
      * @name BaseUsersDelete
      * @summary Delete users from a base
-     * @request DELETE:/api/v3/meta/bases/{base_id}/users
+     * @request DELETE:/api/v3/meta/bases/{base_id}/members
      */
     baseUsersDelete: (
       baseId: string,
-      data: BaseUserDelete,
+      data: BaseMemberDelete,
       params: RequestParams = {},
     ) =>
       this.request<
@@ -2004,7 +2182,7 @@ export class InternalApi<
         },
         void
       >({
-        path: `/api/v3/meta/bases/${baseId}/users`,
+        path: `/api/v3/meta/bases/${baseId}/members`,
         method: 'DELETE',
         body: data,
         type: ContentType.Json,

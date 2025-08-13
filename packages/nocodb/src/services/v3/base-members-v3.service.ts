@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { V3_META_REQUEST_LIMIT } from 'src/constants';
 import type {
-  BaseUserCreateV3Type,
-  BaseUserUpdateV3Type,
+  BaseMemberCreateV3Type,
+  BaseMemberUpdateV3Type,
   ProjectUserReqType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -14,8 +15,8 @@ import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { validatePayload } from '~/helpers';
 
 @Injectable()
-export class BaseUsersV3Service {
-  protected readonly logger = new Logger(BaseUsersV3Service.name);
+export class BaseMembersV3Service {
+  protected readonly logger = new Logger(BaseMembersV3Service.name);
   protected builder: () => ApiV3DataTransformationBuilder<
     BaseUser,
     Partial<BaseUser>
@@ -35,6 +36,7 @@ export class BaseUsersV3Service {
         'display_name',
       ],
       mappings: {
+        id: 'user_id',
         roles: 'base_role',
         workspace_roles: 'workspace_role',
         display_name: 'name',
@@ -64,31 +66,36 @@ export class BaseUsersV3Service {
     context: NcContext,
     param: {
       baseId: string;
-      baseUsers: BaseUserCreateV3Type;
+      baseMembers: BaseMemberCreateV3Type;
       req: NcRequest;
     },
   ): Promise<any> {
     validatePayload(
-      'swagger-v3.json#/components/schemas/BaseUserCreate',
-      param.baseUsers,
+      'swagger-v3.json#/components/schemas/BaseMemberCreate',
+      param.baseMembers,
       true,
     );
 
+    if (param.baseMembers?.length > V3_META_REQUEST_LIMIT) {
+      NcError.get(context).maxInsertLimitExceeded(V3_META_REQUEST_LIMIT);
+    }
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {
-      for (const baseUser of param.baseUsers) {
+      for (const baseUser of param.baseMembers) {
         let user: User;
-        if (baseUser.id) {
-          user = await User.get(baseUser.id, ncMeta);
+        if (baseUser.user_id) {
+          user = await User.get(baseUser.user_id, ncMeta);
           if (!user) {
-            NcError.userNotFound(baseUser.id);
+            NcError.get(context).userNotFound(baseUser.user_id);
           }
           baseUser.email = user.email;
         } else if (baseUser.email) {
           user = await User.getByEmail(baseUser.email, ncMeta);
         } else {
-          NcError.badRequest('Either email or id is required');
+          NcError.get(context).invalidRequestBody(
+            'Either email or id is required',
+          );
         }
 
         await this.baseUsersService.userInvite(
@@ -122,35 +129,29 @@ export class BaseUsersV3Service {
     );
   }
 
-  async baseUserUpdate(
+  async baseMemberUpdate(
     context: NcContext,
     param: {
-      baseUsers: BaseUserUpdateV3Type;
+      baseMembers: BaseMemberUpdateV3Type;
       req: any;
       baseId: string;
     },
   ): Promise<any> {
     validatePayload(
-      'swagger-v3.json#/components/schemas/BaseUserUpdate',
-      param.baseUsers,
+      'swagger-v3.json#/components/schemas/BaseMemberUpdate',
+      param.baseMembers,
       true,
+      context,
     );
 
+    if (param.baseMembers?.length > V3_META_REQUEST_LIMIT) {
+      NcError.get(context).maxInsertLimitExceeded(V3_META_REQUEST_LIMIT);
+    }
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {
-      for (const baseUser of param.baseUsers) {
-        let userId = baseUser.id;
-
-        if (!baseUser.id && baseUser.email) {
-          const user = await User.getByEmail(baseUser.email, ncMeta);
-          if (user) {
-            userId = user.id;
-          } else {
-            NcError.userNotFound(baseUser.email);
-          }
-        }
-
+      for (const baseUser of param.baseMembers) {
+        const userId = baseUser.user_id;
         userIds.push(userId);
 
         await this.baseUsersService.baseUserUpdate(

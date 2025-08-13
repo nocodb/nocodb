@@ -23,6 +23,7 @@ import { SSOClientService } from '~/services/sso-client.service';
 import { SsoClientController } from '~/controllers/sso-client.controller';
 import { OrgSSOClientService } from '~/services/org-sso-client.service';
 import { PermissionsService } from '~/services/permissions.service';
+import { BaseMembersV3Controller } from '~/controllers/v3/base-members-v3.controller';
 
 /* Datas */
 import { DataOptService } from '~/services/data-opt/data-opt.service';
@@ -32,6 +33,12 @@ import { WorkspacesService } from '~/services/workspaces.service';
 import { WorkspacesController } from '~/controllers/workspaces.controller';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { WorkspaceUsersController } from '~/controllers/workspace-users.controller';
+
+/* Workspace V3 */
+import { WorkspaceV3Service } from '~/ee/services/v3/workspace-v3.service';
+import { WorkspaceMembersV3Service } from '~/services/v3/workspace-members-v3.service';
+import { WorkspaceV3Controller } from '~/ee/controllers/v3/workspace-v3.controller';
+import { WorkspaceMembersV3Controller } from '~/controllers/v3/workspace-members-v3.controller';
 
 /* Snapshot */
 import { SnapshotController } from '~/controllers/snapshot.controller';
@@ -71,6 +78,10 @@ export const nocoModuleEeMetadata = {
     WorkspacesService,
     WorkspaceUsersService,
 
+    /* Workspace V3 */
+    WorkspaceV3Service,
+    WorkspaceMembersV3Service,
+
     /* Snapshot */
     SnapshotService,
 
@@ -97,8 +108,14 @@ export const nocoModuleEeMetadata = {
     WorkspacesController,
     WorkspaceUsersController,
 
+    /* Workspace V3 */
+    WorkspaceV3Controller,
+    WorkspaceMembersV3Controller,
+
     /* Snapshot */
     SnapshotController,
+
+    BaseMembersV3Controller,
 
     ...nocoModuleMetadata.controllers,
   ],
@@ -113,6 +130,10 @@ export const nocoModuleEeMetadata = {
     /* Workspaces */
     WorkspacesService,
     WorkspaceUsersService,
+
+    /* Workspace V3 */
+    WorkspaceV3Service,
+    WorkspaceMembersV3Service,
 
     /* Orgs */
     OrgsService,

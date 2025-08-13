@@ -228,11 +228,13 @@ export default class BaseUser extends BaseUserCE {
     {
       base_id,
       mode = 'full',
+      strict_in_record = false,
       include_ws_deleted = true,
       user_ids,
     }: {
       base_id: string;
       mode?: 'full' | 'viewer';
+      strict_in_record?: boolean;
       include_ws_deleted?: boolean;
       user_ids?: string[];
     },
@@ -251,7 +253,7 @@ export default class BaseUser extends BaseUserCE {
       'deleted',
     ];
 
-    if (!isNoneList && !baseUsers.length) {
+    if (strict_in_record || (!isNoneList && !baseUsers.length)) {
       const queryBuilder = ncMeta.knex(MetaTable.USERS).select(
         `${MetaTable.USERS}.id`,
         `${MetaTable.USERS}.email`,
@@ -274,6 +276,7 @@ export default class BaseUser extends BaseUserCE {
         `${MetaTable.WORKSPACE_USER}.deleted as deleted`,
       );
 
+      const joinClause = strict_in_record ? 'innerJoin' : 'leftJoin';
       queryBuilder
         .innerJoin(MetaTable.WORKSPACE_USER, function () {
           this.on(
@@ -286,7 +289,7 @@ export default class BaseUser extends BaseUserCE {
             ncMeta.knex.raw('?', [context.workspace_id]),
           );
         })
-        .leftJoin(MetaTable.PROJECT_USERS, function () {
+        [joinClause](MetaTable.PROJECT_USERS, function () {
           this.on(
             `${MetaTable.PROJECT_USERS}.fk_user_id`,
             '=',
@@ -306,10 +309,12 @@ export default class BaseUser extends BaseUserCE {
         return this.castType(baseUser);
       });
 
-      await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers, [
-        'base_id',
-        'id',
-      ]);
+      if (!strict_in_record) {
+        await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers, [
+          'base_id',
+          'id',
+        ]);
+      }
     }
 
     // if default_role is present, override workspace roles with the default roles

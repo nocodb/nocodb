@@ -9,6 +9,7 @@ export class BaseMemberHelpers {
     context: NcContext,
     _param: {
       baseId: string;
+      isPrivateBase?: boolean;
     },
     _ncMeta?: MetaService,
   ): Promise<{

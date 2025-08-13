@@ -43,6 +43,18 @@ NocoDB is the fastest and easiest way to build databases online.
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
+<p align="center">
+    Translated by readme-i18n:<!-- Keep these links. Translations will automatically update with the README. -->
+    <a href="https://www.readme-i18n.com/nocodb/nocodb?lang=de">Deutsch</a> | 
+    <a href="https://www.readme-i18n.com/nocodb/nocodb?lang=es">Español</a> | 
+    <a href="https://www.readme-i18n.com/nocodb/nocodb?lang=fr">français</a> | 
+    <a href="https://www.readme-i18n.com/nocodb/nocodb?lang=ja">日本語</a> | 
+    <a href="https://www.readme-i18n.com/nocodb/nocodb?lang=ko">한국어</a> | 
+    <a href="https://www.readme-i18n.com/nocodb/nocodb?lang=pt">Português</a> | 
+    <a href="https://www.readme-i18n.com/nocodb/nocodb?lang=ru">Русский</a> | 
+    <a href="https://www.readme-i18n.com/nocodb/nocodb?lang=zh">中文</a>
+</p>
+
 # Join Our Community
 
 <a href="https://discord.gg/5RgZmkW" target="_blank">

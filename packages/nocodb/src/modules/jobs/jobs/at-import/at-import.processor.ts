@@ -633,14 +633,14 @@ export class AtImportProcessor {
               let formulaTextParsed = col.typeOptions?.formulaTextParsed || '';
               // Replace any column_*_fldId pattern with the corresponding column title
               formulaTextParsed = formulaTextParsed.replace(
-                /{column_[^{}]*_(fld[a-zA-Z0-9]+)}/g,
+                /{column_[^{}]*?_(fld[a-zA-Z0-9]+)}/g,
                 (match, fldId) => {
                   const colSchema = aTbl_getColumnName(fldId);
                   return colSchema ? `{${colSchema.cn}}` : match;
                 },
               );
               formulaTextParsed = formulaTextParsed.replace(
-                /column_[^{}]*_(fld[a-zA-Z0-9]+)/g,
+                /column_[^{}]*?_(fld[a-zA-Z0-9]+)/g,
                 (match, fldId) => {
                   const colSchema = aTbl_getColumnName(fldId);
                   return colSchema ? `{${colSchema.cn}}` : match;

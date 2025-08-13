@@ -140,6 +140,9 @@ export default class Noco {
 
     try {
       this.sharp = (await import('sharp')).default;
+
+      this.sharp.concurrency(1);
+      this.sharp.cache(false);
     } catch {
       console.error(
         'Sharp is not available for your platform, thumbnail generation will be skipped',

@@ -176,12 +176,12 @@ export interface BaseMemberList {
   list?: any[];
 }
 
-/** Array of users to be created. */
+/** Array of members to be created. */
 export type BaseMemberCreate = {
-  /** Unique identifier for the user. Can be provided optionally during creation. */
+  /** User unique identifier for the member. Can be provided optionally during creation. */
   user_id?: string;
   /**
-   * Email address of the user. Used as a primary identifier if 'id' is not provided.
+   * User Email address. Used as a primary identifier if 'id' is not provided.
    * @format email
    */
   email?: string;
@@ -191,27 +191,17 @@ export type BaseMemberCreate = {
   base_role: BaseRoles;
 }[];
 
-/** Array of user updates. */
-export type BaseUserUpdate = {
-  /** Unique identifier for the user. Used as a primary identifier if provided. */
-  id?: string;
-  /**
-   * Email address of the user. Used as a primary identifier if 'id' is not provided.
-   * @format email
-   */
-  email?: string;
+/** Array of member updates. */
+export type BaseMemberUpdate = {
+  /** Unique user identifier for the member. */
+  user_id?: string;
   /** Base roles for the user. */
   base_role: BaseRoles;
 }[];
 
-export type BaseUserDelete = {
-  /** Unique identifier for the user. */
-  id?: string;
-  /**
-   * Email address of the user.
-   * @format email
-   */
-  email?: string;
+export type BaseMemberDelete = {
+  /** User unique identifier for the member. */
+  user_id?: string;
 }[];
 
 export interface TableMetaReq {
@@ -1940,7 +1930,7 @@ export class InternalApi<
      */
     baseUsersUpdate: (
       baseId: string,
-      data: BaseUserUpdate,
+      data: FieldOptions,
       params: RequestParams = {},
     ) =>
       this.request<any[], void>({
@@ -1962,7 +1952,7 @@ export class InternalApi<
      */
     baseUsersDelete: (
       baseId: string,
-      data: BaseUserDelete,
+      data: BaseMemberDelete,
       params: RequestParams = {},
     ) =>
       this.request<

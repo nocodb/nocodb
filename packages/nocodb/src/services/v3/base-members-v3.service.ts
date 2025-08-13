@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { V3_META_REQUEST_LIMIT } from 'src/constants';
 import type {
   BaseMemberCreateV3Type,
-  BaseUserUpdateV3Type,
+  BaseMemberUpdateV3Type,
   ProjectUserReqType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -128,35 +128,25 @@ export class BaseMembersV3Service {
     );
   }
 
-  async baseUserUpdate(
+  async baseMemberUpdate(
     context: NcContext,
     param: {
-      baseUsers: BaseUserUpdateV3Type;
+      baseMembers: BaseMemberUpdateV3Type;
       req: any;
       baseId: string;
     },
   ): Promise<any> {
     validatePayload(
-      'swagger-v3.json#/components/schemas/BaseUserUpdate',
-      param.baseUsers,
+      'swagger-v3.json#/components/schemas/BaseMemberUpdate',
+      param.baseMembers,
       true,
     );
 
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {
-      for (const baseUser of param.baseUsers) {
-        let userId = baseUser.id;
-
-        if (!baseUser.id && baseUser.email) {
-          const user = await User.getByEmail(baseUser.email, ncMeta);
-          if (user) {
-            userId = user.id;
-          } else {
-            NcError.userNotFound(baseUser.email);
-          }
-        }
-
+      for (const baseUser of param.baseMembers) {
+        const userId = baseUser.user_id;
         userIds.push(userId);
 
         await this.baseUsersService.baseUserUpdate(

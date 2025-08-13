@@ -12,10 +12,9 @@ import {
 import { BaseRolesV3Type } from 'nocodb-sdk';
 import type {
   BaseMemberCreateV3Type,
-  BaseUserDeleteV3Type,
-  BaseUserUpdateV3Type,
+  BaseMemberDeleteV3Type,
+  BaseMemberUpdateV3Type,
 } from 'nocodb-sdk';
-import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { NcError } from '~/helpers/catchError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -27,8 +26,6 @@ import { BaseMembersV3Service } from '~/services/v3/base-members-v3.service';
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
 export class BaseMembersV3Controller {
-  private builder: () => ApiV3DataTransformationBuilder;
-
   constructor(protected readonly baseMembersV3Service: BaseMembersV3Service) {}
 
   @Post(['/api/v3/meta/bases/:baseId/members'])
@@ -59,12 +56,13 @@ export class BaseMembersV3Controller {
     baseId: string,
     @Req()
     req: NcRequest,
-    @Body() baseUsers: BaseUserUpdateV3Type | BaseUserUpdateV3Type[number],
+    @Body()
+    baseMembers: BaseMemberUpdateV3Type | BaseMemberUpdateV3Type[number],
   ): Promise<any> {
-    this.validatePayload(baseUsers);
+    this.validatePayload(baseMembers);
 
-    return await this.baseMembersV3Service.baseUserUpdate(context, {
-      baseUsers: Array.isArray(baseUsers) ? baseUsers : [baseUsers],
+    return await this.baseMembersV3Service.baseMemberUpdate(context, {
+      baseMembers: Array.isArray(baseMembers) ? baseMembers : [baseMembers],
       baseId,
       req,
     });
@@ -76,20 +74,21 @@ export class BaseMembersV3Controller {
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Req() req: NcRequest,
-    @Body() baseUsers: BaseUserDeleteV3Type | BaseUserDeleteV3Type[number],
+    @Body()
+    baseMembers: BaseMemberDeleteV3Type | BaseMemberDeleteV3Type[number],
   ): Promise<any> {
-    this.validatePayload(baseUsers);
+    this.validatePayload(baseMembers);
 
-    await this.baseMembersV3Service.baseUserUpdate(context, {
+    await this.baseMembersV3Service.baseMemberUpdate(context, {
       baseId,
       req,
-      baseUsers: (Array.isArray(baseUsers) ? baseUsers : [baseUsers]).map(
-        (user) => ({
-          id: user.id,
-          email: user.email,
-          base_role: BaseRolesV3Type.NoAccess,
-        }),
-      ),
+      baseMembers: (Array.isArray(baseMembers)
+        ? baseMembers
+        : [baseMembers]
+      ).map((user) => ({
+        id: user.user_id,
+        base_role: BaseRolesV3Type.NoAccess,
+      })),
     });
     return {
       msg: 'The user has been deleted successfully',
@@ -98,14 +97,14 @@ export class BaseMembersV3Controller {
 
   private validatePayload(
     baseUsers:
-      | { id?: string; email?: string }[]
-      | { id?: string; email?: string },
+      | { user_id?: string; email?: string }[]
+      | { user_id?: string; email?: string },
   ) {
     // check email or id is present
     if (
       !baseUsers ||
       (Array.isArray(baseUsers) ? baseUsers : [baseUsers]).some(
-        (user) => !user.id && !user.email,
+        (user) => !user.user_id && !user.email,
       )
     ) {
       NcError.badRequest('Either email or id is required');

@@ -76,7 +76,7 @@ export default class User implements UserType {
       'meta',
     ]);
 
-    // // Todo: @rameshmane7218 uncomment this part in onboarding flow pr 
+    // // Todo: @rameshmane7218 uncomment this part in onboarding flow pr
     // // Set is_new_user to true for new users if not explicitly set
     // if (insertObj.is_new_user === undefined) {
     //   insertObj.is_new_user = true;

@@ -8,19 +8,29 @@
     "version": "",
     "description": "NocoDB API Documentation"
   },
+  "x-tagGroups": [
+    {
+      "name": "Meta APIs",
+      "tags": [
+        "Bases",
+        "Tables",
+        "Views",
+        "Fields",
+        "View Filters",
+        "View Sorts"
+      ]
+    },
+    {
+      "name": "Collaboration APIs",
+      "tags": [
+        "Workspace Members",
+        "Base Members"
+      ]
+    }
+  ],
   "servers": [
     {
       "url": "https://app.nocodb.com"
-    }
-  ],
-  "tags": [
-    {
-      "name": "Bases",
-      "description": "Operations related to bases"
-    },
-    {
-      "name": "Workspace Members",
-      "description": "Operations related to workspace members"
     }
   ],
   "paths": {
@@ -175,7 +185,7 @@
     },
     "/api/v3/meta/workspaces/{workspaceId}?include[]=members": {
       "get": {
-        "summary": "Get workspace metadata",
+        "summary": "List workspace members",
         "operationId": "workspace-members-read",
         "description": "Retrieves metadata for a specified workspace, with an option to include its members.\n\nNotes:\n- To include member details, use the query parameter `include[]=members`.\n- Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
         "tags": [
@@ -456,20 +466,7 @@
         },
         "responses": {
           "200": {
-            "description": "Workspace members were removed successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "example": "The user has been deleted successfully"
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Workspace members were removed successfully."
           },
           "400": {
             "description": "Invalid request body."
@@ -2498,9 +2495,9 @@
       "get": {
         "summary": "List base members",
         "description": "Retrieve all details of a specific base, including its members.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
-        "operationId": "base-users-list",
+        "operationId": "base-members-list",
         "tags": [
-          "Base Users"
+          "Base Members"
         ],
         "parameters": [
           {
@@ -2519,7 +2516,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Base"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Base"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BaseWithMembers"
+                    }
+                  ]
                 },
                 "examples": {
                   "Example 1": {
@@ -2571,9 +2575,9 @@
     },
     "/api/v3/meta/bases/{base_id}/members": {
       "post": {
-        "summary": "Invite users to a base",
-        "description": "Invite new users to a specific base using their User ID or Email address.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
-        "operationId": "base-users-invite",
+        "summary": "Invite base members",
+        "description": "Invite new members to a specific base using their User ID or Email address.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "operationId": "base-members-invite",
         "parameters": [
           {
             "name": "base_id",
@@ -2586,7 +2590,7 @@
           }
         ],
         "tags": [
-          "Base Users"
+          "Base Members"
         ],
         "requestBody": {
           "required": true,
@@ -2625,9 +2629,9 @@
         }
       },
       "patch": {
-        "summary": "Update users in a base",
-        "description": "Update roles for existing users in a base.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
-        "operationId": "base-users-update",
+        "summary": "Update base members",
+        "description": "Update roles for existing members in a base.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "operationId": "base-members-update",
         "parameters": [
           {
             "name": "base_id",
@@ -2640,7 +2644,7 @@
           }
         ],
         "tags": [
-          "Base Users"
+          "Base Members"
         ],
         "requestBody": {
           "required": true,
@@ -2679,9 +2683,9 @@
         }
       },
       "delete": {
-        "summary": "Delete users from a base",
-        "description": "Remove users from a specific base using their IDs.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
-        "operationId": "base-users-delete",
+        "summary": "Delete base members",
+        "description": "Remove members from a specific base using their IDs.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "operationId": "base-members-delete",
         "parameters": [
           {
             "name": "base_id",
@@ -2694,7 +2698,7 @@
           }
         ],
         "tags": [
-          "Base Users"
+          "Base Members"
         ],
         "requestBody": {
           "required": true,
@@ -2708,27 +2712,7 @@
         },
         "responses": {
           "200": {
-            "description": "Users deleted successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "description": "Indicates if the operation was successful."
-                    },
-                    "deleted_users": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/BaseUserDeleteRequest"
-                      },
-                      "description": "List of successfully deleted users."
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Users deleted successfully."
           },
           "400": {
             "description": "Invalid request body or parameters."
@@ -4035,6 +4019,85 @@
   "components": {
     "schemas": {
       "Base": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the base."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the base."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/BaseMetaRes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the base was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the base was last updated."
+          },
+          "workspace_id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace to which this base belongs to."
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the data source."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the data source."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Type of the data source (e.g., pg, mysql)."
+                },
+                "is_schema_readonly": {
+                  "type": "boolean",
+                  "description": "Indicates if the schema in this data source is read-only."
+                },
+                "is_data_readonly": {
+                  "type": "boolean",
+                  "description": "Indicates if the data (records) in this data source is read-only."
+                },
+                "integration_id": {
+                  "type": "string",
+                  "description": "Integration ID for the data source."
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "type",
+                "is_schema_readonly",
+                "is_data_readonly",
+                "integration_id"
+              ]
+            },
+            "description": "List of data sources associated with this base. This information will be included only if one or more external data sources are associated with the base."
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "meta",
+          "created_at",
+          "updated_at",
+          "workspace_id"
+        ]
+      },
+      "BaseWithMembers": {
         "type": "object",
         "properties": {
           "id": {
@@ -7298,12 +7361,12 @@
           "properties": {
             "user_id": {
               "type": "string",
-              "description": "Unique identifier for the user (optional if email is provided)"
+              "description": "Unique identifier for the user (skip if email is provided)"
             },
             "email": {
               "type": "string",
               "format": "email",
-              "description": "Email address of the user (optional if user_id is provided)"
+              "description": "Email address of the user (skip if user_id is provided)"
             },
             "workspace_role": {
               "$ref": "#/components/schemas/WorkspaceRoles",

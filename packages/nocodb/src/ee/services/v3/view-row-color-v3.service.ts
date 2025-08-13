@@ -50,10 +50,14 @@ export class ViewRowColorV3Service {
         ncMeta,
       });
     } else if (body?.mode === 'filter') {
-      await this.insertRowColorConditions(context, {
-        ...params,
-        body: params.body!,
-      });
+      await this.insertRowColorConditions(
+        context,
+        {
+          ...params,
+          body: params.body!,
+        },
+        ncMeta,
+      );
     }
   }
 

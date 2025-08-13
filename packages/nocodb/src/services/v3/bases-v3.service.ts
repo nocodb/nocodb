@@ -14,10 +14,13 @@ import { BasesService } from '~/services/bases.service';
 import { RootScopes } from '~/utils/globals';
 import { validatePayload } from '~/helpers';
 import { baseBuilder, sourceBuilder } from '~/utils/builders/base';
+import { BaseMemberHelpers } from '~/services/v3/members/base-member-helpers';
 
 @Injectable()
 export class BasesV3Service {
-  constructor(protected readonly basesService: BasesService) {}
+  constructor(protected readonly basesService: BasesService) {
+    this.baseMemberHelpers = new BaseMemberHelpers();
+  }
 
   protected async getBaseList(
     context: NcContext,
@@ -30,6 +33,8 @@ export class BasesV3Service {
       ? await Base.list()
       : await BaseUser.getProjectsList(param.user.id, param.query);
   }
+
+  baseMemberHelpers: BaseMemberHelpers;
 
   async baseList(
     context: NcContext,
@@ -73,7 +78,7 @@ export class BasesV3Service {
 
   async getProjectWithInfo(
     context: NcContext,
-    param: { baseId: string; includeConfig?: boolean },
+    param: { baseId: string; qsInclude?: string[]; includeConfig?: boolean },
   ) {
     const base = await this.basesService.getProjectWithInfo(context, param);
 
@@ -85,6 +90,12 @@ export class BasesV3Service {
     return {
       ...baseBuilder().build(base),
       sources: sources?.length ? sourceBuilder().build(sources) : undefined,
+      ...(param.qsInclude?.includes('members')
+        ? await this.baseMemberHelpers.getBaseMember(context, {
+            baseId: param.baseId,
+            isPrivateBase: base.default_role === 'no-access',
+          })
+        : {}),
     } as BaseV3Type;
   }
 

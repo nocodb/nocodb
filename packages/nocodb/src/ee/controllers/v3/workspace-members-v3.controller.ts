@@ -138,7 +138,7 @@ export class WorkspaceMembersV3Controller {
       (Array.isArray(workspaceUsers) ? workspaceUsers : [workspaceUsers]).some(
         (user) => {
           if (idOnly) return !user.user_id;
-          return !user.user_id && !user.email;
+          return (!user.user_id && !user.email) || (user.user_id && user.email);
         },
       )
     ) {

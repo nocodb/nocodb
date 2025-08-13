@@ -75,7 +75,7 @@ export class BaseMembersV3Controller {
     baseMembers: BaseMemberUpdateV3Type | BaseMemberUpdateV3Type[number],
   ): Promise<any> {
     await this.canExecute(context);
-    this.validatePayloadUpdate(baseMembers);
+    this.validatePayload(baseMembers, true);
 
     return await this.baseMembersV3Service.baseMemberUpdate(context, {
       baseMembers: Array.isArray(baseMembers) ? baseMembers : [baseMembers],
@@ -94,7 +94,7 @@ export class BaseMembersV3Controller {
     baseMembers: BaseMemberDeleteV3Type | BaseMemberDeleteV3Type[number],
   ): Promise<any> {
     await this.canExecute(context);
-    this.validatePayloadUpdate(baseMembers);
+    this.validatePayload(baseMembers, true);
 
     await this.baseMembersV3Service.baseMemberUpdate(context, {
       baseId,
@@ -113,29 +113,18 @@ export class BaseMembersV3Controller {
     baseUsers:
       | { user_id?: string; email?: string }[]
       | { user_id?: string; email?: string },
+    idOnly = true,
   ) {
     // check email or id is present
     if (
       !baseUsers ||
-      (Array.isArray(baseUsers) ? baseUsers : [baseUsers]).some(
-        (user) =>
-          (!user.user_id && !user.email) || (user.user_id && user.email),
-      )
+      (Array.isArray(baseUsers) ? baseUsers : [baseUsers]).some((user) => {
+        if (idOnly) return !user.user_id;
+        return (!user.user_id && !user.email) || (user.user_id && user.email);
+      })
     ) {
-      NcError.badRequest('Either email or user_id is required');
-    }
-  }
-  private validatePayloadUpdate(
-    baseUsers: { user_id?: string }[] | { user_id?: string },
-  ) {
-    // check email or id is present
-    if (
-      !baseUsers ||
-      (Array.isArray(baseUsers) ? baseUsers : [baseUsers]).some(
-        (user) => !user.user_id,
-      )
-    ) {
-      NcError.badRequest('user_id is required');
+      if (idOnly) NcError.badRequest('user_id is required');
+      else NcError.badRequest('Either email or user_id is required');
     }
   }
 }

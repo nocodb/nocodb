@@ -4891,7 +4891,7 @@
           ],
           "oneOf": [
             {
-              "title": "Update Member with ID",
+              "title": "Update member using user ID",
               "required": [
                 "user_id"
               ]

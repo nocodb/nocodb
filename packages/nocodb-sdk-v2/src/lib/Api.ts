@@ -180,9 +180,9 @@ export interface BaseMemberList {
   list?: any[];
 }
 
-/** Array of users to be created. */
+/** Array of members to be created. */
 export type BaseMemberCreate = {
-  /** Unique identifier for the user. Can be provided optionally during creation. */
+  /** User unique identifier for the member. Can be provided optionally during creation. */
   user_id?: string;
   /**
    * User Email address. Used as a primary identifier if 'id' is not provided.
@@ -2132,7 +2132,7 @@ export class InternalApi<
      */
     baseUsersUpdate: (
       baseId: string,
-      data: BaseMemberUpdate,
+      data: FieldOptions,
       params: RequestParams = {},
     ) =>
       this.request<any[], void>({

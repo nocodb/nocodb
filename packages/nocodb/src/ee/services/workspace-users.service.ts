@@ -127,8 +127,7 @@ export class WorkspaceUsersService {
       ncMeta,
     );
 
-    if (!workspaceUser)
-      NcError.userNotFound('User is not a member of this workspace');
+    if (!workspaceUser) NcError.userNotFound(param.userId);
 
     const isOrgOwner = extractRolesObj(
       (param.req.user as any).org_roles as any,

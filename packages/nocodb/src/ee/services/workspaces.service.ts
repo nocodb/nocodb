@@ -44,7 +44,12 @@ import { extractProps } from '~/helpers/extractProps';
 import { BasesService } from '~/services/bases.service';
 import { TablesService } from '~/services/tables.service';
 import Noco from '~/Noco';
-import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
+import {
+  CacheDelDirection,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
 import { JobTypes } from '~/interface/Jobs';
 import NocoCache from '~/cache/NocoCache';
 import { PaymentService } from '~/modules/payment/payment.service';
@@ -434,6 +439,18 @@ export class WorkspacesService implements OnApplicationBootstrap {
       }
 
       await ncMeta.commit();
+
+      // Invalidate user related cache
+      await NocoCache.deepDel(
+        `${CacheScope.WORKSPACE_USER}:${workspace.id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+      for (const base of bases) {
+        await NocoCache.deepDel(
+          `${CacheScope.BASE_USER}:${base.id}:list`,
+          CacheDelDirection.PARENT_TO_CHILD,
+        );
+      }
 
       if (workspace.fk_user_id === mockUser.id) {
         // prepopulate more workspaces if required

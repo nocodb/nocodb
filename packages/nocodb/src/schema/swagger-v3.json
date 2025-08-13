@@ -7363,9 +7363,9 @@
             "format": "date-time",
             "description": "Timestamp when the user was last updated in the workspace"
           },
-          "workspace_roles": {
+          "workspace_role": {
             "$ref": "#/components/schemas/WorkspaceRoles",
-            "description": "Workspace roles assigned to the user"
+            "description": "Role assigned to the user in the workspace"
           }
         },
         "required": ["email", "user_id", "created_at", "updated_at", "workspace_role"]
@@ -7383,9 +7383,9 @@
             "format": "email",
             "description": "Email address of the user (optional if id is provided)"
           },
-          "workspace_roles": {
+          "workspace_role": {
             "$ref": "#/components/schemas/WorkspaceRoles",
-            "description": "Workspace roles assigned to the user"
+            "description": "Workspace role to assign to the user"
           }
         },
         "required": ["workspace_role"]
@@ -7403,9 +7403,9 @@
             "format": "email",
             "description": "Email address of the user (optional if id is provided)"
           },
-          "workspace_roles": {
+          "workspace_role": {
             "$ref": "#/components/schemas/WorkspaceRoles",
-            "description": "Workspace roles assigned to the user"
+            "description": "New workspace role to assign to the user"
           }
         },
         "required": ["workspace_role"]

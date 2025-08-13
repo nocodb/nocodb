@@ -83,7 +83,6 @@ export class BaseMemberHelpers extends BaseMemberHelpersCE {
 
     return {
       individual_members: {
-        // TODO: conversion to v3 format
         base_members: baseUsers.map((user) =>
           this.transformBaseUserToResponse(user),
         ),

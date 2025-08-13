@@ -49,7 +49,7 @@ const textDecoration = computed(() => {
 
 <template>
   <div
-    class="nc-text-widget !rounded-xl h-full w-full p-4 flex group relative"
+    class="nc-text-widget overflow-hidden truncate !rounded-xl h-full w-full p-4 flex group relative"
     :style="{
       justifyContent: config.formatting.horizontalAlign,
       alignItems: config.formatting.verticalAlign,

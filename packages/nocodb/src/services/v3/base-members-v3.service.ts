@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { V3_META_REQUEST_LIMIT } from 'src/constants';
 import type {
   BaseMemberCreateV3Type,
-  BaseMemberUpdateV3Type,
+  BaseUserUpdateV3Type,
   ProjectUserReqType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';

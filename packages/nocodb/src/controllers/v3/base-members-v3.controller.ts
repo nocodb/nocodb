@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { BaseRolesV3Type } from 'nocodb-sdk';
 import type {
-  BaseUserCreateV3Type,
+  BaseMemberCreateV3Type,
   BaseUserDeleteV3Type,
   BaseUserUpdateV3Type,
 } from 'nocodb-sdk';
@@ -38,13 +38,14 @@ export class BaseMembersV3Controller {
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
     @Req() req: NcRequest,
-    @Body() baseUsers: BaseUserCreateV3Type | BaseUserCreateV3Type[number],
+    @Body()
+    baseMembers: BaseMemberCreateV3Type | BaseMemberCreateV3Type[number],
   ): Promise<any> {
-    this.validatePayload(baseUsers);
+    this.validatePayload(baseMembers);
 
     return await this.baseMembersV3Service.userInvite(context, {
       baseId,
-      baseUsers: Array.isArray(baseUsers) ? baseUsers : [baseUsers],
+      baseMembers: Array.isArray(baseMembers) ? baseMembers : [baseMembers],
       req,
     });
   }

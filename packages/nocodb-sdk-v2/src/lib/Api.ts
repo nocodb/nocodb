@@ -177,12 +177,12 @@ export interface BaseMember {
 export type BaseUserDeleteRequest = any;
 
 export interface BaseMemberList {
-  list?: BaseMember[];
+  list?: any[];
 }
 
-/** Array of members to be created. */
+/** Array of users to be created. */
 export type BaseMemberCreate = {
-  /** User unique identifier for the member. Can be provided optionally during creation. */
+  /** Unique identifier for the user. Can be provided optionally during creation. */
   user_id?: string;
   /**
    * User Email address. Used as a primary identifier if 'id' is not provided.
@@ -2101,23 +2101,7 @@ export class InternalApi<
       }),
 
     /**
-     * @description Retrieve all details of a specific base, including its members. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
-     *
-     * @tags Base Users
-     * @name BaseUsersList
-     * @summary List base members
-     * @request GET:/api/v3/meta/bases/{baseId}?include[]=members
-     */
-    baseUsersList: (baseId: string, params: RequestParams = {}) =>
-      this.request<Base, void>({
-        path: `/api/v3/meta/bases/${baseId}?include[]=members`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * @description Invite new users to a specific base using their User ID or Email address. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     * @description Invite new users to a specific base using their email address.
      *
      * @tags Base Users
      * @name BaseUsersInvite
@@ -2129,7 +2113,7 @@ export class InternalApi<
       data: BaseMemberCreate,
       params: RequestParams = {},
     ) =>
-      this.request<BaseMember[], void>({
+      this.request<any[], void>({
         path: `/api/v3/meta/bases/${baseId}/members`,
         method: 'POST',
         body: data,
@@ -2151,7 +2135,7 @@ export class InternalApi<
       data: BaseMemberUpdate,
       params: RequestParams = {},
     ) =>
-      this.request<BaseMember[], void>({
+      this.request<any[], void>({
         path: `/api/v3/meta/bases/${baseId}/members`,
         method: 'PATCH',
         body: data,

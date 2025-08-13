@@ -75,6 +75,7 @@ export const nocoModuleEeMetadata = {
     OrgsService,
     DataReflectionService,
     PermissionsService,
+    ViewsV3Service,
 
     /* Workspaces */
     WorkspacesService,
@@ -107,6 +108,8 @@ export const nocoModuleEeMetadata = {
 
     OrgWorkspacesController,
     OrgsController,
+
+    ViewsV3Controller,
 
     /* Workspaces */
     WorkspacesController,

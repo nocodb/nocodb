@@ -1,4 +1,3 @@
-import { Model } from 'src/models';
 import {
   type NcContext,
   ncIsNullOrUndefined,
@@ -6,6 +5,7 @@ import {
   type ViewCreateV3Type,
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
+import { Model } from '~/models';
 
 export const handleFieldsRequestBody = async (
   context: NcContext,

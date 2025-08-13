@@ -66,6 +66,7 @@ const textDecoration = computed(() => {
         textAlign,
         fontStyle: config.formatting.italic ? 'italic' : 'normal',
         textDecoration,
+        fontSynthesis: 'initial',
       }"
     >
       {{ config.content }}

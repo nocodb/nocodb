@@ -7,16 +7,23 @@ body {
 }
 
 // Dropdown
-.ant-dropdown,
-.ant-tabs-dropdown,
+.ant-dropdown {
+  @apply !bg-nc-bg-default text-nc-content-gray;
+}
+
 .ant-tabs-dropdown-menu {
-  @apply !bg-nc-bg-default !text-nc-content-gray;
+  @apply bg-nc-bg-default text-nc-content-gray;
 }
 
 // Drawer & Modal
 .ant-drawer-content,
 .ant-modal-content {
   @apply !bg-nc-bg-default;
+}
+
+.ant-drawer,
+.ant-modal {
+  @apply text-nc-content-gray;
 }
 
 // Dropdown Menu

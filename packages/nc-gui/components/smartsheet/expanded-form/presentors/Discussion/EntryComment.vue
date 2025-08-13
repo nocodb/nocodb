@@ -142,23 +142,23 @@ async function copyComment(comment: CommentType) {
       />
     </div>
     <div
-      class="flex-1 bg-white rounded-lg border-1 group ml-11.5"
+      class="flex-1 bg-nc-bg-default rounded-lg border-1 group ml-11.5"
       :class="{
-        'border-brand-200': isCreatedByYou,
-        'border-gray-200': !isCreatedByYou,
+        'border-nc-brand-200': isCreatedByYou,
+        'border-nc-border-gray-medium': !isCreatedByYou,
       }"
     >
       <div
         class="flex items-center gap-2 bg-nc-bg-gray-extralight px-4 py-1 border-b rounded-t-lg text-nc-content-gray min-h-[37px]"
         :class="{
-          '!bg-[#F0F3FF] border-brand-200': isCreatedByYou,
-          'border-gray-200': !isCreatedByYou,
+          '!bg-nc-bg-brand border-nc-brand-200': isCreatedByYou,
+          'border-nc-border-gray-medium': !isCreatedByYou,
         }"
       >
-        <span class="font-medium text-sm" :class="{ 'text-brand-600': isCreatedByYou }">
+        <span class="font-medium text-sm" :class="{ 'text-nc-content-brand-disabled': isCreatedByYou }">
           {{ createdBy(props.comment) }}
         </span>
-        <span class="text-xs text-gray-500">
+        <span class="text-xs text-nc-content-gray-muted">
           <NcTooltip>
             <template #title>{{ parseStringDateTime(props.comment.created_at) }}</template>
             {{ timeAgo(props.comment.created_at) }}
@@ -173,7 +173,7 @@ async function copyComment(comment: CommentType) {
             class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
           >
             <NcButton
-              class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
+              class="!w-7 !h-7 !bg-transparent !hover:bg-nc-bg-gray-medium"
               size="xsmall"
               type="text"
               @click="editComment(props.comment)"
@@ -189,7 +189,7 @@ async function copyComment(comment: CommentType) {
             overlay-class-name="!min-w-[160px]"
             placement="bottomRight"
           >
-            <NcButton class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200" size="xsmall" type="text">
+            <NcButton class="!w-7 !h-7 !bg-transparent !hover:bg-nc-bg-gray-medium" size="xsmall" type="text">
               <GeneralIcon class="text-md" icon="threeDotVertical" />
             </NcButton>
             <template #overlay>
@@ -202,11 +202,7 @@ async function copyComment(comment: CommentType) {
                 </NcMenuItem>
                 <template v-if="user && props.comment.created_by_email === user.email && hasEditPermission">
                   <NcDivider />
-                  <NcMenuItem
-                    v-e="['c:row-expand:comment:delete']"
-                    class="!text-red-500 !hover:bg-red-50"
-                    @click="deleteComment(props.comment.id!)"
-                  >
+                  <NcMenuItem v-e="['c:row-expand:comment:delete']" danger @click="deleteComment(props.comment.id!)">
                     <div class="flex gap-2 items-center">
                       <component :is="iconMap.delete" class="cursor-pointer" />
                       {{ $t('general.delete') }}
@@ -222,7 +218,7 @@ async function copyComment(comment: CommentType) {
             class="opacity-0 transition !duration-150 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
           >
             <NcButton
-              class="!w-7 !h-7 !bg-transparent !hover:bg-gray-200"
+              class="!w-7 !h-7 !bg-transparent !hover:bg-nc-bg-gray-medium"
               size="xsmall"
               type="text"
               @click="resolveComment(props.comment.id)"
@@ -234,12 +230,12 @@ async function copyComment(comment: CommentType) {
           <NcTooltip v-else-if="props.comment.resolved_by">
             <template #title>{{ `Resolved by ${props.comment.resolved_display_name}` }}</template>
             <NcButton
-              class="!h-7 !w-7 !bg-transparent !hover:bg-gray-200 text-semibold"
+              class="!h-7 !w-7 !bg-transparent !hover:bg-nc-bg-gray-medium text-semibold"
               size="xsmall"
               type="text"
               @click="resolveComment(props.comment.id!)"
             >
-              <GeneralIcon class="text-md rounded-full bg-[#17803D] text-white" icon="checkFill" />
+              <GeneralIcon class="text-md rounded-full bg-nc-fill-green-dark text-white" icon="checkFill" />
             </NcButton>
           </NcTooltip>
         </div>
@@ -250,7 +246,7 @@ async function copyComment(comment: CommentType) {
         autofocus
         autofocus-to-end
         :hide-options="false"
-        class="cursor-text expanded-form-comment-input !py-3 !px-4 !pr-3 !m-0 w-full !border-1 !border-gray-200 !rounded-lg !bg-white !text-gray-800 !text-small !leading-18px !max-h-[240px]"
+        class="cursor-text expanded-form-comment-input !py-3 !px-4 !pr-3 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-default !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
         data-testid="expanded-form-comment-input"
         sync-value-change
         @save="onEditComment"
@@ -261,7 +257,7 @@ async function copyComment(comment: CommentType) {
       <SmartsheetExpandedFormRichComment
         v-else
         :value="`${props.comment.comment}  ${editedAt(props.comment)}`"
-        class="!text-small !leading-18px !text-gray-800 px-4 py-3"
+        class="!text-small !leading-18px !text-nc-content-gray px-4 py-3"
         read-only
         sync-value-change
       />
@@ -273,13 +269,13 @@ async function copyComment(comment: CommentType) {
 .nc-audit-comment-block {
   &::before {
     content: '';
-    @apply absolute -top-4 left-15.8 h-4 border-l-1 border-gray-300;
+    @apply absolute -top-4 left-15.8 h-4 border-l-1 border-nc-border-gray-dark;
   }
 }
 .nc-audit-comment-block {
   &::after {
     content: '';
-    @apply absolute -bottom-4 left-15.8 h-4 border-l-1 border-gray-300;
+    @apply absolute -bottom-4 left-15.8 h-4 border-l-1 border-nc-border-gray-dark;
   }
 }
 </style>

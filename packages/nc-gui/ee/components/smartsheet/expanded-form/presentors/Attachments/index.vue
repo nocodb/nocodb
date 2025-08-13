@@ -145,7 +145,7 @@ export default {
       }"
     >
       <template v-if="!hasAnyAttachmentFields">
-        <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 nc-files-no-attachment-field">
+        <div class="w-full h-full flex flex-col items-center justify-center bg-nc-bg-gray-light nc-files-no-attachment-field">
           <span class="text-base font-black"> No Attachment field </span>
           <span class="text-xs mt-3 text-center" :class="hasAddFieldPermission ? 'max-w-[200px]' : 'max-w-[300px]'">
             {{
@@ -162,7 +162,9 @@ export default {
         </div>
         <div class="w-full h-0 flex-1 flex flex-row relative">
           <template v-if="!hasAnyValueInAttachment">
-            <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 nc-files-no-attachment relative">
+            <div
+              class="w-full h-full flex flex-col items-center justify-center bg-nc-bg-gray-light nc-files-no-attachment relative"
+            >
               <span class="text-base font-black"> No Attachment </span>
               <span class="text-xs mt-3 w-[210px] text-center"> There are no attachments to display in this field </span>
               <PermissionsTooltip
@@ -199,7 +201,7 @@ export default {
                     </NcTooltip>
                     <GeneralIcon
                       icon="chevronDown"
-                      class="h-4 w-4 ml-1 text-gray-500 aspect-square flex items-center justify-center"
+                      class="h-4 w-4 ml-1 text-nc-content-gray-muted aspect-square flex items-center justify-center"
                     />
                   </NcButton>
                 </NcDropdownSelect>
@@ -215,7 +217,7 @@ export default {
               :attachment-fields="attachmentFields"
               @open:file-picker="openFilePicker()"
             />
-            <div class="w-0 flex-1 bg-gray-100 pl-[80px]">
+            <div class="w-0 flex-1 bg-nc-bg-gray-light pl-[80px]">
               <SmartsheetExpandedFormPresentorsAttachmentsAttachmentView v-if="activeAttachment" :attachment="activeAttachment" />
             </div>
           </template>
@@ -224,7 +226,7 @@ export default {
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
-      class="nc-comments-drawer border-l-1 relative border-gray-200 bg-gray-50 w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
+      class="nc-comments-drawer border-l-1 relative border-nc-border-gray-medium bg-nc-bg-gray-extralight w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
       :class="{
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
@@ -255,16 +257,16 @@ export default {
 
   &.nc-readonly-div-data-cell,
   &.nc-system-field {
-    @apply !border-gray-200;
+    @apply !border-nc-border-gray-medium;
 
     .nc-cell,
     .nc-virtual-cell {
-      @apply text-gray-400;
+      @apply text-nc-gray-400;
     }
   }
   &.nc-readonly-div-data-cell:focus-within,
   &.nc-system-field:focus-within {
-    @apply !border-gray-200;
+    @apply !border-nc-border-gray-medium;
   }
 
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
@@ -286,12 +288,12 @@ export default {
     }
     :deep(.nc-virtual-cell-qrcode) {
       img {
-        @apply !h-[84px] border-1 border-solid border-gray-200 rounded;
+        @apply !h-[84px] border-1 border-solid border-nc-border-gray-medium rounded;
       }
     }
     :deep(.nc-virtual-cell-barcode) {
       .nc-barcode-container {
-        @apply border-1 rounded-lg border-gray-200 h-[64px] max-w-full p-2;
+        @apply border-1 rounded-lg border-nc-border-gray-medium h-[64px] max-w-full p-2;
         svg {
           @apply !h-full;
         }
@@ -302,11 +304,11 @@ export default {
 
 .nc-mentioned-cell {
   box-shadow: 0px 0px 0px 2px var(--ant-primary-color-outline) !important;
-  @apply !border-brand-500 !border-1;
+  @apply !border-nc-border-brand !border-1;
 }
 
 .nc-data-cell:focus-within {
-  @apply !border-1 !border-brand-500;
+  @apply !border-1 !border-nc-border-brand;
 }
 
 :deep(.nc-system-field input) {

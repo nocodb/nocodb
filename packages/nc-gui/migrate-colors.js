@@ -37,7 +37,7 @@ const colorMappingConflicts = {
     {
       token: 'text-nc-content-gray-muted',
       priority: 50,
-      context: ['muted', 'disabled', 'placeholder', 'hint', 'caption'],
+      context: ['muted', 'disabled', 'placeholder', 'hint', 'caption', 'GeneralIcon'],
       usage: 'Primary choice for muted text',
     },
     {

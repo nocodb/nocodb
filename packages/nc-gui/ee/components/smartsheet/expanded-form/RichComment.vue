@@ -354,7 +354,7 @@ defineExpose({
         <NcButton
           v-e="['a:row-expand:comment:save']"
           :disabled="!vModel?.length"
-          class="!disabled:bg-gray-100 nc-comment-save-btn !h-7 !w-7 !shadow-none"
+          class="!disabled:bg-nc-bg-gray-light nc-comment-save-btn !h-7 !w-7 !shadow-none"
           size="xsmall"
           @click="saveComment"
         >
@@ -377,7 +377,7 @@ defineExpose({
   }
 
   .nc-rich-link-tooltip {
-    @apply text-gray-500;
+    @apply text-nc-content-gray-muted;
   }
 
   .nc-comment-rich-editor {
@@ -403,7 +403,7 @@ defineExpose({
       }
     }
     .tiptap p.is-editor-empty:first-child::before {
-      @apply text-gray-500;
+      @apply text-nc-content-gray-muted;
       content: attr(data-placeholder);
       float: left;
       height: 0;

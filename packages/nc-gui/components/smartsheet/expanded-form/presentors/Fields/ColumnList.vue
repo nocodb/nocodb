@@ -105,7 +105,7 @@ const revertLocalOnlyChanges = (col: string) => {
         >
           <template #default="{ isAllowed }">
             <SmartsheetDivDataCell
-              class="flex-1 bg-white px-1 min-h-8 flex items-center relative"
+              class="flex-1 bg-nc-bg-default px-1 min-h-8 flex items-center relative"
               :class="{
                 'w-full': props.forceVerticalMode,
                 '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
@@ -141,7 +141,7 @@ const revertLocalOnlyChanges = (col: string) => {
         class="flex h-full items-center justify-center cursor-pointer relative"
         @click="revertLocalOnlyChanges(col.title)"
       >
-        <GeneralIcon class="absolute right-0 top-0 text-gray-500 hover:text-gray-700 my-auto" icon="reload" />
+        <GeneralIcon class="absolute right-0 top-0 text-nc-content-gray-muted hover:text-nc-content-gray-subtle my-auto" icon="reload" />
       </div>
     </div>
   </div>
@@ -173,7 +173,7 @@ const revertLocalOnlyChanges = (col: string) => {
 
   &.nc-readonly-div-data-cell,
   &.nc-system-field {
-    @apply !border-gray-200;
+    @apply !border-nc-border-gray-medium;
 
     .nc-cell,
     .nc-virtual-cell {
@@ -183,7 +183,7 @@ const revertLocalOnlyChanges = (col: string) => {
 
   &.nc-readonly-div-data-cell:focus-within,
   &.nc-system-field:focus-within {
-    @apply !border-gray-200;
+    @apply !border-nc-border-gray-medium;
   }
 
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
@@ -212,12 +212,12 @@ const revertLocalOnlyChanges = (col: string) => {
     }
     :deep(.nc-virtual-cell-qrcode) {
       img {
-        @apply !h-full border-1 border-solid border-gray-200 rounded;
+        @apply !h-full border-1 border-solid border-nc-border-gray-medium rounded;
       }
     }
     :deep(.nc-virtual-cell-barcode) {
       .nc-barcode-container {
-        @apply border-1 rounded-lg border-gray-200 h-[64px] max-w-full p-2;
+        @apply border-1 rounded-lg border-nc-border-gray-medium h-[64px] max-w-full p-2;
         svg {
           @apply !h-full;
         }
@@ -232,11 +232,11 @@ const revertLocalOnlyChanges = (col: string) => {
 
 .nc-mentioned-cell {
   box-shadow: 0px 0px 0px 2px var(--ant-primary-color-outline) !important;
-  @apply !border-brand-500 !border-1;
+  @apply !border-nc-border-brand !border-1;
 }
 
 .nc-data-cell:focus-within {
-  @apply !border-1 !border-brand-500;
+  @apply !border-1 !border-nc-border-brand;
 }
 
 :deep(.nc-system-field input) {

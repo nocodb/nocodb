@@ -57,7 +57,7 @@ watch(selectedFieldId, () => {
 
 <template>
   <div
-    class="nc-attachments-preview-bar absolute left-0 top-0 bottom-0 bg-white border-r-1 border-gray-200 flex flex-col transition-all duration-300 z-10"
+    class="nc-attachments-preview-bar absolute left-0 top-0 bottom-0 bg-nc-bg-default border-r-1 border-nc-border-gray-medium flex flex-col transition-all duration-300 z-10"
     :class="{
       'w-[80px]': !isExpanded,
       'w-[320px]': isExpanded,
@@ -87,7 +87,7 @@ watch(selectedFieldId, () => {
                 {{ selectedField?.title }}
               </span>
             </NcTooltip>
-            <GeneralIcon icon="chevronDown" class="h-4 w-4 ml-1 text-gray-500 aspect-square flex items-center justify-center" />
+            <GeneralIcon icon="chevronDown" class="h-4 w-4 ml-1 text-nc-content-gray-muted aspect-square flex items-center justify-center" />
           </template>
         </NcButton>
       </NcDropdownSelect>
@@ -119,12 +119,12 @@ watch(selectedFieldId, () => {
     <div v-if="!readOnly">
       <NcButton
         type="text"
-        class="w-full !rounded-none !border-t-1 !rounded-t-lg !border-gray-200 !h-16"
+        class="w-full !rounded-none !border-t-1 !rounded-t-lg !border-nc-border-gray-medium !h-16"
         :disabled="readOnly"
         @click="emit('open:file-picker')"
       >
         <div class="flex flex-col items-center">
-          <MaterialSymbolsAttachFile class="text-gray-500 text-sm" />
+          <MaterialSymbolsAttachFile class="text-nc-content-gray-muted text-sm" />
           <span class="mt-2"> Add file(s) </span>
         </div>
       </NcButton>

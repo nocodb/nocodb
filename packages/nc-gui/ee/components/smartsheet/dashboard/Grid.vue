@@ -187,7 +187,7 @@ const getWidgetPositionConfig = (item: string) => {
         minW: 2,
         minH: 1,
         maxW: 4,
-        maxH: 4,
+        maxH: 12,
       }
     }
     default:

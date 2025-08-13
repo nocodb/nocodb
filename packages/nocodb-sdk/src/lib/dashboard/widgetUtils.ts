@@ -95,7 +95,7 @@ const getDefaultConfig = (
     case WidgetTypes.TEXT:
       return {
         content: 'Enter text here',
-        type: TextWidgetTypes.H1,
+        type: TextWidgetTypes.Markdown,
         formatting: {
           horizontalAlign: 'flex-start',
           verticalAlign: 'flex-start',

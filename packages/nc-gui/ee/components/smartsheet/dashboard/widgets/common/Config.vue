@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { ChartTypes, WidgetChartLabelMap, WidgetTypes } from 'nocodb-sdk'
-import { chartIconMap } from '#imports'
+import { ChartTypes, TextWidgetTypes, WidgetChartLabelMap, WidgetTypes } from 'nocodb-sdk'
+import { chartIconMap, textIconMap } from '#imports'
+
+defineProps<{
+  disableAppearance?: boolean
+}>()
 
 const { selectedWidget } = storeToRefs(useWidgetStore())
 
@@ -50,6 +54,19 @@ const handleConfigUpdate = async (config: any) => {
       </NcSelect>
     </div>
 
+    <div v-if="selectedWidget?.type === WidgetTypes.TEXT" class="pl-4 pr-5">
+      <NcSelect :value="selectedWidget?.config?.type" @change="handleConfigUpdate({ type: $event })">
+        <a-select-option v-for="option of Object.values(TextWidgetTypes)" :key="option" :value="option">
+          <div class="flex items-center gap-2">
+            <GeneralIcon :icon="textIconMap[option]" class="w-4 h-4" />
+            <span class="text-nc-content-gray text-sm">
+              {{ textLabelMap[option] }}
+            </span>
+          </div>
+        </a-select-option>
+      </NcSelect>
+    </div>
+
     <NcTabs class="!mt-3">
       <a-tab-pane key="data" tab="Data">
         <template #tab>Data</template>
@@ -57,7 +74,7 @@ const handleConfigUpdate = async (config: any) => {
           <slot name="data"></slot>
         </div>
       </a-tab-pane>
-      <a-tab-pane key="appearance" tab="Appearance">
+      <a-tab-pane v-if="!disableAppearance" key="appearance" tab="Appearance">
         <template #tab>Appearance</template>
         <slot name="appearance"></slot>
       </a-tab-pane>

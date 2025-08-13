@@ -72,17 +72,22 @@ export interface MetricWidgetConfig {
 }
 
 export enum TextWidgetTypes {
-  H1 = 'H1',
-  H2 = 'H2',
-  H3 = 'H3',
-  H4 = 'H4',
-  H5 = 'H5',
-  H6 = 'H6',
+  Markdown = 'markdown',
+  Text = 'text',
 }
 
-export interface TextWidgetConfig {
+interface TextWidgetConfigMarkdown {
   content: string;
-  type: TextWidgetTypes;
+  type: TextWidgetTypes.Markdown;
+  formatting: {
+    horizontalAlign: 'flex-start' | 'center' | 'flex-end';
+    verticalAlign: 'flex-start' | 'center' | 'flex-end';
+  };
+}
+
+interface TextWidgetConfigText {
+  content: string;
+  type: TextWidgetTypes.Text;
   formatting: {
     horizontalAlign: 'flex-start' | 'center' | 'flex-end';
     verticalAlign: 'flex-start' | 'center' | 'flex-end';
@@ -101,6 +106,8 @@ export interface TextWidgetConfig {
     color: string;
   };
 }
+
+export type TextWidgetConfig = TextWidgetConfigMarkdown | TextWidgetConfigText;
 
 export interface IframeWidgetConfig {
   url: string;

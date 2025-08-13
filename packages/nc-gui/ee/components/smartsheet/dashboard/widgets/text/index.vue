@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { TextWidgetType } from 'nocodb-sdk'
+import { type TextWidgetType, TextWidgetTypes } from 'nocodb-sdk'
+import MarkdownRenderer from '~/components/smartsheet/dashboard/widgets/text/config/Markdown.vue'
 
 interface Props {
   widget: TextWidgetType
@@ -56,6 +57,7 @@ const textDecoration = computed(() => {
     }"
   >
     <div
+      v-if="widget.config?.type === TextWidgetTypes.Text"
       class="flex-1 whitespace-pre-wrap break-words"
       :style="{
         fontSize: `${config.appearance.font.size}px`,
@@ -70,6 +72,16 @@ const textDecoration = computed(() => {
       }"
     >
       {{ config.content }}
+    </div>
+    <div
+      v-else
+      :key="config.content"
+      :style="{
+        textAlign,
+      }"
+      class="flex-1 whitespace-pre-wrap break-words"
+    >
+      <MarkdownRenderer read-only :value="config.content" />
     </div>
     <SmartsheetDashboardWidgetsCommonContext v-if="isEditing" class="absolute top-2.5 right-2.5" :widget="widget" />
   </div>

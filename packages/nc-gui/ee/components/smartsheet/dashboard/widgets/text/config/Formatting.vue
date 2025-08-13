@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { TextWidgetTypes } from 'nocodb-sdk'
 import GroupedSettings from '~/components/smartsheet/dashboard/widgets/common/GroupedSettings.vue'
 
 const emit = defineEmits<{
@@ -42,7 +43,7 @@ watch(
 <template>
   <GroupedSettings title="Formatting">
     <div class="flex gap-2 formatting">
-      <div class="flex">
+      <div v-if="textWidget?.config?.type === TextWidgetTypes.Text" class="flex">
         <NcButton
           :shadow="false"
           size="small"

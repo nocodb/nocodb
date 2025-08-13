@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { WidgetTypes } from 'nocodb-sdk'
+import { TextWidgetTypes, WidgetTypes } from 'nocodb-sdk'
 import type { TextWidgetConfig, TextWidgetType } from 'nocodb-sdk'
 
 const widgetStore = useWidgetStore()
@@ -66,7 +66,7 @@ async function handleConfigUpdate(type: 'text' | 'content' | 'appearance' | 'for
 
 <template>
   <div v-if="selectedTextWidget">
-    <SmartsheetDashboardWidgetsCommonConfig>
+    <SmartsheetDashboardWidgetsCommonConfig :disable-appearance="selectedTextWidget.config.type === TextWidgetTypes.Markdown">
       <template #data>
         <SmartsheetDashboardWidgetsTextConfigContent
           :widget="selectedTextWidget"

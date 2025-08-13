@@ -42,6 +42,9 @@ body {
   select:-webkit-autofill:focus {
     border: 1px solid var(--nc-border-grey-medium);
     -webkit-text-fill-color: var(--nc-content-grey-default);
+    -webkit-box-shadow: none;
+    box-shadow: none; /* Auto fill input bg color*/
+    transition: background-color 5000s ease-in-out 0s; /* Prevent flash on focus */
   }
 
   input,

@@ -97,7 +97,7 @@ const toggleLoginForm = ref(false)
     class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
   >
     <div
-      class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+      class="bg-nc-bg-default mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-nc-border-gray-medium shadow-xl)"
     >
       <LazyGeneralNocoIcon
         class="color-transition hover:(ring ring-accent ring-opacity-100)"
@@ -105,7 +105,7 @@ const toggleLoginForm = ref(false)
         @dblclick="toggleLoginForm = !toggleLoginForm"
       />
 
-      <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
+      <h1 class="prose-2xl font-bold self-center my-4 text-nc-content-gray">{{ $t('general.signIn') }}</h1>
 
       <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signIn">
         <template v-if="!appInfo.disableEmailAuth && (!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm)">
@@ -161,7 +161,7 @@ const toggleLoginForm = ref(false)
           <a
             v-if="appInfo.googleAuthEnabled"
             :href="`${appInfo.ncSiteUrl}/auth/google`"
-            class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+            class="scaling-btn bg-opacity-100 after:(!bg-transparent) !text-primary !no-underline"
           >
             <span class="flex items-center gap-2">
               <LogosGoogleGmail />
@@ -212,7 +212,7 @@ const toggleLoginForm = ref(false)
             <a
               v-if="client.type === 'google'"
               :href="client.url"
-              class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+              class="scaling-btn bg-opacity-100 after:(!bg-transparent) !text-primary !no-underline"
             >
               <span class="flex items-center gap-2">
                 <LogosGoogleGmail />
@@ -231,7 +231,10 @@ const toggleLoginForm = ref(false)
             </a>
           </div>
 
-          <div v-if="!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm" class="text-end prose-sm">
+          <div
+            v-if="!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm"
+            class="text-end prose-sm text-nc-content-gray"
+          >
             {{ $t('msg.info.signUp.dontHaveAccount') }}
             <nuxt-link @click="navigateSignUp">{{ $t('general.signUp') }}</nuxt-link>
           </div>

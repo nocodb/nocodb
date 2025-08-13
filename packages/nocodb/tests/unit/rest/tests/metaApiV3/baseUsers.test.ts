@@ -105,8 +105,7 @@ export default function () {
       const baseUsers = inviteBaseUser.body;
       expect(baseUsers).to.be.an('array').that.is.not.empty;
 
-      // FIXME: skip validation for now since the id is different
-      // await Promise.all(baseUsers.map(_validateBaseUser));
+      await Promise.all(baseUsers.map(_validateBaseUser));
 
       const user0 = baseUsers.find((u) => u.email === 'user-0@nocodb.com');
       expect(user0).to.have.property('base_role', 'editor');
@@ -141,8 +140,7 @@ export default function () {
       // Validation
       const baseUsers = inviteBaseUser.body;
       expect(baseUsers).to.be.an('array').that.is.not.empty;
-      // FIXME: skip validation for now since the id is different
-      // await Promise.all(baseUsers.map(_validateBaseUser));
+      await Promise.all(baseUsers.map(_validateBaseUser));
 
       const user0 = baseUsers.find((u) => u.email === 'user-1@nocodb.com');
       expect(user0).to.have.property('base_role', 'editor');
@@ -231,10 +229,8 @@ export default function () {
       // Validation
       const baseUsers = inviteBaseUser.body;
       expect(baseUsers).to.be.an('array').that.is.not.empty;
-      // FIXME: skip validation for now since the id is different
-      // await Promise.all(baseUsers.map(_validateBaseUser));
-
-      const user0 = baseUsers.find((u) => u.id === user.id);
+      await Promise.all(baseUsers.map(_validateBaseUser));
+      const user0 = baseUsers.find((u) => u.user_id === user.id);
       expect(user0).to.have.property('base_role', 'editor');
       if (isEE()) {
         expect(user0).to.have.property(
@@ -276,8 +272,7 @@ export default function () {
 
       // Validation
       const updatedUser = updateBaseUser.body;
-      // FIXME: skip validation for now since the id is different
-      // await _validateBaseUser(updatedUser[0]);
+      await _validateBaseUser(updatedUser[0]);
       expect(updatedUser[0]).to.have.property('base_role', 'viewer');
     });
     it('Update Base User v3 - using ID', async () => {
@@ -302,7 +297,7 @@ export default function () {
       // Update base user
       const updateData = [
         {
-          user_id: baseUsers.id,
+          user_id: baseUsers.user_id,
           base_role: 'viewer',
         },
       ];
@@ -317,8 +312,7 @@ export default function () {
 
       // Validation
       const updatedUser = updateBaseUser.body;
-      // FIXME: skip validation for now since the id is different
-      // await _validateBaseUser(updatedUser[0]);
+      await _validateBaseUser(updatedUser[0]);
       expect(updatedUser[0]).to.have.property('base_role', 'viewer');
     });
     it('Delete Base User v3 - using ID', async () => {

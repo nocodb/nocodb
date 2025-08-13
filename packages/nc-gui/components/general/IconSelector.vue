@@ -292,7 +292,7 @@ watch(isOpen, (newValue) => {
               </template>
 
               <div v-if="tabItem.value === IconType.ICON" class="h-full overflow-auto nc-scrollbar-thin flex flex-col">
-                <div class="!sticky top-0 flex gap-2 bg-white px-2 py-2">
+                <div class="!sticky top-0 flex gap-2 bg-nc-bg-default px-2 py-2">
                   <a-input
                     ref="inputRef"
                     v-model:value="searchQuery"

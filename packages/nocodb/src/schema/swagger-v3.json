@@ -347,7 +347,7 @@
                 "Example 1": {
                   "value": [
                     {
-                      "user_email": "user@example.com",
+                      "email": "user@example.com",
                       "workspace_role": "workspace-level-viewer"
                     }
                   ]
@@ -355,11 +355,11 @@
                 "Example 2": {
                   "value": [
                     {
-                      "user_email": "user1@example.com",
+                      "email": "user1@example.com",
                       "workspace_role": "workspace-level-editor"
                     },
                     {
-                      "user_email": "user2@example.com",
+                      "email": "user2@example.com",
                       "workspace_role": "workspace-level-viewer"
                     }
                   ]
@@ -7320,7 +7320,7 @@
         "type": "object",
         "description": "Workspace user information",
         "properties": {
-          "user_email": {
+          "email": {
             "type": "string",
             "format": "email",
             "description": "Email address of the user"
@@ -7344,7 +7344,7 @@
             "description": "Role assigned to the user in the workspace"
           }
         },
-        "required": ["user_email", "user_id", "created_at", "updated_at", "workspace_role"]
+        "required": ["email", "user_id", "created_at", "updated_at", "workspace_role"]
       },
       "WorkspaceUserCreate": {
         "type": "array",
@@ -7353,9 +7353,9 @@
           "properties": {
             "user_id": {
               "type": "string",
-              "description": "Unique identifier for the user (optional if user_email is provided)"
+              "description": "Unique identifier for the user (optional if email is provided)"
             },
-            "user_email": {
+            "email": {
               "type": "string",
               "format": "email",
               "description": "Email address of the user (optional if user_id is provided)"
@@ -7373,7 +7373,7 @@
             },
             {
               "title": "Invite User with Email",
-              "required": ["user_email"]
+              "required": ["email"]
             }
           ],
           "description": "An object representing a new workspace user to be created."

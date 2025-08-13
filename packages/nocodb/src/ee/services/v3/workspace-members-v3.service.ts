@@ -9,6 +9,8 @@ import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { WorkspaceUsersService } from '~/ee/services/workspace-users.service';
 import { validatePayload } from '~/helpers';
 import WorkspaceUser from '~/ee/models/WorkspaceUser';
+import NocoCache from '~/cache/NocoCache';
+import { CacheScope } from '~/utils/globals';
 
 @Injectable()
 export class WorkspaceMembersV3Service {
@@ -62,38 +64,50 @@ export class WorkspaceMembersV3Service {
       true,
     );
 
+    const workspaceUsers = [];
+
+    // iterate, validate and extract email or user_id from workspaceUsers
+    for (const _workspaceUser of param.workspaceUsers) {
+      const workspaceUser = {
+        ..._workspaceUser,
+      };
+
+      let user: User;
+
+      if (workspaceUser.user_id) {
+        user = await User.get(workspaceUser.user_id);
+        if (!user) {
+          NcError.userNotFound(workspaceUser.user_id);
+        }
+        workspaceUser.email = user.email;
+      } else if (workspaceUser.email) {
+        user = await User.getByEmail(workspaceUser.email);
+        workspaceUser.user_id = user?.id;
+      } else {
+        NcError.badRequest('Either email or user_id is required');
+      }
+
+      if (user) {
+        // check if the user is already a member of the workspace
+        const existingWorkspaceUser = await WorkspaceUser.get(
+          param.workspaceId,
+          user?.id,
+        );
+        // if already exists and has a role then return error
+        if (existingWorkspaceUser?.roles) {
+          throw new Error(
+            `${user.email} with role ${existingWorkspaceUser.roles} already exists in this workspace`,
+          );
+        }
+      }
+
+      workspaceUsers.push(workspaceUser);
+    }
+
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
     try {
-      for (const workspaceUser of param.workspaceUsers) {
-        let user: User;
-        if (workspaceUser.user_id) {
-          user = await User.get(workspaceUser.user_id, ncMeta);
-          if (!user) {
-            NcError.userNotFound(workspaceUser.user_id);
-          }
-          workspaceUser.email = user.email;
-        } else if (workspaceUser.email) {
-          user = await User.getByEmail(workspaceUser.email, ncMeta);
-        } else {
-          NcError.badRequest('Either email or user_id is required');
-        }
-
-        if (user) {
-          // check if the user is already a member of the workspace
-          const existingWorkspaceUser = await WorkspaceUser.get(
-            param.workspaceId,
-            user?.id,
-            ncMeta,
-          );
-          // if already exists and has a role then return error
-          if (existingWorkspaceUser?.roles) {
-            throw new Error(
-              `${user.email} with role ${existingWorkspaceUser.roles} already exists in this workspace`,
-            );
-          }
-        }
-
+      for (const workspaceUser of workspaceUsers) {
         // Set default role if not provided
         if (!workspaceUser.workspace_role) {
           workspaceUser.workspace_role = WorkspaceUserRoles.NO_ACCESS;
@@ -113,13 +127,23 @@ export class WorkspaceMembersV3Service {
           ncMeta,
         );
 
-        user = await User.getByEmail(workspaceUser.email, ncMeta);
-        userIds.push(user.id);
+        const userId =
+          workspaceUser.user_id ??
+          (await User.getByEmail(workspaceUser.email, ncMeta)).id;
+        userIds.push(userId);
       }
       await ncMeta.commit();
     } catch (e) {
       // on error rollback the transaction and throw the error
       await ncMeta.rollback();
+
+      // Rollback cache, clear cache of invited users
+      for (const userId of userIds) {
+        await NocoCache.del(
+          `${CacheScope.WORKSPACE_USER}:${param.workspaceId}:${userId}`,
+        );
+      }
+
       throw e;
     }
     // Get all users and filter by the ones we just invited

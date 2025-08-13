@@ -4,7 +4,6 @@ import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 // import { NotFoundHandlerModule } from './not-found-handler.module';
-import { BaseMembersV3Controller } from '~/controllers/v3/base-members-v3.controller';
 import { BaseMembersV3Service } from '~/services/v3/base-members-v3.service';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
@@ -206,7 +205,6 @@ export const nocoModuleMetadata = {
           OrgUsersController,
           PluginsController,
           BaseUsersController,
-          BaseMembersV3Controller,
           BasesController,
           PublicMetasController,
           ViewsController,

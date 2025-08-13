@@ -11,8 +11,7 @@ import { createUser } from '../../../factory/user';
 // Delete : http://localhost:8080/api/v3/meta/workspaces/{workspace_id}/members
 
 export default function () {
-  // Skipping since API not available in current test environment
-  describe.skip(`Workspace Users v3`, () => {
+  describe.only(`Workspace Users v3`, () => {
     let context: any = {};
     let workspaceId: string;
 
@@ -26,7 +25,7 @@ export default function () {
     async function _validateWorkspaceUser(user) {
       expect(user).to.be.an('object');
       expect(Object.keys(user)).to.include.members([
-        'email',
+        'user_email',
         'user_id',
         'workspace_role',
         'created_at',
@@ -35,7 +34,7 @@ export default function () {
 
       expect(user).to.have.property('user_id').that.is.a('string');
       expect(user)
-        .to.have.property('email')
+        .to.have.property('user_email')
         .that.is.a('string')
         .and.includes('@');
       expect(user).to.have.property('created_at').that.is.a('string');
@@ -67,9 +66,7 @@ export default function () {
       // Validation
       const workspace = getWorkspaceMembers.body;
       expect(workspace).to.have.property('individual_members');
-      expect(workspace.individual_members).to.have.property(
-        'workspace_members',
-      );
+      expect(workspace.individual_members).to.have.property('workspace_members');
 
       const workspaceMembers = workspace.individual_members.workspace_members;
 
@@ -78,19 +75,17 @@ export default function () {
 
       // Validate the first member structure
       const firstMember = workspaceMembers[0];
-      expect(firstMember).to.have.property('email').that.is.a('string');
+      expect(firstMember).to.have.property('user_email').that.is.a('string');
       expect(firstMember).to.have.property('user_id').that.is.a('string');
       expect(firstMember).to.have.property('created_at').that.is.a('string');
       expect(firstMember).to.have.property('updated_at').that.is.a('string');
-      expect(firstMember)
-        .to.have.property('workspace_role')
-        .that.is.a('string');
+      expect(firstMember).to.have.property('workspace_role').that.is.a('string');
     });
 
     it('Invite Workspace Member v3 - Email, Single', async () => {
       // Invite workspace member
       const inviteData = {
-        email: 'user-0@nocodb.com',
+        user_email: 'user-0@nocodb.com',
         workspace_role: 'workspace-level-editor',
       };
 
@@ -105,24 +100,19 @@ export default function () {
       expect(workspaceMembers).to.be.an('array').that.is.not.empty;
       await Promise.all(workspaceMembers.map(_validateWorkspaceUser));
 
-      const user0 = workspaceMembers.find(
-        (u) => u.email === 'user-0@nocodb.com',
-      );
-      expect(user0).to.have.property(
-        'workspace_role',
-        'workspace-level-editor',
-      );
+      const user0 = workspaceMembers.find((u) => u.user_email === 'user-0@nocodb.com');
+      expect(user0).to.have.property('workspace_role', 'workspace-level-editor');
     });
 
     it('Invite Workspace Member v3 - Email, Multiple', async () => {
       // Invite workspace members
       const inviteData = [
         {
-          email: 'user-1@nocodb.com',
+          user_email: 'user-1@nocodb.com',
           workspace_role: 'workspace-level-editor',
         },
         {
-          email: 'user-2@nocodb.com',
+          user_email: 'user-2@nocodb.com',
           workspace_role: 'workspace-level-viewer',
         },
       ];
@@ -138,28 +128,18 @@ export default function () {
       expect(workspaceMembers).to.be.an('array').that.is.not.empty;
       await Promise.all(workspaceMembers.map(_validateWorkspaceUser));
 
-      const user0 = workspaceMembers.find(
-        (u) => u.email === 'user-1@nocodb.com',
-      );
-      expect(user0).to.have.property(
-        'workspace_role',
-        'workspace-level-editor',
-      );
+      const user0 = workspaceMembers.find((u) => u.user_email === 'user-1@nocodb.com');
+      expect(user0).to.have.property('workspace_role', 'workspace-level-editor');
 
-      const user1 = workspaceMembers.find(
-        (u) => u.email === 'user-2@nocodb.com',
-      );
-      expect(user1).to.have.property(
-        'workspace_role',
-        'workspace-level-viewer',
-      );
+      const user1 = workspaceMembers.find((u) => u.user_email === 'user-2@nocodb.com');
+      expect(user1).to.have.property('workspace_role', 'workspace-level-viewer');
     });
 
     it('Invite Workspace Member v3 - Workspace role not specified', async () => {
       // Invite workspace member without role
       const inviteData = [
         {
-          email: 'user-0@nocodb.com',
+          user_email: 'user-0@nocodb.com',
         },
       ];
 
@@ -195,7 +175,7 @@ export default function () {
 
       // Validation
       const error = inviteWorkspaceMember.body;
-      expect(error).to.have.property('msg', 'Either email or user_id is required');
+      expect(error).to.have.property('msg', 'Either email or id is required');
     });
 
     it('Invite Workspace Member v3 - using ID', async () => {
@@ -227,16 +207,13 @@ export default function () {
       await Promise.all(workspaceMembers.map(_validateWorkspaceUser));
 
       const user0 = workspaceMembers.find((u) => u.user_id === user.id);
-      expect(user0).to.have.property(
-        'workspace_role',
-        'workspace-level-editor',
-      );
+      expect(user0).to.have.property('workspace_role', 'workspace-level-editor');
     });
 
     it('Update Workspace Member v3 - using ID', async () => {
       // First invite a workspace member
       const inviteData = {
-        email: 'user-0@nocodb.com',
+        user_email: 'user-0@nocodb.com',
         workspace_role: 'workspace-level-editor',
       };
 
@@ -252,9 +229,7 @@ export default function () {
         .set('xc-token', context.xc_token)
         .expect(200);
 
-      const member = getMembers.body.individual_members.workspace_members.find(
-        (u) => u.email === 'user-0@nocodb.com',
-      );
+      const member = getMembers.body.individual_members.workspace_members.find((u) => u.user_email === 'user-0@nocodb.com');
 
       if (!member) {
         throw new Error('Failed to find invited member');
@@ -277,21 +252,18 @@ export default function () {
       // Validation
       const updatedMember = updateWorkspaceMember.body;
       await _validateWorkspaceUser(updatedMember[0]);
-      expect(updatedMember[0]).to.have.property(
-        'workspace_role',
-        'workspace-level-viewer',
-      );
+      expect(updatedMember[0]).to.have.property('workspace_role', 'workspace-level-viewer');
     });
 
     it('Update Workspace Member v3 - Bulk Update', async () => {
       // First invite multiple workspace members
       const inviteData = [
         {
-          email: 'user-1@nocodb.com',
+          user_email: 'user-1@nocodb.com',
           workspace_role: 'workspace-level-editor',
         },
         {
-          email: 'user-2@nocodb.com',
+          user_email: 'user-2@nocodb.com',
           workspace_role: 'workspace-level-viewer',
         },
       ];
@@ -308,12 +280,8 @@ export default function () {
         .set('xc-token', context.xc_token)
         .expect(200);
 
-      const member1 = getMembers.body.individual_members.workspace_members.find(
-        (u) => u.email === 'user-1@nocodb.com',
-      );
-      const member2 = getMembers.body.individual_members.workspace_members.find(
-        (u) => u.email === 'user-2@nocodb.com',
-      );
+      const member1 = getMembers.body.individual_members.workspace_members.find((u) => u.user_email === 'user-1@nocodb.com');
+      const member2 = getMembers.body.individual_members.workspace_members.find((u) => u.user_email === 'user-2@nocodb.com');
 
       if (!member1 || !member2) {
         throw new Error('Failed to find invited members');
@@ -341,21 +309,11 @@ export default function () {
       const updatedMembers = updateWorkspaceMembers.body;
       expect(updatedMembers).to.be.an('array').that.has.length(2);
 
-      const updatedMember1 = updatedMembers.find(
-        (u) => u.user_id === member1.user_id,
-      );
-      expect(updatedMember1).to.have.property(
-        'workspace_role',
-        'workspace-level-viewer',
-      );
+      const updatedMember1 = updatedMembers.find((u) => u.user_id === member1.user_id);
+      expect(updatedMember1).to.have.property('workspace_role', 'workspace-level-viewer');
 
-      const updatedMember2 = updatedMembers.find(
-        (u) => u.user_id === member2.user_id,
-      );
-      expect(updatedMember2).to.have.property(
-        'workspace_role',
-        'workspace-level-editor',
-      );
+      const updatedMember2 = updatedMembers.find((u) => u.user_id === member2.user_id);
+      expect(updatedMember2).to.have.property('workspace_role', 'workspace-level-editor');
     });
 
     it('Delete Workspace Member v3 - using ID', async () => {
@@ -385,10 +343,7 @@ export default function () {
         .expect(200);
 
       // Validation
-      expect(deleteResponse.body).to.have.property(
-        'msg',
-        'The user has been deleted successfully',
-      );
+      expect(deleteResponse.body).to.have.property('msg', 'The user has been deleted successfully');
 
       // Verify the user is no longer in the workspace members list
       const getMembers = await request(context.app)
@@ -396,10 +351,7 @@ export default function () {
         .set('xc-token', context.xc_token)
         .expect(200);
 
-      const deletedMember =
-        getMembers.body.individual_members.workspace_members.find(
-          (u) => u.user_id === user.id,
-        );
+      const deletedMember = getMembers.body.individual_members.workspace_members.find((u) => u.user_id === user.id);
       expect(deletedMember).to.be.undefined;
     });
 
@@ -433,14 +385,14 @@ export default function () {
       const deleteResponse = await request(context.app)
         .delete(`/api/v3/meta/workspaces/${workspaceId}/members`)
         .set('xc-token', context.xc_token)
-        .send([{ user_id: user1.user.id }, { user_id: user2.user.id }])
+        .send([
+          { user_id: user1.user.id },
+          { user_id: user2.user.id }
+        ])
         .expect(200);
 
       // Validation
-      expect(deleteResponse.body).to.have.property(
-        'msg',
-        'The user has been deleted successfully',
-      );
+      expect(deleteResponse.body).to.have.property('msg', 'The user has been deleted successfully');
 
       // Verify both users are no longer in the workspace members list
       const getMembers = await request(context.app)
@@ -448,14 +400,8 @@ export default function () {
         .set('xc-token', context.xc_token)
         .expect(200);
 
-      const deletedMember1 =
-        getMembers.body.individual_members.workspace_members.find(
-          (u) => u.user_id === user1.user.id,
-        );
-      const deletedMember2 =
-        getMembers.body.individual_members.workspace_members.find(
-          (u) => u.user_id === user2.user.id,
-        );
+      const deletedMember1 = getMembers.body.individual_members.workspace_members.find((u) => u.user_id === user1.user.id);
+      const deletedMember2 = getMembers.body.individual_members.workspace_members.find((u) => u.user_id === user2.user.id);
 
       expect(deletedMember1).to.be.undefined;
       expect(deletedMember2).to.be.undefined;
@@ -483,7 +429,7 @@ export default function () {
     it('Workspace Read v3 - With Members', async () => {
       // First invite a member
       const inviteData = {
-        email: 'user-0@nocodb.com',
+        user_email: 'user-0@nocodb.com',
         workspace_role: 'workspace-level-editor',
       };
 
@@ -509,15 +455,12 @@ export default function () {
 
       // Should include members when requested
       expect(workspace).to.have.property('individual_members');
-      expect(workspace.individual_members).to.have.property(
-        'workspace_members',
-      );
-      expect(workspace.individual_members.workspace_members).to.be.an('array')
-        .that.is.not.empty;
+      expect(workspace.individual_members).to.have.property('workspace_members');
+      expect(workspace.individual_members.workspace_members).to.be.an('array').that.is.not.empty;
 
       // Validate the member structure
       const member = workspace.individual_members.workspace_members[0];
-      expect(member).to.have.property('email').that.is.a('string');
+      expect(member).to.have.property('user_email').that.is.a('string');
       expect(member).to.have.property('user_id').that.is.a('string');
       expect(member).to.have.property('created_at').that.is.a('string');
       expect(member).to.have.property('updated_at').that.is.a('string');
@@ -535,9 +478,7 @@ export default function () {
       const workspace = getWorkspace.body;
       expect(workspace).to.be.an('object');
       expect(workspace).to.have.property('individual_members');
-      expect(workspace.individual_members).to.have.property(
-        'workspace_members',
-      );
+      expect(workspace.individual_members).to.have.property('workspace_members');
     });
 
     it('Workspace Read v3 - Invalid Include Parameter', async () => {

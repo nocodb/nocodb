@@ -216,7 +216,7 @@ export default class BaseUser {
 
     const fullVersionCols = ['invite_token'];
 
-    if (!isNoneList && !baseUsers.length) {
+    if (strict_in_record || (!isNoneList && !baseUsers.length)) {
       const queryBuilder = ncMeta
         .knex(MetaTable.USERS)
         .select(
@@ -255,10 +255,12 @@ export default class BaseUser {
         return this.castType(baseUser);
       });
 
-      await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers, [
-        'base_id',
-        'id',
-      ]);
+      if (!strict_in_record) {
+        await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers, [
+          'base_id',
+          'id',
+        ]);
+      }
     }
 
     if (user_ids) {

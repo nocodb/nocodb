@@ -156,9 +156,9 @@ export interface Table {
   views: ViewSummary[];
 }
 
-export interface BaseUser {
+export interface BaseMember {
   /** Unique identifier for the user. */
-  id: string;
+  user_id: string;
   /**
    * Email address of the user.
    * @format email
@@ -166,34 +166,20 @@ export interface BaseUser {
   email: string;
   /** Display name of the user. */
   user_name?: string;
-  /**
-   * Timestamp of when the user was created.
-   * @format date-time
-   */
-  created_at: string;
-  /**
-   * Timestamp of when the user access was last updated.
-   * @format date-time
-   */
-  updated_at: string;
   /** Base roles for the user. */
   base_role: BaseRoles;
-  /** Workspace roles for the user. */
-  workspace_role: WorkspaceRoles;
-  /** Unique identifier for the workspace. */
-  workspace_id: string;
 }
 
 export type BaseUserDeleteRequest = any;
 
-export interface BaseUserList {
-  list?: BaseUser[];
+export interface BaseMemberList {
+  list?: any[];
 }
 
 /** Array of users to be created. */
-export type BaseUserCreate = {
+export type BaseMemberCreate = {
   /** Unique identifier for the user. Can be provided optionally during creation. */
-  id?: string;
+  user_id?: string;
   /**
    * Email address of the user. Used as a primary identifier if 'id' is not provided.
    * @format email
@@ -1923,36 +1909,20 @@ export class InternalApi<
       }),
 
     /**
-     * @description Retrieve a list of users associated with a specific base.
-     *
-     * @tags Base Users
-     * @name BaseUsersList
-     * @summary List base users
-     * @request GET:/api/v3/meta/bases/{base_id}/users
-     */
-    baseUsersList: (baseId: string, params: RequestParams = {}) =>
-      this.request<BaseUserList, void>({
-        path: `/api/v3/meta/bases/${baseId}/users`,
-        method: 'GET',
-        format: 'json',
-        ...params,
-      }),
-
-    /**
      * @description Invite new users to a specific base using their email address.
      *
      * @tags Base Users
      * @name BaseUsersInvite
      * @summary Invite users to a base
-     * @request POST:/api/v3/meta/bases/{base_id}/users
+     * @request POST:/api/v3/meta/bases/{base_id}/members
      */
     baseUsersInvite: (
       baseId: string,
-      data: BaseUserCreate,
+      data: BaseMemberCreate,
       params: RequestParams = {},
     ) =>
-      this.request<BaseUser[], void>({
-        path: `/api/v3/meta/bases/${baseId}/users`,
+      this.request<any[], void>({
+        path: `/api/v3/meta/bases/${baseId}/members`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -1966,15 +1936,15 @@ export class InternalApi<
      * @tags Base Users
      * @name BaseUsersUpdate
      * @summary Update users in a base
-     * @request PATCH:/api/v3/meta/bases/{base_id}/users
+     * @request PATCH:/api/v3/meta/bases/{base_id}/members
      */
     baseUsersUpdate: (
       baseId: string,
       data: BaseUserUpdate,
       params: RequestParams = {},
     ) =>
-      this.request<BaseUser[], void>({
-        path: `/api/v3/meta/bases/${baseId}/users`,
+      this.request<any[], void>({
+        path: `/api/v3/meta/bases/${baseId}/members`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -1988,7 +1958,7 @@ export class InternalApi<
      * @tags Base Users
      * @name BaseUsersDelete
      * @summary Delete users from a base
-     * @request DELETE:/api/v3/meta/bases/{base_id}/users
+     * @request DELETE:/api/v3/meta/bases/{base_id}/members
      */
     baseUsersDelete: (
       baseId: string,
@@ -2004,7 +1974,7 @@ export class InternalApi<
         },
         void
       >({
-        path: `/api/v3/meta/bases/${baseId}/users`,
+        path: `/api/v3/meta/bases/${baseId}/members`,
         method: 'DELETE',
         body: data,
         type: ContentType.Json,

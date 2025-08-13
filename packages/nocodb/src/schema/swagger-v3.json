@@ -341,37 +341,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "oneOf": [
-                  {
-                    "$ref": "#/components/schemas/WorkspaceUserCreate"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/WorkspaceUserCreate"
-                    }
-                  }
-                ]
+                "$ref": "#/components/schemas/WorkspaceUserCreate"
               },
               "examples": {
-                                  "Example 1": {
-                    "value": {
+                "Example 1": {
+                  "value": [
+                    {
                       "user_email": "user@example.com",
                       "workspace_role": "workspace-level-viewer"
                     }
-                  },
-                  "Example 2": {
-                    "value": [
-                      {
-                        "user_email": "user1@example.com",
-                        "workspace_role": "workspace-level-editor"
-                      },
-                      {
-                        "user_email": "user2@example.com",
-                        "workspace_role": "workspace-level-viewer"
-                      }
-                    ]
-                  }
+                  ]
+                },
+                "Example 2": {
+                  "value": [
+                    {
+                      "user_email": "user1@example.com",
+                      "workspace_role": "workspace-level-editor"
+                    },
+                    {
+                      "user_email": "user2@example.com",
+                      "workspace_role": "workspace-level-viewer"
+                    }
+                  ]
+                }
               }
             }
           }
@@ -421,37 +413,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "oneOf": [
-                  {
-                    "$ref": "#/components/schemas/WorkspaceUserUpdate"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/WorkspaceUserUpdate"
-                    }
-                  }
-                ]
+                "$ref": "#/components/schemas/WorkspaceUserUpdate"
               },
               "examples": {
-                                  "Example 1": {
-                    "value": {
+                "Example 1": {
+                  "value": [
+                    {
                       "user_id": "user123",
                       "workspace_role": "workspace-level-editor"
                     }
-                  },
-                  "Example 2": {
-                    "value": [
-                      {
-                        "user_id": "user123",
-                        "workspace_role": "workspace-level-editor"
-                      },
-                      {
-                        "user_id": "user456",
-                        "workspace_role": "workspace-level-viewer"
-                      }
-                    ]
-                  }
+                  ]
+                },
+                "Example 2": {
+                  "value": [
+                    {
+                      "user_id": "user123",
+                      "workspace_role": "workspace-level-editor"
+                    },
+                    {
+                      "user_id": "user456",
+                      "workspace_role": "workspace-level-viewer"
+                    }
+                  ]
+                }
               }
             }
           }
@@ -501,34 +485,26 @@
           "content": {
             "application/json": {
               "schema": {
-                "oneOf": [
-                  {
-                    "$ref": "#/components/schemas/WorkspaceUserDelete"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/WorkspaceUserDelete"
-                    }
-                  }
-                ]
+                "$ref": "#/components/schemas/WorkspaceUserDelete"
               },
               "examples": {
-                                  "Example 1": {
-                    "value": {
+                "Example 1": {
+                  "value": [
+                    {
                       "user_id": "user123"
                     }
-                  },
-                  "Example 2": {
-                    "value": [
-                      {
-                        "user_id": "user123"
-                      },
-                      {
-                        "user_id": "user456"
-                      }
-                    ]
-                  }
+                  ]
+                },
+                "Example 2": {
+                  "value": [
+                    {
+                      "user_id": "user123"
+                    },
+                    {
+                      "user_id": "user456"
+                    }
+                  ]
+                }
               }
             }
           }
@@ -7371,50 +7347,72 @@
         "required": ["user_email", "user_id", "created_at", "updated_at", "workspace_role"]
       },
       "WorkspaceUserCreate": {
-        "type": "object",
-        "description": "Request body for creating workspace users",
-        "properties": {
-          "user_id": {
-            "type": "string",
-            "description": "Unique identifier for the user (optional if user_email is provided)"
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "user_id": {
+              "type": "string",
+              "description": "Unique identifier for the user (optional if user_email is provided)"
+            },
+            "user_email": {
+              "type": "string",
+              "format": "email",
+              "description": "Email address of the user (optional if user_id is provided)"
+            },
+            "workspace_role": {
+              "$ref": "#/components/schemas/WorkspaceRoles",
+              "description": "Workspace role to assign to the user"
+            }
           },
-          "user_email": {
-            "type": "string",
-            "format": "email",
-            "description": "Email address of the user (optional if user_id is provided)"
-          },
-          "workspace_role": {
-            "$ref": "#/components/schemas/WorkspaceRoles",
-            "description": "Workspace role to assign to the user"
-          }
+          "required": ["workspace_role"],
+          "oneOf": [
+            {
+              "title": "Invite User with ID",
+              "required": ["user_id"]
+            },
+            {
+              "title": "Invite User with Email",
+              "required": ["user_email"]
+            }
+          ],
+          "description": "An object representing a new workspace user to be created."
         },
-        "required": ["workspace_role"]
+        "description": "Array of workspace users to be created."
       },
       "WorkspaceUserUpdate": {
-        "type": "object",
-        "description": "Request body for updating workspace users",
-        "properties": {
-          "user_id": {
-            "type": "string",
-            "description": "Unique identifier for the user"
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "user_id": {
+              "type": "string",
+              "description": "Unique identifier for the user"
+            },
+            "workspace_role": {
+              "$ref": "#/components/schemas/WorkspaceRoles",
+              "description": "New workspace role to assign to the user"
+            }
           },
-          "workspace_role": {
-            "$ref": "#/components/schemas/WorkspaceRoles",
-            "description": "New workspace role to assign to the user"
-          }
+          "required": ["user_id", "workspace_role"],
+          "description": "An object representing updates for an existing workspace user."
         },
-        "required": ["workspace_role"]
+        "description": "Array of workspace user updates."
       },
       "WorkspaceUserDelete": {
-        "type": "object",
-        "description": "Request body for deleting workspace users",
-        "properties": {
-          "user_id": {
-            "type": "string",
-            "description": "Unique identifier for the user"
-          }
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "user_id": {
+              "type": "string",
+              "description": "Unique identifier for the user"
+            }
+          },
+          "required": ["user_id"],
+          "description": "An object representing a workspace user to be deleted."
         },
-        "required": ["user_id"]
+        "description": "Array of workspace users to be deleted."
       },
       "WorkspaceRoles": {
         "type": "string",

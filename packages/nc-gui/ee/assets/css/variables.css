@@ -3,7 +3,7 @@
   Figma variables can be used as is like below:
   
   color: var(--nc-content-brand-default)
-  background: var(--nc-background-brand)
+  background: var(--nc-bg-brand)
   border: 1px solid var(--nc-border-brand)
 */
 
@@ -428,13 +428,13 @@
 /* System tokens */
 :root,
 [theme='dark'] {
-  --nc-content-grey-extreme: var(--color-base-black);
-  --nc-content-grey-emphasis: var(--color-gray-900);
-  --nc-content-grey-default: var(--color-gray-800);
-  --nc-content-grey-subtle: var(--color-gray-700);
-  --nc-content-grey-subtle-2: var(--color-gray-600);
-  --nc-content-grey-muted: var(--color-gray-500);
-  --nc-content-grey-disabled: var(--color-gray-400);
+  --nc-content-gray-extreme: var(--color-base-black);
+  --nc-content-gray-emphasis: var(--color-gray-900);
+  --nc-content-gray-default: var(--color-gray-800);
+  --nc-content-gray-subtle: var(--color-gray-700);
+  --nc-content-gray-subtle-2: var(--color-gray-600);
+  --nc-content-gray-muted: var(--color-gray-500);
+  --nc-content-gray-disabled: var(--color-gray-400);
 
   --nc-content-brand-default: var(--color-brand-500);
   --nc-content-brand-hover: var(--color-gray-300);
@@ -444,38 +444,38 @@
   --nc-content-inverted-secondary-default: var(--color-gray-700);
   --nc-content-inverted-secondary-hover: var(--color-gray-700);
 
-  --nc-background-grey-extra-light: var(--color-gray-50);
-  --nc-background-grey-light: var(--color-gray-100);
-  --nc-background-grey-medium: var(--color-gray-200);
-  --nc-background-grey-dark: var(--color-gray-300);
-  --nc-background-grey-extra-dark: var(--color-gray-400);
+  --nc-bg-gray-extra-light: var(--color-gray-50);
+  --nc-bg-gray-light: var(--color-gray-100);
+  --nc-bg-gray-medium: var(--color-gray-200);
+  --nc-bg-gray-dark: var(--color-gray-300);
+  --nc-bg-gray-extra-dark: var(--color-gray-400);
 
-  --nc-background-default: var(--color-base-white);
-  --nc-background-brand: var(--color-brand-50);
+  --nc-bg-default: var(--color-base-white);
+  --nc-bg-brand: var(--color-brand-50);
 
-  --nc-background-coloured-pink: var(--color-pink-50);
-  --nc-background-coloured-pink-dark: var(--color-pink-100);
+  --nc-bg-coloured-pink: var(--color-pink-50);
+  --nc-bg-coloured-pink-dark: var(--color-pink-100);
 
-  --nc-background-coloured-purple: var(--color-purple-50);
-  --nc-background-coloured-purple-dark: var(--color-purple-100);
+  --nc-bg-coloured-purple: var(--color-purple-50);
+  --nc-bg-coloured-purple-dark: var(--color-purple-100);
 
-  --nc-background-coloured-red: var(--color-red-50);
-  --nc-background-coloured-red-dark: var(--color-red-100);
+  --nc-bg-coloured-red: var(--color-red-50);
+  --nc-bg-coloured-red-dark: var(--color-red-100);
 
-  --nc-background-coloured-green: var(--color-green-50);
-  --nc-background-coloured-green-dark: var(--color-green-100);
+  --nc-bg-coloured-green: var(--color-green-50);
+  --nc-bg-coloured-green-dark: var(--color-green-100);
 
-  --nc-background-coloured-yellow: var(--color-yellow-50);
-  --nc-background-coloured-yellow-dark: var(--color-yellow-100);
+  --nc-bg-coloured-yellow: var(--color-yellow-50);
+  --nc-bg-coloured-yellow-dark: var(--color-yellow-100);
 
-  --nc-background-coloured-marooon: var(--color-maroon-50);
-  --nc-background-coloured-maroon-dark: var(--color-maroon-100);
+  --nc-bg-coloured-marooon: var(--color-maroon-50);
+  --nc-bg-coloured-maroon-dark: var(--color-maroon-100);
 
-  --nc-background-coloured-blue: var(--color-blue-50);
-  --nc-background-coloured-blue-dark: var(--color-blue-100);
+  --nc-bg-coloured-blue: var(--color-blue-50);
+  --nc-bg-coloured-blue-dark: var(--color-blue-100);
 
-  --nc-background-coloured-orange: var(--color-orange-50);
-  --nc-background-coloured-orange-dark: var(--color-orange-100);
+  --nc-bg-coloured-orange: var(--color-orange-50);
+  --nc-bg-coloured-orange-dark: var(--color-orange-100);
 
   --nc-content-red-dark: var(--color-red-700);
   --nc-content-red-medium: var(--color-red-500);
@@ -566,11 +566,11 @@
 
   --nc-border-brand: var(--color-brand-500);
 
-  --nc-border-grey-extra-light: var(--color-gray-50);
-  --nc-border-grey-light: var(--color-gray-100);
-  --nc-border-grey-medium: var(--color-gray-200);
-  --nc-border-grey-dark: var(--color-gray-300);
-  --nc-border-grey-extra-dark: var(--color-gray-400);
+  --nc-border-gray-extra-light: var(--color-gray-50);
+  --nc-border-gray-light: var(--color-gray-100);
+  --nc-border-gray-medium: var(--color-gray-200);
+  --nc-border-gray-dark: var(--color-gray-300);
+  --nc-border-gray-extra-dark: var(--color-gray-400);
 
   --nc-border-coloured-red: var(--color-red-500);
   --nc-border-coloured-green: var(--color-green-500);

@@ -3111,7 +3111,7 @@ onKeyStroke('ArrowDown', onDown)
   }
 
   td.active.readonly::after {
-    @apply text-primary bg-grey-50 bg-opacity-5 !border-gray-200;
+    @apply text-primary bg-gray-50 bg-opacity-5 !border-gray-200;
   }
 
   td.active-cell::after {
@@ -3340,9 +3340,9 @@ onKeyStroke('ArrowDown', onDown)
 }
 
 .col-filtered {
-  background: var(--nc-background-coloured-green, #ecfff2) !important;
+  background: var(--nc-bg-coloured-green, #ecfff2) !important;
 }
 .col-sorted {
-  background: var(--nc-background-coloured-marooon, #fff0f7) !important;
+  background: var(--nc-bg-coloured-marooon, #fff0f7) !important;
 }
 </style>

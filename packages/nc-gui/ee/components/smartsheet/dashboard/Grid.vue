@@ -276,7 +276,7 @@ watch(
 
 <style scoped lang="scss">
 .vgl-layout {
-  --vgl-placeholder-bg: var(--nc-background-brand);
+  --vgl-placeholder-bg: var(--nc-bg-brand);
 }
 
 :deep(.vgl-item--placeholder) {

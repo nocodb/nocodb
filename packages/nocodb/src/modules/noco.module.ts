@@ -4,8 +4,6 @@ import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 // import { NotFoundHandlerModule } from './not-found-handler.module';
-import { BaseMembersV3Service } from '~/services/v3/base-members-v3.service';
-import { ViewRowColorService } from '~/services/view-row-color.service';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
 
@@ -134,6 +132,8 @@ import { TablesV3Controller } from '~/controllers/v3/tables-v3.controller';
 import { ViewsV3Controller } from '~/controllers/v3/views-v3.controller';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { CalendarDatasService } from '~/services/calendar-datas.service';
+import { BaseMembersV3Service } from '~/services/v3/base-members-v3.service';
+import { ViewRowColorService } from '~/services/view-row-color.service';
 import { DataAliasNestedService } from '~/services/data-alias-nested.service';
 import { DataTableService } from '~/services/data-table.service';
 import { DatasService } from '~/services/datas.service';

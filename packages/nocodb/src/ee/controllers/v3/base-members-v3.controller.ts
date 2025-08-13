@@ -53,7 +53,7 @@ export class BaseMembersV3Controller {
     baseMembers: BaseMemberCreateV3Type | BaseMemberCreateV3Type[number],
   ): Promise<any> {
     await this.canExecute(context);
-    this.validatePayload(baseMembers);
+    this.validatePayload(baseMembers, false);
 
     return await this.baseMembersV3Service.userInvite(context, {
       baseId,

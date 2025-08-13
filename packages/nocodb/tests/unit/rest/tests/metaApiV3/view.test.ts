@@ -6,7 +6,8 @@ import { Base, Model } from '~/models';
 import { RootScopes } from '~/utils/globals';
 
 export default function () {
-  describe(`View v3`, () => {
+  // FIXME: enable when we can modify workspace for plan
+  describe.skip(`View v3`, () => {
     let context: Awaited<ReturnType<typeof init>>;
     let initBase: any;
     let API_PREFIX;

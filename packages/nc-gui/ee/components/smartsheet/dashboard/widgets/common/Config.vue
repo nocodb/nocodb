@@ -70,7 +70,11 @@ const handleConfigUpdate = async (config: any) => {
     <NcTabs class="!mt-3">
       <a-tab-pane key="data" tab="Data">
         <template #tab>Data</template>
-        <div :data-is-chart="selectedWidget?.type === WidgetTypes.CHART" class="overflow-auto editor-data-wrapper">
+        <div
+          :data-is-text="selectedWidget?.type === WidgetTypes.TEXT"
+          :data-is-chart="selectedWidget?.type === WidgetTypes.CHART"
+          class="overflow-auto editor-data-wrapper"
+        >
           <slot name="data"></slot>
         </div>
       </a-tab-pane>
@@ -102,6 +106,9 @@ const handleConfigUpdate = async (config: any) => {
 .editor-data-wrapper {
   @apply h-[calc(100svh-195px)] overflow-auto;
 
+  &[data-is-text='true'] {
+    @apply h-[calc(100svh-227px)];
+  }
   &[data-is-chart='true'] {
     @apply h-[calc(100svh-227px)];
   }

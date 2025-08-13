@@ -34,14 +34,15 @@ watch(textContent, () => {
     <MarkdownRenderer
       v-else
       v-model:value="textContent"
+      :hide-options="false"
       class="widget-content-input nc-input-shadow cursor-text p-1.5 border-1 rounded-lg"
     />
   </GroupedSettings>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 :deep(.widget-content-input) {
-  @apply transition-all duration-150 min-h-8;
+  @apply transition-all duration-150 min-h-12;
   box-shadow: none;
   &:focus,
   &:focus-within {

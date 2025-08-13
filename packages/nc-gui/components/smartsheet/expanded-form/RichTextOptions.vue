@@ -3,8 +3,11 @@ import type { Editor } from '@tiptap/vue-3'
 
 interface Props {
   editor: Editor | undefined
+  disableMention?: boolean
 }
-const props = withDefaults(defineProps<Props>(), {})
+const props = withDefaults(defineProps<Props>(), {
+  disableMention: false,
+})
 
 const { appInfo } = useGlobal()
 
@@ -187,7 +190,7 @@ const newMentionNode = () => {
         <GeneralIcon icon="link2"></GeneralIcon>
       </NcButton>
     </NcTooltip>
-    <NcTooltip v-if="appInfo.ee">
+    <NcTooltip v-if="appInfo.ee && !disableMention">
       <template #title>
         <div class="flex flex-col items-center">
           <div>

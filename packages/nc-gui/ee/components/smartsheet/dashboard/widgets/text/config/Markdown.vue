@@ -302,8 +302,8 @@ defineExpose({
         @keydown.stop="handleKeyPress"
       />
 
-      <div v-if="!hideOptions" class="flex justify-between pt-1 rich-text-bottom-bar items-center">
-        <LazySmartsheetExpandedFormRichTextOptions :editor="editor" class="!bg-transparent" />
+      <div v-if="!hideOptions" class="flex justify-between pt-4 rich-text-bottom-bar items-center">
+        <LazySmartsheetExpandedFormRichTextOptions disable-mention :editor="editor" class="!bg-transparent" />
       </div>
     </template>
   </div>

@@ -5,7 +5,16 @@ import {
   WidgetType,
   WidgetTypes,
 } from '.';
-import { ColumnType, UITypes } from '~/lib';
+import {
+  AllAggregations,
+  ColumnType,
+  isBarcode,
+  isButton,
+  isLookup,
+  isQrCode,
+  isSystemColumn,
+  UITypes,
+} from '~/lib';
 
 export const calculateNextPosition = (
   existingWidgets: WidgetType[],
@@ -153,6 +162,34 @@ const getDefaultChartConfig = (
     return columns[0]?.id || '';
   };
 
+  const getDefaultYAxisColumn = (columns?: Array<ColumnType>): string => {
+    if (!columns || columns?.length === 0) return '';
+
+    // Priority 1: SingleSelect
+    const singleSelectColumn = columns.find(
+      (col) => col.uidt === UITypes.SingleSelect
+    );
+    if (singleSelectColumn) return singleSelectColumn.id;
+
+    // Priority 2: SingleLineText
+    const singleLineTextColumn = columns.find(
+      (col) => col.uidt === UITypes.SingleLineText
+    );
+    if (singleLineTextColumn) return singleLineTextColumn.id;
+
+    // Fallback: first column
+    return (
+      columns.filter(
+        (col) =>
+          isSystemColumn(col) &&
+          isButton(col) &&
+          isLookup(col) &&
+          isQrCode(col) &&
+          isBarcode(col)
+      )[0]?.id || ''
+    );
+  };
+
   switch (chartType) {
     case ChartTypes.PIE:
       return {
@@ -206,6 +243,42 @@ const getDefaultChartConfig = (
         },
         permissions: {
           allowUserToPrint: true,
+          allowUsersToViewRecords: false,
+        },
+      };
+
+    case ChartTypes.BAR:
+      return {
+        ...baseConfig,
+        chartType: ChartTypes.BAR,
+        data: {
+          xAxis: {
+            column_id: getDefaultCategoryColumn(columns),
+            sortBy: 'xAxis' as const,
+            orderBy: 'default' as const,
+            includeEmptyRecords: false,
+          },
+          yAxis: {
+            startAtZero: false,
+            fields: [
+              {
+                column_id: getDefaultYAxisColumn(columns),
+                aggregation: AllAggregations.CountUnique,
+              },
+            ],
+            groupBy: null,
+          },
+        },
+        appearance: {
+          orientation: 'vertical' as const,
+          showDataLabels: false,
+          showLegend: true,
+          legendPosition: 'top' as const,
+          colorSchema: 'default' as const,
+          customColorSchema: [],
+        },
+        permissions: {
+          allowUserToPrint: false,
           allowUsersToViewRecords: false,
         },
       };

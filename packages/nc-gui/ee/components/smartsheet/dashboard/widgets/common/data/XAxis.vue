@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { type ColumnType, isAttachment, isBarcode, isButton, isLinksOrLTAR, isQrCode, isSystemColumn } from 'nocodb-sdk'
 import GroupedSettings from '~/components/smartsheet/dashboard/widgets/common/GroupedSettings.vue'
 
 const emit = defineEmits<{
@@ -47,6 +48,21 @@ const sortOrderOptions = [
   { value: 'xAxis', label: 'xAxis Value' },
   { value: 'yAxis', label: 'yAxis Value' },
 ]
+
+const filterField = (column: ColumnType) => {
+  if (
+    isSystemColumn(column) ||
+    isAttachment(column) ||
+    isQrCode(column) ||
+    isBarcode(column) ||
+    isButton(column) ||
+    isJSON(column) ||
+    isLinksOrLTAR(column)
+  ) {
+    return false
+  }
+  return true
+}
 </script>
 
 <template>
@@ -57,6 +73,7 @@ const sortOrderOptions = [
         v-model:value="selectedFieldId"
         disable-label
         :table-id="modelId"
+        :filter-column="filterField"
         @update:value="handleChange('field')"
       />
     </div>

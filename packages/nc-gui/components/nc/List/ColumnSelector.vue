@@ -11,6 +11,7 @@ interface Props {
   disableLabel?: boolean
   autoSelect?: boolean
   disabled?: boolean
+  allowClear?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -18,6 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
   disableLabel: false,
   autoSelect: false,
   disabled: false,
+  allowClear: false,
 })
 
 const emit = defineEmits<{
@@ -35,8 +37,7 @@ const modelValue = useVModel(props, 'value', emit)
 const isOpenColumnSelectDropdown = ref(false)
 
 const handleValueUpdate = (value: any) => {
-  const stringValue = String(value)
-  modelValue.value = stringValue
+  modelValue.value = value
 }
 
 const columnList = computedAsync(async () => {
@@ -149,7 +150,7 @@ defineExpose({
       "
       :has-error="!!selectedColumn?.ncItemDisabled"
     >
-      <div class="flex-1 flex items-center gap-2 min-w-0">
+      <div class="flex-1 flex group items-center gap-2 min-w-0">
         <div v-if="selectedColumn" class="min-w-5 flex items-center justify-center">
           <NcIconField :field="selectedColumn" class="text-gray-500" />
         </div>
@@ -163,6 +164,13 @@ defineExpose({
             {{ selectedColumn?.label || 'Select field' }}
           </template>
         </NcTooltip>
+
+        <GeneralIcon
+          v-if="selectedColumn && allowClear"
+          class="!hidden text-nc-content-gray-muted transition group-hover:!block h-4 w-4 cursor-pointer"
+          icon="ncXCircle"
+          @click.stop="handleValueUpdate(null)"
+        />
 
         <GeneralIcon
           icon="ncChevronDown"

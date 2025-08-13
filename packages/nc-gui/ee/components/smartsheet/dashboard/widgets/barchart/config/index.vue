@@ -32,6 +32,19 @@ const handleConfigUpdate = async (type: string, updates: any) => {
         },
       },
     })
+  } else if (type === 'yAxis') {
+    await updateWidget(activeDashboardId.value, selectedWidget.value?.id, {
+      config: {
+        ...selectedWidget.value?.config,
+        data: {
+          ...selectedWidget.value?.config?.data,
+          yAxis: {
+            ...selectedWidget.value?.config?.data?.yAxis,
+            ...updates,
+          },
+        },
+      },
+    })
   } else if (type === 'permission') {
     await updateWidget(activeDashboardId.value, selectedWidget.value?.id, {
       config: {
@@ -52,8 +65,10 @@ const handleConfigUpdate = async (type: string, updates: any) => {
       <SmartsheetDashboardWidgetsCommonDataText @update:widget="handleConfigUpdate('text', $event)" />
       <SmartsheetDashboardWidgetsCommonDataSource @update:source="handleConfigUpdate('dataSource', $event)" />
       <SmartsheetDashboardWidgetsCommonDataXAxis @update:x-axis="handleConfigUpdate('xAxis', $event)" />
-      <SmartsheetDashboardWidgetsCommonDataYAxis @update:x-axis="handleConfigUpdate('yAxis', $event)" />
+      <SmartsheetDashboardWidgetsCommonDataYAxis @update:y-axis="handleConfigUpdate('yAxis', $event)" />
+      <!--
       <SmartsheetDashboardWidgetsCommonDataPermission @update:permission="handleConfigUpdate('permission', $event)" />
+-->
     </template>
     <template #appearance> </template>
   </SmartsheetDashboardWidgetsCommonConfig>

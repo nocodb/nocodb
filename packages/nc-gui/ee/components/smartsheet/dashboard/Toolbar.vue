@@ -76,7 +76,7 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
 const addTextWidget = () => createWidget(WidgetTypes.TEXT)
 const addNumberWidget = () => createWidget(WidgetTypes.METRIC)
 const addIframeWidget = () => createWidget(WidgetTypes.IFRAME)
-// const addBarChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.BAR)
+const addBarChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.BAR)
 // const addLineChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.LINE)
 const addPieChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.PIE)
 const addDonutChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.DONUT)
@@ -99,14 +99,14 @@ const addDonutChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.DON
         Number
       </div>
     </NcButton>
-    <!--
+
     <NcButton size="small" type="text" @click="addBarChartWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="ncChartBar" class="w-5 h-5" />
         Bar Chart
       </div>
     </NcButton>
-
+    <!--
     <NcButton size="small" type="text" @click="addLineChartWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="ncChartLine" class="w-5 h-5" />

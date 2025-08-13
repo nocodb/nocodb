@@ -40,7 +40,9 @@ const handleConfigUpdate = async (config: any) => {
     <div v-if="selectedWidget?.type === WidgetTypes.CHART" class="pl-4 pr-5">
       <NcSelect :value="selectedWidget?.config?.chartType" @change="handleConfigUpdate({ chartType: $event })">
         <a-select-option
-          v-for="option of Object.values(ChartTypes).filter((type) => [ChartTypes.PIE, ChartTypes.DONUT].includes(type))"
+          v-for="option of Object.values(ChartTypes).filter((type) =>
+            [ChartTypes.PIE, ChartTypes.DONUT, ChartTypes.BAR].includes(type),
+          )"
           :key="option"
           :value="option"
         >

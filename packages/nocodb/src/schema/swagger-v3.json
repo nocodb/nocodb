@@ -354,24 +354,24 @@
                 ]
               },
               "examples": {
-                "Example 1": {
-                  "value": {
-                    "email": "user@example.com",
-                    "workspace_role": "workspace-level-viewer"
-                  }
-                },
-                "Example 2": {
-                  "value": [
-                    {
-                      "email": "user1@example.com",
-                      "workspace_role": "workspace-level-editor"
-                    },
-                    {
-                      "email": "user2@example.com",
+                                  "Example 1": {
+                    "value": {
+                      "user_email": "user@example.com",
                       "workspace_role": "workspace-level-viewer"
                     }
-                  ]
-                }
+                  },
+                  "Example 2": {
+                    "value": [
+                      {
+                        "user_email": "user1@example.com",
+                        "workspace_role": "workspace-level-editor"
+                      },
+                      {
+                        "user_email": "user2@example.com",
+                        "workspace_role": "workspace-level-viewer"
+                      }
+                    ]
+                  }
               }
             }
           }
@@ -434,24 +434,24 @@
                 ]
               },
               "examples": {
-                "Example 1": {
-                  "value": {
-                    "id": "user123",
-                    "workspace_role": "workspace-level-editor"
-                  }
-                },
-                "Example 2": {
-                  "value": [
-                    {
-                      "id": "user123",
+                                  "Example 1": {
+                    "value": {
+                      "user_id": "user123",
                       "workspace_role": "workspace-level-editor"
-                    },
-                    {
-                      "id": "user456",
-                      "workspace_role": "workspace-level-viewer"
                     }
-                  ]
-                }
+                  },
+                  "Example 2": {
+                    "value": [
+                      {
+                        "user_id": "user123",
+                        "workspace_role": "workspace-level-editor"
+                      },
+                      {
+                        "user_id": "user456",
+                        "workspace_role": "workspace-level-viewer"
+                      }
+                    ]
+                  }
               }
             }
           }
@@ -514,21 +514,21 @@
                 ]
               },
               "examples": {
-                "Example 1": {
-                  "value": {
-                    "id": "user123"
-                  }
-                },
-                "Example 2": {
-                  "value": [
-                    {
-                      "id": "user123"
-                    },
-                    {
-                      "id": "user456"
+                                  "Example 1": {
+                    "value": {
+                      "user_id": "user123"
                     }
-                  ]
-                }
+                  },
+                  "Example 2": {
+                    "value": [
+                      {
+                        "user_id": "user123"
+                      },
+                      {
+                        "user_id": "user456"
+                      }
+                    ]
+                  }
               }
             }
           }
@@ -7344,7 +7344,7 @@
         "type": "object",
         "description": "Workspace user information",
         "properties": {
-          "email": {
+          "user_email": {
             "type": "string",
             "format": "email",
             "description": "Email address of the user"
@@ -7368,20 +7368,20 @@
             "description": "Role assigned to the user in the workspace"
           }
         },
-        "required": ["email", "user_id", "created_at", "updated_at", "workspace_role"]
+        "required": ["user_email", "user_id", "created_at", "updated_at", "workspace_role"]
       },
       "WorkspaceUserCreate": {
         "type": "object",
         "description": "Request body for creating workspace users",
         "properties": {
-          "id": {
+          "user_id": {
             "type": "string",
-            "description": "Unique identifier for the user (optional if email is provided)"
+            "description": "Unique identifier for the user (optional if user_email is provided)"
           },
-          "email": {
+          "user_email": {
             "type": "string",
             "format": "email",
-            "description": "Email address of the user (optional if id is provided)"
+            "description": "Email address of the user (optional if user_id is provided)"
           },
           "workspace_role": {
             "$ref": "#/components/schemas/WorkspaceRoles",
@@ -7394,14 +7394,9 @@
         "type": "object",
         "description": "Request body for updating workspace users",
         "properties": {
-          "id": {
+          "user_id": {
             "type": "string",
-            "description": "Unique identifier for the user (optional if email is provided)"
-          },
-          "email": {
-            "type": "string",
-            "format": "email",
-            "description": "Email address of the user (optional if id is provided)"
+            "description": "Unique identifier for the user"
           },
           "workspace_role": {
             "$ref": "#/components/schemas/WorkspaceRoles",
@@ -7414,16 +7409,12 @@
         "type": "object",
         "description": "Request body for deleting workspace users",
         "properties": {
-          "id": {
+          "user_id": {
             "type": "string",
-            "description": "Unique identifier for the user (optional if email is provided)"
-          },
-          "email": {
-            "type": "string",
-            "format": "email",
-            "description": "Email address of the user (optional if id is provided)"
+            "description": "Unique identifier for the user"
           }
-        }
+        },
+        "required": ["user_id"]
       },
       "WorkspaceRoles": {
         "type": "string",

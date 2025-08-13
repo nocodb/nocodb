@@ -1281,7 +1281,7 @@ export interface WorkspaceUser {
    * Email address of the user
    * @format email
    */
-  email: string;
+  user_email: string;
   /** Unique identifier for the user */
   user_id: string;
   /**
@@ -1298,32 +1298,32 @@ export interface WorkspaceUser {
   workspace_role: WorkspaceRoles;
 }
 
-/** Array of workspace users to be created. */
-export type WorkspaceUserCreate = {
-  /** Unique identifier for the user (optional if email is provided) */
+/** Request body for creating workspace users */
+export interface WorkspaceUserCreate {
+  /** Unique identifier for the user (optional if user_email is provided) */
   user_id?: string;
   /**
    * Email address of the user (optional if user_id is provided)
    * @format email
    */
-  email?: string;
+  user_email?: string;
   /** Workspace role to assign to the user */
   workspace_role: WorkspaceRoles;
-}[];
+}
 
-/** Array of workspace user updates. */
-export type WorkspaceUserUpdate = {
+/** Request body for updating workspace users */
+export interface WorkspaceUserUpdate {
   /** Unique identifier for the user */
-  user_id: string;
+  user_id?: string;
   /** New workspace role to assign to the user */
   workspace_role: WorkspaceRoles;
-}[];
+}
 
-/** Array of workspace users to be deleted. */
-export type WorkspaceUserDelete = {
+/** Request body for deleting workspace users */
+export interface WorkspaceUserDelete {
   /** Unique identifier for the user */
   user_id: string;
-}[];
+}
 
 type BaseFieldOptionsButton = object;
 
@@ -1555,14 +1555,14 @@ export class InternalApi<
       }),
 
     /**
-     * @description Retrieves metadata for a specified workspace, with an option to include its members. Notes: - To include member details, use the query parameter `include[]=members`. - Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     * @description Retrieve metadata for a specific workspace. Optionally include workspace members.
      *
-     * @tags Workspace Members
-     * @name WorkspaceMembersRead
+     * @tags Workspaces
+     * @name WorkspaceRead
      * @summary Get workspace metadata
-     * @request GET:/api/v3/meta/workspaces/{workspaceId}?include[]=members
+     * @request GET:/api/v3/meta/workspaces/{workspaceId}
      */
-    workspaceMembersRead: (
+    workspaceRead: (
       workspaceId: string,
       query?: {
         /**
@@ -1574,7 +1574,7 @@ export class InternalApi<
       params: RequestParams = {},
     ) =>
       this.request<Workspace | WorkspaceWithMembers, void>({
-        path: `/api/v3/meta/workspaces/${workspaceId}?include[]=members`,
+        path: `/api/v3/meta/workspaces/${workspaceId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -1582,7 +1582,29 @@ export class InternalApi<
       }),
 
     /**
-     * @description Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body. Notes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     * @description Retrieve a list of members associated with a specific workspace.
+     *
+     * @tags Workspace Members
+     * @name WorkspaceMembersList
+     * @summary List workspace members
+     * @request GET:/api/v3/meta/workspaces/{workspaceId}/members
+     */
+    workspaceMembersList: (workspaceId: string, params: RequestParams = {}) =>
+      this.request<
+        {
+          /** List of workspace members. */
+          list?: WorkspaceUser[];
+        },
+        void
+      >({
+        path: `/api/v3/meta/workspaces/${workspaceId}/members`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body.
      *
      * @tags Workspace Members
      * @name WorkspaceMembersInvite
@@ -1591,7 +1613,7 @@ export class InternalApi<
      */
     workspaceMembersInvite: (
       workspaceId: string,
-      data: WorkspaceUserCreate,
+      data: WorkspaceUserCreate | WorkspaceUserCreate[],
       params: RequestParams = {},
     ) =>
       this.request<WorkspaceUser[], void>({
@@ -1604,7 +1626,7 @@ export class InternalApi<
       }),
 
     /**
-     * @description Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body. Notes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     * @description Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body.
      *
      * @tags Workspace Members
      * @name WorkspaceMembersUpdate
@@ -1613,7 +1635,7 @@ export class InternalApi<
      */
     workspaceMembersUpdate: (
       workspaceId: string,
-      data: WorkspaceUserUpdate,
+      data: WorkspaceUserUpdate | WorkspaceUserUpdate[],
       params: RequestParams = {},
     ) =>
       this.request<WorkspaceUser[], void>({
@@ -1626,7 +1648,7 @@ export class InternalApi<
       }),
 
     /**
-     * @description Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body. Notes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     * @description Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body.
      *
      * @tags Workspace Members
      * @name WorkspaceMembersDelete
@@ -1635,7 +1657,7 @@ export class InternalApi<
      */
     workspaceMembersDelete: (
       workspaceId: string,
-      data: WorkspaceUserDelete,
+      data: WorkspaceUserDelete | WorkspaceUserDelete[],
       params: RequestParams = {},
     ) =>
       this.request<

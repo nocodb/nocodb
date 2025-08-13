@@ -70,6 +70,7 @@ export class BaseMemberHelpers extends BaseMemberHelpersCE {
         // TODO: check user role to determine full or viewer
         mode: 'full',
         strict_in_record: true,
+        skipOverridingWorkspaceRoles: true,
       },
       ncMeta,
     );

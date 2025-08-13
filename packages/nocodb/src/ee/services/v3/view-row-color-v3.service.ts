@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   type NcContext,
   type NcRequest,
+  PlanFeatureTypes,
   type ViewRowColorCreateV3Type,
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
@@ -9,6 +10,9 @@ import { validatePayload } from '~/helpers';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import Noco from '~/Noco';
 import { ViewRowColorService } from '~/services/view-row-color.service';
+import { NcError } from '~/helpers/ncError';
+import { getFeature } from '~/ee/helpers/paymentHelpers';
+import { isOnPrem } from '~/utils';
 
 @Injectable()
 export class ViewRowColorV3Service {
@@ -26,6 +30,19 @@ export class ViewRowColorV3Service {
     ncMeta?: MetaService,
   ) {
     const { viewId, body } = params;
+
+    if (
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_ROW_COLOUR,
+        context.workspace_id,
+        ncMeta,
+      ))
+    ) {
+      NcError.get(context).featureNotSupported({
+        feature: PlanFeatureTypes.FEATURE_ROW_COLOUR,
+        isOnPrem: isOnPrem,
+      });
+    }
     await this.viewRowColorService.removeRowColorInfo({
       context,
       fk_view_id: viewId,

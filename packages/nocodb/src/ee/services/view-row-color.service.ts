@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   arrayToNested,
   parseProp,
+  PlanFeatureTypes,
   ROW_COLORING_MODE,
   UITypes,
 } from 'nocodb-sdk';
@@ -23,6 +24,8 @@ import { extractProps } from '~/helpers/extractProps';
 import { Model, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
+import { getFeature } from '~/helpers/paymentHelpers';
+import { isOnPrem } from '~/utils';
 
 @Injectable()
 export class ViewRowColorService extends ViewRowColorServiceCE {
@@ -143,7 +146,21 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     filter?: FilterType;
     ncMeta?: MetaService;
   }) {
+    const { context } = params;
     const ncMeta = params.ncMeta ?? Noco.ncMeta;
+    if (
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_ROW_COLOUR,
+        context.workspace_id,
+        ncMeta,
+      ))
+    ) {
+      NcError.get(context).featureNotSupported({
+        feature: PlanFeatureTypes.FEATURE_ROW_COLOUR,
+        isOnPrem: isOnPrem,
+      });
+    }
+
     let view: View;
     if (params.fk_view_id) {
       view = await View.get(params.context, params.fk_view_id);
@@ -318,7 +335,20 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     is_set_as_background: boolean;
     ncMeta?: MetaService;
   }) {
-    const ncMeta = params.ncMeta ?? Noco.ncMeta;
+    const { context, ncMeta } = params;
+
+    if (
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_ROW_COLOUR,
+        context.workspace_id,
+        ncMeta,
+      ))
+    ) {
+      NcError.get(context).featureNotSupported({
+        feature: PlanFeatureTypes.FEATURE_ROW_COLOUR,
+        isOnPrem: isOnPrem,
+      });
+    }
     let view: View;
     if (params.fk_view_id) {
       view = await View.get(params.context, params.fk_view_id);

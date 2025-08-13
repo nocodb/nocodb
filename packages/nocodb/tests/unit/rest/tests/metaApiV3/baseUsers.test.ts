@@ -11,7 +11,7 @@ import { createUser } from '../../../factory/user';
 // Delete : http://localhost:8080/api/v3/meta/bases/{base_id}/users
 
 export default function () {
-  describe.only(`Base Users v3`, () => {
+  describe(`Base Users v3`, () => {
     let context: any = {};
     let baseId: string;
 

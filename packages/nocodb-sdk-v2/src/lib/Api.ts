@@ -63,6 +63,41 @@ export interface Base {
     /** Integration ID for the data source. */
     integration_id: string;
   }[];
+}
+
+export interface BaseWithMembers {
+  /** Unique identifier for the base. */
+  id: string;
+  /** Title of the base. */
+  title: string;
+  meta: BaseMetaRes;
+  /**
+   * Timestamp of when the base was created.
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp of when the base was last updated.
+   * @format date-time
+   */
+  updated_at: string;
+  /** Unique identifier for the workspace to which this base belongs to. */
+  workspace_id: string;
+  /** List of data sources associated with this base. This information will be included only if one or more external data sources are associated with the base. */
+  sources?: {
+    /** Unique identifier for the data source. */
+    id: string;
+    /** Title of the data source. */
+    title: string;
+    /** Type of the data source (e.g., pg, mysql). */
+    type: string;
+    /** Indicates if the schema in this data source is read-only. */
+    is_schema_readonly: boolean;
+    /** Indicates if the data (records) in this data source is read-only. */
+    is_data_readonly: boolean;
+    /** Integration ID for the data source. */
+    integration_id: string;
+  }[];
   individual_members?: {
     base_members?: BaseMember[];
     workspace_members?: BaseMember[];
@@ -1300,10 +1335,10 @@ export interface WorkspaceUser {
 
 /** Array of workspace users to be created. */
 export type WorkspaceUserCreate = {
-  /** Unique identifier for the user (optional if email is provided) */
+  /** Unique identifier for the user (skip if email is provided) */
   user_id?: string;
   /**
-   * Email address of the user (optional if user_id is provided)
+   * Email address of the user (skip if user_id is provided)
    * @format email
    */
   email?: string;
@@ -1559,7 +1594,7 @@ export class InternalApi<
      *
      * @tags Workspace Members
      * @name WorkspaceMembersRead
-     * @summary Get workspace metadata
+     * @summary List workspace members
      * @request GET:/api/v3/meta/workspaces/{workspaceId}?include[]=members
      */
     workspaceMembersRead: (
@@ -1638,18 +1673,11 @@ export class InternalApi<
       data: WorkspaceUserDelete,
       params: RequestParams = {},
     ) =>
-      this.request<
-        {
-          /** @example "The user has been deleted successfully" */
-          msg?: string;
-        },
-        void
-      >({
+      this.request<void, void>({
         path: `/api/v3/meta/workspaces/${workspaceId}/members`,
         method: 'DELETE',
         body: data,
         type: ContentType.Json,
-        format: 'json',
         ...params,
       }),
 
@@ -2103,13 +2131,13 @@ export class InternalApi<
     /**
      * @description Retrieve all details of a specific base, including its members. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
      *
-     * @tags Base Users
-     * @name BaseUsersList
+     * @tags Base Members
+     * @name BaseMembersList
      * @summary List base members
      * @request GET:/api/v3/meta/bases/{baseId}?include[]=members
      */
-    baseUsersList: (baseId: string, params: RequestParams = {}) =>
-      this.request<Base, void>({
+    baseMembersList: (baseId: string, params: RequestParams = {}) =>
+      this.request<Base | BaseWithMembers, void>({
         path: `/api/v3/meta/bases/${baseId}?include[]=members`,
         method: 'GET',
         format: 'json',
@@ -2117,14 +2145,14 @@ export class InternalApi<
       }),
 
     /**
-     * @description Invite new users to a specific base using their User ID or Email address. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     * @description Invite new members to a specific base using their User ID or Email address. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
      *
-     * @tags Base Users
-     * @name BaseUsersInvite
-     * @summary Invite users to a base
+     * @tags Base Members
+     * @name BaseMembersInvite
+     * @summary Invite base members
      * @request POST:/api/v3/meta/bases/{base_id}/members
      */
-    baseUsersInvite: (
+    baseMembersInvite: (
       baseId: string,
       data: BaseMemberCreate,
       params: RequestParams = {},
@@ -2139,14 +2167,14 @@ export class InternalApi<
       }),
 
     /**
-     * @description Update roles for existing users in a base. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     * @description Update roles for existing members in a base. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
      *
-     * @tags Base Users
-     * @name BaseUsersUpdate
-     * @summary Update users in a base
+     * @tags Base Members
+     * @name BaseMembersUpdate
+     * @summary Update base members
      * @request PATCH:/api/v3/meta/bases/{base_id}/members
      */
-    baseUsersUpdate: (
+    baseMembersUpdate: (
       baseId: string,
       data: BaseMemberUpdate,
       params: RequestParams = {},
@@ -2161,32 +2189,23 @@ export class InternalApi<
       }),
 
     /**
-     * @description Remove users from a specific base using their IDs. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     * @description Remove members from a specific base using their IDs. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
      *
-     * @tags Base Users
-     * @name BaseUsersDelete
-     * @summary Delete users from a base
+     * @tags Base Members
+     * @name BaseMembersDelete
+     * @summary Delete base members
      * @request DELETE:/api/v3/meta/bases/{base_id}/members
      */
-    baseUsersDelete: (
+    baseMembersDelete: (
       baseId: string,
       data: BaseMemberDelete,
       params: RequestParams = {},
     ) =>
-      this.request<
-        {
-          /** Indicates if the operation was successful. */
-          success?: boolean;
-          /** List of successfully deleted users. */
-          deleted_users?: BaseUserDeleteRequest[];
-        },
-        void
-      >({
+      this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}/members`,
         method: 'DELETE',
         body: data,
         type: ContentType.Json,
-        format: 'json',
         ...params,
       }),
 

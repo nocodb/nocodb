@@ -2712,27 +2712,7 @@
         },
         "responses": {
           "200": {
-            "description": "Users deleted successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "description": "Indicates if the operation was successful."
-                    },
-                    "deleted_users": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/BaseUserDeleteRequest"
-                      },
-                      "description": "List of successfully deleted users."
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Users deleted successfully."
           },
           "400": {
             "description": "Invalid request body or parameters."

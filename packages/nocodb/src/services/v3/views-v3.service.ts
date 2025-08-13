@@ -267,6 +267,7 @@ export class ViewsV3Service {
       allowed: [
         'id',
         'type',
+        'lock_type',
         'title',
         'description',
         'filters',

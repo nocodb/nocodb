@@ -5519,6 +5519,9 @@
                     },
                     "width": {
                       "type": "integer"
+                    },
+                    "aggregation": {
+                      "$ref": "#/components/schemas/ViewAggregationEnum"
                     }
                   },
                   "required": [

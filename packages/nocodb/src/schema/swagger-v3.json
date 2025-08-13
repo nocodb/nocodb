@@ -456,20 +456,7 @@
         },
         "responses": {
           "200": {
-            "description": "Workspace members were removed successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": {
-                      "type": "string",
-                      "example": "The user has been deleted successfully"
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Workspace members were removed successfully."
           },
           "400": {
             "description": "Invalid request body."

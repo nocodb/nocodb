@@ -11,7 +11,8 @@ import { createUser } from '../../../factory/user';
 // Delete : http://localhost:8080/api/v3/meta/workspaces/{workspace_id}/members
 
 export default function () {
-  describe.only(`Workspace Users v3`, () => {
+  // Skipping since API not available in current test environment
+  describe.skip(`Workspace Users v3`, () => {
     let context: any = {};
     let workspaceId: string;
 

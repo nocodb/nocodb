@@ -126,6 +126,18 @@ body {
     }
   }
 
+  .ant-menu {
+    @apply bg-nc-bg-default;
+  }
+
+  // Tabs
+  .ant-tabs-bottom > .ant-tabs-nav:before,
+  .ant-tabs-bottom > div > .ant-tabs-nav:before,
+  .ant-tabs-top > .ant-tabs-nav:before,
+  .ant-tabs-top > div > .ant-tabs-nav:before {
+    @apply border-nc-border-gray-medium;
+  }
+
   // Form item label
   .ant-form-item-label > label {
     @apply text-nc-content-gray;

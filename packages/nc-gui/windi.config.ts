@@ -11,7 +11,14 @@ import animations from '@windicss/plugin-animations'
 // @ts-expect-error no types for plugin-question-mark
 import questionMark from '@windicss/plugin-question-mark'
 
-import { theme as colors, themeColors, themeV2Colors, themeV3Colors, themeVariables } from './utils/colorsUtils'
+import {
+  theme as colors,
+  themeColors,
+  themeV2Colors,
+  themeV3Colors,
+  themeV4ColorsWithNcPrefix,
+  themeVariables,
+} from './utils/colorsUtils'
 
 const isEE = process.env.EE
 
@@ -187,6 +194,7 @@ export default defineConfig({
         ...themeColors,
         ...themeV2Colors,
         ...themeV3Colors,
+        ...themeV4ColorsWithNcPrefix,
         ...themeVariables.content,
         ...themeVariables.border,
         ...themeVariables.background,

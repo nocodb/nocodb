@@ -510,6 +510,20 @@ export const themeV4Colors = {
 }
 
 /**
+ * In our WindiCSS config, we already added `themeV3Colors`.
+ * To add `themeV4Colors` without conflicts, we create a new object
+ * with all top-level keys prefixed by `nc-` (e.g., `gray` → `nc-gray`).
+ *
+ * This keeps both V3 and V4 colors available in the theme without overwriting each other.
+ */
+export const themeV4ColorsWithNcPrefix: {
+  [K in keyof typeof themeV4Colors as `nc-${K}`]: (typeof themeV4Colors)[K]
+} = Object.entries(themeV4Colors).reduce((acc, [key, value]) => {
+  acc[`nc-${key}` as `nc-${string}`] = value
+  return acc
+}, {} as any)
+
+/**
  * ### Light Theme Configuration
  * In this project, we've integrated a custom WindiCSS configuration that aligns with our Figma design system.
  * This setup introduces shorthand class names for various UI elements like text color, border color,
@@ -530,13 +544,13 @@ export const themeV4Colors = {
  * ###### Text Color
  * To apply a text color, you can use:
  * ```html
- * <p class="text-nc-content-grey-subtle">This is subtle grey text.</p>
+ * <p class="text-nc-content-gray-subtle">This is subtle gray text.</p>
  * ```
  *
  * ###### Border Color
  * To apply a border color, you can use:
  * ```html
- * <div class="border-nc-border-gray-light">This div has a light grey border.</div>
+ * <div class="border-nc-border-gray-light">This div has a light gray border.</div>
  * ```
  *
  * ###### Background Color

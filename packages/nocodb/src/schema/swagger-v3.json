@@ -177,7 +177,7 @@
       "get": {
         "summary": "Get workspace metadata",
         "operationId": "workspace-members-read",
-        "description": "Retrieve metadata for a specific workspace. Optionally include workspace members.",
+        "description": "Retrieves metadata for a specified workspace, with an option to include its members.\n\nNotes:\n- To include member details, use the query parameter `include[]=members`.\n- Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
         "tags": [
           "Workspace Members"
         ],
@@ -265,7 +265,7 @@
     "/api/v3/meta/workspaces/{workspaceId}/members": {
       "post": {
         "summary": "Add workspace members",
-        "description": "Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body.",
+        "description": "Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
         "operationId": "workspace-members-invite",
         "tags": [
           "Workspace Members"
@@ -337,7 +337,7 @@
       },
       "patch": {
         "summary": "Update workspace members",
-        "description": "Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body.",
+        "description": "Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
         "operationId": "workspace-members-update",
         "tags": [
           "Workspace Members"
@@ -409,7 +409,7 @@
       },
       "delete": {
         "summary": "Delete workspace members",
-        "description": "Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body.",
+        "description": "Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
         "operationId": "workspace-members-delete",
         "tags": [
           "Workspace Members"
@@ -2497,7 +2497,7 @@
     "/api/v3/meta/bases/{baseId}?include[]=members": {
       "get": {
         "summary": "List base members",
-        "description": "Retrieve all details of a specific base, including its members.",
+        "description": "Retrieve all details of a specific base, including its members.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
         "operationId": "base-users-list",
         "tags": [
           "Base Users"
@@ -2572,7 +2572,7 @@
     "/api/v3/meta/bases/{base_id}/members": {
       "post": {
         "summary": "Invite users to a base",
-        "description": "Invite new users to a specific base using their User ID or Email address.",
+        "description": "Invite new users to a specific base using their User ID or Email address.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
         "operationId": "base-users-invite",
         "parameters": [
           {

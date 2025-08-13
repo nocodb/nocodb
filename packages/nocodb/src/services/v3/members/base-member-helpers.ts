@@ -14,7 +14,7 @@ export class BaseMemberHelpers {
   ): Promise<{
     individual_members: { base_members: any[]; workspace_members: any[] };
   }> {
-    NcError.get(context).badRequest(
+    NcError.get(context).invalidRequestBody(
       'Accessing member management api is only available on paid plans. Please upgrade your workspace plan to enable this feature.',
     );
     return undefined;

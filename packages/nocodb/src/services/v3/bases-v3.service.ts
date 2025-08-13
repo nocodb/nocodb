@@ -93,6 +93,7 @@ export class BasesV3Service {
       ...(param.qsInclude?.includes('members')
         ? await this.baseMemberHelpers.getBaseMember(context, {
             baseId: param.baseId,
+            isPrivateBase: base.default_role === 'no-access',
           })
         : {}),
     } as BaseV3Type;

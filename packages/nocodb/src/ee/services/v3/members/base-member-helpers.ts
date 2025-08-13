@@ -43,6 +43,7 @@ export class BaseMemberHelpers extends BaseMemberHelpersCE {
     context: NcContext,
     param: {
       baseId: string;
+      isPrivateBase?: boolean;
     },
     ncMeta?: MetaService,
   ) {
@@ -66,16 +67,19 @@ export class BaseMemberHelpers extends BaseMemberHelpersCE {
       },
       ncMeta,
     );
-    const wsUsers = (
-      await WorkspaceUser.userList({
-        fk_workspace_id: context.workspace_id,
-      })
-    ).filter(
-      (wsUser) =>
-        !baseUsers.some(
-          (baseUser) => wsUser.fk_user_id === baseUser.fk_user_id,
-        ),
-    );
+    let wsUsers = [];
+    if (!param.isPrivateBase) {
+      wsUsers = (
+        await WorkspaceUser.userList({
+          fk_workspace_id: context.workspace_id,
+        })
+      ).filter(
+        (wsUser) =>
+          !baseUsers.some(
+            (baseUser) => wsUser.fk_user_id === baseUser.fk_user_id,
+          ),
+      );
+    }
 
     return {
       individual_members: {

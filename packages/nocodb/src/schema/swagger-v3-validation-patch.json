@@ -77,30 +77,30 @@
               "id": {
                 "type": "string",
                 "description": "Unique identifier for the view."
-              }
-            },
-            "fields": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "field_id": {
-                    "type": "string"
+              },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field_id": {
+                      "type": "string"
+                    },
+                    "show": {
+                      "type": "boolean"
+                    },
+                    "width": {
+                      "type": "integer"
+                    },
+                    "aggregation": {
+                      "$ref": "#/components/schemas/ViewAggregationEnum"
+                    }
                   },
-                  "show": {
-                    "type": "boolean"
-                  },
-                  "width": {
-                    "type": "integer"
-                  },
-                  "aggregation": {
-                    "$ref": "#/components/schemas/ViewAggregationEnum"
-                  }
-                },
-                "required": [
-                  "field_id",
+                  "required": [
+                    "field_id",
                     "show"
-                ]
+                  ]
+                }
               }
             }
           }

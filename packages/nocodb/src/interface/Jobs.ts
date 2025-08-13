@@ -130,6 +130,7 @@ export interface AtImportJobData extends JobData {
     syncRollup?: boolean;
     syncUsers?: boolean;
     syncData?: boolean;
+    syncFormula?: boolean;
   };
   user: any;
 }

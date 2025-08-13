@@ -5221,6 +5221,35 @@
           }
         }
       },
+      "ViewAggregationEnum": {
+        "type": "string",
+        "enum": [
+          "sum",
+          "min",
+          "max",
+          "avg",
+          "median",
+          "std_dev",
+          "range",
+          "count",
+          "count_empty",
+          "count_filled",
+          "count_unique",
+          "percent_empty",
+          "percent_filled",
+          "percent_unique",
+          "none",
+          "attachment_size",
+          "checked",
+          "unchecked",
+          "percent_checked",
+          "percent_unchecked",
+          "earliest_date",
+          "latest_date",
+          "date_range",
+          "month_range"
+        ]
+      },
       "ViewBase": {
         "type": "object",
         "properties": {
@@ -5442,6 +5471,9 @@
                     },
                     "width": {
                       "type": "integer"
+                    },
+                    "aggregation": {
+                      "$ref": "#/components/schemas/ViewAggregationEnum"
                     }
                   },
                   "required": [

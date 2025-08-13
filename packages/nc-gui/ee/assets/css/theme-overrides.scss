@@ -79,4 +79,9 @@ body {
       }
     }
   }
+
+  // Form item label
+  .ant-form-item-label > label {
+    @apply text-nc-content-gray;
+  }
 }

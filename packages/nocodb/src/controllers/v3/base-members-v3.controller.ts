@@ -90,9 +90,6 @@ export class BaseMembersV3Controller {
         base_role: BaseRolesV3Type.NoAccess,
       })),
     });
-    return {
-      msg: 'The user has been deleted successfully',
-    };
   }
 
   private validatePayload(

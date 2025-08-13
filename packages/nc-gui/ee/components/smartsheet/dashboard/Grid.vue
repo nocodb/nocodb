@@ -28,6 +28,10 @@ const isResponsiveEnabled = computed(() => {
 
 const responsive = ref()
 
+// This is for responsive layout in grid-layout-plus
+// When the window size is resized, the layout will be auto adjusted based on window size.
+// The computed layout will return the responsive layout when the user is not in edit state and the window size is less than 1280px
+// Else the computed layout will return the normal layout. This is implemented to prevent layout shifting when the user is in edit state and switching between responsive and normal layout
 const layout = computed({
   set: (value) => {
     responsive.value = value
@@ -193,6 +197,8 @@ const getWidgetPositionConfig = (item: string) => {
 
 const gridRef = ref()
 
+// The widget position/width can be updated manually from the widget or by realtime
+// Hence we need to watch the activeDashboardWidgets and update the layout
 watch(
   activeDashboardWidgets,
   () => {

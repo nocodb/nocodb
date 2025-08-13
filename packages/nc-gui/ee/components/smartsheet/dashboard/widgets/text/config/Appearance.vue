@@ -15,7 +15,7 @@ const fontSettings = reactive({
   lineHeight: selectedWidget.value?.config?.appearance?.font?.lineHeight,
 })
 
-const color = ref('#000000')
+const color = ref(selectedWidget.value?.config?.appearance?.color || '#000000')
 
 const onUpdate = () => {
   emit('update:appearance', {

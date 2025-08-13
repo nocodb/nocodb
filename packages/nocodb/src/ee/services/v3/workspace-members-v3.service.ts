@@ -210,6 +210,14 @@ export class WorkspaceMembersV3Service {
     } catch (e) {
       // on error rollback the transaction and throw the error
       await ncMeta.rollback();
+
+      // Rollback cache, clear cache of updated users
+      for (const userId of userIds) {
+        await NocoCache.del(
+          `${CacheScope.WORKSPACE_USER}:${param.workspaceId}:${userId}`,
+        );
+      }
+
       throw e;
     }
     // Get all users and filter by the ones we just updated

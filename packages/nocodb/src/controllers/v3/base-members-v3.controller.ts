@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
   HttpCode,
   Param,
   Patch,
@@ -23,29 +22,16 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
-import { BaseUsersV3Service } from '~/services/v3/base-users-v3.service';
+import { BaseMembersV3Service } from '~/services/v3/base-members-v3.service';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
-export class BaseUsersV3Controller {
+export class BaseMembersV3Controller {
   private builder: () => ApiV3DataTransformationBuilder;
 
-  constructor(protected readonly baseUsersV3Service: BaseUsersV3Service) {}
+  constructor(protected readonly baseMembersV3Service: BaseMembersV3Service) {}
 
-  @Get(['/api/v3/meta/bases/:baseId/users'])
-  @Acl('baseUserList')
-  async userList(
-    @TenantContext()
-    context: NcContext,
-    @Param('baseId')
-    baseId: string,
-  ) {
-    return await this.baseUsersV3Service.userList(context, {
-      baseId,
-    });
-  }
-
-  @Post(['/api/v3/meta/bases/:baseId/users'])
+  @Post(['/api/v3/meta/bases/:baseId/members'])
   @HttpCode(200)
   @Acl('userInvite')
   async userInvite(
@@ -56,14 +42,14 @@ export class BaseUsersV3Controller {
   ): Promise<any> {
     this.validatePayload(baseUsers);
 
-    return await this.baseUsersV3Service.userInvite(context, {
+    return await this.baseMembersV3Service.userInvite(context, {
       baseId,
       baseUsers: Array.isArray(baseUsers) ? baseUsers : [baseUsers],
       req,
     });
   }
 
-  @Patch(['/api/v3/meta/bases/:baseId/users'])
+  @Patch(['/api/v3/meta/bases/:baseId/members'])
   @Acl('baseUserUpdate')
   async baseUserUpdate(
     @TenantContext()
@@ -76,14 +62,14 @@ export class BaseUsersV3Controller {
   ): Promise<any> {
     this.validatePayload(baseUsers);
 
-    return await this.baseUsersV3Service.baseUserUpdate(context, {
+    return await this.baseMembersV3Service.baseUserUpdate(context, {
       baseUsers: Array.isArray(baseUsers) ? baseUsers : [baseUsers],
       baseId,
       req,
     });
   }
 
-  @Delete(['/api/v3/meta/bases/:baseId/users'])
+  @Delete(['/api/v3/meta/bases/:baseId/members'])
   @Acl('baseUserDelete')
   async baseUserDelete(
     @TenantContext() context: NcContext,
@@ -93,7 +79,7 @@ export class BaseUsersV3Controller {
   ): Promise<any> {
     this.validatePayload(baseUsers);
 
-    await this.baseUsersV3Service.baseUserUpdate(context, {
+    await this.baseMembersV3Service.baseUserUpdate(context, {
       baseId,
       req,
       baseUsers: (Array.isArray(baseUsers) ? baseUsers : [baseUsers]).map(

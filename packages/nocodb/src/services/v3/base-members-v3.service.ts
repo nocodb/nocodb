@@ -14,8 +14,8 @@ import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { validatePayload } from '~/helpers';
 
 @Injectable()
-export class BaseUsersV3Service {
-  protected readonly logger = new Logger(BaseUsersV3Service.name);
+export class BaseMembersV3Service {
+  protected readonly logger = new Logger(BaseMembersV3Service.name);
   protected builder: () => ApiV3DataTransformationBuilder<
     BaseUser,
     Partial<BaseUser>

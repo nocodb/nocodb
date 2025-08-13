@@ -63,7 +63,7 @@ export class JobsProcessor {
 
     const localRunning = LOCAL_JOB_COUNT_MAP.get(jobName)!;
 
-    if (localRunning >= LOCAL_CONCURRENCY_LIMIT[jobName]) {
+    if (localRunning && localRunning >= LOCAL_CONCURRENCY_LIMIT[jobName]) {
       job.data._jobDelay = 0;
       job.data._jobAttempt = 1;
 

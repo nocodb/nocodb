@@ -7,6 +7,7 @@ import WorkspaceUser from '~/models/WorkspaceUser';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { getFeature, PlanFeatureTypes } from '~/ee/helpers/paymentHelpers';
 import { NcError } from '~/helpers/ncError';
+import { isOnPrem } from '~/utils';
 
 export class BaseMemberHelpers extends BaseMemberHelpersCE {
   constructor() {
@@ -53,8 +54,13 @@ export class BaseMemberHelpers extends BaseMemberHelpersCE {
         context.workspace_id,
       ))
     ) {
+      if (isOnPrem) {
+        NcError.get(context).invalidRequestBody(
+          'Accessing member management api is available on self-hosted Enterprise plans. Please upgrade your workspace plan to enable this feature.',
+        );
+      }
       NcError.get(context).invalidRequestBody(
-        'Accessing member management api is only available on paid plans. Please upgrade your workspace plan to enable this feature.',
+        'Accessing member management api is only available on Business+ plans. Please upgrade your workspace plan to enable this feature.',
       );
     }
     const baseUsers = await BaseUser.getUsersList(

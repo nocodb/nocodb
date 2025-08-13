@@ -177,7 +177,7 @@ export interface BaseMember {
 export type BaseUserDeleteRequest = any;
 
 export interface BaseMemberList {
-  list?: any[];
+  list?: BaseMember[];
 }
 
 /** Array of members to be created. */
@@ -2101,7 +2101,23 @@ export class InternalApi<
       }),
 
     /**
-     * @description Invite new users to a specific base using their email address.
+     * @description Retrieve all details of a specific base, including its members.
+     *
+     * @tags Base Users
+     * @name BaseUsersList
+     * @summary List base members
+     * @request GET:/api/v3/meta/bases/{baseId}?include[]=members
+     */
+    baseUsersList: (baseId: string, params: RequestParams = {}) =>
+      this.request<Base, void>({
+        path: `/api/v3/meta/bases/${baseId}?include[]=members`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Invite new users to a specific base using their User ID or Email address.
      *
      * @tags Base Users
      * @name BaseUsersInvite
@@ -2113,7 +2129,7 @@ export class InternalApi<
       data: BaseMemberCreate,
       params: RequestParams = {},
     ) =>
-      this.request<any[], void>({
+      this.request<BaseMember[], void>({
         path: `/api/v3/meta/bases/${baseId}/members`,
         method: 'POST',
         body: data,
@@ -2132,10 +2148,10 @@ export class InternalApi<
      */
     baseUsersUpdate: (
       baseId: string,
-      data: FieldOptions,
+      data: BaseMemberUpdate,
       params: RequestParams = {},
     ) =>
-      this.request<any[], void>({
+      this.request<BaseMember[], void>({
         path: `/api/v3/meta/bases/${baseId}/members`,
         method: 'PATCH',
         body: data,

@@ -131,6 +131,10 @@ body {
   }
 
   // Tabs
+  .ant-tabs {
+    @apply text-nc-content-gray;
+  }
+
   .ant-tabs-bottom > .ant-tabs-nav:before,
   .ant-tabs-bottom > div > .ant-tabs-nav:before,
   .ant-tabs-top > .ant-tabs-nav:before,

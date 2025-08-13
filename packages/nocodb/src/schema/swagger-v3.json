@@ -7344,26 +7344,14 @@
         "type": "object",
         "description": "Workspace user information",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the user"
-          },
           "email": {
             "type": "string",
             "format": "email",
             "description": "Email address of the user"
           },
-          "name": {
+          "user_id": {
             "type": "string",
-            "description": "Display name of the user"
-          },
-          "workspace_roles": {
-            "$ref": "#/components/schemas/WorkspaceRoles",
-            "description": "Workspace roles assigned to the user"
-          },
-          "workspace_id": {
-            "type": "string",
-            "description": "Unique identifier for the workspace"
+            "description": "Unique identifier for the user"
           },
           "created_at": {
             "type": "string",
@@ -7375,16 +7363,12 @@
             "format": "date-time",
             "description": "Timestamp when the user was last updated in the workspace"
           },
-          "invite_accepted": {
-            "type": "boolean",
-            "description": "Whether the user has accepted the workspace invitation"
-          },
-          "invite_token": {
-            "type": "string",
-            "description": "Invitation token for the user"
+          "workspace_roles": {
+            "$ref": "#/components/schemas/WorkspaceRoles",
+            "description": "Workspace roles assigned to the user"
           }
         },
-        "required": ["id", "email", "workspace_roles"]
+        "required": ["email", "user_id", "created_at", "updated_at", "workspace_role"]
       },
       "WorkspaceUserCreate": {
         "type": "object",
@@ -7399,13 +7383,9 @@
             "format": "email",
             "description": "Email address of the user (optional if id is provided)"
           },
-          "user_name": {
-            "type": "string",
-            "description": "Name of the user (optional)"
-          },
-          "workspace_role": {
+          "workspace_roles": {
             "$ref": "#/components/schemas/WorkspaceRoles",
-            "description": "Workspace role to assign to the user"
+            "description": "Workspace roles assigned to the user"
           }
         },
         "required": ["workspace_role"]
@@ -7423,9 +7403,9 @@
             "format": "email",
             "description": "Email address of the user (optional if id is provided)"
           },
-          "workspace_role": {
+          "workspace_roles": {
             "$ref": "#/components/schemas/WorkspaceRoles",
-            "description": "New workspace role to assign to the user"
+            "description": "Workspace roles assigned to the user"
           }
         },
         "required": ["workspace_role"]

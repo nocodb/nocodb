@@ -118,6 +118,29 @@ body {
     @apply border-nc-border-gray-light;
   }
 
+  .ant-empty-normal {
+    @apply text-nc-content-inverted-secondary;
+  }
+
+  .ant-empty {
+    .ant-empty-img-simple {
+      /* Ellipse shadow */
+      .ant-empty-img-simple-ellipse {
+        fill: #262626 !important;
+      }
+
+      /* Outline stroke */
+      .ant-empty-img-simple-g {
+        stroke: #4d4d4d !important;
+      }
+
+      /* Inner shape fill */
+      .ant-empty-img-simple-path {
+        fill: #1f1f1f !important;
+      }
+    }
+  }
+
   // Dropdown Menu
   .ant-dropdown-menu.ant-dropdown-menu-root {
     .ant-dropdown-menu-item {
@@ -151,7 +174,11 @@ body {
   }
 
   .ant-menu {
-    @apply bg-nc-bg-default;
+    @apply bg-nc-bg-default text-nc-content-gray;
+
+    &:not(.ant-menu-item-disabled) {
+      @apply hover:(text-nc-content-gray-extreme);
+    }
   }
 
   // Tabs

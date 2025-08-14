@@ -32,9 +32,6 @@ const selectable = computed(() => props.selectable ?? false)
         @apply !text-small !leading-5 font-weight-550;
       }
 
-      &:not(.ant-dropdown-menu-item-disabled) {
-        @apply hover:text-black text-gray-700;
-      }
 
       .nc-icon {
         @apply opacity-80;

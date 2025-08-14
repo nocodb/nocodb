@@ -36,7 +36,7 @@ defineOptions({
 
 <style lang="scss">
 .ant-dropdown-menu-item.nc-menu-item {
-  @apply p-2 mx-1.5 font-normal text-sm xs:(text-base py-3 px-3.5 mx-0) rounded-md overflow-hidden hover:bg-gray-100;
+  @apply p-2 mx-1.5 font-normal text-sm xs:(text-base py-3 px-3.5 mx-0) rounded-md overflow-hidden;
 }
 
 .nc-menu-item-inner {

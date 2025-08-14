@@ -248,6 +248,7 @@ export class ViewsV3Service {
               ] ?? []
             )
               .filter((k) => k.id !== 'uncategorized')
+              .sort((a, b) => a.order - b.order)
               .map((k) => k.title),
           };
           formattedData.kanban_stack_by_field_id = undefined;

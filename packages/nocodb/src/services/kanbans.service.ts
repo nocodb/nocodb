@@ -210,7 +210,7 @@ export class KanbansService {
       metaOptions.push({
         id: 'uncategorized',
         title: null,
-        order: 0,
+        order: 1,
         color: '#6A7184',
         collapsed: false,
       });
@@ -227,12 +227,14 @@ export class KanbansService {
     let maxOrder = 1;
     const optionsOrderMap = param.optionsOrder.reduce((acc, val, idx) => {
       acc[val] = idx + 1;
-      return val;
+      return acc;
     }, {});
 
     const unorderedMetaOptions = [];
     for (const metaOption of metaOptions) {
-      if (optionsOrderMap[metaOption.title]) {
+      if (metaOption.id === 'uncategorized') {
+        metaOption.order = 1;
+      } else if (optionsOrderMap[metaOption.title]) {
         metaOption.order = optionsOrderMap[metaOption.title];
         maxOrder = Math.max(metaOption.order, maxOrder);
       } else {
@@ -240,7 +242,7 @@ export class KanbansService {
       }
     }
     unorderedMetaOptions.forEach((opt, idx) => {
-      opt.order = maxOrder + idx;
+      opt.order = maxOrder + idx + 1;
     });
     await this.kanbanViewUpdate(
       context,
@@ -250,7 +252,7 @@ export class KanbansService {
           ...kanbanView,
           meta: {
             ...(parseProp(kanbanView.meta) ?? {}),
-            [column.id]: metaOptions.sort((opt) => opt.order),
+            [column.id]: metaOptions.sort((a, b) => a.order - b.order),
           },
         },
         req: param.req,

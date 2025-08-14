@@ -273,7 +273,7 @@ watch(isOpenContextMenu, (newValue) => {
             </NcMenuItem>
             <template v-if="isEditAllowed">
               <NcDivider />
-              <NcMenuItem @click="deleteCurrentFile" danger>
+              <NcMenuItem danger @click="deleteCurrentFile">
                 <GeneralIcon icon="delete" />
                 Delete
               </NcMenuItem>

@@ -726,7 +726,10 @@ export default {
             <a-skeleton-input active class="!h-6 !sm:mr-14 !w-52 !rounded-md !overflow-hidden" size="small" />
           </div>
           <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end) min-w-0">
-            <div v-if="!props.showNextPrevIcons" class="hidden md:flex items-center rounded-lg bg-nc-bg-gray-light px-2 py-1 gap-2">
+            <div
+              v-if="!props.showNextPrevIcons"
+              class="hidden md:flex items-center rounded-lg bg-nc-bg-gray-light px-2 py-1 gap-2"
+            >
               <GeneralIcon icon="table" class="text-nc-content-inverted-secondary flex-none" />
               <span class="nc-expanded-form-table-name whitespace-nowrap">
                 {{ tableTitle }}
@@ -800,7 +803,11 @@ export default {
           </NcTooltip>
           <NcDropdown v-if="!isNew && rowId && !isMobileMode" placement="bottomRight">
             <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7" :disabled="isLoading">
-              <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-nc-content-brand-hover' : 'text-nc-content-inverted-secondary'" />
+              <GeneralIcon
+                icon="threeDotVertical"
+                class="text-md"
+                :class="isLoading ? 'text-nc-content-brand-hover' : 'text-nc-content-inverted-secondary'"
+              />
             </NcButton>
             <template #overlay>
               <NcMenu variant="small">
@@ -942,7 +949,9 @@ export default {
   <GeneralDeleteModal v-model:visible="showDeleteRowModal" entity-name="Record" :on-delete="onConfirmDeleteRowClick">
     <template #entity-preview>
       <span>
-        <div class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-inverted-secondary">
+        <div
+          class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-inverted-secondary"
+        >
           <div class="text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
             <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
           </div>

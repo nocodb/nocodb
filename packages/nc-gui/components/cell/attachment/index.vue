@@ -379,7 +379,9 @@ onUnmounted(() => {
     >
       <template #entity-preview>
         <span>
-          <div class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle mb-4">
+          <div
+            class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle mb-4"
+          >
             <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
             <div
               class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"

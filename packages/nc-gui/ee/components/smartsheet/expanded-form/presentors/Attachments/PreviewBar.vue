@@ -87,7 +87,10 @@ watch(selectedFieldId, () => {
                 {{ selectedField?.title }}
               </span>
             </NcTooltip>
-            <GeneralIcon icon="chevronDown" class="h-4 w-4 ml-1 text-nc-content-gray-muted aspect-square flex items-center justify-center" />
+            <GeneralIcon
+              icon="chevronDown"
+              class="h-4 w-4 ml-1 text-nc-content-gray-muted aspect-square flex items-center justify-center"
+            />
           </template>
         </NcButton>
       </NcDropdownSelect>

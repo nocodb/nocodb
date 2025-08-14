@@ -45,7 +45,7 @@ defineProps<{
 
   &:hover:not(.loading) {
     @apply bg-nc-bg-gray-light border-nc-border-gray-medium;
-    box-shadow: 0px 0px 4px 0px rgba(255, 255, 255, 0.08);
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
   }
 
   .icon-wrapper {

@@ -1,0 +1,13 @@
+.ant-layout-content {
+  background: var(--color-bg);
+}
+
+// Dropdown
+.ant-dropdown {
+  @apply !bg-[var(--nc-background-default)];
+}
+
+// Dropdown Menu
+.ant-dropdown-menu.ant-dropdown-menu-root {
+  @apply !bg-[var(--nc-background-default)];
+}

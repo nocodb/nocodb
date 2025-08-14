@@ -309,7 +309,7 @@ watch(isOpen, (newValue) => {
                     :key="idx"
                     :icon="i"
                     :title="name"
-                    class="w-6 hover:bg-gray-100 cursor-pointer rounded p-1 text-gray-700 h-6"
+                    class="w-6 hover:bg-nc-bg-gray-light cursor-pointer rounded p-1 text-nc-content-gray-subtle h-6"
                     @click="selectIcon(name)"
                   />
                 </div>
@@ -328,7 +328,7 @@ watch(isOpen, (newValue) => {
                     />
                   </div>
                   <div class="flex-1 w-[calc(100%_-_108px)]">
-                    <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                    <NcTooltip class="truncate flex-1 text-current" show-on-truncate-only>
                       <template #title> {{ vIcon?.title || 'Workspace logo' }}</template>
                       {{ vIcon?.title || 'Workspace logo' }}
                     </NcTooltip>
@@ -427,7 +427,7 @@ watch(isOpen, (newValue) => {
       }
 
       .tab-title {
-        @apply text-xs leading-[24px] px-2 rounded hover:bg-gray-100 transition-colors flex items-center gap-2;
+        @apply text-xs leading-[24px] px-2 rounded hover:bg-nc-bg-gray-light transition-colors flex items-center gap-2;
       }
     }
   }
@@ -450,7 +450,7 @@ watch(isOpen, (newValue) => {
 }
 
 :deep(.ant-input::placeholder) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 :deep(.nc-icon-selector img) {
@@ -461,7 +461,7 @@ watch(isOpen, (newValue) => {
 <style>
 .nc-icon-selector-image-uploader {
   &.ant-upload.ant-upload-drag {
-    @apply !rounded-lg !bg-white !hover:bg-nc-bg-gray-light !transition-colors duration-300;
+    @apply !rounded-lg !bg-nc-bg-default !hover:bg-nc-bg-gray-light !transition-colors duration-300;
   }
   .ant-upload-btn {
     @apply !flex flex-col items-center justify-center !min-h-[176px];
@@ -497,7 +497,7 @@ watch(isOpen, (newValue) => {
     @apply mt-1 px-1 overflow-x-hidden;
 
     h3.emoji-mart-category-label {
-      @apply text-xs text-gray-500 mb-0;
+      @apply text-xs text-nc-content-gray-muted mb-0 bg-nc-bg-default;
     }
   }
 

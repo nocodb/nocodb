@@ -17,7 +17,7 @@ export const Markdown = Extension.create<MarkdownOptions, MarkdownStorage>({
       breaks: false,
       transformPastedText: false,
       transformCopiedText: false,
-      renderImagesAsLinks: false,
+      renderImagesAsLinks: true,
     }
   },
   addCommands() {

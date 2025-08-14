@@ -12,6 +12,8 @@
   --color-bg: #ffffff;
   --color-text: #000000;
 
+  --rgb-base: 0, 0, 0;
+
   --color-base-black: #000000;
   --color-base-white: #ffffff;
   --color-base-none: #ffffff00;
@@ -150,6 +152,8 @@
 [theme='dark'] {
   --color-bg: #121212;
   --color-text: #ffffff;
+
+  --rgb-base: 255, 255, 255;
 
   --color-base-black: #ffffff;
   --color-base-white: #171717;

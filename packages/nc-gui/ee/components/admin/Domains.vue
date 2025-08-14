@@ -89,11 +89,7 @@ onMounted(async () => {
                   {{ $t('general.edit') }}
                 </NcMenuItem>
                 <NcDivider />
-                <NcMenuItem
-                  data-test-id="nc-domain-delete"
-                  danger
-                  @click="deleteDomain(domain.id)"
-                >
+                <NcMenuItem data-test-id="nc-domain-delete" danger @click="deleteDomain(domain.id)">
                   <GeneralIcon icon="delete" />
                   {{ $t('general.delete') }}
                 </NcMenuItem>

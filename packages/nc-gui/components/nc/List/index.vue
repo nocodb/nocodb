@@ -405,11 +405,11 @@ defineExpose({
                   {
                     'rounded-md': !itemFullWidth,
                     'nc-list-option-selected': compareVModel(option[optionValueKey]),
-                    'bg-gray-100 ':
+                    'bg-nc-bg-gray-light ':
                       !option?.ncItemDisabled && showHoverEffectOnSelectedOption && compareVModel(option[optionValueKey]),
-                    'bg-gray-100 nc-list-option-active': !option?.ncItemDisabled && activeOptionIndex === idx,
+                    'bg-nc-bg-gray-light nc-list-option-active': !option?.ncItemDisabled && activeOptionIndex === idx,
                     'opacity-60 cursor-not-allowed': option?.ncItemDisabled,
-                    'hover:bg-gray-100 cursor-pointer': !option?.ncItemDisabled,
+                    'hover:bg-nc-bg-gray-light cursor-pointer': !option?.ncItemDisabled,
                     'py-2': variant === 'default',
                     'py-[5px]': variant === 'medium',
                     'py-[3px]': variant === 'small',
@@ -503,7 +503,7 @@ defineExpose({
 :deep(.nc-toolbar-dropdown-search-field-input) {
   &.ant-input-affix-wrapper-focused {
     .ant-input-prefix svg {
-      @apply text-brand-500;
+      @apply text-nc-content-brand;
     }
   }
   .ant-input {

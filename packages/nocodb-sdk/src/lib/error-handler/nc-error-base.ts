@@ -11,7 +11,11 @@ import {
   UnprocessableEntity,
 } from '../error/nc-base.error';
 import { NcErrorType, PlanLimitExceededDetailsType } from '../globals';
-import { HigherPlan } from '../payment';
+import {
+  HigherPlan,
+  PlanFeatureTypes,
+  PlanFeatureUpgradeMessages,
+} from '../payment';
 import UITypes from '../UITypes';
 import { NcErrorCodexManager } from './nc-error-codex-manager';
 

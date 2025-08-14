@@ -48,6 +48,13 @@ export class BasesV3Service extends BasesV3ServiceCE {
         });
       }
     }
+    if (base.type && !['default', 'private'].includes(base.type)) {
+      NcError.get({
+        api_version: NcApiVersion.V3,
+      }).invalidRequestBody(
+        `type property value is invalid. Allowed: 'default', 'private'`,
+      );
+    }
     return (
       base.type && base.type === 'private'
         ? {

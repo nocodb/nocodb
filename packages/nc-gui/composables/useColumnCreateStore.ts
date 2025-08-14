@@ -38,7 +38,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const { $e } = useNuxtApp()
 
-    const sqlUi = ref(meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0])
+    const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0]))
 
     const viewsStore = useViewsStore()
 
@@ -129,7 +129,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
       const newTitle = updateFieldName(false)
 
-      const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
+      const colProp = sqlUi.value?.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined) ?? {}
+
       formState.value = {
         ...(fromTableExplorer?.value || formState.value?.is_ai_field || formState.value?.ai_temp_id
           ? {

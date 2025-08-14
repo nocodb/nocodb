@@ -578,7 +578,10 @@ onKeyStroke('ArrowDown', onDown)
                           </NcTooltip>
                           <template v-if="integration?.sub_type !== SyncDataType.NOCODB">
                             <NcDivider />
-                            <NcMenuItem class="!text-nc-content-red-medium !hover:bg-nc-bg-red-light" @click="openDeleteIntegration(integration)">
+                            <NcMenuItem
+                              class="!text-nc-content-red-medium !hover:bg-nc-bg-red-light"
+                              @click="openDeleteIntegration(integration)"
+                            >
                               <GeneralIcon icon="delete" />
                               {{ $t('general.delete') }}
                             </NcMenuItem>
@@ -671,7 +674,9 @@ onKeyStroke('ArrowDown', onDown)
           </div>
         </template>
         <div v-else-if="toBeDeletedIntegration" class="w-full flex flex-col text-nc-content-gray">
-          <div class="flex flex-row items-center py-2 px-3.25 bg-nc-bg-gray-extralight rounded-lg text-nc-content-inverted-secondary mb-4">
+          <div
+            class="flex flex-row items-center py-2 px-3.25 bg-nc-bg-gray-extralight rounded-lg text-nc-content-inverted-secondary mb-4"
+          >
             <GeneralIntegrationIcon :type="toBeDeletedIntegration.sub_type" />
             <div
               class="text-ellipsis overflow-hidden select-none w-full pl-3"
@@ -680,7 +685,10 @@ onKeyStroke('ArrowDown', onDown)
               {{ toBeDeletedIntegration.title }}
             </div>
           </div>
-          <div v-if="toBeDeletedIntegration?.sources?.length" class="flex flex-col pb-2 text-small leading-[18px] text-nc-content-gray-muted">
+          <div
+            v-if="toBeDeletedIntegration?.sources?.length"
+            class="flex flex-col pb-2 text-small leading-[18px] text-nc-content-gray-muted"
+          >
             <div class="mb-1">Following external data sources using this connection will also be removed</div>
             <ul class="!list-disc ml-6 mb-0">
               <li

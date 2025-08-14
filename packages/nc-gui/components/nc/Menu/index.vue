@@ -32,7 +32,6 @@ const selectable = computed(() => props.selectable ?? false)
         @apply !text-small !leading-5 font-weight-550;
       }
 
-
       .nc-icon {
         @apply opacity-80;
       }

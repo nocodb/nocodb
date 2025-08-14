@@ -616,7 +616,6 @@ export class ExportService {
 
           serializedPermissions.push({
             id: idMap.get(permission.id),
-            base_id: idMap.get(permission.base_id),
             entity: permission.entity,
             entity_id: idMap.get(permission.entity_id),
             permission: permission.permission,

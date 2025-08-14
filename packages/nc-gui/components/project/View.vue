@@ -325,7 +325,7 @@ onMounted(() => {
   }
 }
 :deep(.ant-tabs-tab .tab-title) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 :deep(.ant-tabs-tab-active .tab-title) {
   @apply text-primary;

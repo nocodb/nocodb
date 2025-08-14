@@ -15,7 +15,7 @@ export class CloudOpenIDLoginPage extends BasePage {
 
   async goto(_title = 'test', email: string) {
     await this.ssoLoginPage.goto(email);
-    await this.ssoLoginPage.signIn({ email });
+    await this.ssoLoginPage.signIn({ email, waitForUserInfoMenu: false });
     // // reload page to get latest app info
     // await this.rootPage.reload({ waitUntil: 'networkidle' });
     // // click sign in with SAML

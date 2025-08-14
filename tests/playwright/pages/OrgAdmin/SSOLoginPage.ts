@@ -21,7 +21,7 @@ export class CloudSSOLoginPage extends BasePage {
     return this.rootPage.locator('html');
   }
 
-  async signIn({ email }: { email: string }) {
+  async signIn({ email, waitForUserInfoMenu = true }: { email: string; waitForUserInfoMenu?: boolean }) {
     const signIn = this.get();
     await signIn.locator('[data-testid="nc-form-org-sso-signin__email"]').waitFor();
 
@@ -32,9 +32,12 @@ export class CloudSSOLoginPage extends BasePage {
       signIn.getByTestId('nc-form-signin__submit').click(),
     ]);
 
-    const userInfoMenu = this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]`);
-    await userInfoMenu.waitFor();
+    // If it is cloud auth login flow then we first login sso and then redirect to localhost:4000 and there we need to login again
+    if (waitForUserInfoMenu) {
+      const userInfoMenu = this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]`);
+      await userInfoMenu.waitFor();
 
-    await expect(userInfoMenu).toHaveAttribute('data-email', email);
+      await expect(userInfoMenu).toHaveAttribute('data-email', email);
+    }
   }
 }

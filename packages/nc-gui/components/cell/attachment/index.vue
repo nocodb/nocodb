@@ -503,7 +503,7 @@ onUnmounted(() => {
         >
           <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-          <component :is="iconMap.maximize" v-else class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3" />
+          <component :is="iconMap.maximize" v-else class="transform group-hover:(!text-gray-800) text-gray-700 w-3 h-3" />
         </NcButton>
       </NcTooltip>
 
@@ -525,7 +525,7 @@ onUnmounted(() => {
           class="!p-0 !w-5 !h-5 !min-w-[fit-content] add-files"
           @click.stop="openAttachmentModal"
         >
-          <GeneralIcon icon="ncPaperclip" class="w-3 group-hover:(!text-grey-800) text-nc-content-gray-subtle" />
+          <GeneralIcon icon="ncPaperclip" class="w-3 group-hover:(!text-gray-800) text-nc-content-gray-subtle" />
         </NcButton>
       </NcTooltip>
     </template>

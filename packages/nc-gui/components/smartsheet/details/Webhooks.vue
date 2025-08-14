@@ -488,6 +488,6 @@ const getHookTypeText = (hook: HookType) => {
   @apply text-gray-500;
 }
 .btn-goto-docs:hover {
-  background: var(--nc-background-coloured-orange-dark, #fee6d6) !important;
+  background: var(--nc-bg-coloured-orange-dark, #fee6d6) !important;
 }
 </style>

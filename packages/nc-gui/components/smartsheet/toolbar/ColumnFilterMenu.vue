@@ -278,10 +278,10 @@ if (isEeUI) {
 }
 
 .nc-info-icon {
-  color: var(--nc-content-grey-muted);
+  color: var(--nc-content-gray-muted);
 }
 
 .nc-chevron-icon {
-  color: var(--nc-content-grey-subtle);
+  color: var(--nc-content-gray-subtle);
 }
 </style>

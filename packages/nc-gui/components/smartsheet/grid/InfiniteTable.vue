@@ -3463,7 +3463,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
   }
 
   td.active.readonly::after {
-    @apply text-primary bg-grey-50 bg-opacity-5 !border-gray-200;
+    @apply text-primary bg-gray-50 bg-opacity-5 !border-gray-200;
   }
 
   td.active-cell::after {

@@ -84,14 +84,17 @@ export class BaseMembersV3Service {
     try {
       for (const baseUser of param.baseMembers) {
         let user: User;
-        if (baseUser.user_id) {
+        let userEmail: string;
+        
+        if ('user_id' in baseUser && baseUser.user_id) {
           user = await User.get(baseUser.user_id, ncMeta);
           if (!user) {
             NcError.get(context).userNotFound(baseUser.user_id);
           }
-          baseUser.email = user.email;
-        } else if (baseUser.email) {
+          userEmail = user.email;
+        } else if ('email' in baseUser && baseUser.email) {
           user = await User.getByEmail(baseUser.email, ncMeta);
+          userEmail = baseUser.email;
         } else {
           NcError.get(context).invalidRequestBody(
             'Either email or id is required',
@@ -103,15 +106,13 @@ export class BaseMembersV3Service {
           {
             baseId: param.baseId,
             baseUser: {
-              email: baseUser.email,
+              email: userEmail,
               roles: baseUser.base_role as ProjectUserReqType['roles'],
             },
             req: param.req,
           },
           ncMeta,
         );
-
-        user = await User.getByEmail(baseUser.email, ncMeta);
 
         userIds.push(user.id);
       }

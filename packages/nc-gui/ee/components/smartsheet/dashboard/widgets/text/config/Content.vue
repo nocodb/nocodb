@@ -55,9 +55,9 @@ watch([() => selectedWidget.value?.config.content], () => {
         size="small"
       />
       <NcButton
-        type="text"
-        size="small"
-        class="!absolute bottom-2 right-2 !p-1 hover:bg-gray-100 rounded"
+        type="secondary"
+        size="xsmall"
+        class="!absolute top-2 right-2 !p-0 !w-6 p-1 !h-6 !min-w-[fit-content]"
         @click="handleExpandClick"
       >
         <GeneralIcon icon="maximize" class="w-4 h-4 text-gray-500" />

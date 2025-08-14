@@ -287,7 +287,6 @@ defineExpose({
     :class="{
       readonly: readOnly,
     }"
-    :tabindex="1"
     class="nc-rich-text-widget flex flex-col w-full h-full"
     @focus="onFocusWrapper"
   >
@@ -399,10 +398,10 @@ defineExpose({
         @apply bg-white;
         tr {
           th {
-            @apply border-r-1 first:rounded-tl-lg last:rounded-tr-lg last:border-r-0 bg-nc-bg-gray-extralight px-2 py-1;
+            @apply border-r-1 first:rounded-tl-lg last:rounded-tr-lg last:border-r-0 bg-nc-bg-gray-extralight px-2 py-2;
           }
           td {
-            @apply border-r-1 border-t-1 last:rounded-br-lg first:rounded-bl-lg last:border-r-0 border-nc-gray-medium px-2;
+            @apply border-r-1 border-t-1 last:rounded-br-lg first:rounded-bl-lg last:border-r-0 border-nc-gray-medium px-2 py-1.5;
           }
         }
       }

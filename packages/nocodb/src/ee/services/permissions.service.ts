@@ -231,18 +231,14 @@ export class PermissionsService {
 
     const perms = await Permission.list(context, context.base_id, ncMeta);
 
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.META_EVENT,
-        payload: {
-          action: 'permission_update',
-          baseId: context.base_id,
-          payload: perms,
-        },
+    NocoSocket.broadcastEvent(context, {
+      event: EventType.META_EVENT,
+      payload: {
+        action: 'permission_update',
+        baseId: context.base_id,
+        payload: perms,
       },
-      context.socket_id,
-    );
+    });
   }
 
   async bulkDropPermissions(
@@ -277,17 +273,13 @@ export class PermissionsService {
 
     const perms = await Permission.list(context, context.base_id, ncMeta);
 
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.META_EVENT,
-        payload: {
-          action: 'permission_update',
-          baseId: context.base_id,
-          payload: perms,
-        },
+    NocoSocket.broadcastEvent(context, {
+      event: EventType.META_EVENT,
+      payload: {
+        action: 'permission_update',
+        baseId: context.base_id,
+        payload: perms,
       },
-      context.socket_id,
-    );
+    });
   }
 }

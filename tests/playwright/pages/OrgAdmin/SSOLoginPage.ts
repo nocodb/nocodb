@@ -12,7 +12,7 @@ export class CloudSSOLoginPage extends BasePage {
 
   async goto(_email: string) {
     // reload page to get latest app info
-    await this.rootPage.goto('/#/sso');
+    await this.rootPage.goto('/#/sso', { waitUntil: 'networkidle' });
     // click sign in with SAML
     // await this.rootPage.locator(`button:has-text("Sign in with ${title}")`).click();
   }

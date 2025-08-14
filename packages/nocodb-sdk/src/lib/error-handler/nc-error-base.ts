@@ -418,6 +418,30 @@ export class NcErrorBase {
     );
   }
 
+  featureNotSupported(
+    props: {
+      feature: PlanFeatureTypes;
+      isOnPrem?: boolean;
+    },
+    args?: NcErrorArgs
+  ) {
+    if (props.isOnPrem) {
+      throw this.errorCodex.generateError(NcErrorType.FEATURE_NOT_SUPPORTED, {
+        params: `Please upgrade your license ${
+          PlanFeatureUpgradeMessages[props.feature] ?? 'to use this feature.'
+        }`,
+        ...args,
+      });
+    }
+
+    throw this.errorCodex.generateError(NcErrorType.FEATURE_NOT_SUPPORTED, {
+      params: `Upgrade to a higher plan ${
+        PlanFeatureUpgradeMessages[props.feature] ?? 'to use this feature.'
+      }`,
+      ...args,
+    });
+  }
+
   invalidRequestBody(message: string): never {
     throw this.errorCodex.generateError(NcErrorType.INVALID_REQUEST_BODY, {
       params: message,

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { type TextWidgetType, TextWidgetTypes } from 'nocodb-sdk'
 import MarkdownRenderer from '~/components/smartsheet/dashboard/widgets/text/config/Markdown.vue'
+import ExpandedTextEditor from '~/components/smartsheet/dashboard/widgets/text/config/ExpandedTextEditor.vue'
 
 interface Props {
   widget: TextWidgetType
@@ -47,16 +48,30 @@ const textDecoration = computed(() => {
   return decorations.length > 0 ? decorations.join(' ') : 'none'
 })
 
+const showExpandedEditor = ref(false)
+
 const handleDoubleClick = () => {
   if (!props.isEditing) {
     return
   }
 
-  const inputEl = document.querySelector('.widget-content-input')
-  if (inputEl) {
-    inputEl?.focus?.()
-  }
+  showExpandedEditor.value = true
 }
+
+const isMarkdown = computed(() => props.widget.config?.type === TextWidgetTypes.Markdown)
+
+const widgetStore = useWidgetStore()
+
+const { updateWidget } = widgetStore
+
+const handleContentUpdate = useDebounceFn(async (newContent: string) => {
+  await updateWidget(props.widget.fk_dashboard_id, props.widget.id, {
+    config: {
+      ...props.widget.config,
+      content: newContent,
+    },
+  })
+}, 1000)
 </script>
 
 <template>
@@ -96,5 +111,12 @@ const handleDoubleClick = () => {
       <MarkdownRenderer read-only :value="config.content" />
     </div>
     <SmartsheetDashboardWidgetsCommonContext v-if="isEditing" class="absolute top-2.5 right-2.5" :widget="widget" />
+    <ExpandedTextEditor
+      v-if="showExpandedEditor"
+      v-model:value="showExpandedEditor"
+      :content="config.content"
+      :is-markdown="isMarkdown"
+      @update:content="handleContentUpdate"
+    />
   </div>
 </template>

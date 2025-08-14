@@ -242,4 +242,9 @@ export const presetErrorCodexMap: Partial<
       `Prohibited data insert / update / delete operation on synced table`,
     code: 422,
   },
+  [NcErrorType.FEATURE_NOT_SUPPORTED]: {
+    message: (message: string) =>
+      message || `Upgrade to a higher plan to use this feature.`,
+    code: 403,
+  },
 };

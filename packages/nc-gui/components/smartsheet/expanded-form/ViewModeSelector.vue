@@ -88,7 +88,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .tab {
-  @apply flex flex-row items-center h-full justify-center px-2 border-1 border-t-0 border-b-0 border-nc-border-gray-medium text-nc-content-gray-subtle2 hover:text-nc-content-gray-extreme cursor-pointer transition-all duration-300 select-none;
+  @apply flex flex-row items-center h-full justify-center px-2 border-1 border-t-0 border-b-0 border-nc-border-gray-medium text-nc-content-gray-subtle2 cursor-pointer transition-all duration-300 select-none;
 
   &.first-tab {
     @apply border-0;
@@ -104,6 +104,16 @@ onMounted(() => {
       }
     }
   }
+
+  &.active {
+    @apply bg-nc-bg-brand text-nc-content-brand-disabled;
+
+    box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+  }
+
+  &:not(.active) {
+    @apply hover:text-nc-content-gray-extreme;
+  }
 }
 
 .tab-icon {
@@ -116,11 +126,5 @@ onMounted(() => {
   white-space: nowrap;
   display: inline;
   line-height: 0.95;
-}
-
-.active {
-  @apply bg-nc-bg-brand text-nc-content-brand-disabled hover:text-nc-content-brand-disabled;
-
-  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 }
 </style>

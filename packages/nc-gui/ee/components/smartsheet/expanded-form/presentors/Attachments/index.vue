@@ -261,7 +261,7 @@ export default {
 
     .nc-cell,
     .nc-virtual-cell {
-      @apply text-nc-gray-400;
+      @apply text-nc-content-gray-disabled;
     }
   }
   &.nc-readonly-div-data-cell:focus-within,

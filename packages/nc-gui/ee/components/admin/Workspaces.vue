@@ -247,7 +247,7 @@ onMounted(() => {
                 <template #overlay>
                   <NcMenu variant="small">
                     <NcMenuItem data-testid="nc-admin-org-workspace-rename-ws" @click="renameWorkspace(ws.id, ws.title)">
-                      <GeneralIcon class="text-gray-800" icon="rename" />
+                      <GeneralIcon icon="rename" />
                       <span>{{ $t('general.rename') }}</span>
                     </NcMenuItem>
                     <NuxtLink
@@ -255,19 +255,17 @@ onMounted(() => {
                       class="!underline-transparent !text-gray-800 !hover:text-gray-800"
                     >
                       <NcMenuItem data-testid="nc-admin-org-user-delete">
-                        <GeneralIcon class="text-gray-800" icon="user" />
+                        <GeneralIcon icon="user" />
                         <span>{{ $t('activity.manageUsers') }}</span>
                       </NcMenuItem>
                     </NuxtLink>
-                    <!--
-                        <NcDivider />
 
-                        <NcMenuItem class="!hover:bg-red-50" data-testid="nc-admin-org-user-delete">
-                          <div class="text-red-500">
-                            <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="slash" />
-                            {{ $t('activity.deactivate') }}
-                          </div>
-                        </NcMenuItem> -->
+                    <!-- <NcDivider />
+
+                    <NcMenuItem danger data-testid="nc-admin-org-user-delete">
+                      <GeneralIcon icon="slash" />
+                      {{ $t('activity.deactivate') }}
+                    </NcMenuItem> -->
                   </NcMenu>
                 </template>
               </NcDropdown>

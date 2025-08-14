@@ -426,7 +426,7 @@ const getHookTypeText = (hook: HookType) => {
 
                       <NcMenuItem
                         key="delete"
-                        class="!text-red-500 !hover:bg-red-50"
+                        danger
                         data-testid="nc-webhook-item-action-delete"
                         @click="openDeleteModal(hook.id)"
                       >

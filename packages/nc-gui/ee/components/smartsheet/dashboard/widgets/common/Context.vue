@@ -99,7 +99,7 @@ const onResizeClick = (size: 'small' | 'medium' | 'large') => {
             Duplicate widget
           </NcMenuItem>
           <NcDivider />
-          <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="onDelete">
+          <NcMenuItem danger @click="onDelete">
             <GeneralLoader v-if="loadingState.delete" />
             <GeneralIcon v-else icon="ncTrash2" />
             Delete widget

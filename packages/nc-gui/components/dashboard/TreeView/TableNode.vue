@@ -704,12 +704,13 @@ async function onRename() {
                   <NcMenuItem
                     v-if="isUIAllowed('tableDelete', { roles: baseRole, source })"
                     :data-testid="`sidebar-table-delete-${table.title}`"
-                    class="!text-red-500 !hover:bg-red-50 nc-table-delete"
-                    :disabled="table.synced"
+                    class="nc-table-delete"
+                    danger
+                    :disabled="!!table.synced"
                     @click="deleteTable"
                   >
                     <div v-e="['c:table:delete']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="delete" class="opacity-80" />
+                      <GeneralIcon icon="delete" />
                       {{ $t('general.delete') }} {{ $t('objects.table').toLowerCase() }}
                     </div>
                   </NcMenuItem>

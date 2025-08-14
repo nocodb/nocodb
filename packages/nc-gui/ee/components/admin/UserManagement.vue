@@ -318,23 +318,21 @@ watch(selected, () => {
               <template #overlay>
                 <NcMenu variant="small">
                   <NcMenuItem data-testid="nc-admin-org-user-assign-admin" @click="inviteUserToWorkspace(member.email)">
-                    <GeneralIcon class="text-gray-800" icon="send" />
+                    <GeneralIcon icon="send" />
                     <span>{{ $t('activity.inviteToWorkspace') }}</span>
                   </NcMenuItem>
 
-                  <!--                      <NcMenuItem data-testid="nc-admin-org-user-delete">
-                        <GeneralIcon class="text-gray-800" icon="signout" />
-                        <span>{{ $t('labels.signOutUser') }}</span>
-                      </NcMenuItem>
+                  <!-- <NcMenuItem data-testid="nc-admin-org-user-delete">
+                    <GeneralIcon icon="signout" />
+                    <span>{{ $t('labels.signOutUser') }}</span>
+                  </NcMenuItem>
 
-                      <NcDivider />
+                  <NcDivider />
 
-                      <NcMenuItem class="!hover:bg-red-50" data-testid="nc-admin-org-user-delete">
-                        <div class="text-red-500">
-                          <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
-                          {{ $t('labels.deactivateUser') }}
-                        </div>
-                      </NcMenuItem> -->
+                  <NcMenuItem danger data-testid="nc-admin-org-user-delete">
+                    <GeneralIcon icon="delete" />
+                    {{ $t('labels.deactivateUser') }}
+                  </NcMenuItem> -->
                 </NcMenu>
               </template>
             </NcDropdown>

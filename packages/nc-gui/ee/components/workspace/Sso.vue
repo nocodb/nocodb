@@ -168,18 +168,14 @@ onMounted(async () => {
             <template #overlay>
               <NcMenu variant="small">
                 <NcMenuItem data-test-id="nc-google-edit" @click="enableEdit(googleProvider)">
-                  <div class="flex flex-row items-center">
-                    <component :is="iconMap.edit" class="text-gray-800" />
-                    <span class="text-gray-800 ml-2"> {{ $t('general.edit') }} </span>
-                  </div>
+                  <GeneralIcon icon="edit" />
+                  {{ $t('general.edit') }}
                 </NcMenuItem>
                 <template v-if="googleProvider?.id">
                   <NcDivider />
-                  <NcMenuItem data-test-id="nc-google-delete" @click="deleteProvider(googleProvider.id)">
-                    <div class="text-red-500">
-                      <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
-                      {{ $t('general.delete') }}
-                    </div>
+                  <NcMenuItem data-test-id="nc-google-delete" danger @click="deleteProvider(googleProvider.id)">
+                    <GeneralIcon icon="delete" />
+                    {{ $t('general.delete') }}
                   </NcMenuItem>
                 </template>
               </NcMenu>
@@ -233,23 +229,17 @@ onMounted(async () => {
                 <template #overlay>
                   <NcMenu variant="small">
                     <NcMenuItem data-test-id="nc-saml-edit" @click="enableEdit(sam)">
-                      <div class="flex flex-row items-center">
-                        <component :is="iconMap.edit" />
-                        <span class="ml-2"> {{ $t('general.edit') }} </span>
-                      </div>
+                      <GeneralIcon icon="edit" />
+                      {{ $t('general.edit') }}
                     </NcMenuItem>
-                    <NcMenuItem class="!hover:bg-white !cursor-not-allowed" data-test-id="nc-saml-duplicate">
-                      <div class="flex flex-row items-center">
-                        <component :is="iconMap.copy" />
-                        <span class="ml-2"> {{ $t('general.duplicate') }} </span>
-                      </div>
+                    <NcMenuItem disabled data-test-id="nc-saml-duplicate">
+                      <GeneralIcon icon="copy" />
+                      {{ $t('general.duplicate') }}
                     </NcMenuItem>
                     <NcDivider />
-                    <NcMenuItem data-test-id="nc-saml-delete" @click="deleteProvider(sam.id)">
-                      <div class="text-red-500">
-                        <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
-                        {{ $t('general.delete') }}
-                      </div>
+                    <NcMenuItem data-test-id="nc-saml-delete" danger @click="deleteProvider(sam.id)">
+                      <GeneralIcon icon="delete" />
+                      {{ $t('general.delete') }}
                     </NcMenuItem>
                   </NcMenu>
                 </template>
@@ -303,27 +293,21 @@ onMounted(async () => {
                 <template #overlay>
                   <NcMenu variant="small">
                     <NcMenuItem data-test-id="nc-oidc-edit" @click="enableEdit(oid)">
-                      <div class="flex flex-row items-center">
-                        <component :is="iconMap.edit" />
-                        <span class="ml-2"> {{ $t('general.edit') }} </span>
-                      </div>
+                      <GeneralIcon icon="edit" />
+                      {{ $t('general.edit') }}
                     </NcMenuItem>
                     <NcMenuItem
                       class="!hover:bg-white !cursor-not-allowed"
                       data-test-id="nc-oidc-duplicate"
                       @click="duplicateProvider(oid.id)"
                     >
-                      <div class="flex flex-row items-center">
-                        <component :is="iconMap.copy" />
-                        <span class="ml-2"> {{ $t('general.duplicate') }} </span>
-                      </div>
+                      <GeneralIcon icon="copy" />
+                      {{ $t('general.duplicate') }}
                     </NcMenuItem>
                     <NcDivider />
-                    <NcMenuItem data-test-id="nc-oidc-delete" @click="deleteProvider(oid.id)">
-                      <div class="text-red-500">
-                        <GeneralIcon class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" icon="delete" />
-                        {{ $t('general.delete') }}
-                      </div>
+                    <NcMenuItem data-test-id="nc-oidc-delete" danger @click="deleteProvider(oid.id)">
+                      <GeneralIcon icon="delete" />
+                      {{ $t('general.delete') }}
                     </NcMenuItem>
                   </NcMenu>
                 </template>

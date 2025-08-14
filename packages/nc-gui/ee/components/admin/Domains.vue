@@ -91,7 +91,7 @@ onMounted(async () => {
                 <NcDivider />
                 <NcMenuItem
                   data-test-id="nc-domain-delete"
-                  class="!text-red-500 !hover:bg-red-50"
+                  danger
                   @click="deleteDomain(domain.id)"
                 >
                   <GeneralIcon icon="delete" />

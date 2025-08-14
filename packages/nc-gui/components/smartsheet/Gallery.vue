@@ -406,15 +406,9 @@ const handleOpenNewRecordForm = () => {
             placement="right"
           >
             <template #default="{ isAllowed }">
-              <NcMenuItem
-                :class="{
-                  '!text-red-600 !hover:bg-nc-bg-red-light': isAllowed,
-                }"
-                :disabled="!isAllowed"
-                @click="deleteRow(contextMenuTarget.index)"
-              >
+              <NcMenuItem danger :disabled="!isAllowed" @click="deleteRow(contextMenuTarget.index)">
                 <div v-e="['a:row:delete']" class="flex items-center gap-2">
-                  <component :is="iconMap.delete" class="flex" />
+                  <GeneralIcon icon="delete" />
                   {{ $t('activity.deleteRow') }}
                 </div>
               </NcMenuItem>

@@ -183,14 +183,16 @@ watch(
 
 <template>
   <div ref="globalSearchWrapperRef" class="nc-global-search-wrapper relative">
-    <a-button
+    <NcButton
       v-if="isSearchButtonVisible"
+      size="small"
+      type="text"
       class="nc-toolbar-btn !rounded-lg !h-7 !px-1.5"
       data-testid="nc-global-search-show-input"
       @click="handleShowSearchInput"
     >
-      <GeneralIcon icon="search" class="h-4 w-4 text-gray-700 group-hover:text-black" />
-    </a-button>
+      <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-subtle group-hover:text-nc-content-gray-extreme" />
+    </NcButton>
     <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true">
       <div
         :class="{

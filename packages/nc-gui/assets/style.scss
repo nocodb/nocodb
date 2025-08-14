@@ -709,7 +709,7 @@ a {
 }
 
 .nc-toolbar-btn {
-  @apply !shadow-none rounded hover:(bg-gray-50 !text-gray-800) focus:(!text-gray-800 bg-gray-50) text-gray-600 text-xs font-medium px-2 border-0;
+  @apply !shadow-none rounded hover:(bg-nc-bg-gray-extralight !text-nc-content-gray) focus:(!text-nc-content-gray bg-nc-bg-gray-extralight) text-nc-content-gray-subtle2 text-xs font-medium px-2 border-0;
 }
 
 .nc-toolbar-btn[disabled] {

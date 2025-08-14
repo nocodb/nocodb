@@ -150,6 +150,10 @@ enum AuditV1OperationTypes {
   WIDGET_UPDATE = 'WIDGET_UPDATE',
   WIDGET_DELETE = 'WIDGET_DELETE',
   WIDGET_DUPLICATE = 'WIDGET_DUPLICATE',
+
+  PERMISSION_CREATE = 'PERMISSION_CREATE',
+  PERMISSION_UPDATE = 'PERMISSION_UPDATE',
+  PERMISSION_DELETE = 'PERMISSION_DELETE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -1009,6 +1013,37 @@ export interface WidgetDuplicatePayload {
   error?: string;
 }
 
+export interface PermissionCreatePayload {
+  permission_id: string;
+  permission: string;
+  entity: string;
+  entity_id: string;
+  granted_type?: string;
+  granted_role?: string;
+  enforce_for_form?: boolean;
+  enforce_for_automation?: boolean;
+  subjects?: Array<{ type: 'user' | 'group'; id: string }>;
+}
+
+export interface PermissionUpdatePayload {
+  permission_id: string;
+  permission: string;
+  entity: string;
+  entity_id: string;
+  granted_type?: string;
+  granted_role?: string;
+  enforce_for_form?: boolean;
+  enforce_for_automation?: boolean;
+  subjects?: Array<{ type: 'user' | 'group'; id: string }>;
+}
+
+export interface PermissionDeletePayload {
+  permission_id: string;
+  permission: string;
+  entity: string;
+  entity_id: string;
+}
+
 export interface AuditV1<T = any> {
   // auto generated
   id?: string;
@@ -1210,6 +1245,18 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.WIDGET_DUPLICATE]: (
     audit: AuditV1<WidgetDuplicatePayload>
   ) => `Widget '${audit.details.duplicated_widget_title}' has been duplicated`,
+  [AuditV1OperationTypes.PERMISSION_CREATE]: (
+    audit: AuditV1<PermissionCreatePayload>
+  ) =>
+    `Permission '${audit.details.permission}' has been created for entity '${audit.details.entity}' with ID '${audit.details.entity_id}'`,
+  [AuditV1OperationTypes.PERMISSION_UPDATE]: (
+    audit: AuditV1<PermissionUpdatePayload>
+  ) =>
+    `Permission '${audit.details.permission}' has been updated for entity '${audit.details.entity}' with ID '${audit.details.entity_id}'`,
+  [AuditV1OperationTypes.PERMISSION_DELETE]: (
+    audit: AuditV1<PermissionDeletePayload>
+  ) =>
+    `Permission '${audit.details.permission}' has been deleted for entity '${audit.details.entity}' with ID '${audit.details.entity_id}'`,
 };
 
 function auditDescription(audit: AuditV1) {

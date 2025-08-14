@@ -45,6 +45,9 @@ import type {
   MetaDiffEvent,
   ModelRoleVisibilityEvent,
   OrgUserInviteEvent,
+  PermissionCreateEvent,
+  PermissionDeleteEvent,
+  PermissionUpdateEvent,
   PluginEvent,
   PluginTestEvent,
   ProjectUserDeleteEvent,
@@ -283,6 +286,19 @@ export class AppHooksService extends ApppHookServiceCE {
   on(
     event: AppEvents.WIDGET_DUPLICATE,
     listener: (data: WidgetDuplicateEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.PERMISSION_CREATE,
+    listener: (data: PermissionCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.PERMISSION_UPDATE,
+    listener: (data: PermissionUpdateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.PERMISSION_DELETE,
+    listener: (data: PermissionDeleteEvent) => void,
   ): () => void;
 
   on(event, listener): () => void {
@@ -546,6 +562,10 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.WIDGET_UPDATE, data: WidgetUpdateEvent): void;
   emit(event: AppEvents.WIDGET_DELETE, data: WidgetDeleteEvent): void;
   emit(event: AppEvents.WIDGET_DUPLICATE, data: WidgetDuplicateEvent): void;
+
+  emit(event: AppEvents.PERMISSION_CREATE, data: PermissionCreateEvent): void;
+  emit(event: AppEvents.PERMISSION_UPDATE, data: PermissionUpdateEvent): void;
+  emit(event: AppEvents.PERMISSION_DELETE, data: PermissionDeleteEvent): void;
 
   emit(
     event: AppEvents.USER_PROFILE_UPDATE,

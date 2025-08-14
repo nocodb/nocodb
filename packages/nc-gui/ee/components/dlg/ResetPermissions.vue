@@ -123,7 +123,6 @@ const handleResetPermissions = async () => {
       },
       {
         permissionIds,
-        subjectIds,
       },
     )
 

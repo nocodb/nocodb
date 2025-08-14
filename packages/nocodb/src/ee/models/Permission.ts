@@ -343,29 +343,25 @@ export default class Permission {
   static async bulkDelete(
     context: NcContext,
     permissionIds: string[],
-    subjectIds: string[],
     ncMeta = Noco.ncMeta,
   ) {
-    if (!permissionIds.length && !subjectIds.length) return;
+    if (!permissionIds.length) return;
 
-    // Delete all subjects
-    if (subjectIds.length > 0) {
-      await ncMeta.metaDelete(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.PERMISSION_SUBJECTS,
-        null,
-        {
-          _and: [
-            {
-              subject_id: {
-                in: subjectIds,
-              },
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PERMISSION_SUBJECTS,
+      null,
+      {
+        _and: [
+          {
+            fk_permission_id: {
+              in: permissionIds,
             },
-          ],
-        },
-      );
-    }
+          },
+        ],
+      },
+    );
 
     // Delete all permissions
     const res = await ncMeta.metaDelete(

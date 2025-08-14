@@ -44,6 +44,9 @@ import type {
   NcRequest,
   OrgUserInvitePayload,
   OrgUserInviteResendPayload,
+  PermissionCreatePayload,
+  PermissionDeletePayload,
+  PermissionUpdatePayload,
   ScriptCreatePayload,
   ScriptDeletePayload,
   ScriptDuplicatePayload,
@@ -114,6 +117,9 @@ import type {
   MetaDiffEvent,
   ModelRoleVisibilityEvent,
   OrgUserInviteEvent,
+  PermissionCreateEvent,
+  PermissionDeleteEvent,
+  PermissionUpdateEvent,
   ProjectCreateEvent,
   ProjectDeleteEvent,
   ProjectInviteEvent,
@@ -3330,6 +3336,77 @@ export class AppHooksListenerService
               },
               context: param.context,
               req: param.req,
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.PERMISSION_CREATE: {
+        const param = data as PermissionCreateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<PermissionCreatePayload>(
+            AuditV1OperationTypes.PERMISSION_CREATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                permission_id: param.permission.id,
+                permission: param.permission.permission,
+                entity: param.permission.entity,
+                entity_id: param.permission.entity_id,
+                granted_type: param.permission.granted_type,
+                granted_role: param.permission.granted_role,
+                enforce_for_form: param.permission.enforce_for_form,
+                enforce_for_automation: param.permission.enforce_for_automation,
+                subjects: param.permission.subjects,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.PERMISSION_UPDATE: {
+        const param = data as PermissionUpdateEvent;
+        const updatePayload = populateUpdatePayloadDiff({
+          prev: param.oldPermission,
+          next: param.permission,
+          keepNested: true,
+        });
+        if (!updatePayload) break;
+        await this.auditInsert(
+          await generateAuditV1Payload<PermissionUpdatePayload>(
+            AuditV1OperationTypes.PERMISSION_UPDATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                permission_id: param.permission.id,
+                permission: param.permission.permission,
+                entity: param.permission.entity,
+                entity_id: param.permission.entity_id,
+                ...updatePayload,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.PERMISSION_DELETE: {
+        const param = data as PermissionDeleteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<PermissionDeletePayload>(
+            AuditV1OperationTypes.PERMISSION_DELETE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                permission: param.permission.permission,
+                permission_id: param.permission.id,
+                entity: param.permission.entity,
+                entity_id: param.permission.entity_id,
+              },
             },
           ),
         );

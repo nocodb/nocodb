@@ -231,12 +231,19 @@ export default class BaseUser extends BaseUserCE {
       strict_in_record = false,
       include_ws_deleted = true,
       user_ids,
+      skipOverridingWorkspaceRoles = false,
     }: {
       base_id: string;
       mode?: 'full' | 'viewer';
       strict_in_record?: boolean;
       include_ws_deleted?: boolean;
       user_ids?: string[];
+      /**
+       * If true, will not override workspace roles with default role
+       * This is useful when fetching users in a record where we want to show
+       * the actual workspace roles instead of the default role
+       */
+      skipOverridingWorkspaceRoles?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -318,7 +325,7 @@ export default class BaseUser extends BaseUserCE {
     }
 
     // if default_role is present, override workspace roles with the default roles
-    if (base.default_role) {
+    if (base.default_role && !skipOverridingWorkspaceRoles) {
       for (const user of baseUsers) {
         // TODO: later return corresponding WorkspaceRole if defaultRole is provided
         //   now we only support `no-access` role(private base)

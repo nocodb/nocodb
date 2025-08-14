@@ -69,13 +69,13 @@ export default {
         v-if="canEdit"
         class="w-full flex items-center justify-end px-2 xs:(p-0 gap-x-4 justify-between)"
         :class="{
-          'xs(border-t-1 border-gray-200)': !isNew,
+          'xs(border-t-1 border-nc-border-gray-medium)': !isNew,
         }"
       >
         <div v-if="!isNew && isMobileMode" class="p-2">
           <NcDropdown placement="bottomRight" class="p-2">
             <NcButton :disabled="isLoading" class="nc-expand-form-more-actions" type="secondary" size="small">
-              <GeneralIcon :class="isLoading ? 'text-gray-300' : 'text-gray-700'" class="text-md" icon="threeDotVertical" />
+              <GeneralIcon :class="isLoading ? 'text-nc-content-brand-hover' : 'text-nc-content-gray-subtle'" class="text-md" icon="threeDotVertical" />
             </NcButton>
 
             <template #overlay>
@@ -103,7 +103,7 @@ export default {
                     <NcMenuItem
                       v-e="['c:row-expand:delete']"
                       :class="{
-                        '!text-red-500 !hover:bg-red-50': isAllowed,
+                        '!text-nc-content-red-medium !hover:bg-nc-bg-red-light': isAllowed,
                       }"
                       :disabled="!isAllowed"
                       @click="!isNew && emits('deleteRow')"
@@ -144,7 +144,7 @@ export default {
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
-      class="nc-comments-drawer border-l-1 relative border-gray-200 bg-gray-50 w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
+      class="nc-comments-drawer border-l-1 relative border-nc-border-gray-medium bg-nc-bg-gray-extralight w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
       :class="{
         active: commentsDrawer && isUIAllowed('commentList'),
       }"

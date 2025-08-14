@@ -103,7 +103,7 @@ const newMentionNode = () => {
       <NcButton
         :class="{ 'is-active': editor?.isActive('bold') }"
         :tabindex="tabIndex"
-        class="!h-7 !w-7 !hover:bg-gray-200"
+        class="!h-7 !w-7 !hover:bg-nc-bg-gray-medium"
         size="xsmall"
         type="text"
         @click="editor?.chain().focus().toggleBold().run()"
@@ -124,7 +124,7 @@ const newMentionNode = () => {
       <NcButton
         :class="{ 'is-active': editor?.isActive('italic') }"
         :tabindex="tabIndex"
-        class="!h-7 !w-7 !hover:bg-gray-200"
+        class="!h-7 !w-7 !hover:bg-nc-bg-gray-medium"
         size="xsmall"
         type="text"
         @click=";(editor?.chain().focus() as any).toggleItalic().run()"
@@ -145,7 +145,7 @@ const newMentionNode = () => {
       <NcButton
         :class="{ 'is-active': editor?.isActive('underline') }"
         :tabindex="tabIndex"
-        class="!h-7 !w-7 !hover:bg-gray-200"
+        class="!h-7 !w-7 !hover:bg-nc-bg-gray-medium"
         size="xsmall"
         type="text"
         @click="editor?.chain().focus().toggleUnderline().run()"
@@ -165,7 +165,7 @@ const newMentionNode = () => {
       <NcButton
         :class="{ 'is-active': editor?.isActive('strike') }"
         :tabindex="tabIndex"
-        class="!h-7 !w-7 !hover:bg-gray-200"
+        class="!h-7 !w-7 !hover:bg-nc-bg-gray-medium"
         size="xsmall"
         type="text"
         @click="editor?.chain().focus().toggleStrike().run()"
@@ -179,7 +179,7 @@ const newMentionNode = () => {
       <NcButton
         :class="{ 'is-active': editor?.isActive('link') }"
         :tabindex="tabIndex"
-        class="!h-7 !w-7 !hover:bg-gray-200"
+        class="!h-7 !w-7 !hover:bg-nc-bg-gray-medium"
         size="xsmall"
         type="text"
         @click="onToggleLink"
@@ -199,7 +199,7 @@ const newMentionNode = () => {
       <NcButton
         :class="{ 'is-active': editor?.isActive('suggestions') }"
         :tabindex="tabIndex"
-        class="!h-7 !w-7 !hover:bg-gray-200"
+        class="!h-7 !w-7 !hover:bg-nc-bg-gray-medium"
         size="xsmall"
         type="text"
         @click="newMentionNode"
@@ -215,7 +215,7 @@ const newMentionNode = () => {
   @apply !border-none;
 
   .nc-button.is-active {
-    @apply text-brand-500;
+    @apply text-nc-content-brand;
     outline: 1px;
   }
   .ant-select-selector {

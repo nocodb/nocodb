@@ -123,7 +123,7 @@ function shouldShowRaw(key: string) {
 
 <template>
   <div v-for="columnKey of columnKeys" :key="columnKey" class="py-2 px-3">
-    <div class="flex items-center gap-1 !text-gray-600 text-xs font-weight-500 nc-audit-mini-item-header">
+    <div class="flex items-center gap-1 !text-nc-content-gray-subtle2 text-xs font-weight-500 nc-audit-mini-item-header">
       <SmartsheetHeaderCellIcon
         :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }"
         class="!m-0"
@@ -138,12 +138,12 @@ function shouldShowRaw(key: string) {
     </div>
     <div class="flex items-center gap-2 mt-3 flex-wrap">
       <template v-if="meta[columnKey]?.type === 'Attachment'">
-        <div v-if="processOldDataFor(columnKey)?.length > 0" class="border-1 border-red-500 rounded-md bg-red-50 w-full p-0.5">
+        <div v-if="processOldDataFor(columnKey)?.length > 0" class="border-1 border-nc-border-red rounded-md bg-nc-bg-red-light w-full p-0.5">
           <div class="flex flex-col items-start gap-0.5">
             <div
               v-for="(item, i) of processOldDataFor(columnKey)"
               :key="item.url || item.title"
-              class="border-1 border-gray-200 rounded-md bg-white w-full"
+              class="border-1 border-nc-border-gray-medium rounded-md bg-nc-bg-default w-full"
             >
               <div class="flex items-center gap-2 w-full">
                 <div class="flex items-center justify-center w-8 aspect-square">
@@ -157,10 +157,10 @@ function shouldShowRaw(key: string) {
                     <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
                   </div>
                 </div>
-                <span class="w-0 flex-1 truncate text-small1 font-weight-500 text-gray-600">
+                <span class="w-0 flex-1 truncate text-small1 font-weight-500 text-nc-content-gray-subtle2">
                   {{ item.title }}
                 </span>
-                <span class="text-xs font-weight-500 p-2 text-gray-500">
+                <span class="text-xs font-weight-500 p-2 text-nc-content-gray-muted">
                   {{ getReadableFileSize(item.size) }}
                 </span>
               </div>
@@ -169,13 +169,13 @@ function shouldShowRaw(key: string) {
         </div>
         <div
           v-if="processNewDataFor(columnKey)?.length > 0"
-          class="border-1 border-green-500 rounded-md bg-green-50 w-full p-0.5"
+          class="border-1 border-nc-border-green rounded-md bg-nc-bg-green-light w-full p-0.5"
         >
           <div class="flex flex-col items-start gap-0.5">
             <div
               v-for="(item, i) of processNewDataFor(columnKey)"
               :key="item.url || item.title"
-              class="border-1 border-gray-200 rounded-md bg-white w-full"
+              class="border-1 border-nc-border-gray-medium rounded-md bg-nc-bg-default w-full"
             >
               <div class="flex items-center gap-2 w-full">
                 <div class="flex items-center justify-center w-8 aspect-square">
@@ -189,10 +189,10 @@ function shouldShowRaw(key: string) {
                     <CellAttachmentIconView :item="item" class="!w-8 !h-8" />
                   </div>
                 </div>
-                <span class="w-0 flex-1 truncate text-small1 font-weight-500 text-gray-600">
+                <span class="w-0 flex-1 truncate text-small1 font-weight-500 text-nc-content-gray-subtle2">
                   {{ item.title }}
                 </span>
-                <span class="text-xs font-weight-500 p-2 text-gray-500">
+                <span class="text-xs font-weight-500 p-2 text-nc-content-gray-muted">
                   {{ getReadableFileSize(item.size) }}
                 </span>
               </div>
@@ -203,13 +203,13 @@ function shouldShowRaw(key: string) {
       <template v-else-if="shouldShowRaw(columnKey)">
         <div
           v-if="isShowableValue(oldData[columnKey])"
-          class="text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through break-all"
+          class="text-small1 text-nc-content-red-dark border-1 border-nc-red-200 rounded-md px-1 bg-nc-bg-red-light line-through break-all"
         >
           {{ oldData[columnKey] }}
         </div>
         <div
           v-if="isShowableValue(newData[columnKey])"
-          class="text-small1 text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 break-all"
+          class="text-small1 text-nc-content-green-dark border-1 border-nc-green-200 rounded-md px-1 bg-nc-bg-green-light break-all"
         >
           {{ newData[columnKey] }}
         </div>
@@ -219,13 +219,13 @@ function shouldShowRaw(key: string) {
           <template v-for="(block, i) of diffTextBlocks(oldData[columnKey] || '', newData[columnKey] || '')" :key="i">
             <span
               v-if="block.op === 'removed'"
-              class="max-w-full text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 mr-1 bg-red-50 line-through decoration-clone"
+              class="max-w-full text-small1 text-nc-content-red-dark border-1 border-nc-red-200 rounded-md px-1 mr-1 bg-nc-bg-red-light line-through decoration-clone"
             >
               {{ block.text }}
             </span>
             <span
               v-else-if="block.op === 'added'"
-              class="max-w-full text-small1 text-green-700 border-1 border-green-200 rounded-md px-1 mr-1 bg-green-50 decoration-clone"
+              class="max-w-full text-small1 text-nc-content-green-dark border-1 border-nc-green-200 rounded-md px-1 mr-1 bg-nc-bg-green-light decoration-clone"
             >
               {{ block.text }}
             </span>
@@ -250,7 +250,7 @@ function shouldShowRaw(key: string) {
           >
             <span
               v-if="block.op === 'removed'"
-              class="max-w-full text-red-700 px-1 bg-red-50 rounded-md line-through decoration-clone !leading-[18px]"
+              class="max-w-full text-nc-content-red-dark px-1 bg-nc-bg-red-light rounded-md line-through decoration-clone !leading-[18px]"
               :class="{
                 'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
               }"
@@ -259,7 +259,7 @@ function shouldShowRaw(key: string) {
             </span>
             <span
               v-else-if="block.op === 'added'"
-              class="max-w-full text-green-700 px-1 bg-green-50 rounded-md decoration-clone !leading-[18px]"
+              class="max-w-full text-nc-content-green-dark px-1 bg-nc-bg-green-light rounded-md decoration-clone !leading-[18px]"
               :class="{
                 'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
               }"
@@ -283,12 +283,12 @@ function shouldShowRaw(key: string) {
           <template v-for="(block, i) of safeJsonDiff(columnKey)" :key="i">
             <pre
               v-if="block.op === 'removed'"
-              class="text-small1 text-red-700 border-1 border-red-200 rounded-md px-1 bg-red-50 line-through decoration-clone inline"
+              class="text-small1 text-nc-content-red-dark border-1 border-nc-red-200 rounded-md px-1 bg-nc-bg-red-light line-through decoration-clone inline"
               >{{ block.text }}</pre
             >
             <pre
               v-else-if="block.op === 'added'"
-              class="text-small1 text-green-700 border-1 border-green-200 rounded-md px-1 bg-green-50 decoration-clone inline"
+              class="text-small1 text-nc-content-green-dark border-1 border-nc-green-200 rounded-md px-1 bg-nc-bg-green-light decoration-clone inline"
               >{{ block.text }}</pre
             >
             <pre v-else class="inline text-small1">{{ block.text }}</pre>
@@ -298,7 +298,7 @@ function shouldShowRaw(key: string) {
       <template v-else>
         <div
           v-if="isShowableValue(processOldDataFor(columnKey))"
-          class="max-w-full nc-audit-mini-item-cell nc-audit-removal !text-red-700 border-1 border-red-200 rounded-md bg-red-50 line-through"
+          class="max-w-full nc-audit-mini-item-cell nc-audit-removal !text-nc-content-red-dark border-1 border-nc-red-200 rounded-md bg-nc-bg-red-light line-through"
           :class="{
             'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
             '!p-0.25': shouldUseUniformPadding(columnKey),
@@ -317,12 +317,12 @@ function shouldShowRaw(key: string) {
             :class="{
               'min-w-[100px]': normalizeMeta(columnKey).is_progress,
             }"
-            class="!text-red-700"
+            class="!text-nc-content-red-dark"
           />
         </div>
         <div
           v-if="isShowableValue(processNewDataFor(columnKey))"
-          class="nc-audit-mini-item-cell nc-audit-addition border-1 border-green-200 rounded-md bg-green-50"
+          class="nc-audit-mini-item-cell nc-audit-addition border-1 border-nc-green-200 rounded-md bg-nc-bg-green-light"
           :class="{
             'px-1 py-0.25': shouldUseNormalizedPadding(columnKey),
             '!p-0.25': shouldUseUniformPadding(columnKey),
@@ -341,7 +341,7 @@ function shouldShowRaw(key: string) {
             :class="{
               'min-w-[100px]': normalizeMeta(columnKey).is_progress,
             }"
-            class="!text-green-700"
+            class="!text-nc-content-green-dark"
           />
         </div>
       </template>
@@ -425,7 +425,7 @@ function shouldShowRaw(key: string) {
   .nc-cell-field > div {
     display: flex !important;
     & > .ant-tag {
-      @apply !m-0 !text-inherit !border-1 !border-gray-300 !pr-1 !pl-0.5 !bg-gray-100 !rounded-[17px];
+      @apply !m-0 !text-inherit !border-1 !border-nc-border-gray-dark !pr-1 !pl-0.5 !bg-nc-bg-gray-light !rounded-[17px];
       & > span > div + div {
         @apply flex items-center !text-small1 font-weight-500 !leading-[16px];
       }
@@ -442,17 +442,17 @@ function shouldShowRaw(key: string) {
 }
 .nc-audit-mini-item-cell :deep(.nc-cell-user:has(.ant-tag + .ant-tag)) {
   .ant-tag {
-    @apply !border-1 !border-gray-300 !py-0.5 !px-1 !bg-gray-100 !rounded-[6px];
+    @apply !border-1 !border-nc-border-gray-dark !py-0.5 !px-1 !bg-nc-bg-gray-light !rounded-[6px];
   }
 }
 .nc-audit-mini-item-cell.nc-audit-removal :deep(.nc-cell-user) {
   .ant-tag > span > div + div {
-    @apply !text-red-700;
+    @apply !text-nc-content-red-dark;
   }
 }
 .nc-audit-mini-item-cell.nc-audit-addition :deep(.nc-cell-user) {
   .ant-tag > span > div + div {
-    @apply !text-green-700;
+    @apply !text-nc-content-green-dark;
   }
 }
 </style>

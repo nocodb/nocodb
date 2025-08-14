@@ -27,7 +27,7 @@ const { getScriptAssetsURL, getScriptContent, createAutomation } = automationSto
 
 const { availableScripts, descriptionContent, isMarketVisible } = storeToRefs(automationStore)
 
-const { showUpgradeToUseScripts } = useEeConfig()
+const { showScriptPlanLimitExceededModal } = useEeConfig()
 
 const onBack = () => {
   vModel.value = false
@@ -39,7 +39,7 @@ const scriptContent = computed(() => {
 })
 
 const onAddScript = async (scr: any) => {
-  if (showUpgradeToUseScripts()) {
+  if (showScriptPlanLimitExceededModal()) {
     return
   }
 

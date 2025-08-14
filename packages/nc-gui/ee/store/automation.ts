@@ -11,7 +11,7 @@ export const useAutomationStore = defineStore('automation', () => {
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { showUpgradeToUseScripts } = useEeConfig()
+  const { showScriptPlanLimitExceededModal } = useEeConfig()
 
   // State
   const automations = ref<Map<string, (ScriptType & { _dirty?: string | number })[]>>(new Map())
@@ -353,7 +353,7 @@ export const useAutomationStore = defineStore('automation', () => {
     loadAutomationsOnClose?: boolean
     scrollOnCreate?: boolean
   }) {
-    if (!baseId || showUpgradeToUseScripts()) return
+    if (!baseId || showScriptPlanLimitExceededModal()) return
 
     const isDlgOpen = ref(true)
 

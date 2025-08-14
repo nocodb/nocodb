@@ -16,11 +16,13 @@ import Noco from '~/Noco';
 import {
   BaseUser,
   CustomUrl,
+  Dashboard,
   DataReflection,
   FileReference,
   MCPToken,
   ModelStat,
   Permission,
+  Script,
   Source,
 } from '~/models';
 import NocoCache from '~/cache/NocoCache';
@@ -400,6 +402,10 @@ export default class Base extends BaseCE {
 
     await Snapshot.clearFromStats(context, baseId, ncMeta);
 
+    await Script.clearFromStats(context, baseId, ncMeta);
+
+    await Dashboard.clearFromStats(context, baseId, ncMeta);
+
     await Source.clearFromStats(context, baseId, ncMeta);
 
     return res;
@@ -463,6 +469,10 @@ export default class Base extends BaseCE {
     await ModelStat.deleteByBaseId(context, baseId, ncMeta);
 
     await Snapshot.clearFromStats(context, baseId, ncMeta);
+
+    await Script.clearFromStats(context, baseId, ncMeta);
+
+    await Dashboard.clearFromStats(context, baseId, ncMeta);
 
     await Source.clearFromStats(context, baseId, ncMeta);
 

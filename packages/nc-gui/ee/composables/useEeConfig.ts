@@ -132,6 +132,20 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
+  const blockAddNewDashboard = computed(() => {
+    return (
+      isPaymentEnabled.value &&
+      getStatLimit(PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE)
+    )
+  })
+
+  const blockAddNewScript = computed(() => {
+    return (
+      isPaymentEnabled.value &&
+      getStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE)
+    )
+  })
+
   const blockAddNewWebhook = computed(() => {
     return (
       isPaymentEnabled.value &&
@@ -157,14 +171,6 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockTableAndFieldPermissions = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
-  })
-
-  const blockUseScripts = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_SCRIPTS)
-  })
-
-  const blockUseDashboards = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DASHBOARD)
   })
 
   const blockPrivateBases = computed(() => {
@@ -779,6 +785,40 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showDashboardPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAddNewDashboard.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToAddMoreDashboards'),
+      content: t('upgrade.upgradeToAddMoreDashboardsSubtitle', {
+        activePlan: activePlanTitle.value,
+        limit: getLimit(PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE),
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      callback,
+      limitOrFeature: PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE,
+    })
+
+    return true
+  }
+
+  const showScriptPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAddNewScript.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToAddMoreScripts'),
+      content: t('upgrade.upgradeToAddMoreScriptsSubtitle', {
+        activePlan: activePlanTitle.value,
+        limit: getLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE),
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      callback,
+      limitOrFeature: PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE,
+    })
+
+    return true
+  }
+
   const showWebhookPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockAddNewWebhook.value) return
 
@@ -904,36 +944,6 @@ export const useEeConfig = createSharedComposable(() => {
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
-    })
-
-    return true
-  }
-
-  const showUpgradeToUseScripts = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (!blockUseScripts.value) return
-
-    handleUpgradePlan({
-      title: t('upgrade.upgradeToUseScripts'),
-      content: t('upgrade.upgradeToUseScriptsSubtitle', {
-        plan: PlanTitles.PLUS,
-      }),
-      callback,
-      limitOrFeature: PlanFeatureTypes.FEATURE_SCRIPTS,
-    })
-
-    return true
-  }
-
-  const showUpgradeToUseDashboard = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (!blockUseDashboards.value) return
-
-    handleUpgradePlan({
-      title: t('upgrade.upgradeToUseDashboards'),
-      content: t('upgrade.upgradeToUseDashboardsSubtitle', {
-        plan: PlanTitles.PLUS,
-      }),
-      callback,
-      limitOrFeature: PlanFeatureTypes.FEATURE_DASHBOARD,
     })
 
     return true
@@ -1076,14 +1086,14 @@ export const useEeConfig = createSharedComposable(() => {
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
     isUnderLoyaltyCutoffDate,
-    blockUseScripts,
-    showUpgradeToUseScripts,
     blockPrivateBases,
     showUpgradeToUsePrivateBases,
     showUserMayChargeAlert,
     maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell,
-    blockUseDashboards,
-    showUpgradeToUseDashboard,
+    showDashboardPlanLimitExceededModal,
+    showScriptPlanLimitExceededModal,
+    blockAddNewScript,
+    blockAddNewDashboard,
   }
 })

@@ -1,4 +1,5 @@
 import DashboardCE from 'src/models/Dashboard';
+import { PlanLimitTypes } from 'nocodb-sdk';
 import type { DashboardType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Widget from '~/models/Widget';
@@ -232,5 +233,42 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       },
     );
     return dashboard && new Dashboard(dashboard);
+  }
+
+  static async countDashboardsInBase(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return await ncMeta.metaCount(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DASHBOARDS,
+      {
+        condition: {
+          base_id: baseId,
+        },
+      },
+    );
+  }
+
+  static async clearFromStats(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const countsInBase = await this.countDashboardsInBase(
+      context,
+      baseId,
+      ncMeta,
+    );
+
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE,
+      -countsInBase,
+    );
+
+    return true;
   }
 }

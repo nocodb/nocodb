@@ -6,7 +6,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const { ncNavigateTo } = useGlobal()
 
-  const { showUpgradeToUseDashboard } = useEeConfig()
+  const { showDashboardPlanLimitExceededModal } = useEeConfig()
 
   const route = useRoute()
 
@@ -341,7 +341,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     scrollOnCreate?: boolean
     navigateToNewDashboard?: boolean
   }) {
-    if (!baseId || showUpgradeToUseDashboard()) return
+    if (!baseId || showDashboardPlanLimitExceededModal()) return
     const isDlgOpen = ref(true)
 
     const { close } = useDialog(DlgDashboardCreate, {

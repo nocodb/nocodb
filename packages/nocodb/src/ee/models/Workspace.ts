@@ -617,6 +617,16 @@ export default class Workspace implements WorkspaceType {
             .count('*')
             .where('fk_workspace_id', id)
             .whereIn('base_id', activeBaseIds),
+          [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]: ncMeta
+            .knexConnection(MetaTable.DASHBOARDS)
+            .count('*')
+            .where('fk_workspace_id', id)
+            .whereIn('base_id', activeBaseIds),
+          [PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE]: ncMeta
+            .knexConnection(MetaTable.SCRIPTS)
+            .count('*')
+            .where('fk_workspace_id', id)
+            .whereIn('base_id', activeBaseIds),
           [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.SOURCES)
             .count('*')

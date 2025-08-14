@@ -15,6 +15,7 @@ import Plan, {
   FreePlan,
   GenericFeatures,
   GenericLimits,
+  GenericPaidLimits,
   GraceLimits,
   LegacyFreePlan,
 } from '~/models/Plan';
@@ -55,7 +56,10 @@ async function getLimit(
 
   const plan = workspace?.payment?.plan;
 
-  const limit = plan?.meta?.[type] ?? GenericLimits[type] ?? Infinity;
+  const limit =
+    plan?.meta?.[type] ??
+    (plan?.free ? GenericLimits[type] : GenericPaidLimits[type]) ??
+    Infinity;
 
   if (limit === -1) {
     return {

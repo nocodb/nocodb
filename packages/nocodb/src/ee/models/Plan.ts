@@ -215,6 +215,10 @@ export const GenericLimits = {
   [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 10,
 } as const;
 
+export const GenericPaidLimits = {
+  [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 500,
+} as const;
+
 export const GenericFeatures = {
   [PlanFeatureTypes.FEATURE_AI]: false,
   [PlanFeatureTypes.FEATURE_AI_INTEGRATIONS]: false,

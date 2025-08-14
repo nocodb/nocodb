@@ -1205,6 +1205,17 @@ export class ViewsV3Service {
             },
             trxNcMeta,
           );
+
+          await this.kanbansService.kanbanOptionsReorder(
+            context,
+            {
+              kanbanViewId: existingView.id,
+              optionsOrder: requestBody.options.stack_by.stack_order ?? [],
+              req,
+            },
+            trxNcMeta,
+          );
+          requestBody.options.stack_by = undefined;
           break;
         }
         case ViewTypes.GALLERY: {

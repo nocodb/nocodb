@@ -11,7 +11,11 @@ import {
   UnprocessableEntity,
 } from '../error/nc-base.error';
 import { NcErrorType, PlanLimitExceededDetailsType } from '../globals';
-import { HigherPlan } from '../payment';
+import {
+  HigherPlan,
+  PlanFeatureTypes,
+  PlanFeatureUpgradeMessages,
+} from '../payment';
 import UITypes from '../UITypes';
 import { NcErrorCodexManager } from './nc-error-codex-manager';
 
@@ -416,6 +420,31 @@ export class NcErrorBase {
         ...args,
       }
     );
+  }
+
+  featureNotSupported(
+    props: {
+      feature: PlanFeatureTypes;
+      minimumPlan?: string;
+      isOnPrem?: boolean;
+    },
+    args?: NcErrorArgs
+  ) {
+    if (props.isOnPrem) {
+      throw this.errorCodex.generateError(NcErrorType.FEATURE_NOT_SUPPORTED, {
+        params: `Please upgrade your license ${
+          PlanFeatureUpgradeMessages[props.feature] ?? 'to use this feature.'
+        }`,
+        ...args,
+      });
+    }
+
+    throw this.errorCodex.generateError(NcErrorType.FEATURE_NOT_SUPPORTED, {
+      params: `Only ${props.minimumPlan ?? 'paid'} plans able ${
+        PlanFeatureUpgradeMessages[props.feature] ?? 'to use this feature.'
+      }`,
+      ...args,
+    });
   }
 
   invalidRequestBody(message: string): never {

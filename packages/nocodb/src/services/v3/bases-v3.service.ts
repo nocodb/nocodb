@@ -134,6 +134,10 @@ export class BasesV3Service {
 
     await this.basesService.baseUpdate(context, {
       ...param,
+      base: {
+        ...param.base,
+        ...(await this.parseBaseRequest(context, param.base)),
+      },
       apiVersion: NcApiVersion.V3,
     });
     return this.getProjectWithInfo(context, { baseId: param.baseId });
@@ -158,6 +162,10 @@ export class BasesV3Service {
       ...param.base,
       fk_workspace_id: param.workspaceId,
       type: 'database',
+      ...(await this.parseBaseRequest(
+        { workspace_id: param.workspaceId } as any,
+        param.base,
+      )),
     } as ProjectReqType;
 
     const meta = param.base.meta as unknown as Record<string, unknown>;
@@ -193,5 +201,9 @@ export class BasesV3Service {
   ) {
     await this.basesService.baseSoftDelete(context, param);
     return {};
+  }
+
+  async parseBaseRequest(_context: { workspace_id: string }, _base: any) {
+    return {} as any;
   }
 }

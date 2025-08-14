@@ -138,7 +138,10 @@ function shouldShowRaw(key: string) {
     </div>
     <div class="flex items-center gap-2 mt-3 flex-wrap">
       <template v-if="meta[columnKey]?.type === 'Attachment'">
-        <div v-if="processOldDataFor(columnKey)?.length > 0" class="border-1 border-nc-border-red rounded-md bg-nc-bg-red-light w-full p-0.5">
+        <div
+          v-if="processOldDataFor(columnKey)?.length > 0"
+          class="border-1 border-nc-border-red rounded-md bg-nc-bg-red-light w-full p-0.5"
+        >
           <div class="flex flex-col items-start gap-0.5">
             <div
               v-for="(item, i) of processOldDataFor(columnKey)"

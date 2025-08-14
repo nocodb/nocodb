@@ -75,7 +75,11 @@ export default {
         <div v-if="!isNew && isMobileMode" class="p-2">
           <NcDropdown placement="bottomRight" class="p-2">
             <NcButton :disabled="isLoading" class="nc-expand-form-more-actions" type="secondary" size="small">
-              <GeneralIcon :class="isLoading ? 'text-nc-content-brand-hover' : 'text-nc-content-gray-subtle'" class="text-md" icon="threeDotVertical" />
+              <GeneralIcon
+                :class="isLoading ? 'text-nc-content-brand-hover' : 'text-nc-content-gray-subtle'"
+                class="text-md"
+                icon="threeDotVertical"
+              />
             </NcButton>
 
             <template #overlay>

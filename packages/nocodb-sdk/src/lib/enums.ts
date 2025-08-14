@@ -225,6 +225,10 @@ export enum AppEvents {
   WIDGET_UPDATE = 'widget.update',
   WIDGET_DELETE = 'widget.delete',
   WIDGET_DUPLICATE = 'widget.duplicate',
+
+  PERMISSION_CREATE = 'permission.create',
+  PERMISSION_UPDATE = 'permission.update',
+  PERMISSION_DELETE = 'permission.delete',
 }
 
 export enum ClickhouseTables {

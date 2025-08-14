@@ -108,7 +108,7 @@ const revertLocalOnlyChanges = (col: string) => {
               class="flex-1 bg-nc-bg-default px-1 min-h-8 flex items-center relative"
               :class="{
                 'w-full': props.forceVerticalMode,
-                '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
+                '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
                   showReadonlyColumnTooltip(col),
                 '!select-text nc-readonly-div-data-cell': readOnly || !isAllowed,
               }"
@@ -141,7 +141,10 @@ const revertLocalOnlyChanges = (col: string) => {
         class="flex h-full items-center justify-center cursor-pointer relative"
         @click="revertLocalOnlyChanges(col.title)"
       >
-        <GeneralIcon class="absolute right-0 top-0 text-nc-content-gray-muted hover:text-nc-content-gray-subtle my-auto" icon="reload" />
+        <GeneralIcon
+          class="absolute right-0 top-0 text-nc-content-gray-muted hover:text-nc-content-gray-subtle my-auto"
+          icon="reload"
+        />
       </div>
     </div>
   </div>

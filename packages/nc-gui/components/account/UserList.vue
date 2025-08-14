@@ -227,7 +227,7 @@ const userRoleOptions = [
   <div class="flex flex-col" data-testid="nc-super-user-list">
     <NcPageHeader>
       <template #icon>
-        <GeneralIcon icon="users" class="flex-none text-gray-700 h-5 w-5" />
+        <GeneralIcon icon="users" class="flex-none h-5 w-5" />
       </template>
       <template #title>
         <span data-rec="true">

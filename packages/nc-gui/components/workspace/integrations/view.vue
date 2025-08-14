@@ -55,7 +55,7 @@ onBeforeMount(() => {
 
 <template>
   <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-integrations">
-    <div class="flex gap-2 items-center min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-gray-200">
+    <div class="flex gap-2 items-center min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium">
       <GeneralOpenLeftSidebarBtn v-if="!isNewSidebarEnabled" />
 
       <div class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1">
@@ -98,7 +98,7 @@ onBeforeMount(() => {
                 class="tab-info flex-none"
                 :class="{
                   'bg-primary-selected': activeViewTab === 'connections',
-                  'bg-gray-50': activeViewTab !== 'connections',
+                  'bg-nc-bg-gray-extralight': activeViewTab !== 'connections',
                 }"
               >
                 {{ integrationPaginationData.totalRows }}

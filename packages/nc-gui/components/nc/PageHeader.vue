@@ -15,7 +15,7 @@ withDefaults(defineProps<Props>(), {
     }"
   >
     <div class="flex-1 flex items-start gap-3">
-      <div v-if="$slots.icon" class="h-7 flex items-center children:flex-none">
+      <div v-if="$slots.icon" class="h-7 flex items-center children:flex-none text-nc-content-gray-subtle">
         <slot name="icon"></slot>
       </div>
 
@@ -39,10 +39,10 @@ withDefaults(defineProps<Props>(), {
   @apply h-12 flex items-center gap-3 px-3 py-2;
 
   .nc-page-header-title {
-    @apply text-xl font-semibold text-gray-800 my-0;
+    @apply text-xl font-semibold text-nc-content-gray my-0;
   }
   .nc-page-header-subtitle {
-    @apply text-sm font-weight-500 text-gray-700;
+    @apply text-sm font-weight-500 text-nc-content-gray-subtle;
   }
 }
 </style>

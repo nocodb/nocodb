@@ -683,6 +683,7 @@ export const themeVariables = {
       medium: themeV4Colors.gray[200],
       dark: themeV4Colors.gray[300],
       extradark: themeV4Colors.gray[400],
+      underline: themeV4Colors.gray[600],
     },
     'nc-border-red': {
       DEFAULT: themeV4Colors.red[500],

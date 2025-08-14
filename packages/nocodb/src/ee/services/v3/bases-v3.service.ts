@@ -44,6 +44,7 @@ export class BasesV3Service extends BasesV3ServiceCE {
           api_version: NcApiVersion.V3,
         }).featureNotSupported({
           feature: PlanFeatureTypes.FEATURE_PRIVATE_BASES,
+          minimumPlan: 'Business+',
           isOnPrem: isOnPrem,
         });
       }

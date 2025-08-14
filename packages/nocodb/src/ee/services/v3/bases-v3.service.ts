@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { NcApiVersion } from 'nocodb-sdk';
 import { BasesV3Service as BasesV3ServiceCE } from 'src/services/v3/bases-v3.service';
 import type { NcContext } from '~/interface/config';
-import { getFeature, PlanFeatureTypes } from '~/ee/helpers/paymentHelpers';
+import { getFeature, PlanFeatureTypes } from '~/helpers/paymentHelpers';
 import { NcError } from '~/helpers/ncError';
 import { isOnPrem } from '~/utils';
 import { Base } from '~/models';

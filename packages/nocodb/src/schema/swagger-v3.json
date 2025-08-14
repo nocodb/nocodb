@@ -4993,7 +4993,7 @@
           "oneOf": [
             {
               "title": "Invite User with ID",
-              "required": ["user_id", "workspace_role"],
+              "required": ["user_id", "base_role"],
               "properties": {
                 "user_id": {
                   "type": "string",
@@ -5010,7 +5010,7 @@
             },
             {
               "title": "Invite User with Email",
-              "required": ["email", "workspace_role"],
+              "required": ["email", "base_role"],
               "properties": {
                 "email": {
                   "type": "string",

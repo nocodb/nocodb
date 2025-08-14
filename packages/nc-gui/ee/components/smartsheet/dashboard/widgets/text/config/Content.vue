@@ -28,7 +28,7 @@ watch(textContent, () => {
     <a-textarea
       ref="inputEl"
       v-model:value="textContent"
-      class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-gray-800"
+      class="nc-input-sm nc-input-text-area widget-content-input nc-input-shadow px-3 !text-gray-800"
       hide-details
       size="small"
     />
@@ -37,11 +37,11 @@ watch(textContent, () => {
 
 <style scoped lang="scss">
 :deep(.widget-content-input) {
-  @apply transition-all duration-150 min-h-12;
+  @apply transition-all duration-150 min-h-24;
   box-shadow: none;
   &:focus,
   &:focus-within {
-    @apply min-h-16 !bg-white border-brand-500;
+    @apply min-h-26 !bg-white border-brand-500;
     box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
   }
   &::placeholder {

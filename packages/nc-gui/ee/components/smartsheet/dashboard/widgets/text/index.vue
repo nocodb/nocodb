@@ -46,6 +46,17 @@ const textDecoration = computed(() => {
   if (config.value.formatting.strikethrough) decorations.push('line-through')
   return decorations.length > 0 ? decorations.join(' ') : 'none'
 })
+
+const handleDoubleClick = () => {
+  if (!props.isEditing) {
+    return
+  }
+
+  const inputEl = document.querySelector('.widget-content-input')
+  if (inputEl) {
+    inputEl?.focus?.()
+  }
+}
 </script>
 
 <template>
@@ -55,6 +66,7 @@ const textDecoration = computed(() => {
       justifyContent: config.formatting.horizontalAlign,
       alignItems: config.formatting.verticalAlign,
     }"
+    @dblclick="handleDoubleClick"
   >
     <div
       v-if="widget.config?.type === TextWidgetTypes.Text"

@@ -4,6 +4,10 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import Image from '@tiptap/extension-image'
+import Table from '@tiptap/extension-table'
+import TableRow from '@tiptap/extension-table-row'
+import TableHeader from '@tiptap/extension-table-header'
+import TableCell from '@tiptap/extension-table-cell'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
 import { HardBreak, Italic, Link, Strike } from '~/helpers/tiptap-markdown/extensions'
@@ -60,6 +64,10 @@ const getTiptapExtensions = () => {
     Italic,
     HardBreak,
     Image,
+    Table,
+    TableRow,
+    TableHeader,
+    TableCell,
     Placeholder.configure({
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,
@@ -366,6 +374,33 @@ defineExpose({
     .ProseMirror-focused {
       // remove all border
       outline: none;
+    }
+
+    h1,
+    h2,
+    h3 {
+      @apply mb-2;
+    }
+
+    table {
+      @apply border-1 border-separate rounded-md border-gray-300 w-full border-1 border-nc-gray-medium my-2;
+      border-spacing: 0px;
+
+      thead {
+        @apply rounded-t-lg;
+      }
+
+      tbody {
+        @apply bg-white;
+        tr {
+          th {
+            @apply border-r-1 first:rounded-tl-lg last:rounded-tr-lg last:border-r-0 bg-nc-bg-gray-extralight px-2 py-1;
+          }
+          td {
+            @apply border-r-1 border-t-1 last:rounded-br-lg first:rounded-bl-lg last:border-r-0 border-nc-gray-medium px-2;
+          }
+        }
+      }
     }
   }
 }

@@ -55,10 +55,10 @@ const handleConfigUpdate = async (config: any) => {
     </div>
 
     <div v-if="selectedWidget?.type === WidgetTypes.TEXT" class="pl-4 pr-5">
-      <NcSelect :value="selectedWidget?.config?.type" @change="handleConfigUpdate({ type: $event })">
+      <NcSelect :value="selectedWidget?.config?.type" class="w-33" @change="handleConfigUpdate({ type: $event })">
         <a-select-option v-for="option of Object.values(TextWidgetTypes)" :key="option" :value="option">
           <div class="flex items-center gap-2">
-            <GeneralIcon :icon="textIconMap[option]" class="w-4 h-4" />
+            <GeneralIcon :icon="textIconMap[option]" class="w-4 h-4 text-nc-content-gray" />
             <span class="text-nc-content-gray text-sm">
               {{ textLabelMap[option] }}
             </span>

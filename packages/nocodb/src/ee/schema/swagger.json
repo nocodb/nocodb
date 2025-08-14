@@ -3931,6 +3931,19 @@
   },
   "components": {
     "schemas": {
+      "BaseDefaultRoleEnum": {
+        "description": "Default role for the users from Workspace",
+        "oneOf": [{
+          "type": "string",
+          "enum": [
+            "no-access", 
+            ""
+          ],
+          "nullable": true
+        }, {
+          "type": "null"
+        }]
+      },
       "ProjectReq": {
         "description": "Model for Base Request",
         "examples": [
@@ -4001,13 +4014,7 @@
             "description": "Base Meta"
           },
           "default_role": {
-            "description": "Default role for the users from Workspace",
-            "type": "string",
-            "enum": [
-              "no-access", 
-              ""
-            ],
-            "nullable": true
+            "$ref": "#/components/schemas/BaseDefaultRoleEnum"
           }
         },
         "required": [
@@ -4074,13 +4081,7 @@
             "minimum": 0
           },
           "default_role": {
-            "description": "Default role for the users from Workspace",
-            "type": "string",
-            "enum": [
-              "no-access",
-              ""
-            ],
-            "nullable": true
+            "$ref": "#/components/schemas/BaseDefaultRoleEnum"
           }
         }
       },

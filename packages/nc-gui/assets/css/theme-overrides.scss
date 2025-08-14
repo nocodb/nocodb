@@ -30,6 +30,47 @@ body {
 
 // Dark theme specific style
 [theme='dark'] {
+  @layer base {
+    /* windicss layer base */
+    [type='text'],
+    [type='email'],
+    [type='url'],
+    [type='password'],
+    [type='number'],
+    [type='date'],
+    [type='datetime-local'],
+    [type='month'],
+    [type='search'],
+    [type='tel'],
+    [type='time'],
+    [type='week'],
+    [multiple],
+    textarea,
+    select {
+      @apply bg-nc-bg-default border-nc-border-gray-medium;
+    }
+
+    [type='checkbox'],
+    [type='radio'] {
+      @apply bg-nc-bg-default border-nc-border-gray-medium;
+    }
+
+    [type='checkbox']:focus,
+    [type='radio']:focus {
+      @apply border-nc-border-gray-medium;
+    }
+
+    *,
+    ::before,
+    ::after {
+      @apply border-nc-border-gray-medium;
+    }
+
+    * {
+      --tw-ring-offset-color: var(--nc-bg-default);
+    }
+  }
+
   /* Change autocomplete styles in WebKit */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,

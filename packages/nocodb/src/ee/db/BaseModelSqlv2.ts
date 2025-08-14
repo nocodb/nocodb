@@ -1054,6 +1054,45 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     await super.prepareNocoData(data, isInsertData, cookie, oldData, extra);
 
+    // Check for TrackModifications columns and update them if trigger columns have changed
+    if (!isInsertData && oldData) {
+      const trackModificationsColumns = this.model.columns.filter(col => 
+        (col.uidt as string) === 'TrackModifications' && 
+        col.colOptions?.enabled && 
+        col.colOptions?.triggerColumns?.length > 0
+      );
+
+      for (const trackCol of trackModificationsColumns) {
+        const triggerColumns = trackCol.colOptions.triggerColumns;
+        const hasChanges = triggerColumns.some(triggerColId => {
+          const triggerCol = this.model.columns.find(c => c.id === triggerColId);
+          if (!triggerCol) return false;
+          
+          const oldValue = oldData[triggerCol.title] ?? oldData[triggerCol.column_name];
+          const newValue = data[triggerCol.column_name];
+          
+          return oldValue !== newValue;
+        });
+
+        if (hasChanges) {
+          // Update the tracked column based on its configuration
+          switch (trackCol.colOptions.updateType) {
+            case 'timestamp':
+              data[trackCol.column_name] = this.now();
+              break;
+            case 'user':
+              data[trackCol.column_name] = cookie?.user?.id || null;
+              break;
+            case 'custom':
+              if (trackCol.colOptions.customValue) {
+                data[trackCol.column_name] = trackCol.colOptions.customValue;
+              }
+              break;
+          }
+        }
+      }
+    }
+
     // AI column isStale handling
     const aiColumns = this.model.columns.filter((c) => isAIPromptCol(c));
 

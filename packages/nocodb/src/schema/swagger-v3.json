@@ -187,7 +187,7 @@
       "get": {
         "summary": "List workspace members",
         "operationId": "workspace-members-read",
-        "description": "Retrieves metadata for a specified workspace, with an option to include its members.\n\nNotes:\n- To include member details, use the query parameter `include[]=members`.\n- Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Retrieve details of a specific workspace, including its members.\n\nNotes:\n- To include member details, use the query parameter `include[]=members`.\n- Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
         "tags": [
           "Workspace Members"
         ],
@@ -230,14 +230,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/Workspace"
-                    },
-                    {
-                      "$ref": "#/components/schemas/WorkspaceWithMembers"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/WorkspaceWithMembers"
                 },
                 "examples": {
                   "Workspace with Members": {
@@ -2516,14 +2509,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/Base"
-                    },
-                    {
-                      "$ref": "#/components/schemas/BaseWithMembers"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/BaseWithMembers"
                 },
                 "examples": {
                   "Example 1": {
@@ -4172,13 +4158,13 @@
               "base_members": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/BaseMember"
+                  "$ref": "#/components/schemas/BaseMemberWithWorkspaceRole"
                 }
               },
               "workspace_members": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/BaseMember"
+                  "$ref": "#/components/schemas/WorkspaceMember"
                 }
               }
             }
@@ -4953,6 +4939,38 @@
           "base_role"
         ]
       },
+      "BaseMemberWithWorkspaceRole": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "Unique identifier for the user."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of the user."
+          },
+          "user_name": {
+            "type": "string",
+            "description": "Display name of the user."
+          },
+          "base_role": {
+            "$ref": "#/components/schemas/BaseRoles"
+          },
+          "workspace_role": {
+            "$ref": "#/components/schemas/WorkspaceRoles",
+            "description": "Role assigned to the user in the workspace"
+          }
+        },
+        "required": [
+          "user_id",
+          "email",
+          "created_at",
+          "updated_at",
+          "base_role"
+        ]
+      },
       "BaseUserDeleteRequest": {},
       "BaseMemberList": {
         "type": "object",
@@ -4972,39 +4990,41 @@
         "type": "array",
         "items": {
           "type": "object",
-          "properties": {
-            "user_id": {
-              "type": "string",
-              "description": "User unique identifier for the member. Can be provided optionally during creation."
-            },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "description": "User Email address. Used as a primary identifier if 'id' is not provided."
-            },
-            "user_name": {
-              "type": "string",
-              "description": "Full name of the user."
-            },
-            "base_role": {
-              "$ref": "#/components/schemas/BaseRoles"
-            }
-          },
-          "required": [
-            "base_role"
-          ],
           "oneOf": [
             {
-              "title": "Invite Member with ID",
-              "required": [
-                "user_id"
-              ]
+              "title": "Invite User with ID",
+              "required": ["user_id", "base_role"],
+              "properties": {
+                "user_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the user (skip if email is provided)"
+                },
+                "user_name": {
+                  "type": "string",
+                  "description": "Full name of the user."
+                },
+                "base_role": {
+                  "$ref": "#/components/schemas/BaseRoles"
+                }
+              }
             },
             {
-              "title": "Invite Member with Email",
-              "required": [
-                "email"
-              ]
+              "title": "Invite User with Email",
+              "required": ["email", "base_role"],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "description": "Email address of the user (skip if user_id is provided)"
+                },
+                "user_name": {
+                  "type": "string",
+                  "description": "Full name of the user."
+                },
+                "base_role": {
+                  "$ref": "#/components/schemas/BaseRoles"
+                }
+              }
             }
           ],
           "description": "An object representing a new member to be created."
@@ -5025,15 +5045,8 @@
             }
           },
           "required": [
+            "user_id",
             "base_role"
-          ],
-          "oneOf": [
-            {
-              "title": "Update Member with ID",
-              "required": [
-                "user_id"
-              ]
-            }
           ],
           "description": "An object representing updates for an existing member."
         },
@@ -5049,13 +5062,8 @@
               "description": "User unique identifier for the member."
             }
           },
-          "oneOf": [
-            {
-              "title": "Delete Member with ID",
-              "required": [
-                "user_id"
-              ]
-            }
+          "required": [
+            "user_id"
           ]
         }
       },
@@ -7358,30 +7366,35 @@
         "type": "array",
         "items": {
           "type": "object",
-          "properties": {
-            "user_id": {
-              "type": "string",
-              "description": "Unique identifier for the user (skip if email is provided)"
-            },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "description": "Email address of the user (skip if user_id is provided)"
-            },
-            "workspace_role": {
-              "$ref": "#/components/schemas/WorkspaceRoles",
-              "description": "Workspace role to assign to the user"
-            }
-          },
-          "required": ["workspace_role"],
           "oneOf": [
             {
               "title": "Invite User with ID",
-              "required": ["user_id"]
+              "required": ["user_id", "workspace_role"],
+              "properties": {
+                "user_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the user (skip if email is provided)"
+                },
+                "workspace_role": {
+                  "$ref": "#/components/schemas/WorkspaceRoles",
+                  "description": "Workspace role to assign to the user"
+                }
+              }
             },
             {
               "title": "Invite User with Email",
-              "required": ["email"]
+              "required": ["email", "workspace_role"],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "description": "Email address of the user (skip if user_id is provided)"
+                },
+                "workspace_role": {
+                  "$ref": "#/components/schemas/WorkspaceRoles",
+                  "description": "Workspace role to assign to the user"
+                }
+              }
             }
           ],
           "description": "An object representing a new workspace user to be created."

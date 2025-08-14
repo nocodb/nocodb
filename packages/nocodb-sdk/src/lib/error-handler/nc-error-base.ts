@@ -425,7 +425,6 @@ export class NcErrorBase {
   featureNotSupported(
     props: {
       feature: PlanFeatureTypes;
-      minimumPlan?: string;
       isOnPrem?: boolean;
     },
     args?: NcErrorArgs
@@ -440,7 +439,7 @@ export class NcErrorBase {
     }
 
     throw this.errorCodex.generateError(NcErrorType.FEATURE_NOT_SUPPORTED, {
-      params: `Only ${props.minimumPlan ?? 'paid'} plans able ${
+      params: `Upgrade to a higher plan ${
         PlanFeatureUpgradeMessages[props.feature] ?? 'to use this feature.'
       }`,
       ...args,

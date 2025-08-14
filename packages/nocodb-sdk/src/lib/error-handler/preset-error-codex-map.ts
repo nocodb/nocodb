@@ -244,7 +244,7 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.FEATURE_NOT_SUPPORTED]: {
     message: (message: string) =>
-      message || `Please upgrade your plan to use this feature.`,
+      message || `Upgrade to a higher plan to use this feature.`,
     code: 403,
   },
 };

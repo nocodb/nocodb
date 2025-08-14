@@ -120,6 +120,7 @@ export default defineNuxtConfig({
     'virtual:windi-devtools',
     '~/assets/css/global.css',
     '~/assets/style.scss',
+    '~/assets/css/theme-overrides.scss',
   ],
 
   runtimeConfig: {

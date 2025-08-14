@@ -8,9 +8,10 @@ import Table from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
 import TableHeader from '@tiptap/extension-table-header'
 import TableCell from '@tiptap/extension-table-cell'
+import TaskList from '@tiptap/extension-task-list'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
-import { HardBreak, Italic, Link, Strike } from '~/helpers/tiptap-markdown/extensions'
+import { HardBreak, Italic, Link, Strike, TaskItem } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -68,6 +69,10 @@ const getTiptapExtensions = () => {
     TableRow,
     TableHeader,
     TableCell,
+    TaskList,
+    TaskItem.configure({
+      nested: true,
+    }),
     Placeholder.configure({
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,

@@ -28,10 +28,9 @@ body {
   }
 }
 
-// Dark theme specific style
-[theme='dark'] {
-  @layer base {
-    /* windicss layer base */
+/* windicss layer base */
+@layer base {
+  [theme='dark'] {
     [type='text'],
     [type='email'],
     [type='url'],
@@ -70,7 +69,10 @@ body {
       --tw-ring-offset-color: var(--nc-bg-default);
     }
   }
+}
 
+// Dark theme specific style
+[theme='dark'] {
   /* Change autocomplete styles in WebKit */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,

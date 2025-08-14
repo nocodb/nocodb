@@ -38,6 +38,8 @@ export class CloudSSOLoginPage extends BasePage {
       await userInfoMenu.waitFor();
 
       await expect(userInfoMenu).toHaveAttribute('data-email', email);
+    } else {
+      await this.rootPage.waitForTimeout(2000);
     }
   }
 }

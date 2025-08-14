@@ -16,27 +16,37 @@ const scriptConfig = computed(() => {
   return props.widget.config || {}
 })
 
-const sandboxAttribute = computed(() => {
-  if (!scriptConfig.value?.sandbox || scriptConfig.value?.sandbox?.length === 0) {
-    return undefined
+const isValidUrl = computed(() => {
+  try {
+    new URL(scriptConfig.value?.url)
+    return true
+  } catch (e) {
+    return false
   }
-  return scriptConfig.value.sandbox.join(' ')
 })
 
-watch([() => scriptConfig.value?.url, () => scriptConfig.value?.sandbox], () => {
+watch([() => scriptConfig.value?.url], () => {
   key.value++
 })
 </script>
 
 <template>
-  <div class="nc-iframe-widget !rounded-xl h-full w-full flex group relative overflow-hidden">
+  <div
+    :class="{
+      'items-center justify-center': !isValidUrl,
+    }"
+    class="nc-iframe-widget !rounded-xl h-full w-full flex group relative overflow-hidden"
+  >
+    <SmartsheetDashboardWidgetsCommonWidgetsError v-if="!isValidUrl" :error="widget.error">
+      Invalid URL
+    </SmartsheetDashboardWidgetsCommonWidgetsError>
     <iframe
+      v-else
       :key="key"
       :class="{
         'pointer-events-none': isEditing,
       }"
       :src="scriptConfig?.url"
-      :sandbox="sandboxAttribute"
       class="w-full h-full border-0"
     />
 

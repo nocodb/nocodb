@@ -21,23 +21,15 @@ const handleConfigUpdate = async (type: string, updates: any) => {
         url: updates.url,
       },
     })
-  } else if (type === 'sandbox') {
-    await updateWidget<WidgetTypes.IFRAME>(activeDashboardId.value, selectedWidget.value?.id, {
-      config: {
-        ...selectedWidget.value?.config,
-        sandbox: updates.sandbox,
-      },
-    })
   }
 }
 </script>
 
 <template>
   <div v-if="selectedIframeWidget">
-    <SmartsheetDashboardWidgetsCommonConfig>
+    <SmartsheetDashboardWidgetsCommonConfig disable-appearance>
       <template #data>
         <SmartsheetDashboardWidgetsIframeConfigUrl @update:url="handleConfigUpdate('url', $event)" />
-        <SmartsheetDashboardWidgetsIframeConfigSandbox @update:sandbox="handleConfigUpdate('sandbox', $event)" />
       </template>
     </SmartsheetDashboardWidgetsCommonConfig>
   </div>

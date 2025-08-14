@@ -24,7 +24,17 @@ watch(url, () => {
   <GroupedSettings title="Config">
     <div class="flex flex-col gap-2">
       <label class="text-nc-content-gray-emphasis font-medium">URL</label>
-      <a-input v-model:value="url" placeholder="https://example.com" class="w-full nc-input-sm nc-input-shadow" />
+      <label class="text-nc-content-gray-subtle2 text-bodySm">
+        Important: Only embed URLs from sources you control or completely trust.
+      </label>
+
+      <a-textarea
+        ref="inputEl"
+        v-model:value="url"
+        class="nc-input-sm nc-input-text-area widget-content-input nc-input-shadow px-3 !text-gray-800"
+        placeholder="https://example.com"
+        size="small"
+      />
     </div>
   </GroupedSettings>
 </template>

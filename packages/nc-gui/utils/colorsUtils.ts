@@ -575,6 +575,7 @@ export const themeVariables = {
       subtle: themeV4Colors.gray[700],
       subtle2: themeV4Colors.gray[600],
       muted: themeV4Colors.gray[500],
+      disabled: themeV4Colors.gray[400],
     },
     'nc-content-brand': {
       DEFAULT: themeV4Colors.brand[500],

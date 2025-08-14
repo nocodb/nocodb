@@ -1514,12 +1514,13 @@ export class AtImportProcessor {
         // retrieve datatype
         const dt = table.columns.find((x) => x.title === key)?.uidt;
 
-        // always process LTAR, Lookup, and Rollup columns as we delete the key after processing
+        // always process LTAR, Lookup, Formula and Rollup columns as we delete the key after processing
         if (
           !value &&
           !isLinksOrLTAR(dt) &&
           dt !== UITypes.Lookup &&
-          dt !== UITypes.Rollup
+          dt !== UITypes.Rollup &&
+          dt !== UITypes.Formula
         ) {
           rec[key] = null;
           continue;

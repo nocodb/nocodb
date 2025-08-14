@@ -18,7 +18,7 @@ const { isPaymentEnabled, activeSubscription, showUpgradeToUploadWsImage } = use
 
 const router = useRouter()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, workspaceRoles } = useRoles()
 
 const { user } = useGlobal()
 
@@ -178,7 +178,7 @@ const allowLeaveWs = computed(() => {
    * 1. workspace has more than one owner
    * 2. user workspace role is not owner
    */
-  return !!((workspaceOwnerCount.value ?? 0) > 1 || (user.value && !user.value.workspace_roles[WorkspaceUserRoles.OWNER]))
+  return !!((workspaceOwnerCount.value ?? 0) > 1 || !workspaceRoles.value?.[WorkspaceUserRoles.OWNER])
 })
 
 const handleLeaveWorkspace = () => {

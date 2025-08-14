@@ -179,7 +179,7 @@ const isViewOwner = computed(() => {
   return (
     view.value?.owned_by === user.value?.id ||
     (!view.value?.owned_by &&
-      (user.value.base_roles?.[ProjectRoles.OWNER] || user.value.workspace_roles?.[WorkspaceUserRoles.OWNER]))
+      (user.value?.base_roles?.[ProjectRoles.OWNER] || user.value?.workspace_roles?.[WorkspaceUserRoles.OWNER]))
   )
 })
 

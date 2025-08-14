@@ -175,14 +175,14 @@ onMounted(() => {
   <div class="h-full nc-base-view">
     <div
       v-if="!isAdminPanel"
-      class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-gray-200"
+      class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-nc-border-gray-medium"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >
       <div class="flex-1 flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
         <div v-if="!showEmptySkeleton" class="flex flex-row items-center h-full gap-x-2 px-2">
           <GeneralProjectIcon :color="parseProp(currentBase?.meta).iconColor" :type="currentBase?.type" />
-          <NcTooltip class="flex font-bold text-sm capitalize truncate max-w-150 text-gray-800" show-on-truncate-only>
+          <NcTooltip class="flex font-bold text-sm capitalize truncate max-w-150 text-nc-content-gray" show-on-truncate-only>
             <template #title> {{ currentBase?.title }}</template>
             <span class="truncate">
               {{ currentBase?.title }}
@@ -239,7 +239,7 @@ onMounted(() => {
                 class="tab-info"
                 :class="{
                   'bg-primary-selected': projectPageTab === 'collaborator',
-                  'bg-gray-50': projectPageTab !== 'collaborator',
+                  'bg-nc-bg-gray-extralight': projectPageTab !== 'collaborator',
                 }"
               >
                 {{ userCount }}
@@ -270,7 +270,7 @@ onMounted(() => {
                 class="tab-info"
                 :class="{
                   'bg-primary-selected': projectPageTab === 'data-source',
-                  'bg-gray-50': projectPageTab !== 'data-source',
+                  'bg-nc-bg-gray-extralight': projectPageTab !== 'data-source',
                 }"
               >
                 {{ base.sources.length }}

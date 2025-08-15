@@ -122,6 +122,12 @@ const getNextColor = () => {
   return tempColor
 }
 
+const updateOptionsWrapperScrollHeight = (increment = 0) => {
+  if (!optionsWrapperDomRef.value) return
+
+  optionsWrapperDomRef.value.scrollTop = optionsWrapperDomRef.value.scrollHeight + increment
+}
+
 const addNewOption = () => {
   isAddingOption.value = true
 
@@ -144,7 +150,7 @@ const addNewOption = () => {
     renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
   }
 
-  optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+  updateOptionsWrapperScrollHeight()
 
   nextTick(() => {
     // Last child doesnt work for query selector
@@ -157,7 +163,8 @@ const addNewOption = () => {
       }
     }, 150)
 
-    optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+    updateOptionsWrapperScrollHeight()
+
     isAddingOption.value = false
   })
 }
@@ -307,7 +314,7 @@ const loadListDataReverse = async ($state: any) => {
 
   renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
 
-  optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollTop + 100
+  updateOptionsWrapperScrollHeight(100)
 
   if (loadedOptionAnchor.value === 0) {
     $state.complete()
@@ -390,7 +397,7 @@ const predictOptions = async () => {
       syncOptions()
     }
 
-    optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+    updateOptionsWrapperScrollHeight()
   }
 }
 
@@ -482,7 +489,7 @@ if (!isKanbanStack.value) {
   watch(isLoadingPredictOptions, (newValue) => {
     if (!newValue) return
     nextTick(() => {
-      optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+      updateOptionsWrapperScrollHeight()
     })
   })
 }

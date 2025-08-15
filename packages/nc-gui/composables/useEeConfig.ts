@@ -55,9 +55,11 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockTableAndFieldPermissions = computed(() => true)
 
-  const blockUseScripts = computed(() => false)
-
   const blockPrivateBases = computed(() => true)
+
+  const blockAddNewDashboard = computed(() => true)
+
+  const blockAddNewScript = computed(() => true)
 
   const showUserMayChargeAlert = computed(() => false)
 
@@ -116,11 +118,13 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseTableAndFieldPermissions = (..._args: any[]) => {}
 
-  const showUpgradeToUseScripts = (..._args: any[]) => {}
-
   const showUpgradeToUsePrivateBases = (..._args: any[]) => {}
 
   const showUpgradeToAddMoreAttachmentsInCell = (..._args: any[]) => {}
+
+  const showDashboardPlanLimitExceededModal = (..._args: any[]) => {}
+
+  const showScriptPlanLimitExceededModal = (..._args: any[]) => {}
 
   return {
     calculatePrice,
@@ -170,12 +174,14 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseRowColoring,
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
-    blockUseScripts,
-    showUpgradeToUseScripts,
     blockPrivateBases,
     showUpgradeToUsePrivateBases,
     showUserMayChargeAlert,
     maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell,
+    showDashboardPlanLimitExceededModal,
+    showScriptPlanLimitExceededModal,
+    blockAddNewScript,
+    blockAddNewDashboard,
   }
 })

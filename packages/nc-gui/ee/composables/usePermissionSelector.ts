@@ -161,7 +161,6 @@ export const usePermissionSelector = (
 
       const eventType = config.value.entity === PermissionEntity.TABLE ? 'a:permissions:save' : 'a:field:permissions'
       $e(eventType)
-      await basesStore.loadProject(base.value.id, true)
     } catch (e: any) {
       message.error(`Failed to save ${config.value.entity.toLowerCase()} permissions`)
     } finally {

@@ -4,7 +4,7 @@ import { ImportService as ImportServiceCE } from 'src/modules/jobs/jobs/export-i
 import type { WidgetType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
-import { type User, WorkspaceUser } from '~/models';
+import { Permission, type User, WorkspaceUser } from '~/models';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -24,6 +24,7 @@ import { ScriptsService } from '~/services/scripts.service';
 import { DashboardsService } from '~/services/dashboards.service';
 import { withoutId } from '~/helpers/exportImportHelpers';
 import { getWidgetHandler } from '~/db/widgets';
+import { PermissionsService } from '~/services/permissions.service';
 
 @Injectable()
 export class ImportService extends ImportServiceCE {
@@ -47,6 +48,7 @@ export class ImportService extends ImportServiceCE {
     protected viewsService: ViewsService,
     protected scriptsService: ScriptsService,
     protected dashboardService: DashboardsService,
+    protected permissionsService: PermissionsService,
   ) {
     super(
       tablesService,
@@ -151,6 +153,36 @@ export class ImportService extends ImportServiceCE {
     }
 
     return idMap;
+  }
+
+  async importPermissions(
+    context: NcContext,
+    param: {
+      permissions: Permission[];
+      getIdOrExternalId: (id: string) => string | undefined;
+      req: NcRequest;
+    },
+  ) {
+    const { permissions, getIdOrExternalId, req } = param;
+
+    const workspaceUsers = await WorkspaceUser.userList({
+      fk_workspace_id: context.workspace_id,
+    });
+
+    for (const permission of permissions) {
+      permission.subjects = permission.subjects?.filter((p) =>
+        workspaceUsers.some((u) => u.id === p.id),
+      );
+
+      await this.permissionsService.setPermission(
+        context,
+        {
+          ...permission,
+          entity_id: getIdOrExternalId(permission.entity_id),
+        },
+        req,
+      );
+    }
   }
 
   override async importUsers(

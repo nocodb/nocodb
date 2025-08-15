@@ -123,13 +123,10 @@ const handleResetPermissions = async () => {
       },
       {
         permissionIds,
-        subjectIds,
       },
     )
 
     $e('a:permissions:reset')
-
-    await basesStore.loadProject(base.value.id!, true)
   } catch (error: any) {
     console.error(error)
     message.error(await extractSdkResponseErrorMsg(error))

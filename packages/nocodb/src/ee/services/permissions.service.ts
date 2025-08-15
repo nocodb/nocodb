@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  AppEvents,
   EventType,
   PermissionEntity,
   PermissionGrantedType,
@@ -61,6 +62,8 @@ export class PermissionsService {
       NcError.genericNotFound('PermissionGrantedType', granted_type);
     }
 
+    let permissionEntryCreated = false;
+
     const ncMeta = await Noco.ncMeta.startTransaction();
 
     try {
@@ -117,6 +120,7 @@ export class PermissionsService {
         );
       } else {
         permission = await Permission.insert(context, newPermissionObj, ncMeta);
+        permissionEntryCreated = true;
       }
 
       // Insert new permission users
@@ -175,25 +179,33 @@ export class PermissionsService {
       throw error;
     }
 
-    const perms = await Permission.list(context, context.base_id, ncMeta);
+    await this.broadcastPermissionUpdate(context);
 
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.META_EVENT,
-        payload: {
-          action: 'permission_update',
-          baseId: context.base_id,
-          payload: perms,
-        },
-      },
-      context.socket_id,
-    );
+    if (permissionEntryCreated) {
+      Noco.appHooksService.emit(AppEvents.PERMISSION_CREATE, {
+        permission,
+        context,
+        req,
+        user: req.user,
+      });
+    } else {
+      Noco.appHooksService.emit(AppEvents.PERMISSION_UPDATE, {
+        permission,
+        oldPermission: existingPermission,
+        context,
+        req,
+        user: req.user,
+      });
+    }
 
     return permission;
   }
 
-  async dropPermission(context: NcContext, permissionObj: Partial<Permission>) {
+  async dropPermission(
+    context: NcContext,
+    permissionObj: Partial<Permission>,
+    req: NcRequest,
+  ) {
     const { entity, entity_id, permission: permission_key } = permissionObj;
 
     const permission = await Permission.getByEntity(
@@ -233,37 +245,29 @@ export class PermissionsService {
       throw error;
     }
 
-    const perms = await Permission.list(context, context.base_id, ncMeta);
+    await this.broadcastPermissionUpdate(context);
 
-    NocoSocket.broadcastEvent(
+    Noco.appHooksService.emit(AppEvents.PERMISSION_DELETE, {
+      permission,
       context,
-      {
-        event: EventType.META_EVENT,
-        payload: {
-          action: 'permission_update',
-          baseId: context.base_id,
-          payload: perms,
-        },
-      },
-      context.socket_id,
-    );
+      req,
+      user: req.user,
+    });
   }
 
   async bulkDropPermissions(
     context: NcContext,
-    permissionObj: {
-      permissionIds?: string[];
-      subjectIds?: string[];
-    },
+    permissionIds: string[],
+    req: NcRequest,
   ) {
-    const { permissionIds = [], subjectIds = [] } = permissionObj;
+    if (!permissionIds.length) return;
 
-    if (!permissionIds.length && !subjectIds.length) return;
+    const oldPermissions = await Permission.list(context, context.base_id);
 
     const ncMeta = await Noco.ncMeta.startTransaction();
 
     try {
-      await Permission.bulkDelete(context, permissionIds, subjectIds, ncMeta);
+      await Permission.bulkDelete(context, permissionIds, ncMeta);
 
       await ncMeta.commit();
     } catch (error) {
@@ -279,19 +283,32 @@ export class PermissionsService {
       throw error;
     }
 
-    const perms = await Permission.list(context, context.base_id, ncMeta);
-
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.META_EVENT,
-        payload: {
-          action: 'permission_update',
-          baseId: context.base_id,
-          payload: perms,
-        },
-      },
-      context.socket_id,
+    const deletedPermissions = oldPermissions.filter(
+      (perm) => !perm.id || !permissionIds.includes(perm.id),
     );
+
+    for (const permission of deletedPermissions) {
+      Noco.appHooksService.emit(AppEvents.PERMISSION_DELETE, {
+        permission,
+        context,
+        req,
+        user: req.user,
+      });
+    }
+
+    await this.broadcastPermissionUpdate(context);
+  }
+
+  async broadcastPermissionUpdate(context: NcContext) {
+    const perms = await Permission.list(context, context.base_id);
+
+    NocoSocket.broadcastEvent(context, {
+      event: EventType.META_EVENT,
+      payload: {
+        action: 'permission_update',
+        baseId: context.base_id,
+        payload: perms,
+      },
+    });
   }
 }

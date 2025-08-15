@@ -15,7 +15,7 @@ import type {
   WorkspaceType,
 } from 'nocodb-sdk';
 import type Snapshot from '~/models/Snapshot';
-import type { CustomUrl } from '~/models';
+import type { CustomUrl, Permission } from '~/models';
 
 export interface WorkspaceUserInviteEvent
   extends Optional<NcBaseEvent, 'context'> {
@@ -165,6 +165,22 @@ export interface SharedDashboardEvent extends NcBaseEvent {
   link?: string;
   uuid?: string;
   customUrl?: CustomUrl;
+}
+
+export interface PermissionCreateEvent extends NcBaseEvent {
+  permission: Permission;
+  user: UserType;
+}
+
+export interface PermissionUpdateEvent extends NcBaseEvent {
+  permission: Permission;
+  oldPermission: Permission;
+  user: UserType;
+}
+
+export interface PermissionDeleteEvent extends NcBaseEvent {
+  permission: Permission;
+  user: UserType;
 }
 
 export * from 'src/services/app-hooks/interfaces';

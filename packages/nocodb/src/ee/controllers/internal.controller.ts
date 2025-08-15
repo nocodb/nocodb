@@ -307,12 +307,17 @@ export class InternalController extends InternalControllerCE {
         );
 
       case 'dropPermission':
-        return await this.permissionsService.dropPermission(context, payload);
+        return await this.permissionsService.dropPermission(
+          context,
+          payload,
+          req,
+        );
 
       case 'bulkDropPermissions':
         return await this.permissionsService.bulkDropPermissions(
           context,
-          payload,
+          payload?.permissionIds || [],
+          req,
         );
 
       case 'dashboardCreate':

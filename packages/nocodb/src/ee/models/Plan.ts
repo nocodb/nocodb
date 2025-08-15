@@ -352,6 +352,8 @@ export const LegacyFreePlan = Plan.prepare({
     [PlanLimitTypes.LIMIT_AI_TOKEN]: 0,
     [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 0,
     [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]: true,
+    [PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE]: 1,
+    [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]: 1,
     ...legacyLimitAndFeatures,
   },
   free: true,

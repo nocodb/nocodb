@@ -350,8 +350,11 @@ const _createTable = async () => {
     dialogShow.value = false
   } catch (e: any) {
     console.error(e)
-    e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
-    if (e.errorFields.length) return
+
+    if (e?.errorFields?.length) {
+      e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
+      return
+    }
   } finally {
     setTimeout(() => {
       creating.value = false

@@ -48,8 +48,12 @@ const _createWorkspace = async () => {
   try {
     await validate()
   } catch (e: any) {
-    e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
-    if (e.errorFields.length) return
+    if (e?.errorFields?.length) {
+      e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
+      return
+    }
+
+    message.error((await extractSdkResponseErrorMsg(e)) ?? 'Something went wrong')
   }
 
   isCreating.value = true

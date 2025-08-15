@@ -81,8 +81,13 @@ const _createScript = async () => {
     emits('created', createdScript as ScriptType)
   } catch (e: any) {
     console.error(e)
+
+    if (e?.errorFields?.length) {
+      e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
+      return
+    }
+
     message.error(await extractSdkResponseErrorMsg(e))
-    if (e.errorFields.length) return
   } finally {
     setTimeout(() => {
       creating.value = false

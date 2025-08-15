@@ -71,11 +71,16 @@ const _createDashboard = async () => {
     await validate()
     const createdDashboard = await createDashboard(baseId.value, dashboard)
     dialogShow.value = false
-    emits('created', createdDashboard)
+    emits('created', createdDashboard as DashboardType)
   } catch (e: any) {
     console.error(e)
-    message.error(e.message)
-    if (e.errorFields.length) return
+
+    if (e?.errorFields?.length) {
+      e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
+      return
+    }
+
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     setTimeout(() => {
       creating.value = false

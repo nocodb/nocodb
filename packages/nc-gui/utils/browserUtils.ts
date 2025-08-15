@@ -21,6 +21,8 @@ export const isTiptapDropdownExistInsideEditor = () => {
   return document.querySelector('.tippy-box')
 }
 
+export const ncIsIframe = () => window.self !== window.top
+
 export const isSidebarNodeRenameActive = () => document.querySelector('input.animate-sidebar-node-input-padding')
 export function hasAncestorWithClass(element: HTMLElement, className: string | Array<string>): boolean {
   const classNames = ncIsArray(className) ? className : [className]

@@ -385,6 +385,9 @@ export class ViewsV3Service {
           field.meta.validators = field.validators;
           field.validators = undefined;
         }
+        // field meta will be appended with existing column meta during
+        // saveUpdatedViewColumns
+
         return field;
       },
     }) as any;
@@ -980,6 +983,12 @@ export class ViewsV3Service {
           const viewColumn = viewColumns.find(
             (c) => c.fk_column_id === columnId,
           );
+          if (col.meta) {
+            col.meta = {
+              ...viewColumn.meta,
+              ...col.meta,
+            };
+          }
           await this.formColumnsService.columnUpdate(
             context,
             {

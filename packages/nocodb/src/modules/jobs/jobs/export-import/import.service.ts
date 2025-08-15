@@ -122,6 +122,17 @@ export class ImportService {
     //  create dashboards
   }
 
+  async importPermissions(
+    _context: NcContext,
+    _param: {
+      permissions: any[];
+      getIdOrExternalId: (id: string) => string | undefined;
+      req: NcRequest;
+    },
+  ) {
+    //  create permissions
+  }
+
   async importModels(
     context: NcContext,
     param: {
@@ -146,6 +157,7 @@ export class ImportService {
             views: any[];
             hooks?: any[];
             comments?: any[];
+            permissions?: any[];
             rowColorConditions?: {
               filters?: any[];
               rowColorConditions?: any[];
@@ -1694,6 +1706,17 @@ export class ImportService {
     }
 
     elapsedTime(hrTime, 'create hooks', 'importModels');
+
+    // create permissions
+    for (const data of param.data) {
+      if (param.existingModel) break;
+      if (!data?.permissions) break;
+      await this.importPermissions(context, {
+        permissions: data.permissions,
+        getIdOrExternalId,
+        req: param.req,
+      });
+    }
 
     // create link filter, triggers at the end since it requires all columns to be created
     for (const ltarFilterCreateCbk of ltarFilterCreateCbks) {

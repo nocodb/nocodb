@@ -108,6 +108,7 @@ const duplicateScript = async (script: ScriptType) => {
   if (!activeProjectId.value) return
 
   if (showScriptPlanLimitExceededModal()) {
+    isDropdownOpen.value = false
     return
   }
 

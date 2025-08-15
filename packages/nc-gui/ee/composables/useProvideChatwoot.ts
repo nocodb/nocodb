@@ -36,6 +36,7 @@ export const useProvideChatwoot = () => {
   }
 
   const chatwootInit = async () => {
+    if (ncIsIframe()) return
     chatwootReady.value = true
     initUserCustomerAttributes()
   }

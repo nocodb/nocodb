@@ -142,7 +142,7 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
 }
 
 const isOwnerOrCreator = computed(() => {
-  return workspaceRoles.value[WorkspaceUserRoles.OWNER] || workspaceRoles.value[WorkspaceUserRoles.CREATOR]
+  return workspaceRoles.value?.[WorkspaceUserRoles.OWNER] || workspaceRoles.value?.[WorkspaceUserRoles.CREATOR]
 })
 
 const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {

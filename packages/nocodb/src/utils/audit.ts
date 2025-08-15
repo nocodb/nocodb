@@ -689,6 +689,9 @@ export const populateUpdatePayloadDiff = ({
       }),
     );
     mappedProps = new Set();
+    if (!prev) {
+      prev = {};
+    }
     prev = fromEntries(
       Object.entries(prev).map(([key, val]) => {
         if (key in aliasMap) {

@@ -444,7 +444,7 @@ export default class Subscription {
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.SUBSCRIPTIONS,
-        null,
+        {},
         null,
         {
           _and: [
@@ -499,7 +499,7 @@ export default class Subscription {
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.SUBSCRIPTIONS,
-        null,
+        {},
         null,
         {
           stripe_subscription_id: {

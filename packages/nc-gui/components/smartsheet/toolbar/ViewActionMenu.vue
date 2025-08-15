@@ -519,7 +519,7 @@ defineOptions({
       <NcDivider />
       <NcTooltip v-if="lockType === LockType.Locked">
         <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
-        <NcMenuItem class="!cursor-not-allowed !text-gray-400" disabled>
+        <NcMenuItem disabled>
           <GeneralIcon class="nc-view-delete-icon opacity-80" icon="delete" />
           {{
             $t('general.deleteEntity', {
@@ -528,7 +528,7 @@ defineOptions({
           }}
         </NcMenuItem>
       </NcTooltip>
-      <NcMenuItem v-else class="!hover:bg-red-50 !text-red-500" @click="onDelete">
+      <NcMenuItem v-else danger @click="onDelete">
         <GeneralIcon class="nc-view-delete-icon opacity-80" icon="delete" />
         {{
           $t('general.deleteEntity', {

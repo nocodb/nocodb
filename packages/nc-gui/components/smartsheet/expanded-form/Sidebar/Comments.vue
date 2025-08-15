@@ -423,13 +423,9 @@ onBeforeUnmount(() => {
                       </NcMenuItem>
                       <template v-if="user && commentItem.created_by_email === user.email && hasEditPermission">
                         <NcDivider />
-                        <NcMenuItem
-                          v-e="['c:row-expand:comment:delete']"
-                          class="!text-nc-content-red-medium !hover:bg-nc-bg-red-light"
-                          @click="deleteComment(commentItem.id!)"
-                        >
+                        <NcMenuItem v-e="['c:row-expand:comment:delete']" danger @click="deleteComment(commentItem.id!)">
                           <div class="flex gap-2 items-center">
-                            <component :is="iconMap.delete" class="cursor-pointer" />
+                            <GeneralIcon icon="delete" class="cursor-pointer" />
                             {{ $t('general.delete') }}
                           </div>
                         </NcMenuItem>

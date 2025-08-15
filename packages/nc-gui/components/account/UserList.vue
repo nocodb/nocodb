@@ -361,7 +361,7 @@ const userRoleOptions = [
                       </template>
                       <template v-if="el.id !== loggedInUser?.id">
                         <NcDivider v-if="!el.roles?.includes('super')" />
-                        <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="openDeleteModal(el)">
+                        <NcMenuItem data-rec="true" danger @click="openDeleteModal(el)">
                           <MaterialSymbolsDeleteOutlineRounded />
                           {{ $t('general.remove') }} {{ $t('objects.user') }}
                         </NcMenuItem>

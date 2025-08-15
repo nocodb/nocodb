@@ -51,11 +51,11 @@ const { activeError } = useExtensionHelperOrThrow()
 
             <NcDivider />
           </template>
-          <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="emits('clearData')">
+          <NcMenuItem data-rec="true" danger @click="emits('clearData')">
             <GeneralIcon icon="reload" />
             Clear data
           </NcMenuItem>
-          <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="emits('delete')">
+          <NcMenuItem data-rec="true" danger @click="emits('delete')">
             <GeneralIcon icon="delete" />
             Delete
           </NcMenuItem>

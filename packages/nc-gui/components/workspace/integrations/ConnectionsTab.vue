@@ -578,10 +578,7 @@ onKeyStroke('ArrowDown', onDown)
                           </NcTooltip>
                           <template v-if="integration?.sub_type !== SyncDataType.NOCODB">
                             <NcDivider />
-                            <NcMenuItem
-                              class="!text-nc-content-red-medium !hover:bg-nc-bg-red-light"
-                              @click="openDeleteIntegration(integration)"
-                            >
+                            <NcMenuItem danger @click="openDeleteIntegration(integration)">
                               <GeneralIcon icon="delete" />
                               {{ $t('general.delete') }}
                             </NcMenuItem>

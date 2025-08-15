@@ -347,4 +347,8 @@ useEventListener(NcButton, 'mousedown', () => {
 .nc-button.ant-btn-link {
   box-shadow: none;
 }
+
+.ant-btn-ghost {
+  @apply border-nc-border-gray-medium text-nc-content-inverted-secondary;
+}
 </style>

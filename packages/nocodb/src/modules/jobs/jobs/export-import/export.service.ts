@@ -619,7 +619,6 @@ export class ExportService {
             entity: permission.entity,
             entity_id: idMap.get(permission.entity_id),
             permission: permission.permission,
-            created_by: permission.created_by,
             enforce_for_form: permission.enforce_for_form,
             enforce_for_automation: permission.enforce_for_automation,
             granted_type: permission.granted_type,

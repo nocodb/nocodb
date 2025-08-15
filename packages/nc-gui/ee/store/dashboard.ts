@@ -1,4 +1,4 @@
-import type { DashboardType } from 'nocodb-sdk'
+import { type DashboardType, PlanLimitTypes } from 'nocodb-sdk'
 import { DlgDashboardCreate } from '#components'
 
 export const useDashboardStore = defineStore('dashboard', () => {
@@ -6,7 +6,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const { ncNavigateTo } = useGlobal()
 
-  const { showDashboardPlanLimitExceededModal } = useEeConfig()
+  const { showDashboardPlanLimitExceededModal, updateStatLimit } = useEeConfig()
 
   const route = useRoute()
 
@@ -132,6 +132,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
         },
         dashboardData,
       )
+      updateStatLimit(PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE, 1)
 
       const baseDashboards = dashboards.value.get(baseId) || []
       baseDashboards.push({
@@ -213,6 +214,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
           dashboardId,
         },
       )
+
+      updateStatLimit(PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE, -1)
 
       // Update local state
       const baseDashboards = dashboards.value.get(baseId) || []
@@ -298,6 +301,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
               onProgress?.(data.status || 'processing')
 
               if (data.status === JobStatus.COMPLETED) {
+                updateStatLimit(PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE, 1)
+
                 // Refresh dashboards list to include the new duplicate
                 await loadDashboards({ baseId, force: true })
 

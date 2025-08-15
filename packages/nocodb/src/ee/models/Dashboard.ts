@@ -139,6 +139,12 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       insertObj,
     );
 
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE,
+      1,
+    );
+
     return Dashboard.get(context, id, ncMeta).then(async (dashboard) => {
       await NocoCache.appendToList(
         CacheScope.DASHBOARD,
@@ -209,6 +215,12 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     await NocoCache.deepDel(
       `${CacheScope.DASHBOARD}:${dashboardId}`,
       CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE,
+      -1,
     );
   }
 

@@ -1,4 +1,4 @@
-import { type ScriptType } from 'nocodb-sdk'
+import { PlanLimitTypes, type ScriptType } from 'nocodb-sdk'
 import { parseScript, validateConfigValues } from 'nocodb-sdk'
 import { DlgAutomationCreate } from '#components'
 
@@ -11,7 +11,7 @@ export const useAutomationStore = defineStore('automation', () => {
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { showScriptPlanLimitExceededModal } = useEeConfig()
+  const { showScriptPlanLimitExceededModal, updateStatLimit } = useEeConfig()
 
   // State
   const automations = ref<Map<string, (ScriptType & { _dirty?: string | number })[]>>(new Map())
@@ -113,6 +113,8 @@ export const useAutomationStore = defineStore('automation', () => {
         },
       )
 
+      updateStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE, 1)
+
       const baseAutomations = automations.value.get(baseId) || []
       baseAutomations.push(created)
       automations.value.set(baseId, baseAutomations)
@@ -142,6 +144,8 @@ export const useAutomationStore = defineStore('automation', () => {
         },
         automationData,
       )
+
+      updateStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE, 1)
 
       const baseAutomations = automations.value.get(baseId) || []
       baseAutomations.push(created)
@@ -224,6 +228,8 @@ export const useAutomationStore = defineStore('automation', () => {
           id: automationId,
         },
       )
+
+      updateStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE, -1)
 
       // Update local state
       const baseAutomations = automations.value.get(baseId) || []

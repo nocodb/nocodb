@@ -249,6 +249,11 @@ export default class BaseUser extends BaseUserCE {
   ) {
     const base = await Base.get(context, base_id, ncMeta);
 
+    // if base does not exist, return empty list
+    if (!base) {
+      return [];
+    }
+
     const cachedList = await NocoCache.getList(CacheScope.BASE_USER, [base_id]);
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;

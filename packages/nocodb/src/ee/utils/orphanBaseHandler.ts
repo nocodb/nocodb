@@ -29,6 +29,12 @@ export async function handleOrphanBases(
   const workspaceBases = await Base.listByWorkspace(workspaceId, true, ncMeta);
 
   for (const base of workspaceBases) {
+    const base = await Base.get(base.id, ncMeta);
+
+    if (!base) {
+      continue; // Skip if base does not exist, this can happen if the base was deleted(soft delete)
+    }
+
     // Get all base users for this base
     const baseUsers = await BaseUser.getUsersList(
       {

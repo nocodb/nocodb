@@ -2558,7 +2558,8 @@ onKeyStroke('ArrowDown', onDown)
 
             <NcMenuItem
               v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected) && !isDataReadOnly"
-              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+              class="nc-base-menu-item"
+              danger
               data-testid="nc-delete-row"
               @click="deleteSelectedRows"
             >
@@ -2567,12 +2568,12 @@ onKeyStroke('ArrowDown', onDown)
                 v-e="['a:row:delete']"
                 class="flex gap-2 items-center"
               >
-                <component :is="iconMap.delete" />
+                <GeneralIcon icon="delete" />
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
               </div>
               <div v-else v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
-                <component :is="iconMap.delete" />
+                <GeneralIcon icon="delete" />
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
               </div>
@@ -2691,7 +2692,8 @@ onKeyStroke('ArrowDown', onDown)
               <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />
               <NcMenuItem
                 v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
-                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                class="nc-base-menu-item"
+                danger
                 @click="confirmDeleteRow(contextMenuTarget.row)"
               >
                 <div v-e="['a:row:delete']" class="flex gap-2 items-center">
@@ -2702,11 +2704,12 @@ onKeyStroke('ArrowDown', onDown)
               </NcMenuItem>
               <NcMenuItem
                 v-else-if="contextMenuTarget && deleteRangeOfRows"
-                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                class="nc-base-menu-item"
+                danger
                 @click="deleteSelectedRangeOfRows"
               >
                 <div v-e="['a:row:delete']" class="flex gap-2 items-center">
-                  <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />
+                  <GeneralIcon icon="delete" />
                   <!-- Delete Rows -->
                   {{ $t('activity.deleteRows') }}
                 </div>

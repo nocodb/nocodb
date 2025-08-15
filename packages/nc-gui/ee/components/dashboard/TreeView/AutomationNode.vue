@@ -427,7 +427,8 @@ const deleteScript = () => {
                   <NcMenuItem
                     v-e="['c:table:delete']"
                     :data-testid="`sidebar-script-delete-${script.title}`"
-                    class="!text-red-500 !hover:bg-red-50 nc-script-delete"
+                    class="nc-script-delete"
+                    danger
                     @click="deleteScript"
                   >
                     <GeneralIcon icon="delete" />

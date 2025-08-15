@@ -392,7 +392,8 @@ const deleteDashboard = () => {
                   <NcMenuItem
                     v-e="['c:dashboard:delete']"
                     :data-testid="`sidebar-dashboard-delete-${dashboard.title}`"
-                    class="!text-red-500 !hover:bg-red-50 nc-dashboard-delete"
+                    class="nc-dashboard-delete"
+                    danger
                     @click="deleteDashboard"
                   >
                     <GeneralIcon icon="delete" />

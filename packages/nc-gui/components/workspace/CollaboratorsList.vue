@@ -438,7 +438,7 @@ const handleScroll = (e) => {
                   <NcMenu variant="small">
                     <template v-if="isAdminPanel">
                       <NcMenuItem data-testid="nc-admin-org-user-delete">
-                        <GeneralIcon class="text-gray-800" icon="signout" />
+                        <GeneralIcon icon="signout" />
                         <span>{{ $t('labels.signOutUser') }}</span>
                       </NcMenuItem>
 
@@ -450,10 +450,10 @@ const handleScroll = (e) => {
                       </template>
                       <NcMenuItem
                         :disabled="!isDeleteOrUpdateAllowed(record)"
-                        :class="{ '!text-red-500 !hover:bg-red-50': isDeleteOrUpdateAllowed(record) }"
+                        danger
                         @click="removeCollaborator(record.id, currentWorkspace?.id)"
                       >
-                        <MaterialSymbolsDeleteOutlineRounded />
+                        <GeneralIcon icon="delete" />
                         {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeUser') }}
                       </NcMenuItem>
                     </NcTooltip>

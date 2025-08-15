@@ -743,7 +743,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                 <NcDivider />
                                 <NcMenuItem
                                   v-e="['c:kanban:delete-stack']"
-                                  class="!text-red-600 !hover:bg-red-50"
+                                  danger
                                   data-testid="nc-kanban-context-menu-delete-stack"
                                   @click="handleDeleteStackClick(stack.title, stackIdx)"
                                 >
@@ -1235,16 +1235,9 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
               placement="right"
             >
               <template #default="{ isAllowed }">
-                <NcMenuItem
-                  v-e="['a:kanban:delete-record']"
-                  :class="{
-                    '!text-red-600 !hover:bg-red-50': isAllowed,
-                  }"
-                  :disabled="!isAllowed"
-                  @click="deleteRow(contextMenuTarget)"
-                >
+                <NcMenuItem v-e="['a:kanban:delete-record']" danger :disabled="!isAllowed" @click="deleteRow(contextMenuTarget)">
                   <div class="flex items-center gap-2 nc-kanban-context-menu-item">
-                    <component :is="iconMap.delete" class="flex" />
+                    <GeneralIcon icon="delete" class="flex" />
                     <!-- Delete Record -->
                     {{
                       $t('general.deleteEntity', {

@@ -226,7 +226,7 @@ onMounted(() => {
                 <template #overlay>
                   <NcMenu variant="small">
                     <NcMenuItem data-testid="nc-admin-org-user-assign-admin" @click="renameBase(base.id)">
-                      <GeneralIcon class="text-gray-800" icon="rename" />
+                      <GeneralIcon icon="rename" />
                       <span>{{ $t('general.rename') }}</span>
                     </NcMenuItem>
                     <NuxtLink
@@ -234,7 +234,7 @@ onMounted(() => {
                       class="!underline-transparent !text-gray-800 !hover:text-gray-800"
                     >
                       <NcMenuItem data-testid="nc-admin-org-user-delete">
-                        <GeneralIcon class="text-gray-800" icon="user" />
+                        <GeneralIcon icon="user" />
                         <span>{{ $t('activity.manageUsers') }}</span>
                       </NcMenuItem>
                     </NuxtLink>

@@ -1165,9 +1165,10 @@ defineExpose({
             <NcDivider />
             <NcMenuItem
               v-if="isUIAllowed('tableDelete', { source: getSource(contextMenuTarget.value?.source_id) })"
+              danger
               @click="isTableDeleteDialogVisible = true"
             >
-              <div class="nc-base-option-item text-red-600">
+              <div class="nc-base-option-item">
                 <GeneralIcon icon="delete" />
                 {{ $t('general.delete') }} {{ $t('objects.table') }}
               </div>

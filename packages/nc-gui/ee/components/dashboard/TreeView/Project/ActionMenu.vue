@@ -133,12 +133,7 @@ const isOptionVisible = computed(() => {
       <GeneralIcon icon="settings" />
       {{ $t('activity.settings') }}
     </NcMenuItem>
-    <NcMenuItem
-      v-if="isOptionVisible.baseDelete"
-      class="!text-red-500 !hover:bg-red-50"
-      data-testid="nc-sidebar-base-delete"
-      @click="emits('delete')"
-    >
+    <NcMenuItem v-if="isOptionVisible.baseDelete" danger data-testid="nc-sidebar-base-delete" @click="emits('delete')">
       <GeneralIcon icon="delete" class="w-4" />
       <div>{{ $t('general.delete') }} {{ $t('objects.project').toLowerCase() }}</div>
     </NcMenuItem>

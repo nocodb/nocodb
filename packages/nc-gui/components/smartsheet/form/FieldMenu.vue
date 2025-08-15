@@ -200,20 +200,9 @@ const isDuplicateAllowed = computed(() => {
         <template v-if="!column?.pv">
           <NcDivider />
 
-          <NcMenuItem
-            :disabled="!isDeleteAllowed"
-            :class="{
-              '!hover:bg-red-50': isDeleteAllowed,
-            }"
-            @click="handleDelete"
-          >
-            <div
-              class="nc-column-delete nc-form-header-menu-item"
-              :class="{
-                'text-red-600': isDeleteAllowed,
-              }"
-            >
-              <component :is="iconMap.delete" />
+          <NcMenuItem :disabled="!isDeleteAllowed" danger @click="handleDelete">
+            <div class="nc-column-delete nc-form-header-menu-item">
+              <GeneralIcon icon="delete" />
               <!-- Delete -->
               {{ $t('general.delete') }}
             </div>

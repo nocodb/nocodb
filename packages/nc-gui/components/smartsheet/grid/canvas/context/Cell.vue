@@ -257,9 +257,7 @@ const execBulkAction = async (path: Array<number>) => {
           <NcMenuItem
             key="selete-selected-rows"
             class="nc-base-menu-item"
-            :class="{
-              '!text-red-600 !hover:bg-red-50': isAllowed,
-            }"
+            danger
             data-testid="nc-delete-row"
             :disabled="!isAllowed"
             @click="deleteSelectedRows(contextMenuPath)"
@@ -287,9 +285,7 @@ const execBulkAction = async (path: Array<number>) => {
         <NcMenuItem
           key="delete-all-rows"
           class="nc-base-menu-item"
-          :class="{
-            '!text-red-600 !hover:bg-red-50': isAllowed,
-          }"
+          danger
           data-testid="nc-delete-all-row"
           :disabled="!isAllowed"
           @click="deleteAllRecords(contextMenuPath)"
@@ -506,9 +502,7 @@ const execBulkAction = async (path: Array<number>) => {
             v-if="selection.isSingleCell() || selection.isSingleRow()"
             key="delete-row"
             class="nc-base-menu-item"
-            :class="{
-              '!text-red-600 !hover:bg-red-50': isAllowed,
-            }"
+            danger
             :disabled="!isAllowed"
             @click="confirmDeleteRow(contextMenuRow, contextMenuPath)"
           >
@@ -522,9 +516,7 @@ const execBulkAction = async (path: Array<number>) => {
             v-else
             key="delete-selected-row"
             class="nc-base-menu-item"
-            :class="{
-              '!text-red-600 !hover:bg-red-50': isAllowed,
-            }"
+            danger
             :disabled="!isAllowed"
             @click="deleteSelectedRangeOfRows(contextMenuPath)"
           >

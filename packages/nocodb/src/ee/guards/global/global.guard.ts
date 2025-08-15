@@ -66,7 +66,7 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
             type: PlanLimitTypes.LIMIT_API_CALL,
             message: ({ limit }) =>
               `You have reached the limit of ${limit} API calls for your plan.`,
-            throwError: req.ncWorkspace?.payment?.plan?.free,
+            throwError: !!req.ncWorkspace?.payment?.plan?.free,
           });
 
           await UsageStat.incrby(

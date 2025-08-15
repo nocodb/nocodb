@@ -1,19 +1,51 @@
 <script setup lang="ts">
-const { min = 0, resetTo } = defineProps<{
+const {
+  min = 0,
+  max,
+  resetTo,
+} = defineProps<{
   min?: number
+  max?: number
   resetTo?: number
   placeholder?: string
 }>()
 const vModel = defineModel<string | number>({ required: true })
 
 const inputRef = ref<{ input: HTMLInputElement }>()
+const lastSaved = ref()
 
 function onBlur() {
+  // triggered by events like focus-out / pressing enter
+  // for non-firefox browsers only
+  submitValue()
+}
+
+function onKeydownEnter() {
+  // onBlur is never executed for firefox & safari
+  // we use keydown.enter to trigger submitValue
+  if (/(Firefox|Safari)/.test(navigator.userAgent)) {
+    submitValue()
+  }
+}
+
+function submitValue() {
   if (vModel.value === '') {
     vModel.value = resetTo ?? min
-    return
+  } else {
+    const numValue = +vModel.value
+    if (numValue < min) {
+      vModel.value = min
+    } else if (max !== undefined && numValue > max) {
+      vModel.value = max
+    }
   }
-  if (+vModel.value < min) vModel.value = min
+
+  // Only emit save if value actually changed
+  if (lastSaved.value !== vModel.value) {
+    lastSaved.value = vModel.value
+    // You can emit a 'save' event here if needed
+    // emit('save')
+  }
 }
 
 function selectText() {
@@ -22,6 +54,10 @@ function selectText() {
   if (!input) return
   input.select()
 }
+
+onMounted(() => {
+  lastSaved.value = vModel.value
+})
 </script>
 
 <template>
@@ -31,8 +67,24 @@ function selectText() {
     class="nc-input-sm nc-input-shadow"
     type="number"
     :min="min"
+    :max="max"
     :placeholder="placeholder ?? min"
     @blur="onBlur"
     @click="selectText"
-  ></a-input>
+    @keydown.enter="onKeydownEnter"
+  />
 </template>
+
+<style lang="scss" scoped>
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+</style>

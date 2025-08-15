@@ -334,8 +334,8 @@ const testConnectionError = ref()
 const testConnection = async (retry = 0, initialConfig = null, initialError = null) => {
   try {
     await validate()
-  } catch (e) {
-    if (e.errorFields?.length) {
+  } catch (e: any) {
+    if (e?.errorFields?.length) {
       focusInvalidInput()
       return
     }

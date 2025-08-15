@@ -353,7 +353,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         if (!(await validate())) return
       } catch (e: any) {
         let skipToast = false
-        const errorMsgs = (e.errorFields || [])
+        const errorMsgs = (e?.errorFields || [])
           .filter((f) => {
             if (avoidShowingToastMsgForValidations.value[f?.name ?? '']) {
               skipToast = true

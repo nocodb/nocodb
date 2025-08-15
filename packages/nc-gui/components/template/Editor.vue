@@ -834,7 +834,7 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
   }
 }
 
-const setErrorState = (errorsFields: any[]) => {
+const setErrorState = (errorsFields: any[] = []) => {
   const errorMap: any = {}
   for (const error of errorsFields) {
     errorMap[error.name] = error.errors
@@ -865,7 +865,7 @@ watch(formRef, () => {
       formError.value = null
     } catch (e: any) {
       emit('error', e)
-      setErrorState(e.errorFields)
+      setErrorState(e?.errorFields)
     }
   }, 500)
 })
@@ -877,7 +877,7 @@ watch(modelRef, async () => {
     formError.value = null
   } catch (e: any) {
     emit('error', e)
-    setErrorState(e.errorFields)
+    setErrorState(e?.errorFields)
   }
 })
 

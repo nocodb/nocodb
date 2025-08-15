@@ -24,8 +24,8 @@ export enum PlanLimitTypes {
   LIMIT_FILTER_PER_VIEW = 'limit_filter_per_view',
   LIMIT_SORT_PER_VIEW = 'limit_sort_per_view',
   LIMIT_ATTACHMENTS_IN_CELL = 'limit_attachments_in_cell',
-  LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script_per_workspace',
-  LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard_per_workspace',
+  LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
+  LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
 }
 
 export enum PlanFeatureTypes {

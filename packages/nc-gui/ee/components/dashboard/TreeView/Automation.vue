@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
-
 const props = defineProps<{
   baseId: string
 }>()

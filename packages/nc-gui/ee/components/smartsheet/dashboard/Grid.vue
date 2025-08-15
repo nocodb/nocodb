@@ -3,6 +3,7 @@ import { ChartTypes, type ChartWidgetConfig, type WidgetType, WidgetTypes } from
 import MetricWidget from './widgets/metrics/index.vue'
 import DonutChartWidget from './widgets/donutchart/index.vue'
 import PieChartWidget from './widgets/piechart/index.vue'
+import TextWidget from './widgets/text/index.vue'
 import PlaceholderImage from '~/assets/img/dashboards/placeholder.svg'
 
 const dashboardStore = useDashboardStore()
@@ -27,6 +28,10 @@ const isResponsiveEnabled = computed(() => {
 
 const responsive = ref()
 
+// This is for responsive layout in grid-layout-plus
+// When the window size is resized, the layout will be auto adjusted based on window size.
+// The computed layout will return the responsive layout when the user is not in edit state and the window size is less than 1280px
+// Else the computed layout will return the normal layout. This is implemented to prevent layout shifting when the user is in edit state and switching between responsive and normal layout
 const layout = computed({
   set: (value) => {
     responsive.value = value
@@ -55,6 +60,8 @@ const getWidgetComponent = (widget: WidgetType) => {
   switch (widget.type) {
     case WidgetTypes.METRIC:
       return MetricWidget
+    case WidgetTypes.TEXT:
+      return TextWidget
     case WidgetTypes.CHART:
       switch ((widget.config as ChartWidgetConfig).chartType) {
         case ChartTypes.PIE:
@@ -175,6 +182,13 @@ const getWidgetPositionConfig = (item: string) => {
         maxH: 6,
       }
     }
+    case WidgetTypes.TEXT: {
+      return {
+        minW: 2,
+        minH: 1,
+        maxW: 4,
+      }
+    }
     default:
       return {}
   }
@@ -182,6 +196,8 @@ const getWidgetPositionConfig = (item: string) => {
 
 const gridRef = ref()
 
+// The widget position/width can be updated manually from the widget or by realtime
+// Hence we need to watch the activeDashboardWidgets and update the layout
 watch(
   activeDashboardWidgets,
   () => {

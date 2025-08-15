@@ -20,9 +20,9 @@ export interface DashboardType {
 
 export enum WidgetTypes {
   CHART = 'chart',
-  TABLE = 'table',
   METRIC = 'metric',
   TEXT = 'text',
+  TABLE = 'table',
   IFRAME = 'iframe',
 }
 
@@ -71,10 +71,43 @@ export interface MetricWidgetConfig {
   };
 }
 
-export interface TextWidgetConfig {
-  content: string;
-  format: 'markdown' | 'html' | 'plain';
+export enum TextWidgetTypes {
+  Markdown = 'markdown',
+  Text = 'text',
 }
+
+interface TextWidgetConfigMarkdown {
+  content: string;
+  type: TextWidgetTypes.Markdown;
+  formatting: {
+    horizontalAlign: 'flex-start' | 'center' | 'flex-end';
+    verticalAlign: 'flex-start' | 'center' | 'flex-end';
+  };
+}
+
+interface TextWidgetConfigText {
+  content: string;
+  type: TextWidgetTypes.Text;
+  formatting: {
+    horizontalAlign: 'flex-start' | 'center' | 'flex-end';
+    verticalAlign: 'flex-start' | 'center' | 'flex-end';
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+    strikethrough: boolean;
+  };
+  appearance: {
+    font: {
+      family: string;
+      weight: 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900;
+      size: number;
+      lineHeight: number;
+    };
+    color: string;
+  };
+}
+
+export type TextWidgetConfig = TextWidgetConfigMarkdown | TextWidgetConfigText;
 
 export interface IframeWidgetConfig {
   url: string;

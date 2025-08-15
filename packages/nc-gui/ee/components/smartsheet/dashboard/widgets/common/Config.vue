@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { ChartTypes, WidgetChartLabelMap, WidgetTypes } from 'nocodb-sdk'
-import { chartIconMap } from '#imports'
+import { ChartTypes, TextWidgetTypes, WidgetChartLabelMap, WidgetTypes } from 'nocodb-sdk'
+import { chartIconMap, textIconMap } from '#imports'
+
+defineProps<{
+  disableAppearance?: boolean
+}>()
 
 const { selectedWidget } = storeToRefs(useWidgetStore())
 
@@ -50,14 +54,31 @@ const handleConfigUpdate = async (config: any) => {
       </NcSelect>
     </div>
 
+    <div v-if="selectedWidget?.type === WidgetTypes.TEXT" class="pl-4 pr-5">
+      <NcSelect :value="selectedWidget?.config?.type" class="w-33" @change="handleConfigUpdate({ type: $event })">
+        <a-select-option v-for="option of Object.values(TextWidgetTypes)" :key="option" :value="option">
+          <div class="flex items-center gap-2">
+            <GeneralIcon :icon="textIconMap[option]" class="w-4 h-4 text-nc-content-gray" />
+            <span class="text-nc-content-gray text-sm">
+              {{ textLabelMap[option] }}
+            </span>
+          </div>
+        </a-select-option>
+      </NcSelect>
+    </div>
+
     <NcTabs class="!mt-3">
       <a-tab-pane key="data" tab="Data">
         <template #tab>Data</template>
-        <div :data-is-chart="selectedWidget?.type === WidgetTypes.CHART" class="overflow-auto editor-data-wrapper">
+        <div
+          :data-is-text="selectedWidget?.type === WidgetTypes.TEXT"
+          :data-is-chart="selectedWidget?.type === WidgetTypes.CHART"
+          class="overflow-auto editor-data-wrapper"
+        >
           <slot name="data"></slot>
         </div>
       </a-tab-pane>
-      <a-tab-pane key="appearance" tab="Appearance">
+      <a-tab-pane v-if="!disableAppearance" key="appearance" tab="Appearance">
         <template #tab>Appearance</template>
         <slot name="appearance"></slot>
       </a-tab-pane>
@@ -85,6 +106,9 @@ const handleConfigUpdate = async (config: any) => {
 .editor-data-wrapper {
   @apply h-[calc(100svh-195px)] overflow-auto;
 
+  &[data-is-text='true'] {
+    @apply h-[calc(100svh-227px)];
+  }
   &[data-is-chart='true'] {
     @apply h-[calc(100svh-227px)];
   }

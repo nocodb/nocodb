@@ -4,6 +4,7 @@ import MetricsWidgetConfig from './widgets/metrics/config/index.vue'
 import PieChartWidgetConfig from './widgets/piechart/config/index.vue'
 import DonutChartWidgetConfig from './widgets/donutchart/config/index.vue'
 import BarChartWidgetConfig from './widgets/barchart/config/index.vue'
+import TextWidgetConfig from './widgets/text/config/index.vue'
 const widgetStore = useWidgetStore()
 const { selectedWidget } = storeToRefs(widgetStore)
 
@@ -13,6 +14,8 @@ const configComponent = computed(() => {
   switch (selectedWidget.value.type) {
     case WidgetTypes.METRIC:
       return MetricsWidgetConfig
+    case WidgetTypes.TEXT:
+      return TextWidgetConfig
     case WidgetTypes.CHART:
       switch ((selectedWidget.value.config as ChartWidgetConfig).chartType) {
         case ChartTypes.PIE:
@@ -33,7 +36,7 @@ const configComponent = computed(() => {
 <template>
   <div
     v-if="selectedWidget"
-    class="widget-editor-panel w-80 bg-white border-l border-nc-content-gray-300 h-full overflow-hidden flex flex-col"
+    class="widget-editor-panel w-88 bg-white border-l border-nc-content-gray-300 h-full overflow-hidden flex flex-col"
   >
     <component :is="configComponent" :widget="selectedWidget" />
   </div>

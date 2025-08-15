@@ -99,8 +99,8 @@ export interface BaseWithMembers {
     integration_id: string;
   }[];
   individual_members?: {
-    base_members?: BaseMember[];
-    workspace_members?: BaseMember[];
+    base_members?: BaseMemberWithWorkspaceRole[];
+    workspace_members?: WorkspaceMember[];
   };
 }
 
@@ -209,6 +209,22 @@ export interface BaseMember {
   base_role: BaseRoles;
 }
 
+export interface BaseMemberWithWorkspaceRole {
+  /** Unique identifier for the user. */
+  user_id: string;
+  /**
+   * Email address of the user.
+   * @format email
+   */
+  email: string;
+  /** Display name of the user. */
+  user_name?: string;
+  /** Base roles for the user. */
+  base_role: BaseRoles;
+  /** Role assigned to the user in the workspace */
+  workspace_role?: WorkspaceRoles;
+}
+
 export type BaseUserDeleteRequest = any;
 
 export interface BaseMemberList {
@@ -216,31 +232,39 @@ export interface BaseMemberList {
 }
 
 /** Array of members to be created. */
-export type BaseMemberCreate = {
-  /** User unique identifier for the member. Can be provided optionally during creation. */
-  user_id?: string;
-  /**
-   * User Email address. Used as a primary identifier if 'id' is not provided.
-   * @format email
-   */
-  email?: string;
-  /** Full name of the user. */
-  user_name?: string;
-  /** Base roles for the user. */
-  base_role: BaseRoles;
-}[];
+export type BaseMemberCreate = (
+  | {
+      /** Unique identifier for the user (skip if email is provided) */
+      user_id: string;
+      /** Full name of the user. */
+      user_name?: string;
+      /** Base roles for the user. */
+      base_role: BaseRoles;
+    }
+  | {
+      /**
+       * Email address of the user (skip if user_id is provided)
+       * @format email
+       */
+      email: string;
+      /** Full name of the user. */
+      user_name?: string;
+      /** Base roles for the user. */
+      base_role: BaseRoles;
+    }
+)[];
 
 /** Array of member updates. */
 export type BaseMemberUpdate = {
   /** Unique user identifier for the member. */
-  user_id?: string;
+  user_id: string;
   /** Base roles for the user. */
   base_role: BaseRoles;
 }[];
 
 export type BaseMemberDelete = {
   /** User unique identifier for the member. */
-  user_id?: string;
+  user_id: string;
 }[];
 
 export interface TableMetaReq {
@@ -1334,17 +1358,23 @@ export interface WorkspaceUser {
 }
 
 /** Array of workspace users to be created. */
-export type WorkspaceUserCreate = {
-  /** Unique identifier for the user (skip if email is provided) */
-  user_id?: string;
-  /**
-   * Email address of the user (skip if user_id is provided)
-   * @format email
-   */
-  email?: string;
-  /** Workspace role to assign to the user */
-  workspace_role: WorkspaceRoles;
-}[];
+export type WorkspaceUserCreate = (
+  | {
+      /** Unique identifier for the user (skip if email is provided) */
+      user_id: string;
+      /** Workspace role to assign to the user */
+      workspace_role: WorkspaceRoles;
+    }
+  | {
+      /**
+       * Email address of the user (skip if user_id is provided)
+       * @format email
+       */
+      email: string;
+      /** Workspace role to assign to the user */
+      workspace_role: WorkspaceRoles;
+    }
+)[];
 
 /** Array of workspace user updates. */
 export type WorkspaceUserUpdate = {
@@ -1590,7 +1620,7 @@ export class InternalApi<
       }),
 
     /**
-     * @description Retrieves metadata for a specified workspace, with an option to include its members. Notes: - To include member details, use the query parameter `include[]=members`. - Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     * @description Retrieve details of a specific workspace, including its members. Notes: - To include member details, use the query parameter `include[]=members`. - Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
      *
      * @tags Workspace Members
      * @name WorkspaceMembersRead
@@ -1608,7 +1638,7 @@ export class InternalApi<
       },
       params: RequestParams = {},
     ) =>
-      this.request<Workspace | WorkspaceWithMembers, void>({
+      this.request<WorkspaceWithMembers, void>({
         path: `/api/v3/meta/workspaces/${workspaceId}?include[]=members`,
         method: 'GET',
         query: query,
@@ -2137,7 +2167,7 @@ export class InternalApi<
      * @request GET:/api/v3/meta/bases/{baseId}?include[]=members
      */
     baseMembersList: (baseId: string, params: RequestParams = {}) =>
-      this.request<Base | BaseWithMembers, void>({
+      this.request<BaseWithMembers, void>({
         path: `/api/v3/meta/bases/${baseId}?include[]=members`,
         method: 'GET',
         format: 'json',

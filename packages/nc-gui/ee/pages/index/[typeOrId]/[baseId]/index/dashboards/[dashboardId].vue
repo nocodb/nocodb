@@ -23,6 +23,18 @@ const confirmUnsavedChangesBeforeLeaving = (
   }
 
   const targetDashboardId = to.params.dashboardId as string
+
+  const baseDashboards = dashboards.value.get(openedProject.value?.id)
+
+  const fromDashboardId = from.params.dashboardId as string
+
+  const fromDashboard = activeBaseDashboards.value.find((d) => d.id === fromDashboardId)
+
+  if ((!targetDashboardId && !baseDashboards?.length) || !fromDashboard) {
+    next()
+    return
+  }
+
   const targetDashboard = activeBaseDashboards.value.find((d) => d.id === targetDashboardId) as any
   if (targetDashboard?.___is_new) {
     targetDashboard.___is_new = false

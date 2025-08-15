@@ -64,7 +64,7 @@ export class BaseWidgetHandler {
       fk_view_id: widget.fk_view_id ? idMap.get(widget.fk_view_id) : null,
       fk_dashboard_id: idMap.get(`${widget.fk_dashboard_id}`),
       type: widget.type,
-      config: {},
+      config: widget.config,
       meta: widget.meta,
       order: widget.order,
       error: true,

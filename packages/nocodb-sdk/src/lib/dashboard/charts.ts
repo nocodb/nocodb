@@ -84,16 +84,10 @@ export interface BarChartDataConfig {
 
 export interface BarChartAppearanceConfig {
   size: 'small' | 'medium' | 'large';
-  smoothLines: boolean;
-  plotDataPoints: boolean;
   showCountInLegend: boolean;
   showPercentageOnChart: boolean;
   legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
   colorSchema: 'default' | 'custom';
-  customColorSchema: {
-    color: string;
-    label: string;
-  }[];
 }
 
 export interface BarChartConfig extends BaseChartConfig {
@@ -104,14 +98,38 @@ export interface BarChartConfig extends BaseChartConfig {
   appearance: BarChartAppearanceConfig;
 }
 
+export interface LineChartAppearanceConfig {
+  size: 'small' | 'medium' | 'large';
+  smoothLines: boolean;
+  plotDataPoints: boolean;
+  showCountInLegend: boolean;
+  showPercentageOnChart: boolean;
+  legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
+  colorSchema: 'default' | 'custom';
+}
+
 export interface LineChartConfig extends BaseChartConfig {
   chartType: ChartTypes.LINE;
+  data: BarChartDataConfig;
+  permissions: ChartPermissionConfig;
   dataSource?: WidgetDataSourceTypes;
+  appearance: LineChartAppearanceConfig;
+}
+
+export interface ScatterPlotAppearanceConfig {
+  size: 'small' | 'medium' | 'large';
+  showCountInLegend: boolean;
+  showPercentageOnChart: boolean;
+  legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
+  colorSchema: 'default' | 'custom';
 }
 
 export interface ScatterPlotConfig extends BaseChartConfig {
   chartType: ChartTypes.SCATTER;
   dataSource?: WidgetDataSourceTypes;
+  data: BarChartDataConfig;
+  permissions: ChartPermissionConfig;
+  appearance: ScatterPlotAppearanceConfig;
 }
 
 export type ChartWidgetConfig<T extends ChartTypes = ChartTypes> =

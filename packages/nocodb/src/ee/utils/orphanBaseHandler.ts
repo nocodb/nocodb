@@ -25,8 +25,8 @@ export async function handleOrphanBases(
   deletedUserId: string,
   ncMeta: MetaService,
 ) {
-  // Get all bases in the workspace
-  const workspaceBases = await Base.listByWorkspace(workspaceId, true, ncMeta);
+  // Get all bases in the workspace, excluding deleted
+  const workspaceBases = await Base.listByWorkspace(workspaceId, false, ncMeta);
 
   for (const base of workspaceBases) {
     // Get all base users for this base

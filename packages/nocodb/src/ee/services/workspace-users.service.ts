@@ -375,12 +375,12 @@ export class WorkspaceUsersService {
 
       res = await WorkspaceUser.softDelete(workspaceId, userId, transaction);
 
-      // Handle orphan bases after user deletion
-      await handleOrphanBases(workspaceId, userId, transaction);
-
       cacheTransaction.push(() =>
         NocoCache.del(`${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`),
       );
+
+      // Handle orphan bases after user deletion
+      await handleOrphanBases(workspaceId, userId, transaction);
 
       await transaction.commit();
     } catch (e) {

@@ -1,4 +1,10 @@
-import { ChartTypes, WidgetDataSourceTypes, WidgetType, WidgetTypes } from '.';
+import {
+  ChartTypes,
+  TextWidgetTypes,
+  WidgetDataSourceTypes,
+  WidgetType,
+  WidgetTypes,
+} from '.';
 import { ColumnType, UITypes } from '~/lib';
 
 export const calculateNextPosition = (
@@ -86,6 +92,28 @@ const getDefaultConfig = (
 
     case WidgetTypes.CHART:
       return getDefaultChartConfig(chartType, columns);
+    case WidgetTypes.TEXT:
+      return {
+        content: 'Enter text here',
+        type: TextWidgetTypes.H1,
+        formatting: {
+          horizontalAlign: 'flex-start',
+          verticalAlign: 'flex-start',
+          bold: false,
+          italic: false,
+          underline: false,
+          strikethrough: false,
+        },
+        appearance: {
+          font: {
+            family: 'Arial',
+            weight: 400,
+            size: 16,
+            lineHeight: 1,
+          },
+          color: '#000000',
+        },
+      };
 
     default:
       return {};

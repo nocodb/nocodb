@@ -12,6 +12,7 @@ export interface MarkdownOptions {
   breaks?: boolean
   transformPastedText?: boolean
   transformCopiedText?: boolean
+  renderImagesAsLinks?: boolean
 }
 
 export interface MarkdownStorage {

@@ -2133,15 +2133,6 @@
         ],
         "parameters": [
           {
-            "name": "viewId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the view."
-          },
-          {
             "name": "baseId",
             "in": "path",
             "required": true,
@@ -2149,6 +2140,15 @@
               "type": "string"
             },
             "description": "Unique identifier for the base."
+          },
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
           }
         ],
         "responses": {
@@ -2233,15 +2233,6 @@
         ],
         "parameters": [
           {
-            "name": "viewId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the view."
-          },
-          {
             "name": "baseId",
             "in": "path",
             "required": true,
@@ -2249,6 +2240,15 @@
               "type": "string"
             },
             "description": "Unique identifier for the base."
+          },
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
           }
         ],
         "requestBody": {
@@ -2352,6 +2352,15 @@
           "Views"
         ],
         "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
           {
             "name": "viewId",
             "in": "path",

@@ -59,6 +59,9 @@ export class ViewRowColorV3Service {
     );
 
     if (body?.mode === 'select') {
+      if (!body.field_id) {
+        NcError.get(context).requiredFieldMissing('field_id');
+      }
       await this.viewRowColorService.setRowColoringSelect({
         context,
         fk_column_id: body.field_id,
@@ -89,11 +92,14 @@ export class ViewRowColorV3Service {
   ) {
     let i = 1;
     for (const condition of params.body.conditions) {
+      if (!condition.color) {
+        NcError.get(context).requiredFieldMissing('color');
+      }
       const rowColorCondition =
         await this.viewRowColorService.addRowColoringCondition({
           context,
           color: condition.color,
-          is_set_as_background: condition.apply_as_row_background,
+          is_set_as_background: condition.apply_as_row_background ?? false,
           nc_order: i++,
           fk_view_id: params.viewId,
           ncMeta,

@@ -168,14 +168,19 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         NcError.get(params.context).viewNotFound(params.fk_view_id);
       }
     } else {
-      NcError.requiredFieldMissing('view_id');
+      NcError.get(params.context).requiredFieldMissing('view_id');
     }
     if (
       view.row_coloring_mode &&
       view.row_coloring_mode !== ROW_COLORING_MODE.FILTER
     ) {
-      NcError.badRequest(
+      NcError.get(params.context).invalidRequestBody(
         'Cannot directly change row coloring mode, remove it first',
+      );
+    }
+    if (!params.color || !params.nc_order) {
+      NcError.get(params.context).invalidRequestBody(
+        'Invalid payload for row coloring condition',
       );
     }
 
@@ -192,7 +197,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           base_id: params.context.base_id,
           color: params.color,
           nc_order: params.nc_order,
-          is_set_as_background: params.is_set_as_background,
+          is_set_as_background: params.is_set_as_background ?? false,
         },
       );
       const rowColoringConditionId = rowColoringCondition.id;
@@ -356,13 +361,16 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         NcError.get(params.context).viewNotFound(params.fk_view_id);
       }
     } else {
-      NcError.requiredFieldMissing('view_id');
+      NcError.get(context).requiredFieldMissing('view_id');
+    }
+    if (!params.fk_column_id) {
+      NcError.get(context).requiredFieldMissing('fk_column_id');
     }
 
     const viewMeta: ViewMetaRowColoring = parseProp(view.meta);
     viewMeta.rowColoringInfo = {
       fk_column_id: params.fk_column_id,
-      is_set_as_background: params.is_set_as_background,
+      is_set_as_background: params.is_set_as_background ?? false,
     };
 
     await View.update(

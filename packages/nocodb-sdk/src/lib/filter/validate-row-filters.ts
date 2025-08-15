@@ -282,7 +282,7 @@ export function validateRowFilters(params: {
               const childFieldName = childColumn.title;
               const childValues = linkData
                 .map((item) => {
-                  return item[childFieldName]?.toString() || '';
+                  return item?.[childFieldName]?.toString() || '';
                 })
                 .filter((val) => val !== '');
 

@@ -1,6 +1,14 @@
 const fs = require('fs')
 const glob = require('glob')
 
+/**
+ * @example
+ * ```zsh
+ * cd packages/nc-gui
+ * node migrate-colors.js convert ./components/dlg/
+ * ```
+ */
+
 // Define conflict resolution strategies
 const CONFLICT_STRATEGIES = {
   ASK_USER: 'ask_user',
@@ -29,7 +37,7 @@ const colorMappingConflicts = {
     {
       token: 'text-nc-content-gray-muted',
       priority: 50,
-      context: ['muted', 'disabled', 'placeholder', 'hint', 'caption'],
+      context: ['muted', 'disabled', 'placeholder', 'hint', 'caption', 'GeneralIcon'],
       usage: 'Primary choice for muted text',
     },
     {

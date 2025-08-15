@@ -291,7 +291,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <style lang="scss">
 .nc-mini-sidebar {
-  --mini-sidebar-bg-color: var(--color-grey-100);
+  --mini-sidebar-bg-color: var(--nc-bg-gray-light);
 
   @apply w-[var(--mini-sidebar-width)] flex-none bg-[var(--mini-sidebar-bg-color)] flex flex-col justify-between items-center border-r-1 border-nc-border-gray-medium z-502 nc-scrollbar-thin relative;
 

@@ -79,10 +79,10 @@ export default {
       }"
     >
       <div class="w-[680px] max-w-full flex-grow flex flex-col px-6 2xl:px-0">
-        <div class="w-full h-0 flex-grow ml-15.8 border-l-1 border-gray-300" />
+        <div class="w-full h-0 flex-grow ml-15.8 border-l-1 border-nc-border-gray-dark" />
       </div>
       <div v-if="hasMoreAudits" class="w-[680px] max-w-full fflex-grow-0 flex-shrink-0 flex flex-col px-6 2xl:px-0">
-        <div class="w-full h-15 flex-grow-0 flex-shrink-0 ml-15.8 border-l-1 border-gray-300 relative">
+        <div class="w-full h-15 flex-grow-0 flex-shrink-0 ml-15.8 border-l-1 border-nc-border-gray-dark relative">
           <NcButton
             size="small"
             type="secondary"
@@ -104,7 +104,7 @@ export default {
         </div>
         <div
           v-if="isUIAllowed('commentEdit')"
-          class="w-full border-t border-gray-200 px-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-white z-10"
+          class="w-full border-t border-nc-border-gray-medium px-6 2xl:px-0 sticky bottom-0 pb-4 -mb-4 bg-nc-bg-default z-10"
         >
           <div class="font-bold my-3">Add a comment</div>
           <SmartsheetExpandedFormRichComment
@@ -112,7 +112,7 @@ export default {
             v-model:value="newCommentText"
             :hide-options="false"
             placeholder="Comment..."
-            class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-gray-800 !text-small !leading-18px !max-h-[240px] bg-white !w-auto"
+            class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg !text-nc-content-gray !text-small !leading-18px !max-h-[240px] bg-nc-bg-default !w-auto"
             data-testid="expanded-form-comment-input"
             :autofocus="isExpandedFormCommentMode"
             @focus="isExpandedFormCommentMode = false"
@@ -123,7 +123,7 @@ export default {
           />
         </div>
         <div v-else class="w-full px-6 2xl:px-0">
-          <div class="w-full h-4 flex-grow ml-15.8 -mb-4 border-l-1 border-gray-300" />
+          <div class="w-full h-4 flex-grow ml-15.8 -mb-4 border-l-1 border-nc-border-gray-dark" />
         </div>
 
         <div ref="refAuditsEnd" />
@@ -131,7 +131,7 @@ export default {
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
-      class="nc-comments-drawer border-l-1 relative border-gray-200 bg-white w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
+      class="nc-comments-drawer border-l-1 relative border-nc-border-gray-medium bg-nc-bg-default w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
       :class="{
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
@@ -147,7 +147,7 @@ export default {
   box-shadow: none;
   &:focus,
   &:focus-within {
-    @apply min-h-16 !bg-white border-brand-500;
+    @apply min-h-16 !bg-nc-bg-default border-nc-border-brand;
     box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
   }
   &::placeholder {

@@ -166,11 +166,11 @@ watch(isOpenContextMenu, (newValue) => {
 
 <template>
   <div
-    class="h-[56px] border-1 rounded-md overflow-hidden hover:bg-gray-50 cursor-pointer flex flex-row transition-all group"
+    class="h-[56px] border-1 rounded-md overflow-hidden hover:bg-nc-bg-gray-extralight cursor-pointer flex flex-row transition-all group"
     :class="{
-      'w-[56px] border-gray-200': !isExpanded,
+      'w-[56px] border-nc-border-gray-medium': !isExpanded,
       'w-full border-transparent': isExpanded,
-      '!border-primary ring-3 ring-[#3069fe44] preview-cell-active': props.active,
+      '!border-primary shadow-selected preview-cell-active': props.active,
     }"
     style="scroll-margin-top: 28px"
   >
@@ -185,19 +185,20 @@ watch(isOpenContextMenu, (newValue) => {
           class="object-cover transition-all duration-300 absolute overflow-hidden"
           :class="{
             'top-0 left-0 right-0 w-full h-[calc(100%-20px)] rounded-none': !isExpanded,
-            'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[36px] h-[36px] rounded-lg ring-1 ring-gray-300':
+            'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[36px] h-[36px] rounded-lg ring-1 ring-nc-gray-300':
               isExpanded,
           }"
         />
-        <GeneralIcon
+        <div
           v-else
-          :icon="fileEntry.icon"
-          class="text-white !transition-all !duration-300 absolute w-full h-full"
+          class="!transition-all !duration-300 absolute w-full h-full flex items-center justify-center"
           :class="{
             'top-0 left-0 right-0 h-[calc(100%-16px)]': !isExpanded,
             'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-[48px] w-[48px]': isExpanded,
           }"
-        />
+        >
+          <GeneralIcon :icon="fileEntry.icon" />
+        </div>
       </div>
       <div
         class="font-bold text-[12px] text-center uppercase truncate px-1 transition-all duration-300 absolute"
@@ -272,7 +273,7 @@ watch(isOpenContextMenu, (newValue) => {
             </NcMenuItem>
             <template v-if="isEditAllowed">
               <NcDivider />
-              <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="deleteCurrentFile">
+              <NcMenuItem danger @click="deleteCurrentFile">
                 <GeneralIcon icon="delete" />
                 Delete
               </NcMenuItem>

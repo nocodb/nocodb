@@ -25,7 +25,7 @@ onMounted(async () => {
     </div>
     <NcPageHeader>
       <template #icon>
-        <GeneralIcon icon="home1" class="flex-none h-5 w-5 !text-gray-700" />
+        <GeneralIcon icon="home1" class="flex-none h-5 w-5" />
       </template>
       <template #title>
         <span data-rec="true">

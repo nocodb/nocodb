@@ -47,8 +47,8 @@ const isPdfAttachment = computed(() => isPdf(props.attachment.title ?? '', props
       </div>
     </template>
     <template v-else>
-      <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 nc-files-viewer-unsupported">
-        <GeneralIcon icon="alertTriangleSolid" class="text-yellow-500 w-[40px] h-[40px]" />
+      <div class="w-full h-full flex flex-col items-center justify-center nc-files-viewer-unsupported">
+        <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-yellow-medium w-[40px] h-[40px]" />
         <span class="text-base font-black mt-4"> Unsupported File Type </span>
         <span class="text-xs mt-3 w-[250px] text-center">
           This file type is currently not supported for viewing.

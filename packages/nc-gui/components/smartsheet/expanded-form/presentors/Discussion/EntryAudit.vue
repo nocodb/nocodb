@@ -43,12 +43,12 @@ const createdBy = computed(() => {
 </script>
 
 <template>
-  <div class="py-4 ml-15.8 border-l border-gray-300">
+  <div class="py-4 ml-15.8 border-l border-nc-border-gray-dark">
     <div class="flex items-center h-[32px] gap-2 mb-2">
       <div
-        class="w-[28px] h-[28px] bg-white flex items-center justify-center bg-white rounded-full border border-1 !border-gray-200 shadow-sm -ml-3.5"
+        class="w-[28px] h-[28px] bg-nc-bg-default flex items-center justify-center bg-nc-bg-default rounded-full border border-1 !border-nc-border-gray-medium shadow-sm -ml-3.5"
       >
-        <GeneralIcon icon="ncPenLine" class="w-[16px] h-[16px] text-gray-500" />
+        <GeneralIcon icon="ncPenLine" class="w-[16px] h-[16px] text-nc-content-gray-muted" />
       </div>
       <GeneralUserIcon
         :user="{
@@ -62,17 +62,17 @@ const createdBy = computed(() => {
         <span class="font-weight-700">
           {{ createdBy }}
         </span>
-        <span v-if="props.auditGroup.audit?.op_type === 'DATA_INSERT'" class="font-weight-500 text-gray-600">
+        <span v-if="props.auditGroup.audit?.op_type === 'DATA_INSERT'" class="font-weight-500 text-nc-content-gray-subtle2">
           created a record.
         </span>
-        <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'" class="font-weight-500 text-gray-600">
+        <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'" class="font-weight-500 text-nc-content-gray-subtle2">
           updated {{ fieldsChanged }} fields
         </span>
-        <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_LINK'" class="font-weight-500 text-gray-600">
+        <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_LINK'" class="font-weight-500 text-nc-content-gray-subtle2">
           updated 1 field
         </span>
       </p>
-      <div class="text-xs font-weight-500 text-gray-500">
+      <div class="text-xs font-weight-500 text-nc-content-gray-muted">
         <NcTooltip>
           <template #title>{{ parseStringDateTime(props.auditGroup.audit?.created_at) }}</template>
           {{ timeAgo(props.auditGroup.audit?.created_at) }}
@@ -83,7 +83,7 @@ const createdBy = computed(() => {
       <div class="relative mb-2">
         <GeneralIcon
           icon="ncNode"
-          class="w-[16px] h-[16px] text-gray-500 bg-white absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
+          class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-default absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
         <p class="text-sm font-weight-500 mb-1 ml-6.5">Record was created.</p>
       </div>
@@ -95,10 +95,10 @@ const createdBy = computed(() => {
       <div class="relative mb-2">
         <GeneralIcon
           icon="ncNode"
-          class="w-[16px] h-[16px] text-gray-500 bg-white absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
+          class="w-[16px] h-[16px] text-nc-content-gray-muted bg-nc-bg-default absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1/2"
         />
         <div class="text-sm ml-6.5 inline-flex items-center flex-wrap gap-1">
-          <span class="text-small1 text-gray-600 font-weight-500"> changed </span>
+          <span class="text-small1 text-nc-content-gray-subtle2 font-weight-500"> changed </span>
           <span
             class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 text-nc-content-gray-emphasis border-1 border-nc-border-gray-medium"
           >
@@ -115,12 +115,12 @@ const createdBy = computed(() => {
             class="flex gap-1 flex-wrap"
           >
             <span
-              class="!text-small p-0.5 font-weight-500 border-1 border-red-200 rounded-md bg-red-50 inline-flex items-center gap-1"
+              class="!text-small p-0.5 font-weight-500 border-1 border-nc-red-200 rounded-md bg-nc-bg-red-light inline-flex items-center gap-1"
             >
               <span
                 v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_unlinks')"
                 :key="entry.refRowId"
-                class="text-brand-500 font-weight-500 line-through px-1 bg-[#F0F3FF] !rounded-md"
+                class="text-nc-content-brand font-weight-500 line-through px-1 bg-nc-bg-brand !rounded-md"
               >
                 {{ entry.value }}
               </span>
@@ -131,12 +131,12 @@ const createdBy = computed(() => {
             class="flex gap-1 flex-wrap"
           >
             <span
-              class="!text-small1 p-0.5 font-weight-500 border-1 border-green-200 rounded-md bg-green-50 inline-flex items-center gap-1"
+              class="!text-small1 p-0.5 font-weight-500 border-1 border-nc-green-200 rounded-md bg-nc-bg-green-light inline-flex items-center gap-1"
             >
               <span
                 v-for="entry of safeGetFromAuditDetails(props.auditGroup.audit, 'consolidated_ref_display_values_links')"
                 :key="entry.refRowId"
-                class="text-brand-500 font-weight-500 px-1 bg-[#F0F3FF] !rounded-md"
+                class="text-nc-content-brand font-weight-500 px-1 bg-nc-bg-brand !rounded-md"
               >
                 {{ entry.value }}
               </span>

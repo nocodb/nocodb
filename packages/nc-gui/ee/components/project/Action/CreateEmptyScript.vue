@@ -38,7 +38,7 @@ const isActionVisible = computed(() => {
     @click="openNewScriptModal"
   >
     <template #icon>
-      <GeneralIcon icon="ncScript" class="!h-8 !w-8 !text-brand-500" />
+      <GeneralIcon icon="ncScript" class="!h-8 !w-8 !text-nc-content-brand" />
     </template>
   </ProjectActionItem>
 </template>

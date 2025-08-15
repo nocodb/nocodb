@@ -5,7 +5,7 @@ import bgImage from '~/assets/img/loyalty-bg.png'
 
 <template>
   <div
-    class="loyalty-badge flex gap-4 rounded-lg p-4 border-1 border-nc-border-grey-medium bg-cover bg-no-repeat bg-center"
+    class="loyalty-badge flex gap-4 rounded-lg p-4 border-1 border-nc-border-gray-medium bg-cover bg-no-repeat bg-center"
     :style="{
       'background-image': `url(${bgImage})`,
       'background-color': 'rgba(255, 255, 255, 0.8)',

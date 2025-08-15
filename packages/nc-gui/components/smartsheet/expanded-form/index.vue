@@ -689,11 +689,11 @@ export default {
     <div class="h-[85vh] xs:(max-h-full h-full) max-h-215 flex flex-col">
       <div v-if="isMobileMode" class="flex-none h-4 flex items-center justify-center">
         <div class="flex-none h-full flex items-center justify-center cursor-pointer" @click="onClose">
-          <div class="w-[72px] h-[2px] rounded-full bg-[#49494a]"></div>
+          <div class="w-[72px] h-[2px] rounded-full bg-nc-bg-gray-dark"></div>
         </div>
       </div>
       <div
-        class="flex gap-2 min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header p-4 xs:(px-2 py-0 min-h-[48px]) border-b-1 border-gray-200"
+        class="flex gap-2 min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header p-4 xs:(px-2 py-0 min-h-[48px]) border-b-1 border-nc-border-gray-medium"
       >
         <div class="flex gap-2 min-w-0 min-h-8">
           <div class="flex gap-2">
@@ -701,7 +701,7 @@ export default {
               <template #title> {{ $t('labels.prevRow') }} {{ renderAltOrOptlKey() }} + ←</template>
               <NcButton
                 :disabled="isFirstRow || isLoading"
-                class="nc-prev-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
+                class="nc-prev-arrow !w-7 !h-7 !text-nc-content-gray-muted !disabled:text-nc-content-brand-hover"
                 type="text"
                 size="xsmall"
                 @click="onPrev"
@@ -713,7 +713,7 @@ export default {
               <template #title> {{ $t('labels.nextRow') }} {{ renderAltOrOptlKey() }} + →</template>
               <NcButton
                 :disabled="isLastRow || isLoading"
-                class="nc-next-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
+                class="nc-next-arrow !w-7 !h-7 !text-nc-content-gray-muted !disabled:text-nc-content-brand-hover"
                 type="text"
                 size="xsmall"
                 @click="onNext"
@@ -726,21 +726,24 @@ export default {
             <a-skeleton-input active class="!h-6 !sm:mr-14 !w-52 !rounded-md !overflow-hidden" size="small" />
           </div>
           <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end) min-w-0">
-            <div v-if="!props.showNextPrevIcons" class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
-              <GeneralIcon icon="table" class="text-gray-700 flex-none" />
+            <div
+              v-if="!props.showNextPrevIcons"
+              class="hidden md:flex items-center rounded-lg bg-nc-bg-gray-light px-2 py-1 gap-2"
+            >
+              <GeneralIcon icon="table" class="text-nc-content-inverted-secondary flex-none" />
               <span class="nc-expanded-form-table-name whitespace-nowrap">
                 {{ tableTitle }}
               </span>
             </div>
             <div
               v-if="row.rowMeta?.new || props.newRecordHeader"
-              class="flex items-center truncate font-bold text-gray-800 text-xl overflow-hidden"
+              class="flex items-center truncate font-bold text-nc-content-gray text-xl overflow-hidden"
             >
               {{ props.newRecordHeader ?? $t('activity.newRecord') }}
             </div>
             <div
               v-else-if="displayValue && !row?.rowMeta?.new"
-              class="flex items-center font-bold text-gray-800 text-2xl overflow-hidden"
+              class="flex items-center font-bold text-nc-content-gray text-2xl overflow-hidden"
             >
               <span class="min-w-[120px] md:min-w-[300px]">
                 <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" show-tooltip />
@@ -781,7 +784,7 @@ export default {
             <NcButton
               v-if="!isNew && rowId && !isMobileMode"
               :disabled="isLoading"
-              class="!<lg:hidden text-gray-700 !h-7 !w-7"
+              class="!<lg:hidden text-nc-content-inverted-secondary !h-7 !w-7"
               type="text"
               size="xsmall"
               @click="copyRecordUrl()"
@@ -800,7 +803,11 @@ export default {
           </NcTooltip>
           <NcDropdown v-if="!isNew && rowId && !isMobileMode" placement="bottomRight">
             <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7" :disabled="isLoading">
-              <GeneralIcon icon="threeDotVertical" class="text-md" :class="isLoading ? 'text-gray-300' : 'text-gray-700'" />
+              <GeneralIcon
+                icon="threeDotVertical"
+                class="text-md"
+                :class="isLoading ? 'text-nc-content-brand-hover' : 'text-nc-content-inverted-secondary'"
+              />
             </NcButton>
             <template #overlay>
               <NcMenu variant="small">
@@ -861,7 +868,7 @@ export default {
                   <template #default="{ isAllowed }">
                     <NcMenuItem
                       :class="{
-                        '!text-red-500 !hover:bg-red-50': isAllowed,
+                        '!text-nc-content-red-medium !hover:bg-nc-bg-red-light': isAllowed,
                       }"
                       :disabled="!isAllowed"
                       @click="!isNew && onDeleteRowClick()"
@@ -890,7 +897,7 @@ export default {
             size="xsmall"
             @click="onClose"
           >
-            <GeneralIcon class="text-md text-gray-700 h-4 w-4" icon="close" />
+            <GeneralIcon class="text-md text-nc-content-inverted-secondary h-4 w-4" icon="close" />
           </NcButton>
         </div>
       </div>
@@ -942,7 +949,9 @@ export default {
   <GeneralDeleteModal v-model:visible="showDeleteRowModal" entity-name="Record" :on-delete="onConfirmDeleteRowClick">
     <template #entity-preview>
       <span>
-        <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700">
+        <div
+          class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-inverted-secondary"
+        >
           <div class="text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
             <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
           </div>
@@ -984,7 +993,7 @@ export default {
 }
 
 .nc-expanded-cell-header {
-  @apply w-full text-gray-500 !font-weight-500 !text-sm xs:(text-gray-600 mb-2 !text-small) pr-3;
+  @apply w-full text-nc-content-gray-muted !font-weight-500 !text-sm xs:(text-nc-content-gray-subtle2 mb-2 !text-small) pr-3;
 
   svg.nc-cell-icon,
   svg.nc-virtual-cell-icon {

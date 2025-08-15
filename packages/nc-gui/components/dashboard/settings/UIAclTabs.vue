@@ -18,5 +18,3 @@ const { base } = storeToRefs(useBase())
     </a-tab-pane>
   </a-tabs>
 </template>
-
-<style scoped></style>

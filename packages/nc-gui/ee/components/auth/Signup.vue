@@ -121,11 +121,11 @@ const toggleLoginForm = ref(false)
     <NuxtLayout>
       <div class="md:bg-primary bg-opacity-5 signup h-full min-h-[600px] flex flex-col justify-center items-center">
         <div
-          class="bg-white mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+          class="bg-nc-bg-default mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-nc-border-gray-medium shadow-xl)"
         >
           <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
-          <h1 class="prose-2xl font-bold self-center my-4">
+          <h1 class="prose-2xl font-bold self-center my-4 text-nc-content-gray">
             {{ $t('general.signUp') }}
             {{ $route.query.redirect_to === '/referral' ? '& REFER' : '' }}
             {{ $route.query.redirect_to === '/pricing' ? '& BUY' : '' }}
@@ -181,7 +181,7 @@ const toggleLoginForm = ref(false)
               <a
                 v-if="appInfo.googleAuthEnabled"
                 :href="`${appInfo.ncSiteUrl}/auth/google`"
-                class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+                class="scaling-btn bg-opacity-100 after:(!bg-transparent) !text-primary !no-underline"
               >
                 <span class="flex items-center gap-2">
                   <LogosGoogleGmail />
@@ -237,7 +237,7 @@ const toggleLoginForm = ref(false)
                 <a
                   v-if="client.type === 'google'"
                   :href="client.url"
-                  class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+                  class="scaling-btn bg-opacity-100 after:(!bg-transparent) !text-primary !no-underline"
                 >
                   <span class="flex items-center gap-2">
                     <LogosGoogleGmail />
@@ -264,10 +264,10 @@ const toggleLoginForm = ref(false)
                   size="small"
                   class="my-1 hover:(ring ring-accent ring-opacity-100) focus:(!ring !ring-accent ring-opacity-100)"
                 />
-                <div class="prose-xs text-gray-500">Subscribe to our weekly newsletter</div>
+                <div class="prose-xs text-nc-content-gray-muted">Subscribe to our weekly newsletter</div>
               </div>
 
-              <div class="text-end prose-sm">
+              <div class="text-end prose-sm text-nc-content-gray">
                 {{ $t('msg.info.signUp.alreadyHaveAccount') }}
 
                 <nuxt-link @click="navigateSignIn">{{ $t('general.signIn') }}</nuxt-link>
@@ -276,9 +276,13 @@ const toggleLoginForm = ref(false)
           </a-form>
         </div>
 
-        <div class="prose-sm mt-4 text-gray-500">
+        <div class="prose-sm mt-4 text-nc-content-gray-muted">
           By signing up, you agree to the
-          <a class="prose-sm !text-gray-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb" rel="noopener"
+          <a
+            class="prose-sm !text-nc-content-gray-muted underline"
+            target="_blank"
+            href="https://nocodb.com/policy-nocodb"
+            rel="noopener"
             >Terms of Service</a
           >
         </div>

@@ -1797,7 +1797,7 @@ const errorMsgsTableColumns = [
     display: flex;
     flex-direction: column;
     gap: 12px;
-    border-bottom: 1px solid var(--nc-border-grey-medium, #e7e7e9);
+    border-bottom: 1px solid var(--nc-border-gray-medium, #e7e7e9);
     h1 {
       font-size: 16px;
       font-weight: 700;

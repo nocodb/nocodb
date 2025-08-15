@@ -75,7 +75,7 @@ const listOptions = computed<ListOptionType[]>(() => [
     }"
   >
     <template v-if="!rowColoringModeVModel">
-      <div class="bg-white flex flex-col overflow-hidden animate-animated animate-fadeIn" style="animation-duration: 0.3s">
+      <div class="flex flex-col overflow-hidden animate-animated animate-fadeIn" style="animation-duration: 0.3s">
         <LazyNcList
           :open="isOpenVModel"
           :value="rowColoringModeVModel"

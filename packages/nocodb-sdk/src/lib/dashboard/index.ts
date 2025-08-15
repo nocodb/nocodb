@@ -112,7 +112,6 @@ export type TextWidgetConfig = TextWidgetConfigMarkdown | TextWidgetConfigText;
 export interface IframeWidgetConfig {
   url: string;
   allowFullscreen?: boolean;
-  sandbox?: string[];
 }
 
 export type WidgetConfig =

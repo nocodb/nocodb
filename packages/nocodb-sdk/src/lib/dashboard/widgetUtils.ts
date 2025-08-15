@@ -96,7 +96,6 @@ const getDefaultConfig = (
       return {
         url: 'https://nocodb.com',
         allowFullScreen: false,
-        sandbox: [],
       };
     case WidgetTypes.TEXT:
       return {

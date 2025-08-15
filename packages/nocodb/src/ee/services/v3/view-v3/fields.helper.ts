@@ -59,10 +59,12 @@ export const handleFieldsRequestBody = async (
     const orderedFieldMap = param.fields
       .filter((col) => col.field_id !== pvColumn?.id)
       .reduce((acc, val, idx) => {
+        const width =
+          val.width && !isNaN(Number(val.width)) ? val.width + 'px' : undefined;
         acc[val.field_id] = {
           ...val,
           order: idx + 2,
-          ...(val.width ? { width: val.width + 'px' } : {}),
+          ...(width ? { width } : {}),
         };
         return acc;
       }, {});
@@ -70,7 +72,11 @@ export const handleFieldsRequestBody = async (
     // get the next orders by array index + length
     // for the rest of the columns not mentioned in ordered field map
     const unorderedFieldMap = modelColumns
-      .sort((a, b) => a.order - b.order)
+      .sort(
+        (a, b) =>
+          (a.order ?? Number.MAX_SAFE_INTEGER) -
+          (b.order ?? Number.MAX_SAFE_INTEGER),
+      )
       .map((k) => k.id)
       .filter((id) => !orderedFieldMap[id] && id !== pvColumn?.id)
       .reduce((cur, id, idx) => {
@@ -80,8 +86,7 @@ export const handleFieldsRequestBody = async (
         };
         return cur;
       }, {});
-    Object.assign(orderedFieldMap, unorderedFieldMap);
-    Object.assign(result, orderedFieldMap);
+    Object.assign(result, orderedFieldMap, unorderedFieldMap);
   }
   return result;
 };

@@ -365,6 +365,11 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
     if (!params.fk_column_id) {
       NcError.get(context).requiredFieldMissing('fk_column_id');
+    } else {
+      const columns = await view.getColumns(context);
+      if (!columns.find((col) => col.fk_column_id === params.fk_column_id)) {
+        NcError.get(context).fieldNotFound(params.fk_column_id);
+      }
     }
 
     const viewMeta: ViewMetaRowColoring = parseProp(view.meta);

@@ -63,10 +63,10 @@ export class ViewsV3Service {
     view?: () => ApiV3DataTransformationBuilder<any, any>;
     options?: () => ApiV3DataTransformationBuilder<any, any>;
     formFieldByIds?: () => ApiV3DataTransformationBuilder<any, any>;
-    rowColors?: () => ApiV3DataTransformationBuilder<RowColoringInfo, any>;
   } = {};
   private v2Tov3ViewBuilders: {
     formFieldByIds?: () => ApiV3DataTransformationBuilder<any, any>;
+    rowColors?: () => ApiV3DataTransformationBuilder<RowColoringInfo, any>;
   } = {};
 
   constructor(
@@ -175,7 +175,6 @@ export class ViewsV3Service {
         if (Object.keys(options).length > 0) {
           formattedData.options = options;
         }
-        // TODO: handle meta
         return formattedData;
       },
     });
@@ -390,7 +389,7 @@ export class ViewsV3Service {
       },
     }) as any;
 
-    this.v3Tov2ViewBuilders.rowColors = builderGenerator<RowColoringInfo, any>({
+    this.v2Tov3ViewBuilders.rowColors = builderGenerator<RowColoringInfo, any>({
       allowed: [
         'mode',
         'selectColumn',
@@ -497,7 +496,7 @@ export class ViewsV3Service {
         fk_view_id: view.id,
       });
       if (rowColor) {
-        formattedView.row_coloring = this.v3Tov2ViewBuilders
+        formattedView.row_coloring = this.v2Tov3ViewBuilders
           .rowColors()
           .build(rowColor);
       }

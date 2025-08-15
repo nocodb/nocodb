@@ -1013,10 +1013,10 @@ defineExpose({
             <NcDivider />
             <NcMenuItem
               v-if="isUIAllowed('tableDelete', { source: getSource(contextMenuTarget.value?.source_id) })"
-              class="!hover:bg-red-50"
+              danger
               @click="tableDelete"
             >
-              <div class="nc-base-option-item flex gap-2 items-center text-red-600">
+              <div class="nc-base-option-item flex gap-2 items-center">
                 <GeneralIcon icon="delete" />
                 {{ $t('general.delete') }} {{ $t('objects.table') }}
               </div>

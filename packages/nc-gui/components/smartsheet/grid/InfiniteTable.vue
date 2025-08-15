@@ -2935,28 +2935,30 @@ const headerFilteredOrSortedClass = (colId: string) => {
 
               <NcMenuItem
                 v-if="!contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
-                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                class="nc-base-menu-item"
                 data-testid="nc-delete-row"
+                danger
                 @click="deleteSelectedRows([])"
               >
                 <div v-if="selectedRows.length === 1" v-e="['a:row:delete']" class="flex gap-2 items-center">
-                  <component :is="iconMap.delete" />
+                  <GeneralIcon icon="delete" />
                   {{ $t('activity.deleteSelectedRow') }}
                 </div>
                 <div v-else v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
-                  <component :is="iconMap.delete" />
+                  <GeneralIcon icon="delete" />
                   {{ $t('activity.deleteSelectedRow') }}
                 </div>
               </NcMenuItem>
             </template>
             <NcMenuItem
               v-if="vSelectedAllRecords"
-              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+              class="nc-base-menu-item"
+              danger
               data-testid="nc-delete-all-row"
               @click="deleteAllRecords([])"
             >
               <div v-e="['a:row:delete-all']" class="flex gap-2 items-center">
-                <component :is="iconMap.delete" />
+                <GeneralIcon icon="delete" />
                 {{ $t('activity.deleteAllRecords') }}
               </div>
             </NcMenuItem>
@@ -3099,7 +3101,8 @@ const headerFilteredOrSortedClass = (colId: string) => {
               <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && (selectedRows.length || vSelectedAllRecords))" />
               <NcMenuItem
                 v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
-                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                class="nc-base-menu-item"
+                damger
                 @click="confirmDeleteRow(contextMenuTarget.row)"
               >
                 <div v-e="['a:row:delete']" class="flex gap-2 items-center">
@@ -3110,11 +3113,12 @@ const headerFilteredOrSortedClass = (colId: string) => {
               </NcMenuItem>
               <NcMenuItem
                 v-else-if="contextMenuTarget && deleteRangeOfRows"
-                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                class="nc-base-menu-item"
+                danger
                 @click="deleteSelectedRangeOfRows"
               >
                 <div v-e="['a:row:delete']" class="flex gap-2 items-center">
-                  <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />
+                  <GeneralIcon icon="delete" />
                   <!-- Delete Rows -->
                   {{ $t('activity.deleteRows') }}
                 </div>

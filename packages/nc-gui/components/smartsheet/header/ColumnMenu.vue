@@ -779,14 +779,14 @@ const onDeleteColumn = () => {
     >
       <NcMenuItem
         :disabled="!isDeleteAllowed || !isColumnUpdateAllowed || linksAssociated?.length"
-        class="!hover:bg-red-50"
         :title="linksAssociated ? 'Field is associated with a link column' : undefined"
+        danger
         @click="handleDelete"
       >
-        <div class="nc-column-delete nc-header-menu-item" :class="{ 'text-red-600': isDeleteAllowed && isColumnUpdateAllowed }">
+        <div class="nc-column-delete nc-header-menu-item">
           <component :is="iconMap.delete" class="opacity-80" />
           <!-- Delete -->
-          {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }}
+          {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }} s
         </div>
       </NcMenuItem>
     </GeneralSourceRestrictionTooltip>

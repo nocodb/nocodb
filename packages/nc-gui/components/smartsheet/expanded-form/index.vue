@@ -866,15 +866,9 @@ export default {
                   placement="right"
                 >
                   <template #default="{ isAllowed }">
-                    <NcMenuItem
-                      :class="{
-                        '!text-nc-content-red-medium !hover:bg-nc-bg-red-light': isAllowed,
-                      }"
-                      :disabled="!isAllowed"
-                      @click="!isNew && onDeleteRowClick()"
-                    >
+                    <NcMenuItem danger :disabled="!isAllowed" @click="!isNew && onDeleteRowClick()">
                       <div v-e="['c:row-expand:delete']" class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
-                        <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
+                        <GeneralIcon icon="delete" class="cursor-pointer nc-delete-row" />
                         <span class="-ml-0.25">
                           {{
                             $t('general.deleteEntity', {

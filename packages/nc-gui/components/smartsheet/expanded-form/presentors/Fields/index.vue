@@ -104,16 +104,9 @@ export default {
                   :permission="PermissionKey.TABLE_RECORD_DELETE"
                 >
                   <template #default="{ isAllowed }">
-                    <NcMenuItem
-                      v-e="['c:row-expand:delete']"
-                      :class="{
-                        '!text-nc-content-red-medium !hover:bg-nc-bg-red-light': isAllowed,
-                      }"
-                      :disabled="!isAllowed"
-                      @click="!isNew && emits('deleteRow')"
-                    >
+                    <NcMenuItem v-e="['c:row-expand:delete']" danger :disabled="!isAllowed" @click="!isNew && emits('deleteRow')">
                       <div data-testid="nc-expanded-form-delete">
-                        <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
+                        <GeneralIcon icon="delete" class="cursor-pointer nc-delete-row" />
                         Delete record
                       </div>
                     </NcMenuItem>

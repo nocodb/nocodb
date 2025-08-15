@@ -268,7 +268,7 @@ watch(
                         <span>Edit</span>
                       </NcMenuItem>
                       <NcDivider />
-                      <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="handleDeleteSync(sync.id)">
+                      <NcMenuItem danger @click="handleDeleteSync(sync.id)">
                         <GeneralIcon icon="delete" />
                         <span>Delete</span>
                       </NcMenuItem>

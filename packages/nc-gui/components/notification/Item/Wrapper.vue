@@ -63,7 +63,7 @@ const { toggleRead, deleteNotification } = notificationStore
           <NcMenu variant="small">
             <NcMenuItem @click.stop="() => toggleRead(item)"> Mark as unread </NcMenuItem>
             <NcDivider />
-            <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click.stop="deleteNotification(item)"> Delete </NcMenuItem>
+            <NcMenuItem danger @click.stop="deleteNotification(item)"> Delete </NcMenuItem>
           </NcMenu>
         </template>
       </NcDropdown>

@@ -219,8 +219,8 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
                   {{ $t('labels.regenerateToken') }}
                 </NcMenuItem>
                 <NcDivider />
-                <NcMenuItem class="!text-nc-content-red-dark !hover:bg-nc-bg-red-light" @click="confirmDeleteToken(token)">
-                  <GeneralIcon icon="ncTrash2" />
+                <NcMenuItem danger @click="confirmDeleteToken(token)">
+                  <GeneralIcon icon="delete" />
                   {{ $t('labels.deleteToken') }}
                 </NcMenuItem>
               </NcMenu>

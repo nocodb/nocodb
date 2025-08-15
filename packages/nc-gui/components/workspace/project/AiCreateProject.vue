@@ -240,7 +240,7 @@ const finalSchema = computed(() => {
     relationships: predictedSchema.value.relationships.filter((relationship: { from: string; to: string }) => {
       const fromTable = predictedSchema.value.tables.find((table: { title: string }) => table.title === relationship.from)
       const toTable = predictedSchema.value.tables.find((table: { title: string }) => table.title === relationship.to)
-      return !fromTable.excluded && !toTable.excluded
+      return !fromTable?.excluded && !toTable?.excluded
     }),
     views: predictedSchema.value.views.filter((view: any) => !view.excluded),
   }

@@ -2,6 +2,7 @@ import MarkdownIt from 'markdown-it'
 import type { Editor } from '@tiptap/core'
 import { elementFromString, extractElement, unwrapElement } from '../util/dom'
 import { getMarkdownSpec } from '../util/extensions'
+import type { MarkdownOptions } from '../types'
 import { mdImageAsText } from '~/helpers/tiptap/functionality'
 
 export class MarkdownParser {
@@ -9,24 +10,21 @@ export class MarkdownParser {
 
   md: MarkdownIt
 
-  constructor(editor: Editor, { html, linkify, breaks }: Partial<MarkdownIt.Options>) {
+  constructor(editor: Editor, options: Partial<MarkdownOptions & MarkdownIt.Options>) {
     this.editor = editor
 
     this.md = this.withPatchedRenderer(
       MarkdownIt({
-        html,
-        linkify,
-        breaks,
+        html: options.html,
+        linkify: options.linkify,
+        breaks: options.breaks,
       }),
     )
 
-    /**
-     * Todo: Remove this once we enable proper image support in the rich text editor.
-     * Also, replace its usage in other places such as:
-     * 1. packages/nc-gui/helpers/tiptap/functionality/markdown/markdown.ts
-     * 2. packages/nc-gui/helpers/tiptap-markdown/extensions/nodes/image.ts
-     */
-    this.md.use(mdImageAsText)
+    // Conditionally apply mdImageAsText plugin based on renderImagesAsLinks option
+    if (options.renderImagesAsLinks) {
+      this.md.use(mdImageAsText)
+    }
   }
 
   parse<T>(content: T, { inline }: { inline?: boolean } = {}): T | string {

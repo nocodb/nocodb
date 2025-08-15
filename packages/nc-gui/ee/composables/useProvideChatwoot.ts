@@ -8,7 +8,7 @@ export const useProvideChatwoot = () => {
   const chatwootReady = ref(false)
 
   const initUserCustomerAttributes = () => {
-    if (!chatwootReady.value || ncIsPlaywright() || !user.value) {
+    if (!chatwootReady.value || ncIsPlaywright() || !user.value?.id) {
       return
     }
 
@@ -17,6 +17,8 @@ export const useProvideChatwoot = () => {
 
     const userId = user.value?.id as string
     const identity_hash = (user.value as any)?.identity_hash as string
+
+    // userId has to be string for chatwoot sdk
     setUser(userId, {
       email: user.value?.email,
       name: user.value?.display_name || '',
@@ -39,7 +41,7 @@ export const useProvideChatwoot = () => {
   }
 
   watch(
-    [() => user.value?.email],
+    [() => user.value?.email, () => user.value?.id],
     () => {
       initUserCustomerAttributes()
     },

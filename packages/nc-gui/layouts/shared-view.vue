@@ -110,6 +110,7 @@ export default {
           class="nc-shared-view-container w-full overflow-hidden"
           :class="{
             'nc-shared-mobile-view': isMobileMode,
+            'disable-topbar': disableTopbar,
           }"
         >
           <slot />
@@ -132,10 +133,20 @@ export default {
   }
 
   .nc-shared-view-container {
-    height: calc(100vh - (var(--topbar-height) - 3.6px));
+    &:not(.disable-topbar) {
+      height: calc(100vh - (var(--topbar-height) - 3.6px));
 
-    @supports (height: 100dvh) {
-      height: calc(100dvh - (var(--topbar-height) - 3.6px));
+      @supports (height: 100dvh) {
+        height: calc(100dvh - (var(--topbar-height) - 3.6px));
+      }
+    }
+
+    &.disable-topbar {
+      height: 100vh;
+
+      @supports (height: 100dvh) {
+        height: 100dvh;
+      }
     }
   }
 }

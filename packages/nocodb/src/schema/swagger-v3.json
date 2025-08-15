@@ -6053,17 +6053,18 @@
             "properties": {
               "field_id": {
                 "type": "string"
+              },
+              "stack_order": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
-            }
+            },
+            "required": ["field_id"]
           },
           "cover_field_id": {
             "type": "string"
-          },
-          "stack_order": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         },
         "required": [
@@ -6122,15 +6123,11 @@
             "type": "integer",
             "description": "Seconds to wait before redirecting."
           },
-          "form_send_response_email": {
-            "type": "boolean",
-            "description": "Whether to send a response email."
-          },
-          "submit_another_form": {
+          "show_submit_another_button": {
             "type": "boolean",
             "description": "Whether to show another form after submission."
           },
-          "show_blank_form": {
+          "reset_form_after_submit": {
             "type": "boolean",
             "description": "Whether to show a blank form after submission."
           },
@@ -6142,12 +6139,12 @@
             "type": "boolean",
             "description": "Whether to hide branding on the form."
           },
-          "form_banner_image_url": {
+          "banner": {
             "type": "string",
             "format": "uri",
             "description": "URL of the banner image for the form."
           },
-          "form_logo_url": {
+          "logo": {
             "type": "string",
             "format": "uri",
             "description": "URL of the logo for the form."
@@ -6157,15 +6154,10 @@
             "description": "Background color for the form.",
             "pattern": "^#[0-9A-Fa-f]{6}$"
           },
-          "redirect_on_submit": {
-            "type": "object",
-            "properties": {
-              "url": {
-                "type": "string",
-                "format": "uri",
-                "description": "URL to redirect to after form submission."
-              }
-            }
+          "redirect_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to redirect to after form submission."
           }
         }
       },

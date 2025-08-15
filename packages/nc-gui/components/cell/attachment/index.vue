@@ -379,7 +379,9 @@ onUnmounted(() => {
     >
       <template #entity-preview>
         <span>
-          <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+          <div
+            class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle mb-4"
+          >
             <GeneralIcon icon="file" class="nc-view-icon"></GeneralIcon>
             <div
               class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
@@ -503,7 +505,7 @@ onUnmounted(() => {
         >
           <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-          <component :is="iconMap.maximize" v-else class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3" />
+          <component :is="iconMap.maximize" v-else class="transform group-hover:(!text-gray-800) text-gray-700 w-3 h-3" />
         </NcButton>
       </NcTooltip>
 
@@ -525,7 +527,7 @@ onUnmounted(() => {
           class="!p-0 !w-5 !h-5 !min-w-[fit-content] add-files"
           @click.stop="openAttachmentModal"
         >
-          <GeneralIcon icon="ncPaperclip" class="w-3 group-hover:(!text-grey-800) text-nc-content-gray-subtle" />
+          <GeneralIcon icon="ncPaperclip" class="w-3 group-hover:(!text-gray-800) text-nc-content-gray-subtle" />
         </NcButton>
       </NcTooltip>
     </template>

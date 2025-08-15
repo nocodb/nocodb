@@ -27,12 +27,16 @@ const onClick = () => {
       <NcButton
         :type="isMobileMode ? 'secondary' : 'text'"
         :size="isMobileMode ? 'medium' : 'small'"
-        class="nc-sidebar-left-toggle-icon !text-gray-600 !hover:text-gray-800 w-8"
+        class="nc-sidebar-left-toggle-icon !text-nc-content-gray-subtle2 !hover:text-nc-content-gray w-8"
         @click="onClick"
       >
         <div class="flex items-center text-inherit">
           <GeneralIcon v-if="isMobileMode" icon="menu" class="text-lg -mt-0.25" />
-          <GeneralIcon v-else icon="doubleRightArrow" class="duration-150 transition-all !text-lg -mt-0.25 !text-gray-500/75" />
+          <GeneralIcon
+            v-else
+            icon="doubleRightArrow"
+            class="duration-150 transition-all !text-lg -mt-0.25 !text-nc-content-gray-subtle2 bg-opacity-50"
+          />
         </div>
       </NcButton>
     </NcTooltip>

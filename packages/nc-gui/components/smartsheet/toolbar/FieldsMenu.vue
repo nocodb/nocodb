@@ -599,7 +599,7 @@ const onAddColumnDropdownVisibilityChange = () => {
     </NcTooltip>
 
     <template #overlay>
-      <div class="bg-white w-[320px] rounded-lg nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
+      <div class="w-[320px] rounded-lg nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
         <div
           v-if="!isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
           class="flex items-center gap-2 p-2 w-80 border-b-1 border-gray-100"

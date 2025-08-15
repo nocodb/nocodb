@@ -125,10 +125,10 @@ hooks.hook('page:finish', () => {
         </template>
       </a-layout-header>
 
-      <NcTooltip placement="bottom">
+      <NcTooltip v-if="!signedIn && !route.params.baseId && !route.params.erdUuid" placement="left" class="nc-lang-btn-wrapper">
         <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
-        <LazyGeneralLanguage v-if="!signedIn && !route.params.baseId && !route.params.erdUuid" class="nc-lang-btn" />
+        <LazyGeneralLanguage class="nc-lang-btn" />
       </NcTooltip>
 
       <div class="w-full h-full overflow-hidden nc-layout-base-inner">
@@ -139,8 +139,12 @@ hooks.hook('page:finish', () => {
 </template>
 
 <style lang="scss">
+.nc-lang-btn-wrapper {
+  @apply fixed bottom-10 right-10 z-99 w-12 h-12;
+}
+
 .nc-lang-btn {
-  @apply color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white ring-opacity-100 active:(ring ring-accent) hover:(ring ring-accent);
+  @apply color-transition flex items-center justify-center w-full h-full rounded-full shadow-md shadow-nc-content-gray-muted p-2 !bg-primary text-white ring-opacity-100 active:(ring ring-accent) hover:(ring ring-accent);
 
   &::after {
     @apply rounded-full absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;

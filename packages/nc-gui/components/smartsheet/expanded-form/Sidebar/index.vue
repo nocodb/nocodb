@@ -17,7 +17,7 @@ watch(tab, (newValue) => {
 </script>
 
 <template>
-  <div class="flex flex-col bg-white !h-full w-full rounded-br-2xl overflow-hidden">
+  <div class="flex flex-col bg-nc-bg-default !h-full w-full rounded-br-2xl overflow-hidden">
     <NcTabs v-model:active-key="tab" class="h-full">
       <a-tab-pane v-if="props.showFieldsTab" key="fields" class="w-full h-full">
         <template #tab>
@@ -71,7 +71,7 @@ watch(tab, (newValue) => {
 :deep(.ant-tabs) {
   @apply !overflow-visible;
   .ant-tabs-nav {
-    @apply px-3 bg-white;
+    @apply px-3 bg-nc-bg-default;
     .ant-tabs-nav-list {
       @apply w-[99%] mx-auto gap-6;
 

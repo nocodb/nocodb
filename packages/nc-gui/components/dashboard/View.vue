@@ -294,7 +294,7 @@ const isMiniSidebarVisible = computed(() => {
 <style lang="scss">
 .nc-sidebar-wrapper.minimized-height {
   & > * {
-    @apply h-4/5 pb-2 !(rounded-r-lg border-1 border-gray-200 shadow-lg);
+    @apply h-4/5 pb-2 !(rounded-r-lg border-1 border-nc-border-gray-medium shadow-lg);
     width: calc(100% + 4px);
   }
 
@@ -329,18 +329,18 @@ const isMiniSidebarVisible = computed(() => {
     @apply !w-0 relative overflow-visible;
   }
   .splitpanes__splitter:before {
-    @apply bg-gray-200 w-0.25 absolute left-0 top-0 h-full z-40;
+    @apply bg-nc-bg-gray-medium w-0.25 absolute left-0 top-0 h-full z-40;
     content: '';
   }
 
   .splitpanes__splitter:hover:before {
-    @apply bg-scrollbar;
+    @apply bg-nc-border-gray-medium;
     width: 3px !important;
     left: 0px;
   }
 
   .splitpanes--dragging .splitpanes__splitter:before {
-    @apply bg-scrollbar;
+    @apply bg-nc-border-gray-medium;
     width: 3px !important;
     left: 0px;
   }

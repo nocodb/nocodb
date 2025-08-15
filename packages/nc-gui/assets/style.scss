@@ -82,6 +82,7 @@ body {
   --sidebar-bottom-height: 8.5rem;
   --new-header-height: 3.5rem;
   --tw-text-opacity: 1;
+  --tw-bg-opacity: 1;
   --navbar-bg: #fafafa;
   --navbar-border: #e0e0e0;
   --nc-grid-bg: #fdfdfd;
@@ -119,7 +120,7 @@ body,
 #__nuxt,
 .ant-layout,
 main {
-  @apply m-0 h-full w-full bg-white;
+  @apply m-0 h-full w-full bg-nc-bg-default  text-nc-content-gray;
 }
 
 .nc-input-md {
@@ -133,11 +134,11 @@ main {
 .nc-input-shadow {
   &.ant-input {
     &:not(:hover):not(:focus):not(:disabled) {
-      @apply shadow-default border-gray-200;
+      @apply shadow-default border-nc-border-gray-medium;
     }
 
     &:hover:not(:focus):not(:disabled) {
-      @apply border-gray-200 shadow-hover;
+      @apply border-nc-border-gray-medium shadow-hover;
     }
     &:not(.nc-ai-input):focus {
       @apply shadow-selected ring-0;
@@ -149,11 +150,11 @@ main {
 
   &.ant-input-affix-wrapper {
     &:not(:hover):not(.ant-input-affix-wrapper-focused):not(.ant-input-affix-wrapper-disabled) {
-      @apply shadow-default border-gray-200;
+      @apply shadow-default border-nc-border-gray-medium;
     }
 
     &:hover:not(.ant-input-affix-wrapper-focused):not(.ant-input-affix-wrapper-disabled) {
-      @apply border-gray-200 shadow-hover;
+      @apply border-nc-border-gray-medium shadow-hover;
     }
     &:not(.nc-ai-input):focus {
       @apply shadow-selected ring-0;
@@ -177,7 +178,7 @@ main {
   }
 
   .ant-input::placeholder {
-    @apply text-gray-500;
+    @apply text-nc-content-gray-muted;
   }
 }
 
@@ -709,7 +710,7 @@ a {
 }
 
 .nc-toolbar-btn {
-  @apply !shadow-none rounded hover:(bg-gray-50 !text-gray-800) focus:(!text-gray-800 bg-gray-50) text-gray-600 text-xs font-medium px-2 border-0;
+  @apply !shadow-none rounded hover:(bg-nc-bg-gray-extralight !text-nc-content-gray) focus:(!text-nc-content-gray bg-nc-bg-gray-extralight) text-nc-content-gray-subtle2 text-xs font-medium px-2 border-0;
 }
 
 .nc-toolbar-btn[disabled] {
@@ -979,13 +980,15 @@ svg.nc-virtual-cell-icon {
   @apply !flex !flex-col !items-start w-full !space-y-0.5 !max-w-full;
 
   &.nc-user-select-list {
-    .ant-checkbox-wrapper,.ant-radio-wrapper { 
+    .ant-checkbox-wrapper,
+    .ant-radio-wrapper {
       @apply !h-12 !py-1.5;
     }
   }
 
   &:not(.nc-user-select-list) {
-    .ant-checkbox-wrapper,.ant-radio-wrapper { 
+    .ant-checkbox-wrapper,
+    .ant-radio-wrapper {
       @apply !h-9;
     }
   }
@@ -993,7 +996,7 @@ svg.nc-virtual-cell-icon {
   .ant-checkbox-wrapper {
     @apply !m-0 !mr-0 !items-center w-full !max-w-full pl-2 rounded-lg hover:bg-gray-100;
 
-    &:not(.nc-hidden-option){
+    &:not(.nc-hidden-option) {
       @apply !flex;
     }
 
@@ -1016,11 +1019,11 @@ svg.nc-virtual-cell-icon {
   }
   .ant-radio-wrapper {
     @apply !m-0 !mr-0 !items-center w-full !max-w-full pl-2 rounded-lg hover:bg-gray-100;
-    
-    &:not(.nc-hidden-option){
+
+    &:not(.nc-hidden-option) {
       @apply !flex;
     }
-    
+
     .ant-radio {
       @apply !top-0;
     }
@@ -1042,7 +1045,8 @@ svg.nc-virtual-cell-icon {
     @apply text-gray-800;
   }
 }
-.nc-toolbar-dropdown-search-field-input, .nc-general-search-field-input {
+.nc-toolbar-dropdown-search-field-input,
+.nc-general-search-field-input {
   .nc-search-icon {
     @apply text-gray-500;
   }
@@ -1057,15 +1061,15 @@ svg.nc-virtual-cell-icon {
 .ant-switch:focus-visible,
 .ant-switch-checked:focus-visible {
   &.nc-ai-input {
-    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #7d26cd;
+    box-shadow: 0 0 0 2px var(--nc-bg-default), 0 0 0 4px #7d26cd;
   }
   &:not(.nc-ai-input) {
-    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
+    box-shadow: 0 0 0 2px var(--nc-bg-default), 0 0 0 4px #3366ff;
   }
 }
 
 .ant-switch {
-  background: #e7e7e9 !important;
+  background: var(--nc-bg-gray-medium) !important;
 }
 
 .ant-switch-checked {
@@ -1084,27 +1088,27 @@ svg.nc-virtual-cell-icon {
 }
 
 .nc-breadcrumb {
-  @apply text-sm text-gray-700 font-weight-500 flex items-center;
+  @apply text-sm text-nc-content-gray-subtle font-weight-500 flex items-center;
 
   &:not(.nc-no-negative-margin) {
     @apply -ml-1;
   }
 
   .nc-breadcrumb-item {
-    @apply h-8 px-2 flex items-center gap-2 my-0;
+    @apply inline-block h-8 px-2 flex items-center gap-2 my-0;
 
     &.nc-clickable {
-      @apply cursor-pointer select-none rounded-lg hover:(bg-gray-100 text-gray-900);
+      @apply cursor-pointer select-none rounded-lg hover:(bg-nc-bg-gray-extralight text-nc-content-gray-emphasis);
     }
 
     &.active {
-      @apply font-bold text-gray-800;
+      @apply !font-bold !text-nc-content-gray;
     }
   }
 }
 
 .nc-breadcrumb-divider {
-  @apply flex-none text-gray-500 !stroke-transparent;
+  @apply flex-none text-nc-content-gray-muted !stroke-transparent;
 }
 
 .nc-animate-dots {

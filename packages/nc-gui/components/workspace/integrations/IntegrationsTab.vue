@@ -263,7 +263,7 @@ watch(activeViewTab, (value) => {
   >
     <a-layout>
       <a-layout-content class="nc-integration-layout-content">
-        <div v-if="isModal" class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
+        <div v-if="isModal" class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium">
           <NcButton type="text" size="small" @click="isAddNewIntegrationModalOpen = false">
             <GeneralIcon icon="arrowLeft" />
           </NcButton>
@@ -271,7 +271,7 @@ watch(activeViewTab, (value) => {
           <div class="flex-1 text-base font-weight-700">New Connection</div>
           <div class="flex items-center gap-3">
             <NcButton size="small" type="text" @click="isAddNewIntegrationModalOpen = false">
-              <GeneralIcon icon="close" class="text-gray-600" />
+              <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
             </NcButton>
           </div>
         </div>
@@ -290,7 +290,7 @@ watch(activeViewTab, (value) => {
               }"
             >
               <div class="flex-1">
-                <div class="text-sm font-normal text-gray-600 mb-2">
+                <div class="text-sm font-normal text-nc-content-gray-subtle2 mb-2">
                   <div>
                     {{ $t('msg.connectIntegrations') }}
                     <a href="https://nocodb.com/docs/product-docs/integrations" target="_blank" rel="noopener noreferrer">{{
@@ -308,7 +308,7 @@ watch(activeViewTab, (value) => {
                     allow-clear
                   >
                     <template #prefix>
-                      <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
+                      <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
                     </template>
                   </a-input>
                   <NcDropdown v-if="easterEggToggle && showFilter" v-model:visible="isOpenFilter" placement="bottomRight">
@@ -338,7 +338,7 @@ watch(activeViewTab, (value) => {
                           <NcDivider class="!mt-0 !mb-2" />
                           <div class="px-2 mb-2">
                             <div
-                              class="px-2 py-1.5 flex items-center justify-between gap-2 text-sm font-weight-500 !text-brand-500 hover:bg-gray-100 rounded-md cursor-pointer"
+                              class="px-2 py-1.5 flex items-center justify-between gap-2 text-sm font-weight-500 !text-nc-content-brand hover:bg-nc-bg-gray-light rounded-md cursor-pointer"
                               @click="toggleShowOrHideAllCategory"
                             >
                               <div class="flex items-center gap-2">
@@ -395,7 +395,7 @@ watch(activeViewTab, (value) => {
                       <NcBadge
                         v-if="!category.isAvailable"
                         :border="false"
-                        class="text-brand-500 !h-5 bg-brand-50 text-xs font-normal px-2"
+                        class="text-nc-content-brand !h-5 bg-nc-bg-brand text-xs font-normal px-2"
                         >{{ $t('msg.toast.futureRelease') }}</NcBadge
                       >
                     </div>
@@ -489,9 +489,9 @@ watch(activeViewTab, (value) => {
         >
           <div v-show="requestIntegration.isOpen" class="flex flex-col gap-4">
             <div class="flex items-center justify-between gap-4">
-              <div class="text-base font-bold text-gray-800">Request Integration</div>
+              <div class="text-base font-bold text-nc-content-gray">Request Integration</div>
               <NcButton size="small" type="text" @click="requestIntegration.isOpen = false">
-                <GeneralIcon icon="close" class="text-gray-600" />
+                <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
               </NcButton>
             </div>
             <div class="flex flex-col gap-2">
@@ -526,15 +526,15 @@ watch(activeViewTab, (value) => {
 
 <style lang="scss" scoped>
 .nc-integration-layout-sidebar {
-  @apply !bg-white border-r-1 border-gray-200 !min-w-[260px] !max-w-[260px];
+  @apply !bg-nc-bg-default border-r-1 border-nc-border-gray-medium !min-w-[260px] !max-w-[260px];
 
   flex: 1 1 260px !important;
 
   .nc-integration-category-item {
-    @apply flex gap-2 p-2 rounded-lg hover:bg-gray-100 cursor-pointer transition-all;
+    @apply flex gap-2 p-2 rounded-lg hover:bg-nc-bg-gray-light cursor-pointer transition-all;
 
     &.active {
-      @apply bg-gray-100;
+      @apply bg-nc-bg-gray-light;
     }
 
     .nc-integration-category-item-icon-wrapper {
@@ -549,19 +549,16 @@ watch(activeViewTab, (value) => {
       @apply flex-1 flex flex-col gap-1;
 
       .nc-integration-category-item-title {
-        @apply text-sm text-gray-800 font-weight-500;
+        @apply text-sm text-nc-content-gray font-weight-500;
       }
 
       .nc-integration-category-item-subtitle {
-        @apply text-xs text-gray-500 font-weight-500;
+        @apply text-xs text-nc-content-gray-muted font-weight-500;
       }
     }
   }
 }
 
-.nc-integration-layout-content {
-  @apply !bg-white;
-}
 .source-card-request-integration {
   @apply flex flex-col gap-4 border-1 rounded-xl p-3 w-[280px] overflow-hidden transition-all duration-300 max-w-[576px];
 
@@ -569,7 +566,7 @@ watch(activeViewTab, (value) => {
     @apply w-full;
   }
   &:not(.active) {
-    @apply cursor-pointer hover:bg-gray-50;
+    @apply cursor-pointer hover:bg-nc-bg-gray-extralight;
 
     &:hover {
       box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
@@ -580,14 +577,14 @@ watch(activeViewTab, (value) => {
     @apply flex items-center gap-4;
 
     .name {
-      @apply text-base font-semibold text-gray-800;
+      @apply text-base font-semibold text-nc-content-gray;
     }
   }
 }
 .source-card-link {
-  @apply !text-black !no-underline;
+  @apply !text-nc-content-gray-extreme !no-underline;
   .nc-new-integration-type-title {
-    @apply text-sm font-weight-600 text-gray-600;
+    @apply text-sm font-weight-600 text-nc-content-gray-subtle2;
   }
 }
 
@@ -599,7 +596,7 @@ watch(activeViewTab, (value) => {
       @apply flex gap-4 flex-wrap;
 
       .source-card {
-        @apply flex items-center gap-4 border-1 border-gray-200 rounded-xl p-3 w-[280px] cursor-pointer transition-all duration-300;
+        @apply flex items-center gap-4 border-1 border-nc-border-gray-medium rounded-xl p-3 w-[280px] cursor-pointer transition-all duration-300;
 
         .integration-icon-wrapper {
           @apply flex-none h-[44px] w-[44px] rounded-lg flex items-center justify-center;
@@ -619,7 +616,7 @@ watch(activeViewTab, (value) => {
 
         &.is-available {
           &:hover {
-            @apply bg-gray-50;
+            @apply bg-nc-bg-gray-extralight;
 
             box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
 
@@ -629,16 +626,16 @@ watch(activeViewTab, (value) => {
           }
 
           // .integration-icon-wrapper {
-          //   @apply bg-gray-100;
+          //   @apply bg-nc-bg-gray-light;
           // }
           .name {
-            @apply text-gray-800;
+            @apply text-nc-content-gray;
           }
         }
         &:not(.is-available) {
           &:not(:hover) {
             .integration-icon-wrapper {
-              // @apply bg-gray-50;
+              // @apply bg-nc-bg-gray-extralight;
 
               // .integration-icon {
               //   @apply !grayscale;
@@ -648,19 +645,19 @@ watch(activeViewTab, (value) => {
             }
 
             .name {
-              @apply text-gray-800;
+              @apply text-nc-content-gray;
             }
           }
 
           &:hover {
             .name {
-              @apply text-gray-800;
+              @apply text-nc-content-gray;
             }
           }
 
           .integration-upvote-btn {
             &.selected {
-              @apply shadow-selected !text-brand-500 !border-brand-500 !cursor-not-allowed pointer-events-none;
+              @apply shadow-selected !text-nc-content-brand !border-nc-border-brand !cursor-not-allowed pointer-events-none;
             }
           }
         }
@@ -668,7 +665,7 @@ watch(activeViewTab, (value) => {
     }
 
     .category-type-title {
-      @apply text-sm text-gray-700 font-weight-700;
+      @apply text-sm text-nc-content-gray-subtle font-weight-700;
     }
   }
 }

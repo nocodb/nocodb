@@ -1043,7 +1043,7 @@ const webhookV2AndV3Diff = computed(() => {
                     </a-form-item>
                     <NcDropdown v-if="hookRef.event === 'after'" v-model:visible="isDropdownOpen">
                       <div
-                        class="rounded-lg border-1 w-full transition-all cursor-pointer flex items-center border-nc-border-grey-medium h-8 py-1 gap-2 px-4 py-2 h-[36px] shadow-default"
+                        class="rounded-lg border-1 w-full transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-4 py-2 h-[36px] shadow-default"
                         data-testid="nc-dropdown-hook-operation"
                         :class="{
                           '!border-brand-500 !shadow-selected': isDropdownOpen,

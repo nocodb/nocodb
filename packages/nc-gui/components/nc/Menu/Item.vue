@@ -17,6 +17,7 @@ defineProps<{
   style?: StyleValue
   disabled?: boolean | number
   innerClass?: string
+  danger?: boolean
 }>()
 
 defineOptions({
@@ -26,7 +27,15 @@ defineOptions({
 
 <template>
   <div class="w-full" :style="style">
-    <a-menu-item :key="mKey" v-bind="$attrs" :disabled="Boolean(disabled)" class="nc-menu-item">
+    <a-menu-item
+      :key="mKey"
+      v-bind="$attrs"
+      :disabled="Boolean(disabled)"
+      class="nc-menu-item"
+      :class="{
+        'nc-menu-item-danger': danger,
+      }"
+    >
       <div class="nc-menu-item-inner" :class="innerClass">
         <slot />
       </div>
@@ -36,11 +45,17 @@ defineOptions({
 
 <style lang="scss">
 .ant-dropdown-menu-item.nc-menu-item {
-  @apply p-2 mx-1.5 font-normal text-sm xs:(text-base py-3 px-3.5 mx-0) rounded-md overflow-hidden hover:bg-gray-100;
+  @apply p-2 mx-1.5 font-normal text-sm xs:(text-base py-3 px-3.5 mx-0) rounded-md overflow-hidden;
 }
 
 .nc-menu-item-inner {
   @apply flex flex-row items-center gap-x-2 text-sm;
+}
+
+.nc-menu-item.nc-menu-item-danger {
+  &:not(.ant-dropdown-menu-item-disabled) {
+    @apply !text-nc-content-red-medium !hover:bg-nc-bg-red-light;
+  }
 }
 
 .nc-menu-item > .ant-dropdown-menu-title-content {

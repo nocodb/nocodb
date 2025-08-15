@@ -165,7 +165,7 @@ watch(activeLang, (newLang) => {
           </template>
 
           <LazyMonacoEditor
-            class="h-[60vh] border-1 border-gray-100 py-4 rounded-sm"
+            class="h-[60vh] border-1 border-nc-border-gray-light py-4 rounded-sm"
             :model-value="code"
             :read-only="true"
             lang="typescript"

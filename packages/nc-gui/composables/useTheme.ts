@@ -26,8 +26,25 @@ export const useTheme = createSharedComposable(() => {
     if (typeof document !== 'undefined') {
       if (dark) {
         document.documentElement.setAttribute('theme', 'dark')
+
+        /**
+         * WindiCSS config uses `darkMode: 'class'`, so we add the `dark` class
+         * to `<html>` to enable `dark:` prefix-based utilities.
+         *
+         * We support dark mode globally using CSS variables defined for both
+         * `:root` (light theme) and `[theme='dark']` (dark theme).
+         *
+         * The `dark:` prefixed classes are used to selectively override the
+         * globally applied styles in dark mode, making it possible to combine
+         * global theme variables (`var(...)`) with per-component dark overrides.
+         */
+
+        if (!document.documentElement.classList.contains('dark')) {
+          document.documentElement.classList.add('dark')
+        }
       } else {
         document.documentElement.removeAttribute('theme')
+        document.documentElement.classList.remove('dark')
       }
     }
   }
@@ -63,6 +80,8 @@ export const useTheme = createSharedComposable(() => {
   }
 
   watch(isDark, applyTheme, { immediate: true })
+
+  init()
 
   onMounted(init)
 

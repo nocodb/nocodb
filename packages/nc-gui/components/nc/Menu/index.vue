@@ -20,7 +20,7 @@ const selectable = computed(() => props.selectable ?? false)
 
 <style lang="scss">
 .nc-menu {
-  @apply bg-white !rounded-md !py-1.5;
+  @apply !rounded-md !py-1.5;
 
   &:not(.nc-variant-default) {
     @apply flex flex-col gap-0.5 !py-1 min-w-[144px];
@@ -30,10 +30,6 @@ const selectable = computed(() => props.selectable ?? false)
 
       .nc-menu-item-inner {
         @apply !text-small !leading-5 font-weight-550;
-      }
-
-      &:not(.ant-dropdown-menu-item-disabled) {
-        @apply hover:text-black text-gray-700;
       }
 
       .nc-icon {

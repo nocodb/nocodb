@@ -140,7 +140,7 @@ const hasDashboardCreateAccess = computed(() => {
         <div
           class="border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium"
           :class="{
-            'border-nc-gray-medium': !isVisibleCreateNew,
+            'border-nc-border-gray-dark': !isVisibleCreateNew,
             'active border-primary shadow-selected': isVisibleCreateNew,
           }"
         >

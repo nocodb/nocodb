@@ -264,7 +264,7 @@ onKeyStroke('ArrowDown', onDown)
 <template>
   <div class="h-full flex flex-col gap-6 nc-workspace-connections nc-content-max-w mx-auto">
     <div class="flex flex-col justify-between gap-2 mx-1">
-      <div class="text-sm font-normal text-gray-600">
+      <div class="text-sm font-normal text-nc-content-gray-subtle2">
         <div>
           {{ $t('msg.manageConnections') }}
           <a
@@ -286,7 +286,7 @@ onKeyStroke('ArrowDown', onDown)
           @input="handleSearchConnection"
         >
           <template #prefix>
-            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
+            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
           </template>
         </a-input>
       </div>
@@ -303,10 +303,10 @@ onKeyStroke('ArrowDown', onDown)
           <thead>
             <tr>
               <th
-                class="cell-title !hover:bg-gray-100 select-none cursor-pointer"
+                class="cell-title !hover:bg-nc-bg-gray-light select-none cursor-pointer"
                 :class="{
                   'cursor-not-allowed': !filteredIntegrations?.length,
-                  '!text-gray-700': orderBy.title,
+                  '!text-nc-content-inverted-secondary': orderBy.title,
                 }"
                 @click="updateOrderBy('title')"
               >
@@ -325,10 +325,10 @@ onKeyStroke('ArrowDown', onDown)
               </th>
 
               <th
-                class="cell-type !hover:bg-gray-100 select-none cursor-pointer"
+                class="cell-type !hover:bg-nc-bg-gray-light select-none cursor-pointer"
                 :class="{
                   'cursor-not-allowed': !filteredIntegrations?.length,
-                  '!text-gray-700': orderBy.sub_type,
+                  '!text-nc-content-inverted-secondary': orderBy.sub_type,
                 }"
                 @click="updateOrderBy('sub_type')"
               >
@@ -347,10 +347,10 @@ onKeyStroke('ArrowDown', onDown)
               </th>
 
               <th
-                class="cell-created-date !hover:bg-gray-100 select-none cursor-pointer"
+                class="cell-created-date !hover:bg-nc-bg-gray-light select-none cursor-pointer"
                 :class="{
                   'cursor-not-allowed': !filteredIntegrations?.length,
-                  '!text-gray-700': orderBy.created_at,
+                  '!text-nc-content-inverted-secondary': orderBy.created_at,
                 }"
                 @click="updateOrderBy('created_at')"
               >
@@ -368,10 +368,10 @@ onKeyStroke('ArrowDown', onDown)
                 </div>
               </th>
               <th
-                class="cell-added-by !hover:bg-gray-100 select-none cursor-pointer"
+                class="cell-added-by !hover:bg-nc-bg-gray-light select-none cursor-pointer"
                 :class="{
                   'cursor-not-allowed': !filteredIntegrations?.length,
-                  '!text-gray-700': orderBy.created_by,
+                  '!text-nc-content-inverted-secondary': orderBy.created_by,
                 }"
                 @click="updateOrderBy('created_by')"
               >
@@ -389,7 +389,7 @@ onKeyStroke('ArrowDown', onDown)
                 </div>
               </th>
               <th
-                class="cell-usage !hover:bg-gray-100 select-none cursor-pointer"
+                class="cell-usage !hover:bg-nc-bg-gray-light select-none cursor-pointer"
                 :class="{
                   'cursor-not-allowed': !filteredIntegrations?.length,
                 }"
@@ -430,7 +430,7 @@ onKeyStroke('ArrowDown', onDown)
                       {{ integration.title }}
                     </NcTooltip>
                     <span v-if="integration.is_private">
-                      <NcBadge :border="false" class="text-primary !h-4.5 bg-brand-50 text-xs">{{
+                      <NcBadge :border="false" class="text-primary !h-4.5 bg-nc-bg-brand text-xs">{{
                         $t('general.private')
                       }}</NcBadge>
                     </span>
@@ -495,8 +495,8 @@ onKeyStroke('ArrowDown', onDown)
                             <NcTooltip
                               class="text-sm !leading-5 capitalize font-semibold truncate"
                               :class="{
-                                'text-gray-800': !isUserDeleted(integration.created_by),
-                                'text-gray-500': isUserDeleted(integration.created_by),
+                                'text-nc-content-gray': !isUserDeleted(integration.created_by),
+                                'text-nc-content-gray-muted': isUserDeleted(integration.created_by),
                               }"
                               :disabled="isUserDeleted(integration.created_by)"
                               show-on-truncate-only
@@ -511,8 +511,8 @@ onKeyStroke('ArrowDown', onDown)
                           <NcTooltip
                             class="text-xs !leading-4 truncate"
                             :class="{
-                              'text-gray-600': !isUserDeleted(integration.created_by),
-                              'text-gray-500': isUserDeleted(integration.created_by),
+                              'text-nc-content-gray-subtle2': !isUserDeleted(integration.created_by),
+                              'text-nc-content-gray-muted': isUserDeleted(integration.created_by),
                             }"
                             :disabled="isUserDeleted(integration.created_by)"
                             show-on-truncate-only
@@ -525,7 +525,7 @@ onKeyStroke('ArrowDown', onDown)
                           </NcTooltip>
                         </div>
                       </div>
-                      <div v-else class="w-full truncate text-gray-500">{{ integration.created_by }}</div>
+                      <div v-else class="w-full truncate text-nc-content-gray-muted">{{ integration.created_by }}</div>
                     </NcTooltip>
                   </div>
                 </td>
@@ -578,7 +578,10 @@ onKeyStroke('ArrowDown', onDown)
                           </NcTooltip>
                           <template v-if="integration?.sub_type !== SyncDataType.NOCODB">
                             <NcDivider />
-                            <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="openDeleteIntegration(integration)">
+                            <NcMenuItem
+                              class="!text-nc-content-red-medium !hover:bg-nc-bg-red-light"
+                              @click="openDeleteIntegration(integration)"
+                            >
                               <GeneralIcon icon="delete" />
                               {{ $t('general.delete') }}
                             </NcMenuItem>
@@ -610,7 +613,7 @@ onKeyStroke('ArrowDown', onDown)
       >
         <div
           v-if="integrations?.length && !filteredIntegrations.length"
-          class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
+          class="px-2 py-6 text-nc-content-gray-muted flex flex-col items-center gap-6 text-center"
         >
           <img
             src="~assets/img/placeholder/no-search-result-found.png"
@@ -627,7 +630,7 @@ onKeyStroke('ArrowDown', onDown)
       </div>
       <div
         v-if="integrationPaginationData.totalRows"
-        class="flex flex-row justify-center items-center bg-gray-50 min-h-10"
+        class="flex flex-row justify-center items-center bg-nc-bg-gray-extralight min-h-10"
         :class="{
           'pointer-events-none': isLoadingIntegrations,
         }"
@@ -647,7 +650,7 @@ onKeyStroke('ArrowDown', onDown)
             @update:current="loadConnections(undefined, undefined, false)"
             @update:page-size="loadConnections(integrationPaginationData.page, $event, false)"
           />
-          <div class="text-gray-500 text-xs">
+          <div class="text-nc-content-gray-muted text-xs">
             {{ integrationPaginationData.totalRows }} {{ integrationPaginationData.totalRows === 1 ? 'record' : 'records' }}
           </div>
         </div>
@@ -670,8 +673,10 @@ onKeyStroke('ArrowDown', onDown)
             <a-skeleton-input active class="h-9 !rounded-md !w-full"></a-skeleton-input>
           </div>
         </template>
-        <div v-else-if="toBeDeletedIntegration" class="w-full flex flex-col text-gray-800">
-          <div class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
+        <div v-else-if="toBeDeletedIntegration" class="w-full flex flex-col text-nc-content-gray">
+          <div
+            class="flex flex-row items-center py-2 px-3.25 bg-nc-bg-gray-extralight rounded-lg text-nc-content-inverted-secondary mb-4"
+          >
             <GeneralIntegrationIcon :type="toBeDeletedIntegration.sub_type" />
             <div
               class="text-ellipsis overflow-hidden select-none w-full pl-3"
@@ -680,13 +685,16 @@ onKeyStroke('ArrowDown', onDown)
               {{ toBeDeletedIntegration.title }}
             </div>
           </div>
-          <div v-if="toBeDeletedIntegration?.sources?.length" class="flex flex-col pb-2 text-small leading-[18px] text-gray-500">
+          <div
+            v-if="toBeDeletedIntegration?.sources?.length"
+            class="flex flex-col pb-2 text-small leading-[18px] text-nc-content-gray-muted"
+          >
             <div class="mb-1">Following external data sources using this connection will also be removed</div>
             <ul class="!list-disc ml-6 mb-0">
               <li
                 v-for="(source, idx) of toBeDeletedIntegration.sources"
                 :key="idx"
-                class="marker:text-gray-500 !marker:(flex items-center !-mt-1)"
+                class="marker:text-nc-content-gray-muted !marker:(flex items-center !-mt-1)"
               >
                 <div class="flex items-center gap-1">
                   <div class="flex items-center">
@@ -734,7 +742,7 @@ onKeyStroke('ArrowDown', onDown)
     <NcModal v-model:visible="successConfirmModal.isOpen" centered size="small" @keydown.esc="successConfirmModal.isOpen = false">
       <div class="flex gap-4">
         <div>
-          <GeneralIcon icon="circleCheckSolid" class="flex-none !text-green-700 mt-0.5 !h-6 !w-6" />
+          <GeneralIcon icon="circleCheckSolid" class="flex-none !text-nc-content-green-dark mt-0.5 !h-6 !w-6" />
         </div>
 
         <div class="flex flex-col gap-3">
@@ -743,10 +751,10 @@ onKeyStroke('ArrowDown', onDown)
               {{ successConfirmModal.title }}
             </h3>
             <NcButton size="xsmall" type="text" @click="successConfirmModal.isOpen = false">
-              <GeneralIcon icon="close" class="text-gray-600" />
+              <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
             </NcButton>
           </div>
-          <div class="text-sm text-gray-700">
+          <div class="text-sm text-nc-content-inverted-secondary">
             {{ successConfirmModal.description }}
           </div>
 
@@ -765,15 +773,15 @@ onKeyStroke('ArrowDown', onDown)
 
 <style lang="scss" scoped>
 .source-card-link {
-  @apply !text-black !no-underline;
+  @apply !text-nc-content-gray-extreme !no-underline;
 
   .nc-new-integration-type-title {
-    @apply text-sm font-weight-600 text-gray-600;
+    @apply text-sm font-weight-600 text-nc-content-gray-subtle2;
   }
 }
 
 .source-card {
-  @apply flex items-center border-1 rounded-lg p-3 cursor-pointer hover:bg-gray-50;
+  @apply flex items-center border-1 rounded-lg p-3 cursor-pointer hover:bg-nc-bg-gray-extralight;
   width: 288px;
 
   .name {
@@ -792,14 +800,14 @@ onKeyStroke('ArrowDown', onDown)
 }
 
 .table-container {
-  @apply border-1 border-gray-200 rounded-lg overflow-hidden w-full;
+  @apply border-1 border-nc-border-gray-medium rounded-lg overflow-hidden w-full;
 
   .nc-workspace-integration-table {
     &.sticky-shadow {
       th,
       td {
         &.cell-title {
-          @apply border-r-1 border-gray-200;
+          @apply border-r-1 border-nc-border-gray-medium;
         }
       }
     }
@@ -816,10 +824,10 @@ onKeyStroke('ArrowDown', onDown)
     thead {
       @apply w-full;
       th {
-        @apply bg-gray-50 text-sm text-gray-500 font-weight-500;
+        @apply bg-nc-bg-gray-extralight text-sm text-nc-content-gray-muted font-weight-500;
 
         &.cell-title {
-          @apply sticky left-0 z-4 bg-gray-50;
+          @apply sticky left-0 z-4 bg-nc-bg-gray-extralight;
         }
       }
     }
@@ -830,24 +838,24 @@ onKeyStroke('ArrowDown', onDown)
         @apply cursor-pointer;
 
         td {
-          @apply text-sm text-gray-600;
+          @apply text-sm text-nc-content-gray-subtle2;
 
           &.cell-title {
-            @apply sticky left-0 z-4 bg-white !text-gray-800 font-semibold;
+            @apply sticky left-0 z-4 bg-nc-bg-default !text-nc-content-gray font-semibold;
           }
         }
       }
     }
 
     tr {
-      @apply h-[54px] flex border-b-1 border-gray-200 w-full;
+      @apply h-[54px] flex border-b-1 border-nc-border-gray-medium w-full;
 
       &:hover td {
-        @apply !bg-gray-50;
+        @apply !bg-nc-bg-gray-extralight;
       }
 
       &.selected td {
-        @apply !bg-gray-50;
+        @apply !bg-nc-bg-gray-extralight;
       }
 
       th,
@@ -905,6 +913,6 @@ onKeyStroke('ArrowDown', onDown)
 }
 
 .cell-header {
-  @apply text-xs font-semibold text-gray-500;
+  @apply text-xs font-semibold text-nc-content-gray-muted;
 }
 </style>

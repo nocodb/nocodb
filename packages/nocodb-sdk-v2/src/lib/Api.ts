@@ -360,15 +360,6 @@ export interface ViewBase {
   lock_type?: 'collaborative' | 'locked' | 'personal';
   /** Description of the view. */
   description?: string;
-  meta?: {
-    /** Description for locked views. */
-    locked_view_description?: string;
-    /**
-     * User ID of the person who locked the view.
-     * @format uuid
-     */
-    locked_by_user_id?: string;
-  };
   /** Sort options for the view. */
   sorts?: SortCreate[];
   row_coloring?: ViewRowColorCreate;
@@ -431,11 +422,6 @@ export type ViewCreate = ViewBase & {
 } & ViewBaseOptions;
 
 export type ViewUpdate = ViewBase & {
-  /**
-   * Unique identifier for the view.
-   * @format uuid
-   */
-  id?: string;
   fields?: {
     field_id: string;
     show: boolean;
@@ -486,10 +472,10 @@ export interface ViewOptionsGrid {
 
 export interface ViewOptionsKanban {
   stack_by: {
-    field_id?: string;
+    field_id: string;
+    stack_order?: string[];
   };
   cover_field_id?: string;
-  stack_order?: string[];
 }
 
 export interface ViewOptionsCalendar {
@@ -512,12 +498,10 @@ export interface ViewOptionsForm {
   thank_you_message?: string;
   /** Seconds to wait before redirecting. */
   form_redirect_after_secs?: number;
-  /** Whether to send a response email. */
-  form_send_response_email?: boolean;
   /** Whether to show another form after submission. */
-  submit_another_form?: boolean;
+  show_submit_another_button?: boolean;
   /** Whether to show a blank form after submission. */
-  show_blank_form?: boolean;
+  reset_form_after_submit?: boolean;
   /** Whether to hide the banner on the form. */
   form_hide_banner?: boolean;
   /** Whether to hide branding on the form. */
@@ -526,28 +510,26 @@ export interface ViewOptionsForm {
    * URL of the banner image for the form.
    * @format uri
    */
-  form_banner_image_url?: string;
+  banner?: string;
   /**
    * URL of the logo for the form.
    * @format uri
    */
-  form_logo_url?: string;
+  logo?: string;
   /**
    * Background color for the form.
    * @pattern ^#[0-9A-Fa-f]{6}$
    */
   form_background_color?: string;
-  redirect_on_submit?: {
-    /**
-     * URL to redirect to after form submission.
-     * @format uri
-     */
-    url?: string;
-  };
+  /**
+   * URL to redirect to after form submission.
+   * @format uri
+   */
+  redirect_url?: string;
 }
 
 export interface ViewRowColorCreate {
-  mode?: 'filter' | 'select';
+  mode: 'filter' | 'select';
   field_id?: string;
   apply_as_row_background?: boolean;
   conditions?: {
@@ -1939,7 +1921,32 @@ export class InternalApi<
     viewsList: (baseId: string, tableId: string, params: RequestParams = {}) =>
       this.request<
         {
-          list: View[];
+          list: {
+            /** @example "vwfjpo6wta1vwzyk" */
+            id?: string;
+            /** @example "MyView" */
+            title?: string;
+            /** @example "grid" */
+            type?: string;
+            /** @example "collaborative" */
+            lock_type?: string;
+            /**
+             * @format date-time
+             * @example "2000-01-02 03:04:05+00:00"
+             */
+            created_at?: string;
+            /**
+             * @format date-time
+             * @example "2000-01-02 03:04:05+00:00"
+             */
+            updated_at?: string;
+            /** @example "MyView" */
+            description?: string;
+            /** @example "usq6o3vavwf0twzr" */
+            created_by?: string;
+            /** @example "usq6o3vavwf0twzr" */
+            owned_by?: string;
+          }[];
         },
         void
       >({
@@ -2061,7 +2068,7 @@ export class InternalApi<
      * @summary Get view schema
      * @request GET:/api/v3/meta/bases/{baseId}/views/{viewId}
      */
-    viewRead: (viewId: string, baseId: string, params: RequestParams = {}) =>
+    viewRead: (baseId: string, viewId: string, params: RequestParams = {}) =>
       this.request<View, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}`,
         method: 'GET',
@@ -2078,8 +2085,8 @@ export class InternalApi<
      * @request PATCH:/api/v3/meta/bases/{baseId}/views/{viewId}
      */
     viewUpdate: (
-      viewId: string,
       baseId: string,
+      viewId: string,
       data: ViewUpdate,
       params: RequestParams = {},
     ) =>
@@ -2100,7 +2107,7 @@ export class InternalApi<
      * @summary Delete view
      * @request DELETE:/api/v3/meta/bases/{baseId}/views/{viewId}
      */
-    viewDelete: (viewId: string, baseId: string, params: RequestParams = {}) =>
+    viewDelete: (baseId: string, viewId: string, params: RequestParams = {}) =>
       this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}/views/${viewId}`,
         method: 'DELETE',

@@ -61,7 +61,7 @@ export class BasesV3Service extends BasesV3ServiceCE {
             default_role: 'no-access',
           }
         : base.type === 'default'
-        ? { default_role: '' }
+        ? { default_role: null }
         : {}
     ) as any;
   }

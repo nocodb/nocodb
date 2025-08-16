@@ -5440,7 +5440,7 @@
             },
             "required": [
               "type",
-              "name"
+              "title"
             ]
           },
           {

@@ -63,6 +63,8 @@ export const stringToViewTypeMap: Record<string, ViewTypes> = Object.entries(
   return acc;
 }, {});
 
+export const VIEW_GRID_DEFAULT_WIDTH = 200;
+
 export enum ProjectTypes {
   DATABASE = 'database',
   DOCUMENTATION = 'documentation',

@@ -1,13 +1,16 @@
 import { Page } from '@playwright/test';
 import BasePage from '../Base';
 import { ProjectsPage } from '../ProjectsPage';
+import { OnboardingFlowPage } from '../OnboardingFlowPage';
 
 export class GoogleLoginPage extends BasePage {
   readonly projectsPage: ProjectsPage;
+  readonly onboardingFlowPage: OnboardingFlowPage;
 
   constructor(rootPage: Page) {
     super(rootPage);
     this.projectsPage = new ProjectsPage(rootPage);
+    this.onboardingFlowPage = new OnboardingFlowPage(rootPage);
   }
 
   async goto(title = 'test') {
@@ -23,8 +26,12 @@ export class GoogleLoginPage extends BasePage {
     return this.rootPage.locator('html');
   }
 
-  async signIn(_: { email: string }) {
+  async signIn({ email, skipOnboardingFlow = true }: { email: string; skipOnboardingFlow?: boolean }) {
     // skipping for now as it requires google account
     // todo: later we can mock backend(google oauth2 endpoint calls) to test this
+
+    if (skipOnboardingFlow) {
+      await this.onboardingFlowPage.skipOnboardingFlow();
+    }
   }
 }

@@ -112,6 +112,7 @@ export interface Actions {
     automationId?: string
     replace?: boolean
     dashboardId?: string
+    newTab?: boolean
   }) => void
   getBaseUrl: (workspaceId: string) => string | undefined
   getMainUrl: (workspaceId: string) => string | undefined

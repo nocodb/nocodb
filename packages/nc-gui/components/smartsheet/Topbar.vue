@@ -18,6 +18,8 @@ const { appInfo } = useGlobal()
 
 const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
 
+const { toggleActionPanel, isPanelExpanded: isActionPanelExpanded } = useActionPane()
+
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
@@ -95,6 +97,37 @@ const topbarBreadcrumbItemWidth = computed(() => {
               :class="{ 'w-[0px] invisible': isPanelExpanded, 'ml-1 w-[74px]': !isPanelExpanded }"
             >
               {{ $t('general.extensions') }}
+            </span>
+          </div>
+        </NcButton>
+
+        <NcButton
+          v-if="
+            !isSharedBase &&
+            !activeAutomationId &&
+            !activeDashboardId &&
+            openedViewsTab === 'view' &&
+            !isMobileMode
+          "
+          v-e="['c:action-toggle']"
+          type="secondary"
+          size="small"
+          class="nc-topbar-action-btn"
+          :class="{ '!bg-brand-50 !hover:bg-brand-100/70 !text-brand-500': isActionPanelExpanded }"
+          data-testid="nc-topbar-action-btn"
+          @click="toggleActionPanel"
+        >
+          <div class="flex items-center justify-center min-w-[28.69px]">
+            <GeneralIcon
+              :icon="isActionPanelExpanded ? 'play' : 'play'"
+              class="w-4 h-4 !stroke-transparent"
+              :class="{ 'border-l-1 border-transparent': isActionPanelExpanded }"
+            />
+            <span
+              class="overflow-hidden trasition-all duration-200"
+              :class="{ 'w-[0px] invisible': isActionPanelExpanded, 'ml-1 w-[54px]': !isActionPanelExpanded }"
+            >
+              {{ $t('general.actions') }}
             </span>
           </div>
         </NcButton>

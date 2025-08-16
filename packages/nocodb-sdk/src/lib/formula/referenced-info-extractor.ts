@@ -71,8 +71,7 @@ export const getReferencedInfoFromArgs = (
 ): ReferencedInfo => {
   let referencedColumn: { id: string; uidt: string };
   let invalidForReferenceColumn = nodes
-    .map((c) => c.invalidForReferenceColumn)
-    .reduce((acc, cur) => acc || cur, false);
+    .some(c => c.invalidForReferenceColumn);
   const referencedColumns = invalidForReferenceColumn
     ? []
     : nodes.map((k) => k.referencedColumn).filter((k) => k);
@@ -83,8 +82,7 @@ export const getReferencedInfoFromArgs = (
     invalidForReferenceColumn = true;
   }
   const uidtCandidates = nodes
-    .map((k) => k.uidtCandidates)
-    .reduce((a, b) => a.concat(b), []);
+    .map((k) => k.uidtCandidates).flatMap(k => k);
   const referencedInfo = {
     referencedColumn,
     uidtCandidates,

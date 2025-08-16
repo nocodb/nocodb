@@ -43,7 +43,7 @@ export class LeftSidebarPage extends BasePage {
 
     this.modal_workspace = this.rootPage.locator('.nc-dropdown-workspace-menu');
 
-    this.miniSidebar = this.dashboard.get().getByTestId('nc-mini-sidebar');
+    this.miniSidebar = this.dashboard.get().locator('[data-testid="nc-mini-sidebar"]');
 
     this.active_base = this.get().locator('.nc-treeview-container.nc-treeview-container-active-base');
   }
@@ -55,6 +55,13 @@ export class LeftSidebarPage extends BasePage {
   async isNewSidebar() {
     // will be new sidebar always from now
     return 1;
+  }
+
+  /**
+   * In shared base/view minisidebar will be hidden
+   */
+  async isMiniSidebarVisible() {
+    return (await this.miniSidebar.count()) > 0;
   }
 
   async verifyBaseListOpen(open: boolean = false) {
@@ -220,7 +227,7 @@ export class LeftSidebarPage extends BasePage {
     type: MiniSidebarActionType;
     fallback?: () => Promise<void>;
   }): Promise<boolean | void> {
-    if (!(await this.isNewSidebar())) {
+    if (!(await this.isNewSidebar()) || !(await this.isMiniSidebarVisible())) {
       if (fallback) {
         await fallback();
       }

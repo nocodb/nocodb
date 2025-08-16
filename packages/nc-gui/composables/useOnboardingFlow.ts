@@ -1,12 +1,16 @@
 export interface OnboardingOptionType {
   value: string
   description?: string
-  icon?: IconMapKey
+  icon?: IconMapKey | VNode
   iconColor?: string
   /**
    * `Undefined` will be considered as `iconMap`
    */
-  iconType?: 'indexedStepProgressBar' | 'iconMap'
+  iconType?: 'indexedStepProgressBar' | 'iconMap' | 'vNode'
+  /**
+   * Default `left`
+   */
+  iconPosition?: 'left' | 'right'
   /**
    * `resetOnSelect` will be helpful if option is `None of the above` or `Other` to reset previous selection if user select this option
    */
@@ -28,6 +32,7 @@ export interface OnboardingRightSectionType {
 export interface OnboardingQuestionType {
   id: number
   question: string
+  description?: string
   inputType: 'singleSelect' | 'multiSelect'
   /**
    * MinSelection to auto navigate to next question if it is multiSelect input type
@@ -46,6 +51,11 @@ export interface OnboardingQuestionType {
      */
     optionsInEachRow?: number
   }
+  /**
+   * Control visibility of the question
+   * @returns true if the question should be visible, false otherwise
+   */
+  isVisible?: () => boolean
 }
 
 export const useOnboardingFlow = createSharedComposable(() => {
@@ -54,6 +64,8 @@ export const useOnboardingFlow = createSharedComposable(() => {
   const router = useRouter()
 
   const route = router.currentRoute
+
+  const { appInfo } = useGlobal()
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -76,7 +88,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
   const formState = ref<{ [questionId: string]: string | string[] }>({})
 
   const questions = computed<OnboardingQuestionType[]>(() => {
-    return [
+    const list: OnboardingQuestionType[] = [
       {
         id: 1,
         question: 'Hey! What do you plan on using NocoDB for?',
@@ -197,7 +209,6 @@ export const useOnboardingFlow = createSharedComposable(() => {
           imageName: 'gallery',
         },
       },
-
       {
         id: 5,
         question: 'How experienced are you with app building?',
@@ -228,56 +239,77 @@ export const useOnboardingFlow = createSharedComposable(() => {
       },
       {
         id: 6,
-        question: 'Which tools are you familiar with?',
+        question: 'Choose AI Tools That You Are Familiar With',
+        description: 'Unlocks Free Access To NocoAI 🎉 ',
         inputType: 'multiSelect',
         options: [
           {
-            value: 'Airtable',
-            icon: 'importAirtable',
+            value: 'OpenAI',
+            icon: 'openai',
           },
           {
-            value: 'Baserow',
-            icon: 'ncLogoBaserowColored',
+            value: 'Claude',
+            icon: 'claude',
           },
           {
-            value: 'Monday',
-            icon: 'importMonday',
+            value: 'Gemini',
+            icon: 'ncLogoGeminiAiColored',
           },
           {
-            value: 'Softr',
-            icon: 'ncLogoSoftrColored',
+            value: 'Clay',
           },
           {
-            value: 'Notion',
-            icon: 'ncLogoNotionColored',
+            value: 'Copy.ai',
           },
           {
-            value: 'Coda',
-            icon: 'ncLogoCodaColored',
+            value: 'Manus.im',
+            icon: 'ncLogoManusIm',
           },
           {
-            value: 'Retool',
-            icon: 'ncLogoRetoolColored',
+            value: 'Glean',
           },
           {
-            value: 'n8n',
-            icon: 'ncLogoN8nColored',
+            value: 'Moveworks',
           },
           {
-            value: 'Zapier',
-            icon: 'ncLogoZapierColored',
+            value: 'Genspark.ai',
           },
           {
-            value: 'Make',
-            icon: 'ncLogoMakeColored',
+            value: 'Gamma.ai',
           },
           {
-            value: 'Other',
-            resetOnSelect: true,
+            value: 'Llamaindex',
+          },
+          {
+            value: 'Granola',
+          },
+          {
+            value: 'Langchain',
+            icon: 'ncLogoLangchain',
+          },
+          {
+            value: 'Huggingface',
+            icon: 'ncLogoHuggingface',
+          },
+          {
+            value: 'CrewAI',
+            icon: 'ncLogoCrewAi',
+          },
+          {
+            value: 'Loveable',
+          },
+          {
+            value: 'Replit.ai',
+            icon: 'ncLogoReplitAi',
+          },
+          {
+            value: 'Bolt.new',
           },
           {
             value: 'None of the above',
             resetOnSelect: true,
+            icon: h('div', {}, '🤨'),
+            iconPosition: 'right',
           },
         ],
         minSelection: 3,
@@ -290,6 +322,10 @@ export const useOnboardingFlow = createSharedComposable(() => {
           width: 24,
           height: 24,
           fullWidth: true,
+        },
+
+        isVisible: () => {
+          return true || (appInfo.value?.isCloud && !appInfo.value?.isOnPrem)
         },
       },
       /*
@@ -337,6 +373,10 @@ export const useOnboardingFlow = createSharedComposable(() => {
       },
       */
     ]
+
+    return list.filter((q) => {
+      return q.isVisible?.() ?? true
+    }) as OnboardingQuestionType[]
   })
 
   const questionsMap = computed(() => {

@@ -16,7 +16,7 @@ watch(
   () => visibleQuestion.value.id,
   (_newValue, _oldValue, cleanup) => {
     timer = setTimeout(() => {
-      autoScrollQuestionRefs.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      // autoScrollQuestionRefs.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 300)
 
     cleanup(() => {

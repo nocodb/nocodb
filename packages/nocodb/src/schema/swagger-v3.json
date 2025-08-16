@@ -1669,6 +1669,127 @@
             "description": "Server error."
           }
         }
+      },
+      "post": {
+        "summary": "Create view",
+        "description": "Create a view for table.",
+        "operationId": "view-create",
+        "tags": [
+          "Views"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewCreate"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "Created View Title",
+                    "type": "grid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "View meta updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/View"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "vw5rakj00x28vdht",
+                      "title": "myFilterView2",
+                      "type": "grid",
+                      "lock_type": "collaborative",
+                      "created_at": "2025-08-13 07:36:03+00:00",
+                      "updated_at": "2025-08-13 07:36:03+00:00",
+                      "created_by": "uspf4n7qlp704qrj",
+                      "fields": [
+                        {
+                          "field_id": "csd3tnc2t8ccbw2",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cwy23c7tglso0zp",
+                          "show": true
+                        },
+                        {
+                          "field_id": "clljtnye0his0wv",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cmbwwvp0mhyw6uv",
+                          "show": true
+                        },
+                        {
+                          "field_id": "c1kzoujfb6on9ba",
+                          "show": true
+                        },
+                        {
+                          "field_id": "c711uewjhfevrjj",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cjgsfkb3307h4gj",
+                          "show": true
+                        },
+                        {
+                          "field_id": "ck6lswg0z3h6ase",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cxlnws1ojnocsr3",
+                          "show": true
+                        }
+                      ],
+                      "options": {
+                        "row_height": "short"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Table not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
       }
     },
     "/api/v3/meta/bases/{baseId}/tables/{tableId}/fields": {
@@ -1951,6 +2072,259 @@
           },
           "404": {
             "description": "Field not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    
+    "/api/v3/meta/bases/{baseId}/views/{viewId}": {
+      "get": {
+        "summary": "Get view schema",
+        "description": "Retrieve the details of a specific view.",
+        "operationId": "view-read",
+        "tags": [
+          "Views"
+        ],
+        "parameters": [
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          },
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "View details are retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/View"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "vw5rakj00x28vdht",
+                      "title": "myFilterView2",
+                      "type": "grid",
+                      "lock_type": "collaborative",
+                      "created_at": "2025-08-13 07:36:03+00:00",
+                      "updated_at": "2025-08-13 07:36:03+00:00",
+                      "created_by": "uspf4n7qlp704qrj",
+                      "fields": [
+                        {
+                          "field_id": "csd3tnc2t8ccbw2",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cwy23c7tglso0zp",
+                          "show": true
+                        },
+                        {
+                          "field_id": "clljtnye0his0wv",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cmbwwvp0mhyw6uv",
+                          "show": true
+                        },
+                        {
+                          "field_id": "c1kzoujfb6on9ba",
+                          "show": true
+                        },
+                        {
+                          "field_id": "c711uewjhfevrjj",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cjgsfkb3307h4gj",
+                          "show": true
+                        },
+                        {
+                          "field_id": "ck6lswg0z3h6ase",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cxlnws1ojnocsr3",
+                          "show": true
+                        }
+                      ],
+                      "options": {
+                        "row_height": "short"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "View not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update view",
+        "description": "Update the details of a specific view.",
+        "operationId": "view-update",
+        "tags": [
+          "Views"
+        ],
+        "parameters": [
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          },
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewUpdate"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "Updated View Title"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "View meta updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/View"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "vw5rakj00x28vdht",
+                      "title": "myFilterView2",
+                      "type": "grid",
+                      "lock_type": "collaborative",
+                      "created_at": "2025-08-13 07:36:03+00:00",
+                      "updated_at": "2025-08-13 07:36:03+00:00",
+                      "created_by": "uspf4n7qlp704qrj",
+                      "fields": [
+                        {
+                          "field_id": "csd3tnc2t8ccbw2",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cwy23c7tglso0zp",
+                          "show": true
+                        },
+                        {
+                          "field_id": "clljtnye0his0wv",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cmbwwvp0mhyw6uv",
+                          "show": true
+                        },
+                        {
+                          "field_id": "c1kzoujfb6on9ba",
+                          "show": true
+                        },
+                        {
+                          "field_id": "c711uewjhfevrjj",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cjgsfkb3307h4gj",
+                          "show": true
+                        },
+                        {
+                          "field_id": "ck6lswg0z3h6ase",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cxlnws1ojnocsr3",
+                          "show": true
+                        }
+                      ],
+                      "options": {
+                        "row_height": "short"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Table not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete view",
+        "description": "Delete a specific view.",
+        "operationId": "view-delete",
+        "tags": [
+          "Views"
+        ],
+        "parameters": [
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "View deleted successfully."
+          },
+          "404": {
+            "description": "View not found."
           },
           "500": {
             "description": "Server error."

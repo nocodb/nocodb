@@ -24,7 +24,7 @@ export class OpenIDLoginPage extends BasePage {
   async signIn({ email }: { email: string }) {
     const signIn = this.get();
     const loginLocator = signIn.locator('[name="login"]');
-    await loginLocator.waitFor();
+    await loginLocator.waitFor({ state: 'visible' });
 
     await loginLocator.fill(email);
     await signIn.locator(`[name="password"]`).fill('dummy-password');

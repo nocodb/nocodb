@@ -380,6 +380,9 @@ export class DataV3Service {
       skipSubstitutingColumnIds?: boolean;
     },
   ): Promise<any> {
+    if (!fields || typeof fields !== 'object' || Array.isArray(fields)) {
+      return fields ?? {};
+    }
     const transformedFields = { ...fields };
     const getPrimaryKey = (column: Column) => {
       return option?.skipSubstitutingColumnIds ? column.id : column.title;

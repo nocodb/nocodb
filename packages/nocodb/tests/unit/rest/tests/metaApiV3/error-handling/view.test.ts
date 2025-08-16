@@ -154,6 +154,25 @@ export default function () {
         expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
       });
 
+      it(`will handle invalid table id`, async () => {
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/NOTEXISTSTABLE/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            type: 'GRID',
+            sorts: [
+              {
+                fieldId: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          });
+        expect(response.status).to.eq(422);
+        expect(response.body.error).to.eq('TABLE_NOT_FOUND');
+      });
+
       it(`will handle invalid groups property`, async () => {
         const response = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/views`)

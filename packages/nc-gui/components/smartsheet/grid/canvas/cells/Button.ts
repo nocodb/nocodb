@@ -294,7 +294,7 @@ export const ButtonCellRenderer: CellRenderer = {
 
     let contentWidth = 0
     let labelWidth = 0
-    
+
     // Show step title when loading, otherwise show button label
     const currentStepTitle = isLoading ? actionManager.getCurrentStepTitle(pk, column.id!) : undefined
     let truncatedLabel = currentStepTitle || buttonMeta.label

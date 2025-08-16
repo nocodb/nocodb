@@ -45,9 +45,10 @@ export class ActionManager {
       tooltip?: string
     }
   >()
+
   // key is rowId-columnId, value is current step title
   private currentStepTitles = new Map<string, string>()
-  private cellUpdates = new Map<string, { fieldName: string; scriptExecutionId: string, startTime: number }>()
+  private cellUpdates = new Map<string, { fieldName: string; scriptExecutionId: string; startTime: number }>()
 
   private rafId: number | null = null
 
@@ -187,14 +188,13 @@ export class ActionManager {
   private getRecordDisplayValue(row?: Record<string, any>): string {
     if (!row) return ''
 
-    const displayField = this.meta.value?.columns?.find(col => col.pv) ||
-      this.meta.value?.columns?.find(col => col.pk)
+    const displayField = this.meta.value?.columns?.find((col) => col.pv) || this.meta.value?.columns?.find((col) => col.pk)
 
     if (displayField && row.row[displayField.title!]) {
       return String(row.row[displayField.title!])
     }
 
-    const firstValue = Object.values(row.row).find(val => val !== null && val !== undefined && val !== '')
+    const firstValue = Object.values(row.row).find((val) => val !== null && val !== undefined && val !== '')
     return firstValue ? String(firstValue) : ''
   }
 
@@ -267,11 +267,15 @@ export class ActionManager {
                   displayValue,
                   scriptId: script.id!,
                   scriptName: script.title || 'Untitled Script',
-                  buttonFieldName: column.columnObj.title || 'Button'
+                  buttonFieldName: column.columnObj.title || 'Button',
                 })
                 // The script returns once it is added to the executionQueue
                 // Here we wait for the script to finish or error via polling
-                await pollUntil(() => activeExecutions.value.get(scriptExecutionId)?.status === 'finished' || activeExecutions.value.get(scriptExecutionId)?.status === 'error')
+                await pollUntil(
+                  () =>
+                    activeExecutions.value.get(scriptExecutionId)?.status === 'finished' ||
+                    activeExecutions.value.get(scriptExecutionId)?.status === 'error',
+                )
               } catch (error) {
                 throw error
               }

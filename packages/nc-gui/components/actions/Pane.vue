@@ -58,28 +58,32 @@ watch(isPanelExpanded, (newValue) => {
             <span class="text-sm font-medium text-gray-700">{{ $t('general.actions') }}</span>
           </div>
         </div>
-        
+
         <div class="flex-1 flex flex-col p-4 overflow-y-auto">
           <div v-if="executions.length > 0" class="space-y-4 min-h-0">
-            <div v-for="execution in executions" :key="execution.executionId" class="border-1 border-nc-border-gray-light rounded-lg bg-white p-4">
+            <div
+              v-for="execution in executions"
+              :key="execution.executionId"
+              class="border-1 border-nc-border-gray-light rounded-lg bg-white p-4"
+            >
               <div class="flex items-start gap-3">
                 <div class="flex-shrink-0 mt-0.5">
-                  <div 
+                  <div
                     class="w-6 h-6 rounded-full flex items-center justify-center"
                     :class="{
                       'bg-blue-100': execution.status === 'running',
                       'bg-green-100': execution.status === 'completed',
-                      'bg-red-100': execution.status === 'error'
+                      'bg-red-100': execution.status === 'error',
                     }"
                   >
                     <GeneralLoader v-if="execution.status === 'running'" />
-                    <GeneralIcon 
+                    <GeneralIcon
                       v-else
                       :icon="execution.status === 'completed' ? 'check' : 'alertTriangle'"
                       class="w-3 h-3"
                       :class="{
                         'text-green-600': execution.status === 'completed',
-                        'text-red-600': execution.status === 'error'
+                        'text-red-600': execution.status === 'error',
                       }"
                     />
                   </div>
@@ -87,20 +91,20 @@ watch(isPanelExpanded, (newValue) => {
                 <div class="flex-1 items-center min-w-0">
                   <div class="flex items-center gap-2 mb-2">
                     <div class="text-sm font-semibold text-nc-content-gray-emphasis truncate">{{ execution.displayValue }}</div>
-                    <span 
+                    <span
                       class="px-2 py-1 text-xs rounded-full"
                       :class="{
                         'bg-blue-100 text-blue-800': execution.status === 'running',
                         'bg-green-100 text-green-800': execution.status === 'completed',
-                        'bg-red-100 text-red-800': execution.status === 'error'
+                        'bg-red-100 text-red-800': execution.status === 'error',
                       }"
                     >
                       {{ execution.status === 'running' ? 'Running' : execution.status === 'completed' ? 'Completed' : 'Error' }}
                     </span>
                   </div>
                   <div v-if="execution.playground.length > 0" class="mt-3">
-                    <SmartsheetAutomationScriptsPlayground 
-                      :playground="execution.playground" 
+                    <SmartsheetAutomationScriptsPlayground
+                      :playground="execution.playground"
                       :is-running="execution.status === 'running'"
                       :is-finished="execution.status === 'completed' || execution.status === 'finished'"
                       :show-run-button="false"
@@ -111,15 +115,13 @@ watch(isPanelExpanded, (newValue) => {
               </div>
             </div>
           </div>
-          
+
           <div v-else class="text-center text-gray-500 mt-8">
             <div class="mb-4">
               <GeneralIcon icon="play" class="w-12 h-12 mx-auto text-gray-300" />
             </div>
             <div class="text-base font-medium mb-2">Script Actions</div>
-            <div class="text-sm text-gray-400">
-              Execute scripts and view their progress in real-time
-            </div>
+            <div class="text-sm text-gray-400">Execute scripts and view their progress in real-time</div>
           </div>
         </div>
       </div>

@@ -4,15 +4,20 @@ export const useActionPane = createSharedComposable(() => {
 
   const actionPanelSize = ref(40)
   const isPanelExpanded = ref(false)
-  
-  const executionMetadata = ref(new Map<string, {
-    recordId: string
-    displayValue: string
-    scriptId: string
-    scriptName: string
-    buttonFieldName?: string
-    startTime: Date
-  }>())
+
+  const executionMetadata = ref(
+    new Map<
+      string,
+      {
+        recordId: string
+        displayValue: string
+        scriptId: string
+        scriptName: string
+        buttonFieldName?: string
+        startTime: Date
+      }
+    >(),
+  )
 
   const toggleActionPanel = () => {
     if (isExtensionPanelExpanded.value) {
@@ -28,18 +33,21 @@ export const useActionPane = createSharedComposable(() => {
     isPanelExpanded.value = true
   }
 
-  const addScriptExecution = (executionId: string, metadata: {
-    recordId: string
-    displayValue: string
-    scriptId: string
-    scriptName: string
-    buttonFieldName?: string
-  }) => {
+  const addScriptExecution = (
+    executionId: string,
+    metadata: {
+      recordId: string
+      displayValue: string
+      scriptId: string
+      scriptName: string
+      buttonFieldName?: string
+    },
+  ) => {
     executionMetadata.value.set(executionId, {
       ...metadata,
-      startTime: new Date()
+      startTime: new Date(),
     })
-    
+
     if (!isPanelExpanded.value) {
       openActionPane()
     }
@@ -73,7 +81,7 @@ export const useActionPane = createSharedComposable(() => {
           executionId,
           ...metadata,
           playground: execution.playground || [],
-          status: execution.status === 'finished' ? 'completed' : execution.status || 'running'
+          status: execution.status === 'finished' ? 'completed' : execution.status || 'running',
         })
       }
     })
@@ -95,6 +103,6 @@ export const useActionPane = createSharedComposable(() => {
     addScriptExecution,
     removeScriptExecution,
     clearAllExecutions,
-    executions
+    executions,
   }
 })

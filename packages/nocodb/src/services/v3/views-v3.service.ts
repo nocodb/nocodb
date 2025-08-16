@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { viewTypeAlias, ViewTypes } from 'nocodb-sdk';
-import { OnGlobalQueueStalled } from '@nestjs/bull';
 import { GridsService } from '../grids.service';
 import { CalendarsService } from '../calendars.service';
 import { KanbansService } from '../kanbans.service';
@@ -44,10 +43,6 @@ export class ViewsV3Service {
   private v3Tov2ViewBuilders: {
     view?: () => ApiV3DataTransformationBuilder<any, any>;
     options?: () => ApiV3DataTransformationBuilder<any, any>;
-    calendar?: () => ApiV3DataTransformationBuilder<any, any>;
-    kanban?: () => ApiV3DataTransformationBuilder<any, any>;
-    form?: () => ApiV3DataTransformationBuilder<any, any>;
-    gallery?: () => ApiV3DataTransformationBuilder<any, any>;
   } = {};
 
   constructor(
@@ -131,7 +126,6 @@ export class ViewsV3Service {
       mappings: {},
       transformFn: (viewData) => {
         const formattedData = viewData;
-        console.log(formattedData);
         formattedData.view_type = viewTypeAlias[formattedData.view_type];
         const options = this.viewOptionsBuilder().build(formattedData.view);
         if (Object.keys(options).length > 0) {
@@ -293,72 +287,13 @@ export class ViewsV3Service {
               }
             : {}),
           // kanban
-          ...(options.stackBy.fieldId
+          ...(options.stackBy?.fieldId
             ? { fk_grp_col_id: options.stackBy.fieldId }
             : {}),
         };
 
         options.stackBy = undefined;
         return result;
-      },
-    }) as any;
-
-    this.v3Tov2ViewBuilders.calendar = builderGenerator<any, any>({
-      allowed: ['dateRanges'],
-      mappings: {
-        dateRanges: 'calendar_range',
-      },
-      transformFn: (options) => {
-        const result = {
-          ...options,
-          calendar_range: options.calendar_range.map((range) => ({
-            fk_from_column_id: range.startDateFieldId,
-            fk_to_column_id: range.endDateFieldId,
-          })),
-        };
-        return result;
-      },
-    }) as any;
-
-    this.v3Tov2ViewBuilders.kanban = builderGenerator<any, any>({
-      allowed: ['stackBy'],
-      mappings: {},
-      transformFn: (options) => {
-        const result = {
-          ...options,
-          fk_grp_col_id: options.stackBy.fieldId,
-        };
-        return result;
-      },
-    }) as any;
-
-    this.v3Tov2ViewBuilders.gallery = builderGenerator<any, any>({
-      allowed: ['coverFieldId'],
-      mappings: {
-        coverFieldId: 'fk_cover_image_col_id',
-      },
-    }) as any;
-
-    this.v3Tov2ViewBuilders.form = builderGenerator<any, any>({
-      allowed: [
-        'formTitle',
-        'formDescription',
-        'submitButtonLabel',
-        'thankYouMessage',
-        'redirectOnSubmit',
-        'submitAnotherForm',
-        'showBlankForm',
-      ],
-      mappings: {
-        formTitle: 'heading',
-        formDescription: 'subheading',
-        thankYouMessage: 'success_msg',
-        submitAnotherForm: 'submit_another_form',
-        showBlankForm: 'show_blank_form',
-      },
-      transformFn: (data) => {
-        data.redirect_url = data.redirectOnSubmit?.url;
-        return data;
       },
     }) as any;
 
@@ -546,9 +481,7 @@ export class ViewsV3Service {
               tableId,
               calendar: {
                 ...requestBody,
-                ...this.v3Tov2ViewBuilders
-                  .calendar()
-                  .build(requestBody.options),
+                ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
               },
               req: req,
               user: context.user,
@@ -564,7 +497,7 @@ export class ViewsV3Service {
               tableId,
               kanban: {
                 ...requestBody,
-                ...this.v3Tov2ViewBuilders.kanban().build(requestBody.options),
+                ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
               },
               req: req,
               user: context.user,
@@ -580,7 +513,7 @@ export class ViewsV3Service {
               tableId,
               gallery: {
                 ...requestBody,
-                ...this.v3Tov2ViewBuilders.gallery().build(requestBody.options),
+                ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
               },
               req: req,
               user: context.user,
@@ -596,7 +529,7 @@ export class ViewsV3Service {
               tableId,
               body: {
                 ...requestBody,
-                ...this.v3Tov2ViewBuilders.form().build(requestBody.options),
+                ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
               },
               req: req,
               user: context.user,

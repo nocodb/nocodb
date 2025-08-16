@@ -9,8 +9,8 @@ import {
 } from 'nocodb-sdk';
 import type {
   RowColoringInfo,
-  ViewColumnOptionV3Type,
   ViewCreateV3Type,
+  ViewOptionBaseV3Type,
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { ApiV3DataTransformationBuilder } from '~/utils/data-transformation.builder';
@@ -897,7 +897,7 @@ export class ViewsV3Service {
       tableId: string;
       modelColumns?: { id: string; order: number }[];
       orderedFields?: ViewCreateV3Type['ordered_fields'];
-      fieldsById?: ViewColumnOptionV3Type['fields_by_id'];
+      fieldsById?: ViewOptionBaseV3Type['fields_by_id'];
     },
     ncMeta?: MetaService,
   ) {
@@ -1073,14 +1073,12 @@ export class ViewsV3Service {
         true,
         context,
       );
-      if (existingView.type === ViewTypes.FORM && body.options.fields_by_id) {
-        validatePayload(
-          `swagger-v3.json#/components/schemas/ViewColumnOption`,
-          body.options,
-          true,
-          context,
-        );
-      }
+      validatePayload(
+        `swagger-v3.json#/components/schemas/ViewOptionBase`,
+        body.options,
+        true,
+        context,
+      );
     }
     if ('title' in body && !body.title) {
       NcError.get(context).invalidRequestBody(

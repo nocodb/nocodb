@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { MetaTable } from 'src/cli';
 import type {
   SortCreateV3Type,
   SortReqType,

@@ -183,6 +183,8 @@ export class ViewsV3Service {
         'background_color',
         'fk_cover_image_col_id',
         'fk_grp_col_id',
+
+        'calendar_range',
       ],
       mappings: {
         heading: 'form_title',

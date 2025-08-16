@@ -27,6 +27,10 @@ test.describe('Meta sync', () => {
         dbExec = query => pgExec(query, context);
         break;
     }
+
+    await dashboard.leftSidebar.verifyBaseListOpen(false);
+
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: context.base.title, open: true });
   });
 
   test.afterEach(async () => {
@@ -266,7 +270,7 @@ test.describe('Meta sync', () => {
     await metaData.sync();
     await metaData.close();
 
-    await dashboard.treeView.openTable({ title: 'Table1' });
+    await dashboard.treeView.openTable({ title: 'Table1', baseTitle: context.base.title });
 
     await dashboard.grid.toolbar.clickFields();
     await dashboard.grid.toolbar.fields.click({ title: 'Col2' });

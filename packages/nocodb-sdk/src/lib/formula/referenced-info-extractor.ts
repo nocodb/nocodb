@@ -21,37 +21,6 @@ const IMPURE_OPR_UIDT_MAP = new Map<UITypes, UITypes>([
   [UITypes.Year, UITypes.Number],
 ]);
 
-export const extractColumnReferencedInfo = ({
-  col,
-}: {
-  col: Record<string, any>;
-}) => {
-  const result: {
-    referencedColumn?: { id: string; uidt: string };
-    uidtCandidates: UITypes[];
-  } = { uidtCandidates: [] };
-  switch (col.uidt) {
-    case UITypes.SingleLineText:
-    case UITypes.SingleSelect:
-    case UITypes.MultiSelect:
-    case UITypes.Email:
-    case UITypes.URL:
-    case UITypes.LongText:
-    case UITypes.PhoneNumber:
-    case UITypes.Number:
-    case UITypes.Decimal:
-    case UITypes.Currency:
-    case UITypes.Percent:
-    case UITypes.Rating:
-    case UITypes.User: {
-      result.referencedColumn = { id: col.id, uidt: col.uidt };
-      result.uidtCandidates.push(col.uidt);
-      break;
-    }
-  }
-  return result;
-};
-
 const filterReferencedInfoByUidt = ({
   referencedInfo,
   allowedUidts,
@@ -179,6 +148,14 @@ export const getReferencedInfoFromArgs = (
         referencedInfo,
         allowedUidts: [UITypes.Time, UITypes.Duration],
         defaultUidt: UITypes.Time,
+        ...option,
+      });
+    }
+    case FormulaDataTypes.ARRAY: {
+      return filterReferencedInfoByUidt({
+        referencedInfo,
+        allowedUidts: [UITypes.LinkToAnotherRecord, UITypes.Lookup],
+        defaultUidt: UITypes.SingleLineText,
         ...option,
       });
     }

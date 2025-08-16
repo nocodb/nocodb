@@ -62,7 +62,6 @@ async function extractColumnIdentifierType({
     case UITypes.CreatedBy:
     case UITypes.LastModifiedBy:
       res.dataType = FormulaDataTypes.STRING;
-      res.referencedColumn = { id: col.id, uidt: col.uidt };
       break;
     // numeric
     case UITypes.Year:
@@ -72,7 +71,6 @@ async function extractColumnIdentifierType({
     case UITypes.Count:
     case UITypes.AutoNumber:
       res.dataType = FormulaDataTypes.NUMERIC;
-      res.referencedColumn = { id: col.id, uidt: col.uidt };
       break;
     // date
     case UITypes.Date:
@@ -80,7 +78,6 @@ async function extractColumnIdentifierType({
     case UITypes.CreatedTime:
     case UITypes.LastModifiedTime:
       res.dataType = FormulaDataTypes.DATE;
-      res.referencedColumn = { id: col.id, uidt: col.uidt };
       break;
 
     case UITypes.Currency:
@@ -88,7 +85,6 @@ async function extractColumnIdentifierType({
     case UITypes.Duration:
     case UITypes.Links:
       res.dataType = FormulaDataTypes.NUMERIC;
-      res.referencedColumn = { id: col.id, uidt: col.uidt };
       break;
 
     case UITypes.Rollup:
@@ -140,7 +136,6 @@ async function extractColumnIdentifierType({
 
     case UITypes.Attachment:
       res.dataType = FormulaDataTypes.STRING;
-      res.referencedColumn = { id: col.id, uidt: col.uidt };
       break;
     case UITypes.Checkbox:
       if (col.dt === 'boolean' || col.dt === 'bool') {
@@ -148,11 +143,9 @@ async function extractColumnIdentifierType({
       } else {
         res.dataType = FormulaDataTypes.NUMERIC;
       }
-      res.referencedColumn = { id: col.id, uidt: col.uidt };
       break;
     case UITypes.Time:
       res.dataType = FormulaDataTypes.INTERVAL;
-      res.referencedColumn = { id: col.id, uidt: col.uidt };
       break;
     case UITypes.ID:
     case UITypes.ForeignKey:
@@ -189,6 +182,7 @@ async function extractColumnIdentifierType({
       res.dataType = FormulaDataTypes.UNKNOWN;
       break;
   }
+  res.referencedColumn = { id: col.id, uidt: col.uidt };
 
   return res;
 }

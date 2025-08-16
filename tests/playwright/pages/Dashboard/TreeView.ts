@@ -223,6 +223,9 @@ export class TreeViewPage extends BasePage {
       requestUrlPathToMatch: `/api/v1/db/meta/projects/`,
       responseJsonMatcher: json => json.title === title && json.type === 'table',
     });
+
+    // After table create we navigate to that table and sidebar will be base homepage instead of baselist, so we have to wait for that
+    await this.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
   }
 
   async verifyTable({ title, index, exists = true }: { title: string; index?: number; exists?: boolean }) {

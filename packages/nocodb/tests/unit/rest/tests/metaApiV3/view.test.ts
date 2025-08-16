@@ -326,13 +326,6 @@ export default function () {
             options: {
               formTitle: 'MyForm',
             },
-            sorts: [
-              {
-                fieldId: (
-                  await table.getColumns(ctx)
-                ).find((col) => col.title === 'Title').id,
-              },
-            ],
           });
         expect(response.body.type).to.eq('FORM');
       });
@@ -374,19 +367,13 @@ export default function () {
                 },
               },
             },
-            sorts: [
-              {
-                fieldId: (await table.getColumns(ctx)).find(
-                  (col) => col.title === 'Title',
-                ).id,
-              },
-            ],
           },
         };
         const response = await request(context.app)
           .post(requestPayload.url)
           .set('xc-token', context.xc_token)
           .send(requestPayload.body);
+
         expect(response.body.type).to.eq('FORM');
         expect(
           response.body.options.fieldByIds[titleColumn.id].validators.length,

@@ -685,7 +685,10 @@ export class ViewsV3Service {
           trxNcMeta,
         );
       }
-      if (requestBody.sorts && requestBody.sorts.length > 0) {
+      if (
+        ![ViewTypes.FORM].includes(requestBody.type) &&
+        requestBody.sorts?.length > 0
+      ) {
         for (const sort of requestBody.sorts) {
           await this.sortsV3Service.sortCreate(
             context,
@@ -1085,7 +1088,10 @@ export class ViewsV3Service {
       }
 
       // if sort is empty array, we clear sort
-      if (requestBody.sorts && Array.isArray(requestBody.sorts)) {
+      if (
+        ![ViewTypes.FORM].includes(existingView.type) &&
+        Array.isArray(requestBody.sorts)
+      ) {
         await Sort.deleteAll(context, viewId, trxNcMeta);
         for (const sort of requestBody.sorts) {
           await this.sortsV3Service.sortCreate(

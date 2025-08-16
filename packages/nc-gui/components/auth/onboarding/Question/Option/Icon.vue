@@ -67,6 +67,16 @@ const iconColors = computed(() => {
       ></div>
     </div>
     <component :is="iconItem.icon" v-else-if="iconItem.iconType === 'vNode'" class="flex-none" />
+    <div
+      v-else-if="iconItem.iconType === 'image' && iconItem.img"
+      class="flex items-center justify-center"
+      :style="{
+        width: `${iconSize?.width ?? 24}px`,
+        height: `${iconSize?.height ?? 24}px`,
+      }"
+    >
+      <img :src="iconItem.img" class="flex-none w-full h-full object-contain" />
+    </div>
     <div v-else></div>
   </div>
 </template>

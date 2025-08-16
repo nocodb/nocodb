@@ -751,6 +751,14 @@ import NcLogoReplitAi from '~icons/nc-icons-v2/replit-ai-colored.svg'
 import NcLogoLangchain from '~icons/nc-icons-v2/langchain.svg'
 import NcLogoBambooHrColored from '~icons/nc-icons-v2/bamboo-hr-colored.svg'
 import NcLogoDockerColored from '~icons/nc-icons-v2/docker-colored.svg'
+import NcLogoHootsuiteColored from '~icons/nc-icons-v2/hootsuite-colored.svg'
+import NcLogoGongColored from '~icons/nc-icons-v2/gong-colored.svg'
+import NcLogoProductBoardColored from '~icons/nc-icons-v2/product-board-colored.svg'
+import NcLogoXeroColored from '~icons/nc-icons-v2/xero-colored.svg'
+import NcLogoSketchColored from '~icons/nc-icons-v2/sketch-colored.svg'
+import NcLogoLookerColored from '~icons/nc-icons-v2/looker-colored.svg'
+import NcLogoPowerLogoColored from '~icons/nc-icons-v2/power-logo-colored.svg'
+import NcLogoClickupColored from '~icons/nc-icons-v2/clickup-colored.svg'
 
 import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
 import NcBaseOutline from '~icons/nc-icons-v2/base-outline.svg'
@@ -1263,18 +1271,18 @@ export const iconMap = {
   'googleCalendar': NcGoogleCalendar,
   'googleSheet': NcGoogleSheet,
   'googleDrive': NcGoogleDrive,
-  'hubspot': NcHubspot,
+  'hubspot': h(NcHubspot, { stroke: 'transparent' }),
   'jira': NcJira,
   'mailchimp': NcMailchimp,
   'microsoftAccess': NcMicrosoftAccess,
   'microsoftExcel': NcMicrosoftExcel,
   'microsoftOutlook': NcMicrosoftOutlook,
   'miro': NcMiro,
-  'salesforce': NcSalesforce,
+  'salesforce': h(NcSalesforce, { stroke: 'transparent' }),
   'snowflake': NcSnowflake,
   'stripe': NcStripe,
   'surveyMonkey': NcSurveyMonkey,
-  'tableau': NcTableau,
+  'tableau': h(NcTableau, { stroke: 'transparent' }),
   'trello': NcTrello,
   'typeform': NcTypeform,
   'workday': NcWorkday,
@@ -1307,7 +1315,7 @@ export const iconMap = {
   'pipedrive': NcPipedrive,
   'zohoCrm': NcZohoCrm,
   'greenhouse': NcGreenhouse,
-  'lever': NcLever,
+  'lever': h(NcLever, { stroke: 'transparent' }),
   'bitBucket': NcBitBucket,
   'quickbooks': NcQuickbooks,
   'intercom': NcIntercom,
@@ -1742,6 +1750,14 @@ export const iconMap = {
   'ncLogoLangchain': h(NcLogoLangchain, { stroke: 'transparent' }),
   'ncLogoBambooHrColored': h(NcLogoBambooHrColored, { stroke: 'transparent' }),
   'ncLogoDockerColored': h(NcLogoDockerColored, { stroke: 'transparent' }),
+  'ncLogoHootsuiteColored': h(NcLogoHootsuiteColored, { stroke: 'transparent' }),
+  'ncLogoGongColored': h(NcLogoGongColored, { stroke: 'transparent' }),
+  'ncLogoProductBoardColored': h(NcLogoProductBoardColored, { stroke: 'transparent' }),
+  'ncLogoXeroColored': h(NcLogoXeroColored, { stroke: 'transparent' }),
+  'ncLogoSketchColored': h(NcLogoSketchColored, { stroke: 'transparent' }),
+  'ncLogoLookerColored': h(NcLogoLookerColored, { stroke: 'transparent' }),
+  'ncLogoPowerLogoColored': h(NcLogoPowerLogoColored, { stroke: 'transparent' }),
+  'ncLogoClickupColored': h(NcLogoClickupColored, { stroke: 'transparent' }),
 
   'ncSendAlt': h(NcSendAlt, { stroke: 'transparent' }),
   'ncStopCircle': h(NcStopCircle, { stroke: 'transparent' }),
@@ -4462,6 +4478,38 @@ export const searchableMap = {
   ncLogoDockerColored: {
     icon: h(NcLogoDockerColored, { stroke: 'transparent' }),
     keywords: ['docker', 'containerization', 'devops', 'cloud', 'infrastructure'],
+  },
+  ncLogoHootsuiteColored: {
+    icon: h(NcLogoHootsuiteColored, { stroke: 'transparent' }),
+    keywords: ['hootsuite', 'social', 'marketing', 'automation'],
+  },
+  ncLogoGongColored: {
+    icon: h(NcLogoGongColored, { stroke: 'transparent' }),
+    keywords: ['gong', 'revenue', 'analytics', 'sales'],
+  },
+  ncLogoProductBoardColored: {
+    icon: h(NcLogoProductBoardColored, { stroke: 'transparent' }),
+    keywords: ['productboard', 'roadmap', 'feedback', 'planning'],
+  },
+  ncLogoXeroColored: {
+    icon: h(NcLogoXeroColored, { stroke: 'transparent' }),
+    keywords: ['xero', 'accounting', 'finance', 'invoicing'],
+  },
+  ncLogoSketchColored: {
+    icon: h(NcLogoSketchColored, { stroke: 'transparent' }),
+    keywords: ['sketch', 'design', 'ui', 'prototype'],
+  },
+  ncLogoLookerColored: {
+    icon: h(NcLogoLookerColored, { stroke: 'transparent' }),
+    keywords: ['looker', 'analytics', 'data', 'visualization'],
+  },
+  ncLogoPowerLogoColored: {
+    icon: h(NcLogoPowerLogoColored, { stroke: 'transparent' }),
+    keywords: ['power', 'design', 'logo', 'branding'],
+  },
+  ncLogoClickupColored: {
+    icon: h(NcLogoClickupColored, { stroke: 'transparent' }),
+    keywords: ['clickup', 'tasks', 'collaboration', 'productivity'],
   },
 
   ncBaseOutline: {

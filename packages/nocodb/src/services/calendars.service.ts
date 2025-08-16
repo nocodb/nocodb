@@ -105,13 +105,14 @@ export class CalendarsService {
       calendar: CalendarUpdateReqType;
       req: NcRequest;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/CalendarUpdateReq',
       param.calendar,
     );
 
-    const view = await View.get(context, param.calendarViewId);
+    const view = await View.get(context, param.calendarViewId, ncMeta);
 
     if (!view) {
       NcError.viewNotFound(param.calendarViewId);
@@ -120,18 +121,20 @@ export class CalendarsService {
     const oldCalendarView = await CalendarView.get(
       context,
       param.calendarViewId,
+      ncMeta,
     );
 
     const res = await CalendarView.update(
       context,
       param.calendarViewId,
       param.calendar,
+      ncMeta,
     );
 
     let owner = param.req.user;
 
     if (view.owned_by && view.owned_by !== param.req.user?.id) {
-      owner = await User.get(view.owned_by);
+      owner = await User.get(view.owned_by, ncMeta);
     }
 
     this.appHooksService.emit(AppEvents.CALENDAR_UPDATE, {

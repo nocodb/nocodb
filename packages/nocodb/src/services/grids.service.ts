@@ -93,25 +93,31 @@ export class GridsService {
       grid: GridUpdateReqType;
       req: NcRequest;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/GridUpdateReq',
       param.grid,
     );
 
-    const view = await View.get(context, param.viewId);
+    const view = await View.get(context, param.viewId, ncMeta);
 
     if (!view) {
       NcError.viewNotFound(param.viewId);
     }
 
-    const oldGridView = await GridView.get(context, param.viewId);
-    const res = await GridView.update(context, param.viewId, param.grid);
+    const oldGridView = await GridView.get(context, param.viewId, ncMeta);
+    const res = await GridView.update(
+      context,
+      param.viewId,
+      param.grid,
+      ncMeta,
+    );
 
     let owner = param.req.user;
 
     if (view.owned_by && view.owned_by !== param.req.user?.id) {
-      owner = await User.get(view.owned_by);
+      owner = await User.get(view.owned_by, ncMeta);
     }
 
     this.appHooksService.emit(AppEvents.GRID_UPDATE, {

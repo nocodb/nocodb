@@ -540,4 +540,162 @@ export class ViewsV3Service {
       throw ex;
     }
   }
+
+  async update(
+    context: NcContext,
+    param: { req: NcRequest; viewId: string },
+    ncMeta?: MetaService,
+  ) {
+    const { req, viewId } = param;
+    const { body } = req;
+
+    // TODO: enable validate payload
+    // validatePayload(
+    //   'swagger-v3.json#/components/schemas/ViewCreate',
+    //   body,
+    //   true,
+    // );
+
+    let requestBody = this.v3Tov2ViewBuilders.view().build(body);
+
+    requestBody.type =
+      viewTypeMap[(requestBody.type as any as string).toUpperCase()];
+    requestBody.options = requestBody.options ?? {};
+    requestBody = {
+      ...requestBody,
+      ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
+    };
+
+    const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
+    try {
+      let insertedV2View: View;
+      switch (requestBody.type) {
+        case ViewTypes.GRID: {
+          let groups: any[];
+          if (
+            requestBody.options.groups &&
+            requestBody.options.groups.length > 0
+          ) {
+            if (requestBody.options.groups.length > 3) {
+              NcError.get(context).invalidRequestBody(
+                `options.groups maximal 3 fields`,
+              );
+            }
+            groups = requestBody.options;
+          }
+          insertedV2View = await this.gridsService.gridViewUpdate(
+            context,
+            {
+              grid: requestBody,
+              req: req,
+              viewId,
+            },
+            trxNcMeta,
+          );
+          if (groups && groups.length > 0) {
+            await this.gridColumnsService.gridColumnClearGroupBy(
+              context,
+              { viewId },
+              ncMeta,
+            );
+            let order = 1;
+            for (const group of groups) {
+              await this.gridColumnsService.gridColumnUpdate(
+                context,
+                {
+                  grid: {
+                    group_by: true,
+                    group_by_order: order++,
+                    group_by_sort: group.direction,
+                  },
+                  gridViewColumnId: group.field,
+                  req,
+                },
+                trxNcMeta,
+              );
+            }
+          }
+          break;
+        }
+        case ViewTypes.CALENDAR: {
+          insertedV2View = await this.calendarsService.calendarViewUpdate(
+            context,
+            {
+              calendar: requestBody,
+              req: req,
+              calendarViewId: viewId,
+            },
+            trxNcMeta,
+          );
+          break;
+        }
+        case ViewTypes.KANBAN: {
+          insertedV2View = await this.kanbansService.kanbanViewUpdate(
+            context,
+            {
+              kanbanViewId: viewId,
+              kanban: requestBody,
+              req: req,
+            },
+            trxNcMeta,
+          );
+          break;
+        }
+        case ViewTypes.GALLERY: {
+          insertedV2View = await this.galleriesService.galleryViewUpdate(
+            context,
+            {
+              galleryViewId: viewId,
+              gallery: requestBody,
+              req: req,
+            },
+            trxNcMeta,
+          );
+          break;
+        }
+        case ViewTypes.FORM: {
+          insertedV2View = await this.formsService.formViewUpdate(
+            context,
+            {
+              formViewId: viewId,
+              form: requestBody,
+              req: req,
+            },
+            trxNcMeta,
+          );
+          break;
+        }
+        default: {
+          NcError.get(context).invalidRequestBody(
+            `Type ${requestBody.type} is not supported`,
+          );
+          break;
+        }
+      }
+
+      // if sort is empty array, we clear sort
+      if (requestBody.sorts && Array.isArray(requestBody.sorts)) {
+        await this.sortsV3Service.sortClear(context, { viewId }, ncMeta);
+        for (const sort of requestBody.sorts) {
+          await this.sortsV3Service.sortCreate(
+            context,
+            {
+              viewId: insertedV2View.id,
+              req,
+              sort,
+            },
+            trxNcMeta,
+          );
+        }
+      }
+
+      if (!ncMeta) {
+        await trxNcMeta.commit();
+      }
+      return this.getView(context, { viewId: insertedV2View.id, req });
+    } catch (ex) {
+      await trxNcMeta.rollback();
+      throw ex;
+    }
+  }
 }

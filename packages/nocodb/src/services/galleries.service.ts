@@ -106,30 +106,36 @@ export class GalleriesService {
       gallery: GalleryUpdateReqType;
       req: NcRequest;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/GalleryUpdateReq',
       param.gallery,
     );
 
-    const view = await View.get(context, param.galleryViewId);
+    const view = await View.get(context, param.galleryViewId, ncMeta);
 
     if (!view) {
       NcError.viewNotFound(param.galleryViewId);
     }
 
-    const oldGalleryView = await GalleryView.get(context, param.galleryViewId);
+    const oldGalleryView = await GalleryView.get(
+      context,
+      param.galleryViewId,
+      ncMeta,
+    );
 
     const res = await GalleryView.update(
       context,
       param.galleryViewId,
       param.gallery,
+      ncMeta,
     );
 
     let owner = param.req.user;
 
     if (view.owned_by && view.owned_by !== param.req.user?.id) {
-      owner = await User.get(view.owned_by);
+      owner = await User.get(view.owned_by, ncMeta);
     }
 
     this.appHooksService.emit(AppEvents.GALLERY_UPDATE, {

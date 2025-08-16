@@ -125,32 +125,42 @@ export class KanbansService {
       kanban: KanbanUpdateReqType;
       req: NcRequest;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/KanbanUpdateReq',
       param.kanban,
     );
 
-    const view = await View.get(context, param.kanbanViewId);
+    const view = await View.get(context, param.kanbanViewId, ncMeta);
 
     if (!view) {
       NcError.viewNotFound(param.kanbanViewId);
     }
 
-    const oldKanbanView = await KanbanView.get(context, param.kanbanViewId);
+    const oldKanbanView = await KanbanView.get(
+      context,
+      param.kanbanViewId,
+      ncMeta,
+    );
 
     const res = await KanbanView.update(
       context,
       param.kanbanViewId,
       param.kanban,
+      ncMeta,
     );
     let owner = param.req.user;
 
     if (view.owned_by && view.owned_by !== param.req.user?.id) {
-      owner = await User.get(view.owned_by);
+      owner = await User.get(view.owned_by, ncMeta);
     }
 
-    const kanbanView = await KanbanView.get(context, param.kanbanViewId);
+    const kanbanView = await KanbanView.get(
+      context,
+      param.kanbanViewId,
+      ncMeta,
+    );
 
     this.appHooksService.emit(AppEvents.KANBAN_UPDATE, {
       view: view,

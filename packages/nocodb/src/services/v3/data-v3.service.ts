@@ -624,6 +624,9 @@ export class DataV3Service {
       [primaryKey.title]: record.id,
     }));
 
+    if (recordIds.length > V3_INSERT_LIMIT) {
+      NcError.maxInsertLimitExceeded(V3_INSERT_LIMIT);
+    }
     await this.dataTableService.dataDelete(context, {
       ...param,
       body: recordIds,
@@ -673,6 +676,10 @@ export class DataV3Service {
             )),
           },
         ];
+
+    if (transformedBody.length > V3_INSERT_LIMIT) {
+      NcError.maxInsertLimitExceeded(V3_INSERT_LIMIT);
+    }
 
     await this.dataTableService.dataUpdate(context, {
       ...param,

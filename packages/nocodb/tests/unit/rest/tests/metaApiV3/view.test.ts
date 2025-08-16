@@ -78,7 +78,7 @@ export default function () {
     });
 
     describe('view create', () => {
-      it.only(`will create grid view`, async () => {
+      it(`will create grid view`, async () => {
         const response = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
@@ -94,6 +94,30 @@ export default function () {
             ],
           });
         expect(response.body.type).to.eq('GRID');
+      });
+      it(`will create kanban view`, async () => {
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            type: 'KANBAN',
+            options: {
+              stackBy: {
+                fieldId: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'SingleSelect').id,
+              },
+            },
+            sorts: [
+              {
+                field_id: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          });
+        expect(response.body.type).to.eq('KANBAN');
       });
     });
   });

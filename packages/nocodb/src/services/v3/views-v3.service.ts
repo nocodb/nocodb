@@ -18,6 +18,7 @@ import { ViewsService } from '~/services/views.service';
 import { NcError } from '~/helpers/catchError';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
+import { validatePayload } from '~/helpers';
 
 const viewTypeMap = {
   GRID: ViewTypes.GRID,
@@ -394,6 +395,12 @@ export class ViewsV3Service {
   async create(context: NcContext, param: { req: NcRequest; tableId: string }) {
     const { req, tableId } = param;
     const { body } = req;
+
+    validatePayload(
+      'swagger-v3.json#/components/schemas/ViewCreate',
+      body,
+      true,
+    );
     const requestBody = this.v3Tov2ViewBuilders.view().build(body);
 
     requestBody.type =

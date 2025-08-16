@@ -820,6 +820,9 @@ export const viewColumnBuilder = builderGenerator<
       const numberWidth = Number(numberStrWidth);
       formattedData.width = !isNaN(numberWidth) ? numberWidth : numberStrWidth;
     }
+    if (formattedData.aggregation === 'none') {
+      delete formattedData.aggregation;
+    }
     return formattedData;
   },
 });

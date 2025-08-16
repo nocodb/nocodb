@@ -485,6 +485,10 @@ export const useOnboardingFlow = createSharedComposable(() => {
       return
     }
 
+    if (ncIsUndefined(formState.value[nextQuestion.id]) || question.id === 1) {
+      formState.value[nextQuestion.id] = nextQuestion.inputType === 'singleSelect' ? '' : []
+    }
+
     /**
      * Don't auto navigate to next question if:
      * 1. It is the last question
@@ -492,10 +496,6 @@ export const useOnboardingFlow = createSharedComposable(() => {
      * 3. Next question is already filled (maybe they have click back button)
      */
     if (stepper.isLast.value || !autoNavigateToNextQuestion || !nextQuestion || isFilledQuestionAnswer(nextQuestion)) return
-
-    if (ncIsUndefined(formState.value[nextQuestion.id]) || question.id === 1) {
-      formState.value[nextQuestion.id] = nextQuestion.inputType === 'singleSelect' ? '' : []
-    }
 
     if (question.inputType === 'singleSelect') {
       ncDelay(500).then(() => {

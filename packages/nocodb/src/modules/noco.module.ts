@@ -111,6 +111,7 @@ import { McpTokenService } from '~/services/mcp.service';
 import { McpService } from '~/mcp/mcp.service';
 import { McpController } from '~/mcp/mcp.controller';
 import { InternalController } from '~/controllers/internal.controller';
+import { ViewRowColorV3Service } from '~/services/v3/view-row-color-v3.service';
 
 /* Datas */
 import { BulkDataAliasController } from '~/controllers/bulk-data-alias.controller';
@@ -129,7 +130,6 @@ import { Datav3Controller } from '~/controllers/v3/data-v3.controller';
 import { FiltersV3Controller } from '~/controllers/v3/filters-v3.controller';
 import { SortsV3Controller } from '~/controllers/v3/sorts-v3.controller';
 import { TablesV3Controller } from '~/controllers/v3/tables-v3.controller';
-import { ViewsV3Controller } from '~/controllers/v3/views-v3.controller';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { CalendarDatasService } from '~/services/calendar-datas.service';
 import { BaseMembersV3Service } from '~/services/v3/base-members-v3.service';
@@ -147,7 +147,6 @@ import { DataV3Service } from '~/services/v3/data-v3.service';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
-import { ViewsV3Service } from '~/services/v3/views-v3.service';
 import { ViewRowColorController } from '~/controllers/view-row-color.controller';
 import { AttachmentUrlUploadHandler } from '~/services/emit-handler/attachment-url-upload.handler';
 
@@ -230,7 +229,6 @@ export const nocoModuleMetadata = {
           TablesV3Controller,
           ColumnsV3Controller,
           SortsV3Controller,
-          ViewsV3Controller,
           FiltersV3Controller,
 
           /* Datas */
@@ -309,12 +307,12 @@ export const nocoModuleMetadata = {
     TablesV3Service,
     ColumnsV3Service,
     SortsV3Service,
-    ViewsV3Service,
     FiltersV3Service,
     NocoJobsService,
     McpTokenService,
     McpService,
     ViewRowColorService,
+    ViewRowColorV3Service,
 
     /* Datas */
     DataTableService,
@@ -372,6 +370,7 @@ export const nocoModuleMetadata = {
     IntegrationsService,
     NocoJobsService,
     ViewRowColorService,
+    ViewRowColorV3Service,
 
     /* Datas */
     DatasService,

@@ -6,6 +6,7 @@ import type {
   ViewCreateReqType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -31,31 +32,36 @@ export class GalleriesService {
       ownedBy?: string;
       req: NcRequest;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.gallery,
     );
 
-    const model = await Model.get(context, param.tableId);
+    const model = await Model.get(context, param.tableId, ncMeta);
 
-    const { id } = await View.insertMetaOnly(context, {
-      view: {
-        ...param.gallery,
-        // todo: sanitize
-        fk_model_id: param.tableId,
-        type: ViewTypes.GALLERY,
-        base_id: model.base_id,
-        source_id: model.source_id,
-        created_by: param.user?.id,
-        owned_by: param.ownedBy || param.user?.id,
+    const { id } = await View.insertMetaOnly(
+      context,
+      {
+        view: {
+          ...param.gallery,
+          // todo: sanitize
+          fk_model_id: param.tableId,
+          type: ViewTypes.GALLERY,
+          base_id: model.base_id,
+          source_id: model.source_id,
+          created_by: param.user?.id,
+          owned_by: param.ownedBy || param.user?.id,
+        },
+        model,
+        req: param.req,
       },
-      model,
-      req: param.req,
-    });
+      ncMeta,
+    );
 
     // populate  cache and add to list since the list cache already exist
-    const view = await View.get(context, id);
+    const view = await View.get(context, id, ncMeta);
     await NocoCache.appendToList(
       CacheScope.VIEW,
       [view.fk_model_id],
@@ -65,7 +71,7 @@ export class GalleriesService {
     let owner = param.req.user;
 
     if (param.ownedBy) {
-      owner = await User.get(param.ownedBy);
+      owner = await User.get(param.ownedBy, ncMeta);
     }
 
     this.appHooksService.emit(AppEvents.GALLERY_CREATE, {
@@ -100,30 +106,36 @@ export class GalleriesService {
       gallery: GalleryUpdateReqType;
       req: NcRequest;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/GalleryUpdateReq',
       param.gallery,
     );
 
-    const view = await View.get(context, param.galleryViewId);
+    const view = await View.get(context, param.galleryViewId, ncMeta);
 
     if (!view) {
       NcError.viewNotFound(param.galleryViewId);
     }
 
-    const oldGalleryView = await GalleryView.get(context, param.galleryViewId);
+    const oldGalleryView = await GalleryView.get(
+      context,
+      param.galleryViewId,
+      ncMeta,
+    );
 
     const res = await GalleryView.update(
       context,
       param.galleryViewId,
       param.gallery,
+      ncMeta,
     );
 
     let owner = param.req.user;
 
     if (view.owned_by && view.owned_by !== param.req.user?.id) {
-      owner = await User.get(view.owned_by);
+      owner = await User.get(view.owned_by, ncMeta);
     }
 
     this.appHooksService.emit(AppEvents.GALLERY_UPDATE, {

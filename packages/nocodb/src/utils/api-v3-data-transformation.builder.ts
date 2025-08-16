@@ -5,6 +5,7 @@ import {
   LongTextAiMetaProp,
   ratingIconList,
   UITypes,
+  VIEW_GRID_DEFAULT_WIDTH,
 } from 'nocodb-sdk';
 import type {
   ColumnType,
@@ -184,6 +185,18 @@ export class ApiV3DataTransformationBuilder<
     return this;
   }
 
+  excludeEmptyObject<S = Input, T = Output>() {
+    this.transformations.push((data: S) => {
+      return Object.entries(data).reduce<T>((result, [key, value]) => {
+        if (typeof value !== 'object' || Object.keys(value ?? {}).length > 0) {
+          result[key] = value;
+        }
+        return result;
+      }, {} as T);
+    });
+    return this;
+  }
+
   transformToBoolean<S = Input, T = Output>(booleanProps: string[]) {
     this.transformations.push((data: S) => {
       return Object.entries(data).reduce<T>((result, [key, value]) => {
@@ -245,6 +258,7 @@ export const builderGenerator = <
   transformFn,
   meta,
   excludeNullProps = true,
+  excludeEmptyObjectProps = false,
   booleanProps,
   nestedExtract,
   ...rest
@@ -253,6 +267,7 @@ export const builderGenerator = <
   transformFn?: (data: any) => any;
   nestedExtract?: Record<string, string[]>;
   excludeNullProps?: boolean;
+  excludeEmptyObjectProps?: boolean;
   booleanProps?: string[];
   orderProps?: string[];
   meta?: {
@@ -274,6 +289,10 @@ export const builderGenerator = <
 
     if (excludeNullProps) {
       builder.excludeNulls();
+    }
+
+    if (excludeEmptyObjectProps) {
+      builder.excludeEmptyObject();
     }
 
     if (booleanProps) {
@@ -782,10 +801,28 @@ export const viewColumnBuilder = builderGenerator<
     'help',
     'description',
     'required',
+    'aggregation',
   ],
   mappings: {
     fk_column_id: 'field_id',
   },
   excludeNullProps: true,
   booleanProps: ['show', 'required'],
+  transformFn: (formattedData) => {
+    if (formattedData.width === VIEW_GRID_DEFAULT_WIDTH + 'px') {
+      formattedData.width = undefined;
+    } else if (
+      formattedData.width &&
+      typeof formattedData.width === 'string' &&
+      formattedData.width !== ''
+    ) {
+      const numberStrWidth = formattedData.width.replace('px', '').trim();
+      const numberWidth = Number(numberStrWidth);
+      formattedData.width = !isNaN(numberWidth) ? numberWidth : numberStrWidth;
+    }
+    if (formattedData.aggregation === 'none') {
+      delete formattedData.aggregation;
+    }
+    return formattedData;
+  },
 });

@@ -4,7 +4,7 @@ import type { ErrorObject } from 'ajv';
 import type { NextFunction, Request, Response } from 'express';
 import type { NcApiVersion } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
-import swagger, { swaggerV3 } from '~/schema';
+import swagger, { swaggerV3Validation } from '~/schema';
 
 export function parseHrtimeToMilliSeconds(hrtime) {
   const milliseconds = (hrtime[0] * 1000 + hrtime[1] / 1e6).toFixed(3);
@@ -13,7 +13,7 @@ export function parseHrtimeToMilliSeconds(hrtime) {
 
 const ajv = new Ajv({ strictSchema: false, strict: false, allErrors: true }); // Initialize AJV
 ajv.addSchema(swagger, 'swagger.json');
-ajv.addSchema(swaggerV3, 'swagger-v3.json');
+ajv.addSchema(swaggerV3Validation, 'swagger-v3.json');
 addFormats(ajv);
 
 // A middleware generator to validate the request body

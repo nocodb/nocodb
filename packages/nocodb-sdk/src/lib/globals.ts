@@ -63,6 +63,8 @@ export const stringToViewTypeMap: Record<string, ViewTypes> = Object.entries(
   return acc;
 }, {});
 
+export const VIEW_GRID_DEFAULT_WIDTH = 200;
+
 export enum ProjectTypes {
   DATABASE = 'database',
   DOCUMENTATION = 'documentation',
@@ -280,3 +282,20 @@ interface PlanLimitExceededDetailsType {
 export { Roles, RolesObj, RolesType, PlanLimitExceededDetailsType };
 
 export type RowColoringMode = null | 'SELECT' | 'FILTER';
+
+export enum RowHeight {
+  SHORT = 0,
+  MEDIUM = 1,
+  TALL = 2,
+  EXTRA = 3,
+}
+export const RowHeightMap = {
+  short: 0,
+  medium: 1,
+  tall: 2,
+  extra: 3,
+  [RowHeight.SHORT]: 'short',
+  [RowHeight.MEDIUM]: 'medium',
+  [RowHeight.TALL]: 'tall',
+  [RowHeight.EXTRA]: 'extra',
+};

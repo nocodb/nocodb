@@ -30,6 +30,33 @@ export enum BaseRoles {
   NoAccess = 'no-access',
 }
 
+export enum ViewAggregationEnum {
+  Sum = 'sum',
+  Min = 'min',
+  Max = 'max',
+  Avg = 'avg',
+  Median = 'median',
+  StdDev = 'std_dev',
+  Range = 'range',
+  Count = 'count',
+  CountEmpty = 'count_empty',
+  CountFilled = 'count_filled',
+  CountUnique = 'count_unique',
+  PercentEmpty = 'percent_empty',
+  PercentFilled = 'percent_filled',
+  PercentUnique = 'percent_unique',
+  None = 'none',
+  AttachmentSize = 'attachment_size',
+  Checked = 'checked',
+  Unchecked = 'unchecked',
+  PercentChecked = 'percent_checked',
+  PercentUnchecked = 'percent_unchecked',
+  EarliestDate = 'earliest_date',
+  LatestDate = 'latest_date',
+  DateRange = 'date_range',
+  MonthRange = 'month_range',
+}
+
 export interface Base {
   /** Unique identifier for the base. */
   id: string;
@@ -172,7 +199,7 @@ export interface TableCreate {
 
 export type FieldOptions = any;
 
-export type CreateField = FieldBase;
+export type CreateField = FieldBaseCreate;
 
 export interface Table {
   /** Unique identifier for the table. */
@@ -284,10 +311,7 @@ export type TableUpdate = {
 };
 
 export interface Sort {
-  /**
-   * Unique identifier for the sort.
-   * @format uuid
-   */
+  /** Unique identifier for the sort. */
   id: string;
   /**
    * Identifier for the field being sorted.
@@ -299,13 +323,10 @@ export interface Sort {
 }
 
 export interface SortCreate {
-  /**
-   * Identifier for the field being sorted.
-   * @format uuid
-   */
+  /** Identifier for the field being sorted. */
   field_id: string;
   /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
-  direction: 'asc' | 'desc';
+  direction?: 'asc' | 'desc';
 }
 
 export interface SortUpdate {
@@ -329,165 +350,96 @@ export interface ViewSummary {
   /** Name of the view. */
   title?: string;
   /** Type of the view. */
-  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
+  view_type?: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
 }
 
-/** GRID View */
-export type View = (
-  | {
-      fields: {
-        /**
-         * Field ID for GRID view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is hidden in GRID view. */
-        is_hidden?: boolean;
-      }[];
-      group?: {
-        /**
-         * Field ID for grouping in GRID view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Sorting order for the group. */
-        sort?: 'asc' | 'desc';
-      }[];
-    }
-  | {
-      fields: {
-        /**
-         * Field ID displayed in GALLERY view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is the cover image. */
-        cover_image?: boolean;
-      }[];
-      /**
-       * Field ID for the cover image.
-       * @format uuid
-       */
-      cover_image_field_id?: string;
-    }
-  | {
-      fields: {
-        /**
-         * Field ID used in KANBAN view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is used for stacking in KANBAN. */
-        is_stack_by?: boolean;
-      }[];
-      /**
-       * Field ID for the cover image.
-       * @format uuid
-       */
-      cover_image_field_id?: string;
-      /**
-       * Field ID used for stacking in KANBAN view.
-       * @format uuid
-       */
-      kanban_stack_by_field_id?: string;
-    }
-  | {
-      fields: {
-        /**
-         * Field ID displayed in CALENDAR view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is used for date ranges. */
-        is_date_field?: boolean;
-      }[];
-      calendar_range?: {
-        /**
-         * Field ID for the start date.
-         * @format uuid
-         */
-        start_field_id?: string;
-        /**
-         * Field ID for the end date.
-         * @format uuid
-         */
-        end_field_id?: string;
+export interface ViewBase {
+  /** Title of the view. */
+  title?: string;
+  /** Lock type of the view. */
+  lock_type?: 'collaborative' | 'locked' | 'personal';
+  /** Description of the view. */
+  description?: string;
+  /** Sort options for the view. */
+  sorts?: SortCreate[];
+  row_coloring?: ViewRowColorCreate;
+}
+
+export interface ViewOptionBase {
+  fields_by_id?: Record<
+    string,
+    {
+      alias?: string;
+      description?: string;
+      required?: boolean;
+      allow_scanner_input?: boolean;
+      is_list?: boolean;
+      is_limit_option?: boolean;
+      validators?: {
+        type?: string;
+        value?: any;
+        message?: string;
+        regex?: string | null;
       }[];
     }
-  | {
-      fields: {
-        /**
-         * Field ID used in FORM view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is required in the form. */
-        is_required?: boolean;
-      }[];
-      /** Heading for the form. */
-      form_heading?: string;
-      /** Subheading for the form. */
-      form_sub_heading?: string;
-      /** Success message shown after form submission. */
-      form_success_message?: string;
-      /**
-       * URL to redirect to after form submission.
-       * @format uri
-       */
-      form_redirect_url?: string;
-      /** Seconds to wait before redirecting. */
-      form_redirect_after_secs?: number;
-      /** Whether to send a response email. */
-      form_send_response_email?: boolean;
-      /** Whether to show another form after submission. */
-      form_show_another?: boolean;
-      /** Whether to show a blank form after submission. */
-      form_show_blank?: boolean;
-      /** Whether to hide the banner on the form. */
-      form_hide_banner?: boolean;
-      /** Whether to hide branding on the form. */
-      form_hide_branding?: boolean;
-      /**
-       * URL of the banner image for the form.
-       * @format uri
-       */
-      form_banner_image_url?: string;
-      /**
-       * URL of the logo for the form.
-       * @format uri
-       */
-      form_logo_url?: string;
-      /**
-       * Background color for the form.
-       * @pattern ^#[0-9A-Fa-f]{6}$
-       */
-      form_background_color?: string;
-    }
-) & {
+  >;
+  row_height?: 'short' | 'medium' | 'tall' | 'extra';
+}
+
+export type ViewBaseOptions = ViewOptionBase &
+  (
+    | {
+        type?: 'grid';
+        options?: ViewOptionsGrid;
+      }
+    | {
+        type?: 'kanban';
+        options?: ViewOptionsKanban;
+      }
+    | {
+        type?: 'calendar';
+        options?: ViewOptionsCalendar;
+      }
+    | {
+        type?: 'gallery';
+        options?: ViewOptionsGallery;
+      }
+    | {
+        type?: 'form';
+        options?: ViewOptionsForm;
+      }
+  );
+
+export type ViewCreate = ViewBase & {
+  /** Type of the view. */
+  type: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
+  fields?: {
+    field_id: string;
+    show: boolean;
+    width?: number;
+    aggregation?: ViewAggregationEnum;
+  }[];
+} & ViewBaseOptions;
+
+export type ViewUpdate = ViewBase & {
+  fields?: {
+    field_id: string;
+    show: boolean;
+    width?: number;
+    aggregation?: ViewAggregationEnum;
+  }[];
+} & ViewBaseOptions;
+
+export type View = ViewBase & {
   /**
    * Unique identifier for the view.
    * @format uuid
    */
   id?: string;
-  /** Name of the view. */
-  view_name?: string;
   /** Type of the view. */
-  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
-  /** Lock type of the view. */
-  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
-  /** Description of the view. */
-  description?: string;
+  type?: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
   /** Indicates if this is the default view. */
   is_default?: boolean;
-  meta?: {
-    /** Description for locked views. */
-    locked_view_description?: string;
-    /**
-     * User ID of the person who locked the view.
-     * @format uuid
-     */
-    locked_by_user_id?: string;
-  };
   /**
    * User ID of the creator.
    * @format uuid
@@ -508,21 +460,83 @@ export type View = (
    * @format date-time
    */
   updated_at?: string;
-  /** Filters applied to the view. */
-  filters?: Filter[];
-  /** Sort options for the view. */
-  sorts?: Sort[];
-};
+} & ViewBaseOptions;
 
-export interface ViewCreate {
-  /** Name of the view. */
-  view_name?: string;
-  /** Type of the view. */
-  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
-  /** Lock type of the view. */
-  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
-  /** Description of the view. */
-  description?: string;
+export interface ViewOptionsGrid {
+  groups?: {
+    field_id: string;
+    direction?: 'asc' | 'desc';
+    row_height?: 'short' | 'medium' | 'tall' | 'extra';
+  }[];
+}
+
+export interface ViewOptionsKanban {
+  stack_by: {
+    field_id: string;
+    stack_order?: string[];
+  };
+  cover_field_id?: string;
+}
+
+export interface ViewOptionsCalendar {
+  date_ranges: {
+    start_date_field_id: string;
+    end_date_field_id?: string;
+  }[];
+}
+
+export interface ViewOptionsGallery {
+  cover_field_id?: string;
+}
+
+export interface ViewOptionsForm {
+  /** Heading for the form. */
+  form_title?: string;
+  /** Subheading for the form. */
+  form_description?: string;
+  /** Success message shown after form submission. */
+  thank_you_message?: string;
+  /** Seconds to wait before redirecting. */
+  form_redirect_after_secs?: number;
+  /** Whether to show another form after submission. */
+  show_submit_another_button?: boolean;
+  /** Whether to show a blank form after submission. */
+  reset_form_after_submit?: boolean;
+  /** Whether to hide the banner on the form. */
+  form_hide_banner?: boolean;
+  /** Whether to hide branding on the form. */
+  form_hide_branding?: boolean;
+  /**
+   * URL of the banner image for the form.
+   * @format uri
+   */
+  banner?: string;
+  /**
+   * URL of the logo for the form.
+   * @format uri
+   */
+  logo?: string;
+  /**
+   * Background color for the form.
+   * @pattern ^#[0-9A-Fa-f]{6}$
+   */
+  form_background_color?: string;
+  /**
+   * URL to redirect to after form submission.
+   * @format uri
+   */
+  redirect_url?: string;
+}
+
+export interface ViewRowColorCreate {
+  mode: 'filter' | 'select';
+  field_id?: string;
+  apply_as_row_background?: boolean;
+  conditions?: {
+    apply_as_row_background?: boolean;
+    color?: string;
+    filters?: FilterCreate;
+  }[];
 }
 
 export interface FieldBase {
@@ -531,13 +545,50 @@ export interface FieldBase {
   /** Title of the field. */
   title: string;
   /** Field data type. */
-  type: string;
+  type?:
+    | 'SingleLineText'
+    | 'LongText'
+    | 'PhoneNumber'
+    | 'URL'
+    | 'Email'
+    | 'Number'
+    | 'Decimal'
+    | 'Currency'
+    | 'Percent'
+    | 'Duration'
+    | 'Date'
+    | 'DateTime'
+    | 'Time'
+    | 'SingleSelect'
+    | 'MultiSelect'
+    | 'Rating'
+    | 'Checkbox'
+    | 'Attachment'
+    | 'Geometry'
+    | 'Links'
+    | 'Lookup'
+    | 'Rollup'
+    | 'Button'
+    | 'Formula'
+    | 'Barcode'
+    | 'Year'
+    | 'QrCode'
+    | 'CreatedAt'
+    | 'LastModifiedAt'
+    | 'CreatedBy'
+    | 'LastModifiedBy'
+    | 'LinkToAnotherRecord'
+    | 'User'
+    | 'JSON';
   /** Description of the field. */
   description?: string | null;
   /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
   default_value?: string | boolean | number;
 }
 
+export type FieldBaseCreate = FieldBase;
+
+/** LongText */
 export interface FieldOptionsLongText {
   /** Enable rich text formatting. */
   rich_text?: boolean;
@@ -545,26 +596,31 @@ export interface FieldOptionsLongText {
   generate_text_using_ai?: boolean;
 }
 
+/** PhoneNumber */
 export interface FieldOptionsPhoneNumber {
   /** Enable validation for phone numbers. */
   validation?: boolean;
 }
 
+/** URL */
 export interface FieldOptionsURL {
   /** Enable validation for URL. */
   validation?: boolean;
 }
 
+/** Email */
 export interface FieldOptionsEmail {
   /** Enable validation for Email. */
   validation?: boolean;
 }
 
+/** Number */
 export interface FieldOptionsNumber {
   /** Show thousand separator on the UI. */
   locale_string?: boolean;
 }
 
+/** Decimal */
 export interface FieldOptionsDecimal {
   /**
    * Decimal field precision. Defaults to 0
@@ -574,7 +630,10 @@ export interface FieldOptionsDecimal {
   precision?: number;
 }
 
-/** Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD` */
+/**
+ * Currency
+ * Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD`
+ */
 export interface FieldOptionsCurrency {
   /** Locale for currency formatting. Refer https://simplelocalize.io/data/locales/ */
   locale?: string;
@@ -765,11 +824,13 @@ export interface FieldOptionsCurrency {
     | 'ZWD';
 }
 
+/** Percent */
 export interface FieldOptionsPercent {
   /** Display as a progress bar. */
   show_as_progress?: boolean;
 }
 
+/** Duration */
 export interface FieldOptionsDuration {
   /**
    * Duration format. Supported options are listed below
@@ -782,6 +843,7 @@ export interface FieldOptionsDuration {
   duration_format?: string;
 }
 
+/** DateTime */
 export interface FieldOptionsDateTime {
   /**
    * Date format. Supported options are listed below
@@ -815,6 +877,7 @@ export interface FieldOptionsDateTime {
   use_same_timezone_for_all?: boolean;
 }
 
+/** Date */
 export interface FieldOptionsDate {
   /**
    * Date format. Supported options are listed below
@@ -833,11 +896,13 @@ export interface FieldOptionsDate {
   date_format?: string;
 }
 
+/** Time */
 export interface FieldOptionsTime {
   /** Use 12-hour time format. */
   '12hr_format'?: boolean;
 }
 
+/** Single & MultiSelect */
 export interface FieldOptionsSelect {
   /** @uniqueItems true */
   choices?: {
@@ -851,6 +916,7 @@ export interface FieldOptionsSelect {
   }[];
 }
 
+/** Rating */
 export interface FieldOptionsRating {
   /**
    * Icon to display rating on the UI. Supported options are listed below
@@ -874,6 +940,7 @@ export interface FieldOptionsRating {
   color?: string;
 }
 
+/** Checkbox */
 export interface FieldOptionsCheckbox {
   /**
    * Icon to display checkbox on the UI. Supported options are listed below
@@ -900,6 +967,7 @@ export interface FieldOptionsCheckbox {
   color?: string;
 }
 
+/** Barcode */
 export interface FieldOptionsBarcode {
   /** Barcode format (e.g., CODE128). */
   format?: string;
@@ -907,21 +975,25 @@ export interface FieldOptionsBarcode {
   barcode_value_field_id?: string;
 }
 
+/** QrCode */
 export interface FieldOptionsQrCode {
   /** Field ID that contains the value. */
   qrcode_value_field_id?: string;
 }
 
+/** Formula */
 export interface FieldOptionsFormula {
   /** Formula expression. */
   formula?: string;
 }
 
+/** User */
 export interface FieldOptionsUser {
   /** Allow selecting multiple users. */
   allow_multiple_users?: boolean;
 }
 
+/** Lookup */
 export interface FieldOptionsLookup {
   /** Linked field ID. Can be of type Links or LinkToAnotherRecord */
   related_field_id: string;
@@ -929,6 +1001,7 @@ export interface FieldOptionsLookup {
   related_table_lookup_field_id: string;
 }
 
+/** Rollup */
 export interface FieldOptionsRollup {
   /** Linked field ID. */
   related_field_id: string;
@@ -946,6 +1019,7 @@ export interface FieldOptionsRollup {
     | 'avgDistinct';
 }
 
+/** Button */
 export type FieldOptionsButton = BaseFieldOptionsButton &
   (
     | BaseFieldOptionsButtonTypeMapping<'formula', any>
@@ -953,6 +1027,7 @@ export type FieldOptionsButton = BaseFieldOptionsButton &
     | BaseFieldOptionsButtonTypeMapping<'ai', any>
   );
 
+/** Links */
 export interface FieldOptionsLinks {
   /**
    * Type of relationship.
@@ -967,6 +1042,7 @@ export interface FieldOptionsLinks {
   related_table_id: string;
 }
 
+/** LinkToAnotherRecord */
 export interface FieldOptionsLinkToAnotherRecord {
   /**
    * Type of relationship.
@@ -1093,7 +1169,11 @@ export type FieldUpdate = FieldBase &
         options?: FieldOptionsSelect;
       }
     | {
-        type?: 'Rating' | 'Checkbox';
+        type?: 'Checkbox';
+        options?: FieldOptionsCheckbox;
+      }
+    | {
+        type?: 'Rating';
         options?: FieldOptionsRating;
       }
     | {
@@ -1124,7 +1204,7 @@ export type FieldUpdate = FieldBase &
 
 export interface Filter {
   /** Unique identifier for the filter. */
-  id: string;
+  id?: string;
   /** Parent ID of the filter, specifying this filters group association. */
   parent_id?: string;
   /** Field ID to which this filter applies. Defaults to **root**. */
@@ -1390,6 +1470,7 @@ export type WorkspaceUserDelete = {
   user_id: string;
 }[];
 
+/** Button */
 type BaseFieldOptionsButton = object;
 
 type BaseFieldOptionsButtonTypeMapping<Key, Type> = {
@@ -1871,12 +1952,60 @@ export class InternalApi<
     viewsList: (baseId: string, tableId: string, params: RequestParams = {}) =>
       this.request<
         {
-          list: View[];
+          list: {
+            /** @example "vwfjpo6wta1vwzyk" */
+            id?: string;
+            /** @example "MyView" */
+            title?: string;
+            /** @example "grid" */
+            type?: string;
+            /** @example "collaborative" */
+            lock_type?: string;
+            /**
+             * @format date-time
+             * @example "2000-01-02 03:04:05+00:00"
+             */
+            created_at?: string;
+            /**
+             * @format date-time
+             * @example "2000-01-02 03:04:05+00:00"
+             */
+            updated_at?: string;
+            /** @example "MyView" */
+            description?: string;
+            /** @example "usq6o3vavwf0twzr" */
+            created_by?: string;
+            /** @example "usq6o3vavwf0twzr" */
+            owned_by?: string;
+          }[];
         },
         void
       >({
         path: `/api/v3/meta/bases/${baseId}/tables/${tableId}/views`,
         method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Create a view for table.
+     *
+     * @tags Views
+     * @name ViewCreate
+     * @summary Create view
+     * @request POST:/api/v3/meta/bases/{baseId}/tables/{tableId}/views
+     */
+    viewCreate: (
+      baseId: string,
+      tableId: string,
+      data: ViewCreate,
+      params: RequestParams = {},
+    ) =>
+      this.request<View, void>({
+        path: `/api/v3/meta/bases/${baseId}/tables/${tableId}/views`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),
@@ -1958,6 +2087,60 @@ export class InternalApi<
     ) =>
       this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}/fields/${fieldId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description Retrieve the details of a specific view.
+     *
+     * @tags Views
+     * @name ViewRead
+     * @summary Get view schema
+     * @request GET:/api/v3/meta/bases/{baseId}/views/{viewId}
+     */
+    viewRead: (baseId: string, viewId: string, params: RequestParams = {}) =>
+      this.request<View, void>({
+        path: `/api/v3/meta/bases/${baseId}/views/${viewId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update the details of a specific view.
+     *
+     * @tags Views
+     * @name ViewUpdate
+     * @summary Update view
+     * @request PATCH:/api/v3/meta/bases/{baseId}/views/{viewId}
+     */
+    viewUpdate: (
+      baseId: string,
+      viewId: string,
+      data: ViewUpdate,
+      params: RequestParams = {},
+    ) =>
+      this.request<View, void>({
+        path: `/api/v3/meta/bases/${baseId}/views/${viewId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Delete a specific view.
+     *
+     * @tags Views
+     * @name ViewDelete
+     * @summary Delete view
+     * @request DELETE:/api/v3/meta/bases/{baseId}/views/{viewId}
+     */
+    viewDelete: (baseId: string, viewId: string, params: RequestParams = {}) =>
+      this.request<void, void>({
+        path: `/api/v3/meta/bases/${baseId}/views/${viewId}`,
         method: 'DELETE',
         ...params,
       }),

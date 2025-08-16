@@ -119,7 +119,9 @@ export const useOnboardingFlow = createSharedComposable(() => {
   const showOnboardingFlowLocalState = ref(false)
 
   const showOnboardingFlow = computed(() => {
-    return isEnabledOnboardingFlow.value && showOnboardingFlowLocalState.value && route.value.name === 'index'
+    return (
+      isEnabledOnboardingFlow.value && showOnboardingFlowLocalState.value && route.value.name === 'index' && !ncIsPlaywright()
+    )
   })
 
   // Timestamp when the onboarding flow is started

@@ -71,11 +71,11 @@ watch(stepIndex, (newIndex, oldIndex, cleanup) => {
       </slot>
     </div>
     <div
-      class="w-full lg:(w-1/2) transition-width duration-250 h-full flex flex-col gap-[120px] nc-scrollbar-thin relative border-l-1 border-nc-border-gray-medium"
+      class="w-full lg:(w-1/2) transition-width duration-250 h-full flex flex-col gap-10 pr-2 nc-scrollbar-thin !overflow-x-hidden !overflow-y-scroll relative border-l-1 border-nc-border-gray-medium"
     >
       <header
         data-testid="nc-onboarding-flow-header"
-        class="px-4 pt-4 pb-2 lg:(pt-10 pb-2 px-8) flex items-center justify-between w-full max-w-[672px] lg:max-w-[704px] mx-auto sticky top-0 lg:-top-4 bg-white z-10"
+        class="px-4 pt-4 pb-2 lg:(pt-8 pb-2 px-8) flex items-center justify-between w-full max-w-[672px] lg:max-w-[704px] mx-auto sticky top-0 bg-white z-10"
       >
         <GeneralIcon icon="nocodb1" class="w-12 h-12 flex-none" />
 

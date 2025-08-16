@@ -1,4 +1,7 @@
-import { getRowColPositionFromIndex } from '~/lib/stringHelpers';
+import {
+  escapeRegexString,
+  getRowColPositionFromIndex,
+} from '~/lib/stringHelpers';
 import { FormulaError } from './error';
 import { FormulaErrorType } from './enums';
 const REGEX_ERROR_AT_CHARACTER = /\sat character (\d+)/;
@@ -17,7 +20,10 @@ export function handleFormulaError({
     identifierLength = error.extra.position.length;
   } else if (error.extra?.columnName ?? error.extra?.calleeName) {
     const needle = error.extra?.columnName ?? error.extra?.calleeName;
-    const identifierMatch = formula.match(new RegExp(`\\b${needle}\\b`));
+
+    const identifierMatch = formula.match(
+      new RegExp(`\\b${escapeRegexString(needle)}\\b`)
+    );
     if (typeof identifierMatch?.index === 'number') {
       position = identifierMatch.index;
       identifierLength = needle.length;

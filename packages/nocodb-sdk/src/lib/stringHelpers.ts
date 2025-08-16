@@ -147,3 +147,7 @@ export function generateUniqueCopyName<T = string>(
 
   return newName;
 }
+
+export function escapeRegexString(string: string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}

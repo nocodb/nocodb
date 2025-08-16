@@ -77,19 +77,34 @@ async function signUp() {
 
     $e('a:auth:sign-up')
 
-    if (isEnabledOnboardingFlow.value) {
-      /**
-       * Onboarding flow is shown only for new users
-       */
-      showOnboardingFlowLocalState.value = true
-      await navigateTo('/')
-      return
-    }
-
     try {
       // TODO: Add to swagger
       const base = (user as any).createdProject
       const table = base?.tables?.[0]
+
+      if (isEnabledOnboardingFlow.value) {
+        let continueAfterOnboardingFlow = ''
+
+        if (base?.id) {
+          continueAfterOnboardingFlow = 'nc' + `/${base.id}`
+
+          if (table?.id) {
+            continueAfterOnboardingFlow = continueAfterOnboardingFlow + `/${table.id}`
+          }
+        }
+
+        /**
+         * Onboarding flow is shown only for new users
+         */
+        showOnboardingFlowLocalState.value = true
+
+        await navigateTo({
+          path: '/',
+          query: continueAfterOnboardingFlow ? { continueAfterOnboardingFlow } : {},
+        })
+
+        return
+      }
 
       if (base && table) {
         return await navigateToTable({
@@ -100,6 +115,15 @@ async function signUp() {
       }
     } catch (e) {
       console.error(e)
+    }
+
+    if (isEnabledOnboardingFlow.value) {
+      /**
+       * Onboarding flow is shown only for new users
+       */
+      showOnboardingFlowLocalState.value = true
+      await navigateTo('/')
+      return
     }
 
     await navigateTo({

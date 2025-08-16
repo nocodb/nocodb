@@ -193,7 +193,10 @@ export class CloudDbMigrateProcessor {
         oldDbServerConfig || (await metaUrlToDbConfig(NC_DATA_DB));
       const targetDbConfig = dbServer.config as DbConfig;
 
-      const dataDbUrl = this.dbConfigToJdbcUrl(dataDbConfig);
+      const dataDbUrl = this.dbConfigToJdbcUrl(
+        dataDbConfig,
+        oldDbServerConfig ? workspaceOrOrgId : undefined,
+      );
       const targetDbUrl = this.dbConfigToJdbcUrl(
         targetDbConfig,
         targetOrg?.id || workspaceOrOrgId,

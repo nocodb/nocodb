@@ -312,6 +312,58 @@ export default function () {
           });
         expect(response.body.type).to.eq('FORM');
       });
+
+      it(`will create form view with fieldsById`, async () => {
+        const singleSelectColumn = (await table.getColumns(ctx)).find(
+          (col) => col.title === 'SingleSelect',
+        );
+        const titleColumn = (await table.getColumns(ctx)).find(
+          (col) => col.title === 'Title',
+        );
+        const dateTimeColumn = (await table.getColumns(ctx)).find(
+          (col) => col.title === 'DateTime',
+        );
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            type: 'FORM',
+            options: {
+              formTitle: 'MyForm',
+              fieldsById: {
+                [singleSelectColumn.id]: {
+                  alias: 'select',
+                },
+                [titleColumn.id]: {
+                  alias: '_title',
+                  validators: [
+                    {
+                      type: 'minLength',
+                      value: 5,
+                      message: '',
+                      regex: null,
+                    },
+                  ],
+                },
+                [dateTimeColumn.id]: {
+                  alias: 'date time',
+                },
+              },
+            },
+            sorts: [
+              {
+                fieldId: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          });
+        expect(response.body.type).to.eq('FORM');
+        expect(
+          response.body.options.fieldByIds[titleColumn.id].validators.length,
+        ).to.greaterThan(0);
+      });
     });
   });
 }

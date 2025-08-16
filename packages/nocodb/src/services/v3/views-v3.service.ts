@@ -23,6 +23,7 @@ import { NcError } from '~/helpers/catchError';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { validatePayload } from '~/helpers';
+import { FormColumnsService } from '~/services/form-columns.service';
 
 // cannot use viewTypeAlias due to uppercase
 const viewTypeMap = {
@@ -49,6 +50,9 @@ export class ViewsV3Service {
     options?: () => ApiV3DataTransformationBuilder<any, any>;
     formFieldByIds?: () => ApiV3DataTransformationBuilder<any, any>;
   } = {};
+  private v2Tov3ViewBuilders: {
+    formFieldByIds?: () => ApiV3DataTransformationBuilder<any, any>;
+  } = {};
 
   constructor(
     protected readonly viewsService: ViewsService,
@@ -57,6 +61,7 @@ export class ViewsV3Service {
     protected sortsV3Service: SortsV3Service,
     protected gridsService: GridsService,
     protected gridColumnsService: GridColumnsService,
+    protected formColumnsService: FormColumnsService,
     protected calendarsService: CalendarsService,
     protected formsService: FormsService,
     protected kanbansService: KanbansService,
@@ -327,11 +332,9 @@ export class ViewsV3Service {
         'isList',
         'isLimitOption',
         'validators',
-        'isList',
-        'isLimitOption',
       ],
       mappings: {
-        alias: 'label', // label
+        alias: 'label',
         allowScannerInput: 'enable_scanner',
       },
       transformFn: (field) => {
@@ -344,6 +347,28 @@ export class ViewsV3Service {
           field.meta = field.meta ?? {};
           field.meta.isLimitOption = field.isLimitOption;
           field.isLimitOption = undefined;
+        }
+        if (!ncIsNullOrUndefined(field.validators)) {
+          field.meta = field.meta ?? {};
+          field.meta.validators = field.validators;
+          field.validators = undefined;
+        }
+        return field;
+      },
+    }) as any;
+
+    this.v2Tov3ViewBuilders.formFieldByIds = builderGenerator<any, any>({
+      allowed: ['label', 'description', 'required', 'enable_scanner', 'meta'],
+      mappings: {
+        label: 'alias',
+        enable_scanner: 'allowScannerInput',
+      },
+      transformFn: (field) => {
+        if (!ncIsNullOrUndefined(field.meta)) {
+          field.isList = field.meta.isList;
+          field.isLimitOption = field.meta.isLimitOption;
+          field.validators = field.meta.validators;
+          delete field.meta;
         }
         return field;
       },
@@ -432,6 +457,16 @@ export class ViewsV3Service {
         break;
       case ViewTypes.FORM:
         {
+          formattedView.options = formattedView.options ?? {};
+          formattedView.options.fieldByIds = viewColumnList.reduce(
+            (acc, cur) => {
+              acc[cur.fk_column_id] = this.v2Tov3ViewBuilders
+                .formFieldByIds()
+                .build(cur);
+              return acc;
+            },
+            {},
+          );
         }
         break;
       case ViewTypes.CALENDAR:
@@ -798,10 +833,32 @@ export class ViewsV3Service {
         }
         break;
       }
+      case ViewTypes.FORM: {
+        const viewColumns = await this.viewColumnsService.columnList(
+          context,
+          { viewId: param.viewId },
+          ncMeta,
+        );
+        for (const [columnId, col] of Object.entries(param.updateViewColumns)) {
+          const viewColumn = viewColumns.find(
+            (c) => c.fk_column_id === columnId,
+          );
+          await this.formColumnsService.columnUpdate(
+            context,
+            {
+              formViewColumnId: viewColumn.id,
+              formViewColumn: col,
+              req: param.req,
+            },
+            ncMeta,
+          );
+        }
+
+        break;
+      }
       case ViewTypes.KANBAN:
       case ViewTypes.CALENDAR:
       case ViewTypes.GALLERY:
-      case ViewTypes.FORM:
       default: {
         const viewColumns = await this.viewColumnsService.columnList(
           context,

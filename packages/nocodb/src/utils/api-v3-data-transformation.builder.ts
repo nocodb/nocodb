@@ -806,4 +806,16 @@ export const viewColumnBuilder = builderGenerator<
   },
   excludeNullProps: true,
   booleanProps: ['show', 'required'],
+  transformFn: (formattedData) => {
+    if (
+      formattedData.width &&
+      typeof formattedData.width === 'string' &&
+      formattedData.width != ''
+    ) {
+      const numberStrWidth = formattedData.width.replace('px', '').trim();
+      const numberWidth = Number(numberStrWidth);
+      formattedData.width = !isNaN(numberWidth) ? numberWidth : numberStrWidth;
+    }
+    return formattedData;
+  },
 });

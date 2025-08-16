@@ -26,20 +26,20 @@
               "type": {
                 "type": "string",
                 "enum": [
-                  "GRID",
-                  "GALLERY",
-                  "KANBAN",
-                  "CALENDAR",
-                  "FORM"
+                  "grid",
+                  "gallery",
+                  "kanban",
+                  "calendar",
+                  "form"
                 ],
                 "description": "Type of the view."
               },
-              "orderedFields": {
+              "ordered_fields": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
-                    "fieldId": {
+                    "field_id": {
                       "type": "string"
                     },
                     "show": {
@@ -50,7 +50,7 @@
                     }
                   },
                   "required": [
-                    "fieldId"
+                    "field_id"
                   ]
                 }
               }
@@ -72,7 +72,6 @@
             "properties": {
               "id": {
                 "type": "string",
-                "format": "uuid",
                 "description": "Unique identifier for the view."
               }
             }

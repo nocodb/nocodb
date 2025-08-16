@@ -88,16 +88,16 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             name: 'MyView',
-            type: 'GRID',
+            type: 'grid',
             sorts: [
               {
-                fieldId: (
+                field_id: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
             ],
           });
-        expect(response.body.type).to.eq('GRID');
+        expect(response.body.type).to.eq('grid');
 
         const updateResponse = await request(context.app)
           .patch(`${API_PREFIX}/views/${response.body.id}`)
@@ -106,7 +106,7 @@ export default function () {
             name: 'MyView32',
             sorts: [
               {
-                fieldId: (
+                field_id: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -124,22 +124,22 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             name: 'MyView',
-            type: 'GRID',
+            type: 'grid',
             options: {
               groups: [
                 {
-                  fieldId: titleColumn.id,
+                  field_id: titleColumn.id,
                   direction: 'asc',
                 },
               ],
             },
             sorts: [
               {
-                fieldId: titleColumn.id,
+                field_id: titleColumn.id,
               },
             ],
           });
-        expect(response.body.type).to.eq('GRID');
+        expect(response.body.type).to.eq('grid');
         expect(response.body.options.groups.length).to.greaterThan(0);
 
         const updateResponse = await request(context.app)
@@ -163,14 +163,14 @@ export default function () {
             options: {
               groups: [
                 {
-                  fieldId: titleColumn.id,
+                  field_id: titleColumn.id,
                   direction: 'asc',
                 },
               ],
             },
             sorts: [
               {
-                fieldId: titleColumn.id,
+                field_id: titleColumn.id,
               },
             ],
           });
@@ -193,25 +193,25 @@ export default function () {
           url: `${API_PREFIX}/tables/${table.id}/views`,
           body: {
             name: 'MyView',
-            type: 'GRID',
+            type: 'grid',
             options: {
               groups: [
                 {
-                  fieldId: titleColumn.id,
+                  field_id: titleColumn.id,
                   direction: 'asc',
                 },
               ],
             },
-            orderedFields: [
+            ordered_fields: [
               {
-                fieldId: singleSelectColumn.id,
+                field_id: singleSelectColumn.id,
               },
               {
-                fieldId: dateTimeColumn.id,
+                field_id: dateTimeColumn.id,
                 show: false,
               },
               {
-                fieldId: titleColumn.id,
+                field_id: titleColumn.id,
               },
             ],
           },
@@ -220,10 +220,10 @@ export default function () {
           .post(requestPayload.url)
           .set('xc-token', context.xc_token)
           .send(requestPayload.body);
-        expect(response.body.type).to.eq('GRID');
-        expect(response.body.fields[0].fieldId).to.eq(singleSelectColumn.id);
-        expect(response.body.fields[1].fieldId).to.eq(dateTimeColumn.id);
-        expect(response.body.fields[2].fieldId).to.eq(titleColumn.id);
+        expect(response.body.type).to.eq('grid');
+        expect(response.body.fields[0].field_id).to.eq(singleSelectColumn.id);
+        expect(response.body.fields[1].field_id).to.eq(dateTimeColumn.id);
+        expect(response.body.fields[2].field_id).to.eq(titleColumn.id);
       });
 
       it(`will create kanban view`, async () => {
@@ -231,17 +231,17 @@ export default function () {
           url: `${API_PREFIX}/tables/${table.id}/views`,
           body: {
             name: 'MyView',
-            type: 'KANBAN',
+            type: 'kanban',
             options: {
-              stackBy: {
-                fieldId: (await table.getColumns(ctx)).find(
+              stack_by: {
+                field_id: (await table.getColumns(ctx)).find(
                   (col) => col.title === 'SingleSelect',
                 ).id,
               },
             },
             sorts: [
               {
-                fieldId: (await table.getColumns(ctx)).find(
+                field_id: (await table.getColumns(ctx)).find(
                   (col) => col.title === 'Title',
                 ).id,
               },
@@ -252,10 +252,10 @@ export default function () {
           .post(requestPayload.url)
           .set('xc-token', context.xc_token)
           .send(requestPayload.body);
-        expect(response.body.type).to.eq('KANBAN');
-        expect(response.body.options.stackBy.stackOrder.length).to.greaterThan(
-          0,
-        );
+        expect(response.body.type).to.eq('kanban');
+        expect(
+          response.body.options.stack_by.stack_order.length,
+        ).to.greaterThan(0);
       });
 
       it(`will create calendar view`, async () => {
@@ -263,11 +263,11 @@ export default function () {
           url: `${API_PREFIX}/tables/${table.id}/views`,
           body: {
             name: 'MyView',
-            type: 'CALENDAR',
+            type: 'calendar',
             options: {
-              dateRanges: [
+              date_ranges: [
                 {
-                  startDateFieldId: (await table.getColumns(ctx)).find(
+                  start_date_field_id: (await table.getColumns(ctx)).find(
                     (col) => col.title === 'DateTime',
                   ).id,
                 },
@@ -275,7 +275,7 @@ export default function () {
             },
             sorts: [
               {
-                fieldId: (await table.getColumns(ctx)).find(
+                field_id: (await table.getColumns(ctx)).find(
                   (col) => col.title === 'Title',
                 ).id,
               },
@@ -286,7 +286,7 @@ export default function () {
           .post(requestPayload.url)
           .set('xc-token', context.xc_token)
           .send(requestPayload.body);
-        expect(response.body.type).to.eq('CALENDAR');
+        expect(response.body.type).to.eq('calendar');
       });
 
       it(`will create gallery view`, async () => {
@@ -294,15 +294,15 @@ export default function () {
           url: `${API_PREFIX}/tables/${table.id}/views`,
           body: {
             name: 'MyView',
-            type: 'GALLERY',
+            type: 'gallery',
             options: {
-              coverFieldId: (await table.getColumns(ctx)).find(
+              cover_field_id: (await table.getColumns(ctx)).find(
                 (col) => col.title === 'Attachment',
               ).id,
             },
             sorts: [
               {
-                fieldId: (await table.getColumns(ctx)).find(
+                field_id: (await table.getColumns(ctx)).find(
                   (col) => col.title === 'Title',
                 ).id,
               },
@@ -313,7 +313,7 @@ export default function () {
           .post(requestPayload.url)
           .set('xc-token', context.xc_token)
           .send(requestPayload.body);
-        expect(response.body.type).to.eq('GALLERY');
+        expect(response.body.type).to.eq('gallery');
       });
 
       it(`will create form view`, async () => {
@@ -322,12 +322,12 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             name: 'MyView',
-            type: 'FORM',
+            type: 'form',
             options: {
-              formTitle: 'MyForm',
+              form_title: 'MyForm',
             },
           });
-        expect(response.body.type).to.eq('FORM');
+        expect(response.body.type).to.eq('form');
       });
 
       it(`will create + update form view with fieldsById`, async () => {
@@ -344,10 +344,10 @@ export default function () {
           url: `${API_PREFIX}/tables/${table.id}/views`,
           body: {
             name: 'MyView',
-            type: 'FORM',
+            type: 'form',
             options: {
-              formTitle: 'MyForm',
-              fieldsById: {
+              form_title: 'MyForm',
+              fields_by_id: {
                 [singleSelectColumn.id]: {
                   alias: 'select',
                 },
@@ -374,9 +374,9 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send(requestPayload.body);
 
-        expect(response.body.type).to.eq('FORM');
+        expect(response.body.type).to.eq('form');
         expect(
-          response.body.options.fieldByIds[titleColumn.id].validators.length,
+          response.body.options.field_by_ids[titleColumn.id].validators.length,
         ).to.greaterThan(0);
 
         const updateResponse = await request(context.app)
@@ -384,7 +384,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             options: {
-              fieldsById: {
+              fields_by_id: {
                 [singleSelectColumn.id]: {
                   alias: 'select32',
                 },
@@ -393,7 +393,7 @@ export default function () {
           });
 
         expect(
-          updateResponse.body.options.fieldByIds[singleSelectColumn.id].alias,
+          updateResponse.body.options.field_by_ids[singleSelectColumn.id].alias,
         ).to.eq('select32');
       });
     });
@@ -405,16 +405,16 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             name: 'MyView',
-            type: 'GRID',
+            type: 'grid',
             sorts: [
               {
-                fieldId: (
+                field_id: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
             ],
           });
-        expect(response.body.type).to.eq('GRID');
+        expect(response.body.type).to.eq('grid');
 
         const deleteResponse = await request(context.app)
           .delete(`${API_PREFIX}/views/${response.body.id}`)

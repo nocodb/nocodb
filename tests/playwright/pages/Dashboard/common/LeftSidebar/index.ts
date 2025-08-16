@@ -233,9 +233,10 @@ export class LeftSidebarPage extends BasePage {
 
     if (miniSidebarActionLocator) {
       await miniSidebarActionLocator.click();
-    }
 
-    await this.rootPage.waitForTimeout(400);
+      // wait for transition to complete
+      await this.rootPage.waitForTimeout(500);
+    }
   }
 
   async verifyMiniSidebarActions({

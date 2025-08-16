@@ -16,6 +16,8 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
+const { isEnabledOnboardingFlow, showOnboardingFlowLocalState } = useOnboardingFlow()
+
 const { navigateToTable } = useTablesStore()
 
 const { clearWorkspaces } = useWorkspace()
@@ -74,6 +76,15 @@ async function signUp() {
     signIn(user.token!)
 
     $e('a:auth:sign-up')
+
+    if (isEnabledOnboardingFlow.value) {
+      /**
+       * Onboarding flow is shown only for new users
+       */
+      showOnboardingFlowLocalState.value = true
+      await navigateTo('/')
+      return
+    }
 
     try {
       // TODO: Add to swagger

@@ -505,7 +505,7 @@ export const lookupOrLtarBuilder =
               await lookupColumn.getColOptions<FormulaColumn>(context);
             const lookupModel = await lookupColumn.getModel(context);
             if (parentColumns?.has(lookupColumn.id)) {
-              NcError.formulaError('Circular reference detected', {
+              NcError.get(context).formulaError('Circular reference detected', {
                 details: {
                   columnId: lookupColumn.id,
                   modelId: model.id,

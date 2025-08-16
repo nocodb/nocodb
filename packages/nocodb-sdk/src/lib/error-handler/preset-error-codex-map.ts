@@ -175,7 +175,8 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) => {
       // try to extract db error - Experimental
       if (message.includes(' - ')) {
-        const [_, dbError] = message.split(' - ');
+        const parts = message.split(' - ');
+        const dbError = parts[parts.length - 1];
         return `Formula error: ${dbError}`;
       }
       return `Formula error: ${message}`;

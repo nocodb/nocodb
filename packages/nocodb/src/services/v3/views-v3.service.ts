@@ -87,8 +87,7 @@ export class ViewsV3Service {
     this.builder = builderGenerator({
       allowed: [
         'id',
-        'view_name',
-        'view_type',
+        'title',
         'lock_type',
         'description',
         'is_default',
@@ -482,7 +481,7 @@ export class ViewsV3Service {
         viewId: view.id,
       });
 
-      formattedView.filters = filters?.length ? filters : undefined;
+      formattedView.filters = filters;
 
       // get sorts
       const sorts = await this.sortsV3Service.sortList(context, {

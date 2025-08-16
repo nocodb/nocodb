@@ -25,10 +25,10 @@ function extractLogicalOp(group_operator: 'AND' | 'OR') {
   return group_operator?.toLowerCase() as 'and' | 'or';
 }
 
-export function addDummyRootAndNest(filters: any[]): any[] {
+export function addDummyRootAndNest(filters: any[]): any {
   // If empty, return as it is
   if (filters.length === 0) {
-    return filters;
+    return undefined;
   }
 
   // Create a map of filters by parent_id for easy lookup
@@ -82,14 +82,12 @@ export function addDummyRootAndNest(filters: any[]): any[] {
   const nestedFilters = buildNestedStructure(null);
 
   // Add the dummy root group
-  return [
-    {
-      id: 'root',
-      group_operator:
-        nestedFilters.length > 0 ? getGroupOperatorFromFirstChild(null) : null,
-      filters: nestedFilters,
-    },
-  ];
+  return {
+    id: 'root',
+    group_operator:
+      nestedFilters.length > 0 ? getGroupOperatorFromFirstChild(null) : null,
+    filters: nestedFilters,
+  };
 }
 
 @Injectable()
@@ -453,7 +451,7 @@ export class FiltersV3Service {
     });
 
     if (param.parentFilterId === 'root') {
-      return list[0];
+      return list;
     }
 
     // iterate recursively and extract filter and return
@@ -470,7 +468,7 @@ export class FiltersV3Service {
         }
       }
     };
-    return extractFilter(list?.[0]?.filters);
+    return extractFilter(list?.filters);
   }
 
   async filterList(

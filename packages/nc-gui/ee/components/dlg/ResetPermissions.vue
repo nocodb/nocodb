@@ -23,8 +23,6 @@ const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const basesStore = useBases()
-
 const { getMeta } = useMetas()
 
 const { base } = storeToRefs(useBase())

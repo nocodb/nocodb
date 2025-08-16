@@ -34,7 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emits = defineEmits(['update:value'])
 
-const { error, suggestionHeight, editorHeight } = toRefs(props)
+const { suggestionHeight, editorHeight } = toRefs(props)
 
 const value = useVModel(props, 'value', emits)
 

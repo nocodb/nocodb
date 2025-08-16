@@ -96,6 +96,10 @@ const dragStart = (e: MouseEvent) => {
   document.addEventListener('mouseup', onMouseUp, true)
 }
 
+const getResizeEl = (): HTMLElement | null => {
+  return document.querySelector('.nc-text-widget-expanded-textarea') as HTMLElement
+}
+
 watch(
   position,
   () => {
@@ -123,10 +127,6 @@ const updateSize = () => {
   const { width, height } = getComputedStyle(resizeEl)
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ width, height }))
   isSizeUpdated.value = true
-}
-
-const getResizeEl = (): HTMLElement | null => {
-  return document.querySelector('.nc-text-widget-expanded-textarea') as HTMLElement
 }
 
 useResizeObserver(inputWrapperRef, () => {

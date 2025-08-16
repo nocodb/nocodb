@@ -54,42 +54,69 @@ export class CalendarSideMenuPage extends BasePage {
     await this.next_btn.click();
   }
 
-  async moveToDate({ date, action }: { date: string; action: 'prev' | 'next' }) {
-    console.log(await this.parent.toolbar.getActiveDate());
+  async moveToDate({
+    date,
+    action,
+    jumpTo,
+    postSelectViewMode,
+  }: {
+    date: string;
+    action: 'prev' | 'next';
+    /**
+     * Takes a while to move to date if we click one day at a time
+     * So we can jump to nearest date and then move to the date
+     * @Note - Select proper jumpTo so that action will work properly
+     */
+    jumpTo?: {
+      day: number;
+      month: 'Jan' | 'Feb' | 'Mar' | 'Apr' | 'May' | 'Jun' | 'Jul' | 'Aug' | 'Sep' | 'Oct' | 'Nov' | 'Dec';
+      year: number;
+    };
+    postSelectViewMode?: 'day' | 'week' | 'month' | 'year';
+  }) {
+    if (jumpTo) {
+      await this.parent.toolbar.calendarViewMode.changeCalendarView({ title: 'year' });
 
-    // takes a while to move to date if we click one day at a time
-    // so we will move to the month first and then select the date
-    const dateStr = new Date(date);
-    const options = { month: 'long', year: 'numeric' };
-    console.log(dateStr.toLocaleDateString('en-US', options));
+      // Select year
+      let activeYear = +(await this.parent.toolbar.getActiveDate());
 
-    let dateHeaderStr = await this.get().locator('.nc-date-week-header').textContent();
+      while (activeYear !== jumpTo.year) {
+        if (activeYear < jumpTo.year) {
+          await this.clickNext();
+        } else {
+          await this.clickPrev();
+        }
 
-    while (dateHeaderStr !== dateStr.toLocaleDateString('en-US', options)) {
-      if (action === 'prev') {
-        console.log(await this.monthPrev_btn.count());
-        await this.monthPrev_btn.click();
-      } else {
-        console.log(await this.monthNext_btn.count());
-        await this.monthNext_btn.click();
+        activeYear = +(await this.parent.toolbar.getActiveDate());
       }
-      dateHeaderStr = await this.get().locator('.nc-date-week-header').textContent();
+
+      const day = String(jumpTo.day).padStart(2, '0');
+
+      const dateLocator = this.parent.calendarYear
+        .get()
+        .locator(`[data-testid="nc-calendar-date"][data-date="${day} ${jumpTo.month} ${jumpTo.year}"]`)
+        .first();
+
+      await dateLocator.scrollIntoViewIfNeeded();
+      await dateLocator.waitFor();
+
+      await dateLocator.click();
+
+      if (postSelectViewMode) {
+        await this.parent.toolbar.calendarViewMode.changeCalendarView({ title: postSelectViewMode });
+      }
     }
 
-    // once the month is narrowed down, click on either the first or last date depending on how we intended to navigate
-    // we can click on date directly. but continuing with the existing logic as it verifies prev & next date movement as well
-    if (action === 'prev') {
-      await this.get().getByTestId('nc-calendar-date').last().click();
-    } else {
-      await this.get().getByTestId('nc-calendar-date').first().click();
-    }
+    let activeDate = await this.parent.toolbar.getActiveDate();
 
-    while ((await this.parent.toolbar.getActiveDate()) !== date) {
+    while (activeDate !== date) {
       if (action === 'prev') {
         await this.clickPrev();
       } else {
         await this.clickNext();
       }
+
+      activeDate = await this.parent.toolbar.getActiveDate();
     }
   }
 

@@ -741,9 +741,10 @@ useResizeObserver(inputWrapperRef, () => {
             }"
           />
           <div
-            class="flex max-w-38"
+            class="flex max-w-full"
             :class="{
               'text-xl': props.isAi,
+              '!max-w-38': !props.isAi && !isEditColumn,
             }"
           >
             <span class="truncate">

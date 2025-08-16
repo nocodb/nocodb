@@ -34,22 +34,22 @@ export class OnboardingFlowPage extends BasePage {
 
   constructor(rootPage: Page) {
     super(rootPage);
-    this.skipButton = this.get().getByTestId('nc-onboarding-flow-skip-button');
-    this.backButton = this.get().getByTestId('nc-onboarding-flow-back-button');
-    this.nextButton = this.get().getByTestId('nc-onboarding-flow-next-button');
-    this.question = this.get().getByTestId('nc-onboarding-flow-question');
+    this.skipButton = this.get().locator('[data-testid="nc-onboarding-flow-skip-button"]');
+    this.backButton = this.get().locator('[data-testid="nc-onboarding-flow-back-button"]');
+    this.nextButton = this.get().locator('[data-testid="nc-onboarding-flow-next-button"]');
+    this.question = this.get().locator('[data-testid="nc-onboarding-flow-question"]');
 
-    this.imagePreviewSection = this.get().getByTestId('nc-onboarding-flow-image-preview-section');
-    this.header = this.get().getByTestId('nc-onboarding-flow-header');
-    this.content = this.get().getByTestId('nc-onboarding-flow-content');
-    this.footer = this.get().getByTestId('nc-onboarding-flow-footer');
+    this.imagePreviewSection = this.get().locator('[data-testid="nc-onboarding-flow-image-preview-section"]');
+    this.header = this.get().locator('[data-testid="nc-onboarding-flow-header"]');
+    this.content = this.get().locator('[data-testid="nc-onboarding-flow-content"]');
+    this.footer = this.get().locator('[data-testid="nc-onboarding-flow-footer"]');
 
     // Question options are within the question container
     this.questionOptions = this.question.locator('.nc-onboarding-option');
   }
 
   get() {
-    return this.rootPage.getByTestId('nc-onboarding-flow-container');
+    return this.rootPage.locator('[data-testid="nc-onboarding-flow-container"]');
   }
 
   async isOnboardingFlowVisible() {
@@ -167,7 +167,7 @@ export class OnboardingFlowPage extends BasePage {
     if (ifAvailable) {
       await this.rootPage.waitForLoadState('networkidle');
 
-      if (await this.isOnboardingFlowVisible()) {
+      if (!(await this.isOnboardingFlowVisible())) {
         return;
       }
     }
@@ -223,7 +223,7 @@ export class OnboardingFlowPage extends BasePage {
     if (ifAvailable) {
       await this.rootPage.waitForLoadState('networkidle');
 
-      if (await this.isOnboardingFlowVisible()) {
+      if (!(await this.isOnboardingFlowVisible())) {
         return;
       }
     }

@@ -4745,7 +4745,7 @@
       "CreateField": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/FieldBase"
+            "$ref": "#/components/schemas/FieldBaseCreate"
           },
           {
             "oneOf": [
@@ -5615,6 +5615,42 @@
           },
           "type": {
             "type": "string",
+            "enum": [
+              "SingleLineText",
+              "LongText",
+              "PhoneNumber",
+              "URL",
+              "Email",
+              "Number",
+              "Decimal",
+              "Currency",
+              "Percent",
+              "Duration",
+              "Date",
+              "DateTime",
+              "Time",
+              "SingleSelect",
+              "MultiSelect",
+              "Rating",
+              "Checkbox",
+              "Attachment",
+              "Geometry",
+              "Links",
+              "Lookup",
+              "Rollup",
+              "Button",
+              "Formula",
+              "Barcode",
+              "Year",
+              "QrCode",
+              "CreatedAt",
+              "LastModifiedAt",
+              "CreatedBy",
+              "LastModifiedBy",
+              "LinkToAnotherRecord",
+              "User",
+              "JSON"
+            ],
             "description": "Field data type."
           },
           "description": {
@@ -5634,8 +5670,20 @@
           }
         },
         "required": [
-          "title",
-          "type"
+          "title"
+        ]
+      },
+      "FieldBaseCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldBase"
+          },
+          {
+            "required": [
+              "title",
+              "type"
+            ]
+          }
         ]
       },
       "FieldOptions_LongText": {
@@ -6516,6 +6564,9 @@
           },
           {
             "oneOf": [
+              {
+                "$ref": "#/components/schemas/FieldOptions/SingleLineText"
+              },
               {
                 "properties": {
                   "type": {

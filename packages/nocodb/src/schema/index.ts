@@ -1,3 +1,5 @@
+import deepClone from 'src/helpers/deepClone';
+import * as swaggerV3ValidationPatch from './swagger-v3-validation-patch.json';
 import * as swaggerV3 from './swagger-v3.json';
 import * as swagger from './swagger.json';
 
@@ -12,4 +14,11 @@ export default {
   },
 };
 
-export { swaggerV3 };
+const swaggerV3Validation = deepClone(swaggerV3);
+for (const [key, value] of Object.entries(
+  swaggerV3ValidationPatch.components.schemas,
+)) {
+  swaggerV3Validation.components.schemas[key] = value;
+}
+
+export { swaggerV3, swaggerV3Validation };

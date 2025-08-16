@@ -6,12 +6,13 @@ import { KanbansService } from '../kanbans.service';
 import { GalleriesService } from '../galleries.service';
 import { FormsService } from '../forms.service';
 import { GridColumnsService } from '../grid-columns.service';
+import type { ViewColumnOptionV3Type } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { ApiV3DataTransformationBuilder } from 'src/utils/data-transformation.builder';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { GridViewColumn } from '~/models';
 import Noco from '~/Noco';
-import { Sort, View } from '~/models';
+import { Model, Sort, View } from '~/models';
 import {
   builderGenerator,
   viewColumnBuilder,
@@ -440,6 +441,15 @@ export class ViewsV3Service {
           true,
           context,
         );
+        await this.validateFieldsById(
+          context,
+          {
+            tableId: param.tableId,
+            req: param.req,
+            fieldsById: body.options.fieldsById,
+          },
+          ncMeta,
+        );
       }
     }
 
@@ -600,6 +610,29 @@ export class ViewsV3Service {
     } catch (ex) {
       await trxNcMeta.rollback();
       throw ex;
+    }
+  }
+
+  async validateFieldsById(
+    context: NcContext,
+    param: {
+      req: NcRequest;
+      tableId: string;
+      fieldsById: ViewColumnOptionV3Type['fieldsById'];
+    },
+    ncMeta?: MetaService,
+  ) {
+    const columnKeys = Object.keys(param.fieldsById ?? {});
+    if (columnKeys.length === 0) {
+      return;
+    }
+    const model = await Model.get(context, param.tableId, ncMeta);
+    const columns = await model.getColumns(context, ncMeta);
+    const existingColumnKeys = columns.map((k) => k.id);
+    if (columnKeys.find((col) => !existingColumnKeys.includes(col))) {
+      NcError.fieldNotFound(
+        columnKeys.find((col) => !existingColumnKeys.includes(col)),
+      );
     }
   }
 

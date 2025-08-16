@@ -5265,44 +5265,47 @@
         }
       },
       "ViewColumnOption": {
-        "fieldsById": {
-          "type": "object",
-          "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "fieldsById": {
             "type": "object",
-            "properties": {
-              "alias": {
-                "type": "string"
-              },
-              "description": {
-                "type": "string"
-              },
-              "required": {
-                "type": "boolean"
-              },
-              "allowScannerInput": {
-                "type": "boolean"
-              },
-              "isList": {
-                "type": "boolean"
-              },
-              "isLimitOption": {
-                "type": "boolean"
-              },
-              "validators": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "type": {
-                      "type": "string"
-                    },
-                    "value": {},
-                    "message": {
-                      "type": "string"
-                    },
-                    "regex": {
-                      "type": "string",
-                      "nullable": true
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "alias": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                },
+                "allowScannerInput": {
+                  "type": "boolean"
+                },
+                "isList": {
+                  "type": "boolean"
+                },
+                "isLimitOption": {
+                  "type": "boolean"
+                },
+                "validators": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string"
+                      },
+                      "value": {},
+                      "message": {
+                        "type": "string"
+                      },
+                      "regex": {
+                        "type": "string",
+                        "nullable": true
+                      }
                     }
                   }
                 }

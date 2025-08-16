@@ -48,6 +48,7 @@ export enum JobTypes {
   ListenImport = 'listen-import',
   SyncModuleSyncData = 'sync-module-sync-data',
   SyncModuleMigrateSync = 'sync-module-migrate-sync',
+  SyncModuleRefreshData = 'sync-module-refresh-data',
   UpdateUsageStats = 'update-usage-stats',
   CloudDbMigrate = 'cloud-db-migrate',
   AttachmentUrlUpload = 'attachment-url-upload',

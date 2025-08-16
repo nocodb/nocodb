@@ -37,6 +37,7 @@ export class ColumnsV3Service {
       'swagger-v3.json#/components/schemas/FieldUpdate',
       param.column,
       true,
+      context,
     );
 
     let column = await Column.get(context, { colId: param.columnId });

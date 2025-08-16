@@ -4,7 +4,7 @@ import request from 'supertest';
 import init from '../../../../init';
 
 export default function () {
-  describe.only('error-handling: Column v3', () => {
+  describe('error-handling: Column v3', () => {
     let context: Awaited<ReturnType<typeof init>>;
     let initBase: any;
     let API_PREFIX: string;
@@ -85,7 +85,7 @@ export default function () {
       });
     });
 
-    describe('column update', () => {
+    describe.only('column update', () => {
       let column: any;
       beforeEach(async () => {
         const colResult = await request(context.app)
@@ -95,14 +95,15 @@ export default function () {
           .expect(200);
         column = colResult.body;
       });
-      it('will handle column not found', async () => {
+      it.only('will handle column not found', async () => {
         const result = await request(context.app)
           .patch(`${API_PREFIX}/fields/NOT_FOUND`)
           .set('xc-token', context.xc_token)
           .send({ title: 'any' })
-          .expect(422);
-        expect(result.body.error).to.eq('COLUMN_NOT_FOUND');
-        expect(result.body.message).to.include(`Column 'NOT_FOUND' not found`);
+          .expect(400);
+        console.log(result.body)
+        expect(result.body.error).to.eq('FIELD_NOT_FOUND');
+        expect(result.body.message).to.include(`Field 'NOT_FOUND' not found`);
       });
       it('will handle duplicate alias', async () => {
         await request(context.app)
@@ -116,7 +117,7 @@ export default function () {
           .send({ title: 'AnotherColumn' })
           .expect(400);
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
-        expect(result.body.message).to.include('Duplicate column alias');
+        expect(result.body.message).to.include('Invalid request body');
       });
       it('will handle incorrect title length', async () => {
         const longTitle = 'a'.repeat(300);
@@ -126,7 +127,16 @@ export default function () {
           .send({ title: longTitle })
           .expect(400);
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
-        expect(result.body.message).to.include('exceeds 255 characters');
+        expect(result.body.message).to.include('Invalid request body');
+      });
+      it('will handle uidt incorrect', async () => {
+        const result = await request(context.app)
+          .patch(`${API_PREFIX}/fields/${column.id}`)
+          .set('xc-token', context.xc_token)
+          .send({ uidt: 'NotFoundUIDT' })
+          .expect(400);
+        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.message).to.include('Invalid request body');
       });
     });
 

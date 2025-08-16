@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Field {columnName} is not available",
       "cantSaveCircularReference": "Can’t save field because it causes a circular reference",
       "columnWithTypeFoundButExpected": "Field {columnName} with {columnType} type is found but {expectedType} type is expected",
-      "columnNotMatchedWithType": "{columnName} is not matched with {columnType}"
+      "columnNotMatchedWithType": "{columnName} is not matched with {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Select options can't be null",

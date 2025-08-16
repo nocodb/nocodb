@@ -5171,9 +5171,6 @@
       "CreateField": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/FieldBaseCreate"
-          },
-          {
             "oneOf": [
               {
                 "$ref": "#/components/schemas/FieldOptions/SingleLineText"
@@ -5278,6 +5275,9 @@
                 "$ref": "#/components/schemas/FieldOptions/User"
               }
             ]
+          },
+          {
+            "$ref": "#/components/schemas/FieldBaseCreate"
           }
         ]
       },
@@ -6287,6 +6287,7 @@
       },
       "FieldOptions_LongText": {
         "type": "object",
+        "title": "LongText",
         "properties": {
           "rich_text": {
             "type": "boolean",
@@ -6301,6 +6302,7 @@
       },
       "FieldOptions_PhoneNumber": {
         "type": "object",
+        "title": "PhoneNumber",
         "properties": {
           "validation": {
             "type": "boolean",
@@ -6311,6 +6313,7 @@
       },
       "FieldOptions_URL": {
         "type": "object",
+        "title": "URL",
         "properties": {
           "validation": {
             "type": "boolean",
@@ -6321,6 +6324,7 @@
       },
       "FieldOptions_Email": {
         "type": "object",
+        "title": "Email",
         "properties": {
           "validation": {
             "type": "boolean",
@@ -6331,6 +6335,7 @@
       },
       "FieldOptions_Number": {
         "type": "object",
+        "title": "Number",
         "properties": {
           "locale_string": {
             "type": "boolean",
@@ -6341,6 +6346,7 @@
       },
       "FieldOptions_Decimal": {
         "type": "object",
+        "title": "Decimal",
         "properties": {
           "precision": {
             "type": "number",
@@ -6353,6 +6359,7 @@
       },
       "FieldOptions_Currency": {
         "type": "object",
+        "title": "Currency",
         "description": "Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD`",
         "properties": {
           "locale": {
@@ -6553,6 +6560,7 @@
       },
       "FieldOptions_Percent": {
         "type": "object",
+        "title": "Percent",
         "properties": {
           "show_as_progress": {
             "type": "boolean",
@@ -6563,6 +6571,7 @@
       },
       "FieldOptions_Duration": {
         "type": "object",
+        "title": "Duration",
         "properties": {
           "duration_format": {
             "type": "string",
@@ -6573,6 +6582,7 @@
       },
       "FieldOptions_DateTime": {
         "type": "object",
+        "title": "DateTime",
         "properties": {
           "date_format": {
             "type": "string",
@@ -6603,6 +6613,7 @@
       },
       "FieldOptions_Date": {
         "type": "object",
+        "title": "Date",
         "properties": {
           "date_format": {
             "type": "string",
@@ -6613,6 +6624,7 @@
       },
       "FieldOptions_Time": {
         "type": "object",
+        "title": "Time",
         "properties": {
           "12hr_format": {
             "type": "boolean",
@@ -6623,6 +6635,7 @@
       },
       "FieldOptions_Select": {
         "type": "object",
+        "title": "Single & MultiSelect",
         "properties": {
           "choices": {
             "type": "array",
@@ -6650,6 +6663,7 @@
       },
       "FieldOptions_Rating": {
         "type": "object",
+        "title": "Rating",
         "properties": {
           "icon": {
             "type": "string",
@@ -6678,6 +6692,7 @@
       },
       "FieldOptions_Checkbox": {
         "type": "object",
+        "title": "Checkbox",
         "properties": {
           "icon": {
             "type": "string",
@@ -6702,6 +6717,7 @@
       },
       "FieldOptions_Barcode": {
         "type": "object",
+        "title": "Barcode",
         "properties": {
           "format": {
             "type": "string",
@@ -6716,6 +6732,7 @@
       },
       "FieldOptions_QrCode": {
         "type": "object",
+        "title": "QrCode",
         "properties": {
           "qrcode_value_field_id": {
             "type": "string",
@@ -6726,6 +6743,7 @@
       },
       "FieldOptions_Formula": {
         "type": "object",
+        "title": "Formula",
         "properties": {
           "formula": {
             "type": "string",
@@ -6736,6 +6754,7 @@
       },
       "FieldOptions_User": {
         "type": "object",
+        "title": "User",
         "properties": {
           "allow_multiple_users": {
             "type": "boolean",
@@ -6746,6 +6765,7 @@
       },
       "FieldOptions_Lookup": {
         "type": "object",
+        "title": "Lookup",
         "properties": {
           "related_field_id": {
             "type": "string",
@@ -6764,6 +6784,7 @@
       },
       "FieldOptions_Rollup": {
         "type": "object",
+        "title": "Rollup",
         "properties": {
           "related_field_id": {
             "type": "string",
@@ -6797,6 +6818,7 @@
       },
       "FieldOptions_Button": {
         "type": "object",
+        "title": "Button",
         "oneOf": [
           {
             "type": "object",
@@ -6896,6 +6918,7 @@
       },
       "FieldOptions_Links": {
         "type": "object",
+        "title": "Links",
         "properties": {
           "relation_type": {
             "type": "string",
@@ -6914,6 +6937,7 @@
       },
       "FieldOptions_LinkToAnotherRecord": {
         "type": "object",
+        "title": "LinkToAnotherRecord",
         "properties": {
           "relation_type": {
             "type": "string",
@@ -7167,6 +7191,7 @@
                 "$ref": "#/components/schemas/FieldOptions/SingleLineText"
               },
               {
+                "title": "LongText",
                 "properties": {
                   "type": {
                     "enum": [
@@ -7179,6 +7204,7 @@
                 }
               },
               {
+                "title": "PhoneNumber",
                 "properties": {
                   "type": {
                     "enum": [
@@ -7193,6 +7219,7 @@
                 }
               },
               {
+                "title": "Number / Decimal",
                 "properties": {
                   "type": {
                     "enum": [
@@ -7206,6 +7233,7 @@
                 }
               },
               {
+                "title": "JSON",
                 "properties": {
                   "type": {
                     "enum": [
@@ -7215,6 +7243,7 @@
                 }
               },
               {
+                "title": "Currency",
                 "properties": {
                   "type": {
                     "enum": [
@@ -7227,6 +7256,7 @@
                 }
               },
               {
+                "title": "Percent",
                 "properties": {
                   "type": {
                     "enum": [
@@ -7239,6 +7269,7 @@
                 }
               },
               {
+                "title": "Duration",
                 "properties": {
                   "type": {
                     "enum": [
@@ -7251,6 +7282,7 @@
                 }
               },
               {
+                "title": "Date / DateTime",
                 "properties": {
                   "type": {
                     "enum": [
@@ -7265,6 +7297,7 @@
                 }
               },
               {
+                "title": "Single / MultiSelect",
                 "properties": {
                   "type": {
                     "enum": [
@@ -7278,11 +7311,24 @@
                 }
               },
               {
+                "title": "Checkbox",
                 "properties": {
                   "type": {
                     "enum": [
-                      "Rating",
                       "Checkbox"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Checkbox"
+                  }
+                }
+              },
+              {
+                "title": "Rating",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Rating"
                     ]
                   },
                   "options": {
@@ -7291,6 +7337,7 @@
                 }
               },
               {
+                "title": "Barcode",
                 "properties": {
                   "type": {
                     "enum": [
@@ -7303,6 +7350,7 @@
                 }
               },
               {
+                "title": "Formula",
                 "properties": {
                   "type": {
                     "enum": [
@@ -7315,6 +7363,7 @@
                 }
               },
               {
+                "title": "User",
                 "properties": {
                   "type": {
                     "enum": [
@@ -7327,6 +7376,7 @@
                 }
               },
               {
+                "title": "Lookup",
                 "properties": {
                   "type": {
                     "enum": [
@@ -7339,6 +7389,7 @@
                 }
               },
               {
+                "title": "Links",
                 "properties": {
                   "type": {
                     "enum": [
@@ -7351,6 +7402,7 @@
                 }
               },
               {
+                "title": "LinkToAnotherRecord",
                 "properties": {
                   "type": {
                     "enum": [

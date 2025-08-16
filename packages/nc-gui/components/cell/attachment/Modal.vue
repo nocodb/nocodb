@@ -16,6 +16,7 @@ const {
   updateModelValue,
   selectedFile,
   selectedVisibleItems,
+  isSharedForm,
   bulkDownloadAttachments,
 } = useAttachmentCell()!
 
@@ -37,8 +38,6 @@ const onDropAction = function (...args: any[]) {
 }
 
 const { isOverDropZone } = useDropZone(dropZoneRef, onDropAction)
-
-const { isSharedForm } = useSmartsheetStoreOrThrow()
 
 const preventExit = ref(false)
 

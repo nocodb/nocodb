@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import {
-  BoolType,
   isCreatedOrLastModifiedByCol,
   isLinksOrLTAR,
   ncIsObject,

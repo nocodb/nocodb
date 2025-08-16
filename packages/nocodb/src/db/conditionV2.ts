@@ -4,7 +4,6 @@ import {
   getEquivalentUIType,
   isAIPromptCol,
   isDateMonthFormat,
-  isLinksOrLTAR,
   isNumericCol,
   UITypes,
 } from 'nocodb-sdk';

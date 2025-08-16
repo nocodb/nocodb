@@ -82,15 +82,15 @@ export default function () {
     });
 
     describe('view create + update', () => {
-      it(`will handle empty name`, async () => {
+      it(`will handle missing name`, async () => {
         const response = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
           .send({
-            type: 'GRID',
+            type: 'grid',
             sorts: [
               {
-                fieldId: (
+                field_id: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -98,6 +98,27 @@ export default function () {
           });
         expect(response.status).to.eq(400);
         expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+      });
+      it(`will handle empty name`, async () => {
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: '',
+            type: 'grid',
+            sorts: [
+              {
+                field_id: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          });
+        expect(response.status).to.eq(400);
+        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(response.body.message).to.eq(
+          'Missing view `title` property in request body',
+        );
       });
       it(`will handle empty type`, async () => {
         const response = await request(context.app)
@@ -219,6 +240,15 @@ export default function () {
             title: 'MyView',
             type: 'grid',
           });
+        expect(response.status).to.eq(422);
+        expect(response.body.error).to.eq('VIEW_NOT_FOUND');
+      });
+    });
+    describe('delete', () => {
+      it(`will handle delete incorrect view id`, async () => {
+        const response = await request(context.app)
+          .delete(`${API_PREFIX}/views/NOTFOUNDID`)
+          .set('xc-token', context.xc_token);
         expect(response.status).to.eq(422);
         expect(response.body.error).to.eq('VIEW_NOT_FOUND');
       });

@@ -5702,20 +5702,6 @@
             "type": "string",
             "description": "Description of the view."
           },
-          "meta": {
-            "type": "object",
-            "properties": {
-              "locked_view_description": {
-                "type": "string",
-                "description": "Description for locked views."
-              },
-              "locked_by_user_id": {
-                "type": "string",
-                "format": "uuid",
-                "description": "User ID of the person who locked the view."
-              }
-            }
-          },
           "sorts": {
             "type": "array",
             "items": {
@@ -5796,6 +5782,7 @@
             "oneOf": [
               {
                 "type": "object",
+                "title": "grid",
                 "properties": {
                   "type": {
                     "type": "string",
@@ -5810,6 +5797,7 @@
               },
               {
                 "type": "object",
+                "title": "kanban",
                 "properties": {
                   "type": {
                     "type": "string",
@@ -5824,6 +5812,7 @@
               },
               {
                 "type": "object",
+                "title": "calendar",
                 "properties": {
                   "type": {
                     "type": "string",
@@ -5838,6 +5827,7 @@
               },
               {
                 "type": "object",
+                "title": "gallery",
                 "properties": {
                   "type": {
                     "type": "string",
@@ -5852,6 +5842,7 @@
               },
               {
                 "type": "object",
+                "title": "form",
                 "properties": {
                   "type": {
                     "type": "string",

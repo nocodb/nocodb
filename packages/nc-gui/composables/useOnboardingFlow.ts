@@ -107,10 +107,8 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
   const { updateUserProfile } = useUsers()
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
   const isEnabledOnboardingFlow = computed(() => {
-    return isFeatureEnabled(FEATURE_FLAG.SIGNUP_ONBOARDING_FLOW) && !ncIsPlaywright()
+    return !ncIsPlaywright()
   })
 
   /**

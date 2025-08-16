@@ -66,7 +66,6 @@ export class ViewsV3Service {
         'lock_type',
         'description',
         'is_default',
-        'meta',
         'locked_view_description',
         'locked_by_user_id',
         'created_by',
@@ -77,12 +76,6 @@ export class ViewsV3Service {
         'type',
       ],
       mappings: {},
-      meta: {
-        mappings: {
-          allowCSVDownload: 'allow_csv_download',
-        },
-        skipTransformFor: ['allowCSVDownload'],
-      },
       excludeEmptyObjectProps: true,
       transformFn: (viewData) => {
         const { view, ...formattedData } = viewData;
@@ -100,11 +93,6 @@ export class ViewsV3Service {
         // if description empty then set it to undefined
         if (!formattedData.description) {
           formattedData.description = undefined;
-        }
-
-        // if meta empty then set it to undefined
-        if (!formattedData.meta || !Object.keys(formattedData.meta).length) {
-          formattedData.meta = undefined;
         }
 
         if (Object.keys(formattedData.options ?? {}).length === 0) {
@@ -279,6 +267,8 @@ export class ViewsV3Service {
         // gallery
         'coverFieldId',
 
+        // form specific for now
+        'fieldsById',
         // form
         'formTitle',
         'formDescription',

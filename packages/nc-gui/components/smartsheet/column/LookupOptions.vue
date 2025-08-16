@@ -85,7 +85,7 @@ const selectedTable = computed(() => {
 })
 
 // Todo: Add backend api level validation for unsupported fields
-const unsupportedUITypes = [UITypes.Button, UITypes.Links]
+const unsupportedUITypes = [UITypes.Button]
 
 // Check if recursive evaluation should be available (EE + PostgreSQL + self-referencing HM/BT relation)
 const canUseRecursiveEvaluation = computed(() => {

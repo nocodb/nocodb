@@ -32,6 +32,12 @@ export class CloudSSOLoginPage extends BasePage {
       signIn.getByTestId('nc-form-signin__submit').click(),
     ]);
 
-    await this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"][data-email^="${email.split('@')[0]}"]`).waitFor();
+    const userInfoMenu = this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]`);
+    await userInfoMenu.waitFor();
+
+    await this.rootPage.waitForFunction(
+      async selector => (await selector.getAttribute('data-email'))?.startsWith(email.split('@')[0]),
+      userInfoMenu
+    );
   }
 }

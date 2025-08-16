@@ -2690,6 +2690,10 @@ export class ColumnsService implements IColumnsService {
 
     const column = await Column.get(context, { colId: param.columnId }, ncMeta);
 
+    if (!column) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
     const { applyRowColorInvolvement } =
       await this.viewRowColorService.checkIfColumnInvolved({
         context,
@@ -2698,7 +2702,7 @@ export class ColumnsService implements IColumnsService {
       });
 
     if ((column.system || isSystemColumn(column)) && !param.forceDeleteSystem) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `The column '${
           column.title || column.column_name
         }' is a system column and cannot be deleted.`,
@@ -2723,11 +2727,11 @@ export class ColumnsService implements IColumnsService {
       source?.is_schema_readonly &&
       !readonlyMetaAllowedTypes.includes(column.uidt)
     ) {
-      NcError.sourceMetaReadOnly(source.alias);
+      NcError.get(context).sourceMetaReadOnly(source.alias);
     }
 
     if (table.synced && column.readonly && !param.forceDeleteSystem) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `The column '${
           column.title || column.column_name
         }' is a synced column and cannot be deleted.`,

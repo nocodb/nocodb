@@ -90,6 +90,7 @@ interface RowMetaRowColorInfo {
   rowLeftBorderColor?: string | null
   rowHoverColor?: string | null
   rowBorderColor?: string | null
+  is_set_as_background?: boolean
 }
 
 interface Row {

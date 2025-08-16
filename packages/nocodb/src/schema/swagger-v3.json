@@ -5260,7 +5260,7 @@
           "lock_type": {
             "type": "string",
             "enum": [
-              "collabarative",
+              "collaborative",
               "locked",
               "personal"
             ],

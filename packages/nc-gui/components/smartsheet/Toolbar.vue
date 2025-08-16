@@ -5,10 +5,17 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { isGrid, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
 
+const { isUIAllowed } = useRoles()
+
+const { isSharedBase } = useBase()
+
 const { isMobileMode } = useGlobal()
+
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isViewsLoading } = storeToRefs(useViewsStore())
+
+const { isPanelExpanded: isActionPanelExpanded } = useActionPane()
 
 const { isLocalMode } = useViewColumnsOrThrow()
 
@@ -75,6 +82,10 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 
         <LazySmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && (isGrid || isGallery || isKanban || isMap)" />
+
+        <LazySmartsheetToolbarBulkAction
+          v-if="(isGrid || isGallery) && !isPublic && !isSharedBase && isUIAllowed('scriptExecute')"
+        />
 
         <LazySmartsheetToolbarOpenedViewAction v-if="isCalendar" />
       </div>

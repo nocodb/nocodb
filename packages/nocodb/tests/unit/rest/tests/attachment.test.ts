@@ -110,6 +110,7 @@ function attachmentTests() {
       .expect(200);
 
     const attachments = response.body;
+
     expect(attachments).to.be.an('array');
     expect(attachments[0].title).to.be.eq(path.basename(FILE_PATH));
   });

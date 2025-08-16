@@ -86,10 +86,10 @@ async function signUp() {
         let continueAfterOnboardingFlow = ''
 
         if (base?.id) {
-          continueAfterOnboardingFlow = 'nc' + `/${base.id}`
+          continueAfterOnboardingFlow = `nc/${base.id}`
 
           if (table?.id) {
-            continueAfterOnboardingFlow = `${continueAfterOnboardingFlow}/${table.id}`
+            continueAfterOnboardingFlow += `/${table.id}`
           }
         }
 

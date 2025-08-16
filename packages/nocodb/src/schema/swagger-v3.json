@@ -209,13 +209,17 @@
               "oneOf": [
                 {
                   "type": "string",
-                  "enum": ["members"]
+                  "enum": [
+                    "members"
+                  ]
                 },
                 {
                   "type": "array",
                   "items": {
                     "type": "string",
-                    "enum": ["members"]
+                    "enum": [
+                      "members"
+                    ]
                   }
                 }
               ]
@@ -1651,7 +1655,47 @@
                     "list": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/View"
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "vwfjpo6wta1vwzyk"
+                          },
+                          "title": {
+                            "type": "string",
+                            "example": "MyView"
+                          },
+                          "type": {
+                            "type": "string",
+                            "example": "grid"
+                          },
+                          "lock_type": {
+                            "type": "string",
+                            "example": "collaborative"
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "example": "2000-01-02 03:04:05+00:00",
+                            "format": "date-time"
+                          },
+                          "updated_at": {
+                            "type": "string",
+                            "example": "2000-01-02 03:04:05+00:00",
+                            "format": "date-time"
+                          },
+                          "description": {
+                            "type": "string",
+                            "example": "MyView"
+                          },
+                          "created_by": {
+                            "type": "string",
+                            "example": "usq6o3vavwf0twzr"
+                          },
+                          "owned_by": {
+                            "type": "string",
+                            "example": "usq6o3vavwf0twzr"
+                          }
+                        }
                       }
                     }
                   },
@@ -2079,7 +2123,6 @@
         }
       }
     },
-    
     "/api/v3/meta/bases/{baseId}/views/{viewId}": {
       "get": {
         "summary": "Get view schema",
@@ -5367,7 +5410,10 @@
           "oneOf": [
             {
               "title": "Invite User with ID",
-              "required": ["user_id", "base_role"],
+              "required": [
+                "user_id",
+                "base_role"
+              ],
               "properties": {
                 "user_id": {
                   "type": "string",
@@ -5384,7 +5430,10 @@
             },
             {
               "title": "Invite User with Email",
-              "required": ["email", "base_role"],
+              "required": [
+                "email",
+                "base_role"
+              ],
               "properties": {
                 "email": {
                   "type": "string",
@@ -7882,7 +7931,12 @@
             "description": "Timestamp when the workspace was last updated"
           }
         },
-        "required": ["id", "title", "created_at", "updated_at"]
+        "required": [
+          "id",
+          "title",
+          "created_at",
+          "updated_at"
+        ]
       },
       "WorkspaceWithMembers": {
         "type": "object",
@@ -7905,10 +7959,14 @@
                     "description": "List of workspace members"
                   }
                 },
-                "required": ["workspace_members"]
+                "required": [
+                  "workspace_members"
+                ]
               }
             },
-            "required": ["individual_members"]
+            "required": [
+              "individual_members"
+            ]
           }
         ]
       },
@@ -7940,7 +7998,13 @@
             "description": "Role assigned to the user in the workspace"
           }
         },
-        "required": ["email", "user_id", "created_at", "updated_at", "workspace_role"]
+        "required": [
+          "email",
+          "user_id",
+          "created_at",
+          "updated_at",
+          "workspace_role"
+        ]
       },
       "WorkspaceUser": {
         "type": "object",
@@ -7970,7 +8034,13 @@
             "description": "Role assigned to the user in the workspace"
           }
         },
-        "required": ["email", "user_id", "created_at", "updated_at", "workspace_role"]
+        "required": [
+          "email",
+          "user_id",
+          "created_at",
+          "updated_at",
+          "workspace_role"
+        ]
       },
       "WorkspaceUserCreate": {
         "type": "array",
@@ -7979,7 +8049,10 @@
           "oneOf": [
             {
               "title": "Invite User with ID",
-              "required": ["user_id", "workspace_role"],
+              "required": [
+                "user_id",
+                "workspace_role"
+              ],
               "properties": {
                 "user_id": {
                   "type": "string",
@@ -7993,7 +8066,10 @@
             },
             {
               "title": "Invite User with Email",
-              "required": ["email", "workspace_role"],
+              "required": [
+                "email",
+                "workspace_role"
+              ],
               "properties": {
                 "email": {
                   "type": "string",
@@ -8025,7 +8101,10 @@
               "description": "New workspace role to assign to the user"
             }
           },
-          "required": ["user_id", "workspace_role"],
+          "required": [
+            "user_id",
+            "workspace_role"
+          ],
           "description": "An object representing updates for an existing workspace user."
         },
         "description": "Array of workspace user updates."
@@ -8040,7 +8119,9 @@
               "description": "Unique identifier for the user"
             }
           },
-          "required": ["user_id"],
+          "required": [
+            "user_id"
+          ],
           "description": "An object representing a workspace user to be deleted."
         },
         "description": "Array of workspace users to be deleted."

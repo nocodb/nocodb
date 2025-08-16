@@ -107,6 +107,9 @@ test.describe('Undo Redo', () => {
 
     // reload page after api calls
     await page.reload();
+
+    // wait for auto navigate to project completion
+    await dashboard.rootPage.waitForTimeout(2000);
   });
 
   test.afterEach(async () => {

@@ -16,7 +16,7 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const availableFields = computed(() => {
   if (!meta.value?.columns) return []
-  return meta.value.columns.filter((c) => c.title && !c.system && c.uidt !== UITypes.ID)
+  return meta.value.columns.filter((c) => c.title && !c.system && ![UITypes.Button, UITypes.ID].includes(c.uidt as UITypes))
 })
 
 const vModel = useVModel(props, 'modelValue', emit)

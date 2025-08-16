@@ -209,7 +209,7 @@ export class ViewsV3Service {
         hide_banner: 'form_hide_banner',
         hide_branding: 'form_hide_branding',
         banner_image_url: 'banner',
-        logo_url: 'form_logo_url',
+        logo_url: 'logo',
         background_color: 'form_background_color',
 
         fk_cover_image_col_id: 'cover_image_field_id',
@@ -307,6 +307,7 @@ export class ViewsV3Service {
         'show_submit_another_button',
         'reset_form_after_submit',
         'banner',
+        'logo',
       ],
       mappings: {
         // calendar
@@ -322,6 +323,7 @@ export class ViewsV3Service {
         show_submit_another_button: 'submit_another_form',
         reset_form_after_submit: 'show_blank_form',
         banner: 'banner_image_url',
+        logo: 'logo_url',
       },
       transformFn: (options) => {
         const result = {

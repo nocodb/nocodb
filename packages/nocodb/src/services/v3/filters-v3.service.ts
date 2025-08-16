@@ -26,7 +26,7 @@ function extractLogicalOp(group_operator: 'AND' | 'OR') {
 }
 
 export function addDummyRootAndNest(filters: any[]): any {
-  // If empty, return as it is
+  // If empty, return undefined
   if (filters.length === 0) {
     return undefined;
   }

@@ -34,7 +34,7 @@
                 ],
                 "description": "Type of the view."
               },
-              "ordered_fields": {
+              "fields": {
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -50,7 +50,8 @@
                     }
                   },
                   "required": [
-                    "field_id"
+                    "field_id",
+                    "show"
                   ]
                 }
               }
@@ -73,6 +74,27 @@
               "id": {
                 "type": "string",
                 "description": "Unique identifier for the view."
+              }
+            },
+            "fields": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "field_id": {
+                    "type": "string"
+                  },
+                  "show": {
+                    "type": "boolean"
+                  },
+                  "width": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "field_id",
+                    "show"
+                ]
               }
             }
           }

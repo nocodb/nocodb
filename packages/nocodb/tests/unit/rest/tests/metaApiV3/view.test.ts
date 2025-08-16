@@ -179,7 +179,7 @@ export default function () {
         expect(updateResponse2.body.sorts.length).to.greaterThan(0);
       });
 
-      it(`will create grid view with orderedFields`, async () => {
+      it(`will create grid view with fields`, async () => {
         const singleSelectColumn = (await table.getColumns(ctx)).find(
           (col) => col.title === 'SingleSelect',
         );
@@ -202,9 +202,10 @@ export default function () {
                 },
               ],
             },
-            ordered_fields: [
+            fields: [
               {
                 field_id: singleSelectColumn.id,
+                show: true,
               },
               {
                 field_id: dateTimeColumn.id,
@@ -212,6 +213,7 @@ export default function () {
               },
               {
                 field_id: titleColumn.id,
+                show: true,
               },
             ],
           },
@@ -221,9 +223,11 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send(requestPayload.body);
         expect(response.body.type).to.eq('grid');
-        expect(response.body.fields[0].field_id).to.eq(singleSelectColumn.id);
-        expect(response.body.fields[1].field_id).to.eq(dateTimeColumn.id);
-        expect(response.body.fields[2].field_id).to.eq(titleColumn.id);
+
+        // title is first because pv
+        expect(response.body.fields[0].field_id).to.eq(titleColumn.id);
+        expect(response.body.fields[1].field_id).to.eq(singleSelectColumn.id);
+        expect(response.body.fields[2].field_id).to.eq(dateTimeColumn.id);
       });
 
       it(`will create kanban view`, async () => {

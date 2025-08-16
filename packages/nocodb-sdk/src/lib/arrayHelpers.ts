@@ -12,3 +12,6 @@ export const arrDetailedDiff = (a: any[], b: any[]) => {
     added: b.filter((n) => !intersected.includes(n)),
   };
 };
+export const uniq = (array: any[]) => {
+  return [...new Set(array)];
+};

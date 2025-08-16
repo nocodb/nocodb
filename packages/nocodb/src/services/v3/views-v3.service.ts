@@ -492,7 +492,6 @@ export class ViewsV3Service {
       true,
       context,
     );
-    let modelColumns: Column[];
     if (body.options) {
       const optionsSchemaName =
         'ViewOptions' + body.type[0] + body.type.substring(1).toLowerCase();
@@ -512,24 +511,29 @@ export class ViewsV3Service {
           true,
           context,
         );
-        modelColumns = (
-          await this.validateFieldsById(
-            context,
-            {
-              tableId: param.tableId,
-              req: param.req,
-              fieldsById: body.options.fieldsById,
-            },
-            ncMeta,
-          )
-        ).modelColumns;
       }
     }
 
-    let requestBody = this.v3Tov2ViewBuilders.view().build(body);
-
     const viewTypeCode =
       viewTypeMap[(body.type as any as string).toUpperCase()];
+
+    const { modelColumns } = await this.validateFieldIds(
+      context,
+      {
+        req,
+        tableId,
+        fieldIds: this.extractFieldIdsFromRequest({
+          req,
+          body,
+          tableId,
+          isCreate: true,
+          viewTypeCode,
+        }),
+      },
+      ncMeta,
+    );
+
+    let requestBody = this.v3Tov2ViewBuilders.view().build(body);
     requestBody.type = viewTypeCode;
     requestBody.options = requestBody.options ?? {};
     requestBody = {
@@ -712,26 +716,80 @@ export class ViewsV3Service {
     }
   }
 
-  async validateFieldsById(
+  extractFieldIdsFromRequest(param: {
+    req: NcRequest;
+    body: any;
+    tableId: string;
+    isCreate?: boolean;
+    viewTypeCode: ViewTypes;
+  }) {
+    const { body, viewTypeCode, isCreate } = param;
+    const fieldIdToVerify = [];
+
+    fieldIdToVerify.push(...Object.keys(body.options?.fieldsById ?? {}));
+    if (![ViewTypes.FORM].includes(viewTypeCode) && body.sorts) {
+      fieldIdToVerify.push(...body.sorts.map((sort) => sort.fieldId));
+    }
+    if (isCreate && body.orderedFields) {
+      fieldIdToVerify.push(...body.orderedFields.map((field) => field.fieldId));
+    }
+    if (!isCreate && body.fields) {
+      fieldIdToVerify.push(...body.fields.map((field) => field.fieldId));
+    }
+    if ([ViewTypes.GRID].includes(viewTypeCode) && body.options?.groups) {
+      fieldIdToVerify.push(
+        ...body.options.groups.map((field) => field.fieldId),
+      );
+    }
+    if (
+      [ViewTypes.KANBAN].includes(viewTypeCode) &&
+      body.options?.stackBy?.fieldId
+    ) {
+      fieldIdToVerify.push(body.options?.stackBy?.fieldId);
+    }
+    if (
+      [ViewTypes.CALENDAR].includes(viewTypeCode) &&
+      body.options?.dateRanges
+    ) {
+      fieldIdToVerify.push(
+        ...(body.options?.dateRanges?.reduce((acc, cur) => {
+          return [...acc, cur.startDateFieldId, cur.endDateFieldId];
+        }, []) ?? []),
+      );
+    }
+
+    if (body.options?.coverFieldId) {
+      fieldIdToVerify.push(body.options?.coverFieldId);
+    }
+    // remove undefined
+    return fieldIdToVerify.filter((k) => k);
+  }
+
+  async validateFieldIds(
     context: NcContext,
     param: {
       req: NcRequest;
       tableId: string;
-      fieldsById: ViewColumnOptionV3Type['fieldsById'];
+      fieldIds: string[];
+      modelColumns?: Column[];
     },
     ncMeta?: MetaService,
   ) {
-    const columnKeys = Object.keys(param.fieldsById ?? {});
-    if (columnKeys.length === 0) {
-      return;
+    if ((param.fieldIds?.length ?? 0) === 0) {
+      return { modelColumns: undefined };
     }
-    const model = await Model.get(context, param.tableId, ncMeta);
-    const columns = await model.getColumns(context, ncMeta);
+    const columns =
+      param.modelColumns ??
+      (await (
+        await Model.get(context, param.tableId, ncMeta)
+      ).getColumns(context, ncMeta));
     const existingColumnKeys = columns.map((k) => k.id);
-    if (columnKeys.find((col) => !existingColumnKeys.includes(col))) {
-      NcError.fieldNotFound(
-        columnKeys.find((col) => !existingColumnKeys.includes(col)),
-      );
+    const invalidField = param.fieldIds.find(
+      (col) => !existingColumnKeys.includes(col),
+    );
+
+    if (invalidField) {
+      NcError.get(context).fieldNotFound(invalidField);
     }
     return { modelColumns: columns };
   }
@@ -924,17 +982,25 @@ export class ViewsV3Service {
           true,
           context,
         );
-        await this.validateFieldsById(
-          context,
-          {
-            tableId: existingView.fk_model_id,
-            req: param.req,
-            fieldsById: body.options.fieldsById,
-          },
-          ncMeta,
-        );
       }
     }
+
+    const viewTypeCode = existingView.type;
+    await this.validateFieldIds(
+      context,
+      {
+        req,
+        tableId: existingView.fk_model_id,
+        fieldIds: this.extractFieldIdsFromRequest({
+          req,
+          body,
+          tableId: existingView.fk_model_id,
+          isCreate: true,
+          viewTypeCode,
+        }),
+      },
+      ncMeta,
+    );
 
     let requestBody = this.v3Tov2ViewBuilders.view().build(body);
 

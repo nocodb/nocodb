@@ -154,7 +154,7 @@ export default function () {
         expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
       });
 
-      it(`will handle invalid groups field`, async () => {
+      it(`will handle invalid groups property`, async () => {
         const response = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
@@ -170,6 +170,25 @@ export default function () {
             },
           });
         expect(response.status).to.eq(400);
+        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+      });
+
+      it(`will handle invalid groups field id`, async () => {
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            type: 'GRID',
+            options: {
+              groups: [
+                {
+                  fieldId: 'NOT_EXISTS',
+                },
+              ],
+            },
+          });
+        expect(response.status).to.eq(422);
         expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
       });
     });

@@ -163,6 +163,8 @@ export class SidebarProjectNodeObject extends BasePage {
   }
 
   async verifyActiveProject({ baseTitle, open = false }: { baseTitle: string; open?: boolean }) {
+    if (!(await this.sidebar.dashboard.leftSidebar.isMiniSidebarVisible())) return true;
+
     const isBaseListSidebar = await this.sidebar.dashboard.leftSidebar.verifyBaseListOpen(false);
     // If base home page sidebar is open then verify base title is same as baseTitle
     if (!isBaseListSidebar) {

@@ -17,8 +17,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const baseURL = $api.instance.defaults.baseURL
 
-    const { isSharedForm } = useSmartsheetStoreOrThrow()
-
     const { row } = useSmartsheetRowStoreOrThrow()
 
     const { fetchSharedViewAttachment } = useSharedView()
@@ -37,6 +35,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const isForm = inject(IsFormInj, ref(false))
 
     const meta = inject(MetaInj, ref())
+
+    const isSharedForm = computed(() => {
+      return isForm.value && isPublic.value
+    })
 
     const column = inject(ColumnInj, ref())
 
@@ -560,6 +562,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       isRenameModalOpen,
       updateAttachmentTitle,
       isEditAllowed,
+      isSharedForm,
     }
   },
   'useAttachmentCell',

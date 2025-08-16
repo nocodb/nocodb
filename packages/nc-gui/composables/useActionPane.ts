@@ -42,13 +42,14 @@ export const useActionPane = createSharedComposable(() => {
       scriptName: string
       buttonFieldName?: string
     },
+    enableActionPane = true,
   ) => {
     executionMetadata.value.set(executionId, {
       ...metadata,
       startTime: new Date(),
     })
 
-    if (!isPanelExpanded.value) {
+    if (enableActionPane) {
       openActionPane()
     }
   }

@@ -156,6 +156,15 @@ const FEATURES = [
     version: 2,
     isEE: true,
   },
+  {
+    id: 'view_actions',
+    title: 'View Actions',
+    description: 'Execute scripts and webhooks to all records in a view.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

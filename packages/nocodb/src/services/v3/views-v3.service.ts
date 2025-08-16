@@ -204,7 +204,7 @@ export class ViewsV3Service {
         success_msg: 'thank_you_message',
         redirect_after_secs: 'form_redirect_after_secs',
         email: 'send_response_email_to',
-        submit_another_form: 'submit_another_form',
+        submit_another_form: 'show_submit_another_button',
         show_blank_form: 'reset_form_after_submit',
         hide_banner: 'form_hide_banner',
         hide_branding: 'form_hide_branding',
@@ -253,13 +253,6 @@ export class ViewsV3Service {
         }
 
         formattedData.meta = undefined;
-
-        if (formattedData.redirect_url) {
-          formattedData.redirect_on_submit = {
-            url: formattedData.redirect_url,
-          };
-          formattedData.redirect_url = undefined;
-        }
         return formattedData;
       },
     });
@@ -310,9 +303,10 @@ export class ViewsV3Service {
         'form_description',
         'submit_button_label',
         'thank_you_message',
-        'redirect_on_submit',
-        'submit_another_form',
-        'show_blank_form',
+        'redirect_url',
+        'show_submit_another_button',
+        'reset_form_after_submit',
+        'banner',
       ],
       mappings: {
         // calendar
@@ -325,8 +319,9 @@ export class ViewsV3Service {
         form_title: 'heading',
         form_description: 'subheading',
         thank_you_message: 'success_msg',
-        submit_another_form: 'submit_another_form',
-        show_blank_form: 'show_blank_form',
+        show_submit_another_button: 'submit_another_form',
+        reset_form_after_submit: 'show_blank_form',
+        banner: 'banner_image_url',
       },
       transformFn: (options) => {
         const result = {
@@ -426,7 +421,14 @@ export class ViewsV3Service {
         if (!ncIsNullOrUndefined(field.meta)) {
           field.is_list = field.meta.is_list;
           field.is_limit_option = field.meta.is_limit_option;
-          field.validators = field.meta.validators;
+          field.validators = field.meta.validators
+            ? field.meta.validators.map((val) => {
+                return {
+                  ...val,
+                  regex: val.regex ? val.regex : undefined,
+                };
+              })
+            : undefined;
           delete field.meta;
         }
         field = JSON.parse(JSON.stringify(field));

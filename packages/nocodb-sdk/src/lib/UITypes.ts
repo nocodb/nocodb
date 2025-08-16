@@ -5,7 +5,7 @@ import {
   LinkToAnotherRecordType,
   TableType,
 } from './Api';
-import { FormulaDataTypes } from './formulaHelpers';
+import { FormulaDataTypes } from './formula/enums';
 import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
 import { parseProp } from './helperFunctions';
 

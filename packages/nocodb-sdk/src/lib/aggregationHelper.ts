@@ -1,5 +1,5 @@
 import UITypes from './UITypes';
-import { FormulaDataTypes } from '~/lib/formulaHelpers';
+import { FormulaDataTypes } from '~/lib/formula/enums';
 import type { ColumnType } from '~/lib/Api';
 import { getDateTimeValue, getDateValue } from '~/lib/dateTimeHelper';
 import { formatBytes, parseProp } from '~/lib/helperFunctions';

@@ -7,7 +7,7 @@ import {
   IntegrationsType,
   LinkToAnotherRecordType,
 } from './Api';
-import { FormulaDataTypes } from './formulaHelpers';
+import { FormulaDataTypes } from './formula/enums';
 import { ncIsNull, ncIsUndefined } from '~/lib/is';
 
 // import {RelationTypes} from "./globals";

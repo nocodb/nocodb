@@ -516,6 +516,17 @@ export interface ViewOptionsForm {
   };
 }
 
+export interface ViewRowColorCreate {
+  mode?: 'filter' | 'select';
+  field_id?: string;
+  apply_as_row_background?: boolean;
+  conditions?: {
+    apply_as_row_background?: boolean;
+    color?: string;
+    filters?: FilterCreate;
+  }[];
+}
+
 export interface FieldBase {
   /** Unique identifier for the field. */
   id?: string;

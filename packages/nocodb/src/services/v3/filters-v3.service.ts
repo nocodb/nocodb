@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import RowColorCondition from 'src/models/RowColorCondition';
 import type {
   FilterCreateV3Type,
   FilterGroupV3Type,
@@ -131,7 +132,11 @@ export class FiltersV3Service {
     ncMeta,
   }: {
     context: any;
-    param: { viewId: string } | { hookId: string } | { linkColumnId: string };
+    param:
+      | { viewId: string }
+      | { hookId: string }
+      | { linkColumnId: string }
+      | { rowColorConditionId: string };
     groupOrFilter: FilterCreateV3Type;
     parentId?: string | null;
     logicalOp?: 'AND' | 'OR' | null;
@@ -299,8 +304,10 @@ export class FiltersV3Service {
       | { hookId: string }
       | {
           linkColumnId: string;
-        },
+        }
+      | { rowColorConditionId: string },
     context: NcContext,
+    ncMeta?: MetaService,
   ) {
     let additionalProps = {};
     let additionalAuditProps = {};
@@ -317,6 +324,24 @@ export class FiltersV3Service {
       };
       additionalAuditProps = {
         hook,
+      };
+    } else if ('rowColorConditionId' in param && param.rowColorConditionId) {
+      const rowColorCondition = await RowColorCondition.getById(
+        context,
+        param.rowColorConditionId,
+        ncMeta,
+      );
+      if (!rowColorCondition) {
+        // TODO: better error
+        NcError.get(context).invalidRequestBody(
+          `Row color condition not found`,
+        );
+      }
+      additionalProps = {
+        fk_row_color_condition_id: param.rowColorConditionId,
+      };
+      additionalAuditProps = {
+        rowColorCondition,
       };
     } else if ('viewId' in param && param.viewId) {
       const view = await View.get(context, param.viewId);

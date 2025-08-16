@@ -1,4 +1,8 @@
-import { arrDetailedDiff, arrIntersection } from './arrayHelpers';
+import {
+  arrDetailedDiff,
+  arrFlattenChildren,
+  arrIntersection,
+} from './arrayHelpers';
 
 describe('arrayHelpers', () => {
   describe('arrIntersection', () => {
@@ -19,6 +23,52 @@ describe('arrayHelpers', () => {
         intersected: ['c'],
         added: ['d', 'e'],
       });
+    });
+  });
+
+  describe('arrFlattenChildren', () => {
+    it('will flatten children', () => {
+      const payload = [
+        {
+          name: 'foo',
+          children: [
+            {
+              name: 'bar',
+            },
+            {
+              name: 'baz',
+            },
+          ],
+        },
+        {
+          name: 'foo2',
+          children: [
+            {
+              name: 'bar2',
+            },
+            {
+              name: 'baz2',
+              children: [
+                {
+                  name: 'buz2',
+                },
+              ],
+            },
+          ],
+        },
+        {
+          name: 'foo3',
+        },
+      ];
+      const result = arrFlattenChildren<any, any>({
+        payload,
+        childHandle: (each) => {
+          return each.children;
+        },
+      });
+      expect(result.map((k) => k.name).join(',')).toBe(
+        'foo,bar,baz,foo2,bar2,baz2,buz2,foo3'
+      );
     });
   });
 });

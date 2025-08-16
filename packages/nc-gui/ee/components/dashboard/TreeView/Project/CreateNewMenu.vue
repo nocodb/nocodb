@@ -41,7 +41,7 @@ const openMarketPlace = () => {
 </script>
 
 <template>
-  <NcMenu variant="large" @click="vVisible = false">
+  <NcMenu variant="large" data-testid="nc-home-create-new-menu" @click="vVisible = false">
     <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-table" @click="emits('newTable')">
       <div class="w-full flex items-center">
         <div class="flex-1 flex items-center gap-2 cursor-pointer">

@@ -8,7 +8,7 @@ const props = defineProps<{
   showEmptySkeleton?: boolean
 }>()
 
-const { hideSidebar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+const { hideSidebar } = storeToRefs(useSidebarStore())
 
 const { integrations } = useProvideIntegrationViewStore()
 
@@ -200,11 +200,7 @@ onMounted(() => {
           </NcBadge>
         </div>
       </div>
-      <template v-if="!showEmptySkeleton">
-        <SmartsheetTopbarCmdK v-if="!isSharedBase && !isNewSidebarEnabled" />
-
-        <LazyGeneralShareProject />
-      </template>
+      <LazyGeneralShareProject v-if="!showEmptySkeleton" />
     </div>
     <div
       v-if="!showEmptySkeleton"

@@ -15,7 +15,7 @@ test.describe('Shared view', () => {
   });
 
   test('Grid Share with GroupBy', async ({ page }) => {
-    await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
     await dashboard.grid.toolbar.groupBy.add({
       title: 'Title',
@@ -48,7 +48,7 @@ test.describe('Shared view', () => {
     await dashboard.goto();
     await page.reload();
 
-    await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
     await dashboard.grid.toolbar.clickFilter();
     await dashboard.grid.toolbar.filter.add({
@@ -77,7 +77,7 @@ test.describe('Shared view', () => {
     await dashboard.goto();
     await page.reload();
 
-    await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
     await dashboard.grid.toolbar.groupBy.update({
       index: 0,
@@ -106,7 +106,7 @@ test.describe('Shared view', () => {
     // kludge: wait for 3 seconds to avoid flaky test
     await page.waitForTimeout(5000);
 
-    await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
     await dashboard.grid.toolbar.groupBy.remove({ index: 0 });
 
@@ -135,7 +135,7 @@ test.describe('Shared view', () => {
 
     if (enableQuickRun()) test.skip();
 
-    await dashboard.treeView.openTable({ title: 'Address' });
+    await dashboard.treeView.openTable({ title: 'Address', baseTitle: context.base.title });
 
     // Unhide City column
     await dashboard.grid.toolbar.fields.toggle({ title: 'City', isLocallySaved: false, checked: true });
@@ -269,7 +269,7 @@ test.describe('Shared view', () => {
      * - Download disabled
      * - Add new record & column after shared view creation; verify
      **/
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     sharedLink = await dashboard.grid.topbar.getSharedViewUrl(false, 'p@ssword', true);
 

@@ -17,7 +17,7 @@ test.describe('Extension', () => {
 
   test('Marketplace', async () => {
     await dashboard.treeView.createTable({ title: 'ExtensionTestSheet', baseTitle: context.base.title });
-    await dashboard.treeView.openTable({ title: 'ExtensionTestSheet' });
+    await dashboard.treeView.openTable({ title: 'ExtensionTestSheet', baseTitle: context.base.title });
     await dashboard.extensions.toggleExtensionButton();
     const extensionPane = dashboard.extensions.getExtensionPane();
     await expect(extensionPane).toBeVisible();
@@ -36,7 +36,7 @@ test.describe('Extension', () => {
 
   test('Add Extension', async () => {
     await dashboard.treeView.createTable({ title: 'ExtensionTestSheet', baseTitle: context.base.title });
-    await dashboard.treeView.openTable({ title: 'ExtensionTestSheet' });
+    await dashboard.treeView.openTable({ title: 'ExtensionTestSheet', baseTitle: context.base.title });
     await dashboard.extensions.addFirstExtension();
 
     const extension = await dashboard.extensions.getFirstInstalledExtension();

@@ -18,8 +18,6 @@ const { addUndo, defineModelScope } = useUndoRedo()
 
 const { ncNavigateTo, isMobileMode } = useGlobal()
 
-const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
-
 const bases = useBases()
 
 const { isUIAllowed } = useRoles()
@@ -267,13 +265,8 @@ const filteredScripts = computed(() => {
     :selected-keys="selected"
     class="nc-scripts-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
-    <template v-if="(!isNewSidebarEnabled || !scripts?.length) && !isSharedBase && isUIAllowed('scriptCreateOrEdit')">
-      <div
-        :class="{
-          '!pl-13.3 !xs:(pl-13.5)': !isNewSidebarEnabled,
-        }"
-        @click="openNewScriptModal({ baseId })"
-      >
+    <template v-if="!scripts?.length && !isSharedBase && isUIAllowed('scriptCreateOrEdit')">
+      <div @click="openNewScriptModal({ baseId })">
         <div
           :class="{
             'text-brand-500 hover:text-brand-600': openedProject?.id === baseId,
@@ -282,14 +275,9 @@ const filteredScripts = computed(() => {
           class="nc-create-script-btn flex flex-row items-center cursor-pointer rounded-md w-full"
           role="button"
         >
-          <div
-            :class="{
-              'nc-project-home-section-item': isNewSidebarEnabled,
-              'flex flex-row items-center pl-1.25 !py-1.5 text-inherit': !isNewSidebarEnabled,
-            }"
-          >
+          <div class="nc-project-home-section-item">
             <GeneralIcon icon="plus" />
-            <div :class="{ 'pl-1.75': !isNewSidebarEnabled }">
+            <div>
               {{
                 $t('general.createEntity', {
                   entity: $t('objects.script'),
@@ -300,13 +288,7 @@ const filteredScripts = computed(() => {
         </div>
       </div>
     </template>
-    <div
-      v-if="!scripts?.length || !filteredScripts.length"
-      class="nc-project-home-section-item text-gray-500 font-normal"
-      :class="{
-        'ml-11.5 xs:(ml-12.25) ': !isNewSidebarEnabled,
-      }"
-    >
+    <div v-if="!scripts?.length || !filteredScripts.length" class="nc-project-home-section-item text-gray-500 font-normal">
       {{
         scripts?.length && !filteredScripts.length
           ? $t('placeholder.noResultsFoundForYourSearch')

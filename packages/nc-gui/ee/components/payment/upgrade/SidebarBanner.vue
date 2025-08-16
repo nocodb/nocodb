@@ -5,8 +5,6 @@ const { $e } = useNuxtApp()
 
 const route = useRoute()
 
-const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
-
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
@@ -169,7 +167,6 @@ watch(
     :class="{
       'px-2 pb-2': isLimitReached,
       'px-1 pb-1': !isLimitReached,
-      'border-b border-nc-border-gray-medium': !isNewSidebarEnabled,
     }"
   >
     <div

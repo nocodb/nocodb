@@ -39,7 +39,7 @@ async function beforeEachInit({ page, tableType }: { page: any; tableType: strin
   // For tables created via API to appear
   await dashboard.rootPage.reload();
 
-  await dashboard.treeView.openTable({ title: tableType });
+  await dashboard.treeView.openTable({ title: tableType, baseTitle: context.base.title });
 
   // Open bulk update form
   await dashboard.grid.updateAll();

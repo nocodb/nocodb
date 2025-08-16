@@ -27,12 +27,12 @@ test.describe('LTAR with filter create & update', () => {
     await dashboard.rootPage.waitForTimeout(1000);
     await dashboard.treeView.createTable({ title: 'Sheet2', baseTitle: context.base.title });
 
-    await dashboard.treeView.openTable({ title: 'Sheet2' });
+    await dashboard.treeView.openTable({ title: 'Sheet2', baseTitle: context.base.title });
     await dashboard.grid.addNewRow({ index: 0, value: '2a' });
     await dashboard.grid.addNewRow({ index: 1, value: '2b' });
     await dashboard.grid.addNewRow({ index: 2, value: '2c' });
 
-    await dashboard.treeView.openTable({ title: 'Sheet1' });
+    await dashboard.treeView.openTable({ title: 'Sheet1', baseTitle: context.base.title });
     await dashboard.grid.addNewRow({ index: 0, value: '1a' });
     await dashboard.grid.addNewRow({ index: 1, value: '1b' });
     await dashboard.grid.addNewRow({ index: 2, value: '1c' });
@@ -126,7 +126,7 @@ test.describe('LTAR with filter create & update', () => {
     await dashboard.rootPage.waitForTimeout(1000);
     await dashboard.treeView.createTable({ title: 'Sheet2', baseTitle: context.base.title });
 
-    await dashboard.treeView.openTable({ title: 'Sheet2' });
+    await dashboard.treeView.openTable({ title: 'Sheet2', baseTitle: context.base.title });
     await dashboard.grid.addNewRow({ index: 0, value: '2a' });
     await dashboard.grid.addNewRow({ index: 1, value: '2b' });
     await dashboard.grid.addNewRow({ index: 2, value: '2c' });
@@ -144,7 +144,7 @@ test.describe('LTAR with filter create & update', () => {
     await dashboard.rootPage.waitForTimeout(500);
     await dashboard.grid.toolbar.clickFilter();
 
-    await dashboard.treeView.openTable({ title: 'Sheet1' });
+    await dashboard.treeView.openTable({ title: 'Sheet1', baseTitle: context.base.title });
 
     await dashboard.grid.addNewRow({ index: 0, value: '1a' });
     await dashboard.grid.addNewRow({ index: 1, value: '1b' });

@@ -274,6 +274,7 @@ watch(activeDates, (newActiveDates) => {
           }"
           class="px-1 py-1.5 relative rounded border-transparent transition border-1 font-medium flex text-gray-700 items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
+          :data-date="date.date.format('DD MMM YYYY')"
           @click="handleSelectDate(date.date)"
           @dblclick="emitDblClick(date.date)"
         >

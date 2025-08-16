@@ -18,8 +18,6 @@ const { openTable: _openTable } = useTableNew({
   baseId: base.value.id!,
 })
 
-const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
-
 const route = useRoute()
 
 const { isUIAllowed } = useRoles()
@@ -453,10 +451,8 @@ async function onRename() {
         class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-gray-200"
         :class="{
           'hover:bg-gray-200': openedTableId !== table.id,
-          'pl-13.5 !xs:(pl-12)': sourceIndex !== 0 && !isNewSidebarEnabled,
-          'pl-7.5 xs:(pl-6)': sourceIndex === 0 && !isNewSidebarEnabled,
-          'pl-8 !xs:(pl-7)': sourceIndex !== 0 && isNewSidebarEnabled,
-          'pl-2 xs:(pl-2)': sourceIndex === 0 && isNewSidebarEnabled,
+          'pl-8 !xs:(pl-7)': sourceIndex !== 0,
+          'pl-2 xs:(pl-2)': sourceIndex === 0,
           '!bg-primary-selected': isTableOpened,
         }"
         :data-testid="`nc-tbl-side-node-${table.title}`"

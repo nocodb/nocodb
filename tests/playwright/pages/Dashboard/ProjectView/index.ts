@@ -16,6 +16,8 @@ export class ProjectViewPage extends BasePage {
   readonly settings: BaseSettingsPage;
 
   // assets
+
+  readonly sidebar_overview_btn: Locator;
   readonly tab_overview: Locator;
   readonly tab_dataSources: Locator;
   readonly tab_accessSettings: Locator;
@@ -34,6 +36,10 @@ export class ProjectViewPage extends BasePage {
     this.accessSettings = new AccessSettingsPage(this);
     this.settings = new BaseSettingsPage(this);
 
+    this.sidebar_overview_btn = this.dashboard.leftSidebar
+      .get()
+      .locator('[data-testid="nc-sidebar-base-overview-btn"]');
+
     this.tab_overview = this.get().locator('[data-testid="proj-view-tab__overview"]');
     this.tab_dataSources = this.get().locator('[data-testid="proj-view-tab__data-sources"]');
     this.tab_accessSettings = this.get().locator('[data-testid="proj-view-tab__access-settings"]');
@@ -48,7 +54,19 @@ export class ProjectViewPage extends BasePage {
     return this.dashboard.get().locator('.nc-base-view-tab');
   }
 
+  async openOverview() {
+    await this.dashboard.leftSidebar.verifyBaseListOpen(false);
+
+    if (await this.get().isVisible()) return;
+
+    await this.sidebar_overview_btn.click();
+
+    await this.get().waitFor({ state: 'visible' });
+  }
+
   async verifyAccess(role: string) {
+    await this.openOverview();
+
     await this.get().waitFor({ state: 'visible' });
 
     // provide time for tabs to appear

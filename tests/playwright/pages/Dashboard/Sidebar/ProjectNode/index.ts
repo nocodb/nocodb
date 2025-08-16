@@ -34,6 +34,8 @@ export class SidebarProjectNodeObject extends BasePage {
   }
 
   async verifyTableAddBtn({ baseTitle, visible }: { baseTitle: string; visible: boolean }) {
+    await this.sidebar.dashboard.leftSidebar.verifyBaseListOpen(true);
+
     await this.get({
       baseTitle,
     }).waitFor({ state: 'visible' });
@@ -64,6 +66,7 @@ export class SidebarProjectNodeObject extends BasePage {
     settingsVisible,
     deleteVisible,
     copyProjectInfoVisible,
+    clickBaseTitle = true,
   }: {
     baseTitle: string;
     renameVisible?: boolean;
@@ -75,6 +78,7 @@ export class SidebarProjectNodeObject extends BasePage {
     settingsVisible?: boolean;
     deleteVisible?: boolean;
     copyProjectInfoVisible?: boolean;
+    clickBaseTitle?: boolean;
   }) {
     await this.get({
       baseTitle,
@@ -149,8 +153,48 @@ export class SidebarProjectNodeObject extends BasePage {
     if (copyProjectInfoVisible) await expect(copyProjectInfoLocator).toBeVisible();
     else await expect(copyProjectInfoLocator).toHaveCount(0);
 
+    if (clickBaseTitle) {
+      await this.get({
+        baseTitle,
+      }).click();
+    } else {
+      await this.clickOptions({ baseTitle });
+    }
+  }
+
+  async verifyActiveProject({ baseTitle, open = false }: { baseTitle: string; open?: boolean }) {
+    if (!(await this.sidebar.dashboard.leftSidebar.isMiniSidebarVisible())) return true;
+
+    const isBaseListSidebar = await this.sidebar.dashboard.leftSidebar.verifyBaseListOpen(false);
+    // If base home page sidebar is open then verify base title is same as baseTitle
+    if (!isBaseListSidebar) {
+      const baseLocator = await this.get({ baseTitle }).getAttribute('class');
+
+      // If active project is same as baseTitle then return true
+      if (baseLocator?.includes('nc-project-header')) return true;
+
+      if (!open) return false;
+
+      // If it is not same base home page sidebar then go to base list and open
+      await this.sidebar.dashboard.leftSidebar.verifyBaseListOpen(true);
+    }
+
+    if (!open) return false;
+
+    await this.get({
+      baseTitle,
+    }).waitFor({ state: 'visible' });
+
+    await this.get({
+      baseTitle,
+    }).scrollIntoViewIfNeeded();
+
     await this.get({
       baseTitle,
     }).click();
+
+    await this.sidebar.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
+
+    return true;
   }
 }

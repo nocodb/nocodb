@@ -61,7 +61,7 @@ test.describe('Virtual Columns', () => {
         },
       ];
 
-      await dashboard.treeView.openTable({ title: 'City' });
+      await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
 
       await grid.column.create({
         title: 'QrCode1',
@@ -119,7 +119,7 @@ test.describe('Virtual Columns', () => {
     });
 
     test('deletion of the QR column: directly and indirectly when the reference value column is deleted', async () => {
-      await dashboard.treeView.openTable({ title: 'City' });
+      await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
 
       await grid.column.create({ title: 'column_name_a' });
       await grid.column.verify({ title: 'column_name_a' });

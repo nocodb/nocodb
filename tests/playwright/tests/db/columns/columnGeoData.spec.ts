@@ -19,7 +19,7 @@ test.describe.skip('Geo Data column', () => {
   });
 
   test('creation, validation and deleting geo data column', async () => {
-    await dashboard.treeView.openTable({ title: 'City' });
+    await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
 
     await dashboard.viewSidebar.changeBetaFeatureToggleValue();
 

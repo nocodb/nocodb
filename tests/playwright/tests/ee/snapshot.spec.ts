@@ -14,7 +14,7 @@ test.describe('Snapshots', () => {
     await unsetup(context);
   });
 
-  test('Create Snapshot', async ({ page }) => {
+  test('Create Snapshot', async () => {
     await dashboard.gotoSettings();
 
     await dashboard.baseView.settings.changeTab('snapshots');
@@ -24,7 +24,7 @@ test.describe('Snapshots', () => {
     await dashboard.baseView.settings.verifySnapshot({ snapshotName: 'Test Snapshot', isVisible: true });
   });
 
-  test('Restore Snapshot', async ({ page }) => {
+  test('Restore Snapshot', async () => {
     await dashboard.gotoSettings();
 
     await dashboard.baseView.settings.changeTab('snapshots');

@@ -1,7 +1,6 @@
 import { Page } from '@playwright/test';
 import BasePage from '../Base';
 import { ProjectsPage } from '../ProjectsPage';
-import { expect } from '@playwright/test';
 
 export class GoogleLoginPage extends BasePage {
   readonly projectsPage: ProjectsPage;

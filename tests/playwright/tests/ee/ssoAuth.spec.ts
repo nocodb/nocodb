@@ -417,8 +417,10 @@ test.describe.serial('SSO', () => {
       await stopOpenIDIdp();
     });
 
-    test('OpenID Login Flow', async () => {
+    test('OpenID Login Flow', async ({ page }) => {
       await openidLoginPage.goto('test', `test@${domain}`);
+
+      await page.waitForURL(/localhost:4000/, { waitUntil: 'networkidle' });
 
       await openidLoginPage.signIn({
         email: `test@${domain}`,

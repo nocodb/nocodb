@@ -10,6 +10,9 @@ export class CalendarSideMenuPage extends BasePage {
   readonly prev_btn: Locator;
   readonly next_btn: Locator;
   readonly searchToggleBtn: Locator;
+  readonly monthPrev_btn: Locator;
+  readonly monthNext_btn: Locator;
+
   constructor(parent: CalendarPage) {
     super(parent.rootPage);
     this.parent = parent;
@@ -18,6 +21,9 @@ export class CalendarSideMenuPage extends BasePage {
 
     this.next_btn = this.parent.toolbar.get().getByTestId('nc-calendar-next-btn');
     this.prev_btn = this.parent.toolbar.get().getByTestId('nc-calendar-prev-btn');
+
+    this.monthPrev_btn = this.get().locator('button.nc-button').first();
+    this.monthNext_btn = this.get().locator('button.nc-button').nth(1);
 
     this.searchToggleBtn = this.get().getByTestId('nc-calendar-sidebar-search-btn');
   }
@@ -48,14 +54,69 @@ export class CalendarSideMenuPage extends BasePage {
     await this.next_btn.click();
   }
 
-  async moveToDate({ date, action }: { date: string; action: 'prev' | 'next' }) {
-    console.log(await this.parent.toolbar.getActiveDate());
-    while ((await this.parent.toolbar.getActiveDate()) !== date) {
+  async moveToDate({
+    date,
+    action,
+    jumpTo,
+    postSelectViewMode,
+  }: {
+    date: string;
+    action: 'prev' | 'next';
+    /**
+     * Takes a while to move to date if we click one day at a time
+     * So we can jump to nearest date and then move to the date
+     * @Note - Select proper jumpTo so that action will work properly
+     */
+    jumpTo?: {
+      day: number;
+      month: 'Jan' | 'Feb' | 'Mar' | 'Apr' | 'May' | 'Jun' | 'Jul' | 'Aug' | 'Sep' | 'Oct' | 'Nov' | 'Dec';
+      year: number;
+    };
+    postSelectViewMode?: 'day' | 'week' | 'month' | 'year';
+  }) {
+    if (jumpTo) {
+      await this.parent.toolbar.calendarViewMode.changeCalendarView({ title: 'year' });
+
+      // Select year
+      let activeYear = +(await this.parent.toolbar.getActiveDate());
+
+      while (activeYear !== jumpTo.year) {
+        if (activeYear < jumpTo.year) {
+          await this.clickNext();
+        } else {
+          await this.clickPrev();
+        }
+
+        activeYear = +(await this.parent.toolbar.getActiveDate());
+      }
+
+      const day = String(jumpTo.day).padStart(2, '0');
+
+      const dateLocator = this.parent.calendarYear
+        .get()
+        .locator(`[data-testid="nc-calendar-date"][data-date="${day} ${jumpTo.month} ${jumpTo.year}"]`)
+        .first();
+
+      await dateLocator.scrollIntoViewIfNeeded();
+      await dateLocator.waitFor();
+
+      await dateLocator.click();
+
+      if (postSelectViewMode) {
+        await this.parent.toolbar.calendarViewMode.changeCalendarView({ title: postSelectViewMode });
+      }
+    }
+
+    let activeDate = await this.parent.toolbar.getActiveDate();
+
+    while (activeDate !== date) {
       if (action === 'prev') {
         await this.clickPrev();
       } else {
         await this.clickNext();
       }
+
+      activeDate = await this.parent.toolbar.getActiveDate();
     }
   }
 

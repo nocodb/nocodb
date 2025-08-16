@@ -730,6 +730,7 @@ import NcLogoTypeform from '~icons/nc-icons-v2/typeform.svg'
 import NcLogoWhatsappColored from '~icons/nc-icons-v2/whatsapp-colored.svg'
 import NcLogoWhatsapp from '~icons/nc-icons-v2/whatsapp.svg'
 import NcLogoWorkdayColored from '~icons/nc-icons-v2/workday-colored.svg'
+import NcLogoWorkdayColoredOutline from '~icons/nc-icons-v2/workday-colored-outline.svg'
 import NcLogoWorkday from '~icons/nc-icons-v2/workday.svg'
 import NcLogoZendeskColored from '~icons/nc-icons-v2/zendesk-colored.svg'
 import NcLogoZendesk from '~icons/nc-icons-v2/zendesk.svg'
@@ -748,6 +749,8 @@ import NcLogoManusIm from '~icons/nc-icons-v2/manus-im.svg'
 import NcLogoHuggingface from '~icons/nc-icons-v2/huggingface-colored.svg'
 import NcLogoReplitAi from '~icons/nc-icons-v2/replit-ai-colored.svg'
 import NcLogoLangchain from '~icons/nc-icons-v2/langchain.svg'
+import NcLogoBambooHrColored from '~icons/nc-icons-v2/bamboo-hr-colored.svg'
+import NcLogoDockerColored from '~icons/nc-icons-v2/docker-colored.svg'
 
 import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
 import NcBaseOutline from '~icons/nc-icons-v2/base-outline.svg'
@@ -1718,6 +1721,7 @@ export const iconMap = {
   'ncLogoWhatsappColored': h(NcLogoWhatsappColored, { stroke: 'transparent' }),
   'ncLogoWhatsapp': h(NcLogoWhatsapp, { stroke: 'transparent' }),
   'ncLogoWorkdayColored': h(NcLogoWorkdayColored, { stroke: 'transparent' }),
+  'ncLogoWorkdayColoredOutline': h(NcLogoWorkdayColoredOutline, { stroke: 'transparent' }),
   'ncLogoWorkday': h(NcLogoWorkday, { stroke: 'transparent' }),
   'ncLogoZendeskColored': h(NcLogoZendeskColored, { stroke: 'transparent' }),
   'ncLogoZendesk': h(NcLogoZendesk, { stroke: 'transparent' }),
@@ -1736,6 +1740,8 @@ export const iconMap = {
   'ncLogoHuggingface': h(NcLogoHuggingface, { stroke: 'transparent' }),
   'ncLogoReplitAi': h(NcLogoReplitAi, { stroke: 'transparent' }),
   'ncLogoLangchain': h(NcLogoLangchain, { stroke: 'transparent' }),
+  'ncLogoBambooHrColored': h(NcLogoBambooHrColored, { stroke: 'transparent' }),
+  'ncLogoDockerColored': h(NcLogoDockerColored, { stroke: 'transparent' }),
 
   'ncSendAlt': h(NcSendAlt, { stroke: 'transparent' }),
   'ncStopCircle': h(NcStopCircle, { stroke: 'transparent' }),
@@ -3295,6 +3301,9 @@ export const emojiIcons = [
   'globe-with-meridians',
 ]
 
+/**
+ * keywords - add proper keywords which align with the icon name
+ */
 export const searchableMap = {
   ncColumns: { icon: NcColumnsIcon, keywords: ['Grid', 'Layout', 'Structure', 'Organization', 'Architecture'] },
   ncUnderline: { icon: NcUnderlineIcon, keywords: ['text', 'formatting', 'highlight', 'emphasis', 'typography'] },
@@ -4364,6 +4373,97 @@ export const searchableMap = {
     icon: h(NcLogoMakeColored, { stroke: 'transparent' }),
     keywords: ['make', 'automation', 'workflow', 'integration', 'connect', 'nocode'],
   },
+  ncLogoCrewAi: {
+    icon: h(NcLogoCrewAi, { stroke: 'transparent' }),
+    keywords: [
+      'crew',
+      'crew.ai',
+      'workflow automation',
+      'AI agents',
+      'team collaboration',
+      'autonomous agents',
+      'ai',
+      'nocode',
+      'integration',
+    ],
+  },
+  ncLogoManusIm: {
+    icon: h(NcLogoManusIm, { stroke: 'transparent' }),
+    keywords: [
+      'manus',
+      'manus.im',
+      'automation',
+      'AI workflows',
+      'business automation',
+      'nocode',
+      'workflow builder',
+      'integration',
+    ],
+  },
+  ncLogoHuggingface: {
+    icon: h(NcLogoHuggingface, { stroke: 'transparent' }),
+    keywords: [
+      'huggingface',
+      'transformers',
+      'nlp',
+      'ai models',
+      'ml',
+      'machine learning',
+      'text generation',
+      'open source',
+      'integration',
+    ],
+  },
+  ncLogoReplitAi: {
+    icon: h(NcLogoReplitAi, { stroke: 'transparent' }),
+    keywords: [
+      'replit',
+      'replit.ai',
+      'code',
+      'cloud IDE',
+      'developer tools',
+      'generative AI',
+      'ai coding',
+      'automation',
+      'nocode',
+      'integration',
+    ],
+  },
+  ncLogoLangchain: {
+    icon: h(NcLogoLangchain, { stroke: 'transparent' }),
+    keywords: [
+      'langchain',
+      'ai agents',
+      'llm orchestration',
+      'prompt chaining',
+      'generative AI',
+      'framework',
+      'openai',
+      'rag',
+      'nocode',
+      'workflow',
+      'integration',
+    ],
+  },
+  ncLogoBambooHrColored: {
+    icon: h(NcLogoBambooHrColored, { stroke: 'transparent' }),
+    keywords: [
+      'bamboohr',
+      'hr software',
+      'human resources',
+      'employee management',
+      'performance',
+      'time tracking',
+      'hr automation',
+      'workflow',
+      'integration',
+    ],
+  },
+  ncLogoDockerColored: {
+    icon: h(NcLogoDockerColored, { stroke: 'transparent' }),
+    keywords: ['docker', 'containerization', 'devops', 'cloud', 'infrastructure'],
+  },
+
   ncBaseOutline: {
     icon: NcBaseOutline,
     keywords: ['base', 'database', 'storage', 'db'],

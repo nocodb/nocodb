@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -67,6 +68,7 @@ export class ViewsV3Controller {
     });
     return view;
   }
+
   @Patch(`${PREFIX_APIV3_METABASE}/views/:viewId`)
   @Acl('viewUpdate')
   async viewUpdate(
@@ -75,6 +77,20 @@ export class ViewsV3Controller {
     @Request() req,
   ) {
     const view = await this.viewsV3Service.update(context, {
+      viewId: viewId,
+      req,
+    });
+    return view;
+  }
+
+  @Delete(`${PREFIX_APIV3_METABASE}/views/:viewId`)
+  @Acl('viewDelete')
+  async viewDelete(
+    @TenantContext() context: NcContext,
+    @Param('viewId') viewId: string,
+    @Request() req,
+  ) {
+    const view = await this.viewsV3Service.delete(context, {
       viewId: viewId,
       req,
     });

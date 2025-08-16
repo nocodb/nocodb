@@ -410,5 +410,30 @@ export default function () {
         ).to.eq('select32');
       });
     });
+
+    describe('view delete', () => {
+      it(`will delete grid view`, async () => {
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            type: 'GRID',
+            sorts: [
+              {
+                fieldId: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          });
+        expect(response.body.type).to.eq('GRID');
+
+        const deleteResponse = await request(context.app)
+          .delete(`${API_PREFIX}/views/${response.body.id}`)
+          .set('xc-token', context.xc_token);
+        expect(deleteResponse.status).to.eq(200);
+      });
+    });
   });
 }

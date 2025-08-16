@@ -38,7 +38,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const { $e } = useNuxtApp()
 
-    const sqlUi = ref(meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0])
+    const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0]))
 
     const viewsStore = useViewsStore()
 
@@ -129,7 +129,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
       const newTitle = updateFieldName(false)
 
-      const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
+      const colProp = sqlUi.value?.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined) ?? {}
+
       formState.value = {
         ...(fromTableExplorer?.value || formState.value?.is_ai_field || formState.value?.ai_temp_id
           ? {
@@ -169,8 +170,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         formState.value = { ...formState.value, ...preload }
       }
 
-      formState.value.dtxp = sqlUi.value.getDefaultLengthForDatatype(formState.value.dt)
-      formState.value.dtxs = sqlUi.value.getDefaultScaleForDatatype(formState.value.dt)
+      formState.value.dtxp = sqlUi.value?.getDefaultLengthForDatatype(formState.value.dt) ?? null
+      formState.value.dtxs = sqlUi.value?.getDefaultScaleForDatatype(formState.value.dt) ?? null
 
       const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
       if (column && selectTypes.includes(formState.value.uidt) && selectTypes.includes(column.value?.uidt as UITypes)) {
@@ -204,7 +205,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       setAvoidShowingToastMsgForValidations({})
       formState.value = {
         meta: {},
-        ...sqlUi.value.getNewColumn(1),
+        ...(sqlUi.value?.getNewColumn(1) ?? {}),
       }
       formState.value.title = ''
       formState.value.column_name = ''
@@ -311,8 +312,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       formState.value.ai = false
       formState.value.cdf = null
       formState.value.un = false
-      formState.value.dtxp = sqlUi.value.getDefaultLengthForDatatype(formState.value.dt)
-      formState.value.dtxs = sqlUi.value.getDefaultScaleForDatatype(formState.value.dt)
+      formState.value.dtxp = sqlUi.value?.getDefaultLengthForDatatype(formState.value.dt) ?? null
+      formState.value.dtxs = sqlUi.value?.getDefaultScaleForDatatype(formState.value.dt) ?? null
 
       formState.value.dtx = 'specificType'
 

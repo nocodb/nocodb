@@ -128,7 +128,11 @@ watch(emailVerifyDlg, (val) => {
             Terms of Service
           </a>
           &
-          <a class="!cursor-pointer !text-gray-400 !hover:text-brand-500" href="https://nocodb.com/docs/legal/privacy" target="_blank">
+          <a
+            class="!cursor-pointer !text-gray-400 !hover:text-brand-500"
+            href="https://nocodb.com/docs/legal/privacy"
+            target="_blank"
+          >
             Privacy Policy
           </a>
         </div>

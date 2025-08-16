@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
 
-const { onInitOnboardingFlow, visibleQuestions, stepper } = useOnboardingFlow()
+const { showOnboardingFlow, onInitOnboardingFlow, onCompleteOnboardingFlow, visibleQuestions, stepper } = useOnboardingFlow()
 
 const autoScrollQuestionRefs = ref<HTMLDivElement>()
 
@@ -29,6 +29,16 @@ watch(
 
 onMounted(() => {
   onInitOnboardingFlow()
+})
+
+useEventListener('beforeunload', (event) => {
+  if (!showOnboardingFlow.value) return
+
+  // Recommended
+  event.preventDefault()
+
+  // Included for legacy support, e.g. Chrome/Edge < 119
+  event.returnValue = ''
 })
 </script>
 

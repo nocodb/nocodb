@@ -5615,6 +5615,42 @@
           },
           "type": {
             "type": "string",
+            "enum": [
+              "SingleLineText",
+              "LongText",
+              "PhoneNumber",
+              "URL",
+              "Email",
+              "Number",
+              "Decimal",
+              "Currency",
+              "Percent",
+              "Duration",
+              "Date",
+              "DateTime",
+              "Time",
+              "SingleSelect",
+              "MultiSelect",
+              "Rating",
+              "Checkbox",
+              "Attachment",
+              "Geometry",
+              "Links",
+              "Lookup",
+              "Rollup",
+              "Button",
+              "Formula",
+              "Barcode",
+              "Year",
+              "QrCode",
+              "CreatedAt",
+              "LastModifiedAt",
+              "CreatedBy",
+              "LastModifiedBy",
+              "LinkToAnotherRecord",
+              "User",
+              "JSON"
+            ],
             "description": "Field data type."
           },
           "description": {
@@ -5641,7 +5677,8 @@
         "allOf": [
           {
             "$ref": "#/components/schemas/FieldBase"
-          }, {
+          },
+          {
             "required": [
               "title",
               "type"

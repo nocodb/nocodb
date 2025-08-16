@@ -121,6 +121,30 @@ export default function () {
           .set('xc-auth', context.token)
           .send(table)
           .expect(400);
+        console.log(response.body)
+        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+      });
+
+      it(`will create column with incorrect type`, async () => {
+        const table = {
+          title: 'Table Number',
+          description: 'Description',
+          fields: [
+            {
+              title: 'Number',
+              type: 'Numbers',
+              options: {
+                thousand_separator: true,
+              },
+            },
+          ],
+        };
+
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables`)
+          .set('xc-auth', context.token)
+          .send(table)
+          .expect(400);
 
         expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
       });

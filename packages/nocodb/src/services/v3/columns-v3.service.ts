@@ -40,6 +40,15 @@ export class ColumnsV3Service {
       context,
     );
 
+    if (param.column.type) {
+      validatePayload(
+        `swagger-v3.json#/components/schemas/FieldOptions/${param.column.type}`,
+        param.column,
+        true,
+        context,
+      );
+    }
+
     let column = await Column.get(context, { colId: param.columnId });
 
     if (!column) {

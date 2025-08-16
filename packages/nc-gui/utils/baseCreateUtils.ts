@@ -230,7 +230,7 @@ const errorHandlers = [
     },
   },
   {
-    messages: ['the server does not support SSL connections'],
+    messages: ['The server does not support SSL connections'],
     codes: ['08P01'], // PostgreSQL error code for protocol violation
     action: {
       connection: {
@@ -247,7 +247,8 @@ function generateConfigFix(e: any) {
 
     if (!errorMessage && !errorCode) return
 
-    const messageMatches = errorMessage && handler.messages.some((msg) => errorMessage?.includes?.(msg))
+    const messageMatches =
+      errorMessage && handler.messages.some((msg) => errorMessage?.toLowerCase()?.includes?.(msg?.toLowerCase()))
     const codeMatches = errorCode && handler.codes.includes(errorCode)
 
     if (messageMatches || codeMatches) {

@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  AppEvents,
+  EventType,
+  parseProp,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import type {
   KanbanUpdateReqType,
   UserType,
@@ -7,6 +13,7 @@ import type {
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import type { SelectOption } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -19,8 +26,12 @@ import NocoSocket from '~/socket/NocoSocket';
 export class KanbansService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async kanbanViewGet(context: NcContext, param: { kanbanViewId: string }) {
-    return await KanbanView.get(context, param.kanbanViewId);
+  async kanbanViewGet(
+    context: NcContext,
+    param: { kanbanViewId: string },
+    ncMeta?: MetaService,
+  ) {
+    return await KanbanView.get(context, param.kanbanViewId, ncMeta);
   }
 
   async kanbanViewCreate(
@@ -172,5 +183,79 @@ export class KanbansService {
     });
 
     return res;
+  }
+
+  async kanbanOptionsReorder(
+    context: NcContext,
+    param: {
+      kanbanViewId: string;
+      optionsOrder: string[];
+      req: NcRequest;
+    },
+    ncMeta?: MetaService,
+  ) {
+    const kanbanView = await this.kanbanViewGet(context, param, ncMeta);
+    const modelView = await View.get(context, kanbanView.fk_view_id, ncMeta);
+    const model = await Model.get(context, modelView.fk_model_id, ncMeta);
+    const column = (await model.getColumns(context, ncMeta)).find(
+      (col) => col.id === kanbanView.fk_grp_col_id,
+    );
+    if (!column) {
+      NcError.get(context).fieldNotFound(kanbanView.fk_grp_col_id);
+    }
+    const options = (await column.getColOptions(context))
+      .options as SelectOption[];
+    const metaOptions: any[] = parseProp(kanbanView.meta)?.[column.id] ?? [];
+    if (metaOptions.length === 0) {
+      metaOptions.push({
+        id: 'uncategorized',
+        title: null,
+        order: 0,
+        color: '#6A7184',
+        collapsed: false,
+      });
+    }
+    for (const option of options) {
+      if (!metaOptions.some((k) => k.id === option.id)) {
+        metaOptions.push({
+          ...option,
+          order: metaOptions.length,
+          collapsed: false,
+        });
+      }
+    }
+    let maxOrder = 1;
+    const optionsOrderMap = param.optionsOrder.reduce((acc, val, idx) => {
+      acc[val] = idx + 1;
+      return val;
+    }, {});
+
+    const unorderedMetaOptions = [];
+    for (const metaOption of metaOptions) {
+      if (optionsOrderMap[metaOption.title]) {
+        metaOption.order = optionsOrderMap[metaOption.title];
+        maxOrder = Math.max(metaOption.order, maxOrder);
+      } else {
+        unorderedMetaOptions.push(metaOption);
+      }
+    }
+    unorderedMetaOptions.forEach((opt, idx) => {
+      opt.order = maxOrder + idx;
+    });
+    await this.kanbanViewUpdate(
+      context,
+      {
+        kanbanViewId: param.kanbanViewId,
+        kanban: {
+          ...kanbanView,
+          meta: {
+            ...(parseProp(kanbanView.meta) ?? {}),
+            [column.id]: metaOptions.sort((opt) => opt.order),
+          },
+        },
+        req: param.req,
+      },
+      ncMeta,
+    );
   }
 }

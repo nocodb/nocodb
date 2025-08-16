@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ViewTypes } from 'nocodb-sdk';
+import { parseProp, ViewTypes } from 'nocodb-sdk';
 import { GridsService } from '../grids.service';
 import { CalendarsService } from '../calendars.service';
 import { KanbansService } from '../kanbans.service';
@@ -153,6 +153,7 @@ export class ViewsV3Service {
         return formattedData;
       },
     });
+
     this.viewOptionsBuilder = builderGenerator({
       allowed: [
         'heading',
@@ -161,6 +162,7 @@ export class ViewsV3Service {
         'redirect_url',
         'redirect_after_secs',
         'email',
+        'meta',
         'submit_another_form',
         'show_blank_form',
         'hide_banner',
@@ -206,16 +208,26 @@ export class ViewsV3Service {
           );
           formattedData.calendar_range = undefined;
         }
+        if (formattedData.kanban_stack_by_field_id) {
+          formattedData.stackBy = {
+            fieldId: formattedData.kanban_stack_by_field_id,
+            stackOrder: (
+              parseProp(formattedData.meta ?? {})?.[
+                formattedData.kanban_stack_by_field_id
+              ] ?? []
+            )
+              .filter((k) => k.id !== 'uncategorized')
+              .map((k) => k.title),
+          };
+          formattedData.kanban_stack_by_field_id = undefined;
+        }
 
         // if description empty then set it to undefined
         if (!formattedData.description) {
           formattedData.description = undefined;
         }
 
-        // if meta empty then set it to undefined
-        if (!formattedData.meta || !Object.keys(formattedData.meta).length) {
-          formattedData.meta = undefined;
-        }
+        formattedData.meta = undefined;
 
         if (formattedData.redirect_url) {
           formattedData.redirectOnSubmit = {
@@ -223,7 +235,6 @@ export class ViewsV3Service {
           };
           formattedData.redirect_url = undefined;
         }
-
         return formattedData;
       },
     });
@@ -309,7 +320,6 @@ export class ViewsV3Service {
             : {}),
         };
 
-        options.stackBy = undefined;
         return result;
       },
     }) as any;
@@ -393,6 +403,12 @@ export class ViewsV3Service {
         break;
       case ViewTypes.KANBAN:
         {
+          if (formattedView.options?.stackBy) {
+            formattedView.options?.stackBy.meta[
+              formattedView.options?.stackBy.fieldId
+            ];
+            delete formattedView.options?.stackBy.meta;
+          }
         }
         break;
       case ViewTypes.FORM:
@@ -520,6 +536,18 @@ export class ViewsV3Service {
             },
             trxNcMeta,
           );
+          await this.kanbansService.kanbanOptionsReorder(
+            context,
+            {
+              kanbanViewId: insertedV2View.id,
+              optionsOrder: requestBody.options.stackBy.stackOrder ?? [],
+              req,
+            },
+            trxNcMeta,
+          );
+
+          requestBody.options.stackBy = undefined;
+
           break;
         }
         case ViewTypes.GALLERY: {

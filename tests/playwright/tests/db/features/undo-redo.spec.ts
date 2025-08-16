@@ -107,6 +107,9 @@ test.describe('Undo Redo', () => {
 
     // reload page after api calls
     await page.reload();
+
+    // wait for auto navigate to project completion
+    await dashboard.rootPage.waitForTimeout(2000);
   });
 
   test.afterEach(async () => {
@@ -130,7 +133,7 @@ test.describe('Undo Redo', () => {
   }
 
   test('Row: Create, Update, Delete', async ({ page }) => {
-    await dashboard.treeView.openTable({ title: 'numberBased' });
+    await dashboard.treeView.openTable({ title: 'numberBased', baseTitle: context.base.title });
 
     // Row.Create
     await grid.addNewRow({ index: 10, value: '333', columnHeader: 'Number' });
@@ -177,7 +180,7 @@ test.describe('Undo Redo', () => {
       expect(fieldTitles).toEqual(fields);
     }
 
-    await dashboard.treeView.openTable({ title: 'numberBased' });
+    await dashboard.treeView.openTable({ title: 'numberBased', baseTitle: context.base.title });
 
     // hack: wait for grid to load
     // https://github.com/nocodb/nocodb/actions/runs/5025773509/jobs/9013176970
@@ -227,7 +230,7 @@ test.describe('Undo Redo', () => {
   });
 
   test('Fields: Sort', async ({ page }) => {
-    await dashboard.treeView.openTable({ title: 'numberBased' });
+    await dashboard.treeView.openTable({ title: 'numberBased', baseTitle: context.base.title });
 
     async function verifyRecords({ sorted }: { sorted: boolean }) {
       // inserted values
@@ -256,7 +259,7 @@ test.describe('Undo Redo', () => {
   });
 
   test('Fields: Filter', async ({ page }) => {
-    await dashboard.treeView.openTable({ title: 'numberBased' });
+    await dashboard.treeView.openTable({ title: 'numberBased', baseTitle: context.base.title });
 
     async function verifyRecords({ filtered }: { filtered: boolean }) {
       // inserted values
@@ -301,7 +304,7 @@ test.describe('Undo Redo', () => {
       );
     }
 
-    await dashboard.treeView.openTable({ title: 'numberBased' });
+    await dashboard.treeView.openTable({ title: 'numberBased', baseTitle: context.base.title });
 
     const timeOut = 200;
 
@@ -328,7 +331,7 @@ test.describe('Undo Redo', () => {
   });
 
   test('Column width', async ({ page }) => {
-    await dashboard.treeView.openTable({ title: 'numberBased' });
+    await dashboard.treeView.openTable({ title: 'numberBased', baseTitle: context.base.title });
 
     const originalWidth = await dashboard.grid.column.getWidth({ title: 'Number' });
 
@@ -422,7 +425,7 @@ test.describe('Undo Redo - Table & view rename operations', () => {
   });
 
   test('Table & View rename', async ({ page }) => {
-    await dashboard.treeView.openTable({ title: 'selectBased' });
+    await dashboard.treeView.openTable({ title: 'selectBased', baseTitle: context.base.title });
 
     // table rename
     await dashboard.treeView.renameTable({ title: 'selectBased', newTitle: 'newNameForTest' });
@@ -610,7 +613,7 @@ test.describe('Undo Redo - LTAR', () => {
   }
 
   test('Row: Link, Unlink', async ({ page }) => {
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await grid.cell.inCellAdd({ index: 0, columnHeader: 'CityList' });
     await dashboard.linkRecord.select('Mumbai');
@@ -632,7 +635,7 @@ test.describe('Undo Redo - LTAR', () => {
     // will work even for ext DB
     if (!isSqlite(context)) test.skip();
 
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await grid.cell.inCellAdd({ index: 0, columnHeader: 'CityList' });
     await dashboard.linkRecord.select('Mumbai');
@@ -713,7 +716,7 @@ test.describe('Undo Redo - Select based', () => {
   });
 
   test.skip('Kanban', async ({ page }) => {
-    await dashboard.treeView.openTable({ title: 'selectSample' });
+    await dashboard.treeView.openTable({ title: 'selectSample', baseTitle: context.base.title });
 
     await dashboard.viewSidebar.createKanbanView({
       title: 'Kanban',

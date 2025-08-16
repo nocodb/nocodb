@@ -20,7 +20,7 @@ test.describe('Verify cell selection', () => {
 
   test('Suite-1', async () => {
     // #1 when range is selected, it has correct number of selected cells
-    await dashboard.treeView.openTable({ title: 'Customer' });
+    await dashboard.treeView.openTable({ title: 'Customer', baseTitle: context.base.title });
     await grid.selectRange({
       start: { index: 0, columnHeader: 'FirstName' },
       end: { index: 2, columnHeader: 'Email' },
@@ -43,7 +43,7 @@ test.describe('Verify cell selection', () => {
       }
     };
 
-    await dashboard.treeView.openTable({ title: 'Customer' });
+    await dashboard.treeView.openTable({ title: 'Customer', baseTitle: context.base.title });
     await grid.selectRange({
       start: { index: 0, columnHeader: 'FirstName' },
       end: { index: 1, columnHeader: 'LastName' },
@@ -56,7 +56,7 @@ test.describe('Verify cell selection', () => {
     await dashboard.closeAllTabs();
 
     // #3 when copied with mouse, it copies correct text and paste
-    await dashboard.treeView.openTable({ title: 'Customer' });
+    await dashboard.treeView.openTable({ title: 'Customer', baseTitle: context.base.title });
     await grid.selectRange({
       start: { index: 0, columnHeader: 'FirstName' },
       end: { index: 1, columnHeader: 'LastName' },
@@ -72,7 +72,7 @@ test.describe('Verify cell selection', () => {
 
   test('Suite-2', async ({ page }) => {
     // #4 when cell inside selection range is clicked, it clears previous selection
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     await grid.selectRange({
       start: { index: 0, columnHeader: 'Country' },
       end: { index: 2, columnHeader: 'Cities' },
@@ -84,7 +84,7 @@ test.describe('Verify cell selection', () => {
     await dashboard.closeAllTabs();
 
     // #5 when cell outside selection range is clicked, it clears previous selection
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     await grid.selectRange({
       start: { index: 0, columnHeader: 'Country' },
       end: { index: 2, columnHeader: 'Cities' },
@@ -96,7 +96,7 @@ test.describe('Verify cell selection', () => {
     await dashboard.closeAllTabs();
 
     // #6 when selection ends on locked field, it still works as expected
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     await dashboard.grid.toolbar.fields.toggleShowSystemFields();
     await grid.selectRange({
       start: { index: 2, columnHeader: 'Cities' },
@@ -110,7 +110,7 @@ test.describe('Verify cell selection', () => {
     await dashboard.closeAllTabs();
 
     // #7 when navigated with keyboard, only active cell is affected
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     await grid.selectRange({
       start: { index: 0, columnHeader: 'Country' },
       end: { index: 2, columnHeader: 'Cities' },

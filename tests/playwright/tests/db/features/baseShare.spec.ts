@@ -23,7 +23,7 @@ test.describe('Shared base', () => {
     //   mode: 'shareBase',
     // });
 
-    await dashboard.treeView.openTable({ title: 'Country', mode: 'shareBase' });
+    await dashboard.treeView.openTable({ title: 'Country', mode: 'shareBase', baseTitle: context.base.title });
 
     await dashboard.viewSidebar.validateRoleAccess({
       role: role.toLowerCase(),

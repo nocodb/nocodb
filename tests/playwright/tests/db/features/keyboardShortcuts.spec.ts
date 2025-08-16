@@ -51,7 +51,7 @@ test.describe('Verify shortcuts', () => {
   });
 
   test.skip('Verify shortcuts', async ({ page }) => {
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     // create new table
     await page.keyboard.press('Alt+t');
     await dashboard.treeView.createTable({
@@ -101,7 +101,7 @@ test.describe('Verify shortcuts', () => {
     // expect(url).toContain('signup');
 
     // Cmd + Right arrow
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     await page.waitForTimeout(1500);
     await grid.cell.click({ index: 0, columnHeader: 'Country' });
     await page.waitForTimeout(1500);
@@ -230,7 +230,7 @@ test.describe('Clipboard support', () => {
 
     // reload page
     await dashboard.rootPage.reload();
-    await dashboard.treeView.openTable({ title: 'Sheet1' });
+    await dashboard.treeView.openTable({ title: 'Sheet1', baseTitle: context.base.title });
 
     // ########################################
 

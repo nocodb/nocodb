@@ -504,6 +504,9 @@ const setup = async ({
     waitUntil: 'networkidle',
   });
 
+  // Wait for the sidebar slide transition to complete to avoid flaky tests
+  await page.waitForTimeout(500);
+
   console.timeEnd('Setup');
 
   return {

@@ -27,6 +27,10 @@ test.describe('Meta sync', () => {
         dbExec = query => pgExec(query, context);
         break;
     }
+
+    await dashboard.leftSidebar.verifyBaseListOpen(false);
+
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: context.base.title, open: true });
   });
 
   test.afterEach(async () => {
@@ -35,6 +39,8 @@ test.describe('Meta sync', () => {
 
   test('Meta sync', async () => {
     test.setTimeout(process.env.CI ? 100000 : 70000);
+
+    await dashboard.baseView.openOverview();
 
     await dashboard.baseView.tab_dataSources.click();
     await dashboard.baseView.dataSources.openMetaSync({ rowIndex: 0 });
@@ -251,6 +257,8 @@ test.describe('Meta sync', () => {
       `INSERT INTO table1 (id, col1, col2, col3, col4) VALUES (1,1,1,1,1), (2,2,2,2,2), (3,3,3,3,3), (4,4,4,4,4), (5,5,5,5,5), (6,6,6,6,6), (7,7,7,7,7), (8,8,8,8,8), (9,9,9,9,9);`
     );
 
+    await dashboard.baseView.openOverview();
+
     await dashboard.baseView.tab_dataSources.click();
     await dashboard.baseView.dataSources.openMetaSync({ rowIndex: 0 });
 
@@ -262,7 +270,7 @@ test.describe('Meta sync', () => {
     await metaData.sync();
     await metaData.close();
 
-    await dashboard.treeView.openTable({ title: 'Table1' });
+    await dashboard.treeView.openTable({ title: 'Table1', baseTitle: context.base.title });
 
     await dashboard.grid.toolbar.clickFields();
     await dashboard.grid.toolbar.fields.click({ title: 'Col2' });

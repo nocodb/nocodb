@@ -3,7 +3,7 @@ import { useTitle } from '@vueuse/core'
 
 const { isUIAllowed } = useRoles()
 
-const { hideSidebar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+const { hideSidebar } = storeToRefs(useSidebarStore())
 
 const workspaceStore = useWorkspace()
 
@@ -33,9 +33,7 @@ watch(
 )
 
 onMounted(() => {
-  if (isNewSidebarEnabled.value) {
-    hideSidebar.value = true
-  }
+  hideSidebar.value = true
 
   isFromIntegrationPage.value = true
 
@@ -56,8 +54,6 @@ onBeforeMount(() => {
 <template>
   <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-integrations">
     <div class="flex gap-2 items-center min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium">
-      <GeneralOpenLeftSidebarBtn v-if="!isNewSidebarEnabled" />
-
       <div class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1">
         <div class="nc-breadcrumb-item capitalize">
           {{ currentWorkspace?.title }}
@@ -67,8 +63,6 @@ onBeforeMount(() => {
           {{ $t('general.integrations') }}
         </h1>
       </div>
-
-      <SmartsheetTopbarCmdK v-if="!isNewSidebarEnabled" />
     </div>
     <NcTabs v-model:active-key="activeViewTab">
       <template #leftExtra>

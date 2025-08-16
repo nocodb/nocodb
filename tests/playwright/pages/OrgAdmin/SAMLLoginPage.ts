@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 import BasePage from '../Base';
 import { ProjectsPage } from '../ProjectsPage';
 import { CloudSSOLoginPage } from './SSOLoginPage';
@@ -18,7 +18,7 @@ export class CloudSAMLLoginPage extends BasePage {
     // logout if already logged in
 
     await this.ssoLoginPage.goto(email);
-    await this.ssoLoginPage.signIn({ email });
+    await this.ssoLoginPage.signIn({ email, waitForUserInfoMenu: false });
     // // reload page to get latest app info
     // await this.rootPage.reload({ waitUntil: 'networkidle' });
     // // click sign in with SAML
@@ -31,15 +31,19 @@ export class CloudSAMLLoginPage extends BasePage {
 
   async signIn({ email }: { email: string }) {
     const signIn = this.get();
-    await signIn.locator('#userName').waitFor();
+    await signIn.locator('#userName').waitFor({ state: 'visible' });
 
     await signIn.locator(`#userName`).fill(email);
     await signIn.locator(`#email`).fill(email);
+
     await Promise.all([
-      this.rootPage.waitForNavigation({ url: /localhost:3000/ }),
+      this.rootPage.waitForNavigation({ url: /localhost:3000/, waitUntil: 'networkidle' }),
       signIn.locator(`#btn-sign-in`).click(),
     ]);
 
-    await this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]:has-text("${email.split('@')[0]}")`).waitFor();
+    const userInfoMenu = this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]`);
+    await userInfoMenu.waitFor();
+
+    await expect(userInfoMenu).toHaveAttribute('data-email', email);
   }
 }

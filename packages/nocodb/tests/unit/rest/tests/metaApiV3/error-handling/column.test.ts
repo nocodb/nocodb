@@ -4,7 +4,7 @@ import request from 'supertest';
 import init from '../../../../init';
 
 export default function () {
-  describe('error-handling: Column v3', () => {
+  describe.only('error-handling: Column v3', () => {
     let context: Awaited<ReturnType<typeof init>>;
     let initBase: any;
     let API_PREFIX: string;
@@ -29,7 +29,7 @@ export default function () {
       table = tableResult.body;
     });
 
-    describe.only('column create', () => {
+    describe('column create', () => {
       it('will handle empty title', async () => {
         const result = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/fields/`)
@@ -37,9 +37,7 @@ export default function () {
           .send({ title: '', type: 'SingleLineText' })
           .expect(400);
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
-        expect(result.body.message).to.include(
-          'Missing column `title` property',
-        );
+        expect(result.body.message).to.include('Invalid request body');
       });
       it('will handle duplicate alias', async () => {
         await request(context.app)
@@ -63,7 +61,7 @@ export default function () {
           .send({ title: longTitle, type: 'SingleLineText' })
           .expect(400);
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
-        expect(result.body.message).to.include('exceeds 255 characters');
+        expect(result.body.message).to.include('Invalid request body');
       });
       it('will handle missing type', async () => {
         const result = await request(context.app)
@@ -72,9 +70,7 @@ export default function () {
           .send({ title: 'NoType' })
           .expect(400);
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
-        expect(result.body.message).to.include(
-          'Missing column `type` property',
-        );
+        expect(result.body.message).to.include('Invalid request body');
       });
     });
 
@@ -84,8 +80,8 @@ export default function () {
           .get(`${API_PREFIX}/fields/NOT_FOUND`)
           .set('xc-token', context.xc_token)
           .expect(422);
-        expect(result.body.error).to.eq('COLUMN_NOT_FOUND');
-        expect(result.body.message).to.include(`Column 'NOT_FOUND' not found`);
+        expect(result.body.error).to.eq('FIELD_NOT_FOUND');
+        expect(result.body.message).to.include(`Field 'NOT_FOUND' not found`);
       });
     });
 

@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
 import { ClientType } from 'nocodb-sdk';
-// using formula init for now
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';

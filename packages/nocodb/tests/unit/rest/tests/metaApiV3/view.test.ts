@@ -313,7 +313,7 @@ export default function () {
         expect(response.body.type).to.eq('FORM');
       });
 
-      it(`will create form view with fieldsById`, async () => {
+      it(`will create + update form view with fieldsById`, async () => {
         const singleSelectColumn = (await table.getColumns(ctx)).find(
           (col) => col.title === 'SingleSelect',
         );
@@ -363,6 +363,23 @@ export default function () {
         expect(
           response.body.options.fieldByIds[titleColumn.id].validators.length,
         ).to.greaterThan(0);
+
+        const updateResponse = await request(context.app)
+          .patch(`${API_PREFIX}/views/${response.body.id}`)
+          .set('xc-token', context.xc_token)
+          .send({
+            options: {
+              fieldsById: {
+                [singleSelectColumn.id]: {
+                  alias: 'select32',
+                },
+              },
+            },
+          });
+
+        expect(
+          updateResponse.body.options.fieldByIds[singleSelectColumn.id].alias,
+        ).to.eq('select32');
       });
     });
   });

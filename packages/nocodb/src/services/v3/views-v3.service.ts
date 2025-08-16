@@ -940,6 +940,14 @@ export class ViewsV3Service {
       ...requestBody,
       ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
     };
+    const updateViewColumns: Record<string, any> = {};
+    // fieldsById for update
+    for (const [colId, col] of Object.entries(body.options?.fieldsById ?? {})) {
+      updateViewColumns[colId] = {
+        ...updateViewColumns[colId],
+        ...this.v3Tov2ViewBuilders.formFieldByIds().build(col),
+      };
+    }
 
     const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
     try {
@@ -1061,6 +1069,19 @@ export class ViewsV3Service {
           );
           break;
         }
+      }
+
+      if (updateViewColumns && Object.keys(updateViewColumns).length > 0) {
+        await this.saveUpdatedViewColumns(
+          context,
+          {
+            updateViewColumns,
+            req: param.req,
+            viewId: existingView.id,
+            viewType: existingView.type,
+          },
+          trxNcMeta,
+        );
       }
 
       // if sort is empty array, we clear sort

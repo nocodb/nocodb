@@ -72,10 +72,9 @@ const accountUrl = computed(() => {
           <GeneralUserIcon :user="user" size="medium" class="!w-full !h-full !min-w-full cursor-pointer" />
         </div>
         <template #overlay>
-          <NcMenu data-testid="nc-sidebar-userinfo" variant="small">
+          <NcMenu variant="small">
             <div
               class="flex flex-col justify-center py-1 px-3 gap-x-2 text-gray-700 rounded-lg min-h-8 text-small leading-[18px]"
-              data-testid="nc-sidebar-userinfo"
             >
               <div v-if="name?.trim()" class="capitalize text-nc-content-gray font-bold">
                 {{ name }}

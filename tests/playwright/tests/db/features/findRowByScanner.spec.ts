@@ -17,7 +17,7 @@ test.describe.skip('Find row by scanner', () => {
 
   test.describe('clicking on the toolbars scanner button', async () => {
     test.beforeEach(async () => {
-      await dashboard.treeView.openTable({ title: 'Country' });
+      await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
       await toolbar.clickFindRowByScanButton();
     });
     test('opens the scanner overlay', async () => {

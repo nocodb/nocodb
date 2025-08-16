@@ -114,12 +114,12 @@ async function verifyFilter(param: {
 test.describe('Filter Tests: Numerical', () => {
   if (enableQuickRun()) test.skip();
   async function numBasedFilterTest(dataType, eqString, isLikeString) {
-    await dashboard.treeView.openTable({ title: 'numberBased' });
+    await dashboard.treeView.openTable({ title: 'numberBased', baseTitle: context.base.title });
 
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
-    await dashboard.treeView.openTable({ title: 'numberBased' });
+    await dashboard.treeView.openTable({ title: 'numberBased', baseTitle: context.base.title });
 
     let eqStringDerived = eqString;
     let isLikeStringDerived = isLikeString;
@@ -303,12 +303,12 @@ test.describe('Filter Tests: Numerical', () => {
 test.describe('Filter Tests: Text based', () => {
   if (enableQuickRun()) test.skip();
   async function textBasedFilterTest(dataType, eqString, isLikeString) {
-    await dashboard.treeView.openTable({ title: 'textBased' });
+    await dashboard.treeView.openTable({ title: 'textBased', baseTitle: context.base.title });
 
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
-    await dashboard.treeView.openTable({ title: 'textBased' });
+    await dashboard.treeView.openTable({ title: 'textBased', baseTitle: context.base.title });
 
     const filterList = [
       {
@@ -423,12 +423,12 @@ test.describe('Filter Tests: Text based', () => {
 test.describe('Filter Tests: Select based', () => {
   if (enableQuickRun()) test.skip();
   async function selectBasedFilterTest(dataType, is, anyof, allof) {
-    await dashboard.treeView.openTable({ title: 'selectBased' });
+    await dashboard.treeView.openTable({ title: 'selectBased', baseTitle: context.base.title });
 
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
-    await dashboard.treeView.openTable({ title: 'selectBased' });
+    await dashboard.treeView.openTable({ title: 'selectBased', baseTitle: context.base.title });
 
     const filterList = [
       {
@@ -555,12 +555,12 @@ test.describe('Filter Tests: Date based', () => {
   const oneYearFromNow = getUTCEpochTime(new Date(new Date().setFullYear(new Date().getFullYear() + 1)));
 
   async function dateTimeBasedFilterTest(dataType, setCount) {
-    await dashboard.treeView.openTable({ title: 'dateTimeBased' });
+    await dashboard.treeView.openTable({ title: 'dateTimeBased', baseTitle: context.base.title });
 
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
-    await dashboard.treeView.openTable({ title: 'dateTimeBased' });
+    await dashboard.treeView.openTable({ title: 'dateTimeBased', baseTitle: context.base.title });
 
     // records array with time set to 00:00:00; store time in unix epoch
     const recordsTimeSetToZero = records.list.map(r => {
@@ -859,12 +859,12 @@ test.describe('Filter Tests: Date based', () => {
 test.describe('Filter Tests: AddOn', () => {
   if (enableQuickRun()) test.skip();
   async function addOnFilterTest(dataType) {
-    await dashboard.treeView.openTable({ title: 'addOnTypes', networkResponse: false });
+    await dashboard.treeView.openTable({ title: 'addOnTypes', networkResponse: false, baseTitle: context.base.title });
 
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
-    await dashboard.treeView.openTable({ title: 'addOnTypes', networkResponse: false });
+    await dashboard.treeView.openTable({ title: 'addOnTypes', networkResponse: false, baseTitle: context.base.title });
 
     const filterList = [
       {
@@ -965,11 +965,11 @@ test.describe('Filter Tests: AddOn', () => {
 test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
   if (enableQuickRun()) test.skip();
   async function linkToAnotherRecordFilterTest() {
-    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false, baseTitle: context.base.title });
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
-    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false, baseTitle: context.base.title });
 
     // add filter for CityList column
     const filterList = [
@@ -995,7 +995,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
   }
 
   async function lookupFilterTest() {
-    await dashboard.treeView.openTable({ title: 'City', networkResponse: false });
+    await dashboard.treeView.openTable({ title: 'City', networkResponse: false, baseTitle: context.base.title });
     // Create LookUp column
     await dashboard.grid.column.create({
       title: 'Lookup',
@@ -1007,7 +1007,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
-    await dashboard.treeView.openTable({ title: 'City', networkResponse: false });
+    await dashboard.treeView.openTable({ title: 'City', networkResponse: false, baseTitle: context.base.title });
 
     // add filter for CityList column
     const filterList = [
@@ -1033,7 +1033,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
   }
 
   async function rollupFilterTest() {
-    await dashboard.treeView.openTable({ title: 'City', networkResponse: false });
+    await dashboard.treeView.openTable({ title: 'City', networkResponse: false, baseTitle: context.base.title });
     // Create LookUp column
     await dashboard.grid.column.create({
       title: 'Rollup',
@@ -1046,7 +1046,7 @@ test.describe('Filter Tests: Link to another record, Lookup, Rollup', () => {
     // Enable NULL & EMPTY filters
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
-    await dashboard.treeView.openTable({ title: 'City', networkResponse: false });
+    await dashboard.treeView.openTable({ title: 'City', networkResponse: false, baseTitle: context.base.title });
 
     // add filter for CityList column
     const filterList = [
@@ -1137,7 +1137,7 @@ test.describe('Filter Tests: Toggle button', () => {
   });
 
   test('Filter: Toggle NULL & EMPTY button', async () => {
-    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false, baseTitle: context.base.title });
 
     // Verify filter options
     await verifyFilterOperatorList({
@@ -1148,7 +1148,7 @@ test.describe('Filter Tests: Toggle button', () => {
     // Enable NULL & EMPTY button
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
-    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false, baseTitle: context.base.title });
 
     // Verify filter options
     await verifyFilterOperatorList({
@@ -1180,7 +1180,7 @@ test.describe('Filter Tests: Toggle button', () => {
     // Disable NULL & EMPTY button
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
-    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false, baseTitle: context.base.title });
     // wait for toast message
     await dashboard.verifyToast({ message: 'Null / Empty filters exist. Please remove them first.' });
 
@@ -1190,7 +1190,7 @@ test.describe('Filter Tests: Toggle button', () => {
     // Disable NULL & EMPTY button
     await dashboard.gotoSettings();
     await dashboard.settings.toggleNullEmptyFilters();
-    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false, baseTitle: context.base.title });
   });
 });
 
@@ -1221,7 +1221,7 @@ test.describe('Filter Tests: Filter groups', () => {
   });
 
   test('Filter: Empty filters', async () => {
-    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false });
+    await dashboard.treeView.openTable({ title: 'Country', networkResponse: false, baseTitle: context.base.title });
 
     await toolbar.clickFilter({ networkValidation: false });
     await toolbar.filter.addFilterGroup({

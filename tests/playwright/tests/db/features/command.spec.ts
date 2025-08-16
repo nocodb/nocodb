@@ -69,11 +69,11 @@ test.describe('Command Shortcuts', () => {
 
     await dashboard.cmdL.isCmdLNotVisible();
 
-    await dashboard.treeView.openTable({ title: 'Actor' });
-    await dashboard.treeView.openTable({ title: 'Address' });
-    await dashboard.treeView.openTable({ title: 'Category' });
-    await dashboard.treeView.openTable({ title: 'City' });
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Actor', baseTitle: context.base.title });
+    await dashboard.treeView.openTable({ title: 'Address', baseTitle: context.base.title });
+    await dashboard.treeView.openTable({ title: 'Category', baseTitle: context.base.title });
+    await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await page.waitForTimeout(1000);
 

@@ -259,7 +259,7 @@ test.describe('Virtual Columns', () => {
     const formulaData = formulaDataByDbType(context, index);
     const dbType = context.base.sources[0].type;
 
-    await dashboard.treeView.openTable({ title: 'City' });
+    await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
     // Create dummy formula column which will then be updated for every testcase
     await dashboard.grid.column.create({
       title: 'NC_MATH_0',

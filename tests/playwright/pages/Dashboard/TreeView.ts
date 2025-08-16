@@ -236,7 +236,29 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
   }
 
-  async verifyTable({ title, index, exists = true }: { title: string; index?: number; exists?: boolean }) {
+  async verifyTable({
+    title,
+    index,
+    exists = true,
+    baseTitle,
+    sourceTitle,
+  }: {
+    title: string;
+    index?: number;
+    exists?: boolean;
+    baseTitle?: string;
+    sourceTitle?: string;
+  }) {
+    await this.dashboard.leftSidebar.verifyBaseListOpen(!!baseTitle);
+
+    if (baseTitle) {
+      await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
+    }
+
+    if (sourceTitle) {
+      await this.dashboard.treeView.openSource({ title: sourceTitle });
+    }
+
     if (exists) {
       await expect(this.get().getByTestId(`nc-tbl-title-${title}`)).toHaveCount(1);
 

@@ -67,7 +67,7 @@ test.describe('Table Operations', () => {
     await dashboard.treeView.verifyTable({ title: 'Address', index: 0 });
 
     // verify table icon customization
-    await dashboard.treeView.openTable({ title: 'Address' });
+    await dashboard.treeView.openTable({ title: 'Address', baseTitle: context.base.title });
     await dashboard.treeView.changeTableIcon({ title: 'Address', icon: 'american-football', iconDisplay: '🏈' });
     await dashboard.treeView.verifyTabIcon({ title: 'Address', icon: 'american-football', iconDisplay: '🏈' });
   });

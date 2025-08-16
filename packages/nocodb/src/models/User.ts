@@ -44,8 +44,6 @@ export default class User implements UserType {
   blocked?: boolean;
   blocked_reason?: string;
 
-  is_new_user?: boolean;
-
   deleted_at?: Date;
   is_deleted?: boolean;
   meta?: MetaType;
@@ -72,7 +70,6 @@ export default class User implements UserType {
       'email_verified',
       'roles',
       'token_version',
-      'is_new_user',
       'meta',
     ]);
 
@@ -122,7 +119,6 @@ export default class User implements UserType {
       'token_version',
       'display_name',
       'avatar',
-      'is_new_user',
       'meta',
     ]);
 
@@ -302,7 +298,6 @@ export default class User implements UserType {
         `${MetaTable.USERS}.updated_at`,
         `${MetaTable.USERS}.roles`,
         `${MetaTable.USERS}.display_name`,
-        `${MetaTable.USERS}.is_new_user`,
         `${MetaTable.USERS}.meta`,
       )
       .select(

@@ -588,6 +588,7 @@ export interface FieldBase {
 
 export type FieldBaseCreate = FieldBase;
 
+/** LongText */
 export interface FieldOptionsLongText {
   /** Enable rich text formatting. */
   rich_text?: boolean;
@@ -595,26 +596,31 @@ export interface FieldOptionsLongText {
   generate_text_using_ai?: boolean;
 }
 
+/** PhoneNumber */
 export interface FieldOptionsPhoneNumber {
   /** Enable validation for phone numbers. */
   validation?: boolean;
 }
 
+/** URL */
 export interface FieldOptionsURL {
   /** Enable validation for URL. */
   validation?: boolean;
 }
 
+/** Email */
 export interface FieldOptionsEmail {
   /** Enable validation for Email. */
   validation?: boolean;
 }
 
+/** Number */
 export interface FieldOptionsNumber {
   /** Show thousand separator on the UI. */
   locale_string?: boolean;
 }
 
+/** Decimal */
 export interface FieldOptionsDecimal {
   /**
    * Decimal field precision. Defaults to 0
@@ -624,7 +630,10 @@ export interface FieldOptionsDecimal {
   precision?: number;
 }
 
-/** Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD` */
+/**
+ * Currency
+ * Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD`
+ */
 export interface FieldOptionsCurrency {
   /** Locale for currency formatting. Refer https://simplelocalize.io/data/locales/ */
   locale?: string;
@@ -815,11 +824,13 @@ export interface FieldOptionsCurrency {
     | 'ZWD';
 }
 
+/** Percent */
 export interface FieldOptionsPercent {
   /** Display as a progress bar. */
   show_as_progress?: boolean;
 }
 
+/** Duration */
 export interface FieldOptionsDuration {
   /**
    * Duration format. Supported options are listed below
@@ -832,6 +843,7 @@ export interface FieldOptionsDuration {
   duration_format?: string;
 }
 
+/** DateTime */
 export interface FieldOptionsDateTime {
   /**
    * Date format. Supported options are listed below
@@ -865,6 +877,7 @@ export interface FieldOptionsDateTime {
   use_same_timezone_for_all?: boolean;
 }
 
+/** Date */
 export interface FieldOptionsDate {
   /**
    * Date format. Supported options are listed below
@@ -883,11 +896,13 @@ export interface FieldOptionsDate {
   date_format?: string;
 }
 
+/** Time */
 export interface FieldOptionsTime {
   /** Use 12-hour time format. */
   '12hr_format'?: boolean;
 }
 
+/** Single & MultiSelect */
 export interface FieldOptionsSelect {
   /** @uniqueItems true */
   choices?: {
@@ -901,6 +916,7 @@ export interface FieldOptionsSelect {
   }[];
 }
 
+/** Rating */
 export interface FieldOptionsRating {
   /**
    * Icon to display rating on the UI. Supported options are listed below
@@ -924,6 +940,7 @@ export interface FieldOptionsRating {
   color?: string;
 }
 
+/** Checkbox */
 export interface FieldOptionsCheckbox {
   /**
    * Icon to display checkbox on the UI. Supported options are listed below
@@ -950,6 +967,7 @@ export interface FieldOptionsCheckbox {
   color?: string;
 }
 
+/** Barcode */
 export interface FieldOptionsBarcode {
   /** Barcode format (e.g., CODE128). */
   format?: string;
@@ -957,21 +975,25 @@ export interface FieldOptionsBarcode {
   barcode_value_field_id?: string;
 }
 
+/** QrCode */
 export interface FieldOptionsQrCode {
   /** Field ID that contains the value. */
   qrcode_value_field_id?: string;
 }
 
+/** Formula */
 export interface FieldOptionsFormula {
   /** Formula expression. */
   formula?: string;
 }
 
+/** User */
 export interface FieldOptionsUser {
   /** Allow selecting multiple users. */
   allow_multiple_users?: boolean;
 }
 
+/** Lookup */
 export interface FieldOptionsLookup {
   /** Linked field ID. Can be of type Links or LinkToAnotherRecord */
   related_field_id: string;
@@ -979,6 +1001,7 @@ export interface FieldOptionsLookup {
   related_table_lookup_field_id: string;
 }
 
+/** Rollup */
 export interface FieldOptionsRollup {
   /** Linked field ID. */
   related_field_id: string;
@@ -996,6 +1019,7 @@ export interface FieldOptionsRollup {
     | 'avgDistinct';
 }
 
+/** Button */
 export type FieldOptionsButton = BaseFieldOptionsButton &
   (
     | BaseFieldOptionsButtonTypeMapping<'formula', any>
@@ -1003,6 +1027,7 @@ export type FieldOptionsButton = BaseFieldOptionsButton &
     | BaseFieldOptionsButtonTypeMapping<'ai', any>
   );
 
+/** Links */
 export interface FieldOptionsLinks {
   /**
    * Type of relationship.
@@ -1017,6 +1042,7 @@ export interface FieldOptionsLinks {
   related_table_id: string;
 }
 
+/** LinkToAnotherRecord */
 export interface FieldOptionsLinkToAnotherRecord {
   /**
    * Type of relationship.
@@ -1143,7 +1169,11 @@ export type FieldUpdate = FieldBase &
         options?: FieldOptionsSelect;
       }
     | {
-        type?: 'Rating' | 'Checkbox';
+        type?: 'Checkbox';
+        options?: FieldOptionsCheckbox;
+      }
+    | {
+        type?: 'Rating';
         options?: FieldOptionsRating;
       }
     | {
@@ -1440,6 +1470,7 @@ export type WorkspaceUserDelete = {
   user_id: string;
 }[];
 
+/** Button */
 type BaseFieldOptionsButton = object;
 
 type BaseFieldOptionsButtonTypeMapping<Key, Type> = {

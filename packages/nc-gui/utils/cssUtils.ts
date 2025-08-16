@@ -1,4 +1,4 @@
-export const onboardingFlowColoursMapping = {
+export const onboardingFlowColoursMapping: Record<string, { lightBg: string; content: string }> = {
   brand: {
     lightBg: 'bg-nc-bg-brand',
     content: 'text-nc-content-brand',

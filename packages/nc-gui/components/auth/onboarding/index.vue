@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
 
-const { showOnboardingFlow, onInitOnboardingFlow, onCompleteOnboardingFlow, visibleQuestions, stepper } = useOnboardingFlow()
+const { showOnboardingFlow, onInitOnboardingFlow, visibleQuestion, stepper } = useOnboardingFlow()
 
 const autoScrollQuestionRefs = ref<HTMLDivElement>()
 
@@ -13,12 +13,10 @@ const onSelectRef: VNodeRef = (el) => {
 
 let timer: any
 watch(
-  [() => visibleQuestions.value.length, () => stepper.index.value],
-  ([newValue, newStepperIndex], [oldValue, oldStepperIndex], cleanup) => {
-    if (newValue !== 2 || oldValue !== 1 || newStepperIndex !== oldStepperIndex) return
-
+  () => visibleQuestion.value.id,
+  (_newValue, _oldValue, cleanup) => {
     timer = setTimeout(() => {
-      autoScrollQuestionRefs.value?.scrollIntoView({ behavior: 'smooth' })
+      autoScrollQuestionRefs.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 300)
 
     cleanup(() => {
@@ -31,23 +29,21 @@ onMounted(() => {
   onInitOnboardingFlow()
 })
 
-useEventListener('beforeunload', (event) => {
-  if (!showOnboardingFlow.value) return
+// useEventListener('beforeunload', (event) => {
+//   if (!showOnboardingFlow.value) return
 
-  // Recommended
-  event.preventDefault()
+//   // Recommended
+//   event.preventDefault()
 
-  // Included for legacy support, e.g. Chrome/Edge < 119
-  event.returnValue = ''
-})
+//   // Included for legacy support, e.g. Chrome/Edge < 119
+//   event.returnValue = ''
+// })
 </script>
 
 <template>
   <AuthOnboardingLayout>
     <template #content>
-      <template v-for="(question, index) of visibleQuestions" :key="question.id">
-        <AuthOnboardingQuestion :question="question" :question-index="index" :ref="onSelectRef" />
-      </template>
+      <AuthOnboardingQuestion :question="visibleQuestion" :question-index="stepper.index.value" :ref="onSelectRef" />
     </template>
   </AuthOnboardingLayout>
 </template>

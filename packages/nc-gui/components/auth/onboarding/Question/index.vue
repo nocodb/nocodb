@@ -22,6 +22,10 @@ const anyOptionHasIcon = computed(() => {
   return options.value.some((option) => option.iconType || (!option.iconType && option.icon))
 })
 
+const anyOptionHasBgColor = computed(() => {
+  return options.value.some((option) => option.iconColor)
+})
+
 const isOptionSelected = (option: OnboardingOptionType) => {
   if (question.value.inputType === 'singleSelect') {
     return formState.value[question.value.id] === option.value
@@ -47,6 +51,7 @@ const isOptionSelected = (option: OnboardingOptionType) => {
           :class="{
             '!justify-center': !anyOptionHasIcon,
             'nc-selected': isOptionSelected(option),
+            'nc-has-icon-bg-color': anyOptionHasBgColor,
           }"
         />
       </template>

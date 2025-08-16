@@ -40,6 +40,12 @@ export interface OnboardingQuestionType {
     height: number
     fullWidth?: boolean
   }
+  config?: {
+    /**
+     * Default value is 2
+     */
+    optionsInEachRow?: number
+  }
 }
 
 export const useOnboardingFlow = createSharedComposable(() => {
@@ -58,7 +64,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
   /**
    * If true, the onboarding flow will be shown in home page - `/`
    */
-  const showOnboardingFlowLocalState = ref(false)
+  const showOnboardingFlowLocalState = ref(true)
 
   const showOnboardingFlow = computed(() => {
     return isEnabledOnboardingFlow.value && showOnboardingFlowLocalState.value && route.value.name === 'index'
@@ -82,11 +88,6 @@ export const useOnboardingFlow = createSharedComposable(() => {
             iconColor: 'orange',
           },
           {
-            value: 'Personal',
-            icon: 'ncUser',
-            iconColor: 'green',
-          },
-          {
             value: 'School',
             icon: 'ncGraduationCap',
             iconColor: 'purple',
@@ -95,6 +96,11 @@ export const useOnboardingFlow = createSharedComposable(() => {
             value: 'Non-Profit',
             icon: 'ncHeart',
             iconColor: 'pink',
+          },
+          {
+            value: 'Personal',
+            icon: 'ncUser',
+            iconColor: 'green',
           },
         ],
         rightSection: {
@@ -105,6 +111,9 @@ export const useOnboardingFlow = createSharedComposable(() => {
         iconSize: {
           width: 40,
           height: 40,
+        },
+        config: {
+          optionsInEachRow: 1,
         },
       },
       {
@@ -168,9 +177,9 @@ export const useOnboardingFlow = createSharedComposable(() => {
       },
       {
         id: 3,
-        question: 'How many people are in your team?',
+        question: 'How many people work at your company?',
         inputType: 'singleSelect',
-        options: ['Only me', '2-5', '6-10', '11-15', '16-25', '26-50', '51-100', '101+'].map((value) => ({ value })),
+        options: ['0-10', '11-50', '51-250', '251-1000', '1000+'].reverse().map((value) => ({ value })),
         rightSection: {
           themeColor: 'orange',
           moscot: 'moscotCollaboration',
@@ -179,15 +188,16 @@ export const useOnboardingFlow = createSharedComposable(() => {
       },
       {
         id: 4,
-        question: 'How many people work at your company?',
+        question: 'How many people are in your team?',
         inputType: 'singleSelect',
-        options: ['1-19', '20-49', '50-99', '100-250', '251-500', '500-1500', '1500+'].map((value) => ({ value })),
+        options: ['20+', '11-20', '1-10', 'Only me'].map((value) => ({ value })),
         rightSection: {
           themeColor: 'orange',
           moscot: 'moscotCollaboration',
           imageName: 'gallery',
         },
       },
+
       {
         id: 5,
         question: 'How experienced are you with app building?',
@@ -282,6 +292,8 @@ export const useOnboardingFlow = createSharedComposable(() => {
           fullWidth: true,
         },
       },
+      /*
+      // Commenting for now
       {
         id: 7,
         question: 'How do you want to build your database?',
@@ -323,6 +335,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
           height: 32,
         },
       },
+      */
     ]
   })
 
@@ -335,19 +348,20 @@ export const useOnboardingFlow = createSharedComposable(() => {
   })
 
   const steps = computed(() => {
-    return ncArrayFrom(Math.ceil(questions.value.length / 2)).map((_, index) => index + 1)
+    return questions.value.map((q) => q.id)
   })
 
   const stepper = useStepper(steps)
 
   const lastVisibleQuestionIndex = computed(() => {
-    const index = (stepper.index.value + 1) * 2 - 1
+    // const index = (stepper.index.value + 1) * 2 - 1
+    const index = stepper.index.value
 
     const question = questions.value[index]!
 
-    if (!question || ncIsUndefined(formState.value[question.id])) {
-      return index - 1
-    }
+    // if (!question || ncIsUndefined(formState.value[question.id])) {
+    //   return index - 1
+    // }
 
     return index
   })
@@ -371,6 +385,10 @@ export const useOnboardingFlow = createSharedComposable(() => {
     return currentVisibleQuestions
   })
 
+  const visibleQuestion = computed(() => {
+    return questions.value[stepper.index.value]!
+  })
+
   const isFilledQuestionAnswer = (question: OnboardingQuestionType) => {
     return (
       !ncIsUndefined(formState.value[question.id]) &&
@@ -381,11 +399,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
   }
 
   const isFilledVisibleOptions = computed(() => {
-    if (stepper.isLast.value) return true
-
-    return visibleQuestions.value.every((question) => {
-      return isFilledQuestionAnswer(question)
-    })
+    return isFilledQuestionAnswer(visibleQuestion.value)
   })
 
   const onInitOnboardingFlow = async () => {
@@ -423,45 +437,40 @@ export const useOnboardingFlow = createSharedComposable(() => {
       }
     }
 
-    const nextQuestionIndex = questions.value.findIndex((q) => q.id === question.id) + 1
+    const nextQuestionIndex = currentStepQuestionIndex + 1
 
     const nextQuestion = questions.value[nextQuestionIndex]
 
     if (!nextQuestion) {
-      if (stepper.isLast.value) {
-        onCompleteOnboardingFlow(false, () => {
-          if (option.value === 'Start from Scratch') {
-            showOnboardingFlowLocalState.value = false
-          }
-        })
-      }
-
       return
     }
 
-    if (currentStepQuestionIndex % 2 !== 0) {
-      /**
-       * Don't auto navigate to next question if:
-       * 1. It is the last question
-       * 2. User has not selected any option
-       * 3. Next question is already filled (maybe they have click back button)
-       */
-      if (stepper.isLast.value || !autoNavigateToNextQuestion || !nextQuestion || isFilledQuestionAnswer(nextQuestion)) return
+    /**
+     * Don't auto navigate to next question if:
+     * 1. It is the last question
+     * 2. User has not selected any option
+     * 3. Next question is already filled (maybe they have click back button)
+     */
+    if (stepper.isLast.value || !autoNavigateToNextQuestion || !nextQuestion || isFilledQuestionAnswer(nextQuestion)) return
 
-      if (question.inputType === 'singleSelect') {
-        ncDelay(500).then(() => {
-          stepper.goToNext()
-        })
-      } else if (question.inputType === 'multiSelect') {
+    if (ncIsUndefined(formState.value[nextQuestion.id]) || question.id === 1) {
+      formState.value[nextQuestion.id] = nextQuestion.inputType === 'singleSelect' ? '' : []
+    }
+
+    if (question.inputType === 'singleSelect') {
+      ncDelay(500).then(() => {
+        stepper.goToNext()
+      })
+    }
+    /*
+      else if (question.inputType === 'multiSelect') {
         if ((formState.value[question.id]?.length ?? 0) >= (question.minSelection ?? 1)) {
           ncDelay(500).then(() => {
             stepper.goToNext()
           })
         }
       }
-    } else if (ncIsUndefined(formState.value[nextQuestion.id]) || question.id === 1) {
-      formState.value[nextQuestion.id] = nextQuestion.inputType === 'singleSelect' ? '' : []
-    }
+      */
   }
 
   /**
@@ -497,14 +506,10 @@ export const useOnboardingFlow = createSharedComposable(() => {
     $e('a:auth:onboarding-flow', data)
   }
 
-  const onCompleteOnboardingFlow = async (skipped: boolean = false, callback?: () => void) => {
+  const onCompleteOnboardingFlow = async (skipped: boolean = false) => {
     postCompleteOnboardingFlow(skipped)
 
-    if (skipped) {
-      showOnboardingFlowLocalState.value = false
-    }
-
-    callback?.()
+    showOnboardingFlowLocalState.value = false
   }
 
   return {
@@ -518,6 +523,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
     onCompleteOnboardingFlow,
     lastVisibleQuestionIndex,
     visibleQuestions,
+    visibleQuestion,
     isFilledVisibleOptions,
     onSelectOption,
     isFilledQuestionAnswer,

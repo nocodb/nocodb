@@ -129,3 +129,14 @@ export function generateUniqueCopyName<T = string>(
 
   return newName;
 }
+
+/**
+ * Trim matching quotes from the string
+ * @param str - The string to trim
+ * @returns The trimmed string
+ */
+export const trimMatchingQuotes = (str?: string | null): string => {
+  if (!str?.trim()) return '';
+
+  return str?.trim()?.replace(/^(['"])(.*)\1$/, '$2') ?? '';
+};

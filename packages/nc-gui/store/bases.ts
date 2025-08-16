@@ -325,17 +325,19 @@ export const useBases = defineStore('basesStore', () => {
     bases.value.clear()
   }
 
-  const navigateToProject = async ({ baseId, page }: { baseId: string; page?: 'collaborators' }) => {
+  const navigateToProject = async ({ baseId, page, query }: { baseId: string; page?: 'collaborators'; query?: any }) => {
     if (!baseId) return
 
     const base = bases.value.get(baseId)
     if (!base) return
 
-    if (page) {
-      return await navigateTo(`/nc/${baseId}?page=${page}`)
-    }
-
-    await navigateTo(`/nc/${baseId}`)
+    return await navigateTo({
+      path: `/nc/${baseId}`,
+      query: {
+        ...(page ? { page } : {}),
+        ...(query || {}),
+      },
+    })
   }
 
   async function updateIfBaseOrderIsNullOrDuplicate() {

@@ -240,6 +240,7 @@ const onReady = () => {
         class="nc-extensions-content-resizable-wrapper"
         :class="{
           'nc-is-open-extensions': isPanelExpanded,
+          'nc-is-open-actions': isActionPanelExpanded,
         }"
         @ready="() => onReady()"
         @resize="onResize"
@@ -289,7 +290,7 @@ const onReady = () => {
 }
 
 .nc-extensions-content-resizable-wrapper {
-  &:not(.nc-is-open-extensions) > {
+  &:not(.nc-is-open-extensions) &:not(.nc-is-open-actions) > {
     .splitpanes__splitter {
       @apply hidden;
     }

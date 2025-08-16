@@ -22,6 +22,7 @@ import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { validatePayload } from '~/helpers';
 
+// cannot use viewTypeAlias due to uppercase
 const viewTypeMap = {
   GRID: ViewTypes.GRID,
   GALLERY: ViewTypes.GALLERY,
@@ -34,6 +35,7 @@ const viewTypeMap = {
   [ViewTypes.CALENDAR]: 'CALENDAR',
   [ViewTypes.FORM]: 'FORM',
 };
+
 @Injectable()
 export class ViewsV3Service {
   protected logger = new Logger(ViewsV3Service.name);
@@ -403,10 +405,21 @@ export class ViewsV3Service {
       body,
       true,
     );
+    if (body.options) {
+      const optionsSchemaName =
+        'ViewOptions' + body.type[0] + body.type.substring(1).toLowerCase();
+      validatePayload(
+        `swagger-v3.json#/components/schemas/${optionsSchemaName}`,
+        body.options,
+        true,
+      );
+    }
+
     let requestBody = this.v3Tov2ViewBuilders.view().build(body);
 
-    requestBody.type =
-      viewTypeMap[(requestBody.type as any as string).toUpperCase()];
+    const viewTypeCode =
+      viewTypeMap[(body.type as any as string).toUpperCase()];
+    requestBody.type = viewTypeCode;
     requestBody.options = requestBody.options ?? {};
     requestBody = {
       ...requestBody,
@@ -568,6 +581,17 @@ export class ViewsV3Service {
     if (!existingView) {
       NcError.get(context).viewNotFound(viewId);
     }
+    if (body.options) {
+      const viewTypeStr = viewTypeMap[existingView.type];
+      const optionsSchemaName =
+        'ViewOptions' + viewTypeStr[0] + viewTypeStr.substring(1).toLowerCase();
+      validatePayload(
+        `swagger-v3.json#/components/schemas/${optionsSchemaName}`,
+        body.options,
+        true,
+      );
+    }
+
     let requestBody = this.v3Tov2ViewBuilders.view().build(body);
 
     requestBody.options = requestBody.options ?? {};

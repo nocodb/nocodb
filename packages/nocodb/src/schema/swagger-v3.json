@@ -6216,7 +6216,10 @@
               }
             }
           }
-        }
+        },
+        "required": [
+          "mode"
+        ]
       },
       "FieldBase": {
         "type": "object",

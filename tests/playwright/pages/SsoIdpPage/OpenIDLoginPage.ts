@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 import BasePage from '../Base';
 import { ProjectsPage } from '../ProjectsPage';
 
@@ -39,9 +39,6 @@ export class OpenIDLoginPage extends BasePage {
     const userInfoMenu = this.rootPage.locator(`[data-testid="nc-sidebar-userinfo"]`);
     await userInfoMenu.waitFor();
 
-    await this.rootPage.waitForFunction(
-      async selector => (await selector.getAttribute('data-email'))?.startsWith(email.split('@')[0]),
-      userInfoMenu
-    );
+    await expect(userInfoMenu).toHaveAttribute('data-email', email);
   }
 }

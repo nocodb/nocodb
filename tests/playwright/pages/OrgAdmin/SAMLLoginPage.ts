@@ -18,7 +18,7 @@ export class CloudSAMLLoginPage extends BasePage {
     // logout if already logged in
 
     await this.ssoLoginPage.goto(email);
-    await this.ssoLoginPage.signIn({ email });
+    await this.ssoLoginPage.signIn({ email, waitForUserInfoMenu: false });
     // // reload page to get latest app info
     // await this.rootPage.reload({ waitUntil: 'networkidle' });
     // // click sign in with SAML

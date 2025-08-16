@@ -22,7 +22,7 @@ export class DefaultDBErrorExtractor implements IClientDbErrorExtractor {
     this.option?.dbErrorLogger?.error(error);
 
     // if error message contains -- then extract message after --
-    if (error.message && error.message.includes('--')) {
+    if (error.message?.includes('--')) {
       message = error.message.split('--')[1];
     }
 

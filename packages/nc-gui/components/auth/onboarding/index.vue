@@ -73,7 +73,7 @@ onMounted(() => {
 .slide-right-enter-active,
 .slide-left-leave-active,
 .slide-right-leave-active {
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
 }
 
 .slide-left-enter-from {

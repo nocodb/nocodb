@@ -1,5 +1,5 @@
 import DashboardCE from 'src/models/Dashboard';
-import { PlanLimitTypes } from 'nocodb-sdk';
+import { ModelTypes, PlanLimitTypes } from 'nocodb-sdk';
 import type { DashboardType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Widget from '~/models/Widget';
@@ -13,7 +13,7 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
-import { CustomUrl } from '~/models';
+import { CustomUrl, Source } from '~/models';
 
 export default class Dashboard extends DashboardCE implements DashboardType {
   id?: string;
@@ -55,8 +55,11 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       dashboard = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
-        MetaTable.DASHBOARDS,
-        dashboardId,
+        MetaTable.MODELS,
+        {
+          id: dashboardId,
+          type: ModelTypes.DASHBOARD,
+        },
       );
       if (dashboard) {
         dashboard = prepareForResponse(dashboard, ['meta']);
@@ -82,10 +85,11 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       dashboardsList = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
-        MetaTable.DASHBOARDS,
+        MetaTable.MODELS,
         {
           condition: {
             base_id: baseId,
+            type: ModelTypes.DASHBOARD,
           },
           orderBy: {
             order: 'asc',
@@ -121,21 +125,28 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     ]);
 
     // get order value
-    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.DASHBOARDS, {
+    const sources = (await Source.list(context, { baseId: context.base_id }))
+      .filter((c) => c.isMeta())
+      .map((c) => c.id);
+
+    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.MODELS, {
       base_id: context.base_id,
       fk_workspace_id: context.workspace_id,
+      source_id: sources,
     });
 
     if (!insertObj.meta) {
       insertObj.meta = {};
     }
 
+    (insertObj as any).type = ModelTypes.DASHBOARD;
+
     insertObj = prepareForDb(insertObj, ['meta']);
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
-      MetaTable.DASHBOARDS,
+      MetaTable.MODELS,
       insertObj,
     );
 
@@ -178,9 +189,12 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.DASHBOARDS,
+      MetaTable.MODELS,
       updateObj,
-      dashboardId,
+      {
+        id: dashboardId,
+        type: ModelTypes.DASHBOARD,
+      },
     );
 
     await NocoCache.update(
@@ -208,8 +222,11 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
-      MetaTable.DASHBOARDS,
-      dashboardId,
+      MetaTable.MODELS,
+      {
+        id: dashboardId,
+        type: ModelTypes.DASHBOARD,
+      },
     );
 
     await NocoCache.deepDel(
@@ -239,8 +256,9 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     const dashboard = await ncMeta.metaGet2(
       context.workspace_id,
       context.base_id,
-      MetaTable.DASHBOARDS,
+      MetaTable.MODELS,
       {
+        type: ModelTypes.DASHBOARD,
         uuid,
       },
     );

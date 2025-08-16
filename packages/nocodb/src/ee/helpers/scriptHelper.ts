@@ -1,4 +1,4 @@
-import { UITypes, viewTypeAlias } from 'nocodb-sdk';
+import { ModelTypes, UITypes, viewTypeAlias } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -219,6 +219,7 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
         .from(`${MetaTable.MODELS} as m`)
         .where('m.base_id', context.base_id)
         .where('m.fk_workspace_id', context.workspace_id)
+        .whereNot('m.type', ModelTypes.DASHBOARD)
         .where('m.mm', false);
     })
 

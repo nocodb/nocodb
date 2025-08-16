@@ -1,5 +1,10 @@
 import { default as SourceCE } from 'src/models/Source';
-import { type BoolType, PlanLimitTypes, type SourceType } from 'nocodb-sdk';
+import {
+  type BoolType,
+  ModelTypes,
+  PlanLimitTypes,
+  type SourceType,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
 import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
@@ -176,6 +181,20 @@ export default class Source extends SourceCE implements SourceType {
       {
         condition: {
           base_id: this.base_id,
+        },
+        xcCondition: {
+          _or: [
+            {
+              type: {
+                eq: ModelTypes.TABLE,
+              },
+            },
+            {
+              type: {
+                eq: ModelTypes.VIEW,
+              },
+            },
+          ],
         },
       },
     );

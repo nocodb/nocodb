@@ -81,8 +81,6 @@ const validators = {
             editorError.value = { ...defaultEditorError }
           } catch (e: any) {
             const errorMessage = e instanceof FormulaError && e.extra?.key ? t(e.extra.key, e.extra) : e.message
-            // if it's an editor error with defined position,
-            // do not show form validation error
             if (e instanceof FormulaError && e.extra?.position) {
               editorError.value = {
                 isError: true,
@@ -91,8 +89,8 @@ const validators = {
               }
             } else {
               editorError.value = { ...defaultEditorError }
-              throw new Error(errorMessage)
             }
+            throw new Error(errorMessage)
           }
         })()
       },

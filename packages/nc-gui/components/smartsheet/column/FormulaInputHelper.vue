@@ -695,6 +695,9 @@ watch(
     }
   },
 )
+const validationErrorDisplay = computed(() => {
+  return props.editorError.isError ? { validateStatus: 'success' } : validateInfos.formula_raw
+})
 </script>
 
 <template>
@@ -746,16 +749,17 @@ watch(
       </a>
     </div>
   </div>
-
-  <a-form-item :label="label" required v-bind="validateInfos.formula_raw">
+  <a-form-item :label="label" required v-bind="validationErrorDisplay">
     <div
       ref="monacoRoot"
       :style="{
         height: editorHeight ?? '100px',
       }"
       :class="{
-        '!border-red-500 formula-error': error,
-        '!focus-within:border-brand-500 shadow-default hover:shadow-hover formula-success': !error,
+        '!border-red-500 formula-error':
+          !validationErrorDisplay?.validateStatus || validationErrorDisplay?.validateStatus !== 'success',
+        '!focus-within:border-brand-500 shadow-default hover:shadow-hover formula-success':
+          !validationErrorDisplay?.validateStatus || validationErrorDisplay?.validateStatus === 'success',
         'bg-white': isAiModeFieldModal,
       }"
       class="formula-monaco transition-colors duration-300"

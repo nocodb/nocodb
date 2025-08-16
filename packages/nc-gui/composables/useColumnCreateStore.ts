@@ -170,8 +170,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         formState.value = { ...formState.value, ...preload }
       }
 
-      formState.value.dtxp = sqlUi.value.getDefaultLengthForDatatype(formState.value.dt)
-      formState.value.dtxs = sqlUi.value.getDefaultScaleForDatatype(formState.value.dt)
+      formState.value.dtxp = sqlUi.value?.getDefaultLengthForDatatype(formState.value.dt) ?? null
+      formState.value.dtxs = sqlUi.value?.getDefaultScaleForDatatype(formState.value.dt) ?? null
 
       const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
       if (column && selectTypes.includes(formState.value.uidt) && selectTypes.includes(column.value?.uidt as UITypes)) {
@@ -205,7 +205,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       setAvoidShowingToastMsgForValidations({})
       formState.value = {
         meta: {},
-        ...sqlUi.value.getNewColumn(1),
+        ...(sqlUi.value?.getNewColumn(1) ?? {}),
       }
       formState.value.title = ''
       formState.value.column_name = ''
@@ -312,8 +312,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       formState.value.ai = false
       formState.value.cdf = null
       formState.value.un = false
-      formState.value.dtxp = sqlUi.value.getDefaultLengthForDatatype(formState.value.dt)
-      formState.value.dtxs = sqlUi.value.getDefaultScaleForDatatype(formState.value.dt)
+      formState.value.dtxp = sqlUi.value?.getDefaultLengthForDatatype(formState.value.dt) ?? null
+      formState.value.dtxs = sqlUi.value?.getDefaultScaleForDatatype(formState.value.dt) ?? null
 
       formState.value.dtx = 'specificType'
 

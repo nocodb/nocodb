@@ -103,7 +103,9 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
   const route = router.currentRoute
 
-  const { appInfo } = useGlobal()
+  const { appInfo, user } = useGlobal()
+
+  const { updateUserProfile } = useUsers()
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -124,6 +126,8 @@ export const useOnboardingFlow = createSharedComposable(() => {
   const startedAt = ref()
 
   const formState = ref<{ [questionId: string]: string | string[] }>({})
+
+  const isSubmitting = ref(false)
 
   const questions = computed<OnboardingQuestionType[]>(() => {
     const list: OnboardingQuestionType[] = [
@@ -934,14 +938,57 @@ export const useOnboardingFlow = createSharedComposable(() => {
   }
 
   const onCompleteOnboardingFlow = async (skipped: boolean = false) => {
+    isSubmitting.value = true
+
     postCompleteOnboardingFlow(skipped)
 
-    resetOnboardingFlow()
+    try {
+      await updateUserProfile({
+        attrs: {
+          is_new_user: false,
+        },
+      })
+    } catch (e) {
+      console.error(e)
+    } finally {
+      resetOnboardingFlow()
+      isSubmitting.value = false
+    }
 
     if (route.value.query?.continueAfterOnboardingFlow) {
       await navigateTo(route.value.query.continueAfterOnboardingFlow as string)
     }
   }
+
+  watch(
+    () => user.value?.is_new_user,
+    (isNewUser) => {
+      if (!isNewUser) {
+        if (showOnboardingFlowLocalState.value) {
+          resetOnboardingFlow()
+        }
+
+        return
+      }
+
+      showOnboardingFlowLocalState.value = true
+
+      const continueAfterOnboardingFlow = route.value.query.continueAfterOnboardingFlow ?? route.value.fullPath
+
+      navigateTo({
+        path: '/',
+        query: {
+          continueAfterOnboardingFlow,
+        },
+      })
+
+      // Todo: @rameshmane7218 remove later
+      console.log('new user', isNewUser, user.value, route.value, localStorage.getItem('continueAfterSignIn'))
+    },
+    {
+      immediate: true,
+    },
+  )
 
   return {
     showOnboardingFlowLocalState,

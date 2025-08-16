@@ -730,11 +730,36 @@ import NcLogoTypeform from '~icons/nc-icons-v2/typeform.svg'
 import NcLogoWhatsappColored from '~icons/nc-icons-v2/whatsapp-colored.svg'
 import NcLogoWhatsapp from '~icons/nc-icons-v2/whatsapp.svg'
 import NcLogoWorkdayColored from '~icons/nc-icons-v2/workday-colored.svg'
+import NcLogoWorkdayColoredOutline from '~icons/nc-icons-v2/workday-colored-outline.svg'
 import NcLogoWorkday from '~icons/nc-icons-v2/workday.svg'
 import NcLogoZendeskColored from '~icons/nc-icons-v2/zendesk-colored.svg'
 import NcLogoZendesk from '~icons/nc-icons-v2/zendesk.svg'
 import NcLogoZohoColored from '~icons/nc-icons-v2/zoho-colored.svg'
 import NcLogoZoho from '~icons/nc-icons-v2/zoho.svg'
+import NcLogoBaserowColored from '~icons/nc-icons-v2/baserow-colored.svg'
+import NcLogoSoftrColored from '~icons/nc-icons-v2/softr-colored.svg'
+import NcLogoNotionColored from '~icons/nc-icons-v2/notion-colored.svg'
+import NcLogoCodaColored from '~icons/nc-icons-v2/coda-colored.svg'
+import NcLogoRetoolColored from '~icons/nc-icons-v2/retool-colored.svg'
+import NcLogoN8nColored from '~icons/nc-icons-v2/n8n-colored.svg'
+import NcLogoZapierColored from '~icons/nc-icons-v2/zapier-colored.svg'
+import NcLogoMakeColored from '~icons/nc-icons-v2/make-colored.svg'
+import NcLogoCrewAi from '~icons/nc-icons-v2/crew-ai.svg'
+import NcLogoManusIm from '~icons/nc-icons-v2/manus-im.svg'
+import NcLogoHuggingface from '~icons/nc-icons-v2/huggingface-colored.svg'
+import NcLogoReplitAi from '~icons/nc-icons-v2/replit-ai-colored.svg'
+import NcLogoLangchain from '~icons/nc-icons-v2/langchain.svg'
+import NcLogoBambooHrColored from '~icons/nc-icons-v2/bamboo-hr-colored.svg'
+import NcLogoDockerColored from '~icons/nc-icons-v2/docker-colored.svg'
+import NcLogoHootsuiteColored from '~icons/nc-icons-v2/hootsuite-colored.svg'
+import NcLogoGongColored from '~icons/nc-icons-v2/gong-colored.svg'
+import NcLogoProductBoardColored from '~icons/nc-icons-v2/product-board-colored.svg'
+import NcLogoXeroColored from '~icons/nc-icons-v2/xero-colored.svg'
+import NcLogoSketchColored from '~icons/nc-icons-v2/sketch-colored.svg'
+import NcLogoLookerColored from '~icons/nc-icons-v2/looker-colored.svg'
+import NcLogoPowerLogoColored from '~icons/nc-icons-v2/power-logo-colored.svg'
+import NcLogoClickupColored from '~icons/nc-icons-v2/clickup-colored.svg'
+
 import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
 import NcBaseOutline from '~icons/nc-icons-v2/base-outline.svg'
 import NcBasePrivate from '~icons/nc-icons-v2/base-private.svg'
@@ -771,6 +796,7 @@ import NcDiscordForum from '~icons/nc-icons/discord-forum'
 import NcCrown from '~icons/nc-icons-v2/crown'
 import NcMultiCircle from '~icons/nc-icons-v2/multi-circle'
 import NcChatwoot from '~icons/nc-icons-v2/chatwoot'
+import NcGraduationCap from '~icons/nc-icons-v2/graduation-cap'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1245,18 +1271,18 @@ export const iconMap = {
   'googleCalendar': NcGoogleCalendar,
   'googleSheet': NcGoogleSheet,
   'googleDrive': NcGoogleDrive,
-  'hubspot': NcHubspot,
+  'hubspot': h(NcHubspot, { stroke: 'transparent' }),
   'jira': NcJira,
   'mailchimp': NcMailchimp,
   'microsoftAccess': NcMicrosoftAccess,
   'microsoftExcel': NcMicrosoftExcel,
   'microsoftOutlook': NcMicrosoftOutlook,
   'miro': NcMiro,
-  'salesforce': NcSalesforce,
+  'salesforce': h(NcSalesforce, { stroke: 'transparent' }),
   'snowflake': NcSnowflake,
   'stripe': NcStripe,
   'surveyMonkey': NcSurveyMonkey,
-  'tableau': NcTableau,
+  'tableau': h(NcTableau, { stroke: 'transparent' }),
   'trello': NcTrello,
   'typeform': NcTypeform,
   'workday': NcWorkday,
@@ -1289,16 +1315,16 @@ export const iconMap = {
   'pipedrive': NcPipedrive,
   'zohoCrm': NcZohoCrm,
   'greenhouse': NcGreenhouse,
-  'lever': NcLever,
+  'lever': h(NcLever, { stroke: 'transparent' }),
   'bitBucket': NcBitBucket,
   'quickbooks': NcQuickbooks,
   'intercom': NcIntercom,
   'dropbox': NcDropbox,
   'gift': NcIconsGift,
-  'openai': NcOpenai,
-  'claude': NcClaude,
-  'ollama': NcOllama,
-  'groq': NcGroq,
+  'openai': h(NcOpenai, { stroke: 'transparent' }),
+  'claude': h(NcClaude, { stroke: 'transparent' }),
+  'ollama': h(NcOllama, { stroke: 'transparent' }),
+  'groq': h(NcGroq, { stroke: 'transparent' }),
   'posthog': h(NcPosthog, { stroke: 'transparent' }),
   'nocodbPg': h(NcNocodbPg, { stroke: 'transparent' }),
   'refreshCw': NcRefreshCW,
@@ -1703,11 +1729,36 @@ export const iconMap = {
   'ncLogoWhatsappColored': h(NcLogoWhatsappColored, { stroke: 'transparent' }),
   'ncLogoWhatsapp': h(NcLogoWhatsapp, { stroke: 'transparent' }),
   'ncLogoWorkdayColored': h(NcLogoWorkdayColored, { stroke: 'transparent' }),
+  'ncLogoWorkdayColoredOutline': h(NcLogoWorkdayColoredOutline, { stroke: 'transparent' }),
   'ncLogoWorkday': h(NcLogoWorkday, { stroke: 'transparent' }),
   'ncLogoZendeskColored': h(NcLogoZendeskColored, { stroke: 'transparent' }),
   'ncLogoZendesk': h(NcLogoZendesk, { stroke: 'transparent' }),
   'ncLogoZohoColored': h(NcLogoZohoColored, { stroke: 'transparent' }),
   'ncLogoZoho': h(NcLogoZoho, { stroke: 'transparent' }),
+  'ncLogoBaserowColored': h(NcLogoBaserowColored, { stroke: 'transparent' }),
+  'ncLogoSoftrColored': h(NcLogoSoftrColored, { stroke: 'transparent' }),
+  'ncLogoNotionColored': h(NcLogoNotionColored, { stroke: 'transparent' }),
+  'ncLogoCodaColored': h(NcLogoCodaColored, { stroke: 'transparent' }),
+  'ncLogoRetoolColored': h(NcLogoRetoolColored, { stroke: 'transparent' }),
+  'ncLogoN8nColored': h(NcLogoN8nColored, { stroke: 'transparent' }),
+  'ncLogoZapierColored': h(NcLogoZapierColored, { stroke: 'transparent' }),
+  'ncLogoMakeColored': h(NcLogoMakeColored, { stroke: 'transparent' }),
+  'ncLogoCrewAi': h(NcLogoCrewAi, { stroke: 'transparent' }),
+  'ncLogoManusIm': h(NcLogoManusIm, { stroke: 'transparent' }),
+  'ncLogoHuggingface': h(NcLogoHuggingface, { stroke: 'transparent' }),
+  'ncLogoReplitAi': h(NcLogoReplitAi, { stroke: 'transparent' }),
+  'ncLogoLangchain': h(NcLogoLangchain, { stroke: 'transparent' }),
+  'ncLogoBambooHrColored': h(NcLogoBambooHrColored, { stroke: 'transparent' }),
+  'ncLogoDockerColored': h(NcLogoDockerColored, { stroke: 'transparent' }),
+  'ncLogoHootsuiteColored': h(NcLogoHootsuiteColored, { stroke: 'transparent' }),
+  'ncLogoGongColored': h(NcLogoGongColored, { stroke: 'transparent' }),
+  'ncLogoProductBoardColored': h(NcLogoProductBoardColored, { stroke: 'transparent' }),
+  'ncLogoXeroColored': h(NcLogoXeroColored, { stroke: 'transparent' }),
+  'ncLogoSketchColored': h(NcLogoSketchColored, { stroke: 'transparent' }),
+  'ncLogoLookerColored': h(NcLogoLookerColored, { stroke: 'transparent' }),
+  'ncLogoPowerLogoColored': h(NcLogoPowerLogoColored, { stroke: 'transparent' }),
+  'ncLogoClickupColored': h(NcLogoClickupColored, { stroke: 'transparent' }),
+
   'ncSendAlt': h(NcSendAlt, { stroke: 'transparent' }),
   'ncStopCircle': h(NcStopCircle, { stroke: 'transparent' }),
   'ncAiPlay': AiPlayIcon,
@@ -1749,6 +1800,7 @@ export const iconMap = {
   'ncChartDonut': h(NcChartDonut, { stroke: 'transparent' }),
   'ncChartPie': h(NcChartPie, { stroke: 'transparent' }),
   'ncSun': NcSun,
+  'ncGraduationCap': NcGraduationCap,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -3265,6 +3317,9 @@ export const emojiIcons = [
   'globe-with-meridians',
 ]
 
+/**
+ * keywords - add proper keywords which align with the icon name
+ */
 export const searchableMap = {
   ncColumns: { icon: NcColumnsIcon, keywords: ['Grid', 'Layout', 'Structure', 'Organization', 'Architecture'] },
   ncUnderline: { icon: NcUnderlineIcon, keywords: ['text', 'formatting', 'highlight', 'emphasis', 'typography'] },
@@ -4302,6 +4357,161 @@ export const searchableMap = {
     icon: h(NcLogoZoho, { stroke: 'transparent' }),
     keywords: ['crm', 'business apps', 'collaboration', 'productivity', 'enterprise'],
   },
+  ncLogoBaserowColored: {
+    icon: h(NcLogoBaserowColored, { stroke: 'transparent' }),
+    keywords: ['baserow', 'nocode', 'database', 'table', 'collaboration', 'open-source'],
+  },
+  ncLogoSoftrColored: {
+    icon: h(NcLogoSoftrColored, { stroke: 'transparent' }),
+    keywords: ['softr', 'nocode', 'website', 'app', 'frontend', 'builder'],
+  },
+  ncLogoNotionColored: {
+    icon: h(NcLogoNotionColored, { stroke: 'transparent' }),
+    keywords: ['notion', 'docs', 'wiki', 'notes', 'productivity', 'database', 'collaboration'],
+  },
+  ncLogoCodaColored: {
+    icon: h(NcLogoCodaColored, { stroke: 'transparent' }),
+    keywords: ['coda', 'docs', 'automation', 'spreadsheet', 'teamwork', 'collaboration'],
+  },
+  ncLogoRetoolColored: {
+    icon: h(NcLogoRetoolColored, { stroke: 'transparent' }),
+    keywords: ['retool', 'internal-tools', 'builder', 'frontend', 'admin', 'dashboard', 'crud'],
+  },
+  ncLogoN8nColored: {
+    icon: h(NcLogoN8nColored, { stroke: 'transparent' }),
+    keywords: ['n8n', 'workflow', 'automation', 'integration', 'open-source', 'pipeline'],
+  },
+  ncLogoZapierColored: {
+    icon: h(NcLogoZapierColored, { stroke: 'transparent' }),
+    keywords: ['zapier', 'automation', 'integration', 'workflow', 'task', 'connect'],
+  },
+  ncLogoMakeColored: {
+    icon: h(NcLogoMakeColored, { stroke: 'transparent' }),
+    keywords: ['make', 'automation', 'workflow', 'integration', 'connect', 'nocode'],
+  },
+  ncLogoCrewAi: {
+    icon: h(NcLogoCrewAi, { stroke: 'transparent' }),
+    keywords: [
+      'crew',
+      'crew.ai',
+      'workflow automation',
+      'AI agents',
+      'team collaboration',
+      'autonomous agents',
+      'ai',
+      'nocode',
+      'integration',
+    ],
+  },
+  ncLogoManusIm: {
+    icon: h(NcLogoManusIm, { stroke: 'transparent' }),
+    keywords: [
+      'manus',
+      'manus.im',
+      'automation',
+      'AI workflows',
+      'business automation',
+      'nocode',
+      'workflow builder',
+      'integration',
+    ],
+  },
+  ncLogoHuggingface: {
+    icon: h(NcLogoHuggingface, { stroke: 'transparent' }),
+    keywords: [
+      'huggingface',
+      'transformers',
+      'nlp',
+      'ai models',
+      'ml',
+      'machine learning',
+      'text generation',
+      'open source',
+      'integration',
+    ],
+  },
+  ncLogoReplitAi: {
+    icon: h(NcLogoReplitAi, { stroke: 'transparent' }),
+    keywords: [
+      'replit',
+      'replit.ai',
+      'code',
+      'cloud IDE',
+      'developer tools',
+      'generative AI',
+      'ai coding',
+      'automation',
+      'nocode',
+      'integration',
+    ],
+  },
+  ncLogoLangchain: {
+    icon: h(NcLogoLangchain, { stroke: 'transparent' }),
+    keywords: [
+      'langchain',
+      'ai agents',
+      'llm orchestration',
+      'prompt chaining',
+      'generative AI',
+      'framework',
+      'openai',
+      'rag',
+      'nocode',
+      'workflow',
+      'integration',
+    ],
+  },
+  ncLogoBambooHrColored: {
+    icon: h(NcLogoBambooHrColored, { stroke: 'transparent' }),
+    keywords: [
+      'bamboohr',
+      'hr software',
+      'human resources',
+      'employee management',
+      'performance',
+      'time tracking',
+      'hr automation',
+      'workflow',
+      'integration',
+    ],
+  },
+  ncLogoDockerColored: {
+    icon: h(NcLogoDockerColored, { stroke: 'transparent' }),
+    keywords: ['docker', 'containerization', 'devops', 'cloud', 'infrastructure'],
+  },
+  ncLogoHootsuiteColored: {
+    icon: h(NcLogoHootsuiteColored, { stroke: 'transparent' }),
+    keywords: ['hootsuite', 'social', 'marketing', 'automation'],
+  },
+  ncLogoGongColored: {
+    icon: h(NcLogoGongColored, { stroke: 'transparent' }),
+    keywords: ['gong', 'revenue', 'analytics', 'sales'],
+  },
+  ncLogoProductBoardColored: {
+    icon: h(NcLogoProductBoardColored, { stroke: 'transparent' }),
+    keywords: ['productboard', 'roadmap', 'feedback', 'planning'],
+  },
+  ncLogoXeroColored: {
+    icon: h(NcLogoXeroColored, { stroke: 'transparent' }),
+    keywords: ['xero', 'accounting', 'finance', 'invoicing'],
+  },
+  ncLogoSketchColored: {
+    icon: h(NcLogoSketchColored, { stroke: 'transparent' }),
+    keywords: ['sketch', 'design', 'ui', 'prototype'],
+  },
+  ncLogoLookerColored: {
+    icon: h(NcLogoLookerColored, { stroke: 'transparent' }),
+    keywords: ['looker', 'analytics', 'data', 'visualization'],
+  },
+  ncLogoPowerLogoColored: {
+    icon: h(NcLogoPowerLogoColored, { stroke: 'transparent' }),
+    keywords: ['power', 'design', 'logo', 'branding'],
+  },
+  ncLogoClickupColored: {
+    icon: h(NcLogoClickupColored, { stroke: 'transparent' }),
+    keywords: ['clickup', 'tasks', 'collaboration', 'productivity'],
+  },
+
   ncBaseOutline: {
     icon: NcBaseOutline,
     keywords: ['base', 'database', 'storage', 'db'],
@@ -4361,6 +4571,10 @@ export const searchableMap = {
   ncSun: {
     icon: NcSun,
     keywords: ['sun', 'sunny', 'weather', 'light', 'day', 'morning', 'summer', 'warm', 'warmth'],
+  },
+  ncGraduationCap: {
+    icon: NcGraduationCap,
+    keywords: ['graduation', 'cap', 'school', 'education', 'academic'],
   },
 }
 

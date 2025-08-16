@@ -149,4 +149,50 @@ describe('Formula parsing and type validation', () => {
       expect(result.dataType).toBe(FormulaDataTypes.STRING);
     });
   });
+
+  describe('errors', () => {
+    it(`will provide position for syntax error`, async () => {
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: '1 +',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+        });
+      } catch (ex) {
+        expect(ex.extra.position).toEqual({
+          column: 3,
+          row: 0,
+        });
+      }
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: '(1 + 1',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+        });
+      } catch (ex) {
+        expect(ex.extra.position).toEqual({
+          column: 6,
+          row: 0,
+        });
+      }
+    });
+    it(`will provide position for column not found`, async () => {
+      try {
+        await validateFormulaAndExtractTreeWithType({
+          formula: '1 + _',
+          columns: [],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+        });
+      } catch (ex) {
+        expect(ex.extra.position).toEqual({
+          column: 4,
+          row: 0,
+        });
+      }
+    });
+  });
 });

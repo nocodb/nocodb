@@ -985,7 +985,7 @@ export class ViewsV3Service {
           );
           if (col.meta) {
             col.meta = {
-              ...viewColumn.meta,
+              ...((viewColumn as any).meta ?? {}),
               ...col.meta,
             };
           }

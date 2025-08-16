@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import DashboardTreeViewDashboardList from './DashboardList.vue'
+import DashboardTreeViewDashboardList from './List.vue'
 
 const props = defineProps<{
   baseId: string

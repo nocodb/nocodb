@@ -783,36 +783,7 @@ defineExpose({
         }"
         variant="small"
       >
-        <template v-if="contextMenuTarget.type === 'base' && base.type === 'database'">
-          <!--
-          <NcMenuItem v-if="isUIAllowed('sqlEditor')" @click="openProjectSqlEditor(contextMenuTarget.value)">
-            <div class="nc-base-option-item">SQL Editor</div>
-          </NcMenuItem>
-          <NcMenuItem @click="openProjectErdView(contextMenuTarget.value)">
-            <div class="nc-base-option-item">
-              <GeneralIcon icon="ncErd" />
-              {{ $t('title.erdView') }}
-            </div>
-          </NcMenuItem>
-          -->
-        </template>
-
-        <template v-else-if="contextMenuTarget.type === 'source'">
-          <!--
-          <NcMenuItem v-if="isUIAllowed('sqlEditor')" @click="openSqlEditor(contextMenuTarget.value)">
-            <div class="nc-base-option-item">SQL Editor</div>
-          </NcMenuItem>
-
-          <NcMenuItem @click="openErdView(contextMenuTarget.value)">
-            <div class="nc-base-option-item">
-              <GeneralIcon icon="ncErd" />
-              {{ $t('title.erdView') }}
-            </div>
-          </NcMenuItem>
-          -->
-        </template>
-
-        <template v-else-if="contextMenuTarget.type === 'table'">
+        <template v-if="contextMenuTarget.type === 'table'">
           <NcMenuItemCopyId
             v-if="contextMenuTarget.value"
             :id="contextMenuTarget.value.id"

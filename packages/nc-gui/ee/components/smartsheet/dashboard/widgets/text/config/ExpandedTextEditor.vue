@@ -115,6 +115,10 @@ watch(
   { flush: 'post' },
 )
 
+const getResizeEl = (): HTMLElement | null => {
+  return document.querySelector('.nc-text-widget-expanded-textarea') as HTMLElement
+}
+
 const updateSize = () => {
   if (skipSizeUpdate.value) {
     skipSizeUpdate.value = false

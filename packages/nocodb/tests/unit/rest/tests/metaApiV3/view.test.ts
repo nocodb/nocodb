@@ -2,8 +2,8 @@ import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
 import init from '../../../init';
-import { Base, Model } from '../../../../../src/models';
-import { RootScopes } from '../../../../../src/utils/globals';
+import { Base, Model } from '~/models';
+import { RootScopes } from '~/utils/globals';
 
 export default function () {
   describe(`View v3`, () => {

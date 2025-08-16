@@ -5554,6 +5554,15 @@
                     "asc",
                     "desc"
                   ]
+                },
+                "row_height": {
+                  "type": "string",
+                  "enum": [
+                    "short",
+                    "medium",
+                    "tall",
+                    "extra"
+                  ]
                 }
               },
               "required": [

@@ -6,6 +6,7 @@ import type {
   ViewCreateReqType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -31,13 +32,14 @@ export class KanbansService {
       req: NcRequest;
       ownedBy?: string;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.kanban,
     );
 
-    const model = await Model.get(context, param.tableId);
+    const model = await Model.get(context, param.tableId, ncMeta);
 
     let fk_cover_image_col_id =
       (param.kanban as KanbanView).fk_cover_image_col_id ?? null;
@@ -49,7 +51,7 @@ export class KanbansService {
       (param.kanban as KanbanView).fk_cover_image_col_id === undefined &&
       !(param.kanban as { copy_from_id: string }).copy_from_id
     ) {
-      const attachmentField = (await model.getColumns(context)).find(
+      const attachmentField = (await model.getColumns(context, ncMeta)).find(
         (column) => column.uidt === UITypes.Attachment,
       );
       if (attachmentField) {
@@ -57,24 +59,28 @@ export class KanbansService {
       }
     }
 
-    const { id } = await View.insertMetaOnly(context, {
-      view: {
-        ...param.kanban,
-        // todo: sanitize
-        fk_model_id: param.tableId,
-        type: ViewTypes.KANBAN,
-        base_id: model.base_id,
-        source_id: model.source_id,
-        created_by: param.user?.id,
-        owned_by: param.ownedBy || param.user?.id,
-        fk_cover_image_col_id,
+    const { id } = await View.insertMetaOnly(
+      context,
+      {
+        view: {
+          ...param.kanban,
+          // todo: sanitize
+          fk_model_id: param.tableId,
+          type: ViewTypes.KANBAN,
+          base_id: model.base_id,
+          source_id: model.source_id,
+          created_by: param.user?.id,
+          owned_by: param.ownedBy || param.user?.id,
+          fk_cover_image_col_id,
+        },
+        model,
+        req: param.req,
       },
-      model,
-      req: param.req,
-    });
+      ncMeta,
+    );
 
     // populate  cache and add to list since the list cache already exist
-    const view = await View.get(context, id);
+    const view = await View.get(context, id, ncMeta);
     await NocoCache.appendToList(
       CacheScope.VIEW,
       [view.fk_model_id],
@@ -83,7 +89,7 @@ export class KanbansService {
     let owner = param.req.user;
 
     if (param.ownedBy) {
-      owner = await User.get(param.ownedBy);
+      owner = await User.get(param.ownedBy, ncMeta);
     }
 
     this.appHooksService.emit(AppEvents.KANBAN_CREATE, {

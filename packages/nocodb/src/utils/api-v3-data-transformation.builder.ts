@@ -801,6 +801,7 @@ export const viewColumnBuilder = builderGenerator<
     'help',
     'description',
     'required',
+    'aggregation',
   ],
   mappings: {
     fk_column_id: 'field_id',

@@ -9,6 +9,7 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { Filter, Hook, View } from '~/models';
@@ -127,6 +128,7 @@ export class FiltersV3Service {
     logicalOp = null,
     isRoot = true, // Flag to check if it's the root group
     viewId,
+    ncMeta,
   }: {
     context: any;
     param: { viewId: string } | { hookId: string } | { linkColumnId: string };
@@ -135,11 +137,13 @@ export class FiltersV3Service {
     logicalOp?: 'AND' | 'OR' | null;
     isRoot?: boolean;
     viewId: string;
+    ncMeta?: MetaService;
   }): Promise<void> {
     validatePayload(
       'swagger-v3.json#/components/schemas/FilterCreate',
       groupOrFilter,
       true,
+      context,
     );
 
     let currentParentId = parentId;
@@ -162,13 +166,17 @@ export class FiltersV3Service {
 
     // if not filter group simply insert filter
     if ('field_id' in groupOrFilter && (groupOrFilter as any).field_id) {
-      await Filter.insert(context, {
-        ...filterRevBuilder().build(groupOrFilter),
-        fk_parent_id: parentId === 'root' ? null : parentId,
-        ...additionalProps,
-        logical_op: extractLogicalOp(logicalOp),
-        id: undefined,
-      });
+      await Filter.insert(
+        context,
+        {
+          ...filterRevBuilder().build(groupOrFilter),
+          fk_parent_id: parentId === 'root' ? null : parentId,
+          ...additionalProps,
+          logical_op: extractLogicalOp(logicalOp),
+          id: undefined,
+        },
+        ncMeta,
+      );
       return;
     }
 
@@ -178,9 +186,13 @@ export class FiltersV3Service {
         'parent_id' in groupOrFilter && groupOrFilter.parent_id;
       if (!hasParentInGroup) {
         // Root group handling when parent_id is not provided in groupOrFilter
-        const existingRootFilters = await Filter.rootFilterList(context, {
-          viewId,
-        });
+        const existingRootFilters = await Filter.rootFilterList(
+          context,
+          {
+            viewId,
+          },
+          ncMeta,
+        );
         const existingRootFilter =
           existingRootFilters[1] || existingRootFilters[0];
         if (existingRootFilter) {
@@ -203,24 +215,32 @@ export class FiltersV3Service {
         currentParentId = null;
       } else {
         // Insert root group
-        const rootGroupResponse = await Filter.insert(context, {
-          is_group: true,
-          fk_parent_id: null, // Root groups have no parent
-          logical_op: extractLogicalOp(logicalOp),
-          ...additionalProps,
-        });
+        const rootGroupResponse = await Filter.insert(
+          context,
+          {
+            is_group: true,
+            fk_parent_id: null, // Root groups have no parent
+            logical_op: extractLogicalOp(logicalOp),
+            ...additionalProps,
+          },
+          ncMeta,
+        );
         currentParentId = rootGroupResponse.id;
       }
     } else if (parentId === 'root') {
       currentParentId = null;
     } else {
       // Insert root group
-      const rootGroupResponse = await Filter.insert(context, {
-        is_group: true,
-        fk_parent_id: parentId, // Root groups have no parent
-        logical_op: extractLogicalOp(logicalOp),
-        ...additionalProps,
-      });
+      const rootGroupResponse = await Filter.insert(
+        context,
+        {
+          is_group: true,
+          fk_parent_id: parentId, // Root groups have no parent
+          logical_op: extractLogicalOp(logicalOp),
+          ...additionalProps,
+        },
+        ncMeta,
+      );
       currentParentId = rootGroupResponse.id;
     }
 
@@ -229,13 +249,18 @@ export class FiltersV3Service {
       for (const child of groupOrFilter.filters || []) {
         if ('field_id' in child) {
           // Insert individual filter
-          await Filter.insert(context, {
-            ...filterRevBuilder().build(child),
-            fk_parent_id: currentParentId, // Link to the parent group
-            logical_op: extractLogicalOp(groupOrFilter.group_operator) || 'and', // Pass the logical operator
-            ...additionalProps,
-            id: undefined,
-          });
+          await Filter.insert(
+            context,
+            {
+              ...filterRevBuilder().build(child),
+              fk_parent_id: currentParentId, // Link to the parent group
+              logical_op:
+                extractLogicalOp(groupOrFilter.group_operator) || 'and', // Pass the logical operator
+              ...additionalProps,
+              id: undefined,
+            },
+            ncMeta,
+          );
         } else if ('group_operator' in child) {
           // Recursively handle nested groups
           await this.insertFilterGroup({
@@ -251,12 +276,16 @@ export class FiltersV3Service {
       }
     } else if ('field_id' in groupOrFilter) {
       // Handle a single filter directly
-      await Filter.insert(context, {
-        ...groupOrFilter,
-        fk_parent_id: currentParentId, // Link to the parent group or root
-        logical_op: extractLogicalOp(logicalOp), // Pass the logical operator
-        ...additionalProps,
-      });
+      await Filter.insert(
+        context,
+        {
+          ...groupOrFilter,
+          fk_parent_id: currentParentId, // Link to the parent group or root
+          logical_op: extractLogicalOp(logicalOp), // Pass the logical operator
+          ...additionalProps,
+        },
+        ncMeta,
+      );
     } else {
       throw new Error('Invalid structure: Expected a group or filter.');
     }

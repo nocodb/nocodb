@@ -786,7 +786,7 @@ const onDeleteColumn = () => {
         <div class="nc-column-delete nc-header-menu-item">
           <component :is="iconMap.delete" class="opacity-80" />
           <!-- Delete -->
-          {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }} s
+          {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }}
         </div>
       </NcMenuItem>
     </GeneralSourceRestrictionTooltip>

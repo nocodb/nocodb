@@ -110,7 +110,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
   const isEnabledOnboardingFlow = computed(() => {
-    return isFeatureEnabled(FEATURE_FLAG.SIGNUP_ONBOARDING_FLOW)
+    return isFeatureEnabled(FEATURE_FLAG.SIGNUP_ONBOARDING_FLOW) && !ncIsPlaywright()
   })
 
   /**
@@ -119,9 +119,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
   const showOnboardingFlowLocalState = ref(false)
 
   const showOnboardingFlow = computed(() => {
-    return (
-      isEnabledOnboardingFlow.value && showOnboardingFlowLocalState.value && route.value.name === 'index' && !ncIsPlaywright()
-    )
+    return isEnabledOnboardingFlow.value && showOnboardingFlowLocalState.value && route.value.name === 'index'
   })
 
   // Timestamp when the onboarding flow is started
@@ -951,7 +949,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
   watch(
     () => user.value?.is_new_user,
     (isNewUser) => {
-      if (!isNewUser) {
+      if (!isNewUser || !isEnabledOnboardingFlow.value) {
         if (showOnboardingFlowLocalState.value) {
           resetOnboardingFlow()
         }

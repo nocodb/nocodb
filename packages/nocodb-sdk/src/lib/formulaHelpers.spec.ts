@@ -420,5 +420,39 @@ describe('Formula parsing and type validation', () => {
 
       expect(result3.referencedColumn).toBeUndefined();
     });
+
+    it(`will return referenced column with pure call expression`, async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: 'MAX({column1}, 3)',
+        columns: [
+          {
+            id: 'id1',
+            title: 'column1',
+            uidt: UITypes.Number,
+          },
+        ],
+        clientOrSqlUi: 'mysql2',
+        getMeta: async () => ({}),
+      });
+      expect(result.referencedColumn.id).toEqual('id1');
+      expect(result.referencedColumn.uidt).toEqual(UITypes.Number);
+    });
+
+    it(`will not return referenced column with impure call expression`, async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: 'CEILING({column1})',
+        columns: [
+          {
+            id: 'id1',
+            title: 'column1',
+            uidt: UITypes.Number,
+          },
+        ],
+        clientOrSqlUi: 'mysql2',
+        getMeta: async () => ({}),
+      });
+      expect(result.referencedColumn).toBeUndefined();
+      expect(result.uidtCandidates).toEqual([UITypes.Decimal]);
+    });
   });
 });

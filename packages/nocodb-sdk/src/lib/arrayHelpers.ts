@@ -15,3 +15,7 @@ export const arrDetailedDiff = (a: any[], b: any[]) => {
 export const uniq = (array: any[]) => {
   return [...new Set(array)];
 };
+// fallback due to target tsconfig not support flatMap
+export const arrFlatMap = (array: any[]) => {
+  return array.reduce( (a, b) => a.concat(b), []);
+}

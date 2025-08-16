@@ -7,6 +7,7 @@ import {
   ParsedFormulaNode,
 } from './operators';
 import { ReferencedInfo } from './types';
+import { arrFlatMap } from '../arrayHelpers';
 
 const IMPURE_OPR_UIDT_MAP = new Map<UITypes, UITypes>([
   [UITypes.SingleSelect, UITypes.SingleLineText],
@@ -81,8 +82,8 @@ export const getReferencedInfoFromArgs = (
   } else if (uniqueLength > 1) {
     invalidForReferenceColumn = true;
   }
-  const uidtCandidates = nodes
-    .map((k) => k.uidtCandidates).flatMap(k => k);
+  const uidtCandidates = arrFlatMap(nodes
+    .map((k) => k.uidtCandidates));
   const referencedInfo = {
     referencedColumn,
     uidtCandidates,

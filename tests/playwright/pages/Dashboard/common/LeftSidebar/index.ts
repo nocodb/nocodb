@@ -53,7 +53,8 @@ export class LeftSidebarPage extends BasePage {
   }
 
   async isNewSidebar() {
-    return await this.miniSidebar.count();
+    // will be new sidebar always from now
+    return 1;
   }
 
   async verifyBaseListOpen(open: boolean = false) {

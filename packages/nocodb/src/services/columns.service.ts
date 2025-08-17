@@ -52,6 +52,7 @@ import {
 } from '~/utils/column-webhook-manager';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import type { LastModColumnOptions } from '~/models/LastModColumn';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
@@ -913,6 +914,20 @@ export class ColumnsService implements IColumnsService {
             });
           }
 
+          // TODO: refactor
+          if (
+            [UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(
+              column.uidt,
+            ) &&
+            'colOptions' in colBody &&
+            (colBody.colOptions as LastModColumnOptions)?.triggerColumnIds
+          ) {
+            await Column.update(context, param.columnId, {
+              ...column,
+              colOptions: colBody.colOptions,
+            });
+          }
+
           if (
             'validate' in colBody &&
             ([UITypes.URL, UITypes.PhoneNumber, UITypes.Email].includes(
@@ -1034,6 +1049,7 @@ export class ColumnsService implements IColumnsService {
       // allow updating of title only
       await Column.update(context, param.columnId, {
         ...column,
+        colOptions: colBody.colOptions,
         title: colBody.title,
       });
     } else if (
@@ -2817,7 +2833,7 @@ export class ColumnsService implements IColumnsService {
                 break;
             }
 
-            if(isTriggerBasedCol){
+            if (isTriggerBasedCol) {
               columnName = param.column.column_name || columnName;
               columnTitle = param.column.title || columnTitle;
             }

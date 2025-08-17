@@ -365,7 +365,7 @@ export class NestedLinkPreparator {
             model: baseModel.model,
             rowIds: [rowId],
             cookie: req,
-            updatedColIds: [col.id]
+            updatedColIds: [col.id],
           });
 
           await refBaseModel.updateLastModified({
@@ -373,7 +373,7 @@ export class NestedLinkPreparator {
             rowIds: nestedData,
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: []
+            updatedColIds: [],
           });
         });
       }

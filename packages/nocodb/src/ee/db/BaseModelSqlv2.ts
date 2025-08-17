@@ -3545,65 +3545,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
-  // // Check if a column change requires updating TrackModifications columns
-  // private async checkAndUpdateTrackModifications(
-  //   changedColumnId: string,
-  //   oldData: any,
-  //   newData: any,
-  //   cookie?: { user?: any; permissions?: Permission[] },
-  // ): Promise<void> {
-  //   try {
-  //     // Get all TrackModifications columns that have this column as a trigger
-  //     const trackModConfigs = await TrackModificationsColumn.getByTriggerColumnId(
-  //       this.context,
-  //       changedColumnId
-  //     );
-  //
-  //     if (trackModConfigs.length === 0) return;
-  //
-  //     // Update each TrackModifications column that was triggered
-  //     for (const trackConfig of trackModConfigs) {
-  //       const trackColumn = this.model.columns.find(col => col.id === trackConfig.fk_column_id);
-  //       if (!trackColumn) continue;
-  //
-  //       // Get configuration from colOptions
-  //       let updateType = 'timestamp';
-  //       let customValue = null;
-  //       let enabled = false;
-  //
-  //       if (trackColumn.colOptions && typeof trackColumn.colOptions === 'string') {
-  //         try {
-  //           const colOpts = JSON.parse(trackColumn.colOptions);
-  //           updateType = colOpts.updateType || 'timestamp';
-  //           customValue = colOpts.customValue;
-  //           enabled = colOpts.enabled || false;
-  //         } catch (e) {
-  //           // Use defaults if parsing fails
-  //         }
-  //       }
-  //
-  //       if (!enabled) continue;
-  //
-  //       // Update the tracked column based on its configuration
-  //       switch (updateType) {
-  //         case 'timestamp':
-  //           newData[trackColumn.column_name] = this.now();
-  //           break;
-  //         case 'user':
-  //           newData[trackColumn.column_name] = cookie?.user?.id || null;
-  //           break;
-  //         case 'custom':
-  //           if (customValue) {
-  //             newData[trackColumn.column_name] = customValue;
-  //           }
-  //           break;
-  //       }
-  //     }
-  //   } catch (e) {
-  //     console.warn(`Failed to update TrackModifications for column ${changedColumnId}:`, e);
-  //   }
-  // }
-
   // Override addLinks to handle TrackModifications updates
   async addLinks(params: {
     cookie: any;
@@ -3615,7 +3556,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     const result = await super.addLinks(params);
 
     // Check if this link operation should trigger TrackModifications updates
-    const linkColumn = this.model.columns.find(col => col.id === params.colId);
+    const linkColumn = this.model.columns.find(
+      (col) => col.id === params.colId,
+    );
     if (linkColumn) {
       // Create a mock data object to represent the link change
       // const mockData = { [linkColumn.column_name]: params.childIds };
@@ -3636,7 +3579,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     const result = await super.removeLinks(params);
 
     // Check if this link operation should trigger TrackModifications updates
-    const linkColumn = this.model.columns.find(col => col.id === params.colId);
+    const linkColumn = this.model.columns.find(
+      (col) => col.id === params.colId,
+    );
     if (linkColumn) {
       // Create a mock data object to represent the link change
       const mockData = { [linkColumn.column_name]: null };

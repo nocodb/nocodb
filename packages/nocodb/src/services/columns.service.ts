@@ -1001,7 +1001,7 @@ export class ColumnsService implements IColumnsService {
           `Updating ${column.uidt} => ${colBody.uidt}`,
         );
       }
-      } else if (
+    } else if (
       [
         UITypes.Lookup,
         UITypes.Rollup,
@@ -2786,7 +2786,12 @@ export class ColumnsService implements IColumnsService {
           let isTriggerBasedCol = false;
 
           // if triggerColumns configured - create column and map
-          if([UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(colBody.uidt) &&colBody.colOptions?.triggerColumns?.length){
+          if (
+            [UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(
+              colBody.uidt,
+            ) &&
+            colBody.colOptions?.triggerColumnIds?.length
+          ) {
             isTriggerBasedCol = true;
           }
 
@@ -2812,15 +2817,12 @@ export class ColumnsService implements IColumnsService {
                 break;
             }
 
-
             // todo:  check type as well
             const dbColumn = columns.find((c) => c.column_name === columnName);
 
             if (dbColumn) {
               columnName = getUniqueColumnName(columns, columnName);
             }
-
-
 
             {
               // Preserve original cdf before getColumnPropsFromUIDT potentially overwrites it
@@ -2871,8 +2873,8 @@ export class ColumnsService implements IColumnsService {
               column_name: columnName,
             });
 
-            if(isTriggerBasedCol){
-              savedColumn = createdColumn
+            if (isTriggerBasedCol) {
+              savedColumn = createdColumn;
               break;
             }
           } else {

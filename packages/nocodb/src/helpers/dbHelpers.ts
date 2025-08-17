@@ -40,6 +40,7 @@ import {
 } from '~/models';
 import { excludeAttachmentProps } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import {TrackModificationsColumnOptions} from "~/models/TrackModificationsColumn";
 
 export type QueryWithCte = {
   builder: string | Knex.QueryBuilder;
@@ -300,6 +301,11 @@ export async function getColumnName(
       return column.column_name || 'created_at';
     }
     case UITypes.LastModifiedTime: {
+      if(column.column_name && !column.system && (column.colOptions as TrackModificationsColumnOptions)?.triggerColumns?.length){
+        // if column is a trigger column, return the column name as it is
+        return column.column_name;
+      }
+
       const lastModifiedTimeSystemCol = columns.find(
         (col) => col.system && col.uidt === UITypes.LastModifiedTime,
       );
@@ -315,6 +321,11 @@ export async function getColumnName(
       return column.column_name || 'created_by';
     }
     case UITypes.LastModifiedBy: {
+      if(column.column_name && !column.system && (column.colOptions as TrackModificationsColumnOptions)?.triggerColumns?.length){
+        // if column is a trigger column, return the column name as it is
+        return column.column_name;
+      }
+
       const lastModifiedBySystemCol = columns.find(
         (col) => col.system && col.uidt === UITypes.LastModifiedBy,
       );

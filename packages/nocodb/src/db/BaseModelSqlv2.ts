@@ -71,6 +71,7 @@ import type {
 } from '~/models';
 import { LTARColsUpdater } from '~/db/BaseModelSqlv2/ltar-cols-updater';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
+import type { TrackModificationsColumnOptions } from '~/models/TrackModificationsColumn';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
 import { FieldHandler } from '~/db/field-handler';
@@ -120,6 +121,7 @@ import {
   PresignedUrl,
   Sort,
   Source,
+  TrackModificationsColumn,
   View,
 } from '~/models';
 import Noco from '~/Noco';
@@ -6037,30 +6039,48 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     model = this.model,
     knex = this.dbDriver,
     baseModel = this,
+    updatedColIds,
   }: {
     rowIds: any | any[];
     cookie?: { user?: any };
     model?: Model;
     knex?: XKnex;
     baseModel?: BaseModelSqlv2;
+    updatedColIds: string[];
   }) {
     const columns = await model.getColumns(this.context);
 
     const updateObject = {};
 
-    const lastModifiedTimeColumn = columns.find(
-      (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+    const lastModifiedTimeColumns = columns.filter(
+      (c) =>
+        c.uidt === UITypes.LastModifiedTime &&
+        (c.system ||
+          (c.column_name &&
+            (
+              c.colOptions as TrackModificationsColumnOptions
+            )?.triggerColumns?.some((c) =>
+              updatedColIds.includes(c.fk_trigger_column_id),
+            ))),
     );
 
-    const lastModifiedByColumn = columns.find(
-      (c) => c.uidt === UITypes.LastModifiedBy && c.system,
+    const lastModifiedByColumns = columns.filter(
+      (c) =>
+        c.uidt === UITypes.LastModifiedBy &&
+        (c.system ||
+          (c.column_name &&
+            (
+              c.colOptions as TrackModificationsColumnOptions
+            )?.triggerColumns?.some((c) =>
+              updatedColIds.includes(c.fk_trigger_column_id),
+            ))),
     );
 
-    if (lastModifiedTimeColumn) {
+    for (const lastModifiedTimeColumn of lastModifiedTimeColumns) {
       updateObject[lastModifiedTimeColumn.column_name] = this.now();
     }
 
-    if (lastModifiedByColumn) {
+    for (const lastModifiedByColumn of lastModifiedByColumns) {
       updateObject[lastModifiedByColumn.column_name] = cookie?.user?.id;
     }
 
@@ -6337,6 +6357,37 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           data[column.column_name] = isInsertData ? null : this.now();
         } else if (column.uidt === UITypes.LastModifiedBy) {
           data[column.column_name] = isInsertData ? null : cookie?.user?.id;
+        }
+      } else if (
+        [UITypes.LastModifiedTime, UITypes.LastModifiedBy].includes(
+          column.uidt,
+        ) &&
+        column.column_name &&
+        (column.colOptions as TrackModificationsColumnOptions)?.triggerColumns
+          ?.length &&
+        !isInsertData
+      ) {
+        // check if any of the tracked columns are updating
+        const trackColumns = (
+          column.colOptions as TrackModificationsColumnOptions
+        )?.triggerColumns;
+
+        if (
+          trackColumns.every((c) =>
+            ncIsUndefined(
+              data[
+                this.model.columnsById?.[c.fk_trigger_column_id]?.column_name
+              ],
+            ),
+          )
+        ) {
+          continue;
+        }
+
+        if (column.uidt === UITypes.LastModifiedTime) {
+          data[column.column_name] = this.now();
+        } else if (column.uidt === UITypes.LastModifiedBy) {
+          data[column.column_name] = cookie?.user?.id;
         }
       }
       if (

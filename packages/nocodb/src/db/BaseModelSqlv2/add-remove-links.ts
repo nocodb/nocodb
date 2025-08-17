@@ -295,6 +295,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: childIds,
             cookie,
+            // Todo: extract rel in ref table
+            updatedColIds: []
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -305,6 +307,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
           await childBaseModel.updateLastModified({
             model: childTable,
+            updatedColIds: [column.id],
             rowIds: [rowId],
             cookie,
           });
@@ -402,6 +405,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [rowId],
             cookie,
+            updatedColIds: [column.id]
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -464,6 +468,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [rowId],
             cookie,
+            updatedColIds: [column.id]
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -733,6 +738,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: childIds,
             cookie,
+            // Todo: extract rel in ref table
+            updatedColIds: []
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -745,6 +752,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: childTable,
             rowIds: [rowId],
             cookie,
+            updatedColIds: [column.id]
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -846,6 +854,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [rowId],
             cookie,
+            updatedColIds: [column.id]
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -911,6 +920,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [childIds[0]],
             cookie,
+            // Todo: extract rel in ref table
+            updatedColIds: []
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {

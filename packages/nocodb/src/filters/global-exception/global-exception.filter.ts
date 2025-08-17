@@ -44,6 +44,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const apiVersion = (request as any).ncApiVersion;
 
+
+    console.log(`GlobalExceptionFilter: `, exception);
+
     // catch body-parser error and replace with NcBaseErrorv2
     if (
       exception.name === 'BadRequestException' &&

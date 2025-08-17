@@ -60,7 +60,16 @@ import {
   populateUpdatePayloadDiff,
   remapWithAlias,
 } from '~/utils';
-import { Audit, Column, Filter, Model, ModelStat, Permission } from '~/models';
+import {
+  Audit,
+  Column,
+  FileReference,
+  Filter,
+  Model,
+  ModelStat,
+  Permission,
+  TrackModificationsColumn,
+} from '~/models';
 import {
   getSingleQueryReadFn,
   singleQueryGroupedList,
@@ -1056,40 +1065,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     // Check for TrackModifications columns and update them if trigger columns have changed
     if (!isInsertData && oldData) {
-      const trackModificationsColumns = this.model.columns.filter(col => 
-        (col.uidt as string) === 'TrackModifications' && 
-        col.colOptions?.enabled && 
-        col.colOptions?.triggerColumns?.length > 0
-      );
+      // Check which columns have changed
+      const changedColumns = [];
+      for (const col of this.model.columns) {
+        const oldValue = oldData[col.title] ?? oldData[col.column_name];
+        const newValue = data[col.column_name];
 
-      for (const trackCol of trackModificationsColumns) {
-        const triggerColumns = trackCol.colOptions.triggerColumns;
-        const hasChanges = triggerColumns.some(triggerColId => {
-          const triggerCol = this.model.columns.find(c => c.id === triggerColId);
-          if (!triggerCol) return false;
-          
-          const oldValue = oldData[triggerCol.title] ?? oldData[triggerCol.column_name];
-          const newValue = data[triggerCol.column_name];
-          
-          return oldValue !== newValue;
-        });
-
-        if (hasChanges) {
-          // Update the tracked column based on its configuration
-          switch (trackCol.colOptions.updateType) {
-            case 'timestamp':
-              data[trackCol.column_name] = this.now();
-              break;
-            case 'user':
-              data[trackCol.column_name] = cookie?.user?.id || null;
-              break;
-            case 'custom':
-              if (trackCol.colOptions.customValue) {
-                data[trackCol.column_name] = trackCol.colOptions.customValue;
-              }
-              break;
-          }
+        if (oldValue !== newValue) {
+          changedColumns.push(col.id);
         }
+      }
+
+      // Update TrackModifications columns for each changed column
+      for (const changedColumnId of changedColumns) {
+        await this.checkAndUpdateTrackModifications(changedColumnId, oldData, data, cookie);
       }
     }
 
@@ -3554,6 +3543,107 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         count,
       });
     }
+  }
+
+  // Check if a column change requires updating TrackModifications columns
+  private async checkAndUpdateTrackModifications(
+    changedColumnId: string,
+    oldData: any,
+    newData: any,
+    cookie?: { user?: any; permissions?: Permission[] },
+  ): Promise<void> {
+    try {
+      // Get all TrackModifications columns that have this column as a trigger
+      const trackModConfigs = await TrackModificationsColumn.getByTriggerColumnId(
+        this.context,
+        changedColumnId
+      );
+
+      if (trackModConfigs.length === 0) return;
+
+      // Update each TrackModifications column that was triggered
+      for (const trackConfig of trackModConfigs) {
+        const trackColumn = this.model.columns.find(col => col.id === trackConfig.fk_column_id);
+        if (!trackColumn) continue;
+
+        // Get configuration from colOptions
+        let updateType = 'timestamp';
+        let customValue = null;
+        let enabled = false;
+
+        if (trackColumn.colOptions && typeof trackColumn.colOptions === 'string') {
+          try {
+            const colOpts = JSON.parse(trackColumn.colOptions);
+            updateType = colOpts.updateType || 'timestamp';
+            customValue = colOpts.customValue;
+            enabled = colOpts.enabled || false;
+          } catch (e) {
+            // Use defaults if parsing fails
+          }
+        }
+
+        if (!enabled) continue;
+
+        // Update the tracked column based on its configuration
+        switch (updateType) {
+          case 'timestamp':
+            newData[trackColumn.column_name] = this.now();
+            break;
+          case 'user':
+            newData[trackColumn.column_name] = cookie?.user?.id || null;
+            break;
+          case 'custom':
+            if (customValue) {
+              newData[trackColumn.column_name] = customValue;
+            }
+            break;
+        }
+      }
+    } catch (e) {
+      console.warn(`Failed to update TrackModifications for column ${changedColumnId}:`, e);
+    }
+  }
+
+  // Override addLinks to handle TrackModifications updates
+  async addLinks(params: {
+    cookie: any;
+    childIds: (string | number | Record<string, any>)[];
+    colId: string;
+    rowId: string;
+  }) {
+    // Call parent method first
+    const result = await super.addLinks(params);
+
+    // Check if this link operation should trigger TrackModifications updates
+    const linkColumn = this.model.columns.find(col => col.id === params.colId);
+    if (linkColumn) {
+      // Create a mock data object to represent the link change
+      const mockData = { [linkColumn.column_name]: params.childIds };
+      await this.checkAndUpdateTrackModifications(params.colId, {}, mockData, params.cookie);
+    }
+
+    return result;
+  }
+
+  // Override removeLinks to handle TrackModifications updates
+  async removeLinks(params: {
+    cookie: any;
+    childIds: (string | number | Record<string, any>)[];
+    colId: string;
+    rowId: string;
+  }) {
+    // Call parent method first
+    const result = await super.removeLinks(params);
+
+    // Check if this link operation should trigger TrackModifications updates
+    const linkColumn = this.model.columns.find(col => col.id === params.colId);
+    if (linkColumn) {
+      // Create a mock data object to represent the link change
+      const mockData = { [linkColumn.column_name]: null };
+      await this.checkAndUpdateTrackModifications(params.colId, {}, mockData, params.cookie);
+    }
+
+    return result;
   }
 
   async checkPermission(params: {

@@ -84,10 +84,6 @@ const allEntities = computed<Array<any>>(() => {
   }
 
   &.dragging {
-    .nc-icon {
-      @apply !hidden;
-    }
-
     .nc-view-icon {
       @apply !block;
     }

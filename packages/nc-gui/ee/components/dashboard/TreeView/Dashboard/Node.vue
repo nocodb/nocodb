@@ -316,7 +316,7 @@ const deleteDashboard = () => {
 </script>
 
 <template>
-  <a-menu-item
+  <div
     class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
     :data-testid="`view-sidebar-dashboard-${vModel.title}`"
     @dblclick.stop="onDblClick"
@@ -326,6 +326,7 @@ const deleteDashboard = () => {
       :tooltip-style="{ width: '240px', zIndex: '1049' }"
       :overlay-inner-style="{ width: '240px' }"
       trigger="hover"
+      class="w-full"
       placement="right"
       :disabled="isEditing || isDropdownOpen || !showDashboardNodeTooltip"
     >
@@ -347,7 +348,7 @@ const deleteDashboard = () => {
           </div>
         </div>
       </template>
-      <div v-e="['a:dashboard:open']" class="text-sm flex items-center w-full gap-1" data-testid="dashboard-item">
+      <div v-e="['a:dashboard:open']" class="text-sm flex items-center flex-1 w-full gap-1" data-testid="dashboard-item">
         <div
           v-e="['c:dashboard:emoji-picker']"
           class="flex min-w-6"
@@ -396,7 +397,7 @@ const deleteDashboard = () => {
         >
           <template #title> {{ vModel.title }}</template>
           <div
-            data-testid="sidebar-dashboard-title"
+            data-testid="sidebar-dashboard-title w-full"
             :class="{
               'font-semibold text-brand-600': activeDashboardId === vModel.id,
             }"
@@ -500,5 +501,5 @@ const deleteDashboard = () => {
         </template>
       </div>
     </NcTooltip>
-  </a-menu-item>
+  </div>
 </template>

@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "الحقل {columnName} غير متاح",
       "cantSaveCircularReference": "لا يمكن حفظ الحقل لأنه يسبب مرجع دائري",
       "columnWithTypeFoundButExpected": "تم العثور على حقل {columnName} من نوع {columnType} لكن المتوقع نوع {expectedType}",
-      "columnNotMatchedWithType": "{columnName} لا يتطابق مع {columnType}"
+      "columnNotMatchedWithType": "{columnName} لا يتطابق مع {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "خيار التحديد لا يمكن أن يكون فارغًا",

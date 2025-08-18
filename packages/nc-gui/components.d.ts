@@ -117,7 +117,6 @@ declare module 'vue' {
     MdiTableColumnPlusAfter: typeof import('~icons/mdi/table-column-plus-after')['default']
     MdiThumbUp: typeof import('~icons/mdi/thumb-up')['default']
     MiCircleWarning: typeof import('~icons/mi/circle-warning')['default']
-    NcIconsInbox: typeof import('~icons/nc-icons/inbox')['default']
     PhMagnifyingGlassBold: typeof import('~icons/ph/magnifying-glass-bold')['default']
     RiExternalLinkLine: typeof import('~icons/ri/external-link-line')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

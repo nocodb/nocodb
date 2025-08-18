@@ -25,7 +25,7 @@ const route = router.currentRoute
 watch(
   [() => route.value.params.viewTitle, () => route.value.params.slugs, () => route.value.query],
   async ([viewTitle, slugs]) => {
-    if (!viewTitle && ncIsUndefined(slugs)) return
+    if (!viewTitle && ncIsUndefined(slugs) && route.value.name !== 'account-index-setup-nestedPage-app') return
 
     await until(() => !!nuxtLoadingIndicatorRef.value).toBeTruthy()
 

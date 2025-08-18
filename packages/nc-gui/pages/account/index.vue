@@ -3,6 +3,8 @@ definePageMeta({
   hideHeader: true,
 })
 
+const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
+
 const { isUIAllowed } = useRoles()
 
 const $route = useRoute()
@@ -26,8 +28,6 @@ const logout = async () => {
 }
 
 const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || appInfo.value.isOnPrem))
-
-const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
 
 watchEffect(() => {
   if (isSetupPageAllowed.value) {

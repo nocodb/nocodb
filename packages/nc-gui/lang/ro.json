@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Câmpul {columnName} nu este disponibil",
       "cantSaveCircularReference": "Nu se poate salva câmpul deoarece cauzează o referință circulară",
       "columnWithTypeFoundButExpected": "Câmpul {columnName} cu tip {columnType} este găsit dar se așteaptă tipul {expectedType}",
-      "columnNotMatchedWithType": "{columnName} nu se potrivește cu {columnType}"
+      "columnNotMatchedWithType": "{columnName} nu se potrivește cu {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Opțiunile de selecție nu pot fi nule",

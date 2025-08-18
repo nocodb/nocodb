@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "फ़ील्ड {columnName} उपलब्ध नहीं है",
       "cantSaveCircularReference": "फ़ील्ड सहेज नहीं सकता क्योंकि यह एक परिपत्र संदर्भ का कारण बनता है",
       "columnWithTypeFoundButExpected": "फ़ील्ड {columnName} के साथ {columnType} प्रकार पाया गया लेकिन {expectedType} प्रकार अपेक्षित है",
-      "columnNotMatchedWithType": "{columnName} {columnType} से मेल नहीं खाता है"
+      "columnNotMatchedWithType": "{columnName} {columnType} से मेल नहीं खाता है",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "विकल्प खाली नहीं हो सकते",

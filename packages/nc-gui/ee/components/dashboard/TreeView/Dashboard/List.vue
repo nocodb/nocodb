@@ -12,8 +12,6 @@ const baseId = toRef(props, 'baseId')
 
 const { $e } = useNuxtApp()
 
-const { t } = useI18n()
-
 const { addUndo, defineModelScope } = useUndoRedo()
 
 const { isMobileMode } = useGlobal()
@@ -21,8 +19,6 @@ const { isMobileMode } = useGlobal()
 const bases = useBases()
 
 const { isUIAllowed } = useRoles()
-
-const { showDashboardPlanLimitExceededModal } = useEeConfig()
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -141,112 +137,6 @@ function markItem(id: string) {
   }, 300)
 }
 
-/** validate dashboard title */
-function validate(dashboard: DashboardType) {
-  if (!dashboard.title || dashboard.title.trim().length < 0) {
-    return t('msg.error.dashboardNameRequired')
-  }
-
-  if (dashboards.value.some((s) => s.title === dashboard.title && s.id !== dashboard.id)) {
-    return t('msg.error.dashboardNameDuplicate')
-  }
-
-  return true
-}
-
-async function onRename(dashboard: DashboardType, originalTitle?: string, undo = false) {
-  try {
-    await updateDashboard(dashboard.base_id, dashboard.id!, {
-      title: dashboard.title,
-      order: dashboard.order,
-    })
-
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (s: DashboardType, title: string) => {
-            const tempTitle = s.title
-            s.title = title
-            onRename(s, tempTitle, true)
-          },
-          args: [dashboard, dashboard.title],
-        },
-        undo: {
-          fn: (s: DashboardType, title: string) => {
-            const tempTitle = s.title
-            s.title = title
-            onRename(s, tempTitle, true)
-          },
-          args: [dashboard, originalTitle],
-        },
-        scope: defineModelScope({ base_id: dashboard.base_id }),
-      })
-    }
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-/** Open delete modal */
-function openDeleteDialog(dashboard: DashboardType) {
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgDashboardDelete'), {
-    'visible': isOpen,
-    'dashboard': dashboard,
-    'onUpdate:visible': closeDialog,
-    'onDeleted': () => {
-      closeDialog()
-    },
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-const duplicateDashboard = async (dashboard: DashboardType) => {
-  if (showDashboardPlanLimitExceededModal()) {
-    return
-  }
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgDashboardDuplicate'), {
-    'modelValue': isOpen,
-    'dashboard': dashboard,
-    'onUpdate:modelValue': closeDialog,
-    'onDeleted': () => {
-      closeDialog()
-    },
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-const updateDashboardIcon = async (icon: string, dashboard: DashboardType) => {
-  try {
-    // modify the icon property in meta
-    dashboard.meta = {
-      ...parseProp(dashboard.meta),
-      icon,
-    }
-
-    await updateDashboard(dashboard.base_id, dashboard.id!, {
-      meta: dashboard.meta,
-    })
-
-    $e('a:dashboard:icon:sidebar', { icon })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
 const menuRef = ref<typeof AntMenu>()
 
 const initSortable = (el: HTMLElement) => {
@@ -318,12 +208,7 @@ const filteredDashboards = computed(() => {
         'bg-gray-200': isMarked === dashboard.id,
         'active': activeDashboardId === dashboard.id,
       }"
-      :on-validate="validate"
       :dashboard="dashboard"
-      @rename="onRename"
-      @delete="openDeleteDialog(dashboard)"
-      @select-icon="updateDashboardIcon($event, dashboard)"
-      @duplicate="duplicateDashboard(dashboard)"
     />
   </a-menu>
 </template>

@@ -4,28 +4,17 @@ import type { WritableComputedRef } from '@vue/reactivity'
 
 interface Props {
   dashboard: DashboardType
-  onValidate: (dashboard: DashboardType) => boolean | string
-}
-
-interface Emits {
-  (event: 'update:dashboard', data: Record<string, any>): void
-
-  (event: 'selectIcon', icon: string): void
-
-  (event: 'rename', dashboard: DashboardType, title: string | undefined): void
-
-  (event: 'delete', dashboard: DashboardType): void
-
-  (event: 'duplicate', dashboard: DashboardType): void
 }
 
 const props = defineProps<Props>()
 
-const emits = defineEmits<Emits>()
-
-const vModel = useVModel(props, 'dashboard', emits) as WritableComputedRef<DashboardType>
+const vModel = useVModel(props, 'dashboard') as WritableComputedRef<DashboardType>
 
 const { $e } = useNuxtApp()
+
+const { t } = useI18n()
+
+const { addUndo, defineModelScope } = useUndoRedo()
 
 const { isMobileMode, ncNavigateTo, user } = useGlobal()
 
@@ -35,7 +24,11 @@ const { basesUser } = storeToRefs(useBases())
 
 const { isUIAllowed } = useRoles()
 
-const { activeDashboardId } = storeToRefs(useDashboardStore())
+const dashboardStore = useDashboardStore()
+
+const { updateDashboard } = dashboardStore
+
+const { activeDashboardId, activeBaseDashboards } = storeToRefs(dashboardStore)
 
 const { meta: metaKey, control } = useMagicKeys()
 
@@ -96,6 +89,19 @@ const focusInput = () => {
     input.value?.focus()
     input.value?.select()
   })
+}
+
+/** validate dashboard title */
+function validateDashboardTitle(dashboard: DashboardType) {
+  if (!dashboard.title || dashboard.title.trim().length < 0) {
+    return t('msg.error.dashboardNameRequired')
+  }
+
+  if (activeBaseDashboards.value.some((s) => s.title === dashboard.title && s.id !== dashboard.id)) {
+    return t('msg.error.dashboardNameDuplicate')
+  }
+
+  return true
 }
 
 /** Enable editing dashboard name on dbl click */
@@ -159,6 +165,39 @@ const onRenameMenuClick = () => {
   }
 }
 
+async function onRenameDashboard(dashboard: DashboardType, originalTitle?: string, undo = false) {
+  try {
+    await updateDashboard(dashboard.base_id, dashboard.id!, {
+      title: dashboard.title,
+      order: dashboard.order,
+    })
+
+    if (!undo) {
+      addUndo({
+        redo: {
+          fn: (s: DashboardType, title: string) => {
+            const tempTitle = s.title
+            s.title = title
+            onRenameDashboard(s, tempTitle, true)
+          },
+          args: [dashboard, dashboard.title],
+        },
+        undo: {
+          fn: (s: DashboardType, title: string) => {
+            const tempTitle = s.title
+            s.title = title
+            onRenameDashboard(s, tempTitle, true)
+          },
+          args: [dashboard, originalTitle],
+        },
+        scope: defineModelScope({ base_id: dashboard.base_id }),
+      })
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 /** Rename a dashboard */
 async function onRename() {
   isDropdownOpen.value = false
@@ -168,7 +207,7 @@ async function onRename() {
     _title.value = _title.value.trim()
   }
 
-  const isValid = props.onValidate({ ...vModel.value, title: _title.value! })
+  const isValid = validateDashboardTitle({ ...vModel.value, title: _title.value! })
 
   if (isValid !== true) {
     message.error(isValid)
@@ -186,7 +225,7 @@ async function onRename() {
 
   vModel.value.title = _title.value || ''
 
-  emits('rename', vModel.value, originalTitle)
+  onRenameDashboard(vModel.value, originalTitle)
 
   onStopEdit()
 }
@@ -218,12 +257,61 @@ function onStopEdit() {
 const duplicateDashboard = (dashboard: DashboardType) => {
   isDropdownOpen.value = false
 
-  emits('duplicate', dashboard)
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgDashboardDuplicate'), {
+    'modelValue': isOpen,
+    'dashboard': dashboard,
+    'onUpdate:modelValue': closeDialog,
+    'onDeleted': () => {
+      closeDialog()
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+const updateDashboardIcon = async (icon: string, dashboard: DashboardType) => {
+  try {
+    // modify the icon property in meta
+    dashboard.meta = {
+      ...parseProp(dashboard.meta),
+      icon,
+    }
+
+    await updateDashboard(dashboard.base_id, dashboard.id!, {
+      meta: dashboard.meta,
+    })
+
+    $e('a:dashboard:icon:sidebar', { icon })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 const deleteDashboard = () => {
   isDropdownOpen.value = false
-  emits('delete', vModel.value)
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgDashboardDelete'), {
+    'visible': isOpen,
+    'dashboard': vModel.value,
+    'onUpdate:visible': closeDialog,
+    'onDeleted': () => {
+      closeDialog()
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
 }
 </script>
 
@@ -274,7 +362,7 @@ const deleteDashboard = () => {
             :emoji="props.dashboard?.meta?.icon"
             :clearable="true"
             :readonly="isMobileMode || !isUIAllowed('dashboardEdit')"
-            @emoji-selected="emits('selectIcon', $event)"
+            @emoji-selected="updateDashboardIcon($event, vModel)"
           >
             <template #default>
               <GeneralIcon

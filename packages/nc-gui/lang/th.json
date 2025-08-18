@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "ไม่สามารถใช้งาน คอลัมน์ {columnName}",
       "cantSaveCircularReference": "ไม่สามารถบันทึกฟิลด์เนื่องจากทำให้เกิดการอ้างอิงเวียนวน",
       "columnWithTypeFoundButExpected": "พบคอลัมน์ {columnName} ซึ่งมีประเภท {columnType} แต่ขอประเภท {expectedType}",
-      "columnNotMatchedWithType": "{columnName} ไม่ตรงกับ {columnType}"
+      "columnNotMatchedWithType": "{columnName} ไม่ตรงกับ {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "ตัวเลือกไม่สามารถเป็นค่าว่างได้",

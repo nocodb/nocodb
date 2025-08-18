@@ -2238,7 +2238,7 @@
       },
       "patch": {
         "summary": "Update view",
-        "description": "Update the details of a specific view.",
+        "description": "Update the details of a specific view. The request body should contain the fields to be updated. Fields not included in the request body will remain unchanged. Fields included will overwrite the existing values. There is no provision for partial updates of fields, sort or filter using this PATCH request.",
         "operationId": "view-update",
         "tags": [
           "Views"
@@ -5842,45 +5842,6 @@
           }
         ]
       },
-      "ViewUpdate": {
-        "type": "object",
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ViewBase"
-          },
-          {
-            "properties": {
-              "fields": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "field_id": {
-                      "type": "string"
-                    },
-                    "show": {
-                      "type": "boolean"
-                    },
-                    "width": {
-                      "type": "integer"
-                    },
-                    "aggregation": {
-                      "$ref": "#/components/schemas/ViewAggregationEnum"
-                    }
-                  },
-                  "required": [
-                    "field_id",
-                    "show"
-                  ]
-                }
-              }
-            }
-          },
-          {
-            "$ref": "#/components/schemas/ViewBaseOptions"
-          }
-        ]
-      },
 
       "ViewList": {
         "type": "object",
@@ -6002,6 +5963,28 @@
           "type"
         ]
       },
+      "ViewBaseInUpdate": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the view."
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked"
+            ],
+            "description": "Lock type of the view.\n\n Note: Assigning view as personal using API is not supported currently",
+            "default": "collaborative"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the view."
+          }
+        }
+      },
       "ViewFields": {
         "type": "array",
         "items": {
@@ -6098,6 +6081,48 @@
         ],
         "discriminator": {
           "propertyName": "mode"
+        }
+      },
+      "ViewOptionsGrid": {
+        "type": "object",
+        "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier for the field being sorted."
+                },
+                "direction": {
+                  "type": "string",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "description": "Direction of the group, either 'asc' (ascending) or 'desc' (descending).",
+                  "default": "asc"
+                }
+              },
+              "required": [
+                "field_id"
+              ]
+            },
+            "description": "List of groups to be applied on the grid view."
+          },
+          "row_height": {
+            "type": "string",
+            "enum": [
+              "short",
+              "medium",
+              "tall",
+              "extra"
+            ],
+            "description": "Height of the rows in the grid view.",
+            "default": "short"
+          }
         }
       },
       "ViewOptionsKanban": {
@@ -6375,6 +6400,125 @@
           }
         ]
       },
+      "ViewUpdate": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ViewBaseInUpdate"
+          },
+          {
+            "oneOf": [
+              {
+                "type": "object",
+                "title": "grid",
+                "properties": {
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGrid"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "gallery",
+                "properties": {
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGallery"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "kanban",
+                "properties": {
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsKanban"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "calendar",
+                "properties": {
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsCalendar"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              }
+            ],
+            "discriminator": {
+              "propertyName": "type"
+            }
+          }
+        ]
+      },
 
       "View": {
         "type": "object",
@@ -6430,48 +6574,6 @@
             "$ref": "#/components/schemas/ViewBaseOptions"
           }
         ]
-      },
-      "ViewOptionsGrid": {
-        "type": "object",
-        "properties": {
-          "groups": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "field_id": {
-                  "type": "string",
-                  "format": "uuid",
-                  "description": "Identifier for the field being sorted."
-                },
-                "direction": {
-                  "type": "string",
-                  "enum": [
-                    "asc",
-                    "desc"
-                  ],
-                  "description": "Direction of the group, either 'asc' (ascending) or 'desc' (descending).",
-                  "default": "asc"
-                }
-              },
-              "required": [
-                "field_id"
-              ]
-            },
-            "description": "List of groups to be applied on the grid view."
-          },
-          "row_height": {
-            "type": "string",
-            "enum": [
-              "short",
-              "medium",
-              "tall",
-              "extra"
-            ],
-            "description": "Height of the rows in the grid view.",
-            "default": "short"
-          }
-        }
       },
       "FieldBase": {
         "type": "object",

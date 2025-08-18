@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "השדה {columnName} אינו זמין",
       "cantSaveCircularReference": "לא ניתן לשמור את השדה מכיוון שזה גורם להתייחסות מעגלית",
       "columnWithTypeFoundButExpected": "השדה {columnName} עם סוג {columnType} נמצא אך צפוי סוג {expectedType}",
-      "columnNotMatchedWithType": "{columnName} אינו מתאים ל-{columnType}"
+      "columnNotMatchedWithType": "{columnName} אינו מתאים ל-{columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "אפשרויות הבחירה לא יכולות להיות ריקות",

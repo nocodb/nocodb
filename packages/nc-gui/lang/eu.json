@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "{columnName} eremua ez dago erabilgarri",
       "cantSaveCircularReference": "Ezingo da eremua gorde, zirkular erreferentzia bat sortzen baitu",
       "columnWithTypeFoundButExpected": "{columnName} eremuko {columnType} mota aurkitu da baina {expectedType} mota espero da",
-      "columnNotMatchedWithType": "{columnName} ez dator {columnType} motarekin bat"
+      "columnNotMatchedWithType": "{columnName} ez dator {columnType} motarekin bat",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Aukera hautatuak ezin dira hutsik egon",

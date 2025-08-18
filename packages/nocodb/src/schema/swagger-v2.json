@@ -13628,7 +13628,9 @@
               "Links",
               "User",
               "CreatedBy",
-              "LastModifiedBy"
+              "LastModifiedBy",
+              "LastModifiedBy",
+              "Meta"
             ],
             "type": "string"
           },

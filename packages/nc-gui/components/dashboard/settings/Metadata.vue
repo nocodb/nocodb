@@ -81,7 +81,7 @@ async function syncMetaDiff() {
           if (data.status === JobStatus.COMPLETED) {
             // Table metadata recreated successfully
             message.info(t('msg.info.metaDataRecreated'))
-            progressRef.value.pushProgress('Done!', data.status)
+            progressRef.value?.pushProgress('Done!', data.status)
 
             isLoading.value = false
 
@@ -90,12 +90,12 @@ async function syncMetaDiff() {
 
             emit('baseSynced')
           } else if (data.status === JobStatus.FAILED) {
-            progressRef.value.pushProgress(data.data?.error?.message || 'Failed to sync base metadata', data.status)
+            progressRef.value?.pushProgress(data.data?.error?.message || 'Failed to sync base metadata', data.status)
             syncCompleted.value = true
             isLoading.value = false
           } else {
             // Job is still in progress
-            progressRef.value.pushProgress(data.data?.message)
+            progressRef.value?.pushProgress(data.data?.message)
           }
         }
       },

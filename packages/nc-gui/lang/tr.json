@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Alan {columnName} mevcut değil",
       "cantSaveCircularReference": "Alanı kaydedemiyorum çünkü dairesel bir referansa neden oluyor",
       "columnWithTypeFoundButExpected": "{columnType} türündeki alan {columnName} bulundu ama {expectedType} türü bekleniyordu",
-      "columnNotMatchedWithType": "{columnName}, {columnType} ile eşleşmiyor"
+      "columnNotMatchedWithType": "{columnName}, {columnType} ile eşleşmiyor",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Seçenekler null olamaz",

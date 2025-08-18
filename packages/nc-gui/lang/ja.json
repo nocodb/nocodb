@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "フィールド{columnName}は利用できません",
       "cantSaveCircularReference": "循環参照を引き起こすためフィールドを保存できません",
       "columnWithTypeFoundButExpected": "{columnType} タイプのフィールド {columnName} が見つかりましたが、{expectedType} タイプが期待されています",
-      "columnNotMatchedWithType": "{columnName} は {columnType} と一致しません"
+      "columnNotMatchedWithType": "{columnName} は {columnType} と一致しません",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "選択オプションをNULLにすることはできません",

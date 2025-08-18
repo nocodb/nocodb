@@ -24,6 +24,7 @@ import type Model from '~/models/Model';
 import type { NcContext } from '~/interface/config';
 import type { RollupColumn, View } from '~/models';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
+import type { LastModColumnOptions } from '~/models/LastModColumn';
 import { GridViewColumn } from '~/models';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
@@ -627,6 +628,15 @@ export const getRefColumnIfAlias = async (
         UITypes.LastModifiedBy,
       ] as UITypes[]
     ).includes(column.uidt)
+  )
+    return column;
+
+  // skip if tracking is enabled for last modified columns
+  if (
+    [UITypes.LastModifiedTime, UITypes.LastModifiedBy].includes(column.uidt) &&
+    column.column_name &&
+    !column.system &&
+    (column.colOptions as LastModColumnOptions)?.triggerColumnIds?.length > 0
   )
     return column;
 

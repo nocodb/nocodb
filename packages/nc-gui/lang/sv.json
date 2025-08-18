@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Fält {columnName} är inte tillgängligt",
       "cantSaveCircularReference": "Kan inte spara fält eftersom det orsakar en cirkulär referens",
       "columnWithTypeFoundButExpected": "Fält {columnName} med {columnType} typ hittades men {expectedType} typ förväntades",
-      "columnNotMatchedWithType": "{columnName} matchar inte med {columnType}"
+      "columnNotMatchedWithType": "{columnName} matchar inte med {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Valmöjligheter kan inte vara null",

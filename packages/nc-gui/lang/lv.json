@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Lauks {columnName} nav pieejams",
       "cantSaveCircularReference": "Nevar saglabāt lauku, jo tas izraisa apļveida atsauci",
       "columnWithTypeFoundButExpected": "Lauks {columnName} ar {columnType} tipu ir atrasts, bet {expectedType} tips ir sagaidāms",
-      "columnNotMatchedWithType": "{columnName} nesaskan ar {columnType}"
+      "columnNotMatchedWithType": "{columnName} nesaskan ar {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Izvēles iespējas nevar būt nulles",

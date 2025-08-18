@@ -110,12 +110,11 @@ const isLoading = ref(false)
 const _duplicate = async () => {
   try {
     isLoading.value = true
+    const isContextDifferent = targetBase.value && targetBase.value.id !== activeBase.value.id
     const jobData = await api.dbTable.duplicate(props.table.base_id!, props.table.id!, {
       options: {
         ...optionsToExclude.value,
-        ...(targetBase.value && targetBase.value.id !== activeBase.value.id
-          ? { targetWorkspaceId: targetWorkspace.value!.id, targetBaseId: targetBase.value.id }
-          : {}),
+        ...(isContextDifferent ? { targetWorkspaceId: targetWorkspace.value!.id, targetBaseId: targetBase.value.id } : {}),
       },
     })
 
@@ -148,11 +147,16 @@ const _duplicate = async () => {
               }
             }
 
-            await loadTables()
-            refreshCommandPalette()
-            const newTable = tables.value.find((el) => el.id === data?.data?.result?.id)
+            if (!isContextDifferent) {
+              await loadTables()
+              refreshCommandPalette()
+              const newTable = tables.value.find((el) => el.id === data?.data?.result?.id)
 
-            openTable(newTable!)
+              openTable(newTable!)
+            } else {
+              // TODO: navigating to specified base?
+              message.success(t(`msg.success.tableDuplicatedInOtherBase`))
+            }
             isLoading.value = false
             dialogShow.value = false
           } else if (data.status === JobStatus.FAILED) {

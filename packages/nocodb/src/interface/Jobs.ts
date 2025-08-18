@@ -156,6 +156,7 @@ export interface DuplicateBaseJobData extends JobData {
 
 export interface DuplicateModelJobData extends JobData {
   sourceId: string;
+  targetSourceId: string;
   modelId: string;
   title: string;
   req: NcRequest;
@@ -164,6 +165,8 @@ export interface DuplicateModelJobData extends JobData {
     excludeViews?: boolean;
     excludeHooks?: boolean;
     excludeComments?: boolean;
+    targetBaseId?: string;
+    targetWorkspaceId?: string;
   };
 }
 

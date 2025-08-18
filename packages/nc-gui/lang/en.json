@@ -2486,7 +2486,8 @@
       "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan.",
       "mcpUrlCopied": "MCP URL copied to clipboard",
       "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

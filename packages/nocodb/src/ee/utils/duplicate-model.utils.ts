@@ -22,14 +22,9 @@ export class DuplicateModelUtils extends DuplicateModelUtilsCE {
         });
       }
       if (options.targetWorkspaceId !== context.workspace_id) {
-        if (
-          !getFeature(
-            PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WORKSPACE,
-          )
-        ) {
+        if (!getFeature(PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS)) {
           NcError.get(context).featureNotSupported({
-            feature:
-              PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WORKSPACE,
+            feature: PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS,
             isOnPrem,
           });
         }

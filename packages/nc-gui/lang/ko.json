@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "열 {columnName}을(를) 사용할 수 없습니다",
       "cantSaveCircularReference": "순환 참조가 발생하여 필드를 저장할 수 없습니다",
       "columnWithTypeFoundButExpected": "{columnType} 유형의 {columnName} 필드가 있지만 {expectedType} 유형이 필요합니다",
-      "columnNotMatchedWithType": "{columnName}이(가) {columnType}과(와) 일치하지 않습니다."
+      "columnNotMatchedWithType": "{columnName}이(가) {columnType}과(와) 일치하지 않습니다.",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "선택 옵션은 null이 될 수 없습니다",

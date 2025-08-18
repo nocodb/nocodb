@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Стовпець {columnName} недоступний",
       "cantSaveCircularReference": "Неможливо зберегти поле, оскільки це спричиняє циклічне посилання",
       "columnWithTypeFoundButExpected": "Поле {columnName} із типом {columnType} знайдено, але очікується тип {expectedType}",
-      "columnNotMatchedWithType": "{columnName} не відповідає типу {columnType}"
+      "columnNotMatchedWithType": "{columnName} не відповідає типу {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Параметри вибору не можуть бути порожніми",

@@ -4,7 +4,7 @@ defineProps<{ title?: string; subtitle?: string; containerClass?: string; action
 
 <template>
   <div class="nc-h-screen grid place-items-center text-center">
-    <div class="flex flex-col items-center gap-6" :class="containerClass">
+    <div class="flex flex-col items-center gap-5 mx-4" :class="containerClass">
       <slot name="icon">
         <img width="48" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
       </slot>
@@ -19,7 +19,9 @@ defineProps<{ title?: string; subtitle?: string; containerClass?: string; action
       </div>
 
       <slot name="actions">
-        <NcButton @click="navigateTo('/')" :class="actionButtonClass">{{ $t('activity.goBackHome') }}</NcButton>
+        <NcButton @click="navigateTo('/')" class="!text-base" :class="actionButtonClass">{{
+          $t('activity.goBackHome')
+        }}</NcButton>
       </slot>
     </div>
   </div>

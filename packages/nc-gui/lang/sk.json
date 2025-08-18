@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Pole {columnName} nie je dostupné",
       "cantSaveCircularReference": "Pole sa nedá uložiť, pretože spôsobuje cyklickú referenciu",
       "columnWithTypeFoundButExpected": "Pole {columnName} s typom {columnType} je nájdené, ale očakáva sa typ {expectedType}",
-      "columnNotMatchedWithType": "{columnName} nezodpovedá typu {columnType}"
+      "columnNotMatchedWithType": "{columnName} nezodpovedá typu {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Možnosti výberu nemôžu byť nulové",

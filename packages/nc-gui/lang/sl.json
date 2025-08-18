@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Polje {columnName} ni na voljo",
       "cantSaveCircularReference": "Polja ni mogoče shraniti, ker povzroča krožno referenco",
       "columnWithTypeFoundButExpected": "Polje {columnName} s tipom {columnType} je najdeno, vendar je pričakovan tip {expectedType}",
-      "columnNotMatchedWithType": "{columnName} ni skladen s tipom {columnType}"
+      "columnNotMatchedWithType": "{columnName} ni skladen s tipom {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Izberite možnosti ne morejo biti null",

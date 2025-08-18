@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Das Feld {columnName} ist nicht verfügbar",
       "cantSaveCircularReference": "Feld kann nicht gespeichert werden, da ein Zirkelschluss verursacht wird",
       "columnWithTypeFoundButExpected": "Feld {columnName} mit Typ {columnType} gefunden, aber Typ {expectedType} erwartet",
-      "columnNotMatchedWithType": "{columnName} stimmt nicht mit {columnType} überein"
+      "columnNotMatchedWithType": "{columnName} stimmt nicht mit {columnType} überein",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Auswahloptionen dürfen nicht leer sein",

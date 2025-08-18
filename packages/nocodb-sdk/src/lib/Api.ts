@@ -22,6 +22,125 @@ export enum WorkspaceRolesV3Type {
 }
 
 /**
+ * Array of workspace users to be deleted.
+ */
+export type WorkspaceUserDeleteV3Type = {
+  /** Unique identifier for the user */
+  user_id: string;
+}[];
+
+/**
+ * Array of workspace user updates.
+ */
+export type WorkspaceUserUpdateV3Type = {
+  /** Unique identifier for the user */
+  user_id: string;
+  /** New workspace role to assign to the user */
+  workspace_role: WorkspaceRolesV3Type;
+}[];
+
+/**
+ * Array of workspace users to be created.
+ */
+export type WorkspaceUserCreateV3Type = (
+  | {
+      /** Unique identifier for the user (skip if email is provided) */
+      user_id: string;
+      /** Workspace role to assign to the user */
+      workspace_role: WorkspaceRolesV3Type;
+    }
+  | {
+      /**
+       * Email address of the user (skip if user_id is provided)
+       * @format email
+       */
+      email: string;
+      /** Workspace role to assign to the user */
+      workspace_role: WorkspaceRolesV3Type;
+    }
+)[];
+
+/**
+ * Workspace user information
+ */
+export interface WorkspaceUserV3Type {
+  /**
+   * Email address of the user
+   * @format email
+   */
+  email: string;
+  /** Unique identifier for the user */
+  user_id: string;
+  /**
+   * Timestamp when the user was added to the workspace
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the user was last updated in the workspace
+   * @format date-time
+   */
+  updated_at: string;
+  /** Role assigned to the user in the workspace */
+  workspace_role: WorkspaceRolesV3Type;
+}
+
+/**
+ * Individual workspace member information
+ */
+export interface WorkspaceMemberV3Type {
+  /**
+   * Email address of the member
+   * @format email
+   */
+  email: string;
+  /** Unique identifier for the user */
+  user_id: string;
+  /**
+   * Timestamp when the user was added to the workspace
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the user was last updated in the workspace
+   * @format date-time
+   */
+  updated_at: string;
+  /** Role assigned to the user in the workspace */
+  workspace_role: WorkspaceRolesV3Type;
+}
+
+/**
+ * Workspace information including member details
+ */
+export type WorkspaceWithMembersV3Type = WorkspaceV3Type & {
+  individual_members: {
+    /** List of workspace members */
+    workspace_members: WorkspaceMemberV3Type[];
+  };
+};
+
+/**
+ * Basic workspace information
+ */
+export interface WorkspaceV3Type {
+  /** Unique identifier for the workspace */
+  id: string;
+  /** Title of the workspace */
+  title: string;
+  /**
+   * Timestamp when the workspace was created
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the workspace was last updated
+   * @format date-time
+   */
+  updated_at: string;
+}
+
+/**
  * Base roles for the user.
  */
 export enum BaseRolesV3Type {
@@ -1102,57 +1221,55 @@ export interface TableMetaReqV3Type {
   icon?: string;
 }
 
-export type BaseUserDeleteV3Type = {
-  /** Unique identifier for the user. */
-  id?: string;
-  /**
-   * Email address of the user.
-   * @format email
-   */
-  email?: string;
+export type BaseMemberDeleteV3Type = {
+  /** User unique identifier for the member. */
+  user_id: string;
 }[];
 
 /**
- * Array of user updates.
+ * Array of member updates.
  */
-export type BaseUserUpdateV3Type = {
-  /** Unique identifier for the user. Used as a primary identifier if provided. */
-  id?: string;
-  /**
-   * Email address of the user. Used as a primary identifier if 'id' is not provided.
-   * @format email
-   */
-  email?: string;
+export type BaseMemberUpdateV3Type = {
+  /** Unique user identifier for the member. */
+  user_id: string;
   /** Base roles for the user. */
   base_role: BaseRolesV3Type;
 }[];
 
 /**
- * Array of users to be created.
+ * Array of members to be created.
  */
-export type BaseUserCreateV3Type = {
-  /** Unique identifier for the user. Can be provided optionally during creation. */
-  id?: string;
-  /**
-   * Email address of the user. Used as a primary identifier if 'id' is not provided.
-   * @format email
-   */
-  email?: string;
-  /** Full name of the user. */
-  user_name?: string;
-  /** Base roles for the user. */
-  base_role: BaseRolesV3Type;
-}[];
+export type BaseMemberCreateV3Type = (
+  | {
+      /** Unique identifier for the user (skip if email is provided) */
+      user_id: string;
+      /** Full name of the user. */
+      user_name?: string;
+      /** Base roles for the user. */
+      base_role: BaseRolesV3Type;
+    }
+  | {
+      /**
+       * Email address of the user (skip if user_id is provided)
+       * @format email
+       */
+      email: string;
+      /** Full name of the user. */
+      user_name?: string;
+      /** Base roles for the user. */
+      base_role: BaseRolesV3Type;
+    }
+)[];
 
-export interface BaseUserListV3Type {
-  list?: BaseUserV3Type[];
+export interface BaseMemberListV3Type {
+  list?: BaseMemberV3Type[];
 }
 
 export type BaseUserDeleteRequestV3Type = any;
 
-export interface BaseUserV3Type {
+export interface BaseMemberWithWorkspaceRoleV3Type {
   /** Unique identifier for the user. */
-  id: string;
+  user_id: string;
   /**
    * Email address of the user.
    * @format email
@@ -1160,22 +1277,24 @@ export interface BaseUserV3Type {
   email: string;
   /** Display name of the user. */
   user_name?: string;
-  /**
-   * Timestamp of when the user was created.
-   * @format date-time
-   */
-  created_at: string;
-  /**
-   * Timestamp of when the user access was last updated.
-   * @format date-time
-   */
-  updated_at: string;
   /** Base roles for the user. */
   base_role: BaseRolesV3Type;
-  /** Workspace roles for the user. */
-  workspace_role: WorkspaceRolesV3Type;
-  /** Unique identifier for the workspace. */
-  workspace_id: string;
+  /** Role assigned to the user in the workspace */
+  workspace_role?: WorkspaceRolesV3Type;
+}
+
+export interface BaseMemberV3Type {
+  /** Unique identifier for the user. */
+  user_id: string;
+  /**
+   * Email address of the user.
+   * @format email
+   */
+  email: string;
+  /** Display name of the user. */
+  user_name?: string;
+  /** Base roles for the user. */
+  base_role: BaseRolesV3Type;
 }
 
 export interface TableV3Type {
@@ -1267,6 +1386,45 @@ export interface BaseMetaResV3Type {
    * @pattern ^#[0-9A-Fa-f]{6}$
    */
   icon_color?: string;
+}
+
+export interface BaseWithMembersV3Type {
+  /** Unique identifier for the base. */
+  id: string;
+  /** Title of the base. */
+  title: string;
+  meta: BaseMetaResV3Type;
+  /**
+   * Timestamp of when the base was created.
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp of when the base was last updated.
+   * @format date-time
+   */
+  updated_at: string;
+  /** Unique identifier for the workspace to which this base belongs to. */
+  workspace_id: string;
+  /** List of data sources associated with this base. This information will be included only if one or more external data sources are associated with the base. */
+  sources?: {
+    /** Unique identifier for the data source. */
+    id: string;
+    /** Title of the data source. */
+    title: string;
+    /** Type of the data source (e.g., pg, mysql). */
+    type: string;
+    /** Indicates if the schema in this data source is read-only. */
+    is_schema_readonly: boolean;
+    /** Indicates if the data (records) in this data source is read-only. */
+    is_data_readonly: boolean;
+    /** Integration ID for the data source. */
+    integration_id: string;
+  }[];
+  individual_members?: {
+    base_members?: BaseMemberWithWorkspaceRoleV3Type[];
+    workspace_members?: WorkspaceMemberV3Type[];
+  };
 }
 
 export interface BaseV3Type {
@@ -4157,6 +4315,7 @@ export interface UserType {
   location?: string;
   website?: string;
   avatar?: string;
+  is_new_user?: boolean;
   /** Access token version */
   token_version?: string;
   /** Meta data for user */

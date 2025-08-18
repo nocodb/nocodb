@@ -379,7 +379,7 @@ async function checkForCircularFormulaRef(
       const neighbours = [
         ...new Set(
           (
-            (c.colOptions as FormulaType).formula.match(/c_?\w{14,15}/g) || []
+            (c.colOptions as FormulaType).formula.match(/cl?_?\w{14,15}/g) || []
           ).filter((colId) =>
             columns.some(
               (col) => col.id === colId && col.uidt === UITypes.Formula
@@ -407,7 +407,7 @@ async function checkForCircularFormulaRef(
 
     // Extract columns used in the formula and check for cycles
     const referencedColumns =
-      (col.colOptions as FormulaType).formula.match(/c_?\w{14,15}/g) || [];
+      (col.colOptions as FormulaType).formula.match(/cl?_?\w{14,15}/g) || [];
 
     for (const refColId of referencedColumns) {
       const refCol = columns.find((c) => c.id === refColId);

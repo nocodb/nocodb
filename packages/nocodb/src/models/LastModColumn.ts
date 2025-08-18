@@ -112,4 +112,30 @@ export default class LastModColumn {
           triggerColumnIds: [],
         };
   }
+
+  static async update(
+    context: NcContext,
+    colId: string,
+    colOptions: LastModColumnOptions,
+    ncMeta = Noco.ncMeta,
+  ): Promise<LastModColumnOptions> {
+    // remove the existing trigger column
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_LAST_MOD_TRIGGER_COLUMNS,
+      {
+        fk_column_id: colId,
+      },
+    );
+
+    await this.insert(
+      context,
+      {
+        fk_column_id: colId,
+        triggerColumnIds: colOptions?.triggerColumnIds ?? [],
+      },
+      ncMeta,
+    );
+  }
 }

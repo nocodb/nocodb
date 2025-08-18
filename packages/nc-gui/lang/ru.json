@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Поле {columnName} недоступно",
       "cantSaveCircularReference": "Невозможно сохранить поле, так как это вызывает циклическую ссылку",
       "columnWithTypeFoundButExpected": "Найдено поле {columnName} типа {columnType}, но ожидался тип {expectedType}",
-      "columnNotMatchedWithType": "Поле {columnName} не соответствует типу {columnType}"
+      "columnNotMatchedWithType": "Поле {columnName} не соответствует типу {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Опции выбора не могут быть пустыми",

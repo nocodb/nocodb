@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "El campo {columnName} no está disponible",
       "cantSaveCircularReference": "No se puede guardar el campo porque causa una referencia circular",
       "columnWithTypeFoundButExpected": "Se ha encontrado el campo {columnName} con el tipo {columnType} , pero se espera el tipo {expectedType}",
-      "columnNotMatchedWithType": "{columnName} no coincide con {columnType}"
+      "columnNotMatchedWithType": "{columnName} no coincide con {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Las opciones de selección no pueden ser nulas",

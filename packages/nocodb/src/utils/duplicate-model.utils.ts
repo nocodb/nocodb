@@ -2,10 +2,11 @@ import {
   appendToLength,
   AppendToLengthSuffix,
   type NcContext,
+  ProjectRoles,
   SqlUiFactory,
 } from 'nocodb-sdk';
 import type { DuplicateModelJobData } from '~/interface/Jobs';
-import { Base, Model, Source } from '~/models';
+import { Base, BaseUser, Model, Source } from '~/models';
 import { NcError } from '~/helpers/ncError';
 
 // need to use class to utilize inheritance
@@ -50,7 +51,23 @@ export class DuplicateModelUtils {
 
     const { context: targetContext, isDifferent: isTargetContextDifferent } =
       this.getTargetContext(context, body.options);
-    // TODO: validate role for workspace and base
+
+    if (isTargetContextDifferent) {
+      const baseUser = await BaseUser.get(
+        targetContext,
+        targetContext.base_id,
+        context.user.id,
+      );
+      if (
+        ![ProjectRoles.OWNER, ProjectRoles.CREATOR].includes(
+          baseUser.roles as ProjectRoles,
+        )
+      ) {
+        NcError.get(context).forbidden(
+          `Only owner or creator can create table at specified base`,
+        );
+      }
+    }
 
     const targetBase = isTargetContextDifferent
       ? await Base.get(targetContext, targetContext.base_id)

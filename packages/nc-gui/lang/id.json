@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Kolom {columnName} tidak tersedia",
       "cantSaveCircularReference": "Tidak dapat menyimpan kolom karena menyebabkan referensi sirkulasi",
       "columnWithTypeFoundButExpected": "Kolom {columnName} dengan tipe {columnType} ditemukan tetapi tipe {expectedType} diharapkan",
-      "columnNotMatchedWithType": "{columnName} tidak cocok dengan {columnType}"
+      "columnNotMatchedWithType": "{columnName} tidak cocok dengan {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Opsi pilihan tidak boleh null",

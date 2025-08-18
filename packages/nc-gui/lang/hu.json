@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "{columnName} mező nem elérhető",
       "cantSaveCircularReference": "Nem lehet menteni a mezőt, mert körkörös hivatkozást okoz",
       "columnWithTypeFoundButExpected": "{columnType} típusú {columnName} mező található, de {expectedType} típus szükséges",
-      "columnNotMatchedWithType": "{columnName} nem egyezik meg a(z) {columnType} típussal"
+      "columnNotMatchedWithType": "{columnName} nem egyezik meg a(z) {columnType} típussal",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "A kiválasztási lehetőségek nem lehetnek null értékűek",

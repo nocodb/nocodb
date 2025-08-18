@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Kenttä {columnName} ei ole käytettävissä",
       "cantSaveCircularReference": "Kenttää ei voi tallentaa, koska se aiheuttaa syklisen viittauksen",
       "columnWithTypeFoundButExpected": "Sarake {columnName}, jolla on tyyppi {columnType}, löydettiin, mutta odotettiin tyyppiä {expectedType}",
-      "columnNotMatchedWithType": "{columnName} ei vastaa tyyppiä {columnType}"
+      "columnNotMatchedWithType": "{columnName} ei vastaa tyyppiä {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Valintavaihtoehdot eivät voi olla tyhjiä",

@@ -4,6 +4,7 @@ import {
   convertDurationToSeconds,
   enumColors,
   EventType,
+  extractFilterFromXwhere,
   isAIPromptCol,
   isAttachment,
   isCreatedOrLastModifiedByCol,
@@ -68,7 +69,6 @@ import {
   Model,
   ModelStat,
   Permission,
-  TrackModificationsColumn,
 } from '~/models';
 import {
   getSingleQueryReadFn,
@@ -100,7 +100,6 @@ import {
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { getProjectRole } from '~/utils/roleHelper';
-import NocoSocket from '~/socket/NocoSocket';
 import { chunkArray } from '~/utils/tsUtils';
 import { singleQueryList as mysqlSingleQueryList } from '~/services/data-opt/mysql-helpers';
 import { Profiler } from '~/helpers/profiler';
@@ -1062,25 +1061,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     await super.prepareNocoData(data, isInsertData, cookie, oldData, extra);
-
-    // Check for TrackModifications columns and update them if trigger columns have changed
-    if (!isInsertData && oldData) {
-      // Check which columns have changed
-      const changedColumns = [];
-      for (const col of this.model.columns) {
-        const oldValue = oldData[col.title] ?? oldData[col.column_name];
-        const newValue = data[col.column_name];
-
-        if (oldValue !== newValue) {
-          changedColumns.push(col.id);
-        }
-      }
-
-      // // Update TrackModifications columns for each changed column
-      // for (const changedColumnId of changedColumns) {
-      //   await this.checkAndUpdateTrackModifications(changedColumnId, oldData, data, cookie);
-      // }
-    }
 
     // AI column isStale handling
     const aiColumns = this.model.columns.filter((c) => isAIPromptCol(c));
@@ -3543,52 +3523,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         count,
       });
     }
-  }
-
-  // Override addLinks to handle TrackModifications updates
-  async addLinks(params: {
-    cookie: any;
-    childIds: (string | number | Record<string, any>)[];
-    colId: string;
-    rowId: string;
-  }) {
-    // Call parent method first
-    const result = await super.addLinks(params);
-
-    // Check if this link operation should trigger TrackModifications updates
-    const linkColumn = this.model.columns.find(
-      (col) => col.id === params.colId,
-    );
-    if (linkColumn) {
-      // Create a mock data object to represent the link change
-      // const mockData = { [linkColumn.column_name]: params.childIds };
-      // await this.checkAndUpdateTrackModifications(params.colId, {}, mockData, params.cookie);
-    }
-
-    return result;
-  }
-
-  // Override removeLinks to handle TrackModifications updates
-  async removeLinks(params: {
-    cookie: any;
-    childIds: (string | number | Record<string, any>)[];
-    colId: string;
-    rowId: string;
-  }) {
-    // Call parent method first
-    const result = await super.removeLinks(params);
-
-    // Check if this link operation should trigger TrackModifications updates
-    const linkColumn = this.model.columns.find(
-      (col) => col.id === params.colId,
-    );
-    if (linkColumn) {
-      // Create a mock data object to represent the link change
-      const mockData = { [linkColumn.column_name]: null };
-      // await this.checkAndUpdateTrackModifications(params.colId, {}, mockData, params.cookie);
-    }
-
-    return result;
   }
 
   async checkPermission(params: {

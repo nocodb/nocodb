@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "字段 {columnName} 不可用",
       "cantSaveCircularReference": "无法保存字段，因为它会导致循环引用",
       "columnWithTypeFoundButExpected": "字段 {columnName} 类型为 {columnType} ，但预期类型为 {expectedType}",
-      "columnNotMatchedWithType": "{columnName} 与 {columnType} 不匹配"
+      "columnNotMatchedWithType": "{columnName} 与 {columnType} 不匹配",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "选择选项不能为空",

@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "វាល {columnName} មិនអាចប្រើបាន",
       "cantSaveCircularReference": "មិនអាចរក្សាទុកវាលបានព្រោះវាបង្កើតភាពនិរចស្សសំបុក",
       "columnWithTypeFoundButExpected": "វាល {columnName} ដែលមានប្រភេទ {columnType} ត្រូវបានគេរៀបឿក្តែសន្និដ្ឋានវាគួរតែជា​ប្រភេទ {expectedType}",
-      "columnNotMatchedWithType": "{columnName} មិនផ្គូរផ្គងជាមួយ {columnType}"
+      "columnNotMatchedWithType": "{columnName} មិនផ្គូរផ្គងជាមួយ {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "ជ្រើសរើសជម្រើសមិនអាចជាបទពិសោធន៏ទេ",

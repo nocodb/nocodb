@@ -1,15 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Sandbox } from '@e2b/code-interpreter';
-import { ButtonActionsType } from 'nocodb-sdk';
-import { WebhookHandlerProcessor } from './webhook-handler/webhook-handler.processor';
 import type { Job } from 'bull';
-import type {
-  ExecuteActionJobData,
-  HandleWebhookJobData,
-} from '~/interface/Jobs';
+import type { ExecuteActionJobData } from '~/interface/Jobs';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
-import { JobTypes } from '~/interface/Jobs';
-import { ButtonColumn, Hook, Model, Script, View } from '~/models';
+import { Model, Script, View } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import { NcError } from '~/helpers/ncError';
 import { getBaseSchema } from '~/helpers/scriptHelper';
@@ -27,421 +21,456 @@ export class ActionExecutionProcessor {
   constructor(
     private readonly jobsLogService: JobsLogService,
     private readonly datasService: DatasService,
-    private readonly webhookHandlerProcessor: WebhookHandlerProcessor,
   ) {}
 
   async job(job: Job<ExecuteActionJobData>) {
-    const { context, req, buttonId, tableId, viewId } = job.data;
+    const { context, req, scriptId, recordIds, modelId, viewId } = job.data;
 
-    const sendLog = (log: string) => {
+    const sendLog = (log: string) =>
       this.jobsLogService.sendLog(job, { message: log });
-    };
-
-    const sendActionMessage = (message: any) => {
+    const sendMessage = (message: any) =>
       this.jobsLogService.sendLog(job, { message: JSON.stringify(message) });
-    };
 
     try {
-      const buttonColumn = await ButtonColumn.read(context, buttonId);
-      if (!buttonColumn) {
-        NcError.notFound('Button column not found');
-      }
-
-      const model = await Model.get(context, tableId);
-      if (!model) {
-        NcError.notFound('Model not found');
-      }
-
-      const view = await View.get(context, viewId);
-      if (!view) {
-        NcError.notFound('View not found');
-      }
-
-      if (buttonColumn.type === ButtonActionsType.Webhook) {
-        await this.processWebhookActionStream(
-          context,
-          buttonColumn,
-          model,
-          view,
-          req,
-          sendLog,
-          sendActionMessage,
-        );
-      } else if (buttonColumn.type === ButtonActionsType.Script) {
-        await this.processScriptActionStream(
-          context,
-          buttonColumn,
-          model,
-          view,
-          req,
-          sendLog,
-          sendActionMessage,
-        );
-      } else {
-        sendLog(`Unsupported action type: ${buttonColumn.type}`);
-        return;
-      }
+      await this.triggerScript(
+        context,
+        req,
+        { scriptId, recordIds, modelId, viewId },
+        { sendLog, sendMessage },
+      );
     } catch (error) {
-      sendLog(`Action execution failed: ${error.message}`);
-      this.logger.error('Action execution failed:', error);
+      sendLog(`Script execution failed: ${error.message}`);
+      this.logger.error('Script execution failed:', error);
       throw error;
     }
   }
 
-  private async processBatchedRecords<T>(
+  async triggerScript(
     context: any,
-    model: Model,
-    view: View,
-    sendLog: (log: string) => void,
-    sendActionMessage: (message: any) => void,
-    buttonColumn: ButtonColumn,
     req: any,
-    processRecord: (
-      record: any,
-      recordIndex: number,
-      pk: string,
-      executionId: string,
-    ) => Promise<T>,
-  ): Promise<number> {
-    let offset = 0;
-    let totalProcessed = 0;
-    let hasMoreRecords = true;
-    await model.getColumns(context);
+    options: {
+      scriptId: string;
+      recordIds?: string[];
+      modelId?: string;
+      viewId?: string;
+    },
+    callbacks: {
+      sendLog: (log: string) => void;
+      sendMessage: (message: any) => void;
+    },
+  ) {
+    // Get script
+    const script = await Script.get(context, options.scriptId);
+    if (!script) {
+      NcError.notFound('Script not found');
+    }
 
-    while (hasMoreRecords) {
-      const recordsData = await this.datasService.dataList(context, {
-        model,
-        view,
-        query: {
-          limit: BATCH_SIZE,
-          offset,
-        },
-      });
+    // Get model and view if needed
+    let model: Model | null = null;
+    let view: View | null = null;
 
-      const records = recordsData.list || [];
-
-      if (records?.length === 0) {
-        hasMoreRecords = false;
-        break;
+    if (options.modelId) {
+      model = await Model.get(context, options.modelId);
+      if (!model) {
+        NcError.notFound('Model not found');
       }
+      await model.getColumns(context);
+    }
 
-      await this.processRecordsWithConcurrency(
-        records,
-        totalProcessed,
-        model,
-        buttonColumn,
-        processRecord,
-        sendActionMessage,
-      );
-
-      totalProcessed += records.length;
-      offset += BATCH_SIZE;
-
-      // Check if we have more records
-      if (records.length < BATCH_SIZE) {
-        hasMoreRecords = false;
+    if (options.viewId) {
+      view = await View.get(context, options.viewId);
+      if (!view || view.fk_model_id !== model?.id) {
+        NcError.notFound('View not found');
       }
     }
 
-    return totalProcessed;
+    // Validate dependencies
+    if (options.recordIds?.length && !options.modelId) {
+      throw new Error('modelId is required when recordIds are provided');
+    }
+
+    const sandbox = await this.createSandbox();
+
+    try {
+      if (options.recordIds?.length) {
+        await this.executeForRecords({
+          context,
+          req,
+          script,
+          model: model,
+          view,
+          recordIds: options.recordIds,
+          sandbox,
+          sendMessage: callbacks.sendMessage,
+        });
+      } else if (model) {
+        await this.executeForAllRecords({
+          context,
+          req,
+          script,
+          model,
+          view,
+          sandbox,
+          sendMessage: callbacks.sendMessage,
+        });
+      } else {
+        await this.executeStandalone({
+          context,
+          req,
+          script,
+          sandbox,
+          sendMessage: callbacks.sendMessage,
+        });
+      }
+    } finally {
+      await this.cleanupSandbox(sandbox);
+    }
   }
 
-  private async processRecordsWithConcurrency<T>(
-    records: any[],
-    baseIndex: number,
-    model: Model,
-    buttonColumn: ButtonColumn,
-    processRecord: (
-      record: any,
-      recordIndex: number,
-      pk: string,
-      executionId: string,
-    ) => Promise<T>,
-    sendActionMessage: (message: any) => void,
-  ): Promise<void> {
-    const semaphore = new Array(CONCURRENCY_LIMIT).fill(null);
-    let currentIndex = 0;
+  async executeStandalone(params: {
+    context: any;
+    req: any;
+    script: Script;
+    sandbox: Sandbox;
+    sendMessage: (message: any) => void;
+  }) {
+    const { context, req, script, sandbox, sendMessage } = params;
+    const executionId = `standalone-${script.id}-${Date.now()}`;
 
-    const processNext = async (): Promise<void> => {
-      while (currentIndex < records.length) {
-        const recordIndex = currentIndex++;
-        const record = records[recordIndex];
-        const globalIndex = baseIndex + recordIndex;
+    sendMessage({
+      type: 'ACTION_EXECUTION_START',
+      executionId,
+      payload: {
+        scriptId: script.id,
+        scriptName: script.title || 'Script',
+        startTime: new Date().toISOString(),
+      },
+    });
 
-        const pk = dataWrapper(record).extractPksValue(model, true);
-        const executionId = `${pk}-${
-          buttonColumn.id
-        }-${Date.now()}-${globalIndex}`;
+    await this.runScript({
+      context,
+      req,
+      script,
+      record: null,
+      model: null,
+      view: null,
+      recordId: null,
+      executionId,
+      sandbox,
+      sendMessage,
+    });
+  }
 
-        const displayValue = this.getRecordDisplayValue(record, model);
+  async executeForRecords(params: {
+    context: any;
+    req: any;
+    script: Script;
+    model: Model;
+    view: View | null;
+    recordIds: string[];
+    sandbox: Sandbox;
+    sendMessage: (message: any) => void;
+  }) {
+    const {
+      context,
+      req,
+      script,
+      model,
+      view,
+      recordIds,
+      sandbox,
+      sendMessage,
+    } = params;
 
-        sendActionMessage({
+    for (let i = 0; i < recordIds.length; i++) {
+      const recordId = recordIds[i];
+      const executionId = `${recordId}-${script.id}-${Date.now()}-${i}`;
+
+      try {
+        const record = await this.datasService.dataRead(context, {
+          baseName: model.base_id,
+          tableName: model.id,
+          rowId: recordId,
+          viewName: view?.id,
+          query: null,
+        });
+
+        if (!record) {
+          continue;
+        }
+
+        const displayValue = this.getDisplayValue(record, model);
+
+        sendMessage({
           type: 'ACTION_EXECUTION_START',
           executionId,
           payload: {
-            recordId: pk,
+            recordId,
             displayValue,
-            scriptId: buttonColumn.fk_script_id,
-            scriptName:
-              buttonColumn.type === ButtonActionsType.Script
-                ? buttonColumn.label || 'Script Action'
-                : buttonColumn.label || 'Webhook Action',
-            buttonFieldName: buttonColumn.label || 'Button',
+            scriptId: script.id,
+            scriptName: script.title || 'Script',
             startTime: new Date().toISOString(),
           },
         });
 
-        try {
-          await processRecord(record, globalIndex, pk, executionId);
-        } catch (error) {
-          this.logger.error(
-            `Record processing failed for record ${globalIndex + 1}:`,
-            error,
-          );
+        await this.runScript({
+          context,
+          req,
+          script,
+          record,
+          model,
+          view,
+          recordId,
+          executionId,
+          sandbox,
+          sendMessage,
+        });
+      } catch (error) {
+        this.logger.error(`Record ${recordId} failed:`, error);
+        sendMessage({
+          type: 'ACTION_EXECUTION_COMPLETE',
+          executionId,
+          status: 'error',
+          payload: { recordId, error: error.message },
+        });
+      }
+    }
+  }
 
-          sendActionMessage({
+  async executeForAllRecords(params: {
+    context: any;
+    req: any;
+    script: Script;
+    model: Model;
+    view: View | null;
+    sandbox: Sandbox;
+    sendMessage: (message: any) => void;
+  }) {
+    const { context, req, script, model, view, sandbox, sendMessage } = params;
+    let offset = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const recordsData = await this.datasService.dataList(context, {
+        model,
+        view,
+        query: { limit: BATCH_SIZE, offset },
+      });
+
+      const records = recordsData.list || [];
+      if (records.length === 0) break;
+
+      // Process records with concurrency
+      await this.processConcurrently({
+        context,
+        req,
+        script,
+        model,
+        records,
+        baseIndex: offset,
+        sandbox,
+        sendMessage,
+      });
+
+      offset += BATCH_SIZE;
+      hasMore = records.length === BATCH_SIZE;
+    }
+  }
+
+  private async processConcurrently(params: {
+    context: any;
+    req: any;
+    script: Script;
+    model: Model;
+    records: any[];
+    baseIndex: number;
+    sandbox: Sandbox;
+    sendMessage: (message: any) => void;
+  }) {
+    const {
+      context,
+      req,
+      script,
+      model,
+      records,
+      baseIndex,
+      sandbox,
+      sendMessage,
+    } = params;
+    const semaphore = new Array(CONCURRENCY_LIMIT).fill(null);
+    let currentIndex = 0;
+
+    const processNext = async () => {
+      while (currentIndex < records.length) {
+        const recordIndex = currentIndex++;
+        const record = records[recordIndex];
+        const globalIndex = baseIndex + recordIndex;
+        const pk = dataWrapper(record).extractPksValue(model, true);
+        const executionId = `${pk}-${script.id}-${Date.now()}-${globalIndex}`;
+
+        try {
+          const displayValue = this.getDisplayValue(record, model);
+
+          sendMessage({
+            type: 'ACTION_EXECUTION_START',
+            executionId,
+            payload: {
+              recordId: pk,
+              displayValue,
+              scriptId: script.id,
+              scriptName: script.title || 'Script',
+              startTime: new Date().toISOString(),
+            },
+          });
+
+          await this.runScript({
+            context,
+            req,
+            script,
+            record,
+            model,
+            view: null,
+            recordId: pk,
+            executionId,
+            sandbox,
+            sendMessage,
+          });
+        } catch (error) {
+          this.logger.error(`Record ${globalIndex + 1} failed:`, error);
+          sendMessage({
             type: 'ACTION_EXECUTION_COMPLETE',
             executionId,
             status: 'error',
-            payload: {
-              recordId: pk,
-              error: error.message || 'Processing failed',
-            },
+            payload: { recordId: pk, error: error.message },
           });
         }
       }
     };
 
-    const workers = semaphore.map(() => processNext());
-    await Promise.all(workers);
+    await Promise.all(semaphore.map(() => processNext()));
   }
 
-  private async processWebhookActionStream(
-    context: any,
-    buttonColumn: ButtonColumn,
-    model: Model,
-    view: View,
-    req: any,
-    sendLog: (log: string) => void,
-    sendActionMessage: (message: any) => void,
-  ) {
-    if (!buttonColumn.fk_webhook_id) {
-      sendLog('No webhook configured for this button');
-      return;
-    }
-
-    const hook = await Hook.get(context, buttonColumn.fk_webhook_id);
-    if (!hook) {
-      sendLog(`Webhook ${buttonColumn.fk_webhook_id} not found`);
-      return;
-    }
-
-    await this.processBatchedRecords(
+  private async runScript(params: {
+    context: any;
+    req: any;
+    script: Script;
+    record: any | null;
+    model: Model | null;
+    view: View | null;
+    recordId: string | null;
+    executionId: string;
+    sandbox: Sandbox;
+    sendMessage: (message: any) => void;
+  }) {
+    const {
       context,
+      req,
+      script,
       model,
       view,
-      sendLog,
-      sendActionMessage,
-      buttonColumn,
-      req,
-      async (record, recordIndex, pk, executionId) => {
-        const webhookJobData: HandleWebhookJobData = {
-          jobName: JobTypes.HandleWebhook,
-          context,
-          user: req.user,
-          hookId: buttonColumn.fk_webhook_id,
-          modelId: model.id,
-          viewId: view.id,
-          hookName: 'manual.trigger',
-          prevData: null,
-          newData: record,
-        };
+      recordId,
+      executionId,
+      sandbox,
+      sendMessage,
+    } = params;
 
-        const mockJob = {
-          data: webhookJobData,
-          id: `action-webhook-${Date.now()}-${recordIndex}-${pk}`,
-        } as Job<HandleWebhookJobData>;
+    try {
+      const baseSchema = await getBaseSchema(context);
+      const code = createSandboxCode(
+        script.script,
+        baseSchema,
+        req.user,
+        req,
+        recordId,
+        model?.id || null,
+        view?.id || null,
+        executionId,
+      );
 
-        try {
-          await this.webhookHandlerProcessor.job(mockJob);
-
-          // Send completion message
-          sendActionMessage({
-            type: 'ACTION_EXECUTION_COMPLETE',
+      await sandbox.runCode(code, {
+        language: 'javascript',
+        onError: (error) => {
+          sendMessage({
+            type: 'ACTION_EXECUTION_ERROR',
             executionId,
-            status: 'success',
             payload: {
-              recordId: pk,
-              message: 'Webhook executed successfully',
+              recordId,
+              error:
+                (error as any)?.message ||
+                error?.toString() ||
+                'Script execution error',
             },
           });
-        } catch (error) {
-          // Send error message
-          sendActionMessage({
-            type: 'ACTION_EXECUTION_COMPLETE',
-            executionId,
-            status: 'error',
-            payload: {
-              recordId: pk,
-              error: error.message || 'Webhook execution failed',
-            },
-          });
-          throw error;
-        }
-      },
-    );
+        },
+        onStdout: (data) => {
+          const parsedMessage = parseSandboxOutputToWorkerMessage(data);
+          if (parsedMessage) {
+            sendMessage({
+              type: 'ACTION_EXECUTION_MESSAGE',
+              executionId,
+              payload: { recordId, message: parsedMessage },
+            });
+          }
+        },
+        onStderr: (data) => {
+          const parsedMessage = parseSandboxOutputToWorkerMessage(data);
+          if (parsedMessage) {
+            sendMessage({
+              type: 'ACTION_EXECUTION_MESSAGE',
+              executionId,
+              payload: { recordId, message: parsedMessage },
+            });
+          }
+        },
+      });
+
+      sendMessage({
+        type: 'ACTION_EXECUTION_COMPLETE',
+        executionId,
+        status: 'success',
+        payload: { recordId, message: 'Script executed successfully' },
+      });
+    } catch (error) {
+      sendMessage({
+        type: 'ACTION_EXECUTION_COMPLETE',
+        executionId,
+        status: 'error',
+        payload: {
+          recordId,
+          error: error.message || 'Script execution failed',
+        },
+      });
+      throw error;
+    }
   }
 
-  private async processScriptActionStream(
-    context: any,
-    buttonColumn: ButtonColumn,
-    model: Model,
-    view: View,
-    req: any,
-    sendLog: (log: string) => void,
-    sendActionMessage: (message: any) => void,
-  ) {
-    if (!process.env.E2B_API_KEY) {
-      sendLog('E2B_API_KEY is not set');
-      return;
+  private async createSandbox(): Promise<Sandbox> {
+    if (!process.env.E2B_API_KEY || !process.env.E2B_TEMPLATE_ID) {
+      throw new Error('E2B_API_KEY and E2B_TEMPLATE_ID must be set');
     }
 
-    if (!process.env.E2B_TEMPLATE_ID) {
-      sendLog('E2B_TEMPLATE_ID is not set');
-      return;
-    }
-
-    const script = await Script.get(context, buttonColumn.fk_script_id);
-    if (!script) {
-      sendLog(`Script ${buttonColumn.fk_script_id} not found`);
-      return;
-    }
-
-    let sandbox: Sandbox;
     try {
-      const templateID = process.env.E2B_TEMPLATE_ID;
-      sandbox = await Sandbox.create(templateID, {
+      return await Sandbox.create(process.env.E2B_TEMPLATE_ID, {
         apiKey: process.env.E2B_API_KEY,
       });
     } catch (error) {
       this.logger.error('Sandbox creation failed:', error);
-      sendLog(`Sandbox creation failed: ${error.message}`);
-      return;
-    }
-
-    try {
-      const baseSchema = await getBaseSchema(context);
-
-      await this.processBatchedRecords(
-        context,
-        model,
-        view,
-        sendLog,
-        sendActionMessage,
-        buttonColumn,
-        req,
-        async (record, recordIndex, pk, executionId) => {
-          const sandboxCode = createSandboxCode(
-            script.script,
-            baseSchema,
-            req.user,
-            req,
-            pk,
-            model.id,
-            view.id,
-            executionId,
-          );
-
-          try {
-            await sandbox.runCode(sandboxCode, {
-              language: 'javascript',
-              onError: (error) => {
-                console.log('onError', error);
-                sendActionMessage({
-                  type: 'ACTION_EXECUTION_ERROR',
-                  executionId,
-                  payload: {
-                    recordId: pk,
-                    error:
-                      (error as any)?.message ||
-                      error?.toString() ||
-                      'Script execution error',
-                  },
-                });
-              },
-              onStdout: (data) => {
-                console.log('data', data);
-                const parsedMessage = parseSandboxOutputToWorkerMessage(data);
-                if (parsedMessage) {
-                  sendActionMessage({
-                    type: 'ACTION_EXECUTION_MESSAGE',
-                    executionId,
-                    payload: {
-                      recordId: pk,
-                      message: parsedMessage,
-                    },
-                  });
-                }
-              },
-              onStderr: (data) => {
-                console.log('stderr', data);
-
-                const parsedMessage = parseSandboxOutputToWorkerMessage(data);
-                if (parsedMessage) {
-                  sendActionMessage({
-                    type: 'ACTION_EXECUTION_MESSAGE',
-                    executionId,
-                    payload: {
-                      recordId: pk,
-                      message: parsedMessage,
-                    },
-                  });
-                }
-              },
-            });
-
-            sendActionMessage({
-              type: 'ACTION_EXECUTION_COMPLETE',
-              executionId,
-              status: 'success',
-              payload: {
-                recordId: pk,
-                message: 'Script executed successfully',
-              },
-            });
-          } catch (error) {
-            sendActionMessage({
-              type: 'ACTION_EXECUTION_COMPLETE',
-              executionId,
-              status: 'error',
-              payload: {
-                recordId: pk,
-                error: error.message || 'Script execution failed',
-              },
-            });
-            throw error;
-          }
-        },
-      );
-    } catch (error) {
-      this.logger.error('Script execution failed:', error);
-      sendLog(`Script execution failed: ${error.message}`);
-    } finally {
-      if (sandbox) {
-        try {
-          await sandbox.kill();
-        } catch (error) {
-          this.logger.warn('Failed to close sandbox:', error);
-        }
-      }
+      throw new Error(`Sandbox creation failed: ${error.message}`);
     }
   }
 
-  private getRecordDisplayValue(record: any, model: Model): string {
+  private async cleanupSandbox(sandbox: Sandbox) {
+    try {
+      await sandbox.kill();
+    } catch (error) {
+      this.logger.warn('Failed to close sandbox:', error);
+    }
+  }
+
+  private getDisplayValue(record: any, model: Model): string {
     const displayField =
       model.columns?.find((col) => col.pv) ||
       model.columns?.find((col) => col.pk);
-
     return displayField?.title in record
       ? record[displayField.title]
       : 'Record';

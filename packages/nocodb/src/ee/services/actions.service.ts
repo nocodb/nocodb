@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ButtonActionsType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
-import { Column, Model, View } from '~/models';
+import { ButtonColumn, Model, Script, View } from '~/models';
 import { NcError } from '~/helpers/ncError';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
@@ -20,16 +21,13 @@ export class ActionsService {
     },
     req: NcRequest,
   ) {
-    const col = await Column.get(context, {
-      colId: payload.button_id,
-    });
-
-    if (!col) {
-      NcError.notFound('Column not found');
+    const buttonColumn = await ButtonColumn.read(context, payload.button_id);
+    if (!buttonColumn || buttonColumn.type !== ButtonActionsType.Script) {
+      NcError.notFound('Button column not found');
     }
 
     const model = await Model.get(context, payload.table_id);
-    if (!model || model.id !== col.fk_model_id) {
+    if (!model) {
       NcError.notFound('Model not found');
     }
 
@@ -39,22 +37,24 @@ export class ActionsService {
       NcError.notFound('View not found');
     }
 
+    const script = await Script.get(context, buttonColumn.fk_script_id);
+
     const job = await this.jobsService.add(JobTypes.ExecuteAction, {
       context,
-      buttonId: payload.button_id,
       req: {
         user: req.user,
         clientIp: req.clientIp,
         headers: req.headers,
         ncSiteUrl: req.ncSiteUrl,
       },
-      tableId: payload.table_id,
-      viewId: payload.view_id,
+      scriptId: script.id,
+      modelId: model.id,
+      viewId: view.id,
     });
 
     return {
       id: job.id,
-      name: job.name,
+      name: JobTypes.ExecuteAction,
     };
   }
 }

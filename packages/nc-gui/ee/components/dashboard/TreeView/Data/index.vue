@@ -1,23 +1,9 @@
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
   baseId: string
 }>()
 
-const baseId = toRef(props, 'baseId')
-
-const bases = useBases()
-
-const dashboardStore = useDashboardStore()
-
-const { baseHomeSearchQuery, openedProject } = storeToRefs(bases)
-
-const { dashboards: baseDashboards } = storeToRefs(dashboardStore)
-
 const isExpanded = ref(true)
-
-const dashboards = computed(() => baseDashboards.value.get(baseId.value) ?? [])
-
-
 </script>
 
 <template>
@@ -31,9 +17,7 @@ const dashboards = computed(() => baseDashboards.value.get(baseId.value) ?? [])
         :class="{ '!rotate-90': isExpanded }"
       />
     </div>
-    <div key="g1" class="overflow-x-hidden transition-max-height" :class="{ 'max-h-0': !isExpanded }">
-      Show all tables and Dashboards here
-    </div>
+    <DashboardTreeViewDataList v-if="isExpanded" :base-id="baseId!" />
   </div>
 </template>
 

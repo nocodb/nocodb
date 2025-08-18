@@ -12,8 +12,6 @@ interface Emits {
 
   (event: 'selectIcon', icon: string): void
 
-  (event: 'changeDashboard', dashboard: Record<string, any>): void
-
   (event: 'rename', dashboard: DashboardType, title: string | undefined): void
 
   (event: 'delete', dashboard: DashboardType): void
@@ -29,7 +27,7 @@ const vModel = useVModel(props, 'dashboard', emits) as WritableComputedRef<Dashb
 
 const { $e } = useNuxtApp()
 
-const { isMobileMode, user } = useGlobal()
+const { isMobileMode, ncNavigateTo, user } = useGlobal()
 
 const { isSharedBase } = useBase()
 
@@ -68,9 +66,17 @@ const idUserMap = computed(() => {
   }, {} as Record<string, any>)
 })
 
+const changeDashboard = (dashboard: DashboardType) => {
+  ncNavigateTo({
+    workspaceId: dashboard.fk_workspace_id,
+    baseId: dashboard.base_id,
+    dashboardId: dashboard.id,
+  })
+}
+
 /** Debounce click handler, so we can potentially enable editing dashboard name {@see onDblClick} */
 const onClick = useDebounceFn(() => {
-  emits('changeDashboard', vModel.value)
+  changeDashboard(vModel.value)
 }, 250)
 
 const handleOnClick = () => {
@@ -79,7 +85,7 @@ const handleOnClick = () => {
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   if (cmdOrCtrl) {
-    emits('changeDashboard', vModel.value)
+    changeDashboard(vModel.value)
   } else {
     onClick()
   }

@@ -16,7 +16,7 @@ const { t } = useI18n()
 
 const { addUndo, defineModelScope } = useUndoRedo()
 
-const { ncNavigateTo, isMobileMode } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const bases = useBases()
 
@@ -27,8 +27,6 @@ const { showDashboardPlanLimitExceededModal } = useEeConfig()
 const { isSharedBase } = storeToRefs(useBase())
 
 const { baseHomeSearchQuery, openedProject } = storeToRefs(bases)
-
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const dashboardStore = useDashboardStore()
 
@@ -131,13 +129,6 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
   markItem(currentItem.id)
 
   $e('a:dashboard:reorder')
-}
-async function changeDashboard(dashboard: DashboardType) {
-  ncNavigateTo({
-    workspaceId: activeWorkspaceId.value,
-    baseId: baseId.value,
-    dashboardId: dashboard.id,
-  })
 }
 
 const isMarked = ref<string | false>(false)
@@ -329,7 +320,6 @@ const filteredDashboards = computed(() => {
       }"
       :on-validate="validate"
       :dashboard="dashboard"
-      @change-dashboard="changeDashboard"
       @rename="onRename"
       @delete="openDeleteDialog(dashboard)"
       @select-icon="updateDashboardIcon($event, dashboard)"

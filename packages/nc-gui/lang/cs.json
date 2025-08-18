@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Pole {columnName} není dostupné",
       "cantSaveCircularReference": "Nelze uložit pole, protože způsobuje kruhový odkaz",
       "columnWithTypeFoundButExpected": "Pole {columnName} s typem {columnType} bylo nalezeno, ale očekává se typ {expectedType}",
-      "columnNotMatchedWithType": "{columnName} se neshoduje s {columnType}"
+      "columnNotMatchedWithType": "{columnName} se neshoduje s {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Volby výběru nemohou být neplatné",

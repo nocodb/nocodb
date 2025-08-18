@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "क्षेत्र {columnName} उपलब्ध छैन",
       "cantSaveCircularReference": "क्षेत्रलाई बचत गर्न सकिँदैन किनभने यसले चक्रीय सन्दर्भ कारण गर्दछ",
       "columnWithTypeFoundButExpected": "क्षेत्र {columnName} {columnType} प्रकारको साथ फेला पर्यो तर {expectedType} प्रकार अपेक्षित थियो",
-      "columnNotMatchedWithType": "{columnName} {columnType} सँग मेल खाँदैन"
+      "columnNotMatchedWithType": "{columnName} {columnType} सँग मेल खाँदैन",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "विकल्पहरू खाली हुन सक्दैन",

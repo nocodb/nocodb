@@ -5,6 +5,7 @@ import { WorkspaceRoles } from 'nocodb-sdk-v2';
 import type { BaseType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import {
+  AUTOMATION_USER,
   CacheDelDirection,
   CacheGetType,
   CacheScope,
@@ -328,6 +329,12 @@ export default class BaseUser extends BaseUserCE {
         ]);
       }
     }
+
+    // Add automation user - it can manipulate data in any workspace
+    baseUsers.push({
+      ...AUTOMATION_USER,
+      deleted: true,
+    });
 
     // if default_role is present, override workspace roles with the default roles
     if (base.default_role && !skipOverridingWorkspaceRoles) {

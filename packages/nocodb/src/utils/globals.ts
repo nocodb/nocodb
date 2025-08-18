@@ -300,3 +300,9 @@ export enum FilterCacheScope {
   WIDGET = 'widget',
   PARENT = 'parent',
 }
+
+export const AUTOMATION_USER = {
+  id: 'usrautomation',
+  email: 'noreply@nocodb.com',
+  email_verified: true,
+};

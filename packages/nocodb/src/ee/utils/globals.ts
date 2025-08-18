@@ -274,3 +274,9 @@ export enum DbMuxStatus {
   DEPLOYING = 'deploying',
   INACTIVE = 'inactive',
 }
+
+export const AUTOMATION_USER = {
+  id: 'usrautomation',
+  email: 'noreply@nocodb.com',
+  email_verified: true,
+};

@@ -47,6 +47,8 @@ const { activeTable } = toRefs(useTablesStore())
 
 const { updateStatLimit, showWebhookLogsFeatureAccessModal } = useEeConfig()
 
+const { activeBaseAutomations } = storeToRefs(useAutomationStore())
+
 const defaultHookName = t('labels.webhook')
 
 const testSuccess = ref()
@@ -169,6 +171,24 @@ const filterRef = ref()
 const isDropdownOpen = ref()
 
 const titleDomRef = ref<HTMLInputElement | undefined>()
+
+const notificationTypes = ref([
+  {
+    type: 'URL',
+    label: 'HTTP Webhook',
+  },
+  {
+    type: 'Script',
+    label: 'Run Script',
+  },
+])
+
+const automationOptions = computed(() => {
+  return activeBaseAutomations.value.map((automation) => ({
+    label: automation.title,
+    value: automation.id,
+  }))
+})
 
 const toggleOperation = (operation: string) => {
   const ops = [...hookRef.operation]
@@ -389,6 +409,9 @@ const validators = computed(() => {
     ...((hookRef.notification.type === 'Twilio' || hookRef.notification.type === 'Whatsapp Twilio') && {
       'notification.payload.body': [fieldRequiredValidator()],
       'notification.payload.to': [fieldRequiredValidator()],
+    }),
+    ...(hookRef.notification.type === 'Script' && {
+      'notification.payload.scriptId': [fieldRequiredValidator()],
     }),
   }
 })
@@ -1178,7 +1201,44 @@ const webhookV2AndV3Diff = computed(() => {
                   {{ $t('general.action') }}
                 </div>
 
-                <div class="mt-3 border-1 custom-select border-nc-border-gray-medium p-4 border-b-0 rounded-t-2xl">
+                <div
+                  class="mt-3 border-1 custom-select border-nc-border-gray-medium p-4"
+                  :class="{
+                    'rounded-t-2xl border-b-0': hookRef.notification.type !== 'Script',
+                    'rounded-2xl': hookRef.notification.type === 'Script',
+                  }"
+                >
+                  <div class="flex w-full my-3">
+                    <a-form-item v-bind="validateInfos['notification.type']" class="w-full">
+                      <NcSelect
+                        v-model:value="hookRef.notification.type"
+                        class="w-full nc-select-shadow nc-select-hook-notification-type"
+                        data-testid="nc-dropdown-hook-notification-type"
+                        @change="onNotificationTypeChange(true)"
+                      >
+                        <a-select-option v-for="type in notificationTypes" :key="type.type" :value="type.type">
+                          <div class="flex items-center">
+                            <component :is="iconMap[type.type]" class="text-gray-700 mr-2" />
+                            {{ type.label }}
+                          </div>
+                        </a-select-option>
+                      </NcSelect>
+                    </a-form-item>
+                  </div>
+
+                  <template v-if="hookRef.notification.type === 'Script'">
+                    <div class="flex w-full my-3">
+                      <NcSelect
+                        v-model:value="hookRef.notification.payload.scriptId"
+                        v-bind="validateInfos['notification.payload.scriptId']"
+                        :options="automationOptions"
+                        class="w-full nc-select-shadow nc-select-hook-scrip-type"
+                        data-testid="nc-dropdown-hook-notification-type"
+                        placeholder="Select a script"
+                      ></NcSelect>
+                    </div>
+                  </template>
+
                   <template v-if="hookRef.notification.type === 'URL'">
                     <div class="flex gap-3">
                       <a-form-item class="w-1/3">

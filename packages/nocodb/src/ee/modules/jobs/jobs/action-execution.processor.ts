@@ -192,7 +192,7 @@ export class ActionExecutionProcessor {
           tableName: model.id,
           rowId: recordId,
           viewName: view?.id,
-          query: null,
+          query: {},
         });
 
         if (!record) {

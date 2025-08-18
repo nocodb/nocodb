@@ -158,6 +158,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
             newData,
             user,
             hookName,
+            ncSiteUrl: context.nc_site_url,
           });
         } catch (e) {
           this.logger.error({

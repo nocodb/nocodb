@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "ক্ষেত্র {columnName} উপলব্ধ নয়",
       "cantSaveCircularReference": "সার্কুলার রেফারেন্সের কারণে ক্ষেত্র সংরক্ষণ করা যাচ্ছে না",
       "columnWithTypeFoundButExpected": "{columnName} ক্ষেত্রটি {columnType} প্রকারের কিন্তু {expectedType} প্রকার প্রত্যাশিত",
-      "columnNotMatchedWithType": "{columnName} {columnType} এর সাথে মিলছে না"
+      "columnNotMatchedWithType": "{columnName} {columnType} এর সাথে মিলছে না",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "নির্বাচন বিকল্পগুলি null হতে পারে না",

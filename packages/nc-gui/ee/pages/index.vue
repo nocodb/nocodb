@@ -123,19 +123,11 @@ const { deleteWorkspace: _deleteWorkspace, loadWorkspaces } = workspaceStore
 const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
 const isSharedView = computed(() => {
-  const routeName = (route.value.name as string) || ''
-
-  // check route is not base page by route name
-  return (
-    !routeName.startsWith('index-typeOrId-baseId-') &&
-    !['index', 'index-typeOrId', 'index-typeOrId-feed', 'index-typeOrId-integrations'].includes(routeName)
-  )
+  return isSharedViewRoute(route.value)
 })
 
 const isSharedFormView = computed(() => {
-  const routeName = (route.value.name as string) || ''
-  // check route is shared form view route
-  return routeName.startsWith('index-typeOrId-form-viewId')
+  return isSharedFormViewRoute(route.value)
 })
 
 const { sharedBaseId } = useCopySharedBase()

@@ -103,12 +103,21 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
   const route = router.currentRoute
 
-  const { appInfo, user } = useGlobal()
+  const { appInfo, user, signedIn } = useGlobal()
+
+  const { isSharedBase, isSharedErd } = storeToRefs(useBase())
 
   const { updateUserProfile } = useUsers()
 
   const isEnabledOnboardingFlow = computed(() => {
-    return !ncIsPlaywright()
+    return (
+      !ncIsPlaywright() &&
+      signedIn.value &&
+      !isSharedBase.value &&
+      !isSharedErd.value &&
+      !isSharedViewRoute(route.value) &&
+      !isSharedFormViewRoute(route.value)
+    )
   })
 
   /**

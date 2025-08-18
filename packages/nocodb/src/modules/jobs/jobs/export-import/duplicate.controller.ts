@@ -173,6 +173,8 @@ export class DuplicateController {
         excludeData?: boolean;
         excludeViews?: boolean;
         excludeHooks?: boolean;
+        targetWorkspaceId?: string;
+        targetBaseId?: string;
       };
     },
   ) {

@@ -110,7 +110,14 @@ const isLoading = ref(false)
 const _duplicate = async () => {
   try {
     isLoading.value = true
-    const jobData = await api.dbTable.duplicate(props.table.base_id!, props.table.id!, { options: optionsToExclude.value })
+    const jobData = await api.dbTable.duplicate(props.table.base_id!, props.table.id!, {
+      options: {
+        ...optionsToExclude.value,
+        ...(targetBase.value && targetBase.value.id !== activeBase.value.id
+          ? { targetWorkspaceId: targetWorkspace.value!.id, targetBaseId: targetBase.value.id }
+          : {}),
+      },
+    })
 
     $poller.subscribe(
       { id: jobData.id },

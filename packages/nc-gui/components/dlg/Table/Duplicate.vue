@@ -34,6 +34,15 @@ const { activeTable: _activeTable } = storeToRefs(useTablesStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
+const targetTableMeta = computedAsync(async () => {
+  return getMeta(props.table.id)
+})
+
+const canTargetOtherBase = computedAsync(async () => {
+  if (!targetTableMeta.value || (targetTableMeta.value.columns?.length ?? 0) === 0) return false
+  return isEeUI && !targetTableMeta.value.columns?.some((col) => [UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt))
+})
+
 const options = ref({
   includeData: true,
   includeViews: true,
@@ -165,7 +174,6 @@ const isEaster = ref(false)
           {{ $t('labels.includeWebhook') }}
         </div>
       </div>
-
       <div
         :class="{
           'mb-5': isEeUI,
@@ -173,6 +181,81 @@ const isEaster = ref(false)
         class="mt-5 text-nc-content-gray-subtle2 font-medium"
       >
         {{ $t('labels.tableDuplicateMessage') }}
+      </div>
+
+      <div v-if="canTargetOtherBase" class="mb-5">
+        <NcDivider divider-class="!my-5" />
+
+        <div class="text-nc-content-gray font-medium leading-5">
+          {{ $t('labels.workspace') }}
+          <!-- 
+          <NcDropdown v-model:visible="dropdownOpen" class="mt-2">
+            <div
+              class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-3"
+              style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+              :class="{
+                '!border-brand-500 !shadow-selected': dropdownOpen,
+              }"
+            >
+              <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace" />
+
+              <div class="flex-1 capitalize truncate">
+                {{ targetWorkspace?.title }}
+              </div>
+
+              <div class="flex gap-2 items-center">
+                <div v-if="activeWorkspace?.id === targetWorkspace?.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
+                  {{ $t('labels.currentWorkspace') }}
+                </div>
+                <GeneralIcon
+                  :class="{
+                    'transform rotate-180': dropdownOpen,
+                  }"
+                  class="text-nc-content-gray transition-all w-4 h-4"
+                  icon="ncChevronDown"
+                />
+              </div>
+            </div>
+
+            <template #overlay>
+              <NcList
+                :value="targetWorkspace"
+                :item-height="28"
+                close-on-select
+                class="nc-base-workspace-selection"
+                :min-items-for-search="6"
+                container-class-name="w-full"
+                :list="workspaceOptions"
+                option-label-key="title"
+              >
+                <template #listHeader>
+                  <div class="text-nc-content-gray-muted text-[13px] px-3 pt-2.5 pb-1.5 font-medium leading-5">
+                    {{ $t('labels.duplicateBaseMessage') }}
+                  </div>
+
+                  <NcDivider />
+                </template>
+
+                <template #listItem="{ option }">
+                  <div class="flex gap-2 w-full items-center" @click="selectOption(option)">
+                    <GeneralWorkspaceIcon :workspace="option" size="small" />
+
+                    <div class="flex-1 text-[13px] truncate font-semibold leading-5 capitalize w-full">
+                      {{ option.title }}
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                      <div v-if="activeWorkspace?.id === option.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
+                        {{ $t('labels.currentWorkspace') }}
+                      </div>
+                      <GeneralIcon v-if="option.id === targetWorkspace?.id" class="text-brand-500 w-4 h-4" icon="ncCheck" />
+                    </div>
+                  </div>
+                </template>
+              </NcList>
+            </template>
+          </NcDropdown> -->
+        </div>
       </div>
     </div>
     <div class="flex flex-row gap-x-2 mt-5 justify-end">

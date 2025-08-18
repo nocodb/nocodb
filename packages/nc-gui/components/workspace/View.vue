@@ -11,7 +11,7 @@ const route = router.currentRoute
 
 const { t } = useI18n()
 
-const { hideSidebar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+const { hideSidebar } = storeToRefs(useSidebarStore())
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
@@ -114,8 +114,6 @@ watch(
 )
 
 onMounted(() => {
-  if (!isNewSidebarEnabled.value) return
-
   hideSidebar.value = true
 })
 
@@ -128,10 +126,8 @@ onBeforeUnmount(() => {
   <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-settings">
     <div
       v-if="!props.workspaceId"
-      class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-gray-200 flex items-center gap-2"
+      class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2"
     >
-      <GeneralOpenLeftSidebarBtn v-if="!isNewSidebarEnabled" />
-
       <div class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1 nc-workspace-title">
         <div class="nc-breadcrumb-item capitalize">
           {{ currentWorkspace?.title }}
@@ -142,7 +138,6 @@ onBeforeUnmount(() => {
           {{ $t('title.teamAndSettings') }}
         </h1>
       </div>
-      <SmartsheetTopbarCmdK v-if="!isNewSidebarEnabled" class="ml-1" />
     </div>
     <template v-else>
       <div class="nc-breadcrumb px-2">
@@ -153,7 +148,7 @@ onBeforeUnmount(() => {
 
         <NuxtLink
           :href="`/admin/${orgId}/workspaces`"
-          class="!hover:(text-gray-800 underline-gray-600) flex items-center !text-gray-700 !underline-transparent max-w-1/4"
+          class="!hover:(text-nc-content-gray underline-nc-border-gray-underline) flex items-center !text-nc-content-gray-subtle !underline-transparent max-w-1/4"
         >
           <div class="nc-breadcrumb-item">
             {{ $t('labels.workspaces') }}

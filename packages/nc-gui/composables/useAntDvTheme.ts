@@ -1,7 +1,7 @@
 import { ConfigProvider } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
 
-export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
+export const useAntDvTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
   const primaryColor = useCssVar('--color-primary', typeof document !== 'undefined' ? document.documentElement : null)
   const accentColor = useCssVar('--color-accent', typeof document !== 'undefined' ? document.documentElement : null)
   const defaultTheme = {
@@ -37,8 +37,7 @@ export const useTheme = createGlobalState((config?: Partial<ThemeConfig>) => {
   }
 
   return {
-    theme: currentTheme,
+    currentTheme,
     setTheme,
-    defaultTheme,
   }
 })

@@ -225,7 +225,7 @@ watch(
         :class="[
           tableToolbarClassName,
           {
-            'sticky z-5 top-0 bg-white': forceStickyHeader,
+            'sticky z-5 top-0 bg-nc-bg-default': forceStickyHeader,
           },
         ]"
       >
@@ -272,9 +272,9 @@ watch(
                 `${headerCellClassName}`,
                 `nc-table-header-cell-${index}`,
                 {
-                  '!hover:bg-gray-100 select-none cursor-pointer': col.showOrderBy,
+                  '!hover:bg-nc-bg-gray-light select-none cursor-pointer': col.showOrderBy,
                   'cursor-not-allowed': col.showOrderBy && !data?.length,
-                  '!text-gray-700': col.showOrderBy && col?.dataIndex && orderBy[col.dataIndex],
+                  '!text-nc-content-gray-subtle': col.showOrderBy && col?.dataIndex && orderBy[col.dataIndex],
                   'flex-1': !col.width && !col.basis,
                 },
               ]"
@@ -402,7 +402,7 @@ watch(
     <template v-if="slots.tableFooter || showPagination">
       <div ref="tableFooterRef">
         <slot name="tableFooter">
-          <div v-if="showPagination" class="flex flex-row justify-center items-center bg-gray-50 min-h-10">
+          <div v-if="showPagination" class="flex flex-row justify-center items-center bg-nc-bg-gray-extralight min-h-10">
             <div class="flex justify-between items-center w-full px-6">
               <div>&nbsp;</div>
               <NcPagination
@@ -412,7 +412,7 @@ watch(
                 show-size-changer
                 :use-stored-page-size="false"
               />
-              <div class="text-gray-500 text-xs">
+              <div class="text-nc-content-gray-muted text-xs">
                 {{ paginationData.totalRows }} {{ paginationData.totalRows === 1 ? 'row' : 'rows' }}
               </div>
             </div>
@@ -426,7 +426,7 @@ watch(
 <style lang="scss" scoped>
 .nc-table-container {
   &.bordered {
-    @apply border-1 border-gray-200 rounded-lg overflow-hidden w-full;
+    @apply border-1 border-nc-border-gray-medium rounded-lg overflow-hidden w-full;
   }
 
   &:not(.bordered):not(.nc-disable-table-scroll) {
@@ -439,12 +439,12 @@ watch(
     &.sticky-first-column {
       th {
         &:first-of-type {
-          @apply bg-gray-50;
+          @apply bg-nc-bg-gray-extralight;
         }
       }
       td {
         &:first-of-type {
-          @apply bg-white;
+          @apply bg-nc-bg-default;
         }
       }
 
@@ -459,7 +459,7 @@ watch(
         th,
         td {
           &:first-of-type {
-            @apply !border-gray-200;
+            @apply !border-nc-border-gray-medium;
           }
         }
       }
@@ -468,9 +468,9 @@ watch(
     thead {
       @apply w-full max-w-full;
       th {
-        @apply bg-gray-50 text-sm text-gray-500 font-weight-500;
+        @apply bg-nc-bg-gray-extralight text-sm text-nc-content-gray-muted font-weight-500;
         &.cell-title {
-          @apply sticky left-0 z-4 bg-gray-50;
+          @apply sticky left-0 z-4 bg-nc-bg-gray-extralight;
         }
       }
     }
@@ -483,7 +483,7 @@ watch(
         }
 
         td {
-          @apply text-sm text-gray-600;
+          @apply text-sm text-nc-content-gray-subtle2;
         }
       }
     }
@@ -491,7 +491,7 @@ watch(
       @apply flex w-full max-w-full;
 
       &:not(.nc-table-extra-row) {
-        @apply border-b-1 border-gray-200;
+        @apply border-b-1 border-nc-border-gray-medium;
       }
 
       &.no-border-last:not(.nc-table-extra-row):last-child {
@@ -499,11 +499,11 @@ watch(
       }
 
       &.selected td {
-        @apply !bg-[#F0F3FF];
+        @apply !bg-nc-bg-brand;
       }
 
       &:not(.selected):hover td {
-        @apply !bg-gray-50;
+        @apply !bg-nc-bg-gray-extralight;
       }
 
       th,

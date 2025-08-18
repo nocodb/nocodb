@@ -1148,7 +1148,7 @@ const expandRecord = (record: Row) => {
             </NcButton>
 
             <template #overlay>
-              <div class="bg-nc-background-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
+              <div class="bg-nc-bg-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
                 <LazySmartsheetCalendarSideRecordCard
                   v-for="(record, idx) in getOverflowRecords(hour)"
                   :key="idx"

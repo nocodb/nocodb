@@ -9,7 +9,7 @@ const props = defineProps<{
   isHiddenCol?: boolean
 }>()
 
-const { changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
+const { changedColumns, localOnlyChanges, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
@@ -21,6 +21,14 @@ const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || is
 
 const showCol = (col: ColumnType) => {
   return props.showColCallback?.(col) || !isVirtualCol(col) || !isNew.value || isLinksOrLTAR(col)
+}
+
+const revertLocalOnlyChanges = (col: string) => {
+  if (localOnlyChanges.value[col]) {
+    _row.value.row[col] = localOnlyChanges.value[col]
+    changedColumns.value.delete(col)
+    delete localOnlyChanges.value[col]
+  }
 }
 </script>
 
@@ -37,14 +45,14 @@ const showCol = (col: ColumnType) => {
     <div
       class="flex items-start nc-expanded-cell min-h-[32px]"
       :class="{
-        'flex-row sm:(gap-x-2) <lg:(flex-col w-full)': !props.forceVerticalMode,
+        'flex-row <lg:(flex-col w-full)': !props.forceVerticalMode,
         'flex-col w-full': props.forceVerticalMode,
       }"
     >
       <div
         class="flex-none flex items-center rounded-lg overflow-hidden"
         :class="{
-          'w-45 <lg:(w-full px-0 mb-2) h-[32px] xs:(h-auto)': !props.forceVerticalMode,
+          'w-45 <lg:(w-full px-0 mb-2) h-[32px] xs:(h-auto) sm:(mx-2)': !props.forceVerticalMode,
           'w-full px-0 mb-2 h-auto': props.forceVerticalMode,
         }"
       >
@@ -97,10 +105,10 @@ const showCol = (col: ColumnType) => {
         >
           <template #default="{ isAllowed }">
             <SmartsheetDivDataCell
-              class="flex-1 bg-white px-1 min-h-8 flex items-center relative"
+              class="flex-1 bg-nc-bg-default px-1 min-h-8 flex items-center relative"
               :class="{
                 'w-full': props.forceVerticalMode,
-                '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
+                '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
                   showReadonlyColumnTooltip(col),
                 '!select-text nc-readonly-div-data-cell': readOnly || !isAllowed,
               }"
@@ -128,6 +136,16 @@ const showCol = (col: ColumnType) => {
           </template>
         </PermissionsTooltip>
       </NcTooltip>
+      <div
+        v-if="col.title && localOnlyChanges[col.title]"
+        class="flex h-full items-center justify-center cursor-pointer relative"
+        @click="revertLocalOnlyChanges(col.title)"
+      >
+        <GeneralIcon
+          class="absolute right-0 top-0 text-nc-content-gray-muted hover:text-nc-content-gray-subtle my-auto"
+          icon="reload"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -158,7 +176,7 @@ const showCol = (col: ColumnType) => {
 
   &.nc-readonly-div-data-cell,
   &.nc-system-field {
-    @apply !border-gray-200;
+    @apply !border-nc-border-gray-medium;
 
     .nc-cell,
     .nc-virtual-cell {
@@ -168,7 +186,7 @@ const showCol = (col: ColumnType) => {
 
   &.nc-readonly-div-data-cell:focus-within,
   &.nc-system-field:focus-within {
-    @apply !border-gray-200;
+    @apply !border-nc-border-gray-medium;
   }
 
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
@@ -197,12 +215,12 @@ const showCol = (col: ColumnType) => {
     }
     :deep(.nc-virtual-cell-qrcode) {
       img {
-        @apply !h-full border-1 border-solid border-gray-200 rounded;
+        @apply !h-full border-1 border-solid border-nc-border-gray-medium rounded;
       }
     }
     :deep(.nc-virtual-cell-barcode) {
       .nc-barcode-container {
-        @apply border-1 rounded-lg border-gray-200 h-[64px] max-w-full p-2;
+        @apply border-1 rounded-lg border-nc-border-gray-medium h-[64px] max-w-full p-2;
         svg {
           @apply !h-full;
         }
@@ -217,11 +235,11 @@ const showCol = (col: ColumnType) => {
 
 .nc-mentioned-cell {
   box-shadow: 0px 0px 0px 2px var(--ant-primary-color-outline) !important;
-  @apply !border-brand-500 !border-1;
+  @apply !border-nc-border-brand !border-1;
 }
 
 .nc-data-cell:focus-within {
-  @apply !border-1 !border-brand-500;
+  @apply !border-1 !border-nc-border-brand;
 }
 
 :deep(.nc-system-field input) {

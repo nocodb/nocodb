@@ -15,13 +15,21 @@ export class SidebarTableNodeObject extends BasePage {
     return this.sidebar.get().getByTestId(`nc-tbl-side-node-${tableTitle}`);
   }
 
-  async click({ tableTitle }: { tableTitle: string }) {
+  async click({ tableTitle, baseTitle }: { tableTitle: string; baseTitle?: string }) {
+    if (baseTitle) {
+      await this.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
+    }
+
     await this.get({
       tableTitle,
     }).click();
   }
 
-  async clickOptions({ tableTitle }: { tableTitle: string }) {
+  async clickOptions({ tableTitle, baseTitle }: { tableTitle: string; baseTitle?: string }) {
+    if (baseTitle) {
+      await this.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
+    }
+
     await this.get({
       tableTitle,
     }).hover();
@@ -40,6 +48,7 @@ export class SidebarTableNodeObject extends BasePage {
     renameVisible,
     duplicateVisible,
     deleteVisible,
+    baseTitle,
   }: {
     tableTitle: string;
     isVisible: boolean;
@@ -47,7 +56,12 @@ export class SidebarTableNodeObject extends BasePage {
     renameVisible?: boolean;
     duplicateVisible?: boolean;
     deleteVisible?: boolean;
+    baseTitle?: string;
   }) {
+    if (baseTitle) {
+      await this.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
+    }
+
     if (isVisible) {
       await this.clickOptions({ tableTitle });
       await this.rootPage.getByTestId(`sidebar-table-context-menu-list-${tableTitle}`).waitFor({ state: 'visible' });

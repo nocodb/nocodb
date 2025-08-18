@@ -530,7 +530,7 @@ test.describe.serial('Webhook', () => {
     }
 
     await page.reload();
-    await dashboard.treeView.openTable({ title: 'Test' });
+    await dashboard.treeView.openTable({ title: 'Test', baseTitle: context.base.title });
 
     // create after insert webhook
     await webhook.create({
@@ -705,7 +705,7 @@ test.describe.serial('Webhook', () => {
     }
 
     await page.reload();
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     // create after update webhook
     // after update hook

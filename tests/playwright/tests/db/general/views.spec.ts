@@ -22,7 +22,7 @@ test.describe('Views CRUD Operations', () => {
   });
 
   test('Create views, reorder and delete', async () => {
-    await dashboard.treeView.openTable({ title: 'City' });
+    await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
     await dashboard.viewSidebar.createGridView({ title: 'CityGrid' });
     await dashboard.viewSidebar.verifyView({ title: 'CityGrid', index: 0 });
     await dashboard.viewSidebar.renameView({
@@ -96,7 +96,7 @@ test.describe('Views CRUD Operations', () => {
      * On switching to different view we reset the search query now
      * If we switch the tab from data to details then search query should retain
      */
-    await dashboard.treeView.openTable({ title: 'City' });
+    await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
 
     await toolbar.searchData.verify('');
     await toolbar.searchData.get().fill('City-City');
@@ -122,11 +122,11 @@ test.describe('Views CRUD Operations', () => {
     await dashboard.rootPage.waitForTimeout(1000);
     await toolbar.searchData.verify('');
 
-    await dashboard.treeView.openTable({ title: 'City' });
+    await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
     await dashboard.rootPage.waitForTimeout(1000);
     await toolbar.searchData.verify('');
 
-    await dashboard.treeView.openTable({ title: 'Actor' });
+    await dashboard.treeView.openTable({ title: 'Actor', baseTitle: context.base.title });
     await toolbar.searchData.verify('');
 
     await dashboard.viewSidebar.createGridView({ title: 'ActorGrid' });
@@ -137,11 +137,11 @@ test.describe('Views CRUD Operations', () => {
     await topbar.btn_data.click();
     await toolbar.searchData.verify('Actor-ActorGrid');
 
-    await dashboard.treeView.openTable({ title: 'Actor' });
+    await dashboard.treeView.openTable({ title: 'Actor', baseTitle: context.base.title });
     await dashboard.rootPage.waitForTimeout(1000);
     await toolbar.searchData.verify('');
 
-    await dashboard.treeView.openTable({ title: 'City', mode: '' });
+    await dashboard.treeView.openTable({ title: 'City', mode: '', baseTitle: context.base.title });
     await toolbar.searchData.verify('');
   });
 });

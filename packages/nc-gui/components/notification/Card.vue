@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { storeToRefs } from 'pinia'
 import InfiniteLoading from 'v3-infinite-loading'
 
 const emits = defineEmits(['close'])

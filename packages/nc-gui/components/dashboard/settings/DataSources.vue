@@ -559,7 +559,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                             </NcMenuItem>
 
                             <NcDivider />
-                            <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click.stop="openDeleteBase(source)">
+                            <NcMenuItem danger @click.stop="openDeleteBase(source)">
                               <GeneralIcon icon="delete" />
                               {{ $t('general.remove') }}
                             </NcMenuItem>

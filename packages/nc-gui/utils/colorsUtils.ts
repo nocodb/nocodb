@@ -60,7 +60,7 @@ export const themeV2Colors = {
 // @deprecated
 // Use CSS variables from variables.css directly in future like:
 // color: var(--nc-content-brand-default)
-// background: var(--nc-background-brand)
+// background: var(--nc-bg-brand)
 // The above values map 1:1 directly with Figma CSS variables.
 export const themeV3Colors = {
   base: {
@@ -199,7 +199,7 @@ type Shade = keyof (typeof themeV3Colors)[ThemeV3ColorKeys]
  * @param shade - The shade of the color to get
  * @returns The color
  */
-export function getThemeV3RandomColor(randomNumber: number = 1, shade: Shade = 600): string {
+export function getThemeV3RandomColor(randomNumber = 1, shade: Shade = 600): string {
   const colorGroups = Object.keys(themeV3Colors).filter((key) => key !== 'base') as ThemeV3ColorKeys[]
 
   const groupIndex = Math.floor(Math.random() * 1000 * randomNumber) % colorGroups.length
@@ -400,16 +400,16 @@ export const themeV4Colors = {
   },
   gray: {
     10: '#FCFCFC',
-    50: 'var(--color-grey-50)',
-    100: 'var(--color-grey-100)',
-    200: 'var(--color-grey-200)',
-    300: 'var(--color-grey-300)',
-    400: 'var(--color-grey-400)',
-    500: 'var(--color-grey-500)',
-    600: 'var(--color-grey-600)',
-    700: 'var(--color-grey-700)',
-    800: 'var(--color-grey-800)',
-    900: 'var(--color-grey-900)',
+    50: 'var(--color-gray-50)',
+    100: 'var(--color-gray-100)',
+    200: 'var(--color-gray-200)',
+    300: 'var(--color-gray-300)',
+    400: 'var(--color-gray-400)',
+    500: 'var(--color-gray-500)',
+    600: 'var(--color-gray-600)',
+    700: 'var(--color-gray-700)',
+    800: 'var(--color-gray-800)',
+    900: 'var(--color-gray-900)',
   },
   red: {
     50: 'var(--color-red-50)',
@@ -510,6 +510,20 @@ export const themeV4Colors = {
 }
 
 /**
+ * In our WindiCSS config, we already added `themeV3Colors`.
+ * To add `themeV4Colors` without conflicts, we create a new object
+ * with all top-level keys prefixed by `nc-` (e.g., `gray` → `nc-gray`).
+ *
+ * This keeps both V3 and V4 colors available in the theme without overwriting each other.
+ */
+export const themeV4ColorsWithNcPrefix: {
+  [K in keyof typeof themeV4Colors as `nc-${K}`]: (typeof themeV4Colors)[K]
+} = Object.entries(themeV4Colors).reduce((acc, [key, value]) => {
+  acc[`nc-${key}` as `nc-${string}`] = value
+  return acc
+}, {} as any)
+
+/**
  * ### Light Theme Configuration
  * In this project, we've integrated a custom WindiCSS configuration that aligns with our Figma design system.
  * This setup introduces shorthand class names for various UI elements like text color, border color,
@@ -530,13 +544,13 @@ export const themeV4Colors = {
  * ###### Text Color
  * To apply a text color, you can use:
  * ```html
- * <p class="text-nc-content-grey-subtle">This is subtle grey text.</p>
+ * <p class="text-nc-content-gray-subtle">This is subtle gray text.</p>
  * ```
  *
  * ###### Border Color
  * To apply a border color, you can use:
  * ```html
- * <div class="border-nc-border-gray-light">This div has a light grey border.</div>
+ * <div class="border-nc-border-gray-light">This div has a light gray border.</div>
  * ```
  *
  * ###### Background Color
@@ -575,6 +589,7 @@ export const themeVariables = {
       subtle: themeV4Colors.gray[700],
       subtle2: themeV4Colors.gray[600],
       muted: themeV4Colors.gray[500],
+      disabled: themeV4Colors.gray[400],
     },
     'nc-content-brand': {
       DEFAULT: themeV4Colors.brand[500],
@@ -683,6 +698,7 @@ export const themeVariables = {
       medium: themeV4Colors.gray[200],
       dark: themeV4Colors.gray[300],
       extradark: themeV4Colors.gray[400],
+      underline: themeV4Colors.gray[600],
     },
     'nc-border-red': {
       DEFAULT: themeV4Colors.red[500],

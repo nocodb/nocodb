@@ -21,6 +21,7 @@ const { getPlanTitle } = useEeConfig()
 
 const {
   setAdditionalValidations,
+  setAvoidShowingToastMsgForValidations,
   validateInfos,
   onDataTypeChange,
   isEdit,
@@ -40,6 +41,11 @@ const filterRef = ref()
 setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: t('general.required') }],
   fk_lookup_column_id: [{ required: true, message: t('general.required') }],
+})
+
+setAvoidShowingToastMsgForValidations({
+  fk_relation_column_id: true,
+  fk_lookup_column_id: true,
 })
 
 if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = null
@@ -78,9 +84,6 @@ const selectedTable = computed(() => {
   return refTables.value.find((t) => t.column.id === vModel.value.fk_relation_column_id)
 })
 
-// Todo: Add backend api level validation for unsupported fields
-const unsupportedUITypes = [UITypes.Button, UITypes.Links]
-
 // Check if recursive evaluation should be available (EE + PostgreSQL + self-referencing HM/BT relation)
 const canUseRecursiveEvaluation = computed(() => {
   // TODO: [recursive lookup]
@@ -117,7 +120,10 @@ const columns = computed<ColumnType[]>(() => {
   return metas.value[selectedTable.value.id]?.columns.filter(
     (c: ColumnType) =>
       vModel.value.fk_lookup_column_id === c.id ||
-      (!isSystemColumn(c) && c.id !== vModel.value.id && !unsupportedUITypes.includes(c.uidt)),
+      getValidLookupColumn({
+        column: c,
+        lookupColumnId: vModel.value.id,
+      }),
   )
 })
 

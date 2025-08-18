@@ -42,7 +42,9 @@ const customSourceId = computed(() => {
 
 const workspaceStore = useWorkspace()
 
-const { isMysql, isPg, isSnowflake } = useBase()
+const baseStore = useBase()
+const { isMysql, isPg, isSnowflake } = baseStore
+const { baseId: _baseId } = storeToRefs(baseStore)
 
 const { loadProjectTables, addTable } = useTablesStore()
 
@@ -348,8 +350,11 @@ const _createTable = async () => {
     dialogShow.value = false
   } catch (e: any) {
     console.error(e)
-    e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
-    if (e.errorFields.length) return
+
+    if (e?.errorFields?.length) {
+      e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
+      return
+    }
   } finally {
     setTimeout(() => {
       creating.value = false
@@ -423,6 +428,12 @@ const handleRefreshOnError = () => {
     default:
   }
 }
+
+watch(_baseId, () => {
+  if (_baseId.value !== props.baseId) {
+    dialogShow.value = false
+  }
+})
 </script>
 
 <template>

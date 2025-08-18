@@ -78,7 +78,7 @@ test.describe('Virtual Columns', () => {
        */
       // close 'Team & Auth' tab
 
-      await dashboard.treeView.openTable({ title: 'City' });
+      await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
 
       await grid.column.create({
         title: 'Barcode1',
@@ -119,7 +119,7 @@ test.describe('Virtual Columns', () => {
     });
 
     test('deletion of the barcode column: a) directly and b) indirectly when the reference value column is deleted', async () => {
-      await dashboard.treeView.openTable({ title: 'City' });
+      await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
 
       await grid.column.create({ title: 'column_name_a' });
       await grid.column.verify({ title: 'column_name_a' });
@@ -143,7 +143,7 @@ test.describe('Virtual Columns', () => {
     });
 
     test('a) showing an error message for non-compatible barcode input and b) changing the format of the Barcode is reflected in the change of the actual rendered barcode', async () => {
-      await dashboard.treeView.openTable({ title: 'City' });
+      await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
 
       await grid.column.create({
         title: 'Barcode1',

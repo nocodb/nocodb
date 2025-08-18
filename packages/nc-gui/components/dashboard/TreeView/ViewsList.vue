@@ -24,7 +24,7 @@ const emits = defineEmits<Emits>()
 const base = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
-const { isLeftSidebarOpen, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { activeTableId } = storeToRefs(useTablesStore())
 
@@ -411,10 +411,8 @@ const filteredViews = computed(() => {
         v-if="isUIAllowed('viewCreateOrEdit')"
         :align-left-level="isDefaultSource ? 1 : 2"
         :class="{
-          '!pl-13.3 !xs:(pl-13.5)': isDefaultSource && !isNewSidebarEnabled,
-          '!pl-18.6 !xs:(pl-20)': !isDefaultSource && !isNewSidebarEnabled,
-          '!pl-7.5 !xs:(pl-7.5)': isDefaultSource && isNewSidebarEnabled,
-          '!pl-13.6 !xs:(pl-15)': !isDefaultSource && isNewSidebarEnabled,
+          '!pl-7.5 !xs:(pl-7.5)': isDefaultSource,
+          '!pl-13.6 !xs:(pl-15)': !isDefaultSource,
         }"
         :source="source"
       >

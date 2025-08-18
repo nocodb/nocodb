@@ -83,6 +83,9 @@ const { metas, getMeta } = useMetas()
 
 const workspaceStore = useWorkspace()
 
+const baseStore = useBase()
+const { baseId: activeBaseId } = storeToRefs(baseStore)
+
 const { viewsByTable } = storeToRefs(useViewsStore())
 
 const { refreshCommandPalette } = useCommandPalette()
@@ -804,6 +807,12 @@ const getPluralName = (name: string) => {
   }
   return name
 }
+
+watch(activeBaseId, () => {
+  if (activeBaseId.value !== props.baseId) {
+    vModel.value = false
+  }
+})
 </script>
 
 <template>
@@ -914,6 +923,7 @@ const getPluralName = (name: string) => {
               :disabled="isMetaLoading"
               :loading="isMetaLoading"
               dropdown-match-select-width
+              show-search
               :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
               :placeholder="$t('placeholder.selectCoverImageField')"
               class="nc-select-shadow w-full nc-gallery-cover-image-field-select"
@@ -950,6 +960,7 @@ const getPluralName = (name: string) => {
               v-model:value="form.fk_grp_col_id"
               :disabled="isMetaLoading"
               :loading="isMetaLoading"
+              show-search
               dropdown-match-select-width
               :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
               :placeholder="$t('placeholder.selectGroupField')"
@@ -1011,6 +1022,7 @@ const getPluralName = (name: string) => {
                   v-model:value="range.fk_from_column_id"
                   class="nc-select-shadow w-full nc-from-select !rounded-lg"
                   dropdown-class-name="!rounded-lg"
+                  show-search
                   :placeholder="$t('placeholder.notSelected')"
                   data-testid="nc-calendar-range-from-field-select"
                   @click.stop
@@ -1072,6 +1084,7 @@ const getPluralName = (name: string) => {
                       v-model:value="range.fk_to_column_id"
                       class="nc-select-shadow w-full flex-1"
                       allow-clear
+                      show-search
                       :disabled="isMetaLoading"
                       :loading="isMetaLoading"
                       :placeholder="$t('placeholder.notSelected')"

@@ -27841,6 +27841,9 @@
           "avatar": {
             "type": "string"
           },
+          "is_new_user": {
+            "type": "boolean"
+          },
           "token_version": {
             "description": "Access token version",
             "type": "string"

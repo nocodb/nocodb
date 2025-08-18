@@ -46,7 +46,7 @@ async function beforeEachInit({ page, tableType }: { page: any; tableType: strin
   const table = await createDemoTable({ context, type: tableType, recordCnt: 10 });
   await page.reload();
 
-  await dashboard.treeView.openTable({ title: tableType });
+  await dashboard.treeView.openTable({ title: tableType, baseTitle: context.base.title });
 
   return { dashboard, context, api, table } as paramsType;
 }

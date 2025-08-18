@@ -5,7 +5,6 @@ import clear from 'clear';
 import * as express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
-import { IoAdapter } from '@nestjs/platform-socket.io';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
 import { NcDebug } from 'nc-gui/utils/debug';
@@ -23,6 +22,7 @@ import { isEE, T } from '~/utils';
 import { getAppUrl } from '~/utils/appUrl';
 import { DataReflection, Integration } from '~/models';
 import { getRedisURL } from '~/helpers/redisHelpers';
+import { RedisIoAdapter } from '~/gateways/RedisIoAdapter';
 
 dotenv.config();
 declare const module: any;
@@ -126,7 +126,9 @@ export default class Noco {
       bufferLogs: true,
       bodyParser: false,
     });
+
     Noco._nestApp = nestApp;
+
     this.initCustomLogger(nestApp);
     NcDebug.log('Custom logger initialized');
     nestApp.flushLogs();
@@ -151,16 +153,15 @@ export default class Noco {
       process.env.NC_DISABLE_TELE = 'true';
     }
 
-    nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
-    NcDebug.log('Websocket adapter initialized');
-
     this._httpServer = nestApp.getHttpAdapter().getInstance();
     this._server = server;
 
     nestApp.use(requestIp.mw());
     nestApp.use(cookieParser());
 
-    nestApp.useWebSocketAdapter(new IoAdapter(httpServer));
+    const redisIoAdapter = new RedisIoAdapter(httpServer);
+    await redisIoAdapter.connectToRedis();
+    nestApp.useWebSocketAdapter(redisIoAdapter);
     NcDebug.log('Websocket adapter initialized');
 
     await nestApp.init();

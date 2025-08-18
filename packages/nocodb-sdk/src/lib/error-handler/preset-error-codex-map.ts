@@ -173,12 +173,7 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.FORMULA_ERROR]: {
     message: (message: string) => {
-      // try to extract db error - Experimental
-      if (message.includes(' - ')) {
-        const [_, dbError] = message.split(' - ');
-        return `Formula error: ${dbError}`;
-      }
-      return `Formula error: ${message}`;
+      return message;
     },
     code: 400,
   },
@@ -241,5 +236,10 @@ export const presetErrorCodexMap: Partial<
       message ||
       `Prohibited data insert / update / delete operation on synced table`,
     code: 422,
+  },
+  [NcErrorType.FEATURE_NOT_SUPPORTED]: {
+    message: (message: string) =>
+      message || `Upgrade to a higher plan to use this feature.`,
+    code: 403,
   },
 };

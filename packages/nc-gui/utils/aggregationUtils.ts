@@ -1,7 +1,7 @@
 import { type ColumnType, type SerializerOrParserFnProps, formatAggregation, formatBytes } from 'nocodb-sdk'
 import { aggregationCache } from '../components/smartsheet/grid/canvas/utils/canvas'
 
-export { formatAggregation, formatBytes }
+export { formatBytes }
 
 export const getFormattedAggrationValue = (
   aggregation: string,
@@ -10,7 +10,9 @@ export const getFormattedAggrationValue = (
   cacheKeyPath: string[] = [],
   columnHelperParams?: SerializerOrParserFnProps['params'],
 ) => {
-  const cacheKey = `${col.id}-${col.uidt}-${aggregation}-${value?.toString()}-${cacheKeyPath.join('-')}`
+  const cacheKey = `${col.id}-${col.uidt}-${aggregation}-${value?.toString()}-${cacheKeyPath.join('-')}-${
+    columnHelperParams?.meta?.columnsHash
+  }`
 
   const cacheValue = aggregationCache.get(cacheKey)
   if (!ncIsUndefined(cacheValue)) {

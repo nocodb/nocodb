@@ -446,7 +446,7 @@ watch(isProjectsLoaded, () => {
         <div
           v-if="showProjectList"
           key="project-list"
-          class="nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10 bg-gray-50"
+          class="nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10 bg-nc-bg-gray-extralight"
         >
           <div class="w-full">
             <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>

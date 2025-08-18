@@ -124,12 +124,7 @@ const isOptionVisible = computed(() => {
         {{ $t('activity.settings') }}
       </div>
     </NcMenuItem>
-    <NcMenuItem
-      v-if="isOptionVisible.baseDelete"
-      data-testid="nc-sidebar-base-delete"
-      class="!text-red-500 !hover:bg-red-50"
-      @click="emits('delete')"
-    >
+    <NcMenuItem v-if="isOptionVisible.baseDelete" data-testid="nc-sidebar-base-delete" danger @click="emits('delete')">
       <div class="flex gap-2 items-center">
         <GeneralIcon icon="delete" class="w-4" />
         {{ $t('general.delete') }}

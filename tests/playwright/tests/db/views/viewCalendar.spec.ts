@@ -136,7 +136,7 @@ test.describe('Calendar View', () => {
   test('Calendar Sidebar Verify Sidebar Filter, Calendar View Mode', async () => {
     // Create & Verify Calendar View
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
-    await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
+    await dashboard.treeView.openTable({ title: 'Social Media Calendar', baseTitle: `xcdb${context.workerId}` });
 
     await dashboard.viewSidebar.createCalendarView({
       title: 'Calendar',
@@ -193,9 +193,12 @@ test.describe('Calendar View', () => {
 
     await calendar.toolbar.verifyActiveCalendarView({ view: 'year' });
 
-    await toolbar.calendarViewMode.changeCalendarView({ title: 'month' });
-
-    await calendar.sideMenu.moveToDate({ date: 'Jan 2024', action: 'prev' });
+    await calendar.sideMenu.moveToDate({
+      date: 'Jan 2024',
+      action: 'prev',
+      jumpTo: { day: 1, month: 'Feb', year: 2024 },
+      postSelectViewMode: 'month',
+    });
 
     // Verify Sidebar Records & Filters
 
@@ -249,11 +252,11 @@ test.describe('Calendar View', () => {
 
     await calendar.sideMenu.verifySideBarRecords({ records: [] });
 
-    await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'day' });
-
     await calendar.sideMenu.moveToDate({
       date: '1 Jan 2024',
       action: 'prev',
+      jumpTo: { day: 5, month: 'Feb', year: 2024 },
+      postSelectViewMode: 'day',
     });
 
     await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
@@ -271,6 +274,8 @@ test.describe('Calendar View', () => {
     await calendar.sideMenu.moveToDate({
       date: '3 Jan 2024',
       action: 'next',
+      jumpTo: { day: 1, month: 'Jan', year: 2024 },
+      postSelectViewMode: 'day',
     });
 
     await calendar.sideMenu.verifySideBarRecords({ records: [] });
@@ -296,7 +301,7 @@ test.describe('Calendar View', () => {
   test('Calendar Drag and Drop & Undo Redo Operations', async () => {
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
 
-    await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
+    await dashboard.treeView.openTable({ title: 'Social Media Calendar', baseTitle: `xcdb${context.workerId}` });
 
     await dashboard.viewSidebar.createCalendarView({
       title: 'Calendar',
@@ -311,7 +316,12 @@ test.describe('Calendar View', () => {
 
     const calendar = dashboard.calendar;
 
-    await calendar.sideMenu.moveToDate({ date: 'Jan 2024', action: 'prev' });
+    await calendar.sideMenu.moveToDate({
+      date: 'Jan 2024',
+      action: 'prev',
+      jumpTo: { day: 1, month: 'Mar', year: 2024 },
+      postSelectViewMode: 'month',
+    });
 
     await calendar.calendarMonth.dragAndDrop({
       record: 'Team Catchup',
@@ -330,11 +340,11 @@ test.describe('Calendar View', () => {
 
     await calendar.sideMenu.verifySideBarRecords({ records: ['Team Catchup'] });
 
-    await calendar.toolbar.calendarViewMode.changeCalendarView({ title: 'week' });
-
     await calendar.sideMenu.moveToDate({
       date: '1 - 7 Jan 24',
       action: 'prev',
+      jumpTo: { day: 11, month: 'Jan', year: 2024 },
+      postSelectViewMode: 'week',
     });
 
     await calendar.dashboard.rootPage.waitForTimeout(1000);
@@ -371,7 +381,7 @@ test.describe('Calendar View', () => {
 
   test('Calendar shared view operations', async ({ page }) => {
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
-    await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
+    await dashboard.treeView.openTable({ title: 'Social Media Calendar', baseTitle: `xcdb${context.workerId}` });
 
     await dashboard.viewSidebar.createCalendarView({
       title: 'Calendar',
@@ -412,11 +422,12 @@ test.describe('Calendar View', () => {
 
     await calendar.toolbar.verifyActiveCalendarView({ view: 'year' });
 
-    await toolbar.calendarViewMode.changeCalendarView({ title: 'month' });
-
-    // await calendar.toggleSideBar();
-
-    await calendar.sideMenu.moveToDate({ date: 'Jan 2024', action: 'prev' });
+    await calendar.sideMenu.moveToDate({
+      date: 'Jan 2024',
+      action: 'prev',
+      jumpTo: { day: 1, month: 'Feb', year: 2024 },
+      postSelectViewMode: 'month',
+    });
 
     await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 
@@ -430,7 +441,7 @@ test.describe('Calendar View', () => {
   test('Calendar Operations Date Fields', async () => {
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
 
-    await dashboard.treeView.openTable({ title: 'Social Media Calendar' });
+    await dashboard.treeView.openTable({ title: 'Social Media Calendar', baseTitle: `xcdb${context.workerId}` });
 
     await dashboard.grid.column.openEdit({
       title: 'StartDate',
@@ -462,9 +473,12 @@ test.describe('Calendar View', () => {
 
     const calendar = dashboard.calendar;
 
-    // await calendar.toggleSideBar();
-
-    await calendar.sideMenu.moveToDate({ date: '1 Jan 2024', action: 'prev' });
+    await calendar.sideMenu.moveToDate({
+      date: '1 Jan 2024',
+      action: 'prev',
+      jumpTo: { day: 5, month: 'Jan', year: 2024 },
+      postSelectViewMode: 'day',
+    });
 
     await calendar.sideMenu.verifySideBarRecords({ records: dateRecords.filter(f => f.Title).map(f => f.Title) });
 

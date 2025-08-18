@@ -13,9 +13,9 @@ import type {
   PermissionKey,
   RelationTypes,
 } from 'nocodb-sdk';
-import type { Column, Model, View } from '~/models';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
+import type { Column, Model, View } from '~/models';
 
 export interface IBaseModelSqlV2 {
   context: NcContext;
@@ -295,6 +295,15 @@ export interface IBaseModelSqlV2 {
     user: any;
     req: any;
   }): Promise<void>;
+
+  chunkList(args: {
+    pks: string[];
+    chunkSize?: number;
+    apiVersion?: NcApiVersion;
+    args?: any;
+  }): Promise<any[]>;
+
+  broadcastLinkUpdates(ids: Array<string>): Promise<void>;
 
   get viewId(): string;
   get dbDriver(): CustomKnex;

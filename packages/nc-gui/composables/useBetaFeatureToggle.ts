@@ -17,18 +17,20 @@ const FEATURES = [
     version: 1,
   },
   {
+    id: 'dark_mode',
+    title: 'Dark Mode',
+    isEngineering: true,
+    description: 'Keep your eyes healthy with dark mode.',
+    enabled: false,
+    version: 1,
+    isEE: true,
+  },
+  {
     id: 'canvas_group_grid_view',
     title: 'Improved Group By',
     description: 'New and Improved groupby in grid view with enhanced scrolling and rendering capabilities.',
     enabled: !ncIsPlaywright(),
     version: 1,
-  },
-  {
-    id: 'improved_sidebar_ui',
-    title: 'Improved Sidebar',
-    description: 'New and Improved sidebar for better UI experience',
-    enabled: !ncIsPlaywright(),
-    version: 2,
   },
   {
     id: 'link_to_another_record',

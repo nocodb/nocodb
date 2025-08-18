@@ -152,7 +152,7 @@ const fieldSearchBasisOptions = computed<NcListSearchBasisOptionType[]>(() => [
   }
 
   .nc-list-item {
-    @apply h-8 hover:bg-nc-background-grey-light gap-x-1.5;
+    @apply h-8 hover:bg-nc-bg-gray-light gap-x-1.5;
   }
 }
 </style>

@@ -5,7 +5,7 @@ import {
   isAIPromptCol,
   isLinksOrLTAR,
   isOrderCol,
-  isReadonly,
+  isReadonlyVirtualColumn,
   isSystemColumn,
   isVirtualCol,
 } from 'nocodb-sdk'
@@ -360,6 +360,7 @@ export function useCanvasTable({
                   isEeUI && displayColumnConfigMeta.isDisplayTimezone
                     ? getTimeZoneFromName(displayColumnConfigMeta.timezone)
                     : undefined,
+                isDisplayTimezone: isEeUI ? displayColumnConfigMeta.isDisplayTimezone : undefined,
               }
               displayColumnConfig.extra = extra
             }
@@ -1127,7 +1128,7 @@ export function useCanvasTable({
         }
 
         // skip readonly columns
-        if (isReadonly(colObj)) continue
+        if (isReadonlyVirtualColumn(colObj)) continue
 
         if (colObj.readonly) continue
 

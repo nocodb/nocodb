@@ -24,7 +24,6 @@ const {
   hideMiniSidebar,
   hideSidebar,
   showTopbar,
-  isNewSidebarEnabled,
   miniSidebarWidth,
 } = storeToRefs(useSidebarStore())
 
@@ -216,13 +215,7 @@ function onResize(widthPercent: any) {
 }
 
 const isMiniSidebarVisible = computed(() => {
-  return (
-    isNewSidebarEnabled.value &&
-    !hideMiniSidebar.value &&
-    slots.sidebar &&
-    !isSharedBase.value &&
-    (!isMobileMode.value || isLeftSidebarOpen.value)
-  )
+  return !hideMiniSidebar.value && slots.sidebar && !isSharedBase.value && (!isMobileMode.value || isLeftSidebarOpen.value)
 })
 </script>
 
@@ -262,12 +255,11 @@ const isMiniSidebarVisible = computed(() => {
         >
           <div
             ref="wrapperRef"
-            class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !sm:(max-w-140) absolute overflow-visible"
+            class="nc-sidebar-wrapper relative nc-new-sidebar flex flex-col h-full justify-center !sm:(max-w-140) absolute overflow-visible"
             :class="{
               'mobile': isMobileMode,
               'minimized-height': !isLeftSidebarOpen,
               'hide-sidebar': ['hiddenStart', 'hiddenEnd', 'peekCloseEnd'].includes(sidebarState),
-              'nc-new-sidebar': isNewSidebarEnabled,
             }"
             :style="{
               width: sidebarState === 'hiddenEnd' ? '0px' : `${sidebarWidth}px`,
@@ -294,7 +286,7 @@ const isMiniSidebarVisible = computed(() => {
 <style lang="scss">
 .nc-sidebar-wrapper.minimized-height {
   & > * {
-    @apply h-4/5 pb-2 !(rounded-r-lg border-1 border-gray-200 shadow-lg);
+    @apply h-4/5 pb-2 !(rounded-r-lg border-1 border-nc-border-gray-medium shadow-lg);
     width: calc(100% + 4px);
   }
 
@@ -329,18 +321,18 @@ const isMiniSidebarVisible = computed(() => {
     @apply !w-0 relative overflow-visible;
   }
   .splitpanes__splitter:before {
-    @apply bg-gray-200 w-0.25 absolute left-0 top-0 h-full z-40;
+    @apply bg-nc-bg-gray-medium w-0.25 absolute left-0 top-0 h-full z-40;
     content: '';
   }
 
   .splitpanes__splitter:hover:before {
-    @apply bg-scrollbar;
+    @apply bg-nc-border-gray-medium;
     width: 3px !important;
     left: 0px;
   }
 
   .splitpanes--dragging .splitpanes__splitter:before {
-    @apply bg-scrollbar;
+    @apply bg-nc-border-gray-medium;
     width: 3px !important;
     left: 0px;
   }

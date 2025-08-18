@@ -7,6 +7,7 @@ import {
   isSystemColumn,
   LongTextAiMetaProp,
   NcApiVersion,
+  PermissionEntity,
   RelationTypes,
   UITypes,
   ViewTypes,
@@ -40,6 +41,7 @@ import {
   Filter,
   Hook,
   Model,
+  Permission,
   Script,
   Source,
   View,
@@ -86,7 +88,7 @@ export class ExportService {
       const serializedWidgets = [];
 
       for (const widget of dashboard.widgets) {
-        const handler = await getWidgetHandler({
+        const handler = await getWidgetHandler(context, {
           widget: widget as WidgetType,
           req,
         });
@@ -153,6 +155,7 @@ export class ExportService {
       excludeRowColorConditions?: boolean;
       excludeData?: boolean;
       excludeComments?: boolean;
+      excludePermissions?: boolean;
       compatibilityMode?: boolean;
     },
   ) {
@@ -164,6 +167,7 @@ export class ExportService {
     const excludeRowColorConditions = param?.excludeRowColorConditions || false;
     const excludeComments =
       param?.excludeComments || param?.excludeData || false;
+    const excludePermissions = param?.excludePermissions || false;
 
     const compatibilityMode = param?.compatibilityMode || false;
 
@@ -590,6 +594,41 @@ export class ExportService {
         }
       }
 
+      const serializedPermissions = [];
+
+      if (!excludePermissions) {
+        const basePermissions = await Permission.list(context, model.base_id);
+
+        const fieldIds = model.columns.map((c) => c.id);
+
+        const modelPermissions = basePermissions.filter(
+          (p) =>
+            (p.entity === PermissionEntity.TABLE && p.entity_id === model.id) ||
+            (p.entity === PermissionEntity.FIELD &&
+              fieldIds.includes(p.entity_id)),
+        );
+
+        for (const permission of modelPermissions) {
+          idMap.set(
+            permission.id,
+            `${idMap.get(permission.entity_id)}::${permission.id}`,
+          );
+
+          serializedPermissions.push({
+            id: idMap.get(permission.id),
+            entity: permission.entity,
+            entity_id: idMap.get(permission.entity_id),
+            permission: permission.permission,
+            created_by: permission.created_by,
+            enforce_for_form: permission.enforce_for_form,
+            enforce_for_automation: permission.enforce_for_automation,
+            granted_type: permission.granted_type,
+            granted_role: permission.granted_role,
+            subjects: permission.subjects,
+          });
+        }
+      }
+
       serializedModels.push({
         model: {
           id: idMap.get(model.id),
@@ -667,6 +706,7 @@ export class ExportService {
         },
         hooks: serializedHooks,
         comments: serializedComments,
+        permissions: serializedPermissions,
         idMap,
       });
     }

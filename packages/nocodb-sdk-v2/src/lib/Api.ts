@@ -65,6 +65,45 @@ export interface Base {
   }[];
 }
 
+export interface BaseWithMembers {
+  /** Unique identifier for the base. */
+  id: string;
+  /** Title of the base. */
+  title: string;
+  meta: BaseMetaRes;
+  /**
+   * Timestamp of when the base was created.
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp of when the base was last updated.
+   * @format date-time
+   */
+  updated_at: string;
+  /** Unique identifier for the workspace to which this base belongs to. */
+  workspace_id: string;
+  /** List of data sources associated with this base. This information will be included only if one or more external data sources are associated with the base. */
+  sources?: {
+    /** Unique identifier for the data source. */
+    id: string;
+    /** Title of the data source. */
+    title: string;
+    /** Type of the data source (e.g., pg, mysql). */
+    type: string;
+    /** Indicates if the schema in this data source is read-only. */
+    is_schema_readonly: boolean;
+    /** Indicates if the data (records) in this data source is read-only. */
+    is_data_readonly: boolean;
+    /** Integration ID for the data source. */
+    integration_id: string;
+  }[];
+  individual_members?: {
+    base_members?: BaseMemberWithWorkspaceRole[];
+    workspace_members?: WorkspaceMember[];
+  };
+}
+
 export interface BaseMetaRes {
   /**
    * Specifies the color of the base icon using a hexadecimal color code (e.g., `#36BFFF`)
@@ -156,9 +195,9 @@ export interface Table {
   views: ViewSummary[];
 }
 
-export interface BaseUser {
+export interface BaseMember {
   /** Unique identifier for the user. */
-  id: string;
+  user_id: string;
   /**
    * Email address of the user.
    * @format email
@@ -166,66 +205,66 @@ export interface BaseUser {
   email: string;
   /** Display name of the user. */
   user_name?: string;
-  /**
-   * Timestamp of when the user was created.
-   * @format date-time
-   */
-  created_at: string;
-  /**
-   * Timestamp of when the user access was last updated.
-   * @format date-time
-   */
-  updated_at: string;
   /** Base roles for the user. */
   base_role: BaseRoles;
-  /** Workspace roles for the user. */
-  workspace_role: WorkspaceRoles;
-  /** Unique identifier for the workspace. */
-  workspace_id: string;
 }
 
-export type BaseUserDeleteRequest = any;
-
-export interface BaseUserList {
-  list?: BaseUser[];
-}
-
-/** Array of users to be created. */
-export type BaseUserCreate = {
-  /** Unique identifier for the user. Can be provided optionally during creation. */
-  id?: string;
-  /**
-   * Email address of the user. Used as a primary identifier if 'id' is not provided.
-   * @format email
-   */
-  email?: string;
-  /** Full name of the user. */
-  user_name?: string;
-  /** Base roles for the user. */
-  base_role: BaseRoles;
-}[];
-
-/** Array of user updates. */
-export type BaseUserUpdate = {
-  /** Unique identifier for the user. Used as a primary identifier if provided. */
-  id?: string;
-  /**
-   * Email address of the user. Used as a primary identifier if 'id' is not provided.
-   * @format email
-   */
-  email?: string;
-  /** Base roles for the user. */
-  base_role: BaseRoles;
-}[];
-
-export type BaseUserDelete = {
+export interface BaseMemberWithWorkspaceRole {
   /** Unique identifier for the user. */
-  id?: string;
+  user_id: string;
   /**
    * Email address of the user.
    * @format email
    */
-  email?: string;
+  email: string;
+  /** Display name of the user. */
+  user_name?: string;
+  /** Base roles for the user. */
+  base_role: BaseRoles;
+  /** Role assigned to the user in the workspace */
+  workspace_role?: WorkspaceRoles;
+}
+
+export type BaseUserDeleteRequest = any;
+
+export interface BaseMemberList {
+  list?: BaseMember[];
+}
+
+/** Array of members to be created. */
+export type BaseMemberCreate = (
+  | {
+      /** Unique identifier for the user (skip if email is provided) */
+      user_id: string;
+      /** Full name of the user. */
+      user_name?: string;
+      /** Base roles for the user. */
+      base_role: BaseRoles;
+    }
+  | {
+      /**
+       * Email address of the user (skip if user_id is provided)
+       * @format email
+       */
+      email: string;
+      /** Full name of the user. */
+      user_name?: string;
+      /** Base roles for the user. */
+      base_role: BaseRoles;
+    }
+)[];
+
+/** Array of member updates. */
+export type BaseMemberUpdate = {
+  /** Unique user identifier for the member. */
+  user_id: string;
+  /** Base roles for the user. */
+  base_role: BaseRoles;
+}[];
+
+export type BaseMemberDelete = {
+  /** User unique identifier for the member. */
+  user_id: string;
 }[];
 
 export interface TableMetaReq {
@@ -496,7 +535,7 @@ export interface FieldBase {
   /** Description of the field. */
   description?: string | null;
   /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
-  default_value?: string;
+  default_value?: string | boolean | number;
 }
 
 export interface FieldOptionsLongText {
@@ -868,7 +907,7 @@ export interface FieldOptionsBarcode {
   barcode_value_field_id?: string;
 }
 
-export interface FieldOptionsQRCode {
+export interface FieldOptionsQrCode {
   /** Field ID that contains the value. */
   qrcode_value_field_id?: string;
 }
@@ -1246,6 +1285,111 @@ export interface Paginated {
   nestedPrev?: string;
 }
 
+/** Basic workspace information */
+export interface Workspace {
+  /** Unique identifier for the workspace */
+  id: string;
+  /** Title of the workspace */
+  title: string;
+  /**
+   * Timestamp when the workspace was created
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the workspace was last updated
+   * @format date-time
+   */
+  updated_at: string;
+}
+
+/** Workspace information including member details */
+export type WorkspaceWithMembers = Workspace & {
+  individual_members: {
+    /** List of workspace members */
+    workspace_members: WorkspaceMember[];
+  };
+};
+
+/** Individual workspace member information */
+export interface WorkspaceMember {
+  /**
+   * Email address of the member
+   * @format email
+   */
+  email: string;
+  /** Unique identifier for the user */
+  user_id: string;
+  /**
+   * Timestamp when the user was added to the workspace
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the user was last updated in the workspace
+   * @format date-time
+   */
+  updated_at: string;
+  /** Role assigned to the user in the workspace */
+  workspace_role: WorkspaceRoles;
+}
+
+/** Workspace user information */
+export interface WorkspaceUser {
+  /**
+   * Email address of the user
+   * @format email
+   */
+  email: string;
+  /** Unique identifier for the user */
+  user_id: string;
+  /**
+   * Timestamp when the user was added to the workspace
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the user was last updated in the workspace
+   * @format date-time
+   */
+  updated_at: string;
+  /** Role assigned to the user in the workspace */
+  workspace_role: WorkspaceRoles;
+}
+
+/** Array of workspace users to be created. */
+export type WorkspaceUserCreate = (
+  | {
+      /** Unique identifier for the user (skip if email is provided) */
+      user_id: string;
+      /** Workspace role to assign to the user */
+      workspace_role: WorkspaceRoles;
+    }
+  | {
+      /**
+       * Email address of the user (skip if user_id is provided)
+       * @format email
+       */
+      email: string;
+      /** Workspace role to assign to the user */
+      workspace_role: WorkspaceRoles;
+    }
+)[];
+
+/** Array of workspace user updates. */
+export type WorkspaceUserUpdate = {
+  /** Unique identifier for the user */
+  user_id: string;
+  /** New workspace role to assign to the user */
+  workspace_role: WorkspaceRoles;
+}[];
+
+/** Array of workspace users to be deleted. */
+export type WorkspaceUserDelete = {
+  /** Unique identifier for the user */
+  user_id: string;
+}[];
+
 type BaseFieldOptionsButton = object;
 
 type BaseFieldOptionsButtonTypeMapping<Key, Type> = {
@@ -1314,7 +1458,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || 'http://localhost:8080',
+      baseURL: axiosConfig.baseURL || 'https://app.nocodb.com',
     });
     this.secure = secure;
     this.format = format;
@@ -1429,7 +1573,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title NocoDB v3
- * @baseUrl http://localhost:8080
+ * @baseUrl https://app.nocodb.com
  *
  * NocoDB API Documentation
  */
@@ -1441,14 +1585,11 @@ export class InternalApi<
      * @description Retrieve a list of bases associated with a specific workspace.
      *
      * @tags Bases
-     * @name V3MetaWorkspacesBasesList
+     * @name BasesList
      * @summary List bases
      * @request GET:/api/v3/meta/workspaces/{workspaceId}/bases
      */
-    v3MetaWorkspacesBasesList: (
-      workspaceId: string,
-      params: RequestParams = {},
-    ) =>
+    basesList: (workspaceId: string, params: RequestParams = {}) =>
       this.request<Base[], void>({
         path: `/api/v3/meta/workspaces/${workspaceId}/bases`,
         method: 'GET',
@@ -1460,11 +1601,11 @@ export class InternalApi<
      * @description Create a new base in a specified workspace. The request requires the workspace identifier in the path and base details in the request body.
      *
      * @tags Bases
-     * @name V3MetaWorkspacesBasesCreate
+     * @name BaseCreate
      * @summary Create base
      * @request POST:/api/v3/meta/workspaces/{workspaceId}/bases
      */
-    v3MetaWorkspacesBasesCreate: (
+    baseCreate: (
       workspaceId: string,
       data: BaseCreate,
       params: RequestParams = {},
@@ -1479,14 +1620,106 @@ export class InternalApi<
       }),
 
     /**
+     * @description Retrieve details of a specific workspace, including its members. Notes: - To include member details, use the query parameter `include[]=members`. - Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     *
+     * @tags Workspace Members
+     * @name WorkspaceMembersRead
+     * @summary List workspace members
+     * @request GET:/api/v3/meta/workspaces/{workspaceId}?include[]=members
+     */
+    workspaceMembersRead: (
+      workspaceId: string,
+      query?: {
+        /**
+         * Include additional data. Use 'members' to include workspace member information.
+         * @example "members"
+         */
+        include?: 'members' | 'members'[];
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<WorkspaceWithMembers, void>({
+        path: `/api/v3/meta/workspaces/${workspaceId}?include[]=members`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body. Notes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     *
+     * @tags Workspace Members
+     * @name WorkspaceMembersInvite
+     * @summary Add workspace members
+     * @request POST:/api/v3/meta/workspaces/{workspaceId}/members
+     */
+    workspaceMembersInvite: (
+      workspaceId: string,
+      data: WorkspaceUserCreate,
+      params: RequestParams = {},
+    ) =>
+      this.request<WorkspaceUser[], void>({
+        path: `/api/v3/meta/workspaces/${workspaceId}/members`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body. Notes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     *
+     * @tags Workspace Members
+     * @name WorkspaceMembersUpdate
+     * @summary Update workspace members
+     * @request PATCH:/api/v3/meta/workspaces/{workspaceId}/members
+     */
+    workspaceMembersUpdate: (
+      workspaceId: string,
+      data: WorkspaceUserUpdate,
+      params: RequestParams = {},
+    ) =>
+      this.request<WorkspaceUser[], void>({
+        path: `/api/v3/meta/workspaces/${workspaceId}/members`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body. Notes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
+     *
+     * @tags Workspace Members
+     * @name WorkspaceMembersDelete
+     * @summary Delete workspace members
+     * @request DELETE:/api/v3/meta/workspaces/{workspaceId}/members
+     */
+    workspaceMembersDelete: (
+      workspaceId: string,
+      data: WorkspaceUserDelete,
+      params: RequestParams = {},
+    ) =>
+      this.request<void, void>({
+        path: `/api/v3/meta/workspaces/${workspaceId}/members`,
+        method: 'DELETE',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
      * @description Retrieve meta details of a specific base using its unique identifier.
      *
      * @tags Bases
-     * @name V3MetaBasesDetail
+     * @name BaseRead
      * @summary Get base meta
      * @request GET:/api/v3/meta/bases/{baseId}
      */
-    v3MetaBasesDetail: (baseId: string, params: RequestParams = {}) =>
+    baseRead: (baseId: string, params: RequestParams = {}) =>
       this.request<Base, void>({
         path: `/api/v3/meta/bases/${baseId}`,
         method: 'GET',
@@ -1498,11 +1731,11 @@ export class InternalApi<
      * @description Update properties of a specific base. You can modify fields such as the title and metadata of the base. The baseId parameter identifies the base to be updated, and the new details must be provided in the request body. At least one of title or meta must be provided.
      *
      * @tags Bases
-     * @name V3MetaBasesPartialUpdate
+     * @name BaseUpdate
      * @summary Update base
      * @request PATCH:/api/v3/meta/bases/{baseId}
      */
-    v3MetaBasesPartialUpdate: (
+    baseUpdate: (
       baseId: string,
       data: BaseUpdate,
       params: RequestParams = {},
@@ -1520,11 +1753,11 @@ export class InternalApi<
      * @description Delete a specific base using its unique identifier. Once deleted, the base and its associated data cannot be recovered.
      *
      * @tags Bases
-     * @name V3MetaBasesDelete
+     * @name BaseDelete
      * @summary Delete base
      * @request DELETE:/api/v3/meta/bases/{baseId}
      */
-    v3MetaBasesDelete: (baseId: string, params: RequestParams = {}) =>
+    baseDelete: (baseId: string, params: RequestParams = {}) =>
       this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}`,
         method: 'DELETE',
@@ -1535,11 +1768,11 @@ export class InternalApi<
      * @description Retrieve list of all tables within the specified base.
      *
      * @tags Tables
-     * @name V3MetaBasesTablesList
+     * @name TablesList
      * @summary List tables
      * @request GET:/api/v3/meta/bases/{base_id}/tables
      */
-    v3MetaBasesTablesList: (baseId: string, params: RequestParams = {}) =>
+    tablesList: (baseId: string, params: RequestParams = {}) =>
       this.request<TableList, void>({
         path: `/api/v3/meta/bases/${baseId}/tables`,
         method: 'GET',
@@ -1551,11 +1784,11 @@ export class InternalApi<
      * @description Create a new table within the specified base by providing the required table details in the request body.
      *
      * @tags Tables
-     * @name V3MetaBasesTablesCreate
+     * @name TableCreate
      * @summary Create table
      * @request POST:/api/v3/meta/bases/{base_id}/tables
      */
-    v3MetaBasesTablesCreate: (
+    tableCreate: (
       baseId: string,
       data: TableCreate,
       params: RequestParams = {},
@@ -1573,15 +1806,11 @@ export class InternalApi<
      * @description Retrieve the details of a specific table.
      *
      * @tags Tables
-     * @name V3MetaBasesTablesDetail
+     * @name TableRead
      * @summary Get table schema
      * @request GET:/api/v3/meta/bases/{baseId}/tables/{tableId}
      */
-    v3MetaBasesTablesDetail: (
-      tableId: string,
-      baseId: string,
-      params: RequestParams = {},
-    ) =>
+    tableRead: (tableId: string, baseId: string, params: RequestParams = {}) =>
       this.request<Table, void>({
         path: `/api/v3/meta/bases/${baseId}/tables/${tableId}`,
         method: 'GET',
@@ -1593,11 +1822,11 @@ export class InternalApi<
      * @description Update the details of a specific table.
      *
      * @tags Tables
-     * @name V3MetaBasesTablesPartialUpdate
+     * @name TableUpdate
      * @summary Update table
      * @request PATCH:/api/v3/meta/bases/{baseId}/tables/{tableId}
      */
-    v3MetaBasesTablesPartialUpdate: (
+    tableUpdate: (
       tableId: string,
       baseId: string,
       data: TableUpdate,
@@ -1616,11 +1845,11 @@ export class InternalApi<
      * @description Delete a specific table.
      *
      * @tags Tables
-     * @name V3MetaBasesTablesDelete
+     * @name TableDelete
      * @summary Delete table
      * @request DELETE:/api/v3/meta/bases/{baseId}/tables/{tableId}
      */
-    v3MetaBasesTablesDelete: (
+    tableDelete: (
       tableId: string,
       baseId: string,
       params: RequestParams = {},
@@ -1635,15 +1864,11 @@ export class InternalApi<
      * @description Retrieve a list of all views for a specific table.
      *
      * @tags Views
-     * @name V3MetaBasesTablesViewsList
+     * @name ViewsList
      * @summary List views
      * @request GET:/api/v3/meta/bases/{baseId}/tables/{tableId}/views
      */
-    v3MetaBasesTablesViewsList: (
-      baseId: string,
-      tableId: string,
-      params: RequestParams = {},
-    ) =>
+    viewsList: (baseId: string, tableId: string, params: RequestParams = {}) =>
       this.request<
         {
           list: View[];
@@ -1660,11 +1885,11 @@ export class InternalApi<
      * @description Create a new field within the specified table.
      *
      * @tags Fields
-     * @name V3MetaBasesTablesFieldsCreate
+     * @name FieldCreate
      * @summary Create field
      * @request POST:/api/v3/meta/bases/{baseId}/tables/{tableId}/fields
      */
-    v3MetaBasesTablesFieldsCreate: (
+    fieldCreate: (
       tableId: string,
       baseId: string,
       data: CreateField,
@@ -1683,15 +1908,11 @@ export class InternalApi<
      * @description Retrieve the details of a specific field.
      *
      * @tags Fields
-     * @name V3MetaBasesFieldsDetail
+     * @name FieldRead
      * @summary Get field
      * @request GET:/api/v3/meta/bases/{baseId}/fields/{fieldId}
      */
-    v3MetaBasesFieldsDetail: (
-      baseId: string,
-      fieldId: string,
-      params: RequestParams = {},
-    ) =>
+    fieldRead: (baseId: string, fieldId: string, params: RequestParams = {}) =>
       this.request<Field, void>({
         path: `/api/v3/meta/bases/${baseId}/fields/${fieldId}`,
         method: 'GET',
@@ -1703,11 +1924,11 @@ export class InternalApi<
      * @description Update the details of a specific field.
      *
      * @tags Fields
-     * @name V3MetaBasesFieldsPartialUpdate
+     * @name FieldUpdate
      * @summary Update field
      * @request PATCH:/api/v3/meta/bases/{baseId}/fields/{fieldId}
      */
-    v3MetaBasesFieldsPartialUpdate: (
+    fieldUpdate: (
       baseId: string,
       fieldId: string,
       data: FieldUpdate,
@@ -1726,11 +1947,11 @@ export class InternalApi<
      * @description Delete a specific field.
      *
      * @tags Fields
-     * @name V3MetaBasesFieldsDelete
+     * @name FieldDelete
      * @summary Delete field
      * @request DELETE:/api/v3/meta/bases/{baseId}/fields/{fieldId}
      */
-    v3MetaBasesFieldsDelete: (
+    fieldDelete: (
       fieldId: string,
       baseId: string,
       params: RequestParams = {},
@@ -1745,11 +1966,11 @@ export class InternalApi<
      * @description Retrieve a list of all filters and groups for a specific view.
      *
      * @tags View Filters
-     * @name V3MetaBasesViewsFiltersList
+     * @name ViewFiltersList
      * @summary List view filters
      * @request GET:/api/v3/meta/bases/{baseId}/views/{viewId}/filters
      */
-    v3MetaBasesViewsFiltersList: (
+    viewFiltersList: (
       baseId: string,
       viewId: string,
       params: RequestParams = {},
@@ -1765,11 +1986,11 @@ export class InternalApi<
      * @description Create a new filter or filter-group for a specific view.
      *
      * @tags View Filters
-     * @name V3MetaBasesViewsFiltersCreate
+     * @name ViewFilterCreate
      * @summary Create filter
      * @request POST:/api/v3/meta/bases/{baseId}/views/{viewId}/filters
      */
-    v3MetaBasesViewsFiltersCreate: (
+    viewFilterCreate: (
       baseId: string,
       viewId: string,
       data: FilterCreateUpdate,
@@ -1788,11 +2009,11 @@ export class InternalApi<
      * @description Update the details of an existing filter or group.
      *
      * @tags View Filters
-     * @name V3MetaBasesViewsFiltersPartialUpdate
+     * @name ViewFilterUpdate
      * @summary Update filter
      * @request PATCH:/api/v3/meta/bases/{baseId}/views/{viewId}/filters
      */
-    v3MetaBasesViewsFiltersPartialUpdate: (
+    viewFilterUpdate: (
       baseId: string,
       filterId: string,
       viewId: string,
@@ -1812,11 +2033,11 @@ export class InternalApi<
      * @description Delete an existing filter or filter-group.
      *
      * @tags View Filters
-     * @name V3MetaBasesViewsFiltersDelete
+     * @name ViewFilterDelete
      * @summary Delete filter
      * @request DELETE:/api/v3/meta/bases/{baseId}/views/{viewId}/filters
      */
-    v3MetaBasesViewsFiltersDelete: (
+    viewFilterDelete: (
       baseId: string,
       viewId: string,
       params: RequestParams = {},
@@ -1831,11 +2052,11 @@ export class InternalApi<
      * @description Replace filters for a specific view. All the existing filters will be overwritten with the new filters specified in this request.
      *
      * @tags View Filters
-     * @name V3MetaBasesViewsFiltersUpdate
+     * @name ViewFilterReplace
      * @summary Replace filter
      * @request PUT:/api/v3/meta/bases/{baseId}/views/{viewId}/filters
      */
-    v3MetaBasesViewsFiltersUpdate: (
+    viewFilterReplace: (
       viewId: string,
       baseId: string,
       data: FilterCreateUpdate,
@@ -1854,11 +2075,11 @@ export class InternalApi<
      * @description Retrieve a list of all sorts for a specific view.
      *
      * @tags View Sorts
-     * @name V3MetaBasesViewsSortsList
+     * @name ViewSortsList
      * @summary List view sorts
      * @request GET:/api/v3/meta/bases/{baseId}/views/{viewId}/sorts
      */
-    v3MetaBasesViewsSortsList: (
+    viewSortsList: (
       baseId: string,
       viewId: string,
       params: RequestParams = {},
@@ -1874,11 +2095,11 @@ export class InternalApi<
      * @description Create a new sort for a specific view.
      *
      * @tags View Sorts
-     * @name V3MetaBasesViewsSortsCreate
+     * @name ViewSortCreate
      * @summary Add sort
      * @request POST:/api/v3/meta/bases/{baseId}/views/{viewId}/sorts
      */
-    v3MetaBasesViewsSortsCreate: (
+    viewSortCreate: (
       baseId: string,
       viewId: string,
       data: SortCreate,
@@ -1897,11 +2118,11 @@ export class InternalApi<
      * @description Delete an existing sort.
      *
      * @tags View Sorts
-     * @name V3MetaBasesViewsSortsDelete
+     * @name ViewSortDelete
      * @summary Delete sort
      * @request DELETE:/api/v3/meta/bases/{baseId}/views/{viewId}/sorts
      */
-    v3MetaBasesViewsSortsDelete: (
+    viewSortDelete: (
       baseId: string,
       sortId: string,
       viewId: string,
@@ -1917,11 +2138,11 @@ export class InternalApi<
      * @description Update the details of an existing sort.
      *
      * @tags View Sorts
-     * @name V3MetaBasesViewsSortsPartialUpdate
+     * @name ViewSortUpdate
      * @summary Update sort
      * @request PATCH:/api/v3/meta/bases/{baseId}/views/{viewId}/sorts
      */
-    v3MetaBasesViewsSortsPartialUpdate: (
+    viewSortUpdate: (
       baseId: string,
       sortId: string,
       viewId: string,
@@ -1938,36 +2159,36 @@ export class InternalApi<
       }),
 
     /**
-     * @description Retrieve a list of users associated with a specific base.
+     * @description Retrieve all details of a specific base, including its members. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
      *
-     * @tags Base Users
-     * @name V3MetaBasesUsersList
-     * @summary List base users
-     * @request GET:/api/v3/meta/bases/{base_id}/users
+     * @tags Base Members
+     * @name BaseMembersList
+     * @summary List base members
+     * @request GET:/api/v3/meta/bases/{baseId}?include[]=members
      */
-    v3MetaBasesUsersList: (baseId: string, params: RequestParams = {}) =>
-      this.request<BaseUserList, void>({
-        path: `/api/v3/meta/bases/${baseId}/users`,
+    baseMembersList: (baseId: string, params: RequestParams = {}) =>
+      this.request<BaseWithMembers, void>({
+        path: `/api/v3/meta/bases/${baseId}?include[]=members`,
         method: 'GET',
         format: 'json',
         ...params,
       }),
 
     /**
-     * @description Invite new users to a specific base using their email address.
+     * @description Invite new members to a specific base using their User ID or Email address. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
      *
-     * @tags Base Users
-     * @name V3MetaBasesUsersCreate
-     * @summary Invite users to a base
-     * @request POST:/api/v3/meta/bases/{base_id}/users
+     * @tags Base Members
+     * @name BaseMembersInvite
+     * @summary Invite base members
+     * @request POST:/api/v3/meta/bases/{base_id}/members
      */
-    v3MetaBasesUsersCreate: (
+    baseMembersInvite: (
       baseId: string,
-      data: BaseUserCreate,
+      data: BaseMemberCreate,
       params: RequestParams = {},
     ) =>
-      this.request<BaseUser[], void>({
-        path: `/api/v3/meta/bases/${baseId}/users`,
+      this.request<BaseMember[], void>({
+        path: `/api/v3/meta/bases/${baseId}/members`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -1976,20 +2197,20 @@ export class InternalApi<
       }),
 
     /**
-     * @description Update roles for existing users in a base.
+     * @description Update roles for existing members in a base. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
      *
-     * @tags Base Users
-     * @name V3MetaBasesUsersPartialUpdate
-     * @summary Update users in a base
-     * @request PATCH:/api/v3/meta/bases/{base_id}/users
+     * @tags Base Members
+     * @name BaseMembersUpdate
+     * @summary Update base members
+     * @request PATCH:/api/v3/meta/bases/{base_id}/members
      */
-    v3MetaBasesUsersPartialUpdate: (
+    baseMembersUpdate: (
       baseId: string,
-      data: BaseUserUpdate,
+      data: BaseMemberUpdate,
       params: RequestParams = {},
     ) =>
-      this.request<BaseUser[], void>({
-        path: `/api/v3/meta/bases/${baseId}/users`,
+      this.request<BaseMember[], void>({
+        path: `/api/v3/meta/bases/${baseId}/members`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
@@ -1998,37 +2219,28 @@ export class InternalApi<
       }),
 
     /**
-     * @description Remove users from a specific base using their IDs.
+     * @description Remove members from a specific base using their IDs. Notes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.
      *
-     * @tags Base Users
-     * @name V3MetaBasesUsersDelete
-     * @summary Delete users from a base
-     * @request DELETE:/api/v3/meta/bases/{base_id}/users
+     * @tags Base Members
+     * @name BaseMembersDelete
+     * @summary Delete base members
+     * @request DELETE:/api/v3/meta/bases/{base_id}/members
      */
-    v3MetaBasesUsersDelete: (
+    baseMembersDelete: (
       baseId: string,
-      data: BaseUserDelete,
+      data: BaseMemberDelete,
       params: RequestParams = {},
     ) =>
-      this.request<
-        {
-          /** Indicates if the operation was successful. */
-          success?: boolean;
-          /** List of successfully deleted users. */
-          deleted_users?: BaseUserDeleteRequest[];
-        },
-        void
-      >({
-        path: `/api/v3/meta/bases/${baseId}/users`,
+      this.request<void, void>({
+        path: `/api/v3/meta/bases/${baseId}/members`,
         method: 'DELETE',
         body: data,
         type: ContentType.Json,
-        format: 'json',
         ...params,
       }),
 
     /**
-     * @description This API endpoint allows you to retrieve records from a specified table. You can customize the response by applying various query parameters for filtering, sorting, and formatting. **Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block: - **next**: Contains the URL to retrieve the next page of records. For example, `"https://staging.noco.ws/api/v3/tables/medhonywr18cysz/records?page=2"` points to the next page of records. - If there are no more records available (you are on the last page), this attribute will be _null_. The `pageInfo` attribute is particularly valuable when working with large datasets divided into multiple pages. It provides the necessary URL to seamlessly fetch subsequent pages, enabling efficient navigation through the dataset.
+     * @description This API endpoint allows you to retrieve records from a specified table. You can customize the response by applying various query parameters for filtering, sorting, and formatting. **Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block: - **next**: Contains the URL to retrieve the next page of records. For example, `"https://app.nocodb.com/api/v3/tables/medhonywr18cysz/records?page=2"` points to the next page of records. - If there are no more records available (you are on the last page), this attribute will be _null_. The `pageInfo` attribute is particularly valuable when working with large datasets divided into multiple pages. It provides the necessary URL to seamlessly fetch subsequent pages, enabling efficient navigation through the dataset.
      *
      * @tags Table Records
      * @name DbDataTableRowList
@@ -2240,6 +2452,44 @@ export class InternalApi<
         path: `/api/v3/data/${baseId}/${tableId}/records/${recordId}`,
         method: 'GET',
         query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description This API endpoint allows you to upload an attachment (base64 encoded) to a specific cell in a table. The attachment data includes content type, base64 encoded file, and filename.
+     *
+     * @tags Table Records
+     * @name DbDataTableRowAttachmentUpload
+     * @summary Upload Attachment to Cell
+     * @request POST:/api/v3/data/{baseId}/{modelId}/records/{recordId}/fields/{fieldId}/upload
+     */
+    dbDataTableRowAttachmentUpload: (
+      baseId: string,
+      modelId: string,
+      recordId: string,
+      fieldId: string,
+      data: {
+        /** Content type of the file (e.g., image/png, application/pdf). */
+        contentType: string;
+        /** Base64 encoded file content. */
+        file: string;
+        /** Original filename of the attachment. */
+        filename: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        DataReadResponseV3,
+        {
+          /** @example "BadRequest [Error]: <ERROR MESSAGE>" */
+          msg: string;
+        }
+      >({
+        path: `/api/v3/data/${baseId}/${modelId}/records/${recordId}/fields/${fieldId}/upload`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),

@@ -24,5 +24,3 @@ const toggleSideMenu = () => {
     </NcButton>
   </NcTooltip>
 </template>
-
-<style scoped lang="scss"></style>

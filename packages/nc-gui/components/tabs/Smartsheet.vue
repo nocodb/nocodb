@@ -237,7 +237,7 @@ const onReady = () => {
           >
             <Transition name="layout" mode="out-in">
               <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
-                <div class="h-full flex-1 min-w-0 min-h-0 bg-white">
+                <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">
                   <SmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
 
                   <template v-if="activeView && meta">
@@ -283,18 +283,18 @@ const onReady = () => {
       @apply !w-0 relative overflow-visible z-40 -ml-1px;
     }
     .splitpanes__splitter:before {
-      @apply bg-gray-200 absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-40;
+      @apply bg-nc-bg-gray-medium absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-40;
       content: '';
     }
 
     .splitpanes__splitter:hover:before {
-      @apply bg-scrollbar;
+      @apply bg-nc-border-gray-medium;
       width: 3px !important;
       left: 0px;
     }
 
     .splitpanes--dragging .splitpanes__splitter:before {
-      @apply bg-scrollbar;
+      @apply bg-nc-border-gray-medium;
       width: 3px !important;
       left: 0px;
     }

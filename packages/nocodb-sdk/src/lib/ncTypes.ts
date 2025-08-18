@@ -13,10 +13,12 @@ export interface NcContext {
     provider?: string;
   };
   fk_model_id?: string;
+  socket_id?: string;
 }
 
 export interface NcRequest extends Partial<Request> {
   context: NcContext;
+  ncSocketId?: string;
   ncWorkspaceId?: string;
   ncBaseId?: string;
   ncSourceId?: string;

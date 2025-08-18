@@ -1,13 +1,11 @@
 <script lang="ts" setup>
 const workspaceStore = useWorkspace()
 
-const { isWorkspaceLoading, upgradeWsDlg, upgradeWsJobId } = storeToRefs(workspaceStore)
+const { upgradeWsDlg, upgradeWsJobId } = storeToRefs(workspaceStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
 const { isMobileMode, appInfo } = useGlobal()
-
-const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const treeViewDom = ref<HTMLElement>()
 
@@ -37,64 +35,34 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="nc-sidebar flex flex-col bg-gray-50 outline-r-1 outline-gray-100 select-none w-full h-full font-medium z-2"
+    class="nc-sidebar flex flex-col bg-nc-bg-gray-extralight outline-r-1 outline-nc-border-gray-light select-none w-full h-full font-medium z-2"
     :style="{
       outlineWidth: '1px',
     }"
   >
-    <template v-if="isNewSidebarEnabled">
-      <DashboardTreeViewProjectList>
-        <template #footer>
-          <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
-            <PaymentUpgradeSidebarBanner v-if="isEeUI" />
-            <LazyGeneralMaintenanceAlert />
+    <DashboardTreeViewProjectList>
+      <template #footer>
+        <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
+          <PaymentUpgradeSidebarBanner v-if="isEeUI" />
+          <LazyGeneralMaintenanceAlert />
 
-            <GeneralGift v-if="!isEeUI" />
+          <GeneralGift v-if="!isEeUI" />
 
-            <DashboardSidebarBeforeUserInfo />
-            <div v-if="!isMobileMode && !appInfo.ee" class="flex flex-row w-full justify-between pt-0.5 truncate">
-              <GeneralJoinCloud />
-            </div>
-            <DashboardSidebarVersion v-if="appInfo.isOnPrem" />
+          <DashboardSidebarBeforeUserInfo />
+          <div v-if="!isMobileMode && !appInfo.ee" class="flex flex-row w-full justify-between pt-0.5 truncate">
+            <GeneralJoinCloud />
           </div>
-        </template>
-      </DashboardTreeViewProjectList>
-    </template>
-    <template v-else>
-      <div class="flex flex-col">
-        <DashboardSidebarHeader />
-
-        <DashboardSidebarTopSection v-if="!isSharedBase" />
-      </div>
-      <div
-        ref="treeViewDom"
-        class="flex flex-col nc-scrollbar-dark-md flex-grow xs:(border-transparent pt-2 pr-2)"
-        :class="{
-          'border-t-1': !isSharedBase,
-          'border-transparent': !isTreeViewOnScrollTop,
-          'pt-0.25': isSharedBase,
-        }"
-      >
-        <DashboardTreeView v-if="!isWorkspaceLoading" />
-      </div>
-      <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
-        <PaymentUpgradeSidebarBanner v-if="isEeUI" />
-
-        <GeneralGift v-if="!isEeUI" />
-        <DashboardSidebarBeforeUserInfo />
-        <DashboardSidebarFeed v-if="appInfo.feedEnabled" />
-        <DashboardSidebarUserInfo />
-        <DashboardSidebarVersion v-if="appInfo.isOnPrem" />
-      </div>
-    </template>
-
+          <DashboardSidebarVersion v-if="appInfo.isOnPrem" />
+        </div>
+      </template>
+    </DashboardTreeViewProjectList>
     <DlgUpgradeWs v-if="upgradeWsJobId" v-model="upgradeWsDlg" :job-id="upgradeWsJobId" />
   </div>
 </template>
 
 <style lang="scss" scoped>
 .nc-sidebar-top-button {
-  @apply flex flex-row mx-1 px-3.5 rounded-md items-center py-0.75 my-0.5 gap-x-2 hover:bg-gray-200 cursor-pointer;
+  @apply flex flex-row mx-1 px-3.5 rounded-md items-center py-0.75 my-0.5 gap-x-2 hover:bg-nc-bg-gray-medium cursor-pointer;
 }
 
 .nc-sidebar-bottom-section {

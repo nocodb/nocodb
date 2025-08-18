@@ -56,7 +56,7 @@ const AllAggregations = {
   ...DateAggregations,
 };
 
-type AggregationValue = typeof AllAggregations[keyof typeof AllAggregations]
+type AggregationValue = (typeof AllAggregations)[keyof typeof AllAggregations];
 
 const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
   let returnAggregations = [];
@@ -122,7 +122,7 @@ const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
       break;
     case UITypes.Button:
     case UITypes.Attachment:
-      return [CommonAggregations.None];
+      return [CommonAggregations.None, AttachmentAggregations.AttachmentSize];
   }
 
   if (!returnAggregations.length) {
@@ -141,6 +141,20 @@ const formatAggregation = (
    */
   columnHelperParams?: SerializerOrParserFnProps['params']
 ) => {
+  if (column.uidt === UITypes.Formula) {
+    if ((column?.meta as any)?.display_type) {
+      const childColumn = {
+        uidt: (column?.meta as any)?.display_type,
+        ...(column?.meta as any)?.display_column_meta,
+      };
+
+      return formatAggregation(aggregation, value, childColumn, {
+        ...columnHelperParams,
+        col: childColumn,
+      });
+    }
+  }
+
   if (
     [DateAggregations.EarliestDate, DateAggregations.LatestDate].includes(
       aggregation
@@ -202,6 +216,7 @@ const formatAggregation = (
       UITypes.Percent,
       UITypes.Duration,
       UITypes.Rollup,
+      UITypes.Time,
     ].includes(column.uidt as UITypes)
   ) {
     return ColumnHelper.parsePlainCellValue(value, {

@@ -2,8 +2,6 @@
 const router = useRouter()
 const route = router.currentRoute
 
-const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
-
 const { isUIAllowed } = useRoles()
 
 const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
@@ -40,7 +38,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
     :class="{
       'bg-nc-bg-brand': isEditingDashboard,
     }"
-    class="nc-table-topbar py-2 border-b-1 border-gray-200 flex gap-3 items-center justify-between overflow-hidden relative h-[var(--topbar-height)] max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1)"
+    class="nc-table-topbar py-2 border-b-1 border-nc-border-gray-medium flex gap-3 items-center justify-between overflow-hidden relative h-[var(--topbar-height)] max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1)"
     style="z-index: 7"
   >
     <template v-if="isViewsLoading && !activeAutomationId && !activeDashboardId">
@@ -102,14 +100,16 @@ const topbarBreadcrumbItemWidth = computed(() => {
         </NcButton>
 
         <div v-if="!isSharedBase" class="flex gap-2 items-center empty:hidden">
-          <LazySmartsheetTopbarCmdK v-if="!isNewSidebarEnabled" />
           <LazySmartsheetTopbarDashboardState v-if="activeDashboardId && isUIAllowed('dashboardEdit')" />
           <LazySmartsheetTopbarScriptAction v-if="activeAutomationId && appInfo.ee" />
         </div>
         <LazySmartsheetTopbarShareProject v-if="!activeAutomationId" />
 
         <div v-if="isSharedBase">
-          <LazyGeneralLanguage button class="cursor-pointer text-lg hover:(text-black bg-gray-200) mr-0 p-1.5 rounded-md" />
+          <LazyGeneralLanguage
+            button
+            class="cursor-pointer text-lg hover:(text-nc-content-gray-extreme bg-nc-bg-gray-medium) mr-0 p-1.5 rounded-md"
+          />
         </div>
       </div>
     </template>

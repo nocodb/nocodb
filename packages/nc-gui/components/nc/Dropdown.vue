@@ -42,7 +42,7 @@ const visible = useVModel(props, 'visible', emits)
 const localIsVisible = ref<boolean | undefined>(props.visible)
 
 const overlayClassNameComputed = computed(() => {
-  let className = `${props.nonNcDropdown ? '' : 'nc-dropdown '}bg-white rounded-lg border-1 border-gray-200 shadow-lg`
+  let className = `${props.nonNcDropdown ? '' : 'nc-dropdown '} rounded-lg border-1 border-nc-border-gray-medium shadow-lg`
   if (overlayClassName.value) {
     className += ` ${overlayClassName.value}`
   }

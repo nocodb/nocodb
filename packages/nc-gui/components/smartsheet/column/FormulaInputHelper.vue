@@ -2,13 +2,22 @@
 import { UITypes, isHiddenCol, jsepCurlyHook } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
-import { KeyCode, type editor as MonacoEditor, Position, Range, languages, editor as monacoEditor } from 'monaco-editor'
+import {
+  KeyCode,
+  MarkerSeverity,
+  type editor as MonacoEditor,
+  Position,
+  Range,
+  languages,
+  editor as monacoEditor,
+} from 'monaco-editor'
 import jsep from 'jsep'
 import formulaLanguage from '../../monaco/formula'
 import { isCursorInsideString } from '../../../utils/formulaUtils'
 
 interface Props {
   error?: boolean
+  editorError?: { isError: boolean; message: string; position: { column: number; row: number; length: number } }
   value: string
   label?: string
   editorHeight?: string
@@ -25,7 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emits = defineEmits(['update:value'])
 
-const { error, suggestionHeight, editorHeight } = toRefs(props)
+const { suggestionHeight, editorHeight } = toRefs(props)
 
 const value = useVModel(props, 'value', emits)
 
@@ -64,8 +73,6 @@ const showFunctionList = ref<boolean>(true)
 const availableFunctions = formulaList
 
 const availableBinOps = ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!=', '&']
-
-const autocomplete = ref(false)
 
 const variableListRef = ref<(typeof AntListItem)[]>([])
 
@@ -148,6 +155,7 @@ const variableList = computed(() => {
 
 const monacoRoot = ref<HTMLDivElement>()
 let editor: MonacoEditor.IStandaloneCodeEditor
+let model: MonacoEditor.ITextModel
 
 function getCurrentKeyword() {
   const model = editor.getModel()
@@ -167,7 +175,7 @@ const handleInputDeb = useDebounceFn(function () {
 
 onMounted(async () => {
   if (monacoRoot.value) {
-    const model = monacoEditor.createModel(value.value, 'formula')
+    model = monacoEditor.createModel(value.value, 'formula')
 
     languages.register({
       id: formulaLanguage.name,
@@ -230,6 +238,8 @@ onMounted(async () => {
       'minimap': {
         enabled: false,
       },
+      // Don't suggest words from the document, shown when typing COUNT(C
+      'wordBasedSuggestions': 'off',
     })
 
     editor.layout({
@@ -253,7 +263,6 @@ onMounted(async () => {
 
       // IF cursor is inside string, don't show any suggestions
       if (isCursorInsideString(text, offset)) {
-        autocomplete.value = false
         suggestion.value = []
       } else {
         handleInput()
@@ -421,7 +430,6 @@ function appendText(item: Record<string, any>) {
   } else {
     insertStringAtPosition(editor, text, true)
   }
-  autocomplete.value = false
   wordToComplete.value = ''
 
   if (item.type === 'function' || item.type === 'op') {
@@ -478,7 +486,6 @@ function handleInput() {
 
   // IF cursor is inside string, don't show any suggestions
   if (isCursorInsideString(text, offset)) {
-    autocomplete.value = false
     suggestion.value = []
     return
   }
@@ -506,8 +513,6 @@ function handleInput() {
   } else if (!showFunctionList.value) {
     showFunctionList.value = true
   }
-
-  autocomplete.value = !!suggestion.value.length
 }
 
 function selectText() {
@@ -669,6 +674,30 @@ const enableAI = async () => {
     aiMode.value = AI_MODE.PROMPT
   }
 }
+
+// set monaco module markers every editor error change
+watch(
+  () => props.editorError,
+  (value) => {
+    if (value?.isError) {
+      monacoEditor.setModelMarkers(editor.getModel()!, 'owner', [
+        {
+          startLineNumber: value.position.row + 1,
+          startColumn: value.position.column + 1,
+          endLineNumber: value.position.row + 1,
+          endColumn: value.position.column + 1 + value.position.length,
+          message: value.message,
+          severity: MarkerSeverity.Error,
+        },
+      ])
+    } else {
+      monacoEditor.setModelMarkers(editor.getModel()!, 'owner', [])
+    }
+  },
+)
+const validationErrorDisplay = computed(() => {
+  return props.editorError?.isError ? { validateStatus: 'success' } : validateInfos.formula_raw
+})
 </script>
 
 <template>
@@ -720,16 +749,17 @@ const enableAI = async () => {
       </a>
     </div>
   </div>
-
-  <a-form-item :label="label" required v-bind="validateInfos.formula_raw">
+  <a-form-item :label="label" required v-bind="validationErrorDisplay">
     <div
       ref="monacoRoot"
       :style="{
         height: editorHeight ?? '100px',
       }"
       :class="{
-        '!border-red-500 formula-error': error,
-        '!focus-within:border-brand-500 shadow-default hover:shadow-hover formula-success': !error,
+        '!border-red-500 formula-error':
+          !validationErrorDisplay?.validateStatus || validationErrorDisplay?.validateStatus !== 'success',
+        '!focus-within:border-brand-500 shadow-default hover:shadow-hover formula-success':
+          !validationErrorDisplay?.validateStatus || validationErrorDisplay?.validateStatus === 'success',
         'bg-white': isAiModeFieldModal,
       }"
       class="formula-monaco transition-colors duration-300"
@@ -989,5 +1019,8 @@ const enableAI = async () => {
 .formula-placeholder {
   @apply !text-gray-500 !text-xs !font-medium;
   font-family: 'Inter';
+}
+.monaco-hover {
+  position: fixed;
 }
 </style>

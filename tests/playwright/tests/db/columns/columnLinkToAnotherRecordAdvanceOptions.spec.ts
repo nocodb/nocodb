@@ -37,12 +37,12 @@ test.describe('LTAR create & update', () => {
       type: UITypes.Number,
     });
 
-    await dashboard.treeView.openTable({ title: 'Sheet1' });
+    await dashboard.treeView.openTable({ title: 'Sheet1', baseTitle: context.base.title });
     await dashboard.grid.addNewRow({ index: 0, value: '1a' });
     await dashboard.grid.addNewRow({ index: 1, value: '1b' });
     await dashboard.grid.addNewRow({ index: 2, value: '1c' });
 
-    await dashboard.treeView.openTable({ title: 'Sheet2' });
+    await dashboard.treeView.openTable({ title: 'Sheet2', baseTitle: context.base.title });
     await dashboard.grid.addNewRow({ index: 0, value: '2a' });
     await dashboard.grid.addNewRow({ index: 1, value: '2b' });
     await dashboard.grid.addNewRow({ index: 2, value: '2c' });
@@ -158,7 +158,7 @@ test.describe('LTAR create & update', () => {
       }
     }
 
-    await dashboard.treeView.openTable({ title: 'Sheet1' });
+    await dashboard.treeView.openTable({ title: 'Sheet1', baseTitle: context.base.title });
 
     // Verify fields and toggle the visibility
     await dashboard.grid.toolbar.clickFields();
@@ -270,7 +270,7 @@ test.describe('Links after edit record', () => {
    */
   test('Existing LTAR table verification', async () => {
     // open table
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     await verifyRow({
       index: 0,
       value: {

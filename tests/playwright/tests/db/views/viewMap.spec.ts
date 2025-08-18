@@ -19,7 +19,7 @@ test.describe.skip('Map View', () => {
 
     await dashboard.viewSidebar.changeBetaFeatureToggleValue();
 
-    await dashboard.treeView.openTable({ title: 'Actor' });
+    await dashboard.treeView.openTable({ title: 'Actor', baseTitle: context.base.title });
 
     const grid = dashboard.grid;
 

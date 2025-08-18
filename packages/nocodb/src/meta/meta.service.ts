@@ -473,7 +473,7 @@ export class MetaService {
     }
 
     if (!idOrCondition) {
-      return query.first();
+      return null;
     }
 
     if (typeof idOrCondition !== 'object') {

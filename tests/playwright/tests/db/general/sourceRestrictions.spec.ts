@@ -30,6 +30,7 @@ test.describe('Source Restrictions', () => {
 
   test('Readonly data source', async () => {
     await dashboard.treeView.openProject({ title: context.base.title, context });
+    await dashboard.baseView.openOverview();
     await dashboard.baseView.tab_dataSources.click();
 
     await dashboard.rootPage.waitForTimeout(300);
@@ -40,10 +41,10 @@ test.describe('Source Restrictions', () => {
     // reload page to reflect source changes
     await dashboard.rootPage.reload();
 
-    await dashboard.treeView.verifyTable({ title: 'Actor' });
+    await dashboard.treeView.verifyTable({ title: 'Actor', baseTitle: context.base.title });
 
     // open table and verify that it is readonly
-    await dashboard.treeView.openTable({ title: 'Actor' });
+    await dashboard.treeView.openTable({ title: 'Actor', baseTitle: context.base.title });
     await expect(dashboard.grid.get().locator('.nc-grid-add-new-cell')).toHaveCount(0);
 
     await dashboard.grid.get().getByTestId(`cell-FirstName-0`).click({
@@ -56,6 +57,7 @@ test.describe('Source Restrictions', () => {
 
   test('Readonly schema source', async () => {
     await dashboard.treeView.openProject({ title: context.base.title, context });
+    await dashboard.baseView.openOverview();
     await dashboard.baseView.tab_dataSources.click();
 
     await dashboard.rootPage.waitForTimeout(300);
@@ -64,10 +66,10 @@ test.describe('Source Restrictions', () => {
     // reload page to reflect source changes
     await dashboard.rootPage.reload();
 
-    await dashboard.treeView.verifyTable({ title: 'Actor' });
+    await dashboard.treeView.verifyTable({ title: 'Actor', baseTitle: context.base.title });
 
     // open table and verify that it is readonly
-    await dashboard.treeView.openTable({ title: 'Actor' });
+    await dashboard.treeView.openTable({ title: 'Actor', baseTitle: context.base.title });
 
     await dashboard.grid
       .get()
@@ -87,6 +89,7 @@ test.describe('Source Restrictions', () => {
   test('Readonly schema source - edit column', async () => {
     await dashboard.treeView.openTable({
       title: 'Country',
+      baseTitle: context.base.title,
     });
 
     // Create Rating column
@@ -96,6 +99,7 @@ test.describe('Source Restrictions', () => {
     });
 
     await dashboard.treeView.openProject({ title: context.base.title, context });
+    await dashboard.baseView.openOverview();
     await dashboard.baseView.tab_dataSources.click();
 
     await dashboard.rootPage.waitForTimeout(300);
@@ -104,10 +108,10 @@ test.describe('Source Restrictions', () => {
     // reload page to reflect source changes
     await dashboard.rootPage.reload();
 
-    await dashboard.treeView.verifyTable({ title: 'Country' });
+    await dashboard.treeView.verifyTable({ title: 'Country', baseTitle: context.base.title });
 
     // open table and verify that it is readonly
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await dashboard.grid
       .get()

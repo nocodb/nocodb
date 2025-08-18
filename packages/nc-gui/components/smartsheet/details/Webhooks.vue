@@ -426,7 +426,7 @@ const getHookTypeText = (hook: HookType) => {
 
                       <NcMenuItem
                         key="delete"
-                        class="!text-red-500 !hover:bg-red-50"
+                        danger
                         data-testid="nc-webhook-item-action-delete"
                         @click="openDeleteModal(hook.id)"
                       >
@@ -488,6 +488,6 @@ const getHookTypeText = (hook: HookType) => {
   @apply text-gray-500;
 }
 .btn-goto-docs:hover {
-  background: var(--nc-background-coloured-orange-dark, #fee6d6) !important;
+  background: var(--nc-bg-coloured-orange-dark, #fee6d6) !important;
 }
 </style>

@@ -30,7 +30,7 @@ test.describe.skip('Auth', () => {
 
   test('Change password', async ({ page }) => {
     let url = '';
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     await dashboard.grid.toolbar.clickShare();
     await dashboard.grid.toolbar.share.invite({ email: 'user-1@nocodb.com', role: 'creator' });
     url = await dashboard.grid.toolbar.share.getInvitationUrl();

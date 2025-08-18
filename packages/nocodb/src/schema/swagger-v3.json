@@ -8,6 +8,26 @@
     "version": "",
     "description": "NocoDB API Documentation"
   },
+  "x-tagGroups": [
+    {
+      "name": "Meta APIs",
+      "tags": [
+        "Bases",
+        "Tables",
+        "Views",
+        "Fields",
+        "View Filters",
+        "View Sorts"
+      ]
+    },
+    {
+      "name": "Collaboration APIs",
+      "tags": [
+        "Workspace Members",
+        "Base Members"
+      ]
+    }
+  ],
   "servers": [
     {
       "url": "https://app.nocodb.com"
@@ -17,6 +37,7 @@
     "/api/v3/meta/workspaces/{workspaceId}/bases": {
       "get": {
         "summary": "List bases",
+        "operationId": "bases-list",
         "description": "Retrieve a list of bases associated with a specific workspace.",
         "tags": [
           "Bases"
@@ -93,6 +114,7 @@
       "post": {
         "summary": "Create base",
         "description": "Create a new base in a specified workspace. The request requires the workspace identifier in the path and base details in the request body.",
+        "operationId": "base-create",
         "tags": [
           "Bases"
         ],
@@ -161,10 +183,298 @@
         }
       }
     },
+    "/api/v3/meta/workspaces/{workspaceId}?include[]=members": {
+      "get": {
+        "summary": "List workspace members",
+        "operationId": "workspace-members-read",
+        "description": "Retrieve details of a specific workspace, including its members.\n\nNotes:\n- To include member details, use the query parameter `include[]=members`.\n- Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "tags": [
+          "Workspace Members"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace."
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "enum": ["members"]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": ["members"]
+                  }
+                }
+              ]
+            },
+            "description": "Include additional data. Use 'members' to include workspace member information.",
+            "example": "members"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace metadata retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceWithMembers"
+                },
+                "examples": {
+                  "Workspace with Members": {
+                    "value": {
+                      "id": "w6dw3fo0",
+                      "title": "My Workspace",
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z",
+                      "individual_members": {
+                        "workspace_members": [
+                          {
+                            "email": "user@example.com",
+                            "user_id": "usrL2PNC5o3H4lBEi",
+                            "created_at": "2025-01-16T06:04:18.000Z",
+                            "updated_at": "2025-01-16T06:04:18.000Z",
+                            "workspace_role": "workspace-level-owner"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/workspaces/{workspaceId}/members": {
+      "post": {
+        "summary": "Add workspace members",
+        "description": "Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "operationId": "workspace-members-invite",
+        "tags": [
+          "Workspace Members"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace where the members will be added."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceUserCreate"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "email": "user@example.com",
+                      "workspace_role": "workspace-level-viewer"
+                    }
+                  ]
+                },
+                "Example 2": {
+                  "value": [
+                    {
+                      "email": "user1@example.com",
+                      "workspace_role": "workspace-level-editor"
+                    },
+                    {
+                      "email": "user2@example.com",
+                      "workspace_role": "workspace-level-viewer"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace members were added successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkspaceUser"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update workspace members",
+        "description": "Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "operationId": "workspace-members-update",
+        "tags": [
+          "Workspace Members"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace where the members will be updated."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceUserUpdate"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "user_id": "user123",
+                      "workspace_role": "workspace-level-editor"
+                    }
+                  ]
+                },
+                "Example 2": {
+                  "value": [
+                    {
+                      "user_id": "user123",
+                      "workspace_role": "workspace-level-editor"
+                    },
+                    {
+                      "user_id": "user456",
+                      "workspace_role": "workspace-level-viewer"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace members were updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkspaceUser"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete workspace members",
+        "description": "Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "operationId": "workspace-members-delete",
+        "tags": [
+          "Workspace Members"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace where the members will be removed."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceUserDelete"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "user_id": "user123"
+                    }
+                  ]
+                },
+                "Example 2": {
+                  "value": [
+                    {
+                      "user_id": "user123"
+                    },
+                    {
+                      "user_id": "user456"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace members were removed successfully."
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
     "/api/v3/meta/bases/{baseId}": {
       "get": {
         "summary": "Get base meta",
         "description": "Retrieve meta details of a specific base using its unique identifier.",
+        "operationId": "base-read",
         "tags": [
           "Bases"
         ],
@@ -225,6 +535,7 @@
       "patch": {
         "summary": "Update base",
         "description": "Update properties of a specific base. You can modify fields such as the title and metadata of the base. The baseId parameter identifies the base to be updated, and the new details must be provided in the request body. At least one of title or meta must be provided.",
+        "operationId": "base-update",
         "parameters": [
           {
             "name": "baseId",
@@ -298,6 +609,7 @@
       "delete": {
         "summary": "Delete base",
         "description": "Delete a specific base using its unique identifier. Once deleted, the base and its associated data cannot be recovered.",
+        "operationId": "base-delete",
         "tags": [
           "Bases"
         ],
@@ -329,6 +641,7 @@
       "get": {
         "summary": "List tables",
         "description": "Retrieve list of all tables within the specified base.",
+        "operationId": "tables-list",
         "tags": [
           "Tables"
         ],
@@ -398,6 +711,7 @@
       "post": {
         "summary": "Create table",
         "description": "Create a new table within the specified base by providing the required table details in the request body.",
+        "operationId": "table-create",
         "parameters": [
           {
             "name": "base_id",
@@ -877,6 +1191,7 @@
       "get": {
         "summary": "Get table schema",
         "description": "Retrieve the details of a specific table.",
+        "operationId": "table-read",
         "tags": [
           "Tables"
         ],
@@ -1164,6 +1479,7 @@
       "patch": {
         "summary": "Update table",
         "description": "Update the details of a specific table.",
+        "operationId": "table-update",
         "tags": [
           "Tables"
         ],
@@ -1268,6 +1584,7 @@
       "delete": {
         "summary": "Delete table",
         "description": "Delete a specific table.",
+        "operationId": "table-delete",
         "tags": [
           "Tables"
         ],
@@ -1298,6 +1615,7 @@
     "/api/v3/meta/bases/{baseId}/tables/{tableId}/views": {
       "get": {
         "summary": "List views",
+        "operationId": "views-list",
         "tags": [
           "Views"
         ],
@@ -1357,6 +1675,7 @@
       "post": {
         "summary": "Create field",
         "description": "Create a new field within the specified table.",
+        "operationId": "field-create",
         "tags": [
           "Fields"
         ],
@@ -1457,6 +1776,7 @@
       "get": {
         "summary": "Get field",
         "description": "Retrieve the details of a specific field.",
+        "operationId": "field-read",
         "tags": [
           "Fields"
         ],
@@ -1502,6 +1822,7 @@
       "patch": {
         "summary": "Update field",
         "description": "Update the details of a specific field.",
+        "operationId": "field-update",
         "tags": [
           "Fields"
         ],
@@ -1600,6 +1921,7 @@
       "delete": {
         "summary": "Delete field",
         "description": "Delete a specific field.",
+        "operationId": "field-delete",
         "tags": [
           "Fields"
         ],
@@ -1640,6 +1962,7 @@
       "get": {
         "summary": "List view filters",
         "description": "Retrieve a list of all filters and groups for a specific view.",
+        "operationId": "view-filters-list",
         "tags": [
           "View Filters"
         ],
@@ -1723,6 +2046,7 @@
       "post": {
         "summary": "Create filter",
         "description": "Create a new filter or filter-group for a specific view.",
+        "operationId": "view-filter-create",
         "tags": [
           "View Filters"
         ],
@@ -1778,6 +2102,7 @@
       "patch": {
         "summary": "Update filter",
         "description": "Update the details of an existing filter or group.",
+        "operationId": "view-filter-update",
         "tags": [
           "View Filters"
         ],
@@ -1836,6 +2161,7 @@
       "delete": {
         "summary": "Delete filter",
         "description": "Delete an existing filter or filter-group.",
+        "operationId": "view-filter-delete",
         "tags": [
           "View Filters"
         ],
@@ -1874,6 +2200,7 @@
       "put": {
         "summary": "Replace filter",
         "description": "Replace filters for a specific view. All the existing filters will be overwritten with the new filters specified in this request.",
+        "operationId": "view-filter-replace",
         "tags": [
           "View Filters"
         ],
@@ -1924,6 +2251,7 @@
     "/api/v3/meta/bases/{baseId}/views/{viewId}/sorts": {
       "get": {
         "summary": "List view sorts",
+        "operationId": "view-sorts-list",
         "tags": [
           "View Sorts"
         ],
@@ -1987,6 +2315,7 @@
       },
       "post": {
         "summary": "Add sort",
+        "operationId": "view-sort-create",
         "description": "Create a new sort for a specific view.",
         "tags": [
           "View Sorts"
@@ -2051,6 +2380,7 @@
       "delete": {
         "summary": "Delete sort",
         "description": "Delete an existing sort.",
+        "operationId": "view-sort-delete",
         "tags": [
           "View Sorts"
         ],
@@ -2089,6 +2419,7 @@
       "patch": {
         "summary": "Update sort",
         "description": "Update the details of an existing sort.",
+        "operationId": "view-sort-update",
         "tags": [
           "View Sorts"
         ],
@@ -2153,64 +2484,66 @@
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/users": {
+    "/api/v3/meta/bases/{baseId}?include[]=members": {
       "get": {
-        "summary": "List base users",
-        "description": "Retrieve a list of users associated with a specific base.",
+        "summary": "List base members",
+        "description": "Retrieve all details of a specific base, including its members.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "operationId": "base-members-list",
         "tags": [
-          "Base Users"
+          "Base Members"
         ],
         "parameters": [
           {
-            "name": "base_id",
+            "name": "baseId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "Unique identifier for the base."
+            "description": "Unique identifier of the base."
           }
         ],
         "responses": {
           "200": {
-            "description": "A list of users for the base.",
+            "description": "Base meta with members & their access information was retrieved.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BaseUserList"
+                  "$ref": "#/components/schemas/BaseWithMembers"
                 },
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "list": [
-                        {
-                          "id": "us8kesqka9jb2sqp",
-                          "email": "user-1@nocodb.com",
-                          "created_at": "2025-01-18 10:40:10+00:00",
-                          "updated_at": "2025-01-18 10:40:10+00:00",
-                          "base_role": "creator",
-                          "workspace_role": "workspace-level-no-access",
-                          "workspace_id": "w6wqiisd"
-                        },
-                        {
-                          "id": "usd616ujr1l7e16l",
-                          "email": "user@nocodb.com",
-                          "created_at": "2025-01-18 03:02:47+00:00",
-                          "updated_at": "2025-01-18 03:02:47+00:00",
-                          "base_role": "owner",
-                          "workspace_role": "workspace-level-owner",
-                          "workspace_id": "w6wqiisd"
-                        },
-                        {
-                          "id": "usxq7usbujj2xll9",
-                          "email": "user-2@nocodb.com",
-                          "created_at": "2025-01-18 10:40:20+00:00",
-                          "updated_at": "2025-01-18 10:40:20+00:00",
-                          "base_role": "commenter",
-                          "workspace_role": "workspace-level-no-access",
-                          "workspace_id": "w6wqiisd"
-                        }
-                      ]
+                      "id": "p7nwavd2gcdkzvd",
+                      "title": "Getting Started",
+                      "meta": {
+                        "icon_color": "#36BFFF"
+                      },
+                      "created_at": "2024-12-28 09:52:29+00:00",
+                      "updated_at": "2024-12-28 09:52:30+00:00",
+                      "workspace_id": "w6dw3fo0",
+                      "individual_members": {
+                        "base_members": [
+                          {
+                            "email": "user@nocodb.com",
+                            "user_id": "usobpjptvj3m5nu3",
+                            "created_at": "2025-08-12 11:17:47+00:00",
+                            "updated_at": "2025-08-12 11:17:47+00:00",
+                            "base_role": "owner",
+                            "workspace_role": "workspace-level-owner"
+                          }
+                        ],
+                        "workspace_members": [
+                          {
+                            "user_id": "ussbqtx9b2qjejht",
+                            "created_at": "2025-08-12 11:18:27+00:00",
+                            "updated_at": "2025-08-12 11:18:27+00:00",
+                            "email": "editor@nocodb.com",
+                            "display_name": "",
+                            "workspace_role": "workspace-level-editor"
+                          }
+                        ]
+                      }
                     }
                   }
                 }
@@ -2224,10 +2557,13 @@
             "description": "Server error."
           }
         }
-      },
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/members": {
       "post": {
-        "summary": "Invite users to a base",
-        "description": "Invite new users to a specific base using their email address.",
+        "summary": "Invite base members",
+        "description": "Invite new members to a specific base using their User ID or Email address.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "operationId": "base-members-invite",
         "parameters": [
           {
             "name": "base_id",
@@ -2240,14 +2576,14 @@
           }
         ],
         "tags": [
-          "Base Users"
+          "Base Members"
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/BaseUserCreate"
+                "$ref": "#/components/schemas/BaseMemberCreate"
               }
             }
           }
@@ -2260,7 +2596,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/BaseUser"
+                    "$ref": "#/components/schemas/BaseMember"
                   },
                   "description": "List of successfully invited users."
                 }
@@ -2279,8 +2615,9 @@
         }
       },
       "patch": {
-        "summary": "Update users in a base",
-        "description": "Update roles for existing users in a base.",
+        "summary": "Update base members",
+        "description": "Update roles for existing members in a base.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "operationId": "base-members-update",
         "parameters": [
           {
             "name": "base_id",
@@ -2293,14 +2630,14 @@
           }
         ],
         "tags": [
-          "Base Users"
+          "Base Members"
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/BaseUserUpdate"
+                "$ref": "#/components/schemas/BaseMemberUpdate"
               }
             }
           }
@@ -2313,7 +2650,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/BaseUser"
+                    "$ref": "#/components/schemas/BaseMember"
                   },
                   "description": "List of successfully updated users."
                 }
@@ -2332,8 +2669,9 @@
         }
       },
       "delete": {
-        "summary": "Delete users from a base",
-        "description": "Remove users from a specific base using their IDs.",
+        "summary": "Delete base members",
+        "description": "Remove members from a specific base using their IDs.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "operationId": "base-members-delete",
         "parameters": [
           {
             "name": "base_id",
@@ -2346,41 +2684,21 @@
           }
         ],
         "tags": [
-          "Base Users"
+          "Base Members"
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/BaseUserDelete"
+                "$ref": "#/components/schemas/BaseMemberDelete"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Users deleted successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "description": "Indicates if the operation was successful."
-                    },
-                    "deleted_users": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/BaseUserDeleteRequest"
-                      },
-                      "description": "List of successfully deleted users."
-                    }
-                  }
-                }
-              }
-            }
+            "description": "Users deleted successfully."
           },
           "400": {
             "description": "Invalid request body or parameters."
@@ -2451,13 +2769,19 @@
                     "properties": {
                       "direction": {
                         "type": "string",
-                        "enum": ["asc", "desc"]
+                        "enum": [
+                          "asc",
+                          "desc"
+                        ]
                       },
                       "field": {
                         "type": "string"
                       }
                     },
-                    "required": ["field", "direction"]
+                    "required": [
+                      "field",
+                      "direction"
+                    ]
                   }
                 },
                 {
@@ -2465,13 +2789,19 @@
                   "properties": {
                     "direction": {
                       "type": "string",
-                      "enum": ["asc", "desc"]
+                      "enum": [
+                        "asc",
+                        "desc"
+                      ]
                     },
                     "field": {
                       "type": "string"
                     }
                   },
-                  "required": ["field", "direction"]
+                  "required": [
+                    "field",
+                    "direction"
+                  ]
                 }
               ]
             },
@@ -3291,13 +3621,19 @@
                     "properties": {
                       "direction": {
                         "type": "string",
-                        "enum": ["asc", "desc"]
+                        "enum": [
+                          "asc",
+                          "desc"
+                        ]
                       },
                       "field": {
                         "type": "string"
                       }
                     },
-                    "required": ["field", "direction"]
+                    "required": [
+                      "field",
+                      "direction"
+                    ]
                   }
                 },
                 {
@@ -3305,13 +3641,19 @@
                   "properties": {
                     "direction": {
                       "type": "string",
-                      "enum": ["asc", "desc"]
+                      "enum": [
+                        "asc",
+                        "desc"
+                      ]
                     },
                     "field": {
                       "type": "string"
                     }
                   },
-                  "required": ["field", "direction"]
+                  "required": [
+                    "field",
+                    "direction"
+                  ]
                 }
               ]
             },
@@ -3433,7 +3775,9 @@
                       "example": true
                     }
                   },
-                  "required": ["success"],
+                  "required": [
+                    "success"
+                  ],
                   "additionalProperties": false
                 },
                 "examples": {
@@ -3470,7 +3814,9 @@
                         "example": "33"
                       }
                     },
-                    "required": ["id"],
+                    "required": [
+                      "id"
+                    ],
                     "additionalProperties": false
                   },
                   {
@@ -3484,7 +3830,9 @@
                           "example": "22"
                         }
                       },
-                      "required": ["id"],
+                      "required": [
+                        "id"
+                      ],
                       "additionalProperties": false
                     },
                     "minItems": 1,
@@ -3548,7 +3896,9 @@
                       "example": true
                     }
                   },
-                  "required": ["success"],
+                  "required": [
+                    "success"
+                  ],
                   "additionalProperties": false
                 },
                 "examples": {
@@ -3585,7 +3935,9 @@
                         "example": "33"
                       }
                     },
-                    "required": ["id"],
+                    "required": [
+                      "id"
+                    ],
                     "additionalProperties": false
                   },
                   {
@@ -3599,7 +3951,9 @@
                           "example": "33"
                         }
                       },
-                      "required": ["id"],
+                      "required": [
+                        "id"
+                      ],
                       "additionalProperties": false
                     },
                     "minItems": 1,
@@ -3718,6 +4072,102 @@
               ]
             },
             "description": "List of data sources associated with this base. This information will be included only if one or more external data sources are associated with the base."
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "meta",
+          "created_at",
+          "updated_at",
+          "workspace_id"
+        ]
+      },
+      "BaseWithMembers": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the base."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the base."
+          },
+          "meta": {
+            "$ref": "#/components/schemas/BaseMetaRes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the base was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the base was last updated."
+          },
+          "workspace_id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace to which this base belongs to."
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the data source."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the data source."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Type of the data source (e.g., pg, mysql)."
+                },
+                "is_schema_readonly": {
+                  "type": "boolean",
+                  "description": "Indicates if the schema in this data source is read-only."
+                },
+                "is_data_readonly": {
+                  "type": "boolean",
+                  "description": "Indicates if the data (records) in this data source is read-only."
+                },
+                "integration_id": {
+                  "type": "string",
+                  "description": "Integration ID for the data source."
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "type",
+                "is_schema_readonly",
+                "is_data_readonly",
+                "integration_id"
+              ]
+            },
+            "description": "List of data sources associated with this base. This information will be included only if one or more external data sources are associated with the base."
+          },
+          "individual_members": {
+            "type": "object",
+            "properties": {
+              "base_members": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BaseMemberWithWorkspaceRole"
+                }
+              },
+              "workspace_members": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/WorkspaceMember"
+                }
+              }
+            }
           }
         },
         "required": [
@@ -4461,10 +4911,10 @@
           "views"
         ]
       },
-      "BaseUser": {
+      "BaseMember": {
         "type": "object",
         "properties": {
-          "id": {
+          "user_id": {
             "type": "string",
             "description": "Unique identifier for the user."
           },
@@ -4477,45 +4927,58 @@
             "type": "string",
             "description": "Display name of the user."
           },
-          "created_at": {
+          "base_role": {
+            "$ref": "#/components/schemas/BaseRoles"
+          }
+        },
+        "required": [
+          "user_id",
+          "email",
+          "created_at",
+          "updated_at",
+          "base_role"
+        ]
+      },
+      "BaseMemberWithWorkspaceRole": {
+        "type": "object",
+        "properties": {
+          "user_id": {
             "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of when the user was created."
+            "description": "Unique identifier for the user."
           },
-          "updated_at": {
+          "email": {
             "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of when the user access was last updated."
+            "format": "email",
+            "description": "Email address of the user."
+          },
+          "user_name": {
+            "type": "string",
+            "description": "Display name of the user."
           },
           "base_role": {
             "$ref": "#/components/schemas/BaseRoles"
           },
           "workspace_role": {
-            "$ref": "#/components/schemas/WorkspaceRoles"
-          },
-          "workspace_id": {
-            "type": "string",
-            "description": "Unique identifier for the workspace."
+            "$ref": "#/components/schemas/WorkspaceRoles",
+            "description": "Role assigned to the user in the workspace"
           }
         },
         "required": [
-          "id",
+          "user_id",
           "email",
           "created_at",
           "updated_at",
-          "base_role",
-          "workspace_role",
-          "workspace_id"
+          "base_role"
         ]
       },
       "BaseUserDeleteRequest": {},
-      "BaseUserList": {
+      "BaseMemberList": {
         "type": "object",
         "properties": {
           "list": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BaseUser"
+              "$ref": "#/components/schemas/BaseMember"
             }
           }
         },
@@ -4523,116 +4986,84 @@
           "users"
         ]
       },
-      "BaseUserCreate": {
+      "BaseMemberCreate": {
         "type": "array",
         "items": {
           "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "description": "Unique identifier for the user. Can be provided optionally during creation."
-            },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "description": "Email address of the user. Used as a primary identifier if 'id' is not provided."
-            },
-            "user_name": {
-              "type": "string",
-              "description": "Full name of the user."
-            },
-            "base_role": {
-              "$ref": "#/components/schemas/BaseRoles"
-            }
-          },
-          "required": [
-            "base_role"
-          ],
           "oneOf": [
             {
               "title": "Invite User with ID",
-              "required": [
-                "id"
-              ]
+              "required": ["user_id", "base_role"],
+              "properties": {
+                "user_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the user (skip if email is provided)"
+                },
+                "user_name": {
+                  "type": "string",
+                  "description": "Full name of the user."
+                },
+                "base_role": {
+                  "$ref": "#/components/schemas/BaseRoles"
+                }
+              }
             },
             {
               "title": "Invite User with Email",
-              "required": [
-                "email"
-              ]
+              "required": ["email", "base_role"],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "description": "Email address of the user (skip if user_id is provided)"
+                },
+                "user_name": {
+                  "type": "string",
+                  "description": "Full name of the user."
+                },
+                "base_role": {
+                  "$ref": "#/components/schemas/BaseRoles"
+                }
+              }
             }
           ],
-          "description": "An object representing a new user to be created."
+          "description": "An object representing a new member to be created."
         },
-        "description": "Array of users to be created."
+        "description": "Array of members to be created."
       },
-      "BaseUserUpdate": {
+      "BaseMemberUpdate": {
         "type": "array",
         "items": {
           "type": "object",
           "properties": {
-            "id": {
+            "user_id": {
               "type": "string",
-              "description": "Unique identifier for the user. Used as a primary identifier if provided."
-            },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "description": "Email address of the user. Used as a primary identifier if 'id' is not provided."
+              "description": "Unique user identifier for the member."
             },
             "base_role": {
               "$ref": "#/components/schemas/BaseRoles"
             }
           },
           "required": [
+            "user_id",
             "base_role"
           ],
-          "oneOf": [
-            {
-              "title": "Update User using ID",
-              "required": [
-                "id"
-              ]
-            },
-            {
-              "title": "Update User using Email",
-              "required": [
-                "email"
-              ]
-            }
-          ],
-          "description": "An object representing updates for an existing user."
+          "description": "An object representing updates for an existing member."
         },
-        "description": "Array of user updates."
+        "description": "Array of member updates."
       },
-      "BaseUserDelete": {
+      "BaseMemberDelete": {
         "type": "array",
         "items": {
           "type": "object",
           "properties": {
-            "id": {
+            "user_id": {
               "type": "string",
-              "description": "Unique identifier for the user."
-            },
-            "email": {
-              "type": "string",
-              "format": "email",
-              "description": "Email address of the user."
+              "description": "User unique identifier for the member."
             }
           },
-          "oneOf": [
-            {
-              "title": "Update User using ID",
-              "required": [
-                "id"
-              ]
-            },
-            {
-              "title": "Update User using Email",
-              "required": [
-                "email"
-              ]
-            }
+          "required": [
+            "user_id"
           ]
         }
       },
@@ -5194,7 +5625,11 @@
             "description": "Description of the field."
           },
           "default_value": {
-            "type": ["string", "boolean", "number"],
+            "type": [
+              "string",
+              "boolean",
+              "number"
+            ],
             "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
           }
         },
@@ -5721,7 +6156,9 @@
             "properties": {
               "type": {
                 "type": "string",
-                "enum": ["formula"],
+                "enum": [
+                  "formula"
+                ],
                 "description": "Button type: formula"
               },
               "formula": {
@@ -5729,14 +6166,19 @@
                 "description": "Formula to execute"
               }
             },
-            "required": ["type", "formula"]
+            "required": [
+              "type",
+              "formula"
+            ]
           },
           {
             "type": "object",
             "properties": {
               "type": {
                 "type": "string",
-                "enum": ["webhook"],
+                "enum": [
+                  "webhook"
+                ],
                 "description": "Button type: webhook"
               },
               "button_hook_id": {
@@ -5744,14 +6186,19 @@
                 "description": "ID of the webhook to trigger"
               }
             },
-            "required": ["type", "button_hook_id"]
+            "required": [
+              "type",
+              "button_hook_id"
+            ]
           },
           {
             "type": "object",
             "properties": {
               "type": {
                 "type": "string",
-                "enum": ["ai"],
+                "enum": [
+                  "ai"
+                ],
                 "description": "Button type: AI"
               },
               "prompt": {
@@ -5783,7 +6230,11 @@
                 "description": "Color of the button"
               }
             },
-            "required": ["type", "prompt", "integration_id"]
+            "required": [
+              "type",
+              "prompt",
+              "integration_id"
+            ]
           }
         ],
         "discriminator": {
@@ -6557,19 +7008,31 @@
             }
           },
           "next": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Pagination token for next page"
           },
           "prev": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Pagination token for previous page"
           },
           "nestedNext": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Nested pagination token for next page"
           },
           "nestedPrev": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Nested pagination token for previous page"
           }
         }
@@ -6630,7 +7093,9 @@
             "description": "Record identifier"
           }
         },
-        "required": ["id"]
+        "required": [
+          "id"
+        ]
       },
       "DataInsertResponseV3": {
         "type": "object",
@@ -6728,11 +7193,17 @@
             ]
           },
           "next": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Pagination token for next page"
           },
           "prev": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Pagination token for previous page"
           }
         }
@@ -6777,6 +7248,192 @@
           "commenter",
           "no-access"
         ]
+      },
+      "Workspace": {
+        "type": "object",
+        "description": "Basic workspace information",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the workspace"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workspace was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workspace was last updated"
+          }
+        },
+        "required": ["id", "title", "created_at", "updated_at"]
+      },
+      "WorkspaceWithMembers": {
+        "type": "object",
+        "description": "Workspace information including member details",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Workspace"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "individual_members": {
+                "type": "object",
+                "properties": {
+                  "workspace_members": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/WorkspaceMember"
+                    },
+                    "description": "List of workspace members"
+                  }
+                },
+                "required": ["workspace_members"]
+              }
+            },
+            "required": ["individual_members"]
+          }
+        ]
+      },
+      "WorkspaceMember": {
+        "type": "object",
+        "description": "Individual workspace member information",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of the member"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "Unique identifier for the user"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the user was added to the workspace"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the user was last updated in the workspace"
+          },
+          "workspace_role": {
+            "$ref": "#/components/schemas/WorkspaceRoles",
+            "description": "Role assigned to the user in the workspace"
+          }
+        },
+        "required": ["email", "user_id", "created_at", "updated_at", "workspace_role"]
+      },
+      "WorkspaceUser": {
+        "type": "object",
+        "description": "Workspace user information",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Email address of the user"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "Unique identifier for the user"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the user was added to the workspace"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the user was last updated in the workspace"
+          },
+          "workspace_role": {
+            "$ref": "#/components/schemas/WorkspaceRoles",
+            "description": "Role assigned to the user in the workspace"
+          }
+        },
+        "required": ["email", "user_id", "created_at", "updated_at", "workspace_role"]
+      },
+      "WorkspaceUserCreate": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "oneOf": [
+            {
+              "title": "Invite User with ID",
+              "required": ["user_id", "workspace_role"],
+              "properties": {
+                "user_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the user (skip if email is provided)"
+                },
+                "workspace_role": {
+                  "$ref": "#/components/schemas/WorkspaceRoles",
+                  "description": "Workspace role to assign to the user"
+                }
+              }
+            },
+            {
+              "title": "Invite User with Email",
+              "required": ["email", "workspace_role"],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "description": "Email address of the user (skip if user_id is provided)"
+                },
+                "workspace_role": {
+                  "$ref": "#/components/schemas/WorkspaceRoles",
+                  "description": "Workspace role to assign to the user"
+                }
+              }
+            }
+          ],
+          "description": "An object representing a new workspace user to be created."
+        },
+        "description": "Array of workspace users to be created."
+      },
+      "WorkspaceUserUpdate": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "user_id": {
+              "type": "string",
+              "description": "Unique identifier for the user"
+            },
+            "workspace_role": {
+              "$ref": "#/components/schemas/WorkspaceRoles",
+              "description": "New workspace role to assign to the user"
+            }
+          },
+          "required": ["user_id", "workspace_role"],
+          "description": "An object representing updates for an existing workspace user."
+        },
+        "description": "Array of workspace user updates."
+      },
+      "WorkspaceUserDelete": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "user_id": {
+              "type": "string",
+              "description": "Unique identifier for the user"
+            }
+          },
+          "required": ["user_id"],
+          "description": "An object representing a workspace user to be deleted."
+        },
+        "description": "Array of workspace users to be deleted."
       },
       "WorkspaceRoles": {
         "type": "string",

@@ -14,7 +14,8 @@ const { fields, metaColumnById } = useViewColumnsOrThrow()
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { setAdditionalValidations, validateInfos, column, isEdit } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, validateInfos, column, isEdit } =
+  useColumnCreateStoreOrThrow()
 
 const columnsAllowedAsQrValue = computed<ColumnType[]>(() => {
   return (
@@ -38,6 +39,10 @@ onMounted(() => {
 
 setAdditionalValidations({
   fk_qr_value_column_id: [{ required: true, message: t('general.required') }],
+})
+
+setAvoidShowingToastMsgForValidations({
+  fk_qr_value_column_id: true,
 })
 
 const cellIcon = (column: ColumnType) =>

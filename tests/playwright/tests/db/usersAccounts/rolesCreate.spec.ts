@@ -57,7 +57,7 @@ test.describe.skip('User roles', () => {
       role: roleDb[roleIdx].role,
     });
 
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await dashboard.viewSidebar.validateRoleAccess({
       role: roleDb[roleIdx].role,

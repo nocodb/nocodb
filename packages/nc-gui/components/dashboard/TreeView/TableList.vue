@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { BaseType, TableType } from 'nocodb-sdk'
-import { storeToRefs } from 'pinia'
 import Sortable from 'sortablejs'
 import TableNode from './TableNode.vue'
 
@@ -26,8 +25,6 @@ const source = computed(() => base.value?.sources?.[sourceIndex.value])
 const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
-
-const { isNewSidebarEnabled } = storeToRefs(useSidebarStore())
 
 const { openedProject, baseHomeSearchQuery } = storeToRefs(useBases())
 
@@ -152,7 +149,7 @@ const filteredAvailableTables = computed(() => {
   <div class="border-none sortable-list">
     <template v-if="base">
       <div
-        v-if="!availableTables.length && isNewSidebarEnabled && showCreateTableBtn"
+        v-if="!availableTables.length && showCreateTableBtn"
         :class="{
           'text-brand-500 hover:text-brand-600': openedProject?.id === base.id,
           'text-gray-500 hover:text-brand-500': openedProject?.id !== base.id,
@@ -161,12 +158,7 @@ const filteredAvailableTables = computed(() => {
         role="button"
         @click="emits('createTable')"
       >
-        <div
-          :class="{
-            'nc-project-home-section-item': isNewSidebarEnabled,
-            'flex flex-row items-center pl-1.25 !py-1.5 text-inherit': !isNewSidebarEnabled,
-          }"
-        >
+        <div class="nc-project-home-section-item">
           <GeneralIcon icon="plus" />
           <div>
             {{
@@ -182,10 +174,8 @@ const filteredAvailableTables = computed(() => {
         v-if="!availableTables.length || !filteredAvailableTables.length"
         class="py-0.5 text-gray-500 font-normal"
         :class="{
-          'ml-8.5': sourceIndex === 0 && !isNewSidebarEnabled,
-          'ml-14.5 xs:(ml-15.25)': sourceIndex !== 0 && !isNewSidebarEnabled,
-          'nc-project-home-section-item': sourceIndex === 0 && isNewSidebarEnabled,
-          'ml-9 xs:(ml-9.75)': sourceIndex !== 0 && isNewSidebarEnabled,
+          'nc-project-home-section-item': sourceIndex === 0,
+          'ml-9 xs:(ml-9.75)': sourceIndex !== 0,
         }"
       >
         {{

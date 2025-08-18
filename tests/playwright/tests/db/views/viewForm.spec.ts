@@ -28,7 +28,7 @@ test.describe('Form view', () => {
   });
 
   test('Field re-order operations', async () => {
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await dashboard.viewSidebar.createFormView({ title: 'CountryForm' });
     await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 0 });
@@ -75,7 +75,7 @@ test.describe('Form view', () => {
   });
 
   test('Form elements validation', async () => {
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await dashboard.viewSidebar.createFormView({ title: 'CountryForm' });
     await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 0 });
@@ -326,7 +326,7 @@ test.describe('Form view with LTAR', () => {
   });
 
   test('Form view with LTAR', async ({ page }) => {
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     const url = dashboard.rootPage.url();
 
@@ -371,7 +371,7 @@ test.describe('Form view with LTAR', () => {
     await dashboard.treeView.openProject({ title: context.base.title, context });
     await dashboard.rootPage.waitForTimeout(500);
 
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await dashboard.grid.cell.verify({
       index: 3,
@@ -442,7 +442,7 @@ test.describe('Form view', () => {
     await dashboard.rootPage.reload();
     await dashboard.rootPage.waitForTimeout(100);
 
-    await dashboard.treeView.openTable({ title: 'selectBased' });
+    await dashboard.treeView.openTable({ title: 'selectBased', baseTitle: context.base.title });
     const url = dashboard.rootPage.url();
 
     await dashboard.rootPage.waitForTimeout(500);
@@ -482,7 +482,7 @@ test.describe('Form view', () => {
     // kludge- reload
     await dashboard.rootPage.reload();
 
-    await dashboard.treeView.openTable({ title: 'selectBased' });
+    await dashboard.treeView.openTable({ title: 'selectBased', baseTitle: context.base.title });
 
     await dashboard.rootPage.waitForTimeout(2000);
 
@@ -647,7 +647,7 @@ test.describe('Form view: field validation', () => {
     await dashboard.rootPage.reload();
     await dashboard.rootPage.waitForTimeout(100);
 
-    await dashboard.treeView.openTable({ title: tableName });
+    await dashboard.treeView.openTable({ title: tableName, baseTitle: context.base.title });
 
     await dashboard.rootPage.waitForTimeout(500);
 
@@ -1544,7 +1544,7 @@ test.describe('Form view: conditional fields', () => {
     await dashboard.rootPage.reload();
     await dashboard.rootPage.waitForTimeout(100);
 
-    await dashboard.treeView.openTable({ title: tableName });
+    await dashboard.treeView.openTable({ title: tableName, baseTitle: context.base.title });
 
     await dashboard.rootPage.waitForTimeout(500);
 

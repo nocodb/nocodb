@@ -8,10 +8,6 @@ const route = router.currentRoute
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
-const dashboardStore = useDashboardStore()
-
-const { isDashboardEnabled } = storeToRefs(dashboardStore)
-
 const { openNewScriptModal } = useAutomationStore()
 
 const base = inject(ProjectInj)!

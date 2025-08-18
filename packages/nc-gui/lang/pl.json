@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Pole {columnName} nie jest dostępne",
       "cantSaveCircularReference": "Nie można zapisać pola, ponieważ powoduje to cykliczne odwołanie",
       "columnWithTypeFoundButExpected": "Znaleziono pole {columnName} z typem {columnType}, oczekiwano typu {expectedType}",
-      "columnNotMatchedWithType": "Pole {columnName} nie zgadza się z typem {columnType}"
+      "columnNotMatchedWithType": "Pole {columnName} nie zgadza się z typem {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Opcje wyboru nie mogą być puste",

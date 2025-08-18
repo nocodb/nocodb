@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Veld {columnName} is niet beschikbaar",
       "cantSaveCircularReference": "Kan veld niet opslaan omdat het een cirkelverwijzing veroorzaakt",
       "columnWithTypeFoundButExpected": "Veld {columnName} met {columnType} type is gevonden maar {expectedType} type wordt verwacht",
-      "columnNotMatchedWithType": "{columnName} komt niet overeen met {columnType}"
+      "columnNotMatchedWithType": "{columnName} komt niet overeen met {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Selecteer opties kan niet null zijn",

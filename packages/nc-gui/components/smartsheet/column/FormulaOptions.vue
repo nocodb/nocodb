@@ -34,6 +34,16 @@ const { t } = useI18n()
 
 const meta = inject(MetaInj, ref())
 
+const defaultEditorError = {
+  isError: false,
+  message: '',
+  position: {
+    column: -1,
+    row: -1,
+  },
+}
+const editorError = ref(defaultEditorError)
+
 const { base: activeBase } = storeToRefs(useBase())
 
 const supportedColumns = computed(
@@ -59,7 +69,6 @@ const validators = {
       validator: (_: any, formula: any) => {
         return (async () => {
           if (!formula?.trim()) throw new Error('Required')
-
           try {
             await validateFormulaAndExtractTreeWithType({
               column: column.value,
@@ -67,13 +76,21 @@ const validators = {
               columns: supportedColumns.value,
               clientOrSqlUi: sqlUi.value,
               getMeta,
+              trackPosition: true,
             })
+            editorError.value = { ...defaultEditorError }
           } catch (e: any) {
-            if (e instanceof FormulaError && e.extra?.key) {
-              throw new Error(t(e.extra.key, e.extra))
+            const errorMessage = e instanceof FormulaError && e.extra?.key ? t(e.extra.key, e.extra) : e.message
+            if (e instanceof FormulaError && e.extra?.position) {
+              editorError.value = {
+                isError: true,
+                message: errorMessage,
+                position: e.extra.position,
+              }
+            } else {
+              editorError.value = { ...defaultEditorError }
             }
-
-            throw new Error(e.message)
+            throw new Error(errorMessage)
           }
         })()
       },
@@ -119,6 +136,7 @@ const debouncedValidate = useDebounceFn(async () => {
       column: column.value ?? undefined,
       clientOrSqlUi: source.value?.type as any,
       getMeta: async (modelId) => await getMeta(modelId),
+      trackPosition: true,
     })
 
     // Update parsedTree only if this is the latest invocation
@@ -221,6 +239,7 @@ watch(
           <SmartsheetColumnFormulaInputHelper
             v-model:value="vModel.formula_raw"
             :error="validateInfos.formula_raw?.validateStatus === 'error'"
+            :editor-error="editorError"
           />
         </div>
       </a-tab-pane>

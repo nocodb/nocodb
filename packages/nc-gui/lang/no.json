@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Feltet {columnName} er ikke tilgjengelig",
       "cantSaveCircularReference": "Kan ikke lagre feltet fordi det forårsaker en sirkulær referanse",
       "columnWithTypeFoundButExpected": "Feltet {columnName} med typen {columnType} er funnet, men det forventes type {expectedType}",
-      "columnNotMatchedWithType": "{columnName} stemmer ikke overens med {columnType}"
+      "columnNotMatchedWithType": "{columnName} stemmer ikke overens med {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Valg kan ikke være null",

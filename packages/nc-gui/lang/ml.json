@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "ഫീൽഡ് {columnName} ലഭ്യമല്ല",
       "cantSaveCircularReference": "ഫീൽഡ് സംരക്ഷിക്കാൻ കഴിയില്ല കാരണം അത് വൃത്താകൃതിയിലുള്ള സാക്കം അടയാളപ്പെടുത്തുന്നു",
       "columnWithTypeFoundButExpected": "{columnName} ഫീൽഡ് {columnType} തരം കണ്ടെത്തി എന്നാൽ {expectedType} തരം പ്രതീക്ഷിച്ചിരുന്നു",
-      "columnNotMatchedWithType": "{columnName} {columnType} എന്നതിൽ പൊരുത്തപ്പെടുന്നില്ല"
+      "columnNotMatchedWithType": "{columnName} {columnType} എന്നതിൽ പൊരുത്തപ്പെടുന്നില്ല",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "ഓപ്ഷനുകൾ തെരഞ്ഞെടുക്കാൻ നിക്ക് ഏർപ്പെടുത്താൻ കഴിയില്ല",

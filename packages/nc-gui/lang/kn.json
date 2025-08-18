@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "ಕ್ಷೇತ್ರ {columnName} ಲಭ್ಯವಿಲ್ಲ",
       "cantSaveCircularReference": "ಕ್ಷೇತ್ರವನ್ನು ಉಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ ಏಕೆಂದರೆ ಇದು ವಲಯೀಯ ಉಲ್ಲೇಖಕ್ಕೆ ಕಾರಣವಾಗುತ್ತದೆ",
       "columnWithTypeFoundButExpected": "{columnName} ಜತೆಗೆ {columnType} ಸಂಪದಮೂಲವನ್ನು ಕಂಡುಹಿಡಿಯಲಾಗಿದೆ ಆದರೆ {expectedType} ಸಂಪದಮೂಲವನ್ನು ನಿರೀಕ್ಷಿಸಲಾಗಿದೆ",
-      "columnNotMatchedWithType": "{columnName} {columnType} ಗೆ ಹೊಂದಾಗುವುದಿಲ್ಲ"
+      "columnNotMatchedWithType": "{columnName} {columnType} ಗೆ ಹೊಂದಾಗುವುದಿಲ್ಲ",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "ಆಯ್ಕೆಗಳು ಬರ್ತಿರುವಂತಿಲ್ಲ",

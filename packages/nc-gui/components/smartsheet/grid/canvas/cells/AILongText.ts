@@ -144,10 +144,22 @@ const renderAIButton = (
 
 export const AILongTextCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props) => {
-    const { value, x, y, width, height, spriteLoader, disabled, padding, mousePosition, actionManager, pk, column, setCursor } =
-      props
-
-    const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
+    const {
+      value,
+      x,
+      y,
+      width,
+      height,
+      spriteLoader,
+      disabled,
+      padding,
+      mousePosition,
+      actionManager,
+      pk,
+      column,
+      setCursor,
+      selected,
+    } = props
 
     const horizontalPadding = 12
 
@@ -187,35 +199,37 @@ export const AILongTextCellRenderer: CellRenderer = {
       height,
     })
 
-    if (isHovered) {
+    if (selected) {
       renderIconButton(ctx, {
         buttonX: x + width - 28,
         buttonY: y + 7,
-        buttonSize: 18,
-        borderRadius: 3,
+        buttonSize: 20,
+        borderRadius: 6,
         iconData: {
-          size: 13,
-          xOffset: (18 - 13) / 2,
-          yOffset: (18 - 13) / 2,
+          size: 12,
+          xOffset: 4,
+          yOffset: 4,
         },
         mousePosition,
         spriteLoader,
         icon: 'maximize',
+        background: 'white',
         setCursor,
       })
       renderIconButton(ctx, {
         buttonX: x + width - 52,
         buttonY: y + 7,
-        buttonSize: 18,
-        borderRadius: 3,
+        buttonSize: 20,
+        borderRadius: 6,
         iconData: {
-          size: 13,
-          xOffset: (18 - 13) / 2,
-          yOffset: (18 - 13) / 2,
+          size: 12,
+          xOffset: 4,
+          yOffset: 4,
         },
         mousePosition,
         spriteLoader,
         icon: 'refresh',
+        background: 'white',
         setCursor,
       })
     }
@@ -230,22 +244,22 @@ export const AILongTextCellRenderer: CellRenderer = {
       y,
     }
   },
-  async handleClick({ mousePosition, column, row, value, pk, actionManager, getCellPosition, makeCellEditable, path }) {
+  async handleClick({ mousePosition, column, row, value, pk, actionManager, getCellPosition, makeCellEditable, path, selected }) {
     if (!row || !column?.id || !mousePosition) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!) || column?.isInvalidColumn?.isInvalid
 
-    if (column?.isInvalidColumn?.isInvalid) {
+    const expandIconBox = { x: x + width - 28, y: y + 7, width: 20, height: 20 }
+    const regenerateIconBox = { x: x + width - 52, y: y + 7, width: 20, height: 20 }
+
+    if (column?.isInvalidColumn?.isInvalid && selected) {
       // If the column is invalid and user clicked on regenerate icon
-      if (isBoxHovered({ x: x + width - 52, y: y + 7, width: 18, height: 18 }, mousePosition)) {
+      if (isBoxHovered(regenerateIconBox, mousePosition)) {
         return true
       }
     }
 
-    if (
-      isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition) ||
-      isBoxHovered({ x: x + width - 52, y: y + 7, width: 18, height: 18 }, mousePosition)
-    ) {
+    if (selected && (isBoxHovered(expandIconBox, mousePosition) || isBoxHovered(regenerateIconBox, mousePosition))) {
       makeCellEditable(row, column)
       return true
     }
@@ -272,10 +286,12 @@ export const AILongTextCellRenderer: CellRenderer = {
     }
     return false
   },
-  async handleHover({ row, column, mousePosition, getCellPosition, t, value }) {
+  async handleHover({ row, column, mousePosition, getCellPosition, t, value, selected }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
-    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid || !value || !value?.value) return
+    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid || !value || !value?.value || !selected) {
+      return
+    }
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
     const expandIconBox = { x: x + width - 28, y: y + 7, width: 18, height: 18 }

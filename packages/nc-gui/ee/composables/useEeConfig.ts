@@ -984,6 +984,32 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToDuplicateTableToOtherWs = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToDuplicateTableToOtherWs'),
+      content: t('upgrade.upgradeToDuplicateTableToOtherWs', {
+        plan: PlanTitles.ENTERPRISE,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS,
+    })
+
+    return true
+  }
+
+  const showUpgradeToDuplicateTableToOtherBase = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToDuplicateTableToOtherBase'),
+      content: t('upgrade.upgradeToDuplicateTableToOtherBase', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE,
+    })
+
+    return true
+  }
+
   const showUpgradeToUsePrivateBases = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockPrivateBases.value) return
 
@@ -1150,5 +1176,7 @@ export const useEeConfig = createSharedComposable(() => {
     isOrgBilling,
     blockAiPromptField,
     showUpgradeToUseAiPromptField,
+    showUpgradeToDuplicateTableToOtherWs,
+    showUpgradeToDuplicateTableToOtherBase,
   }
 })

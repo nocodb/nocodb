@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "Trường {columnName} không khả dụng",
       "cantSaveCircularReference": "Không thể lưu trường vì nó gây ra tham chiếu vòng tròn",
       "columnWithTypeFoundButExpected": "Trường {columnName} với loại {columnType} được tìm thấy nhưng loại {expectedType} được mong đợi",
-      "columnNotMatchedWithType": "{columnName} không khớp với {columnType}"
+      "columnNotMatchedWithType": "{columnName} không khớp với {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Các tùy chọn chọn không thể là null",

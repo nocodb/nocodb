@@ -1984,7 +1984,8 @@
       "columnNotAvailable": "فیلد {columnName} در دسترس نیست",
       "cantSaveCircularReference": "عدم توانایی ذخیره فیلد به دلیل ایجاد مرجع دوری",
       "columnWithTypeFoundButExpected": "فیلد {columnName} با نوع {columnType} پیدا شد اما نوع {expectedType} انتظار می‌رود",
-      "columnNotMatchedWithType": "{columnName} با {columnType} همخوانی ندارد"
+      "columnNotMatchedWithType": "{columnName} با {columnType} همخوانی ندارد",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "گزینه‌ها نمی‌توانند تهی باشند",

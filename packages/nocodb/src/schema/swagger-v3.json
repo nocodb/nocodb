@@ -5665,6 +5665,7 @@
           }
         }
       },
+
       "ViewAggregationEnum": {
         "type": "string",
         "enum": [
@@ -5694,155 +5695,6 @@
           "month_range"
         ]
       },
-      "ViewOptionBase": {
-        "type": "object",
-        "properties": {
-          "fields_by_id": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "properties": {
-                "alias": {
-                  "type": "string"
-                },
-                "description": {
-                  "type": "string"
-                },
-                "required": {
-                  "type": "boolean"
-                },
-                "allow_scanner_input": {
-                  "type": "boolean"
-                },
-                "is_list": {
-                  "type": "boolean"
-                },
-                "is_limit_option": {
-                  "type": "boolean"
-                },
-                "validators": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "type": {
-                        "type": "string"
-                      },
-                      "value": {},
-                      "message": {
-                        "type": "string"
-                      },
-                      "regex": {
-                        "type": "string",
-                        "nullable": true
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "row_height": {
-            "type": "string",
-            "enum": [
-              "short",
-              "medium",
-              "tall",
-              "extra"
-            ]
-          }
-        }
-      },
-      "ViewBaseOptions": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ViewOptionBase"
-          },
-          {
-            "oneOf": [
-              {
-                "type": "object",
-                "title": "grid",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "grid"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsGrid"
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "title": "kanban",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "kanban"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsKanban"
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "title": "calendar",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "calendar"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsCalendar"
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "title": "gallery",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "gallery"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsGallery"
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "title": "form",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "form"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsForm"
-                  }
-                }
-              }
-            ],
-            "discriminator": {
-              "propertyName": "type"
-            }
-          }
-        ]
-      },
-
       "ViewList": {
         "type": "object",
         "properties": {
@@ -5942,13 +5794,14 @@
               "kanban",
               "calendar"
             ],
-            "description": "Type of the view. \n\nNote: Creation of form view using API is not supported currently"
+            "description": "Type of the view. \n\nNote: Form view via API is not supported currently"
           },
           "lock_type": {
             "type": "string",
             "enum": [
               "collaborative",
-              "locked"
+              "locked",
+              "personal"
             ],
             "description": "Lock type of the view.\n\n Note: Assigning view as personal using API is not supported currently",
             "default": "collaborative"
@@ -6519,13 +6372,9 @@
           }
         ]
       },
-
       "View": {
         "type": "object",
         "allOf": [
-          {
-            "$ref": "#/components/schemas/ViewBase"
-          },
           {
             "properties": {
               "id": {
@@ -6533,21 +6382,20 @@
                 "format": "uuid",
                 "description": "Unique identifier for the view."
               },
-              "type": {
-                "type": "string",
-                "enum": [
-                  "grid",
-                  "gallery",
-                  "kanban",
-                  "calendar",
-                  "form"
-                ],
-                "description": "Type of the view."
-              },
               "is_default": {
                 "type": "boolean",
-                "description": "Indicates if this is the default view."
-              },
+                "description": "Indicates if this is the default view. Omitted if not the default view."
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/ViewBase"
+          },
+          {
+            "properties": {
               "created_by": {
                 "type": "string",
                 "format": "uuid",
@@ -6571,10 +6419,150 @@
             }
           },
           {
-            "$ref": "#/components/schemas/ViewBaseOptions"
+            "oneOf": [
+              {
+                "type": "object",
+                "title": "grid",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "grid"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGrid"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "gallery",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "gallery"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGallery"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "kanban",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "kanban"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsKanban"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                },
+                "required": [
+                  "options"
+                ]
+              },
+              {
+                "type": "object",
+                "title": "calendar",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "calendar"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsCalendar"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                },
+                "required": [
+                  "options"
+                ]
+
+              }
+            ],
+            "discriminator": {
+              "propertyName": "type"
+            }
           }
         ]
       },
+
       "FieldBase": {
         "type": "object",
         "properties": {

@@ -39,7 +39,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { getCompositePkValue } from '~/helpers/dbHelpers';
 import Noco from '~/Noco';
 import { genJwt } from '~/services/users/helpers';
-import { NcError } from '~/helpers/NcError';
+import { NcError } from '~/helpers/ncError';
 
 handlebarsHelpers({ handlebars: Handlebars });
 

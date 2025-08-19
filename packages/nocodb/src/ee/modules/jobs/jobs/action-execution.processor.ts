@@ -369,6 +369,7 @@ export class ActionExecutionProcessor {
     try {
       const baseSchema = await getBaseSchema(context);
       const code = createSandboxCode(
+        context,
         script.script,
         baseSchema,
         req.user,

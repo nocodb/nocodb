@@ -1,4 +1,4 @@
-import type { NcRequest } from 'nocodb-sdk';
+import type { NcContext, NcRequest } from 'nocodb-sdk';
 
 enum ScriptActionType {
   DONE = 'done',
@@ -155,7 +155,7 @@ function generateV3ToV2Converter() {
   `;
 }
 
-function generateStepAPI(req: NcRequest) {
+function generateStepAPI(req: NcRequest, context: NcContext) {
   return `
   let __nc_currentStepId = null;
   
@@ -658,8 +658,8 @@ function generateStepAPI(req: NcRequest) {
     }
  
     // Get workspace and base context
-    const workspaceId = '${req.context.workspace_id}';
-    const baseId = '${req.context.base_id}';
+    const workspaceId = '${context.workspace_id}';
+    const baseId = '${context.base_id}';
     const authToken = "${req.headers['xc-auth']}"
  
     const payload = {
@@ -2067,6 +2067,7 @@ function generateCustomCode(
 }
 
 export function createSandboxCode(
+  context: NcContext,
   userCode: string,
   baseSchema: any,
   user: any,
@@ -2080,7 +2081,7 @@ export function createSandboxCode(
     import { InternalApi } from 'nc-sdk-v2'
     await (async () => {
     ${generateConsoleOutput()}
-    ${generateStepAPI(req)}
+    ${generateStepAPI(req, context)}
     ${generateV3ToV2Converter()}
     ${generateApiProxy(req)}
     ${generalHelpers()}

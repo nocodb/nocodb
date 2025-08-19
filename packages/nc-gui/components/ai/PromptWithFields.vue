@@ -47,7 +47,7 @@ const vModel = computed({
 
 const { autoFocus, readOnly } = toRefs(props)
 
-const debouncedLoadMentionFieldTagTooltip = useDebounceFn(loadMentionFieldTagTooltip, 1000)
+const debouncedLoadMentionFieldTagTooltip = useDebounceFn(loadMentionFieldTagTooltip, 500)
 
 const editor = useEditor({
   content: vModel.value,
@@ -171,7 +171,7 @@ function loadMentionFieldTagTooltip() {
     if (!tooltip || el.scrollWidth <= el.clientWidth) return
     // Show tooltip only on truncate
     const instance = tippy(el, {
-      content: `<div class="tooltip text-xs">${tooltip.value}</div>`,
+      content: `<div class="tooltip nc-ai-prompt-with-fields-tooltip">${tooltip.value}</div>`,
       placement: 'top',
       allowHTML: true,
       arrow: true,
@@ -288,5 +288,9 @@ useEventListener(el, 'focusPromptWithFields', () => {
   p {
     @apply !mb-1;
   }
+}
+
+.nc-ai-prompt-with-fields-tooltip {
+  @apply text-xs bg-nc-content-gray text-nc-content-inverted-primary px-2 py-1 rounded-lg;
 }
 </style>

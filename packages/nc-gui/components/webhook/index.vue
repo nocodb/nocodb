@@ -456,7 +456,7 @@ function onNotificationTypeChange(reset = false) {
   }
 
   if (hookRef.notification.type === 'Script') {
-    hookRef.notification.payload.scriptId = undefined
+    hookRef.notification.payload.scriptId = hookRef.notification.payload.scriptId || undefined
   }
 
   if (hookRef.notification.type === 'URL') {

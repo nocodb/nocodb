@@ -735,9 +735,10 @@ export async function invokeWebhook(
 
     if (
       isBulkOperation &&
-      (notification?.type !== 'URL' || notification?.type !== 'Script')
+      notification?.type !== 'URL' &&
+      notification?.type !== 'Script'
     ) {
-      // only URL hook is supported for bulk operations
+      // only URL & Script hooks are supported for bulk operations
       return;
     }
 

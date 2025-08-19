@@ -242,4 +242,8 @@ export const presetErrorCodexMap: Partial<
       message || `Upgrade to a higher plan to use this feature.`,
     code: 403,
   },
+  [NcErrorType.DUPLICATE_ALIAS]: {
+    message: (message: string) => message,
+    code: 422,
+  },
 };

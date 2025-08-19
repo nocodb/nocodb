@@ -453,7 +453,15 @@ export class ColumnsService implements IColumnsService {
         exclude_id: param.columnId,
       }))
     ) {
-      NcError.get(context).invalidRequestBody('Duplicate column name');
+      NcError.get(context).duplicateAlias({
+        type: 'column',
+        alias: param.column.column_name,
+        base: context.base_id,
+        label: 'name',
+        additionalTrace: {
+          table: column.fk_model_id,
+        },
+      });
     }
     if (
       param.column.title &&
@@ -464,9 +472,14 @@ export class ColumnsService implements IColumnsService {
       }))
     ) {
       // This error will be thrown if there are more than one column linking to the same table. You have to delete one of them
-      NcError.get(context).invalidRequestBody(
-        `Duplicate column alias for table ${table.title} and column is ${param.column.title}. Please change the name of this column and retry.`,
-      );
+      NcError.get(context).duplicateAlias({
+        type: 'column',
+        alias: param.column.title,
+        base: context.base_id,
+        additionalTrace: {
+          table: column.fk_model_id,
+        },
+      });
     }
     const sqlUi = SqlUiFactory.create(await source.getConnectionConfig());
 
@@ -2054,7 +2067,15 @@ export class ColumnsService implements IColumnsService {
         fk_model_id: param.tableId,
       }))
     ) {
-      NcError.get(context).invalidRequestBody('Duplicate column name');
+      NcError.get(context).duplicateAlias({
+        type: 'column',
+        alias: param.column.column_name,
+        label: 'name',
+        base: context.base_id,
+        additionalTrace: {
+          table: param.tableId,
+        },
+      });
     }
     if (
       !(await Column.checkAliasAvailable(context, {
@@ -2062,7 +2083,14 @@ export class ColumnsService implements IColumnsService {
         fk_model_id: param.tableId,
       }))
     ) {
-      NcError.get(context).invalidRequestBody('Duplicate column alias');
+      NcError.get(context).duplicateAlias({
+        type: 'column',
+        alias: param.column.title,
+        base: context.base_id,
+        additionalTrace: {
+          table: param.tableId,
+        },
+      });
     }
 
     let colBody: any = param.column;

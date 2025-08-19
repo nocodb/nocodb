@@ -1753,22 +1753,63 @@ Object.freeze(UITypes);
     async updateRecordAsync(recordId, data) { 
       const recordID = (recordId instanceof NocoDBRecord) ? recordId.id: recordId
       const recordData = {};
+      const updatedFields = [];
+      
       for (const field of this.fields) {
         if (data[field.name]) {
           recordData[field.name] = data[field.name];
+          updatedFields.push({ id: field.id, name: field.name });
         } else if (data[field.id]) {
           recordData[field.name] = data[field.id];
+          updatedFields.push({ id: field.id, name: field.name });
         }
       }
+      
+      // Notify that record update is starting
+      self.postMessage({
+        type: '${ScriptActionType.RECORD_UPDATE_START}',
+        payload: {
+          recordId: recordID,
+          tableId: this.id,
+          tableName: this.name,
+          fields: updatedFields
+        }
+      });
+      
       try {
         await api.dbDataTableRowUpdate(this.base.id, this.id, { fields: recordData, id: recordID });
+        
+        // Notify that record update is complete
+        self.postMessage({
+          type: '${ScriptActionType.RECORD_UPDATE_COMPLETE}',
+          payload: {
+            recordId: recordID,
+            tableId: this.id,
+            tableName: this.name,
+            fields: updatedFields,
+            success: true
+          }
+        });
       } catch (e) {
-        throw new Error(\`Failed to update record \${recordId} in table \${this.name}\`)
+        // Notify that record update failed
+        self.postMessage({
+          type: '${ScriptActionType.RECORD_UPDATE_COMPLETE}',
+          payload: {
+            recordId: recordID,
+            tableId: this.id,
+            tableName: this.name,
+            fields: updatedFields,
+            success: false,
+            error: e.message
+          }
+        });
+        throw new Error('Failed to update record ' + recordId + ' in table ' + this.name)
       }
     }
     
     async updateRecordsAsync(records) {
       const updateObjs = []
+      const allUpdatedFields = []
       
       if (!Array.isArray(records)) {
         throw new Error('Data must be an array');
@@ -1785,21 +1826,65 @@ Object.freeze(UITypes);
       for (const record of records) {
         const recordID = (record.id instanceof NocoDBRecord) ? record.id.id : record.id;
         const recordData = {};
+        const updatedFields = [];
         
         for (const field of this.fields) {
           const fieldData = record.fields;
           if (fieldData[field.name]) {
             recordData[field.name] = fieldData[field.name];
+            updatedFields.push({ id: field.id, name: field.name });
           } else if (fieldData[field.id]) {
             recordData[field.name] = fieldData[field.id];
+            updatedFields.push({ id: field.id, name: field.name });
           }
         }
         updateObjs.push({ fields: recordData, id: recordID });
+        allUpdatedFields.push({ recordId: recordID, fields: updatedFields });
+        
+        // Notify that record update is starting for this record
+        self.postMessage({
+          type: '${ScriptActionType.RECORD_UPDATE_START}',
+          payload: {
+            recordId: recordID,
+            tableId: this.id,
+            tableName: this.name,
+            fields: updatedFields
+          }
+        });
       }
+      
       try {
         await api.dbDataTableRowUpdate(this.base.id, this.id, updateObjs);
+        
+        // Notify that all record updates are complete
+        for (const { recordId, fields } of allUpdatedFields) {
+          self.postMessage({
+            type: '${ScriptActionType.RECORD_UPDATE_COMPLETE}',
+            payload: {
+              recordId: recordId,
+              tableId: this.id,
+              tableName: this.name,
+              fields: fields,
+              success: true
+            }
+          });
+        }
       } catch (e) {
-        throw new Error(\`Failed to update records in table \${this.name}\`)
+        // Notify that all record updates failed
+        for (const { recordId, fields } of allUpdatedFields) {
+          self.postMessage({
+            type: '${ScriptActionType.RECORD_UPDATE_COMPLETE}',
+            payload: {
+              recordId: recordId,
+              tableId: this.id,
+              tableName: this.name,
+              fields: fields,
+              success: false,
+              error: e.message
+            }
+          });
+        }
+        throw new Error('Failed to update records in table ' + this.name)
       }
     }
     
@@ -2470,9 +2555,9 @@ export function createWorkerCode(userCode: string, custom?: string): string {
     ${generateViewActions()}
     ${generateRemoteFetch()}
     ${generalHelpers()}
-    ${custom || ''}
     ${generateBaseModels()}
     ${generateBaseObject()}
+    ${custom || ''}
     ${generateSessionApi()}
     ${generateMessageHandler(userCode)}
   `

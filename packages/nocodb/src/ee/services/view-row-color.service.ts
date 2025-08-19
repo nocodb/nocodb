@@ -6,7 +6,6 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { ViewRowColorService as ViewRowColorServiceCE } from 'src/services/view-row-color.service';
-import { CacheScope } from 'src/utils/globals';
 import type { MetaService } from '~/meta/meta.service';
 import type { Column, Filter, SelectOption } from '~/models';
 import type { ViewMetaRowColoring } from '~/models/View';
@@ -20,11 +19,9 @@ import type {
 } from 'nocodb-sdk';
 import { MetaTable } from '~/cli';
 import { NcError } from '~/helpers/catchError';
-import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 import { Model, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
-import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()

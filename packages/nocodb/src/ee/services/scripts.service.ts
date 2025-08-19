@@ -1,15 +1,20 @@
-import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType } from 'nocodb-sdk';
+import { Injectable, Inject } from '@nestjs/common';
+import { AppEvents, ButtonActionsType, EventType } from 'nocodb-sdk';
 import type { ScriptType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Script from '~/models/Script';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
-
+import { ButtonColumn } from '~/models';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { JobTypes } from '~/interface/Jobs';
 @Injectable()
 export class ScriptsService {
-  constructor(protected readonly appHooksService: AppHooksService) {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    @Inject('JobsService') private readonly jobsService: IJobsService,
+  ) {}
 
   async listScripts(context: NcContext, baseId: string) {
     return await Script.list(context, baseId);
@@ -102,6 +107,17 @@ export class ScriptsService {
 
     if (!script) {
       return NcError.notFound('Script not found');
+    }
+
+    const buttonCols = await ButtonColumn.buttonUsages(context, scriptId);
+
+    if (buttonCols.length) {
+      for (const button of buttonCols) {
+        await ButtonColumn.update(context, button.fk_column_id, {
+          fk_script_id: null,
+          type: ButtonActionsType.Script,
+        });
+      }
     }
 
     await Script.delete(context, scriptId);

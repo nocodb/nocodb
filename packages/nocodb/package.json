@@ -76,6 +76,7 @@
     "@aws-sdk/s3-request-presigner": "^3.743.0",
     "@clickhouse/client": "^1.11.1",
     "@databricks/sql": "^1.11.0",
+    "@e2b/code-interpreter": "^1.5.1",
     "@gitbeaker/rest": "^42.5.0",
     "@google-cloud/storage": "^7.15.0",
     "@govtechsg/passport-openidconnect": "^1.0.3",

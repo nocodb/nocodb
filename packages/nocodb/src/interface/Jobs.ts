@@ -52,6 +52,7 @@ export enum JobTypes {
   UpdateUsageStats = 'update-usage-stats',
   CloudDbMigrate = 'cloud-db-migrate',
   AttachmentUrlUpload = 'attachment-url-upload',
+  ExecuteAction = 'execute-action',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -184,6 +185,7 @@ export interface HandleWebhookJobData extends JobData {
   modelId: string;
   viewId: string;
   hookName: string;
+  ncSiteUrl: string;
   prevData;
   newData;
 }
@@ -232,3 +234,11 @@ export interface SyncDataSyncModuleJobData extends JobData {
 }
 
 export type AttachmentUrlUploadJobData = AttachmentUrlUploadParam & JobData;
+
+export interface ExecuteActionJobData extends JobData {
+  req: NcRequest;
+  records?: any[];
+  modelId?: string;
+  viewId?: string;
+  scriptId: string;
+}

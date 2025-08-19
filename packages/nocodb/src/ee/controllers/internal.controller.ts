@@ -23,6 +23,7 @@ import { ColumnsService } from '~/services/columns.service';
 import { AuditsService } from '~/services/audits.service';
 import { PermissionsService } from '~/services/permissions.service';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import { ActionsService } from '~/services/actions.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -38,6 +39,7 @@ export class InternalController extends InternalControllerCE {
     private readonly integrationsService: IntegrationsService,
     private readonly permissionsService: PermissionsService,
     protected readonly dashboardsService: DashboardsService,
+    protected readonly actionsService: ActionsService,
   ) {
     super(mcpService, aclMiddleware, auditsService);
   }
@@ -91,6 +93,7 @@ export class InternalController extends InternalControllerCE {
       widgetDuplicate: 'base',
       widgetDataGet: 'base',
       dashboardShare: 'base',
+      triggerAction: 'base',
     };
   }
 
@@ -374,6 +377,8 @@ export class InternalController extends InternalControllerCE {
           payload,
           req,
         );
+      case 'triggerAction':
+        return await this.actionsService.triggerAction(context, payload, req);
       default:
         return await super.internalAPIPost(
           context,

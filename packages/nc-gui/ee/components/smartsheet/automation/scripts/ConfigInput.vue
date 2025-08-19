@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { validateConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
 import type { ScriptConfig, ScriptConfigItemField, ScriptConfigItemView } from '~/lib/types'
+import { validateConfigValues } from 'nocodb-sdk'
 
 interface Props {
   config: ScriptConfig

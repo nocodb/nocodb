@@ -8,8 +8,10 @@ import Handlebars from 'handlebars';
 import handlebarsHelpers from 'handlebars-helpers-v2';
 import {
   ColumnHelper,
+  hasInputCalls,
   HookOperationCode,
   isDateMonthFormat,
+  NOCO_SERVICE_USERS,
   UITypes,
 } from 'nocodb-sdk';
 import { useAgent } from 'request-filtering-agent';
@@ -28,11 +30,15 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { Column, FormView, Hook, Model, View } from '~/models';
 import type { AxiosResponse } from 'axios';
-import { Filter, HookLog, Source } from '~/models';
+import { Filter, HookLog, Script, Source } from '~/models';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
 import { isEE, isOnPrem, populateUpdatePayloadDiff } from '~/utils';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
+import { JobTypes } from '~/interface/Jobs';
+import Noco from '~/Noco';
+import { genJwt } from '~/services/users/helpers';
+import { NcError } from '~/helpers/ncError';
 
 handlebarsHelpers({ handlebars: Handlebars });
 
@@ -682,6 +688,8 @@ export async function invokeWebhook(
     testFilters?;
     throwErrorOnFailure?: boolean;
     testHook?: boolean;
+    ncSiteUrl?: string;
+    addJob?: (name: string, data: any) => Promise<void>;
   },
 ) {
   const {
@@ -694,6 +702,8 @@ export async function invokeWebhook(
     testFilters = null,
     throwErrorOnFailure = false,
     testHook = false,
+    ncSiteUrl,
+    addJob,
   } = param;
 
   let { newData } = param;
@@ -722,8 +732,12 @@ export async function invokeWebhook(
 
     const isBulkOperation = Array.isArray(newData);
 
-    if (isBulkOperation && notification?.type !== 'URL') {
-      // only URL hook is supported for bulk operations
+    if (
+      isBulkOperation &&
+      notification?.type !== 'URL' &&
+      notification?.type !== 'Script'
+    ) {
+      // only URL & Script hooks are supported for bulk operations
       return;
     }
 
@@ -856,6 +870,50 @@ export async function invokeWebhook(
               conditions: JSON.stringify(filters),
             };
           }
+        }
+        break;
+      case 'Script':
+        {
+          const datas = Array.isArray(newData) ? newData : [newData];
+
+          const script = await Script.get(
+            context,
+            notification?.payload?.scriptId,
+          );
+
+          if (!script.script || hasInputCalls(script.script)) {
+            NcError._.notImplemented(
+              'Script with input calls is not supported',
+            );
+          }
+
+          await addJob?.(JobTypes.ExecuteAction, {
+            context,
+            scriptId: notification?.payload?.scriptId,
+            modelId: model.id,
+            records: datas,
+            req: {
+              user: NOCO_SERVICE_USERS.AUTOMATION_USER,
+              headers: {
+                'xc-auth': genJwt(
+                  {
+                    ...NOCO_SERVICE_USERS.AUTOMATION_USER,
+                    extra: {
+                      context: {
+                        ...context,
+                        script_id: notification?.payload?.scriptId,
+                      },
+                    },
+                  },
+                  Noco.getConfig(),
+                  {
+                    expiresIn: '10m',
+                  },
+                ),
+              },
+              ncSiteUrl,
+            },
+          });
         }
         break;
       default:

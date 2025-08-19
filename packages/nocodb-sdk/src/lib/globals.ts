@@ -280,3 +280,12 @@ interface PlanLimitExceededDetailsType {
 export { Roles, RolesObj, RolesType, PlanLimitExceededDetailsType };
 
 export type RowColoringMode = null | 'SELECT' | 'FILTER';
+
+export const NOCO_SERVICE_USERS = {
+  AUTOMATION_USER: {
+    id: 'usrautomation',
+    email: 'automation@nocodb.com',
+    display_name: 'NocoDB Automation',
+    email_verified: true,
+  },
+};

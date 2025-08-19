@@ -2,14 +2,35 @@
 import { marked } from 'marked'
 import VueJsonPretty from 'vue-json-pretty'
 import DynamicInput from './DynamicInput.vue'
+import { ScriptActionType } from '~/lib/enum'
 
-const { isRunning, isFinished, playground, resolveInput, runScript, isValidConfig, isCreateEditScriptAllowed } =
-  useScriptStoreOrThrow()
+interface Props {
+  playground?: any[]
+  isRunning?: boolean
+  isFinished?: boolean
+  showRunButton?: boolean
+  compact?: boolean
+  containerClass?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  playground: undefined,
+  isRunning: false,
+  isFinished: false,
+  showRunButton: true,
+  compact: false,
+  containerClass: '',
+})
+
+const scriptStore = props.playground ? null : useScriptStoreOrThrow()
+const playgroundData = computed(() => props.playground || scriptStore?.playground.value || [])
+const isRunningState = computed(() => props.isRunning || scriptStore?.isRunning.value || false)
+const isFinishedState = computed(() => props.isFinished || scriptStore?.isFinished.value || false)
 
 const playgroundContainer = ref<HTMLElement | null>(null)
 
 watch(
-  () => playground.value.length,
+  () => playgroundData.value.length,
   (newLength, oldLength) => {
     if (newLength > oldLength) {
       nextTick(() => {
@@ -23,20 +44,88 @@ watch(
 
 const resolve = (item: ScriptPlaygroundItem, data: any) => {
   if (item.type !== 'input-request') return
-  resolveInput(item.id!, data)
+  if (scriptStore) {
+    scriptStore.resolveInput(item.id!, data)
+  } else {
+    // Handle input resolution for external playground (Action Pane)
+    resolveExternalInput(item.id!, data)
+  }
+}
+
+// Function to resolve input for external playground (Action Pane)
+const resolveExternalInput = (id: string, value: string | Record<string, any> | any) => {
+  const { activeExecutions } = useScriptExecutor()
+
+  // Find the execution that contains this input item
+  for (const [_, execution] of activeExecutions.value) {
+    const result = findInputItemInPlayground(execution.playground, id)
+    if (result) {
+      const { item } = result
+
+      // Call the resolve function on the input item
+      if (item?.resolve) {
+        if (typeof value === 'object') {
+          value = JSON.stringify(value)
+        }
+        item.resolve(value)
+      }
+
+      // Send message to worker
+      execution.worker?.postMessage({
+        type: ScriptActionType.INPUT_RESOLVED,
+        payload: { id, value },
+      })
+
+      break
+    }
+  }
+}
+
+// Helper function to find input item in playground
+const findInputItemInPlayground = (items: any[], id: string): { item: any; index: number; parent?: any } | null => {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+
+    if (item?.id === id && item.type === 'input-request') {
+      return { item, index: i }
+    }
+
+    // If it's a workflow step, search in its children
+    if (item.type === 'workflow-step') {
+      for (let j = 0; j < item.content.children.length; j++) {
+        const child = item.content.children[j]
+        if (child?.id === id && child.type === 'input-request') {
+          return {
+            item: child,
+            index: j,
+            parent: item,
+          }
+        }
+      }
+    }
+  }
+  return null
 }
 </script>
 
 <template>
   <div
     ref="playgroundContainer"
-    :class="{
-      'border-l-1 border-nc-border-gray-medium': isCreateEditScriptAllowed,
-    }"
-    class="p-6 overflow-y-auto bg-nc-bg-gray-extralight h-[91svh] nc-scrollbar-md"
+    class="overflow-y-auto nc-scrollbar-md"
+    :class="[
+      {
+        'border-l-1 border-nc-border-gray-medium': !compact && scriptStore?.isCreateEditScriptAllowed,
+        'p-6 h-[91svh] bg-nc-bg-gray-extralight max-w-130': !compact,
+      },
+      containerClass,
+    ]"
   >
-    <div v-if="isRunning || isFinished" class="flex mx-auto flex-col max-w-130 gap-6 pb-40">
-      <div v-for="(item, index) in playground" :key="index" class="playground-item" :data-type="item.type">
+    <div
+      v-if="isRunningState || isFinishedState || playgroundData.length > 0"
+      class="flex mx-auto flex-col gap-6"
+      :class="[{ 'pb-40': !compact, 'pb-4': compact }]"
+    >
+      <div v-for="(item, index) in playgroundData" :key="index" class="playground-item" :data-type="item.type">
         <template v-if="item.type === 'workflow-step'">
           <div
             :class="{
@@ -205,9 +294,15 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
       </div>
     </div>
 
-    <div v-else class="flex items-center flex-col gap-3 h-full justify-center">
-      <NcTooltip :disabled="isValidConfig">
-        <NcButton size="small" type="primary" :disabled="!isValidConfig" :loading="isRunning" @click="runScript">
+    <div v-else-if="showRunButton && scriptStore" class="flex items-center flex-col gap-3 h-full justify-center">
+      <NcTooltip :disabled="scriptStore.isValidConfig">
+        <NcButton
+          size="small"
+          type="primary"
+          :disabled="!scriptStore.isValidConfig"
+          :loading="isRunningState"
+          @click="scriptStore.runScript"
+        >
           <div class="flex gap-2 items-center">
             <GeneralIcon icon="ncPlay" />
             Run
@@ -216,6 +311,13 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
 
         <template #title> Setup script settings first to execute </template>
       </NcTooltip>
+    </div>
+
+    <div
+      v-else-if="playgroundData.length === 0 && !showRunButton"
+      class="flex items-center justify-center h-20 text-nc-content-gray-subtle text-sm"
+    >
+      No execution steps yet...
     </div>
   </div>
 </template>
@@ -236,7 +338,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
 }
 
 .nc-scripts-table {
-  @apply border-1 border-separate rounded-md border-gray-300 w-full border-1 border-nc-gray-medium;
+  @apply border-1 border-separate rounded-md border-gray-300 w-full border-1 border-nc-border-gray-medium;
   border-spacing: 0px;
 
   thead {
@@ -250,7 +352,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
     @apply bg-white;
     tr {
       td {
-        @apply border-r-1 border-t-1 last:rounded-br-lg first:rounded-bl-lg last:border-r-0 border-nc-gray-medium;
+        @apply border-r-1 border-t-1 last:rounded-br-lg first:rounded-bl-lg last:border-r-0 border-nc-border-gray-medium;
       }
     }
   }
@@ -297,7 +399,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
   }
 
   p {
-    @apply text-nc-content-gray-emphasis caption;
+    @apply text-nc-content-gray-emphasis text-caption;
   }
 
   li {

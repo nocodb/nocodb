@@ -14,6 +14,12 @@ const emits = defineEmits<{
 const selectedScript = useVModel(props, 'selectedScript', emits)
 const vModel = useVModel(props, 'modelValue', emits)
 
+const { ncNavigateTo } = useGlobal()
+
+const baseStore = useBases()
+
+const { openedProject } = storeToRefs(baseStore)
+
 const isScriptSelectionDropdownOpen = ref(false)
 
 const automationStore = useAutomationStore()
@@ -26,14 +32,16 @@ const isScriptModal = ref(false)
 
 const newScript = () => {
   selectedScript.value = undefined
-  isScriptModal.value = true
-  isScriptCreateModalOpen.value = true
 }
 
 const editScript = () => {
   if (selectedScript.value) {
-    isScriptCreateModalOpen.value = true
-    isScriptModal.value = true
+    ncNavigateTo({
+      baseId: openedProject.value!.id,
+      workspaceId: openedProject.value!.fk_workspace_id,
+      automationId: selectedScript.value.id,
+      newTab: true,
+    })
   }
 }
 
@@ -81,16 +89,6 @@ watch(isScriptModal, (newVal) => {
             show-selected-option
             @selected="onSelectScript"
           >
-            <!-- v-if="isUIAllowed('scriptCreate')" TODO: Add ACL -->
-            <template #bottom>
-              <a-divider style="margin: 4px 0" />
-              <div class="flex items-center text-brand-500 text-sm cursor-pointer" @click="newScript">
-                <div class="w-full flex justify-between items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100">
-                  {{ $t('general.create') }} {{ $t('objects.script').toLowerCase() }}
-                  <GeneralIcon icon="plus" class="flex-none" />
-                </div>
-              </div>
-            </template>
           </NcListWithSearch>
         </template>
         <div

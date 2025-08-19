@@ -1,9 +1,9 @@
 import type { ScriptType } from 'nocodb-sdk'
+import { replaceConfigValues } from 'nocodb-sdk'
 import { createWorkerCode, generateIntegrationsCode } from '~/components/smartsheet/automation/scripts/utils/workerHelper'
 import { generateLibCode } from '~/components/smartsheet/automation/scripts/utils/editorUtils'
-import { replaceConfigValues } from '~/components/smartsheet/automation/scripts/utils/configParser'
 import type { CallApiAction, ScriptPlaygroundItem, ViewActionPayload, WorkflowStepItem } from '~/lib/types'
-import { ScriptActionType } from '~/lib/enum'
+import { EventBusEnum, ScriptActionType, SmartsheetScriptActions } from '~/lib/enum'
 
 export const useScriptExecutor = createSharedComposable(() => {
   const { internalApi, api } = useApi()
@@ -20,7 +20,7 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const { activeTableId } = storeToRefs(useTablesStore())
 
-  const { activeAutomationId } = storeToRefs(automationStore)
+  const { activeAutomationId, activeBaseSchema } = storeToRefs(automationStore)
 
   const { aiIntegrations } = useNocoAi()
 
@@ -28,7 +28,7 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const { transform } = useEsbuild()
 
-  const eventBus = useEventBus<SmartsheetScriptActions>(Symbol('SmartSheetActions'))
+  const eventBus = useEventBus<SmartsheetScriptActions>(EventBusEnum.SmartsheetActions)
 
   const libCode = ref<string>('')
   const customCode = ref<string>('')
@@ -226,7 +226,13 @@ export const useScriptExecutor = createSharedComposable(() => {
     }
   }
 
-  function handleWorkerMessage(scriptId: string, message: any, worker: Worker, onWorkerDone: () => void) {
+  function handleWorkerMessage(
+    scriptId: string,
+    message: any,
+    worker: Worker,
+    onWorkerDone: () => void,
+    executionContext?: { pk: string; fieldId: string; executionId?: string },
+  ) {
     const execution = activeExecutions.value.get(scriptId)
     if (!execution) {
       return
@@ -242,6 +248,13 @@ export const useScriptExecutor = createSharedComposable(() => {
         }
         activeSteps.value.set(message.payload.stepId, stepItem)
         execution.playground.push(stepItem)
+
+        // Update ActionManager with current step title
+        eventBus.emit(SmartsheetScriptActions.UPDATE_STEP_TITLE, {
+          pk: executionContext?.pk,
+          fieldId: executionContext?.fieldId,
+          title: message.payload.title || 'Processing...',
+        })
         break
       }
       case ScriptActionType.WORKFLOW_STEP_END: {
@@ -388,6 +401,34 @@ export const useScriptExecutor = createSharedComposable(() => {
         activeSteps.value.clear()
         onWorkerDone()
         break
+      case ScriptActionType.RECORD_UPDATE_START: {
+        const payload = message.payload
+
+        // Mark each field as being updated via ActionManager
+        for (const field of payload.fields) {
+          eventBus.emit(SmartsheetScriptActions.START_CELL_UPDATE, {
+            recordId: payload.recordId,
+            fieldId: field.id,
+            fieldName: field.name,
+            scriptId,
+          })
+        }
+
+        break
+      }
+      case ScriptActionType.RECORD_UPDATE_COMPLETE: {
+        const payload = message.payload
+
+        // Mark each field update as complete via ActionManager
+
+        for (const field of payload.fields) {
+          eventBus.emit(SmartsheetScriptActions.COMPLETE_CELL_UPDATE, {
+            recordId: payload.recordId,
+            fieldId: field.id,
+          })
+        }
+        break
+      }
       default:
         console.warn(`Unknown message type: ${(message as any).type}`)
     }
@@ -412,9 +453,13 @@ export const useScriptExecutor = createSharedComposable(() => {
       pk: string
       fieldId: string
       priority?: number
+      executionId?: string
     },
   ) => {
     try {
+      if (!activeBaseSchema.value) {
+        await updateBaseSchema()
+      }
       if (typeof script === 'string') {
         script = (await loadAutomation(script)) as ScriptType
       }
@@ -450,15 +495,23 @@ export const useScriptExecutor = createSharedComposable(() => {
     
     const cursor = {
       activeBaseId: '${activeProjectId.value}',
-      activeViewId: ${activeViewTitleOrId.value},
-      activeTableId: ${activeTableId.value},
+      activeViewId: ${activeViewTitleOrId.value ? `'${activeViewTitleOrId.value}'` : 'null'},
+      activeTableId: ${activeTableId.value ? `'${activeTableId.value}'` : 'null'},
     }
     `
 
-          if (row) {
-            runCustomCode = `
-      ${runCustomCode}
-    cursor.row = (${JSON.stringify(row)})
+          let v3Row = null
+
+          if (extra?.pk) {
+            v3Row = await internalApi.dbDataTableRowRead(activeProjectId.value, activeTableId.value, extra.pk)
+          }
+
+          if (v3Row) {
+            runCustomCode = `${runCustomCode}
+            if (${v3Row ? 'true' : 'false'}) {
+              const ____table = base.getTable('${activeTableId.value}')
+              cursor.row = new NocoDBRecord(${JSON.stringify(v3Row)}, ____table)
+            }
     `
           }
 
@@ -493,24 +546,35 @@ export const useScriptExecutor = createSharedComposable(() => {
             worker.postMessage({ type: 'run', scriptId })
 
             worker.onmessage = (e) => {
-              handleWorkerMessage(scriptId, e.data, worker, () => {
-                worker.terminate()
-                URL.revokeObjectURL(workerUrl)
+              handleWorkerMessage(
+                scriptId,
+                e.data,
+                worker,
+                () => {
+                  worker.terminate()
+                  URL.revokeObjectURL(workerUrl)
 
-                const execution = activeExecutions.value.get(scriptId)
-                if (execution) {
-                  activeExecutions.value.set(scriptId, {
-                    ...execution,
-                    status: 'finished',
-                    worker: null,
+                  const execution = activeExecutions.value.get(scriptId)
+                  if (execution) {
+                    activeExecutions.value.set(scriptId, {
+                      ...execution,
+                      status: 'finished',
+                      worker: null,
+                    })
+                  }
+
+                  // Clear any remaining cell updates for this script via ActionManager (canvas only)
+                  eventBus.emit(SmartsheetScriptActions.CLEAR_SCRIPT_CELL_UPDATES, {
+                    scriptId,
                   })
-                }
 
-                isRunning.value = false
-                isFinished.value = true
-                updateBaseSchema()
-                resolve()
-              })
+                  isRunning.value = false
+                  isFinished.value = true
+                  updateBaseSchema()
+                  resolve()
+                },
+                extra,
+              )
             }
 
             worker.onerror = (error) => {
@@ -526,6 +590,11 @@ export const useScriptExecutor = createSharedComposable(() => {
                   worker: null,
                 })
               }
+
+              // Clear any remaining cell updates for this script via ActionManager (canvas only)
+              eventBus.emit(SmartsheetScriptActions.CLEAR_SCRIPT_CELL_UPDATES, {
+                scriptId,
+              })
 
               isRunning.value = false
               isFinished.value = true
@@ -659,5 +728,6 @@ export const useScriptExecutor = createSharedComposable(() => {
     activeSteps,
     libCode,
     fieldIDRowMapping,
+    handleWorkerMessage,
   }
 })

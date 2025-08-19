@@ -1,7 +1,5 @@
 export const useScriptExecutor = createSharedComposable(() => {
-  const eventBus = useEventBus<SmartsheetScriptActions>(Symbol('SmartSheetActions'))
-
-  const libCode = ref<string>('')
+  const libCode = ref('')
   const isRunning = ref(false)
   const isFinished = ref(false)
 
@@ -9,9 +7,11 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const fieldIDRowMapping = computed(() => new Map<string, string>())
 
-  const runScript = async (_args, _args_2?, _args_3?) => {}
+  const runScript = async (..._args: any) => {}
 
   const stopExecution = (_args?: string) => {}
+
+  const eventBus = useEventBus<SmartsheetScriptActions>(EventBusEnum.SmartsheetScript)
 
   return {
     runScript,
@@ -22,5 +22,6 @@ export const useScriptExecutor = createSharedComposable(() => {
     activeExecutions,
     libCode,
     fieldIDRowMapping,
+    eventBus,
   }
 })

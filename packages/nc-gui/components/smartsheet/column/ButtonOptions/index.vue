@@ -33,6 +33,8 @@ const { isAiBetaFeaturesEnabled } = useNocoAi()
 
 const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode } = useColumnCreateStoreOrThrow()
 
+const { isRowActionsEnabled } = useActionPane()
+
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const webhooksStore = useWebhooksStore()
@@ -75,35 +77,31 @@ const isAiButtonEnabled = computed(() => {
   return isAiBetaFeaturesEnabled.value
 })
 
-const isScriptButtonEnabled = computed(() => {
-  if (isEdit.value) {
-    return true
-  }
-
-  return isAiBetaFeaturesEnabled.value
-})
-
 const buttonTypes = computed(() => [
   {
+    icon: 'ncLink',
     label: t('labels.openUrl'),
     value: ButtonActionsType.Url,
   },
   {
     label: t('labels.runWebHook'),
     value: ButtonActionsType.Webhook,
+    icon: 'ncWebhook',
   },
   ...(isAiButtonEnabled.value
     ? [
         {
+          icon: 'ncAutoAwesome',
           label: t('labels.generateFieldDataUsingAi'),
           value: ButtonActionsType.Ai,
           tooltip: t('tooltip.generateFieldDataUsingAiButtonOption'),
         },
       ]
     : []),
-  ...(isEeUI && isScriptButtonEnabled.value
+  ...(isEeUI && isRowActionsEnabled.value
     ? [
         {
+          icon: 'ncScript',
           label: t('labels.runScript'),
           value: ButtonActionsType.Script,
         },
@@ -516,6 +514,7 @@ const handleUpdateActionType = () => {
             <a-select-option v-for="(type, i) of buttonTypes" :key="i" :value="type.value">
               <NcTooltip :disabled="!type.tooltip" placement="right" class="w-full" :title="type.tooltip">
                 <div class="flex gap-2 w-full capitalize text-gray-800 truncate items-center">
+                  <GeneralIcon :icon="type.icon" />
                   <div class="flex-1">
                     {{ type.label }}
                   </div>
@@ -550,7 +549,7 @@ const handleUpdateActionType = () => {
       v-model:selected-webhook="selectedWebhook"
     />
     <SmartsheetColumnButtonOptionsScript
-      v-if="vModel?.type === buttonActionsType.Script"
+      v-if="vModel?.type === buttonActionsType.Script && isRowActionsEnabled"
       v-model:model-value="vModel"
       v-model:selected-script="selectedScript"
     />

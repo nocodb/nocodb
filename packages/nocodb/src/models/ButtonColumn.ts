@@ -184,4 +184,19 @@ export default class ButtonColumn {
   public getParsedTree() {
     return this.parsed_tree;
   }
+
+  public static async buttonUsages(
+    context: NcContext,
+    scriptId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_BUTTON,
+      {
+        condition: { fk_script_id: scriptId },
+      },
+    );
+  }
 }

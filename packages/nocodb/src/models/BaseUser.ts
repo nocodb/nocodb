@@ -200,12 +200,15 @@ export default class BaseUser {
       strict_in_record = false,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       include_ws_deleted = true,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      include_internal_user = false,
       user_ids,
     }: {
       base_id: string;
       mode?: 'full' | 'viewer';
       strict_in_record?: boolean;
       include_ws_deleted?: boolean;
+      include_internal_user?: boolean;
       user_ids?: string[];
     },
     ncMeta = Noco.ncMeta,

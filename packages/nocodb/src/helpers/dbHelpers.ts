@@ -17,6 +17,7 @@ import {
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import Validator from 'validator';
+import type { MetaService } from '~/meta/meta.service';
 import type { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -34,6 +35,7 @@ import {
   Model,
   Sort,
   Source,
+  View,
 } from '~/models';
 import { excludeAttachmentProps } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -465,6 +467,50 @@ export function shouldSkipField(
     }
     return false;
   }
+}
+
+export async function getQueriedColumns(
+  context: NcContext,
+  {
+    model,
+    fieldsSet,
+    view,
+    extractPkAndPv,
+    pkAndPvOnly,
+  }: {
+    model?: Model;
+    view?: View;
+    fieldsSet?: Set<string>;
+    extractPkAndPv?: boolean;
+    pkAndPvOnly?: boolean;
+  },
+  ncMeta?: MetaService,
+) {
+  let viewOrTableColumns: Column[] | { fk_column_id?: string }[];
+  const _columns = await model.getColumns(context, ncMeta);
+  if (fieldsSet?.size) {
+    viewOrTableColumns = _columns;
+  } else {
+    const viewColumns = view?.id && (await View.getColumns(context, view.id));
+
+    // const columns = _columns ?? (await baseModel.model.getColumns(baseModel.context));
+    // for (const column of columns) {
+    viewOrTableColumns =
+      viewColumns.map((viewColumn) =>
+        _columns.find((col) => col.id === viewColumn.fk_column_id),
+      ) || _columns;
+  }
+  return viewOrTableColumns.map(
+    (viewOrTableColumn) =>
+      !shouldSkipField(
+        fieldsSet,
+        viewOrTableColumn,
+        view,
+        viewOrTableColumn,
+        extractPkAndPv || pkAndPvOnly,
+        pkAndPvOnly,
+      ),
+  );
 }
 
 export function getListArgs(

@@ -1108,6 +1108,8 @@ export class ExportService {
           limitOverride: limit,
         })
         .then((result) => {
+          if (result.list.length === 0 && offset === 0) {
+          }
           try {
             if (!header) {
               stream.push('\r\n');

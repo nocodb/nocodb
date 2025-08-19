@@ -230,9 +230,18 @@ export function useGridCellHandler(params: {
         }
       }
     }
-    const cellType = cellTypesRegistry.get(column.uidt)
-    if (actionManager?.isLoading(pk, column.id) && !isAIPromptCol(column) && !isButton(column)) {
-      const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id)
+    const cellType = cellTypesRegistry.get(column.uidt!)
+
+    if (actionManager?.isCellUpdating(pk, column.id!) && !isAIPromptCol(column) && !isButton(column)) {
+      const cellUpdateStartTime = actionManager?.getCellUpdateStartTime(pk, column.id!)
+      if (cellUpdateStartTime) {
+        renderSpinner(ctx, x + width / 2, y + 8, 16, '#FF6B35', cellUpdateStartTime, 1.5)
+        return
+      }
+    }
+
+    if (actionManager?.isLoading(pk, column.id!) && !isAIPromptCol(column) && !isButton(column)) {
+      const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id!)
       if (loadingStartTime) {
         renderSpinner(ctx, x + width / 2, y + 8, 16, '#3366FF', loadingStartTime, 1.5)
         return

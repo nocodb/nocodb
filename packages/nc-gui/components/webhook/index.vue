@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type HookReqType, type HookTestReqType, type HookType, PlanLimitTypes } from 'nocodb-sdk'
+import { type HookReqType, type HookTestReqType, type HookType, PlanLimitTypes, hasInputCalls } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
@@ -184,10 +184,12 @@ const notificationTypes = ref([
 ])
 
 const automationOptions = computed(() => {
-  return activeBaseAutomations.value.map((automation) => ({
-    label: automation.title,
-    value: automation.id,
-  }))
+  return activeBaseAutomations.value
+    .filter((automation) => automation.script && !hasInputCalls(automation.script))
+    .map((automation) => ({
+      label: automation.title,
+      value: automation.id,
+    }))
 })
 
 const toggleOperation = (operation: string) => {

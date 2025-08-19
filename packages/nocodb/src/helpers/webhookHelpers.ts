@@ -8,6 +8,7 @@ import Handlebars from 'handlebars';
 import handlebarsHelpers from 'handlebars-helpers-v2';
 import {
   ColumnHelper,
+  hasInputCalls,
   HookOperationCode,
   isDateMonthFormat,
   NOCO_SERVICE_USERS,
@@ -29,7 +30,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { Column, FormView, Hook, Model, View } from '~/models';
 import type { AxiosResponse } from 'axios';
-import { Filter, HookLog, Source } from '~/models';
+import { Filter, HookLog, Script, Source } from '~/models';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
 import { isEE, isOnPrem, populateUpdatePayloadDiff } from '~/utils';
 import { parseMetaProp } from '~/utils/modelUtils';
@@ -38,6 +39,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { getCompositePkValue } from '~/helpers/dbHelpers';
 import Noco from '~/Noco';
 import { genJwt } from '~/services/users/helpers';
+import { NcError } from '~/helpers/NcError';
 
 handlebarsHelpers({ handlebars: Handlebars });
 
@@ -874,6 +876,17 @@ export async function invokeWebhook(
         {
           const datas = Array.isArray(newData) ? newData : [newData];
           const records = [];
+
+          const script = await Script.get(
+            context,
+            notification?.payload?.scriptId,
+          );
+
+          if (!script.script || hasInputCalls(script.script)) {
+            NcError._.notImplemented(
+              'Script with input calls is not supported',
+            );
+          }
 
           await model.getColumns(context);
 

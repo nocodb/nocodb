@@ -646,30 +646,20 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
     if (!html && !text) {
       throw new Error('Email content (html or text) is required');
     }
- 
-    // Validate email format(s)
-    const recipients = Array.isArray(to) ? to : [to];
-    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
- 
-    for (const email of recipients) {
-      if (!emailRegex.test(email)) {
-        throw new Error(\`Invalid email format: \${email}\`);
-      }
-    }
- 
     // Get workspace and base context
     const workspaceId = '${context.workspace_id}';
     const baseId = '${context.base_id}';
     const authToken = "${req.headers['xc-auth']}"
  
     const payload = {
-      to: recipients,
+      to: to,
       subject: subject.trim(),
-      html,
-      text
+      html: html,
+      text: text,
     };
  
-    const response = await fetch(\`${req.ncSiteUrl}/api/v2/internal/\${workspaceId}/\${baseId}?operation=sendEmail\`, {
+    const requestUrl = \`${req.ncSiteUrl}/api/v2/internal/\${workspaceId}/\${baseId}?operation=sendEmail\`
+    const response = await fetch(requestUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -677,6 +667,8 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
       },
       body: JSON.stringify(payload)
     });
+    
+    
  
     if (!response.ok) {
       throw new Error(\`Email send failed: \${response.status} \${response.statusText}\`);

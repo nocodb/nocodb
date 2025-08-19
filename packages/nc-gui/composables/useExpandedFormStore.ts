@@ -13,6 +13,7 @@ import {
   PermissionKey,
   PlanLimitTypes,
   ViewTypes,
+  isAIPromptCol,
   isReadOnlyColumn,
   isSystemColumn,
   isVirtualCol,
@@ -114,6 +115,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
+    const isHiddenColumnInNewRecord = (col: ColumnType) => {
+      return isReadOnlyColumn(col) || isAIPromptCol(col)
+    }
+
     /**
      * Injects the fields from the parent component if available.
      * Uses a ref to ensure reactivity.
@@ -139,7 +144,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                 !isSystemColumn(col) &&
                 !!col.meta?.defaultViewColVisibility &&
                 // if new record, then hide readonly fields
-                (!rowStore.isNew.value || !isReadOnlyColumn(col)),
+                (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
             )
             .sort((a, b) => {
               return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
@@ -149,7 +154,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         return (meta.value.columns ?? []).filter(
           (col) =>
             // if new record, then hide readonly fields
-            (!rowStore.isNew.value || !isReadOnlyColumn(col)) &&
+            (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)) &&
             // exclude system columns
             !isSystemColumn(col) &&
             // exclude hidden columns
@@ -160,7 +165,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       // If `props.useMetaFields` is not enabled, use fields from the parent component
       if (fieldsFromParent.value) {
         if (rowStore.isNew.value) {
-          return fieldsFromParent.value.filter((col) => !isReadOnlyColumn(col))
+          return fieldsFromParent.value.filter((col) => !isHiddenColumnInNewRecord(col))
         }
 
         return fieldsFromParent.value
@@ -177,7 +182,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           !fields.value?.includes(col) &&
           (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true) &&
           // exclude readonly fields from hidden fields if new record creation
-          (!rowStore.isNew.value || !isReadOnlyColumn(col)),
+          (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
       )
       if (useMetaFields) {
         return maintainDefaultViewOrder.value

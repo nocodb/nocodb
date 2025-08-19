@@ -159,12 +159,15 @@ export const AILongTextCellRenderer: CellRenderer = {
       column,
       setCursor,
       selected,
+      readonly,
     } = props
 
     const horizontalPadding = 12
 
+    const isReadonlyCol = !!(readonly || column.readonly)
+
     if (!value) {
-      const buttonDisabled = disabled?.isInvalid
+      const buttonDisabled = disabled?.isInvalid || isReadonlyCol
 
       const btnWidth = width - horizontalPadding * 2
 
@@ -216,32 +219,30 @@ export const AILongTextCellRenderer: CellRenderer = {
         background: 'white',
         setCursor,
       })
-      renderIconButton(ctx, {
-        buttonX: x + width - 52,
-        buttonY: y + 7,
-        buttonSize: 20,
-        borderRadius: 6,
-        iconData: {
-          size: 12,
-          xOffset: 4,
-          yOffset: 4,
-        },
-        mousePosition,
-        spriteLoader,
-        icon: 'refresh',
-        background: 'white',
-        setCursor,
-      })
+
+      if (!isReadonlyCol) {
+        renderIconButton(ctx, {
+          buttonX: x + width - 52,
+          buttonY: y + 7,
+          buttonSize: 20,
+          borderRadius: 6,
+          iconData: {
+            size: 12,
+            xOffset: 4,
+            yOffset: 4,
+          },
+          mousePosition,
+          spriteLoader,
+          icon: 'refresh',
+          background: 'white',
+          setCursor,
+        })
+      }
     }
 
     return {
       x: xOffset,
       y: yOffset,
-    }
-
-    return {
-      x,
-      y,
     }
   },
   async handleClick({ mousePosition, column, row, value, pk, actionManager, getCellPosition, makeCellEditable, path, selected }) {
@@ -259,12 +260,11 @@ export const AILongTextCellRenderer: CellRenderer = {
       }
     }
 
-    if (selected && (isBoxHovered(expandIconBox, mousePosition) || isBoxHovered(regenerateIconBox, mousePosition))) {
-      makeCellEditable(row, column)
-      return true
-    }
+    if (!value) {
+      if (column.readonly || column.columnObj?.readonly) {
+        return true
+      }
 
-    if (!value || !value?.value) {
       const { buttonWidth } = getButtonDimensions({
         width,
         hasIcon: true,
@@ -284,6 +284,16 @@ export const AILongTextCellRenderer: CellRenderer = {
         return false
       }
     }
+
+    if (
+      selected &&
+      (isBoxHovered(expandIconBox, mousePosition) ||
+        (!column.readonly && !column.columnObj?.readonly && isBoxHovered(regenerateIconBox, mousePosition)))
+    ) {
+      makeCellEditable(row, column)
+      return true
+    }
+
     return false
   },
   async handleHover({ row, column, mousePosition, getCellPosition, t, value, selected }) {
@@ -297,7 +307,10 @@ export const AILongTextCellRenderer: CellRenderer = {
     const expandIconBox = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
     const regenerateIconBox = { x: x + width - 52, y: y + 7, width: 18, height: 18 }
     tryShowTooltip({ text: t('title.expand'), rect: expandIconBox, mousePosition })
-    tryShowTooltip({ text: 'Re-generate', rect: regenerateIconBox, mousePosition })
+
+    if (!column.readonly && !column.columnObj?.readonly) {
+      tryShowTooltip({ text: 'Re-generate', rect: regenerateIconBox, mousePosition })
+    }
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable, value, pk, actionManager, path } = ctx

@@ -477,11 +477,9 @@ const rolePermissions:
 
       baseUserList: true,
 
+      // Extensions
       extensionList: true,
       extensionRead: true,
-      extensionCreate: true,
-      extensionUpdate: true,
-      extensionDelete: true,
 
       jobList: true,
       commentList: true,
@@ -578,6 +576,9 @@ const rolePermissions:
       widgetDuplicate: true,
       widgetUpdate: true,
       widgetDelete: true,
+
+      // Extensions
+      extensionUpdate: true,
     },
   },
   [ProjectRoles.CREATOR]: {

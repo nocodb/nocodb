@@ -1208,7 +1208,7 @@ const webhookV2AndV3Diff = computed(() => {
                     'rounded-2xl': hookRef.notification.type === 'Script',
                   }"
                 >
-                  <div class="flex w-full my-3">
+                  <div v-if="isEeUI" class="flex w-full my-3">
                     <a-form-item v-bind="validateInfos['notification.type']" class="w-full">
                       <NcSelect
                         v-model:value="hookRef.notification.type"
@@ -1226,7 +1226,7 @@ const webhookV2AndV3Diff = computed(() => {
                     </a-form-item>
                   </div>
 
-                  <template v-if="hookRef.notification.type === 'Script'">
+                  <template v-if="isEeUI && hookRef.notification.type === 'Script'">
                     <div class="flex w-full my-3">
                       <NcSelect
                         v-model:value="hookRef.notification.payload.scriptId"

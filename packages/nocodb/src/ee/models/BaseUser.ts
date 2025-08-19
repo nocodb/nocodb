@@ -1,11 +1,10 @@
-import { ProjectRoles } from 'nocodb-sdk';
+import { NOCO_SERVICE_USERS, ProjectRoles } from 'nocodb-sdk';
 import { BaseUser as BaseUserCE } from 'src/models';
 import { Logger } from '@nestjs/common';
 import { WorkspaceRoles } from 'nocodb-sdk-v2';
 import type { BaseType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import {
-  AUTOMATION_USER,
   CacheDelDirection,
   CacheGetType,
   CacheScope,
@@ -332,7 +331,7 @@ export default class BaseUser extends BaseUserCE {
 
     // Add automation user - it can manipulate data in any workspace
     baseUsers.push({
-      ...AUTOMATION_USER,
+      ...NOCO_SERVICE_USERS.AUTOMATION_USER,
       deleted: true,
     });
 

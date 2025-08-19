@@ -2058,26 +2058,22 @@ export function useInfiniteData(args: {
                   if (pk && `${pk}` === `${before}`) {
                     // Insert before the found row
                     const newRowIndex = rowIndex
+                    // Use descending order so that we first open the position then place the new record
+                    const rowsToShift = Array.from(dataCache.cachedRows.value.entries())
+                      .filter(([index]) => index >= newRowIndex)
+                      .sort((a, b) => b[0] - a[0])
+
+                    for (const [index, rowData] of rowsToShift) {
+                      rowData.rowMeta.rowIndex = index + 1
+                      dataCache.cachedRows.value.delete(index)
+                      dataCache.cachedRows.value.set(index + 1, rowData)
+                    }
+
                     dataCache.cachedRows.value.set(newRowIndex, {
                       row: payload,
                       oldRow: {},
                       rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
                     })
-
-                    const rows = Array.from(dataCache.cachedRows.value.entries())
-                    const rowsToShift = rows.filter(([index]) => index > rowIndex)
-                    rowsToShift.sort((a, b) => a[0] - b[0])
-
-                    for (const [index, row] of rowsToShift) {
-                      const newIndex = index + 1
-                      row.rowMeta.rowIndex = newIndex
-                      dataCache.cachedRows.value.delete(index)
-                      dataCache.cachedRows.value.set(newIndex, row)
-                    }
-
-                    if (rowsToShift.length) {
-                      dataCache.chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
-                    }
 
                     dataCache.totalRows.value++
                     dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
@@ -2149,8 +2145,6 @@ export function useInfiniteData(args: {
 
                   dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
                   dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
-
-                  callbacks?.syncVisibleData?.()
                 }
               }
               callbacks?.syncVisibleData?.()

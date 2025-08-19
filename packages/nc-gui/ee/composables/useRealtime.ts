@@ -1,4 +1,11 @@
-import { type DashboardPayload, EventType, type MetaPayload, type ScriptPayload, type WidgetPayload } from 'nocodb-sdk'
+import {
+  type DashboardPayload,
+  EventType,
+  isVirtualCol,
+  type MetaPayload,
+  type ScriptPayload,
+  type WidgetPayload,
+} from 'nocodb-sdk'
 
 export const useRealtime = createSharedComposable(() => {
   const { $ncSocket, $eventBus } = useNuxtApp()
@@ -121,8 +128,9 @@ export const useRealtime = createSharedComposable(() => {
         loadProjectTables(activeBaseId.value, true)
       }
     } else if (event.action === 'column_add' || event.action === 'column_update' || event.action === 'column_delete') {
-      setMeta(event.payload)
-      if (event.action === 'column_update') {
+      const { table, column } = event.payload
+      setMeta(table)
+      if (event.action === 'column_update' || (event.action === 'column_add' && (isVirtualCol(column) || !!column.cdf))) {
         $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
         $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
       }

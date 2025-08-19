@@ -278,7 +278,7 @@ export class DataV3Service {
   /**
    * Transform multiple records to v3 format
    */
-  private async transformRecordsToV3Format(param: {
+  public async transformRecordsToV3Format(param: {
     context: NcContext;
     records: any[];
     primaryKey: Column;

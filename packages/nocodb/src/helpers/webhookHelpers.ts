@@ -36,7 +36,6 @@ import { isEE, isOnPrem, populateUpdatePayloadDiff } from '~/utils';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { JobTypes } from '~/interface/Jobs';
-import { getCompositePkValue } from '~/helpers/dbHelpers';
 import Noco from '~/Noco';
 import { genJwt } from '~/services/users/helpers';
 import { NcError } from '~/helpers/ncError';
@@ -876,7 +875,6 @@ export async function invokeWebhook(
       case 'Script':
         {
           const datas = Array.isArray(newData) ? newData : [newData];
-          const records = [];
 
           const script = await Script.get(
             context,
@@ -889,17 +887,11 @@ export async function invokeWebhook(
             );
           }
 
-          await model.getColumns(context);
-
-          for (const record of datas) {
-            records.push(getCompositePkValue(model.primaryKeys, record));
-          }
-
           await addJob?.(JobTypes.ExecuteAction, {
             context,
             scriptId: notification?.payload?.scriptId,
             modelId: model.id,
-            recordIds: records,
+            records: datas,
             req: {
               user: NOCO_SERVICE_USERS.AUTOMATION_USER,
               headers: {

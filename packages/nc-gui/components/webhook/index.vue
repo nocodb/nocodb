@@ -1411,7 +1411,7 @@ const webhookV2AndV3Diff = computed(() => {
                 </div>
               </div>
 
-              <div v-if="isEeUI">
+              <div v-if="isEeUI && hookRef.notification.type !== 'Script'">
                 <div>
                   <div class="w-full cursor-pointer flex items-center" @click.prevent="toggleIncludeUser">
                     <NcSwitch :checked="Boolean(hookRef.notification.include_user)" class="nc-check-box-include-user">

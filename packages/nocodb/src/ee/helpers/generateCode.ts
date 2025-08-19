@@ -669,7 +669,7 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
       text
     };
  
-    const response = await fetch(\`/api/v2/internal/\${workspaceId}/\${baseId}?operation=sendEmail\`, {
+    const response = await fetch(\`${req.ncSiteUrl}/api/v2/internal/\${workspaceId}/\${baseId}?operation=sendEmail\`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -271,7 +271,7 @@ const isEaster = ref(false)
             </div>
           </div>
           <div v-else class="flex items-center content-center gap-2">
-            <NcTooltip class="mt-2 flex-1">
+            <NcTooltip :disabled="isTargetOtherWsSufficientPlan" class="mt-2 flex-1">
               <template v-if="!isTargetOtherWsSufficientPlan" #title>
                 <span>
                   {{ $t('upgrade.upgradeToDuplicateTableToOtherWs') }}
@@ -351,6 +351,11 @@ const isEaster = ref(false)
               :feature="PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS"
               :plan-title="PlanTitles.ENTERPRISE"
               :content="$t('upgrade.upgradeToDuplicateTableToOtherWs')"
+              :on-click-callback="
+                () => {
+                  dialogShow = false
+                }
+              "
             />
           </div>
         </div>
@@ -364,7 +369,7 @@ const isEaster = ref(false)
             </div>
           </div>
           <div v-else class="flex items-center content-center gap-2">
-            <NcTooltip class="mt-2 flex-1">
+            <NcTooltip :disabled="isTargetOtherBaseSufficientPlan" class="mt-2 flex-1">
               <template v-if="!isTargetOtherBaseSufficientPlan" #title>
                 <span>
                   {{ $t('upgrade.upgradeToDuplicateTableToOtherBase') }}
@@ -444,6 +449,11 @@ const isEaster = ref(false)
             <LazyPaymentUpgradeBadge
               :feature="PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE"
               :content="$t('upgrade.upgradeToDuplicateTableToOtherBase')"
+              :on-click-callback="
+                () => {
+                  dialogShow = false
+                }
+              "
             />
           </div>
         </div>

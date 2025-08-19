@@ -899,8 +899,8 @@ export async function invokeWebhook(
                       },
                     },
                   },
+                  Noco.getConfig(),
                   {
-                    ...Noco.getConfig(),
                     expiresIn: '10m',
                   },
                 ),

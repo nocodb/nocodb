@@ -7,6 +7,9 @@ import type { Response } from 'express';
 export function genJwt(
   user: User & { provider?: string; extra?: Record<string, any> },
   config: NcConfig,
+  jwtOptions: {
+    expiresIn?: string;
+  } = {},
 ) {
   return jwt.sign(
     {
@@ -22,7 +25,7 @@ export function genJwt(
     },
     config.auth.jwt.secret,
     // todo: better typing
-    { expiresIn: '10h', ...(config.auth.jwt.options as any) },
+    { expiresIn: '10h', ...(config.auth.jwt.options as any), ...jwtOptions },
   );
 }
 

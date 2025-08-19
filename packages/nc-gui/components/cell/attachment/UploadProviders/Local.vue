@@ -42,7 +42,7 @@ const thumbnails = computedAsync(async () => {
     }),
   )
   return map
-})
+}, new Map())
 
 const onRemoveFileClick = (file: File) => {
   tempFiles.value = tempFiles.value.filter((f) => f !== file)

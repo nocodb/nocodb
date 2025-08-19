@@ -232,12 +232,19 @@ export function useGridCellHandler(params: {
     }
     const cellType = cellTypesRegistry.get(column.uidt!)
 
+    const cellRenderStore = getCellRenderStore(`${column.id}-${pk}`)
+
     if (actionManager?.isCellUpdating(pk, column.id!) && !isAIPromptCol(column) && !isButton(column)) {
-      const cellUpdateStartTime = actionManager?.getCellUpdateStartTime(pk, column.id!)
-      if (cellUpdateStartTime) {
-        renderSpinner(ctx, x + width / 2, y + 8, 16, '#FF6B35', cellUpdateStartTime, 1.5)
-        return
-      }
+      return renderSingleLineText(ctx, {
+        x: x + padding,
+        y,
+        text: 'Updating ...',
+        fontFamily: `500 13px Inter`,
+        fillStyle: '#374151',
+        height,
+        py: padding,
+        cellRenderStore,
+      })
     }
 
     if (actionManager?.isLoading(pk, column.id!) && !isAIPromptCol(column) && !isButton(column)) {
@@ -247,8 +254,6 @@ export function useGridCellHandler(params: {
         return
       }
     }
-
-    const cellRenderStore = getCellRenderStore(`${column.id}-${pk}`)
 
     // TODO: Reset all the styles here
     ctx.textAlign = 'left'

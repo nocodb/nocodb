@@ -102,13 +102,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         </NcButton>
 
         <NcButton
-          v-if="
-            !isSharedBase &&
-            !activeAutomationId &&
-            !activeDashboardId &&
-            openedViewsTab === 'view' &&
-            !isMobileMode
-          "
+          v-if="!isSharedBase && !activeAutomationId && !activeDashboardId && openedViewsTab === 'view' && !isMobileMode"
           v-e="['c:action-toggle']"
           type="secondary"
           size="small"

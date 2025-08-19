@@ -52,6 +52,7 @@ export enum JobTypes {
   CloudDbMigrate = 'cloud-db-migrate',
   AttachmentUrlUpload = 'attachment-url-upload',
   ExecuteScript = 'execute-script',
+  ExecuteAction = 'execute-action',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -238,4 +239,11 @@ export interface ExecuteScriptJobData extends JobData {
   rowId?: string;
   tableId?: string;
   viewId?: string;
+}
+
+export interface ExecuteActionJobData extends JobData {
+  req: NcRequest;
+  buttonId: string;
+  tableId: string;
+  viewId: string;
 }

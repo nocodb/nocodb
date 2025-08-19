@@ -9,7 +9,8 @@ import { NcError } from '~/helpers/ncError';
 import { getBaseSchema } from '~/helpers/scriptHelper';
 import { createSandboxCode } from '~/helpers/generateCode';
 import { parseSandboxOutputToWorkerMessage } from '~/helpers/sandboxParser';
-import { dataWrapper } from '~/helpers/dbHelpers';
+import { dataWrapper, getCompositePkValue } from '~/helpers/dbHelpers';
+import { DataV3Service } from '~/services/v3/data-v3.service';
 
 const BATCH_SIZE = 1000;
 const CONCURRENCY_LIMIT = 5;
@@ -21,21 +22,33 @@ export class ActionExecutionProcessor {
   constructor(
     private readonly jobsLogService: JobsLogService,
     private readonly datasService: DatasService,
+    private readonly datasV3Service: DataV3Service,
   ) {}
 
   async job(job: Job<ExecuteActionJobData>) {
-    const { context, req, scriptId, recordIds, modelId, viewId } = job.data;
+    const { context, req, scriptId, records, modelId, viewId } = job.data;
 
     const sendLog = (log: string) =>
       this.jobsLogService.sendLog(job, { message: log });
     const sendMessage = (message: any) =>
       this.jobsLogService.sendLog(job, { message: JSON.stringify(message) });
 
+    const model = await Model.get(context, modelId);
+
+    await model.getColumns(context);
+
+    const recordsV3 = await this.datasV3Service.transformRecordsToV3Format({
+      context,
+      records,
+      primaryKey: model.primaryKey,
+      primaryKeys: model.primaryKeys,
+    });
+
     try {
       await this.triggerScript(
         context,
         req,
-        { scriptId, recordIds, modelId, viewId },
+        { scriptId, records: recordsV3, model, viewId },
         { sendLog, sendMessage },
       );
     } catch (error) {
@@ -50,8 +63,8 @@ export class ActionExecutionProcessor {
     req: any,
     options: {
       scriptId: string;
-      recordIds?: string[];
-      modelId?: string;
+      records?: any[];
+      model?: Model;
       viewId?: string;
     },
     callbacks: {
@@ -69,12 +82,8 @@ export class ActionExecutionProcessor {
     let model: Model | null = null;
     let view: View | null = null;
 
-    if (options.modelId) {
-      model = await Model.get(context, options.modelId);
-      if (!model) {
-        NcError.notFound('Model not found');
-      }
-      await model.getColumns(context);
+    if (options.model) {
+      model = options.model;
     }
 
     if (options.viewId) {
@@ -85,21 +94,21 @@ export class ActionExecutionProcessor {
     }
 
     // Validate dependencies
-    if (options.recordIds?.length && !options.modelId) {
-      throw new Error('modelId is required when recordIds are provided');
+    if (options.records?.length && !options.model) {
+      throw new Error('model is required when records are provided');
     }
 
     const sandbox = await this.createSandbox();
 
     try {
-      if (options.recordIds?.length) {
+      if (options.records?.length) {
         await this.executeForRecords({
           context,
           req,
           script,
           model: model,
           view,
-          recordIds: options.recordIds,
+          records: options.records,
           sandbox,
           sendMessage: callbacks.sendMessage,
         });
@@ -167,38 +176,19 @@ export class ActionExecutionProcessor {
     script: Script;
     model: Model;
     view: View | null;
-    recordIds: string[];
+    records: Record<string, any>[];
     sandbox: Sandbox;
     sendMessage: (message: any) => void;
   }) {
-    const {
-      context,
-      req,
-      script,
-      model,
-      view,
-      recordIds,
-      sandbox,
-      sendMessage,
-    } = params;
+    const { context, req, script, model, view, records, sandbox, sendMessage } =
+      params;
 
-    for (let i = 0; i < recordIds.length; i++) {
-      const recordId = recordIds[i];
+    for (let i = 0; i < records.length; i++) {
+      const record = records[i];
+      const recordId = getCompositePkValue(model.primaryKeys, record);
       const executionId = `${recordId}-${script.id}-${Date.now()}-${i}`;
 
       try {
-        const record = await this.datasService.dataRead(context, {
-          baseName: model.base_id,
-          tableName: model.id,
-          rowId: recordId,
-          viewName: view?.id,
-          query: {},
-        });
-
-        if (!record) {
-          continue;
-        }
-
         const displayValue = this.getDisplayValue(record, model);
 
         sendMessage({
@@ -226,7 +216,8 @@ export class ActionExecutionProcessor {
           sendMessage,
         });
       } catch (error) {
-        this.logger.error(`Record ${recordId} failed:`, error);
+        this.logger.error(`Record ${recordId} failed`);
+        this.logger.error(error);
         sendMessage({
           type: 'ACTION_EXECUTION_COMPLETE',
           executionId,
@@ -369,6 +360,7 @@ export class ActionExecutionProcessor {
       model,
       view,
       recordId,
+      record,
       executionId,
       sandbox,
       sendMessage,
@@ -381,7 +373,7 @@ export class ActionExecutionProcessor {
         baseSchema,
         req.user,
         req,
-        recordId,
+        record,
         model?.id || null,
         view?.id || null,
         executionId,

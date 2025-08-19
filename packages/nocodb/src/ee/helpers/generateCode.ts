@@ -1984,7 +1984,7 @@ function generateApiProxy(req: NcRequest): string {
 
 function generateCustomCode(
   baseSchema: any,
-  rowId?: string,
+  record?: any,
   tableId?: string,
   viewId?: string,
 ) {
@@ -1997,10 +1997,8 @@ function generateCustomCode(
   }
 
 
-  if (${rowId ? 'true' : 'false'}) {
-    const ____row = await api.dbDataTableRowRead('${
-      baseSchema!.id
-    }', '${tableId}', ${rowId})
+  if (${record ? 'true' : 'false'}) {
+    const ____row = ${record ? JSON.stringify(record) : 'null'}
     const ____table = base.getTable('${tableId}')
     cursor.row = new NocoDBRecord(____row, ____table)
   }
@@ -2012,7 +2010,7 @@ export function createSandboxCode(
   baseSchema: any,
   user: any,
   req: NcRequest,
-  rowId?: string,
+  record?: any,
   tableId?: string,
   viewId?: string,
   executionId?: string,
@@ -2027,7 +2025,7 @@ export function createSandboxCode(
     ${generalHelpers()}
     ${generateBaseModels()}
     ${generateBaseObject(baseSchema)}
-    ${generateCustomCode(baseSchema, rowId, tableId, viewId)}
+    ${generateCustomCode(baseSchema, record, tableId, viewId)}
     ${generateSessionApi(user)}
     ${generateMessageHandler(userCode)}
     })()

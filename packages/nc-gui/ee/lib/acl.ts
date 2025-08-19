@@ -175,6 +175,10 @@ const rolePermissions = {
       dashboardDelete: true,
       dashboardRename: true,
       dashboardDuplicate: true,
+
+      // Extensions
+      extensionCreate: true,
+      extensionDelete: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -195,6 +199,9 @@ const rolePermissions = {
 
       // View operations (toolbar, aggregation footer, column reorder, column resize, etc.) will be restricted to below editor roles
       viewOperations: true,
+
+      // Extensions
+      extensionUpdate: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

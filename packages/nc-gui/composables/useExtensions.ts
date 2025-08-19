@@ -71,6 +71,15 @@ export const useExtensions = createSharedComposable(() => {
 
   const eventBus = useEventBus<ExtensionsEvents>(Symbol('useExtensions'))
 
+  const extensionAccess = computed(() => {
+    return {
+      list: isUIAllowed('extensionList'),
+      create: isUIAllowed('extensionCreate'),
+      delete: isUIAllowed('extensionDelete'),
+      update: isUIAllowed('extensionUpdate'),
+    }
+  })
+
   const activeBaseExtensions = computed(() => {
     if (!base.value || !base.value.id) {
       return null
@@ -174,7 +183,7 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   const updateExtension = async (extensionId: string, extension: any) => {
-    if (!extensionList.value.length) {
+    if (!extensionList.value.length || !extensionAccess.value.update) {
       return
     }
 
@@ -213,7 +222,7 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   const deleteExtension = async (extensionId: string) => {
-    if (!base.value || !base.value.id || !baseExtensions.value[base.value.id]) {
+    if (!base.value || !base.value.id || !baseExtensions.value[base.value.id] || !extensionAccess.value.delete) {
       return
     }
 
@@ -239,7 +248,7 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   const duplicateExtension = async (extensionId: string) => {
-    if (!base.value || !base.value.id || !baseExtensions.value[base.value.id]) {
+    if (!base.value || !base.value.id || !baseExtensions.value[base.value.id] || !extensionAccess.value.create) {
       return
     }
 
@@ -297,7 +306,7 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   const loadExtensionsForBase = async (baseId: string) => {
-    if (!baseId || !isUIAllowed('extensionList')) {
+    if (!baseId || !extensionAccess.value.list) {
       return
     }
 
@@ -453,7 +462,7 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   watch(
-    [() => base.value?.id, isPluginsEnabled, () => isUIAllowed('extensionList'), () => pluginsLoaded.value],
+    [() => base.value?.id, isPluginsEnabled, () => extensionAccess.value.list, () => pluginsLoaded.value],
     ([baseId, newPluginsEnabled, isAllowed, isPluginsLoaded]) => {
       if (!newPluginsEnabled || !baseId || !isAllowed || !isPluginsLoaded) {
         return
@@ -507,5 +516,6 @@ export const useExtensions = createSharedComposable(() => {
     getExtensionMinAccessRole,
     userHasAccessToExtension,
     userCurrentBaseRole,
+    extensionAccess,
   }
 })

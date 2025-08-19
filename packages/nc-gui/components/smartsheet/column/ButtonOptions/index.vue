@@ -75,14 +75,6 @@ const isAiButtonEnabled = computed(() => {
   return isAiBetaFeaturesEnabled.value
 })
 
-const isScriptButtonEnabled = computed(() => {
-  if (isEdit.value) {
-    return true
-  }
-
-  return isAiBetaFeaturesEnabled.value
-})
-
 const buttonTypes = computed(() => [
   {
     label: t('labels.openUrl'),
@@ -101,7 +93,7 @@ const buttonTypes = computed(() => [
         },
       ]
     : []),
-  ...(isEeUI && isScriptButtonEnabled.value
+  ...(isEeUI
     ? [
         {
           label: t('labels.runScript'),

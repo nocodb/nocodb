@@ -132,11 +132,24 @@ const isDisabledAiButton = computed(() => {
       <template #title>
         {{ aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure') }}
       </template>
-      <button class="nc-cell-ai-button nc-cell-button h-6" size="small" :disabled="isDisabledAiButton" @click.stop="generate">
+      <button
+        class="nc-cell-ai-button nc-cell-button"
+        :class="{
+          'is-expanded-form': isExpandedForm,
+        }"
+        size="small"
+        :disabled="isDisabledAiButton"
+        @click.stop="generate"
+      >
         <div class="flex items-center gap-1">
           <GeneralLoader v-if="isLoading" size="regular" />
           <GeneralIcon v-else icon="ncAutoAwesome" class="h-4 w-4" />
-          <span class="text-small leading-[18px] truncate font-medium">Generate</span>
+          <span
+            class="leading-[18px] truncate"
+            :class="{ 'text-sm font-semibold': isExpandedForm, 'text-small font-medium': !isExpandedForm }"
+          >
+            Generate
+          </span>
         </div>
       </button>
     </NcTooltip>
@@ -157,12 +170,20 @@ const isDisabledAiButton = computed(() => {
 
 <style scoped lang="scss">
 .nc-cell-button {
-  @apply rounded-md px-2 flex items-center gap-2 transition-all justify-center bg-nc-bg-purple-dark hover:bg-nc-purple-200 text-nc-content-gray-subtle;
+  @apply px-2 flex items-center gap-2 transition-all justify-center bg-nc-bg-purple-dark hover:bg-nc-purple-200 text-nc-content-gray-subtle;
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 
   .nc-loader {
     @apply !text-nc-content-purple-dark;
+  }
+
+  &.is-expanded-form {
+    @apply h-8 rounded-lg my-1;
+  }
+
+  &:not(.is-expanded-form) {
+    @apply h-6 rounded-md;
   }
 
   &:focus-within {

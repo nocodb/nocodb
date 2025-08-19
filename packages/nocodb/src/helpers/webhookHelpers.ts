@@ -10,6 +10,7 @@ import {
   ColumnHelper,
   HookOperationCode,
   isDateMonthFormat,
+  NOCO_SERVICE_USERS,
   UITypes,
 } from 'nocodb-sdk';
 import { useAgent } from 'request-filtering-agent';
@@ -37,7 +38,6 @@ import { JobTypes } from '~/interface/Jobs';
 import { getCompositePkValue } from '~/helpers/dbHelpers';
 import Noco from '~/Noco';
 import { genJwt } from '~/services/users/helpers';
-import { AUTOMATION_USER } from '~/utils/globals';
 
 handlebarsHelpers({ handlebars: Handlebars });
 
@@ -887,12 +887,23 @@ export async function invokeWebhook(
             modelId: model.id,
             recordIds: records,
             req: {
-              user: AUTOMATION_USER,
+              user: NOCO_SERVICE_USERS.AUTOMATION_USER,
               headers: {
-                'xc-auth': genJwt(AUTOMATION_USER, {
-                  ...Noco.getConfig(),
-                  expiresIn: '10m',
-                }),
+                'xc-auth': genJwt(
+                  {
+                    ...NOCO_SERVICE_USERS.AUTOMATION_USER,
+                    extra: {
+                      context: {
+                        ...context,
+                        script_id: notification?.payload?.scriptId,
+                      },
+                    },
+                  },
+                  {
+                    ...Noco.getConfig(),
+                    expiresIn: '10m',
+                  },
+                ),
               },
               ncSiteUrl,
             },

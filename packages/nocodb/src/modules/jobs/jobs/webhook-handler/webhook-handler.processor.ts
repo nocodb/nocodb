@@ -1,11 +1,16 @@
-import { Logger } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import type { Job } from 'bull';
 import { invokeWebhook } from '~/helpers/webhookHelpers';
 import { Hook, Model, View } from '~/models';
 import { type HandleWebhookJobData } from '~/interface/Jobs';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 
 export class WebhookHandlerProcessor {
   protected logger = new Logger(WebhookHandlerProcessor.name);
+
+  constructor(
+    @Inject('JobsService') private readonly jobsService: IJobsService,
+  ) {}
 
   async job(job: Job<HandleWebhookJobData>) {
     const {
@@ -17,6 +22,7 @@ export class WebhookHandlerProcessor {
       newData,
       user,
       hookName,
+      ncSiteUrl,
     } = job.data;
 
     const hook = await Hook.get(context, hookId);
@@ -41,6 +47,8 @@ export class WebhookHandlerProcessor {
       newData,
       user,
       hookName,
+      ncSiteUrl,
+      addJob: this.jobsService.add.bind(this.jobsService),
     });
   }
 }

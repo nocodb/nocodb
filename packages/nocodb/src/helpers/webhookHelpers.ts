@@ -33,6 +33,11 @@ import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
 import { isEE, isOnPrem, populateUpdatePayloadDiff } from '~/utils';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
+import { JobTypes } from '~/interface/Jobs';
+import { getCompositePkValue } from '~/helpers/dbHelpers';
+import Noco from '~/Noco';
+import { genJwt } from '~/services/users/helpers';
+import { AUTOMATION_USER } from '~/utils/globals';
 
 handlebarsHelpers({ handlebars: Handlebars });
 
@@ -682,6 +687,8 @@ export async function invokeWebhook(
     testFilters?;
     throwErrorOnFailure?: boolean;
     testHook?: boolean;
+    ncSiteUrl?: string;
+    addJob?: (name: string, data: any) => Promise<void>;
   },
 ) {
   const {
@@ -694,6 +701,8 @@ export async function invokeWebhook(
     testFilters = null,
     throwErrorOnFailure = false,
     testHook = false,
+    ncSiteUrl,
+    addJob,
   } = param;
 
   let { newData } = param;
@@ -722,7 +731,10 @@ export async function invokeWebhook(
 
     const isBulkOperation = Array.isArray(newData);
 
-    if (isBulkOperation && notification?.type !== 'URL') {
+    if (
+      isBulkOperation &&
+      (notification?.type !== 'URL' || notification?.type !== 'Script')
+    ) {
       // only URL hook is supported for bulk operations
       return;
     }
@@ -856,6 +868,35 @@ export async function invokeWebhook(
               conditions: JSON.stringify(filters),
             };
           }
+        }
+        break;
+      case 'Script':
+        {
+          const datas = Array.isArray(newData) ? newData : [newData];
+          const records = [];
+
+          await model.getColumns(context);
+
+          for (const record of datas) {
+            records.push(getCompositePkValue(model.primaryKeys, record));
+          }
+
+          await addJob?.(JobTypes.ExecuteAction, {
+            context,
+            scriptId: notification?.payload?.scriptId,
+            modelId: model.id,
+            recordIds: records,
+            req: {
+              user: AUTOMATION_USER,
+              headers: {
+                'xc-auth': genJwt(AUTOMATION_USER, {
+                  ...Noco.getConfig(),
+                  expiresIn: '10m',
+                }),
+              },
+              ncSiteUrl,
+            },
+          });
         }
         break;
       default:

@@ -35,8 +35,12 @@ export class HooksService {
           : notificationJsonOrObject;
     } catch {}
 
-    if (notification.type !== 'URL' && process.env.NC_CLOUD === 'true') {
-      NcError.badRequest('Only URL notification is supported');
+    if (
+      notification.type !== 'URL' &&
+      notification.type !== 'Script' &&
+      process.env.NC_CLOUD === 'true'
+    ) {
+      NcError.badRequest('Only URL and Script notifications are supported');
     }
   }
 
@@ -234,6 +238,7 @@ export class HooksService {
         user: param.req.user,
         context,
         hookName: 'manual.trigger',
+        ncSiteUrl: param.req.ncSiteUrl,
       });
     } catch (e) {
       throw e;
@@ -281,6 +286,8 @@ export class HooksService {
         throwErrorOnFailure: true,
         testHook: true,
         hookName: hook.event + '.' + hook.operation[0],
+        ncSiteUrl: param.req.ncSiteUrl,
+        addJob: this.jobsService.add.bind(this.jobsService),
       });
     } catch (e) {
       throw e;

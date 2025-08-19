@@ -183,6 +183,7 @@ export interface HandleWebhookJobData extends JobData {
   modelId: string;
   viewId: string;
   hookName: string;
+  ncSiteUrl: string;
   prevData;
   newData;
 }

@@ -10,19 +10,29 @@ export class DuplicateModelUtils extends DuplicateModelUtilsCE {
   static get _() {
     return new DuplicateModelUtils();
   }
-  override getTargetContext(
+  override async getTargetContext(
     context: NcContext,
     options?: DuplicateModelJobData['options'],
   ) {
     if (options.targetBaseId && options.targetBaseId != context.base_id) {
-      if (!getFeature(PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE)) {
+      if (
+        !(await getFeature(
+          PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE,
+          context.workspace_id,
+        ))
+      ) {
         NcError.get(context).featureNotSupported({
           feature: PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE,
           isOnPrem,
         });
       }
       if (options.targetWorkspaceId !== context.workspace_id) {
-        if (!getFeature(PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS)) {
+        if (
+          !(await getFeature(
+            PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS,
+            context.workspace_id,
+          ))
+        ) {
           NcError.get(context).featureNotSupported({
             feature: PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS,
             isOnPrem,

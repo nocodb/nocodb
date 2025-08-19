@@ -138,11 +138,11 @@ const revertLocalOnlyChanges = (col: string) => {
       </NcTooltip>
       <div
         v-if="col.title && localOnlyChanges[col.title]"
-        class="flex h-full items-center justify-center cursor-pointer relative"
+        class="flex items-center justify-center cursor-pointer relative"
         @click="revertLocalOnlyChanges(col.title)"
       >
         <GeneralIcon
-          class="absolute right-0 top-0 text-nc-content-gray-muted hover:text-nc-content-gray-subtle my-auto"
+          class="absolute right-1 top-2 text-nc-content-gray-muted hover:text-nc-content-gray-subtle my-auto"
           icon="reload"
         />
       </div>

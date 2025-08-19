@@ -1449,7 +1449,7 @@ const webhookV2AndV3Diff = computed(() => {
                 </div>
               </a-form-item>
 
-              <div>
+              <div v-if="hookRef.notification.type !== 'Script'">
                 <NcDivider />
                 <div class="flex items-center justify-between -ml-1.5 !mt-[32px]">
                   <NcButton type="text" class="mb-3" size="small" @click="toggleSamplePayload()">

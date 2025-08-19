@@ -231,12 +231,14 @@ export default class BaseUser extends BaseUserCE {
       strict_in_record = false,
       include_ws_deleted = true,
       user_ids,
+      include_internal_user = false,
       skipOverridingWorkspaceRoles = false,
     }: {
       base_id: string;
       mode?: 'full' | 'viewer';
       strict_in_record?: boolean;
       include_ws_deleted?: boolean;
+      include_internal_user?: boolean;
       user_ids?: string[];
       /**
        * If true, will not override workspace roles with default role
@@ -329,11 +331,13 @@ export default class BaseUser extends BaseUserCE {
       }
     }
 
-    // Add automation user - it can manipulate data in any workspace
-    baseUsers.push({
-      ...NOCO_SERVICE_USERS.AUTOMATION_USER,
-      deleted: true,
-    });
+    if (include_internal_user) {
+      // Add automation user - it can manipulate data in any workspace
+      baseUsers.push({
+        ...NOCO_SERVICE_USERS.AUTOMATION_USER,
+        deleted: true,
+      });
+    }
 
     // if default_role is present, override workspace roles with the default roles
     if (base.default_role && !skipOverridingWorkspaceRoles) {

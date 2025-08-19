@@ -250,6 +250,7 @@ const parseConditionV2 = async (
 
       const baseUsers = await BaseUser.getUsersList(context, {
         base_id: column.base_id,
+        include_internal_user: true,
       });
 
       return {

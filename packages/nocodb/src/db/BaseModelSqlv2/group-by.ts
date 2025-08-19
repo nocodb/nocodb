@@ -301,6 +301,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       ) {
         const baseUsers = await BaseUser.getUsersList(baseModel.context, {
           base_id: column.base_id,
+          include_internal_user: true,
         });
 
         let finalStatement = '';
@@ -1252,6 +1253,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             );
             const baseUsers = await BaseUser.getUsersList(baseModel.context, {
               base_id: column.base_id,
+              include_internal_user: true,
             });
 
             // create nested replace statement for each user

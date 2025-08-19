@@ -195,7 +195,10 @@ const generate = async () => {
   )
 
   if (res?.length) {
-    previewOutputRow.value.row = res[0]
+    previewOutputRow.value = {
+      ...previewOutputRow.value,
+      row: res[0],
+    }
 
     isAlreadyGenerated.value = true
   }
@@ -223,6 +226,7 @@ const expansionOutputPanel = ref<ExpansionPanelKeys[]>([ExpansionPanelKeys.outpu
 // provide the following to override the default behavior and enable input fields like in form
 provide(ActiveCellInj, ref(true))
 provide(IsFormInj, ref(true))
+provide(IsCanvasInjectionInj, false)
 
 watch(isOpenConfigModal, (newValue) => {
   if (newValue) {
@@ -813,7 +817,7 @@ onBeforeUnmount(() => {
                             <template v-for="field in outputFieldOptions">
                               <a-form-item
                                 v-if="field.title && outputColumnIds.includes(field.id)"
-                                :key="field.id"
+                                :key="`${field.id}-${generatingPreview}`"
                                 :name="field.title"
                                 class="!my-0 nc-input-required-error"
                               >

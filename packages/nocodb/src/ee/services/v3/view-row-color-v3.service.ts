@@ -3,7 +3,7 @@ import {
   type NcContext,
   type NcRequest,
   PlanFeatureTypes,
-  type ViewRowColorCreateV3Type,
+  type ViewRowColour,
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import { validatePayload } from '~/helpers';
@@ -24,7 +24,7 @@ export class ViewRowColorV3Service {
     context: NcContext,
     params: {
       viewId: string;
-      body?: ViewRowColorCreateV3Type | null;
+      body?: ViewRowColour | null;
       req: NcRequest;
     },
     ncMeta?: MetaService,
@@ -85,7 +85,7 @@ export class ViewRowColorV3Service {
     context: NcContext,
     params: {
       viewId: string;
-      body: ViewRowColorCreateV3Type | null;
+      body: ViewRowColour | null;
       req: NcRequest;
     },
     ncMeta: MetaService = Noco.ncMeta,

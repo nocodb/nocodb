@@ -37,12 +37,16 @@ export class ActionExecutionProcessor {
 
     await model.getColumns(context);
 
-    const recordsV3 = await this.datasV3Service.transformRecordsToV3Format({
-      context,
-      records,
-      primaryKey: model.primaryKey,
-      primaryKeys: model.primaryKeys,
-    });
+    let recordsV3;
+
+    if (records?.length) {
+      recordsV3 = await this.datasV3Service.transformRecordsToV3Format({
+        context,
+        records,
+        primaryKey: model.primaryKey,
+        primaryKeys: model.primaryKeys,
+      });
+    }
 
     try {
       await this.triggerScript(

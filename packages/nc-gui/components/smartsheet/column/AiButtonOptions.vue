@@ -620,7 +620,7 @@ onBeforeUnmount(() => {
                                     :item-height="60"
                                     class="!w-auto min-w-[550px] max-w-[550px]"
                                     container-class-name="!px-0 !pb-0"
-                                    item-class-name="!rounded-none !p-0 !bg-none !hover:bg-none"
+                                    item-class-name="!rounded-none !p-0 group !my-0"
                                     @update:value="handleResetOutput"
                                   >
                                     <template #listItem="{ option, isSelected }">

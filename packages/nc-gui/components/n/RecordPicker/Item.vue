@@ -51,7 +51,7 @@ useProvideSmartsheetRowStore(row)
 </script>
 
 <template>
-  <div class="nc-list-item-wrapper group px-[1px] hover:bg-nc-bg-gray-extralight border-y-1 border-gray-200 border-t-transparent">
+  <div class="nc-list-item-wrapper px-[1px]">
     <a-card
       tabindex="0"
       class="nc-list-item !outline-none transition-all relative group-hover:bg-nc-bg-gray-extralight cursor-pointer"

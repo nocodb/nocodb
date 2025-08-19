@@ -455,12 +455,17 @@ function onNotificationTypeChange(reset = false) {
     mattermostChannels.value = getChannelsArray(apps?.value?.Mattermost?.parsedInput)
   }
 
+  if (hookRef.notification.type === 'Script') {
+    hookRef.notification.payload.scriptId = undefined
+  }
+
   if (hookRef.notification.type === 'URL') {
     const body = hookRef.notification.payload.body
     hookRef.notification.payload.body = body ? (body === '{{ json data }}' ? '{{ json event }}' : body) : '{{ json event }}'
     hookRef.notification.payload.parameters = hookRef.notification.payload.parameters || [{}]
     hookRef.notification.payload.headers = hookRef.notification.payload.headers || [{}]
     hookRef.notification.payload.method = hookRef.notification.payload.method || 'POST'
+    hookRef.notification.payload.path = hookRef.notification.payload.path || ''
     hookRef.notification.payload.auth = hookRef.notification.payload.auth ?? ''
   }
 }
@@ -922,11 +927,19 @@ const webhookV2AndV3Diff = computed(() => {
 
         <div class="flex justify-end items-center gap-3 flex-1">
           <template v-if="activeTab === HookTab.Configuration">
-            <NcTooltip v-if="!showUpgradeModal" :disabled="!testConnectionError">
-              <template #title>
+            <NcTooltip v-if="!showUpgradeModal" :disabled="!testConnectionError && hookRef.notification.type !== 'Script'">
+              <template v-if="hookRef.notification.type === 'Script'" #title> Test webhook is disabled for scripts </template>
+              <template v-else #title>
                 {{ testConnectionError }}
               </template>
-              <NcButton :loading="isTestLoading" type="secondary" size="small" icon-position="right" @click="testWebhook">
+              <NcButton
+                :loading="isTestLoading"
+                type="secondary"
+                size="small"
+                icon-position="right"
+                :disabled="hookRef.notification.type === 'Script'"
+                @click="testWebhook"
+              >
                 <template #icon>
                   <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4 flex-none" />
                   <GeneralIcon
@@ -1229,16 +1242,15 @@ const webhookV2AndV3Diff = computed(() => {
                   </div>
 
                   <template v-if="isEeUI && hookRef.notification.type === 'Script'">
-                    <div class="flex w-full my-3">
+                    <a-form-item class="flex w-full my-3" v-bind="validateInfos['notification.payload.scriptId']">
                       <NcSelect
                         v-model:value="hookRef.notification.payload.scriptId"
-                        v-bind="validateInfos['notification.payload.scriptId']"
                         :options="automationOptions"
                         class="w-full nc-select-shadow nc-select-hook-scrip-type"
                         data-testid="nc-dropdown-hook-notification-type"
                         placeholder="Select a script"
                       ></NcSelect>
-                    </div>
+                    </a-form-item>
                   </template>
 
                   <template v-if="hookRef.notification.type === 'URL'">

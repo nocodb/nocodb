@@ -893,7 +893,7 @@ class PGClient extends KnexClient {
         column.clen = response.rows[i].clen;
         column.dp = response.rows[i].dp;
         column.cop = response.rows[i].cop;
-        column.unique = response.rows[i].is_unique;
+        column.unique = !!response.rows[i].is_unique;
 
         // todo : there are lot of types in pg - handle them
         //column.dtx = this.getKnexDataType(column.dt);

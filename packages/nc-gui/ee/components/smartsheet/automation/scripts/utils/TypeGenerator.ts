@@ -598,8 +598,57 @@ declare function step(config: string | ScriptStepConfig): string;
  */
 declare function clear(): void;
 
+interface EmailOptions {
+ /** Recipient email address(es) */
+ to: string | string[];
+ /** Email subject line */
+ subject: string;
+ /** HTML content of the email */
+ html?: string;
+ /** Plain text content of the email */
+ text?: string;
+ /** CC recipient email address(es) */
+ cc?: string | string[];
+ /** BCC recipient email address(es) */
+ bcc?: string | string[];
+}
+
+interface EmailResult {
+ /** Unique identifier for the sent email */
+ id: string;
+ /** Whether the email was successfully sent */
+ success: boolean;
+}
+
+/**
+* Send an email from the script.
+* 
+* @param options - Email configuration options
+* @returns Promise that resolves to email send result
+* 
+* @example
+* \`\`\`javascript
+* // Send HTML email
+* await script.email({
+*   to: 'user@example.com',
+*   subject: 'Hello World',
+*   html: '<h1>Welcome!</h1><p>Thanks for signing up.</p>'
+* });
+* 
+* // Send to multiple recipients with CC
+* await script.email({
+*   to: ['user1@example.com', 'user2@example.com'],
+*   cc: 'manager@example.com',
+*   subject: 'Team Update',
+*   text: 'Here is the latest team update...'
+* });
+* \`\`\`
+*/
+declare function email(options: EmailOptions): Promise<EmailResult>;
+
 /**
  * Script Steps API for creating visual steps with icons and colors.
+ * Email API for sending emails from scripts.
  * 
  * @example
  * // Simple step
@@ -614,12 +663,20 @@ declare function clear(): void;
  * 
  * // Clear all steps
  * script.clear();
+ *
+ * // Send email
+ * await script.email({
+ *   to: 'user@example.com',
+ *   subject: 'Hello World',
+ *   text: '<strong>It works!</strong>'
+ * });
  */
 declare const script: {
   step: typeof step;
   clear: typeof clear;
   colors: ScriptColors;
   icons: ScriptIcons;
+  email: typeof email;
 };
 
 

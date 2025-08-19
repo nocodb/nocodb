@@ -94,6 +94,7 @@ export class InternalController extends InternalControllerCE {
       widgetDataGet: 'base',
       dashboardShare: 'base',
       triggerAction: 'base',
+      sendEmail: 'base',
     };
   }
 
@@ -379,6 +380,8 @@ export class InternalController extends InternalControllerCE {
         );
       case 'triggerAction':
         return await this.actionsService.triggerAction(context, payload, req);
+      case 'sendEmail':
+        return await this.emailsService.sendEmail(context, payload, req);
       default:
         return await super.internalAPIPost(
           context,

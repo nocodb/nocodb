@@ -155,7 +155,7 @@ function generateV3ToV2Converter() {
   `;
 }
 
-function generateStepAPI() {
+function generateStepAPI(req: NcRequest) {
   return `
   let __nc_currentStepId = null;
   
@@ -632,7 +632,68 @@ function generateStepAPI() {
     }
   };
   
-  const script = { step, clear, colors, icons };
+  const _____nc_mail = async (params) => {
+    const { to, subject, html, text } = params;
+ 
+    if (!to) {
+      throw new Error('Email recipient (to) is required');
+    }
+ 
+    if (!subject || subject.trim() === '') {
+      throw new Error('Email subject is required');
+    }
+ 
+    if (!html && !text) {
+      throw new Error('Email content (html or text) is required');
+    }
+ 
+    // Validate email format(s)
+    const recipients = Array.isArray(to) ? to : [to];
+    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+ 
+    for (const email of recipients) {
+      if (!emailRegex.test(email)) {
+        throw new Error(\`Invalid email format: \${email}\`);
+      }
+    }
+ 
+    // Get workspace and base context
+    const workspaceId = '${req.context.workspace_id}';
+    const baseId = '${req.context.base_id}';
+    const authToken = "${req.headers['xc-auth']}"
+ 
+    const payload = {
+      to: recipients,
+      subject: subject.trim(),
+      html,
+      text
+    };
+ 
+    const response = await fetch(\`/api/v2/internal/\${workspaceId}/\${baseId}?operation=sendEmail\`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'xc-auth': authToken
+      },
+      body: JSON.stringify(payload)
+    });
+ 
+    if (!response.ok) {
+      throw new Error(\`Email send failed: \${response.status} \${response.statusText}\`);
+    }
+
+    const success = await response.json(); // API returns true/false
+    
+    if (!success) {
+      throw new Error('Email send failed - check server logs for details');
+    }
+ 
+    return {
+      success: true
+    };
+  };
+  
+  const script = { step, clear, colors, icons, email: _____nc_mail };
   `;
 }
 
@@ -2019,7 +2080,7 @@ export function createSandboxCode(
     import { InternalApi } from 'nc-sdk-v2'
     await (async () => {
     ${generateConsoleOutput()}
-    ${generateStepAPI()}
+    ${generateStepAPI(req)}
     ${generateV3ToV2Converter()}
     ${generateApiProxy(req)}
     ${generalHelpers()}

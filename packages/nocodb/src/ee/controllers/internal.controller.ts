@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { InternalController as InternalControllerCE } from 'src/controllers/internal.controller';
+import { isAutomationUser } from 'nocodb-sdk';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { DashboardsService } from '~/services/dashboards.service';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
@@ -24,6 +25,7 @@ import { AuditsService } from '~/services/audits.service';
 import { PermissionsService } from '~/services/permissions.service';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { ActionsService } from '~/services/actions.service';
+import { MailService } from '~/services/mail/mail.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -40,6 +42,7 @@ export class InternalController extends InternalControllerCE {
     private readonly permissionsService: PermissionsService,
     protected readonly dashboardsService: DashboardsService,
     protected readonly actionsService: ActionsService,
+    protected readonly mailService: MailService,
   ) {
     super(mcpService, aclMiddleware, auditsService);
   }
@@ -380,8 +383,12 @@ export class InternalController extends InternalControllerCE {
         );
       case 'triggerAction':
         return await this.actionsService.triggerAction(context, payload, req);
+
       case 'sendEmail':
-        return await this.emailsService.sendEmail(context, payload, req);
+        if (!isAutomationUser(req.user)) {
+          NcError.notFound('Operation');
+        }
+        return await this.mailService.sendMailRaw(payload);
       default:
         return await super.internalAPIPost(
           context,

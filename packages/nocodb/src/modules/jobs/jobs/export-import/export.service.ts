@@ -50,6 +50,7 @@ import { DatasService } from '~/services/datas.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { getWidgetHandler } from '~/db/widgets';
+import { getQueriedColumns } from '~/helpers/dbHelpers';
 
 @Injectable()
 export class ExportService {
@@ -1109,6 +1110,17 @@ export class ExportService {
         })
         .then((result) => {
           if (result.list.length === 0 && offset === 0) {
+            return getQueriedColumns(context, {
+              model,
+              view,
+              fieldsSet: new Set(fields),
+            }).then((columns) => {
+              stream.push(
+                unparse([columns.map((col) => col.title)], { header: true }),
+              );
+              stream.push(null);
+              resolve();
+            });
           }
           try {
             if (!header) {

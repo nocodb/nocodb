@@ -500,7 +500,7 @@ export async function getQueriedColumns(
         _columns.find((col) => col.id === viewColumn.fk_column_id),
       ) || _columns;
   }
-  return viewOrTableColumns.map(
+  return viewOrTableColumns.filter(
     (viewOrTableColumn) =>
       !shouldSkipField(
         fieldsSet,

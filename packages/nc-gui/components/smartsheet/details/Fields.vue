@@ -748,6 +748,7 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
       if (column.type === ButtonActionsType.Ai) {
         column.output_column_ids = colOptions?.output_column_ids || ''
         column.fk_integration_id = colOptions?.fk_integration_id
+        column.model = colOptions?.model
       }
     } else {
       column.type = column?.type || ButtonActionsType.Url
@@ -774,6 +775,8 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
       const colOptions = column.colOptions as Record<string, any>
 
       column.prompt_raw = colOptions?.prompt_raw
+      column.fk_integration_id = colOptions?.fk_integration_id
+      column.model = colOptions?.model
     } else {
       column.prompt_raw = column.prompt_raw || ''
     }

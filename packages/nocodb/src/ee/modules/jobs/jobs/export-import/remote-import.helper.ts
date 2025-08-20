@@ -184,6 +184,7 @@ export class RemoteImportHandler {
           destBase: this.source,
           destModel: model,
           req: this.req,
+          skipDuplicates: true,
         })
         .catch((err) => {
           this.logger.error(err);

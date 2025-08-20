@@ -1331,9 +1331,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                         :disabled="isLocked || !isEditable"
                         @change="onMove($event, true)"
                       >
-                        <template #item="{ element, index }">
+                        <template #item="{ element }">
                           <div
-                            v-show="!isLocked || (isLocked && element?.visible)"
+                            v-if="!isLocked || (isLocked && element?.visible)"
                             :key="element.id"
                             class="nc-editable nc-form-focus-element item relative bg-white p-4 lg:p-6"
                             :class="[
@@ -1393,10 +1393,12 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 </Transition>
                               </NcTooltip>
                               <div class="text-sm font-semibold text-gray-800">
-                                <span data-testid="nc-form-input-label"> {{ element.label || element.title }} </span>
-                                <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]"
-                                  >&nbsp;*</span
-                                >
+                                <span data-testid="nc-form-input-label">
+                                  {{ element.label || element.title }}
+                                </span>
+                                <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]">
+                                  &nbsp;*
+                                </span>
                               </div>
                             </div>
 

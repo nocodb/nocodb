@@ -76,7 +76,7 @@ const viewList = computedAsync(async () => {
       ...view,
     }
   })
-})
+}, [])
 
 const viewListMap = computed(() => {
   if (!viewList.value || viewList.value.length === 0) return new Map()

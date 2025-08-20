@@ -858,6 +858,7 @@
     "yourBaseRole": "Vai trò của bạn trong cơ sở",
     "lockedByUser": "Được khóa bởi {user}",
     "thisPageDoesNotExist": "Trang này không tồn tại",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "URL tùy chỉnh",
     "viewSettingsCantBeChangedWhenViewIs": "Không thể thay đổi cài đặt khi chế độ xem là {type}",
     "youAreLeavingNocoDB": "Bạn sắp rời khỏi NocoDB",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

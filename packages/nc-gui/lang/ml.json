@@ -858,6 +858,7 @@
     "yourBaseRole": "നിങ്ങളുടെ ബെസ് റോൾ",
     "lockedByUser": "{user} ലോക്ക് ചെയ്തു",
     "thisPageDoesNotExist": "ഈ പേജ് നിലവിലില്ല",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "കസ്റ്റം URL",
     "viewSettingsCantBeChangedWhenViewIs": "കാഴ്ച {type} ആയിരിക്കുമ്പോൾ കാഴ്ച സജ്ജീകരണം മാറ്റാൻ കഴിയില്ല",
     "youAreLeavingNocoDB": "നിങ്ങൾ NocoDB വിട്ട് പോകുകയാണു",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

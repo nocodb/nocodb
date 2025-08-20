@@ -110,6 +110,7 @@ async function onEditComment() {
   editCommentValue.value = undefined
   await updateComment(tempCom.id!, {
     comment: tempCom.comment,
+    fk_model_id: meta.value?.id,
   })
   loadComments()
 }

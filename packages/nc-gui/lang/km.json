@@ -858,6 +858,7 @@
     "yourBaseRole": "តួនាទី Base របស់អ្នក",
     "lockedByUser": "បិទបន្តងដោយ {user}",
     "thisPageDoesNotExist": "ទំព័រនេះមិនមានទេ",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "URL ផ្ទាល់ខ្លួន",
     "viewSettingsCantBeChangedWhenViewIs": "ការកំណត់ទិដ្ឋភាពមិនអាចផ្លាស់ប្តូរបាននៅពេលទិដ្ឋភាពគឺ {type}",
     "youAreLeavingNocoDB": "អ្នកកំពុងចាកចេញពី NocoDB",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

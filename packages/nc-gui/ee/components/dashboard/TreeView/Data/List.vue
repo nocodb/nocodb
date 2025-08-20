@@ -96,13 +96,22 @@ const initSortable = (el: Element) => {
       const itemAfter = itemAfterEl && entitiesById.value[itemAfterEl.dataset.id as string]
 
       // set new order value based on the new order of the items
-      if (children.length - 1 === evt.newIndex) {
-        item.order = (itemBefore?.order as number) + 1
+      if (children.length - 1 === newIndex) {
+        // Item moved to last position
+        item.order = (itemBefore?.order ?? 0) + 1
       } else if (newIndex === 0) {
-        item.order = (itemAfter?.order as number) / 2
+        // Item moved to first position
+        item.order = (itemAfter?.order ?? 1) / 2
       } else {
-        item.order = ((itemBefore?.order as number) + (itemAfter?.order as number)) / 2
+        // Item moved to middle position
+        item.order = ((itemBefore?.order ?? 0) + (itemAfter?.order ?? 0)) / 2
       }
+
+      // Update the allEntities array order to reflect the DOM change
+      const entities = [...allEntities.value]
+      const [movedEntity] = entities.splice(oldIndex, 1)
+      movedEntity.order = item.order
+      entities.splice(newIndex, 0, movedEntity)
 
       // force re-render the list
       if (keys.value.data) {
@@ -111,44 +120,17 @@ const initSortable = (el: Element) => {
         keys.value.data = 1
       }
 
-      // Update local state
+      // Update backend based on item type
       if (item.type === 'dashboard') {
-        // Update local dashboard order in the store
-        const dashboards = activeBaseDashboards.value
-        const dashboardIndex = dashboards.findIndex(d => d.id === item.id)
-        if (dashboardIndex !== -1) {
-          // Remove from old position and insert at new position
-          const [movedDashboard] = dashboards.splice(dashboardIndex, 1)
-          movedDashboard.order = item.order
-
-          // Find the correct insertion index based on the new order
-          const insertIndex = dashboards.findIndex(d => (d.order || 0) > item.order)
-          if (insertIndex === -1) {
-            dashboards.push(movedDashboard)
-          } else {
-            dashboards.splice(insertIndex, 0, movedDashboard)
-          }
-        }
-
         await dashboardStore.updateDashboard(baseId.value, item.id, {
           order: item.order,
         })
       } else if (item.type === 'table') {
-        // Update local table order in the store
+        // Update local table order in the activeTables array
         const tables = activeTables.value
-        const tableIndex = tables.findIndex(t => t.id === item.id)
+        const tableIndex = tables.findIndex((t) => t.id === item.id)
         if (tableIndex !== -1) {
-          // Remove from old position and insert at new position
-          const [movedTable] = tables.splice(tableIndex, 1)
-          movedTable.order = item.order
-
-          // Find the correct insertion index based on the new order
-          const insertIndex = tables.findIndex(t => (t.order || 0) > item.order)
-          if (insertIndex === -1) {
-            tables.push(movedTable)
-          } else {
-            tables.splice(insertIndex, 0, movedTable)
-          }
+          tables[tableIndex].order = item.order
         }
 
         await $api.dbTable.reorder(item.id as string, {
@@ -160,7 +142,7 @@ const initSortable = (el: Element) => {
       $e('a:data:reorder')
     },
     setData(dataTransfer, dragEl) {
-      if (!dragEl?.dataset?.sourceId) {
+      if (!dragEl?.dataset?.id) {
         return
       }
       dataTransfer.setData(

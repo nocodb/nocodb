@@ -858,6 +858,7 @@
     "yourBaseRole": "Peran Anda di basis",
     "lockedByUser": "Dikunci oleh {user}",
     "thisPageDoesNotExist": "Halaman ini tidak ada",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "URL Kustom",
     "viewSettingsCantBeChangedWhenViewIs": "Pengaturan tampilan tidak dapat diubah ketika tampilan berstatus {type}",
     "youAreLeavingNocoDB": "Anda akan meninggalkan NocoDB",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

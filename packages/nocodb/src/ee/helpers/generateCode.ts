@@ -1,4 +1,4 @@
-import type { NcRequest } from 'nocodb-sdk';
+import type { NcContext, NcRequest } from 'nocodb-sdk';
 
 enum ScriptActionType {
   DONE = 'done',
@@ -155,7 +155,7 @@ function generateV3ToV2Converter() {
   `;
 }
 
-function generateStepAPI() {
+function generateStepAPI(req: NcRequest, context: NcContext) {
   return `
   let __nc_currentStepId = null;
   
@@ -632,7 +632,60 @@ function generateStepAPI() {
     }
   };
   
-  const script = { step, clear, colors, icons };
+  const _____nc_mail = async (params) => {
+    const { to, subject, html, text } = params;
+ 
+    if (!to) {
+      throw new Error('Email recipient (to) is required');
+    }
+ 
+    if (!subject || subject.trim() === '') {
+      throw new Error('Email subject is required');
+    }
+ 
+    if (!html && !text) {
+      throw new Error('Email content (html or text) is required');
+    }
+    // Get workspace and base context
+    const workspaceId = '${context.workspace_id}';
+    const baseId = '${context.base_id}';
+    const authToken = "${req.headers['xc-auth']}"
+ 
+    const payload = {
+      to: to,
+      subject: subject.trim(),
+      html: html,
+      text: text,
+    };
+ 
+    const requestUrl = \`${req.ncSiteUrl}/api/v2/internal/\${workspaceId}/\${baseId}?operation=sendEmail\`
+    const response = await fetch(requestUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'xc-auth': authToken
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    
+ 
+    if (!response.ok) {
+      throw new Error(\`Email send failed: \${response.status} \${response.statusText}\`);
+    }
+
+    const success = await response.json(); // API returns true/false
+    
+    if (!success) {
+      throw new Error('Email send failed - check server logs for details');
+    }
+ 
+    return {
+      success: true
+    };
+  };
+  
+  const script = { step, clear, colors, icons, email: _____nc_mail };
   `;
 }
 
@@ -2006,6 +2059,7 @@ function generateCustomCode(
 }
 
 export function createSandboxCode(
+  context: NcContext,
   userCode: string,
   baseSchema: any,
   user: any,
@@ -2019,7 +2073,7 @@ export function createSandboxCode(
     import { InternalApi } from 'nc-sdk-v2'
     await (async () => {
     ${generateConsoleOutput()}
-    ${generateStepAPI()}
+    ${generateStepAPI(req, context)}
     ${generateV3ToV2Converter()}
     ${generateApiProxy(req)}
     ${generalHelpers()}

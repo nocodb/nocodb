@@ -1,4 +1,4 @@
-import { MailEvent } from 'src/interface/Mail';
+import { MailEvent, RawMailParams } from 'src/interface/Mail';
 import type { MailParams as CEMailParams } from 'src/interface/Mail';
 import type {
   ColumnType,
@@ -63,4 +63,4 @@ type MailParams =
       payload: WorkspaceRequestUpgradePayload;
     };
 
-export { MailEvent, MailParams };
+export { MailEvent, MailParams, RawMailParams };

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { RoleLabels } from 'nocodb-sdk';
 import { render } from '@react-email/render';
 import type { NcRequest } from 'nocodb-sdk';
-import type { MailParams } from '~/interface/Mail';
+import type { MailParams, RawMailParams } from '~/interface/Mail';
 import type { ComponentProps } from 'react';
 import * as MailTemplates from '~/services/mail/templates';
 import { MailEvent } from '~/interface/Mail';
@@ -105,6 +105,33 @@ export class MailService {
     }
 
     return url;
+  }
+
+  async sendMailRaw(params: RawMailParams, ncMeta = Noco.ncMeta) {
+    const mailerAdapter = await this.getAdapter(ncMeta);
+    if (!mailerAdapter) {
+      this.logger.error('Email Plugin not configured / active');
+      return false;
+    }
+
+    if (!params.to || !params.subject || (!params.html && !params.text)) {
+      this.logger.error('Missing required parameters');
+      return false;
+    }
+
+    try {
+      await mailerAdapter.mailSend({
+        to: params.to,
+        subject: params.subject,
+        text: params.text,
+        html: params.html,
+      });
+    } catch (e) {
+      this.logger.error(e);
+      return false;
+    }
+
+    return true;
   }
 
   async sendMail(params: MailParams, ncMeta = Noco.ncMeta) {

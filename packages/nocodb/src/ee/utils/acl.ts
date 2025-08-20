@@ -249,6 +249,7 @@ const permissionScopes = {
     'listScripts',
     'duplicateScript',
     'getScript',
+    'sendEmail',
     'baseSchema',
 
     'createSync',
@@ -512,6 +513,7 @@ const rolePermissions:
       listScripts: true,
       getScript: true,
       baseSchema: true,
+      sendEmail: true,
 
       hookTrigger: true,
       triggerAction: true,

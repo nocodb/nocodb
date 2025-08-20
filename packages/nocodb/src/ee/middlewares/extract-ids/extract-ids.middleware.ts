@@ -723,9 +723,14 @@ export class AclMiddleware implements NestInterceptor {
       !req.user?.extra?.workspace_id &&
       (await checkIfWorkspaceSSOAvail(req.ncWorkspaceId, false))
     ) {
-      const ssoClient = await SSOClient.list({
-        workspaceId: req.ncWorkspaceId,
-      });
+      const ssoClient = (
+        await SSOClient.list({
+          workspaceId: req.ncWorkspaceId,
+        })
+      )
+        // filter out disabled SSO clients
+        .filter((ssoClient) => ssoClient.enabled && !ssoClient.deleted);
+
       if (
         ssoClient.length > 0 &&
         (await checkIfEmailAllowedNonSSO(req.ncWorkspaceId, req.user?.email))

@@ -64,7 +64,7 @@ const tableList = computedAsync(async () => {
       ...table,
     }
   })
-})
+}, [])
 
 const tableListMap = computed(() => {
   if (!tableList.value || tableList.value.length === 0) return new Map()

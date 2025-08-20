@@ -68,7 +68,7 @@ const columnList = computedAsync(async () => {
       ...column,
     }
   })
-})
+}, [])
 
 const columnListMap = computed(() => {
   if (!columnList.value || columnList.value.length === 0) return new Map()

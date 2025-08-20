@@ -73,7 +73,7 @@
     "max": "최대값",
     "avg": "평균",
     "median": "중간값",
-    "std_dev": "표준 편차",
+    "std_dev": "표준편차",
     "histogram": "히스토그램",
     "range": "범위",
     "percent_empty": "빈 비율",
@@ -105,7 +105,7 @@
     "upgradeToAddCustomLogoSubtitle": "양식에 로고를 업로드하려면 작업공간을 {plan} 플랜으로 업그레이드하세요.",
     "upgradeToHideFormBrandingSubtitle": "작업 공간을 {plan} 플랜으로 업그레이드하여 NocoDB 브랜딩을 숨기세요.",
     "upgradeToAddRedirectUrlSubtitle": "{plan} 플랜으로 업그레이드하여 양식을 작성한 후 사용자를 다른 웹 페이지로 리디렉션하세요.",
-    "upgradeToAddCustomValidationSubtitle": "작업공간을 {plan} 플랜으로 업그레이드하여 사용자 지정 유효성 검사를 추가합니다.",
+    "upgradeToAddCustomValidationSubtitle": "작업공간을 {plan} 플랜으로 업그레이드하여 사용자 정의 검증을 추가하세요.",
     "upgradeToAddCustomUrlSubtitle": "작업공간을 {plan} 플랜으로 업그레이드하여 사용자 지정 URL을 만듭니다.",
     "upgradeToAccessPersonalViewSubtitle": "작업 공간을 {plan} 플랜으로 업그레이드하여 개인 보기에 액세스합니다.",
     "upgradeToAccessAssignAsPersonalViewSubtitle": "개인 보기로 할당(Assign as Personal view) 기능에 액세스하려면 작업 영역을 {plan} 플랜으로 업그레이드합니다.",
@@ -858,6 +858,7 @@
     "yourBaseRole": "당신의 프로젝트 규칙",
     "lockedByUser": "{user}에 의해 잠김",
     "thisPageDoesNotExist": "이 페이지는 존재하지 않습니다.",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "사용자 정의 URL",
     "viewSettingsCantBeChangedWhenViewIs": "보기가 {type} 때는 보기 설정을 변경할 수 없습니다.",
     "youAreLeavingNocoDB": "NocoDB를 떠납니다",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "필드 권한 보기",
     "resetPermissions": "권한 재설정",
     "confirmReset": "재설정 확인",
-    "navigateToBilling": "결제로 이동"
+    "navigateToBilling": "결제로 이동",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "웹훅을 트리거한 사용자는 페이로드에 'user' 개체로 포함됩니다.",

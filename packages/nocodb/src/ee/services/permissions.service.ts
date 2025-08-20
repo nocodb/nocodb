@@ -94,7 +94,7 @@ export class PermissionsService {
         });
 
         if (!column) {
-          NcError.fieldNotFound(entity_id);
+          NcError.get(context).fieldNotFound(entity_id);
         }
 
         Object.assign(newPermissionObj, {

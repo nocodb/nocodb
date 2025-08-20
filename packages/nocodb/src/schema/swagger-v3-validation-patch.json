@@ -1,0 +1,20 @@
+{
+  "components": {
+    "schemas": {
+      "CreateField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldBaseCreate"
+          }
+        ]
+      },
+      "FieldUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldBase"
+          }
+        ]
+      }
+    }
+  }
+}

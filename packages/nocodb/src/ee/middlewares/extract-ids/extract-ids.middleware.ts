@@ -159,7 +159,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     if (params.mcpTokenId) {
       const mcpToken = await MCPToken.get(context, params.mcpTokenId);
       if (!mcpToken) {
-        NcError.genericNotFound('MCPToken', params.mcpTokenId);
+        NcError.get(context).genericNotFound('MCPToken', params.mcpTokenId);
       }
 
       req.ncBaseId = mcpToken.base_id;
@@ -169,7 +169,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     } else if (params.integrationId) {
       const integration = await Integration.get(context, params.integrationId);
       if (!integration) {
-        NcError.integrationNotFound(params.integrationId);
+        NcError.get(context).integrationNotFound(params.integrationId);
       }
       req.ncWorkspaceId = integration.fk_workspace_id;
     } else if (params.tableId || params.modelId) {
@@ -244,7 +244,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const base = await Base.getByUuid(context, req.params.sharedBaseUuid);
 
       if (!base) {
-        NcError.baseNotFound(req.params.sharedBaseUuid);
+        NcError.get(context).baseNotFound(req.params.sharedBaseUuid);
       }
       req.ncBaseId = base?.id;
     } else if (params.sharedDashboardUuid) {
@@ -261,7 +261,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const hook = await Hook.get(context, params.hookId);
 
       if (!hook) {
-        NcError.genericNotFound('Webhook', params.hookId);
+        NcError.get(context).genericNotFound('Webhook', params.hookId);
       }
 
       req.ncBaseId = hook.base_id;
@@ -273,7 +273,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       );
 
       if (!rowColorCondition) {
-        NcError.genericNotFound(
+        NcError.get(context).genericNotFound(
           'Row color condition',
           params.rowColorConditionId,
         );
@@ -289,7 +289,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       );
 
       if (!gridViewColumn) {
-        NcError.fieldNotFound(params.gridViewColumnId);
+        NcError.get(context).fieldNotFound(params.gridViewColumnId);
       }
 
       if (gridViewColumn.fk_view_id) {
@@ -305,7 +305,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       );
 
       if (!formViewColumn) {
-        NcError.fieldNotFound(params.formViewColumnId);
+        NcError.get(context).fieldNotFound(params.formViewColumnId);
       }
 
       if (formViewColumn.fk_view_id) {
@@ -321,7 +321,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       );
 
       if (!galleryViewColumn) {
-        NcError.fieldNotFound(params.galleryViewColumnId);
+        NcError.get(context).fieldNotFound(params.galleryViewColumnId);
       }
 
       if (galleryViewColumn.fk_view_id) {
@@ -334,7 +334,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const column = await Column.get(context, { colId: params.columnId });
 
       if (!column) {
-        NcError.fieldNotFound(params.columnId);
+        NcError.get(context).fieldNotFound(params.columnId);
       }
 
       req.ncBaseId = column.base_id;

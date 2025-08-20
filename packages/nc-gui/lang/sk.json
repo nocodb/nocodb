@@ -858,6 +858,7 @@
     "yourBaseRole": "Vaša rola v databáze",
     "lockedByUser": "Zamknuté používateľom {user}",
     "thisPageDoesNotExist": "Táto stránka neexistuje",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "Vlastná URL",
     "viewSettingsCantBeChangedWhenViewIs": "Nastavenia zobrazenia nemožno zmeniť, keď je zobrazenie {type}",
     "youAreLeavingNocoDB": "Opúšťate NocoDB",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

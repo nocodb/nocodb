@@ -858,6 +858,7 @@
     "yourBaseRole": "您在 Base 中的角色",
     "lockedByUser": "由 {user} 鎖定",
     "thisPageDoesNotExist": "此頁面不存在",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "自訂 URL",
     "viewSettingsCantBeChangedWhenViewIs": "當檢視為 {type} 時無法變更檢視設定",
     "youAreLeavingNocoDB": "您即將離開 NocoDB",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

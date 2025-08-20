@@ -858,6 +858,7 @@
     "yourBaseRole": "ನಿಮ್ಮ ಬೇಸ್ ಪಾತ್ರ",
     "lockedByUser": "{user} ಲಾಕ್ ಮಾಡಿದ್ದಾರೆ",
     "thisPageDoesNotExist": "ಈ ಪುಟ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "ಕಸ್ಟಮ್ URL",
     "viewSettingsCantBeChangedWhenViewIs": "ದೃಶ್ಯ {type} ಆಗಿರುವಾಗ ದೃಶ್ಯ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಬದಲಾಯಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ",
     "youAreLeavingNocoDB": "ನೀವು NocoDB ಅನ್ನು ತ್ಯಜಿಸುತ್ತಿದ್ದಾರೆ",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

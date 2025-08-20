@@ -172,6 +172,41 @@ const MAX_RECURSION_DEPTH = 2;
 const SELECT_REGEX = /^(\(|)select/i;
 const INSERT_REGEX = /^(\(|)insert/i;
 
+function prepareMetaUpdateQuery({
+  knex,
+  colIds,
+  props,
+  metaColumn,
+}: {
+  knex: XKnex;
+  colIds: string[];
+  props: Record<string, unknown>;
+  metaColumn: column;
+}) {
+  const jsonObjQuery = knex.raw('?::jsonb', JSON.stringify(props)).toString();
+
+  return knex.raw(
+    `COALESCE((:column:)::jsonb, '{}'::jsonb) || ${colIds
+      .map((id) => {
+        const idString = knex.raw('?::text', [id]);
+
+        return `jsonb_set(
+    '{}'::jsonb,
+    ARRAY[${idString}],
+    (
+       COALESCE(COALESCE((:column:)::jsonb, '{}'::jsonb)->(${knex.raw('?', [
+         id,
+       ])}::text), '{}'::jsonb))
+       || ${jsonObjQuery})`;
+      })
+      .join(' || ')}
+            `,
+    {
+      column: metaColumn.column_name,
+    },
+  );
+}
+
 /**
  * Base class for models
  *
@@ -6073,12 +6108,26 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       (c) => c.uidt === UITypes.LastModifiedBy && c.system,
     );
 
+    const metaColumn = columns.find((c) => c.uidt === UITypes.Meta);
+
     if (lastModifiedTimeColumn) {
       updateObject[lastModifiedTimeColumn.column_name] = this.now();
     }
 
     if (lastModifiedByColumn) {
       updateObject[lastModifiedByColumn.column_name] = cookie?.user?.id;
+    }
+
+    if (metaColumn && updatedColIds.length > 0) {
+      updateObject[metaColumn.column_name] = prepareMetaUpdateQuery({
+        knex: this.dbDriver,
+        colIds: updatedColIds,
+        props: {
+          modifiedBy: cookie?.user?.id,
+          modifiedTime: this.now(),
+        },
+        metaColumn: column,
+      });
     }
 
     if (Object.keys(updateObject).length === 0) return;
@@ -6294,34 +6343,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         runAfterForLoop.push(() => {
           if (!updatedColIds.length) return;
 
-          const jsonObjQuery = this.dbDriver.raw('?::jsonb', [
-            JSON.stringify({
+          data[column.column_name] = prepareMetaUpdateQuery({
+            knex: this.dbDriver,
+            colIds: updatedColIds,
+            props: {
               modifiedBy: cookie?.user?.id,
               modifiedTime: this.now(),
-            }),
-          ]);
-
-          data[column.column_name] = this.dbDriver.raw(
-            `COALESCE((:column:)::jsonb, '{}'::jsonb) || ${updatedColIds
-              .map((id) => {
-                const idString = this.dbDriver.raw('?::text', [id]);
-
-                return `jsonb_set(
-    '{}'::jsonb,
-    ARRAY[${idString}],
-    (
-       COALESCE(COALESCE((:column:)::jsonb, '{}'::jsonb)->(${this.dbDriver.raw(
-         '?',
-         [id],
-       )}::text), '{}'::jsonb))
-       || ${jsonObjQuery})`;
-              })
-              .join(' || ')}
-            `,
-            {
-              column: column.column_name,
             },
-          );
+            metaColumn: column,
+          });
         });
 
         continue;

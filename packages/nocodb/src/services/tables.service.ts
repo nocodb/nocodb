@@ -46,6 +46,7 @@ import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 import { isEE } from '~/utils';
+import { META_COL_NAME } from '~/constants';
 
 @Injectable()
 export class TablesService {

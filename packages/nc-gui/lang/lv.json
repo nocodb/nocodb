@@ -858,6 +858,7 @@
     "yourBaseRole": "Jūsu loma bāzē",
     "lockedByUser": "Bloķējis {user}",
     "thisPageDoesNotExist": "Šī lapa neeksistē",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "Pielāgots URL",
     "viewSettingsCantBeChangedWhenViewIs": "Skata iestatījumus nevar mainīt, ja skats ir {type}",
     "youAreLeavingNocoDB": "Jūs atstājat NocoDB",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

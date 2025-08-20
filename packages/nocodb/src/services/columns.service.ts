@@ -1872,7 +1872,10 @@ export class ColumnsService implements IColumnsService {
         event: EventType.META_EVENT,
         payload: {
           action: 'column_update',
-          payload: table,
+          payload: {
+            table,
+            column: updatedColumn,
+          },
         },
       },
       context.socket_id,
@@ -2626,9 +2629,7 @@ export class ColumnsService implements IColumnsService {
 
     await table.getColumns(context);
 
-    const columnId = table.columns.find(
-      (c) => c.title === param.column.title,
-    )?.id;
+    const newColumn = table.columns.find((c) => c.title === param.column.title);
 
     if (!isLinksOrLTAR(param.column)) {
       this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
@@ -2636,9 +2637,9 @@ export class ColumnsService implements IColumnsService {
         column: {
           ...param.column,
           fk_model_id: table.id,
-          id: columnId,
+          id: newColumn?.id,
         },
-        columnId,
+        columnId: newColumn?.id,
         req: param.req,
         context,
         columns: table.columns,
@@ -2651,7 +2652,10 @@ export class ColumnsService implements IColumnsService {
         event: EventType.META_EVENT,
         payload: {
           action: 'column_add',
-          payload: table,
+          payload: {
+            table,
+            column: newColumn,
+          },
         },
       },
       context.socket_id,
@@ -3238,7 +3242,10 @@ export class ColumnsService implements IColumnsService {
         event: EventType.META_EVENT,
         payload: {
           action: 'column_delete',
-          payload: table,
+          payload: {
+            table,
+            column,
+          },
         },
       },
       context.socket_id,

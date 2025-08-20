@@ -798,7 +798,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                       if (Object.prototype.hasOwnProperty.call(row.value.row, col)) {
                         mergedRow[col] = row.value.row[col]
                         if (row.value.row[col] !== payload[col]) {
-                          // localOnlyChanges.value[col] = payload[col]
+                          localOnlyChanges.value[col] = payload[col]
                         }
                       }
                     }

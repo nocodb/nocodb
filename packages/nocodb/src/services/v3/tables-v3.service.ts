@@ -153,6 +153,14 @@ export class TablesV3Service {
       true,
       context,
     );
+    for (const field of param.table.fields ?? []) {
+      validatePayload(
+        `swagger-v3.json#/components/schemas/FieldOptions/${field.type}`,
+        field,
+        true,
+        context,
+      );
+    }
 
     const tableCreateReq: any = param.table;
 

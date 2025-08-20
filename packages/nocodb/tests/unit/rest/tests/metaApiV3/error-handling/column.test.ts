@@ -129,7 +129,9 @@ export default function () {
           .send({ title: 'AnotherColumn' })
           .expect(400);
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
-        expect(result.body.message).to.include('Invalid request body');
+        expect(result.body.message).to.satisfy((msg) =>
+          msg.startsWith('Duplicate column alias'),
+        );
       });
       it('will handle incorrect title length', async () => {
         const longTitle = 'a'.repeat(300);
@@ -139,7 +141,9 @@ export default function () {
           .send({ title: longTitle })
           .expect(400);
         expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
-        expect(result.body.message).to.include('Invalid request body');
+        expect(result.body.message).to.satisfy((msg) =>
+          msg.startsWith('Column title aaaaa'),
+        );
       });
       it('will handle uidt incorrect', async () => {
         const result = await request(context.app)
@@ -158,8 +162,8 @@ export default function () {
           .delete(`${API_PREFIX}/fields/NOT_FOUND`)
           .set('xc-token', context.xc_token)
           .expect(422);
-        expect(result.body.error).to.eq('COLUMN_NOT_FOUND');
-        expect(result.body.message).to.include(`Column 'NOT_FOUND' not found`);
+        expect(result.body.error).to.eq('FIELD_NOT_FOUND');
+        expect(result.body.message).to.include(`Field 'NOT_FOUND' not found`);
       });
     });
   });

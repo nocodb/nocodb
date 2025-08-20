@@ -858,6 +858,7 @@
     "yourBaseRole": "您的项目角色",
     "lockedByUser": "被{user} 锁定",
     "thisPageDoesNotExist": "此页面不存在",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "自定义URL",
     "viewSettingsCantBeChangedWhenViewIs": "当视图为 {type} 时无法更改视图设置",
     "youAreLeavingNocoDB": "您将离开 NocoDB",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

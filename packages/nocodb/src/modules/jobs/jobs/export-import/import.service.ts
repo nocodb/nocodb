@@ -18,6 +18,7 @@ import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { Readable } from 'stream';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { CalendarView, LinksColumn, User } from '~/models';
+import { validateImportSchema } from '~/utils/modelUtils';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import { sanitizeColumnName } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -194,7 +195,10 @@ export class ImportService {
     const tableReferences = new Map<string, Model>();
     const linkMap = new Map<string, string>();
 
-    param.data = Array.isArray(param.data) ? param.data : param.data.models;
+    param.data = await validateImportSchema(
+      context,
+      Array.isArray(param.data) ? param.data : param.data.models,
+    );
 
     // allow existing model to be linked
     if (param.existingModel)

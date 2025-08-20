@@ -1,3 +1,6 @@
+import { arrGetDuplicate, type NcContext } from 'nocodb-sdk';
+import { NcError } from '~/helpers/ncError';
+
 export function parseMetaProp(
   model: any,
   propName = 'meta',
@@ -65,4 +68,58 @@ export function prepareForResponse(
   });
 
   return model;
+}
+
+export async function validateImportSchema(
+  context: NcContext,
+  data: {
+    model: any;
+    views: any[];
+    hooks?: any[];
+    comments?: any[];
+    permissions?: any[];
+    rowColorConditions?: {
+      filters?: any[];
+      rowColorConditions?: any[];
+    };
+  }[],
+) {
+  // validate table names
+  if (data.some((each) => !each.model.title && !each.model.table_name)) {
+    NcError.get(context).invalidRequestBody(
+      'Missing table `title` property in request body',
+    );
+  }
+  const modelNamedData = data.map((each) => {
+    return {
+      ...each,
+      model: {
+        ...each.model,
+        title: each.model.title ?? each.model.table_name,
+        table_name: each.model.table_name ?? each.model.title,
+      },
+    };
+  });
+  const aliasDuplicate = arrGetDuplicate(
+    modelNamedData.map((each) => each.model.title),
+  );
+  if (aliasDuplicate) {
+    NcError.get(context).duplicateAlias({
+      alias: aliasDuplicate as string,
+      base: context.base_id,
+      type: 'table',
+    });
+  }
+  const tableNameDuplicate = arrGetDuplicate(
+    modelNamedData.map((each) => each.model.table_name),
+  );
+  if (tableNameDuplicate) {
+    NcError.get(context).duplicateAlias({
+      alias: tableNameDuplicate as string,
+      base: context.base_id,
+      type: 'table',
+      label: 'name',
+    });
+  }
+  return modelNamedData;
 }

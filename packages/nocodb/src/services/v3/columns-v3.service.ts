@@ -42,6 +42,10 @@ export class ColumnsV3Service {
 
     let column = await Column.get(context, { colId: param.columnId });
 
+    if (!column) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
     const type = (param.column?.type ?? column.uidt) as FieldV3Type['type'];
 
     const processedColumnReq = columnV3ToV2Builder().build({

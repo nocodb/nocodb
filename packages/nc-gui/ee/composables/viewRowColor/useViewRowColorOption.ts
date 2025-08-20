@@ -64,7 +64,7 @@ export function useViewRowColorOption(params: {
   const filterColumns = computedAsync(async () => {
     if (!metas.value || Object.keys(metas.value).length === 0) return []
     return await composeColumnsForFilter({ rootMeta: meta.value, getMeta: async (id) => metas.value[id] })
-  })
+  }, [])
 
   const getViewById = (viewId: string) => {
     return views.value.find((v) => v.id === viewId)

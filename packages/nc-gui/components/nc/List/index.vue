@@ -73,7 +73,11 @@ const activeOptionIndex = ref(-1)
 const showHoverEffectOnSelectedOption = ref(true)
 
 const isSearchEnabled = computed(
-  () => props.showSearchAlways || slots.headerExtraLeft || slots.headerExtraRight || props.list.length > props.minItemsForSearch,
+  () =>
+    props.showSearchAlways ||
+    slots.headerExtraLeft ||
+    slots.headerExtraRight ||
+    (props.list?.length ?? 0) > props.minItemsForSearch,
 )
 
 const keyDown = ref(false)
@@ -103,9 +107,9 @@ const list = computed(() => {
   searchBasisInfoMap.value = {}
 
   // If no query, return all items
-  if (!query) return props.list
+  if (!query) return props.list ?? []
 
-  return props.list.filter((item, i, array) => {
+  return (props.list ?? []).filter((item, i, array) => {
     // Step 1: apply default filter
     if (defaultFilter(item, i, array, query)) return true
 

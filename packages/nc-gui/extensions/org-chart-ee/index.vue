@@ -74,7 +74,8 @@ const viewList = computedAsync(async () => {
   } else {
     return []
   }
-})
+}, [])
+
 watch(viewList, (viewList) => {
   if (viewList.length === 1) {
     viewId.value = viewList[0].id

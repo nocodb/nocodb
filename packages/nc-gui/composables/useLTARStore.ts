@@ -153,7 +153,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       if (isPublic.value) return
 
-      const viewId = colOptions.value.fk_target_view_id ?? relatedTableMeta.value.views?.[0]?.id ?? ''
+      await nextTick()
+
+      const viewId = colOptions.value.fk_target_view_id ?? relatedTableMeta.value?.views?.[0]?.id ?? ''
       if (!viewId) return
       targetViewColumns.value = (await getViewColumns(viewId)) ?? []
     }

@@ -858,6 +858,7 @@
     "yourBaseRole": "あなたの基本の役割",
     "lockedByUser": "{user} によってロックされています",
     "thisPageDoesNotExist": "このページは存在しません",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "カスタムURL",
     "viewSettingsCantBeChangedWhenViewIs": "ビュー設定はビューが{type}の時には変更できません",
     "youAreLeavingNocoDB": "NocoDBを離れます",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

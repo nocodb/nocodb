@@ -194,7 +194,7 @@ const handleBulkActionMessage = async (message: any, button: ColumnType & { colO
 
         if (executionId && activeExecutions.value.has(executionId)) {
           const execution = activeExecutions.value.get(executionId)!
-          const isError = parsedMessage.type === 'ACTION_EXECUTION_ERROR'
+          const isError = parsedMessage.type === 'ACTION_EXECUTION_ERROR' || execution.error
 
           activeExecutions.value.set(executionId, {
             ...execution,

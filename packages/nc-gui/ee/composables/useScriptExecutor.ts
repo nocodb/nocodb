@@ -398,6 +398,13 @@ export const useScriptExecutor = createSharedComposable(() => {
         break
       }
       case ScriptActionType.DONE:
+        if (message.payload.error) {
+          activeExecutions.value.set(scriptId, {
+            ...execution,
+            error: message.payload.error,
+            status: 'error',
+          })
+        }
         activeSteps.value.clear()
         onWorkerDone()
         break

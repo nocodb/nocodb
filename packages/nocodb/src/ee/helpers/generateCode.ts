@@ -2002,14 +2002,18 @@ function generateConsoleOutput(): string {
 
 function generateMessageHandler(userCode: string): string {
   return `
+    let ____script_error = false;
     try {
         await (async () => {
           ${userCode}
         })();
       } catch (e) {
+        ____script_error = true;
         output.text(\`\${e}\`, 'error');
       } finally {
-        postMessage('${ScriptActionType.DONE}', {});
+        postMessage('${ScriptActionType.DONE}', {
+          error: ____script_error
+        });
       }
   `;
 }

@@ -62,6 +62,7 @@ const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) 
         await basesStore.navigateToProject({
           workspaceId: firstBase.fk_workspace_id!,
           baseId: firstBase.id!,
+          query: extractAiBaseCreateQueryParams(route.value.query),
         })
       }
     }

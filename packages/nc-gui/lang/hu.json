@@ -858,6 +858,7 @@
     "yourBaseRole": "Az Ön bázis szerepe",
     "lockedByUser": "{user} zárolta",
     "thisPageDoesNotExist": "Ez az oldal nem létezik",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "Egyéni URL",
     "viewSettingsCantBeChangedWhenViewIs": "A nézet beállításai nem módosíthatók, ha a nézet {type}",
     "youAreLeavingNocoDB": "Elhagyja a NocoDB-t",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

@@ -1018,6 +1018,8 @@ const saveChanges = async () => {
 }
 
 const toggleVisibility = async (checked: boolean, field: Field) => {
+  if (!field?.fk_column_id) return
+
   if (field.fk_column_id && fieldStatuses.value[field.fk_column_id]) {
     message.warning(t('msg.warning.multiField.fieldVisibility'))
     return

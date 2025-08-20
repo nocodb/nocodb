@@ -5,6 +5,7 @@ import {
   isCrossBaseLink,
   isLinksOrLTAR,
   isSystemColumn,
+  isVirtualCol,
   LongTextAiMetaProp,
   NcApiVersion,
   PermissionEntity,
@@ -799,7 +800,9 @@ export class ExportService {
       ? model.columns
           .filter((c) => param._fieldIds?.includes(c.id))
           .map((c) => c.title)
-      : model.columns.filter((c) => !isLinksOrLTAR(c)).map((c) => c.title);
+      : model.columns
+          .filter((c) => !isLinksOrLTAR(c) && !isVirtualCol(c))
+          .map((c) => c.title);
 
     const refView = view ?? (await View.getDefaultView(context, model.id));
 

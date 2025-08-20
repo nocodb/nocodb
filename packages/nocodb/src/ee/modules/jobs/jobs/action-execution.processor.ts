@@ -1,18 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Sandbox } from '@e2b/code-interpreter';
+import type { NcContext } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type { ExecuteActionJobData } from '~/interface/Jobs';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { Model, Script, View } from '~/models';
-import { DatasService } from '~/services/datas.service';
 import { NcError } from '~/helpers/ncError';
 import { getBaseSchema } from '~/helpers/scriptHelper';
 import { createSandboxCode } from '~/helpers/generateCode';
 import { parseSandboxOutputToWorkerMessage } from '~/helpers/sandboxParser';
-import { dataWrapper, getCompositePkValue } from '~/helpers/dbHelpers';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 
-const BATCH_SIZE = 1000;
+const BATCH_SIZE = 100;
 const CONCURRENCY_LIMIT = 5;
 
 @Injectable()
@@ -21,7 +20,6 @@ export class ActionExecutionProcessor {
 
   constructor(
     private readonly jobsLogService: JobsLogService,
-    private readonly datasService: DatasService,
     private readonly datasV3Service: DataV3Service,
   ) {}
 
@@ -31,7 +29,7 @@ export class ActionExecutionProcessor {
     const sendLog = (log: string) =>
       this.jobsLogService.sendLog(job, { message: log });
     const sendMessage = (message: any) =>
-      this.jobsLogService.sendLog(job, { message: JSON.stringify(message) });
+      this.jobsLogService.sendLog(job, { message: message });
 
     const model = await Model.get(context, modelId);
 
@@ -189,7 +187,7 @@ export class ActionExecutionProcessor {
 
     for (let i = 0; i < records.length; i++) {
       const record = records[i];
-      const recordId = getCompositePkValue(model.primaryKeys, record);
+      const recordId = record.id;
       const executionId = `${recordId}-${script.id}-${Date.now()}-${i}`;
 
       try {
@@ -233,7 +231,7 @@ export class ActionExecutionProcessor {
   }
 
   async executeForAllRecords(params: {
-    context: any;
+    context: NcContext;
     req: any;
     script: Script;
     model: Model;
@@ -246,13 +244,18 @@ export class ActionExecutionProcessor {
     let hasMore = true;
 
     while (hasMore) {
-      const recordsData = await this.datasService.dataList(context, {
-        model,
-        view,
-        query: { limit: BATCH_SIZE, offset },
-      });
+      const records = await this.datasV3Service.dataList(
+        context,
+        {
+          baseId: context.base_id,
+          modelId: model.id,
+          viewId: view?.id,
+          req: req,
+          query: { limit: BATCH_SIZE, offset },
+        },
+        false,
+      );
 
-      const records = recordsData.list || [];
       if (records.length === 0) break;
 
       // Process records with concurrency
@@ -300,7 +303,7 @@ export class ActionExecutionProcessor {
         const recordIndex = currentIndex++;
         const record = records[recordIndex];
         const globalIndex = baseIndex + recordIndex;
-        const pk = dataWrapper(record).extractPksValue(model, true);
+        const pk = record.id;
         const executionId = `${pk}-${script.id}-${Date.now()}-${globalIndex}`;
 
         try {
@@ -384,6 +387,17 @@ export class ActionExecutionProcessor {
         executionId,
       );
 
+      const handleOutput = (data) => {
+        const message = parseSandboxOutputToWorkerMessage(data);
+        if (message) {
+          sendMessage({
+            type: 'ACTION_EXECUTION_MESSAGE',
+            executionId,
+            payload: { recordId, message },
+          });
+        }
+      };
+
       await sandbox.runCode(code, {
         language: 'javascript',
         onError: (error) => {
@@ -392,33 +406,12 @@ export class ActionExecutionProcessor {
             executionId,
             payload: {
               recordId,
-              error:
-                (error as any)?.message ||
-                error?.toString() ||
-                'Script execution error',
+              error: error?.toString() || 'Script execution error',
             },
           });
         },
-        onStdout: (data) => {
-          const parsedMessage = parseSandboxOutputToWorkerMessage(data);
-          if (parsedMessage) {
-            sendMessage({
-              type: 'ACTION_EXECUTION_MESSAGE',
-              executionId,
-              payload: { recordId, message: parsedMessage },
-            });
-          }
-        },
-        onStderr: (data) => {
-          const parsedMessage = parseSandboxOutputToWorkerMessage(data);
-          if (parsedMessage) {
-            sendMessage({
-              type: 'ACTION_EXECUTION_MESSAGE',
-              executionId,
-              payload: { recordId, message: parsedMessage },
-            });
-          }
-        },
+        onStdout: handleOutput,
+        onStderr: handleOutput,
       });
 
       sendMessage({
@@ -468,8 +461,8 @@ export class ActionExecutionProcessor {
     const displayField =
       model.columns?.find((col) => col.pv) ||
       model.columns?.find((col) => col.pk);
-    return displayField?.title in record
-      ? record[displayField.title]
+    return displayField?.title in record.fields
+      ? record?.fields[displayField.title]
       : 'Record';
   }
 }

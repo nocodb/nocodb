@@ -597,6 +597,11 @@ function generateStepAPI() {
   // Logo Icons - Entertainment
   twitch: 'ncLogoTwitch',
 };
+
+  const _____nc_mail = (config) => {
+    output.text('Send Email is not supported in this environment.');
+    return;
+  }
   
   const step = (config) => {
     // End previous step if running
@@ -649,7 +654,7 @@ function generateStepAPI() {
     }
   };
   
-  const script = { step, clear, colors, icons };
+  const script = { step, clear, colors, icons, email: _____nc_mail };
   `
 }
 

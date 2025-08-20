@@ -8,12 +8,27 @@ enum ScriptActionType {
   WARN = 'warn',
   TABLE = 'table',
   MARKDOWN = 'markdown',
+  TEXT = 'text',
   INSPECT = 'inspect',
   CLEAR = 'clear',
   WORKFLOW_STEP_START = 'workflowStepStart',
   WORKFLOW_STEP_END = 'workflowStepEnd',
   RECORD_UPDATE_START = 'recordUpdateStart',
   RECORD_UPDATE_COMPLETE = 'recordUpdateComplete',
+}
+
+function generateRemoteFetch() {
+  return `
+  const remoteFetchAsync = async (url, options) => {
+    return fetch(url, options).then(response => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error('Request failed with status: ' + response.status);
+      }
+    });
+  }
+  `;
 }
 
 function generateV3ToV2Converter() {
@@ -1943,7 +1958,6 @@ function generateConsoleOutput(): string {
       originalConsoleLog(JSON.stringify({
         type,
         payload,
-        stepId,
         timestamp: Date.now()
       }));
     };
@@ -1956,7 +1970,7 @@ function generateConsoleOutput(): string {
     const output = {
       text: (message, messageType = 'log') => 
         postMessage('output', { 
-          message: JSON.stringify({ action: '${ScriptActionType.LOG}', args: [message, messageType] }),
+          message: JSON.stringify({ action: '${ScriptActionType.TEXT}', args: [message, messageType] }),
           stepId: __nc_currentStepId 
         }),
       
@@ -1993,7 +2007,7 @@ function generateMessageHandler(userCode: string): string {
           ${userCode}
         })();
       } catch (e) {
-        console.error(e);
+        output.text(\`\${e}\`, 'error');
       } finally {
         postMessage('${ScriptActionType.DONE}', {});
       }
@@ -2075,6 +2089,7 @@ export function createSandboxCode(
     ${generateStepAPI(req, context)}
     ${generateV3ToV2Converter()}
     ${generateApiProxy(req)}
+    ${generateRemoteFetch()}
     ${generalHelpers()}
     ${generateBaseModels()}
     ${generateBaseObject(baseSchema)}

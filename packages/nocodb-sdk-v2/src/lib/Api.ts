@@ -172,7 +172,7 @@ export interface TableCreate {
 
 export type FieldOptions = any;
 
-export type CreateField = FieldBase;
+export type CreateField = FieldBaseCreate;
 
 export interface Table {
   /** Unique identifier for the table. */
@@ -531,12 +531,48 @@ export interface FieldBase {
   /** Title of the field. */
   title: string;
   /** Field data type. */
-  type: string;
+  type?:
+    | 'SingleLineText'
+    | 'LongText'
+    | 'PhoneNumber'
+    | 'URL'
+    | 'Email'
+    | 'Number'
+    | 'Decimal'
+    | 'Currency'
+    | 'Percent'
+    | 'Duration'
+    | 'Date'
+    | 'DateTime'
+    | 'Time'
+    | 'SingleSelect'
+    | 'MultiSelect'
+    | 'Rating'
+    | 'Checkbox'
+    | 'Attachment'
+    | 'Geometry'
+    | 'Links'
+    | 'Lookup'
+    | 'Rollup'
+    | 'Button'
+    | 'Formula'
+    | 'Barcode'
+    | 'Year'
+    | 'QrCode'
+    | 'CreatedAt'
+    | 'LastModifiedAt'
+    | 'CreatedBy'
+    | 'LastModifiedBy'
+    | 'LinkToAnotherRecord'
+    | 'User'
+    | 'JSON';
   /** Description of the field. */
   description?: string | null;
   /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
   default_value?: string | boolean | number;
 }
+
+export type FieldBaseCreate = FieldBase;
 
 export interface FieldOptionsLongText {
   /** Enable rich text formatting. */

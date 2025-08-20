@@ -3,7 +3,7 @@ import {
   type NcContext,
   type NcRequest,
   PlanFeatureTypes,
-  type ViewRowColour,
+  type ViewRowColourV3Type,
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import { validatePayload } from '~/helpers';
@@ -24,7 +24,7 @@ export class ViewRowColorV3Service {
     context: NcContext,
     params: {
       viewId: string;
-      body?: ViewRowColour | null;
+      body?: ViewRowColourV3Type | null;
       req: NcRequest;
     },
     ncMeta?: MetaService,
@@ -85,33 +85,35 @@ export class ViewRowColorV3Service {
     context: NcContext,
     params: {
       viewId: string;
-      body: ViewRowColour | null;
+      body: ViewRowColourV3Type | null;
       req: NcRequest;
     },
     ncMeta: MetaService = Noco.ncMeta,
   ) {
     let i = 1;
-    for (const condition of params.body.conditions) {
-      if (!condition.color) {
-        NcError.get(context).requiredFieldMissing('color');
-      }
-      const rowColorCondition =
-        await this.viewRowColorService.addRowColoringCondition({
+    if ('conditions' in params.body) {
+      for (const condition of params.body.conditions) {
+        if (!condition.color) {
+          NcError.get(context).requiredFieldMissing('color');
+        }
+        const rowColorCondition =
+          await this.viewRowColorService.addRowColoringCondition({
+            context,
+            color: condition.color,
+            is_set_as_background: condition.apply_as_row_background ?? false,
+            nc_order: i++,
+            fk_view_id: params.viewId,
+            ncMeta,
+          });
+        await this.filtersV3Service.insertFilterGroup({
           context,
-          color: condition.color,
-          is_set_as_background: condition.apply_as_row_background ?? false,
-          nc_order: i++,
-          fk_view_id: params.viewId,
+          param: { rowColorConditionId: rowColorCondition.id },
+          groupOrFilter: condition.filters,
+          viewId: params.viewId,
           ncMeta,
+          isRoot: true,
         });
-      await this.filtersV3Service.insertFilterGroup({
-        context,
-        param: { rowColorConditionId: rowColorCondition.id },
-        groupOrFilter: condition.filters,
-        viewId: params.viewId,
-        ncMeta,
-        isRoot: true,
-      });
+      }
     }
   }
 }

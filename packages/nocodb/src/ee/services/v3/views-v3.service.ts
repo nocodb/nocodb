@@ -7,11 +7,7 @@ import {
   viewTypeAlias,
   ViewTypes,
 } from 'nocodb-sdk';
-import type {
-  RowColoringInfo,
-  ViewCreateV3Type,
-  ViewOptionBaseV3Type,
-} from 'nocodb-sdk';
+import type { RowColoringInfo, ViewCreateV3Type } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { ApiV3DataTransformationBuilder } from '~/utils/data-transformation.builder';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -930,7 +926,8 @@ export class ViewsV3Service {
       tableId: string;
       modelColumns?: { id: string; pv: boolean; order: number }[];
       fields?: ViewCreateV3Type['fields'];
-      fieldsById?: ViewOptionBaseV3Type['fields_by_id'];
+      // TODO: update with proper data type if swagger is updated with form
+      fieldsById?: any;
     },
     ncMeta?: MetaService,
   ) {

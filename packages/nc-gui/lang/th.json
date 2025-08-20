@@ -858,6 +858,7 @@
     "yourBaseRole": "บทบาทของคุณในฐาน",
     "lockedByUser": "ล็อกโดย {user}",
     "thisPageDoesNotExist": "หน้านี้ไม่มีอยู่",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "URL กำหนดเอง",
     "viewSettingsCantBeChangedWhenViewIs": "ไม่สามารถเปลี่ยนการตั้งค่ามุมมองเมื่อมุมมองเป็น {type}",
     "youAreLeavingNocoDB": "คุณกำลังออกจาก NocoDB",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

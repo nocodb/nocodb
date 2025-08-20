@@ -593,7 +593,7 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
   const step = (config) => {
     // End previous step if running
     if (__nc_currentStepId) {
-      originalConsoleLog(createStructuredMessage('${ScriptActionType.WORKFLOW_STEP_END}', { stepId: __nc_currentStepId }));
+      postMessage('${ScriptActionType.WORKFLOW_STEP_END}', { stepId: __nc_currentStepId });
       __nc_currentStepId = null;
     }
     
@@ -620,14 +620,14 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
       if (payload[key] === undefined) delete payload[key];
     });
     
-    originalConsoleLog(createStructuredMessage('${ScriptActionType.WORKFLOW_STEP_START}', payload));
+    postMessage('${ScriptActionType.WORKFLOW_STEP_START}', payload);
     
     return stepId;
   };
   
   const clear = () => {
     if (__nc_currentStepId) {
-      originalConsoleLog(createStructuredMessage('${ScriptActionType.WORKFLOW_STEP_END}', { stepId: __nc_currentStepId }));
+      postMessage('${ScriptActionType.WORKFLOW_STEP_END}', { stepId: __nc_currentStepId });
       __nc_currentStepId = null;
     }
   };
@@ -1934,55 +1934,54 @@ Object.freeze(UITypes);
 
 function generateConsoleOutput(): string {
   return `
-    // Create a structured message format for stdout
-    const createStructuredMessage = (type, payload) => {
-      return JSON.stringify({
-        __nc_sandbox_message__: true,
-        type,
-        payload,
-        timestamp: Date.now()
-      });
-    };
-
+  
+  
     // Override console methods to use structured messages
     const originalConsoleLog = console.log;
-    const originalConsoleError = console.error;
-    const originalConsoleWarn = console.warn;
-    const originalConsoleInfo = console.info;
 
-    console.log = (...args) => {
-      originalConsoleLog(createStructuredMessage('${ScriptActionType.LOG}', { args, stepId: __nc_currentStepId }));
+    const postMessage = (type, payload, stepId = __nc_currentStepId) => {
+      originalConsoleLog(JSON.stringify({
+        type,
+        payload,
+        stepId,
+        timestamp: Date.now()
+      }));
     };
-
-    console.error = (...args) => {
-      originalConsoleError(createStructuredMessage('${ScriptActionType.ERROR}', { args, stepId: __nc_currentStepId }));
-    };
-
-    console.warn = (...args) => {
-      originalConsoleWarn(createStructuredMessage('${ScriptActionType.WARN}', { args, stepId: __nc_currentStepId }));
-    };
-
-    console.info = (...args) => {
-      originalConsoleInfo(createStructuredMessage('${ScriptActionType.LOG}', { args, level: 'info', stepId: __nc_currentStepId }));
-    };
-
-    // Create output object with methods similar to the worker version
+    
+    console.log = (...args) => postMessage('${ScriptActionType.LOG}', { args, stepId: __nc_currentStepId });
+    console.error = (...args) => postMessage('${ScriptActionType.ERROR}', { args, stepId: __nc_currentStepId });
+    console.warn = (...args) => postMessage('${ScriptActionType.WARN}', { args, stepId: __nc_currentStepId });
+    console.info = (...args) => postMessage('${ScriptActionType.LOG}', { args, stepId: __nc_currentStepId });
+    
     const output = {
-      text: (message, type) => {
-        originalConsoleLog(createStructuredMessage('${ScriptActionType.OUTPUT}', { message, type, stepId: __nc_currentStepId }));
-      },
-      markdown: (content) => {
-        originalConsoleLog(createStructuredMessage('${ScriptActionType.MARKDOWN}', { content, stepId: __nc_currentStepId }));
-      },
-      table: (data) => {
-        originalConsoleLog(createStructuredMessage('${ScriptActionType.TABLE}', { data, stepId: __nc_currentStepId }));
-      },
-      clear: () => {
-        originalConsoleLog(createStructuredMessage('${ScriptActionType.CLEAR}', { stepId: __nc_currentStepId }));
-      },
-      inspect: (data) => {
-        originalConsoleLog(createStructuredMessage('${ScriptActionType.INSPECT}', { data, stepId: __nc_currentStepId }));
-      }
+      text: (message, messageType = 'log') => 
+        postMessage('output', { 
+          message: JSON.stringify({ action: '${ScriptActionType.LOG}', args: [message, messageType] }),
+          stepId: __nc_currentStepId 
+        }),
+      
+      markdown: (content) => 
+        postMessage('output', { 
+          message: JSON.stringify({ action: '${ScriptActionType.MARKDOWN}', args: [content] }),
+          stepId: __nc_currentStepId 
+        }),
+      
+      table: (data) => 
+        postMessage('output', { 
+          message: JSON.stringify({ action: '${ScriptActionType.TABLE}', args: [data] }),
+          stepId: __nc_currentStepId 
+        }),
+      
+      clear: () => 
+        postMessage('output', { 
+          message: JSON.stringify({ action: '${ScriptActionType.CLEAR}', args: [] })
+        }),
+      
+      inspect: (data) => 
+        postMessage('output', { 
+          message: JSON.stringify({ action: '${ScriptActionType.INSPECT}', args: [data] }),
+          stepId: __nc_currentStepId 
+        })
     };
   `;
 }
@@ -1996,7 +1995,7 @@ function generateMessageHandler(userCode: string): string {
       } catch (e) {
         console.error(e);
       } finally {
-        originalConsoleLog(createStructuredMessage('${ScriptActionType.DONE}', {}));
+        postMessage('${ScriptActionType.DONE}', {});
       }
   `;
 }

@@ -858,6 +858,7 @@
     "yourBaseRole": "Ваша роль в базе",
     "lockedByUser": "Заблокировано пользователем {user}",
     "thisPageDoesNotExist": "Эта страница не существует",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "Пользовательский URL",
     "viewSettingsCantBeChangedWhenViewIs": "Настройки представления нельзя изменить, когда представление {type}",
     "youAreLeavingNocoDB": "Вы покидаете NocoDB",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

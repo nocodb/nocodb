@@ -13629,7 +13629,6 @@
               "User",
               "CreatedBy",
               "LastModifiedBy",
-              "LastModifiedBy",
               "Meta"
             ],
             "type": "string"

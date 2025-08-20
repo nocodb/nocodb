@@ -984,12 +984,11 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
-    const columns = await Column.list(context, {
-      fk_model_id: col.fk_model_id,
-    });
-
     // get all cross base link columns and delete any lookup/rollup columns
     {
+      const columns = await Column.list(context, {
+        fk_model_id: col.fk_model_id,
+      });
       // check in all cross base link lookup columns
       for (const column of columns) {
         if (!isLinksOrLTAR(column.uidt)) continue;
@@ -1055,30 +1054,6 @@ export default class Column<T = any> implements ColumnType {
             { ...context, base_id: colOptions.fk_related_base_id },
             rollupColumn.fk_column_id,
           );
-        }
-      }
-    }
-
-    // if deleting column is part of a tracked Last modified field
-    // then remove it from tracked list
-    {
-      for (const column of columns) {
-        if (
-          column.uidt !== UITypes.LastModifiedTime &&
-          column.uidt !== UITypes.LastModifiedBy
-        ) {
-          continue;
-        }
-
-        const colOptions = await column.getColOptions<LastModColumnOptions>(
-          context,
-          ncMeta,
-        );
-        if (colOptions?.triggerColumnIds?.includes(id)) {
-          colOptions.triggerColumnIds = colOptions.triggerColumnIds.filter(
-            (triggerId) => triggerId !== id,
-          );
-          await LastModColumn.update(context, column.id, colOptions, ncMeta);
         }
       }
     }

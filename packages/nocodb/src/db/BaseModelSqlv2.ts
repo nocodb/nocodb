@@ -6306,60 +6306,36 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         runAfterForLoop.push(() => {
           if (!updatedColIds.length) return;
 
+          const jsonObjQuery = this.dbDriver.raw('?::jsonb', [
+            JSON.stringify({
+              modifiedBy: cookie?.user?.id,
+              modifiedTime: this.now(),
+            }),
+          ]);
+
           data[column.column_name] = this.dbDriver.raw(
-            `
-            (
-  jsonb_set(
-  jsonb_set(
-    COALESCE(??::jsonb, '{}'::jsonb),          -- ensure base object
-    ARRAY[?::text],                       -- dynamic event key path
+            `COALESCE((:column:)::jsonb, '{}'::jsonb) || ${updatedColIds
+              .map((id) => {
+                const idString = this.dbDriver.raw('?::text', [id]);
+
+                return `jsonb_set(
+    '{}'::jsonb,
+    ARRAY[${idString}],
     (
-      CASE
-        WHEN jsonb_typeof(COALESCE(??::jsonb, '{}'::jsonb)->(?::text)) = 'object'
-          THEN (COALESCE(??::jsonb, '{}'::jsonb)->(?::text))
-        ELSE '{}'::jsonb
-      END
-      || ?::jsonb                         -- merge your patch
-    ),
-    true                                  -- create missing
-  ),
-  '{lastModifiedBy}',
-             (
-               CASE
-                 WHEN jsonb_typeof(COALESCE(??::jsonb, '{}'::jsonb)->'lastModifiedBy') = 'object'
-                   THEN (COALESCE(??::jsonb, '{}'::jsonb)->'lastModifiedBy')
-                 ELSE '{}'::jsonb
-               END
-               || ?::jsonb                -- merge by patch
-             ),
-             true
-           )
-           )
+       COALESCE(COALESCE((:column:)::jsonb, '{}'::jsonb)->(${this.dbDriver.raw(
+         '?',
+         [id],
+       )}::text), '{}'::jsonb))
+       || ${jsonObjQuery})`;
+              })
+              .join(' || ')}
             `,
-            [
-              column.column_name,
-              'lastModifiedTime',
-              column.column_name,
-              'lastModifiedTime',
-              column.column_name,
-              'lastModifiedTime',
-              JSON.stringify(
-                updatedColIds.reduce(
-                  (obj, id) => ({ ...obj, [id]: this.now() }),
-                  {},
-                ),
-              ),
-              column.column_name,
-              column.column_name,
-              JSON.stringify(
-                updatedColIds.reduce(
-                  (obj, id) => ({ ...obj, [id]: cookie?.user?.id }),
-                  {},
-                ),
-              ),
-            ],
+            {
+              column: column.column_name,
+            },
           );
         });
+
         continue;
       }
 

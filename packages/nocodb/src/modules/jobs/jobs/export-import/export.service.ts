@@ -847,7 +847,17 @@ export class ExportService {
                 break;
               case UITypes.Attachment:
                 try {
-                  row[colId] = JSON.stringify(v);
+                  if (typeof v === 'string') {
+                    try {
+                      JSON.parse(v);
+                      // use v if valid JSON
+                      row[colId] = v;
+                    } catch (ex) {
+                      row[colId] = null;
+                    }
+                  } else {
+                    row[colId] = JSON.stringify(v);
+                  }
                 } catch (e) {
                   row[colId] = v;
                 }

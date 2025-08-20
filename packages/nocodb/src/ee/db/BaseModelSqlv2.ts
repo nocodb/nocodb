@@ -100,6 +100,7 @@ import {
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { getProjectRole } from '~/utils/roleHelper';
+import NocoSocket from '~/socket/NocoSocket';
 import { chunkArray } from '~/utils/tsUtils';
 import { singleQueryList as mysqlSingleQueryList } from '~/services/data-opt/mysql-helpers';
 import { Profiler } from '~/helpers/profiler';

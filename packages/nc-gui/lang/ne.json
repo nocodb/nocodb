@@ -858,6 +858,7 @@
     "yourBaseRole": "तपाईंको बेस भूमिका",
     "lockedByUser": "{user} द्वारा लक गरिएको",
     "thisPageDoesNotExist": "यो पृष्ठ अस्तित्वमा छैन",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "अनुकूल URL",
     "viewSettingsCantBeChangedWhenViewIs": "दृश्य {type} हुँदा दृश्य सेटिङ परिवर्तन गर्न सकिँदैन",
     "youAreLeavingNocoDB": "तपाईं NocoDB छोड्दै हुनुहुन्छ",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

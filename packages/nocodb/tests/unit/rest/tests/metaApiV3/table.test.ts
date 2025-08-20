@@ -109,6 +109,31 @@ export default function () {
 
         expect(checkboxField.default_value).to.satisfy((val) => val === 'true' || val === '1' || val === 1);
       });
+
+      it(`will create number column with incorrect options`, async () => {
+        const table = {
+          title: 'Table Number',
+          description: 'Description',
+          fields: [
+            {
+              title: 'Number',
+              type: 'Number',
+              options: {
+                locale_string: true,
+              },
+            },
+          ],
+        };
+
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables`)
+          .set('xc-auth', context.token)
+          .send(table)
+          .expect(400);
+        // console.log('response', JSON.stringify(response.body.details, null, 2))
+
+        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+      });
     });
   });
 }

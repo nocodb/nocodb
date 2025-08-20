@@ -431,12 +431,20 @@ async function onMove(event: any, isVisibleFormFields = false) {
 
   const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === element.fk_column_id)
 
-  if (fieldIndex === -1 || fieldIndex === undefined || !fields.value?.[fieldIndex]) return
+  if (
+    fieldIndex === -1 ||
+    fieldIndex === undefined ||
+    !fields.value?.[fieldIndex] ||
+    (isVisibleFormFields && !visibleColumns.value[newIndex])
+  ) {
+    return
+  }
 
   if (isVisibleFormFields) {
     element = localColumns.value[localColumns.value?.findIndex((c) => c.fk_column_id === element.fk_column_id)]
-    newIndex = localColumns.value.findIndex((c) => c.fk_column_id === visibleColumns.value[newIndex].fk_column_id)
+    newIndex = localColumns.value.findIndex((c) => c.fk_column_id === visibleColumns.value[newIndex]!.fk_column_id)
   }
+
   if (!localColumns.value.length || localColumns.value.length === 1) {
     element.order = 1
   } else if (localColumns.value.length - 1 === newIndex) {
@@ -1323,9 +1331,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                         :disabled="isLocked || !isEditable"
                         @change="onMove($event, true)"
                       >
-                        <template #item="{ element }">
+                        <template #item="{ element, index }">
                           <div
-                            v-if="!isLocked || (isLocked && element?.visible)"
+                            v-show="!isLocked || (isLocked && element?.visible)"
                             :key="element.id"
                             class="nc-editable nc-form-focus-element item relative bg-white p-4 lg:p-6"
                             :class="[
@@ -1385,9 +1393,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 </Transition>
                               </NcTooltip>
                               <div class="text-sm font-semibold text-gray-800">
-                                <span data-testid="nc-form-input-label">
-                                  {{ element.label || element.title }}
-                                </span>
+                                <span data-testid="nc-form-input-label"> {{ index }}. {{ element.label || element.title }} </span>
                                 <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]"
                                   >&nbsp;*</span
                                 >

@@ -858,6 +858,7 @@
     "yourBaseRole": "Din prosjektrolle",
     "lockedByUser": "Låst av {user}",
     "thisPageDoesNotExist": "Denne siden finnes ikke",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "Egendefinert URL",
     "viewSettingsCantBeChangedWhenViewIs": "Visningsinnstillinger kan ikke endres når visningen er {type}",
     "youAreLeavingNocoDB": "Du forlater NocoDB",
@@ -1756,7 +1757,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",

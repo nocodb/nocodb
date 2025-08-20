@@ -329,6 +329,7 @@ export async function validateRollupPayload(
       'rollup_function',
     ],
     payload,
+    context,
   );
 
   const relation = await (
@@ -386,6 +387,7 @@ export async function validateLookupPayload(
   validateParams(
     ['title', 'fk_relation_column_id', 'fk_lookup_column_id'],
     payload,
+    context,
   );
 
   // check for circular reference

@@ -2113,7 +2113,7 @@ export class ColumnsService implements IColumnsService {
         break;
 
       case UITypes.QrCode:
-        validateParams(['fk_qr_value_column_id'], param.column);
+        validateParams(['fk_qr_value_column_id'], param.column, context);
 
         savedColumn = await Column.insert(context, {
           ...colBody,
@@ -2121,7 +2121,7 @@ export class ColumnsService implements IColumnsService {
         });
         break;
       case UITypes.Barcode:
-        validateParams(['fk_barcode_value_column_id'], param.column);
+        validateParams(['fk_barcode_value_column_id'], param.column, context);
 
         savedColumn = await Column.insert(context, {
           ...colBody,
@@ -3686,7 +3686,7 @@ export class ColumnsService implements IColumnsService {
   ) {
     let savedColumn: Column;
 
-    validateParams(['parentId', 'childId', 'type'], param.column);
+    validateParams(['parentId', 'childId', 'type'], param.column, context);
 
     const reuse = param.reuse ?? {};
 

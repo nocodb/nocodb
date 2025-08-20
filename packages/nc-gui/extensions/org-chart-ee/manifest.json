@@ -22,5 +22,5 @@
   "order": 7,
   "disabled": true,
   "beta": true,
-  "minAccessRole": "creator"
+  "minAccessRole": "editor"
 }

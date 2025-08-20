@@ -30,5 +30,5 @@
   "beta": false,
   "disabled": false,
   "showAsBeta": true,
-  "minAccessRole": "creator"
+  "minAccessRole": "editor"
 }

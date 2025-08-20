@@ -127,7 +127,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
               'hover:bg-gray-100 cursor-pointer': !isDisabledUIType(option.name),
               'bg-gray-100 nc-column-list-option-active': activeFieldIndex === index && !isDisabledUIType(option.name),
               '!text-gray-400 cursor-not-allowed': isDisabledUIType(option.name),
-              '!text-nc-content-purple-dark': option.name === 'AIButton' || option.name === 'AIPrompt',
+              '!text-nc-content-purple-dark': [AIButton, AIPrompt].includes(option.name),
             },
           ]"
           :data-testid="option.name"

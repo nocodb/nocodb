@@ -1393,7 +1393,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 </Transition>
                               </NcTooltip>
                               <div class="text-sm font-semibold text-gray-800">
-                                <span data-testid="nc-form-input-label"> {{ index }}. {{ element.label || element.title }} </span>
+                                <span data-testid="nc-form-input-label"> {{ element.label || element.title }} </span>
                                 <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]"
                                   >&nbsp;*</span
                                 >

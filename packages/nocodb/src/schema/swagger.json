@@ -29747,7 +29747,7 @@
       "xc-shared-erd-id": {
         "name": "Shared ERD ID",
         "type": "apiKey",
-        "in": "header",f
+        "in": "header",
         "description": "Shared ERD uuid"
       }
     },

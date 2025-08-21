@@ -40,7 +40,7 @@ export class Timer {
       } catch (ex) {
         this.errorHandler?.(ex);
       }
-    }, this.time).unref();
+    }, this.time);
 
     // Safe unref call
     // need to do this because the typescript is not specific for node, and unref is node-specific

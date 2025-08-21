@@ -117,11 +117,14 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "อัปเกรดเพื่อเพิ่มระเบียนมากขึ้น",
     "upgradeToAddLimitRecordSelection": "หากต้องการจำกัดการเลือกระเบียนด้วยตัวกรอง โปรดอัปเกรดเป็นแผน {plan}",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "อัปเกรดเพื่อเพิ่ม",
     "requestUpgradeToAdd": "ขออัปเกรดเพื่อเพิ่ม",
     "upgradeToAddMoreExtensions": "ขณะนี้คุณใช้แผนฟรี ซึ่งอนุญาตให้ใช้ส่วนขยายได้เพียงหนึ่งรายการ อัปเกรดเพื่อปลดล็อกส่วนขยายไม่จำกัด",
-    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
-    "upgradeToAddMoreDashboards": "You're currently on the Free plan, which allows only one dashboard. Upgrade to unlock unlimited dashboards.",
+    "upgradeToAddMoreScripts": "Upgrade to add more scripts",
+    "upgradeToAddMoreDashboards": "Upgrade to add more dashboards",
+    "upgradeToAddMoreScriptsSubtitle": "You're currently on the Free plan, which allows only one script per workspace. Upgrade to unlock unlimited scripts.",
+    "upgradeToAddMoreDashboardsSubtitle": "You're currently on the Free plan, which allows only one dashboard per workspace. Upgrade to unlock unlimited dashboards.",
     "upgradeToAccessWsAudit": "อัปเกรดเพื่อเข้าถึงการตรวจสอบเวิร์กสเปซ",
     "upgradeToAccessWsAuditSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อเปิดใช้งานบันทึกตรวจสอบเวิร์กสเปซและติดตามกิจกรรมสำคัญได้อย่างมีประสิทธิภาพ",
     "upgradeToAddMoreAttachments": "อัปเกรดเพื่อเพิ่มไฟล์แนบมากขึ้น",
@@ -141,15 +144,15 @@
     "WorkspaceOwnerNotified": "แจ้งเจ้าของเวิร์กสเปซแล้ว",
     "WorkspaceOwnerNotifiedSubtitle": "คำขออัปเกรดของคุณถูกส่งไปยังเจ้าของเวิร์กสเปซแล้ว",
     "failedToSendUpgradeRequest": "ส่งคำขออัปเกรดไม่สำเร็จ",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "อัปเกรดเพื่อปลดล็อกการเข้าถึงข้อมูลทั้งหมด",
+    "upgradeToSeeMoreRecordInline": "อัปเกรดเพื่อดูระเบียนทั้งหมดจากแหล่งข้อมูลภายนอก",
     "upgradeToSeeMoreRecordSubtitle": "ปลดล็อกการมองเห็นแหล่งข้อมูลที่เชื่อมต่อทั้งหมด ดูระเบียนทั้งหมดได้โดยอัปเกรดเป็นแผน Plus",
     "upgradeToSeeMoreRecordInlineSubtitle": "คุณกำลังดู {limit} จาก {total} ระเบียน ปลดล็อกการเข้าถึงอีก {remaining} ระเบียนได้โดยอัปเกรดเป็นแผน Plus",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "แผนฟรีอนุญาตผู้ใช้ประเภท Editor ได้สูงสุด {limit} คน อัปเกรดเพื่อใช้งานได้ไม่จำกัด",
     "adjustCollaboratorRoles": "ปรับบทบาทผู้ร่วมงาน",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -163,9 +166,13 @@
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseDashboards": "Upgrade to use dashboards",
     "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUseDashboardsSubtitle": "Upgrade to the {plan} plan to use dashboards to visualize your data.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
   },
   "general": {
@@ -186,6 +193,7 @@
     "manual": "คู่มือ",
     "trigger": "ทริกเกอร์",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "สไตล์",
     "label": "ป้ายกำกับ",
     "role": "บทบาท",
@@ -381,6 +389,7 @@
     "languages": "ภาษา",
     "extension": "ส่วนขยาย",
     "extensions": "ส่วนขยาย",
+    "actions": "Actions",
     "enable": "เปิดใช้งาน",
     "disable": "ปิดใช้งาน",
     "poweredBy": "ขับเคลื่อนโดย",
@@ -422,7 +431,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "สคริปต์",
@@ -586,6 +596,7 @@
       "Team": "ทีม",
       "Plus": "พลัส",
       "Business": "ธุรกิจ",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "เอนเตอร์ไพรส์"
     },
     "currentPlan": {
@@ -615,7 +626,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -844,14 +861,15 @@
     "yourBaseRole": "บทบาทของคุณในฐาน",
     "lockedByUser": "ล็อกโดย {user}",
     "thisPageDoesNotExist": "หน้านี้ไม่มีอยู่",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "URL กำหนดเอง",
     "viewSettingsCantBeChangedWhenViewIs": "ไม่สามารถเปลี่ยนการตั้งค่ามุมมองเมื่อมุมมองเป็น {type}",
     "youAreLeavingNocoDB": "คุณกำลังออกจาก NocoDB",
     "onlyProceedIfYouTrustThisLink": "ดำเนินการต่อก็ต่อเมื่อคุณเชื่อมั่นในลิงก์นี้",
     "reAssignViewModalSubtitle": "เมื่อมอบหมายใหม่แล้ว เจ้าของปัจจุบันจะไม่สามารถแก้ไขการกำหนดค่ามุมมองได้อีก",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "ความภักดีให้ผลตอบแทน — รับราคาพิเศษคงที่!",
     "loyaltyBannerSubtitle": "ปลดล็อกที่นั่งไม่จำกัด ระเบียนเพิ่มเติม พื้นที่เก็บข้อมูลมากขึ้น เว็บฮุคตามเงื่อนไข SSO การผสานการทำงาน และอื่น ๆ อีกมากมาย!",
     "selectTimezone": "แสดงเขตเวลา",
@@ -872,6 +890,7 @@
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
+    "hideActions": "Hide Actions",
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
@@ -884,10 +903,13 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
+    "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -941,13 +963,14 @@
     "recent": "ล่าสุด",
     "limitRecordSelectionToView": "จำกัดการเลือกเรคคอร์ดตามมุมมอง",
     "limitRecordSelectionToFilters": "จำกัดการเลือกเรคคอร์ดตามตัวกรอง",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "เพิ่มโดย",
     "whatsNew": "มีอะไรใหม่!",
     "newAction": "การดำเนินการใหม่",
     "actionLogs": "บันทึกการดำเนินการ",
     "runScript": "รันสคริปต์",
     "scriptName": "ชื่อสคริปต์",
-    "dashboardName": "ชื่อแดชบอร์ด",
+    "dashboardName": "Dashboard name",
     "enableSnowFall": "เปิดหิมะตก",
     "disableSnowFall": "ปิดหิมะตก",
     "snapshotCreationFailed": "สร้างสแนปช็อตไม่สำเร็จ",
@@ -1266,7 +1289,7 @@
       "joinCommunity": "เข้าร่วมคอมมูนิตี้ของ NocoDB",
       "joinReddit": "เข้าร่วม /r/NocoDB",
       "followNocodb": "ติดตาม NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(แปลโดยชุมชน/AI)"
     },
     "twitter": "Twitter",
     "docReference": "เอกสารอ้างอิง",
@@ -1401,7 +1424,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "เพิ่มจาก URL",
     "enterJson": "ป้อน JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "ฐาน Airtable",
     "useSameTimezoneForAllMembers": "ใช้เขตเวลาเดียวกันสำหรับสมาชิกทุกคน",
     "displayTimezone": "แสดงเขตเวลา",
     "upgradePlan": "อัปเกรดแผน",
@@ -1625,6 +1648,7 @@
     "changePwd": "เปลี่ยนรหัสผ่าน",
     "createView": "สร้างมุมมอง",
     "shareView": "แบ่งปันมุมมอง",
+    "shareDashboard": "Share Dashboard",
     "findRowByCodeScan": "Find row by scan",
     "fillByCodeScan": "กรอกโดยการสแกน",
     "listSharedView": "รายการมุมมองที่ใช้ร่วมกัน",
@@ -1733,7 +1757,13 @@
     "changePlan": "เปลี่ยนแผน",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset",
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1799,14 +1829,19 @@
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
     "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateDashboard": "Navigate to a base to a create dashboard",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewDashboard": "You don't have access to create new dashboard",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "ค้นหาไอคอน",
@@ -1878,6 +1913,7 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
+    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
@@ -1911,6 +1947,7 @@
     "subscribeToOurWeeklyNewsletter": "Subscribe to our weekly newsletter",
     "verifyingPassword": "กำลังตรวจสอบรหัสผ่าน",
     "thisSharedViewIsProtected": "มุมมองที่ใช้ร่วมกันนี้ได้รับการป้องกัน",
+    "thisSharedDashboardIsProtected": "This shared dashboard is protected",
     "successfullySubmittedFormData": "ส่งข้อมูลฟอร์มสำเร็จ",
     "formViewNotSupportedOnMobile": "มุมมองฟอร์มไม่รองรับบนอุปกรณ์เคลื่อนที่",
     "calendarViewNotSupportedOnMobile": "มุมมองปฏิทินไม่ได้รับการสนับสนุนบนมือถือ",
@@ -1954,7 +1991,8 @@
       "columnNotAvailable": "ไม่สามารถใช้งาน คอลัมน์ {columnName}",
       "cantSaveCircularReference": "ไม่สามารถบันทึกฟิลด์เนื่องจากทำให้เกิดการอ้างอิงเวียนวน",
       "columnWithTypeFoundButExpected": "พบคอลัมน์ {columnName} ซึ่งมีประเภท {columnType} แต่ขอประเภท {expectedType}",
-      "columnNotMatchedWithType": "{columnName} ไม่ตรงกับ {columnType}"
+      "columnNotMatchedWithType": "{columnName} ไม่ตรงกับ {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "ตัวเลือกไม่สามารถเป็นค่าว่างได้",
@@ -2163,7 +2201,7 @@
       "addMultipleUsers": "คุณสามารถเพิ่มอีเมลคั่นด้วยเครื่องหมายจุลภาค (,) หลายรายการ",
       "enterTableName": "ป้อนชื่อตาราง",
       "enterScriptName": "กรอกชื่อสคริปต์",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "ป้อนชื่อแดชบอร์ด",
       "enterTableDescription": "ป้อนคำอธิบายตาราง...",
       "enterScriptDescription": "กรอกคำอธิบายสคริปต์...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2241,7 +2279,9 @@
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
+      "matchedByButtonLabel": "Matched by button label",
+      "matchedByFieldDescription": "Matched by field description"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2357,7 +2397,11 @@
       "anErrorOccuredWhileImporting": "เกิดข้อผิดพลาดขณะ {type}",
       "anErrorOccuredWhileAirtableBaseImport": "เกิดข้อผิดพลาดขณะนำเข้าฐานจาก Airtable",
       "paymentFailed": "การชำระเงินล้มเหลว",
-      "paymentFailedSubtitle": "เกิดข้อผิดพลาดระหว่างประมวลผลการชำระเงินของคุณ โปรดลองอีกครั้งหรือติดต่อฝ่ายสนับสนุน"
+      "paymentFailedSubtitle": "เกิดข้อผิดพลาดระหว่างประมวลผลการชำระเงินของคุณ โปรดลองอีกครั้งหรือติดต่อฝ่ายสนับสนุน",
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "ข้อมูลเมตาของโครงการส่งออกเรียบร้อยแล้ว",
@@ -2371,6 +2415,7 @@
       "projInfo": "คัดลอกข้อมูลโครงการไปยังคลิปบอร์ด",
       "inviteUrlCopy": "คัดลอก URL เชิญไปยังคลิปบอร์ด",
       "createView": "ดูสร้างสำเร็จ",
+      "createField": "Field created successfully",
       "formEmailSMTP": "โปรดเปิดใช้งานปลั๊กอิน SMTP ใน App Store เพื่อเปิดใช้งานการแจ้งเตือนทางอีเมล",
       "collabView": "เปลี่ยนไปใช้มุมมองร่วมกันสำเร็จแล้ว",
       "lockedView": "เปลี่ยนเป็นมุมมองที่ล็อคเรียบร้อยแล้ว",
@@ -2428,7 +2473,9 @@
       "paymentSuccessfulSubtitle": "การชำระเงินของคุณได้รับการประมวลผลแล้ว คุณสามารถใช้แผนใหม่ได้ทันที",
       "upgradeSuccessful": "อัปเกรดสำเร็จ",
       "upgradeSuccessfulSubtitle": "การชำระเงินเพื่ออัปเกรดของคุณได้รับการประมวลผลแล้ว คุณสามารถใช้แผนใหม่ได้ทันที",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

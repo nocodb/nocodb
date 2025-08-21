@@ -90,6 +90,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const upgradeWsDlg = ref(false)
   const upgradeWsJobId = ref<string | null>(null)
 
+  const removingCollaboratorMap = ref<Record<string, boolean>>({})
+
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'workspace',
   )
@@ -284,8 +286,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       isInvitingCollaborators.value = false
     }
   }
-
-  const removingCollaboratorMap = ref<Record<string, boolean>>({})
 
   // remove user from workspace
   const removeCollaborator = async (userId: string, workspaceId?: string, onCurrentUserLeftCallback?: () => void) => {

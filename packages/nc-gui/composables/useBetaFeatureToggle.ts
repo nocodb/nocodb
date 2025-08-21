@@ -187,9 +187,8 @@ const FEATURES = [
     id: 'signup_onboarding_flow',
     title: 'Signup Onboarding Flow',
     description: 'Allows user to onboarding flow on signup.',
-    enabled: false,
-    version: 1,
-    isEE: true,
+    enabled: true,
+    version: 2,
   },
 ] as const
 

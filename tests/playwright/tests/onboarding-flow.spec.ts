@@ -1,5 +1,5 @@
 import { test } from '@playwright/test';
-import { OnboardingFlowPage } from '../pages/OnboardingFlow';
+import { OnboardingFlowPage } from '../pages/OnboardingFlowPage';
 
 test.describe('Onboarding Flow', () => {
   let onboardingFlowPage: OnboardingFlowPage;
@@ -22,7 +22,7 @@ test.describe('Onboarding Flow', () => {
 
     test('should skip onboarding flow', async () => {
       // Skip the flow
-      await onboardingFlowPage.skipOnboardingFlow();
+      await onboardingFlowPage.skipOnboardingFlow({ verify: true });
     });
   });
 });

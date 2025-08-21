@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import GroupedSettings from '~/components/smartsheet/dashboard/widgets/common/GroupedSettings.vue'
+import { isIframeUrlAllowed } from '~/components/smartsheet/dashboard/widgets/iframe/utils'
 
 const emit = defineEmits<{
   'update:url': any
 }>()
 
 const { selectedWidget } = storeToRefs(useWidgetStore())
+
+const inputEl = ref(null)
 
 const url = ref(selectedWidget.value?.config?.url || '')
 
@@ -22,7 +25,12 @@ watch(url, () => {
 
 <template>
   <GroupedSettings title="Config">
-    <div class="flex flex-col gap-2">
+    <div
+      :class="{
+        'ant-form-item-has-error': !isIframeUrlAllowed(url),
+      }"
+      class="flex flex-col gap-2"
+    >
       <label class="text-nc-content-gray-emphasis font-medium">URL</label>
       <label class="text-nc-content-gray-subtle2 text-bodySm">
         Important: Only embed URLs from sources you control or completely trust.

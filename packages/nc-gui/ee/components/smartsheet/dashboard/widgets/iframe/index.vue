@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { IframeWidgetType } from 'nocodb-sdk'
+import { isIframeUrlAllowed } from '~/components/smartsheet/dashboard/widgets/iframe/utils'
 
 interface Props {
   widget: IframeWidgetType
@@ -19,6 +20,11 @@ const scriptConfig = computed(() => {
 const isValidUrl = computed(() => {
   try {
     new URL(scriptConfig.value?.url)
+
+    if (!isIframeUrlAllowed(scriptConfig.value?.url)) {
+      return false
+    }
+
     return true
   } catch (e) {
     return false

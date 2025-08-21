@@ -2067,7 +2067,7 @@ export function createSandboxCode(
   record?: any,
   tableId?: string,
   viewId?: string,
-  executionId?: string,
+  _executionId?: string,
 ): string {
   return `  
     import { InternalApi } from 'nc-sdk-v2'

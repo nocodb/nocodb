@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 import DashboardTreeViewDashboardList from './DashboardList.vue'
 
 const props = defineProps<{

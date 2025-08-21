@@ -5,7 +5,6 @@ import {
   getRelatedLinksColumn,
 } from '~/helpers/dbHelpers';
 import { type Column, type LinkToAnotherRecordColumn, Model } from '~/models';
-import { addOrRemoveLinks } from '~/db/BaseModelSqlv2/add-remove-links';
 
 export class NestedLinkPreparator {
   async prepareNestedLinkQb(

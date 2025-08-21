@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ScriptConfig, ScriptConfigItemField, ScriptConfigItemView } from '~/lib/types'
 import { validateConfigValues } from 'nocodb-sdk'
+import type { ScriptConfig, ScriptConfigItemField, ScriptConfigItemView } from '~/lib/types'
 
 interface Props {
   config: ScriptConfig

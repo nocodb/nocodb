@@ -5,6 +5,12 @@ const NOCO_SERVICE_USERS = {
     display_name: 'NocoDB Automation',
     email_verified: true,
   },
+  SYNC_USER: {
+    id: 'usrsync',
+    email: 'sync@nocodb.com',
+    display_name: 'NocoDB Sync',
+    email_verified: true,
+  },
 };
 
 const isAutomationUser = (user: any) => {

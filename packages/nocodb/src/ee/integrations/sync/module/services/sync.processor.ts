@@ -21,9 +21,9 @@ import { Integration, Model, SyncConfig, SyncMapping } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { TablesService } from '~/services/tables.service';
 import { DataTableService } from '~/services/data-table.service';
-import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { ColumnsService } from '~/services/columns.service';
+import { NocoJobsService } from '~/services/noco-jobs.service';
 
 const BATCH_SIZE = 100;
 
@@ -35,8 +35,8 @@ export class SyncModuleSyncDataProcessor {
     protected readonly tablesService: TablesService,
     protected readonly dataTableService: DataTableService,
     protected readonly bulkDataAliasService: BulkDataAliasService,
-    private readonly jobsLogService: JobsLogService,
-    private readonly columnsService: ColumnsService,
+    protected readonly columnsService: ColumnsService,
+    protected readonly nocoJobsService: NocoJobsService,
   ) {}
 
   async pushData(
@@ -328,7 +328,7 @@ export class SyncModuleSyncDataProcessor {
     } = job.data;
 
     const logBasic = (message: string) => {
-      this.jobsLogService.sendLog(job, {
+      this.nocoJobsService.jobsLogService.sendLog(job, {
         message,
       });
     };

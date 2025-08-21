@@ -266,7 +266,13 @@ export default class SyncConfig {
           tz: 'UTC',
         });
 
-        const nextSyncAt = cron.next().toISOString();
+        let nextSyncAt = cron.next().toISOString();
+
+        // if less than 1 hour, set to 1 hour from now
+        if (new Date(nextSyncAt).getTime() - Date.now() < 3600000) {
+          const oneHourFromNow = new Date(Date.now() + 3600000);
+          nextSyncAt = oneHourFromNow.toISOString();
+        }
 
         return nextSyncAt;
       } catch (e) {

@@ -133,7 +133,7 @@ export const JobsModuleMetadata = {
     RecoverDisconnectedTableNames,
     AuditMigration,
   ],
-  exports: ['JobsService'],
+  exports: ['JobsService', JobsLogService],
 };
 
 @Module(JobsModuleMetadata)

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import {
   JobsModule as JobsModuleCE,
   JobsModuleMetadata,
@@ -11,14 +11,14 @@ import { HealthCheckProcessor } from '~/modules/jobs/jobs/health-check.processor
 import { SnapshotController } from '~/modules/jobs/jobs/snapshot/snapshot.controller';
 import { SnapshotProcessor } from '~/modules/jobs/jobs/snapshot/snapshot.processor';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
-import { SyncModuleSyncDataProcessor } from '~/integrations/sync/module/services/sync.processor';
 import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stats.processor';
 import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.processor';
 import { ActionExecutionProcessor } from '~/modules/jobs/jobs/action-execution.processor';
+import { NocoSyncModule } from '~/integrations/sync/module/sync.module';
 
 @Module({
   ...JobsModuleMetadata,
-  imports: [...JobsModuleMetadata.imports],
+  imports: [...JobsModuleMetadata.imports, forwardRef(() => NocoSyncModule)],
   controllers: [
     ...JobsModuleMetadata.controllers,
     WorkerController,
@@ -32,7 +32,6 @@ import { ActionExecutionProcessor } from '~/modules/jobs/jobs/action-execution.p
     CleanUpProcessor,
     SnapshotProcessor,
     RemoteImportService,
-    SyncModuleSyncDataProcessor,
     UpdateUsageStatsProcessor,
     CloudDbMigrateProcessor,
     ActionExecutionProcessor,

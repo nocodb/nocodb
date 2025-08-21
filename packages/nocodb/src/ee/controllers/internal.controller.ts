@@ -231,12 +231,11 @@ export class InternalController extends InternalControllerCE {
           NcError.genericNotFound('SyncConfig', payload.syncConfigId);
         }
 
-        return await this.syncService.triggerSync(
-          context,
-          payload.syncConfigId,
-          payload.bulk,
+        return await this.syncService.triggerSync(context, {
+          syncConfigId: payload.syncConfigId,
+          bulk: payload.bulk,
           req,
-        );
+        });
       case 'updateSync':
         return await this.syncService.updateSync(
           context,

@@ -129,10 +129,6 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       return `${where ? `${where}~and` : ''}${colWhereQuery}`
     })
 
-    const isActionPaneActive = ref(false)
-
-    const actionPaneSize = ref(40)
-
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
 
     const isSyncedTable = computed(() => !!(meta.value as TableType)?.synced)
@@ -212,8 +208,6 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       sqlUi,
       allFilters,
       isDefaultView,
-      actionPaneSize,
-      isActionPaneActive,
       viewColumnsMap,
       getViewColumns,
       isExternalSource,

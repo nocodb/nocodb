@@ -2058,7 +2058,7 @@ export class ImportService {
       skipDuplicates = false,
     } = param;
 
-    const dataHashSet: Set<string> = new Set();
+    const dataHashMap: Map<string, boolean> = new Map();
     const headers: string[] = [];
     let chunk = [];
 
@@ -2124,8 +2124,8 @@ export class ImportService {
               if (skipDuplicates) {
                 // check if the row already exists
                 const rowHash = hash(row);
-                if (!dataHashSet.has(rowHash)) {
-                  dataHashSet.add(rowHash);
+                if (!dataHashMap.has(rowHash)) {
+                  dataHashMap.set(rowHash, true);
                   chunk.push(row);
                 }
               } else {

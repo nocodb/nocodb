@@ -46,8 +46,6 @@ export class ThumbnailGeneratorProcessor {
       return null;
     }
 
-    sharp.concurrency(1);
-
     try {
       const storageAdapter = await NcPluginMgrv2.storageAdapter();
 

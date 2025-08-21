@@ -238,6 +238,9 @@ export const ButtonCellRenderer: CellRenderer = {
       cellRenderStore,
       t,
     } = props
+
+    const isQueued = actionManager.isQueued(pk, column.id!)
+
     const isLoading = actionManager.isLoading(pk, column.id!)
     const afterActionStatus = actionManager.getAfterActionStatus(pk, column.id!)
 
@@ -251,14 +254,14 @@ export const ButtonCellRenderer: CellRenderer = {
       })
     }
 
-    let disabledState = isLoading || disabled?.isInvalid
+    let disabledState = isLoading || disabled?.isInvalid || isQueued
     ctx.textAlign = 'left'
 
     const colOptions = column.colOptions as ButtonType
     if (!colOptions) return
 
     const buttonMeta = {
-      label: colOptions.label || '',
+      label: isQueued ? 'Queued...' : colOptions?.label || '',
       icon: colOptions.icon,
       theme: colOptions.theme || 'solid',
       color: colOptions.color || 'brand',
@@ -294,13 +297,17 @@ export const ButtonCellRenderer: CellRenderer = {
 
     let contentWidth = 0
     let labelWidth = 0
-    let truncatedLabel = buttonMeta.label
 
-    if (hasLabel) {
+    // Show step title when loading, otherwise show button label
+    const currentStepTitle = isLoading ? actionManager.getCurrentStepTitle(pk, column.id!) : undefined
+    let truncatedLabel = currentStepTitle || buttonMeta.label
+
+    if (hasLabel || currentStepTitle) {
       ctx.font = '550 13px Inter'
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
 
-      const truncatedInfo = truncateText(ctx, buttonMeta.label, maxTextWidth, true)
+      const labelToTruncate = currentStepTitle || buttonMeta.label
+      const truncatedInfo = truncateText(ctx, labelToTruncate, maxTextWidth, true)
       truncatedLabel = truncatedInfo.text
       labelWidth = truncatedInfo.width
       contentWidth += labelWidth
@@ -370,7 +377,7 @@ export const ButtonCellRenderer: CellRenderer = {
       contentX += iconSize + (hasLabel ? iconSpacing : 0)
     }
 
-    if (hasLabel) {
+    if (hasLabel || currentStepTitle) {
       ctx.fillStyle = colors.text
       ctx.textBaseline = 'middle'
       ctx.fillText(truncatedLabel, contentX, startY + 13)

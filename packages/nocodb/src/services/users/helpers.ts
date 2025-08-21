@@ -8,6 +8,9 @@ import { NC_REFRESH_TOKEN_EXP_IN_DAYS } from '~/constants';
 export function genJwt(
   user: User & { extra?: Record<string, any> },
   config: NcConfig,
+  jwtOptions: {
+    expiresIn?: string;
+  } = {},
 ) {
   return jwt.sign(
     {
@@ -19,7 +22,7 @@ export function genJwt(
     },
     config.auth.jwt.secret,
     // todo: better typing
-    { expiresIn: '10h', ...(config.auth.jwt.options as any) },
+    { expiresIn: '10h', ...(config.auth.jwt.options as any), ...jwtOptions },
   );
 }
 

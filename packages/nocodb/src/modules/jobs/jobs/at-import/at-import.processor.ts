@@ -618,13 +618,36 @@ export class AtImportProcessor {
           // not supported datatype: pure formula field
           // allow formula based computed fields (created time/ modified time to go through)
           if (ncCol.uidt === UITypes.Formula) {
-            updateMigrationSkipLog(
-              tblSchema[i].name,
-              ncName.title,
-              col.type,
-              'column type not supported yet',
-            );
-            continue;
+            if (!syncDB.options.syncFormula) {
+              updateMigrationSkipLog(
+                tblSchema[i].name,
+                ncName.title,
+                col.type,
+                'column type not supported yet',
+              );
+              continue;
+            } else {
+              ncCol.formula = '""';
+              ncCol.formula_raw = '""';
+
+              let formulaTextParsed = col.typeOptions?.formulaTextParsed || '';
+              // Replace any column_*_fldId pattern with the corresponding column title
+              formulaTextParsed = formulaTextParsed.replace(
+                /{column_[^{}]*?_(fld[a-zA-Z0-9]+)}/g,
+                (match, fldId) => {
+                  const colSchema = aTbl_getColumnName(fldId);
+                  return colSchema ? `{${colSchema.cn}}` : match;
+                },
+              );
+              formulaTextParsed = formulaTextParsed.replace(
+                /column_[^{}]*?_(fld[a-zA-Z0-9]+)/g,
+                (match, fldId) => {
+                  const colSchema = aTbl_getColumnName(fldId);
+                  return colSchema ? `{${colSchema.cn}}` : match;
+                },
+              );
+              ncCol.description = formulaTextParsed;
+            }
           }
 
           // not supported datatype: pure button field
@@ -1491,12 +1514,13 @@ export class AtImportProcessor {
         // retrieve datatype
         const dt = table.columns.find((x) => x.title === key)?.uidt;
 
-        // always process LTAR, Lookup, and Rollup columns as we delete the key after processing
+        // always process LTAR, Lookup, Formula and Rollup columns as we delete the key after processing
         if (
           !value &&
           !isLinksOrLTAR(dt) &&
           dt !== UITypes.Lookup &&
-          dt !== UITypes.Rollup
+          dt !== UITypes.Rollup &&
+          dt !== UITypes.Formula
         ) {
           rec[key] = null;
           continue;
@@ -1639,6 +1663,11 @@ export class AtImportProcessor {
           case UITypes.LongText:
             // eslint-disable-next-line no-control-regex
             rec[key] = value.replace(/\u0000/g, '');
+            break;
+
+          case UITypes.Formula:
+            // we need to delete to avoid writing
+            delete rec[key];
             break;
 
           default:

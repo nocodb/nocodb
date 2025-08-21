@@ -142,7 +142,8 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     query,
     tableId,
     viewId,
-    replace,
+    replace = false,
+    newTab = false,
   }: {
     workspaceId?: string
     baseId?: string
@@ -150,6 +151,7 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     tableId?: string
     viewId?: string
     replace?: boolean
+    newTab?: boolean
   }) => {
     const tablePath = tableId ? `/${tableId}${viewId ? `/${viewId}` : ''}` : ''
     const workspaceId = _workspaceId || 'nc'
@@ -163,10 +165,14 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
       path = `/${workspaceId}${queryParams}`
     }
 
-    return navigateTo({
-      path,
-      replace,
-    })
+    if (newTab) {
+      window.open(`${window.location.origin}#${path}`, '_blank')
+    } else {
+      return navigateTo({
+        path,
+        replace,
+      })
+    }
   }
 
   const getBaseUrl = (workspaceId: string) => {

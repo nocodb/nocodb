@@ -1,5 +1,22 @@
 import type { Api, ButtonType, TableType } from 'nocodb-sdk'
 
+interface ActionState {
+  status: 'loading' | 'success' | 'error' | 'queued'
+  startTime?: number
+  stepTitle?: string
+  error?: string
+}
+
+interface BulkRowState extends ActionState {
+  status: 'queued' | 'loading' | 'success' | 'error'
+}
+
+interface CellUpdate {
+  fieldName: string
+  scriptExecutionId: string
+  startTime: number
+}
+
 export class ActionManager {
   private api: Api<any>
   private readonly loadAutomation: (id: string) => Promise<any>
@@ -14,6 +31,17 @@ export class ActionManager {
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
 
+  private eventBus?: any
+
+  // Consolidated state maps
+  private loadingColumns = new Map<string, number>()
+  private afterActionStatus = new Map<string, Omit<ActionState, 'startTime'>>()
+  private currentStepTitles = new Map<string, string>()
+  private cellUpdates = new Map<string, CellUpdate>()
+  private activeBulkExecs = new Map<string, boolean>()
+  private bulkRowStates = new Map<string, BulkRowState>()
+  private rafId: number | null = null
+
   constructor(
     api: Api<any>,
     loadAutomation: (id: string) => Promise<any>,
@@ -27,6 +55,7 @@ export class ActionManager {
       selectedRows: ComputedRef<Array<Row>>
       isRowSortRequiredRows: ComputedRef<Array<Row>>
     },
+    eventBus?: any,
   ) {
     this.api = api
     this.loadAutomation = loadAutomation
@@ -34,22 +63,82 @@ export class ActionManager {
     this.meta = meta
     this.triggerRefreshCanvas = triggerRefreshCanvas
     this.getDataCache = getDataCache
+    this.eventBus = eventBus
+
+    this.setupEventListeners()
   }
 
-  // key is rowId-columnId, value is startTime
-  private loadingColumns = new Map<string, number>()
-  private afterActionStatus = new Map<
-    string,
-    {
-      status: 'success' | 'error'
-      tooltip?: string
-    }
-  >()
+  private setupEventListeners() {
+    if (!this.eventBus) return
 
-  private rafId: number | null = null
+    const eventHandlers = {
+      [SmartsheetScriptActions.BULK_ACTION_START]: (payload: any) => {
+        this.activeBulkExecs.set(payload.columnId, true)
+        this.startAnimationLoop()
+      },
+      [SmartsheetScriptActions.BULK_ACTION_END]: (payload: any) => {
+        if (payload.columnId) {
+          this.activeBulkExecs.delete(payload.columnId)
+          this.clearBulkRowStatesForColumn(payload.columnId)
+        }
+      },
+      [SmartsheetScriptActions.BUTTON_ACTION_START]: (payload: any) => {
+        this.setBulkRowState(payload.rowId, payload.columnId, {
+          status: 'loading',
+          startTime: Date.now(),
+          stepTitle: payload.stepTitle,
+        })
+      },
+      [SmartsheetScriptActions.BUTTON_ACTION_PROGRESS]: (payload: any) => {
+        console.log('BUTTON_ACTION_PROGRESS', payload)
+        const rowState = this.getBulkRowState(payload.rowId, payload.columnId)
+        if (rowState) {
+          this.setBulkRowState(payload.rowId, payload.columnId, {
+            ...rowState,
+            stepTitle: payload.stepTitle,
+          })
+        }
+      },
+      [SmartsheetScriptActions.BUTTON_ACTION_COMPLETE]: (payload: any) => {
+        this.setBulkRowState(payload.rowId, payload.columnId, {
+          status: payload.success ? 'success' : 'error',
+          error: payload.error,
+        })
+      },
+      [SmartsheetScriptActions.BUTTON_ACTION_ERROR]: (payload: any) => {
+        this.setBulkRowState(payload.rowId, payload.columnId, {
+          status: 'error',
+          error: payload.error,
+        })
+      },
+      [SmartsheetScriptActions.UPDATE_STEP_TITLE]: (payload: any) => {
+        this.setCurrentStepTitle(payload.pk, payload.fieldId, payload.title)
+      },
+      [SmartsheetScriptActions.START_CELL_UPDATE]: (payload: any) => {
+        this.startCellUpdate(payload.recordId, payload.fieldId, payload.fieldName, payload.scriptId)
+      },
+      [SmartsheetScriptActions.COMPLETE_CELL_UPDATE]: (payload: any) => {
+        this.completeCellUpdate(payload.recordId, payload.fieldId)
+      },
+      [SmartsheetScriptActions.CLEAR_SCRIPT_CELL_UPDATES]: (payload: any) => {
+        this.clearScriptCellUpdates(payload.scriptId)
+      },
+    }
+
+    this.eventBus.on((event: string, payload: any) => {
+      eventHandlers[event]?.(payload)
+    })
+  }
 
   private getKey(rowId: string, columnId: string): string {
     return `${rowId}-${columnId}`
+  }
+
+  private updateRowStates(rowIds: string[], columnId: string, affectedColumnIds: string[], updateFn: (key: string) => void) {
+    rowIds.forEach((rowId) => {
+      updateFn(this.getKey(rowId, columnId))
+      affectedColumnIds.forEach((colId) => updateFn(this.getKey(rowId, colId)))
+    })
   }
 
   private async executeAction(
@@ -59,124 +148,115 @@ export class ActionManager {
     action: () => Promise<any>,
   ) {
     const startTime = Date.now()
-
     const rowIds = Array.isArray(rowId) ? rowId : [rowId]
 
-    rowIds.forEach((id) => {
-      this.loadingColumns.set(this.getKey(id, columnId), startTime)
-
-      // If action is triggered again, clear after action status
-      this.afterActionStatus.delete(this.getKey(id, columnId))
-
-      affectedColumnIds.forEach((colId) => {
-        this.loadingColumns.set(this.getKey(id, colId), startTime)
-
-        // If action is triggered again, clear after action status
-        this.afterActionStatus.delete(this.getKey(id, columnId))
-      })
+    // Set loading state
+    this.updateRowStates(rowIds, columnId, affectedColumnIds, (key) => {
+      this.loadingColumns.set(key, startTime)
+      this.afterActionStatus.delete(key)
     })
 
     this.startAnimationLoop()
 
-    let isErrorOccured = false
-
     try {
       const res = await action()
 
-      rowIds.forEach((id) => {
-        this.afterActionStatus.set(this.getKey(id, columnId), { status: 'success' })
-
-        affectedColumnIds.forEach((colId) => {
-          this.afterActionStatus.set(this.getKey(id, colId), { status: 'success' })
-        })
+      // Set success state
+      this.updateRowStates(rowIds, columnId, affectedColumnIds, (key) => {
+        this.afterActionStatus.set(key, { status: 'success' })
       })
 
       return res
     } catch (e: any) {
-      isErrorOccured = true
-
       const errorMsg = await extractSdkResponseErrorMsg(e)
-      rowIds.forEach((id) => {
-        this.afterActionStatus.set(this.getKey(id, columnId), { status: 'error', tooltip: errorMsg ?? 'Something went wrong' })
 
-        affectedColumnIds.forEach((colId) => {
-          this.afterActionStatus.set(this.getKey(id, colId), { status: 'error', tooltip: errorMsg ?? 'Something went wrong' })
+      // Set error state
+      this.updateRowStates(rowIds, columnId, affectedColumnIds, (key) => {
+        this.afterActionStatus.set(key, {
+          status: 'error',
+          tooltip: errorMsg ?? 'Something went wrong',
         })
       })
 
       throw e
     } finally {
-      rowIds.forEach((id) => {
-        this.loadingColumns.delete(this.getKey(id, columnId))
-
-        affectedColumnIds.forEach((colId) => {
-          this.loadingColumns.delete(this.getKey(id, colId))
-        })
+      // Clean up loading state
+      this.updateRowStates(rowIds, columnId, affectedColumnIds, (key) => {
+        this.loadingColumns.delete(key)
+        this.currentStepTitles.delete(key)
       })
 
-      // Remove error columns after 3 seconds if error occured, otherwise after 2 seconds
-      ncDelay(isErrorOccured ? 3000 : 2000).then(() => {
-        rowIds.forEach((id) => {
-          this.afterActionStatus.delete(this.getKey(id, columnId))
-
-          affectedColumnIds.forEach((colId) => {
-            this.afterActionStatus.delete(this.getKey(id, colId))
-          })
+      // Clean up after action status with delay
+      const isError = this.afterActionStatus.get(this.getKey(rowIds[0], columnId))?.status === 'error'
+      ncDelay(isError ? 3000 : 2000).then(() => {
+        this.updateRowStates(rowIds, columnId, affectedColumnIds, (key) => {
+          this.afterActionStatus.delete(key)
         })
       })
     }
   }
 
   private startAnimationLoop() {
-    if (this.rafId === null && (this.loadingColumns.size > 0 || this.afterActionStatus.size > 0)) {
-      let cooldownTimeout: number | null = null
-      let isCoolingDown = false
+    const hasActivity = this.loadingColumns.size > 0 || this.afterActionStatus.size > 0 || this.activeBulkExecs.size > 0
 
-      const animate = () => {
-        if ((this.loadingColumns.size > 0 || this.afterActionStatus.size > 0) && cooldownTimeout) {
+    if (this.rafId !== null || !hasActivity) return
+
+    let cooldownTimeout: number | null = null
+    let isCoolingDown = false
+
+    const animate = () => {
+      const currentActivity = this.loadingColumns.size > 0 || this.afterActionStatus.size > 0 || this.activeBulkExecs.size > 0
+
+      if (currentActivity) {
+        if (cooldownTimeout) {
           clearTimeout(cooldownTimeout)
           cooldownTimeout = null
           isCoolingDown = false
         }
+        this.triggerRefreshCanvas()
+        this.rafId = requestAnimationFrame(animate)
+      } else if (!isCoolingDown) {
+        isCoolingDown = true
+        this.triggerRefreshCanvas()
 
-        if (this.loadingColumns.size > 0 || this.afterActionStatus.size > 0) {
-          this.triggerRefreshCanvas()
-          this.rafId = requestAnimationFrame(animate)
-        } else if (!isCoolingDown) {
-          isCoolingDown = true
-          this.triggerRefreshCanvas()
+        cooldownTimeout = window.setTimeout(() => {
+          if (this.rafId) {
+            cancelAnimationFrame(this.rafId)
+            this.rafId = null
+          }
+          cooldownTimeout = null
+          isCoolingDown = false
+        }, 1000)
 
-          cooldownTimeout = window.setTimeout(() => {
-            if (this.rafId) {
-              cancelAnimationFrame(this.rafId)
-              this.rafId = null
-            }
-            cooldownTimeout = null
-            isCoolingDown = false
-          }, 1000)
-
-          this.rafId = requestAnimationFrame(() => {
-            this.triggerRefreshCanvas()
-          })
-        }
+        this.rafId = requestAnimationFrame(() => this.triggerRefreshCanvas())
       }
+    }
 
-      this.rafId = requestAnimationFrame(animate)
+    this.rafId = requestAnimationFrame(animate)
+  }
+
+  private handleUrl(colOptions: any, url: string, allowLocalUrl: boolean = false) {
+    if (!url) return
+
+    try {
+      url = addMissingUrlSchma(url)
+      url = decodeURI(url) === url ? encodeURI(url) : url
+      confirmPageLeavingRedirect(url, '_blank', allowLocalUrl)
+    } catch {
+      confirmPageLeavingRedirect(encodeURI(url), '_blank', allowLocalUrl)
     }
   }
 
-  private handleUrl(colOptions: any, url: string, allowLocalUrl: boolean) {
-    url = addMissingUrlSchma(url)
+  private getRecordDisplayValue(row?: Record<string, any>): string {
+    if (!row?.row) return ''
 
-    try {
-      url = decodeURI(url) === url ? encodeURI(url) : url
-    } catch {
-      url = encodeURI(url)
+    const displayField = this.meta.value?.columns?.find((col) => col.pv || col.pk)
+    if (displayField?.title && row.row[displayField.title]) {
+      return String(row.row[displayField.title])
     }
 
-    if (url) {
-      confirmPageLeavingRedirect(url, '_blank', allowLocalUrl)
-    }
+    const firstValue = Object.values(row.row).find((val) => val !== null && val !== undefined && val !== '')
+    return firstValue ? String(firstValue) : ''
   }
 
   async executeButtonAction(
@@ -185,79 +265,93 @@ export class ActionManager {
     extra: {
       row?: Row[]
       isAiPromptCol?: boolean
-      path: Array<number>
+      path?: Array<number>
       allowLocalUrl?: boolean
-    },
+    } = {},
   ) {
     const colOptions = column?.columnObj.colOptions as ButtonType
-    if (!colOptions) return
+    if (!colOptions || column.isInvalidColumn?.isInvalid) return
 
-    if (!extra.path) {
-      extra.path = []
-    }
-
+    extra.path = extra.path || []
     const { cachedRows } = this.getDataCache(extra.path)
 
-    if (column.isInvalidColumn?.isInvalid) {
-      return
-    }
-
-    if (extra?.isAiPromptCol) {
+    if (extra.isAiPromptCol) {
       colOptions.type = 'ai'
     }
 
-    const { runScript } = useScriptExecutor()
+    const { runScript, activeExecutions } = useScriptExecutor()
+    const { addScriptExecution } = useActionPane()
 
     try {
       switch (colOptions.type) {
         case 'url': {
-          const value = extra?.row?.[0]?.row?.[column.columnObj.title]
+          const value = extra.row?.[0]?.row?.[column.columnObj.title]
           this.handleUrl(colOptions, value?.url?.toString() ?? '', extra.allowLocalUrl)
           break
         }
+
         case 'webhook': {
           const webhookId = colOptions.fk_webhook_id
           if (!webhookId) throw new Error('No webhook configured')
 
           for (const rowId of rowIds) {
-            await this.executeAction(rowId, column.id, [], async () => {
-              await this.api.dbTableWebhook.trigger(webhookId, rowId)
-            })
+            await this.executeAction(rowId, column.id, [], () => this.api.dbTableWebhook.trigger(webhookId, rowId))
           }
           break
         }
+
         case 'script': {
           const script = await this.loadAutomation(colOptions.fk_script_id)
+
           for (let i = 0; i < rowIds.length; i++) {
-            this.executeAction(rowIds[i]!, column.id, [], async () => {
-              await runScript(script, extra?.row?.[i], {
-                pk: rowIds[i]!,
+            const rowId = rowIds[i]!
+            const row = extra.row?.[i]
+            const displayValue = this.getRecordDisplayValue(row) || `Record ${rowId}`
+
+            await this.executeAction(rowId, column.id, [], async () => {
+              const scriptExecutionId = await runScript(script, row, {
+                pk: rowId,
                 fieldId: column.columnObj.id!,
+                executionId: `${rowId}-${column.columnObj.id!}-${Date.now()}`,
+              })
+
+              addScriptExecution(scriptExecutionId, {
+                recordId: rowId,
+                displayValue,
+                scriptId: script.id!,
+                scriptName: script.title || 'Untitled Script',
+                buttonFieldName: column.columnObj.title || 'Button',
+              })
+
+              await pollUntil(() => {
+                const execution = activeExecutions.value.get(scriptExecutionId)
+                return execution?.status === 'finished' || execution?.status === 'error'
               })
             })
           }
           break
         }
+
         case 'ai': {
-          const outputColumnIds = extra?.isAiPromptCol
+          const outputColumnIds = extra.isAiPromptCol
             ? [column.id]
             : colOptions.output_column_ids?.split(',').filter(Boolean) || []
+
           const outputColumns = outputColumnIds.map((id) => this.meta.value?.columnsById[id])
 
           await this.executeAction(rowIds, column.id, outputColumnIds, async () => {
             const res = await this.generateRows(column.id, rowIds)
 
             if (res?.length) {
-              for (let i = 0; i < res.length; i++) {
-                const row = cachedRows.value.get(extra?.row?.[i]?.rowMeta?.rowIndex)
+              res.forEach((data, i) => {
+                const row = cachedRows.value.get(extra.row?.[i]?.rowMeta?.rowIndex)
                 if (row) {
-                  const data = res[i]
-                  for (const col of outputColumns) {
-                    row.row[col.title] = data[col.title]
-                  }
-                  cachedRows.value.set(extra?.row?.[i]?.rowMeta?.rowIndex, row)
+                  outputColumns.forEach((col) => {
+                    if (col?.title) row.row[col.title] = data[col.title]
+                  })
+                  cachedRows.value.set(extra.row[i]?.rowMeta?.rowIndex, row)
                 }
-              }
+              })
             }
           })
           break
@@ -268,19 +362,108 @@ export class ActionManager {
     }
   }
 
+  // Public state query methods
   isLoading(rowId: string, columnId: string): boolean {
-    return this.loadingColumns.has(this.getKey(rowId, columnId))
+    const key = this.getKey(rowId, columnId)
+    return this.loadingColumns.has(key) || this.getBulkRowState(rowId, columnId)?.status === 'loading'
   }
 
   getLoadingStartTime(rowId: string, columnId: string): number | null {
-    return this.loadingColumns.get(this.getKey(rowId, columnId)) ?? null
+    const key = this.getKey(rowId, columnId)
+    return this.loadingColumns.get(key) ?? this.getBulkRowState(rowId, columnId)?.startTime ?? null
   }
 
   getAfterActionStatus(rowId: string, columnId: string) {
-    return this.afterActionStatus.get(this.getKey(rowId, columnId))
+    const key = this.getKey(rowId, columnId)
+    const directStatus = this.afterActionStatus.get(key)
+
+    if (directStatus) return directStatus
+
+    const bulkState = this.getBulkRowState(rowId, columnId)
+    if (bulkState?.status === 'success') return { status: 'success' as const }
+    if (bulkState?.status === 'error') {
+      return { status: 'error' as const, tooltip: bulkState.error ?? 'Something went wrong' }
+    }
+
+    return undefined
+  }
+
+  isQueued(rowId: string, columnId: string): boolean {
+    return this.isBulkExecutionRunning(columnId) && !this.bulkRowStates.has(this.getKey(rowId, columnId))
+  }
+
+  getCurrentStepTitle(rowId: string, columnId: string): string | undefined {
+    const key = this.getKey(rowId, columnId)
+    return this.getBulkRowState(rowId, columnId)?.stepTitle ?? this.currentStepTitles.get(key)
+  }
+
+  setCurrentStepTitle(rowId: string, columnId: string, title: string) {
+    this.currentStepTitles.set(this.getKey(rowId, columnId), title)
+  }
+
+  clearCurrentStepTitle(rowId: string, columnId: string) {
+    this.currentStepTitles.delete(this.getKey(rowId, columnId))
+  }
+
+  // Cell update methods
+  startCellUpdate(recordId: string, fieldId: string, fieldName: string, scriptExecutionId: string) {
+    this.cellUpdates.set(`${recordId}:${fieldId}`, {
+      fieldName,
+      scriptExecutionId,
+      startTime: Date.now(),
+    })
+  }
+
+  completeCellUpdate(recordId: string, fieldId: string) {
+    this.cellUpdates.delete(`${recordId}:${fieldId}`)
+  }
+
+  getCellUpdateStartTime(recordId: string, fieldId: string): number | null {
+    return this.cellUpdates.get(`${recordId}:${fieldId}`)?.startTime ?? null
+  }
+
+  isCellUpdating(recordId: string, fieldId: string): boolean {
+    return this.cellUpdates.has(`${recordId}:${fieldId}`)
+  }
+
+  clearScriptCellUpdates(scriptExecutionId: string) {
+    for (const [key, value] of this.cellUpdates.entries()) {
+      if (value.scriptExecutionId === scriptExecutionId) {
+        this.cellUpdates.delete(key)
+      }
+    }
+  }
+
+  // Bulk execution methods
+  isBulkExecutionRunning(columnId: string): boolean {
+    return this.activeBulkExecs.get(columnId) ?? false
+  }
+
+  getBulkRowState(rowId: string, columnId: string): BulkRowState | undefined {
+    return this.bulkRowStates.get(this.getKey(rowId, columnId))
+  }
+
+  setBulkRowState(rowId: string, columnId: string, state: BulkRowState) {
+    this.bulkRowStates.set(this.getKey(rowId, columnId), state)
+  }
+
+  clearBulkRowState(rowId: string, columnId: string) {
+    this.bulkRowStates.delete(this.getKey(rowId, columnId))
+  }
+
+  clearBulkRowStatesForColumn(columnId: string) {
+    for (const [key] of this.bulkRowStates.entries()) {
+      if (key.endsWith(`-${columnId}`)) {
+        this.bulkRowStates.delete(key)
+      }
+    }
   }
 
   clear() {
     this.loadingColumns.clear()
+    this.currentStepTitles.clear()
+    this.cellUpdates.clear()
+    this.activeBulkExecs.clear()
+    this.bulkRowStates.clear()
   }
 }

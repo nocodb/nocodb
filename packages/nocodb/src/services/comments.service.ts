@@ -147,7 +147,7 @@ export class CommentsService {
     });
 
     const model = await Model.getByIdOrName(context, {
-      id: param.body.fk_model_id,
+      id: comment.fk_model_id,
     });
 
     const base = await Base.getByTitleOrId(context, model.base_id);

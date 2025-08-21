@@ -186,3 +186,22 @@ export function waitForCondition(conditionFn: () => unknown, interval: number = 
     check()
   })
 }
+
+export const pollUntil = <T>(conditionFn: () => T | null | undefined | false, interval: number = 100): Promise<T> => {
+  return new Promise((resolve, reject) => {
+    const check = () => {
+      try {
+        const result = conditionFn()
+        if (result) {
+          resolve(result)
+        } else {
+          setTimeout(check, interval)
+        }
+      } catch (error) {
+        reject(error)
+      }
+    }
+
+    check()
+  })
+}

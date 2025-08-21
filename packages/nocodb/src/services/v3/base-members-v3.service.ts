@@ -85,7 +85,7 @@ export class BaseMembersV3Service {
       for (const baseUser of param.baseMembers) {
         let user: User;
         let userEmail: string;
-        
+
         if ('user_id' in baseUser && baseUser.user_id) {
           user = await User.get(baseUser.user_id, ncMeta);
           if (!user) {

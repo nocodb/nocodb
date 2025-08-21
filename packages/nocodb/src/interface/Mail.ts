@@ -130,4 +130,11 @@ type MailParams =
       payload: FormSubmissionPayload;
     };
 
-export { MailEvent, MailParams, FormSubmissionPayload };
+interface RawMailParams {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+}
+
+export { MailEvent, MailParams, FormSubmissionPayload, RawMailParams };

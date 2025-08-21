@@ -117,11 +117,14 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "قم بالترقية لإضافة المزيد من السجلات",
     "upgradeToAddLimitRecordSelection": "للحد من اختيار السجلات باستخدام عوامل التصفية، يرجى الترقية إلى خطة {plan}.",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "Upgrade to add",
     "requestUpgradeToAdd": "طلب الترقية للإضافة",
     "upgradeToAddMoreExtensions": "أنت حالياً على الخطة المجانية، والتي تسمح بإضافة امتداد واحد فقط. قم بالترقية لفتح عدد غير محدود من الامتدادات.",
-    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
-    "upgradeToAddMoreDashboards": "You're currently on the Free plan, which allows only one dashboard. Upgrade to unlock unlimited dashboards.",
+    "upgradeToAddMoreScripts": "Upgrade to add more scripts",
+    "upgradeToAddMoreDashboards": "Upgrade to add more dashboards",
+    "upgradeToAddMoreScriptsSubtitle": "You're currently on the Free plan, which allows only one script per workspace. Upgrade to unlock unlimited scripts.",
+    "upgradeToAddMoreDashboardsSubtitle": "You're currently on the Free plan, which allows only one dashboard per workspace. Upgrade to unlock unlimited dashboards.",
     "upgradeToAccessWsAudit": "قم بالترقية للوصول إلى تدقيق مساحة العمل",
     "upgradeToAccessWsAuditSubtitle": "Upgrade to the {plan} plan to enable workspace audit logs and efficiently monitor key activities.",
     "upgradeToAddMoreAttachments": "قم بالترقية لإضافة المزيد من الملفات المرفقة",
@@ -163,9 +166,13 @@
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseDashboards": "Upgrade to use dashboards",
     "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUseDashboardsSubtitle": "Upgrade to the {plan} plan to use dashboards to visualize your data.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
   },
   "general": {
@@ -186,6 +193,7 @@
     "manual": "يدوي",
     "trigger": "مشغل",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "النمط",
     "label": "تسمية",
     "role": "دور",
@@ -381,6 +389,7 @@
     "languages": "اللغات",
     "extension": "الامتداد",
     "extensions": "الامتدادات",
+    "actions": "Actions",
     "enable": "تفعيل",
     "disable": "تعطيل",
     "poweredBy": "مشغّل بواسطة",
@@ -422,7 +431,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "سكربت",
@@ -586,6 +596,7 @@
       "Team": "فريق",
       "Plus": "بلس",
       "Business": "أعمال",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "مؤسسة"
     },
     "currentPlan": {
@@ -615,7 +626,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -844,14 +861,15 @@
     "yourBaseRole": "دورك في القاعدة",
     "lockedByUser": "مقفل بواسطة {user}",
     "thisPageDoesNotExist": "هذه الصفحة غير موجودة",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "رابط مخصص",
     "viewSettingsCantBeChangedWhenViewIs": "لا يمكن تغيير إعدادات العرض عندما يكون العرض {type}",
     "youAreLeavingNocoDB": "أنت تغادر NocoDB",
     "onlyProceedIfYouTrustThisLink": "تابع فقط إذا كنت تثق بهذا الرابط.",
     "reAssignViewModalSubtitle": "عند إعادة التعيين، لن يتمكن المالك الحالي من تحرير تكوين العرض.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "الولاء يؤتي ثماره — استمتع بأسعار محددة!",
     "loyaltyBannerSubtitle": "افتح مقاعد غير محدودة، سجلات إضافية، سعة تخزين أكبر، Webhooks شرطية، SSO، تكاملات، والمزيد!",
     "selectTimezone": "عرض المنطقة الزمنية",
@@ -872,6 +890,7 @@
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
+    "hideActions": "Hide Actions",
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
@@ -884,10 +903,13 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
+    "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -941,13 +963,14 @@
     "recent": "الأخيرة",
     "limitRecordSelectionToView": "تقييد اختيار السجلات إلى عرض",
     "limitRecordSelectionToFilters": "تقييد اختيار السجلات إلى فلاتر",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "أُضيف بواسطة",
     "whatsNew": "ما الجديد!",
     "newAction": "إجراء جديد",
     "actionLogs": "سجلات الإجراءات",
     "runScript": "تشغيل السكربت",
     "scriptName": "اسم السكربت",
-    "dashboardName": "اسم لوحة القيادة",
+    "dashboardName": "Dashboard name",
     "enableSnowFall": "تفعيل تساقط الثلوج",
     "disableSnowFall": "تعطيل تساقط الثلوج",
     "snapshotCreationFailed": "فشل إنشاء اللقطة",
@@ -1266,7 +1289,7 @@
       "joinCommunity": "انضم إلى مجتمع NocoDB",
       "joinReddit": "انضم إلى /r/NocodB",
       "followNocodb": "تابع NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(مترجم بواسطة المجتمع/الذكاء الاصطناعي)"
     },
     "twitter": "تويتر",
     "docReference": "مرجع الوثيقة",
@@ -1401,7 +1424,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "إضافة من رابط",
     "enterJson": "أدخل JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "قاعدة Airtable",
     "useSameTimezoneForAllMembers": "استخدم نفس المنطقة الزمنية لجميع الأعضاء",
     "displayTimezone": "عرض المنطقة الزمنية",
     "upgradePlan": "ترقية الخطة",
@@ -1625,6 +1648,7 @@
     "changePwd": "تغيير كلمة المرور",
     "createView": "إنشاء طريقة عرض",
     "shareView": "مشاركة عرض",
+    "shareDashboard": "Share Dashboard",
     "findRowByCodeScan": "Find row by scan",
     "fillByCodeScan": "التعبئة عن طريق المسح",
     "listSharedView": "قائمة العرض المشتركة",
@@ -1733,7 +1757,13 @@
     "changePlan": "تغيير الخطة",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset",
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1799,14 +1829,19 @@
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
     "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateDashboard": "Navigate to a base to a create dashboard",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewDashboard": "You don't have access to create new dashboard",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "البحث عن الأيقونات",
@@ -1878,6 +1913,7 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
+    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
@@ -1911,6 +1947,7 @@
     "subscribeToOurWeeklyNewsletter": "اشترك في نشرتنا الإخبارية الأسبوعية",
     "verifyingPassword": "التحقق من كلمة المرور",
     "thisSharedViewIsProtected": "هذا العرض المشترك محمي",
+    "thisSharedDashboardIsProtected": "This shared dashboard is protected",
     "successfullySubmittedFormData": "تم إرسال بيانات النموذج بنجاح",
     "formViewNotSupportedOnMobile": "عرض النموذج غير مدعوم على الجوال",
     "calendarViewNotSupportedOnMobile": "عرض التقويم غير مدعوم على الجوال",
@@ -1954,7 +1991,8 @@
       "columnNotAvailable": "الحقل {columnName} غير متاح",
       "cantSaveCircularReference": "لا يمكن حفظ الحقل لأنه يسبب مرجع دائري",
       "columnWithTypeFoundButExpected": "تم العثور على حقل {columnName} من نوع {columnType} لكن المتوقع نوع {expectedType}",
-      "columnNotMatchedWithType": "{columnName} لا يتطابق مع {columnType}"
+      "columnNotMatchedWithType": "{columnName} لا يتطابق مع {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "خيار التحديد لا يمكن أن يكون فارغًا",
@@ -2163,7 +2201,7 @@
       "addMultipleUsers": "يمكنك إضافة أكثر من فاصلة (,) لفصل الإيميلات",
       "enterTableName": "أدخل اسم الجدول",
       "enterScriptName": "أدخل اسم السكربت",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "أدخل اسم لوحة التحكم",
       "enterTableDescription": "أدخل وصف الجدول...",
       "enterScriptDescription": "أدخل وصف السكربت...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2241,7 +2279,9 @@
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
+      "matchedByButtonLabel": "Matched by button label",
+      "matchedByFieldDescription": "Matched by field description"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2357,7 +2397,11 @@
       "anErrorOccuredWhileImporting": "حدث خطأ أثناء {type}",
       "anErrorOccuredWhileAirtableBaseImport": "حدث خطأ أثناء استيراد القاعدة من Airtable",
       "paymentFailed": "فشل الدفع",
-      "paymentFailedSubtitle": "حدث خطأ أثناء معالجة دفعتك. يرجى المحاولة مرة أخرى أو الاتصال بالدعم."
+      "paymentFailedSubtitle": "حدث خطأ أثناء معالجة دفعتك. يرجى المحاولة مرة أخرى أو الاتصال بالدعم.",
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "تصدير البيانات الوصفية للمشروع بنجاح",
@@ -2371,6 +2415,7 @@
       "projInfo": "تم نسخ معلومات المشروع للحافظة",
       "inviteUrlCopy": "تم نسخ رابط الدعوة للحافظة",
       "createView": "تم إنشاء العرض بنجاح",
+      "createField": "Field created successfully",
       "formEmailSMTP": "يرجى تفعيل SMTP لتمكين إشعار البريد الإلكتروني",
       "collabView": "تحولت بنجاح إلى عرض تعاوني",
       "lockedView": "تم التبديل بنجاح إلى العرض المقفل",
@@ -2428,7 +2473,9 @@
       "paymentSuccessfulSubtitle": "تمت معالجة دفعتك. يمكنك الآن استخدام خطتك الجديدة.",
       "upgradeSuccessful": "تمت الترقية بنجاح",
       "upgradeSuccessfulSubtitle": "تمت معالجة دفعتك للترقية. يمكنك الآن استخدام خطتك الجديدة.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

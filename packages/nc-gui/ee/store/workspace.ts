@@ -285,12 +285,18 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  const removingCollaboratorMap = ref<Record<string, boolean>>({})
+
   // remove user from workspace
   const removeCollaborator = async (userId: string, workspaceId?: string, onCurrentUserLeftCallback?: () => void) => {
+    if (removingCollaboratorMap.value[userId]) return
+
     try {
       if (!workspaceId && !activeWorkspace.value?.id) {
         throw new Error('Workspace not selected')
       }
+
+      removingCollaboratorMap.value[userId] = true
 
       await $api.workspaceUser.delete(workspaceId ?? activeWorkspace.value.id!, userId, {
         baseURL: appInfo.value.baseHostName
@@ -313,6 +319,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       basesStore.clearBasesUser()
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      delete removingCollaboratorMap.value[userId]
     }
   }
 
@@ -651,6 +659,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     toggleSsoLoginRequiredDlg,
     upgradeWsDlg,
     upgradeWsJobId,
+    removingCollaboratorMap,
   }
 })
 

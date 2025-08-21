@@ -117,11 +117,14 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "Opgrader for at tilføje flere poster",
     "upgradeToAddLimitRecordSelection": "Hvis du vil begrænse postvalg med filtre, skal du opgradere til {plan}-planen.",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "Opgrader for at tilføje",
     "requestUpgradeToAdd": "Anmod om opgradering for at tilføje",
     "upgradeToAddMoreExtensions": "Du er i øjeblikket på gratisplanen, som kun tillader én udvidelse. Opgrader for at få ubegrænsede udvidelser.",
-    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
-    "upgradeToAddMoreDashboards": "You're currently on the Free plan, which allows only one dashboard. Upgrade to unlock unlimited dashboards.",
+    "upgradeToAddMoreScripts": "Upgrade to add more scripts",
+    "upgradeToAddMoreDashboards": "Upgrade to add more dashboards",
+    "upgradeToAddMoreScriptsSubtitle": "You're currently on the Free plan, which allows only one script per workspace. Upgrade to unlock unlimited scripts.",
+    "upgradeToAddMoreDashboardsSubtitle": "You're currently on the Free plan, which allows only one dashboard per workspace. Upgrade to unlock unlimited dashboards.",
     "upgradeToAccessWsAudit": "Opgrader for at få adgang til arbejdsområdets revisionslog",
     "upgradeToAccessWsAuditSubtitle": "Opgrader til {plan}-planen for at aktivere arbejdsområdets revisionslogfiler og overvåge vigtige aktiviteter effektivt.",
     "upgradeToAddMoreAttachments": "Opgrader for at tilføje flere vedhæftninger",
@@ -141,15 +144,15 @@
     "WorkspaceOwnerNotified": "Arbejdsområdeejer underrettet",
     "WorkspaceOwnerNotifiedSubtitle": "Din opgraderingsanmodning er blevet delt med arbejdsområdeejeren.",
     "failedToSendUpgradeRequest": "Kunne ikke sende opgraderingsanmodning",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Opgrader for at låse op for fuld dataadgang",
+    "upgradeToSeeMoreRecordInline": "Opgrader for at se alle poster fra eksterne datakilder",
     "upgradeToSeeMoreRecordSubtitle": "Få fuld synlighed i dine tilsluttede kilder. Se alle poster ved at opgradere til Plus-planen.",
     "upgradeToSeeMoreRecordInlineSubtitle": "Du ser {limit} af {total} poster. Få adgang til de resterende {remaining} poster ved at opgradere til Plus-planen.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Gratisplanen tillader op til {limit} Editor-brugere; opgrader for at få ubegrænsede.",
     "adjustCollaboratorRoles": "Justér samarbejdsroller",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -163,9 +166,13 @@
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseDashboards": "Upgrade to use dashboards",
     "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUseDashboardsSubtitle": "Upgrade to the {plan} plan to use dashboards to visualize your data.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
   },
   "general": {
@@ -186,6 +193,7 @@
     "manual": "Manual",
     "trigger": "Udløs",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Stil",
     "label": "Label",
     "role": "Rolle",
@@ -381,6 +389,7 @@
     "languages": "Sprog",
     "extension": "Udvidelse",
     "extensions": "Udvidelser",
+    "actions": "Actions",
     "enable": "Aktivér",
     "disable": "Deaktivér",
     "poweredBy": "Drevet af",
@@ -422,7 +431,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "Script",
@@ -586,6 +596,7 @@
       "Team": "Team",
       "Plus": "Plus",
       "Business": "Business",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "Enterprise"
     },
     "currentPlan": {
@@ -615,7 +626,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -844,14 +861,15 @@
     "yourBaseRole": "Din base-rolle",
     "lockedByUser": "Låst af {user}",
     "thisPageDoesNotExist": "Denne side findes ikke",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "Brugerdefineret URL",
     "viewSettingsCantBeChangedWhenViewIs": "Visningsindstillinger kan ikke ændres, når visningen er {type}",
     "youAreLeavingNocoDB": "Du er ved at forlade NocoDB",
     "onlyProceedIfYouTrustThisLink": "Fortsæt kun, hvis du stoler på dette link.",
     "reAssignViewModalSubtitle": "Når ejerskabet er overdraget, kan den nuværende ejer ikke længere redigere visningskonfigurationen.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Loyalitet betaler sig — nyd fastlåste priser!",
     "loyaltyBannerSubtitle": "Lås op for ubegrænsede pladser, ekstra poster, mere lagerplads, betingede webhooks, SSO, integrationer og meget mere!",
     "selectTimezone": "Vis tidszone",
@@ -872,6 +890,7 @@
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
+    "hideActions": "Hide Actions",
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
@@ -884,10 +903,13 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
+    "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -941,13 +963,14 @@
     "recent": "Seneste",
     "limitRecordSelectionToView": "Begræns postvalg til en visning",
     "limitRecordSelectionToFilters": "Begræns postvalg til filtre",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "Tilføjet af",
     "whatsNew": "Nyheder!",
     "newAction": "Ny handling",
     "actionLogs": "Handlingslog",
     "runScript": "Kør script",
     "scriptName": "Scriptnavn",
-    "dashboardName": "Dashboard navn",
+    "dashboardName": "Dashboard name",
     "enableSnowFall": "Aktivér snefald",
     "disableSnowFall": "Deaktivér snefald",
     "snapshotCreationFailed": "Snapshotoprettelse mislykkedes",
@@ -1266,7 +1289,7 @@
       "joinCommunity": "Tilmeld dig NocoDB-fællesskabet",
       "joinReddit": "Deltag /r/NocoDB",
       "followNocodb": "Følg NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Fællesskabs-/AI-oversat)"
     },
     "twitter": "Twitter",
     "docReference": "Dokumentreference.",
@@ -1401,7 +1424,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Tilføj fra URL",
     "enterJson": "Indtast JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable-base",
     "useSameTimezoneForAllMembers": "Brug samme tidszone for alle medlemmer",
     "displayTimezone": "Vis tidszone",
     "upgradePlan": "Opgrader plan",
@@ -1625,6 +1648,7 @@
     "changePwd": "Skift kodeord",
     "createView": "Opret en visning",
     "shareView": "Del Visning",
+    "shareDashboard": "Share Dashboard",
     "findRowByCodeScan": "Find row by scan",
     "fillByCodeScan": "Udfyld med scanning",
     "listSharedView": "Shared View List.",
@@ -1733,7 +1757,13 @@
     "changePlan": "Skift plan",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset",
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1799,14 +1829,19 @@
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
     "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateDashboard": "Navigate to a base to a create dashboard",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewDashboard": "You don't have access to create new dashboard",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "Søg ikoner",
@@ -1878,6 +1913,7 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
+    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
@@ -1911,6 +1947,7 @@
     "subscribeToOurWeeklyNewsletter": "Tilmeld dig vores ugentlige nyhedsbrev",
     "verifyingPassword": "Bekræfter adgangskode",
     "thisSharedViewIsProtected": "Denne delte visning er beskyttet",
+    "thisSharedDashboardIsProtected": "This shared dashboard is protected",
     "successfullySubmittedFormData": "Formular data indsendt med succes",
     "formViewNotSupportedOnMobile": "Formularvisning understøttes ikke på mobil",
     "calendarViewNotSupportedOnMobile": "Kalendervisning understøttes ikke på mobilen",
@@ -1954,7 +1991,8 @@
       "columnNotAvailable": "Felt {columnName} er ikke tilgængelig",
       "cantSaveCircularReference": "Kan ikke gemme felt, fordi det forårsager en cirkulær reference",
       "columnWithTypeFoundButExpected": "Felt {columnName} med {columnType} type blev fundet, men {expectedType} type forventes",
-      "columnNotMatchedWithType": "{columnName} matcher ikke med {columnType}"
+      "columnNotMatchedWithType": "{columnName} matcher ikke med {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Valgmuligheder kan ikke være null",
@@ -2163,7 +2201,7 @@
       "addMultipleUsers": "Du kan tilføje flere komma (,) adskilte e-mails",
       "enterTableName": "Indtast tabelnavn",
       "enterScriptName": "Indtast scriptnavn",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Indtast dashboard-navn",
       "enterTableDescription": "Indtast tabelbeskrivelse...",
       "enterScriptDescription": "Indtast scriptbeskrivelse...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2241,7 +2279,9 @@
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
+      "matchedByButtonLabel": "Matched by button label",
+      "matchedByFieldDescription": "Matched by field description"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2357,7 +2397,11 @@
       "anErrorOccuredWhileImporting": "Der opstod en fejl under {type}",
       "anErrorOccuredWhileAirtableBaseImport": "Der opstod en fejl under import af base fra Airtable",
       "paymentFailed": "Betaling mislykkedes",
-      "paymentFailedSubtitle": "Noget gik galt under behandlingen af din betaling. Prøv igen eller kontakt support."
+      "paymentFailedSubtitle": "Noget gik galt under behandlingen af din betaling. Prøv igen eller kontakt support.",
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "Project Metadata eksporteres med succes",
@@ -2371,6 +2415,7 @@
       "projInfo": "Kopieret projektinfo til udklipsholder",
       "inviteUrlCopy": "Kopieret invitere url til udklipsholder",
       "createView": "View oprettet succes",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Aktivér venligst SMTP-plugin i App Store for at muliggøre e-mail-besked",
       "collabView": "Succesfuldt skiftet til samarbejdsvisning",
       "lockedView": "Succesfuldt skiftet til låst visning",
@@ -2428,7 +2473,9 @@
       "paymentSuccessfulSubtitle": "Din betaling er blevet behandlet. Du kan nu bruge din nye plan.",
       "upgradeSuccessful": "Opgradering gennemført",
       "upgradeSuccessfulSubtitle": "Din betaling for opgraderingen er blevet behandlet. Du kan nu bruge din nye plan.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

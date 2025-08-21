@@ -1,16 +1,19 @@
 import {
   type DashboardPayload,
   EventType,
-  isVirtualCol,
   type MetaPayload,
+  PlanLimitTypes,
   type ScriptPayload,
   type WidgetPayload,
+  isVirtualCol,
 } from 'nocodb-sdk'
 
 export const useRealtime = createSharedComposable(() => {
   const { $ncSocket, $eventBus } = useNuxtApp()
 
   const { user, ncNavigateTo } = useGlobal()
+
+  const { updateStatLimit } = useEeConfig()
 
   const { showInfoModal } = useNcConfirmModal()
 
@@ -179,6 +182,7 @@ export const useRealtime = createSharedComposable(() => {
       case 'create': {
         const updatedAutomations = [...existingAutomations, automation]
         automations.value.set(baseId, updatedAutomations)
+        updateStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE, 1)
         break
       }
       case 'update': {
@@ -194,6 +198,7 @@ export const useRealtime = createSharedComposable(() => {
       case 'delete': {
         const updatedAutomations = existingAutomations.filter((d) => d.id !== id)
         automations.value.set(baseId, updatedAutomations)
+        updateStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE, -1)
         if (activeAutomationId.value === id) {
           const nextAutomation = updatedAutomations[0]
           if (nextAutomation) {
@@ -229,6 +234,7 @@ export const useRealtime = createSharedComposable(() => {
     switch (action) {
       case 'create': {
         const updatedDashboards = [...existingDashboards, dashboard]
+        updateStatLimit(PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE, 1)
         dashboards.value.set(baseId, updatedDashboards)
         break
       }
@@ -242,6 +248,7 @@ export const useRealtime = createSharedComposable(() => {
       }
       case 'delete': {
         const updatedDashboards = existingDashboards.filter((d) => d.id !== id)
+        updateStatLimit(PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE, -1)
         dashboards.value.set(baseId, updatedDashboards)
         if (activeDashboardId.value === id) {
           const nextDashboard = updatedDashboards[0]

@@ -7,6 +7,7 @@ import {
   generateUniqueCopyName,
   ncIsNull,
   ncIsUndefined,
+  PlanLimitTypes,
   type WidgetType,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -18,6 +19,7 @@ import { getWidgetData, getWidgetHandler } from '~/db/widgets';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import config from '~/app.config';
 import NocoSocket from '~/socket/NocoSocket';
+import { checkLimit } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class DashboardsService {
@@ -53,6 +55,14 @@ export class DashboardsService {
     if (!insertObj.owned_by) {
       insertObj.owned_by = req.user?.id;
     }
+
+    await checkLimit({
+      workspaceId: context.workspace_id,
+      type: PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE,
+      message: ({ limit }) =>
+        `You have reached the limit of ${limit} dashboard for your plan.`,
+    });
+
     const dashboard = await Dashboard.insert(context, insertObj);
 
     this.appHooksService.emit(AppEvents.DASHBOARD_CREATE, {

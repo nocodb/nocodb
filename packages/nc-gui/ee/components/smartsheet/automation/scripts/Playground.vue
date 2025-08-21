@@ -42,14 +42,30 @@ watch(
   },
 )
 
-const resolve = (item: ScriptPlaygroundItem, data: any) => {
-  if (item.type !== 'input-request') return
-  if (scriptStore) {
-    scriptStore.resolveInput(item.id!, data)
-  } else {
-    // Handle input resolution for external playground (Action Pane)
-    resolveExternalInput(item.id!, data)
+// Helper function to find input item in playground
+const findInputItemInPlayground = (items: any[], id: string): { item: any; index: number; parent?: any } | null => {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+
+    if (item?.id === id && item.type === 'input-request') {
+      return { item, index: i }
+    }
+
+    // If it's a workflow step, search in its children
+    if (item.type === 'workflow-step') {
+      for (let j = 0; j < item.content.children.length; j++) {
+        const child = item.content.children[j]
+        if (child?.id === id && child.type === 'input-request') {
+          return {
+            item: child,
+            index: j,
+            parent: item,
+          }
+        }
+      }
+    }
   }
+  return null
 }
 
 // Function to resolve input for external playground (Action Pane)
@@ -81,30 +97,14 @@ const resolveExternalInput = (id: string, value: string | Record<string, any> | 
   }
 }
 
-// Helper function to find input item in playground
-const findInputItemInPlayground = (items: any[], id: string): { item: any; index: number; parent?: any } | null => {
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i]
-
-    if (item?.id === id && item.type === 'input-request') {
-      return { item, index: i }
-    }
-
-    // If it's a workflow step, search in its children
-    if (item.type === 'workflow-step') {
-      for (let j = 0; j < item.content.children.length; j++) {
-        const child = item.content.children[j]
-        if (child?.id === id && child.type === 'input-request') {
-          return {
-            item: child,
-            index: j,
-            parent: item,
-          }
-        }
-      }
-    }
+const resolve = (item: ScriptPlaygroundItem, data: any) => {
+  if (item.type !== 'input-request') return
+  if (scriptStore) {
+    scriptStore.resolveInput(item.id!, data)
+  } else {
+    // Handle input resolution for external playground (Action Pane)
+    resolveExternalInput(item.id!, data)
   }
-  return null
 }
 </script>
 

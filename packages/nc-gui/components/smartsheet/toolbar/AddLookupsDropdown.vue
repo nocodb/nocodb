@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type TableType, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {

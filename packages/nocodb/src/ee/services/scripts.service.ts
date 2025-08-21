@@ -1,20 +1,21 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { AppEvents, ButtonActionsType, EventType } from 'nocodb-sdk';
+import { Injectable } from '@nestjs/common';
+import {
+  AppEvents,
+  ButtonActionsType,
+  EventType,
+  PlanLimitTypes,
+} from 'nocodb-sdk';
 import type { ScriptType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import Script from '~/models/Script';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
-import { ButtonColumn } from '~/models';
-import { IJobsService } from '~/modules/jobs/jobs-service.interface';
-import { JobTypes } from '~/interface/Jobs';
+import { ButtonColumn, Script, Workspace } from '~/models';
+import { checkLimit } from '~/helpers/paymentHelpers';
+
 @Injectable()
 export class ScriptsService {
-  constructor(
-    protected readonly appHooksService: AppHooksService,
-    @Inject('JobsService') private readonly jobsService: IJobsService,
-  ) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async listScripts(context: NcContext, baseId: string) {
     return await Script.list(context, baseId);
@@ -36,6 +37,15 @@ export class ScriptsService {
     scriptBody: Partial<ScriptType>,
     req: NcRequest,
   ) {
+    const workspace = await Workspace.get(context.workspace_id);
+
+    await checkLimit({
+      workspace,
+      type: PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE,
+      message: ({ limit }) =>
+        `You have reached the limit of ${limit} scripts for your plan.`,
+    });
+
     const script = await Script.insert(context, baseId, {
       ...scriptBody,
       created_by: req.user.id,
@@ -151,6 +161,13 @@ export class ScriptsService {
     if (!script) {
       return NcError.notFound('Script not found');
     }
+
+    await checkLimit({
+      workspaceId: context.workspace_id,
+      type: PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE,
+      message: ({ limit }) =>
+        `You have reached the limit of ${limit} scripts for your plan.`,
+    });
 
     const existingScripts = await Script.list(context, script.base_id);
 

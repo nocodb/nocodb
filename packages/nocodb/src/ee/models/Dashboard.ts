@@ -1,4 +1,5 @@
 import DashboardCE from 'src/models/Dashboard';
+import { PlanLimitTypes } from 'nocodb-sdk';
 import type { DashboardType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Widget from '~/models/Widget';
@@ -138,6 +139,12 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       insertObj,
     );
 
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE,
+      1,
+    );
+
     return Dashboard.get(context, id, ncMeta).then(async (dashboard) => {
       await NocoCache.appendToList(
         CacheScope.DASHBOARD,
@@ -209,6 +216,12 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       `${CacheScope.DASHBOARD}:${dashboardId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE,
+      -1,
+    );
   }
 
   async getWidgets(
@@ -232,5 +245,42 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       },
     );
     return dashboard && new Dashboard(dashboard);
+  }
+
+  static async countDashboardsInBase(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return await ncMeta.metaCount(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DASHBOARDS,
+      {
+        condition: {
+          base_id: baseId,
+        },
+      },
+    );
+  }
+
+  static async clearFromStats(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const countsInBase = await this.countDashboardsInBase(
+      context,
+      baseId,
+      ncMeta,
+    );
+
+    await NocoCache.incrHashField(
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE,
+      -countsInBase,
+    );
+
+    return true;
   }
 }

@@ -49,6 +49,8 @@ const { activeAutomationId } = storeToRefs(automationStore)
 
 const { meta: metaKey, control } = useMagicKeys()
 
+const { showScriptPlanLimitExceededModal } = useEeConfig()
+
 const { openAutomationDescriptionDialog: _openAutomationDescriptionDialog } = inject(TreeViewInj)!
 
 const base = inject(ProjectInj, ref())
@@ -104,6 +106,11 @@ const isLoading = ref(false)
 
 const duplicateScript = async (script: ScriptType) => {
   if (!activeProjectId.value) return
+
+  if (showScriptPlanLimitExceededModal()) {
+    isDropdownOpen.value = false
+    return
+  }
 
   try {
     isLoading.value = true

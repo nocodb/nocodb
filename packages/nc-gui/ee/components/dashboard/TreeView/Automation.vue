@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
-
 const props = defineProps<{
   baseId: string
 }>()
@@ -73,15 +71,6 @@ watch(activeAutomationId, () => {
     <div v-e="['c:automation:toggle-expand']" class="nc-project-home-section-header w-full cursor-pointer" @click.stop="onExpand">
       <div>{{ $t('general.automations') }}</div>
       <div class="flex-1" />
-      <PaymentUpgradeBadge
-        :feature="PlanFeatureTypes.FEATURE_SCRIPTS"
-        :title="$t('upgrade.upgradeToUseScripts')"
-        :content="
-          $t('upgrade.upgradeToUseScriptsSubtitle', {
-            plan: PlanTitles.PLUS,
-          })
-        "
-      />
       <GeneralIcon
         icon="chevronRight"
         class="flex-none nc-sidebar-source-node-btns text-nc-content-gray-muted cursor-pointer transform transition-transform duration-200 text-[20px]"

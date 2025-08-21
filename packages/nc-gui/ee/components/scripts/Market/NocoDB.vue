@@ -33,7 +33,7 @@ const { showScriptDetails, getScriptAssetsURL, getScriptContent, createAutomatio
 
 const { availableScripts } = storeToRefs(automationStore)
 
-const { showUpgradeToUseScripts } = useEeConfig()
+const { showScriptPlanLimitExceededModal } = useEeConfig()
 
 const filteredAvailableScripts = computed(() =>
   (availableScripts.value || []).filter(
@@ -49,7 +49,7 @@ const onScriptClick = (scriptId: string) => {
 }
 
 const onAddScript = async (scr: any) => {
-  if (showUpgradeToUseScripts()) {
+  if (showScriptPlanLimitExceededModal()) {
     return
   }
 

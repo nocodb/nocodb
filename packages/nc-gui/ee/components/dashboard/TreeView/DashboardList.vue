@@ -22,6 +22,8 @@ const bases = useBases()
 
 const { isUIAllowed } = useRoles()
 
+const { showDashboardPlanLimitExceededModal } = useEeConfig()
+
 const { isSharedBase } = storeToRefs(useBase())
 
 const { baseHomeSearchQuery, openedProject } = storeToRefs(bases)
@@ -215,6 +217,9 @@ function openDeleteDialog(dashboard: DashboardType) {
 }
 
 const duplicateDashboard = async (dashboard: DashboardType) => {
+  if (showDashboardPlanLimitExceededModal()) {
+    return
+  }
   const isOpen = ref(true)
 
   const { close } = useDialog(resolveComponent('DlgDashboardDuplicate'), {

@@ -30,10 +30,6 @@ const { isScriptCreateModalOpen } = useColumnCreateStoreOrThrow()
 
 const isScriptModal = ref(false)
 
-const newScript = () => {
-  selectedScript.value = undefined
-}
-
 const editScript = () => {
   if (selectedScript.value) {
     ncNavigateTo({

@@ -19,11 +19,13 @@ export class Timer {
 
   static start(
     handler: HandlerType,
-    time: number,
+    // set time default as 1 minute
+    time: number = 60 * 1000,
     { errorHandler }: { errorHandler?: (ex: Error) => void } = {}
   ) {
     if (time <= 0) {
-      throw new Error(`Timer time need to be above 0`);
+      // if time invalid, set it to 1 minute
+      time = 60 * 1000;
     }
     const timer = new Timer({ handler, time, errorHandler });
     timer.start();
@@ -38,7 +40,7 @@ export class Timer {
       } catch (ex) {
         this.errorHandler?.(ex);
       }
-    }, this.time);
+    }, this.time).unref();
   }
   stop() {
     if (this.timeoutHandle) {

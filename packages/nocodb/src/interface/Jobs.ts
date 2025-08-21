@@ -13,7 +13,6 @@ export const JOBS_QUEUE = 'jobs';
 export enum MigrationJobTypes {
   Attachment = 'attachment',
   Thumbnail = 'thumbnail',
-  PdfThumbnail = 'pdf-thumbnail',
   RecoverLinks = 'recover-links',
   CleanupDuplicateColumns = 'cleanup-duplicate-columns',
   NoOpMigration = 'no-op-migration',

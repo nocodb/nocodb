@@ -141,15 +141,7 @@ export function isOfficeDocument(
 
 export const supportsThumbnails = (attachment: any) => {
   const mimetype = attachment.mimetype || attachment.mimeType;
-  const filename =
-    attachment.title || attachment.filename || attachment.name || '';
-
-  // Extract file extension from filename
-  const fileExtension = extname(filename);
-
   return (
-    mimetype?.startsWith('image/') ||
-    mimetype?.startsWith('application/pdf') ||
-    isOfficeDocument(mimetype || '', fileExtension)
+    mimetype?.startsWith('image/') || mimetype?.startsWith('application/pdf')
   );
 };

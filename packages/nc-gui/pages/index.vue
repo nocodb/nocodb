@@ -4,6 +4,8 @@ definePageMeta({
   hasSidebar: true,
 })
 
+const { showOnboardingFlow } = useOnboardingFlow()
+
 const { isSharedBase, isSharedErd } = storeToRefs(useBase())
 
 const basesStore = useBases()
@@ -38,19 +40,11 @@ const autoNavigateToProject = async () => {
 }
 
 const isSharedView = computed(() => {
-  const routeName = (route.value.name as string) || ''
-
-  // check route is not base page by route name
-  return (
-    !routeName.startsWith('index-typeOrId-baseId-') &&
-    !['index', 'index-typeOrId', 'index-typeOrId-feed', 'index-typeOrId-integrations'].includes(routeName)
-  )
+  return isSharedViewRoute(route.value)
 })
 
 const isSharedFormView = computed(() => {
-  const routeName = (route.value.name as string) || ''
-  // check route is shared form view route
-  return routeName.startsWith('index-typeOrId-form-viewId')
+  return isSharedFormViewRoute(route.value)
 })
 
 const { sharedBaseId } = useCopySharedBase()
@@ -58,6 +52,11 @@ const { sharedBaseId } = useCopySharedBase()
 const isDuplicateDlgOpen = ref(false)
 
 async function handleRouteTypeIdChange() {
+  // Avoid loading bases if onboarding flow is shown
+  if (showOnboardingFlow.value) {
+    return
+  }
+
   // avoid loading bases for shared views
   if (isSharedView.value) {
     return
@@ -82,12 +81,9 @@ async function handleRouteTypeIdChange() {
   }
 }
 
-watch(
-  () => route.value.params.typeOrId,
-  () => {
-    handleRouteTypeIdChange()
-  },
-)
+watch([() => route.value.params.typeOrId, () => showOnboardingFlow.value], () => {
+  handleRouteTypeIdChange()
+})
 
 // onMounted is needed instead having this function called through
 // immediate watch, because if route is changed during page transition
@@ -117,7 +113,10 @@ watch(
 
 <template>
   <div>
-    <NuxtLayout v-if="isSharedFormView">
+    <NuxtLayout v-if="showOnboardingFlow" name="empty">
+      <AuthOnboarding />
+    </NuxtLayout>
+    <NuxtLayout v-else-if="isSharedFormView">
       <NuxtPage />
     </NuxtLayout>
     <NuxtLayout v-else-if="isSharedView" name="shared-view">

@@ -16,6 +16,8 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
+const { isEnabledOnboardingFlow, showOnboardingFlowLocalState } = useOnboardingFlow()
+
 const { navigateToTable } = useTablesStore()
 
 const { clearWorkspaces } = useWorkspace()
@@ -80,6 +82,30 @@ async function signUp() {
       const base = (user as any).createdProject
       const table = base?.tables?.[0]
 
+      if (isEnabledOnboardingFlow.value) {
+        let continueAfterOnboardingFlow = ''
+
+        if (base?.id) {
+          continueAfterOnboardingFlow = `nc/${base.id}`
+
+          if (table?.id) {
+            continueAfterOnboardingFlow += `/${table.id}`
+          }
+        }
+
+        /**
+         * Onboarding flow is shown only for new users
+         */
+        showOnboardingFlowLocalState.value = true
+
+        await navigateTo({
+          path: '/',
+          query: continueAfterOnboardingFlow ? { continueAfterOnboardingFlow } : {},
+        })
+
+        return
+      }
+
       if (base && table) {
         return await navigateToTable({
           baseId: base.id,
@@ -89,6 +115,15 @@ async function signUp() {
       }
     } catch (e) {
       console.error(e)
+    }
+
+    if (isEnabledOnboardingFlow.value) {
+      /**
+       * Onboarding flow is shown only for new users
+       */
+      showOnboardingFlowLocalState.value = true
+      await navigateTo('/')
+      return
     }
 
     await navigateTo({

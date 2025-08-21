@@ -117,11 +117,14 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "अधिक रेकर्डहरू थप्न अपग्रेड गर्नुहोस्",
     "upgradeToAddLimitRecordSelection": "फिल्टर प्रयोग गरी रेकर्ड छनोट सीमित गर्न {plan} योजना मा अपग्रेड गर्नुहोस्।",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "थप्न अपग्रेड गर्नुहोस्",
     "requestUpgradeToAdd": "थप्नको लागि अपग्रेड अनुरोध गर्नुहोस्",
     "upgradeToAddMoreExtensions": "तपाईं अहिले नि:शुल्क योजनामा हुनुहुन्छ, जसले केवल एक एक्सटेन्सन अनुमति दिन्छ। असीमित एक्सटेन्सन अनलक गर्न अपग्रेड गर्नुहोस्।",
     "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAddMoreDashboards": "You're currently on the Free plan, which allows only one dashboard. Upgrade to unlock unlimited dashboards.",
+    "upgradeToAddMoreScriptsSubtitle": "You're currently on the Free plan, which allows only one script per workspace. Upgrade to unlock unlimited scripts.",
+    "upgradeToAddMoreDashboardsSubtitle": "You're currently on the Free plan, which allows only one dashboard per workspace. Upgrade to unlock unlimited dashboards.",
     "upgradeToAccessWsAudit": "वर्कस्पेस अडिट पहुँच गर्न अपग्रेड गर्नुहोस्",
     "upgradeToAccessWsAuditSubtitle": "वर्कस्पेस अडिट लग सक्षम पारेर मुख्य गतिविधिहरू कुशलतापूर्वक अनुगमन गर्न {plan} योजना मा अपग्रेड गर्नुहोस्।",
     "upgradeToAddMoreAttachments": "अधिक अट्याच्मेन्टहरू थप्न अपग्रेड गर्नुहोस्",
@@ -163,9 +166,13 @@
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseDashboards": "Upgrade to use dashboards",
     "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUseDashboardsSubtitle": "Upgrade to the {plan} plan to use dashboards to visualize your data.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
   },
   "general": {
@@ -186,6 +193,7 @@
     "manual": "म्यानुअल",
     "trigger": "ट्रिगर",
     "addLookupField": "{count} खोज्या फिल्ड थप्नुहोस्",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "शैली",
     "label": "लेबल",
     "role": "भूमिका",
@@ -381,6 +389,7 @@
     "languages": "भाषाहरू",
     "extension": "एक्सटेन्सन",
     "extensions": "एक्सटेन्सनहरू",
+    "actions": "Actions",
     "enable": "सक्रीय गर्नुहोस्",
     "disable": "अक्षम गर्नुहोस्",
     "poweredBy": "द्वारा संचालित",
@@ -422,7 +431,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "स्क्रिप्ट",
@@ -586,6 +596,7 @@
       "Team": "टिम",
       "Plus": "प्लस",
       "Business": "बिजनेस",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "एंटरप्राइज"
     },
     "currentPlan": {
@@ -615,7 +626,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -844,14 +861,15 @@
     "yourBaseRole": "तपाईंको बेस भूमिका",
     "lockedByUser": "{user} द्वारा लक गरिएको",
     "thisPageDoesNotExist": "यो पृष्ठ अस्तित्वमा छैन",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "अनुकूल URL",
     "viewSettingsCantBeChangedWhenViewIs": "दृश्य {type} हुँदा दृश्य सेटिङ परिवर्तन गर्न सकिँदैन",
     "youAreLeavingNocoDB": "तपाईं NocoDB छोड्दै हुनुहुन्छ",
     "onlyProceedIfYouTrustThisLink": "यदि तपाईं यस लिङ्कमा भरोसा गर्नुहुन्छ भने मात्र अगाडि बढ्नुहोस्।",
     "reAssignViewModalSubtitle": "पुनः तोकेपछि, हालका मालिकले दृश्य कन्फिगरेसन सम्पादन गर्न अब सक्षम हुने छैनन्।",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "प्रतिबद्धताको फलस्वरूप — सीमित मूल्यमा आनन्द लिनुहोस्!",
     "loyaltyBannerSubtitle": "असीमित सिट, थप रेकर्ड, बढी भण्डारण, सर्तसहितका वेबहुक, SSO, एकीकरणहरू र अझ धेरै अनलक गर्नुहोस्!",
     "selectTimezone": "समय क्षेत्र देखाउनुहोस्",
@@ -872,6 +890,7 @@
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
+    "hideActions": "Hide Actions",
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
@@ -884,10 +903,13 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
+    "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -941,6 +963,7 @@
     "recent": "भर्खरको",
     "limitRecordSelectionToView": "रेकर्ड चयनलाई विशेष दृश्यमा सीमित गर्नुहोस्",
     "limitRecordSelectionToFilters": "रेकर्ड चयनलाई फिल्टरहरूमा सीमित गर्नुहोस्",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "द्वारा थपिएको",
     "whatsNew": "के नयाँ छ!",
     "newAction": "नयाँ कार्य",
@@ -1266,7 +1289,7 @@
       "joinCommunity": "NocoDB समुदायमा सामेल हुनुहोस्",
       "joinReddit": "/r/NocoDB",
       "followNocodb": "NocoDB लाई पछ्याउनुहोस्",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(सामुदायिक/AI अनुवादित)"
     },
     "twitter": "Twitter",
     "docReference": "दस्तावेज सन्दर्भ",
@@ -1401,7 +1424,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "URL बाट थप्नुहोस्",
     "enterJson": "JSON प्रविष्ट गर्नुहोस्",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable बेस",
     "useSameTimezoneForAllMembers": "सबै सदस्यका लागि एउटै समय क्षेत्र प्रयोग गर्नुहोस्",
     "displayTimezone": "समय क्षेत्र देखाउनुहोस्",
     "upgradePlan": "योजना अपग्रेड गर्नुहोस्",
@@ -1625,6 +1648,7 @@
     "changePwd": "पासवर्ड परिवर्तन गर्नुहोस्",
     "createView": "दृश्य बनाउनुहोस्",
     "shareView": "दृश्य साझा गर्नुहोस्",
+    "shareDashboard": "Share Dashboard",
     "findRowByCodeScan": "स्क्यान द्वारा रेकर्ड फेला पार्नुहोस्",
     "fillByCodeScan": "स्कान गरेर भर्नुहोस्",
     "listSharedView": "साझा दृश्य सूची",
@@ -1733,7 +1757,13 @@
     "changePlan": "योजना परिवर्तन गर्नुहोस्",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset",
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1799,14 +1829,19 @@
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
     "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateDashboard": "Navigate to a base to a create dashboard",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewDashboard": "You don't have access to create new dashboard",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "आइकनहरू खोज्नुहोस्",
@@ -1878,6 +1913,7 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
+    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
@@ -1911,6 +1947,7 @@
     "subscribeToOurWeeklyNewsletter": "हामीहरूको साप्ताहिक न्यूजलेटरको सदस्यता लिनुहोस्",
     "verifyingPassword": "पासवर्ड सत्यापित गर्दै",
     "thisSharedViewIsProtected": "यो साझा दृश्य संरक्षित छ",
+    "thisSharedDashboardIsProtected": "This shared dashboard is protected",
     "successfullySubmittedFormData": "फारम डेटा सफलतापूर्वक पेश गरियो",
     "formViewNotSupportedOnMobile": "मोबाइलमा फारम दृश्य समर्थित छैन",
     "calendarViewNotSupportedOnMobile": "क्यालेन्डर दृश्य मोबाइलमा समर्थित छैन",
@@ -1954,7 +1991,8 @@
       "columnNotAvailable": "क्षेत्र {columnName} उपलब्ध छैन",
       "cantSaveCircularReference": "क्षेत्रलाई बचत गर्न सकिँदैन किनभने यसले चक्रीय सन्दर्भ कारण गर्दछ",
       "columnWithTypeFoundButExpected": "क्षेत्र {columnName} {columnType} प्रकारको साथ फेला पर्यो तर {expectedType} प्रकार अपेक्षित थियो",
-      "columnNotMatchedWithType": "{columnName} {columnType} सँग मेल खाँदैन"
+      "columnNotMatchedWithType": "{columnName} {columnType} सँग मेल खाँदैन",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "विकल्पहरू खाली हुन सक्दैन",
@@ -2163,7 +2201,7 @@
       "addMultipleUsers": "तपाईंले कयौं अल्पविराम(,) विभाजित इमेल थप्न सक्नुहुन्छ",
       "enterTableName": "तालिका नाम प्रविष्ट गर्नुहोस्",
       "enterScriptName": "स्क्रिप्ट नाम प्रविष्ट गर्नुहोस्",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "ड्यासबोर्ड नाम प्रविष्ट गर्नुहोस्",
       "enterTableDescription": "तालिका विवरण प्रविष्ट गर्नुहोस्...",
       "enterScriptDescription": "स्क्रिप्ट वर्णन प्रविष्ट गर्नुहोस्...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2241,7 +2279,9 @@
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
+      "matchedByButtonLabel": "Matched by button label",
+      "matchedByFieldDescription": "Matched by field description"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2357,7 +2397,11 @@
       "anErrorOccuredWhileImporting": "{type} गर्दा त्रुटि भयो",
       "anErrorOccuredWhileAirtableBaseImport": "Airtable बाट बेस आयात गर्दा त्रुटि भयो",
       "paymentFailed": "भुक्तानी असफल भयो",
-      "paymentFailedSubtitle": "तपाईंको भुक्तानी प्रशोधन गर्दा केही त्रुटि भयो । कृपया फेरि प्रयास गर्नुहोस् वा समर्थनसँग सम्पर्क गर्नुहोस्।"
+      "paymentFailedSubtitle": "तपाईंको भुक्तानी प्रशोधन गर्दा केही त्रुटि भयो । कृपया फेरि प्रयास गर्नुहोस् वा समर्थनसँग सम्पर्क गर्नुहोस्।",
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात गरिएको छ",
@@ -2371,6 +2415,7 @@
       "projInfo": "आधार जानकारी क्लिपबोर्डमा प्रतिलिपि गरियो",
       "inviteUrlCopy": "आमन्त्रण URL क्लिपबोर्डमा प्रतिलिपि गरियो",
       "createView": "दृश्य सफलतापूर्वक सिर्जना गरियो",
+      "createField": "Field created successfully",
       "formEmailSMTP": "ईमेल सूचना सक्षम गर्नको लागि एप स्टोरमा SMTP प्लगइन सक्रिय गर्नुहोस्",
       "collabView": "सहकार्यात्मक दृश्यमा सफलतापूर्वक सुइच गरियो",
       "lockedView": "लक गरिएको दृश्यमा सफलतापूर्वक सुइच गरियो",
@@ -2428,7 +2473,9 @@
       "paymentSuccessfulSubtitle": "तपाईंको भुक्तानी प्रशोधन भयो। अब तपाईं नयाँ योजना प्रयोग गर्न सक्नुहुन्छ।",
       "upgradeSuccessful": "अपग्रेड सफल",
       "upgradeSuccessfulSubtitle": "अपग्रेडका लागि तपाईंको भुक्तानी प्रशोधन भयो। अब तपाईं नयाँ योजना प्रयोग गर्न सक्नुहुन्छ।",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

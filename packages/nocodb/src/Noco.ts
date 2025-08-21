@@ -1,7 +1,5 @@
 import '~/instrument';
 import path from 'path';
-import { promisify } from 'util';
-import { exec } from 'child_process';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';

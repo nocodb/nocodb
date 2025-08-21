@@ -117,11 +117,14 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "Оновіть тариф, щоб додати більше записів",
     "upgradeToAddLimitRecordSelection": "Щоб обмежити вибір записів за допомогою фільтрів, перейдіть на тариф {plan}.",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "Оновіть тариф, щоб додати",
     "requestUpgradeToAdd": "Запросити оновлення для додавання",
     "upgradeToAddMoreExtensions": "Зараз ви використовуєте безплатний тариф, який дозволяє лише одне розширення. Оновіть тариф, щоб розблокувати необмежену кількість розширень.",
     "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAddMoreDashboards": "You're currently on the Free plan, which allows only one dashboard. Upgrade to unlock unlimited dashboards.",
+    "upgradeToAddMoreScriptsSubtitle": "You're currently on the Free plan, which allows only one script per workspace. Upgrade to unlock unlimited scripts.",
+    "upgradeToAddMoreDashboardsSubtitle": "You're currently on the Free plan, which allows only one dashboard per workspace. Upgrade to unlock unlimited dashboards.",
     "upgradeToAccessWsAudit": "Оновіть тариф, щоб отримати доступ до аудиту робочого простору",
     "upgradeToAccessWsAuditSubtitle": "Перейдіть на тариф {plan}, щоб увімкнути журнали аудиту робочого простору та ефективно відстежувати ключові дії.",
     "upgradeToAddMoreAttachments": "Оновіть тариф, щоб додати більше вкладень",
@@ -141,15 +144,15 @@
     "WorkspaceOwnerNotified": "Власника робочого простору повідомлено",
     "WorkspaceOwnerNotifiedSubtitle": "Ваш запит на оновлення надіслано власнику робочого простору.",
     "failedToSendUpgradeRequest": "Не вдалося надіслати запит на оновлення",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Оновіть тариф, щоб розблокувати повний доступ до даних",
+    "upgradeToSeeMoreRecordInline": "Оновіть тариф, щоб переглядати всі записи з зовнішніх джерел даних",
     "upgradeToSeeMoreRecordSubtitle": "Отримайте повну видимість підключених джерел. Перегляньте всі записи, оновивши тариф до Plus.",
     "upgradeToSeeMoreRecordInlineSubtitle": "Ви переглядаєте {limit} із {total} записів. Отримайте доступ до ще {remaining} записів, оновивши тариф до Plus.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Безплатний тариф дозволяє до {limit} користувачів типу Editor, оновіть тариф, щоб отримати необмежену кількість.",
     "adjustCollaboratorRoles": "Налаштувати ролі учасників",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -163,9 +166,13 @@
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseDashboards": "Upgrade to use dashboards",
     "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUseDashboardsSubtitle": "Upgrade to the {plan} plan to use dashboards to visualize your data.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
   },
   "general": {
@@ -186,6 +193,7 @@
     "manual": "Ручний",
     "trigger": "Тригер",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Стиль",
     "label": "Мітка",
     "role": "Роль",
@@ -381,6 +389,7 @@
     "languages": "Мови",
     "extension": "Розширення",
     "extensions": "Розширення",
+    "actions": "Actions",
     "enable": "Увімкнути",
     "disable": "Вимкнути",
     "poweredBy": "За підтримки",
@@ -422,7 +431,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "Скрипт",
@@ -586,6 +596,7 @@
       "Team": "Команда",
       "Plus": "Плюс",
       "Business": "Бізнес",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "Корпоративний"
     },
     "currentPlan": {
@@ -615,7 +626,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -844,14 +861,15 @@
     "yourBaseRole": "Ваша базова роль",
     "lockedByUser": "Заблоковано {user}",
     "thisPageDoesNotExist": "Ця сторінка не існує",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "Власна URL",
     "viewSettingsCantBeChangedWhenViewIs": "Налаштування вигляду не можна змінити, коли вигляд є {type}",
     "youAreLeavingNocoDB": "Ви покидаєте NocoDB",
     "onlyProceedIfYouTrustThisLink": "Продовжуйте лише якщо довіряєте цьому посиланню.",
     "reAssignViewModalSubtitle": "Після перепризначення поточний власник більше не зможе редагувати конфігурацію вигляду.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Лояльність винагороджується — насолоджуйтеся фіксованою ціною!",
     "loyaltyBannerSubtitle": "Відкрийте необмежену кількість місць, додаткові записи, більше сховища, умовні вебхуки, SSO, інтеграції та багато іншого!",
     "selectTimezone": "Відображати часовий пояс",
@@ -872,6 +890,7 @@
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
+    "hideActions": "Hide Actions",
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
@@ -884,10 +903,13 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
+    "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -941,6 +963,7 @@
     "recent": "Нещодавні",
     "limitRecordSelectionToView": "Обмежити вибір записів певним виглядом",
     "limitRecordSelectionToFilters": "Обмежити вибір записів фільтрами",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "Додано",
     "whatsNew": "Що нового!",
     "newAction": "Нова дія",
@@ -1266,7 +1289,7 @@
       "joinCommunity": "Приєднуйтесь до спільноти NocoDB",
       "joinReddit": "Приєднатися /r/NocoDB",
       "followNocodb": "Слідкуйте за NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Community Translated)"
     },
     "twitter": "Twitter",
     "docReference": "Довідник",
@@ -1401,7 +1424,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Додати з URL",
     "enterJson": "Введіть JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "База Airtable",
     "useSameTimezoneForAllMembers": "Використовувати один часовий пояс для всіх учасників",
     "displayTimezone": "Часовий пояс відображення",
     "upgradePlan": "Оновити план",
@@ -1625,6 +1648,7 @@
     "changePwd": "Змінити пароль",
     "createView": "Створити вигляд",
     "shareView": "Поділитися виглядом",
+    "shareDashboard": "Share Dashboard",
     "findRowByCodeScan": "Знайти рядок за скануванням",
     "fillByCodeScan": "Заповнити за допомогою сканування",
     "listSharedView": "Список спільних виглядів",
@@ -1733,7 +1757,13 @@
     "changePlan": "Зміна плану",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset",
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1799,14 +1829,19 @@
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
     "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateDashboard": "Navigate to a base to a create dashboard",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewDashboard": "You don't have access to create new dashboard",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "Пошук іконок",
@@ -1878,6 +1913,7 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
+    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
@@ -1911,6 +1947,7 @@
     "subscribeToOurWeeklyNewsletter": "Підписатися на наші щотижневі новини",
     "verifyingPassword": "Перевірка пароля",
     "thisSharedViewIsProtected": "Цей спільний перегляд захищений",
+    "thisSharedDashboardIsProtected": "This shared dashboard is protected",
     "successfullySubmittedFormData": "Дані форми успішно відправлені",
     "formViewNotSupportedOnMobile": "Перегляд форми не підтримується на мобільних пристроях",
     "calendarViewNotSupportedOnMobile": "Перегляд календаря не підтримується на мобільних пристроях",
@@ -1954,7 +1991,8 @@
       "columnNotAvailable": "Стовпець {columnName} недоступний",
       "cantSaveCircularReference": "Неможливо зберегти поле, оскільки це спричиняє циклічне посилання",
       "columnWithTypeFoundButExpected": "Поле {columnName} із типом {columnType} знайдено, але очікується тип {expectedType}",
-      "columnNotMatchedWithType": "{columnName} не відповідає типу {columnType}"
+      "columnNotMatchedWithType": "{columnName} не відповідає типу {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Параметри вибору не можуть бути порожніми",
@@ -2163,7 +2201,7 @@
       "addMultipleUsers": "Ви можете додати кілька електронних адрес через кому",
       "enterTableName": "Введіть назву таблиці",
       "enterScriptName": "Введіть назву скрипту",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Введіть назву інформаційної панелі",
       "enterTableDescription": "Введіть опис таблиці...",
       "enterScriptDescription": "Введіть опис скрипту...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2241,7 +2279,9 @@
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
+      "matchedByButtonLabel": "Matched by button label",
+      "matchedByFieldDescription": "Matched by field description"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2357,7 +2397,11 @@
       "anErrorOccuredWhileImporting": "Під час {type} сталася помилка",
       "anErrorOccuredWhileAirtableBaseImport": "Під час імпорту бази з Airtable сталася помилка",
       "paymentFailed": "Платіж не виконано",
-      "paymentFailedSubtitle": "Щось пішло не так під час обробки вашого платежу. Спробуйте ще раз або звʼяжіться зі службою підтримки."
+      "paymentFailedSubtitle": "Щось пішло не так під час обробки вашого платежу. Спробуйте ще раз або звʼяжіться зі службою підтримки.",
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "Метадані проєкту експортовано",
@@ -2371,6 +2415,7 @@
       "projInfo": "Інформацію про проєкт скопійовано до буфера обміну",
       "inviteUrlCopy": "Скопійовано запрошення URL в буфер обміну",
       "createView": "Вигляд створено",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Будь ласка, активуйте плагін SMTP в магазині додатків, щоб ввімкнути повідомлення на електронну пошту",
       "collabView": "Переведено в режим спільної роботи",
       "lockedView": "Переведено в заблокований режим",
@@ -2428,7 +2473,9 @@
       "paymentSuccessfulSubtitle": "Ваш платіж оброблено. Тепер ви можете користуватися новим тарифом.",
       "upgradeSuccessful": "Оновлення успішне",
       "upgradeSuccessfulSubtitle": "Ваш платіж за оновлення оброблено. Тепер ви можете користуватися новим тарифом.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

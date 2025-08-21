@@ -161,7 +161,9 @@ watch(
 
 <template>
   <div>
-    <AuthOnboarding v-if="showOnboardingFlow" />
+    <NuxtLayout v-if="showOnboardingFlow" name="empty">
+      <AuthOnboarding />
+    </NuxtLayout>
 
     <NuxtLayout v-else name="dashboard">
       <template #sidebar>

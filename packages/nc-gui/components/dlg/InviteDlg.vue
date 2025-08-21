@@ -393,7 +393,7 @@ const removeEmail = (index: number) => {
       <div class="flex flex-row text-2xl font-bold items-center gap-x-2">
         {{
           type === 'organization'
-            ? $t('labels.addMembersToOrganization')
+            ? 'Invite Members to Workspaces'
             : type === 'base'
             ? $t('activity.addMember')
             : $t('activity.inviteToWorkspace')

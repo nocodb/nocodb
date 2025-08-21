@@ -48,8 +48,3 @@ export const useAutomationStore = defineStore('automation', () => {
     openNewScriptModal,
   }
 })
-
-// Enable HMR
-if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useAutomationStore, import.meta.hot))
-}

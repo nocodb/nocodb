@@ -160,7 +160,7 @@ export const HigherPlan = {
 
 export const GRACE_PERIOD_DURATION = 14;
 
-export const LOYALTY_GRACE_PERIOD_END_DATE = '2025-07-31';
+export const LOYALTY_GRACE_PERIOD_END_DATE = '2025-08-27';
 
 export const SEAT_PRICE_CAP = 9;
 

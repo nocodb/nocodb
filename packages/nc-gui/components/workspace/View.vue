@@ -190,7 +190,9 @@ onBeforeUnmount(() => {
           <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
-      <template v-if="isEeUI && !props.workspaceId && isPaymentEnabled && isUIAllowed('workspaceBilling')">
+      <template
+        v-if="isEeUI && !props.workspaceId && !currentWorkspace?.fk_org_id && isPaymentEnabled && isUIAllowed('workspaceBilling')"
+      >
         <a-tab-pane key="billing" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
@@ -216,7 +218,7 @@ onBeforeUnmount(() => {
         </a-tab-pane>
       </template>
 
-      <template v-if="isWorkspaceSsoAvail && isUIAllowed('workspaceSSO')">
+      <template v-if="isWorkspaceSsoAvail && !currentWorkspace?.fk_org_id && isUIAllowed('workspaceSSO')">
         <a-tab-pane key="sso" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">

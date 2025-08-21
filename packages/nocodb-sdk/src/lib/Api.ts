@@ -948,13 +948,49 @@ export interface FieldOptionsLongTextV3Type {
   generate_text_using_ai?: boolean;
 }
 
+export type FieldBaseCreateV3Type = FieldBaseV3Type;
+
 export interface FieldBaseV3Type {
   /** Unique identifier for the field. */
   id?: string;
   /** Title of the field. */
   title: string;
   /** Field data type. */
-  type: string;
+  type?:
+    | 'SingleLineText'
+    | 'LongText'
+    | 'PhoneNumber'
+    | 'URL'
+    | 'Email'
+    | 'Number'
+    | 'Decimal'
+    | 'Currency'
+    | 'Percent'
+    | 'Duration'
+    | 'Date'
+    | 'DateTime'
+    | 'Time'
+    | 'SingleSelect'
+    | 'MultiSelect'
+    | 'Rating'
+    | 'Checkbox'
+    | 'Attachment'
+    | 'Geometry'
+    | 'Links'
+    | 'Lookup'
+    | 'Rollup'
+    | 'Button'
+    | 'Formula'
+    | 'Barcode'
+    | 'Year'
+    | 'QrCode'
+    | 'CreatedAt'
+    | 'LastModifiedAt'
+    | 'CreatedBy'
+    | 'LastModifiedBy'
+    | 'LinkToAnotherRecord'
+    | 'User'
+    | 'JSON';
   /** Description of the field. */
   description?: string | null;
   /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
@@ -1318,7 +1354,7 @@ export interface TableV3Type {
   views: ViewSummaryV3Type[];
 }
 
-export type CreateFieldV3Type = FieldBaseV3Type;
+export type CreateFieldV3Type = FieldBaseCreateV3Type;
 
 export type FieldOptionsV3Type = any;
 

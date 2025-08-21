@@ -31,10 +31,6 @@ useProvideSmartsheetLtarHelpers(meta)
 
 useViewRowColorProvider({ shared: true })
 
-const route = useRoute()
-
-const disableToolbar = computed(() => route.query?.disableToolbar === 'true' || route.query?.disableTopbar === 'true')
-
 if (signedIn.value) {
   try {
     await loadProject()
@@ -54,12 +50,7 @@ watch(
 </script>
 
 <template>
-  <div
-    :class="{
-      'pb-2': !disableToolbar,
-    }"
-    class="nc-container flex flex-col h-full"
-  >
+  <div class="nc-container flex flex-col h-full">
     <LazySmartsheetToolbar />
     <LazySmartsheetGrid />
   </div>

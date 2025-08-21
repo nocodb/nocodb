@@ -156,7 +156,18 @@ const updateScroll = (vertical?: number, horizontal?: number) => {
 const isWindowsOrLinux = ref(false)
 
 const handleWheel = (e: WheelEvent) => {
-  e.preventDefault()
+  const maxScrollY = contentWrapper.value.scrollHeight - wrapperRef.value.clientHeight
+  const maxScrollX = contentWrapper.value.scrollWidth - wrapperRef.value.clientWidth
+
+  // Only prevent default if we can actually scroll in the requested direction
+  const canScrollVertically = (e.deltaY > 0 && scrollTop.value < maxScrollY) || (e.deltaY < 0 && scrollTop.value > 0)
+  const canScrollHorizontally = (e.deltaX > 0 && scrollLeft.value < maxScrollX) || (e.deltaX < 0 && scrollLeft.value > 0)
+
+  if (canScrollVertically || canScrollHorizontally) {
+    e.preventDefault()
+  } else {
+    return
+  }
 
   if (isWindowsOrLinux.value && e.shiftKey) {
     // When Shift is pressed on Windows, treat vertical wheel movement as horizontal scroll

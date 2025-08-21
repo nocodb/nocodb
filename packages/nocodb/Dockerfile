@@ -70,12 +70,11 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
     NODE_ENV=production \
     PORT=8080
 
-# Install runtime dependencies
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates `# required by wget for HTTPS support` \
-    curl \
+# Install additional runtime dependencies
+RUN apt-get update && apt-get install -y \
     dumb-init \
-    wget `# for convenience of downstream users` \
+    curl \
+    wget \
     && curl -L "https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_$(dpkg --print-architecture)" -o /usr/local/bin/dasel \
     && chmod +x /usr/local/bin/dasel \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -91,5 +90,5 @@ COPY --link --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
-# Start NocoDB
+# Start Nocodb
 CMD ["/usr/src/appEntry/start.sh"]

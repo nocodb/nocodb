@@ -42,7 +42,6 @@ import { OrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_005_o
 import { RecoverOrderColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_007_recover_order_column';
 import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 import { AuditMigration } from '~/modules/jobs/migration-jobs/nc_job_009_audit_migration';
-import { PdfThumbnailMigration } from '~/modules/jobs/migration-jobs/nc_job_010_pdf_thumbnail';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -133,7 +132,6 @@ export const JobsModuleMetadata = {
     RecoverOrderColumnMigration,
     RecoverDisconnectedTableNames,
     AuditMigration,
-    PdfThumbnailMigration,
   ],
   exports: ['JobsService'],
 };

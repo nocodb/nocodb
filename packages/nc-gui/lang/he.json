@@ -117,11 +117,14 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "שדרג כדי להוסיף רשומות נוספות",
     "upgradeToAddLimitRecordSelection": "כדי להגביל בחירת רשומות באמצעות מסננים, אנא שדרג לתוכנית {plan}.",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "שדרג כדי להוסיף",
     "requestUpgradeToAdd": "בקש שדרוג כדי להוסיף",
     "upgradeToAddMoreExtensions": "אתה בתוכנית החינמית, המאפשרת תוסף אחד בלבד. שדרג כדי לקבל תוספים ללא הגבלה.",
     "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAddMoreDashboards": "You're currently on the Free plan, which allows only one dashboard. Upgrade to unlock unlimited dashboards.",
+    "upgradeToAddMoreScriptsSubtitle": "You're currently on the Free plan, which allows only one script per workspace. Upgrade to unlock unlimited scripts.",
+    "upgradeToAddMoreDashboardsSubtitle": "You're currently on the Free plan, which allows only one dashboard per workspace. Upgrade to unlock unlimited dashboards.",
     "upgradeToAccessWsAudit": "שדרג כדי לגשת ליומן הביקורת של סביבת העבודה",
     "upgradeToAccessWsAuditSubtitle": "שדרג לתוכנית {plan} כדי להפעיל יומני ביקורת בסביבת העבודה ולעקוב ביעילות אחר פעילויות מרכזיות.",
     "upgradeToAddMoreAttachments": "שדרג כדי להוסיף קבצים מצורפים נוספים",
@@ -141,15 +144,15 @@
     "WorkspaceOwnerNotified": "בעל סביבת העבודה קיבל הודעה",
     "WorkspaceOwnerNotifiedSubtitle": "בקשתך לשדרוג נשלחה לבעל סביבת העבודה.",
     "failedToSendUpgradeRequest": "שליחת בקשת השדרוג נכשלה",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "שדרג כדי לפתוח גישה מלאה לנתונים",
+    "upgradeToSeeMoreRecordInline": "שדרג כדי לצפות בכל הרשומות ממקורות נתונים חיצוניים",
     "upgradeToSeeMoreRecordSubtitle": "פתח שקיפות מלאה למקורות המחוברים שלך. צפה בכל הרשומות על-ידי שדרוג לתוכנית Plus.",
     "upgradeToSeeMoreRecordInlineSubtitle": "אתה צופה ב-{limit} מתוך {total} רשומות. פתח גישה ל-{remaining} הרשומות הנותרות על-ידי שדרוג לתוכנית Plus.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "התוכנית החינמית מאפשרת עד {limit} משתמשי Editor. שדרג כדי לקבל כמות בלתי מוגבלת.",
     "adjustCollaboratorRoles": "התאם תפקידי משתפי פעולה",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -163,9 +166,13 @@
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseDashboards": "Upgrade to use dashboards",
     "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUseDashboardsSubtitle": "Upgrade to the {plan} plan to use dashboards to visualize your data.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
   },
   "general": {
@@ -186,6 +193,7 @@
     "manual": "ידני",
     "trigger": "הפעל",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "סגנון",
     "label": "תווית",
     "role": "תפקיד",
@@ -381,6 +389,7 @@
     "languages": "שפות",
     "extension": "תוסף",
     "extensions": "תוספים",
+    "actions": "Actions",
     "enable": "מופעל",
     "disable": "השבת",
     "poweredBy": "מופעל ע״י",
@@ -422,7 +431,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "סקריפט",
@@ -586,6 +596,7 @@
       "Team": "צוות",
       "Plus": "פלוס",
       "Business": "עסקי",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "ארגוני"
     },
     "currentPlan": {
@@ -615,7 +626,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -844,14 +861,15 @@
     "yourBaseRole": "תפקידך בבסיס זה",
     "lockedByUser": "נעול על ידי {user}",
     "thisPageDoesNotExist": "עמוד זה לא קיים",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "כתובת URL מותאמת אישית",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}.",
     "youAreLeavingNocoDB": "אתה עוזב את NocoDB",
     "onlyProceedIfYouTrustThisLink": "המשך רק אם אתה סומך על קישור זה.",
     "reAssignViewModalSubtitle": "לאחר ההקצאה מחדש, הבעלים הנוכחי לא יוכל עוד לערוך את תצורת התצוגה.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "הנאמנות משתלמת — תהנה ממחיר מוגבל!",
     "loyaltyBannerSubtitle": "פתח מושבים ללא הגבלה, רשומות נוספות, עוד אחסון, Webhooks מותנים, SSO, אינטגרציות, ועוד הרבה!",
     "selectTimezone": "הצג אזור זמן",
@@ -872,6 +890,7 @@
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
+    "hideActions": "Hide Actions",
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
@@ -884,10 +903,13 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
+    "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -941,6 +963,7 @@
     "recent": "\tאחרונים",
     "limitRecordSelectionToView": "הגבל את בחירת הרשומה לתצוגה",
     "limitRecordSelectionToFilters": "הגבלת בחירת רשומות למסננים",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "נוסף על ידי",
     "whatsNew": "מה חדש!",
     "newAction": "פעולה חדשה",
@@ -1266,7 +1289,7 @@
       "joinCommunity": "הצטרף לקהילת NocoDB",
       "joinReddit": "הצטרף /r/NocoDB",
       "followNocodb": "עקוב אחרי NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(תרגום של הקהילה/AI)"
     },
     "twitter": "טוויטר",
     "docReference": "התייחסות למסמך",
@@ -1401,7 +1424,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "הוסף מ-URL",
     "enterJson": "הזן JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "בסיס Airtable",
     "useSameTimezoneForAllMembers": "השתמש באותו אזור זמן עבור כל החברים",
     "displayTimezone": "הצג אזור זמן",
     "upgradePlan": "שדרג תוכנית",
@@ -1625,6 +1648,7 @@
     "changePwd": "שנה סיסמה",
     "createView": "צור תצוגה",
     "shareView": "שיתוף תצוגה",
+    "shareDashboard": "Share Dashboard",
     "findRowByCodeScan": "מציאת שורה על ידי סריקה",
     "fillByCodeScan": "ממולא באמצעות סריקה",
     "listSharedView": "רשימת תצוגות משותפות",
@@ -1733,7 +1757,13 @@
     "changePlan": "שנה תוכנית",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset",
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1799,14 +1829,19 @@
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
     "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateDashboard": "Navigate to a base to a create dashboard",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewDashboard": "You don't have access to create new dashboard",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "חפש אייקונים",
@@ -1878,6 +1913,7 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
+    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
@@ -1911,6 +1947,7 @@
     "subscribeToOurWeeklyNewsletter": "הירשם לניוזלטר השבועי שלנו",
     "verifyingPassword": "מאמת סיסמה",
     "thisSharedViewIsProtected": "תצוגה זו מוגנת",
+    "thisSharedDashboardIsProtected": "This shared dashboard is protected",
     "successfullySubmittedFormData": "הנתונים של הטופס נשלחו בהצלחה",
     "formViewNotSupportedOnMobile": "תצוגת טופס אינה נתמכת בנייד",
     "calendarViewNotSupportedOnMobile": "תצוגת לוח שנה אינה נתמכת בנייד",
@@ -1954,7 +1991,8 @@
       "columnNotAvailable": "השדה {columnName} אינו זמין",
       "cantSaveCircularReference": "לא ניתן לשמור את השדה מכיוון שזה גורם להתייחסות מעגלית",
       "columnWithTypeFoundButExpected": "השדה {columnName} עם סוג {columnType} נמצא אך צפוי סוג {expectedType}",
-      "columnNotMatchedWithType": "{columnName} אינו מתאים ל-{columnType}"
+      "columnNotMatchedWithType": "{columnName} אינו מתאים ל-{columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "אפשרויות הבחירה לא יכולות להיות ריקות",
@@ -2163,7 +2201,7 @@
       "addMultipleUsers": "ניתן להוסיף מיילים מרובים מופרדים בפסיקים (,)",
       "enterTableName": "הזן שם טבלה",
       "enterScriptName": "הזן שם סקריפט",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "הזן את שם הלוח",
       "enterTableDescription": "הזן תיאור טבלה...",
       "enterScriptDescription": "הזן תיאור סקריפט...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2241,7 +2279,9 @@
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
+      "matchedByButtonLabel": "Matched by button label",
+      "matchedByFieldDescription": "Matched by field description"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2357,7 +2397,11 @@
       "anErrorOccuredWhileImporting": "אירעה שגיאה בעת {type}",
       "anErrorOccuredWhileAirtableBaseImport": "אירעה שגיאה בעת ייבוא בסיס מ-Airtable",
       "paymentFailed": "התשלום נכשל",
-      "paymentFailedSubtitle": "משהו השתבש בעת עיבוד התשלום שלך. אנא נסה שוב או פנה לתמיכה."
+      "paymentFailedSubtitle": "משהו השתבש בעת עיבוד התשלום שלך. אנא נסה שוב או פנה לתמיכה.",
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "פרויקט Metadata מיוצא בהצלחה",
@@ -2371,6 +2415,7 @@
       "projInfo": "הועתק פרטי הפרויקט ללוח",
       "inviteUrlCopy": "הועתק להזמין כתובת אתר ללוח",
       "createView": "תצוגה שנוצרה בהצלחה",
+      "createField": "Field created successfully",
       "formEmailSMTP": "הפעלת תוסף SMTP ב- App Store עבור הפעלת הודעת דוא\"ל",
       "collabView": "העבר בהצלחה לתצוגת שיתופית",
       "lockedView": "הפעל בהצלחה לתצוגה נעולה",
@@ -2428,7 +2473,9 @@
       "paymentSuccessfulSubtitle": "התשלום שלך עבר עיבוד. כעת באפשרותך להשתמש בתוכנית החדשה.",
       "upgradeSuccessful": "השדרוג הצליח",
       "upgradeSuccessfulSubtitle": "התשלום עבור השדרוג עבר עיבוד. כעת באפשרותך להשתמש בתוכנית החדשה.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

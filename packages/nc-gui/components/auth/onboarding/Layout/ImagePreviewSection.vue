@@ -123,6 +123,7 @@ defineExpose({
 <template>
   <div class="flex flex-col items-center justify-center h-full relative overflow-hidden" :class="[bgColorClass]">
     <div class="nc-view-image-box" :style="{ backgroundImage: `url(${viewImage})` }"></div>
+
     <div class="nc-view-image-box nc-moscot-image-box">
       <div class="h-full w-full relative">
         <img
@@ -136,6 +137,7 @@ defineExpose({
         />
       </div>
     </div>
+
     <div class="hidden">
       <!-- Pre-render images to avoid flickering -->
       <img v-if="nextQuestionMoscotImage" alt="prerender moscot image" :src="nextQuestionMoscotImage" />

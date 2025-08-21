@@ -10,6 +10,7 @@ import {
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
+import hash from 'object-hash';
 import papaparse from 'papaparse';
 import { MetaTable } from 'src/cli';
 import { elapsedTime, initTime } from '../../helpers';
@@ -2044,10 +2045,20 @@ export class ImportService {
       destBase: Source;
       destModel: Model;
       req: any;
+      skipDuplicates?: boolean;
     },
   ): Promise<void> {
-    const { idMap, dataStream, destBase, destProject, destModel, req } = param;
+    const {
+      idMap,
+      dataStream,
+      destBase,
+      destProject,
+      destModel,
+      req,
+      skipDuplicates = false,
+    } = param;
 
+    const dataHashSet: Set<string> = new Set();
     const headers: string[] = [];
     let chunk = [];
 
@@ -2109,7 +2120,18 @@ export class ImportService {
                   }
                 }
               }
-              chunk.push(row);
+
+              if (skipDuplicates) {
+                // check if the row already exists
+                const rowHash = hash(row);
+                if (!dataHashSet.has(rowHash)) {
+                  dataHashSet.add(rowHash);
+                  chunk.push(row);
+                }
+              } else {
+                chunk.push(row);
+              }
+
               if (chunk.length > 1000) {
                 parser.pause();
                 try {

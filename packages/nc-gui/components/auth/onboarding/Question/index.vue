@@ -4,9 +4,9 @@ interface Props {
   questionIndex: number
 }
 
-const props = withDefaults(defineProps<Props>(), {})
+const props = defineProps<Props>()
 
-const { question, questionIndex } = toRefs(props)
+const { question } = toRefs(props)
 
 const { formState, onSelectOption, stepper } = useOnboardingFlow()
 

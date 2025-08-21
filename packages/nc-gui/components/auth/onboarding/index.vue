@@ -7,34 +7,17 @@ const autoScrollQuestionRefs = ref<HTMLDivElement>()
 
 const onSelectRef: VNodeRef = (el) => {
   if (el) {
-    autoScrollQuestionRefs.value = (el as any)?.$el as HTMLDivElement
+    autoScrollQuestionRefs.value = (el as any).$el as HTMLDivElement
   }
 }
 
 const transitionName = ref<'slide-left' | 'slide-right' | null>(null)
 
-watch(
-  () => stepper.index.value,
-  (newIndex, oldIndex) => {
-    if (oldIndex === undefined) return
+watch(stepper.index, (newIndex, oldIndex) => {
+  if (oldIndex === undefined) return
 
-    transitionName.value = newIndex > (oldIndex ?? 0) ? 'slide-left' : 'slide-right'
-  },
-)
-
-let timer: any
-watch(
-  () => visibleQuestion.value.id,
-  (_newValue, _oldValue, cleanup) => {
-    timer = setTimeout(() => {
-      // autoScrollQuestionRefs.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 300)
-
-    cleanup(() => {
-      clearTimeout(timer)
-    })
-  },
-)
+  transitionName.value = newIndex > (oldIndex ?? 0) ? 'slide-left' : 'slide-right'
+})
 
 onMounted(() => {
   onInitOnboardingFlow()

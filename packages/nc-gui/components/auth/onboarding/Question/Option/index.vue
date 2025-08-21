@@ -6,9 +6,7 @@ interface Props {
   iconSize?: OnboardingQuestionType['iconSize']
 }
 
-const props = withDefaults(defineProps<Props>(), {})
-
-const { option } = toRefs(props)
+defineProps<Props>()
 </script>
 
 <template>

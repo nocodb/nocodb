@@ -117,11 +117,14 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "アップグレードしてさらにレコードを追加",
     "upgradeToAddLimitRecordSelection": "フィルターを使ってレコード選択を制限するには{plan}プランへアップグレードしてください。",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "追加するにはアップグレード",
     "requestUpgradeToAdd": "追加するためにアップグレードを依頼",
     "upgradeToAddMoreExtensions": "現在ご利用の無料プランでは拡張機能は1つのみです。アップグレードして無制限の拡張機能を解放しましょう。",
     "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAddMoreDashboards": "You're currently on the Free plan, which allows only one dashboard. Upgrade to unlock unlimited dashboards.",
+    "upgradeToAddMoreScriptsSubtitle": "You're currently on the Free plan, which allows only one script per workspace. Upgrade to unlock unlimited scripts.",
+    "upgradeToAddMoreDashboardsSubtitle": "You're currently on the Free plan, which allows only one dashboard per workspace. Upgrade to unlock unlimited dashboards.",
     "upgradeToAccessWsAudit": "アップグレードしてワークスペース監査にアクセス",
     "upgradeToAccessWsAuditSubtitle": "ワークスペース監査ログを有効化し主要アクティビティを効率的に監視するには{plan}プランへアップグレードしてください。",
     "upgradeToAddMoreAttachments": "アップグレードしてさらに添付ファイルを追加",
@@ -163,9 +166,13 @@
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseDashboards": "Upgrade to use dashboards",
     "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUseDashboardsSubtitle": "Upgrade to the {plan} plan to use dashboards to visualize your data.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
   },
   "general": {
@@ -186,6 +193,7 @@
     "manual": "マニュアル",
     "trigger": "トリガー",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "スタイル",
     "label": "ラベル",
     "role": "役割",
@@ -381,6 +389,7 @@
     "languages": "言語",
     "extension": "拡張機能",
     "extensions": "拡張機能",
+    "actions": "Actions",
     "enable": "有効にする",
     "disable": "無効化",
     "poweredBy": "提供元",
@@ -422,7 +431,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "スクリプト",
@@ -586,6 +596,7 @@
       "Team": "チーム",
       "Plus": "プラス",
       "Business": "ビジネス",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "エンタープライズ"
     },
     "currentPlan": {
@@ -615,7 +626,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -844,14 +861,15 @@
     "yourBaseRole": "あなたの基本の役割",
     "lockedByUser": "{user} によってロックされています",
     "thisPageDoesNotExist": "このページは存在しません",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "カスタムURL",
     "viewSettingsCantBeChangedWhenViewIs": "ビュー設定はビューが{type}の時には変更できません",
     "youAreLeavingNocoDB": "NocoDBを離れます",
     "onlyProceedIfYouTrustThisLink": "このリンクを信頼する場合のみ続行してください。",
     "reAssignViewModalSubtitle": "再割り当てすると、現在の所有者はビュー設定を編集できなくなります。",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "継続利用でお得に— 価格上限をお楽しみください！",
     "loyaltyBannerSubtitle": "無制限シート、追加レコード、より多くのストレージ、条件付きWebhook、SSO、統合など、さらに多くの機能を解放しましょう！",
     "selectTimezone": "表示タイムゾーン",
@@ -872,6 +890,7 @@
     "currentUser": "現在のユーザー",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
+    "hideActions": "Hide Actions",
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
@@ -884,10 +903,13 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
+    "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -941,6 +963,7 @@
     "recent": "最近",
     "limitRecordSelectionToView": "表示の選択を制限する",
     "limitRecordSelectionToFilters": "フィルターにレコードの選択を制限する",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "追加したユーザー:",
     "whatsNew": "新機能!",
     "newAction": "新規アクション",
@@ -1266,7 +1289,7 @@
       "joinCommunity": "NocoDB のコミュニティに参加",
       "joinReddit": "/r/NocoDB に参加",
       "followNocodb": "NocoDB をフォロー",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(コミュニティ/AI翻訳)"
     },
     "twitter": "Twitter",
     "docReference": "リファレンスドキュメント",
@@ -1401,7 +1424,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "URLから追加",
     "enterJson": "JSONを入力",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtableベース",
     "useSameTimezoneForAllMembers": "すべてのメンバーで同じタイムゾーンを使用",
     "displayTimezone": "表示タイムゾーン",
     "upgradePlan": "プランをアップグレード",
@@ -1625,6 +1648,7 @@
     "changePwd": "パスワードを変更",
     "createView": "ビューを作成",
     "shareView": "ビューを共有",
+    "shareDashboard": "Share Dashboard",
     "findRowByCodeScan": "Find row by scan",
     "fillByCodeScan": "スキャンで入力",
     "listSharedView": "共有されているビューの一覧",
@@ -1733,7 +1757,13 @@
     "changePlan": "プランを変更",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset",
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1799,14 +1829,19 @@
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
     "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateDashboard": "Navigate to a base to a create dashboard",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewDashboard": "You don't have access to create new dashboard",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "アイコンを検索",
@@ -1878,6 +1913,7 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
+    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
@@ -1911,6 +1947,7 @@
     "subscribeToOurWeeklyNewsletter": "週刊ニュースレターを購読する",
     "verifyingPassword": "パスワードを検証中",
     "thisSharedViewIsProtected": "この共有ビューは保護されています",
+    "thisSharedDashboardIsProtected": "This shared dashboard is protected",
     "successfullySubmittedFormData": "フォームデータが正常に送信されました",
     "formViewNotSupportedOnMobile": "フォームビューはモバイルではサポートされていません",
     "calendarViewNotSupportedOnMobile": "カレンダー表示はモバイルではサポートされていません",
@@ -1954,7 +1991,8 @@
       "columnNotAvailable": "フィールド{columnName}は利用できません",
       "cantSaveCircularReference": "循環参照を引き起こすためフィールドを保存できません",
       "columnWithTypeFoundButExpected": "{columnType} タイプのフィールド {columnName} が見つかりましたが、{expectedType} タイプが期待されています",
-      "columnNotMatchedWithType": "{columnName} は {columnType} と一致しません"
+      "columnNotMatchedWithType": "{columnName} は {columnType} と一致しません",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "選択オプションをNULLにすることはできません",
@@ -2163,7 +2201,7 @@
       "addMultipleUsers": "カンマ（,）区切りで入力すると複数のEメールを追加できます",
       "enterTableName": "テーブル名を入力してください",
       "enterScriptName": "スクリプト名を入力してください",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "ダッシュボード名を入力してください",
       "enterTableDescription": "テーブルの説明を入力…",
       "enterScriptDescription": "スクリプトの説明を入力...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2241,7 +2279,9 @@
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
+      "matchedByButtonLabel": "Matched by button label",
+      "matchedByFieldDescription": "Matched by field description"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2357,7 +2397,11 @@
       "anErrorOccuredWhileImporting": "{type} の実行中にエラーが発生しました",
       "anErrorOccuredWhileAirtableBaseImport": "Airtableからベースをインポート中にエラーが発生しました",
       "paymentFailed": "支払いに失敗しました",
-      "paymentFailedSubtitle": "お支払いの処理中に問題が発生しました。もう一度お試しいただくか、サポートへご連絡ください。"
+      "paymentFailedSubtitle": "お支払いの処理中に問題が発生しました。もう一度お試しいただくか、サポートへご連絡ください。",
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",
@@ -2371,6 +2415,7 @@
       "projInfo": "プロジェクト情報をクリップボードにコピーしました",
       "inviteUrlCopy": "招待用 URL をクリップボードにコピーしました",
       "createView": "正常に作成されたビュー",
+      "createField": "Field created successfully",
       "formEmailSMTP": "電子メール通知を有効にするために、App StoreでSMTPプラグインを有効にしてください。",
       "collabView": "共同ビューに正常に切り替わりました",
       "lockedView": "ロックビューに正常に切り替わりました",
@@ -2428,7 +2473,9 @@
       "paymentSuccessfulSubtitle": "お支払いが処理され、新しいプランをご利用いただけます。",
       "upgradeSuccessful": "アップグレードが完了しました",
       "upgradeSuccessfulSubtitle": "アップグレードのお支払いが処理されました。新しいプランをご利用いただけます。",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

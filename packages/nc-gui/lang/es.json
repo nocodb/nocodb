@@ -117,11 +117,14 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "Actualiza para añadir más registros",
     "upgradeToAddLimitRecordSelection": "Para limitar la selección de registros mediante filtros, actualiza al plan {plan}.",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "Actualiza para añadir",
     "requestUpgradeToAdd": "Solicitar actualización para añadir",
     "upgradeToAddMoreExtensions": "Actualmente estás en el plan gratuito, que permite solo una extensión. Actualiza para desbloquear extensiones ilimitadas.",
     "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
     "upgradeToAddMoreDashboards": "You're currently on the Free plan, which allows only one dashboard. Upgrade to unlock unlimited dashboards.",
+    "upgradeToAddMoreScriptsSubtitle": "You're currently on the Free plan, which allows only one script per workspace. Upgrade to unlock unlimited scripts.",
+    "upgradeToAddMoreDashboardsSubtitle": "You're currently on the Free plan, which allows only one dashboard per workspace. Upgrade to unlock unlimited dashboards.",
     "upgradeToAccessWsAudit": "Actualiza para acceder a la auditoría del espacio de trabajo",
     "upgradeToAccessWsAuditSubtitle": "Actualiza al plan {plan} para habilitar registros de auditoría del espacio de trabajo y supervisar eficazmente las actividades clave.",
     "upgradeToAddMoreAttachments": "Actualiza para añadir más archivos adjuntos",
@@ -141,15 +144,15 @@
     "WorkspaceOwnerNotified": "Propietario del espacio de trabajo notificado",
     "WorkspaceOwnerNotifiedSubtitle": "Tu solicitud de actualización se ha compartido con el propietario del espacio de trabajo.",
     "failedToSendUpgradeRequest": "No se pudo enviar la solicitud de actualización",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Actualiza para desbloquear acceso completo a los datos",
+    "upgradeToSeeMoreRecordInline": "Actualiza para ver todos los registros de las fuentes de datos externas",
     "upgradeToSeeMoreRecordSubtitle": "Desbloquea visibilidad completa de tus fuentes conectadas. Visualiza todos los registros actualizando al plan Plus.",
     "upgradeToSeeMoreRecordInlineSubtitle": "Estás viendo {limit} de {total} registros. Desbloquea acceso a los {remaining} registros restantes actualizando al plan Plus.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "El plan gratuito permite hasta {limit} usuarios de tipo Editor, actualiza para obtener ilimitados",
     "adjustCollaboratorRoles": "Ajustar roles de colaboradores",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -163,9 +166,13 @@
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseDashboards": "Upgrade to use dashboards",
     "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUseDashboardsSubtitle": "Upgrade to the {plan} plan to use dashboards to visualize your data.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
   },
   "general": {
@@ -186,6 +193,7 @@
     "manual": "Manual",
     "trigger": "Disparador",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Estilo",
     "label": "Etiqueta",
     "role": "Rol",
@@ -381,6 +389,7 @@
     "languages": "Idiomas",
     "extension": "Extensión",
     "extensions": "Extensiones",
+    "actions": "Actions",
     "enable": "Habilitar",
     "disable": "Desactivar",
     "poweredBy": "Desarrollado por",
@@ -422,7 +431,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "Script",
@@ -586,6 +596,7 @@
       "Team": "Equipo",
       "Plus": "Plus",
       "Business": "Negocios",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "Empresa"
     },
     "currentPlan": {
@@ -615,7 +626,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -844,14 +861,15 @@
     "yourBaseRole": "Tu rol de proyecto",
     "lockedByUser": "Bloqueada por {user}",
     "thisPageDoesNotExist": "Esta página no existe",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "URL personalizada",
     "viewSettingsCantBeChangedWhenViewIs": "La configuración de la vista no se puede cambiar cuando la vista está {type}",
     "youAreLeavingNocoDB": "Estás saliendo de NocoDB",
     "onlyProceedIfYouTrustThisLink": "Solo continúa si confías en este enlace.",
     "reAssignViewModalSubtitle": "Una vez reasignada, el propietario actual ya no podrá editar la configuración de la vista.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "La fidelidad tiene recompensa: ¡disfruta de precios limitados!",
     "loyaltyBannerSubtitle": "Desbloquea asientos ilimitados, registros adicionales, más almacenamiento, webhooks condicionales, SSO, integraciones y mucho más.",
     "selectTimezone": "Zona horaria de visualización",
@@ -872,6 +890,7 @@
     "currentUser": "Usuario actual",
     "filteredByLoggedInUser": "Filtrado por el usuario conectado",
     "hideExtensions": "Hide Extensions",
+    "hideActions": "Hide Actions",
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
@@ -884,10 +903,13 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
+    "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -941,6 +963,7 @@
     "recent": "Reciente",
     "limitRecordSelectionToView": "Limitar selección de registros a una vista",
     "limitRecordSelectionToFilters": "Limitar selección de registros a filtros",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "Añadido por",
     "whatsNew": "¡Novedades!",
     "newAction": "Nueva acción",
@@ -1266,7 +1289,7 @@
       "joinCommunity": "Únase a la comunidad NocoDB",
       "joinReddit": "Únete /r/NocoDB",
       "followNocodb": "Seguir a NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Traducido por la comunidad/IA)"
     },
     "twitter": "Twitter",
     "docReference": "Documento de referencia",
@@ -1401,7 +1424,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Añadir desde URL",
     "enterJson": "Introducir JSON",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Base de Airtable",
     "useSameTimezoneForAllMembers": "Usar la misma zona horaria para todos los miembros",
     "displayTimezone": "Mostrar zona horaria",
     "upgradePlan": "Mejorar plan",
@@ -1625,6 +1648,7 @@
     "changePwd": "Cambia la contraseña",
     "createView": "Crear una Vista",
     "shareView": "Compartir vista",
+    "shareDashboard": "Share Dashboard",
     "findRowByCodeScan": "Find row by scan",
     "fillByCodeScan": "Rellenar por escaneo",
     "listSharedView": "Lista de vistas compartidas",
@@ -1733,7 +1757,13 @@
     "changePlan": "CambiarPlan",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset",
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1799,14 +1829,19 @@
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
     "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateDashboard": "Navigate to a base to a create dashboard",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewDashboard": "You don't have access to create new dashboard",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "Buscar iconos",
@@ -1878,6 +1913,7 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
+    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
@@ -1911,6 +1947,7 @@
     "subscribeToOurWeeklyNewsletter": "Suscríbete a nuestro boletín semanal",
     "verifyingPassword": "Verificando contraseña",
     "thisSharedViewIsProtected": "Esta vista compartida está protegida",
+    "thisSharedDashboardIsProtected": "This shared dashboard is protected",
     "successfullySubmittedFormData": "Datos del formulario enviados correctamente",
     "formViewNotSupportedOnMobile": "La vista de formulario no está soportada en móviles",
     "calendarViewNotSupportedOnMobile": "La vista de calendario no es compatible en móviles",
@@ -1954,7 +1991,8 @@
       "columnNotAvailable": "El campo {columnName} no está disponible",
       "cantSaveCircularReference": "No se puede guardar el campo porque causa una referencia circular",
       "columnWithTypeFoundButExpected": "Se ha encontrado el campo {columnName} con el tipo {columnType} , pero se espera el tipo {expectedType}",
-      "columnNotMatchedWithType": "{columnName} no coincide con {columnType}"
+      "columnNotMatchedWithType": "{columnName} no coincide con {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Las opciones de selección no pueden ser nulas",
@@ -2163,7 +2201,7 @@
       "addMultipleUsers": "Puedes agregar múltiples correos electrónicos separados de coma (,)",
       "enterTableName": "Ingrese el nombre de la tabla",
       "enterScriptName": "Introducir nombre del script",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Ingrese el nombre del panel de control",
       "enterTableDescription": "Ingrese la descripción de la tabla...",
       "enterScriptDescription": "Introducir descripción del script...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2241,7 +2279,9 @@
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
+      "matchedByButtonLabel": "Matched by button label",
+      "matchedByFieldDescription": "Matched by field description"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2357,7 +2397,11 @@
       "anErrorOccuredWhileImporting": "Ocurrió un error mientras {type}",
       "anErrorOccuredWhileAirtableBaseImport": "Ocurrió un error al importar la base desde Airtable",
       "paymentFailed": "Pago fallido",
-      "paymentFailedSubtitle": "Ocurrió un problema al procesar tu pago. Inténtalo de nuevo o contacta al soporte."
+      "paymentFailedSubtitle": "Ocurrió un problema al procesar tu pago. Inténtalo de nuevo o contacta al soporte.",
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "Metadatos del proyecto exportados con éxito.",
@@ -2371,6 +2415,7 @@
       "projInfo": "Información copiada del proyecto al portapapeles.",
       "inviteUrlCopy": "Copiado Invitación URL al Portapapeles",
       "createView": "Vista creada con éxito",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Por favor, active el complemento SMTP en la App Store para habilitar la notificación por correo electrónico",
       "collabView": "Cambiado con éxito a la vista colaborativa",
       "lockedView": "Cambiado con éxito a la vista bloqueada",
@@ -2428,7 +2473,9 @@
       "paymentSuccessfulSubtitle": "Tu pago ha sido procesado. Ahora puedes usar tu nuevo plan.",
       "upgradeSuccessful": "Actualización exitosa",
       "upgradeSuccessfulSubtitle": "Tu pago para la actualización ha sido procesado. Ahora puedes usar tu nuevo plan.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

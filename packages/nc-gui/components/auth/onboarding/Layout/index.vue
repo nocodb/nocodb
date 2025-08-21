@@ -107,17 +107,14 @@ watch(
               'justify-between': showNextButton,
             }"
           >
-            <NcButton
-              v-if="stepIndex === 0"
-              type="text"
-              size="small"
-              :disabled="isDisabledSkipButton"
-              @click="onCompleteOnboardingFlow(true)"
-            >
-              <div class="opacity-50">
-                {{ $t('general.skip') }}
-              </div>
-            </NcButton>
+            <NcTooltip v-if="stepIndex === 0" :disabled="!isDisabledSkipButton">
+              <template #title> Will be enabled after 2 seconds </template>
+              <NcButton type="text" size="small" :disabled="isDisabledSkipButton" @click="onCompleteOnboardingFlow(true)">
+                <div class="opacity-50">
+                  {{ $t('general.skip') }}
+                </div>
+              </NcButton>
+            </NcTooltip>
             <NcButton v-else type="text" size="small" :disabled="isFirst" @click="goToPrevious()">
               <template #icon>
                 <GeneralIcon icon="ncArrowLeft" class="w-4 h-4" />

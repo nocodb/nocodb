@@ -494,6 +494,15 @@ const handleOpenNewRecordForm = () => {
                           :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
                           @click="expandFormClick($event, record)"
                         />
+                        <LazyCellAttachmentPreviewPdfThumbnail
+                          v-else-if="isPdf(attachment.title, attachment.mimetype ?? attachment.type)"
+                          :key="`carousel-pdf-${record.rowMeta.rowIndex}-${index}`"
+                          class="h-52"
+                          image-class="!w-full"
+                          :object-fit="coverImageObjectFitStyle"
+                          :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
+                          @click="expandFormClick($event, record)"
+                        />
                       </template>
                     </a-carousel>
                     <div

@@ -81,7 +81,6 @@ describe('dataApiV3', () => {
             )
           ).getSources()
         )[0];
-        console.log(source)
         if(source.type === ClientType.SQLITE) {
           return;
         }

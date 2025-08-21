@@ -107,6 +107,7 @@ export class PagedResponseV3Impl<T> {
       'sort',
       'where',
       'viewId',
+      'pageSize',
     ]);
 
     if (!pagedResponse.pageInfo.isFirstPage && pagedResponse.pageInfo.page) {

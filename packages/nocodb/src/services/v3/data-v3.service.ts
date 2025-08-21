@@ -301,10 +301,11 @@ export class DataV3Service {
     );
   }
 
-  async dataList(
+  async dataList<T extends boolean>(
     context: NcContext,
     param: DataListParams,
-  ): Promise<DataListResponse> {
+    pagination: T = true as T,
+  ): Promise<T extends true ? DataListResponse : DataRecord[]> {
     const pagedData = await this.dataTableService.dataList(context, {
       ...(param as Omit<DataListParams, 'req'>),
       query: {
@@ -353,6 +354,12 @@ export class DataV3Service {
       depth: 0, // Start at depth 0 for main records
     });
 
+    if (!pagination) {
+      return transformedRecords as T extends true
+        ? DataListResponse
+        : DataRecord[];
+    }
+
     // Check if any LTAR fields were truncated
     const hasNextPage = transformedRecords.some((record) =>
       Object.values(record.fields).some(
@@ -366,7 +373,7 @@ export class DataV3Service {
       prev: pagedResponse.pageInfo.prev,
       nestedNext: hasNextPage ? pagedResponse.pageInfo.nestedNext : null,
       nestedPrev: pagedResponse.pageInfo.nestedPrev,
-    };
+    } as T extends true ? DataListResponse : DataRecord[];
   }
 
   /**

@@ -166,11 +166,15 @@ const handleBulkActionMessage = async (message: any, button: ColumnType & { colO
     case 'ACTION_EXECUTION_MESSAGE':
       {
         const executionId = parsedMessage.executionId
+        let message = parsedMessage.payload.message
+        try {
+          message = JSON.parse(message)
+        } catch (error) {}
 
-        if (executionId && activeExecutions.value.has(executionId) && parsedMessage.payload.message) {
+        if (executionId && activeExecutions.value.has(executionId) && message) {
           handleWorkerMessage(
             executionId,
-            parsedMessage.payload.message,
+            message,
             null, // No worker for backend execution
             () => {}, // No onWorkerDone callback
             {
@@ -190,7 +194,7 @@ const handleBulkActionMessage = async (message: any, button: ColumnType & { colO
 
         if (executionId && activeExecutions.value.has(executionId)) {
           const execution = activeExecutions.value.get(executionId)!
-          const isError = parsedMessage.type === 'ACTION_EXECUTION_ERROR'
+          const isError = parsedMessage.type === 'ACTION_EXECUTION_ERROR' || execution.error
 
           activeExecutions.value.set(executionId, {
             ...execution,

@@ -19,7 +19,7 @@ defineProps<{ title?: string; subtitle?: string; containerClass?: string; action
       </div>
 
       <slot name="actions">
-        <NcButton @click="navigateTo('/')" class="!text-base" :class="actionButtonClass">{{
+        <NcButton class="!text-base" :class="actionButtonClass" @click="navigateTo('/')">{{
           $t('activity.goBackHome')
         }}</NcButton>
       </slot>

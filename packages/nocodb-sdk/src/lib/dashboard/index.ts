@@ -35,7 +35,7 @@ export const WidgetChartLabelMap = {
   [WidgetTypes.TABLE]: 'Table',
   [WidgetTypes.METRIC]: 'Metric',
   [WidgetTypes.TEXT]: 'Text',
-  [WidgetTypes.IFRAME]: 'IFrame',
+  [WidgetTypes.IFRAME]: 'iFrame',
 };
 
 export enum WidgetDataSourceTypes {

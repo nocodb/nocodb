@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 interface Props {
   option: OnboardingOptionType
+  index: number
+  totalOptions: number
   iconSize?: OnboardingQuestionType['iconSize']
 }
 
@@ -41,9 +43,31 @@ const bgColorClass = computed(() => {
         height: `${iconSize?.height ?? 24}px`,
       }"
     >
-      <GeneralIcon :icon="option.icon!" class="flex-none" :class="iconColor" />
+      <GeneralIcon
+        :icon="option.icon!"
+        class="flex-none"
+        :class="[
+          iconColor,
+          {
+            'w-full h-full': iconSize?.fullWidth,
+          },
+        ]"
+      />
     </div>
-    <div></div>
+    <div v-else-if="option.iconType === 'indexedStepProgressBar'" class="flex items-stretch gap-0.5">
+      <div
+        v-for="i in totalOptions"
+        :key="i"
+        class="flex-none w-3 h-3"
+        :class="{
+          'bg-green-600': i <= index,
+          'bg-nc-bg-gray-dark': i !== index,
+          'rounded-l-full': i === 1,
+          'rounded-r-full': i === totalOptions,
+        }"
+      ></div>
+    </div>
+    <div v-else></div>
   </div>
 </template>
 

@@ -735,6 +735,15 @@ import NcLogoZendeskColored from '~icons/nc-icons-v2/zendesk-colored.svg'
 import NcLogoZendesk from '~icons/nc-icons-v2/zendesk.svg'
 import NcLogoZohoColored from '~icons/nc-icons-v2/zoho-colored.svg'
 import NcLogoZoho from '~icons/nc-icons-v2/zoho.svg'
+import NcLogoBaserowColored from '~icons/nc-icons-v2/baserow-colored.svg'
+import NcLogoSoftrColored from '~icons/nc-icons-v2/softr-colored.svg'
+import NcLogoNotionColored from '~icons/nc-icons-v2/notion-colored.svg'
+import NcLogoCodaColored from '~icons/nc-icons-v2/coda-colored.svg'
+import NcLogoRetoolColored from '~icons/nc-icons-v2/retool-colored.svg'
+import NcLogoN8nColored from '~icons/nc-icons-v2/n8n-colored.svg'
+import NcLogoZapierColored from '~icons/nc-icons-v2/zapier-colored.svg'
+import NcLogoMakeColored from '~icons/nc-icons-v2/make-colored.svg'
+
 import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
 import NcBaseOutline from '~icons/nc-icons-v2/base-outline.svg'
 import NcBasePrivate from '~icons/nc-icons-v2/base-private.svg'
@@ -1709,6 +1718,15 @@ export const iconMap = {
   'ncLogoZendesk': h(NcLogoZendesk, { stroke: 'transparent' }),
   'ncLogoZohoColored': h(NcLogoZohoColored, { stroke: 'transparent' }),
   'ncLogoZoho': h(NcLogoZoho, { stroke: 'transparent' }),
+  'ncLogoBaserowColored': h(NcLogoBaserowColored, { stroke: 'transparent' }),
+  'ncLogoSoftrColored': h(NcLogoSoftrColored, { stroke: 'transparent' }),
+  'ncLogoNotionColored': h(NcLogoNotionColored, { stroke: 'transparent' }),
+  'ncLogoCodaColored': h(NcLogoCodaColored, { stroke: 'transparent' }),
+  'ncLogoRetoolColored': h(NcLogoRetoolColored, { stroke: 'transparent' }),
+  'ncLogoN8nColored': h(NcLogoN8nColored, { stroke: 'transparent' }),
+  'ncLogoZapierColored': h(NcLogoZapierColored, { stroke: 'transparent' }),
+  'ncLogoMakeColored': h(NcLogoMakeColored, { stroke: 'transparent' }),
+
   'ncSendAlt': h(NcSendAlt, { stroke: 'transparent' }),
   'ncStopCircle': h(NcStopCircle, { stroke: 'transparent' }),
   'ncAiPlay': AiPlayIcon,
@@ -4303,6 +4321,38 @@ export const searchableMap = {
   ncLogoZoho: {
     icon: h(NcLogoZoho, { stroke: 'transparent' }),
     keywords: ['crm', 'business apps', 'collaboration', 'productivity', 'enterprise'],
+  },
+  ncLogoBaserowColored: {
+    icon: h(NcLogoBaserowColored, { stroke: 'transparent' }),
+    keywords: ['baserow', 'nocode', 'database', 'table', 'collaboration', 'open-source'],
+  },
+  ncLogoSoftrColored: {
+    icon: h(NcLogoSoftrColored, { stroke: 'transparent' }),
+    keywords: ['softr', 'nocode', 'website', 'app', 'frontend', 'builder'],
+  },
+  ncLogoNotionColored: {
+    icon: h(NcLogoNotionColored, { stroke: 'transparent' }),
+    keywords: ['notion', 'docs', 'wiki', 'notes', 'productivity', 'database', 'collaboration'],
+  },
+  ncLogoCodaColored: {
+    icon: h(NcLogoCodaColored, { stroke: 'transparent' }),
+    keywords: ['coda', 'docs', 'automation', 'spreadsheet', 'teamwork', 'collaboration'],
+  },
+  ncLogoRetoolColored: {
+    icon: h(NcLogoRetoolColored, { stroke: 'transparent' }),
+    keywords: ['retool', 'internal-tools', 'builder', 'frontend', 'admin', 'dashboard', 'crud'],
+  },
+  ncLogoN8nColored: {
+    icon: h(NcLogoN8nColored, { stroke: 'transparent' }),
+    keywords: ['n8n', 'workflow', 'automation', 'integration', 'open-source', 'pipeline'],
+  },
+  ncLogoZapierColored: {
+    icon: h(NcLogoZapierColored, { stroke: 'transparent' }),
+    keywords: ['zapier', 'automation', 'integration', 'workflow', 'task', 'connect'],
+  },
+  ncLogoMakeColored: {
+    icon: h(NcLogoMakeColored, { stroke: 'transparent' }),
+    keywords: ['make', 'automation', 'workflow', 'integration', 'connect', 'nocode'],
   },
   ncBaseOutline: {
     icon: NcBaseOutline,

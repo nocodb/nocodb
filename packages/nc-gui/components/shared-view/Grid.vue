@@ -31,11 +31,9 @@ useProvideSmartsheetLtarHelpers(meta)
 
 useViewRowColorProvider({ shared: true })
 
-const router = useRouter()
+const route = useRoute()
 
-const disableToolbar = computed(
-  () => router.currentRoute.value.query?.disableToolbar === 'true' || router.currentRoute.value.query?.disableTopbar === 'true',
-)
+const disableToolbar = computed(() => route.query?.disableToolbar === 'true' || route.query?.disableTopbar === 'true')
 
 if (signedIn.value) {
   try {

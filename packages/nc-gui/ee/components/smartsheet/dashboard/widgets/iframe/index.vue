@@ -25,9 +25,12 @@ const isValidUrl = computed(() => {
   }
 })
 
-watch([() => scriptConfig.value?.url], () => {
-  key.value++
-})
+watch(
+  () => scriptConfig.value?.url,
+  () => {
+    key.value++
+  },
+)
 </script>
 
 <template>
@@ -57,7 +60,7 @@ watch([() => scriptConfig.value?.url], () => {
 <style scoped lang="scss">
 .nc-iframe-widget {
   iframe {
-    background: white;
+    @apply bg-nc-bg-default;
   }
 }
 </style>

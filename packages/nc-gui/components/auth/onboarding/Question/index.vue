@@ -39,7 +39,12 @@ const isOptionSelected = (option: OnboardingOptionType) => {
 
 <template>
   <div class="flex flex-col gap-6">
-    <h3 class="my-0 text-heading3 text-nc-content-gray-emphasis">{{ question.question }}</h3>
+    <div class="flex flex-col gap-3">
+      <h3 class="my-0 text-heading3 text-nc-content-gray-emphasis">{{ question.question }}</h3>
+      <p v-if="question.description" class="my-0 text-body text-nc-content-gray-subtle2">
+        {{ question.description }}
+      </p>
+    </div>
     <div
       class="flex flex-wrap gap-4"
       :class="{

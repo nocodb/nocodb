@@ -116,7 +116,8 @@ export const useOnboardingFlow = createSharedComposable(() => {
       !isSharedBase.value &&
       !isSharedErd.value &&
       !isSharedViewRoute(route.value) &&
-      !isSharedFormViewRoute(route.value)
+      !isSharedFormViewRoute(route.value) &&
+      !isPublicRoute(route.value)
     )
   })
 

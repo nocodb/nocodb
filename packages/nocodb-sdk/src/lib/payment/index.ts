@@ -24,6 +24,8 @@ export enum PlanLimitTypes {
   LIMIT_FILTER_PER_VIEW = 'limit_filter_per_view',
   LIMIT_SORT_PER_VIEW = 'limit_sort_per_view',
   LIMIT_ATTACHMENTS_IN_CELL = 'limit_attachments_in_cell',
+  LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
+  LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
 }
 
 export enum PlanFeatureTypes {
@@ -46,8 +48,6 @@ export enum PlanFeatureTypes {
   FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER = 'feature_lookup_limit_records_by_filter',
   FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER = 'feature_rollup_limit_records_by_filter',
   FEATURE_PERSONAL_VIEWS = 'feature_personal_views',
-  FEATURE_SCRIPTS = 'feature_scripts',
-  FEATURE_DASHBOARD = 'feature_dashboard',
   FEATURE_SSO = 'feature_sso',
   FEATURE_WEBHOOK_CUSTOM_PAYLOAD = 'feature_webhook_custom_payload',
   FEATURE_WORKSPACE_CUSTOM_LOGO = 'feature_workspace_custom_logo',
@@ -197,6 +197,10 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 'to add more sort rules in a view.',
   [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]:
     'to add more attachments in a cell.',
+  [PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE]:
+    'to add more scripts in a workspace.',
+  [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]:
+    'to add more dashboards in a workspace.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -226,8 +230,6 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER]:
     'to limit rollup records by filters.',
   [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: 'to use personal views.',
-  [PlanFeatureTypes.FEATURE_SCRIPTS]: 'to enable scripts.',
-  [PlanFeatureTypes.FEATURE_DASHBOARD]: 'to use dashboards.',
   [PlanFeatureTypes.FEATURE_SSO]: 'to enable SSO (Single Sign-On).',
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]:
     'to send custom webhook payloads.',

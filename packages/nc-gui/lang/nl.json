@@ -117,11 +117,14 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "Upgrade om meer records toe te voegen",
     "upgradeToAddLimitRecordSelection": "Om recordselectie met filters te beperken moet u upgraden naar het {plan}-abonnement.",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "Upgrade om toe te voegen",
     "requestUpgradeToAdd": "Vraag een upgrade aan om toe te voegen",
     "upgradeToAddMoreExtensions": "U gebruikt momenteel het gratis abonnement, waarmee slechts één extensie is toegestaan. Upgrade om onbeperkt extensies te kunnen gebruiken.",
-    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
-    "upgradeToAddMoreDashboards": "You're currently on the Free plan, which allows only one dashboard. Upgrade to unlock unlimited dashboards.",
+    "upgradeToAddMoreScripts": "Upgrade to add more scripts",
+    "upgradeToAddMoreDashboards": "Upgrade to add more dashboards",
+    "upgradeToAddMoreScriptsSubtitle": "You're currently on the Free plan, which allows only one script per workspace. Upgrade to unlock unlimited scripts.",
+    "upgradeToAddMoreDashboardsSubtitle": "You're currently on the Free plan, which allows only one dashboard per workspace. Upgrade to unlock unlimited dashboards.",
     "upgradeToAccessWsAudit": "Upgrade om werkruimte-audit te openen",
     "upgradeToAccessWsAuditSubtitle": "Upgrade naar het {plan}-abonnement om werkruimte-auditlogboeken in te schakelen en belangrijke activiteiten efficiënt te monitoren.",
     "upgradeToAddMoreAttachments": "Upgrade om meer bijlagen toe te voegen",
@@ -141,15 +144,15 @@
     "WorkspaceOwnerNotified": "Werkruimte-eigenaar geïnformeerd",
     "WorkspaceOwnerNotifiedSubtitle": "Uw verzoek om te upgraden is gedeeld met de werkruimte-eigenaar.",
     "failedToSendUpgradeRequest": "Upgrade-verzoek verzenden mislukt",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Upgrade om volledige gegevens­toegang te ontgrendelen",
+    "upgradeToSeeMoreRecordInline": "Upgrade om alle records uit externe gegevensbronnen te bekijken",
     "upgradeToSeeMoreRecordSubtitle": "Ontgrendel volledige zichtbaarheid in uw gekoppelde bronnen. Bekijk alle records door te upgraden naar het Plus-abonnement.",
     "upgradeToSeeMoreRecordInlineSubtitle": "U bekijkt {limit} van {total} records. Ontgrendel toegang tot de resterende {remaining} records door te upgraden naar het Plus-abonnement.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Het gratis abonnement staat tot {limit} Editor-gebruikers toe, upgrade voor onbeperkte aantallen",
     "adjustCollaboratorRoles": "Pas rollen van medewerkers aan",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -163,9 +166,13 @@
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseDashboards": "Upgrade to use dashboards",
     "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUseDashboardsSubtitle": "Upgrade to the {plan} plan to use dashboards to visualize your data.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
   },
   "general": {
@@ -186,6 +193,7 @@
     "manual": "Handleiding",
     "trigger": "Trigger",
     "addLookupField": "Add {count} lookup fields",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Stijl",
     "label": "Label",
     "role": "Rol",
@@ -381,6 +389,7 @@
     "languages": "Talen",
     "extension": "Extensie",
     "extensions": "Extensies",
+    "actions": "Actions",
     "enable": "Inschakelen",
     "disable": "Uitschakelen",
     "poweredBy": "Aangedreven door",
@@ -422,7 +431,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "Script",
@@ -586,6 +596,7 @@
       "Team": "Team",
       "Plus": "Plus",
       "Business": "Business",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "Enterprise"
     },
     "currentPlan": {
@@ -615,7 +626,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -844,14 +861,15 @@
     "yourBaseRole": "Uw base-rol",
     "lockedByUser": "Geblokkeerd door {user}",
     "thisPageDoesNotExist": "Deze pagina bestaat niet",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "Aangepaste URL",
     "viewSettingsCantBeChangedWhenViewIs": "Weergave-instellingen kunnen niet worden gewijzigd wanneer de weergave {type} is",
     "youAreLeavingNocoDB": "U verlaat NocoDB",
     "onlyProceedIfYouTrustThisLink": "Ga alleen verder als u deze link vertrouwt.",
     "reAssignViewModalSubtitle": "Na toewijzing kan de huidige eigenaar de weergaveconfiguratie niet meer bewerken.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Loyaliteit loont — profiteer van vaste prijzen!",
     "loyaltyBannerSubtitle": "Ontgrendel onbeperkte seats, extra records, meer opslag, voorwaardelijke webhooks, SSO, integraties en veel meer!",
     "selectTimezone": "Tijdzone weergeven",
@@ -872,6 +890,7 @@
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
+    "hideActions": "Hide Actions",
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
@@ -884,10 +903,13 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
+    "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -941,13 +963,14 @@
     "recent": "Recent",
     "limitRecordSelectionToView": "Beperk recordselectie tot een weergave",
     "limitRecordSelectionToFilters": "Beperk recordselectie tot filters",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "Toegevoegd door",
     "whatsNew": "Wat is nieuw!",
     "newAction": "Nieuwe actie",
     "actionLogs": "Actielogboeken",
     "runScript": "Script uitvoeren",
     "scriptName": "Scriptnaam",
-    "dashboardName": "Dashboard naam",
+    "dashboardName": "Dashboard name",
     "enableSnowFall": "Sneeuwval inschakelen",
     "disableSnowFall": "Sneeuwval uitschakelen",
     "snapshotCreationFailed": "Momentopname maken mislukt",
@@ -1266,7 +1289,7 @@
       "joinCommunity": "Word lid van de NocoDB-gemeenschap",
       "joinReddit": "Word lid van /r/NocoDB",
       "followNocodb": "Volg NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Community/AI vertaald)"
     },
     "twitter": "Twitter",
     "docReference": "Documentreferentie",
@@ -1401,7 +1424,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "Toevoegen via URL",
     "enterJson": "Voer JSON in",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable-base",
     "useSameTimezoneForAllMembers": "Gebruik dezelfde tijdzone voor alle leden",
     "displayTimezone": "Tijdzone weergeven",
     "upgradePlan": "Abonnement upgraden",
@@ -1625,6 +1648,7 @@
     "changePwd": "Wachtwoord wijzigen",
     "createView": "Maak een weergave",
     "shareView": "Deel weergave",
+    "shareDashboard": "Share Dashboard",
     "findRowByCodeScan": "Find row by scan",
     "fillByCodeScan": "Invullen door scan",
     "listSharedView": "Lijst van gedeelde weergaven",
@@ -1733,7 +1757,13 @@
     "changePlan": "Abonnement wijzigen",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset",
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1799,14 +1829,19 @@
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
     "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateDashboard": "Navigate to a base to a create dashboard",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewDashboard": "You don't have access to create new dashboard",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "Zoek pictogrammen",
@@ -1878,6 +1913,7 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
+    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
@@ -1911,6 +1947,7 @@
     "subscribeToOurWeeklyNewsletter": "Abonneer je op onze wekelijkse nieuwsbrief",
     "verifyingPassword": "Wachtwoord verificatie",
     "thisSharedViewIsProtected": "Deze gedeelde weergave is beschermd",
+    "thisSharedDashboardIsProtected": "This shared dashboard is protected",
     "successfullySubmittedFormData": "Formuliergegevens succesvol ingediend",
     "formViewNotSupportedOnMobile": "Formulierweergave wordt niet ondersteund op mobiel",
     "calendarViewNotSupportedOnMobile": "Kalenderweergave wordt niet ondersteund op mobiel",
@@ -1954,7 +1991,8 @@
       "columnNotAvailable": "Veld {columnName} is niet beschikbaar",
       "cantSaveCircularReference": "Kan veld niet opslaan omdat het een cirkelverwijzing veroorzaakt",
       "columnWithTypeFoundButExpected": "Veld {columnName} met {columnType} type is gevonden maar {expectedType} type wordt verwacht",
-      "columnNotMatchedWithType": "{columnName} komt niet overeen met {columnType}"
+      "columnNotMatchedWithType": "{columnName} komt niet overeen met {columnType}",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Selecteer opties kan niet null zijn",
@@ -2163,7 +2201,7 @@
       "addMultipleUsers": "U kunt meerdere komma (,) gescheiden e-mails toevoegen",
       "enterTableName": "Voer de tabelnaam in",
       "enterScriptName": "Voer een scriptnaam in",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Voer dashboardnaam in",
       "enterTableDescription": "Voer tafelb beschrijving in...",
       "enterScriptDescription": "Voer een scriptbeschrijving in...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2241,7 +2279,9 @@
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
+      "matchedByButtonLabel": "Matched by button label",
+      "matchedByFieldDescription": "Matched by field description"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2357,7 +2397,11 @@
       "anErrorOccuredWhileImporting": "Er is een fout opgetreden tijdens {type}",
       "anErrorOccuredWhileAirtableBaseImport": "Er is een fout opgetreden bij het importeren van base uit Airtable",
       "paymentFailed": "Betaling mislukt",
-      "paymentFailedSubtitle": "Er is iets misgegaan bij het verwerken van uw betaling. Probeer het opnieuw of neem contact op met de ondersteuning."
+      "paymentFailedSubtitle": "Er is iets misgegaan bij het verwerken van uw betaling. Probeer het opnieuw of neem contact op met de ondersteuning.",
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "Project metadata met succes geëxporteerd",
@@ -2371,6 +2415,7 @@
       "projInfo": "Projectinformatie naar klembord gekopieerd",
       "inviteUrlCopy": "UitnodigignsURL gekopieerd naar klembord",
       "createView": "Weergave met succes gemaakt",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Activeer de SMTP-plug-in in de App Store voor het inschakelen van e-mailmeldingen",
       "collabView": "Met succes geschakeld naar een samenwerkingsweergave",
       "lockedView": "Met succes geschakeld naar vergrendelde weergave",
@@ -2428,7 +2473,9 @@
       "paymentSuccessfulSubtitle": "Uw betaling is verwerkt. U kunt nu uw nieuwe abonnement gebruiken.",
       "upgradeSuccessful": "Upgrade geslaagd",
       "upgradeSuccessfulSubtitle": "Uw betaling voor de upgrade is verwerkt. U kunt nu uw nieuwe abonnement gebruiken.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

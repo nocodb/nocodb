@@ -129,7 +129,7 @@ const addDonutChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.DON
     <NcButton size="small" type="text" @click="addIframeWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="cellUrl" class="w-5 h-5" />
-        IFrame
+        iFrame
       </div>
     </NcButton>
     <!--    <NcButton size="small" type="text" @click="addScatterPlotWidget">

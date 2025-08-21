@@ -31,6 +31,7 @@ watch(url, () => {
       <a-textarea
         ref="inputEl"
         v-model:value="url"
+        :rows="4"
         class="nc-input-sm nc-input-text-area widget-content-input nc-input-shadow px-3 !text-nc-content-gray"
         placeholder="https://example.com"
         size="small"

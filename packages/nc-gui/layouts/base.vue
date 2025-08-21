@@ -125,7 +125,11 @@ hooks.hook('page:finish', () => {
         </template>
       </a-layout-header>
 
-      <NcTooltip v-if="!signedIn && !route.params.baseId && !route.params.erdUuid" placement="left" class="nc-lang-btn-wrapper">
+      <NcTooltip
+        v-if="!signedIn && !route.params.baseId && !route.params.erdUuid && !ncIsIframe()"
+        placement="left"
+        class="nc-lang-btn-wrapper"
+      >
         <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
         <LazyGeneralLanguage class="nc-lang-btn" />

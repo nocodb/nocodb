@@ -5579,6 +5579,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     attachmentColumns: Record<string, any>[],
     d: Record<string, any>,
   ) {
+    // Helper function to check if attachment supports thumbnails
+    const supportsThumbnails = (attachment: any) => {
+      return attachment.mimetype?.startsWith('image/') || attachment.mimetype?.startsWith('application/pdf');
+    };
+
     try {
       if (d) {
         const promises = [];
@@ -5609,7 +5614,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       }),
                     );
 
-                    if (!lookedUpAttachment.mimetype?.startsWith('image/') && !lookedUpAttachment.mimetype.startsWith('application/pdf')) {
+                    if (!supportsThumbnails(lookedUpAttachment)) {
                       continue;
                     }
 
@@ -5651,7 +5656,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       }),
                     );
 
-                    if (!lookedUpAttachment.mimetype?.startsWith('image/') && !lookedUpAttachment.mimetype.startsWith('application/pdf')) {
+                    if (!supportsThumbnails(lookedUpAttachment)) {
                       continue;
                     }
 
@@ -5692,7 +5697,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     }),
                   );
 
-                  if (!attachment.mimetype?.startsWith('image/') && !attachment.mimetype.startsWith('application/pdf')) {
+                  if (!supportsThumbnails(attachment)) {
                     continue;
                   }
 

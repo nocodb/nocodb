@@ -117,11 +117,14 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "升级以添加更多记录",
     "upgradeToAddLimitRecordSelection": "要使用筛选器限制记录选择，请升级到 {plan} 套餐。",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "升级以添加",
     "requestUpgradeToAdd": "请求升级以添加",
     "upgradeToAddMoreExtensions": "您当前使用的是免费套餐，只允许一个扩展。升级即可解锁无限扩展。",
     "upgradeToAddMoreScripts": "您当前使用的免费套餐仅允许创建一个脚本，升级套餐可以去除脚本数量限制。",
     "upgradeToAddMoreDashboards": "You're currently on the Free plan, which allows only one dashboard. Upgrade to unlock unlimited dashboards.",
+    "upgradeToAddMoreScriptsSubtitle": "You're currently on the Free plan, which allows only one script per workspace. Upgrade to unlock unlimited scripts.",
+    "upgradeToAddMoreDashboardsSubtitle": "You're currently on the Free plan, which allows only one dashboard per workspace. Upgrade to unlock unlimited dashboards.",
     "upgradeToAccessWsAudit": "升级以启用工作区审计",
     "upgradeToAccessWsAuditSubtitle": "升级到 {plan} 套餐即可启用工作区审计日志，高效监控关键操作。",
     "upgradeToAddMoreAttachments": "升级以添加更多附件",
@@ -141,15 +144,15 @@
     "WorkspaceOwnerNotified": "已通知工作区所有者",
     "WorkspaceOwnerNotifiedSubtitle": "您的升级请求已发送给工作区所有者。",
     "failedToSendUpgradeRequest": "升级请求发送失败",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "升级以解锁完整数据访问",
+    "upgradeToSeeMoreRecordInline": "升级即可查看外部数据源的所有记录",
     "upgradeToSeeMoreRecordSubtitle": "解锁已连接数据源的完整可见性。升级到 Plus 套餐即可查看所有记录。",
     "upgradeToSeeMoreRecordInlineSubtitle": "您正在查看 {total} 条记录中的 {limit} 条。升级到 Plus 套餐即可解锁剩余 {remaining} 条记录。",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "免费套餐最多允许 {limit} 个编辑用户，升级即可无限制使用。",
     "adjustCollaboratorRoles": "调整协作者角色",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -163,10 +166,14 @@
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseDashboards": "Upgrade to use dashboards",
     "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUseDashboardsSubtitle": "Upgrade to the {plan} plan to use dashboards to visualize your data.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "企业入门许可证不提供专用基地。升级许可证密钥即可开始使用。",
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "您最多只能向该单元上传 {limit} {filePlural} 。升级到 {plan} 计划可添加更多文件。"
   },
   "general": {
     "script": "脚本",
@@ -186,6 +193,7 @@
     "manual": "手动",
     "trigger": "触发器",
     "addLookupField": "添加{count} 个查找字段",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "样式",
     "label": "标签",
     "role": "角色",
@@ -381,6 +389,7 @@
     "languages": "语言",
     "extension": "扩展",
     "extensions": "扩展",
+    "actions": "Actions",
     "enable": "启用",
     "disable": "禁用",
     "poweredBy": "技术支持",
@@ -422,7 +431,8 @@
     "automations": "自动化",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "脚本",
@@ -586,6 +596,7 @@
       "Team": "团队",
       "Plus": "Plus",
       "Business": "商务",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "企业"
     },
     "currentPlan": {
@@ -615,7 +626,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "编辑权限将设置为编辑及以上。",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -844,14 +861,15 @@
     "yourBaseRole": "您的项目角色",
     "lockedByUser": "被{user} 锁定",
     "thisPageDoesNotExist": "此页面不存在",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "自定义URL",
     "viewSettingsCantBeChangedWhenViewIs": "当视图为 {type} 时无法更改视图设置",
     "youAreLeavingNocoDB": "您将离开 NocoDB",
     "onlyProceedIfYouTrustThisLink": "仅在您信任此链接时继续。",
     "reAssignViewModalSubtitle": "一旦重新分配，当前所有者将无法编辑视图配置。",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "众人拾柴火焰高 — 升级到 Plus 套餐让更多人参与编辑",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "忠诚有回报 — 享受封顶价格！",
     "loyaltyBannerSubtitle": "解锁无限席位、更多记录、更大存储、条件 Webhook、SSO、集成等更多功能！",
     "selectTimezone": "显示时区",
@@ -872,6 +890,7 @@
     "currentUser": "当前用户",
     "filteredByLoggedInUser": "按已登录用户筛选",
     "hideExtensions": "隐藏扩展",
+    "hideActions": "Hide Actions",
     "duplicatesFound": "发现重复项",
     "matchingResultsInRecords": "找到 {count} 条匹配结果",
     "tablePermissions": "表格权限",
@@ -884,10 +903,13 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
+    "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -941,6 +963,7 @@
     "recent": "最近",
     "limitRecordSelectionToView": "将记录选择限制为视图",
     "limitRecordSelectionToFilters": "将记录选择限制为筛选条件",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "添加者",
     "whatsNew": "有新内容！",
     "newAction": "新动作",
@@ -1266,7 +1289,7 @@
       "joinCommunity": "加入 NocoDB 社区",
       "joinReddit": "加入 NocoDB",
       "followNocodb": "关注 NocoDB",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "（社区/ AI 翻译）"
     },
     "twitter": "推特（Twitter）",
     "docReference": "参考文档",
@@ -1625,6 +1648,7 @@
     "changePwd": "更改密码",
     "createView": "创建视图",
     "shareView": "分享视图",
+    "shareDashboard": "Share Dashboard",
     "findRowByCodeScan": "通过扫描查找行",
     "fillByCodeScan": "通过扫描填充",
     "listSharedView": "共享视图列表",
@@ -1733,7 +1757,13 @@
     "changePlan": "更改套餐",
     "goToPermissionsOverview": "转到权限概览",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset",
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1799,14 +1829,19 @@
     "filteredByCurrentUser": "按当前用户筛选",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
     "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateDashboard": "Navigate to a base to a create dashboard",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewDashboard": "You don't have access to create new dashboard",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "搜索图标",
@@ -1878,6 +1913,7 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
+    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} 现在可以访问 {scope}",
     "evaluateRecursively": "递归计算",
@@ -1911,6 +1947,7 @@
     "subscribeToOurWeeklyNewsletter": "订阅我们的每周的新闻",
     "verifyingPassword": "验证密码",
     "thisSharedViewIsProtected": "此共享视图受到保护",
+    "thisSharedDashboardIsProtected": "This shared dashboard is protected",
     "successfullySubmittedFormData": "成功提交表格数据",
     "formViewNotSupportedOnMobile": "移动设备上不支持表单视图",
     "calendarViewNotSupportedOnMobile": "移动设备不支持日历视图",
@@ -1954,7 +1991,8 @@
       "columnNotAvailable": "字段 {columnName} 不可用",
       "cantSaveCircularReference": "无法保存字段，因为它会导致循环引用",
       "columnWithTypeFoundButExpected": "字段 {columnName} 类型为 {columnType} ，但预期类型为 {expectedType}",
-      "columnNotMatchedWithType": "{columnName} 与 {columnType} 不匹配"
+      "columnNotMatchedWithType": "{columnName} 与 {columnType} 不匹配",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "选择选项不能为空",
@@ -2163,7 +2201,7 @@
       "addMultipleUsers": "可以使用多个英文逗号 (,) 分隔邮箱地址",
       "enterTableName": "输入表名",
       "enterScriptName": "输入脚本名称",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "输入仪表板名称",
       "enterTableDescription": "输入表格描述...",
       "enterScriptDescription": "输入脚本描述……",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2241,7 +2279,9 @@
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
+      "matchedByButtonLabel": "Matched by button label",
+      "matchedByFieldDescription": "Matched by field description"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2357,7 +2397,11 @@
       "anErrorOccuredWhileImporting": "在 {type} 时发生错误",
       "anErrorOccuredWhileAirtableBaseImport": "从 Airtable 导入 Base 时发生错误",
       "paymentFailed": "支付失败",
-      "paymentFailedSubtitle": "处理您的付款时出现问题。请重试或联系支持。"
+      "paymentFailedSubtitle": "处理您的付款时出现问题。请重试或联系支持。",
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",
@@ -2371,6 +2415,7 @@
       "projInfo": "将项目信息复制到剪贴板",
       "inviteUrlCopy": "复制邀请链接到剪贴板",
       "createView": "视图创建成功",
+      "createField": "Field created successfully",
       "formEmailSMTP": "请激活App Store中的SMTP插件以启用电子邮件通知",
       "collabView": "成功转换为协作视图",
       "lockedView": "成功转换为锁定视图",
@@ -2428,7 +2473,9 @@
       "paymentSuccessfulSubtitle": "您的付款已处理完成。现在可以使用新的套餐。",
       "upgradeSuccessful": "升级成功",
       "upgradeSuccessfulSubtitle": "您的升级付款已处理完成。现在可以使用新的套餐。",
-      "mcpUrlCopied": "已复制 MCP URL"
+      "mcpUrlCopied": "已复制 MCP URL",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

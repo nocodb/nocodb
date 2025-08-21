@@ -53,7 +53,7 @@ const filterForDestinationColumn = (col: ColumnType): boolean => {
   if ([UITypes.ForeignKey, UITypes.ID].includes(col.uidt as UITypes)) {
     return true
   } else {
-    return !isSystemColumn(col) && !isVirtualCol(col) && !isAttachment(col)
+    return !isSystemColumn(col) && !isVirtualCol(col)
   }
 }
 

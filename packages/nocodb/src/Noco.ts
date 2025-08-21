@@ -23,6 +23,7 @@ import { getAppUrl } from '~/utils/appUrl';
 import { DataReflection, Integration } from '~/models';
 import { getRedisURL } from '~/helpers/redisHelpers';
 import { RedisIoAdapter } from '~/gateways/RedisIoAdapter';
+import { definePDFJSModule } from 'unpdf';
 
 dotenv.config();
 declare const module: any;
@@ -58,6 +59,8 @@ export default class Noco {
   protected requestContext: any;
 
   public static sharp: typeof Sharp;
+  public static canvas: any;
+  public static isPdfjsInitialized: boolean;
 
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
@@ -143,6 +146,17 @@ export default class Noco {
     } catch {
       console.error(
         'Sharp is not available for your platform, thumbnail generation will be skipped',
+      );
+    }
+
+    try {
+      this.canvas = await import('@napi-rs/canvas');
+      await definePDFJSModule(() => import('pdfjs-dist/legacy/build/pdf.mjs'));
+      this.isPdfjsInitialized = true;
+    } catch (e) {
+      console.error(e);
+      console.error(
+        'Canvas is not available for your platform, thumbnail generation will be skipped',
       );
     }
 

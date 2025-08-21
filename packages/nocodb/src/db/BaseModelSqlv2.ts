@@ -5609,7 +5609,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       }),
                     );
 
-                    if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
+                    if (!lookedUpAttachment.mimetype?.startsWith('image/') && !lookedUpAttachment.mimetype.startsWith('application/pdf')) {
                       continue;
                     }
 
@@ -5651,7 +5651,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       }),
                     );
 
-                    if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
+                    if (!lookedUpAttachment.mimetype?.startsWith('image/') && !lookedUpAttachment.mimetype.startsWith('application/pdf')) {
                       continue;
                     }
 
@@ -5692,7 +5692,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     }),
                   );
 
-                  if (!attachment.mimetype?.startsWith('image/')) {
+                  if (!attachment.mimetype?.startsWith('image/') && !attachment.mimetype.startsWith('application/pdf')) {
                     continue;
                   }
 

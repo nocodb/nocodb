@@ -15,7 +15,7 @@ const showIconMapIcon = computed(() => {
 })
 
 const shouldShowIcon = computed(() => {
-  return option.value.iconType || (!option.value.iconType && option.value.icon)
+  return option.value.iconType || (!option.value.iconType && option.value.icon) || option.value.icons?.length
 })
 
 const iconColor = computed(() => {
@@ -44,7 +44,7 @@ const bgColorClass = computed(() => {
       }"
     >
       <GeneralIcon
-        :icon="option.icon!"
+        :icon="option.icon! as IconMapKey"
         class="flex-none"
         :class="[
           iconColor,

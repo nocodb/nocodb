@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-const { stepper, onCompleteOnboardingFlow, isFilledQuestionAnswer, isFilledVisibleOptions, questionsMap } = useOnboardingFlow()
+const { stepper, onCompleteOnboardingFlow, isFilledQuestionAnswer, isFilledVisibleOptions, questionsMap, formState } =
+  useOnboardingFlow()
 
 const { index: stepIndex, steps, isLast, isFirst, goToNext, goToPrevious } = stepper
 
@@ -14,6 +15,10 @@ const progress = computed(() => {
     percentage: ((stepIndex.value + (isFilledVisibleOptions.value ? 1 : 0)) / steps.value.length) * 100,
     text: `${stepIndex.value + 1} / ${steps.value.length}`,
   }
+})
+
+const showNextButton = computed(() => {
+  return stepIndex.value !== 0 || isFilledSecondScreenOptions.value || Object.keys(formState.value).length > 2
 })
 
 useEventListener('keydown', (event) => {
@@ -70,8 +75,8 @@ useEventListener('keydown', (event) => {
           <div
             class="flex items-center"
             :class="{
-              'justify-center': stepIndex === 0 && !isFilledSecondScreenOptions,
-              'justify-between': stepIndex > 0 || isFilledSecondScreenOptions,
+              'justify-center': !showNextButton,
+              'justify-between': showNextButton,
             }"
           >
             <NcButton v-if="stepIndex === 0" type="text" size="small" @click="onCompleteOnboardingFlow(true)">
@@ -85,7 +90,7 @@ useEventListener('keydown', (event) => {
               </template>
               {{ $t('general.back') }}
             </NcButton>
-            <template v-if="stepIndex !== 0 || isFilledSecondScreenOptions">
+            <template v-if="showNextButton">
               <NcButton
                 type="primary"
                 size="small"

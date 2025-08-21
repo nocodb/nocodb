@@ -8,6 +8,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 import { ImageThumbnailGenerator } from '~/modules/jobs/jobs/thumbnail-generator/generators/image-thumbnail-generator';
 import { PdfThumbnailGenerator } from '~/modules/jobs/jobs/thumbnail-generator/generators/pdf-thumbnail-generator';
+import Noco from '~/Noco';
 
 export class ThumbnailGeneratorProcessor {
   private logger = new Logger(ThumbnailGeneratorProcessor.name);
@@ -18,6 +19,13 @@ export class ThumbnailGeneratorProcessor {
     const { attachments, scope } = job.data;
 
     const results = [];
+
+    const sharp = Noco.sharp;
+
+    if (!sharp) {
+      this.logger.warn('Sharp not available, skipping thumbnail generation');
+      return results;
+    }
 
     for (const attachment of attachments) {
       const thumbnail = await this.generateThumbnail(attachment, scope);
@@ -61,19 +69,29 @@ export class ThumbnailGeneratorProcessor {
       const fileExtension = attachment.title?.toLowerCase() || '';
 
       switch (true) {
-        case mimeType === 'application/pdf' || fileExtension.endsWith('.pdf'):
-          return await this.pdfGenerator.generateThumbnails(file, relativePath, storageAdapter);
+        case mimeType === 'application/pdf' || fileExtension.endsWith('.pdf'): {
+          if (Noco.isPdfjsInitialized && Noco.canvas)
+            return await this.pdfGenerator.generateThumbnails(
+              file,
+              relativePath,
+              storageAdapter,
+            );
+          return null;
+        }
 
         case mimeType.startsWith('image/'):
-          return await this.imageGenerator.generateThumbnails(file, relativePath, storageAdapter);
-
+          return await this.imageGenerator.generateThumbnails(
+            file,
+            relativePath,
+            storageAdapter,
+          );
         default:
           this.logger.warn({
-            message: `Unknown file type, defaulting to image generator`,
+            message: `Unknown file type, skipping thumbnail generation`,
             mimetype: mimeType,
             filename: attachment.title,
           });
-          return await this.imageGenerator.generateThumbnails(file, relativePath, storageAdapter);
+          return null;
       }
     } catch (error) {
       this.logger.error({

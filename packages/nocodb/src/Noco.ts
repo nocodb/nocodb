@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
 import { NcDebug } from 'nc-gui/utils/debug';
+import { definePDFJSModule } from 'unpdf';
 import type { INestApplication } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
@@ -23,7 +24,6 @@ import { getAppUrl } from '~/utils/appUrl';
 import { DataReflection, Integration } from '~/models';
 import { getRedisURL } from '~/helpers/redisHelpers';
 import { RedisIoAdapter } from '~/gateways/RedisIoAdapter';
-import { definePDFJSModule } from 'unpdf';
 
 dotenv.config();
 declare const module: any;

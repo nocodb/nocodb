@@ -67,8 +67,8 @@ watch(
 </script>
 
 <template>
-  <div class="w-full flex items-stretch h-full">
-    <div class="hidden lg:block w-1/2">
+  <div data-testid="nc-onboarding-flow-container" class="w-full flex items-stretch h-full">
+    <div data-testid="nc-onboarding-flow-image-preview-section" class="hidden lg:block w-1/2">
       <slot name="imagePreviewSection">
         <AuthOnboardingLayoutImagePreviewSection ref="imagePreviewSectionRef" />
       </slot>
@@ -77,6 +77,7 @@ watch(
       class="w-full lg:(w-1/2) transition-width duration-250 h-full flex flex-col gap-[120px] nc-scrollbar-thin relative border-l-1 border-nc-border-gray-medium"
     >
       <header
+        data-testid="nc-onboarding-flow-header"
         class="px-4 pt-4 pb-2 lg:(pt-10 pb-2 px-8) flex items-center justify-between w-full max-w-[672px] lg:max-w-[704px] mx-auto sticky top-0 lg:-top-4 bg-white z-10"
       >
         <GeneralIcon icon="nocodb1" class="w-12 h-12 flex-none" />
@@ -92,12 +93,16 @@ watch(
           />
         </div>
       </header>
-      <div class="flex-1 w-full max-w-[672px] lg:max-w-[704px] mx-auto flex flex-col gap-[120px] px-4 lg:(px-8)">
+      <div
+        data-testid="nc-onboarding-flow-content"
+        class="flex-1 w-full max-w-[672px] lg:max-w-[704px] mx-auto flex flex-col gap-[120px] px-4 lg:(px-8)"
+      >
         <slot name="content"></slot>
       </div>
 
       <slot name="footer">
         <footer
+          data-testid="nc-onboarding-flow-footer"
           class="flex flex-col justify-end w-full max-w-[672px] lg:max-w-[704px] mx-auto px-4 pt-2 pb-4 lg:(pt-2 pb-10 px-8) sticky bottom-0 bg-white z-10"
         >
           <div
@@ -109,13 +114,26 @@ watch(
           >
             <NcTooltip v-if="stepIndex === 0" :disabled="!isDisabledSkipButton">
               <template #title> Will be enabled after 2 seconds </template>
-              <NcButton type="text" size="small" :disabled="isDisabledSkipButton" @click="onCompleteOnboardingFlow(true)">
+              <NcButton
+                type="text"
+                size="small"
+                :disabled="isDisabledSkipButton"
+                data-testid="nc-onboarding-flow-skip-button"
+                @click="onCompleteOnboardingFlow(true)"
+              >
                 <div class="opacity-50">
                   {{ $t('general.skip') }}
                 </div>
               </NcButton>
             </NcTooltip>
-            <NcButton v-else type="text" size="small" :disabled="isFirst" @click="goToPrevious()">
+            <NcButton
+              v-else
+              type="text"
+              size="small"
+              :disabled="isFirst"
+              data-testid="nc-onboarding-flow-back-button"
+              @click="goToPrevious()"
+            >
               <template #icon>
                 <GeneralIcon icon="ncArrowLeft" class="w-4 h-4" />
               </template>
@@ -126,6 +144,7 @@ watch(
                 type="primary"
                 size="small"
                 :disabled="!isFilledVisibleOptions"
+                data-testid="nc-onboarding-flow-next-button"
                 @click="isLast ? onCompleteOnboardingFlow(false) : goToNext()"
               >
                 <div class="flex items-center gap-2">

@@ -42,7 +42,7 @@ const relatedRows = ref<Record<string, any>[]>([])
 
 const defaultBlackColor = '#000000'
 
-const draggable = true
+const draggable = computed(() => !props.disabled)
 const throttleDrag = 1
 const edgeDraggable = false
 const startDragRotate = 0

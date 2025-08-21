@@ -61,7 +61,13 @@ const togglePreviewMode = () => {
         </div>
       </div>
     </GroupedSettings>
-    <GroupedSettings title="Add Elements">
+    <GroupedSettings
+      title="Add Elements"
+      :disabled="!extensionAccess.update"
+      :disabled-tooltip="
+        !extensionAccess.update ? $t('tooltip.youDoNotHaveSufficientPermissionToConfigureThisExtension') : undefined
+      "
+    >
       <div class="flex flex-col gap-4 -mt-2">
         <span class="text-nc-content-gray-subtle2 text-[13px] font-500">Drag and drop elements into the edit area.</span>
         <div class="flex">

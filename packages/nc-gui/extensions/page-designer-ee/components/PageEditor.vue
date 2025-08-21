@@ -197,6 +197,7 @@ const zoomLevel = computed(() => {
               :id="i"
               class="page-widget"
               :class="{ 'active-page-widget': +i === +payload.currentWidgetId }"
+              :disabled="!extensionAccess.update"
               @delete-current-widget="deleteCurrentWidget"
               @mousedown.stop="onWidgetClick(i)"
             />

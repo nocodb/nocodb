@@ -8,6 +8,8 @@ const meta = inject(PageDesignerTableTypeInj)
 const row = inject(PageDesignerRowInj)!
 const payload = inject(PageDesignerPayloadInj)!
 
+const { extensionAccess } = useExtensions()
+
 const showSystemFields = ref(false)
 const filterQuery = ref('')
 
@@ -82,6 +84,8 @@ const getIcon = (c: ColumnType) =>
   })
 
 function onFieldClick(field: ColumnType) {
+  if (!extensionAccess.value.update) return
+
   if (isLinksOrLTAR(field)) {
     PageDesignerWidgetFactory.create(payload, PageDesignerWidgetFactory.createEmptyLinkedFieldWidget(field))
     return
@@ -121,7 +125,13 @@ function onFieldClick(field: ColumnType) {
         </div>
 
         <template v-for="field in filteredFieldList" :key="field.id">
-          <FieldElement :field="field" :icon="getIcon(fieldById[field.id]!)" draggable="true" @click="onFieldClick(field)" />
+          <FieldElement
+            :field="field"
+            :icon="getIcon(fieldById[field.id]!)"
+            :draggable="extensionAccess.update"
+            :disabled="!extensionAccess.update"
+            @click="onFieldClick(field)"
+          />
         </template>
       </div>
     </div>

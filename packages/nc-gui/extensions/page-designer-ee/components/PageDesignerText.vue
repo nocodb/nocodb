@@ -38,7 +38,7 @@ const columnByTitle = computed(() => {
   }, {} as Record<string, ColumnType>)
 })
 
-const draggable = true
+const draggable = computed(() => !props.disabled)
 const throttleDrag = 1
 const edgeDraggable = false
 const startDragRotate = 0

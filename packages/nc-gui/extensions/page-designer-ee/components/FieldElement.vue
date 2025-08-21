@@ -5,6 +5,7 @@ const props = defineProps<{
   field: ColumnType
   icon: Component
   displayDragHandle?: boolean
+  disabled?: boolean
 }>()
 
 const dragging = ref(false)
@@ -20,8 +21,8 @@ function onDragStart(e: DragEvent) {
 
 <template>
   <div
-    class="field-element pl-1 pr-2 flex flex-row items-center hover:bg-gray-50 cursor-pointer"
-    :class="{ dragging }"
+    class="field-element pl-1 pr-2 flex flex-row items-center hover:bg-gray-50"
+    :class="{ dragging, 'cursor-pointer': !disabled, 'cursor-not-allowed': disabled }"
     @dragstart="onDragStart"
   >
     <div class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2">

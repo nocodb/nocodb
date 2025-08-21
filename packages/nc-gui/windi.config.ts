@@ -32,6 +32,7 @@ export default defineConfig({
             '../composables/useColumnFilteredOrSorted.ts',
             '../components/smartsheet/grid/canvas/cells/*.ts',
             '../components/smartsheet/grid/canvas/cells/**/*.ts',
+            '../utils/cssUtils.ts',
           ]
         : [
             '**/*.{vue,html,jsx,tsx,css,scss}',
@@ -39,6 +40,7 @@ export default defineConfig({
             'composables/useColumnFilteredOrSorted.ts',
             'components/smartsheet/grid/canvas/cells/*.ts',
             'components/smartsheet/grid/canvas/cells/**/*.ts',
+            'utils/cssUtils.ts',
           ]),
     ],
     exclude: ['node_modules', '.git'],

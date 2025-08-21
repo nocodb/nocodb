@@ -117,11 +117,14 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "Daha fazla kayıt eklemek için yükseltin",
     "upgradeToAddLimitRecordSelection": "Kayıt seçimini filtrelerle sınırlamak için lütfen {plan} planına yükseltin.",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "Eklemek için yükseltin",
     "requestUpgradeToAdd": "Eklemek için yükseltme isteyin",
     "upgradeToAddMoreExtensions": "Şu anda yalnızca bir uzantıya izin veren Ücretsiz plandasınız. Sınırsız uzantı kilidini açmak için yükseltin.",
-    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
-    "upgradeToAddMoreDashboards": "You're currently on the Free plan, which allows only one dashboard. Upgrade to unlock unlimited dashboards.",
+    "upgradeToAddMoreScripts": "Upgrade to add more scripts",
+    "upgradeToAddMoreDashboards": "Upgrade to add more dashboards",
+    "upgradeToAddMoreScriptsSubtitle": "You're currently on the Free plan, which allows only one script per workspace. Upgrade to unlock unlimited scripts.",
+    "upgradeToAddMoreDashboardsSubtitle": "You're currently on the Free plan, which allows only one dashboard per workspace. Upgrade to unlock unlimited dashboards.",
     "upgradeToAccessWsAudit": "Çalışma alanı denetimine erişmek için yükseltin",
     "upgradeToAccessWsAuditSubtitle": "Çalışma alanı denetim günlüklerini etkinleştirmek ve temel etkinlikleri etkili bir şekilde izlemek için {plan} planına yükseltin.",
     "upgradeToAddMoreAttachments": "Daha fazla ek dosya eklemek için yükseltin",
@@ -141,15 +144,15 @@
     "WorkspaceOwnerNotified": "Çalışma alanı sahibi bilgilendirildi",
     "WorkspaceOwnerNotifiedSubtitle": "Yükseltme isteğiniz çalışma alanı sahibiyle paylaşıldı.",
     "failedToSendUpgradeRequest": "Yükseltme isteği gönderilemedi",
-    "upgradeToSeeMoreRecord": "Upgrade to unlock full data access",
-    "upgradeToSeeMoreRecordInline": "Upgrade to view all records from external datasources",
+    "upgradeToSeeMoreRecord": "Tüm veri erişiminin kilidini açmak için yükseltin",
+    "upgradeToSeeMoreRecordInline": "Harici veri kaynaklarındaki tüm kayıtları görüntülemek için yükseltin",
     "upgradeToSeeMoreRecordSubtitle": "Bağlı kaynaklarınızda tam görünürlük elde edin. Tüm kayıtları görüntülemek için Plus planına yükseltin.",
     "upgradeToSeeMoreRecordInlineSubtitle": "{total} kaydın {limit}'ini görüntülüyorsunuz. Kalan {remaining} kayda erişmek için Plus planına yükseltin.",
-    "editorLimitExceedTooltip": "{prefix}. {activePlan} plan has an editor limit set to {limit}.",
-    "recordLimitExceedTooltip": "{prefix}. {activePlan} plan supports up to {limit} records per workspace.",
-    "storageLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} GB of attachment storage per workspace.",
-    "webhookLimitExceedTooltip": "{prefix}. {activePlan} plan allows up to {limit} webhook calls per month.",
-    "apiLimitExceedTooltip": "{prefix}. {activePlan} plan includes {limit} API calls per month.",
+    "editorLimitExceedTooltip": "{activePlan} plan has an editor limit set to {limit}.",
+    "recordLimitExceedTooltip": "{activePlan} plan supports up to {limit} records per workspace.",
+    "storageLimitExceedTooltip": "{activePlan} plan includes {limit} GB of attachment storage per workspace.",
+    "webhookLimitExceedTooltip": "{activePlan} plan allows up to {limit} webhook calls per month.",
+    "apiLimitExceedTooltip": "{activePlan} plan includes {limit} API calls per month.",
     "freePlanEditorLimitTooltip": "Ücretsiz plan en fazla {limit} Editör tipinde kullanıcıya izin verir, sınırsız için yükseltin",
     "adjustCollaboratorRoles": "İşbirlikçi Rollerini Ayarla",
     "newEditorWillBeChanged": "New Editors will be charged",
@@ -163,9 +166,13 @@
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseDashboards": "Upgrade to use dashboards",
     "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUseDashboardsSubtitle": "Upgrade to the {plan} plan to use dashboards to visualize your data.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
   },
   "general": {
@@ -186,6 +193,7 @@
     "manual": "Elle",
     "trigger": "Tetik",
     "addLookupField": "{count} arama alanı ekle",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "Stil",
     "label": "Etiket",
     "role": "Rol",
@@ -381,6 +389,7 @@
     "languages": "Diller",
     "extension": "Eklenti",
     "extensions": "Eklentiler",
+    "actions": "Actions",
     "enable": "Etkinleştir",
     "disable": "Devre dışı bırak",
     "poweredBy": "Destekleyen",
@@ -422,7 +431,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "Script",
@@ -586,6 +596,7 @@
       "Team": "Takım",
       "Plus": "Plus",
       "Business": "İş",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "Kurumsal"
     },
     "currentPlan": {
@@ -615,7 +626,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -844,14 +861,15 @@
     "yourBaseRole": "Taban rolünüz",
     "lockedByUser": "{user} tarafından kilitlendi",
     "thisPageDoesNotExist": "Bu sayfa mevcut değil",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "Özel URL",
     "viewSettingsCantBeChangedWhenViewIs": "Görünüm {type} olduğunda ayarları değiştirilemez",
     "youAreLeavingNocoDB": "NocoDB'den ayrılıyorsunuz",
     "onlyProceedIfYouTrustThisLink": "Yalnızca bu bağlantıya güveniyorsanız devam edin.",
     "reAssignViewModalSubtitle": "Yeniden atandıktan sonra mevcut sahip görünüm yapılandırmasını artık düzenleyemeyecek.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "Sadakat karşılığını verir — sabit fiyatlandırmanın keyfini çıkarın!",
     "loyaltyBannerSubtitle": "Sınırsız koltuk, ek kayıtlar, daha fazla depolama, koşullu webhook'lar, SSO, entegrasyonlar ve çok daha fazlasının kilidini açın!",
     "selectTimezone": "Zaman dilimini göster",
@@ -872,6 +890,7 @@
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
+    "hideActions": "Hide Actions",
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
@@ -884,10 +903,13 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
+    "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -941,13 +963,14 @@
     "recent": "Son",
     "limitRecordSelectionToView": "Kayıt seçimini bir görünüme sınırla",
     "limitRecordSelectionToFilters": "Kayıt seçimini filtrelerle sınırla",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "Ekleyen",
     "whatsNew": "Yenilikler!",
     "newAction": "Yeni Eylem",
     "actionLogs": "Eylem Kayıtları",
     "runScript": "Script Çalıştır",
     "scriptName": "Script adı",
-    "dashboardName": "Dashboard adı",
+    "dashboardName": "Dashboard name",
     "enableSnowFall": "Kar Yağışını Etkinleştir",
     "disableSnowFall": "Kar Yağışını Devre Dışı Bırak",
     "snapshotCreationFailed": "Anlık görüntü oluşturma başarısız",
@@ -1266,7 +1289,7 @@
       "joinCommunity": "NocoDB topluluğuna katıl",
       "joinReddit": "/r/NocoDB'ye katıl",
       "followNocodb": "NocoDB'yi takip et",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(Topluluk/AI Çevirisi)"
     },
     "twitter": "Twitter",
     "docReference": "Dosya Referansı",
@@ -1401,7 +1424,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "URL'den ekle",
     "enterJson": "JSON girin",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable tabanı",
     "useSameTimezoneForAllMembers": "Tüm üyeler için aynı zaman dilimini kullan",
     "displayTimezone": "Zaman dilimini göster",
     "upgradePlan": "Planı Yükselt",
@@ -1625,6 +1648,7 @@
     "changePwd": "Şifre değiştir",
     "createView": "Bir görünüm oluştur",
     "shareView": "Görünümü paylaş",
+    "shareDashboard": "Share Dashboard",
     "findRowByCodeScan": "Tarayarak satır bul",
     "fillByCodeScan": "Tarayarak doldur",
     "listSharedView": "Paylaşılan Görünümler",
@@ -1733,7 +1757,13 @@
     "changePlan": "PlanıDeğiştir",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset",
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1799,14 +1829,19 @@
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
     "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateDashboard": "Navigate to a base to a create dashboard",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewDashboard": "You don't have access to create new dashboard",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "İkonları ara",
@@ -1878,6 +1913,7 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
+    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
@@ -1911,6 +1947,7 @@
     "subscribeToOurWeeklyNewsletter": "Haftalık bültenimize abone olun",
     "verifyingPassword": "Şifre Doğrulanıyor",
     "thisSharedViewIsProtected": "Bu paylaşılan görünüm korumalıdır",
+    "thisSharedDashboardIsProtected": "This shared dashboard is protected",
     "successfullySubmittedFormData": "Form verileri başarıyla gönderildi",
     "formViewNotSupportedOnMobile": "Form görünümü mobilde desteklenmiyor",
     "calendarViewNotSupportedOnMobile": "Takvim görünümü mobilde desteklenmiyor",
@@ -1954,7 +1991,8 @@
       "columnNotAvailable": "Alan {columnName} mevcut değil",
       "cantSaveCircularReference": "Alanı kaydedemiyorum çünkü dairesel bir referansa neden oluyor",
       "columnWithTypeFoundButExpected": "{columnType} türündeki alan {columnName} bulundu ama {expectedType} türü bekleniyordu",
-      "columnNotMatchedWithType": "{columnName}, {columnType} ile eşleşmiyor"
+      "columnNotMatchedWithType": "{columnName}, {columnType} ile eşleşmiyor",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "Seçenekler null olamaz",
@@ -2163,7 +2201,7 @@
       "addMultipleUsers": "Birden çok virgül(,) ile ayrılmış e-posta ekleyebilirsin",
       "enterTableName": "Tablo adı gir",
       "enterScriptName": "Script adını girin",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "Gösterge paneli adı girin",
       "enterTableDescription": "Tablo açıklaması girin...",
       "enterScriptDescription": "Script açıklaması girin...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2241,7 +2279,9 @@
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
+      "matchedByButtonLabel": "Matched by button label",
+      "matchedByFieldDescription": "Matched by field description"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2357,7 +2397,11 @@
       "anErrorOccuredWhileImporting": "{type} sırasında bir hata oluştu",
       "anErrorOccuredWhileAirtableBaseImport": "Airtable tabanı içe aktarılırken bir hata oluştu",
       "paymentFailed": "Ödeme Başarısız",
-      "paymentFailedSubtitle": "Ödemeniz işlenirken bir sorun oluştu. Lütfen tekrar deneyin veya destekle iletişime geçin."
+      "paymentFailedSubtitle": "Ödemeniz işlenirken bir sorun oluştu. Lütfen tekrar deneyin veya destekle iletişime geçin.",
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "Proje metaverileri başarıyla dışa aktarıldı",
@@ -2371,6 +2415,7 @@
       "projInfo": "Proje bilgisi kopyalandı",
       "inviteUrlCopy": "Davet bağlantısı kopyalandı",
       "createView": "View created successfully",
+      "createField": "Field created successfully",
       "formEmailSMTP": "Please activate SMTP plugin in App store for enabling email notification",
       "collabView": "Successfully Switched to collaborative view",
       "lockedView": "Successfully Switched to locked view",
@@ -2428,7 +2473,9 @@
       "paymentSuccessfulSubtitle": "Ödemeniz işlendi. Artık yeni planınızı kullanabilirsiniz.",
       "upgradeSuccessful": "Yükseltme Başarılı",
       "upgradeSuccessfulSubtitle": "Yükseltme ödemeniz işlendi. Artık yeni planınızı kullanabilirsiniz.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

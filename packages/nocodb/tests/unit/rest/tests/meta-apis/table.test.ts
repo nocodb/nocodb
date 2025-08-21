@@ -76,7 +76,7 @@ export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
           title: 'New_title',
           columns: defaultColumns(context, isV3),
         })
-        .expect(400);
+        .expect(422);
 
       expect(response.text).to.includes('Duplicate table name');
 
@@ -93,7 +93,7 @@ export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
           title: table.title,
           columns: defaultColumns(context, isV3),
         })
-        .expect(400);
+        .expect(422);
 
       expect(response.text).to.includes('Duplicate table alias');
 

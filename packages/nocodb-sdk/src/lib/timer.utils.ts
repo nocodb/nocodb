@@ -30,7 +30,7 @@ export class Timer {
     return timer;
   }
 
-  timeoutHandle: NodeJS.Timeout;
+  timeoutHandle: any;
   start() {
     this.timeoutHandle = setTimeout(async () => {
       try {

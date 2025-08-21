@@ -12,6 +12,8 @@ const { api, isLoading, error } = useApi({ useGlobalInstance: true })
 
 const { t } = useI18n()
 
+const { isEnabledOnboardingFlow, showOnboardingFlowLocalState } = useOnboardingFlow()
+
 const { navigateToTable } = useTablesStore()
 
 const formValidator = ref()
@@ -76,6 +78,34 @@ async function signUp() {
       const base = (workspace as any)?.bases?.[0]
       const table = base?.tables?.[0]
 
+      if (isEnabledOnboardingFlow.value) {
+        let continueAfterOnboardingFlow = ''
+
+        if (workspace?.id) {
+          continueAfterOnboardingFlow = `/${workspace.id}`
+
+          if (base?.id) {
+            continueAfterOnboardingFlow += `/${base.id}`
+
+            if (table?.id) {
+              continueAfterOnboardingFlow += `/${table.id}`
+            }
+          }
+        }
+
+        /**
+         * Onboarding flow is shown only for new users
+         */
+        showOnboardingFlowLocalState.value = true
+
+        await navigateTo({
+          path: '/',
+          query: continueAfterOnboardingFlow ? { continueAfterOnboardingFlow } : {},
+        })
+
+        return
+      }
+
       if (workspace && base && table) {
         return await navigateToTable({
           baseId: base.id,
@@ -85,6 +115,16 @@ async function signUp() {
       }
     } catch (e) {
       console.error(e)
+    }
+
+    if (isEnabledOnboardingFlow.value) {
+      /**
+       * Onboarding flow is shown only for new users
+       */
+      showOnboardingFlowLocalState.value = true
+      await navigateTo('/')
+
+      return
     }
 
     if (continueAfterSignIn) {

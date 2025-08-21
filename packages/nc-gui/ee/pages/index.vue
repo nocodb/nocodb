@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { onUnmounted } from '@vue/runtime-core'
-
 definePageMeta({
   hideHeader: true,
   hasSidebar: true,
@@ -11,6 +9,8 @@ const router = useRouter()
 const route = router.currentRoute
 
 const { ncNavigateTo } = useGlobal()
+
+const { showOnboardingFlow } = useOnboardingFlow()
 
 const workspaceStore = useWorkspace()
 const { populateWorkspace } = workspaceStore
@@ -72,7 +72,7 @@ const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) 
 }
 
 watch(
-  [activeWorkspaceId, () => !!activeWorkspace.value],
+  [activeWorkspaceId, () => !!activeWorkspace.value, () => showOnboardingFlow.value],
   async ([newId, newWorkspace], [oldId]) => {
     if (newId === 'nc') {
       workspaceStore.setLoadingState(false)
@@ -93,6 +93,11 @@ watch(
       basesStore.clearBases()
       collaborators.value = []
       // return
+    }
+
+    // If show onboarding flow is true, don't navigate to workspace
+    if (showOnboardingFlow.value) {
+      return
     }
 
     if (newWorkspace && lastPopulatedWorkspaceId.value !== newId && (newId || workspaceStore.workspacesList.length)) {
@@ -118,30 +123,16 @@ const { deleteWorkspace: _deleteWorkspace, loadWorkspaces } = workspaceStore
 const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
 const isSharedView = computed(() => {
-  const routeName = (route.value.name as string) || ''
-
-  // check route is not base page by route name
-  return (
-    !routeName.startsWith('index-typeOrId-baseId-') &&
-    !['index', 'index-typeOrId', 'index-typeOrId-feed', 'index-typeOrId-integrations'].includes(routeName)
-  )
+  return isSharedViewRoute(route.value)
 })
 
 const isSharedFormView = computed(() => {
-  const routeName = (route.value.name as string) || ''
-  // check route is shared form view route
-  return routeName.startsWith('index-typeOrId-form-viewId')
+  return isSharedFormViewRoute(route.value)
 })
 
 const { sharedBaseId } = useCopySharedBase()
 
 const isDuplicateDlgOpen = ref(false)
-
-let timerRef: any
-
-onUnmounted(() => {
-  if (timerRef) clearTimeout(timerRef)
-})
 
 onMounted(async () => {
   if (route.value.meta.public) return
@@ -170,7 +161,11 @@ watch(
 
 <template>
   <div>
-    <NuxtLayout name="dashboard">
+    <NuxtLayout v-if="showOnboardingFlow" name="empty">
+      <AuthOnboarding />
+    </NuxtLayout>
+
+    <NuxtLayout v-else name="dashboard">
       <template #sidebar>
         <DashboardSidebar />
       </template>

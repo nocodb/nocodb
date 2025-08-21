@@ -108,6 +108,9 @@ export class PagedResponseV3Impl<T> {
       'where',
       'viewId',
       'pageSize',
+      'fieldIdOnResult',
+      'fields',
+      'nestedPage',
     ]);
 
     if (!pagedResponse.pageInfo.isFirstPage && pagedResponse.pageInfo.page) {

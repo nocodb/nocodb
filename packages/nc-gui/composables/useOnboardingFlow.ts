@@ -45,13 +45,13 @@ export interface OnboardingOptionType {
    */
   iconPosition?: 'left' | 'right'
   /**
-   * `resetOnSelect` will be helpful if option is `None of the above` or `Other` to reset previous selection if user select this option
-   */
-
-  /**
    * Allow multiple icons to be shown in the option
    */
   icons?: OnboardingOptionIconType[]
+  /**
+   * `resetOnSelect` will be helpful if option is `None of the above` or `Other` to reset previous selection if user select this option
+   */
+
   resetOnSelect?: boolean
 }
 
@@ -697,7 +697,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
         },
       },
       /*
-      // Commenting for now
+      // Commenting for now, we need this later
       {
         id: 8,
         question: 'How do you want to build your database?',
@@ -778,20 +778,11 @@ export const useOnboardingFlow = createSharedComposable(() => {
   const stepper = useStepper(steps)
 
   const lastVisibleQuestionIndex = computed(() => {
-    // const index = (stepper.index.value + 1) * 2 - 1
-    const index = stepper.index.value
-
-    const question = questions.value[index]!
-
-    // if (!question || ncIsUndefined(formState.value[question.id])) {
-    //   return index - 1
-    // }
-
-    return index
+    return stepper.index.value
   })
 
   const visibleQuestions = computed(() => {
-    let currentVisibleQuestions: OnboardingQuestionType[] = []
+    const currentVisibleQuestions: OnboardingQuestionType[] = []
     const index = (stepper.index.value + 1) * 2 - 1
 
     const question = questions.value[index]!
@@ -886,15 +877,6 @@ export const useOnboardingFlow = createSharedComposable(() => {
         stepper.goToNext()
       })
     }
-    /*
-      else if (question.inputType === 'multiSelect') {
-        if ((formState.value[question.id]?.length ?? 0) >= (question.minSelection ?? 1)) {
-          ncDelay(500).then(() => {
-            stepper.goToNext()
-          })
-        }
-      }
-      */
   }
 
   /**

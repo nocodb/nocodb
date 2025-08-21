@@ -89,7 +89,7 @@ async function signUp() {
           continueAfterOnboardingFlow = 'nc' + `/${base.id}`
 
           if (table?.id) {
-            continueAfterOnboardingFlow = continueAfterOnboardingFlow + `/${table.id}`
+            continueAfterOnboardingFlow = `${continueAfterOnboardingFlow}/${table.id}`
           }
         }
 

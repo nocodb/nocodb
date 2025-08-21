@@ -173,9 +173,8 @@ describe('dataApiV3', () => {
         });
 
         expect(rsp.body).to.have.property('next');
-        expect(rsp.body.next).to.include(
-          `${urlPrefix}/${table.id}/records?page=2`,
-        );
+        expect(rsp.body.next).to.include(`${urlPrefix}/${table.id}/records?`);
+        expect(rsp.body.next).to.include(`page=2`);
         expect(rsp.body.records).to.deep.equal(
           records.map((record) => {
             const { Id, ...fields } = record;
@@ -366,9 +365,8 @@ describe('dataApiV3', () => {
           },
         });
         expect(rsp.body).to.have.property('next');
-        expect(rsp.body.next).to.include(
-          `${urlPrefix}/${table.id}/records?page=2`,
-        );
+        expect(rsp.body.next).to.include(`${urlPrefix}/${table.id}/records?`);
+        expect(rsp.body.next).to.include(`page=2`);
         expect(rsp.body.records).to.deep.equal(
           recordsV3.map((record) => {
             const { Id, ...fields } = record;

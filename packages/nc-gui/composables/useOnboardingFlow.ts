@@ -99,7 +99,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
   /**
    * If true, the onboarding flow will be shown in home page - `/`
    */
-  const showOnboardingFlowLocalState = ref(true)
+  const showOnboardingFlowLocalState = ref(false)
 
   const showOnboardingFlow = computed(() => {
     return isEnabledOnboardingFlow.value && showOnboardingFlowLocalState.value && route.value.name === 'index'

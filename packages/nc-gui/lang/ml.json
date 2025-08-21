@@ -117,11 +117,14 @@
     "planLimitReached": "Plan limit reached",
     "planLimitReachedSubtitle": "കൂടുതല്‍ റെക്കോഡുകള്‍ ചേര്‍ക്കാന്‍ അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "upgradeToAddLimitRecordSelection": "ഫിൽട്ടറുകൾ ഉപയോഗിച്ച് റെക്കോർഡ് തിരഞ്ഞെടുപ്പ് പരിധി നിശ്ചയിക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
+    "upgradeToIncludeLinkedRecordsThatMeetSpecificConditions": "To include linked records that meet specific conditions, please upgrade to the {plan} plan.",
     "upgradeToAdd": "ചേർക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "requestUpgradeToAdd": "ചേർക്കുന്നതിനായി അപ്‌ഗ്രേഡ് അഭ്യർത്ഥിക്കുക",
     "upgradeToAddMoreExtensions": "നിങ്ങൾ ഇപ്പോൾ ഫ്രീ പ്ലാനിലാണ്; ഇത് ഒരു എക്‌സ്റ്റൻഷൻ മാത്രമേ അനുവദിക്കൂ. പരിധിയില്ലാത്ത എക്‌സ്റ്റൻഷനുകൾക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
-    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
-    "upgradeToAddMoreDashboards": "You're currently on the Free plan, which allows only one dashboard. Upgrade to unlock unlimited dashboards.",
+    "upgradeToAddMoreScripts": "Upgrade to add more scripts",
+    "upgradeToAddMoreDashboards": "Upgrade to add more dashboards",
+    "upgradeToAddMoreScriptsSubtitle": "You're currently on the Free plan, which allows only one script per workspace. Upgrade to unlock unlimited scripts.",
+    "upgradeToAddMoreDashboardsSubtitle": "You're currently on the Free plan, which allows only one dashboard per workspace. Upgrade to unlock unlimited dashboards.",
     "upgradeToAccessWsAudit": "വർക്ക്സ്പേസ് ഓഡിറ്റ് ലഭ്യമാക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "upgradeToAccessWsAuditSubtitle": "വർക്ക്സ്പേസ് ഓഡിറ്റ് ലോഗുകൾ പ്രാവർത്തികമാക്കി പ്രധാന പ്രവർത്തനങ്ങൾ കാര്യക്ഷമമായി നിരീക്ഷിക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToAddMoreAttachments": "കൂടുതൽ അറ്റാച്ച്മെന്റുകൾ ചേർക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
@@ -163,9 +166,13 @@
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
+    "upgradeToUseDashboards": "Upgrade to use dashboards",
     "upgradeToUseScriptsSubtitle": "Upgrade to the {plan} plan to use scripts to automate workflows or customize logic.",
+    "upgradeToUseDashboardsSubtitle": "Upgrade to the {plan} plan to use dashboards to visualize your data.",
     "upgradeToUsePrivateBases": "Upgrade to unlock private bases",
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
+    "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
+    "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
   },
   "general": {
@@ -186,6 +193,7 @@
     "manual": "മാനുവൽ",
     "trigger": "ട്രിഗർ",
     "addLookupField": "{count} ലുക്കപ്പ് ഫീൽഡ് ചേർക്കുക",
+    "addLookupFieldPlural": "Add {count} lookup fields",
     "style": "ഷൈൽ",
     "label": "ലേബൽ",
     "role": "പങ്ക്",
@@ -381,6 +389,7 @@
     "languages": "ഭാഷകൾ",
     "extension": "വിസ്തീർണം",
     "extensions": "വിസ്താരങ്ങൾ",
+    "actions": "Actions",
     "enable": "പ്രാവർത്തികമാക്കുക",
     "disable": "അപ്രാപ്തമാക്കുക",
     "poweredBy": "പവർ ചെയ്തിരിക്കുന്നത്",
@@ -422,7 +431,8 @@
     "automations": "Automations",
     "record": "Record",
     "overview": "Overview",
-    "baseType": "Base Type"
+    "baseType": "Base Type",
+    "beta": "Beta"
   },
   "objects": {
     "script": "സ്‌ക്രിപ്റ്റ്",
@@ -586,6 +596,7 @@
       "Team": "ടീം",
       "Plus": "പ്ലസ്",
       "Business": "ബിസിനസ്",
+      "EnterpriseStarter": "Enterprise Starter",
       "Enterprise": "എന്റർപ്രൈസ്"
     },
     "currentPlan": {
@@ -615,7 +626,13 @@
       "generalPermissionTooltip": "You do not have permission to perform this action",
       "uploadDataTooltip": "You do not have permission to upload data into this table",
       "formCannotAcceptSubmissions": "Form cannot accept submissions.",
-      "formCannotAcceptSubmissionsDescription": "Only specific members have permission to submit responses to this form."
+      "formCannotAcceptSubmissionsDescription": "Adding new record in table is restricted, which prevents submitting responses via this form.",
+      "resetTablePermissions": "Reset table permissions",
+      "resetTablePermissionsDescription": "Editors & up will be able to create and delete records. All custom table permissions will be cleared.",
+      "resetFieldPermissions": "Reset field permissions",
+      "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
+      "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
     }
   },
   "datatype": {
@@ -844,14 +861,15 @@
     "yourBaseRole": "നിങ്ങളുടെ ബെസ് റോൾ",
     "lockedByUser": "{user} ലോക്ക് ചെയ്തു",
     "thisPageDoesNotExist": "ഈ പേജ് നിലവിലില്ല",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "കസ്റ്റം URL",
     "viewSettingsCantBeChangedWhenViewIs": "കാഴ്ച {type} ആയിരിക്കുമ്പോൾ കാഴ്ച സജ്ജീകരണം മാറ്റാൻ കഴിയില്ല",
     "youAreLeavingNocoDB": "നിങ്ങൾ NocoDB വിട്ട് പോകുകയാണു",
     "onlyProceedIfYouTrustThisLink": "ഈ ലിങ്ക് വിശ്വസിക്കുന്നുണ്ടെങ്കിൽ മാത്രം തുടരുക.",
     "reAssignViewModalSubtitle": "വീണ്ടും നിയോഗിച്ചാൽ നിലവിലുള്ള ഉടമയ്ക്ക് ഇനി കാഴ്ച സജ്ജീകരണം എഡിറ്റ് ചെയ്യാൻ കഴിയില്ല.",
     "assignAsPersonalViewModalSubtitle": "Only the view owner can modify personal view settings.",
-    "getMoreFromNocodb": "More editors, more impact — Upgrade to Plus",
-    "getMoreFromNocodbSubtitle": "Unlock unlimited seats, additional records, more storage, conditional webhooks, SSO, Integrations, and much more!",
+    "getMoreFromNocodb": "Get more from NocoDB",
+    "getMoreFromNocodbSubtitle": "Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!",
     "loyaltyBannerTitle": "വിശ്വസ്തത ഫലം തരുന്നു — പരിധിയിട്ട നിരക്കുകൾ ആസ്വദിക്കുക!",
     "loyaltyBannerSubtitle": "പരിമിതിയില്ലാത്ത സീറ്റുകൾ, അധിക റെക്കോഡുകൾ, കൂടുതൽ സ്റ്റോറേജ്, കണ്ടീഷണൽ വെബ്‌ഹുക്കുകൾ, SSO, ഇന്റഗ്രേഷനുകൾ തുടങ്ങിയവ അന്ലോക്ക് ചെയ്യുക!",
     "selectTimezone": "ടൈംസോൺ പ്രദർശിപ്പിക്കുക",
@@ -872,6 +890,7 @@
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
+    "hideActions": "Hide Actions",
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
@@ -884,10 +903,13 @@
     "privateBase": "Private Base",
     "privateBaseAlertDescription": "This base is invite-only— only members invited to this base can access and interact with it. Any base owner can invite others",
     "thisPrivateBaseHasBeenLocked": "This Private Base has been locked.",
-    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base."
+    "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
+    "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
+    "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
   },
   "labels": {
-    "configurationError": "Incomplete configuration",
+    "configurationError": "Configuration Error",
     "keepEditing": "Keep editing",
     "leave": "Leave",
     "chatWithNocoDBSupport": "Chat with NocoDB Support",
@@ -941,13 +963,14 @@
     "recent": "അടുത്തിടെ",
     "limitRecordSelectionToView": "റെക്കോര്‍ഡ് തെരഞ്ഞെടുപ്പ് ഒരു കാഴ്ചയില്‍ സിമിതപ്പെടുത്തുക",
     "limitRecordSelectionToFilters": "റെക്കോര്‍ഡ് തിരഞ്ഞെടുപ്പ് ഫിൽറ്ററുകളിലേക്ക് സിമിതപ്പെടുത്തുക",
+    "onlyIncludeLinkedRecordsThatMeetSpecificConditions": "Only include linked records that meet specific conditions",
     "addedBy": "ചേർത്തവന്‍",
     "whatsNew": "എന്താണ് പുതിയത്!",
     "newAction": "പുതിയ ആക്ഷൻ",
     "actionLogs": "ആക്ഷൻ ലോഗ്സ്",
     "runScript": "സ്‌ക്രിപ്റ്റ് റണ്‍ ചെയ്യുക",
     "scriptName": "സ്‌ക്രിപ്റ്റ് പേര്",
-    "dashboardName": "ഡാഷ്ബോഡ് പേര്",
+    "dashboardName": "Dashboard name",
     "enableSnowFall": "സ്നോഫോൾ പ്രാവർത്തികമാക്കുക",
     "disableSnowFall": "സ്നോഫോൾ പ്രവർത്തനം നിർത്തുക",
     "snapshotCreationFailed": "സ്നാപ്ഷോട്ട് സൃഷ്ടിക്കുന്നത് പരാജയപ്പെട്ടു",
@@ -1266,7 +1289,7 @@
       "joinCommunity": "NocoDB സമൂഹത്തിൽ ചേരുക",
       "joinReddit": "/r/NocoDB",
       "followNocodb": "NocoDB നെ പിന്തുടരുക",
-      "communityTranslated": "AI Generated Translations"
+      "communityTranslated": "(കോമ്യുണിറ്റി/AI വിവർത്തനം)"
     },
     "twitter": "Twitter",
     "docReference": "ഡോക്യുമെന്റ് റഫറൻസ്",
@@ -1401,7 +1424,7 @@
     "selectOwner": "Select owner",
     "addFromUrl": "URL-ൽ നിന്ന് ചേർക്കുക",
     "enterJson": "JSON നൽകുക",
-    "airtableBase": "Airtable Base",
+    "airtableBase": "Airtable ബെസ്",
     "useSameTimezoneForAllMembers": "എല്ലാ അംഗങ്ങൾക്കും ഒരേ ടൈംസോൺ ഉപയോഗിക്കുക",
     "displayTimezone": "ടൈംസോൺ പ്രദർശിപ്പിക്കുക",
     "upgradePlan": "പ്ലാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
@@ -1625,6 +1648,7 @@
     "changePwd": "പാസ്‌വേർഡ് മാറ്റുക",
     "createView": "ഒരു കാഴ്ച സൃഷ്ടിക്കുക",
     "shareView": "കാഴ്ചപ്പ് തിരിച്ച് നൽകുക",
+    "shareDashboard": "Share Dashboard",
     "findRowByCodeScan": "സ്കാൻക്കൊണ്ട് രേഖ കണ്ടെത്തുക",
     "fillByCodeScan": "സ്‌കാനിലൂടെ പൂരിപ്പിക്കുക",
     "listSharedView": "പങ്കിട്ട ദൃശ്യങ്ങളുടെ പട്ടിക",
@@ -1733,7 +1757,13 @@
     "changePlan": "പദ്ധതി മാറ്റുക",
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
-    "convertToSharedBase": "Convert to Shared Base"
+    "convertToSharedBase": "Convert to Shared Base",
+    "revertToDefault": "Revert to Default",
+    "viewFieldPermissions": "View field permissions",
+    "resetPermissions": "Reset permissions",
+    "confirmReset": "Confirm reset",
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1799,14 +1829,19 @@
     "filteredByCurrentUser": "Filtered by current user",
     "navigateToBaseToCreateTable": "Navigate to a base to a create table",
     "navigateToBaseToCreateAutomation": "Navigate to a base to a create automation",
+    "navigateToBaseToCreateDashboard": "Navigate to a base to a create dashboard",
     "navigateToTableToCreateView": "Navigate to a table to a create view",
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewAutomation": "You don't have access to create new automation",
+    "youDontHaveAccessToCreateNewDashboard": "You don't have access to create new dashboard",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
-    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table"
+    "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
+    "addLookupFields": "Add Lookup Fields",
+    "sourceVisibilityIsHidden": "Data source visibility is hidden",
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
   },
   "placeholder": {
     "searchIcons": "ചിഹ്നങ്ങൾ തിരയുക",
@@ -1878,6 +1913,7 @@
     "noDashboards": "No dashboards"
   },
   "msg": {
+    "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",
     "evaluateRecursively": "Evaluate recursively",
@@ -1911,6 +1947,7 @@
     "subscribeToOurWeeklyNewsletter": "ആഴ്ചതോറും ഞങ്ങളുടെ വാർത്താവിനിമയം സബ്സ്ക്രൈബ് ചെയ്യുക",
     "verifyingPassword": "പാസ്‌വേഡ് സ്ഥിരീകരിക്കുന്നു",
     "thisSharedViewIsProtected": "ഈ പങ്കിട്ട നോട്ടം സംരക്ഷിതമാണ്",
+    "thisSharedDashboardIsProtected": "This shared dashboard is protected",
     "successfullySubmittedFormData": "ഫോമിലെ ഡാറ്റ വിജയകരമായി സമർപ്പിച്ചു",
     "formViewNotSupportedOnMobile": "ചലിക്കുന്നതിൽ ഫോമിന്റെ കാഴ്ച പിന്തുണയില്ല",
     "calendarViewNotSupportedOnMobile": "മൊബൈലിൽ കലണ്ടർ കാഴ്ച പിന്തുണയ്‌ക്കുന്നില്ല",
@@ -1954,7 +1991,8 @@
       "columnNotAvailable": "ഫീൽഡ് {columnName} ലഭ്യമല്ല",
       "cantSaveCircularReference": "ഫീൽഡ് സംരക്ഷിക്കാൻ കഴിയില്ല കാരണം അത് വൃത്താകൃതിയിലുള്ള സാക്കം അടയാളപ്പെടുത്തുന്നു",
       "columnWithTypeFoundButExpected": "{columnName} ഫീൽഡ് {columnType} തരം കണ്ടെത്തി എന്നാൽ {expectedType} തരം പ്രതീക്ഷിച്ചിരുന്നു",
-      "columnNotMatchedWithType": "{columnName} {columnType} എന്നതിൽ പൊരുത്തപ്പെടുന്നില്ല"
+      "columnNotMatchedWithType": "{columnName} {columnType} എന്നതിൽ പൊരുത്തപ്പെടുന്നില്ല",
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
     },
     "selectOption": {
       "cantBeNull": "ഓപ്ഷനുകൾ തെരഞ്ഞെടുക്കാൻ നിക്ക് ഏർപ്പെടുത്താൻ കഴിയില്ല",
@@ -2163,7 +2201,7 @@
       "addMultipleUsers": "ചെറിയവിരാമം (,) ഉപയോഗിച്ച് നിരവധി ഇമെയിലുകൾ ചേർക്കാം",
       "enterTableName": "ടേബിളിന്റെ പേര് നൽകുക",
       "enterScriptName": "സ്‌ക്രിപ്റ്റ് പേര് നൽകുക",
-      "enterDashboardName": "Enter dashboard name",
+      "enterDashboardName": "ഡാഷ്ബോർഡ് പേര് നൽകുക",
       "enterTableDescription": "ടേബിള്‍ വിവരണം നൽകുക...",
       "enterScriptDescription": "സ്‌ക്രിപ്റ്റ് വിവരണം നൽകുക...",
       "enterDashboardDescription": "Enter dashboard description...",
@@ -2241,7 +2279,9 @@
       "supportChatUnavailable": "Support chat unavailable",
       "supportChatUnavailableSubtitle": "The support chat might be blocked by an ad blocker. Try disabling it and reload the page.",
       "leaveWithoutFinishing": "Leave without finishing?",
-      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode."
+      "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
+      "matchedByButtonLabel": "Matched by button label",
+      "matchedByFieldDescription": "Matched by field description"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2357,7 +2397,11 @@
       "anErrorOccuredWhileImporting": "{type} során പിശക് സംഭവിച്ചു? Malayalam: {type} നടത്തുന്നതിനിടെ പിശക് സംഭവിച്ചു",
       "anErrorOccuredWhileAirtableBaseImport": "Airtable-ൽ നിന്ന് ബേസ് ഇറക്കുമതി ചെയ്യുമ്പോൾ പിശക് സംഭവിച്ചു",
       "paymentFailed": "പെയ്മെന്റ് പരാജയപ്പെട്ടു",
-      "paymentFailedSubtitle": "താങ്കളുടെ പേയ്മെന്റ് പ്രോസസ്സ് ചെയ്യുമ്പോൾ എന്തോ കുഴപ്പം സംഭവിച്ചു. വീണ്ടും ശ്രമിക്കുകയോ പിന്തുണയുമായി ബന്ധപ്പെടുകയോ ചെയ്യുക."
+      "paymentFailedSubtitle": "താങ്കളുടെ പേയ്മെന്റ് പ്രോസസ്സ് ചെയ്യുമ്പോൾ എന്തോ കുഴപ്പം സംഭവിച്ചു. വീണ്ടും ശ്രമിക്കുകയോ പിന്തുണയുമായി ബന്ധപ്പെടുകയോ ചെയ്യുക.",
+      "failedToCreateLookupFields": "Failed to create lookup fields",
+      "invalidSearchQuery": "Invalid search query",
+      "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
     },
     "toast": {
       "exportMetadata": "അടിസ്ഥാന ഡാറ്റയുടെ മീറ്റാ വിവരങ്ങൾ വിജയകരമായി കയറ്റുമതി ചെയ്തു",
@@ -2371,6 +2415,7 @@
       "projInfo": "അടിസ്ഥാന വിവരങ്ങൾ ക്ലിപ്പ്ബോർഡിലേക്ക് പകർത്തി",
       "inviteUrlCopy": "നിമിഷം URL ക്ലിപ്പ്ബോർഡിലേക്ക് പകർത്തി",
       "createView": "കാഴ്ച വിജയകരമായി സൃഷ്ടിച്ചു",
+      "createField": "Field created successfully",
       "formEmailSMTP": "ഇമെയിൽ അറിയിപ്പുകൾ സജ്ജമാക്കാൻ അപ്ലിക്കേഷൻ സ്റ്റോറിൽ SMTP പ്ലഗിൻ സജ്ജീകരിക്കുക",
       "collabView": "സഹകരണം കാഴ്ചയ്ക്ക് വിജയകരമായി മാറ്റി",
       "lockedView": "പൂട്ടിയ കാഴ്ചയ്ക്ക് വിജയകരമായി മാറ്റി",
@@ -2428,7 +2473,9 @@
       "paymentSuccessfulSubtitle": "നിങ്ങളുടെ പേയ്മെന്റ് പ്രോസസ്സ് ചെയ്തു. ഇനി നിങ്ങളുടെ പുതിയ പ്ലാൻ ഉപയോഗിക്കാം.",
       "upgradeSuccessful": "അപ്‌ഗ്രേഡ് വിജയകരമായി",
       "upgradeSuccessfulSubtitle": "അപ്‌ഗ്രേഡിനുള്ള നിങ്ങളുടെ പേയ്മെന്റ് പ്രോസസ്സ് ചെയ്തു. ഇനി പുതിയ പ്ലാൻ ഉപയോഗിക്കാം.",
-      "mcpUrlCopied": "MCP URL copied to clipboard"
+      "mcpUrlCopied": "MCP URL copied to clipboard",
+      "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

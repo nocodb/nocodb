@@ -99,8 +99,11 @@ export class PaymentService {
       stripe_product_id: payload.stripe_product_id,
       is_active: payload.is_active ?? true,
       prices: prices.data.map((price) => price),
-      // TODO : extract with proper types
-      meta: metadata as any,
+      meta: {
+        ...Plan.limitPairs(-1),
+        ...Plan.featurePairs(true),
+        ...metadata,
+      },
     };
 
     return await Plan.insert(plan);
@@ -133,7 +136,11 @@ export class PaymentService {
       title,
       description,
       prices: prices.data.map((price) => price),
-      meta: metadata,
+      meta: {
+        ...Plan.limitPairs(-1),
+        ...Plan.featurePairs(true),
+        ...metadata,
+      },
       is_active: payload?.is_active,
     });
 

@@ -25,8 +25,8 @@ export default class Plan {
 
   prices: Stripe.Price[];
 
-  meta: { [key in PlanLimitTypes]: number } & {
-    [key in PlanFeatureTypes]: boolean;
+  meta: { [key in PlanLimitTypes]?: number } & {
+    [key in PlanFeatureTypes]?: boolean;
   } & {
     description_1?: string;
     description_2?: string;
@@ -201,9 +201,24 @@ export default class Plan {
 
     return plans.map((plan) => this.prepare(plan)).sort(sortPlan);
   }
+
+  static limitPairs(defaultState: number, skipCommon = true) {
+    const limits = Object.values(PlanLimitTypes)
+      .filter((limit) => !skipCommon || !(limit in CommonLimits))
+      .map((limit) => [limit, defaultState]);
+    return Object.fromEntries(limits) as Record<PlanLimitTypes, number>;
+  }
+
+  static featurePairs(defaultState: boolean) {
+    const features = Object.values(PlanFeatureTypes).map((feature) => [
+      feature,
+      defaultState,
+    ]);
+    return Object.fromEntries(features) as Record<PlanFeatureTypes, boolean>;
+  }
 }
 
-export const GenericLimits = {
+export const CommonLimits = {
   [PlanLimitTypes.LIMIT_FREE_WORKSPACE]: 8,
   [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 200,
   [PlanLimitTypes.LIMIT_COLUMN_PER_TABLE]: 500,
@@ -215,38 +230,8 @@ export const GenericLimits = {
   [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 10,
 } as const;
 
-export const GenericPaidLimits = {
+export const CommonPaidLimits = {
   [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 500,
-} as const;
-
-export const GenericFeatures = {
-  [PlanFeatureTypes.FEATURE_AI]: false,
-  [PlanFeatureTypes.FEATURE_AI_INTEGRATIONS]: false,
-  [PlanFeatureTypes.FEATURE_AT_MENTION]: false,
-  [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
-  [PlanFeatureTypes.FEATURE_COMMENT_RESOLVE]: false,
-  [PlanFeatureTypes.FEATURE_CUSTOM_URL]: false,
-  [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: false,
-  [PlanFeatureTypes.FEATURE_EXTENSIONS]: false,
-  [PlanFeatureTypes.FEATURE_FILE_MODE]: false,
-  [PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION]: false,
-  [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: false,
-  [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]: false,
-  [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]: false,
-  [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: false,
-  [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: false,
-  [PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER]: false,
-  [PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER]: false,
-  [PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER]: false,
-  [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: false,
-  [PlanFeatureTypes.FEATURE_SSO]: false,
-  [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: false,
-  [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]: false,
-  [PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER]: false,
-  [PlanFeatureTypes.FEATURE_ROW_COLOUR]: false,
-  [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]: false,
-  [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: false,
-  [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]: false,
 } as const;
 
 export const GraceLimits = {
@@ -257,51 +242,22 @@ export const GraceLimits = {
 };
 
 const legacyLimitAndFeatures = {
+  ...Plan.limitPairs(-1),
+  ...Plan.featurePairs(true),
   [PlanLimitTypes.LIMIT_EDITOR]: 50,
   [PlanLimitTypes.LIMIT_COMMENTER]: 50,
   [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 600000,
-  [PlanLimitTypes.LIMIT_API_CALL]: -1,
-  [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: -1,
-  [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: -1,
-  [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: -1,
-  [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: -1,
-  [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: -1,
   [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
-  [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: -1,
-  [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: -1,
-  [PlanLimitTypes.LIMIT_AI_TOKEN]: -1,
-  [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: -1,
-  [PlanFeatureTypes.FEATURE_AI]: true,
-  [PlanFeatureTypes.FEATURE_AI_INTEGRATIONS]: true,
-  [PlanFeatureTypes.FEATURE_AT_MENTION]: true,
   [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
-  [PlanFeatureTypes.FEATURE_COMMENT_RESOLVE]: true,
-  [PlanFeatureTypes.FEATURE_CUSTOM_URL]: true,
-  [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: true,
-  [PlanFeatureTypes.FEATURE_EXTENSIONS]: true,
-  [PlanFeatureTypes.FEATURE_FILE_MODE]: true,
-  [PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION]: true,
-  [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: true,
-  [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]: true,
-  [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]: true,
-  [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: true,
-  [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: true,
-  [PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER]: true,
-  [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: true,
   [PlanFeatureTypes.FEATURE_SSO]: false,
-  [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: true,
-  [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]: true,
-  [PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER]: true,
-  [PlanFeatureTypes.FEATURE_ROW_COLOUR]: true,
-  [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]: true,
 };
 
 export const FreePlan = Plan.prepare({
   title: PlanTitles.FREE,
   description: 'Free plan',
   meta: {
-    ...GenericLimits,
-    ...GenericFeatures,
+    ...Plan.limitPairs(0),
+    ...Plan.featurePairs(false),
     // Free plan specific limits
     [PlanLimitTypes.LIMIT_EDITOR]: 3,
     [PlanLimitTypes.LIMIT_COMMENTER]: 10,
@@ -334,8 +290,8 @@ export const LegacyFreePlan = Plan.prepare({
   title: PlanTitles.FREE,
   description: 'Free plan',
   meta: {
-    ...GenericLimits,
-    ...GenericFeatures,
+    ...Plan.limitPairs(0),
+    ...Plan.featurePairs(false),
     // Free plan specific limits
     [PlanLimitTypes.LIMIT_EDITOR]: 3,
     [PlanLimitTypes.LIMIT_COMMENTER]: 10,

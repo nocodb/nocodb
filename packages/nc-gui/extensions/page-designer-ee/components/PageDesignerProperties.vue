@@ -15,11 +15,15 @@ import SettingsHeader from './Settings/SettingsHeader.vue'
 const payload = inject(PageDesignerPayloadInj)!
 const row = inject(PageDesignerRowInj)!
 
+const { extensionAccess } = useExtensions()
+
 const pageTypeOptions = Object.values(PageType)
 
 const pageOrientationOptions = Object.values(PageOrientation)
 
 function addWidget(widget: PageDesignerWidget) {
+  if (!extensionAccess.value.update) return
+
   PageDesignerWidgetFactory.create(payload, widget)
 }
 

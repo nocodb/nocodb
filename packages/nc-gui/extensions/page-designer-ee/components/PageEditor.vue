@@ -23,6 +23,8 @@ let justRestored = false
 
 const { fullscreen } = useExtensionHelperOrThrow()
 
+const { extensionAccess } = useExtensions()
+
 const pageRef = ref<HTMLDivElement>()
 
 const pageSize = computed(() => PageDesignerLayout.getPageSizePx(payload?.value?.pageType, payload?.value?.orientation))
@@ -54,6 +56,8 @@ const widgetFactoryByType: Record<string, Function> = {
 }
 
 function onDropped(e: DragEvent) {
+  if (!extensionAccess.value.update) return
+
   const rect = pageRef.value?.getBoundingClientRect()
   if (!rect) return
   const widgetData = e.dataTransfer?.getData('text/plain') ?? ''
@@ -84,6 +88,8 @@ function unselectCurrentWidget() {
 }
 
 function deleteCurrentWidget() {
+  if (!extensionAccess.value.update) return
+
   const widget = payload.value.widgets[payload.value.currentWidgetId]
   if (!widget) return
   justDeleted = true
@@ -137,6 +143,8 @@ watch(
 )
 
 function onWidgetClick(id: string | number) {
+  if (!extensionAccess.value.update) return
+
   payload.value.currentWidgetId = id
 }
 

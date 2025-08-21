@@ -41,19 +41,35 @@ FROM alpine:3.20
 WORKDIR /usr/src/app
 
 ENV NC_DOCKER=0.6 \
-    NC_TOOL_DIR=/usr/app/data/ \
-    NODE_ENV=production \
-    PORT=8080
+   NC_TOOL_DIR=/usr/app/data/ \
+   NODE_ENV=production \
+   PORT=8080 \
+   HOME=/tmp
+
+# Create non-root user
+RUN addgroup -g 1001 -S nocodb && \
+   adduser -S nocodb -u 1001 -G nocodb
 
 RUN apk add --update --no-cache \
-    curl \
-    dumb-init \
-    jq \
-    nodejs
+  curl \
+  dumb-init \
+  fontconfig \
+  jq \
+  libreoffice \
+  nodejs \
+  ttf-dejavu \
+  ttf-liberation && \
+  fc-cache -f -v
+
+# Set proper permissions
+RUN chown -R nocodb:nocodb /usr/src/app
 
 # Copy production code & main entry file
 COPY --link --from=builder /usr/src/app/ /usr/src/app/
 COPY --link --from=builder /usr/src/appEntry/ /usr/src/appEntry/
+
+# Switch to non-root user
+USER nocodb
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

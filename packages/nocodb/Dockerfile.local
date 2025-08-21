@@ -55,11 +55,11 @@ RUN apk add --update --no-cache \
   dumb-init \
   fontconfig \
   jq \
-  libreoffice \
+  libreoffice \ `#required for thumbnail generation`\
   nodejs \
-  ttf-dejavu \
-  ttf-liberation && \
-  fc-cache -f -v
+  ttf-dejavu \  `#required for thumbnail generation`\
+  ttf-liberation && \ `#required for thumbnail generation`\
+  fc-cache -f -v `#required for thumbnail generation`\
 
 # Set proper permissions
 RUN chown -R nocodb:nocodb /usr/src/app

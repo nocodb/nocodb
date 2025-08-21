@@ -431,12 +431,20 @@ async function onMove(event: any, isVisibleFormFields = false) {
 
   const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === element.fk_column_id)
 
-  if (fieldIndex === -1 || fieldIndex === undefined || !fields.value?.[fieldIndex]) return
+  if (
+    fieldIndex === -1 ||
+    fieldIndex === undefined ||
+    !fields.value?.[fieldIndex] ||
+    (isVisibleFormFields && !visibleColumns.value[newIndex])
+  ) {
+    return
+  }
 
   if (isVisibleFormFields) {
     element = localColumns.value[localColumns.value?.findIndex((c) => c.fk_column_id === element.fk_column_id)]
-    newIndex = localColumns.value.findIndex((c) => c.fk_column_id === visibleColumns.value[newIndex].fk_column_id)
+    newIndex = localColumns.value.findIndex((c) => c.fk_column_id === visibleColumns.value[newIndex]!.fk_column_id)
   }
+
   if (!localColumns.value.length || localColumns.value.length === 1) {
     element.order = 1
   } else if (localColumns.value.length - 1 === newIndex) {
@@ -1388,9 +1396,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 <span data-testid="nc-form-input-label">
                                   {{ element.label || element.title }}
                                 </span>
-                                <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]"
-                                  >&nbsp;*</span
-                                >
+                                <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]">
+                                  &nbsp;*
+                                </span>
                               </div>
                             </div>
 

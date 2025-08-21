@@ -1,4 +1,4 @@
-import { PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk';
 import Plan from '~/ee/models/Plan';
 
 export * from '~/ee/models/Plan';
@@ -8,12 +8,8 @@ export const EnterpriseStarterPlan = Plan.prepare({
   title: PlanTitles.ENTERPRISE_STARTER,
   description: 'Enterprise starter plan',
   meta: {
-    ...(Object.fromEntries(
-      Object.values(PlanLimitTypes).map((limit) => [limit, -1]),
-    ) as Record<PlanLimitTypes, number>),
-    ...(Object.fromEntries(
-      Object.values(PlanFeatureTypes).map((feature) => [feature, true]),
-    ) as Record<PlanFeatureTypes, boolean>),
+    ...Plan.limitPairs(-1, false),
+    ...Plan.featurePairs(true),
     [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: false,
   },
   free: false,
@@ -23,12 +19,8 @@ export const FreePlan = Plan.prepare({
   title: PlanTitles.FREE,
   description: 'On-premise plan',
   meta: {
-    ...(Object.fromEntries(
-      Object.values(PlanLimitTypes).map((limit) => [limit, -1]),
-    ) as Record<PlanLimitTypes, number>),
-    ...(Object.fromEntries(
-      Object.values(PlanFeatureTypes).map((feature) => [feature, true]),
-    ) as Record<PlanFeatureTypes, boolean>),
+    ...Plan.limitPairs(-1, false),
+    ...Plan.featurePairs(true),
     [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: false,
   },
   free: false,
@@ -38,12 +30,8 @@ export const EnterprisePlan = Plan.prepare({
   title: PlanTitles.ENTERPRISE,
   description: 'Enterprise plan',
   meta: {
-    ...(Object.fromEntries(
-      Object.values(PlanLimitTypes).map((limit) => [limit, -1]),
-    ) as Record<PlanLimitTypes, number>),
-    ...(Object.fromEntries(
-      Object.values(PlanFeatureTypes).map((feature) => [feature, true]),
-    ) as Record<PlanFeatureTypes, boolean>),
+    ...Plan.limitPairs(-1, false),
+    ...Plan.featurePairs(true),
   },
   free: false,
 });

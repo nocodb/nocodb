@@ -12,10 +12,9 @@ import { NcError } from '~/helpers/catchError';
 import { Domain, Org, Subscription, Workspace } from '~/models';
 import Noco from '~/Noco';
 import Plan, {
+  CommonLimits,
+  CommonPaidLimits,
   FreePlan,
-  GenericFeatures,
-  GenericLimits,
-  GenericPaidLimits,
   GraceLimits,
   LegacyFreePlan,
 } from '~/models/Plan';
@@ -30,18 +29,18 @@ async function getLimit(
   plan?: Partial<Plan>;
 }> {
   if (!workspaceOrId) {
-    if (GenericLimits[type] === undefined || GenericLimits[type] === null) {
+    if (CommonLimits[type] === undefined || CommonLimits[type] === null) {
       NcError.forbidden('You are not allowed to perform this action');
     }
 
-    if (GenericLimits[type] === -1) {
+    if (CommonLimits[type] === -1) {
       return {
         limit: Infinity,
       };
     }
 
     return {
-      limit: GenericLimits[type] ?? Infinity,
+      limit: CommonLimits[type] ?? Infinity,
     };
   }
 
@@ -58,7 +57,7 @@ async function getLimit(
 
   const limit =
     plan?.meta?.[type] ??
-    (plan?.free ? GenericLimits[type] : GenericPaidLimits[type]) ??
+    (plan?.free ? CommonLimits[type] : CommonPaidLimits[type]) ??
     Infinity;
 
   if (limit === -1) {
@@ -109,7 +108,10 @@ async function checkLimit(args: {
 
     const plan = workspace?.payment?.plan;
 
-    const limit = plan?.meta?.[type] ?? GenericLimits[type] ?? Infinity;
+    const limit =
+      plan?.meta?.[type] ??
+      (plan?.free ? CommonLimits[type] : CommonPaidLimits[type]) ??
+      Infinity;
 
     const statName =
       type === PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE ? 'row_count' : type;
@@ -262,17 +264,9 @@ async function checkSeatLimit(
 
 async function getFeature(
   type: PlanFeatureTypes,
-  workspaceOrId?: string | Workspace,
+  workspaceOrId: string | Workspace,
   ncMeta = Noco.ncMeta,
 ) {
-  if (!workspaceOrId) {
-    if (!GenericFeatures[type]) {
-      NcError.forbidden('You are not allowed to perform this action');
-    }
-
-    return GenericFeatures[type] || false;
-  }
-
   const workspace =
     typeof workspaceOrId === 'string'
       ? await Workspace.get(workspaceOrId, undefined, ncMeta)
@@ -282,9 +276,7 @@ async function getFeature(
     NcError.forbidden('You are not allowed to perform this action');
   }
 
-  return (
-    workspace?.payment?.plan?.meta?.[type] || GenericFeatures[type] || false
-  );
+  return workspace?.payment?.plan?.meta?.[type] || false;
 }
 
 async function getWorkspaceOrOrg(
@@ -435,8 +427,6 @@ export {
   checkLimit,
   getLimit,
   getFeature,
-  GenericLimits,
-  GenericFeatures,
   getWorkspaceOrOrg,
   getActivePlanAndSubscription,
   checkSeatLimit,

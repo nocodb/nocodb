@@ -1,3 +1,18 @@
+import boltNewLogo from '~/assets/img/logos/bolt-new.png'
+import clayLogo from '~/assets/img/logos/clay.png'
+import clioLogo from '~/assets/img/logos/clio.png'
+import copyAiLogo from '~/assets/img/logos/copy-ai.png'
+import docusignLogo from '~/assets/img/logos/docusign.png'
+import gamaAiLogo from '~/assets/img/logos/gamma-ai.png'
+import gensparkAiLogo from '~/assets/img/logos/genspark-ai.png'
+import gleanLogo from '~/assets/img/logos/glean.png'
+import granolaLogo from '~/assets/img/logos/granola.png'
+import iconcladLogo from '~/assets/img/logos/iconclad.png'
+import llamaindexLogo from '~/assets/img/logos/llamaindex.png'
+import loveableLogo from '~/assets/img/logos/loveable.png'
+import moveworksLogo from '~/assets/img/logos/moveworks.png'
+import zohoLogo from '~/assets/img/logos/zoho.png'
+
 export interface OnboardingOptionIconType {
   icon?: IconMapKey | VNode
   iconColor?: string
@@ -236,6 +251,9 @@ export const useOnboardingFlow = createSharedComposable(() => {
             iconPosition: 'right',
             icons: [
               {
+                icon: 'ncLogoBambooHrColored',
+              },
+              {
                 icon: 'ncLogoWorkdayColoredOutline',
               },
               {
@@ -253,27 +271,86 @@ export const useOnboardingFlow = createSharedComposable(() => {
               {
                 icon: 'ncLogoMailchimpColored',
               },
+              {
+                icon: 'ncLogoHootsuiteColored',
+              },
             ],
           },
           {
             value: 'Sales',
             iconPosition: 'right',
+            icons: [
+              {
+                icon: 'ncLogoGongColored',
+              },
+              {
+                icon: 'ncLogoPipedriveColored',
+              },
+              {
+                icon: 'salesforce',
+              },
+            ],
           },
           {
             value: 'Product',
             iconPosition: 'right',
+            icons: [
+              {
+                icon: 'ncLogoJiraColored',
+              },
+              {
+                icon: 'ncLogoNotionColored',
+              },
+              {
+                icon: 'ncLogoProductBoardColored',
+              },
+            ],
           },
           {
             value: 'Finance',
             iconPosition: 'right',
+            icons: [
+              {
+                iconType: 'image',
+                img: zohoLogo,
+              },
+              {
+                icon: 'ncLogoXeroColored',
+              },
+              {
+                icon: 'ncLogoQuickbooksColored',
+              },
+            ],
           },
           {
             value: 'Design',
             iconPosition: 'right',
+            icons: [
+              {
+                icon: 'ncLogoMiroColored',
+              },
+              {
+                icon: 'ncLogoSketchColored',
+              },
+              {
+                icon: 'ncLogoFigmaColored',
+              },
+            ],
           },
           {
             value: 'Data Analyst',
             iconPosition: 'right',
+            icons: [
+              {
+                icon: 'ncLogoLookerColored',
+              },
+              {
+                icon: 'ncLogoPowerLogoColored',
+              },
+              {
+                icon: 'tableau',
+              },
+            ],
           },
           {
             value: 'Engineering',
@@ -293,6 +370,20 @@ export const useOnboardingFlow = createSharedComposable(() => {
           {
             value: 'Legal',
             iconPosition: 'right',
+            icons: [
+              {
+                iconType: 'image',
+                img: iconcladLogo,
+              },
+              {
+                iconType: 'image',
+                img: clioLogo,
+              },
+              {
+                iconType: 'image',
+                img: docusignLogo,
+              },
+            ],
           },
           {
             value: 'Customer Support',
@@ -313,6 +404,9 @@ export const useOnboardingFlow = createSharedComposable(() => {
             value: 'Operations',
             iconPosition: 'right',
             icons: [
+              {
+                icon: 'ncLogoClickupColored',
+              },
               {
                 icon: 'ncLogoNotionColored',
               },
@@ -434,9 +528,21 @@ export const useOnboardingFlow = createSharedComposable(() => {
           },
           {
             value: 'Clay',
+            icons: [
+              {
+                iconType: 'image',
+                img: clayLogo,
+              },
+            ],
           },
           {
             value: 'Copy.ai',
+            icons: [
+              {
+                iconType: 'image',
+                img: copyAiLogo,
+              },
+            ],
           },
           {
             value: 'Manus.im',
@@ -448,21 +554,57 @@ export const useOnboardingFlow = createSharedComposable(() => {
           },
           {
             value: 'Glean',
+            icons: [
+              {
+                iconType: 'image',
+                img: gleanLogo,
+              },
+            ],
           },
           {
             value: 'Moveworks',
+            icons: [
+              {
+                iconType: 'image',
+                img: moveworksLogo,
+              },
+            ],
           },
           {
             value: 'Genspark.ai',
+            icons: [
+              {
+                iconType: 'image',
+                img: gensparkAiLogo,
+              },
+            ],
           },
           {
             value: 'Gamma.ai',
+            icons: [
+              {
+                iconType: 'image',
+                img: gamaAiLogo,
+              },
+            ],
           },
           {
             value: 'Llamaindex',
+            icons: [
+              {
+                iconType: 'image',
+                img: llamaindexLogo,
+              },
+            ],
           },
           {
             value: 'Granola',
+            icons: [
+              {
+                iconType: 'image',
+                img: granolaLogo,
+              },
+            ],
           },
           {
             value: 'Langchain',
@@ -490,6 +632,12 @@ export const useOnboardingFlow = createSharedComposable(() => {
           },
           {
             value: 'Loveable',
+            icons: [
+              {
+                iconType: 'image',
+                img: loveableLogo,
+              },
+            ],
           },
           {
             value: 'Replit.ai',
@@ -501,6 +649,12 @@ export const useOnboardingFlow = createSharedComposable(() => {
           },
           {
             value: 'Bolt.new',
+            icons: [
+              {
+                iconType: 'image',
+                img: boltNewLogo,
+              },
+            ],
           },
           {
             value: 'None of the above',

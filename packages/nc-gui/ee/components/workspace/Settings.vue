@@ -8,7 +8,8 @@ const props = defineProps<{
 const workspaceStore = useWorkspace()
 const { deleteWorkspace, navigateToWorkspace, updateWorkspace, loadWorkspace, loadWorkspaces, removeCollaborator } =
   workspaceStore
-const { workspacesList, activeWorkspace, workspaces, deletingWorkspace, workspaceOwnerCount } = storeToRefs(workspaceStore)
+const { workspacesList, activeWorkspace, workspaces, deletingWorkspace, workspaceOwnerCount, removingCollaboratorMap } =
+  storeToRefs(workspaceStore)
 
 const { orgId } = useOrganization()
 
@@ -23,6 +24,8 @@ const { isUIAllowed, workspaceRoles } = useRoles()
 const { user } = useGlobal()
 
 const { t } = useI18n()
+
+const { showInfoModal } = useNcConfirmModal()
 
 const leavedWsUserId = ref('')
 
@@ -184,8 +187,20 @@ const allowLeaveWs = computed(() => {
 const handleLeaveWorkspace = () => {
   if (!user.value?.id || !currentWorkspace.value?.id) return
 
-  removeCollaborator(user.value.id, currentWorkspace.value.id, () => {
-    leavedWsUserId.value = user.value!.id
+  showInfoModal({
+    title: t('title.confirmLeaveWorkspaceTitle'),
+    content: t('title.confirmLeaveWorkspaceSubtile'),
+    showCancelBtn: true,
+    showIcon: false,
+    okProps: {
+      type: 'danger',
+    },
+    okText: t('activity.leaveWorkspace'),
+    okCallback: async () => {
+      removeCollaborator(user.value.id, currentWorkspace.value.id, () => {
+        leavedWsUserId.value = user.value!.id
+      })
+    },
   })
 }
 
@@ -414,6 +429,7 @@ const onCancel = () => {
                 class="nc-custom-daner-btn capitalize"
                 size="small"
                 :disabled="!allowLeaveWs"
+                :loading="removingCollaboratorMap[user?.id]"
                 @click="handleLeaveWorkspace"
               >
                 {{ $t('activity.leaveWorkspace') }}

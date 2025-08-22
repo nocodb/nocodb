@@ -87,7 +87,7 @@ const onResizeClick = (size: 'small' | 'medium' | 'large') => {
       </NcTooltip>
     </div>
     <NcDropdown>
-      <NcButton type="text" size="xsmall" @click.stop>
+      <NcButton :type="widget.type === WidgetTypes.IFRAME ? 'secondary' : 'text'" size="xsmall" @click.stop>
         <GeneralIcon icon="threeDotVertical" />
       </NcButton>
 

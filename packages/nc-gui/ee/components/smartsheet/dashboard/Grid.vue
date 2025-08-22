@@ -4,6 +4,7 @@ import MetricWidget from './widgets/metrics/index.vue'
 import DonutChartWidget from './widgets/donutchart/index.vue'
 import PieChartWidget from './widgets/piechart/index.vue'
 import TextWidget from './widgets/text/index.vue'
+import IFrameWidget from './widgets/iframe/index.vue'
 import PlaceholderImage from '~/assets/img/dashboards/placeholder.svg'
 
 const dashboardStore = useDashboardStore()
@@ -62,6 +63,8 @@ const getWidgetComponent = (widget: WidgetType) => {
       return MetricWidget
     case WidgetTypes.TEXT:
       return TextWidget
+    case WidgetTypes.IFRAME:
+      return IFrameWidget
     case WidgetTypes.CHART:
       switch ((widget.config as ChartWidgetConfig).chartType) {
         case ChartTypes.PIE:
@@ -187,6 +190,14 @@ const getWidgetPositionConfig = (item: string) => {
         minW: 2,
         minH: 1,
         maxW: 4,
+      }
+    }
+    case WidgetTypes.IFRAME: {
+      return {
+        minW: 2,
+        minH: 5,
+        maxW: 4,
+        maxH: 12,
       }
     }
     default:

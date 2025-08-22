@@ -5,6 +5,7 @@ import PieChartWidgetConfig from './widgets/piechart/config/index.vue'
 import DonutChartWidgetConfig from './widgets/donutchart/config/index.vue'
 import BarChartWidgetConfig from './widgets/barchart/config/index.vue'
 import TextWidgetConfig from './widgets/text/config/index.vue'
+import IframeWidgetConfig from './widgets/iframe/config/index.vue'
 const widgetStore = useWidgetStore()
 const { selectedWidget } = storeToRefs(widgetStore)
 
@@ -16,6 +17,8 @@ const configComponent = computed(() => {
       return MetricsWidgetConfig
     case WidgetTypes.TEXT:
       return TextWidgetConfig
+    case WidgetTypes.IFRAME:
+      return IframeWidgetConfig
     case WidgetTypes.CHART:
       switch ((selectedWidget.value.config as ChartWidgetConfig).chartType) {
         case ChartTypes.PIE:

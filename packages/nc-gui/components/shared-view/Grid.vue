@@ -59,7 +59,6 @@ watch(
 <style scoped>
 .nc-container {
   height: 100%;
-  padding-bottom: 0.5rem;
   flex: 1 1 100%;
 }
 </style>

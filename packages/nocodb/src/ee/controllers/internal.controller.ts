@@ -64,6 +64,7 @@ export class InternalController extends InternalControllerCE {
       createDataReflection: 'workspace',
       getDataReflection: 'workspace',
       deleteDataReflection: 'workspace',
+      refreshDataReflection: 'workspace',
       listenRemoteImport: 'workspace',
       createSync: 'base',
       triggerSync: 'base',
@@ -208,6 +209,8 @@ export class InternalController extends InternalControllerCE {
         return await this.dataReflectionService.create(workspaceId);
       case 'deleteDataReflection':
         return await this.dataReflectionService.delete(workspaceId);
+      case 'refreshDataReflection':
+        return await this.dataReflectionService.refreshAccess(workspaceId);
 
       case 'listenRemoteImport':
         return await this.remoteImportService.remoteImport(

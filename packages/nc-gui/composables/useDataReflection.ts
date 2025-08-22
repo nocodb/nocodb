@@ -82,6 +82,23 @@ export function useDataReflection() {
     }
   }
 
+  const refreshConnection = async () => {
+    if (!activeWorkspace.value?.id) return
+
+    try {
+      await $api.internal.postOperation(
+        activeWorkspace.value.id,
+        NO_SCOPE,
+        {
+          operation: 'refreshDataReflection',
+        },
+        {},
+      )
+    } catch (e) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   return {
     connectionUrl,
     connectionHost,
@@ -91,5 +108,6 @@ export function useDataReflection() {
     getConnectionDetails,
     createConnectionDetails,
     deleteConnectionDetails,
+    refreshConnection,
   }
 }

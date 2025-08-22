@@ -175,8 +175,6 @@ export default class Base extends BaseCE {
       );
     }
 
-    await DataReflection.grantBase(base.fk_workspace_id, base.id, ncMeta);
-
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
     });

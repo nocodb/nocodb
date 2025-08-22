@@ -8,7 +8,7 @@ export const useProvideChatwoot = () => {
   const chatwootReady = ref(false)
 
   const initUserCustomerAttributes = () => {
-    if (!chatwootReady.value || ncIsPlaywright() || !user.value?.id) {
+    if (!chatwootReady.value || ncIsPlaywright() || !user.value?.id || appInfo.value.disableSupportChat) {
       return
     }
 
@@ -41,7 +41,7 @@ export const useProvideChatwoot = () => {
   }
 
   watch(
-    [() => user.value?.email, () => user.value?.id],
+    [() => user.value?.email, () => user.value?.id, () => appInfo.value.disableSupportChat],
     () => {
       initUserCustomerAttributes()
     },

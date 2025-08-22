@@ -11,6 +11,21 @@ const _projectId = inject(ProjectIdInj, undefined)
 
 const baseId = computed(() => _projectId?.value ?? base.value?.id)
 
+const sourceMode = ref(false)
+
+const sourceId = ref<string>()
+
+const sources = computed(() => {
+  return sourceMode.value
+    ? base.value?.sources?.map((sr) => {
+        return {
+          label: sr?.alias ? `${sr.alias} (${sr.id})` : sr.id,
+          value: sr.id,
+        }
+      })
+    : []
+})
+
 const migrateConfiguration = ref<{
   migrationUrl?: string
 }>({
@@ -22,7 +37,7 @@ const migrating = ref(false)
 async function migrateData() {
   migrating.value = true
   try {
-    const res = await $fetch(`/api/v2/meta/migrate/${baseId.value}`, {
+    const res = await $fetch(`/api/v2/meta/migrate/${baseId.value}${sourceMode ? `/${sourceId.value}` : ''}`, {
       baseURL,
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
@@ -56,11 +71,23 @@ onMounted(async () => {
           <a-form ref="form" name="quick-migrate-form" layout="horizontal" class="m-0">
             <a-form-item class="!m-0">
               <div class="flex items-end">
-                <label> Migration URL </label>
+                <label @dblclick="sourceMode = true"> Migration URL </label>
               </div>
               <a-input
                 v-model:value="migrateConfiguration.migrationUrl"
                 placeholder="Enter migration URL for destination"
+                class="!rounded-lg !my-2 nc-input-api-key"
+              />
+            </a-form-item>
+
+            <a-form-item v-if="sourceMode" class="!m-0">
+              <div class="flex items-end">
+                <label> Source ID </label>
+              </div>
+              <NcSelect
+                v-model:value="sourceId"
+                :options="sources"
+                placeholder="Select source ID to migrate from"
                 class="!rounded-lg !my-2 nc-input-api-key"
               />
             </a-form-item>

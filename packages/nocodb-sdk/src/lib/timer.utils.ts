@@ -1,3 +1,5 @@
+import { setTimeout } from 'node:timers';
+
 type HandlerType = (timer: Timer) => Promise<void>;
 export class Timer {
   private constructor({

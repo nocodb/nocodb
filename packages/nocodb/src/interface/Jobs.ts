@@ -65,6 +65,8 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.UpdateModelStat,
   JobTypes.UpdateWsStat,
   JobTypes.UpdateSrcStat,
+  JobTypes.UpdateUsageStats,
+  JobTypes.SyncModuleSchedule,
 ];
 
 export enum JobStatus {

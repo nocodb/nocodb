@@ -68,12 +68,12 @@ export class ThumbnailGeneratorProcessor {
 
       switch (true) {
         case mimeType === 'application/pdf' || fileExtension.endsWith('.pdf'): {
-          if (Noco.isPdfjsInitialized && Noco.canvas)
-            return await this.pdfGenerator.generateThumbnails(
-              file,
-              relativePath,
-              storageAdapter,
-            );
+          // if (Noco.isPdfjsInitialized && Noco.canvas)
+          //   return await this.pdfGenerator.generateThumbnails(
+          //     file,
+          //     relativePath,
+          //     storageAdapter,
+          //   );
           return null;
         }
 

@@ -127,7 +127,8 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     // get order value
     const sources = (await Source.list(context, { baseId: context.base_id }))
       .filter((c) => c.isMeta())
-      .map((c) => c.id);
+      .map((c) => c.id)
+      .filter(Boolean);
 
     insertObj.order = await ncMeta.metaGetNextOrder(
       MetaTable.MODELS,

@@ -45,8 +45,6 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { getPossibleAttachmentSrc } = useAttachment()
-
 const { metaColumnById } = useViewColumnsOrThrow(view, meta)
 
 const { isSyncedTable } = useSmartsheetStoreOrThrow()
@@ -859,14 +857,14 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                           </div>
                                         </template>
 
-                                        <template v-for="attachment in attachments(record)">
-                                          <LazyCellAttachmentPreviewImage
-                                            v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
-                                            :key="attachment.path"
+                                        <template v-for="attachment in attachments(record)" :key="attachment.path">
+                                          <LazyCellAttachmentPreviewThumbnail
+                                            :attachment="attachment"
                                             class="h-52"
                                             image-class="!w-full"
+                                            thumbnail="card_cover"
                                             :object-fit="coverImageObjectFitStyle"
-                                            :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
+                                            @click="expandFormClick($event, record)"
                                           />
                                         </template>
                                       </a-carousel>

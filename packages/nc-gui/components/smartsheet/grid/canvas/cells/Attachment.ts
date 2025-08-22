@@ -1,6 +1,8 @@
 import { isBoxHovered, renderIconButton, roundedRect } from '../utils/canvas'
 import { pxToRowHeight } from '../../../../../utils/cell'
 import type { RenderRectangleProps } from '../utils/types'
+import { isAudio, isExcel, isPdf, isPresentation, isVideo, isWord, isZip } from '../../../../../utils/fileUtils'
+import useAttachment from '../../../../../composables/useAttachment'
 
 interface Attachment {
   mimetype?: string
@@ -191,16 +193,14 @@ export const AttachmentCellRenderer: CellRenderer = {
       const itemX = rowStartX + col * (itemSize + gap)
       const itemY = y + verticalPadding + row * (itemSize + gap)
 
-      if (isImage(item.title, item.mimetype || item.type)) {
-        const size = getAttachmentSize(rowHeight!)
-        const url = getPossibleAttachmentSrc(item, size)
+      const size = getAttachmentSize(rowHeight!)
+      const thumbnailUrls = getPossibleAttachmentSrc(item, size)
 
-        if (!url?.length) {
-          renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
-          return
-        }
+      let thumbnailLoaded = false
 
-        const img = imageLoader.loadOrGetImage(url)
+      // Try to load thumbnail if URLs are available
+      if (thumbnailUrls?.length && thumbnailUrls[0]) {
+        const img = imageLoader.loadOrGetImage(thumbnailUrls[0])
         if (img) {
           ctx.strokeStyle = '#D5D5D9'
           ctx.lineWidth = 1
@@ -219,10 +219,12 @@ export const AttachmentCellRenderer: CellRenderer = {
             },
             'contain',
           )
-        } else {
-          renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
+          thumbnailLoaded = true
         }
-      } else {
+      }
+
+      // If no thumbnail loaded, show appropriate file type icon
+      if (!thumbnailLoaded) {
         renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
       }
 

@@ -16,7 +16,6 @@ const emits = defineEmits<{
   (e: 'update:isFileContentMenuOpen', value: boolean): void
   (e: 'expand', value: boolean): void
 }>()
-const { getPossibleAttachmentSrc } = useAttachment()
 const isFileContentMenuOpen = useVModel(props, 'isFileContentMenuOpen', emits)
 
 const { isExpanded, attachment, selectedField, attachmentIndex } = toRefs(props)
@@ -179,9 +178,9 @@ watch(isOpenContextMenu, (newValue) => {
     </div>
     <div class="flex flex-col shrink-0 relative">
       <div class="h-0 w-[56px] flex-1 relative">
-        <img
-          v-if="isImage(attachment.title || '', attachment.mimetype)"
-          :src="getPossibleAttachmentSrc(attachment, 'tiny')?.[0]"
+        <LazyCellAttachmentPreviewThumbnail
+          thumbnail="tiny"
+          :attachment="attachment"
           class="object-cover transition-all duration-300 absolute overflow-hidden"
           :class="{
             'top-0 left-0 right-0 w-full h-[calc(100%-20px)] rounded-none': !isExpanded,
@@ -189,16 +188,6 @@ watch(isOpenContextMenu, (newValue) => {
               isExpanded,
           }"
         />
-        <div
-          v-else
-          class="!transition-all !duration-300 absolute w-full h-full flex items-center justify-center"
-          :class="{
-            'top-0 left-0 right-0 h-[calc(100%-16px)]': !isExpanded,
-            'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-[48px] w-[48px]': isExpanded,
-          }"
-        >
-          <GeneralIcon :icon="fileEntry.icon" />
-        </div>
       </div>
       <div
         class="font-bold text-[12px] text-center uppercase truncate px-1 transition-all duration-300 absolute"

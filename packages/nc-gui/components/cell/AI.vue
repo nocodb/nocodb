@@ -183,7 +183,7 @@ const isDisabledAiButton = computed(() => {
 
 <style scoped lang="scss">
 .nc-cell-button {
-  @apply px-2 flex items-center gap-2 transition-all justify-center bg-nc-bg-purple-dark hover:bg-nc-purple-200 text-nc-content-gray-subtle;
+  @apply px-2 flex items-center gap-2 transition-all justify-center bg-nc-bg-purple-light hover:bg-nc-bg-purple-dark text-nc-content-purple-medium;
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 

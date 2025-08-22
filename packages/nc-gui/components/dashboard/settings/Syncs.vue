@@ -39,7 +39,8 @@ const getSyncFrequency = (trigger: string, cron?: string) => {
     // Parse cron expression to human-readable format (simplified)
     if (cron.includes('hourly')) return 'Hourly'
     if (cron.includes('daily')) return 'Daily'
-    if (cron.includes('weekly')) return 'Weekly'
+    if (cron.includes('* * * *')) return 'Hourly'
+    if (cron.includes('* * *')) return 'Daily'
     return cron
   }
   return 'Unknown'

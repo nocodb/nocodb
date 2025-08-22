@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { type CalendarRangeType, FormulaDataTypes, PlanFeatureTypes, UITypes } from 'nocodb-sdk'
+import { type CalendarRangeType, FormulaDataTypes, PlanFeatureTypes, PlanTitles, UITypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 const meta = inject(MetaInj, ref())
 
 const { $api } = useNuxtApp()
 
-const { blockCalendarRange } = useEeConfig()
+const { blockCalendarRange, getPlanTitle } = useEeConfig()
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -266,27 +266,43 @@ const onValueChange = async () => {
                   v-if="range.fk_to_column_id === null"
                   size="small"
                   data-testid="nc-calendar-range-add-end-date"
-                  class="w-23"
                   type="text"
                   :shadow="false"
-                  :disabled="isLocked || blockCalendarRange"
+                  :disabled="isLocked"
                   @click="
                     click(PlanFeatureTypes.FEATURE_CALENDAR_RANGE, () => {
                       range.fk_to_column_id = undefined
                     })
                   "
                 >
-                  <div class="flex gap-1 items-center">
+                  <div class="flex gap-2 items-center">
                     <component :is="iconMap.plus" class="h-4 w-4" />
                     {{ $t('activity.endDate') }}
-                    <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE" />
+                    <PaymentUpgradeBadge
+                      :limit-or-feature="$t('upgrade.upgradeToUseCalendarRangeSubtitle')"
+                      :content="
+                        $t('upgrade.upgradeToUseCalendarRangeSubtitle', {
+                          plan: getPlanTitle(PlanTitles.PLUS),
+                        })
+                      "
+                      :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                    />
                   </div>
                 </NcButton>
 
                 <template v-else-if="isEeUI">
-                  <span>
-                    {{ $t('activity.withEndDate') }} <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE" />
-                  </span>
+                  <div class="flex gap-2 items-center">
+                    {{ $t('activity.withEndDate') }}
+                    <PaymentUpgradeBadge
+                      :limit-or-feature="$t('upgrade.upgradeToUseCalendarRangeSubtitle')"
+                      :content="
+                        $t('upgrade.upgradeToUseCalendarRangeSubtitle', {
+                          plan: getPlanTitle(PlanTitles.PLUS),
+                        })
+                      "
+                      :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                    />
+                  </div>
                   <div class="flex">
                     <a-select
                       v-model:value="range.fk_to_column_id"

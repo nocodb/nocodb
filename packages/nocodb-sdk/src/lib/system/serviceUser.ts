@@ -7,7 +7,7 @@ const NOCO_SERVICE_USERS = {
   },
   SYNC_USER: {
     id: 'usrsync',
-    email: 'sync@nocodb.com',
+    email: 'sync-service@nocodb.com',
     display_name: 'NocoDB Sync',
     email_verified: true,
   },

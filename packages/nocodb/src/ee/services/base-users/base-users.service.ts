@@ -11,6 +11,7 @@ import {
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
+import type { MetaService } from '~/meta/meta.service';
 import type { ProjectUserReqType, ProjectUserUpdateReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { validatePayload } from '~/helpers';
@@ -56,8 +57,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       'User management is restricted to base owners in private bases',
     );
   }
-
-  async userInvite(
+  async preUserInvite(
     context: NcContext,
     param: {
       baseId: string;
@@ -65,8 +65,8 @@ export class BaseUsersService extends BaseUsersServiceCE {
       req: NcRequest;
       workspaceInvited?: boolean;
     },
-    ncMeta = Noco.ncMeta,
-  ): Promise<any> {
+    ncMeta?: MetaService,
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUserReq',
       param.baseUser,
@@ -75,7 +75,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
     const base = await Base.get(context, param.baseId, ncMeta);
 
     if (!base) {
-      return NcError.baseNotFound(param.baseId);
+      NcError.baseNotFound(param.baseId);
     }
 
     this.isUserManagementRestricted({
@@ -114,7 +114,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
     // check for invalid emails
     const invalidEmails = emails.filter((v) => !validator.isEmail(v));
     if (!emails.length) {
-      return NcError.baseUserError('Invalid email address');
+      NcError.baseUserError('Invalid email address');
     }
     if (invalidEmails.length) {
       NcError.baseUserError(
@@ -125,9 +125,26 @@ export class BaseUsersService extends BaseUsersServiceCE {
     const workspace = await Workspace.get(base.fk_workspace_id, false, ncMeta);
 
     if (!workspace) {
-      return NcError.workspaceNotFound(base.fk_workspace_id);
+      NcError.workspaceNotFound(base.fk_workspace_id);
     }
+    return { base, emails, workspace };
+  }
 
+  async userInvite(
+    context: NcContext,
+    param: {
+      baseId: string;
+      baseUser: ProjectUserReqType;
+      req: NcRequest;
+      workspaceInvited?: boolean;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<any> {
+    const { base, emails, workspace } = await this.preUserInvite(
+      context,
+      param,
+      ncMeta,
+    );
     const invite_token = uuidv4();
     const error = [];
     const emailUserMap = new Map<string, User>();
@@ -137,260 +154,17 @@ export class BaseUsersService extends BaseUsersServiceCE {
 
     try {
       for (const email of emails) {
-        // add user to base if user already exist
-        const user = await User.getByEmail(email, transaction);
-        if (user) {
-          emailUserMap.set(email, user);
-          // check if this user has been added to this base
-          const baseUser = await BaseUser.get(
-            context,
-            param.baseId,
-            user.id,
-            transaction,
-          );
-
-          const targetUser =
-            baseUser &&
-            (await User.getWithRoles(
-              context,
-              user.id,
-              {
-                user,
-                baseId: param.baseId,
-                workspaceId: context.workspace_id,
-              },
-              ncMeta,
-            ));
-
-          // if old role is owner and there is only one owner then restrict update
-          if (targetUser && this.isOldRoleIsOwner(targetUser)) {
-            const baseUsers = await BaseUser.getUsersList(
-              context,
-              {
-                base_id: param.baseId,
-              },
-              ncMeta,
-            );
-            this.checkMultipleOwnerExist(baseUsers, base);
-            await this.ensureBaseOwner(context, {
-              baseUsers,
-              ignoreUserId: user.id,
-              baseId: param.baseId,
-              req: param.req,
-            });
-          }
-
-          // if already exists and has a role then return error
-          if (baseUser?.is_mapped && baseUser?.roles) {
-            throw new Error(
-              `${user.email} with role ${baseUser.roles} already exists in this base`,
-            );
-          }
-
-          // if user exist and role is not assigned then assign role by updating base user
-          else if (baseUser?.is_mapped) {
-            await checkSeatLimit(
-              workspace.id,
-              baseUser.fk_user_id,
-              baseUser.roles as ProjectRoles,
-              param.baseUser.roles as ProjectRoles,
-              transaction,
-            );
-
-            await BaseUser.updateRoles(
-              context,
-              param.baseId,
-              user.id,
-              param.baseUser.roles,
-              transaction,
-            );
-
-            postOperations.push(() => {
-              this.mailService
-                .sendMail({
-                  mailEvent: MailEvent.BASE_ROLE_UPDATE,
-                  payload: {
-                    req: param.req,
-                    user: user,
-                    base: base,
-                    oldRole: (getProjectRole(baseUser) ??
-                      WorkspaceRolesToProjectRoles[
-                        (baseUser as any)?.workspace_roles
-                      ]) as ProjectRoles,
-                    newRole: (param.baseUser.roles || 'editor') as ProjectRoles,
-                  },
-                })
-                .catch(() => {});
-              NocoSocket.broadcastEventToBaseUsers(
-                context,
-                {
-                  event: EventType.USER_EVENT,
-                  payload: {
-                    action: 'base_user_update',
-                    payload: baseUser,
-                  },
-                },
-                context.socket_id,
-              );
-            });
-          } else {
-            await checkSeatLimit(
-              workspace.id,
-              null,
-              ProjectRoles.NO_ACCESS,
-              param.baseUser.roles as ProjectRoles,
-              transaction,
-            );
-
-            await BaseUser.insert(
-              context,
-              {
-                base_id: param.baseId,
-                fk_user_id: user.id,
-                roles: param.baseUser.roles || 'editor',
-                invited_by: param.req?.user?.id,
-              },
-              transaction,
-            );
-
-            if (param?.workspaceInvited) {
-              postOperations.push(() =>
-                this.mailService
-                  .sendMail({
-                    mailEvent: MailEvent.BASE_INVITE,
-                    payload: {
-                      req: param.req,
-                      user: user,
-                      base: base,
-                      role: (param.baseUser.roles || 'editor') as ProjectRoles,
-                      token: invite_token,
-                    },
-                  })
-                  .catch(() => {}),
-              );
-            } else {
-              postOperations.push(() =>
-                this.mailService
-                  .sendMail({
-                    mailEvent: MailEvent.BASE_ROLE_UPDATE,
-                    payload: {
-                      req: param.req,
-                      user: user,
-                      base: base,
-                      oldRole: (getProjectRole(baseUser) ??
-                        WorkspaceRolesToProjectRoles[
-                          (baseUser as any)?.workspace_roles
-                        ]) as ProjectRoles,
-                      newRole: (param.baseUser.roles ||
-                        'editor') as ProjectRoles,
-                    },
-                  })
-                  .catch(() => {}),
-              );
-            }
-          }
-
-          postOperations.push(() =>
-            this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
-              base,
-              user,
-              role: param.baseUser.roles,
-              invitedBy: param.req?.user,
-              req: param.req,
-              context,
-            }),
-          );
-        } else {
-          await checkSeatLimit(
-            workspace.id,
-            null,
-            ProjectRoles.NO_ACCESS,
-            param.baseUser.roles as ProjectRoles,
-            transaction,
-          );
-
-          // create new user with invite token
-          const user = await User.insert(
-            {
-              invite_token,
-              invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-              email,
-              roles: OrgUserRoles.VIEWER,
-              token_version: randomTokenString(),
-            },
-            transaction,
-          );
-
-          emailUserMap.set(email, user);
-
-          const newBaseUser = await BaseUser.insert(
-            context,
-            {
-              base_id: param.baseId,
-              fk_user_id: user.id,
-              roles: param.baseUser.roles,
-              invited_by: param.req?.user?.id,
-            },
-            transaction,
-          );
-
-          postOperations.push(() => {
-            this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
-              base,
-              user,
-              role: param.baseUser.roles,
-              req: param.req,
-              invitedBy: param.req?.user,
-              context,
-            });
-            NocoSocket.broadcastEventToBaseUsers(
-              context,
-              {
-                event: EventType.USER_EVENT,
-                payload: {
-                  action: 'base_user_add',
-                  payload: {
-                    baseUser: newBaseUser,
-                    base,
-                  },
-                },
-              },
-              context.socket_id,
-            );
+        const { postOperations: eachPostOperations } =
+          await this.unhandledUserInviteByEmail(context, {
+            email,
+            roles: param.baseUser.roles as ProjectRoles,
+            base,
+            req: param.req,
+            emailUserMap,
+            invite_token,
+            workspaceInvited: param.workspaceInvited,
           });
-
-          if (emails.length === 1) {
-            postOperations.push(() =>
-              this.mailService
-                .sendMail({
-                  mailEvent: MailEvent.BASE_INVITE,
-                  payload: {
-                    req: param.req,
-                    user: user,
-                    base: base,
-                    role: (param.baseUser.roles || 'editor') as ProjectRoles,
-                    token: invite_token,
-                  },
-                })
-                .catch(() => {}),
-            );
-          } else {
-            postOperations.push(() =>
-              this.mailService
-                .sendMail({
-                  mailEvent: MailEvent.BASE_INVITE,
-                  payload: {
-                    req: param.req,
-                    user: user,
-                    base: base,
-                    token: invite_token,
-                    role: (param.baseUser.roles || 'editor') as ProjectRoles,
-                  },
-                })
-                .catch(() => {}),
-            );
-          }
-        }
+        postOperations.push(...eachPostOperations);
       }
 
       await transaction.commit();
@@ -426,6 +200,309 @@ export class BaseUsersService extends BaseUsersServiceCE {
     } else {
       return { invite_token, emails, error };
     }
+  }
+
+  async prepareUserInviteByEmail(
+    context: NcContext,
+    param: {
+      email: string;
+      roles?: ProjectRoles;
+      req: NcRequest;
+      baseId: string;
+      workspaceInvited?: boolean;
+      invite_token?: string;
+      // to keep refactor at minimum, we pass emailUserMap
+      emailUserMap?: Map<string, User>;
+    },
+    ncMeta?: MetaService,
+  ) {
+    const { email, emailUserMap = new Map(), baseId } = param;
+
+    const { base } = await this.preUserInvite(
+      context,
+      {
+        baseId,
+        baseUser: {
+          email: param.email,
+          roles: param.roles,
+        },
+        req: param.req,
+        workspaceInvited: param.workspaceInvited,
+      },
+      ncMeta,
+    );
+    return {
+      execute: () => {
+        return this.unhandledUserInviteByEmail(
+          context,
+          {
+            ...param,
+            base,
+          },
+          ncMeta,
+        );
+      },
+      rollback: async () => {
+        // rollback cache
+        const cacheTransaction = [];
+
+        const user = emailUserMap.get(email);
+        cacheTransaction.push(`${CacheScope.BASE_USER}:${base.id}:${user.id}`);
+        cacheTransaction.push(
+          `${CacheScope.WORKSPACE_USER}:${context.workspace_id}:${user.id}`,
+        );
+
+        await NocoCache.del(cacheTransaction);
+      },
+    };
+  }
+
+  async unhandledUserInviteByEmail(
+    context: NcContext,
+    param: {
+      email: string;
+      roles?: ProjectRoles;
+      req: NcRequest;
+      base: Base;
+      workspaceInvited?: boolean;
+      invite_token?: string;
+      // to keep refactor at minimum, we pass emailUserMap
+      emailUserMap?: Map<string, User>;
+    },
+    ncMeta?: MetaService,
+  ) {
+    const postOperations = [];
+    const { email, invite_token = uuidv4(), emailUserMap, roles, base } = param;
+    // add user to base if user already exist
+    const user = await User.getByEmail(email, ncMeta);
+    if (user) {
+      emailUserMap?.set(email, user);
+      // check if this user has been added to this base
+      const baseUser = await BaseUser.get(context, base.id, user.id, ncMeta);
+
+      const targetUser =
+        baseUser &&
+        (await User.getWithRoles(
+          context,
+          user.id,
+          {
+            user,
+            baseId: base.id,
+            workspaceId: base.fk_workspace_id,
+          },
+          ncMeta,
+        ));
+
+      // if old role is owner and there is only one owner then restrict update
+      if (targetUser && this.isOldRoleIsOwner(targetUser)) {
+        const baseUsers = await BaseUser.getUsersList(
+          context,
+          {
+            base_id: base.id,
+          },
+          ncMeta,
+        );
+        this.checkMultipleOwnerExist(baseUsers, base);
+        await this.ensureBaseOwner(context, {
+          baseUsers,
+          ignoreUserId: user.id,
+          baseId: base.id,
+          req: param.req,
+        });
+      }
+
+      // if already exists and has a role then return error
+      if (baseUser?.is_mapped && baseUser?.roles) {
+        throw new Error(
+          `${user.email} with role ${baseUser.roles} already exists in this base`,
+        );
+      }
+
+      // if user exist and role is not assigned then assign role by updating base user
+      else if (baseUser?.is_mapped) {
+        await checkSeatLimit(
+          base.fk_workspace_id,
+          baseUser.fk_user_id,
+          baseUser.roles as ProjectRoles,
+          roles as ProjectRoles,
+          ncMeta,
+        );
+
+        await BaseUser.updateRoles(context, base.id, user.id, roles, ncMeta);
+
+        postOperations.push(() => {
+          this.mailService
+            .sendMail({
+              mailEvent: MailEvent.BASE_ROLE_UPDATE,
+              payload: {
+                req: param.req,
+                user: user,
+                base: base,
+                oldRole: (getProjectRole(baseUser) ??
+                  WorkspaceRolesToProjectRoles[
+                    (baseUser as any)?.workspace_roles
+                  ]) as ProjectRoles,
+                newRole: (roles || 'editor') as ProjectRoles,
+              },
+            })
+            .catch(() => {});
+          NocoSocket.broadcastEventToBaseUsers(
+            context,
+            {
+              event: EventType.USER_EVENT,
+              payload: {
+                action: 'base_user_update',
+                payload: baseUser,
+              },
+            },
+            context.socket_id,
+          );
+        });
+      } else {
+        await checkSeatLimit(
+          base.fk_workspace_id,
+          null,
+          ProjectRoles.NO_ACCESS,
+          roles as ProjectRoles,
+          ncMeta,
+        );
+
+        await BaseUser.insert(
+          context,
+          {
+            base_id: base.id,
+            fk_user_id: user.id,
+            roles: roles || 'editor',
+            invited_by: param.req?.user?.id,
+          },
+          ncMeta,
+        );
+
+        if (param?.workspaceInvited) {
+          postOperations.push(() =>
+            this.mailService
+              .sendMail({
+                mailEvent: MailEvent.BASE_INVITE,
+                payload: {
+                  req: param.req,
+                  user: user,
+                  base: base,
+                  role: (roles || 'editor') as ProjectRoles,
+                  token: invite_token,
+                },
+              })
+              .catch(() => {}),
+          );
+        } else {
+          postOperations.push(() =>
+            this.mailService
+              .sendMail({
+                mailEvent: MailEvent.BASE_ROLE_UPDATE,
+                payload: {
+                  req: param.req,
+                  user: user,
+                  base: base,
+                  oldRole: (getProjectRole(baseUser) ??
+                    WorkspaceRolesToProjectRoles[
+                      (baseUser as any)?.workspace_roles
+                    ]) as ProjectRoles,
+                  newRole: (roles || 'editor') as ProjectRoles,
+                },
+              })
+              .catch(() => {}),
+          );
+        }
+      }
+
+      postOperations.push(() =>
+        this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
+          base,
+          user,
+          role: roles,
+          invitedBy: param.req?.user,
+          req: param.req,
+          context,
+        }),
+      );
+    } else {
+      await checkSeatLimit(
+        base.fk_workspace_id,
+        null,
+        ProjectRoles.NO_ACCESS,
+        roles,
+        ncMeta,
+      );
+
+      // create new user with invite token
+      const user = await User.insert(
+        {
+          invite_token,
+          invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          email,
+          roles: OrgUserRoles.VIEWER,
+          token_version: randomTokenString(),
+        },
+        ncMeta,
+      );
+
+      emailUserMap?.set(email, user);
+
+      const newBaseUser = await BaseUser.insert(
+        context,
+        {
+          base_id: base.id,
+          fk_user_id: user.id,
+          roles: roles,
+          invited_by: param.req?.user?.id,
+        },
+        ncMeta,
+      );
+
+      postOperations.push(() => {
+        this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
+          base,
+          user,
+          role: roles,
+          req: param.req,
+          invitedBy: param.req?.user,
+          context,
+        });
+        NocoSocket.broadcastEventToBaseUsers(
+          context,
+          {
+            event: EventType.USER_EVENT,
+            payload: {
+              action: 'base_user_add',
+              payload: {
+                baseUser: newBaseUser,
+                base,
+              },
+            },
+          },
+          context.socket_id,
+        );
+      });
+
+      postOperations.push(() =>
+        this.mailService
+          .sendMail({
+            mailEvent: MailEvent.BASE_INVITE,
+            payload: {
+              req: param.req,
+              user: user,
+              base: base,
+              token: invite_token,
+              role: (roles || 'editor') as ProjectRoles,
+            },
+          })
+          .catch(() => {}),
+      );
+    }
+
+    return {
+      postOperations,
+      user,
+    };
   }
 
   async baseUserUpdate(

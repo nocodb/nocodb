@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
 import { BaseMembersV3Service as BaseMembersV3ServiceCE } from 'src/services/v3/base-members-v3.service';
-import type { ProjectUserReqType } from 'nocodb-sdk';
+import type { ProjectRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
@@ -40,6 +40,8 @@ export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
     }
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
+    const rollbacks = [];
+    const postOperations = [];
     try {
       for (const baseUser of param.baseMembers) {
         // if workspace user is not provided, then we need to invite the user to workspace with NO_ACCESS role
@@ -74,33 +76,36 @@ export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
 
         // invite at the workspace level if workspace role is provided
         if (baseUser.workspace_role) {
-          await this.workspaceUsersService.invite(
-            {
-              body: {
+          const { execute, rollback: eachRollback } =
+            await this.workspaceUsersService.prepareUserInviteByEmail(
+              {
                 roles: baseUser.workspace_role,
                 email: baseUser.email,
+                siteUrl: param.req.ncSiteUrl,
+                req: param.req,
+                workspaceId: param.req.ncWorkspaceId,
               },
-              siteUrl: param.req.ncSiteUrl,
-              invitedBy: param.req.user,
+              ncMeta,
+            );
+          rollbacks.push(eachRollback);
+          const { postOperations: eachPostOperations } = await execute();
+          postOperations.push(...eachPostOperations);
+        }
+
+        const { execute, rollback: eachRollback } =
+          await this.baseUsersService.prepareUserInviteByEmail(
+            context,
+            {
+              email: baseUser.email,
+              roles: baseUser.base_role as ProjectRoles,
+              baseId: param.baseId,
               req: param.req,
-              workspaceId: param.req.ncWorkspaceId,
             },
             ncMeta,
           );
-        }
-
-        await this.baseUsersService.userInvite(
-          context,
-          {
-            baseId: param.baseId,
-            baseUser: {
-              email: baseUser.email,
-              roles: baseUser.base_role as ProjectUserReqType['roles'],
-            },
-            req: param.req,
-          },
-          ncMeta,
-        );
+        rollbacks.push(eachRollback);
+        const { postOperations: eachPostOperations } = await execute();
+        postOperations.push(...eachPostOperations);
 
         user = await User.getByEmail(baseUser.email, ncMeta);
 
@@ -110,8 +115,15 @@ export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
     } catch (e) {
       // on error rollback the transaction and throw the error
       await ncMeta.rollback();
+      for (const eachRollback of rollbacks) {
+        await eachRollback();
+      }
       throw e;
     }
+    for (const eachPostOperation of postOperations) {
+      await eachPostOperation();
+    }
+
     return this.builder().build(
       await BaseUser.getUsersList(context, {
         base_id: param.baseId,

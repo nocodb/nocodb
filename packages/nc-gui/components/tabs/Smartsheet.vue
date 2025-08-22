@@ -3,7 +3,6 @@ import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
-import { component as FullScreen } from 'vue-fullscreen'
 import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
 import DetachedExpandedText from '../smartsheet/grid/canvas/components/DetachedExpandedText.vue'
 
@@ -242,22 +241,6 @@ const toggleState = () => {
   }
   isFullScreen.value = !isFullScreen.value
 }
-
-const handleFullScreenChange = () => {
-  const isBrowserFullScreen = !!document.fullscreenElement
-  if (isFullScreen.value !== isBrowserFullScreen) {
-    isFullScreen.value = isBrowserFullScreen
-    isLeftSidebarOpen.value = !isBrowserFullScreen
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('fullscreenchange', handleFullScreenChange)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('fullscreenchange', handleFullScreenChange)
-})
 </script>
 
 <template>
@@ -269,13 +252,13 @@ onUnmounted(() => {
   >
     <SmartsheetTopbar v-if="!isFullScreen" />
     <div style="height: calc(100% - var(--topbar-height))">
-      <FullScreen v-if="openedViewsTab === 'view'" v-model:fullscreen="isFullScreen" class="h-full" :page-only="true">
+      <NcFullScreen v-if="openedViewsTab === 'view'" v-model="isFullScreen" class="h-full" :page-only="true">
         <Splitpanes
           class="nc-extensions-content-resizable-wrapper"
           :class="{
             'nc-is-open-extensions': isPanelExpanded,
             'nc-is-open-actions': isActionPanelExpanded,
-        }"
+          }"
           @ready="() => onReady()"
           @resize="onResize"
           @resized="onResized"
@@ -309,8 +292,8 @@ onUnmounted(() => {
           </Pane>
           <ExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
           <ActionsPane v-if="isActionPanelExpanded" ref="actionPaneRef" />
-      </Splitpanes>
-      </FullScreen>
+        </Splitpanes>
+      </NcFullScreen>
 
       <SmartsheetDetails v-else />
     </div>

@@ -1,13 +1,11 @@
 <script lang="ts" setup>
 import { LazySmartsheetToolbarRowColorFilterDropdown } from '#components'
 
-
-const props = defineProps<{
+// Todo: rameshmane7218 in shared view need to pass props
+defineProps<{
   toggle: () => void
   isExpanded?: boolean
 }>()
-
-const { toggle } = props
 
 const isPublic = inject(IsPublicInj, ref(false))
 

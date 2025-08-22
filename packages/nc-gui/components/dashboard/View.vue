@@ -217,7 +217,13 @@ function onResize(widthPercent: any) {
 }
 
 const isMiniSidebarVisible = computed(() => {
-  return !hideMiniSidebar.value && slots.sidebar && !isSharedBase.value && (!isMobileMode.value || isLeftSidebarOpen.value)
+  return (
+    !hideMiniSidebar.value &&
+    slots.sidebar &&
+    !isSharedBase.value &&
+    (!isMobileMode.value || isLeftSidebarOpen.value) &&
+    !isFullScreen.value
+  )
 })
 </script>
 

@@ -831,7 +831,8 @@ export async function validateFormulaAndExtractTreeWithType({
           argTypes,
           // need to use res rather than parsedTree
           // because post-processing like referencedColumn is needed
-          <CallExpressionNode>res
+          <CallExpressionNode>res,
+          columns
         );
       }
       // validate against expected arg types if present

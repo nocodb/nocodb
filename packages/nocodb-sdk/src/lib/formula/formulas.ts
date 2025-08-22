@@ -6,6 +6,7 @@ import {
   FormulaMeta,
   FormulaMetaCustomValidation,
 } from './types';
+import { isSystemColumn, isVirtualCol, UITypes } from '~/lib';
 export const API_DOC_PREFIX = 'https://nocodb.com/docs/product-docs/fields';
 
 const customValidationArray: FormulaMetaCustomValidation = (
@@ -1208,7 +1209,21 @@ export const formulas: Record<string, FormulaMeta> = {
       args: {
         min: 0,
       },
-      custom(_argTypes: FormulaDataTypes[], parsedTree: any) {
+      custom(_argTypes: FormulaDataTypes[], parsedTree: any, columns) {
+        if (parsedTree.arguments.length) {
+          // check if meta column exists or not, if not throw error when user provides args}
+          if (
+            !columns.find(
+              (column) => (column.uidt as unknown as UITypes) === UITypes.Meta
+            )
+          ) {
+            throw new FormulaError(
+              FormulaErrorType.INVALID_ARG,
+              {},
+              'LAST_MODIFIED_TIME with field arguments is not supported as the table does not have a meta column'
+            );
+          }
+        }
         for (const arg of parsedTree.arguments) {
           if (arg.type !== JSEPNode.IDENTIFIER) {
             throw new FormulaError(
@@ -1217,12 +1232,25 @@ export const formulas: Record<string, FormulaMeta> = {
               'Only column references are allowed as arguments for LAST_MODIFIED_TIME'
             );
           }
+          // now check if the column allows LAST_MODIFIED_TIME
+          const virtualOrSystemColRef = columns.find(
+            (c) =>
+              (c.title === arg.name || c.id === arg.name) &&
+              (isSystemColumn(c) || isVirtualCol(c))
+          );
+          if (virtualOrSystemColRef) {
+            throw new FormulaError(
+              FormulaErrorType.INVALID_ARG,
+              {},
+              `Column "${arg.name}" does not support LAST_MODIFIED_TIME`
+            );
+          }
         }
       },
     },
     description:
       'Returns the last modified time of the current record or selection if it exists',
-    syntax: ' LAST_MODIFIED_TIME()',
+    syntax: 'LAST_MODIFIED_TIME()',
     examples: [' LAST_MODIFIED_TIME()'],
   },
 };

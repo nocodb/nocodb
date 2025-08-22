@@ -6,6 +6,7 @@ import {
   ComparisonOperator,
   StringOperator,
 } from './operators';
+import { ColumnType } from '../Api';
 
 export interface ReferencedInfo {
   referencedColumn?: {
@@ -84,7 +85,7 @@ export type ParsedFormulaNode =
   | CompoundNode;
 
 export interface FormulaMetaCustomValidation {
-  (args: FormulaDataTypes[], parseTree: CallExpressionNode): void;
+  (args: FormulaDataTypes[], parseTree: CallExpressionNode, columns: ColumnType[]): void;
 }
 
 export interface FormulaMeta {

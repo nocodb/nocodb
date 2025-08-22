@@ -782,6 +782,4 @@ export const customLinkSupportedTypes: UITypes[] = [
 ];
 
 // column types that are not shown in the GUI
-export const hiddenColumnTypes: UITypes[] = [
-  UITypes.Meta,
-];
+export const hiddenColumnTypes: UITypes[] = [UITypes.Meta];

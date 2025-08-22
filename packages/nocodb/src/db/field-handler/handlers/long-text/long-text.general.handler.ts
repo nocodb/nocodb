@@ -42,6 +42,8 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
         maxLength: NC_MAX_TEXT_LENGTH,
       });
     }
-    return { value: params.value };
+
+    // we return a string all the time to support any input (number, boolean, etc.) on text fields
+    return { value: `${params.value}` };
   }
 }

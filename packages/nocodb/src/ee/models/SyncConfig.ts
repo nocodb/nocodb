@@ -274,8 +274,6 @@ export default class SyncConfig {
           nextSyncAt = oneHourFromNow.toISOString();
         }
 
-        console.log(`Next sync at: ${nextSyncAt}`);
-
         return nextSyncAt;
       } catch (e) {
         return null;

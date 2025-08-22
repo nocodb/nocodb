@@ -1,5 +1,3 @@
-import { setTimeout } from 'node:timers';
-
 type HandlerType = (timer: Timer) => Promise<void>;
 export class Timer {
   private constructor({
@@ -43,6 +41,16 @@ export class Timer {
         this.errorHandler?.(ex);
       }
     }, this.time).unref();
+
+    // Safe unref call
+    // need to do this because the typescript is not specific for node, and unref is node-specific
+    if (
+      this.timeoutHandle &&
+      typeof this.timeoutHandle === 'object' &&
+      'unref' in this.timeoutHandle
+    ) {
+      (this.timeoutHandle as any).unref();
+    }
   }
   stop() {
     if (this.timeoutHandle) {

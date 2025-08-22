@@ -58,6 +58,8 @@ export enum PlanFeatureTypes {
   FEATURE_API_MEMBER_MANAGEMENT = 'feature_api_member_management',
   FEATURE_API_VIEW_V3 = 'feature_api_view_v3',
   FEATURE_CALENDAR_RANGE = 'feature_calendar_range',
+  FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
+  FEATURE_AI_BUTTON_FIELD = 'feature_ai_button_field',
 }
 
 // todo: separate as a new enum
@@ -248,6 +250,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_API_VIEW_V3]: 'to use view api.',
   [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]:
     'to visualize records in a calendar range.',
+  [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: 'to use AI text fields.',
+  [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: 'to use AI button fields.',
 };
 
 export const getUpgradeMessage = (

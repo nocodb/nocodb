@@ -214,6 +214,10 @@ export const useEeConfig = createSharedComposable(() => {
     return getLimit(PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL) || defaultLimit
   })
 
+  const blockAiPromptField = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD)
+  })
+
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
     // TODO: calculate price when tiers_mode is `volume`
     let remainingSeats = seatCount
@@ -1065,6 +1069,20 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseAiPromptField = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAiPromptField.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseAiTextField'),
+      content: t('upgrade.upgradeToUseAiTextFieldSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      limitOrFeature: PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     calculatePrice,
@@ -1129,5 +1147,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockCalendarRange,
     showUpgradeToUseCalendarRange,
     isOrgBilling,
+    blockAiPromptField,
+    showUpgradeToUseAiPromptField,
   }
 })

@@ -309,16 +309,18 @@ export const AILongTextCellRenderer: CellRenderer = {
     const regenerateIconBox = { x: x + width - 52, y: y + 7, width: 18, height: 18 }
     tryShowTooltip({ text: t('title.expand'), rect: expandIconBox, mousePosition })
 
-    if (!column.readonly && !column.columnObj?.readonly) {
+    if (!column.readonly && !column?.columnObj?.readonly) {
       tryShowTooltip({ text: 'Re-generate', rect: regenerateIconBox, mousePosition })
     }
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable, value, pk, actionManager, path } = ctx
 
-    if (column.readonly || column.columnObj?.readonly) return false
+    const columnObj = column?.columnObj
 
-    if (!value?.value && e.key === 'Enter') {
+    if (column.readonly || columnObj?.readonly) return false
+
+    if (!value && e.key === 'Enter') {
       actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true, path })
       return true
     }
@@ -328,10 +330,15 @@ export const AILongTextCellRenderer: CellRenderer = {
       e.preventDefault()
     }
 
-    if (e.key.length === 1) {
+    if (e.key.length === 1 && columnObj.title) {
+      if (!value && columnObj.title) {
+        row.row[columnObj.title] = { value: '' }
+      }
+
       makeCellEditable(row, column)
       return true
     }
+
     return false
   },
 }

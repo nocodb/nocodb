@@ -129,11 +129,18 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       .filter((c) => c.isMeta())
       .map((c) => c.id);
 
-    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.MODELS, {
-      base_id: context.base_id,
-      fk_workspace_id: context.workspace_id,
-      source_id: sources,
-    });
+    insertObj.order = await ncMeta.metaGetNextOrder(
+      MetaTable.MODELS,
+      {
+        base_id: context.base_id,
+        fk_workspace_id: context.workspace_id,
+      },
+      {
+        source_id: {
+          in: sources,
+        },
+      },
+    );
 
     if (!insertObj.meta) {
       insertObj.meta = {};

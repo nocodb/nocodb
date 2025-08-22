@@ -44,6 +44,7 @@ export interface AppInfo {
   stripePublishableKey?: string
   marketingRootUrl?: string
   openReplayKey?: string | null
+  disableSupportChat: boolean
 }
 
 export interface StoredState {

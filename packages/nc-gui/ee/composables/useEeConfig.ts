@@ -169,6 +169,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_ROW_COLOUR)
   })
 
+  const blockCalendarRange = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_CALENDAR_RANGE)
+  })
+
   const blockTableAndFieldPermissions = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
   })
@@ -919,6 +923,22 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseCalendarRange = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockCalendarRange.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseCalendarRange'),
+      content: t('upgrade.upgradeToUseCalendarRangeSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      requiredPlan: PlanTitles.PLUS,
+      limitOrFeature: PlanFeatureTypes.FEATURE_CALENDAR_RANGE,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseRowColoring = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockRowColoring.value) return
 
@@ -1095,5 +1115,7 @@ export const useEeConfig = createSharedComposable(() => {
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
     blockAddNewDashboard,
+    blockCalendarRange,
+    showUpgradeToUseCalendarRange,
   }
 })

@@ -11,6 +11,7 @@ import {
   type KanbanType,
   type LookupType,
   type MapType,
+  PlanFeatureTypes,
   type SerializedAiViewType,
   type TableType,
   stringToViewTypeMap,
@@ -85,6 +86,8 @@ const workspaceStore = useWorkspace()
 
 const baseStore = useBase()
 const { baseId: activeBaseId } = storeToRefs(baseStore)
+
+const { blockCalendarRange } = useEeConfig()
 
 const { viewsByTable } = storeToRefs(useViewsStore())
 
@@ -1014,7 +1017,7 @@ watch(activeBaseId, () => {
               class="flex flex-col w-full gap-6"
             >
               <div class="w-full space-y-2">
-                <div class="text-gray-800">
+                <div class="text-nc-content-gray-subtle">
                   {{ $t('labels.organiseBy') }}
                 </div>
 
@@ -1065,6 +1068,7 @@ watch(activeBaseId, () => {
                 <NcButton
                   v-if="range.fk_to_column_id === null"
                   size="small"
+                  :disabled="blockCalendarRange"
                   type="text"
                   @click="range.fk_to_column_id = undefined"
                 >
@@ -1072,11 +1076,13 @@ watch(activeBaseId, () => {
                     <component :is="iconMap.plus" class="h-4 w-4" />
                     {{ $t('activity.endDate') }}
                   </div>
+                  <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE" />
                 </NcButton>
 
                 <template v-else-if="isEeUI">
-                  <span class="text-gray-700">
+                  <span class="text-nc-content-gray-subtle">
                     {{ $t('activity.withEndDate') }}
+                    <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE" />
                   </span>
 
                   <div class="flex">
@@ -1085,7 +1091,7 @@ watch(activeBaseId, () => {
                       class="nc-select-shadow w-full flex-1"
                       allow-clear
                       show-search
-                      :disabled="isMetaLoading"
+                      :disabled="isMetaLoading || blockCalendarRange"
                       :loading="isMetaLoading"
                       :placeholder="$t('placeholder.notSelected')"
                       data-testid="nc-calendar-range-to-field-select"
@@ -1159,13 +1165,13 @@ watch(activeBaseId, () => {
 
             <div
               v-if="isCalendarReadonly(form.calendar_range)"
-              class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full"
+              class="flex flex-row p-4 border-nc-border-gray-medium border-1 gap-x-4 rounded-lg w-full"
             >
-              <div class="text-gray-500 flex gap-4">
-                <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="info" />
+              <div class="text-nc-content-gray-muted flex gap-4">
+                <GeneralIcon class="min-w-6 h-6 !text-nc-content-orange-medium" icon="info" />
                 <div class="flex flex-col gap-1">
-                  <h2 class="font-semibold text-sm mb-0 text-gray-800">Calendar is readonly</h2>
-                  <span class="text-gray-500 font-default text-sm"> {{ $t('msg.info.calendarReadOnly') }}</span>
+                  <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">Calendar is readonly</h2>
+                  <span class="text-nc-content-gray-muted font-default text-sm"> {{ $t('msg.info.calendarReadOnly') }}</span>
                 </div>
               </div>
             </div>
@@ -1413,7 +1419,7 @@ watch(activeBaseId, () => {
           <div class="text-gray-500 flex gap-4">
             <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="alertTriangle" />
             <div class="flex flex-col gap-1">
-              <h2 class="font-semibold text-sm mb-0 text-gray-800">Suitable fields not present</h2>
+              <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">Suitable fields not present</h2>
               <span class="text-gray-500 font-default text-sm"> {{ errorMessages[form.type] }}</span>
             </div>
           </div>
@@ -1421,20 +1427,20 @@ watch(activeBaseId, () => {
       </div>
 
       <a-form-item v-if="enableDescription && !aiMode" class="!px-5">
-        <div class="flex gap-3 text-gray-800 h-7 mt-4 mb-1 items-center justify-between">
+        <div class="flex gap-3 text-nc-content-gray h-7 mt-4 mb-1 items-center justify-between">
           <span class="text-[13px]">
             {{ $t('labels.description') }}
           </span>
 
           <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
-            <GeneralIcon icon="delete" class="text-gray-700 w-3.5 h-3.5" />
+            <GeneralIcon icon="delete" class="text-nc-content-gray-subtle w-3.5 h-3.5" />
           </NcButton>
         </div>
 
         <a-textarea
           ref="descriptionInputEl"
           v-model:value="form.description"
-          class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-gray-800 max-h-[150px] min-h-[100px]"
+          class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-nc-content-gray max-h-[150px] min-h-[100px]"
           hide-details
           data-testid="create-table-title-input"
           :placeholder="$t('msg.info.enterViewDescription')"
@@ -1453,7 +1459,7 @@ watch(activeBaseId, () => {
           type="text"
           @click.stop="toggleDescription"
         >
-          <div class="flex !text-gray-700 items-center gap-2">
+          <div class="flex !text-nc-content-gray-subtle items-center gap-2">
             <GeneralIcon icon="plus" class="h-4 w-4" />
 
             <span class="first-letter:capitalize">
@@ -1515,7 +1521,7 @@ watch(activeBaseId, () => {
   padding-block: 8px !important;
 }
 .ant-form-item-required {
-  @apply !text-gray-800 font-medium;
+  @apply !text-nc-content-gray font-medium;
   &:before {
     @apply !content-[''];
   }
@@ -1535,7 +1541,7 @@ watch(activeBaseId, () => {
 }
 
 :deep(.ant-form-item-label > label) {
-  @apply !text-sm text-gray-800 flex;
+  @apply !text-sm text-nc-content-gray flex;
 
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;

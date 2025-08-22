@@ -43,17 +43,13 @@ export const useProvideChatwoot = () => {
   watch(
     [() => user.value?.email, () => user.value?.id, () => appInfo.value.disableSupportChat],
     () => {
-      if (!appInfo.value.disableSupportChat) {
-        initUserCustomerAttributes()
-      }
+      initUserCustomerAttributes()
     },
     { immediate: true },
   )
 
   router.afterEach(() => {
-    if (!appInfo.value.disableSupportChat) {
-      initUserCustomerAttributes()
-    }
+    initUserCustomerAttributes()
   })
 
   return {

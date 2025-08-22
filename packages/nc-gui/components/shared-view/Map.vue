@@ -27,7 +27,7 @@ useViewRowColorProvider({ shared: true })
 <template>
   <div class="nc-container h-full mt-1.5 px-12">
     <div class="flex flex-col h-full flex-1 min-w-0">
-      <LazySmartsheetToolbar />
+      <LazySmartsheetToolbar show-full-screen-toggle />
       <div class="h-full flex-1 min-w-0 min-h-0 bg-gray-50">
         <LazySmartsheetMap />
       </div>

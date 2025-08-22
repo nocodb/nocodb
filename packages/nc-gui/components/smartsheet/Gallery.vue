@@ -380,7 +380,7 @@ const handleOpenNewRecordForm = () => {
   <div
     ref="scrollContainer"
     data-testid="nc-gallery-wrapper"
-    class="flex flex-col w-full nc-gallery select-none relative nc-scrollbar-md bg-nc-bg-gray-extralight h-[calc(100svh-93px)]"
+    class="flex flex-col w-full nc-gallery select-none relative nc-scrollbar-md bg-nc-bg-gray-extralight h-[calc(100svh-var(--toolbar-height)-var(--topbar-height))]"
   >
     <NcDropdown
       v-model:visible="contextMenu"

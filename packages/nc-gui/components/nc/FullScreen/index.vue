@@ -49,11 +49,12 @@ const isPageOnly = computed(() => props.pageOnly || !sf.isEnabled)
 const wrapperStyle = computed<CSSProperties | undefined>(() => {
   return (isPageOnly.value || props.teleport) && isFullscreen.value
     ? {
-        position: 'fixed',
-        left: '0',
-        top: '0',
-        width: '100%',
-        height: '100%',
+        'position': 'fixed',
+        'left': '0',
+        'top': '0',
+        'width': '100%',
+        'height': '100%',
+        '--topbar-height': '0px', // We hide the topbar in fullscreen mode, so we need to set it to 0px
       }
     : undefined
 })

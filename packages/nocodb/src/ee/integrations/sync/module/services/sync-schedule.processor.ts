@@ -12,7 +12,7 @@ export class SyncModuleSyncScheduleProcessor {
   constructor(protected readonly syncModuleService: SyncModuleService) {}
 
   async job() {
-    this.logger.debug('SyncModuleSyncScheduleProcessor job started');
+    this.logger.log('SyncModuleSyncScheduleProcessor job started');
 
     const ncMeta = Noco.ncMeta;
     const syncConfigsRaw = await ncMeta
@@ -38,11 +38,11 @@ export class SyncModuleSyncScheduleProcessor {
         } as any,
       });
 
-      this.logger.debug(
+      this.logger.log(
         `Sync job triggered for ${syncConfig.id} with id ${job.id}`,
       );
     }
 
-    this.logger.debug('SyncModuleSyncScheduleProcessor job completed');
+    this.logger.log('SyncModuleSyncScheduleProcessor job completed');
   }
 }

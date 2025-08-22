@@ -333,10 +333,12 @@ export default class BaseUser extends BaseUserCE {
 
     if (include_internal_user) {
       // Add automation user - it can manipulate data in any workspace
-      baseUsers.push({
-        ...NOCO_SERVICE_USERS.AUTOMATION_USER,
-        deleted: true,
-      });
+      baseUsers.push(
+        ...Object.values(NOCO_SERVICE_USERS).map((u: any) => {
+          u.deleted = true;
+          return u;
+        }),
+      );
     }
 
     // if default_role is present, override workspace roles with the default roles

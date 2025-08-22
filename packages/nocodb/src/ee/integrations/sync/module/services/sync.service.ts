@@ -72,7 +72,7 @@ export class SyncModuleService implements OnModuleInit {
       title: string;
       sync_type: SyncType;
       sync_trigger: SyncTrigger;
-      sync_trigger_cron: string;
+      sync_trigger_cron?: string;
       on_delete_action: OnDeleteAction;
       sync_category: SyncCategory;
       exclude_models: string[];
@@ -606,7 +606,7 @@ export class SyncModuleService implements OnModuleInit {
       title: string;
       sync_type: SyncType;
       sync_trigger: SyncTrigger;
-      sync_trigger_cron: string;
+      sync_trigger_cron?: string;
       on_delete_action: OnDeleteAction;
       config: IntegrationReqType & { id?: string };
     },

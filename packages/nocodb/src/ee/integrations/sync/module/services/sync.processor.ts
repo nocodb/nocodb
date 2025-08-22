@@ -327,6 +327,8 @@ export class SyncModuleSyncDataProcessor {
       req,
     } = job.data;
 
+    context.api_version = NcApiVersion.V3;
+
     const logBasic = (message: string) => {
       this.nocoJobsService.jobsLogService.sendLog(job, {
         message,

@@ -92,6 +92,11 @@ const getDefaultConfig = (
 
     case WidgetTypes.CHART:
       return getDefaultChartConfig(chartType, columns);
+    case WidgetTypes.IFRAME:
+      return {
+        url: 'https://nocodb.com',
+        allowFullScreen: false,
+      };
     case WidgetTypes.TEXT:
       return {
         content: 'Enter text here',

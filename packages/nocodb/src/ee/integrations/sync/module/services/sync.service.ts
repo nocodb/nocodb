@@ -14,6 +14,7 @@ import {
   syncSystemFields,
   syncSystemFieldsMap,
 } from '@noco-local-integrations/core';
+import type { OnModuleInit } from '@nestjs/common';
 import type { OnDeleteAction, SyncCategory, SyncType } from 'nocodb-sdk';
 import type {
   AuthIntegration,
@@ -41,7 +42,7 @@ import { ViewColumnsService } from '~/services/view-columns.service';
 import { getMMColumnNames } from '~/helpers/columnHelpers';
 
 @Injectable()
-export class SyncModuleService {
+export class SyncModuleService implements OnModuleInit {
   private logger: Logger = new Logger(SyncModuleService.name);
 
   constructor(
@@ -53,13 +54,25 @@ export class SyncModuleService {
     protected readonly viewColumnsService: ViewColumnsService,
   ) {}
 
+  async onModuleInit() {
+    this.nocoJobsService.jobsQueue.add(
+      {
+        jobName: JobTypes.SyncModuleSchedule,
+      },
+      {
+        jobId: JobTypes.SyncModuleSchedule,
+        repeat: { cron: '* * * * *' },
+      },
+    );
+  }
+
   async createSync(
     context: NcContext,
     payload: {
       title: string;
       sync_type: SyncType;
       sync_trigger: SyncTrigger;
-      sync_trigger_cron: string;
+      sync_trigger_cron?: string;
       on_delete_action: OnDeleteAction;
       sync_category: SyncCategory;
       exclude_models: string[];
@@ -455,7 +468,11 @@ export class SyncModuleService {
         await authWrapper.destroy();
       }
 
-      const job = await this.triggerSync(context, syncConfig.id, true, req);
+      const job = await this.triggerSync(context, {
+        syncConfigId: syncConfig.id,
+        bulk: true,
+        req,
+      });
 
       return {
         integration: mainIntegration,
@@ -486,10 +503,15 @@ export class SyncModuleService {
 
   async triggerSync(
     context: NcContext,
-    syncConfigId: string,
-    bulk?: boolean,
-    req?: NcRequest,
+    args: {
+      syncConfigId: string;
+      bulk?: boolean;
+      trigger?: SyncTrigger;
+      req?: NcRequest;
+    },
   ) {
+    const { syncConfigId, bulk, trigger = SyncTrigger.Manual, req } = args;
+
     const syncConfig = await SyncConfig.get(context, syncConfigId);
 
     if (!syncConfig) {
@@ -519,7 +541,7 @@ export class SyncModuleService {
     const job = await this.nocoJobsService.add(JobTypes.SyncModuleSyncData, {
       context,
       syncConfigId: syncConfig.id,
-      trigger: SyncTrigger.Manual,
+      trigger,
       bulk,
       req: {
         user: req.user,
@@ -584,7 +606,7 @@ export class SyncModuleService {
       title: string;
       sync_type: SyncType;
       sync_trigger: SyncTrigger;
-      sync_trigger_cron: string;
+      sync_trigger_cron?: string;
       on_delete_action: OnDeleteAction;
       config: IntegrationReqType & { id?: string };
     },

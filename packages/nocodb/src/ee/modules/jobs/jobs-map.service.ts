@@ -19,6 +19,7 @@ import { SnapshotProcessor } from '~/modules/jobs/jobs/snapshot/snapshot.process
 import { JobTypes } from '~/interface/Jobs';
 import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 import { SyncModuleSyncDataProcessor } from '~/integrations/sync/module/services/sync.processor';
+import { SyncModuleSyncScheduleProcessor } from '~/integrations/sync/module/services/sync-schedule.processor';
 import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stats.processor';
 import { DataExportCleanUpProcessor } from '~/modules/jobs/jobs/data-export-clean-up/data-export-clean-up.processor';
 import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.processor';
@@ -46,6 +47,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly snapshotProcessor: SnapshotProcessor,
     protected readonly noOpJob: NoOpMigration,
     protected readonly syncModuleSyncDataProcessor: SyncModuleSyncDataProcessor,
+    protected readonly syncModuleSyncScheduleProcessor: SyncModuleSyncScheduleProcessor,
     protected readonly updateUsageStatsProcessor: UpdateUsageStatsProcessor,
     protected readonly cloudDbMigrateProcessor: CloudDbMigrateProcessor,
     protected readonly attachmentUrlUploadProcessor: AttachmentUrlUploadProcessor,
@@ -106,6 +108,9 @@ export class JobsMap extends JobsMapCE {
       [JobTypes.SyncModuleRefreshData]: {
         this: this.syncModuleSyncDataProcessor,
         fn: 'refreshData',
+      },
+      [JobTypes.SyncModuleSchedule]: {
+        this: this.syncModuleSyncScheduleProcessor,
       },
       [JobTypes.UpdateUsageStats]: {
         this: this.updateUsageStatsProcessor,

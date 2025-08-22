@@ -28,7 +28,7 @@ export default class SyncConfig {
   sync_category: SyncCategory;
   sync_type: SyncType;
   sync_trigger: SyncTrigger;
-  sync_trigger_cron: string | null;
+  sync_trigger_cron?: string;
   sync_trigger_secret: string | null;
   sync_job_id: string;
 
@@ -266,7 +266,13 @@ export default class SyncConfig {
           tz: 'UTC',
         });
 
-        const nextSyncAt = cron.next().toISOString();
+        let nextSyncAt = cron.next().toISOString();
+
+        // if less than 50 mins (10 min tolerance), set to 1 hour from now
+        if (new Date(nextSyncAt).getTime() - Date.now() < 60 * 50 * 1000) {
+          const oneHourFromNow = new Date(Date.now() + 60 * 60 * 1000);
+          nextSyncAt = oneHourFromNow.toISOString();
+        }
 
         return nextSyncAt;
       } catch (e) {

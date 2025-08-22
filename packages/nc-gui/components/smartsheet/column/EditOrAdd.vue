@@ -14,6 +14,7 @@ import { AiWizardTabsType, type PredictedFieldType, type UiTypesType } from '#im
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
+import { isEeUI } from '#imports'
 
 const props = defineProps<{
   preload?: Partial<ColumnType>
@@ -186,7 +187,7 @@ const uiFilters = (t: UiTypesType) => {
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
   const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI : true
-  const isAllowToAddInFormView = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
+  const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
   const showLTAR =
     t.name === UITypes.LinkToAnotherRecord ? isFeatureEnabled(FEATURE_FLAG.LINK_TO_ANOTHER_RECORD) && !isEdit.value : true

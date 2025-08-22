@@ -1,6 +1,7 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Inject, Logger } from '@nestjs/common';
 import { Job } from 'bull';
+import { Timer } from 'nocodb-sdk';
 import type { JobData } from '~/interface/Jobs';
 import {
   JOB_REQUEUE_LIMIT,
@@ -77,22 +78,28 @@ export class JobsProcessor {
       LOCAL_JOB_COUNT_MAP.set(jobName, 1);
     }
 
+    let warningTime = 1;
+    const longProcessWarning = Timer.start(async (timer) => {
+      this.logger.log(
+        `Job '${job.id}' is taking ${
+          warningTime++ * 10
+        } minutes and stil processing`,
+      );
+      if (warningTime <= 2) {
+        timer.start();
+      }
+    }, 10 * 60 * 1000);
     try {
       const result = await processor[fn](job);
-
-      const localRunning = LOCAL_JOB_COUNT_MAP.get(jobName)!;
-
-      LOCAL_JOB_COUNT_MAP.set(jobName, localRunning - 1);
-
       return result;
     } catch (e) {
       this.logger.error(`Error processing job ${jobName}`, e);
-
+      throw e;
+    } finally {
       const localRunning = LOCAL_JOB_COUNT_MAP.get(jobName)!;
 
       LOCAL_JOB_COUNT_MAP.set(jobName, localRunning - 1);
-
-      throw e;
+      longProcessWarning.stop();
     }
   }
 

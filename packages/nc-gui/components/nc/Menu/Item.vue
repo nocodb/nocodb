@@ -18,6 +18,7 @@ defineProps<{
   disabled?: boolean | number
   innerClass?: string
   danger?: boolean
+  theme?: 'ai'
 }>()
 
 defineOptions({
@@ -34,6 +35,7 @@ defineOptions({
       class="nc-menu-item"
       :class="{
         'nc-menu-item-danger': danger,
+        'nc-menu-item-ai': theme === 'ai',
       }"
     >
       <div class="nc-menu-item-inner" :class="innerClass">
@@ -55,6 +57,12 @@ defineOptions({
 .nc-menu-item.nc-menu-item-danger {
   &:not(.ant-dropdown-menu-item-disabled) {
     @apply !text-nc-content-red-medium !hover:bg-nc-bg-red-light;
+  }
+}
+
+.nc-menu-item.nc-menu-item-ai {
+  &:not(.ant-dropdown-menu-item-disabled) {
+    @apply !text-nc-content-purple-medium !hover:bg-nc-bg-purple-light;
   }
 }
 

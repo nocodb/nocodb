@@ -7,12 +7,10 @@ const emit = defineEmits(['change'])
 
 const vModel = useVModel(props, 'modelValue')
 
-const intervalOptions = computed(() => {
-  return [
-    { value: 'hourly', label: 'Hourly' },
-    { value: 'daily', label: 'Daily' },
-  ]
-})
+const intervalOptions = ref([
+  { value: 'hourly', label: 'Hourly' },
+  { value: 'daily', label: 'Daily' },
+])
 
 const selectedInterval = ref('hourly')
 

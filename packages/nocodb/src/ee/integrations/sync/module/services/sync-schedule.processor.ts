@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { NOCO_SERVICE_USERS, SyncTrigger } from 'nocodb-sdk';
 import { SyncModuleService } from '~/integrations/sync/module/services/sync.service';
 import Noco from '~/Noco';
-import { SyncConfig } from '~/models';
+import { Base, SyncConfig } from '~/models';
 import { MetaTable } from '~/utils/globals';
 
 @Injectable()
@@ -29,6 +29,12 @@ export class SyncModuleSyncScheduleProcessor {
         workspace_id: syncConfig.fk_workspace_id,
         base_id: syncConfig.base_id,
       };
+
+      const base = await Base.get(context, syncConfig.base_id);
+
+      if (!base || !!base?.deleted || !!base?.is_snapshot) {
+        continue;
+      }
 
       const job = await this.syncModuleService.triggerSync(context, {
         syncConfigId: syncConfig.id,

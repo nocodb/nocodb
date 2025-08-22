@@ -3,6 +3,7 @@ import {
   ButtonActionsType,
   extractFilterFromXwhere,
   isOrderCol,
+  NcApiVersion,
   NcDataErrorCodes,
   parseProp,
   RelationTypes,
@@ -10,7 +11,6 @@ import {
 } from 'nocodb-sdk';
 import { nanoid } from 'nanoid';
 import { Logger } from '@nestjs/common';
-import { NcApiVersion } from 'nocodb-sdk';
 import {
   checkForCurrentUserFilters,
   checkForStaticDateValFilters,
@@ -161,6 +161,9 @@ export async function extractColumns({
       !(ast?.[column.title] ?? ast?.[column.id])
     )
       continue;
+
+    // skip meta column
+    if (column.uidt === UITypes.Meta) continue;
 
     extractPromises.push(
       extractColumn({

@@ -119,6 +119,9 @@ export async function extractColumns({
     )
       continue;
 
+    // skip meta column
+    if (column.uidt === UITypes.Meta) continue;
+
     extractColumnPromises.push(
       extractColumn({
         column,

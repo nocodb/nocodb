@@ -695,6 +695,11 @@ export async function validateFormulaAndExtractTreeWithType({
   getMeta: UnifiedMetaType.IGetModel;
   trackPosition?: boolean;
 }): Promise<ParsedFormulaNode> {
+  // extract column list from meta since columns array might not have all columns(system columns)
+  const meta = await getMeta(
+    column?.fk_model_id || columns?.[0]?.fk_model_id || ''
+  );
+  const allColumns = meta?.columns || columns;
   const sqlUI =
     typeof clientOrSqlUi === 'string'
       ? SqlUiFactory.create({ client: clientOrSqlUi })
@@ -832,7 +837,7 @@ export async function validateFormulaAndExtractTreeWithType({
           // need to use res rather than parsedTree
           // because post-processing like referencedColumn is needed
           <CallExpressionNode>res,
-          columns
+          allColumns
         );
       }
       // validate against expected arg types if present

@@ -3,6 +3,8 @@ const props = defineProps<{
   modelValue?: string
 }>()
 
+const emit = defineEmits(['change'])
+
 const vModel = useVModel(props, 'modelValue')
 
 const intervalOptions = computed(() => {
@@ -17,13 +19,15 @@ const selectedInterval = ref('hourly')
 const onChange = (value: string) => {
   // derive cron expression based on selected value
   const date = new Date()
-  const minutes = date.getMinutes()
-  const hours = date.getHours()
+  const minutes = date.getUTCMinutes()
+  const hours = date.getUTCHours()
   if (value === 'hourly') {
     vModel.value = `${minutes} * * * *`
   } else if (value === 'daily') {
     vModel.value = `0 ${hours} * * *`
   }
+
+  emit('change', vModel.value)
 }
 
 onMounted(() => {

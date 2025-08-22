@@ -68,7 +68,7 @@ const formModel = computed(() => {
       </a-col>
       <a-col v-if="formModel.sync_trigger === 'schedule'" :span="12">
         <a-form-item label="Sync Schedule" v-bind="validateInfosSyncConfig.sync_trigger_cron" hide-required-mark>
-          <DashboardSettingsSyncSchedule v-model="formModel.sync_trigger_cron" />
+          <DashboardSettingsSyncSchedule v-model="formModel.sync_trigger_cron" @change="syncConfigEditFormChanged = true" />
         </a-form-item>
       </a-col>
     </a-row>

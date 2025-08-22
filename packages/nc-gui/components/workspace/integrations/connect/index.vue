@@ -18,7 +18,21 @@ const {
   getConnectionDetails,
   deleteConnectionDetails,
   dataReflectionEnabled,
+  refreshConnection,
 } = useDataReflection()
+
+const isRefreshing = ref(false)
+
+const onRefreshConnection = async () => {
+  isRefreshing.value = true
+  try {
+    await refreshConnection()
+  } catch (e) {
+    // Handled in composable
+  } finally {
+    isRefreshing.value = false
+  }
+}
 
 onMounted(async () => {
   await getConnectionDetails()
@@ -28,6 +42,9 @@ onMounted(async () => {
 <template>
   <WorkspaceIntegrationsFormsEditOrAddCommonWrapper v-bind="props" @update:open="emits('update:open', $event)">
     <template v-if="dataReflectionEnabled" #headerRightExtra>
+      <NcButton type="secondary" size="small" :disabled="isRefreshing" @click="onRefreshConnection"
+        ><GeneralIcon icon="refresh"
+      /></NcButton>
       <NcButton type="danger" size="small" @click="deleteConnectionDetails">Disable connection</NcButton>
     </template>
     <template #leftPanel="{ class: leftPanelClass }">

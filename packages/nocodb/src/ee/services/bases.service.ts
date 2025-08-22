@@ -23,7 +23,13 @@ import { NcError } from '~/helpers/catchError';
 import { getFeature, getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import syncMigration from '~/helpers/syncMigration';
 import { MetaService } from '~/meta/meta.service';
-import { Base, BaseUser, Integration, Workspace } from '~/models';
+import {
+  Base,
+  BaseUser,
+  DataReflection,
+  Integration,
+  Workspace,
+} from '~/models';
 import { PaymentService } from '~/modules/payment/payment.service';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -272,6 +278,8 @@ export class BasesService extends BasesServiceCE {
         source.config = undefined;
       }
     }
+
+    await DataReflection.grantBase(base.fk_workspace_id, base.id);
 
     this.appHooksService.emit(AppEvents.PROJECT_CREATE, {
       base,

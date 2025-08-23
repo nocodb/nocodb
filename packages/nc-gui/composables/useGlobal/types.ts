@@ -45,6 +45,7 @@ export interface AppInfo {
   marketingRootUrl?: string
   openReplayKey?: string | null
   disableSupportChat: boolean
+  disableOnboardingFlow: boolean
 }
 
 export interface StoredState {

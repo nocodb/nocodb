@@ -330,9 +330,8 @@ export class FiltersV3Service {
         ncMeta,
       );
       if (!rowColorCondition) {
-        // TODO: better error
         NcError.get(context).invalidRequestBody(
-          `Row color condition not found`,
+          `Row color condition with id ${param.rowColorConditionId} not found`,
         );
       }
       additionalProps = {

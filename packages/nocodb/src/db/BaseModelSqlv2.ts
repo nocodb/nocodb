@@ -5540,17 +5540,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     apiVersion?: NcApiVersion,
   ) {
     try {
-      if (d) {
+      if (d && baseUsers.length) {
+        const userMap = new Map(baseUsers.map((user) => [user.id, user]));
+
         const availableUserColumns = userColumns.filter(
           (col) => d[col.id] && d[col.id].length,
         );
+
         for (const col of availableUserColumns) {
           d[col.id] = d[col.id].split(',');
 
           d[col.id] = d[col.id].map((fid) => {
-            const { id, email, display_name, meta } = baseUsers.find(
-              (u) => u.id === fid,
-            );
+            const user = userMap.get(fid);
+            if (!user) {
+              return { id: fid, email: null, display_name: null, meta: null };
+            }
+
+            const { id, email, display_name, meta } = user;
 
             let metaObj: any;
             if (apiVersion !== NcApiVersion.V3) {
@@ -5646,11 +5652,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      // Batch process all attachment instances
       const batchSize = 50;
       const promises = [];
 
-      // Process main attachments in batches
       for (let i = 0; i < allAttachments.length; i += batchSize) {
         const batch = allAttachments.slice(i, i + batchSize);
         const batchPromises = batch.map(
@@ -5818,24 +5822,41 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // converJsonTypes is used to convert the response in string to object in API response
     if (data) {
       const jsonCols = [];
-
       const columns = this.model?.columns.concat(dependencyColumns ?? []);
+
+      const lookupColumns = [];
+      const nonLookupColumns = [];
 
       for (const col of columns) {
         if (col.uidt === UITypes.Lookup) {
-          const lookupNestedCol = await this.getNestedColumn(col);
-
-          if (
-            JSON_COLUMN_TYPES.includes(lookupNestedCol.uidt) ||
-            isAIPromptCol(lookupNestedCol)
-          ) {
-            jsonCols.push(col);
-          }
-        } else {
-          if (JSON_COLUMN_TYPES.includes(col.uidt) || isAIPromptCol(col)) {
-            jsonCols.push(col);
-          }
+          lookupColumns.push(col);
+        } else if (JSON_COLUMN_TYPES.includes(col.uidt) || isAIPromptCol(col)) {
+          nonLookupColumns.push(col);
         }
+      }
+
+      jsonCols.push(...nonLookupColumns);
+
+      if (lookupColumns.length > 0) {
+        const lookupResults = await Promise.all(
+          lookupColumns.map(async (col) => {
+            try {
+              const lookupNestedCol = await this.getNestedColumn(col);
+              if (
+                JSON_COLUMN_TYPES.includes(lookupNestedCol.uidt) ||
+                isAIPromptCol(lookupNestedCol)
+              ) {
+                return col;
+              }
+            } catch (error) {
+              // Log error but continue processing
+              console.warn(`Error processing lookup column ${col.id}:`, error);
+            }
+            return null;
+          }),
+        );
+
+        jsonCols.push(...lookupResults.filter(Boolean));
       }
 
       if (jsonCols.length) {
@@ -5889,19 +5910,42 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // convertAttachmentType is used to convert the response in string to array of object in API response
     if (data) {
       const attachmentColumns = [];
-
       const columns = this.model?.columns.concat(dependencyColumns ?? []);
+
+      // Separate lookup and non-lookup columns for optimization
+      const lookupColumns = [];
+      const nonLookupColumns = [];
 
       for (const col of columns) {
         if (col.uidt === UITypes.Lookup) {
-          if ((await this.getNestedColumn(col))?.uidt === UITypes.Attachment) {
-            attachmentColumns.push(col);
-          }
-        } else {
-          if (col.uidt === UITypes.Attachment) {
-            attachmentColumns.push(col);
-          }
+          lookupColumns.push(col);
+        } else if (col.uidt === UITypes.Attachment) {
+          nonLookupColumns.push(col);
         }
+      }
+
+      // Add non-lookup columns immediately
+      attachmentColumns.push(...nonLookupColumns);
+
+      // Process lookup columns in parallel
+      if (lookupColumns.length > 0) {
+        const lookupResults = await Promise.all(
+          lookupColumns.map(async (col) => {
+            try {
+              const nestedCol = await this.getNestedColumn(col);
+              if (nestedCol?.uidt === UITypes.Attachment) {
+                return col;
+              }
+            } catch (error) {
+              // Log error but continue processing
+              console.warn(`Error processing lookup column ${col.id}:`, error);
+            }
+            return null;
+          }),
+        );
+
+        // Add valid lookup columns
+        attachmentColumns.push(...lookupResults.filter(Boolean));
       }
 
       if (attachmentColumns.length) {
@@ -5923,6 +5967,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     d: Record<string, any>,
   ) {
     if (!d) return d;
+
+    const cachedTimeZone = this.isSqlite
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone
+      : null;
+
+    // Pre-compile regex patterns to avoid repeated compilation
+    const isoRegex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g;
+    const datetimeRegex =
+      /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g;
+    const noTimezoneRegex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
+
     for (const col of dateTimeColumns) {
       if (!d[col.id]) continue;
 
@@ -5936,58 +5991,56 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           d[col.id] = d[col.id].replace(/\.000000/g, '');
         }
 
-        if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g.test(d[col.id])) {
+        // Reset regex lastIndex for reuse
+        isoRegex.lastIndex = 0;
+        if (isoRegex.test(d[col.id])) {
           // convert ISO string (e.g. in MSSQL) to YYYY-MM-DD hh:mm:ssZ
           // e.g. 2023-05-18T05:30:00.000Z -> 2023-05-18 11:00:00+05:30
-          d[col.id] = d[col.id].replace(
-            /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g,
-            (d: string) => {
-              if (!dayjs(d).isValid()) return d;
-              if (this.isSqlite) {
-                // e.g. DATEADD formula
-                return dayjs(d).utc().format('YYYY-MM-DD HH:mm:ssZ');
-              }
-              return dayjs(d).utc(true).format('YYYY-MM-DD HH:mm:ssZ');
-            },
-          );
+          isoRegex.lastIndex = 0; // Reset for replace
+          d[col.id] = d[col.id].replace(isoRegex, (dateStr: string) => {
+            if (!dayjs(dateStr).isValid()) return dateStr;
+            if (this.isSqlite) {
+              // e.g. DATEADD formula
+              return dayjs(dateStr).utc().format('YYYY-MM-DD HH:mm:ssZ');
+            }
+            return dayjs(dateStr).utc(true).format('YYYY-MM-DD HH:mm:ssZ');
+          });
           continue;
         }
 
         // convert all date time values to utc
         // the datetime is either YYYY-MM-DD hh:mm:ss (xcdb)
         // or YYYY-MM-DD hh:mm:ss+/-xx:yy (ext)
-        d[col.id] = d[col.id].replace(
-          /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g,
-          (d: string) => {
-            if (!dayjs(d).isValid()) {
-              return d;
-            }
+        datetimeRegex.lastIndex = 0; // Reset for replace
+        d[col.id] = d[col.id].replace(datetimeRegex, (dateStr: string) => {
+          if (!dayjs(dateStr).isValid()) {
+            return dateStr;
+          }
 
-            if (this.isSqlite) {
-              // if there is no timezone info,
-              // we assume the input is on NocoDB server timezone
-              // then we convert to UTC from server timezone
-              // example: datetime without timezone
-              // we need to display 2023-04-27 10:00:00 (in HKT)
-              // we convert d (e.g. 2023-04-27 18:00:00) to utc, i.e. 2023-04-27 02:00:00+00:00
-              // if there is timezone info,
-              // we simply convert it to UTC
-              // example: datetime with timezone
-              // e.g. 2023-04-27 10:00:00+05:30  -> 2023-04-27 04:30:00+00:00
-              return dayjs(d)
-                .tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
-                .utc()
-                .format('YYYY-MM-DD HH:mm:ssZ');
-            }
+          if (this.isSqlite) {
+            // if there is no timezone info,
+            // we assume the input is on NocoDB server timezone
+            // then we convert to UTC from server timezone
+            // example: datetime without timezone
+            // we need to display 2023-04-27 10:00:00 (in HKT)
+            // we convert d (e.g. 2023-04-27 18:00:00) to utc, i.e. 2023-04-27 02:00:00+00:00
+            // if there is timezone info,
+            // we simply convert it to UTC
+            // example: datetime with timezone
+            // e.g. 2023-04-27 10:00:00+05:30  -> 2023-04-27 04:30:00+00:00
+            return dayjs(dateStr)
+              .tz(cachedTimeZone)
+              .utc()
+              .format('YYYY-MM-DD HH:mm:ssZ');
+          }
 
-            // set keepLocalTime to true if timezone info is not found
-            const keepLocalTime = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/g.test(
-              d,
-            );
+          // set keepLocalTime to true if timezone info is not found
+          const keepLocalTime = noTimezoneRegex.test(dateStr);
 
-            return dayjs(d).utc(keepLocalTime).format('YYYY-MM-DD HH:mm:ssZ');
-          },
-        );
+          return dayjs(dateStr)
+            .utc(keepLocalTime)
+            .format('YYYY-MM-DD HH:mm:ssZ');
+        });
         continue;
       }
 

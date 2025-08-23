@@ -115,7 +115,6 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             ) {
               columnQuery = baseModel.dbDriver.raw(`??::text`, [
                 columnQuery,
-                alias,
               ]);
             }
           } catch (e) {

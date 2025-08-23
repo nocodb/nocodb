@@ -49,8 +49,8 @@ export default function () {
           .post(`${API_PREFIX}/tables/${table.id}/fields/`)
           .set('xc-token', context.xc_token)
           .send({ title: 'MyColumn', type: 'SingleLineText' })
-          .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+          .expect(422);
+        expect(result.body.error).to.eq('DUPLICATE_ALIAS');
         expect(result.body.message).to.include('Duplicate column alias');
       });
       it('will handle incorrect title length', async () => {
@@ -127,8 +127,8 @@ export default function () {
           .patch(`${API_PREFIX}/fields/${column.id}`)
           .set('xc-token', context.xc_token)
           .send({ title: 'AnotherColumn' })
-          .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+          .expect(422);
+        expect(result.body.error).to.eq('DUPLICATE_ALIAS');
         expect(result.body.message).to.satisfy((msg) =>
           msg.startsWith('Duplicate column alias'),
         );

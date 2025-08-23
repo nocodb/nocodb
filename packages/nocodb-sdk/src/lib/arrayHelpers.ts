@@ -12,3 +12,14 @@ export const arrDetailedDiff = (a: any[], b: any[]) => {
     added: b.filter((n) => !intersected.includes(n)),
   };
 };
+
+export const arrGetDuplicate = (data: string | number[]) => {
+  const dataSet = new Set();
+  for (const each of data) {
+    if (dataSet.has(each)) {
+      return each;
+    }
+    dataSet.add(each);
+  }
+  return undefined;
+};

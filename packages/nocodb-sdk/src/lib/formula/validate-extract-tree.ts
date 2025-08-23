@@ -692,7 +692,7 @@ export async function validateFormulaAndExtractTreeWithType({
 
       // if validation function is present, call it
       if (formulas[calleeName].validation?.custom) {
-        formulas[calleeName].validation?.custom(argTypes, parsedTree);
+        formulas[calleeName].validation?.custom(argTypes, parsedTree, columns);
       }
       // validate against expected arg types if present
       else if (formulas[calleeName].validation?.args?.type) {

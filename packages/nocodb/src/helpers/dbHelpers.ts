@@ -441,6 +441,8 @@ export function shouldSkipField(
   extractPkAndPv,
   pkAndPvOnly = false,
 ) {
+  // skip row meta column
+  if (column.uidt === UITypes.Meta) return true;
   if (fieldsSet && !pkAndPvOnly) {
     return !fieldsSet.has(column.title) && !fieldsSet.has(column.id);
   } else {

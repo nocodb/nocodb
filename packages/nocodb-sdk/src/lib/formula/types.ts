@@ -1,3 +1,4 @@
+import { ColumnType } from '../Api';
 import { FormulaDataTypes } from './enums';
 
 export interface FormulaMeta {
@@ -11,7 +12,11 @@ export interface FormulaMeta {
       // types should be in order of args
       type?: FormulaDataTypes | FormulaDataTypes[];
     };
-    custom?: (args: FormulaDataTypes[], parseTree: any) => void;
+    custom?: (
+      args: FormulaDataTypes[],
+      parseTree: any,
+      columns: ColumnType[]
+    ) => void;
   };
   description?: string;
   syntax?: string;

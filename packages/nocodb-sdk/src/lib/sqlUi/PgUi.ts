@@ -1773,8 +1773,10 @@ export class PgUi implements SqlUi {
         colProp.dt = 'character varying';
         break;
       case 'JSON':
-      case 'Meta':
         colProp.dt = 'json';
+        break;
+      case 'Meta':
+        colProp.dt = 'jsonb';
         break;
       case 'Order':
         colProp.dt = 'numeric';

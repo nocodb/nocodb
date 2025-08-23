@@ -119,7 +119,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         }"
       />
 
-      <NcTooltip v-if="!isPublic" title="Enter fullscreen" :disabled="isExpanded" placement="left">
+      <NcTooltip hide-on-click title="Enter fullscreen" :disabled="isExpanded" placement="left">
         <NcButton type="secondary" size="xs" class="!px-1" @click="toggle">
           <div class="flex gap-2 items-center">
             <GeneralIcon v-if="!isExpanded" icon="ncMaximize2" />

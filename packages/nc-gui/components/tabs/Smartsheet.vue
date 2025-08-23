@@ -230,9 +230,15 @@ const toggleState = () => {
   if (isFullScreen.value) {
     isLeftSidebarOpen.value = true
     document.exitFullscreen()
+    if (navigator.keyboard?.unlock) {
+      navigator.keyboard.unlock()
+    }
   } else {
     isLeftSidebarOpen.value = false
     document.documentElement.requestFullscreen()
+    if (navigator.keyboard?.lock) {
+      navigator.keyboard.lock(['Escape'])
+    }
   }
   isFullScreen.value = !isFullScreen.value
 }

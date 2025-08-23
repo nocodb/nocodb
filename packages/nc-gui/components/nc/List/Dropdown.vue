@@ -85,6 +85,7 @@ watch(vModelIsOpen, (newVal) => {
       :class="[
         defaultSlotWrapperClass,
         {
+          'nc-has-error': hasError,
           'cursor-not-allowed bg-nc-bg-gray-light text-nc-content-gray-muted children:opacity-60': disabled && showAsDisabled,
           'cursor-pointer text-nc-content-gray': !disabled,
           'border-brand-500 shadow-selected': vModelIsOpen && !disabled && !hasError,
@@ -137,7 +138,15 @@ watch(vModelIsOpen, (newVal) => {
     &:focus-visible,
     &:focus-within,
     &:focus {
-      @apply border-brand-500 shadow-selected outline-none;
+      @apply outline-none;
+
+      &:not(.nc-has-error) {
+        @apply border-brand-500 shadow-selected;
+      }
+
+      &.nc-has-error {
+        @apply border-error shadow-error;
+      }
     }
   }
 }

@@ -87,7 +87,8 @@ const bulkUpdateFieldConfigPlaceholder: BulkUpdateFieldConfig = {
   selected: true,
 }
 
-const { extension, tables, fullscreen, eventBus, getViewsForTable, getTableMeta, reloadData } = useExtensionHelperOrThrow()
+const { extension, tables, fullscreen, eventBus, getViewsForTable, getTableMeta, reloadData, disableToggleFullscreenBtn } =
+  useExtensionHelperOrThrow()
 const EXTENSION_ID = extension.value.extensionId
 
 const { extensionAccess } = useExtensions()
@@ -404,7 +405,7 @@ async function saveChanges() {
 }
 
 const handleUpdateFieldConfigExpansionPanel = (key: string, expand = false) => {
-  if (expand || (ncIsUndefined(expand) && !extensionAccess.value.update)) return
+  if (!extensionAccess.value.update) return
 
   if (!fullscreen.value) {
     fullscreen.value = true
@@ -412,8 +413,6 @@ const handleUpdateFieldConfigExpansionPanel = (key: string, expand = false) => {
   if (!expand && fieldConfigExpansionPanel.value.includes(key)) {
     fieldConfigExpansionPanel.value = []
   } else {
-    if (!extensionAccess.value.update) return
-
     fieldConfigExpansionPanel.value = [key]
     handleAutoScrollField(key)
   }
@@ -827,6 +826,16 @@ const { row } = useProvideSmartsheetRowStore(
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))
+
+watch(
+  () => extensionAccess.value.update,
+  (newValue) => {
+    disableToggleFullscreenBtn.value = !newValue
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>

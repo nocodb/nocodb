@@ -94,7 +94,7 @@ const targetBases = computedAsync(async () => {
   return (bases as any[]).filter(
     (base) =>
       [WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(targetWorkspace.value!.roles as WorkspaceUserRoles) ||
-      [ProjectRoles.OWNER, ProjectRoles.CREATOR].includes(base.roles),
+      [ProjectRoles.OWNER, ProjectRoles.CREATOR].includes(base.project_role),
   )
 })
 const selectBase = (option: BaseType) => {

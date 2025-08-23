@@ -76,9 +76,7 @@ export class ViewsV3Service {
         'view',
         'type',
       ],
-      mappings: {
-        type: 'view_type',
-      },
+      mappings: {},
       meta: {
         mappings: {
           allowCSVDownload: 'allow_csv_download',
@@ -87,10 +85,13 @@ export class ViewsV3Service {
       },
       transformFn: (viewData) => {
         const { view, ...formattedData } = viewData;
-        formattedData.view_type = viewTypeAlias[formattedData.view_type];
+
+        formattedData.type = viewTypeAlias[formattedData.type];
 
         if (view) {
-          // handle view specific data
+          formattedData.options = this.viewOptionsBuilder().build(
+            formattedData.view,
+          );
         }
 
         // if description empty then set it to undefined
@@ -313,8 +314,8 @@ export class ViewsV3Service {
       tableId: param.tableId,
       user: param.req.user,
     });
-
-    return this.builder().build(views);
+    const newViews = this.builder().build(views);
+    return newViews;
   }
 
   async getView(context: NcContext, param: { viewId: string; req: NcRequest }) {

@@ -36,6 +36,8 @@ interface XcEmail {
   html?: string;
   text?: string;
   attachments?: Array<XcEmailAttachment>;
+  cc?: string;
+  bcc?: string;
 }
 
 export { XcEmail, XcEmailAttachment };

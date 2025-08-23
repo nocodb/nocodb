@@ -648,7 +648,7 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
   };
   
   const _____nc_mail = async (params) => {
-    const { to, subject, html, text, attachments } = params;
+    const { to, subject, html, text, attachments, cc, bcc } = params;
  
     if (!to) {
       throw new Error('Email recipient (to) is required');
@@ -718,6 +718,8 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
       subject: subject.trim(),
       html: html,
       text: text,
+      cc: cc,
+      bcc: bcc,
     };
  
     const requestUrl = \`${req.ncSiteUrl}/api/v2/internal/\${workspaceId}/\${baseId}?operation=sendEmail\`

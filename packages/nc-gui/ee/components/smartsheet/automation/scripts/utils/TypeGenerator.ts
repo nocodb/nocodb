@@ -660,6 +660,10 @@ interface EmailOptions {
   text?: string;
   /** Email attachments - supports both standard email attachments and NocoDB file objects */
   attachments?: Array<EmailAttachment | NocoDbFile>;
+  /** CC recipient email address(es) */
+  cc?: string | string[];
+  /** BCC recipient email address(es) */
+  bcc?: string | string[];
 }
 
 interface EmailResult {

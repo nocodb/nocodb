@@ -137,6 +137,8 @@ interface RawMailParams {
   html: string;
   text?: string;
   attachments?: XcEmailAttachment[];
+  cc?: string | string[];
+  bcc?: string | string[];
 }
 
 export { MailEvent, MailParams, FormSubmissionPayload, RawMailParams };

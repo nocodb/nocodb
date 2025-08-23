@@ -357,7 +357,7 @@ export interface ViewBase {
   /** Title of the view. */
   title?: string;
   /** Lock type of the view. */
-  lock_type?: 'collabarative' | 'locked' | 'personal';
+  lock_type?: 'collaborative' | 'locked' | 'personal';
   /** Description of the view. */
   description?: string;
   meta?: {
@@ -1950,6 +1950,29 @@ export class InternalApi<
       }),
 
     /**
+     * @description Create a view for table.
+     *
+     * @tags Views
+     * @name ViewCreate
+     * @summary Create view
+     * @request POST:/api/v3/meta/bases/{baseId}/tables/{tableId}/views
+     */
+    viewCreate: (
+      baseId: string,
+      tableId: string,
+      data: ViewCreate,
+      params: RequestParams = {},
+    ) =>
+      this.request<View, void>({
+        path: `/api/v3/meta/bases/${baseId}/tables/${tableId}/views`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description Create a new field within the specified table.
      *
      * @tags Fields
@@ -2026,6 +2049,60 @@ export class InternalApi<
     ) =>
       this.request<void, void>({
         path: `/api/v3/meta/bases/${baseId}/fields/${fieldId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description Retrieve the details of a specific view.
+     *
+     * @tags Views
+     * @name ViewRead
+     * @summary Get view schema
+     * @request GET:/api/v3/meta/bases/{baseId}/views/{viewId}
+     */
+    viewRead: (viewId: string, baseId: string, params: RequestParams = {}) =>
+      this.request<View, void>({
+        path: `/api/v3/meta/bases/${baseId}/views/${viewId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update the details of a specific view.
+     *
+     * @tags Views
+     * @name ViewUpdate
+     * @summary Update view
+     * @request PATCH:/api/v3/meta/bases/{baseId}/views/{viewId}
+     */
+    viewUpdate: (
+      viewId: string,
+      baseId: string,
+      data: ViewUpdate,
+      params: RequestParams = {},
+    ) =>
+      this.request<View, void>({
+        path: `/api/v3/meta/bases/${baseId}/views/${viewId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Delete a specific view.
+     *
+     * @tags Views
+     * @name ViewDelete
+     * @summary Delete view
+     * @request DELETE:/api/v3/meta/bases/{baseId}/views/{viewId}
+     */
+    viewDelete: (viewId: string, baseId: string, params: RequestParams = {}) =>
+      this.request<void, void>({
+        path: `/api/v3/meta/bases/${baseId}/views/${viewId}`,
         method: 'DELETE',
         ...params,
       }),

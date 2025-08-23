@@ -5264,82 +5264,136 @@
           }
         }
       },
-      "ViewBaseOptions": {
-        "oneOf": [
-          {
+      "ViewColumnOption": {
+        "fieldsById": {
+          "type": "object",
+          "additionalProperties": {
             "type": "object",
             "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "GRID"
-                ]
+              "alias": {
+                "type": "string"
               },
-              "options": {
-                "$ref": "#/components/schemas/ViewOptionsGrid"
-              }
-            }
-          },
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "KANBAN"
-                ]
+              "description": {
+                "type": "string"
               },
-              "options": {
-                "$ref": "#/components/schemas/ViewOptionsKanban"
-              }
-            }
-          },
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "CALENDAR"
-                ]
+              "required": {
+                "type": "boolean"
               },
-              "options": {
-                "$ref": "#/components/schemas/ViewOptionsCalendar"
-              }
-            }
-          },
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "GALLERY"
-                ]
+              "allowScannerInput": {
+                "type": "boolean"
               },
-              "options": {
-                "$ref": "#/components/schemas/ViewOptionsGallery"
-              }
-            }
-          },
-          {
-            "type": "object",
-            "properties": {
-              "type": {
-                "type": "string",
-                "enum": [
-                  "FORM"
-                ]
+              "isList": {
+                "type": "boolean"
               },
-              "options": {
-                "$ref": "#/components/schemas/ViewOptionsForm"
+              "isLimitOption": {
+                "type": "boolean"
+              },
+              "validators": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "value": {},
+                    "message": {
+                      "type": "string"
+                    },
+                    "regex": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  }
+                }
               }
             }
           }
-        ],
-        "discriminator": {
-          "propertyName": "type"
         }
+      },
+      "ViewBaseOptions": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ViewColumnOption"
+          },
+          {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "GRID"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGrid"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "KANBAN"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsKanban"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "CALENDAR"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsCalendar"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "GALLERY"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGallery"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "FORM"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsForm"
+                  }
+                }
+              }
+            ],
+            "discriminator": {
+              "propertyName": "type"
+            }
+          }
+        ]
       },
       "ViewCreate": {
         "type": "object",

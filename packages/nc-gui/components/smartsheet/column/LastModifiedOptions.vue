@@ -48,7 +48,7 @@ const toggle = (id: string) => setSelected(id, !isSelected(id))
 const availabletriggerColumnIds = computed(() => {
   const cols = meta.value?.columns ?? []
   return cols.filter(
-    (col: any) => col.id !== props.value?.id && !isSystemColumn(col) && (!isVirtualCol(col) || isLinksOrLTAR(col)),
+    (col: any) => col.id !== props.value?.id && !isSystemColumn(col) && !isVirtualCol(col)
   )
 })
 

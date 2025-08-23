@@ -275,27 +275,19 @@ onMounted(() => {
       <div v-if="isEeUI" class="mb-5">
         <NcDivider divider-class="!my-5" />
 
-        <div v-if="!canTargetOtherBase" class="mb-2">
-          This table contains linked records that reference data in the current base.
-        </div>
-
         <div class="text-nc-content-gray font-medium leading-5 mb-2">
           {{ $t('labels.workspace') }}
-          <div v-if="!canTargetOtherBase" class="flex gap-2">
-            <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace!" />
-
-            <div class="flex-1 capitalize truncate">
-              {{ targetWorkspace?.title }}
-            </div>
-          </div>
-          <div v-else class="flex items-center content-center gap-2">
-            <NcTooltip :disabled="isTargetOtherWsSufficientPlan" class="mt-2 flex-1">
-              <template v-if="!isTargetOtherWsSufficientPlan" #title>
-                <span>
+          <div class="flex items-center content-center gap-2">
+            <NcTooltip :disabled="canTargetOtherBase && isTargetOtherWsSufficientPlan" class="mt-2 flex-1">
+              <template v-if="!canTargetOtherBase || !isTargetOtherWsSufficientPlan" #title>
+                <span v-if="!canTargetOtherBase">
+                  This table contains linked records that reference data in the current base.
+                </span>
+                <span v-if="!isTargetOtherWsSufficientPlan">
                   {{ $t('upgrade.upgradeToDuplicateTableToOtherWs') }}
                 </span>
               </template>
-              <NcDropdown v-model:visible="wsDropdownOpen" :disabled="!isTargetOtherWsSufficientPlan">
+              <NcDropdown v-model:visible="wsDropdownOpen" :disabled="!canTargetOtherBase || !isTargetOtherWsSufficientPlan">
                 <div
                   class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-3"
                   style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
@@ -387,19 +379,17 @@ onMounted(() => {
         <div class="text-nc-content-gray font-medium leading-5">
           {{ $t('objects.project') }}
 
-          <div v-if="!canTargetOtherBase" class="flex gap-2">
-            <div class="flex-1 capitalize truncate">
-              {{ targetBase?.title }}
-            </div>
-          </div>
-          <div v-else class="flex items-center content-center gap-2">
-            <NcTooltip :disabled="isTargetOtherBaseSufficientPlan" class="mt-2 flex-1">
-              <template v-if="!isTargetOtherBaseSufficientPlan" #title>
-                <span>
+          <div class="flex items-center content-center gap-2">
+            <NcTooltip :disabled="canTargetOtherBase && isTargetOtherBaseSufficientPlan" class="mt-2 flex-1">
+              <template v-if="!canTargetOtherBase || !isTargetOtherBaseSufficientPlan" #title>
+                <span v-if="!canTargetOtherBase">
+                  This table contains linked records that reference data in the current base.
+                </span>
+                <span v-if="!isTargetOtherBaseSufficientPlan">
                   {{ $t('upgrade.upgradeToDuplicateTableToOtherBase') }}
                 </span>
               </template>
-              <NcDropdown v-model:visible="baseDropdownOpen" :disabled="!isTargetOtherBaseSufficientPlan">
+              <NcDropdown v-model:visible="baseDropdownOpen" :disabled="!canTargetOtherBase || !isTargetOtherBaseSufficientPlan">
                 <div
                   class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-3"
                   style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"

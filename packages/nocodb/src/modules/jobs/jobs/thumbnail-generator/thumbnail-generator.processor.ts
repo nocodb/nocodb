@@ -13,7 +13,7 @@ import Noco from '~/Noco';
 export class ThumbnailGeneratorProcessor {
   private logger = new Logger(ThumbnailGeneratorProcessor.name);
   private imageGenerator = new ImageThumbnailGenerator();
-  private pdfGenerator = new PdfThumbnailGenerator();
+  // private pdfGenerator = new PdfThumbnailGenerator();
 
   async job(job: Job<ThumbnailGeneratorJobData>) {
     const { attachments, scope } = job.data;

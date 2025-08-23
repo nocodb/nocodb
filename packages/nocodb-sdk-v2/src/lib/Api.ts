@@ -396,7 +396,7 @@ export type ViewCreate = ViewBase & {
   type: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
   fields?: {
     field_id: string;
-    show?: boolean;
+    show: boolean;
     width?: number;
   }[];
 } & ViewBaseOptions;
@@ -409,7 +409,7 @@ export type ViewUpdate = ViewBase & {
   id?: string;
   fields?: {
     field_id: string;
-    show?: boolean;
+    show: boolean;
     width?: number;
   }[];
 } & ViewBaseOptions;

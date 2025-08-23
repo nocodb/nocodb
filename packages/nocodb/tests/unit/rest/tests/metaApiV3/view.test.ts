@@ -81,7 +81,7 @@ export default function () {
       });
     });
 
-    describe.only('view create + update', () => {
+    describe('view create + update', () => {
       it(`will create + update grid view`, async () => {
         const response = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/views`)
@@ -114,6 +114,7 @@ export default function () {
           });
         expect(updateResponse.body.name).to.eq('MyView32');
       });
+
       it(`will create + update grid view with groups`, async () => {
         const titleColumn = (await table.getColumns(ctx)).find(
           (col) => col.title === 'Title',
@@ -149,16 +150,11 @@ export default function () {
             options: {
               groups: [],
             },
-            sorts: [
-              {
-                field_id: (
-                  await table.getColumns(ctx)
-                ).find((col) => col.title === 'Title').id,
-              },
-            ],
+            sorts: [],
           });
         expect(updateResponse.body.name).to.eq('MyView32');
         expect((updateResponse.body.options.groups ?? []).length).to.eq(0);
+        expect((updateResponse.body.sorts ?? []).length).to.eq(0);
 
         const updateResponse2 = await request(context.app)
           .patch(`${API_PREFIX}/views/${response.body.id}`)
@@ -174,15 +170,15 @@ export default function () {
             },
             sorts: [
               {
-                field_id: (
-                  await table.getColumns(ctx)
-                ).find((col) => col.title === 'Title').id,
+                field_id: titleColumn.id,
               },
             ],
           });
         expect(updateResponse2.body.name).to.eq('MyView32');
         expect(updateResponse2.body.options.groups.length).to.greaterThan(0);
+        expect(updateResponse2.body.sorts.length).to.greaterThan(0);
       });
+
       it(`will create kanban view`, async () => {
         const response = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/views`)
@@ -207,6 +203,7 @@ export default function () {
           });
         expect(response.body.type).to.eq('KANBAN');
       });
+
       it(`will create calendar view`, async () => {
         const response = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/views`)

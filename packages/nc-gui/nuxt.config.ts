@@ -301,7 +301,7 @@ export default defineNuxtConfig({
         '@stripe/stripe-js',
         'typesense',
         'vue3-moveable',
-        'vue-fullscreen'
+        'vue-fullscreen',
       ],
       esbuildOptions: {
         define: {

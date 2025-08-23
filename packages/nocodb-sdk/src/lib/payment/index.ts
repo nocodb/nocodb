@@ -56,6 +56,7 @@ export enum PlanFeatureTypes {
   FEATURE_TABLE_AND_FIELD_PERMISSIONS = 'feature_table_and_field_permissions',
   FEATURE_PRIVATE_BASES = 'feature_private_bases',
   FEATURE_API_MEMBER_MANAGEMENT = 'feature_api_member_management',
+  FEATURE_API_VIEW_V3 = 'feature_api_view_v3',
 }
 
 // todo: separate as a new enum
@@ -243,6 +244,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: 'to use private bases.',
   [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]:
     'to use member management api.',
+  [PlanFeatureTypes.FEATURE_API_VIEW_V3]: 'to use view api.',
 };
 
 export const getUpgradeMessage = (

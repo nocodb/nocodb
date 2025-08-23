@@ -25,7 +25,6 @@ import {
   LongTextAiMetaProp,
   NcApiVersion,
   NcErrorType,
-  ncIsArray,
   ncIsNull,
   ncIsObject,
   ncIsUndefined,
@@ -96,7 +95,6 @@ import {
   isPrimitiveType,
   nanoidv2,
   populatePk,
-  transformObject,
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
@@ -5497,69 +5495,80 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     // user is stored as id within the database
     // convertUserFormat is used to convert the response in id to user object in API response
-    if (data) {
-      let userColumns = [];
+    if (!data) {
+      return data;
+    }
 
-      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+    const columns = this.model?.columns.concat(dependencyColumns ?? []);
 
-      for (const col of columns) {
-        if (col.uidt === UITypes.Lookup) {
-          if (
-            [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
-              (await this.getNestedColumn(col))?.uidt as UITypes,
-            )
-          ) {
-            userColumns.push(col);
-          }
-        } else {
-          if (
-            [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
-              col.uidt,
-            )
-          ) {
-            userColumns.push(col);
-          }
-        }
-      }
+    // Separate columns by type for more efficient processing
+    const directUserColumns = [];
+    const lookupColumns = [];
 
-      // filter user columns that are not present in data
-      if (userColumns.length) {
-        if (Array.isArray(data)) {
-          const row = data[0];
-          if (row) {
-            userColumns = userColumns.filter((col) => col.id in row);
-          }
-        } else {
-          userColumns = userColumns.filter((col) => col.id in data);
-        }
-      }
-
-      // process user columns that are present in data
-      if (userColumns.length) {
-        const baseUsers = await BaseUser.getUsersList(this.context, {
-          base_id: this.model.base_id,
-          include_internal_user: true,
-        });
-
-        await PresignedUrl.signMetaIconImage(baseUsers);
-
-        if (Array.isArray(data)) {
-          data = await Promise.all(
-            data.map((d) =>
-              this._convertUserFormat(userColumns, baseUsers, d, apiVersion),
-            ),
-          );
-        } else {
-          data = this._convertUserFormat(
-            userColumns,
-            baseUsers,
-            data,
-            apiVersion,
-          );
-        }
+    for (const col of columns) {
+      if (col.uidt === UITypes.Lookup) {
+        lookupColumns.push(col);
+      } else if (
+        [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+          col.uidt,
+        )
+      ) {
+        directUserColumns.push(col);
       }
     }
-    return data;
+
+    // Process lookup columns in parallel to find user columns
+    const lookupUserColumns =
+      lookupColumns.length > 0
+        ? await Promise.all(
+            lookupColumns.map(async (col) => {
+              try {
+                const nestedCol = await this.getNestedColumn(col);
+                return [
+                  UITypes.User,
+                  UITypes.CreatedBy,
+                  UITypes.LastModifiedBy,
+                ].includes(nestedCol?.uidt as UITypes)
+                  ? col
+                  : null;
+              } catch {
+                return null;
+              }
+            }),
+          ).then((results) => results.filter(Boolean))
+        : [];
+
+    const allUserColumns = [...directUserColumns, ...lookupUserColumns];
+
+    if (!allUserColumns.length) {
+      return data;
+    }
+
+    // Fetch users and sign meta icons in parallel
+    const [baseUsers] = await Promise.all([
+      BaseUser.getUsersList(this.context, {
+        base_id: this.model.base_id,
+        include_internal_user: true,
+      }),
+      // Note: PresignedUrl.signMetaIconImage will be called after fetching users
+    ]);
+
+    await PresignedUrl.signMetaIconImage(baseUsers);
+
+    if (Array.isArray(data)) {
+      return Promise.all(
+        data.map((d) =>
+          this._convertUserFormat(allUserColumns, baseUsers, d, apiVersion),
+        ),
+      );
+    } else {
+      return this._convertUserFormat(
+        allUserColumns,
+        baseUsers,
+        data,
+        apiVersion,
+      );
+    }
   }
 
   protected _convertUserFormat(
@@ -5849,86 +5858,86 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     // buttons & AI result are stringified json in Sqlite and need to be parsed
     // converJsonTypes is used to convert the response in string to object in API response
-    if (data) {
-      const jsonCols = [];
-      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+    if (!data) {
+      return data;
+    }
 
-      const lookupColumns = [];
-      const nonLookupColumns = [];
+    const columns = this.model?.columns.concat(dependencyColumns ?? []);
 
-      for (const col of columns) {
-        if (col.uidt === UITypes.Lookup) {
-          lookupColumns.push(col);
-        } else if (JSON_COLUMN_TYPES.includes(col.uidt) || isAIPromptCol(col)) {
-          nonLookupColumns.push(col);
-        }
-      }
+    // Separate JSON and lookup columns for efficient processing
+    const directJsonColumns = [];
+    const lookupColumns = [];
 
-      jsonCols.push(...nonLookupColumns);
-
-      if (lookupColumns.length > 0) {
-        const lookupResults = await Promise.all(
-          lookupColumns.map(async (col) => {
-            try {
-              const lookupNestedCol = await this.getNestedColumn(col);
-              if (
-                JSON_COLUMN_TYPES.includes(lookupNestedCol.uidt) ||
-                isAIPromptCol(lookupNestedCol)
-              ) {
-                return col;
-              }
-            } catch (error) {
-              // Log error but continue processing
-              console.warn(`Error processing lookup column ${col.id}:`, error);
-            }
-            return null;
-          }),
-        );
-
-        jsonCols.push(...lookupResults.filter(Boolean));
-      }
-
-      if (jsonCols.length) {
-        if (Array.isArray(data)) {
-          data = await Promise.all(
-            data.map((d) => this._convertJsonType(jsonCols, d)),
-          );
-        } else {
-          data = await this._convertJsonType(jsonCols, data);
-        }
+    for (const col of columns) {
+      if (JSON_COLUMN_TYPES.includes(col.uidt) || isAIPromptCol(col)) {
+        directJsonColumns.push(col);
+      } else if (col.uidt === UITypes.Lookup) {
+        lookupColumns.push(col);
       }
     }
-    return data;
+
+    // Process lookup columns in parallel to find JSON columns
+    const lookupJsonColumns =
+      lookupColumns.length > 0
+        ? await Promise.all(
+            lookupColumns.map(async (col) => {
+              try {
+                const lookupNestedCol = await this.getNestedColumn(col);
+                return JSON_COLUMN_TYPES.includes(lookupNestedCol.uidt) ||
+                  isAIPromptCol(lookupNestedCol)
+                  ? col
+                  : null;
+              } catch (error) {
+                // Log error but continue processing
+                console.warn(
+                  `Error processing lookup column ${col.id}:`,
+                  error,
+                );
+                return null;
+              }
+            }),
+          ).then((results) => results.filter(Boolean))
+        : [];
+
+    const allJsonColumns = [...directJsonColumns, ...lookupJsonColumns];
+
+    if (!allJsonColumns.length) {
+      return data;
+    }
+
+    if (Array.isArray(data)) {
+      return Promise.all(
+        data.map((d) => this._convertJsonType(allJsonColumns, d)),
+      );
+    } else {
+      return this._convertJsonType(allJsonColumns, data);
+    }
   }
 
   public async convertMultiSelectTypes(
     data: Record<string, any>,
     dependencyColumns?: Column[],
   ) {
-    if (data) {
-      const multiSelectColumns = [];
-
-      const columns = this.model?.columns.concat(dependencyColumns ?? []);
-
-      for (const col of columns) {
-        if (col.uidt === UITypes.MultiSelect) {
-          multiSelectColumns.push(col);
-        }
-      }
-
-      if (multiSelectColumns.length) {
-        if (Array.isArray(data)) {
-          data = await Promise.all(
-            data.map((d) =>
-              this._convertMultiSelectType(multiSelectColumns, d),
-            ),
-          );
-        } else {
-          data = await this._convertMultiSelectType(multiSelectColumns, data);
-        }
-      }
+    if (!data) {
+      return data;
     }
-    return data;
+
+    const columns = this.model?.columns.concat(dependencyColumns ?? []);
+    const multiSelectColumns = columns.filter(
+      (col) => col.uidt === UITypes.MultiSelect,
+    );
+
+    if (!multiSelectColumns.length) {
+      return data;
+    }
+
+    if (Array.isArray(data)) {
+      return Promise.all(
+        data.map((d) => this._convertMultiSelectType(multiSelectColumns, d)),
+      );
+    } else {
+      return this._convertMultiSelectType(multiSelectColumns, data);
+    }
   }
 
   public async convertAttachmentType(
@@ -5937,57 +5946,60 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
-    if (data) {
-      const attachmentColumns = [];
-      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+    if (!data) {
+      return data;
+    }
 
-      // Separate lookup and non-lookup columns for optimization
-      const lookupColumns = [];
-      const nonLookupColumns = [];
+    const columns = this.model?.columns.concat(dependencyColumns ?? []);
 
-      for (const col of columns) {
-        if (col.uidt === UITypes.Lookup) {
-          lookupColumns.push(col);
-        } else if (col.uidt === UITypes.Attachment) {
-          nonLookupColumns.push(col);
-        }
-      }
+    // Separate attachment and lookup columns for efficient processing
+    const directAttachmentColumns = [];
+    const lookupColumns = [];
 
-      // Add non-lookup columns immediately
-      attachmentColumns.push(...nonLookupColumns);
-
-      // Process lookup columns in parallel
-      if (lookupColumns.length > 0) {
-        const lookupResults = await Promise.all(
-          lookupColumns.map(async (col) => {
-            try {
-              const nestedCol = await this.getNestedColumn(col);
-              if (nestedCol?.uidt === UITypes.Attachment) {
-                return col;
-              }
-            } catch (error) {
-              // Log error but continue processing
-              console.warn(`Error processing lookup column ${col.id}:`, error);
-            }
-            return null;
-          }),
-        );
-
-        // Add valid lookup columns
-        attachmentColumns.push(...lookupResults.filter(Boolean));
-      }
-
-      if (attachmentColumns.length) {
-        if (Array.isArray(data)) {
-          data = await Promise.all(
-            data.map((d) => this._convertAttachmentType(attachmentColumns, d)),
-          );
-        } else {
-          data = await this._convertAttachmentType(attachmentColumns, data);
-        }
+    for (const col of columns) {
+      if (col.uidt === UITypes.Attachment) {
+        directAttachmentColumns.push(col);
+      } else if (col.uidt === UITypes.Lookup) {
+        lookupColumns.push(col);
       }
     }
-    return data;
+
+    // Process lookup columns in parallel to find attachment columns
+    const lookupAttachmentColumns =
+      lookupColumns.length > 0
+        ? await Promise.all(
+            lookupColumns.map(async (col) => {
+              try {
+                const nestedCol = await this.getNestedColumn(col);
+                return nestedCol?.uidt === UITypes.Attachment ? col : null;
+              } catch (error) {
+                // Log error but continue processing
+                console.warn(
+                  `Error processing lookup column ${col.id}:`,
+                  error,
+                );
+                return null;
+              }
+            }),
+          ).then((results) => results.filter(Boolean))
+        : [];
+
+    const allAttachmentColumns = [
+      ...directAttachmentColumns,
+      ...lookupAttachmentColumns,
+    ];
+
+    if (!allAttachmentColumns.length) {
+      return data;
+    }
+
+    if (Array.isArray(data)) {
+      return Promise.all(
+        data.map((d) => this._convertAttachmentType(allAttachmentColumns, d)),
+      );
+    } else {
+      return this._convertAttachmentType(allAttachmentColumns, data);
+    }
   }
 
   // TODO(timezone): retrieve the format from the corresponding column meta
@@ -5997,6 +6009,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     if (!d) return d;
 
+    // Cache timezone and regex patterns at the method level for better performance
     const cachedTimeZone = this.isSqlite
       ? Intl.DateTimeFormat().resolvedOptions().timeZone
       : null;
@@ -6009,7 +6022,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     for (const col of dateTimeColumns) {
       if (!d[col.id]) continue;
-
       if (col.uidt === UITypes.Formula) {
         if (!d[col.id] || typeof d[col.id] !== 'string') {
           continue;

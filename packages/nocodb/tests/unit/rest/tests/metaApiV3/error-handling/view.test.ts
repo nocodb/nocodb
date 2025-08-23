@@ -90,7 +90,7 @@ export default function () {
             type: 'GRID',
             sorts: [
               {
-                field_id: (
+                fieldId: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -107,7 +107,7 @@ export default function () {
             name: 'MyView',
             sorts: [
               {
-                field_id: (
+                fieldId: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -125,7 +125,7 @@ export default function () {
             type: 'NOGRID',
             sorts: [
               {
-                field_id: (
+                fieldId: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -144,7 +144,7 @@ export default function () {
             type: 'GRID',
             sorts: [
               {
-                fields_id: (
+                fieldIds: (
                   await table.getColumns(ctx)
                 ).find((col) => col.title === 'Title').id,
               },
@@ -162,9 +162,11 @@ export default function () {
             name: 'MyView',
             type: 'GRID',
             options: {
-              groups: [{
-                field_id: 'asdmalmkdm'
-              }]
+              groups: [
+                {
+                  fieldIds: 'asdmalmkdm',
+                },
+              ],
             },
           });
         expect(response.status).to.eq(400);

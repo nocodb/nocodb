@@ -1077,6 +1077,7 @@ export const useEeConfig = createSharedComposable(() => {
       content: t('upgrade.upgradeToUseAiTextFieldSubtitle', {
         plan: PlanTitles.PLUS,
       }),
+      callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD,
     })
 

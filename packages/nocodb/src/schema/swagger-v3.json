@@ -5128,7 +5128,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid",
             "description": "Unique identifier for the sort.",
             "readOnly": true
           },
@@ -5222,28 +5221,12 @@
           }
         }
       },
-      "View": {
+      "ViewBase": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Unique identifier for the view."
-          },
-          "view_name": {
+          "name": {
             "type": "string",
             "description": "Name of the view."
-          },
-          "view_type": {
-            "type": "string",
-            "enum": [
-              "GRID",
-              "GALLERY",
-              "KANBAN",
-              "CALENDAR",
-              "FORM"
-            ],
-            "description": "Type of the view."
           },
           "lock_type": {
             "type": "string",
@@ -5257,10 +5240,6 @@
           "description": {
             "type": "string",
             "description": "Description of the view."
-          },
-          "is_default": {
-            "type": "boolean",
-            "description": "Indicates if this is the default view."
           },
           "meta": {
             "type": "object",
@@ -5276,326 +5255,341 @@
               }
             }
           },
-          "created_by": {
-            "type": "string",
-            "format": "uuid",
-            "description": "User ID of the creator."
-          },
-          "owned_by": {
-            "type": "string",
-            "format": "uuid",
-            "description": "User ID of the owner."
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of creation."
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of last update."
-          },
-          "filters": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Filter"
-            },
-            "description": "Filters applied to the view."
-          },
           "sorts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Sort"
+              "$ref": "#/components/schemas/SortCreate"
             },
             "description": "Sort options for the view."
           }
-        },
-        "discriminator": {
-          "propertyName": "view_type"
-        },
+        }
+      },
+      "ViewBaseOptions": {
         "oneOf": [
           {
             "type": "object",
             "properties": {
-              "fields": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID for GRID view."
-                    },
-                    "is_hidden": {
-                      "type": "boolean",
-                      "description": "Indicates if the field is hidden in GRID view."
-                    }
-                  }
-                }
+              "type": {
+                "type": "string",
+                "enum": [
+                  "GRID"
+                ]
               },
-              "group": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID for grouping in GRID view."
-                    },
-                    "sort": {
-                      "type": "string",
-                      "enum": [
-                        "asc",
-                        "desc"
-                      ],
-                      "description": "Sorting order for the group."
-                    }
-                  }
-                }
+              "options": {
+                "$ref": "#/components/schemas/ViewOptionsGrid"
               }
-            },
-            "required": [
-              "view_type",
-              "fields"
-            ],
-            "description": "GRID View"
+            }
           },
           {
             "type": "object",
             "properties": {
-              "fields": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID displayed in GALLERY view."
-                    },
-                    "cover_image": {
-                      "type": "boolean",
-                      "description": "Indicates if the field is the cover image."
-                    }
-                  }
-                }
-              },
-              "cover_image_field_id": {
+              "type": {
                 "type": "string",
-                "format": "uuid",
-                "description": "Field ID for the cover image."
+                "enum": [
+                  "KANBAN"
+                ]
+              },
+              "options": {
+                "$ref": "#/components/schemas/ViewOptionsKanban"
               }
-            },
-            "required": [
-              "view_type",
-              "fields"
-            ],
-            "description": "GALLERY View"
+            }
           },
           {
             "type": "object",
             "properties": {
-              "fields": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID used in KANBAN view."
-                    },
-                    "is_stack_by": {
-                      "type": "boolean",
-                      "description": "Indicates if the field is used for stacking in KANBAN."
-                    }
-                  }
-                }
-              },
-              "cover_image_field_id": {
+              "type": {
                 "type": "string",
-                "format": "uuid",
-                "description": "Field ID for the cover image."
+                "enum": [
+                  "CALENDAR"
+                ]
               },
-              "kanban_stack_by_field_id": {
-                "type": "string",
-                "format": "uuid",
-                "description": "Field ID used for stacking in KANBAN view."
+              "options": {
+                "$ref": "#/components/schemas/ViewOptionsCalendar"
               }
-            },
-            "required": [
-              "view_type",
-              "fields"
-            ],
-            "description": "KANBAN View"
+            }
           },
           {
             "type": "object",
             "properties": {
-              "fields": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID displayed in CALENDAR view."
-                    },
-                    "is_date_field": {
-                      "type": "boolean",
-                      "description": "Indicates if the field is used for date ranges."
-                    }
-                  }
-                }
+              "type": {
+                "type": "string",
+                "enum": [
+                  "GALLERY"
+                ]
               },
-              "calendar_range": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "start_field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID for the start date."
-                    },
-                    "end_field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID for the end date."
-                    }
-                  }
-                }
+              "options": {
+                "$ref": "#/components/schemas/ViewOptionsGallery"
               }
-            },
-            "required": [
-              "view_type",
-              "fields"
-            ],
-            "description": "CALENDAR View"
+            }
           },
           {
             "type": "object",
             "properties": {
-              "fields": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID used in FORM view."
-                    },
-                    "is_required": {
-                      "type": "boolean",
-                      "description": "Indicates if the field is required in the form."
-                    }
-                  }
-                }
-              },
-              "form_heading": {
+              "type": {
                 "type": "string",
-                "description": "Heading for the form."
+                "enum": [
+                  "FORM"
+                ]
               },
-              "form_sub_heading": {
-                "type": "string",
-                "description": "Subheading for the form."
-              },
-              "form_success_message": {
-                "type": "string",
-                "description": "Success message shown after form submission."
-              },
-              "form_redirect_url": {
-                "type": "string",
-                "format": "uri",
-                "description": "URL to redirect to after form submission."
-              },
-              "form_redirect_after_secs": {
-                "type": "integer",
-                "description": "Seconds to wait before redirecting."
-              },
-              "form_send_response_email": {
-                "type": "boolean",
-                "description": "Whether to send a response email."
-              },
-              "form_show_another": {
-                "type": "boolean",
-                "description": "Whether to show another form after submission."
-              },
-              "form_show_blank": {
-                "type": "boolean",
-                "description": "Whether to show a blank form after submission."
-              },
-              "form_hide_banner": {
-                "type": "boolean",
-                "description": "Whether to hide the banner on the form."
-              },
-              "form_hide_branding": {
-                "type": "boolean",
-                "description": "Whether to hide branding on the form."
-              },
-              "form_banner_image_url": {
-                "type": "string",
-                "format": "uri",
-                "description": "URL of the banner image for the form."
-              },
-              "form_logo_url": {
-                "type": "string",
-                "format": "uri",
-                "description": "URL of the logo for the form."
-              },
-              "form_background_color": {
-                "type": "string",
-                "description": "Background color for the form.",
-                "pattern": "^#[0-9A-Fa-f]{6}$"
+              "options": {
+                "$ref": "#/components/schemas/ViewOptionsForm"
               }
-            },
-            "required": [
-              "view_type",
-              "fields"
-            ],
-            "description": "FORM View"
+            }
           }
-        ]
+        ],
+        "discriminator": {
+          "propertyName": "type"
+        }
       },
       "ViewCreate": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ViewBase"
+          },
+          {
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "GRID",
+                  "GALLERY",
+                  "KANBAN",
+                  "CALENDAR",
+                  "FORM"
+                ],
+                "description": "Type of the view."
+              }
+            },
+            "required": [
+              "type",
+              "name"
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/ViewBaseOptions"
+          }
+        ]
+      },
+      "ViewUpdate": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ViewBase"
+          },
+          {
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Unique identifier for the view."
+              }
+            }
+          },
+          {
+            "$ref": "#/components/schemas/ViewBaseOptions"
+          }
+        ]
+      },
+      "View": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ViewBase"
+          },
+          {
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Unique identifier for the view."
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "GRID",
+                  "GALLERY",
+                  "KANBAN",
+                  "CALENDAR",
+                  "FORM"
+                ],
+                "description": "Type of the view."
+              },
+              "is_default": {
+                "type": "boolean",
+                "description": "Indicates if this is the default view."
+              },
+              "meta": {
+                "type": "object",
+                "properties": {
+                  "locked_view_description": {
+                    "type": "string",
+                    "description": "Description for locked views."
+                  },
+                  "locked_by_user_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "User ID of the person who locked the view."
+                  }
+                }
+              },
+              "created_by": {
+                "type": "string",
+                "format": "uuid",
+                "description": "User ID of the creator."
+              },
+              "owned_by": {
+                "type": "string",
+                "format": "uuid",
+                "description": "User ID of the owner."
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Timestamp of creation."
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Timestamp of last update."
+              }
+            }
+          },
+          {
+            "$ref": "#/components/schemas/ViewBaseOptions"
+          }
+        ]
+      },
+      "ViewOptionsGrid": {
+        "type": "object",
         "properties": {
-          "view_name": {
-            "type": "string",
-            "description": "Name of the view."
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": "string",
+                "direction": {
+                  "type": "string",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ]
+                }
+              },
+              "required": [
+                "field"
+              ]
+            }
+          }
+        }
+      },
+      "ViewOptionsKanban": {
+        "type": "object",
+        "properties": {
+          "stackBy": {
+            "type": "object",
+            "properties": {
+              "fieldId": "string"
+            }
           },
-          "view_type": {
-            "type": "string",
-            "enum": [
-              "GRID",
-              "GALLERY",
-              "KANBAN",
-              "CALENDAR",
-              "FORM"
-            ],
-            "description": "Type of the view."
-          },
-          "lock_type": {
-            "type": "string",
-            "enum": [
-              "COLLABARATIVE",
-              "LOCKED",
-              "PERSONAL"
-            ],
-            "description": "Lock type of the view."
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the view."
+          "coverFieldId": "string"
+        },
+        "required": [
+          "stackBy"
+        ]
+      },
+      "ViewOptionsCalendar": {
+        "type": "object",
+        "properties": {
+          "dateRanges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "startDateFieldId": "string",
+                "endDateFieldId": "string"
+              },
+              "required": [
+                "startDateFieldId"
+              ]
+            }
           }
         },
-        "discriminator": {
-          "propertyName": "view_type"
+        "required": [
+          "dateRanges"
+        ]
+      },
+      "ViewOptionsGallery": {
+        "type": "object",
+        "properties": {
+          "coverFieldId": "string"
+        }
+      },
+      "ViewOptionsForm": {
+        "type": "object",
+        "properties": {
+          "formTitle": {
+            "type": "string",
+            "description": "Heading for the form."
+          },
+          "formDescription": {
+            "type": "string",
+            "description": "Subheading for the form."
+          },
+          "thankYouMessage": {
+            "type": "string",
+            "description": "Success message shown after form submission."
+          },
+          "form_redirect_after_secs": {
+            "type": "integer",
+            "description": "Seconds to wait before redirecting."
+          },
+          "form_send_response_email": {
+            "type": "boolean",
+            "description": "Whether to send a response email."
+          },
+          "submitAnotherForm": {
+            "type": "boolean",
+            "description": "Whether to show another form after submission."
+          },
+          "showBlankForm": {
+            "type": "boolean",
+            "description": "Whether to show a blank form after submission."
+          },
+          "form_hide_banner": {
+            "type": "boolean",
+            "description": "Whether to hide the banner on the form."
+          },
+          "form_hide_branding": {
+            "type": "boolean",
+            "description": "Whether to hide branding on the form."
+          },
+          "form_banner_image_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the banner image for the form."
+          },
+          "form_logo_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the logo for the form."
+          },
+          "form_background_color": {
+            "type": "string",
+            "description": "Background color for the form.",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "redirectOnSubmit": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL to redirect to after form submission."
+              }
+            }
+          }
         }
       },
       "FieldBase": {

@@ -71,9 +71,11 @@ const filterReferencedInfoByUidt = ({
     referencedColumn,
     uidtCandidates:
       uidtCandidates.length > 0 ? arrUniq(uidtCandidates) : [defaultUidt],
+    // Determine if the referenced column is invalid. This can happen if it was already marked as invalid,
+    // or if the `referencedColumn` was present in the original `referencedInfo` but got filtered out
+    // during the current processing (i.e., `referencedColumn` is now undefined while `referencedInfo.referencedColumn` was not).
     invalidForReferenceColumn:
       referencedInfo.invalidForReferenceColumn ||
-      // if the referencedColumn is somehow filtered out, make it invalidForReferenceColumn
       !!referencedColumn !== !!referencedInfo.referencedColumn,
   };
 };

@@ -79,8 +79,8 @@ watch(vModelIsOpen, (newVal) => {
 <template>
   <NcDropdown v-model:visible="vModelIsOpen" :disabled="disabled">
     <div
-      tabindex="0"
       v-if="defaultSlotWrapper"
+      tabindex="0"
       class="nc-list-dropdown-wrapper border-1 rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none outline-none"
       :class="[
         defaultSlotWrapperClass,

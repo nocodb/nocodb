@@ -1391,21 +1391,6 @@ export default class Column<T = any> implements ColumnType {
           );
           break;
         }
-        case UITypes.Rollup: {
-          await ncMeta.metaDelete(
-            context.workspace_id,
-            context.base_id,
-            MetaTable.COL_ROLLUP,
-            {
-              fk_column_id: colId,
-            },
-          );
-          await NocoCache.deepDel(
-            `${CacheScope.COL_ROLLUP}:${colId}`,
-            CacheDelDirection.CHILD_TO_PARENT,
-          );
-          break;
-        }
 
         case UITypes.Links:
         case UITypes.LinkToAnotherRecord: {

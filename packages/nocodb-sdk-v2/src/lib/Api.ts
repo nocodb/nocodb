@@ -30,6 +30,33 @@ export enum BaseRoles {
   NoAccess = 'no-access',
 }
 
+export enum ViewAggregationEnum {
+  Sum = 'sum',
+  Min = 'min',
+  Max = 'max',
+  Avg = 'avg',
+  Median = 'median',
+  StdDev = 'std_dev',
+  Range = 'range',
+  Count = 'count',
+  CountEmpty = 'count_empty',
+  CountFilled = 'count_filled',
+  CountUnique = 'count_unique',
+  PercentEmpty = 'percent_empty',
+  PercentFilled = 'percent_filled',
+  PercentUnique = 'percent_unique',
+  None = 'none',
+  AttachmentSize = 'attachment_size',
+  Checked = 'checked',
+  Unchecked = 'unchecked',
+  PercentChecked = 'percent_checked',
+  PercentUnchecked = 'percent_unchecked',
+  EarliestDate = 'earliest_date',
+  LatestDate = 'latest_date',
+  DateRange = 'date_range',
+  MonthRange = 'month_range',
+}
+
 export interface Base {
   /** Unique identifier for the base. */
   id: string;
@@ -344,6 +371,7 @@ export interface ViewBase {
   };
   /** Sort options for the view. */
   sorts?: SortCreate[];
+  row_coloring?: ViewRowColorCreate;
 }
 
 export interface ViewOptionBase {
@@ -398,6 +426,7 @@ export type ViewCreate = ViewBase & {
     field_id: string;
     show: boolean;
     width?: number;
+    aggregation?: ViewAggregationEnum;
   }[];
 } & ViewBaseOptions;
 
@@ -411,6 +440,7 @@ export type ViewUpdate = ViewBase & {
     field_id: string;
     show: boolean;
     width?: number;
+    aggregation?: ViewAggregationEnum;
   }[];
 } & ViewBaseOptions;
 

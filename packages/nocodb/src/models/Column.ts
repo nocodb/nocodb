@@ -11,7 +11,6 @@ import { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
 import type { ColumnReqType, ColumnType, LookupType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type { LastModColumnOptions } from '~/models/LastModColumn';
 import FormulaColumn from '~/models/FormulaColumn';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import LookupColumn from '~/models/LookupColumn';
@@ -51,7 +50,6 @@ import {
 } from '~/utils/modelUtils';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
-import LastModColumn from '~/models/LastModColumn';
 
 const selectColors = enumColors.light;
 
@@ -317,21 +315,6 @@ export default class Column<T = any> implements ColumnType {
           },
           ncMeta,
         );
-        break;
-      }
-      case UITypes.LastModifiedBy:
-      case UITypes.LastModifiedTime: {
-        // Handle TrackModifications column type
-        if (column.colOptions?.triggerColumnIds?.length > 0) {
-          await LastModColumn.insert(
-            context,
-            {
-              fk_column_id: colId,
-              triggerColumnIds: column.colOptions.triggerColumnIds,
-            },
-            ncMeta,
-          );
-        }
         break;
       }
       case UITypes.Links:
@@ -618,12 +601,6 @@ export default class Column<T = any> implements ColumnType {
       case UITypes.LongText:
         if (this.meta?.[LongTextAiMetaProp] === true) {
           res = await AIColumn.read(context, this.id, ncMeta);
-        }
-        break;
-      case UITypes.LastModifiedTime:
-      case UITypes.LastModifiedBy:
-        if (this.column_name && !this.system) {
-          res = await LastModColumn.read(context, this.id, ncMeta);
         }
         break;
       // default:
@@ -916,12 +893,11 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
-    const columns = await Column.list(context, {
-      fk_model_id: col.fk_model_id,
-    });
-
     // get all cross base link columns and delete any lookup/rollup columns
     {
+      const columns = await Column.list(context, {
+        fk_model_id: col.fk_model_id,
+      });
       // check in all cross base link lookup columns
       for (const column of columns) {
         if (!isLinksOrLTAR(column.uidt)) continue;
@@ -971,30 +947,6 @@ export default class Column<T = any> implements ColumnType {
             rollupColumn.fk_column_id,
             ncMeta,
           );
-        }
-      }
-    }
-
-    // if deleting column is part of a tracked Last modified field
-    // then remove it from tracked list
-    {
-      for (const column of columns) {
-        if (
-          column.uidt !== UITypes.LastModifiedTime &&
-          column.uidt !== UITypes.LastModifiedBy
-        ) {
-          continue;
-        }
-
-        const colOptions = await column.getColOptions<LastModColumnOptions>(
-          context,
-          ncMeta,
-        );
-        if (colOptions?.triggerColumnIds?.includes(id)) {
-          colOptions.triggerColumnIds = colOptions.triggerColumnIds.filter(
-            (triggerId) => triggerId !== id,
-          );
-          await LastModColumn.update(context, column.id, colOptions, ncMeta);
         }
       }
     }
@@ -1520,24 +1472,6 @@ export default class Column<T = any> implements ColumnType {
           break;
         }
 
-        case UITypes.LastModifiedBy:
-        case UITypes.LastModifiedTime: {
-          await ncMeta.metaDelete(
-            context.workspace_id,
-            context.base_id,
-            MetaTable.COL_LAST_MOD_TRIGGER_COLUMNS,
-            {
-              fk_column_id: colId,
-            },
-          );
-
-          await NocoCache.deepDel(
-            `${CacheScope.COL_LAST_MOD_TRIGGERS}:${colId}:list`,
-            CacheDelDirection.PARENT_TO_CHILD,
-          );
-          break;
-        }
-
         case UITypes.LongText: {
           await ncMeta.metaDelete(
             context.workspace_id,
@@ -1660,9 +1594,8 @@ export default class Column<T = any> implements ColumnType {
     );
 
     // insert new col options only if existing colOption meta is deleted
-    if (requiredColAvail) {
+    if (requiredColAvail)
       await this.insertColOption(context, column, colId, ncMeta);
-    }
 
     // on column update, delete any optimised single query cache
     await View.clearSingleQueryCache(context, oldCol.fk_model_id, null, ncMeta);

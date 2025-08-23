@@ -35,6 +35,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
+import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
   DataBulkDeletePayload,
@@ -49,8 +50,8 @@ import type {
   NcRequest,
   UpdatePayload,
 } from 'nocodb-sdk';
-import type { Knex } from 'knex';
-import type CustomKnex, { XKnex } from '~/db/CustomKnex';
+import type CustomKnex from '~/db/CustomKnex';
+import type { XKnex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type {
   XcFilter,
@@ -65,30 +66,6 @@ import type {
 } from '~/models';
 import type LookupColumn from '~/models/LookupColumn';
 import type { ResolverObj } from '~/utils';
-import type { LastModColumnOptions } from '~/models/LastModColumn';
-import {
-  batchUpdate,
-  extractColsMetaForAudit,
-  extractExcludedColumnNames,
-  generateAuditV1Payload,
-  nocoExecute,
-  populateUpdatePayloadDiff,
-  remapWithAlias,
-  removeBlankPropsAndMask,
-} from '~/utils';
-import {
-  Audit,
-  BaseUser,
-  Column,
-  FileReference,
-  Filter,
-  GridViewColumn,
-  Model,
-  PresignedUrl,
-  Sort,
-  Source,
-  View,
-} from '~/models';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
 import { FieldHandler } from '~/db/field-handler';
@@ -126,8 +103,31 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
 import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
+import {
+  Audit,
+  BaseUser,
+  Column,
+  FileReference,
+  Filter,
+  GridViewColumn,
+  Model,
+  PresignedUrl,
+  Sort,
+  Source,
+  View,
+} from '~/models';
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
+import {
+  batchUpdate,
+  extractColsMetaForAudit,
+  extractExcludedColumnNames,
+  generateAuditV1Payload,
+  nocoExecute,
+  populateUpdatePayloadDiff,
+  remapWithAlias,
+  removeBlankPropsAndMask,
+} from '~/utils';
 import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
@@ -6279,31 +6279,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const updateObject = {};
 
-    const lastModifiedTimeColumns = columns.filter(
-      (c) =>
-        c.uidt === UITypes.LastModifiedTime &&
-        (c.system ||
-          (c.column_name &&
-            (c.colOptions as LastModColumnOptions)?.triggerColumnIds?.some(
-              (id) => updatedColIds.includes(id),
-            ))),
+    const lastModifiedTimeColumn = columns.find(
+      (c) => c.uidt === UITypes.LastModifiedTime && c.system,
     );
 
-    const lastModifiedByColumns = columns.filter(
-      (c) =>
-        c.uidt === UITypes.LastModifiedBy &&
-        (c.system ||
-          (c.column_name &&
-            (c.colOptions as LastModColumnOptions)?.triggerColumnIds?.some(
-              (id) => updatedColIds.includes(id),
-            ))),
+    const lastModifiedByColumn = columns.find(
+      (c) => c.uidt === UITypes.LastModifiedBy && c.system,
     );
 
-    for (const lastModifiedTimeColumn of lastModifiedTimeColumns) {
+    if (lastModifiedTimeColumn) {
       updateObject[lastModifiedTimeColumn.column_name] = this.now();
     }
 
-    for (const lastModifiedByColumn of lastModifiedByColumns) {
+    if (lastModifiedByColumn) {
       updateObject[lastModifiedByColumn.column_name] = cookie?.user?.id;
     }
 
@@ -6605,31 +6593,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           data[column.column_name] = isInsertData ? null : this.now();
         } else if (column.uidt === UITypes.LastModifiedBy) {
           data[column.column_name] = isInsertData ? null : cookie?.user?.id;
-        }
-      } else if (
-        [UITypes.LastModifiedTime, UITypes.LastModifiedBy].includes(
-          column.uidt,
-        ) &&
-        column.column_name &&
-        (column.colOptions as LastModColumnOptions)?.triggerColumnIds?.length &&
-        !isInsertData
-      ) {
-        // check if any of the tracked columns are updating
-        const trackColumnIds = (column.colOptions as LastModColumnOptions)
-          ?.triggerColumnIds;
-
-        if (
-          trackColumnIds.every((id) =>
-            ncIsUndefined(data[this.model.columnsById?.[id]?.column_name]),
-          )
-        ) {
-          continue;
-        }
-
-        if (column.uidt === UITypes.LastModifiedTime) {
-          data[column.column_name] = this.now();
-        } else if (column.uidt === UITypes.LastModifiedBy) {
-          data[column.column_name] = cookie?.user?.id;
         }
       }
       if (

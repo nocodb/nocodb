@@ -27,7 +27,6 @@ import type {
   XcFilterWithAlias,
 } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { Filter, GridViewColumn } from '~/models';
-import type { LastModColumnOptions } from '~/models/LastModColumn';
 import { NcError } from '~/helpers/catchError';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import {
@@ -284,14 +283,6 @@ export async function getColumnName(
     columns ||
     (await Column.list(context, { fk_model_id: column.fk_model_id }));
 
-  // load colOptions if not loaded already
-  if (
-    [UITypes.LastModifiedTime, UITypes.LastModifiedBy].includes(column.uidt) &&
-    !column.colOptions
-  ) {
-    await column.getColOptions(context);
-  }
-
   switch (column.uidt) {
     case UITypes.CreatedTime: {
       const createdTimeSystemCol = columns.find(
@@ -301,15 +292,6 @@ export async function getColumnName(
       return column.column_name || 'created_at';
     }
     case UITypes.LastModifiedTime: {
-      if (
-        column.column_name &&
-        !column.system &&
-        (column.colOptions as LastModColumnOptions)?.triggerColumnIds?.length
-      ) {
-        // if column is a trigger column, return the column name as it is
-        return column.column_name;
-      }
-
       const lastModifiedTimeSystemCol = columns.find(
         (col) => col.system && col.uidt === UITypes.LastModifiedTime,
       );
@@ -325,15 +307,6 @@ export async function getColumnName(
       return column.column_name || 'created_by';
     }
     case UITypes.LastModifiedBy: {
-      if (
-        column.column_name &&
-        !column.system &&
-        (column.colOptions as LastModColumnOptions)?.triggerColumnIds?.length
-      ) {
-        // if column is a trigger column, return the column name as it is
-        return column.column_name;
-      }
-
       const lastModifiedBySystemCol = columns.find(
         (col) => col.system && col.uidt === UITypes.LastModifiedBy,
       );

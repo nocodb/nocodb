@@ -5261,6 +5261,9 @@
               "$ref": "#/components/schemas/SortCreate"
             },
             "description": "Sort options for the view."
+          },
+          "row_coloring": {
+            "$ref": "#/components/schemas/ViewRowColorCreate"
           }
         }
       },
@@ -5708,6 +5711,41 @@
                 "type": "string",
                 "format": "uri",
                 "description": "URL to redirect to after form submission."
+              }
+            }
+          }
+        }
+      },
+      "ViewRowColorCreate": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "filter",
+              "select"
+            ]
+          },
+          "field_id": {
+            "type": "string"
+          },
+          "apply_as_row_background": {
+            "type": "boolean"
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "apply_as_row_background": {
+                  "type": "boolean"
+                },
+                "color": {
+                  "type": "string"
+                },
+                "filters": {
+                  "$ref": "#/components/schemas/FilterCreate"
+                }
               }
             }
           }

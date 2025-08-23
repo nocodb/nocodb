@@ -3278,10 +3278,12 @@ export function useCanvasRender({
     } else {
       let val = group.value
       try {
-        val = JSON.parse(group.value)
+        const parsedVal = JSON.parse(group.value)
+        val = ncIsObject(parsedVal) || ncIsArray(parsedVal) ? parsedVal : group.value
       } catch (e) {
         val = group.value
       }
+
       renderCell(ctx, group.column, {
         value: val,
         x: x - 11,

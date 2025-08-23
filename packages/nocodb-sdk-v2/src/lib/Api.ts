@@ -353,139 +353,190 @@ export interface ViewSummary {
   view_type?: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
 }
 
+export interface ViewList {
+  list: {
+    /** Unique identifier for the view. */
+    id: string;
+    /** Title of the view. */
+    title: string;
+    /** Description of the view. */
+    description?: string | null;
+    /** Type of the view. */
+    type: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
+    /** View configuration edit state. */
+    lock_type: 'collaborative' | 'locked' | 'personal';
+    /** Indicates if this is the default view. */
+    is_default?: boolean;
+    /**
+     * User ID of the creator.
+     * @format uuid
+     */
+    created_by: string;
+    /**
+     * User ID of the owner. Applicable only for personal views.
+     * @format uuid
+     */
+    owned_by?: string;
+    /**
+     * Timestamp of creation.
+     * @format date-time
+     */
+    created_at: string;
+    /**
+     * Timestamp of last update.
+     * @format date-time
+     */
+    updated_at: string;
+  }[];
+}
+
 export interface ViewBase {
   /** Title of the view. */
-  title?: string;
-  /** Lock type of the view. */
+  title: string;
+  /**
+   * Type of the view.
+   *
+   * Note: Form view via API is not supported currently
+   */
+  type: 'grid' | 'gallery' | 'kanban' | 'calendar';
+  /**
+   * Lock type of the view.
+   *
+   *  Note: Assigning view as personal using API is not supported currently
+   * @default "collaborative"
+   */
   lock_type?: 'collaborative' | 'locked' | 'personal';
   /** Description of the view. */
   description?: string;
-  /** Sort options for the view. */
-  sorts?: SortCreate[];
-  row_coloring?: ViewRowColorCreate;
 }
 
-export interface ViewOptionBase {
-  fields_by_id?: Record<
-    string,
-    {
-      alias?: string;
-      description?: string;
-      required?: boolean;
-      allow_scanner_input?: boolean;
-      is_list?: boolean;
-      is_limit_option?: boolean;
-      validators?: {
-        type?: string;
-        value?: any;
-        message?: string;
-        regex?: string | null;
+export interface ViewBaseInUpdate {
+  /** Title of the view. */
+  title?: string;
+  /**
+   * Lock type of the view.
+   *
+   *  Note: Assigning view as personal using API is not supported currently
+   * @default "collaborative"
+   */
+  lock_type?: 'collaborative' | 'locked';
+  /** Description of the view. */
+  description?: string;
+}
+
+/**
+ * List of fields to be displayed in the view.
+ *
+ * - If not specified, all fields are displayed by default.
+ * - If an empty array is provided, only the display value field will be shown.
+ * - In case of partial list, fields not included in the list will be excluded from the view.
+ */
+export type ViewFields = {
+  /**
+   * Unique identifier for the field.
+   * @format uuid
+   */
+  field_id: string;
+  /** Indicates whether the field should be displayed in the view. */
+  show: boolean;
+  /**
+   * Width of the field in pixels.
+   *
+   *  **Applicable only for grid view.**
+   */
+  width?: number;
+  /**
+   * Aggregation function to be applied to the field.
+   *
+   *  **Applicable only for grid view.**
+   */
+  aggregation?: ViewAggregationEnum;
+}[];
+
+export type ViewRowColour =
+  | {
+      /** Mode of row coloring. In this mode, the color is selected based on conditions applied to the fields. */
+      mode: 'filter';
+      conditions: {
+        apply_as_row_background?: boolean;
+        color?: string;
+        filters?: FilterCreateUpdate;
       }[];
     }
-  >;
-  row_height?: 'short' | 'medium' | 'tall' | 'extra';
-}
-
-export type ViewBaseOptions = ViewOptionBase &
-  (
-    | {
-        type?: 'grid';
-        options?: ViewOptionsGrid;
-      }
-    | {
-        type?: 'kanban';
-        options?: ViewOptionsKanban;
-      }
-    | {
-        type?: 'calendar';
-        options?: ViewOptionsCalendar;
-      }
-    | {
-        type?: 'gallery';
-        options?: ViewOptionsGallery;
-      }
-    | {
-        type?: 'form';
-        options?: ViewOptionsForm;
-      }
-  );
-
-export type ViewCreate = ViewBase & {
-  /** Type of the view. */
-  type: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
-  fields?: {
-    field_id: string;
-    show: boolean;
-    width?: number;
-    aggregation?: ViewAggregationEnum;
-  }[];
-} & ViewBaseOptions;
-
-export type ViewUpdate = ViewBase & {
-  fields?: {
-    field_id: string;
-    show: boolean;
-    width?: number;
-    aggregation?: ViewAggregationEnum;
-  }[];
-} & ViewBaseOptions;
-
-export type View = ViewBase & {
-  /**
-   * Unique identifier for the view.
-   * @format uuid
-   */
-  id?: string;
-  /** Type of the view. */
-  type?: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
-  /** Indicates if this is the default view. */
-  is_default?: boolean;
-  /**
-   * User ID of the creator.
-   * @format uuid
-   */
-  created_by?: string;
-  /**
-   * User ID of the owner.
-   * @format uuid
-   */
-  owned_by?: string;
-  /**
-   * Timestamp of creation.
-   * @format date-time
-   */
-  created_at?: string;
-  /**
-   * Timestamp of last update.
-   * @format date-time
-   */
-  updated_at?: string;
-} & ViewBaseOptions;
+  | {
+      /** Mode of row coloring. In this mode, the color is selected based on a single select field. */
+      mode: 'select';
+      /**
+       * Single select field ID to be used for colouring rows in the view.
+       * @format uuid
+       */
+      field_id: string;
+      /** Whether to additionally apply the color as row background. */
+      apply_as_row_background?: boolean;
+    };
 
 export interface ViewOptionsGrid {
+  /** List of groups to be applied on the grid view. */
   groups?: {
+    /**
+     * Identifier for the field being sorted.
+     * @format uuid
+     */
     field_id: string;
+    /**
+     * Direction of the group, either 'asc' (ascending) or 'desc' (descending).
+     * @default "asc"
+     */
     direction?: 'asc' | 'desc';
-    row_height?: 'short' | 'medium' | 'tall' | 'extra';
   }[];
+  /**
+   * Height of the rows in the grid view.
+   * @default "short"
+   */
+  row_height?: 'short' | 'medium' | 'tall' | 'extra';
 }
 
 export interface ViewOptionsKanban {
   stack_by: {
+    /**
+     * Single select field ID to be used for stacking cards in kanban view.
+     * @format uuid
+     */
     field_id: string;
+    /**
+     * Order of the stacks in kanban view. If not provided, the order will be determined by options listed in associated field.
+     *
+     * Example: ```stack_order: ['option1', 'option2', 'option3']```
+     */
     stack_order?: string[];
   };
+  /**
+   * Attachment field ID to be used as cover image in kanban view. If not provided, cover field configuration is skipped.
+   * @format uuid
+   */
   cover_field_id?: string;
 }
 
 export interface ViewOptionsCalendar {
   date_ranges: {
+    /**
+     * Date field ID to be used as start date in calendar view.
+     * @format uuid
+     */
     start_date_field_id: string;
+    /**
+     * Date field ID to be used as end date in calendar view.
+     * @format uuid
+     */
     end_date_field_id?: string;
   }[];
 }
 
 export interface ViewOptionsGallery {
+  /**
+   * Attachment field ID to be used as cover image in gallery view. Is optional, if not provided, the first attachment field will be used.
+   * @format uuid
+   */
   cover_field_id?: string;
 }
 
@@ -528,16 +579,245 @@ export interface ViewOptionsForm {
   redirect_url?: string;
 }
 
-export interface ViewRowColorCreate {
-  mode: 'filter' | 'select';
-  field_id?: string;
-  apply_as_row_background?: boolean;
-  conditions?: {
-    apply_as_row_background?: boolean;
-    color?: string;
-    filters?: FilterCreate;
-  }[];
-}
+export type ViewCreate = ViewBase &
+  (
+    | {
+        type?: 'grid';
+        options?: ViewOptionsGrid;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreate[];
+        filters?: FilterCreateUpdate;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFields;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColour;
+      }
+    | {
+        type?: 'gallery';
+        options?: ViewOptionsGallery;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreate[];
+        filters?: FilterCreateUpdate;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFields;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColour;
+      }
+    | {
+        type?: 'kanban';
+        options: ViewOptionsKanban;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreate[];
+        filters?: FilterCreateUpdate;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFields;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColour;
+      }
+    | {
+        type?: 'calendar';
+        options: ViewOptionsCalendar;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreate[];
+        filters?: FilterCreateUpdate;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFields;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColour;
+      }
+  );
+
+export type ViewUpdate = ViewBaseInUpdate &
+  (
+    | {
+        options?: ViewOptionsGrid;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreate[];
+        filters?: FilterCreateUpdate;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFields;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColour;
+      }
+    | {
+        options?: ViewOptionsGallery;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreate[];
+        filters?: FilterCreateUpdate;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFields;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColour;
+      }
+    | {
+        options?: ViewOptionsKanban;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreate[];
+        filters?: FilterCreateUpdate;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFields;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColour;
+      }
+    | {
+        options?: ViewOptionsCalendar;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreate[];
+        filters?: FilterCreateUpdate;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFields;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColour;
+      }
+  );
+
+export type View = {
+  /**
+   * Unique identifier for the view.
+   * @format uuid
+   */
+  id: string;
+  /** Indicates if this is the default view. Omitted if not the default view. */
+  is_default?: boolean;
+} & ViewBase & {
+    /**
+     * User ID of the creator.
+     * @format uuid
+     */
+    created_by?: string;
+    /**
+     * User ID of the owner.
+     * @format uuid
+     */
+    owned_by?: string;
+    /**
+     * Timestamp of creation.
+     * @format date-time
+     */
+    created_at?: string;
+    /**
+     * Timestamp of last update.
+     * @format date-time
+     */
+    updated_at?: string;
+  } & (
+    | {
+        type?: 'grid';
+        options?: ViewOptionsGrid;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreate[];
+        filters?: FilterCreateUpdate;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFields;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColour;
+      }
+    | {
+        type?: 'gallery';
+        options?: ViewOptionsGallery;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreate[];
+        filters?: FilterCreateUpdate;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFields;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColour;
+      }
+    | {
+        type?: 'kanban';
+        options: ViewOptionsKanban;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreate[];
+        filters?: FilterCreateUpdate;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFields;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColour;
+      }
+    | {
+        type?: 'calendar';
+        options: ViewOptionsCalendar;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreate[];
+        filters?: FilterCreateUpdate;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFields;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColour;
+      }
+  );
 
 export interface FieldBase {
   /** Unique identifier for the field. */
@@ -1202,12 +1482,13 @@ export type FieldUpdate = FieldBase &
       }
   );
 
+/** Filter */
 export interface Filter {
   /** Unique identifier for the filter. */
   id?: string;
-  /** Parent ID of the filter, specifying this filters group association. */
+  /** Parent ID of the filter, specifying this filters group association. Defaults to **root**. */
   parent_id?: string;
-  /** Field ID to which this filter applies. Defaults to **root**. */
+  /** Field ID to which this filter applies. */
   field_id: string;
   /** Primary comparison operator (e.g., eq, gt, lt). */
   operator: string;
@@ -1243,6 +1524,7 @@ export interface FilterGroupLevel1 {
   filters: (Filter | FilterGroupLevel2)[];
 }
 
+/** FilterGroup */
 export interface FilterGroup {
   /** Unique identifier for the group. */
   id: string;
@@ -1950,37 +2232,7 @@ export class InternalApi<
      * @request GET:/api/v3/meta/bases/{baseId}/tables/{tableId}/views
      */
     viewsList: (baseId: string, tableId: string, params: RequestParams = {}) =>
-      this.request<
-        {
-          list: {
-            /** @example "vwfjpo6wta1vwzyk" */
-            id?: string;
-            /** @example "MyView" */
-            title?: string;
-            /** @example "grid" */
-            type?: string;
-            /** @example "collaborative" */
-            lock_type?: string;
-            /**
-             * @format date-time
-             * @example "2000-01-02 03:04:05+00:00"
-             */
-            created_at?: string;
-            /**
-             * @format date-time
-             * @example "2000-01-02 03:04:05+00:00"
-             */
-            updated_at?: string;
-            /** @example "MyView" */
-            description?: string;
-            /** @example "usq6o3vavwf0twzr" */
-            created_by?: string;
-            /** @example "usq6o3vavwf0twzr" */
-            owned_by?: string;
-          }[];
-        },
-        void
-      >({
+      this.request<ViewList, void>({
         path: `/api/v3/meta/bases/${baseId}/tables/${tableId}/views`,
         method: 'GET',
         format: 'json',
@@ -2108,7 +2360,7 @@ export class InternalApi<
       }),
 
     /**
-     * @description Update the details of a specific view.
+     * @description Update the details of a specific view. The request body should contain the fields to be updated. Fields not included in the request body will remain unchanged. Fields included will overwrite the existing values. There is no provision for partial updates of fields, sort or filter using this PATCH request.
      *
      * @tags Views
      * @name ViewUpdate

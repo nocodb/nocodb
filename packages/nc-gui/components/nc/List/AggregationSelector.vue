@@ -167,11 +167,6 @@ defineExpose({
     <NcListDropdown
       v-model:is-open="isOpenAggregationSelectDropdown"
       :disabled="isLoading || disabled"
-      :default-slot-wrapper-class="
-        isLoading || disabled
-          ? 'text-nc-content-gray-muted cursor-not-allowed bg-nc-bg-gray-light children:opacity-60'
-          : 'text-nc-content-gray'
-      "
       :has-error="!!selectedAggregation?.ncItemDisabled"
     >
       <div class="flex-1 flex items-center gap-2 min-w-0">

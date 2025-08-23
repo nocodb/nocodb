@@ -133,16 +133,7 @@ defineExpose({
         <slot name="label">{{ t('general.table') }}</slot>
       </div>
     </template>
-    <NcListDropdown
-      v-model:is-open="isOpenTableSelectDropdown"
-      :disabled="disabled"
-      :default-slot-wrapper-class="
-        disabled
-          ? 'text-nc-content-gray-muted cursor-not-allowed bg-nc-bg-gray-light children:opacity-60'
-          : 'text-nc-content-gray'
-      "
-      :has-error="!!selectedTable?.ncItemDisabled"
-    >
+    <NcListDropdown v-model:is-open="isOpenTableSelectDropdown" :disabled="disabled" :has-error="!!selectedTable?.ncItemDisabled">
       <div class="flex-1 flex items-center gap-2 min-w-0">
         <div v-if="selectedTable" class="min-w-5 flex items-center justify-center">
           <NcIconTable :table="selectedTable || { title: '', table_name: '' }" class="text-gray-500" />

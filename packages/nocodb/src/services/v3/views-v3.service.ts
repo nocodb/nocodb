@@ -6,9 +6,11 @@ import { KanbansService } from '../kanbans.service';
 import { GalleriesService } from '../galleries.service';
 import { FormsService } from '../forms.service';
 import { GridColumnsService } from '../grid-columns.service';
+import type { MetaService } from '~/meta/meta.service';
 import type { ApiV3DataTransformationBuilder } from 'src/utils/data-transformation.builder';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { GridViewColumn } from '~/models';
+import Noco from '~/Noco';
 import { View } from '~/models';
 import {
   builderGenerator,
@@ -392,7 +394,11 @@ export class ViewsV3Service {
     return formattedView;
   }
 
-  async create(context: NcContext, param: { req: NcRequest; tableId: string }) {
+  async create(
+    context: NcContext,
+    param: { req: NcRequest; tableId: string },
+    ncMeta?: MetaService,
+  ) {
     const { req, tableId } = param;
     const { body } = req;
 
@@ -406,114 +412,138 @@ export class ViewsV3Service {
     requestBody.type =
       viewTypeMap[(requestBody.type as any as string).toUpperCase()];
     requestBody.options = requestBody.options ?? {};
-    let insertedV2View: View;
-    switch (requestBody.type) {
-      case ViewTypes.GRID: {
-        let groups: any[];
-        if (
-          requestBody.options.groups &&
-          requestBody.options.groups.length > 0
-        ) {
-          if (requestBody.options.groups.length > 3) {
-            NcError.get(context).invalidRequestBody(
-              `options.groups maximal 3 fields`,
-            );
+
+    const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
+    try {
+      let insertedV2View: View;
+      switch (requestBody.type) {
+        case ViewTypes.GRID: {
+          let groups: any[];
+          if (
+            requestBody.options.groups &&
+            requestBody.options.groups.length > 0
+          ) {
+            if (requestBody.options.groups.length > 3) {
+              NcError.get(context).invalidRequestBody(
+                `options.groups maximal 3 fields`,
+              );
+            }
+            groups = requestBody.options;
           }
-          groups = requestBody.options;
+          insertedV2View = await this.gridsService.gridViewCreate(
+            context,
+            {
+              tableId,
+              grid: requestBody,
+              req: req,
+            },
+            trxNcMeta,
+          );
+          if (groups && groups.length > 0) {
+            let order = 1;
+            for (const group of groups) {
+              await this.gridColumnsService.gridColumnUpdate(
+                context,
+                {
+                  grid: {
+                    group_by: true,
+                    group_by_order: order++,
+                    group_by_sort: group.direction,
+                  },
+                  gridViewColumnId: group.field,
+                  req,
+                },
+                trxNcMeta,
+              );
+            }
+          }
+          break;
         }
-        insertedV2View = await this.gridsService.gridViewCreate(context, {
-          tableId,
-          grid: requestBody,
-          req: req,
-        });
-        if (groups && groups.length > 0) {
-          let order = 1;
-          for (const group of groups) {
-            await this.gridColumnsService.gridColumnUpdate(context, {
-              grid: {
-                group_by: true,
-                group_by_order: order++,
-                group_by_sort: group.direction,
+        case ViewTypes.CALENDAR: {
+          insertedV2View = await this.calendarsService.calendarViewCreate(
+            context,
+            {
+              tableId,
+              calendar: {
+                ...requestBody,
+                ...this.v3Tov2ViewBuilders
+                  .calendar()
+                  .build(requestBody.options),
               },
-              gridViewColumnId: group.field,
-              req,
-            });
-          }
+              req: req,
+              user: context.user,
+            },
+            trxNcMeta,
+          );
+          break;
         }
-        break;
-      }
-      case ViewTypes.CALENDAR: {
-        insertedV2View = await this.calendarsService.calendarViewCreate(
-          context,
-          {
+        case ViewTypes.KANBAN: {
+          insertedV2View = await this.kanbansService.kanbanViewCreate(context, {
             tableId,
-            calendar: {
+            kanban: {
               ...requestBody,
-              ...this.v3Tov2ViewBuilders.calendar().build(requestBody.options),
+              ...this.v3Tov2ViewBuilders.kanban().build(requestBody.options),
             },
             req: req,
             user: context.user,
-          },
-        );
-        break;
-      }
-      case ViewTypes.KANBAN: {
-        insertedV2View = await this.kanbansService.kanbanViewCreate(context, {
-          tableId,
-          kanban: {
-            ...requestBody,
-            ...this.v3Tov2ViewBuilders.kanban().build(requestBody.options),
-          },
-          req: req,
-          user: context.user,
-        });
-        break;
-      }
-      case ViewTypes.GALLERY: {
-        insertedV2View = await this.galleriesService.galleryViewCreate(
-          context,
-          {
+          });
+          break;
+        }
+        case ViewTypes.GALLERY: {
+          insertedV2View = await this.galleriesService.galleryViewCreate(
+            context,
+            {
+              tableId,
+              gallery: {
+                ...requestBody,
+                ...this.v3Tov2ViewBuilders.gallery().build(requestBody.options),
+              },
+              req: req,
+              user: context.user,
+            },
+          );
+          break;
+        }
+        case ViewTypes.FORM: {
+          insertedV2View = await this.formsService.formViewCreate(context, {
             tableId,
-            gallery: {
+            body: {
               ...requestBody,
-              ...this.v3Tov2ViewBuilders.gallery().build(requestBody.options),
+              ...this.v3Tov2ViewBuilders.form().build(requestBody.options),
             },
             req: req,
             user: context.user,
-          },
-        );
-        break;
+          });
+          break;
+        }
+        default: {
+          NcError.get(context).invalidRequestBody(
+            `Type ${requestBody.type} is not supported`,
+          );
+          break;
+        }
       }
-      case ViewTypes.FORM: {
-        insertedV2View = await this.formsService.formViewCreate(context, {
-          tableId,
-          body: {
-            ...requestBody,
-            ...this.v3Tov2ViewBuilders.form().build(requestBody.options),
-          },
-          req: req,
-          user: context.user,
-        });
-        break;
-      }
-      default: {
-        NcError.get(context).invalidRequestBody(
-          `Type ${requestBody.type} is not supported`,
-        );
-        break;
-      }
-    }
 
-    if (requestBody.sorts && requestBody.sorts.length > 0) {
-      for (const sort of requestBody.sorts) {
-        await this.sortsV3Service.sortCreate(context, {
-          viewId: insertedV2View.id,
-          req,
-          sort,
-        });
+      if (requestBody.sorts && requestBody.sorts.length > 0) {
+        for (const sort of requestBody.sorts) {
+          await this.sortsV3Service.sortCreate(
+            context,
+            {
+              viewId: insertedV2View.id,
+              req,
+              sort,
+            },
+            trxNcMeta,
+          );
+        }
       }
-    }
 
-    return this.getView(context, { viewId: insertedV2View.id, req });
+      if (!ncMeta) {
+        await trxNcMeta.commit();
+      }
+      return this.getView(context, { viewId: insertedV2View.id, req });
+    } catch (ex) {
+      await trxNcMeta.rollback();
+    }
   }
 }

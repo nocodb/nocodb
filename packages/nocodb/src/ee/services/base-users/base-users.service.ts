@@ -237,6 +237,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
           context,
           {
             ...param,
+            emailUserMap,
             base,
           },
           ncMeta,
@@ -313,7 +314,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
 
       // if already exists and has a role then return error
       if (baseUser?.is_mapped && baseUser?.roles) {
-        throw new Error(
+        NcError.get(context).invalidRequestBody(
           `${user.email} with role ${baseUser.roles} already exists in this base`,
         );
       }

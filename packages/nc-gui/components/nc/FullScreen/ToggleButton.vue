@@ -15,10 +15,22 @@ const sidebarStore = useSidebarStore()
 const { isFullScreen } = storeToRefs(sidebarStore)
 
 const { toggleFullScreenState } = sidebarStore
+
+/**
+ * hide-on-click is not working when we enter in fullscreen mode as tooltip is getting disabled as soon as we enter in fullscreen mode.
+ * Which is why we need to use a key to force the tooltip to re-render.
+ */
 </script>
 
 <template>
-  <NcTooltip v-if="!isMobileMode" hide-on-click :title="$t('labels.enterFullscreen')" :disabled="isFullScreen" placement="left">
+  <NcTooltip
+    v-if="!isMobileMode"
+    :key="`${isFullScreen}`"
+    hide-on-click
+    :title="$t('labels.enterFullscreen')"
+    :disabled="isFullScreen"
+    placement="left"
+  >
     <NcButton
       :type="isFullScreen ? 'primary' : 'secondary'"
       :size="size"

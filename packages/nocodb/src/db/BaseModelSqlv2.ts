@@ -155,7 +155,7 @@ function prepareMetaUpdateQuery({
   knex: XKnex;
   colIds: string[];
   props: Record<string, unknown>;
-  metaColumn: column;
+  metaColumn: Column;
 }) {
   const jsonObjQuery = knex.raw('?::jsonb', JSON.stringify(props)).toString();
 
@@ -6340,7 +6340,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           modifiedBy: cookie?.user?.id,
           modifiedTime: this.now(),
         },
-        metaColumn: column,
+        metaColumn,
       });
     }
 

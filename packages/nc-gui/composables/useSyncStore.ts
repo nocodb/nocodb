@@ -11,7 +11,7 @@ interface SyncConfig {
   sync_category: SyncCategory | null
   exclude_models: string[]
   on_delete_action: OnDeleteAction
-  sync_trigger_cron: string | null
+  sync_trigger_cron?: string
 }
 
 const defaultSyncConfig: SyncConfig = {
@@ -21,7 +21,7 @@ const defaultSyncConfig: SyncConfig = {
   sync_category: SyncCategory.TICKETING,
   exclude_models: [],
   on_delete_action: OnDeleteAction.MarkDeleted,
-  sync_trigger_cron: null,
+  sync_trigger_cron: undefined,
 }
 
 export interface IntegrationConfig {

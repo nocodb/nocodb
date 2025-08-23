@@ -47,6 +47,17 @@ const formModel = computed(() => {
         </a-form-item>
       </a-col>
       <a-col :span="12">
+        <a-form-item label="On Delete Action" v-bind="validateInfosSyncConfig.on_delete_action" hide-required-mark>
+          <a-select
+            v-model:value="formModel.on_delete_action"
+            :options="onDeleteActionOptions"
+            @change="syncConfigEditFormChanged = true"
+          />
+        </a-form-item>
+      </a-col>
+    </a-row>
+    <a-row :gutter="24">
+      <a-col :span="12">
         <a-form-item label="Sync Trigger" v-bind="validateInfosSyncConfig.sync_trigger" hide-required-mark>
           <a-select
             v-model:value="formModel.sync_trigger"
@@ -55,15 +66,9 @@ const formModel = computed(() => {
           />
         </a-form-item>
       </a-col>
-    </a-row>
-    <a-row :gutter="24">
-      <a-col :span="12">
-        <a-form-item label="On Delete Action" v-bind="validateInfosSyncConfig.on_delete_action" hide-required-mark>
-          <a-select
-            v-model:value="formModel.on_delete_action"
-            :options="onDeleteActionOptions"
-            @change="syncConfigEditFormChanged = true"
-          />
+      <a-col v-if="formModel.sync_trigger === 'schedule'" :span="12">
+        <a-form-item label="Sync Schedule" v-bind="validateInfosSyncConfig.sync_trigger_cron" hide-required-mark>
+          <DashboardSettingsSyncSchedule v-model="formModel.sync_trigger_cron" @change="syncConfigEditFormChanged = true" />
         </a-form-item>
       </a-col>
     </a-row>

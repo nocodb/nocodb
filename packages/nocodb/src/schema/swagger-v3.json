@@ -2290,12 +2290,12 @@
                       "list": [
                         {
                           "id": "so3o7c6po0tktghc",
-                          "fieldId": "c580jyan91qwrbx",
+                          "field_id": "c580jyan91qwrbx",
                           "order": "asc"
                         },
                         {
                           "id": "so1n4x4w7dou8p0v",
-                          "fieldId": "caymvuj3az60wyk",
+                          "field_id": "caymvuj3az60wyk",
                           "order": "desc"
                         }
                       ]
@@ -2350,7 +2350,7 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "fieldId": "c580jyan91qwrbx",
+                    "field_id": "c580jyan91qwrbx",
                     "order": "asc"
                   }
                 }
@@ -5131,7 +5131,7 @@
             "description": "Unique identifier for the sort.",
             "readOnly": true
           },
-          "fieldId": {
+          "field_id": {
             "type": "string",
             "format": "uuid",
             "description": "Identifier for the field being sorted."
@@ -5147,14 +5147,14 @@
         },
         "required": [
           "id",
-          "fieldId",
+          "field_id",
           "direction"
         ]
       },
       "SortCreate": {
         "type": "object",
         "properties": {
-          "fieldId": {
+          "field_id": {
             "type": "string",
             "description": "Identifier for the field being sorted."
           },
@@ -5168,7 +5168,7 @@
           }
         },
         "required": [
-          "fieldId"
+          "field_id"
         ]
       },
       "SortUpdate": {
@@ -5178,7 +5178,7 @@
             "type": "string",
             "description": "Unique identifier for the sort."
           },
-          "fieldId": {
+          "field_id": {
             "type": "string",
             "format": "uuid",
             "description": "Identifier for the field being sorted."
@@ -5211,11 +5211,11 @@
           "view_type": {
             "type": "string",
             "enum": [
-              "GRID",
-              "GALLERY",
-              "KANBAN",
-              "CALENDAR",
-              "FORM"
+              "grid",
+              "gallery",
+              "kanban",
+              "calendar",
+              "form"
             ],
             "description": "Type of the view."
           }
@@ -5267,7 +5267,7 @@
       "ViewColumnOption": {
         "type": "object",
         "properties": {
-          "fieldsById": {
+          "fields_by_id": {
             "type": "object",
             "additionalProperties": {
               "type": "object",
@@ -5281,13 +5281,13 @@
                 "required": {
                   "type": "boolean"
                 },
-                "allowScannerInput": {
+                "allow_scanner_input": {
                   "type": "boolean"
                 },
-                "isList": {
+                "is_list": {
                   "type": "boolean"
                 },
-                "isLimitOption": {
+                "is_limit_option": {
                   "type": "boolean"
                 },
                 "validators": {
@@ -5327,7 +5327,7 @@
                   "type": {
                     "type": "string",
                     "enum": [
-                      "GRID"
+                      "grid"
                     ]
                   },
                   "options": {
@@ -5341,7 +5341,7 @@
                   "type": {
                     "type": "string",
                     "enum": [
-                      "KANBAN"
+                      "kanban"
                     ]
                   },
                   "options": {
@@ -5355,7 +5355,7 @@
                   "type": {
                     "type": "string",
                     "enum": [
-                      "CALENDAR"
+                      "calendar"
                     ]
                   },
                   "options": {
@@ -5369,7 +5369,7 @@
                   "type": {
                     "type": "string",
                     "enum": [
-                      "GALLERY"
+                      "gallery"
                     ]
                   },
                   "options": {
@@ -5383,7 +5383,7 @@
                   "type": {
                     "type": "string",
                     "enum": [
-                      "FORM"
+                      "form"
                     ]
                   },
                   "options": {
@@ -5409,20 +5409,20 @@
               "type": {
                 "type": "string",
                 "enum": [
-                  "GRID",
-                  "GALLERY",
-                  "KANBAN",
-                  "CALENDAR",
-                  "FORM"
+                  "grid",
+                  "gallery",
+                  "kanban",
+                  "calendar",
+                  "form"
                 ],
                 "description": "Type of the view."
               },
-              "orderedFields": {
+              "ordered_fields": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
-                    "fieldId": {
+                    "field_id": {
                       "type": "string"
                     },
                     "show": {
@@ -5433,7 +5433,7 @@
                     }
                   },
                   "required": [
-                    "fieldId"
+                    "field_id"
                   ]
                 }
               }
@@ -5484,11 +5484,11 @@
               "type": {
                 "type": "string",
                 "enum": [
-                  "GRID",
-                  "GALLERY",
-                  "KANBAN",
-                  "CALENDAR",
-                  "FORM"
+                  "grid",
+                  "gallery",
+                  "kanban",
+                  "calendar",
+                  "form"
                 ],
                 "description": "Type of the view."
               },
@@ -5545,7 +5545,7 @@
             "items": {
               "type": "object",
               "properties": {
-                "fieldId": {
+                "field_id": {
                   "type": "string"
                 },
                 "direction": {
@@ -5557,7 +5557,7 @@
                 }
               },
               "required": [
-                "fieldId"
+                "field_id"
               ]
             }
           }
@@ -5566,18 +5566,18 @@
       "ViewOptionsKanban": {
         "type": "object",
         "properties": {
-          "stackBy": {
+          "stack_by": {
             "type": "object",
             "properties": {
-              "fieldId": {
+              "field_id": {
                 "type": "string"
               }
             }
           },
-          "coverFieldId": {
+          "cover_field_id": {
             "type": "string"
           },
-          "stackOrder": {
+          "stack_order": {
             "type": "array",
             "items": {
               "type": "string"
@@ -5585,38 +5585,38 @@
           }
         },
         "required": [
-          "stackBy"
+          "stack_by"
         ]
       },
       "ViewOptionsCalendar": {
         "type": "object",
         "properties": {
-          "dateRanges": {
+          "date_ranges": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
-                "startDateFieldId": {
+                "start_date_field_id": {
                   "type": "string"
                 },
-                "endDateFieldId": {
+                "end_date_field_id": {
                   "type": "string"
                 }
               },
               "required": [
-                "startDateFieldId"
+                "start_date_field_id"
               ]
             }
           }
         },
         "required": [
-          "dateRanges"
+          "date_ranges"
         ]
       },
       "ViewOptionsGallery": {
         "type": "object",
         "properties": {
-          "coverFieldId": {
+          "cover_field_id": {
             "type": "string"
           }
         }
@@ -5624,15 +5624,15 @@
       "ViewOptionsForm": {
         "type": "object",
         "properties": {
-          "formTitle": {
+          "form_title": {
             "type": "string",
             "description": "Heading for the form."
           },
-          "formDescription": {
+          "form_description": {
             "type": "string",
             "description": "Subheading for the form."
           },
-          "thankYouMessage": {
+          "thank_you_message": {
             "type": "string",
             "description": "Success message shown after form submission."
           },
@@ -5644,11 +5644,11 @@
             "type": "boolean",
             "description": "Whether to send a response email."
           },
-          "submitAnotherForm": {
+          "submit_another_form": {
             "type": "boolean",
             "description": "Whether to show another form after submission."
           },
-          "showBlankForm": {
+          "show_blank_form": {
             "type": "boolean",
             "description": "Whether to show a blank form after submission."
           },
@@ -5675,7 +5675,7 @@
             "description": "Background color for the form.",
             "pattern": "^#[0-9A-Fa-f]{6}$"
           },
-          "redirectOnSubmit": {
+          "redirect_on_submit": {
             "type": "object",
             "properties": {
               "url": {

@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ncIsNullOrUndefined, parseProp, ViewTypes } from 'nocodb-sdk';
+import {
+  ncIsNullOrUndefined,
+  parseProp,
+  viewTypeAlias,
+  ViewTypes,
+} from 'nocodb-sdk';
 import { GridsService } from '../grids.service';
 import { CalendarsService } from '../calendars.service';
 import { KanbansService } from '../kanbans.service';
@@ -25,18 +30,13 @@ import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { validatePayload } from '~/helpers';
 import { FormColumnsService } from '~/services/form-columns.service';
 
-// cannot use viewTypeAlias due to uppercase
 const viewTypeMap = {
-  GRID: ViewTypes.GRID,
-  GALLERY: ViewTypes.GALLERY,
-  KANBAN: ViewTypes.KANBAN,
-  CALENDAR: ViewTypes.CALENDAR,
-  FORM: ViewTypes.FORM,
-  [ViewTypes.GRID]: 'GRID',
-  [ViewTypes.GALLERY]: 'GALLERY',
-  [ViewTypes.KANBAN]: 'KANBAN',
-  [ViewTypes.CALENDAR]: 'CALENDAR',
-  [ViewTypes.FORM]: 'FORM',
+  grid: ViewTypes.GRID,
+  gallery: ViewTypes.GALLERY,
+  kanban: ViewTypes.KANBAN,
+  calendar: ViewTypes.CALENDAR,
+  form: ViewTypes.FORM,
+  ...viewTypeAlias,
 };
 
 @Injectable()
@@ -171,13 +171,13 @@ export class ViewsV3Service {
         'fk_grp_col_id',
       ],
       mappings: {
-        heading: 'formTitle',
-        subheading: 'formDescription',
-        success_msg: 'thankYouMessage',
+        heading: 'form_title',
+        subheading: 'form_description',
+        success_msg: 'thank_you_message',
         redirect_after_secs: 'form_redirect_after_secs',
         email: 'form_send_response_email',
-        submit_another_form: 'submitAnotherForm',
-        show_blank_form: 'showBlankForm',
+        submit_another_form: 'submit_another_form',
+        show_blank_form: 'show_blank_form',
         hide_banner: 'form_hide_banner',
         hide_branding: 'form_hide_branding',
         banner_image_url: 'form_banner_image_url',
@@ -197,18 +197,18 @@ export class ViewsV3Service {
         const formattedData = viewData;
 
         if (formattedData?.calendar_range?.length) {
-          formattedData.dateRanges = formattedData.calendar_range.map(
+          formattedData.date_ranges = formattedData.calendar_range.map(
             (range) => ({
-              startDateFieldId: range.fk_from_column_id ?? undefined,
-              endDateFieldId: range.fk_to_column_id ?? undefined,
+              start_date_field_id: range.fk_from_column_id ?? undefined,
+              end_date_field_id: range.fk_to_column_id ?? undefined,
             }),
           );
           formattedData.calendar_range = undefined;
         }
         if (formattedData.kanban_stack_by_field_id) {
-          formattedData.stackBy = {
-            fieldId: formattedData.kanban_stack_by_field_id,
-            stackOrder: (
+          formattedData.stack_by = {
+            field_id: formattedData.kanban_stack_by_field_id,
+            stack_order: (
               parseProp(formattedData.meta ?? {})?.[
                 formattedData.kanban_stack_by_field_id
               ] ?? []
@@ -227,7 +227,7 @@ export class ViewsV3Service {
         formattedData.meta = undefined;
 
         if (formattedData.redirect_url) {
-          formattedData.redirectOnSubmit = {
+          formattedData.redirect_on_submit = {
             url: formattedData.redirect_url,
           };
           formattedData.redirect_url = undefined;
@@ -268,38 +268,38 @@ export class ViewsV3Service {
     this.v3Tov2ViewBuilders.options = builderGenerator<any, any>({
       allowed: [
         // calendar
-        'dateRanges',
+        'date_ranges',
 
         // kanban
-        'stackBy',
+        'stack_by',
 
         // gallery
-        'coverFieldId',
+        'cover_field_id',
 
         // form specific for now
-        'fieldsById',
+        'fields_by_id',
         // form
-        'formTitle',
-        'formDescription',
-        'submitButtonLabel',
-        'thankYouMessage',
-        'redirectOnSubmit',
-        'submitAnotherForm',
-        'showBlankForm',
+        'form_title',
+        'form_description',
+        'submit_button_label',
+        'thank_you_message',
+        'redirect_on_submit',
+        'submit_another_form',
+        'show_blank_form',
       ],
       mappings: {
         // calendar
-        dateRanges: 'calendar_range',
+        date_ranges: 'calendar_range',
 
         // gallery
-        coverFieldId: 'fk_cover_image_col_id',
+        cover_field_id: 'fk_cover_image_col_id',
 
         // form
-        formTitle: 'heading',
-        formDescription: 'subheading',
-        thankYouMessage: 'success_msg',
-        submitAnotherForm: 'submit_another_form',
-        showBlankForm: 'show_blank_form',
+        form_title: 'heading',
+        form_description: 'subheading',
+        thank_you_message: 'success_msg',
+        submit_another_form: 'submit_another_form',
+        show_blank_form: 'show_blank_form',
       },
       transformFn: (options) => {
         const result = {
@@ -308,14 +308,14 @@ export class ViewsV3Service {
           ...(options.calendar_range?.length ?? 0 > 0
             ? {
                 calendar_range: options.calendar_range.map((range) => ({
-                  fk_from_column_id: range.startDateFieldId,
-                  fk_to_column_id: range.endDateFieldId,
+                  fk_from_column_id: range.start_date_field_id,
+                  fk_to_column_id: range.end_date_field_id,
                 })),
               }
             : {}),
           // kanban
-          ...(options.stackBy?.fieldId
-            ? { fk_grp_col_id: options.stackBy.fieldId }
+          ...(options.stack_by?.field_id
+            ? { fk_grp_col_id: options.stack_by.field_id }
             : {}),
         };
 
@@ -328,25 +328,25 @@ export class ViewsV3Service {
         'alias',
         'description',
         'required',
-        'allowScannerInput',
-        'isList',
-        'isLimitOption',
+        'allow_scanner_input',
+        'is_list',
+        'is_limit_option',
         'validators',
       ],
       mappings: {
         alias: 'label',
-        allowScannerInput: 'enable_scanner',
+        allow_scanner_input: 'enable_scanner',
       },
       transformFn: (field) => {
-        if (!ncIsNullOrUndefined(field.isList)) {
+        if (!ncIsNullOrUndefined(field.is_list)) {
           field.meta = field.meta ?? {};
-          field.meta.isList = field.isList;
-          field.isList = undefined;
+          field.meta.is_list = field.is_list;
+          field.is_list = undefined;
         }
-        if (!ncIsNullOrUndefined(field.isLimitOption)) {
+        if (!ncIsNullOrUndefined(field.is_limit_option)) {
           field.meta = field.meta ?? {};
-          field.meta.isLimitOption = field.isLimitOption;
-          field.isLimitOption = undefined;
+          field.meta.is_limit_option = field.is_limit_option;
+          field.is_limit_option = undefined;
         }
         if (!ncIsNullOrUndefined(field.validators)) {
           field.meta = field.meta ?? {};
@@ -361,12 +361,12 @@ export class ViewsV3Service {
       allowed: ['label', 'description', 'required', 'enable_scanner', 'meta'],
       mappings: {
         label: 'alias',
-        enable_scanner: 'allowScannerInput',
+        enable_scanner: 'allow_scanner_input',
       },
       transformFn: (field) => {
         if (!ncIsNullOrUndefined(field.meta)) {
-          field.isList = field.meta.isList;
-          field.isLimitOption = field.meta.isLimitOption;
+          field.is_list = field.meta.is_list;
+          field.is_limit_option = field.meta.is_limit_option;
           field.validators = field.meta.validators;
           delete field.meta;
         }
@@ -439,7 +439,7 @@ export class ViewsV3Service {
                 ((c2 as GridViewColumn).group_by_order || Infinity),
             )
             .map((c) => ({
-              fieldId: c.fk_column_id,
+              field_id: c.fk_column_id,
               direction: (c as GridViewColumn).group_by_sort,
             }));
           if (group && group.length > 0) {
@@ -459,7 +459,7 @@ export class ViewsV3Service {
       case ViewTypes.FORM:
         {
           formattedView.options = formattedView.options ?? {};
-          formattedView.options.fieldByIds = viewColumnList.reduce(
+          formattedView.options.field_by_ids = viewColumnList.reduce(
             (acc, cur) => {
               acc[cur.fk_column_id] = this.v2Tov3ViewBuilders
                 .formFieldByIds()
@@ -494,7 +494,9 @@ export class ViewsV3Service {
     );
     if (body.options) {
       const optionsSchemaName =
-        'ViewOptions' + body.type[0] + body.type.substring(1).toLowerCase();
+        'ViewOptions' +
+        body.type[0].toUpperCase() +
+        body.type.substring(1).toLowerCase();
       validatePayload(
         `swagger-v3.json#/components/schemas/${optionsSchemaName}`,
         body.options,
@@ -503,7 +505,7 @@ export class ViewsV3Service {
       );
       if (
         viewTypeMap[body.type] === ViewTypes.FORM &&
-        body.options.fieldsById
+        body.options.fields_by_id
       ) {
         validatePayload(
           `swagger-v3.json#/components/schemas/ViewColumnOption`,
@@ -515,7 +517,7 @@ export class ViewsV3Service {
     }
 
     const viewTypeCode =
-      viewTypeMap[(body.type as any as string).toUpperCase()];
+      viewTypeMap[(body.type as any as string).toLowerCase()];
 
     const { modelColumns } = await this.validateFieldIds(
       context,
@@ -547,8 +549,8 @@ export class ViewsV3Service {
         req,
         tableId,
         modelColumns,
-        orderedFields: body.orderedFields,
-        fieldsById: body.options?.fieldsById,
+        orderedFields: body.ordered_fields,
+        fieldsById: body.options?.fields_by_id,
       },
       ncMeta,
     );
@@ -595,7 +597,7 @@ export class ViewsV3Service {
                     group_by_sort: group.direction,
                   },
                   gridViewColumnId: gridColumns.find(
-                    (col) => col.fk_column_id === group.fieldId,
+                    (col) => col.fk_column_id === group.field_id,
                   ).id,
                   req,
                 },
@@ -633,13 +635,13 @@ export class ViewsV3Service {
             context,
             {
               kanbanViewId: insertedV2View.id,
-              optionsOrder: requestBody.options.stackBy.stackOrder ?? [],
+              optionsOrder: requestBody.options.stack_by.stack_order ?? [],
               req,
             },
             trxNcMeta,
           );
 
-          requestBody.options.stackBy = undefined;
+          requestBody.options.stack_by = undefined;
 
           break;
         }
@@ -726,40 +728,42 @@ export class ViewsV3Service {
     const { body, viewTypeCode, isCreate } = param;
     const fieldIdToVerify = [];
 
-    fieldIdToVerify.push(...Object.keys(body.options?.fieldsById ?? {}));
+    fieldIdToVerify.push(...Object.keys(body.options?.fields_by_id ?? {}));
     if (![ViewTypes.FORM].includes(viewTypeCode) && body.sorts) {
-      fieldIdToVerify.push(...body.sorts.map((sort) => sort.fieldId));
+      fieldIdToVerify.push(...body.sorts.map((sort) => sort.field_id));
     }
     if (isCreate && body.orderedFields) {
-      fieldIdToVerify.push(...body.orderedFields.map((field) => field.fieldId));
+      fieldIdToVerify.push(
+        ...body.orderedFields.map((field) => field.field_id),
+      );
     }
     if (!isCreate && body.fields) {
-      fieldIdToVerify.push(...body.fields.map((field) => field.fieldId));
+      fieldIdToVerify.push(...body.fields.map((field) => field.field_id));
     }
     if ([ViewTypes.GRID].includes(viewTypeCode) && body.options?.groups) {
       fieldIdToVerify.push(
-        ...body.options.groups.map((field) => field.fieldId),
+        ...body.options.groups.map((field) => field.field_id),
       );
     }
     if (
       [ViewTypes.KANBAN].includes(viewTypeCode) &&
-      body.options?.stackBy?.fieldId
+      body.options?.stack_by?.field_id
     ) {
-      fieldIdToVerify.push(body.options?.stackBy?.fieldId);
+      fieldIdToVerify.push(body.options?.stack_by?.field_id);
     }
     if (
       [ViewTypes.CALENDAR].includes(viewTypeCode) &&
-      body.options?.dateRanges
+      body.options?.date_ranges
     ) {
       fieldIdToVerify.push(
-        ...(body.options?.dateRanges?.reduce((acc, cur) => {
-          return [...acc, cur.startDateFieldId, cur.endDateFieldId];
+        ...(body.options?.date_ranges?.reduce((acc, cur) => {
+          return [...acc, cur.start_date_field_id, cur.end_date_field_id];
         }, []) ?? []),
       );
     }
 
-    if (body.options?.coverFieldId) {
-      fieldIdToVerify.push(body.options?.coverFieldId);
+    if (body.options?.cover_field_id) {
+      fieldIdToVerify.push(body.options?.cover_field_id);
     }
     // remove undefined
     return fieldIdToVerify.filter((k) => k);
@@ -800,8 +804,8 @@ export class ViewsV3Service {
       req: NcRequest;
       tableId: string;
       modelColumns?: { id: string; order: number }[];
-      orderedFields?: ViewCreateV3Type['orderedFields'];
-      fieldsById?: ViewColumnOptionV3Type['fieldsById'];
+      orderedFields?: ViewCreateV3Type['ordered_fields'];
+      fieldsById?: ViewColumnOptionV3Type['fields_by_id'];
     },
     ncMeta?: MetaService,
   ) {
@@ -828,7 +832,7 @@ export class ViewsV3Service {
       // we get the order by array index
       const orderedFieldMap = (param.orderedFields ?? []).reduce(
         (acc, val, idx) => {
-          acc[val.fieldId] = { ...val, order: idx };
+          acc[val.field_id] = { ...val, order: idx };
           return acc;
         },
         {},
@@ -968,14 +972,16 @@ export class ViewsV3Service {
     if (body.options) {
       const viewTypeStr = viewTypeMap[existingView.type];
       const optionsSchemaName =
-        'ViewOptions' + viewTypeStr[0] + viewTypeStr.substring(1).toLowerCase();
+        'ViewOptions' +
+        viewTypeStr[0].toUpperCase() +
+        viewTypeStr.substring(1).toLowerCase();
       validatePayload(
         `swagger-v3.json#/components/schemas/${optionsSchemaName}`,
         body.options,
         true,
         context,
       );
-      if (existingView.type === ViewTypes.FORM && body.options.fieldsById) {
+      if (existingView.type === ViewTypes.FORM && body.options.fields_by_id) {
         validatePayload(
           `swagger-v3.json#/components/schemas/ViewColumnOption`,
           body.options,
@@ -1010,8 +1016,10 @@ export class ViewsV3Service {
       ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
     };
     const updateViewColumns: Record<string, any> = {};
-    // fieldsById for update
-    for (const [colId, col] of Object.entries(body.options?.fieldsById ?? {})) {
+    // fields_by_id for update
+    for (const [colId, col] of Object.entries(
+      body.options?.fields_by_id ?? {},
+    )) {
       updateViewColumns[colId] = {
         ...updateViewColumns[colId],
         ...this.v3Tov2ViewBuilders.formFieldByIds().build(col),
@@ -1073,7 +1081,7 @@ export class ViewsV3Service {
                       group_by_sort: group.direction,
                     },
                     gridViewColumnId: gridColumns.find(
-                      (col) => col.fk_column_id === group.fieldId,
+                      (col) => col.fk_column_id === group.field_id,
                     ).id,
                     req,
                   },

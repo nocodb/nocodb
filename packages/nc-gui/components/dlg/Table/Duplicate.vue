@@ -56,12 +56,12 @@ const targetWorkspace = ref(activeWorkspace)
 const targetBase = ref(activeBase.value)
 
 const targetTableMeta = computedAsync(async () => {
-  return getMeta(props.table.id)
+  return getMeta(props.table.id!)
 })
 
 const canTargetOtherBase = computedAsync(async () => {
   if (!targetTableMeta.value || (targetTableMeta.value.columns?.length ?? 0) === 0) return false
-  return isEeUI && !targetTableMeta.value.columns?.some((col) => [UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt))
+  return isEeUI && !targetTableMeta.value.columns?.some((col) => [UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt!))
 })
 const isTargetOtherWsSufficientPlan = computedAsync(async () => {
   return getFeature(PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS)
@@ -75,28 +75,39 @@ const workspaceOptions = computed(() => {
   )
 })
 
-const selectWorkspace = (option: WorkspaceType) => {
-  targetWorkspace.value = option
-  wsDropdownOpen.value = false
-}
-
 const isTargetOtherBaseSufficientPlan = computedAsync(async () => {
   return getFeature(PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE)
 })
-const targetBases = computedAsync(async () => {
+const targetBases: Ref<BaseType[]> = ref([])
+const refreshTargetBases = async () => {
   if (!isEeUI || !targetWorkspace.value) {
-    return []
+    targetBases.value = []
+    return
   }
   if (!isTargetOtherBaseSufficientPlan.value) {
-    return [activeBase.value]
+    targetBases.value = [activeBase.value]
+    return
   }
   const bases = await loadProjects(undefined, targetWorkspace.value.id)
-  return (bases as any[]).filter(
-    (base) =>
-      [WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(targetWorkspace.value!.roles as WorkspaceUserRoles) ||
-      [ProjectRoles.OWNER, ProjectRoles.CREATOR].includes(base.project_role),
+  targetBases.value.splice(0)
+  targetBases.value.push(
+    ...((bases as any[])?.filter(
+      (base) =>
+        [WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(targetWorkspace.value!.roles as WorkspaceUserRoles) ||
+        [ProjectRoles.OWNER, ProjectRoles.CREATOR].includes(base.project_role),
+    ) ?? []),
   )
-})
+}
+const selectWorkspace = async (option: WorkspaceType) => {
+  if (option.id !== targetWorkspace.value?.id) {
+    targetBase.value = null as any
+  }
+  targetWorkspace.value = option
+  wsDropdownOpen.value = false
+  await refreshTargetBases()
+  targetBase.value = targetBases.value?.[0] as any
+}
+
 const selectBase = (option: BaseType) => {
   targetBase.value = option
   baseDropdownOpen.value = false
@@ -196,8 +207,15 @@ onKeyStroke('Enter', () => {
     _duplicate()
   }
 })
-
+watch(isTargetOtherBaseSufficientPlan, (newValue) => {
+  if (newValue) {
+    refreshTargetBases()
+  }
+})
 const isEaster = ref(false)
+onMounted(() => {
+  refreshTargetBases()
+})
 </script>
 
 <template>
@@ -264,7 +282,7 @@ const isEaster = ref(false)
         <div class="text-nc-content-gray font-medium leading-5 mb-2">
           {{ $t('labels.workspace') }}
           <div v-if="!canTargetOtherBase" class="flex gap-2">
-            <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace" />
+            <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace!" />
 
             <div class="flex-1 capitalize truncate">
               {{ targetWorkspace?.title }}
@@ -285,7 +303,7 @@ const isEaster = ref(false)
                     '!border-brand-500 !shadow-selected': wsDropdownOpen,
                   }"
                 >
-                  <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace" />
+                  <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace!" />
 
                   <div class="flex-1 capitalize truncate">
                     {{ targetWorkspace?.title }}
@@ -310,10 +328,10 @@ const isEaster = ref(false)
 
                 <template #overlay>
                   <NcList
-                    :value="targetWorkspace"
+                    :value="targetWorkspace!"
                     :item-height="28"
                     close-on-select
-                    class="nc-base-workspace-selection"
+                    class="nc-base-workspace-selection w-full"
                     :min-items-for-search="6"
                     container-class-name="w-full"
                     :list="workspaceOptions"
@@ -327,19 +345,25 @@ const isEaster = ref(false)
                       <NcDivider />
                     </template>
 
-                    <template #listItem="{ option }">
-                      <div class="flex gap-2 w-full items-center" @click="selectWorkspace(option)">
-                        <GeneralWorkspaceIcon :workspace="option" size="small" />
+                    <template #listItem="{ option: optionItem }">
+                      <div class="flex gap-2 w-full items-center" @click="selectWorkspace(optionItem as WorkspaceType)">
+                        <GeneralWorkspaceIcon :workspace="optionItem as WorkspaceType" size="small" />
 
                         <div class="flex-1 text-[13px] truncate font-semibold leading-5 capitalize w-full">
-                          {{ option.title }}
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                          <div v-if="activeWorkspace?.id === option.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
-                            {{ $t('labels.currentWorkspace') }}
+                          {{ optionItem.title }}
+                          <div class="flex items-center gap-2">
+                            <div
+                              v-if="activeWorkspace?.id === optionItem.id"
+                              class="text-nc-content-gray-muted leading-4.5 text-xs"
+                            >
+                              {{ $t('labels.currentWorkspace') }}
+                            </div>
+                            <GeneralIcon
+                              v-if="optionItem.id === targetWorkspace?.id"
+                              class="text-brand-500 w-4 h-4"
+                              icon="ncCheck"
+                            />
                           </div>
-                          <GeneralIcon v-if="option.id === targetWorkspace?.id" class="text-brand-500 w-4 h-4" icon="ncCheck" />
                         </div>
                       </div>
                     </template>
@@ -383,14 +407,15 @@ const isEaster = ref(false)
                     '!border-brand-500 !shadow-selected': baseDropdownOpen,
                   }"
                 >
-                  <!-- TODO: base icon
-                <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace" />
-                -->
-
-                  <div class="flex-1 capitalize truncate">
-                    {{ targetBase?.title }}
-                  </div>
-
+                  <template v-if="!!targetBase">
+                    <div class="flex-1 capitalize truncate flex gap-1">
+                      <GeneralProjectIcon :color="parseProp(targetBase?.meta ?? {}).iconColor" size="small" />
+                      {{ targetBase?.title }}
+                    </div>
+                  </template>
+                  <template v-else>
+                    <div class="flex-1 capitalize truncate flex gap-1"></div>
+                  </template>
                   <div class="flex gap-2 items-center">
                     <div v-if="activeBase?.id === targetBase?.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
                       {{ $t('labels.currentBase') }}
@@ -407,7 +432,7 @@ const isEaster = ref(false)
 
                 <template #overlay>
                   <NcList
-                    :value="targetBase"
+                    :value="targetBase!"
                     :item-height="28"
                     close-on-select
                     class="nc-base-workspace-selection"
@@ -424,21 +449,18 @@ const isEaster = ref(false)
                       <NcDivider />
                     </template>
 
-                    <template #listItem="{ option }">
-                      <div class="flex gap-2 w-full items-center" @click="selectBase(option)">
-                        <!-- TODO: base icon
-                          <GeneralWorkspaceIcon :workspace="option" size="small" />
-                        -->
-
+                    <template #listItem="{ option: optionItem }">
+                      <div class="flex gap-2 w-full items-center" @click="selectBase(optionItem as BaseType)">
+                        <GeneralProjectIcon :color="parseProp(optionItem.meta).iconColor" size="small" />
                         <div class="flex-1 text-[13px] truncate font-semibold leading-5 capitalize w-full">
-                          {{ option.title }}
+                          {{ optionItem.title }}
                         </div>
 
                         <div class="flex items-center gap-2">
-                          <div v-if="activeBase?.id === option.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
+                          <div v-if="activeBase?.id === optionItem.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
                             {{ $t('labels.currentBase') }}
                           </div>
-                          <GeneralIcon v-if="option.id === targetBase?.id" class="text-brand-500 w-4 h-4" icon="ncCheck" />
+                          <GeneralIcon v-if="optionItem.id === targetBase?.id" class="text-brand-500 w-4 h-4" icon="ncCheck" />
                         </div>
                       </div>
                     </template>
@@ -469,3 +491,20 @@ const isEaster = ref(false)
     </div>
   </GeneralModal>
 </template>
+
+<style scoped lang="scss">
+.nc-list-root {
+  @apply !w-[432px] !pt-0;
+}
+</style>
+
+<style lang="scss">
+.nc-base-workspace-selection {
+  .nc-list {
+    @apply !px-1;
+    .nc-list-item {
+      @apply !py-1;
+    }
+  }
+}
+</style>

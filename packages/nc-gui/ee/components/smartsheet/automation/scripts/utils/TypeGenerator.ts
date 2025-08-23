@@ -598,52 +598,126 @@ declare function step(config: string | ScriptStepConfig): string;
  */
 declare function clear(): void;
 
+interface EmailAttachment {
+  /** Name that will be displayed to the recipient. Unicode is allowed. */
+  filename?: string;
+  /** Contents of the file */
+  content?: string | Buffer;
+  /** HTTP(S) URL that should be fetched and attached */
+  href?: string;
+  /** Custom HTTP headers for href, for example { authorization: 'Bearer …' } */
+  httpHeaders?: object;
+  /** Explicit MIME type. Defaults to the type inferred from filename */
+  contentType?: string;
+  /** Content‑Disposition header. Defaults to 'attachment' */
+  contentDisposition?: string;
+  /** Content‑ID for embedding the attachment inline in the HTML body */
+  cid?: string;
+  /** Encoding applied when content is a string (e.g. 'base64', 'hex') */
+  encoding?: string;
+  /** Custom headers for the individual MIME node */
+  headers?: object;
+  /** Advanced: Full pre‑built MIME node including headers. Overrides every other field. */
+  raw?: string;
+}
+
+interface NocoDbFile {
+  /** File URL (preferred) */
+  url?: string;
+  /** File title/name */
+  title: string;
+  /** MIME type of the file */
+  mimetype: string;
+  /** File size in bytes */
+  size: number;
+  /** Signed URL for secure access (preferred over url) */
+  signedUrl?: string;
+  /** Thumbnails object (ignored for email attachments) */
+  thumbnails?: {
+    tiny: {
+      signedPath: string | never
+      signedUrl: string | never
+    },
+    small: {
+      signedPath: string | never
+      signedUrl: string | never
+    },
+    card_cover: {
+      signedPath: string | never
+      signedUrl: string | never
+    },
+  } | never
+}
+
 interface EmailOptions {
- /** Recipient email address(es) */
- to: string | string[];
- /** Email subject line */
- subject: string;
- /** HTML content of the email */
- html?: string;
- /** Plain text content of the email */
- text?: string;
- /** CC recipient email address(es) */
- cc?: string | string[];
- /** BCC recipient email address(es) */
- bcc?: string | string[];
+  /** Recipient email address(es) */
+  to: string | string[];
+  /** Email subject line */
+  subject: string;
+  /** HTML content of the email */
+  html?: string;
+  /** Plain text content of the email */
+  text?: string;
+  /** Email attachments - supports both standard email attachments and NocoDB file objects */
+  attachments?: Array<EmailAttachment | NocoDbFile>;
 }
 
 interface EmailResult {
- /** Unique identifier for the sent email */
- id: string;
- /** Whether the email was successfully sent */
- success: boolean;
+  /** Whether the email was successfully sent */
+  success: boolean;
 }
 
 /**
-* Send an email from the script.
-* 
-* @param options - Email configuration options
-* @returns Promise that resolves to email send result
-* 
-* @example
-* \`\`\`javascript
-* // Send HTML email
-* await script.email({
-*   to: 'user@example.com',
-*   subject: 'Hello World',
-*   html: '<h1>Welcome!</h1><p>Thanks for signing up.</p>'
-* });
-* 
-* // Send to multiple recipients with CC
-* await script.email({
-*   to: ['user1@example.com', 'user2@example.com'],
-*   cc: 'manager@example.com',
-*   subject: 'Team Update',
-*   text: 'Here is the latest team update...'
-* });
-* \`\`\`
-*/
+ * Send an email from the script.
+ * 
+ * @param options - Email configuration options
+ * @returns Promise that resolves to email send result
+ * 
+ * @example
+ * \`\`\`javascript
+ * // Send HTML email
+ * await script.email({
+ *   to: 'user@example.com',
+ *   subject: 'Hello World',
+ *   html: '<h1>Welcome!</h1><p>Thanks for signing up.</p>'
+ * });
+ * 
+ * // Send to multiple recipients
+ * await script.email({
+ *   to: ['user1@example.com', 'user2@example.com'],
+ *   subject: 'Team Update',
+ *   text: 'Here is the latest team update...'
+ * });
+ * 
+ * // Send with attachments
+ * await script.email({
+ *   to: 'user@example.com',
+ *   subject: 'Files Attached',
+ *   html: '<p>Please find the attached files.</p>',
+ *   attachments: [
+ *     // Standard email attachment
+ *     {
+ *       filename: 'report.pdf',
+ *       href: 'https://example.com/report.pdf',
+ *       contentType: 'application/pdf'
+ *     },
+ *     // NocoDB file object (auto-converted)
+ *     {
+ *       title: 'document.pdf',
+ *       mimetype: 'application/pdf',
+ *       size: 1024000,
+ *       signedUrl: 'https://storage.example.com/signed-url-123'
+ *     },
+ *     // Direct content attachment
+ *     {
+ *       filename: 'data.txt',
+ *       content: 'Hello World',
+ *       contentType: 'text/plain'
+ *     }
+ *   ]
+ * });
+ * \`\`\`
+ */
 declare function email(options: EmailOptions): Promise<EmailResult>;
 
 /**

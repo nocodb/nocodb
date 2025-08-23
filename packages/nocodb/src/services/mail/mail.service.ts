@@ -125,6 +125,7 @@ export class MailService {
         subject: params.subject,
         text: params.text,
         html: params.html,
+        attachments: params.attachments,
       });
     } catch (e) {
       this.logger.error(e);

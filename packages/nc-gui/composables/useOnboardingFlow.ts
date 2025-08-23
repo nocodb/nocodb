@@ -471,7 +471,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
         inputType: 'singleSelect',
         options: [
           {
-            value: 'Beginer',
+            value: 'Beginner',
             icons: [
               {
                 iconType: 'indexedStepProgressBar',

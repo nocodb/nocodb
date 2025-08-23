@@ -79,7 +79,24 @@ const filterReferencedInfoByUidt = ({
 };
 
 /**
- * get referenced column info
+ * Extracts and refines information about referenced columns from an array of parsed formula nodes.
+ * This function is crucial for ensuring type compatibility and validity of referenced columns
+ * within formula arguments based on the expected data type of the formula's output.
+ *
+ * @param {ParsedFormulaNode[]} nodes - An array of parsed formula nodes, representing the arguments
+ *   of a formula. Each node may contain information about referenced columns and their potential
+ *   UI data types (UIDTs).
+ * @param {FormulaDataTypes} dataType - The expected output data type of the formula. This is used
+ *   to filter and validate the UIDTs of the referenced columns.
+ * @param {{ isPureOperation?: boolean }} [option] - An optional object containing additional
+ *   configuration.
+ * @param {boolean} [option.isPureOperation=false] - A flag indicating if the operation is "pure."
+ *   A pure operation (e.g., TRIM, ARRAYUNIQUE) does not fundamentally change the display value's
+ *   underlying type, even if it modifies the value itself. Impure operations might map certain
+ *   UI types (like SingleSelect) to a more generic type (like SingleLineText).
+ * @returns {ReferencedInfo} A `ReferencedInfo` object containing the aggregated and filtered
+ *   information about referenced columns, their UIDT candidates, and a flag indicating if the
+ *   reference is invalid.
  */
 export const getReferencedInfoFromArgs = (
   nodes: ParsedFormulaNode[],

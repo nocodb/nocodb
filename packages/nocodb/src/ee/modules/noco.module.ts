@@ -34,6 +34,10 @@ import { WorkspacesController } from '~/controllers/workspaces.controller';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { WorkspaceUsersController } from '~/controllers/workspace-users.controller';
 
+/* Views V3 */
+import { ViewsV3Controller } from '~/ee/controllers/v3/views-v3.controller';
+import { ViewsV3Service } from '~/ee/services/v3/views-v3.service';
+
 /* Workspace V3 */
 import { WorkspaceV3Service } from '~/ee/services/v3/workspace-v3.service';
 import { WorkspaceMembersV3Service } from '~/services/v3/workspace-members-v3.service';
@@ -75,6 +79,7 @@ export const nocoModuleEeMetadata = {
     OrgsService,
     DataReflectionService,
     PermissionsService,
+    ViewsV3Service,
 
     /* Workspaces */
     WorkspacesService,
@@ -107,6 +112,8 @@ export const nocoModuleEeMetadata = {
 
     OrgWorkspacesController,
     OrgsController,
+
+    ViewsV3Controller,
 
     /* Workspaces */
     WorkspacesController,

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
+import type { MetaService } from '~/meta/meta.service';
 import type {
   FormUpdateReqType,
   UserType,
@@ -32,13 +33,14 @@ export class FormsService {
       req: NcRequest;
       ownedBy?: string;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.body,
     );
 
-    const model = await Model.get(context, param.tableId);
+    const model = await Model.get(context, param.tableId, ncMeta);
 
     if (model.synced) {
       NcError._.prohibitedSyncTableOperation({
@@ -53,23 +55,27 @@ export class FormsService {
       NcError.sourceDataReadOnly(source.alias);
     }
 
-    const { id } = await View.insertMetaOnly(context, {
-      view: {
-        ...param.body,
-        // todo: sanitize
-        fk_model_id: param.tableId,
-        type: ViewTypes.FORM,
-        base_id: model.base_id,
-        source_id: model.source_id,
-        created_by: param.user?.id,
-        owned_by: param.ownedBy || param.user?.id,
+    const { id } = await View.insertMetaOnly(
+      context,
+      {
+        view: {
+          ...param.body,
+          // todo: sanitize
+          fk_model_id: param.tableId,
+          type: ViewTypes.FORM,
+          base_id: model.base_id,
+          source_id: model.source_id,
+          created_by: param.user?.id,
+          owned_by: param.ownedBy || param.user?.id,
+        },
+        model,
+        req: param.req,
       },
-      model,
-      req: param.req,
-    });
+      ncMeta,
+    );
 
     // populate  cache and add to list since the list cache already exist
-    const view = await View.get(context, id);
+    const view = await View.get(context, id, ncMeta);
     await NocoCache.appendToList(
       CacheScope.VIEW,
       [view.fk_model_id],
@@ -79,7 +85,7 @@ export class FormsService {
     let owner = param.req.user;
 
     if (param.ownedBy) {
-      owner = await User.get(param.ownedBy);
+      owner = await User.get(param.ownedBy, ncMeta);
     }
 
     this.appHooksService.emit(AppEvents.FORM_CREATE, {
@@ -112,25 +118,31 @@ export class FormsService {
       form: FormUpdateReqType;
       req: NcRequest;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/FormUpdateReq',
       param.form,
     );
-    const view = await View.get(context, param.formViewId);
+    const view = await View.get(context, param.formViewId, ncMeta);
 
     if (!view) {
       NcError.viewNotFound(param.formViewId);
     }
 
-    const oldFormView = await FormView.get(context, param.formViewId);
+    const oldFormView = await FormView.get(context, param.formViewId, ncMeta);
 
-    const res = await FormView.update(context, param.formViewId, param.form);
+    const res = await FormView.update(
+      context,
+      param.formViewId,
+      param.form,
+      ncMeta,
+    );
 
     let owner = param.req.user;
 
     if (view.owned_by && view.owned_by !== param.req.user?.id) {
-      owner = await User.get(view.owned_by);
+      owner = await User.get(view.owned_by, ncMeta);
     }
 
     this.appHooksService.emit(AppEvents.FORM_UPDATE, {

@@ -2,13 +2,11 @@ import { Injectable } from '@nestjs/common';
 import {
   arrayToNested,
   parseProp,
+  PlanFeatureTypes,
   ROW_COLORING_MODE,
   UITypes,
 } from 'nocodb-sdk';
 import { ViewRowColorService as ViewRowColorServiceCE } from 'src/services/view-row-color.service';
-import type { MetaService } from '~/meta/meta.service';
-import type { Column, Filter, SelectOption } from '~/models';
-import type { ViewMetaRowColoring } from '~/models/View';
 import type {
   ColumnReqType,
   FilterType,
@@ -17,12 +15,17 @@ import type {
   RowColoringInfoFilter,
   RowColoringInfoFilterRow,
 } from 'nocodb-sdk';
+import type { MetaService } from '~/meta/meta.service';
+import type { Column, Filter, SelectOption } from '~/models';
+import type { ViewMetaRowColoring } from '~/models/View';
 import { MetaTable } from '~/cli';
 import { NcError } from '~/helpers/catchError';
+import { extractProps } from '~/helpers/extractProps';
 import { Model, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
-import { extractProps } from '~/helpers/extractProps';
+import { getFeature } from '~/helpers/paymentHelpers';
+import { isOnPrem } from '~/utils';
 
 @Injectable()
 export class ViewRowColorService extends ViewRowColorServiceCE {
@@ -140,10 +143,24 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     color: string;
     is_set_as_background: boolean;
     nc_order: number;
-    filter: FilterType;
+    filter?: FilterType;
     ncMeta?: MetaService;
   }) {
+    const { context } = params;
     const ncMeta = params.ncMeta ?? Noco.ncMeta;
+    if (
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_ROW_COLOUR,
+        context.workspace_id,
+        ncMeta,
+      ))
+    ) {
+      NcError.get(context).featureNotSupported({
+        feature: PlanFeatureTypes.FEATURE_ROW_COLOUR,
+        isOnPrem: isOnPrem,
+      });
+    }
+
     let view: View;
     if (params.fk_view_id) {
       view = await View.get(params.context, params.fk_view_id);
@@ -151,14 +168,19 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         NcError.get(params.context).viewNotFound(params.fk_view_id);
       }
     } else {
-      NcError.requiredFieldMissing('view_id');
+      NcError.get(params.context).requiredFieldMissing('view_id');
     }
     if (
       view.row_coloring_mode &&
       view.row_coloring_mode !== ROW_COLORING_MODE.FILTER
     ) {
-      NcError.badRequest(
+      NcError.get(params.context).invalidRequestBody(
         'Cannot directly change row coloring mode, remove it first',
+      );
+    }
+    if (!params.color || !params.nc_order) {
+      NcError.get(params.context).invalidRequestBody(
+        'Invalid payload for row coloring condition',
       );
     }
 
@@ -175,32 +197,34 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           base_id: params.context.base_id,
           color: params.color,
           nc_order: params.nc_order,
-          is_set_as_background: params.is_set_as_background,
+          is_set_as_background: params.is_set_as_background ?? false,
         },
       );
       const rowColoringConditionId = rowColoringCondition.id;
 
-      const filterToInsert = {
-        ...extractProps(params.filter as any, [
-          'comparison_op',
-          'comparison_sub_op',
-          'value',
-          'fk_parent_id',
-          'is_group',
-          'logical_op',
-          'base_id',
-          'source_id',
-          'order',
-        ]),
-        fk_row_color_condition_id: rowColoringConditionId,
-      } as Filter;
+      if (params.filter) {
+        const filterToInsert = {
+          ...extractProps(params.filter as any, [
+            'comparison_op',
+            'comparison_sub_op',
+            'value',
+            'fk_parent_id',
+            'is_group',
+            'logical_op',
+            'base_id',
+            'source_id',
+            'order',
+          ]),
+          fk_row_color_condition_id: rowColoringConditionId,
+        } as Filter;
 
-      await ncMetaTrans.metaInsert2(
-        params.context.workspace_id,
-        params.context.base_id,
-        MetaTable.FILTER_EXP,
-        filterToInsert,
-      );
+        await ncMetaTrans.metaInsert2(
+          params.context.workspace_id,
+          params.context.base_id,
+          MetaTable.FILTER_EXP,
+          filterToInsert,
+        );
+      }
 
       if (!view.row_coloring_mode) {
         await View.update(
@@ -316,7 +340,20 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     is_set_as_background: boolean;
     ncMeta?: MetaService;
   }) {
-    const ncMeta = params.ncMeta ?? Noco.ncMeta;
+    const { context, ncMeta } = params;
+
+    if (
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_ROW_COLOUR,
+        context.workspace_id,
+        ncMeta,
+      ))
+    ) {
+      NcError.get(context).featureNotSupported({
+        feature: PlanFeatureTypes.FEATURE_ROW_COLOUR,
+        isOnPrem: isOnPrem,
+      });
+    }
     let view: View;
     if (params.fk_view_id) {
       view = await View.get(params.context, params.fk_view_id);
@@ -324,13 +361,21 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         NcError.get(params.context).viewNotFound(params.fk_view_id);
       }
     } else {
-      NcError.requiredFieldMissing('view_id');
+      NcError.get(context).requiredFieldMissing('view_id');
+    }
+    if (!params.fk_column_id) {
+      NcError.get(context).requiredFieldMissing('fk_column_id');
+    } else {
+      const columns = await view.getColumns(context);
+      if (!columns.find((col) => col.fk_column_id === params.fk_column_id)) {
+        NcError.get(context).fieldNotFound(params.fk_column_id);
+      }
     }
 
     const viewMeta: ViewMetaRowColoring = parseProp(view.meta);
     viewMeta.rowColoringInfo = {
       fk_column_id: params.fk_column_id,
-      is_set_as_background: params.is_set_as_background,
+      is_set_as_background: params.is_set_as_background ?? false,
     };
 
     await View.update(

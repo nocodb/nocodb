@@ -10,6 +10,7 @@ import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { getPathFromUrl, isPreviewAllowed } from '~/helpers/attachmentHelpers';
 import { parseMetaProp } from '~/utils/modelUtils';
+import { processConcurrently } from '~/utils/dataUtils';
 
 function roundExpiry(date) {
   const msInTenMinutes = 10 * 60 * 1000;
@@ -318,14 +319,15 @@ export default class PresignedUrl {
         }
       }
 
-      const batchSize = 15;
-      for (let i = 0; i < allItems.length; i += batchSize) {
-        const batch = allItems.slice(i, i + batchSize);
-        const batchPromises = batch.map(
-          (item) => PresignedUrl.signAttachment(item).catch(() => {}), // Ignore individual failures
-        );
-        await Promise.all(batchPromises);
-      }
+      await processConcurrently(
+        allItems,
+        async (item) => {
+          try {
+            await PresignedUrl.signAttachment(item);
+          } catch (e) {}
+        },
+        15,
+      );
     } catch (e) {
       logger.error('Error signing meta icon image', e);
     }

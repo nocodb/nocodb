@@ -15,7 +15,7 @@ export class DuplicateModelUtils {
     return new DuplicateModelUtils();
   }
 
-  getTargetContext(
+  async getTargetContext(
     context: NcContext,
     _options?: DuplicateModelJobData['options'],
   ) {
@@ -50,7 +50,7 @@ export class DuplicateModelUtils {
     const sourceSource = await Source.get(context, model.source_id);
 
     const { context: targetContext, isDifferent: isTargetContextDifferent } =
-      this.getTargetContext(context, body.options);
+      await this.getTargetContext(context, body.options);
 
     if (isTargetContextDifferent) {
       const baseUser = await BaseUser.get(

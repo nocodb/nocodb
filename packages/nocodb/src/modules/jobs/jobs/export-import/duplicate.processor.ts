@@ -336,7 +336,7 @@ export class DuplicateProcessor {
       options,
     } = job.data;
     const { context: targetContext, isDifferent: _isTargetContextDifferent } =
-      DuplicateModelUtils._.getTargetContext(context, options);
+      await DuplicateModelUtils._.getTargetContext(context, options);
 
     const baseId = context.base_id;
 

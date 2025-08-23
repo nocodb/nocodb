@@ -96,7 +96,7 @@ export default function () {
       });
     });
 
-    describe('column update', () => {
+    describe.only('column update', () => {
       let column: any;
       beforeEach(async () => {
         const colResult = await request(context.app)

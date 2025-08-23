@@ -1,10 +1,8 @@
 <script lang="ts" setup>
 import { LazySmartsheetToolbarRowColorFilterDropdown } from '#components'
 
-// Todo: rameshmane7218 in shared view need to pass props
 defineProps<{
-  toggle: () => void
-  isExpanded?: boolean
+  showFullScreenToggle?: boolean
 }>()
 
 const isPublic = inject(IsPublicInj, ref(false))
@@ -117,16 +115,6 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         }"
       />
 
-      <NcTooltip hide-on-click title="Enter fullscreen" :disabled="isExpanded" placement="left">
-        <NcButton type="secondary" size="xs" class="!px-1" @click="toggle">
-          <div class="flex gap-2 items-center">
-            <GeneralIcon v-if="!isExpanded" icon="ncMaximize2" />
-            <GeneralIcon v-else icon="ncMinimize2" />
-            <template v-if="isExpanded"> Exit fullscreen </template>
-          </div>
-        </NcButton>
-      </NcTooltip>
-
       <div v-if="isCalendar && isMobileMode" class="flex-1 pointer-events-none" />
 
       <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
@@ -139,6 +127,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         <LazySmartsheetToolbarColumnFilterMenu />
         <LazySmartsheetToolbarCalendarToggleSideBar />
       </template>
+      <LazyNcFullScreenToggleButton v-if="showFullScreenToggle" />
     </template>
   </div>
 </template>

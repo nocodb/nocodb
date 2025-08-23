@@ -224,23 +224,6 @@ const onReady = () => {
     }, 300)
   }
 }
-
-const toggleState = () => {
-  if (isFullScreen.value) {
-    isLeftSidebarOpen.value = true
-    document.exitFullscreen()
-    if (navigator.keyboard?.unlock) {
-      navigator.keyboard.unlock()
-    }
-  } else {
-    isLeftSidebarOpen.value = false
-    document.documentElement.requestFullscreen()
-    if (navigator.keyboard?.lock) {
-      navigator.keyboard.lock(['Escape'])
-    }
-  }
-  isFullScreen.value = !isFullScreen.value
-}
 </script>
 
 <template>
@@ -264,7 +247,7 @@ const toggleState = () => {
           @resized="onResized"
         >
           <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
-            <SmartsheetToolbar v-if="!isForm" :toggle="toggleState" :is-expanded="isFullScreen" />
+            <SmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
             <div
               :style="{ height: isForm || isMobileMode ? '100%' : 'calc(100% - var(--toolbar-height))' }"
               class="flex flex-row w-full"

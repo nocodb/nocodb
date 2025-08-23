@@ -40,4 +40,4 @@ export const EMIT_EVENT = {
   HANDLE_ATTACHMENT_URL_UPLOAD: '__nc_handleAttachmentUrlUpload',
 };
 
-export const META_COL_NAME = '_nc__meta';
+export const META_COL_NAME = '_nc_meta';

@@ -5582,191 +5582,164 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     d: Record<string, any>,
   ) {
     try {
-      if (d) {
-        const promises = [];
-        for (const col of attachmentColumns) {
-          if (d[col.id] && typeof d[col.id] === 'string') {
+      if (!d || !attachmentColumns.length) {
+        return d;
+      }
+
+      const allAttachments = [];
+      const allThumbnails = [];
+
+      // First pass: parse JSON and collect all attachment instances (no deduplication)
+      for (const col of attachmentColumns) {
+        if (!d[col.id]) continue;
+
+        // Parse JSON if needed
+        if (typeof d[col.id] === 'string') {
+          try {
             d[col.id] = JSON.parse(d[col.id]);
+          } catch {
+            continue;
+          }
+        }
+
+        if (!Array.isArray(d[col.id]) || !d[col.id].length) continue;
+
+        // Process each attachment instance individually
+        for (let i = 0; i < d[col.id].length; i++) {
+          const item = d[col.id][i];
+
+          if (typeof item === 'string') {
+            try {
+              d[col.id][i] = JSON.parse(item);
+            } catch {
+              continue;
+            }
           }
 
-          if (d[col.id]?.length) {
-            d[col.id] = d[col.id].filter(
-              (attr) => !attr.id?.startsWith('temp_'),
-            );
-            for (let i = 0; i < d[col.id].length; i++) {
-              if (typeof d[col.id][i] === 'string') {
-                d[col.id][i] = JSON.parse(d[col.id][i]);
+          const attachment = d[col.id][i];
+
+          if (attachment.id?.startsWith('temp_')) {
+            // Skip temporary attachments
+            continue;
+          }
+
+          // Handle array of arrays (lookup case)
+          if (Array.isArray(attachment)) {
+            for (const lookedUpAttachment of attachment) {
+              const thumbnails =
+                this.prepareAttachmentForSigning(lookedUpAttachment);
+              if (
+                lookedUpAttachment &&
+                (lookedUpAttachment.path || lookedUpAttachment.url)
+              ) {
+                allAttachments.push(lookedUpAttachment);
+                allThumbnails.push(...thumbnails);
               }
-
-              const attachment = d[col.id][i];
-
-              // we expect array of array of attachments in case of lookup
-              if (Array.isArray(attachment)) {
-                for (const lookedUpAttachment of attachment) {
-                  if (lookedUpAttachment?.path) {
-                    promises.push(
-                      PresignedUrl.signAttachment({
-                        attachment: lookedUpAttachment,
-                        filename: lookedUpAttachment.title,
-                      }),
-                    );
-
-                    if (!supportsThumbnails(lookedUpAttachment)) {
-                      continue;
-                    }
-
-                    lookedUpAttachment.thumbnails = {
-                      tiny: {},
-                      small: {},
-                      card_cover: {},
-                    };
-
-                    const thumbnailPath = `thumbnails/${lookedUpAttachment.path.replace(
-                      /^download[/\\]/i,
-                      '',
-                    )}`;
-
-                    for (const key of Object.keys(
-                      lookedUpAttachment.thumbnails,
-                    )) {
-                      promises.push(
-                        PresignedUrl.signAttachment({
-                          attachment: {
-                            ...lookedUpAttachment,
-                            path: `${thumbnailPath}/${key}.jpg`,
-                          },
-                          filename: lookedUpAttachment.title,
-                          mimetype: 'image/jpeg',
-                          nestedKeys: ['thumbnails', key],
-                        }),
-                      );
-                    }
-                  } else if (lookedUpAttachment?.url) {
-                    if (lookedUpAttachment?.url.startsWith('data:')) {
-                      continue;
-                    }
-
-                    promises.push(
-                      PresignedUrl.signAttachment({
-                        attachment: lookedUpAttachment,
-                        filename: lookedUpAttachment.title,
-                      }),
-                    );
-
-                    if (!supportsThumbnails(lookedUpAttachment)) {
-                      continue;
-                    }
-
-                    const thumbnailUrl = lookedUpAttachment.url.replace(
-                      'nc/uploads',
-                      'nc/thumbnails',
-                    );
-
-                    lookedUpAttachment.thumbnails = {
-                      tiny: {},
-                      small: {},
-                      card_cover: {},
-                    };
-
-                    for (const key of Object.keys(
-                      lookedUpAttachment.thumbnails,
-                    )) {
-                      promises.push(
-                        PresignedUrl.signAttachment({
-                          attachment: {
-                            ...lookedUpAttachment,
-                            url: `${thumbnailUrl}/${key}.jpg`,
-                          },
-                          filename: lookedUpAttachment.title,
-                          mimetype: 'image/jpeg',
-                          nestedKeys: ['thumbnails', key],
-                        }),
-                      );
-                    }
-                  }
-                }
-              } else {
-                if (attachment?.path) {
-                  promises.push(
-                    PresignedUrl.signAttachment({
-                      attachment,
-                      filename: attachment.title,
-                    }),
-                  );
-
-                  if (!supportsThumbnails(attachment)) {
-                    continue;
-                  }
-
-                  const thumbnailPath = `thumbnails/${attachment.path.replace(
-                    /^download[/\\]/i,
-                    '',
-                  )}`;
-
-                  attachment.thumbnails = {
-                    tiny: {},
-                    small: {},
-                    card_cover: {},
-                  };
-
-                  for (const key of Object.keys(attachment.thumbnails)) {
-                    promises.push(
-                      PresignedUrl.signAttachment({
-                        attachment: {
-                          ...attachment,
-                          path: `${thumbnailPath}/${key}.jpg`,
-                        },
-                        filename: attachment.title,
-                        mimetype: 'image/jpeg',
-                        nestedKeys: ['thumbnails', key],
-                      }),
-                    );
-                  }
-                } else if (attachment?.url) {
-                  if (attachment?.url.startsWith('data:')) {
-                    continue;
-                  }
-
-                  promises.push(
-                    PresignedUrl.signAttachment({
-                      attachment,
-                      filename: attachment.title,
-                    }),
-                  );
-
-                  const thumbhailUrl = attachment.url.replace(
-                    'nc/uploads',
-                    'nc/thumbnails',
-                  );
-
-                  attachment.thumbnails = {
-                    tiny: {},
-                    small: {},
-                    card_cover: {},
-                  };
-
-                  for (const key of Object.keys(attachment.thumbnails)) {
-                    promises.push(
-                      PresignedUrl.signAttachment({
-                        attachment: {
-                          ...attachment,
-                          url: `${thumbhailUrl}/${key}.jpg`,
-                        },
-                        filename: attachment.title,
-                        mimetype: 'image/jpeg',
-                        nestedKeys: ['thumbnails', key],
-                      }),
-                    );
-                  }
-                }
-              }
+            }
+          } else {
+            const thumbnails = this.prepareAttachmentForSigning(attachment);
+            if (attachment && (attachment.path || attachment.url)) {
+              allAttachments.push(attachment);
+              allThumbnails.push(...thumbnails);
             }
           }
         }
-        await Promise.all(promises);
       }
-    } catch {}
+
+      // Batch process all attachment instances
+      const batchSize = 50;
+      const promises = [];
+
+      // Process main attachments in batches
+      for (let i = 0; i < allAttachments.length; i += batchSize) {
+        const batch = allAttachments.slice(i, i + batchSize);
+        const batchPromises = batch.map(
+          (attachment) =>
+            PresignedUrl.signAttachment({
+              attachment,
+              filename: attachment.title,
+            }).catch(() => {}), // Ignore individual failures
+        );
+        promises.push(...batchPromises);
+      }
+
+      // Process thumbnails in batches
+      for (let i = 0; i < allThumbnails.length; i += batchSize) {
+        const batch = allThumbnails.slice(i, i + batchSize);
+        const batchPromises = batch.map(
+          ({ attachment, thumbnailKey, thumbnailPath }) =>
+            PresignedUrl.signAttachment({
+              attachment: {
+                ...attachment,
+                ...(attachment.path
+                  ? { path: thumbnailPath }
+                  : { url: thumbnailPath }),
+              },
+              filename: attachment.title,
+              mimetype: 'image/jpeg',
+              nestedKeys: ['thumbnails', thumbnailKey],
+            }).catch(() => {}), // Ignore individual failures
+        );
+        promises.push(...batchPromises);
+      }
+
+      // Wait for all batches to complete
+      await Promise.all(promises);
+    } catch (error) {
+      // Log error but don't throw to avoid breaking the entire response
+      console.warn('Error in _convertAttachmentType:', error.message);
+    }
+
     return d;
+  }
+
+  private prepareAttachmentForSigning(attachment: any) {
+    const thumbnails = [];
+
+    if (!attachment || (!attachment.path && !attachment.url)) {
+      return thumbnails;
+    }
+
+    // Skip data URLs
+    if (attachment.url?.startsWith('data:')) {
+      return thumbnails;
+    }
+
+    // Process thumbnails for images
+    if (supportsThumbnails(attachment)) {
+      attachment.thumbnails = {
+        tiny: {},
+        small: {},
+        card_cover: {},
+      };
+
+      const thumbnailKeys = Object.keys(attachment.thumbnails);
+
+      for (const key of thumbnailKeys) {
+        let thumbnailPath: string;
+
+        if (attachment.path) {
+          const cleanPath = attachment.path.replace(/^download[/\\]/i, '');
+          thumbnailPath = `thumbnails/${cleanPath}/${key}.jpg`;
+        } else if (attachment.url) {
+          const thumbnailUrl = attachment.url.replace(
+            'nc/uploads',
+            'nc/thumbnails',
+          );
+          thumbnailPath = `${thumbnailUrl}/${key}.jpg`;
+        }
+
+        if (thumbnailPath) {
+          thumbnails.push({
+            attachment,
+            thumbnailKey: key,
+            thumbnailPath,
+          });
+        }
+      }
+    }
+
+    return thumbnails;
   }
 
   protected async _convertJsonType(

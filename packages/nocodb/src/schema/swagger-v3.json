@@ -5694,42 +5694,6 @@
           "month_range"
         ]
       },
-      "ViewBase": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "description": "Title of the view."
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "grid",
-              "gallery",
-              "kanban",
-              "calendar"
-            ],
-            "description": "Type of the view. \n\nNote: Creation of form view using API is not supported currently"
-          },
-          "lock_type": {
-            "type": "string",
-            "enum": [
-              "collaborative",
-              "locked"
-            ],
-            "description": "Lock type of the view.\n\n Note: Assigning view as personal using API is not supported currently",
-            "default": "collaborative"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the view."
-          }
-        },
-        "required": [
-          "title",
-          "type"
-        ]
-      },
       "ViewOptionBase": {
         "type": "object",
         "properties": {
@@ -6002,87 +5966,139 @@
           "list"
         ]
       },
-      "ViewCreate": {
+      "ViewBase": {
         "type": "object",
-        "allOf": [
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the view."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "grid",
+              "gallery",
+              "kanban",
+              "calendar"
+            ],
+            "description": "Type of the view. \n\nNote: Creation of form view using API is not supported currently"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked"
+            ],
+            "description": "Lock type of the view.\n\n Note: Assigning view as personal using API is not supported currently",
+            "default": "collaborative"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the view."
+          }
+        },
+        "required": [
+          "title",
+          "type"
+        ]
+      },
+      "ViewFields": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "field_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique identifier for the field."
+            },
+            "show": {
+              "type": "boolean",
+              "description": "Indicates whether the field should be displayed in the view."
+            },
+            "width": {
+              "type": "integer",
+              "description": "Width of the field in pixels.\n\n **Applicable only for grid view.**"
+            },
+            "aggregation": {
+              "$ref": "#/components/schemas/ViewAggregationEnum",
+              "description": "Aggregation function to be applied to the field.\n\n **Applicable only for grid view.**"
+            }
+          },
+          "required": [
+            "field_id",
+            "show"
+          ]
+        },
+        "description": "List of fields to be displayed in the view. \n\n- If not specified, all fields are displayed by default.\n- If an empty array is provided, only the display value field will be shown.\n- In case of partial list, fields not included in the list will be excluded from the view."
+      },
+      "ViewRowColour": {
+        "type": "object",
+        "oneOf": [
           {
-            "$ref": "#/components/schemas/ViewBase"
+            "type": "object",
+            "title": "conditions",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "filter"
+                ],
+                "description": "Mode of row coloring. In this mode, the color is selected based on conditions applied to the fields."
+              },
+              "conditions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "apply_as_row_background": {
+                      "type": "boolean"
+                    },
+                    "color": {
+                      "type": "string"
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    }
+                  }
+                }
+              }
+            },
+            "required": [
+              "mode",
+              "conditions"
+            ]
           },
           {
-            "oneOf": [
-              {
-                "type": "object",
-                "title": "grid",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "grid"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsGrid"
-                  }
-                }
+            "type": "object",
+            "title": "select",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "select"
+                ],
+                "description": "Mode of row coloring. In this mode, the color is selected based on a single select field."
               },
-              {
-                "type": "object",
-                "title": "gallery",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "gallery"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsGallery"
-                  }
-                }
+              "field_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Single select field ID to be used for colouring rows in the view."
               },
-              {
-                "type": "object",
-                "title": "kanban",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "kanban"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsKanban"
-                  }
-                },
-                "required": [
-                  "options"
-                ]
-              },
-              {
-                "type": "object",
-                "title": "calendar",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "calendar"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsCalendar"
-                  }
-                },
-                "required": [
-                  "options"
-                ]
-
+              "apply_as_row_background": {
+                "type": "boolean",
+                "description": "Whether to additionally apply the color as row background."
               }
-            ],
-            "discriminator": {
-              "propertyName": "type"
-            }
+            },
+            "required": [
+              "mode",
+              "field_id"
+            ]
           }
-        ]
+        ],
+        "discriminator": {
+          "propertyName": "mode"
+        }
       },
       "ViewOptionsKanban": {
         "type": "object",
@@ -6209,45 +6225,157 @@
           }
         }
       },
-
-      "ViewRowColorCreate": {
+      "ViewCreate": {
         "type": "object",
-        "properties": {
-          "mode": {
-            "type": "string",
-            "enum": [
-              "filter",
-              "select"
-            ]
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ViewBase"
           },
-          "field_id": {
-            "type": "string"
-          },
-          "apply_as_row_background": {
-            "type": "boolean"
-          },
-          "conditions": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "apply_as_row_background": {
-                  "type": "boolean"
-                },
-                "color": {
-                  "type": "string"
-                },
-                "filters": {
-                  "$ref": "#/components/schemas/FilterCreate"
+          {
+            "oneOf": [
+              {
+                "type": "object",
+                "title": "grid",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "grid"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGrid"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
                 }
+              },
+              {
+                "type": "object",
+                "title": "gallery",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "gallery"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGallery"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "kanban",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "kanban"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsKanban"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                },
+                "required": [
+                  "options"
+                ]
+              },
+              {
+                "type": "object",
+                "title": "calendar",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "calendar"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsCalendar"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                },
+                "required": [
+                  "options"
+                ]
+
               }
+            ],
+            "discriminator": {
+              "propertyName": "type"
             }
           }
-        },
-        "required": [
-          "mode"
         ]
       },
+
       "View": {
         "type": "object",
         "allOf": [
@@ -7566,6 +7694,7 @@
       },
       "Filter": {
         "type": "object",
+        "title": "Filter",
         "properties": {
           "id": {
             "type": "string",
@@ -7574,11 +7703,11 @@
           },
           "parent_id": {
             "type": "string",
-            "description": "Parent ID of the filter, specifying this filters group association."
+            "description": "Parent ID of the filter, specifying this filters group association. Defaults to **root**."
           },
           "field_id": {
             "type": "string",
-            "description": "Field ID to which this filter applies. Defaults to **root**."
+            "description": "Field ID to which this filter applies."
           },
           "operator": {
             "type": "string",
@@ -7710,6 +7839,7 @@
       },
       "FilterGroup": {
         "type": "object",
+        "title": "FilterGroup",
         "properties": {
           "id": {
             "type": "string",

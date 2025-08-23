@@ -1,13 +1,4 @@
 <script setup lang="ts">
-withDefaults(
-  defineProps<{
-    size?: 'small' | 'xs'
-  }>(),
-  {
-    size: 'xs',
-  },
-)
-
 const { isMobileMode } = useGlobal()
 
 const sidebarStore = useSidebarStore()
@@ -32,10 +23,10 @@ const { toggleFullScreenState } = sidebarStore
     placement="left"
   >
     <NcButton
-      :type="isFullScreen ? 'primary' : 'secondary'"
-      :size="size"
+      :type="isFullScreen ? 'primary' : 'text'"
+      size="xs"
       :class="{
-        '!px-1': size === 'xs' && !isFullScreen,
+        '!px-1': !isFullScreen,
       }"
       :icon-only="!isFullScreen"
       @click="toggleFullScreenState"

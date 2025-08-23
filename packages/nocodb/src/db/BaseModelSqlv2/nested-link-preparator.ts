@@ -365,12 +365,15 @@ export class NestedLinkPreparator {
             model: baseModel.model,
             rowIds: [rowId],
             cookie: req,
+            updatedColIds: [col.id]
           });
 
           await refBaseModel.updateLastModified({
             model: refModel,
             rowIds: nestedData,
             cookie: req,
+            // Todo: extract rel in ref table
+            updatedColIds: []
           });
         });
       }

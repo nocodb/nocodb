@@ -1316,7 +1316,7 @@ const availableTriggerColumns = computed(() => {
         <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
         <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
         <SmartsheetColumnUserOptions v-if="formState.uidt === UITypes.User" v-model:value="formState" :is-edit="isEdit" />
-        <SmartsheetColumnTrackModificationsOptions v-if="formState.uidt === 'TrackModifications'" v-model:value="formState" />
+        <SmartsheetColumnLastModifiedOptions v-if="formState.uidt === UITypes.LastModifiedTime || formState.uidt === UITypes.LastModifiedBy" v-model:value="formState" />
         <SmartsheetColumnSelectOptions
           v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
           v-model:value="formState"

@@ -439,7 +439,7 @@ export function isHiddenCol(
     return col.colOptions?.type === RelationTypes.HAS_MANY;
   }
 
-  if (col.uidt === UITypes.Order) {
+  if (col.uidt === UITypes.Order || col.uidt === UITypes.Meta) {
     return true;
   }
 

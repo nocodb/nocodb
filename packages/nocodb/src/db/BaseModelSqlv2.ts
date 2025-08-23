@@ -5671,9 +5671,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      const batchSize = 50;
-      const promises = [];
+      const batchSize = 15;
 
+      // Process attachments in batches
       for (let i = 0; i < allAttachments.length; i += batchSize) {
         const batch = allAttachments.slice(i, i + batchSize);
         const batchPromises = batch.map(
@@ -5683,7 +5683,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               filename: attachment.title,
             }).catch(() => {}), // Ignore individual failures
         );
-        promises.push(...batchPromises);
+        await Promise.all(batchPromises);
       }
 
       // Process thumbnails in batches
@@ -5703,11 +5703,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               nestedKeys: ['thumbnails', thumbnailKey],
             }).catch(() => {}), // Ignore individual failures
         );
-        promises.push(...batchPromises);
+        await Promise.all(batchPromises);
       }
-
-      // Wait for all batches to complete
-      await Promise.all(promises);
     } catch (error) {
       // Log error but don't throw to avoid breaking the entire response
       console.warn('Error in _convertAttachmentType:', error.message);

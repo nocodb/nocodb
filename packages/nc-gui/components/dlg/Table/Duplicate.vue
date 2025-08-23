@@ -241,12 +241,23 @@ const isEaster = ref(false)
         {{ $t('labels.tableDuplicateMessage') }}
       </div>
 
-      <div v-if="canTargetOtherBase" class="mb-5">
+      <div v-if="isEeUI" class="mb-5">
         <NcDivider divider-class="!my-5" />
+
+        <div v-if="!canTargetOtherBase" class="mb-2">
+          This table contains linked records that reference data in the current base.
+        </div>
 
         <div class="text-nc-content-gray font-medium leading-5 mb-2">
           {{ $t('labels.workspace') }}
-          <NcDropdown v-model:visible="wsDropdownOpen" class="mt-2">
+          <div v-if="!canTargetOtherBase" class="flex gap-2">
+            <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace" />
+
+            <div class="flex-1 capitalize truncate">
+              {{ targetWorkspace?.title }}
+            </div>
+          </div>
+          <NcDropdown v-if="canTargetOtherBase" v-model:visible="wsDropdownOpen" class="mt-2">
             <div
               class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-3"
               style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
@@ -316,7 +327,13 @@ const isEaster = ref(false)
 
         <div class="text-nc-content-gray font-medium leading-5">
           {{ $t('objects.project') }}
-          <NcDropdown v-model:visible="baseDropdownOpen" class="mt-2">
+
+          <div v-if="!canTargetOtherBase" class="flex gap-2">
+            <div class="flex-1 capitalize truncate">
+              {{ targetBase?.title }}
+            </div>
+          </div>
+          <NcDropdown v-if="canTargetOtherBase" v-model:visible="baseDropdownOpen" class="mt-2">
             <div
               class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-3"
               style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"

@@ -108,7 +108,7 @@ const revertLocalOnlyChanges = (col: string) => {
               class="flex-1 bg-nc-bg-default px-1 min-h-8 flex items-center relative"
               :class="{
                 'w-full': props.forceVerticalMode,
-                '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
+                '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled':
                   showReadonlyColumnTooltip(col),
                 '!select-text nc-readonly-div-data-cell': readOnly || !isAllowed,
               }"

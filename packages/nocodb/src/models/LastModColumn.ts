@@ -4,7 +4,7 @@ import { Column } from '~/models';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 
-export interface TrackModificationsColumnOptions {
+export interface LastModColumnOptions {
   triggerColumnIds: string[];
 }
 
@@ -23,7 +23,7 @@ export default class LastModColumn {
     context: NcContext,
     data: { fk_column_id: string; triggerColumnIds: string[] },
     ncMeta = Noco.ncMeta,
-  ): Promise<TrackModificationsColumnOptions> {
+  ): Promise<LastModColumnOptions> {
     const { fk_column_id, triggerColumnIds } = data;
 
     // Get the track column to get workspace and base info
@@ -83,7 +83,7 @@ export default class LastModColumn {
     context: NcContext,
     fk_column_id: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<TrackModificationsColumnOptions | null> {
+  ): Promise<LastModColumnOptions | null> {
     const cachedList = await NocoCache.getList(
       CacheScope.COL_LAST_MOD_TRIGGERS,
       [fk_column_id],

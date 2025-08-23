@@ -27,7 +27,7 @@ import type {
   XcFilterWithAlias,
 } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { Filter, GridViewColumn } from '~/models';
-import type { TrackModificationsColumnOptions } from '~/models/LastModColumn';
+import type { LastModColumnOptions } from '~/models/LastModColumn';
 import { NcError } from '~/helpers/catchError';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import {
@@ -296,7 +296,7 @@ export async function getColumnName(
       if (
         column.column_name &&
         !column.system &&
-        (column.colOptions as TrackModificationsColumnOptions)?.triggerColumnIds
+        (column.colOptions as LastModColumnOptions)?.triggerColumnIds
           ?.length
       ) {
         // if column is a trigger column, return the column name as it is
@@ -321,7 +321,7 @@ export async function getColumnName(
       if (
         column.column_name &&
         !column.system &&
-        (column.colOptions as TrackModificationsColumnOptions)?.triggerColumnIds
+        (column.colOptions as LastModColumnOptions)?.triggerColumnIds
           ?.length
       ) {
         // if column is a trigger column, return the column name as it is

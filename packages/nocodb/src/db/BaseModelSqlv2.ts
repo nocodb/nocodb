@@ -66,7 +66,7 @@ import type {
 } from '~/models';
 import type LookupColumn from '~/models/LookupColumn';
 import type { ResolverObj } from '~/utils';
-import type { TrackModificationsColumnOptions } from '~/models/LastModColumn';
+import type { LastModColumnOptions } from '~/models/LastModColumn';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
 import { FieldHandler } from '~/db/field-handler';
@@ -6287,7 +6287,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         (c.system ||
           (c.column_name &&
             (
-              c.colOptions as TrackModificationsColumnOptions
+              c.colOptions as LastModColumnOptions
             )?.triggerColumnIds?.some((id) => updatedColIds.includes(id)))),
     );
 
@@ -6297,7 +6297,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         (c.system ||
           (c.column_name &&
             (
-              c.colOptions as TrackModificationsColumnOptions
+              c.colOptions as LastModColumnOptions
             )?.triggerColumnIds?.some((id) => updatedColIds.includes(id)))),
     );
 
@@ -6569,13 +6569,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           column.uidt,
         ) &&
         column.column_name &&
-        (column.colOptions as TrackModificationsColumnOptions)?.triggerColumnIds
+        (column.colOptions as LastModColumnOptions)?.triggerColumnIds
           ?.length &&
         !isInsertData
       ) {
         // check if any of the tracked columns are updating
         const trackColumnIds = (
-          column.colOptions as TrackModificationsColumnOptions
+          column.colOptions as LastModColumnOptions
         )?.triggerColumnIds;
 
         if (

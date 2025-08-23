@@ -5224,9 +5224,9 @@
       "ViewBase": {
         "type": "object",
         "properties": {
-          "name": {
+          "title": {
             "type": "string",
-            "description": "Name of the view."
+            "description": "Title of the view."
           },
           "lock_type": {
             "type": "string",
@@ -5495,20 +5495,6 @@
               "is_default": {
                 "type": "boolean",
                 "description": "Indicates if this is the default view."
-              },
-              "meta": {
-                "type": "object",
-                "properties": {
-                  "locked_view_description": {
-                    "type": "string",
-                    "description": "Description for locked views."
-                  },
-                  "locked_by_user_id": {
-                    "type": "string",
-                    "format": "uuid",
-                    "description": "User ID of the person who locked the view."
-                  }
-                }
               },
               "created_by": {
                 "type": "string",

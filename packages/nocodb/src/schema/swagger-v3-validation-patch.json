@@ -47,6 +47,9 @@
                     },
                     "width": {
                       "type": "integer"
+                    },
+                    "aggregation": {
+                      "$ref": "#/components/schemas/ViewAggregationEnum"
                     }
                   },
                   "required": [
@@ -89,6 +92,9 @@
                   },
                   "width": {
                     "type": "integer"
+                  },
+                  "aggregation": {
+                    "$ref": "#/components/schemas/ViewAggregationEnum"
                   }
                 },
                 "required": [

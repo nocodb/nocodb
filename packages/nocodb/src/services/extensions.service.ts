@@ -126,7 +126,12 @@ export class ExtensionsService {
     minAccessRole?: string;
     permissionName: string;
   }) {
-    if (!hasMinimumRole(param.user, param.minAccessRole as ProjectRoles)) {
+    if (
+      !hasMinimumRole(
+        param.user,
+        (param.minAccessRole as ProjectRoles) || ProjectRoles.CREATOR,
+      )
+    ) {
       const roles = extractRolesObj(param.user.base_roles);
 
       NcError.forbidden(

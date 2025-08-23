@@ -161,7 +161,12 @@ export class TablesService {
         source_id: source.id,
       }))
     ) {
-      NcError.get(context).invalidRequestBody('Duplicate table name');
+      NcError.get(context).duplicateAlias({
+        type: 'table',
+        alias: param.table.table_name,
+        base: context.base_id,
+        label: 'name',
+      });
     }
 
     if (!param.table.title) {
@@ -179,7 +184,11 @@ export class TablesService {
         source_id: source.id,
       }))
     ) {
-      NcError.get(context).invalidRequestBody('Duplicate table alias');
+      NcError.get(context).duplicateAlias({
+        type: 'table',
+        alias: param.table.title,
+        base: context.base_id,
+      });
     }
 
     const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
@@ -762,7 +771,11 @@ export class TablesService {
         source_id: source.id,
       }))
     ) {
-      NcError.get(context).invalidRequestBody('Duplicate table alias');
+      NcError.get(context).duplicateAlias({
+        type: 'table',
+        alias: tableCreatePayLoad.title,
+        base: context.base_id,
+      });
     }
 
     if (source.type === 'databricks') {
@@ -812,7 +825,12 @@ export class TablesService {
         source_id: source.id,
       }))
     ) {
-      NcError.get(context).invalidRequestBody('Duplicate table name');
+      NcError.get(context).duplicateAlias({
+        type: 'table',
+        alias: tableCreatePayLoad.table_name,
+        base: context.base_id,
+        label: 'name',
+      });
     }
 
     if (!tableCreatePayLoad.title) {

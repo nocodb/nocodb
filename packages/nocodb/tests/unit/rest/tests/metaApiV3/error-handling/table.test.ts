@@ -53,9 +53,11 @@ export default function () {
           .send({
             title: 'MyTable',
           })
-          .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
-        expect(result.body.message).to.eq('Duplicate table alias');
+          .expect(422);
+        expect(result.body.error).to.eq('DUPLICATE_ALIAS');
+        expect(result.body.message).to.satisfy((msg) =>
+          msg.startsWith(`Duplicate table alias 'MyTable' at base`),
+        );
       });
       it(`will handle incorrect title`, async () => {
         const result = await request(context.app)
@@ -222,9 +224,11 @@ export default function () {
           .send({
             title: 'MyTable',
           })
-          .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
-        expect(result.body.message).to.eq('Duplicate table alias');
+          .expect(422);
+        expect(result.body.error).to.eq('DUPLICATE_ALIAS');
+        expect(result.body.message).to.satisfy((msg) =>
+          msg.startsWith(`Duplicate table alias 'MyTable' at base `),
+        );
       });
       it(`will handle incorrect title length`, async () => {
         const source = (

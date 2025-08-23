@@ -1,8 +1,14 @@
-import { extractFilterFromXwhere, UITypes } from 'nocodb-sdk';
+import { extractFilterFromXwhere, FormulaDataTypes, UITypes } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { BarcodeColumn, QrCodeColumn, RollupColumn, View } from '~/models';
+import type {
+  BarcodeColumn,
+  FormulaColumn,
+  QrCodeColumn,
+  RollupColumn,
+  View,
+} from '~/models';
 import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
 import { sanitize } from '~/helpers/sqlSanitize';
 import conditionV2 from '~/db/conditionV2';
@@ -100,6 +106,18 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               column,
             );
             columnQuery = _selectQb.builder;
+
+            // if postgres and formula output defined as string then cast to text for consistent output
+            if (
+              baseModel.isPg &&
+              (column.colOptions as FormulaColumn).getParsedTree().dataType ===
+                FormulaDataTypes.STRING
+            ) {
+              columnQuery = baseModel.dbDriver.raw(`??::text`, [
+                columnQuery,
+                alias,
+              ]);
+            }
           } catch (e) {
             logger.log(e);
             columnQuery = baseModel.dbDriver.raw(`'ERR'`);

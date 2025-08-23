@@ -1089,7 +1089,7 @@ watch(activeBaseId, () => {
                       />
                     </NcButton>
 
-                    <template>
+                    <template v-else>
                       <div class="flex gap-2 items-center text-nc-content-gray-subtle">
                         {{ $t('activity.withEndDate') }}
                         <PaymentUpgradeBadge

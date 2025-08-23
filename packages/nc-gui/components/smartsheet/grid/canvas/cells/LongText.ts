@@ -10,7 +10,6 @@ export const LongTextCellRenderer: CellRenderer = {
     }
 
     const isRichMode = props.column?.meta?.richMode
-
     const {
       value,
       x,

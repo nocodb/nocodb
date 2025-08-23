@@ -296,27 +296,6 @@ export class ViewsV3Service {
         return result;
       },
     }) as any;
-
-    /**
-     {
-      "submit_another_form": false,
-      "show_blank_form": false,
-      "meta": {
-        "hide_branding": false,
-        "background_color": "#F9F9FA",
-        "hide_banner": false
-      }
-    }
-
-    "formTitle": "Submit Ticket",
-    "formDescription": "We'll get back to you soon.",
-    "submitButtonLabel": "Submit",
-    "thankYouMessage": "Thanks for your response!",
-    "redirectOnSubmit": {
-      "enabled": true,
-      "url": "https://example.com/thank-you"
-    }
-     */
   }
 
   async getViews(
@@ -422,11 +401,15 @@ export class ViewsV3Service {
       body,
       true,
     );
-    const requestBody = this.v3Tov2ViewBuilders.view().build(body);
+    let requestBody = this.v3Tov2ViewBuilders.view().build(body);
 
     requestBody.type =
       viewTypeMap[(requestBody.type as any as string).toUpperCase()];
     requestBody.options = requestBody.options ?? {};
+    requestBody = {
+      ...requestBody,
+      ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
+    };
 
     const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
     try {
@@ -479,10 +462,7 @@ export class ViewsV3Service {
             context,
             {
               tableId,
-              calendar: {
-                ...requestBody,
-                ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
-              },
+              calendar: requestBody,
               req: req,
               user: context.user,
             },
@@ -495,10 +475,7 @@ export class ViewsV3Service {
             context,
             {
               tableId,
-              kanban: {
-                ...requestBody,
-                ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
-              },
+              kanban: requestBody,
               req: req,
               user: context.user,
             },
@@ -511,10 +488,7 @@ export class ViewsV3Service {
             context,
             {
               tableId,
-              gallery: {
-                ...requestBody,
-                ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
-              },
+              gallery: requestBody,
               req: req,
               user: context.user,
             },
@@ -527,10 +501,7 @@ export class ViewsV3Service {
             context,
             {
               tableId,
-              body: {
-                ...requestBody,
-                ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
-              },
+              body: requestBody,
               req: req,
               user: context.user,
             },

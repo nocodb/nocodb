@@ -111,6 +111,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
   const isEnabledOnboardingFlow = computed(() => {
     return (
+      !appInfo.value.disableOnboardingFlow &&
       !ncIsPlaywright() &&
       signedIn.value &&
       !isSharedBase.value &&
@@ -470,7 +471,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
         inputType: 'singleSelect',
         options: [
           {
-            value: 'Beginer',
+            value: 'Beginner',
             icons: [
               {
                 iconType: 'indexedStepProgressBar',

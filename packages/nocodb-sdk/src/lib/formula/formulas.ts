@@ -1221,5 +1221,6 @@ export const formulas: Record<string, FormulaMeta> = {
       'Returns the last modified time of the current record or selection if it exists',
     syntax: 'LAST_MODIFIED_TIME()',
     examples: [' LAST_MODIFIED_TIME()'],
+    returnType: FormulaDataTypes.DATE,
   },
 };

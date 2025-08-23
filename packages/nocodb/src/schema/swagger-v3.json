@@ -5231,9 +5231,9 @@
           "lock_type": {
             "type": "string",
             "enum": [
-              "COLLABARATIVE",
-              "LOCKED",
-              "PERSONAL"
+              "collabarative",
+              "locked",
+              "personal"
             ],
             "description": "Lock type of the view."
           },

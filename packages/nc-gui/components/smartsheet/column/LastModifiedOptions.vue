@@ -45,11 +45,9 @@ const setSelected = (id: string, v: boolean) => {
 const toggle = (id: string) => setSelected(id, !isSelected(id))
 
 // Available columns for tracking
-const availabletriggerColumnIds = computed(() => {
+const availableTriggerColumnIds = computed(() => {
   const cols = meta.value?.columns ?? []
-  return cols.filter(
-    (col: any) => col.id !== props.value?.id && !isSystemColumn(col) && !isVirtualCol(col)
-  )
+  return cols.filter((col: any) => col.id !== props.value?.id && !isSystemColumn(col) && !isVirtualCol(col))
 })
 
 // Icon
@@ -76,7 +74,7 @@ watch(
 
       <div class="border border-gray-200 rounded-md">
         <div class="border-y border-gray-200 min-h-25 py-1 nc-scrollbar-thin" style="scrollbar-gutter: stable">
-          <div v-for="field in availabletriggerColumnIds" :key="field.id">
+          <div v-for="field in availableTriggerColumnIds" :key="field.id">
             <div
               :data-testid="`nc-last-modified-trigger-${field.title}`"
               class="px-1 py-1 mx-1 flex items-center rounded-md hover:bg-gray-100 cursor-pointer"

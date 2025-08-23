@@ -1247,7 +1247,11 @@ const lookupRollupFilterEnabled = computed(() => {
         <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
         <SmartsheetColumnUserOptions v-if="formState.uidt === UITypes.User" v-model:value="formState" :is-edit="isEdit" />
         <SmartsheetColumnLastModifiedOptions
-          v-if="isEeUI && (formState.uidt === UITypes.LastModifiedTime || formState.uidt === UITypes.LastModifiedBy)"
+          v-if="
+            isEeUI &&
+            (formState.uidt === UITypes.LastModifiedTime || formState.uidt === UITypes.LastModifiedBy) &&
+            (!isEdit || column.column_name)
+          "
           v-model:value="formState"
         />
         <SmartsheetColumnSelectOptions

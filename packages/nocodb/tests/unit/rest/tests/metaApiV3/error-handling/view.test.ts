@@ -189,7 +189,19 @@ export default function () {
             },
           });
         expect(response.status).to.eq(422);
-        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(response.body.error).to.eq('FIELD_NOT_FOUND');
+      });
+
+      it(`will handle update incorrect view id`, async () => {
+        const response = await request(context.app)
+          .patch(`${API_PREFIX}/views/NOTFOUNDID`)
+          .set('xc-token', context.xc_token)
+          .send({
+            name: 'MyView',
+            type: 'GRID',
+          });
+        expect(response.status).to.eq(422);
+        expect(response.body.error).to.eq('VIEW_NOT_FOUND');
       });
     });
   });

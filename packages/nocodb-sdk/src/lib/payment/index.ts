@@ -58,7 +58,7 @@ export enum PlanFeatureTypes {
   FEATURE_API_MEMBER_MANAGEMENT = 'feature_api_member_management',
   FEATURE_API_VIEW_V3 = 'feature_api_view_v3',
   FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE = 'feature_duplicate_table_to_other_base',
-  FEATURE_DUPLICATE_TABLE_TO_OTHER_WORKSPACE = 'feature_duplicate_table_to_other_workspace',
+  FEATURE_DUPLICATE_TABLE_TO_OTHER_WS = 'feature_duplicate_table_to_other_ws',
 }
 
 // todo: separate as a new enum
@@ -249,7 +249,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_API_VIEW_V3]: 'to use view api.',
   [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE]:
     'to target different base when duplicate table.',
-  [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WORKSPACE]:
+  [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS]:
     'to target different workspace when duplicate table.',
 };
 

@@ -5499,6 +5499,12 @@
           },
           "coverFieldId": {
             "type": "string"
+          },
+          "stackOrder": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [

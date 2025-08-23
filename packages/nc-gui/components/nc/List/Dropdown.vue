@@ -25,6 +25,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emits = defineEmits(['update:isOpen'])
 
+const { disabled } = toRefs(props)
+
 // Controlled or uncontrolled pattern:
 const isControlled = computed(() => props.isOpen !== undefined)
 
@@ -50,20 +52,42 @@ const onEsc = (_e: KeyboardEvent) => {
     triggerRef.value?.focus()
   })
 }
+
+const onEnter = (e: KeyboardEvent) => {
+  if (disabled.value || vModelIsOpen.value) return
+
+  e.preventDefault()
+  e.stopPropagation()
+
+  vModelIsOpen.value = true
+}
+
+/**
+ * On close dropdown it's important to focus the trigger element so that tabbing works as expected
+ */
+watch(vModelIsOpen, (newVal) => {
+  if (newVal) return
+
+  nextTick(() => {
+    triggerRef.value?.focus()
+  })
+})
 </script>
 
 <template>
   <NcDropdown v-model:visible="vModelIsOpen" :disabled="disabled">
     <div
+      tabindex="0"
       v-if="defaultSlotWrapper"
-      class="border-1 rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none"
+      class="nc-list-dropdown-wrapper border-1 rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none outline-none"
       :class="[
         defaultSlotWrapperClass,
         {
+          'cursor-not-allowed bg-nc-bg-gray-extralight text-nc-content-gray-muted': disabled,
           'cursor-pointer': !disabled,
           'border-brand-500 shadow-selected': vModelIsOpen && !disabled && !hasError,
           'border-error shadow-error': vModelIsOpen && !disabled && hasError,
-          'shadow-default hover:shadow-hover': !vModelIsOpen && !disabled && !borderOnHover,
+          'nc-list-dropdown-wrapper-default-state': !vModelIsOpen && !disabled && !borderOnHover,
           'hover:(border-brand-500 shadow-selected)': vModelIsOpen && !disabled && borderOnHover,
           'hover:(shadow-default hover:shadow-hover)': !vModelIsOpen && !disabled && borderOnHover,
           'border-transparent hover:(border-nc-gray-medium)': (borderOnHover || vModelIsOpen) && !disabled,
@@ -71,6 +95,7 @@ const onEsc = (_e: KeyboardEvent) => {
           'border-error': !borderOnHover && hasError,
         },
       ]"
+      @keydown.enter.exact="onEnter"
     >
       <button
         ref="triggerRef"
@@ -97,3 +122,21 @@ const onEsc = (_e: KeyboardEvent) => {
     </template>
   </NcDropdown>
 </template>
+
+<style scoped lang="scss">
+.nc-list-dropdown-wrapper {
+  &.nc-list-dropdown-wrapper-default-state {
+    @apply shadow-default;
+
+    &:not(:focus-visible):not(:focus-within):not(:focus) {
+      @apply hover:shadow-hover;
+    }
+
+    &:focus-visible,
+    &:focus-within,
+    &:focus {
+      @apply border-brand-500 shadow-selected outline-none;
+    }
+  }
+}
+</style>

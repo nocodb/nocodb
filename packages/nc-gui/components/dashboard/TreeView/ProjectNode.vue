@@ -465,7 +465,7 @@ defineExpose({
             <div v-if="currentUserRole">
               <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('title.yourBaseRole') }}</div>
               <div
-                class="text-xs font-medium flex items-start gap-2 flex items-center gap-1"
+                class="text-xs font-medium flex items-center gap-2 gap-1"
                 :class="{
                   'text-purple-200': RoleColors[currentUserRole] === 'purple',
                   'text-blue-200': RoleColors[currentUserRole] === 'blue',

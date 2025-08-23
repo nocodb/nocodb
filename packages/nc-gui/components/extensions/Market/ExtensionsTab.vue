@@ -8,11 +8,11 @@ const props = withDefaults(defineProps<Props>(), {})
 
 const emits = defineEmits(['update:searchQuery', 'update:isOpen'])
 
-const { $e } = useNuxtApp()
-
 const searchQuery = useVModel(props, 'searchQuery', emits)
 
 const isOpen = useVModel(props, 'isOpen', emits)
+
+const { $e } = useNuxtApp()
 
 watchDebounced(
   searchQuery,
@@ -24,7 +24,14 @@ watchDebounced(
   { debounce: 3000 },
 )
 
-const { availableExtensions, addExtension, getExtensionAssetsUrl, showExtensionDetails } = useExtensions()
+const {
+  availableExtensions,
+  addExtension,
+  getExtensionAssetsUrl,
+  showExtensionDetails,
+  hasAccessToExtension,
+  userCurrentBaseRole,
+} = useExtensions()
 
 const { blockAddNewExtension } = useEeConfig()
 
@@ -95,18 +102,28 @@ const onAddExtension = (ext: any) => {
                 {{ ext.subTitle }}
               </NcTooltip>
             </div>
-            <NcButton
-              v-if="!blockAddNewExtension"
-              size="small"
-              type="secondary"
-              class="flex-none !px-7px"
-              @click.stop="onAddExtension(ext)"
-            >
-              <div class="flex items-center gap-1 -ml-3px text-small">
-                <GeneralIcon icon="plus" />
-                {{ $t('general.add') }}
-              </div>
-            </NcButton>
+            <NcTooltip v-if="!blockAddNewExtension" :disabled="hasAccessToExtension(ext.id)">
+              <template #title>
+                {{
+                  $t('tooltip.extensionAccessRestrictionTooltip', {
+                    minAccessRole: $t(`objects.roleType.${ext.minAccessRole}`),
+                    currentRole: $t(`objects.roleType.${userCurrentBaseRole}`),
+                  })
+                }}
+              </template>
+              <NcButton
+                size="small"
+                type="secondary"
+                class="flex-none !px-7px"
+                :disabled="!hasAccessToExtension(ext.id)"
+                @click.stop="onAddExtension(ext)"
+              >
+                <div class="flex items-center gap-1 -ml-3px text-small">
+                  <GeneralIcon icon="plus" />
+                  {{ $t('general.add') }}
+                </div>
+              </NcButton>
+            </NcTooltip>
           </div>
         </template>
         <div

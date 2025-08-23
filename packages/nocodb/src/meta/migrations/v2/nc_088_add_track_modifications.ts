@@ -2,33 +2,25 @@ import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 
 export async function up(knex: Knex): Promise<void> {
-  // Create the TrackModifications table
-  await knex.schema.createTable(MetaTable.COL_TRACK_MODIFICATIONS, (table) => {
+  // Create the TrackModifications trigger columns table - simple relationship table
+  await knex.schema.createTable(MetaTable.COL_TRACK_MODIFICATIONS_TRIGGER_COLUMNS, (table) => {
     table.string('id').primary();
     table.string('fk_workspace_id');
     table.string('base_id');
-    table.string('fk_column_id').notNullable();
-    table.boolean('enabled').defaultTo(false);
-    table.json('triggerColumns').defaultTo('[]');
-    table.string('updateType').defaultTo('timestamp');
-    table.string('customValue');
-    table.string('fk_target_view_id');
+    table.string('fk_column_id').notNullable(); // The TrackModifications column
+    table.string('fk_trigger_column_id').notNullable(); // The column that triggers updates
     table.timestamp('created_at').defaultTo(knex.fn.now());
-    table.timestamp('updated_at').defaultTo(knex.fn.now());
-
+    
     // Add indexes
     table.index(['fk_column_id']);
+    table.index(['fk_trigger_column_id']);
     table.index(['fk_workspace_id']);
     table.index(['base_id']);
-  });
-
-  // Add foreign key constraint
-  await knex.schema.alterTable(MetaTable.COL_TRACK_MODIFICATIONS, (table) => {
-    table.foreign('fk_column_id').references('id').inTable(MetaTable.COLUMNS).onDelete('CASCADE');
+    
+    // No foreign key constraints - following NocoDB pattern of just indexes
   });
 
   // Ensure the TrackModifications column type is available in the database
-  // This might be needed for some database systems that require explicit type registration
   try {
     // For PostgreSQL, we might need to create a custom type if required
     if (knex.client.config.client === 'pg') {
@@ -52,18 +44,18 @@ export async function up(knex: Knex): Promise<void> {
       try {
         const meta = JSON.parse(column.meta);
         if (meta.trackModifications) {
-          // Insert the configuration into the new table
-          await knex(MetaTable.COL_TRACK_MODIFICATIONS).insert({
-            id: knex.raw('uuid()'),
-            fk_workspace_id: column.fk_workspace_id,
-            base_id: column.base_id,
-            fk_column_id: column.id,
-            enabled: meta.trackModifications.enabled || false,
-            triggerColumns: JSON.stringify(meta.trackModifications.triggerColumns || []),
-            updateType: meta.trackModifications.updateType || 'timestamp',
-            customValue: meta.trackModifications.customValue || null,
-            fk_target_view_id: meta.trackModifications.fk_target_view_id || null,
-          });
+          const triggerColumns = meta.trackModifications.triggerColumns || [];
+          
+          // Insert each trigger column relationship
+          for (const triggerColId of triggerColumns) {
+            await knex(MetaTable.COL_TRACK_MODIFICATIONS_TRIGGER_COLUMNS).insert({
+              id: knex.raw(knex.client.config.client === 'pg' ? 'gen_random_uuid()' : 'uuid()'),
+              fk_workspace_id: column.fk_workspace_id,
+              base_id: column.base_id,
+              fk_column_id: column.id,
+              fk_trigger_column_id: triggerColId,
+            });
+          }
         }
       } catch (e) {
         // If meta parsing fails, skip this column
@@ -79,45 +71,54 @@ export async function up(knex: Knex): Promise<void> {
     .select('*');
 
   for (const column of trackModColumns) {
-    // Get the TrackModifications configuration
-    const trackConfig = await knex(MetaTable.COL_TRACK_MODIFICATIONS)
-      .where('fk_column_id', column.id)
-      .first();
-
-    if (trackConfig) {
-      let newDataType = 'varchar(255)'; // Default to varchar
-      
-      // Set appropriate data type based on update type
-      switch (trackConfig.updateType) {
-        case 'timestamp':
-          newDataType = 'timestamp';
-          break;
-        case 'user':
-          newDataType = 'varchar(255)'; // User ID or name
-          break;
-        case 'custom':
-          newDataType = 'text'; // Custom value could be long
-          break;
-        default:
-          newDataType = 'varchar(255)';
+    // Get the TrackModifications configuration from colOptions or meta
+    let updateType = 'timestamp'; // Default
+    
+    if (column.colOptions && typeof column.colOptions === 'string') {
+      try {
+        const colOpts = JSON.parse(column.colOptions);
+        updateType = colOpts.updateType || 'timestamp';
+      } catch (e) {
+        // Use default if parsing fails
       }
-
-      // Update the column's data type if it's different
-      if (column.dt !== newDataType) {
-        await knex(MetaTable.COLUMNS)
-          .where('id', column.id)
-          .update({ dt: newDataType });
+    } else if (column.meta && typeof column.meta === 'string') {
+      try {
+        const meta = JSON.parse(column.meta);
+        if (meta.trackModifications) {
+          updateType = meta.trackModifications.updateType || 'timestamp';
+        }
+      } catch (e) {
+        // Use default if parsing fails
       }
+    }
+
+    let newDataType = 'varchar(255)'; // Default to varchar
+    
+    // Set appropriate data type based on update type
+    switch (updateType) {
+      case 'timestamp':
+        newDataType = 'timestamp';
+        break;
+      case 'user':
+        newDataType = 'varchar(255)'; // User ID or name
+        break;
+      case 'custom':
+        newDataType = 'text'; // Custom value could be long
+        break;
+      default:
+        newDataType = 'varchar(255)';
+    }
+
+    // Update the column's data type if it's different
+    if (column.dt !== newDataType) {
+      await knex(MetaTable.COLUMNS)
+        .where('id', column.id)
+        .update({ dt: newDataType });
     }
   }
 }
 
 export async function down(knex: Knex): Promise<void> {
-  // Drop the foreign key constraint first
-  await knex.schema.alterTable(MetaTable.COL_TRACK_MODIFICATIONS, (table) => {
-    table.dropForeign(['fk_column_id']);
-  });
-
-  // Drop the TrackModifications table
-  await knex.schema.dropTable(MetaTable.COL_TRACK_MODIFICATIONS);
+  // Drop the TrackModifications trigger columns table
+  await knex.schema.dropTable(MetaTable.COL_TRACK_MODIFICATIONS_TRIGGER_COLUMNS);
 }

@@ -14,7 +14,7 @@ export enum MetaTable {
   COL_QRCODE = 'nc_col_qrcode_v2',
   COL_BARCODE = 'nc_col_barcode_v2',
   COL_LONG_TEXT = 'nc_col_long_text_v2',
-  COL_TRACK_MODIFICATIONS = 'nc_col_track_modifications_v2',
+  COL_TRACK_MODIFICATIONS_TRIGGER_COLUMNS = 'nc_col_track_modifications_trigger_columns',
   FILTER_EXP = 'nc_filter_exp_v2',
   // HOOK_FILTER_EXP = 'nc_hook_filter_exp_v2',
   SORT = 'nc_sort_v2',

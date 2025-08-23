@@ -338,6 +338,20 @@ export default class Column<T = any> implements ColumnType {
         );
         break;
       }
+      case 'TrackModifications': {
+        // Handle TrackModifications column type
+        if (column.colOptions?.triggerColumns?.length > 0) {
+          await TrackModificationsColumn.insert(
+            context,
+            {
+              fk_column_id: colId,
+              triggerColumns: column.colOptions.triggerColumns,
+            },
+            ncMeta,
+          );
+        }
+        break;
+      }
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord: {
         await LinkToAnotherRecordColumn.insert(
@@ -518,18 +532,17 @@ export default class Column<T = any> implements ColumnType {
       }
 
       case 'TrackModifications': {
-        await TrackModificationsColumn.insert(
-          context,
-          {
-            fk_column_id: colId,
-            enabled: column.colOptions?.enabled || false,
-            triggerColumns: column.colOptions?.triggerColumns || [],
-            updateType: column.colOptions?.updateType || 'timestamp',
-            customValue: column.colOptions?.customValue,
-            fk_target_view_id: column.colOptions?.fk_target_view_id,
-          },
-          ncMeta,
-        );
+        // Handle TrackModifications column type
+        if (column.colOptions?.triggerColumns?.length > 0) {
+          await TrackModificationsColumn.insert(
+            context,
+            {
+              fk_column_id: colId,
+              triggerColumns: column.colOptions.triggerColumns,
+            },
+            ncMeta,
+          );
+        }
         break;
       }
 
@@ -887,6 +900,14 @@ export default class Column<T = any> implements ColumnType {
       );
       for (const barcodeCol of barcodeCols) {
         await Column.delete(context, barcodeCol.fk_column_id, ncMeta);
+      }
+    }
+
+    // Handle TrackModifications columns - delete trigger column relationships
+    if ((col.uidt as string) === 'TrackModifications') {
+      const trackModConfigs = await TrackModificationsColumn.getByColumnId(context, id, ncMeta);
+      for (const config of trackModConfigs) {
+        await TrackModificationsColumn.delete(context, config.id, ncMeta);
       }
     }
 
@@ -1387,6 +1408,21 @@ export default class Column<T = any> implements ColumnType {
           );
           await NocoCache.deepDel(
             `${CacheScope.COL_LOOKUP}:${colId}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+          break;
+        }
+        case UITypes.Rollup: {
+          await ncMeta.metaDelete(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_ROLLUP,
+            {
+              fk_column_id: colId,
+            },
+          );
+          await NocoCache.deepDel(
+            `${CacheScope.COL_ROLLUP}:${colId}`,
             CacheDelDirection.CHILD_TO_PARENT,
           );
           break;

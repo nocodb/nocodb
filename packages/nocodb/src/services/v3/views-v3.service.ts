@@ -7,6 +7,7 @@ import {
   viewTypeAlias,
   ViewTypes,
 } from 'nocodb-sdk';
+import { handleFieldsRequestBody } from './view-v3/fields.helper';
 import type {
   RowColoringInfo,
   ViewCreateV3Type,
@@ -501,7 +502,9 @@ export class ViewsV3Service {
 
     const viewColumnList = await View.getColumns(context, view.id);
 
-    formattedView.fields = viewColumnBuilder().build(viewColumnList);
+    formattedView.fields = viewColumnBuilder().build(
+      viewColumnList.sort((a, b) => a.order - b.order),
+    );
     formattedView.is_default = !formattedView.is_default
       ? undefined
       : formattedView.is_default;
@@ -636,13 +639,13 @@ export class ViewsV3Service {
       ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
     };
 
-    const updateViewColumns = await this.getUpdateViewColumnCreate(
+    const updateViewColumns = await this.getUpdateViewColumn(
       context,
       {
         req,
         tableId,
         modelColumns,
-        orderedFields: body.ordered_fields,
+        fields: body.fields,
         fieldsById: body.options?.fields_by_id,
       },
       ncMeta,
@@ -904,69 +907,18 @@ export class ViewsV3Service {
     return { modelColumns: columns };
   }
 
-  async getUpdateViewColumnCreate(
+  async getUpdateViewColumn(
     context: NcContext,
     param: {
       req: NcRequest;
       tableId: string;
-      modelColumns?: { id: string; order: number }[];
-      orderedFields?: ViewCreateV3Type['ordered_fields'];
+      modelColumns?: { id: string; pv: boolean; order: number }[];
+      fields?: ViewCreateV3Type['fields'];
       fieldsById?: ViewOptionBaseV3Type['fields_by_id'];
     },
     ncMeta?: MetaService,
   ) {
-    const result: Record<
-      string,
-      {
-        width?: number;
-        show?: boolean;
-        order?: number;
-      } & Record<string, any>
-    > = {};
-    if (
-      (param.orderedFields ?? []).length === 0 &&
-      Object.keys(param.fieldsById ?? {}).length === 0
-    ) {
-      return {};
-    }
-    const modelColumns =
-      param.modelColumns ??
-      (await (
-        await Model.get(context, param.tableId, ncMeta)
-      ).getColumns(context, ncMeta));
-    if ((param.orderedFields ?? []).length > 0) {
-      // we get the order by array index
-      const orderedFieldMap = (param.orderedFields ?? []).reduce(
-        (acc, val, idx) => {
-          acc[val.field_id] = { ...val, order: idx };
-          return acc;
-        },
-        {},
-      );
-      // get the next orders by array index + length
-      // for the rest of the columns not mentioned in ordered field map
-      const unorderedFieldMap = modelColumns
-        .sort((a, b) => a.order - b.order)
-        .map((k) => k.id)
-        .filter((id) => !orderedFieldMap[id])
-        .reduce((cur, id, idx) => {
-          cur[id] = {
-            order: idx + (param.orderedFields ?? []).length,
-          };
-          return cur;
-        }, {});
-      Object.assign(orderedFieldMap, unorderedFieldMap);
-      for (const modelColumn of modelColumns) {
-        if (modelColumn.order !== orderedFieldMap[modelColumn.id].order) {
-          result[modelColumn.id] = {
-            ...orderedFieldMap[modelColumn.id],
-            ...(orderedFieldMap[modelColumn.id].width
-              ? { width: orderedFieldMap[modelColumn.id].width + 'px' }
-              : {}),
-          };
-        }
-      }
-    }
+    const result = await handleFieldsRequestBody(context, param, ncMeta);
     for (const [colId, col] of Object.entries(param.fieldsById ?? {})) {
       result[colId] = {
         ...result[colId],
@@ -1112,7 +1064,7 @@ export class ViewsV3Service {
     }
 
     const viewTypeCode = existingView.type;
-    await this.validateFieldIds(
+    const { modelColumns } = await this.validateFieldIds(
       context,
       {
         req,
@@ -1135,16 +1087,18 @@ export class ViewsV3Service {
       ...requestBody,
       ...this.v3Tov2ViewBuilders.options().build(requestBody.options),
     };
-    const updateViewColumns: Record<string, any> = {};
-    // fields_by_id for update
-    for (const [colId, col] of Object.entries(
-      body.options?.fields_by_id ?? {},
-    )) {
-      updateViewColumns[colId] = {
-        ...updateViewColumns[colId],
-        ...this.v3Tov2ViewBuilders.formFieldByIds().build(col),
-      };
-    }
+
+    const updateViewColumns = await this.getUpdateViewColumn(
+      context,
+      {
+        req,
+        tableId: existingView.fk_model_id,
+        fields: body.fields,
+        modelColumns,
+        fieldsById: body.options?.fields_by_id,
+      },
+      ncMeta,
+    );
 
     const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
     try {
@@ -1168,6 +1122,9 @@ export class ViewsV3Service {
               );
             }
             groups = requestBody.options.groups;
+          }
+          if (!ncIsNullOrUndefined(requestBody.row_height)) {
+            requestBody.row_height = RowHeightMap[requestBody.row_height];
           }
           await this.gridsService.gridViewUpdate(
             context,

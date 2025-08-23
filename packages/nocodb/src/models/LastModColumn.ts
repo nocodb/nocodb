@@ -23,7 +23,7 @@ export default class LastModColumn {
     context: NcContext,
     data: { fk_column_id: string; triggerColumnIds: string[] },
     ncMeta = Noco.ncMeta,
-  ): Promise<LastModColumn[]> {
+  ): Promise<TrackModificationsColumnOptions> {
     const { fk_column_id, triggerColumnIds } = data;
 
     // Get the track column to get workspace and base info
@@ -52,7 +52,14 @@ export default class LastModColumn {
       if (record) results.push(record);
     }
 
-    return results;
+    // Cache the results
+    await NocoCache.setList(
+      CacheScope.COL_LAST_MOD_TRIGGERS,
+      [fk_column_id],
+      results.map(({ created_at, updated_at, ...others }) => others),
+    );
+
+    return await this.read(context, fk_column_id, ncMeta);
   }
 
   public static async get(
@@ -70,23 +77,6 @@ export default class LastModColumn {
     if (!record) return null;
 
     return new LastModColumn(record);
-  }
-
-  public static async list(
-    context: NcContext,
-    filter: { condition?: { [key: string]: any } },
-    ncMeta = Noco.ncMeta,
-  ): Promise<LastModColumn[]> {
-    const records = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COL_LAST_MOD_TRIGGER_COLUMNS,
-      filter,
-    );
-
-    return Promise.all(
-      records.map((record) => this.get(context, { id: record.id }, ncMeta)),
-    );
   }
 
   public static async read(

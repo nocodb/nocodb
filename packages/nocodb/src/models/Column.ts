@@ -321,7 +321,7 @@ export default class Column<T = any> implements ColumnType {
       case UITypes.LastModifiedBy:
       case UITypes.LastModifiedTime: {
         // Handle TrackModifications column type
-        if (column.colOptions?.triggerColumns?.length > 0) {
+        if (column.colOptions?.triggerColumnIds?.length > 0) {
           await LastModColumn.insert(
             context,
             {

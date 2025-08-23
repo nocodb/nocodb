@@ -1650,58 +1650,70 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "example": "vwfjpo6wta1vwzyk"
-                          },
-                          "title": {
-                            "type": "string",
-                            "example": "MyView"
-                          },
-                          "type": {
-                            "type": "string",
-                            "example": "grid"
-                          },
-                          "lock_type": {
-                            "type": "string",
-                            "example": "collaborative"
-                          },
-                          "created_at": {
-                            "type": "string",
-                            "example": "2000-01-02 03:04:05+00:00",
-                            "format": "date-time"
-                          },
-                          "updated_at": {
-                            "type": "string",
-                            "example": "2000-01-02 03:04:05+00:00",
-                            "format": "date-time"
-                          },
-                          "description": {
-                            "type": "string",
-                            "example": "MyView"
-                          },
-                          "created_by": {
-                            "type": "string",
-                            "example": "usq6o3vavwf0twzr"
-                          },
-                          "owned_by": {
-                            "type": "string",
-                            "example": "usq6o3vavwf0twzr"
-                          }
+                  "$ref": "#/components/schemas/ViewList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "vwpwk5v4urgbu85g",
+                          "title": "Grid View",
+                          "type": "grid",
+                          "is_default": true,
+                          "lock_type": "collaborative",
+                          "created_at": "2025-06-26 15:02:56+00:00",
+                          "updated_at": "2025-06-26 15:36:25+00:00"
+                        },
+                        {
+                          "id": "vwfqa5qnmcaxt9yp",
+                          "title": "Grid View 2",
+                          "type": "grid",
+                          "lock_type": "collaborative",
+                          "created_at": "2025-06-26 15:40:01+00:00",
+                          "updated_at": "2025-06-26 15:40:48+00:00",
+                          "description": "Grid view with some description",
+                          "created_by": "usq6o3vavwf0twzr"
+                        },
+                        {
+                          "id": "vwx2x5ietbis99xg",
+                          "title": "Grid Group By",
+                          "type": "grid",
+                          "lock_type": "collaborative",
+                          "created_at": "2025-06-26 15:40:41+00:00",
+                          "updated_at": "2025-06-26 15:40:41+00:00",
+                          "created_by": "usq6o3vavwf0twzr"
+                        },
+                        {
+                          "id": "vwjctk8vdhbhxtd4",
+                          "title": "Gallery View",
+                          "type": "gallery",
+                          "lock_type": "collaborative",
+                          "created_at": "2025-06-26 15:45:30+00:00",
+                          "updated_at": "2025-06-26 15:45:30+00:00",
+                          "created_by": "usq6o3vavwf0twzr"
+                        },
+                        {
+                          "id": "vwnyxj93jfswla29",
+                          "title": "Kanban View",
+                          "type": "kanban",
+                          "lock_type": "collaborative",
+                          "created_at": "2025-06-26 15:45:40+00:00",
+                          "updated_at": "2025-06-26 15:45:40+00:00",
+                          "created_by": "usq6o3vavwf0twzr"
+                        },
+                        {
+                          "id": "vw7hwhx551tbr44z",
+                          "title": "Calendar View",
+                          "type": "calendar",
+                          "lock_type": "collaborative",
+                          "created_at": "2025-06-26 15:45:47+00:00",
+                          "updated_at": "2025-06-26 15:45:47+00:00",
+                          "created_by": "usq6o3vavwf0twzr"
                         }
-                      }
+                      ]
                     }
-                  },
-                  "required": [
-                    "list"
-                  ]
+                  }
                 }
               }
             }
@@ -5953,6 +5965,90 @@
           {
             "$ref": "#/components/schemas/ViewBaseOptions"
           }
+        ]
+      },
+      "ViewList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the view."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the view."
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Description of the view."
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "grid",
+                    "gallery",
+                    "kanban",
+                    "calendar",
+                    "form"
+                  ],
+                  "description": "Type of the view."
+                },
+                "lock_type": {
+                  "type": "string",
+                  "enum": [
+                    "collaborative",
+                    "locked",
+                    "personal"
+                  ],
+                  "description": "View configuration edit state."
+                },
+                "is_default": {
+                  "type": "boolean",
+                  "description": "Indicates if this is the default view."
+                },
+                "created_by": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "User ID of the creator."
+                },
+                "owned_by": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "User ID of the owner. Applicable only for personal views."
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Timestamp of creation."
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Timestamp of last update."
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "type",
+                "lock_type",
+                "created_at",
+                "updated_at",
+                "created_by"
+              ]
+            }
+          }
+        },
+        "required": [
+          "list"
         ]
       },
       "View": {

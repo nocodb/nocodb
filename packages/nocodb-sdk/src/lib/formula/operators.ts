@@ -1,4 +1,5 @@
 import { FormulaDataTypes, JSEPNode } from './enums';
+import { ReferencedInfo } from './types';
 
 export const StringOperators = ['||', '&'] as const;
 export const ArithmeticOperators = ['+', '-', '*', '/'] as const;
@@ -19,7 +20,7 @@ export type BaseFormulaNode = {
   dataType?: FormulaDataTypes;
   cast?: FormulaDataTypes;
   errors?: Set<string>;
-};
+} & ReferencedInfo;
 
 export interface BinaryExpressionNode extends BaseFormulaNode {
   operator: ArithmeticOperator | ComparisonOperator | StringOperator;

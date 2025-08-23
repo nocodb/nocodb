@@ -27,6 +27,7 @@ import Noco from '~/Noco';
 import { Model, Sort, View } from '~/models';
 import {
   builderGenerator,
+  filterBuilder,
   viewColumnBuilder,
 } from '~/utils/api-v3-data-transformation.builder';
 import { ViewsService } from '~/services/views.service';
@@ -407,7 +408,9 @@ export class ViewsV3Service {
               id: cond.id,
               apply_as_row_background: cond.is_set_as_background,
               color: cond.color,
-              filters: addDummyRootAndNest(cond.conditions),
+              filters: addDummyRootAndNest(
+                cond.conditions.map((filter) => filterBuilder().build(filter)),
+              ),
             };
           });
         }

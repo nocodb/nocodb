@@ -559,6 +559,11 @@ export async function validateFormulaAndExtractTreeWithType({
   getMeta: (tableId: string) => Promise<any>;
   trackPosition?: boolean;
 }): Promise<ParsedFormulaNode> {
+  // extract column list from meta since columns array might not have all columns(system columns)
+  const meta = await getMeta(
+    column?.fk_model_id || columns?.[0]?.fk_model_id || ''
+  );
+  const allColumns = meta?.columns || columns;
   const sqlUI =
     typeof clientOrSqlUi === 'string'
       ? SqlUiFactory.create({ client: clientOrSqlUi })
@@ -692,7 +697,11 @@ export async function validateFormulaAndExtractTreeWithType({
 
       // if validation function is present, call it
       if (formulas[calleeName].validation?.custom) {
-        formulas[calleeName].validation?.custom(argTypes, parsedTree, columns);
+        formulas[calleeName].validation?.custom(
+          argTypes,
+          parsedTree,
+          allColumns
+        );
       }
       // validate against expected arg types if present
       else if (formulas[calleeName].validation?.args?.type) {

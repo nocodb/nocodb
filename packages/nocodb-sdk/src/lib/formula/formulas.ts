@@ -1189,7 +1189,7 @@ export const formulas: Record<string, FormulaMeta> = {
             throw new FormulaError(
               FormulaErrorType.INVALID_ARG,
               {},
-              'LAST_MODIFIED_TIME with field arguments is not supported as the table does not have a meta column'
+              'LAST_MODIFIED_TIME with field arguments is not supported'
             );
           }
         }

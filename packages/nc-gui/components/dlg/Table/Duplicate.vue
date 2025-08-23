@@ -263,14 +263,6 @@ onMounted(() => {
           {{ $t('labels.includeWebhook') }}
         </div>
       </div>
-      <div
-        :class="{
-          'mb-5': isEeUI,
-        }"
-        class="mt-5 text-nc-content-gray-subtle2 font-medium"
-      >
-        {{ $t('labels.tableDuplicateMessage') }}
-      </div>
 
       <div v-if="isEeUI" class="mb-5">
         <NcDivider divider-class="!my-5" />

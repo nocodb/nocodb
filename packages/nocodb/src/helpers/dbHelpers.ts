@@ -284,6 +284,14 @@ export async function getColumnName(
     columns ||
     (await Column.list(context, { fk_model_id: column.fk_model_id }));
 
+  // load colOptions if not loaded already
+  if (
+    [UITypes.LastModifiedTime, UITypes.LastModifiedBy].includes(column.uidt) &&
+    !column.colOptions
+  ) {
+    await column.getColOptions(context);
+  }
+
   switch (column.uidt) {
     case UITypes.CreatedTime: {
       const createdTimeSystemCol = columns.find(
@@ -296,8 +304,7 @@ export async function getColumnName(
       if (
         column.column_name &&
         !column.system &&
-        (column.colOptions as LastModColumnOptions)?.triggerColumnIds
-          ?.length
+        (column.colOptions as LastModColumnOptions)?.triggerColumnIds?.length
       ) {
         // if column is a trigger column, return the column name as it is
         return column.column_name;
@@ -321,8 +328,7 @@ export async function getColumnName(
       if (
         column.column_name &&
         !column.system &&
-        (column.colOptions as LastModColumnOptions)?.triggerColumnIds
-          ?.length
+        (column.colOptions as LastModColumnOptions)?.triggerColumnIds?.length
       ) {
         // if column is a trigger column, return the column name as it is
         return column.column_name;

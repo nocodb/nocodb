@@ -36,7 +36,7 @@ export class BaseMembersV3Controller {
         context.workspace_id,
       ))
     ) {
-      NcError.get(context).invalidRequestBody(
+      NcError.get(context).forbidden(
         'Accessing member management api is only available on paid plans. Please upgrade your workspace plan to enable this feature.',
       );
     }

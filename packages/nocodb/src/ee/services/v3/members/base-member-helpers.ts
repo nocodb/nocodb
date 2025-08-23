@@ -55,11 +55,11 @@ export class BaseMemberHelpers extends BaseMemberHelpersCE {
       ))
     ) {
       if (isOnPrem) {
-        NcError.get(context).invalidRequestBody(
+        NcError.get(context).forbidden(
           'Accessing member management api is available on self-hosted Enterprise plans. Please upgrade your workspace plan to enable this feature.',
         );
       }
-      NcError.get(context).invalidRequestBody(
+      NcError.get(context).forbidden(
         'Accessing member management api is only available on Business+ plans. Please upgrade your workspace plan to enable this feature.',
       );
     }

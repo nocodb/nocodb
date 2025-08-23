@@ -695,12 +695,12 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
         } else {
           // Regular email attachment format - only support URLs and content
           if (!attachment.content && !attachment.href) {
-            throw new Error(\`Attachment at index ${i} must have either content or href (URL)\`);
+            throw new Error(\`Attachment at index \${i} must have either content or href (URL)\`);
           }
         
           // If content is provided as string, encoding should be specified
           if (typeof attachment.content === 'string' && !attachment.encoding) {
-            console.warn(\`Attachment at index ${i} has string content but no encoding specified\`);
+            console.warn(\`Attachment at index \${i} has string content but no encoding specified\`);
           }
         
           processedAttachments.push(attachment);

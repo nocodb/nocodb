@@ -7,22 +7,22 @@ import {
   viewTypeAlias,
   ViewTypes,
 } from 'nocodb-sdk';
-import { GridsService } from '../grids.service';
-import { CalendarsService } from '../calendars.service';
-import { KanbansService } from '../kanbans.service';
-import { GalleriesService } from '../galleries.service';
-import { FormsService } from '../forms.service';
-import { GridColumnsService } from '../grid-columns.service';
-import { ViewColumnsService } from '../view-columns.service';
 import type {
   RowColoringInfo,
   ViewColumnOptionV3Type,
   ViewCreateV3Type,
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
-import type { ApiV3DataTransformationBuilder } from 'src/utils/data-transformation.builder';
+import type { ApiV3DataTransformationBuilder } from '~/utils/data-transformation.builder';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Column, GridViewColumn } from '~/models';
+import { GridsService } from '~/services/grids.service';
+import { CalendarsService } from '~/services/calendars.service';
+import { KanbansService } from '~/services/kanbans.service';
+import { GalleriesService } from '~/services/galleries.service';
+import { FormsService } from '~/services/forms.service';
+import { GridColumnsService } from '~/services/grid-columns.service';
+import { ViewColumnsService } from '~/services/view-columns.service';
 import Noco from '~/Noco';
 import { Model, Sort, View } from '~/models';
 import {
@@ -36,6 +36,7 @@ import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { validatePayload } from '~/helpers';
 import { FormColumnsService } from '~/services/form-columns.service';
 import { ViewRowColorService } from '~/services/view-row-color.service';
+import { nestedFilterBuilder } from '~/utils/api-v3-data-transformation.builder';
 
 const viewTypeMap = {
   grid: ViewTypes.GRID,
@@ -109,7 +110,7 @@ export class ViewsV3Service {
         }
 
         // if description empty then set it to undefined
-        if (!formattedData.description) {
+        if (!formattedData.description || formattedData.description === '') {
           formattedData.description = undefined;
         }
 
@@ -202,12 +203,12 @@ export class ViewsV3Service {
         subheading: 'form_description',
         success_msg: 'thank_you_message',
         redirect_after_secs: 'form_redirect_after_secs',
-        email: 'form_send_response_email',
+        email: 'send_response_email_to',
         submit_another_form: 'submit_another_form',
-        show_blank_form: 'show_blank_form',
+        show_blank_form: 'reset_form_after_submit',
         hide_banner: 'form_hide_banner',
         hide_branding: 'form_hide_branding',
-        banner_image_url: 'form_banner_image_url',
+        banner_image_url: 'banner',
         logo_url: 'form_logo_url',
         background_color: 'form_background_color',
 
@@ -387,7 +388,7 @@ export class ViewsV3Service {
       allowed: [
         'mode',
         'selectColumn',
-        'options',
+        // 'options',
         'is_set_as_background',
         'conditions',
       ],
@@ -406,7 +407,7 @@ export class ViewsV3Service {
               id: cond.id,
               apply_as_row_background: cond.is_set_as_background,
               color: cond.color,
-              conditions: cond.nestedConditions,
+              filters: nestedFilterBuilder().build(cond.nestedConditions),
             };
           });
         }

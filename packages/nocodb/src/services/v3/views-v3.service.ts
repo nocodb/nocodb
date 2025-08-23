@@ -1,5 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { viewTypeAlias, ViewTypes } from 'nocodb-sdk';
+import { GridsService } from '../grids.service';
+import { CalendarsService } from '../calendars.service';
+import { KanbansService } from '../kanbans.service';
+import { GalleriesService } from '../galleries.service';
+import { FormsService } from '../forms.service';
+import { GridColumnsService } from '../grid-columns.service';
+import type { ApiV3DataTransformationBuilder } from 'src/utils/data-transformation.builder';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { GridViewColumn } from '~/models';
 import { View } from '~/models';
@@ -17,11 +24,24 @@ export class ViewsV3Service {
   protected logger = new Logger(ViewsV3Service.name);
   private builder;
   private viewBuilder;
+  private v3Tov2ViewBuilders: {
+    view?: () => ApiV3DataTransformationBuilder<any, any>;
+    calendar?: () => ApiV3DataTransformationBuilder<any, any>;
+    kanban?: () => ApiV3DataTransformationBuilder<any, any>;
+    form?: () => ApiV3DataTransformationBuilder<any, any>;
+    gallery?: () => ApiV3DataTransformationBuilder<any, any>;
+  } = {};
 
   constructor(
     protected readonly viewsService: ViewsService,
     protected filtersV3Service: FiltersV3Service,
     protected sortsV3Service: SortsV3Service,
+    protected gridsService: GridsService,
+    protected gridColumnsService: GridColumnsService,
+    protected calendarsService: CalendarsService,
+    protected formsService: FormsService,
+    protected kanbansService: KanbansService,
+    protected galleriesService: GalleriesService,
   ) {
     this.builder = builderGenerator({
       allowed: [
@@ -155,6 +175,115 @@ export class ViewsV3Service {
         return formattedData;
       },
     });
+
+    this.v3Tov2ViewBuilders.view = builderGenerator<any, any>({
+      allowed: [
+        'id',
+        'type',
+        'name',
+        'description',
+        'sorts',
+        'groups',
+        'options',
+        'meta',
+        'created_by',
+        'owned_by',
+        'created_at',
+        'updated_at',
+      ],
+      mappings: {
+        name: 'title',
+      },
+      booleanProps: ['submit_another_form', 'show_blank_form'],
+      nestedExtract: {
+        form_hide_branding: ['view', 'meta', 'hide_branding'],
+        background_color: ['view', 'meta', 'background_color'],
+        form_hide_banner: ['view', 'meta', 'hide_banner'],
+      },
+      transformFn: (viewData) => {
+        return viewData;
+      },
+    }) as any;
+
+    this.v3Tov2ViewBuilders.calendar = builderGenerator<any, any>({
+      allowed: ['dateRanges'],
+      mappings: {
+        dateRanges: 'calendar_range',
+      },
+      transformFn: (options) => {
+        const result = {
+          ...options,
+          calendar_range: options.calendar_range.map((range) => ({
+            fk_from_column_id: range.startDateFieldId,
+            fk_to_column_id: range.endDateFieldId,
+          })),
+        };
+        return result;
+      },
+    }) as any;
+
+    this.v3Tov2ViewBuilders.kanban = builderGenerator<any, any>({
+      allowed: ['stackBy'],
+      mappings: {},
+      transformFn: (options) => {
+        const result = {
+          ...options,
+          fk_grp_col_id: options.stackBy.fieldId,
+        };
+        return result;
+      },
+    }) as any;
+
+    this.v3Tov2ViewBuilders.gallery = builderGenerator<any, any>({
+      allowed: ['coverFieldId'],
+      mappings: {
+        coverFieldId: 'fk_cover_image_col_id',
+      },
+    }) as any;
+
+    this.v3Tov2ViewBuilders.form = builderGenerator<any, any>({
+      allowed: [
+        'formTitle',
+        'formDescription',
+        'submitButtonLabel',
+        'thankYouMessage',
+        'redirectOnSubmit',
+        'submitAnotherForm',
+        'showBlankForm',
+      ],
+      mappings: {
+        formTitle: 'heading',
+        formDescription: 'subheading',
+        thankYouMessage: 'success_msg',
+        submitAnotherForm: 'submit_another_form',
+        showBlankForm: 'show_blank_form',
+      },
+      transformFn: (data) => {
+        data.redirect_url = data.redirectOnSubmit?.url;
+        return data;
+      },
+    }) as any;
+
+    /**
+     {
+      "submit_another_form": false,
+      "show_blank_form": false,
+      "meta": {
+        "hide_branding": false,
+        "background_color": "#F9F9FA",
+        "hide_banner": false
+      }
+    }
+
+    "formTitle": "Submit Ticket",
+    "formDescription": "We'll get back to you soon.",
+    "submitButtonLabel": "Submit",
+    "thankYouMessage": "Thanks for your response!",
+    "redirectOnSubmit": {
+      "enabled": true,
+      "url": "https://example.com/thank-you"
+    }
+     */
   }
 
   async getViews(
@@ -248,5 +377,118 @@ export class ViewsV3Service {
     // group info
 
     return formattedView;
+  }
+
+  async create(context: NcContext, param: { req: NcRequest; tableId: string }) {
+    const { req, tableId } = param;
+    const { body } = req;
+    const requestBody = this.v3Tov2ViewBuilders.view().build(body);
+    let insertedV2View: View;
+    switch (requestBody.type) {
+      case ViewTypes.GRID: {
+        let groups: any[];
+        if (
+          requestBody.options.groups &&
+          requestBody.options.groups.length > 0
+        ) {
+          if (requestBody.options.groups.length > 3) {
+            NcError.get(context).invalidRequestBody(
+              `options.groups maximal 3 fields`,
+            );
+          }
+          groups = requestBody.options;
+        }
+        insertedV2View = await this.gridsService.gridViewCreate(context, {
+          tableId,
+          grid: requestBody,
+          req: req,
+        });
+        if (groups && groups.length > 0) {
+          let order = 1;
+          for (const group of groups) {
+            await this.gridColumnsService.gridColumnUpdate(context, {
+              grid: {
+                group_by: true,
+                group_by_order: order++,
+                group_by_sort: group.direction,
+              },
+              gridViewColumnId: group.field,
+              req,
+            });
+          }
+        }
+        break;
+      }
+      case ViewTypes.CALENDAR: {
+        insertedV2View = await this.calendarsService.calendarViewCreate(
+          context,
+          {
+            tableId,
+            calendar: {
+              ...requestBody,
+              ...this.v3Tov2ViewBuilders.calendar().build(requestBody.options),
+            },
+            req: req,
+            user: context.user,
+          },
+        );
+        break;
+      }
+      case ViewTypes.KANBAN: {
+        insertedV2View = await this.kanbansService.kanbanViewCreate(context, {
+          tableId,
+          kanban: {
+            ...requestBody,
+            ...this.v3Tov2ViewBuilders.kanban().build(requestBody.options),
+          },
+          req: req,
+          user: context.user,
+        });
+        break;
+      }
+      case ViewTypes.GALLERY: {
+        insertedV2View = await this.galleriesService.galleryViewCreate(
+          context,
+          {
+            tableId,
+            gallery: {
+              ...requestBody,
+              ...this.v3Tov2ViewBuilders.gallery().build(requestBody.options),
+            },
+            req: req,
+            user: context.user,
+          },
+        );
+        break;
+      }
+      case ViewTypes.FORM: {
+        insertedV2View = await this.formsService.formViewCreate(context, {
+          tableId,
+          body: {
+            ...requestBody,
+            ...this.v3Tov2ViewBuilders.form().build(requestBody.options),
+          },
+          req: req,
+          user: context.user,
+        });
+        break;
+      }
+      default: {
+        NcError.get(context).invalidRequestBody(
+          `Type ${requestBody.type} is not supported`,
+        );
+        break;
+      }
+    }
+
+    if (requestBody.sorts) {
+      await this.sortsV3Service.sortCreate(context, {
+        viewId: insertedV2View.id,
+        req,
+        sort: requestBody.sorts,
+      });
+    }
+
+    return insertedV2View;
   }
 }

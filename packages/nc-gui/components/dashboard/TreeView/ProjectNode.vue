@@ -34,7 +34,7 @@ const { isMobileMode, user } = useGlobal()
 
 const { createProject: _createProject, updateProject, getProjectMetaInfo } = basesStore
 
-const { bases, basesUser, showProjectList } = storeToRefs(basesStore)
+const { bases, basesUser, showProjectList, forceShowBaseList } = storeToRefs(basesStore)
 
 const collaborators = computed(() => {
   return (basesUser.value.get(base.value?.id) || []).map((user: any) => {
@@ -241,6 +241,7 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   if (!cmdOrCtrl && activeProjectId.value === base.id) {
+    forceShowBaseList.value = false
     showProjectList.value = false
     return
   }
@@ -296,6 +297,7 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
     updatedProject.isLoading = false
   }
 
+  forceShowBaseList.value = false
   showProjectList.value = false
 }
 

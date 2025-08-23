@@ -25,7 +25,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject, updateProject } = basesStore
 
-const { bases, basesList, activeProjectId, showProjectList, isProjectsLoaded } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId, showProjectList, isProjectsLoaded, forceShowBaseList } = storeToRefs(basesStore)
 
 const baseStore = useBase()
 
@@ -556,7 +556,7 @@ onBeforeUnmount(() => {
     <DashboardTreeViewProjectListSkeleton v-if="isLoadingSidebar" />
 
     <template v-else>
-      <Transition :name="transitionName" appear>
+      <Transition :name="forceShowBaseList ? undefined : transitionName" appear>
         <div
           v-if="showProjectList"
           key="project-list"

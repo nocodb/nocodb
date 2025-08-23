@@ -128,22 +128,6 @@ export class SortsV3Service {
     return sortBuilder().build(sort);
   }
 
-  async sortClear(
-    context: NcContext,
-    param: { viewId: string },
-    ncMeta?: MetaService,
-  ) {
-    const qb = ncMeta
-      .knex(MetaTable.SORT)
-      .where('base_id', '=', context.base_id)
-      .andWhere('fk_view_id', '=', param.viewId)
-      .delete();
-    if (context.workspace_id) {
-      qb.andWhere('fk_workspace_id', '=', context.workspace_id);
-    }
-    await qb;
-  }
-
   async sortList(context: NcContext, param: { viewId: string }) {
     return sortBuilder().build(
       await Sort.list(context, { viewId: param.viewId }),

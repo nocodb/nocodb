@@ -50,6 +50,7 @@ import {
 } from '~/utils/modelUtils';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import TrackModificationsColumn from '~/models/TrackModificationsColumn';
 
 const selectColors = enumColors.light;
 
@@ -74,6 +75,7 @@ const requiredColumnsToRecreate = {
   [UITypes.Barcode]: ['fk_barcode_value_column_id'],
   [UITypes.Button]: ['type', 'label'],
   [UITypes.Formula]: ['formula'],
+  'TrackModifications': ['enabled', 'triggerColumns', 'updateType'],
 };
 
 export default class Column<T = any> implements ColumnType {
@@ -234,6 +236,25 @@ export default class Column<T = any> implements ColumnType {
           sqlUi.getUIType(column as ColumnType) || UITypes.SingleLineText;
       } else {
         insertObj.uidt = UITypes.SingleLineText;
+      }
+
+      // Handle TrackModifications column type - set appropriate data type
+      if ((insertObj.uidt as string) === 'TrackModifications') {
+        // Set appropriate data type based on the column options
+        const updateType = column.colOptions?.updateType || 'timestamp';
+        switch (updateType) {
+          case 'timestamp':
+            insertObj.dt = 'timestamp';
+            break;
+          case 'user':
+            insertObj.dt = 'varchar(255)';
+            break;
+          case 'custom':
+            insertObj.dt = 'text';
+            break;
+          default:
+            insertObj.dt = 'varchar(255)';
+        }
       }
     }
 
@@ -493,6 +514,22 @@ export default class Column<T = any> implements ColumnType {
             ncMeta,
           );
         }
+        break;
+      }
+
+      case 'TrackModifications': {
+        await TrackModificationsColumn.insert(
+          context,
+          {
+            fk_column_id: colId,
+            enabled: column.colOptions?.enabled || false,
+            triggerColumns: column.colOptions?.triggerColumns || [],
+            updateType: column.colOptions?.updateType || 'timestamp',
+            customValue: column.colOptions?.customValue,
+            fk_target_view_id: column.colOptions?.fk_target_view_id,
+          },
+          ncMeta,
+        );
         break;
       }
 
@@ -1526,6 +1563,28 @@ export default class Column<T = any> implements ColumnType {
       else updateObj.validate = JSON.stringify(column.validate);
     }
 
+    // Handle TrackModifications column type - update data type if needed
+    if ((column.uidt as string) === 'TrackModifications') {
+      const updateType = column.colOptions?.updateType || 'timestamp';
+      let newDataType = 'varchar(255)';
+      
+      switch (updateType) {
+        case 'timestamp':
+          newDataType = 'timestamp';
+          break;
+        case 'user':
+          newDataType = 'varchar(255)';
+          break;
+        case 'custom':
+          newDataType = 'text';
+          break;
+        default:
+          newDataType = 'varchar(255)';
+      }
+      
+      updateObj.dt = newDataType;
+    }
+
     // get qr code columns and delete if target type is not supported by QR code column type
     if (!AllowedColumnTypesForQrAndBarcodes.includes(updateObj.uidt)) {
       const qrCodeCols = await ncMeta.metaList2(
@@ -1594,8 +1653,9 @@ export default class Column<T = any> implements ColumnType {
     );
 
     // insert new col options only if existing colOption meta is deleted
-    if (requiredColAvail)
+    if (requiredColAvail) {
       await this.insertColOption(context, column, colId, ncMeta);
+    }
 
     // on column update, delete any optimised single query cache
     await View.clearSingleQueryCache(context, oldCol.fk_model_id, null, ncMeta);

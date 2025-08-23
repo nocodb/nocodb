@@ -52,6 +52,7 @@ enum UITypes {
   CreatedBy = 'CreatedBy',
   LastModifiedBy = 'LastModifiedBy',
   Order = 'Order',
+  TrackModifications = 'TrackModifications',
 }
 
 export const UITypesName = {
@@ -98,9 +99,10 @@ export const UITypesName = {
   [UITypes.User]: 'User',
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
+  [UITypes.TrackModifications]: 'Track Modifications',
   AIButton: 'AI Button',
   AIPrompt: 'AI Prompt',
-};
+}
 
 export const UITypesSearchTerms = {
   [UITypes.ID]: ['ID', 'record number', 'unique number'],
@@ -229,6 +231,14 @@ export const UITypesSearchTerms = {
     'last updated by',
     'who changed',
   ],
+  [UITypes.TrackModifications]: [
+    'Track Modifications',
+    'modification tracking',
+    'change tracking',
+    'update tracking',
+    'last modified',
+    'track changes',
+  ],
   AIButton: ['AI Button', 'AI action', 'smart button'],
   AIPrompt: ['AI Prompt', 'AI field', 'smart field'],
 };
@@ -307,6 +317,7 @@ export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
   [UITypes.Order]: 'Order',
+  [UITypes.TrackModifications]: 'Track Modifications',
 };
 
 export const numericUITypes = [

@@ -275,19 +275,14 @@ onMounted(() => {
       <div v-if="isEeUI" class="mb-5">
         <NcDivider divider-class="!my-5" />
 
-        <div class="text-nc-content-gray font-medium leading-5 mb-2">
+        <div v-if="isTargetOtherWsSufficientPlan" class="text-nc-content-gray font-medium leading-5 mb-2">
           {{ $t('labels.workspace') }}
           <div class="flex items-center content-center gap-2">
-            <NcTooltip :disabled="canTargetOtherBase && isTargetOtherWsSufficientPlan" class="mt-2 flex-1">
-              <template v-if="!canTargetOtherBase || !isTargetOtherWsSufficientPlan" #title>
-                <span v-if="!canTargetOtherBase">
-                  This table contains linked records that reference data in the current base.
-                </span>
-                <span v-if="!isTargetOtherWsSufficientPlan">
-                  {{ $t('upgrade.upgradeToDuplicateTableToOtherWs') }}
-                </span>
+            <NcTooltip :disabled="canTargetOtherBase" class="mt-2 flex-1">
+              <template v-if="!canTargetOtherBase" #title>
+                <span> This table contains linked records that reference data in the current base. </span>
               </template>
-              <NcDropdown v-model:visible="wsDropdownOpen" :disabled="!canTargetOtherBase || !isTargetOtherWsSufficientPlan">
+              <NcDropdown v-model:visible="wsDropdownOpen" :disabled="!canTargetOtherBase">
                 <div
                   class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-3"
                   style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"

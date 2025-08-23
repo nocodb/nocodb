@@ -129,7 +129,7 @@ export default class LastModColumn {
       },
     );
 
-    await this.insert(
+    return await this.insert(
       context,
       {
         fk_column_id: colId,

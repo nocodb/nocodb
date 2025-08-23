@@ -11,6 +11,7 @@ import { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
 import type { ColumnReqType, ColumnType, LookupType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type { LastModColumnOptions } from '~/models/LastModColumn';
 import FormulaColumn from '~/models/FormulaColumn';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import LookupColumn from '~/models/LookupColumn';
@@ -915,7 +916,6 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
-
     const columns = await Column.list(context, {
       fk_model_id: col.fk_model_id,
     });
@@ -978,18 +978,24 @@ export default class Column<T = any> implements ColumnType {
     // if deleting column is part of a tracked Last modified field
     // then remove it from tracked list
     {
-      for(const column of columns){
-        if(column.uidt !== UITypes.LastModifiedTime && column.uidt !== UITypes.LastModifiedBy) {
+      for (const column of columns) {
+        if (
+          column.uidt !== UITypes.LastModifiedTime &&
+          column.uidt !== UITypes.LastModifiedBy
+        ) {
           continue;
         }
 
-          const colOptions = await column.getColOptions<LastModColumn>(context, ncMeta);
-          if(colOptions?.triggerColumnIds?.includes(id)) {
-            colOptions.triggerColumnIds = colOptions.triggerColumnIds.filter(
-                (triggerId) => triggerId !== id,
-            );
-            await LastModColumn.update(context, column.id, colOptions, ncMeta);
-          }
+        const colOptions = await column.getColOptions<LastModColumnOptions>(
+          context,
+          ncMeta,
+        );
+        if (colOptions?.triggerColumnIds?.includes(id)) {
+          colOptions.triggerColumnIds = colOptions.triggerColumnIds.filter(
+            (triggerId) => triggerId !== id,
+          );
+          await LastModColumn.update(context, column.id, colOptions, ncMeta);
+        }
       }
     }
 

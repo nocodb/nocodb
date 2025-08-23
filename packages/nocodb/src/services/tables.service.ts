@@ -43,6 +43,7 @@ import {
 } from '~/helpers/getUniqueName';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { isEE } from '~/utils';
 
 @Injectable()
 export class TablesService {
@@ -639,7 +640,13 @@ export class TablesService {
         UITypes.CreatedBy,
         UITypes.LastModifiedBy,
         UITypes.Order,
+        UITypes.Meta,
       ]) {
+        // skip meta column creation in non pg and non EE
+        if (!isEE && uidt === UITypes.Meta && !source.isMeta()) {
+          continue;
+        }
+
         const col = tableCreatePayLoad.columns.find(
           (c) => c.uidt === uidt,
         ) as ColumnType;
@@ -670,6 +677,10 @@ export class TablesService {
           case UITypes.ID:
             columnTitle = 'Id';
             columnName = 'id';
+            break;
+          case UITypes.Meta:
+            columnTitle = '__meta__';
+            columnName = '__meta__';
             break;
         }
 

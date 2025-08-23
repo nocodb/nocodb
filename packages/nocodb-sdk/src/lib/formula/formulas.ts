@@ -1172,14 +1172,26 @@ export const formulas: Record<string, FormulaMeta> = {
   //   syntax: 'CREATED_TIME()',
   //   examples: ['CREATED_TIME()'],
   // },
-  // LAST_MODIFIED_TIME: {
-  //   validation: {
-  //     args: {
-  //       rqd: 0,
-  //     },
-  //   },
-  //   description: 'Returns the last modified time of the current record if it exists',
-  //   syntax: ' LAST_MODIFIED_TIME()',
-  //   examples: [' LAST_MODIFIED_TIME()'],
-  // },
+  LAST_MODIFIED_TIME: {
+    validation: {
+      args: {
+        min: 0,
+      },
+      custom(_argTypes: FormulaDataTypes[], parsedTree: any) {
+        for (const arg of parsedTree.arguments) {
+          if (arg.type !== JSEPNode.IDENTIFIER) {
+            throw new FormulaError(
+              FormulaErrorType.INVALID_ARG,
+              {},
+              'Only column references are allowed as arguments for LAST_MODIFIED_TIME'
+            );
+          }
+        }
+      },
+    },
+    description:
+      'Returns the last modified time of the current record or selection if it exists',
+    syntax: ' LAST_MODIFIED_TIME()',
+    examples: [' LAST_MODIFIED_TIME()'],
+  },
 };

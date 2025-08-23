@@ -21535,7 +21535,8 @@
               "CreatedBy",
               "LastModifiedBy",
               "AI",
-              "Order"
+              "Order",
+              "Meta"
             ],
             "type": "string"
           },
@@ -25399,7 +25400,8 @@
               "CreatedBy",
               "LastModifiedBy",
               "AI",
-              "Order"
+              "Order",
+              "Meta"
             ],
             "type": "string",
             "description": "UI Data Type"

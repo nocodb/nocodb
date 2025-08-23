@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 import {
   type BaseType,
   type LinkToAnotherRecordType,
@@ -46,6 +47,8 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { workspacesList, activeWorkspace } = useWorkspace()
 
+const { getFeature } = useEeConfig()
+
 // #region target base
 const wsDropdownOpen = ref(false)
 const baseDropdownOpen = ref(false)
@@ -60,9 +63,13 @@ const canTargetOtherBase = computedAsync(async () => {
   if (!targetTableMeta.value || (targetTableMeta.value.columns?.length ?? 0) === 0) return false
   return isEeUI && !targetTableMeta.value.columns?.some((col) => [UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt))
 })
+const isTargetOtherWsSufficientPlan = computedAsync(async () => {
+  return getFeature(PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS)
+})
 
 const workspaceOptions = computed(() => {
   if (!isEeUI) return []
+  if (!isTargetOtherWsSufficientPlan.value) return [activeWorkspace]
   return workspacesList.filter((ws) =>
     [WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(ws.roles as WorkspaceUserRoles),
   )
@@ -73,9 +80,15 @@ const selectWorkspace = (option: WorkspaceType) => {
   wsDropdownOpen.value = false
 }
 
+const isTargetOtherBaseSufficientPlan = computedAsync(async () => {
+  return getFeature(PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE)
+})
 const targetBases = computedAsync(async () => {
   if (!isEeUI || !targetWorkspace.value) {
     return []
+  }
+  if (!isTargetOtherBaseSufficientPlan.value) {
+    return [activeBase.value]
   }
   const bases = await loadProjects(undefined, targetWorkspace.value.id)
   return (bases as any[]).filter(
@@ -257,72 +270,89 @@ const isEaster = ref(false)
               {{ targetWorkspace?.title }}
             </div>
           </div>
-          <NcDropdown v-if="canTargetOtherBase" v-model:visible="wsDropdownOpen" class="mt-2">
-            <div
-              class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-3"
-              style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
-              :class="{
-                '!border-brand-500 !shadow-selected': wsDropdownOpen,
-              }"
-            >
-              <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace" />
-
-              <div class="flex-1 capitalize truncate">
-                {{ targetWorkspace?.title }}
-              </div>
-
-              <div class="flex gap-2 items-center">
-                <div v-if="activeWorkspace?.id === targetWorkspace?.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
-                  {{ $t('labels.currentWorkspace') }}
-                </div>
-                <GeneralIcon
+          <div v-else class="flex items-center content-center gap-2">
+            <NcTooltip class="mt-2 flex-1">
+              <template v-if="!isTargetOtherWsSufficientPlan" #title>
+                <span>
+                  {{ $t('upgrade.upgradeToDuplicateTableToOtherWs') }}
+                </span>
+              </template>
+              <NcDropdown v-model:visible="wsDropdownOpen" :disabled="!isTargetOtherWsSufficientPlan">
+                <div
+                  class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-3"
+                  style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
                   :class="{
-                    'transform rotate-180': wsDropdownOpen,
+                    '!border-brand-500 !shadow-selected': wsDropdownOpen,
                   }"
-                  class="text-nc-content-gray transition-all w-4 h-4"
-                  icon="ncChevronDown"
-                />
-              </div>
-            </div>
+                >
+                  <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace" />
 
-            <template #overlay>
-              <NcList
-                :value="targetWorkspace"
-                :item-height="28"
-                close-on-select
-                class="nc-base-workspace-selection"
-                :min-items-for-search="6"
-                container-class-name="w-full"
-                :list="workspaceOptions"
-                option-label-key="title"
-              >
-                <template #listHeader>
-                  <div class="text-nc-content-gray-muted text-[13px] px-3 pt-2.5 pb-1.5 font-medium leading-5">
-                    {{ $t('labels.duplicateTableMessage') }}
+                  <div class="flex-1 capitalize truncate">
+                    {{ targetWorkspace?.title }}
                   </div>
 
-                  <NcDivider />
-                </template>
-
-                <template #listItem="{ option }">
-                  <div class="flex gap-2 w-full items-center" @click="selectWorkspace(option)">
-                    <GeneralWorkspaceIcon :workspace="option" size="small" />
-
-                    <div class="flex-1 text-[13px] truncate font-semibold leading-5 capitalize w-full">
-                      {{ option.title }}
+                  <div class="flex gap-2 items-center">
+                    <div
+                      v-if="activeWorkspace?.id === targetWorkspace?.id"
+                      class="text-nc-content-gray-muted leading-4.5 text-xs"
+                    >
+                      {{ $t('labels.currentWorkspace') }}
                     </div>
+                    <GeneralIcon
+                      :class="{
+                        'transform rotate-180': wsDropdownOpen,
+                      }"
+                      class="text-nc-content-gray transition-all w-4 h-4"
+                      icon="ncChevronDown"
+                    />
+                  </div>
+                </div>
 
-                    <div class="flex items-center gap-2">
-                      <div v-if="activeWorkspace?.id === option.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
-                        {{ $t('labels.currentWorkspace') }}
+                <template #overlay>
+                  <NcList
+                    :value="targetWorkspace"
+                    :item-height="28"
+                    close-on-select
+                    class="nc-base-workspace-selection"
+                    :min-items-for-search="6"
+                    container-class-name="w-full"
+                    :list="workspaceOptions"
+                    option-label-key="title"
+                  >
+                    <template #listHeader>
+                      <div class="text-nc-content-gray-muted text-[13px] px-3 pt-2.5 pb-1.5 font-medium leading-5">
+                        {{ $t('labels.duplicateTableMessage') }}
                       </div>
-                      <GeneralIcon v-if="option.id === targetWorkspace?.id" class="text-brand-500 w-4 h-4" icon="ncCheck" />
-                    </div>
-                  </div>
+
+                      <NcDivider />
+                    </template>
+
+                    <template #listItem="{ option }">
+                      <div class="flex gap-2 w-full items-center" @click="selectWorkspace(option)">
+                        <GeneralWorkspaceIcon :workspace="option" size="small" />
+
+                        <div class="flex-1 text-[13px] truncate font-semibold leading-5 capitalize w-full">
+                          {{ option.title }}
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                          <div v-if="activeWorkspace?.id === option.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
+                            {{ $t('labels.currentWorkspace') }}
+                          </div>
+                          <GeneralIcon v-if="option.id === targetWorkspace?.id" class="text-brand-500 w-4 h-4" icon="ncCheck" />
+                        </div>
+                      </div>
+                    </template>
+                  </NcList>
                 </template>
-              </NcList>
-            </template>
-          </NcDropdown>
+              </NcDropdown>
+            </NcTooltip>
+            <LazyPaymentUpgradeBadge
+              :feature="PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS"
+              :plan-title="PlanTitles.ENTERPRISE"
+              :content="$t('upgrade.upgradeToDuplicateTableToOtherWs')"
+            />
+          </div>
         </div>
 
         <div class="text-nc-content-gray font-medium leading-5">
@@ -333,76 +363,89 @@ const isEaster = ref(false)
               {{ targetBase?.title }}
             </div>
           </div>
-          <NcDropdown v-if="canTargetOtherBase" v-model:visible="baseDropdownOpen" class="mt-2">
-            <div
-              class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-3"
-              style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
-              :class="{
-                '!border-brand-500 !shadow-selected': baseDropdownOpen,
-              }"
-            >
-              <!-- TODO: base icon
-            <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace" />
-            -->
-
-              <div class="flex-1 capitalize truncate">
-                {{ targetBase?.title }}
-              </div>
-
-              <div class="flex gap-2 items-center">
-                <div v-if="activeBase?.id === targetBase?.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
-                  {{ $t('labels.currentBase') }}
-                </div>
-                <GeneralIcon
+          <div v-else class="flex items-center content-center gap-2">
+            <NcTooltip class="mt-2 flex-1">
+              <template v-if="!isTargetOtherBaseSufficientPlan" #title>
+                <span>
+                  {{ $t('upgrade.upgradeToDuplicateTableToOtherBase') }}
+                </span>
+              </template>
+              <NcDropdown v-model:visible="baseDropdownOpen" :disabled="!isTargetOtherBaseSufficientPlan">
+                <div
+                  class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-3"
+                  style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
                   :class="{
-                    'transform rotate-180': baseDropdownOpen,
+                    '!border-brand-500 !shadow-selected': baseDropdownOpen,
                   }"
-                  class="text-nc-content-gray transition-all w-4 h-4"
-                  icon="ncChevronDown"
-                />
-              </div>
-            </div>
+                >
+                  <!-- TODO: base icon
+                <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace" />
+                -->
 
-            <template #overlay>
-              <NcList
-                :value="targetBase"
-                :item-height="28"
-                close-on-select
-                class="nc-base-workspace-selection"
-                :min-items-for-search="6"
-                container-class-name="w-full"
-                :list="targetBases"
-                option-label-key="title"
-              >
-                <template #listHeader>
-                  <div class="text-nc-content-gray-muted text-[13px] px-3 pt-2.5 pb-1.5 font-medium leading-5">
-                    {{ $t('labels.duplicateTableMessage') }}
+                  <div class="flex-1 capitalize truncate">
+                    {{ targetBase?.title }}
                   </div>
 
-                  <NcDivider />
-                </template>
-
-                <template #listItem="{ option }">
-                  <div class="flex gap-2 w-full items-center" @click="selectBase(option)">
-                    <!-- TODO: base icon
-                      <GeneralWorkspaceIcon :workspace="option" size="small" />
-                    -->
-
-                    <div class="flex-1 text-[13px] truncate font-semibold leading-5 capitalize w-full">
-                      {{ option.title }}
+                  <div class="flex gap-2 items-center">
+                    <div v-if="activeBase?.id === targetBase?.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
+                      {{ $t('labels.currentBase') }}
                     </div>
+                    <GeneralIcon
+                      :class="{
+                        'transform rotate-180': baseDropdownOpen,
+                      }"
+                      class="text-nc-content-gray transition-all w-4 h-4"
+                      icon="ncChevronDown"
+                    />
+                  </div>
+                </div>
 
-                    <div class="flex items-center gap-2">
-                      <div v-if="activeBase?.id === option.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
-                        {{ $t('labels.currentBase') }}
+                <template #overlay>
+                  <NcList
+                    :value="targetBase"
+                    :item-height="28"
+                    close-on-select
+                    class="nc-base-workspace-selection"
+                    :min-items-for-search="6"
+                    container-class-name="w-full"
+                    :list="targetBases"
+                    option-label-key="title"
+                  >
+                    <template #listHeader>
+                      <div class="text-nc-content-gray-muted text-[13px] px-3 pt-2.5 pb-1.5 font-medium leading-5">
+                        {{ $t('labels.duplicateTableMessage') }}
                       </div>
-                      <GeneralIcon v-if="option.id === targetBase?.id" class="text-brand-500 w-4 h-4" icon="ncCheck" />
-                    </div>
-                  </div>
+
+                      <NcDivider />
+                    </template>
+
+                    <template #listItem="{ option }">
+                      <div class="flex gap-2 w-full items-center" @click="selectBase(option)">
+                        <!-- TODO: base icon
+                          <GeneralWorkspaceIcon :workspace="option" size="small" />
+                        -->
+
+                        <div class="flex-1 text-[13px] truncate font-semibold leading-5 capitalize w-full">
+                          {{ option.title }}
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                          <div v-if="activeBase?.id === option.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
+                            {{ $t('labels.currentBase') }}
+                          </div>
+                          <GeneralIcon v-if="option.id === targetBase?.id" class="text-brand-500 w-4 h-4" icon="ncCheck" />
+                        </div>
+                      </div>
+                    </template>
+                  </NcList>
                 </template>
-              </NcList>
-            </template>
-          </NcDropdown>
+              </NcDropdown>
+            </NcTooltip>
+            <LazyPaymentUpgradeBadge
+              :feature="PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE"
+              :content="$t('upgrade.upgradeToDuplicateTableToOtherBase')"
+            />
+          </div>
         </div>
       </div>
     </div>

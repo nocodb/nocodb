@@ -50,7 +50,7 @@ import {
 } from '~/utils/modelUtils';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
-import TrackModificationsColumn from '~/models/TrackModificationsColumn';
+import LastModColumn from '~/models/LastModColumn';
 
 const selectColors = enumColors.light;
 
@@ -75,7 +75,6 @@ const requiredColumnsToRecreate = {
   [UITypes.Barcode]: ['fk_barcode_value_column_id'],
   [UITypes.Button]: ['type', 'label'],
   [UITypes.Formula]: ['formula'],
-  'TrackModifications': ['enabled', 'triggerColumns', 'updateType'],
 };
 
 export default class Column<T = any> implements ColumnType {
@@ -320,15 +319,14 @@ export default class Column<T = any> implements ColumnType {
         break;
       }
       case UITypes.LastModifiedBy:
-      case UITypes.LastModifiedTime:
-      {
+      case UITypes.LastModifiedTime: {
         // Handle TrackModifications column type
         if (column.colOptions?.triggerColumns?.length > 0) {
-          await TrackModificationsColumn.insert(
+          await LastModColumn.insert(
             context,
             {
               fk_column_id: colId,
-              triggerColumns: column.colOptions.triggerColumns,
+              triggerColumnIds: column.colOptions.triggerColumnIds,
             },
             ncMeta,
           );
@@ -514,21 +512,6 @@ export default class Column<T = any> implements ColumnType {
         break;
       }
 
-      case 'TrackModifications': {
-        // Handle TrackModifications column type
-        if (column.colOptions?.triggerColumns?.length > 0) {
-          await TrackModificationsColumn.insert(
-            context,
-            {
-              fk_column_id: colId,
-              triggerColumns: column.colOptions.triggerColumns,
-            },
-            ncMeta,
-          );
-        }
-        break;
-      }
-
       /*  default:
         {
           await ncMeta.metaInsert2(
@@ -639,7 +622,7 @@ export default class Column<T = any> implements ColumnType {
       case UITypes.LastModifiedTime:
       case UITypes.LastModifiedBy:
         if (this.column_name && !this.system) {
-          res = await TrackModificationsColumn.read(context, this.id, ncMeta);
+          res = await LastModColumn.read(context, this.id, ncMeta);
         }
         break;
       // default:
@@ -1521,6 +1504,24 @@ export default class Column<T = any> implements ColumnType {
 
           await NocoCache.deepDel(
             `${CacheScope.COL_SELECT_OPTION}:${colId}:list`,
+            CacheDelDirection.PARENT_TO_CHILD,
+          );
+          break;
+        }
+
+        case UITypes.LastModifiedBy:
+        case UITypes.LastModifiedTime: {
+          await ncMeta.metaDelete(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_LAST_MOD_TRIGGER_COLUMNS,
+            {
+              fk_column_id: colId,
+            },
+          );
+
+          await NocoCache.deepDel(
+            `${CacheScope.COL_LAST_MOD_TRIGGERS}:${colId}:list`,
             CacheDelDirection.PARENT_TO_CHILD,
           );
           break;

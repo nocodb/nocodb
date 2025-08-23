@@ -51,7 +51,7 @@ enum UITypes {
   User = 'User',
   CreatedBy = 'CreatedBy',
   LastModifiedBy = 'LastModifiedBy',
-  Order = 'Order'
+  Order = 'Order',
 }
 
 export const UITypesName = {
@@ -100,7 +100,7 @@ export const UITypesName = {
   [UITypes.LastModifiedBy]: 'Last modified by',
   AIButton: 'AI Button',
   AIPrompt: 'AI Prompt',
-}
+};
 
 export const UITypesSearchTerms = {
   [UITypes.ID]: ['ID', 'record number', 'unique number'],

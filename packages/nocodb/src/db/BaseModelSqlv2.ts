@@ -66,7 +66,7 @@ import type {
 } from '~/models';
 import type LookupColumn from '~/models/LookupColumn';
 import type { ResolverObj } from '~/utils';
-import type { TrackModificationsColumnOptions } from '~/models/TrackModificationsColumn';
+import type { TrackModificationsColumnOptions } from '~/models/LastModColumn';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
 import { FieldHandler } from '~/db/field-handler';
@@ -6288,9 +6288,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           (c.column_name &&
             (
               c.colOptions as TrackModificationsColumnOptions
-            )?.triggerColumns?.some((c) =>
-              updatedColIds.includes(c.fk_trigger_column_id),
-            ))),
+            )?.triggerColumnIds?.some((id) => updatedColIds.includes(id)))),
     );
 
     const lastModifiedByColumns = columns.filter(
@@ -6300,9 +6298,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           (c.column_name &&
             (
               c.colOptions as TrackModificationsColumnOptions
-            )?.triggerColumns?.some((c) =>
-              updatedColIds.includes(c.fk_trigger_column_id),
-            ))),
+            )?.triggerColumnIds?.some(
+              (id) => updatedColIds.includes(id)
+            )
+          )
+        ),
     );
 
     for (const lastModifiedTimeColumn of lastModifiedTimeColumns) {
@@ -6573,22 +6573,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           column.uidt,
         ) &&
         column.column_name &&
-        (column.colOptions as TrackModificationsColumnOptions)?.triggerColumns
+        (column.colOptions as TrackModificationsColumnOptions)?.triggerColumnIds
           ?.length &&
         !isInsertData
       ) {
         // check if any of the tracked columns are updating
-        const trackColumns = (
+        const trackColumnIds = (
           column.colOptions as TrackModificationsColumnOptions
-        )?.triggerColumns;
+        )?.triggerColumnIds;
 
         if (
-          trackColumns.every((c) =>
-            ncIsUndefined(
-              data[
-                this.model.columnsById?.[c.fk_trigger_column_id]?.column_name
-              ],
-            ),
+          trackColumnIds.every((id) =>
+            ncIsUndefined(data[this.model.columnsById?.[id]?.column_name]),
           )
         ) {
           continue;

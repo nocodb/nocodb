@@ -277,7 +277,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: childIds,
             cookie,
             // Todo: extract rel in ref table
-            updatedColIds: []
+            updatedColIds: [],
           });
 
           await parentBaseModel.broadcastLinkUpdates(childIds as string[]);
@@ -376,7 +376,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [rowId],
             cookie,
-            updatedColIds: [column.id]
+            updatedColIds: [column.id],
           });
 
           await parentBaseModel.broadcastLinkUpdates([rowId]);
@@ -433,7 +433,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [rowId],
             cookie,
-            updatedColIds: [column.id]
+            updatedColIds: [column.id],
           });
           await parentBaseModel.broadcastLinkUpdates([rowId]);
         }
@@ -693,7 +693,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: childIds,
             cookie,
             // Todo: extract rel in ref table
-            updatedColIds: []
+            updatedColIds: [],
           });
 
           await parentBaseModel.broadcastLinkUpdates(childIds as string[]);
@@ -702,7 +702,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: childTable,
             rowIds: [rowId],
             cookie,
-            updatedColIds: [column.id]
+            updatedColIds: [column.id],
           });
 
           await childBaseModel.broadcastLinkUpdates([rowId]);
@@ -798,7 +798,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [rowId],
             cookie,
-            updatedColIds: [column.id]
+            updatedColIds: [column.id],
           });
 
           await parentBaseModel.broadcastLinkUpdates([rowId]);
@@ -859,7 +859,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: [childIds[0]],
             cookie,
             // Todo: extract rel in ref table
-            updatedColIds: []
+            updatedColIds: [],
           });
 
           await parentBaseModel.broadcastLinkUpdates([childIds[0] as string]);

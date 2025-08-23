@@ -690,76 +690,6 @@ const isLookupOrRollup = computed(() => {
 const lookupRollupFilterEnabled = computed(() => {
   return isLookupOrRollup.value && !!parseProp(formState.value?.meta)?.enableConditions
 })
-
-// TrackModifications Configuration
-const trackModificationsConfig = ref({
-  enabled: false,
-  triggerColumns: [],
-  updateType: 'timestamp',
-  customValue: ''
-});
-
-const handleTrackModificationsChange = (enabled: boolean) => {
-  trackModificationsConfig.value.enabled = enabled;
-  updateColumnConfig();
-};
-
-const handleTriggerColumnsChange = (selectedColumns: string[]) => {
-  trackModificationsConfig.value.triggerColumns = selectedColumns;
-  updateColumnConfig();
-};
-
-const handleUpdateTypeChange = (updateType: string) => {
-  trackModificationsConfig.value.updateType = updateType;
-  updateColumnConfig();
-};
-
-const handleCustomValueChange = (event: Event) => {
-  trackModificationsConfig.value.customValue = (event.target as HTMLInputElement).value;
-  updateColumnConfig();
-};
-
-const updateColumnConfig = () => {
-  // Update the column's colOptions
-  if (!column.value?.colOptions) {
-    column.value.colOptions = {};
-  }
-  
-  column.value.colOptions = {
-    ...column.value.colOptions,
-    enabled: trackModificationsConfig.value.enabled,
-    triggerColumns: trackModificationsConfig.value.triggerColumns,
-    updateType: trackModificationsConfig.value.updateType,
-    customValue: trackModificationsConfig.value.customValue
-  };
-};
-
-const loadTrackModificationsConfig = () => {
-  if (column.value?.colOptions) {
-    trackModificationsConfig.value = {
-      enabled: column.value.colOptions.enabled || false,
-      triggerColumns: column.value.colOptions.triggerColumns || [],
-      updateType: column.value.colOptions.updateType || 'timestamp',
-      customValue: column.value.colOptions.customValue || ''
-    };
-  }
-};
-
-const availableTriggerColumns = computed(() => {
-  return column.value?.columns
-    .filter(col => 
-      col.id !== column.value?.id && 
-      !col.system &&
-      col.uidt !== 'Formula' &&
-      col.uidt !== 'Lookup' &&
-      col.uidt !== 'Rollup' &&
-      col.uidt !== 'TrackModifications'
-    )
-    .map(col => ({
-      label: col.title,
-      value: col.id
-    }));
-});
 </script>
 
 <template>
@@ -1316,7 +1246,10 @@ const availableTriggerColumns = computed(() => {
         <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
         <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
         <SmartsheetColumnUserOptions v-if="formState.uidt === UITypes.User" v-model:value="formState" :is-edit="isEdit" />
-        <SmartsheetColumnLastModifiedOptions v-if="formState.uidt === UITypes.LastModifiedTime || formState.uidt === UITypes.LastModifiedBy" v-model:value="formState" />
+        <SmartsheetColumnLastModifiedOptions
+          v-if="isEeUI && (formState.uidt === UITypes.LastModifiedTime || formState.uidt === UITypes.LastModifiedBy)"
+          v-model:value="formState"
+        />
         <SmartsheetColumnSelectOptions
           v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
           v-model:value="formState"

@@ -290,7 +290,7 @@ export class DataAttachmentV3Service {
       baseModel,
       knex: baseModel.dbDriver,
       model: baseModel.model,
-      updatedColIds: [column.id]
+      updatedColIds: [column.id],
     });
 
     await Audit.insert(

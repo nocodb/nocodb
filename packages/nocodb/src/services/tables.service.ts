@@ -44,6 +44,7 @@ import {
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import { isEE } from '~/utils';
+import { META_COL_NAME } from '~/constants';
 
 @Injectable()
 export class TablesService {
@@ -679,8 +680,8 @@ export class TablesService {
             columnName = 'id';
             break;
           case UITypes.Meta:
-            columnTitle = '__meta__';
-            columnName = '__meta__';
+            columnTitle = META_COL_NAME;
+            columnName = META_COL_NAME;
             break;
         }
 

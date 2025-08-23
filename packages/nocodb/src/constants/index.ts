@@ -39,3 +39,5 @@ export const NC_ATTACHMENT_URL_MAX_REDIRECT = 3;
 export const EMIT_EVENT = {
   HANDLE_ATTACHMENT_URL_UPLOAD: '__nc_handleAttachmentUrlUpload',
 };
+
+export const META_COL_NAME = '_nc__meta';

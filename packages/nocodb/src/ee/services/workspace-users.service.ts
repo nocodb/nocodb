@@ -761,9 +761,11 @@ export class WorkspaceUsersService {
         // rollback cache
 
         const user = emailUserMap.get(email);
-        await NocoCache.del(
-          `${CacheScope.WORKSPACE_USER}:${workspace.id}:${user.id}`,
-        );
+        if (user) {
+          await NocoCache.del(
+            `${CacheScope.WORKSPACE_USER}:${workspace.id}:${user.id}`,
+          );
+        }
       },
     };
   }

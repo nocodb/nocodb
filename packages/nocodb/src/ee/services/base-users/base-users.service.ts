@@ -248,12 +248,16 @@ export class BaseUsersService extends BaseUsersServiceCE {
         const cacheTransaction = [];
 
         const user = emailUserMap.get(email);
-        cacheTransaction.push(`${CacheScope.BASE_USER}:${base.id}:${user.id}`);
-        cacheTransaction.push(
-          `${CacheScope.WORKSPACE_USER}:${context.workspace_id}:${user.id}`,
-        );
+        if (user) {
+          cacheTransaction.push(
+            `${CacheScope.BASE_USER}:${base.id}:${user.id}`,
+          );
+          cacheTransaction.push(
+            `${CacheScope.WORKSPACE_USER}:${context.workspace_id}:${user.id}`,
+          );
 
-        await NocoCache.del(cacheTransaction);
+          await NocoCache.del(cacheTransaction);
+        }
       },
     };
   }

@@ -106,6 +106,8 @@ export class WorkspaceMembersV3Service {
 
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];
+    const postOperations = [];
+    const rollbacks = [];
     try {
       for (const workspaceUser of workspaceUsers) {
         // Set default role if not provided
@@ -113,19 +115,20 @@ export class WorkspaceMembersV3Service {
           workspaceUser.workspace_role = WorkspaceUserRoles.NO_ACCESS;
         }
 
-        await this.workspaceUsersService.invite(
-          {
-            workspaceId: param.workspaceId,
-            body: {
+        const { execute, rollback } =
+          await this.workspaceUsersService.prepareUserInviteByEmail(
+            {
+              workspaceId: param.workspaceId,
               email: workspaceUser.email,
               roles: workspaceUser.workspace_role,
+              siteUrl: param.req.ncSiteUrl,
+              req: param.req,
             },
-            siteUrl: param.req.ncSiteUrl,
-            invitedBy: param.req.user,
-            req: param.req,
-          },
-          ncMeta,
-        );
+            ncMeta,
+          );
+        rollbacks.push(rollback);
+        const { postOperations: eachPostOperations } = await execute();
+        postOperations.push(...eachPostOperations);
 
         const userId =
           workspaceUser.user_id ??
@@ -137,14 +140,15 @@ export class WorkspaceMembersV3Service {
       // on error rollback the transaction and throw the error
       await ncMeta.rollback();
 
-      // Rollback cache, clear cache of invited users
-      for (const userId of userIds) {
-        await NocoCache.del(
-          `${CacheScope.WORKSPACE_USER}:${param.workspaceId}:${userId}`,
-        );
+      for (const eachRollback of rollbacks) {
+        await eachRollback();
       }
 
       throw e;
+    }
+
+    for (const eachPostOperation of postOperations) {
+      await eachPostOperation();
     }
     // Get all users and filter by the ones we just invited
     const allUsers = await WorkspaceUser.userList({

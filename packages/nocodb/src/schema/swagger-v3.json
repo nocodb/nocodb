@@ -5924,11 +5924,6 @@
           },
           {
             "properties": {
-              "id": {
-                "type": "string",
-                "format": "uuid",
-                "description": "Unique identifier for the view."
-              },
               "fields": {
                 "type": "array",
                 "items": {

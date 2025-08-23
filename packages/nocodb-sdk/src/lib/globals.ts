@@ -291,10 +291,10 @@ export enum RowHeight {
   EXTRA = 3,
 }
 export const RowHeightMap = {
-  short: 0,
-  medium: 1,
-  tall: 2,
-  extra: 3,
+  short: RowHeight.SHORT,
+  medium: RowHeight.MEDIUM,
+  tall: RowHeight.TALL,
+  extra: RowHeight.EXTRA,
   [RowHeight.SHORT]: 'short',
   [RowHeight.MEDIUM]: 'medium',
   [RowHeight.TALL]: 'tall',

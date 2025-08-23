@@ -111,6 +111,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
   const isEnabledOnboardingFlow = computed(() => {
     return (
+      !appInfo.value.disableOnboardingFlow &&
       !ncIsPlaywright() &&
       signedIn.value &&
       !isSharedBase.value &&

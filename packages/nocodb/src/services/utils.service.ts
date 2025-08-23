@@ -490,6 +490,12 @@ export class UtilsService {
       allowLocalUrl: process.env.NC_ALLOW_LOCAL_HOOKS === 'true',
       isOnPrem,
       disableSupportChat: NC_DISABLE_SUPPORT_CHAT,
+      /**
+       * Allow disabling onboarding flow based on env variable or development mode
+       */
+      disableOnboardingFlow:
+        process.env.NC_DISABLE_ONBOARDING_FLOW === 'true' ||
+        process.env.NODE_ENV === 'development',
     };
 
     return result;

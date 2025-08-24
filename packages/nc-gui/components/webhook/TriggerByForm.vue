@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ViewType } from 'nocodb-sdk'
+import { type ViewType, ViewTypes } from 'nocodb-sdk'
 
 interface Props {
   tableId: string
@@ -14,7 +14,7 @@ const viewStore = useViewsStore()
 const { viewsByTable } = storeToRefs(viewStore)
 
 const filterView = (v: ViewType) => {
-  return v.type === 1
+  return v.type === ViewTypes.FORM
 }
 
 const formOptions = computed(() => {

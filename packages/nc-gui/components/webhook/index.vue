@@ -602,7 +602,7 @@ async function saveHooks() {
       message.error('At least one operation need to be selected')
       throw new Error('At least one operation need to be selected')
     }
-    if (hookRef.notification.trigger_form) {
+    if (hookRef.notification.trigger_form && !hookRef.notification.trigger_form_id) {
       message.error('You must select a trigger form')
       throw new Error('You must select a trigger form')
     }

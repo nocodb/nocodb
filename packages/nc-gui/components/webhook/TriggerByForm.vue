@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { ViewType } from 'nocodb-sdk'
+
 interface Props {
   tableId: string
   triggerForm?: boolean
@@ -11,14 +13,16 @@ const viewStore = useViewsStore()
 
 const { viewsByTable } = storeToRefs(viewStore)
 
+const filterView = (v: ViewType) => {
+  return v.type === 1
+}
+
 const formOptions = computed(() => {
   const views = viewsByTable.value.get(props.tableId) || []
-  return views
-    .filter((v) => v.type === 1)
-    .map((view) => ({
-      label: view.title,
-      value: view.id,
-    }))
+  return views.filter(filterView).map((view) => ({
+    label: view.title,
+    value: view.id,
+  }))
 })
 
 const triggerForm = useVModel(props, 'triggerForm')
@@ -52,11 +56,13 @@ onMounted(() => {
         <span class="!text-gray-700 font-semibold"> Trigger only when specific form submitted </span>
       </NcSwitch>
     </label>
-    <NcSelect
+    <NcListViewSelector
       v-if="triggerForm"
       v-model:value="triggerFormId"
-      :options="formOptions"
-      placeholder="Select a form view"
+      :table-id="tableId"
+      :filter-view="filterView"
+      :disable-label="true"
+      :auto-select="true"
       size="small"
       class="w-50"
     />

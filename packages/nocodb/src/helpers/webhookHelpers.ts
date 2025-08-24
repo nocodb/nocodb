@@ -810,7 +810,7 @@ export async function invokeWebhook(
       notification.trigger_form_id
     ) {
       const formId = notification.trigger_form_id;
-      if (formId !== view.id) {
+      if (view && formId !== view.id) {
         return;
       }
     }

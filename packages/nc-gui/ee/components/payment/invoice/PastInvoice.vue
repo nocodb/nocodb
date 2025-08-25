@@ -14,10 +14,6 @@ const paginatedData = computed(() => {
   return invoices.value.slice(start, end)
 })
 
-watchEffect(() => {
-  console.log('paginatedData', paginatedData.value, invoices.value)
-})
-
 const getPlanTitle = (record: Stripe.Invoice) => {
   const planTitle = record?.parent?.subscription_details?.metadata?.plan_title || ''
   const planPeriod = record?.parent?.subscription_details?.metadata?.period || ''
@@ -131,7 +127,7 @@ onMounted(() => {
     <div class="mt-3 flex-1 flex">
       <NcTable
         class="template-form flex-1 max-h-[540px]"
-        :body-row-class-name="`template-form-row !cursor-default !last:border-b-0`"
+        body-row-class-name="template-form-row !cursor-default !last:border-b-0"
         header-row-class-name="relative"
         :bordered="true"
         :data="paginatedData"

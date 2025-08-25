@@ -301,8 +301,8 @@ watch(
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Group by field</label>
       <NcListColumnSelector
-        allow-clear
         v-model:value="groupByField"
+        :allow-clear="true"
         disable-label
         :filter-column="filterField"
         :disabled="!modelId"

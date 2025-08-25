@@ -129,7 +129,7 @@ const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
     returnAggregations = [...Object.values(CommonAggregations)];
   }
 
-  return returnAggregations.filter((item) => item !== CommonAggregations.Count);
+  return returnAggregations;
 };
 
 const formatAggregation = (

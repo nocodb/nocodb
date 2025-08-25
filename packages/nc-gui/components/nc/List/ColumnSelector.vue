@@ -167,7 +167,7 @@ defineExpose({
 
         <GeneralIcon
           v-if="selectedColumn && allowClear"
-          class="!hidden text-nc-content-gray-muted transition group-hover:!block h-4 w-4 cursor-pointer"
+          class="!hidden text-nc-content-gray-muted transition !group-hover:!block h-4 w-4 cursor-pointer"
           icon="ncXCircle"
           @click.stop="handleValueUpdate(null)"
         />

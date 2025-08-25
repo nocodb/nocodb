@@ -443,13 +443,13 @@ const selectOption = (option) => {
           :class="{
             '!hidden': !showSearch,
           }"
-          class="!rounded-lg !h-8 !placeholder:text-gray-500 !px-4"
+          class="!rounded-lg !h-8 !placeholder:text-nc-content-gray-muted !px-4"
           data-testid="nc-calendar-sidebar-search"
           placeholder="Search records"
           @keydown.esc="toggleSearch"
         >
           <template #prefix>
-            <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
+            <component :is="iconMap.search" class="h-4 w-4 mr-1 text-nc-content-gray-muted" />
           </template>
           <template v-if="searchQuery.value?.trim() && !searchQuery.isValidFieldQuery" #suffix>
             <NcTooltip :title="$t('msg.error.invalidSearchQueryForDisplayField')" class="flex" placement="topRight">
@@ -516,7 +516,7 @@ const selectOption = (option) => {
         <div v-if="renderData.length === 0 || isSidebarLoading" class="flex h-full items-center justify-center">
           <GeneralLoader v-if="isSidebarLoading" size="large" />
 
-          <div v-else class="text-gray-500">
+          <div v-else class="text-nc-content-gray-muted">
             {{ t('msg.noRecordsFound') }}
           </div>
         </div>
@@ -555,7 +555,7 @@ const selectOption = (option) => {
                   <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
                 </template>
                 <template v-else>
-                  <span class="text-gray-500"> - </span>
+                  <span class="text-nc-content-gray-muted"> - </span>
                 </template>
               </LazySmartsheetCalendarSideRecordCard>
             </LazySmartsheetRow>

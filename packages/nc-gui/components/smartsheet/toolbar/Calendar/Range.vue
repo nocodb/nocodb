@@ -1,10 +1,12 @@
 <script lang="ts" setup>
-import { type CalendarRangeType, FormulaDataTypes, UITypes } from 'nocodb-sdk'
+import { type CalendarRangeType, FormulaDataTypes, PlanFeatureTypes, UITypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 const meta = inject(MetaInj, ref())
 
 const { $api } = useNuxtApp()
+
+const { blockCalendarRange } = useEeConfig()
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -208,7 +210,7 @@ const onValueChange = async () => {
           class="flex flex-col w-full gap-2 mb-2"
           data-testid="nc-calendar-range-option"
         >
-          <span class="text-gray-800">
+          <span class="text-nc-content-gray">
             {{ $t('labels.organiseBy') }}
           </span>
 
@@ -258,67 +260,76 @@ const onValueChange = async () => {
             </a-select-option>
           </a-select>
           <div v-if="isEeUI" class="w-full space-y-2">
-            <NcButton
-              v-if="range.fk_to_column_id === null"
-              size="small"
-              data-testid="nc-calendar-range-add-end-date"
-              class="w-23"
-              type="text"
-              :shadow="false"
-              :disabled="isLocked"
-              @click="range.fk_to_column_id = undefined"
-            >
-              <div class="flex gap-1 items-center">
-                <component :is="iconMap.plus" class="h-4 w-4" />
-                {{ $t('activity.endDate') }}
-              </div>
-            </NcButton>
-
-            <template v-else-if="isEeUI">
-              <span>
-                {{ $t('activity.withEndDate') }}
-              </span>
-              <div class="flex">
-                <a-select
-                  v-model:value="range.fk_to_column_id"
-                  class="!rounded-r-none nc-select-shadow w-full flex-1"
-                  allow-clear
-                  :disabled="!range.fk_from_column_id || isLocked"
-                  :placeholder="$t('placeholder.notSelected')"
-                  data-testid="nc-calendar-range-to-field-select"
-                  dropdown-class-name="!rounded-lg"
-                  @change="saveCalendarRanges"
-                  @click.stop
+            <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
+              <template #default="{ click }">
+                <NcButton
+                  v-if="range.fk_to_column_id === null"
+                  size="small"
+                  data-testid="nc-calendar-range-add-end-date"
+                  class="w-23"
+                  type="text"
+                  :shadow="false"
+                  :disabled="isLocked || blockCalendarRange"
+                  @click="
+                    click(PlanFeatureTypes.FEATURE_CALENDAR_RANGE, () => {
+                      range.fk_to_column_id = undefined
+                    })
+                  "
                 >
-                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+                  <div class="flex gap-1 items-center">
+                    <component :is="iconMap.plus" class="h-4 w-4" />
+                    {{ $t('activity.endDate') }}
+                    <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE" />
+                  </div>
+                </NcButton>
 
-                  <a-select-option
-                    v-for="(option, opId) in filterEndDateOptions(dateFieldOptions, range.fk_from_column_id)"
-                    :key="opId"
-                    :value="option.value"
-                  >
-                    <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
-                      <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                        <SmartsheetHeaderIcon :column="option" />
+                <template v-else-if="isEeUI">
+                  <span>
+                    {{ $t('activity.withEndDate') }} <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE" />
+                  </span>
+                  <div class="flex">
+                    <a-select
+                      v-model:value="range.fk_to_column_id"
+                      class="!rounded-r-none nc-select-shadow w-full flex-1"
+                      allow-clear
+                      :disabled="!range.fk_from_column_id || isLocked || blockCalendarRange"
+                      :placeholder="$t('placeholder.notSelected')"
+                      data-testid="nc-calendar-range-to-field-select"
+                      dropdown-class-name="!rounded-lg"
+                      @change="saveCalendarRanges"
+                      @click.stop
+                    >
+                      <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
 
-                        <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
-                          <template #title>
-                            {{ option.label }}
-                          </template>
-                          <template #default>{{ option.label }}</template>
-                        </NcTooltip>
-                      </div>
-                      <GeneralIcon
-                        v-if="option.value === range.fk_from_column_id"
-                        id="nc-selected-item-icon"
-                        icon="check"
-                        class="flex-none text-primary w-4 h-4"
-                      />
-                    </div>
-                  </a-select-option>
-                </a-select>
-              </div>
-            </template>
+                      <a-select-option
+                        v-for="(option, opId) in filterEndDateOptions(dateFieldOptions, range.fk_from_column_id)"
+                        :key="opId"
+                        :value="option.value"
+                      >
+                        <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                          <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                            <SmartsheetHeaderIcon :column="option" />
+
+                            <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                              <template #title>
+                                {{ option.label }}
+                              </template>
+                              <template #default>{{ option.label }}</template>
+                            </NcTooltip>
+                          </div>
+                          <GeneralIcon
+                            v-if="option.value === range.fk_from_column_id"
+                            id="nc-selected-item-icon"
+                            icon="check"
+                            class="flex-none text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
+                    </a-select>
+                  </div>
+                </template>
+              </template>
+            </PaymentUpgradeBadgeProvider>
           </div>
         </div>
 
@@ -329,7 +340,7 @@ const onValueChange = async () => {
 
         <div>
           <NcSwitch v-model:checked="showWeekends" :disabled="isLocked">
-            <span class="text-gray-800 font-semibold">
+            <span class="text-nc-content-gray font-semibold">
               {{ $t('activity.showSaturdaysAndSundays') }}
             </span>
           </NcSwitch>

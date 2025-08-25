@@ -661,9 +661,9 @@ interface EmailOptions {
   /** Email attachments - supports both standard email attachments and NocoDB file objects */
   attachments?: Array<EmailAttachment | NocoDbFile>;
   /** CC recipient email address(es) */
-  cc?: string | string[];
+  cc?: string[];
   /** BCC recipient email address(es) */
-  bcc?: string | string[];
+  bcc?: string[];
 }
 
 interface EmailResult {

@@ -238,7 +238,8 @@ watch(
       class="nc-table-wrapper relative"
       :class="{
         'sticky-first-column': stickyFirstColumn,
-        'h-full': data.length && !disableTableScroll,
+        'h-full':
+          (data.length || (isDataLoading && !data.length && (slots.tableFooter || showPagination))) && !disableTableScroll,
         'nc-scrollbar-thin !overflow-auto max-h-full': !disableTableScroll,
       }"
       :style="{

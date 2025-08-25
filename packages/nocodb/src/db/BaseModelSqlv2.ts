@@ -6677,6 +6677,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           if (typeof value === 'object') {
             isAiEdited = value.isAiEdited;
+            delete value.isAiEdited;
+
             value = value.value;
           }
 

@@ -9,7 +9,6 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   const { activeAutomation, isSettingsOpen } = storeToRefs(automationStore)
   const { activeProjectId } = storeToRefs(useBases())
   const { isUIAllowed } = useRoles()
-  const { showScriptPlanLimitExceededModal } = useEeConfig()
 
   const {
     runScript: executeScript,
@@ -101,7 +100,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   }
 
   const runScript = async () => {
-    if (isRunning.value || !isValidConfig.value || showScriptPlanLimitExceededModal()) return
+    if (isRunning.value || !isValidConfig.value) return
 
     isSettingsOpen.value = false
 

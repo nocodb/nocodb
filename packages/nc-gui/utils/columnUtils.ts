@@ -7,6 +7,7 @@ import {
   UITypes,
   LongTextAiMetaProp as _LongTextAiMetaProp,
   checkboxIconList,
+  isAIPromptCol,
   isLinksOrLTAR,
   isSystemColumn,
   isValidURL,
@@ -385,7 +386,16 @@ const formViewHiddenColTypes = [
   UITypes.CreatedBy,
   UITypes.LastModifiedBy,
   AIButton,
+  AIPrompt,
 ]
+
+const isFormViewHiddenCol = (col: ColumnType | UITypes): boolean => {
+  if (typeof col === 'object') {
+    return formViewHiddenColTypes.includes(col.uidt as UITypes) || isAIPromptCol(col)
+  }
+
+  return formViewHiddenColTypes.includes(col as UITypes)
+}
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
@@ -472,6 +482,7 @@ export {
   extractCheckboxIcon,
   extractRatingIcon,
   formViewHiddenColTypes,
+  isFormViewHiddenCol,
   columnToValidate,
   getColumnValidationError,
   getFormulaColDataType,

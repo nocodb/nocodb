@@ -5428,12 +5428,20 @@
         "type": "array",
         "items": {
           "type": "object",
+          "properties": {
+            "base_role": {
+              "$ref": "#/components/schemas/BaseRoles"
+            }
+          },
+          "required": [
+            "base_role"
+          ],
           "oneOf": [
             {
               "title": "Invite User with ID",
               "required": [
-                "user_id",
-                "base_role"
+                "base_role",
+                "user_id"
               ],
               "properties": {
                 "user_id": {
@@ -5443,17 +5451,14 @@
                 "user_name": {
                   "type": "string",
                   "description": "Full name of the user."
-                },
-                "base_role": {
-                  "$ref": "#/components/schemas/BaseRoles"
                 }
               }
             },
             {
               "title": "Invite User with Email",
               "required": [
-                "email",
-                "base_role"
+                "base_role",
+                "email"
               ],
               "properties": {
                 "email": {
@@ -5464,9 +5469,6 @@
                 "user_name": {
                   "type": "string",
                   "description": "Full name of the user."
-                },
-                "base_role": {
-                  "$ref": "#/components/schemas/BaseRoles"
                 }
               }
             }

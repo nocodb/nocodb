@@ -31,7 +31,19 @@ const up = async (knex: Knex) => {
     knex,
     MetaTable.DASHBOARDS,
     MetaTable.MODELS,
-    (dashboard) => {
+    async (dashboard) => {
+      // Find highest order value in nc_models for same fk_workspace_id and base_id and no source_id and increment by 1
+      const highestOrder = await knex
+        .select('order')
+        .from(MetaTable.MODELS)
+        .where('fk_workspace_id', dashboard.fk_workspace_id)
+        .where('base_id', dashboard.base_id)
+        .where('source_id', null)
+        .max('order')
+        .first();
+
+      dashboard.order = Number(highestOrder?.order) + 1 || 0;
+
       return {
         id: dashboard.id,
         base_id: dashboard.base_id,

@@ -79,13 +79,14 @@ const generate = async () => {
     } else {
       const obj: AIRecordType = resRow[column.value.title!]
 
-      if (obj && typeof obj === 'object') {
-        vModel.value = obj
+      if (ncIsObject(obj)) {
+        vModel.value = { ...obj, isAiEdited: true }
       } else {
         vModel.value = {
           ...(ncIsObject(vModel.value) ? vModel.value : {}),
           isStale: false,
           value: resRow[column.value.title!],
+          isAiEdited: true,
         }
       }
 
@@ -117,6 +118,13 @@ const handleSave = () => {
 }
 
 const debouncedSave = useDebounceFn(handleSave, 1000)
+
+const handleDebouncedSave = () => {
+  vModel.value!.isAiEdited = false
+  isAiEdited.value = true
+
+  debouncedSave()
+}
 
 const isDisabledAiButton = computed(() => {
   return !isFieldAiIntegrationAvailable.value || isLoading.value || isPublic.value || !isUIAllowed('dataEdit')
@@ -165,7 +173,7 @@ const isDisabledAiButton = computed(() => {
     :is-ai="true"
     :ai-meta="vModel"
     :is-field-ai-integration-available="isFieldAiIntegrationAvailable"
-    @update:model-value="debouncedSave"
+    @update:model-value="handleDebouncedSave"
     @generate="generate"
     @close="editEnabled = false"
   />

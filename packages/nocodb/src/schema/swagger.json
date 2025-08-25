@@ -29247,6 +29247,10 @@
           "isStale": {
             "type": "boolean",
             "description": "Is any referenced value updated?"
+          },
+          "isAiEdited": {
+            "type": "boolean",
+            "description": "Is edited by AI?"
           }
         }
       },

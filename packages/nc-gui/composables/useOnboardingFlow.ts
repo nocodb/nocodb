@@ -69,6 +69,7 @@ export interface OnboardingRightSectionType {
 
 export interface OnboardingQuestionType {
   id: number
+  key?: string
   question: string
   description?: string
   inputType: 'singleSelect' | 'multiSelect'
@@ -511,6 +512,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
       },
       {
         id: 7,
+        key: 'ai',
         question: 'Choose AI Tools That You Are Familiar With',
         description: 'Unlocks Free Access To NocoAI 🎉 ',
         inputType: 'multiSelect',
@@ -916,7 +918,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
       skipped: payload.skipped,
       ...payload.questions.reduce((acc, curr) => {
         acc[`onboarding_q_${curr.key}`] = curr.question
-        acc[`onboarding_a_${curr.key}`] = curr.answer
+        acc[`onboarding_a_${curr.key}`] = Array.isArray(curr.answer) ? curr.answer.join(':') : curr.answer
         return acc
       }, {}),
     }
@@ -927,7 +929,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
       const answer = formState.value[q.id]
 
       return {
-        key: q.id === 7 ? 'ai1' : q.id,
+        key: q.key ?? q.id,
         question: q.question,
         answer,
       }

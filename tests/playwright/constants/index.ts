@@ -1,5 +1,5 @@
-const airtableApiKey = 'patnDizoItL6GsweQ.88f74da91af272b42326802c212e382d39dd38be9b81f4ad25beaae7de793535';
-const airtableApiBase = 'https://airtable.com/shr4z0qmh6dg5s3eB';
+const airtableApiKey = 'pat23tPxwKmp4P96z.6b96f6381ad1bf2abdbd09539ac64fdb898516693603137b66e1e4e5a41bca78';
+const airtableApiBase = 'https://airtable.com/appy4lygutPj7UqiZ/shrIbD78QnzJnWygX';
 
 const defaultBaseName = 'Base';
 

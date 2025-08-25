@@ -115,13 +115,12 @@ const paginationCaption = computed(() => {
 
 const onUpdatePageSize = (pageSize: number) => {
   invoicePaginationData.value = { ...defaultInvoicePaginationData, pageSize }
+  invoices.value = []
 
   loadInvoices()
 }
 
 onMounted(() => {
-  // if (!activeWorkspace.value?.stripe_customer_id) return
-
   loadInvoices()
 })
 </script>

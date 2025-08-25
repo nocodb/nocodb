@@ -4,6 +4,10 @@ import { AiWizardTabsType } from '#imports'
 interface Props {
   activeTab: AiWizardTabsType
   showCloseBtn?: boolean
+  /**
+   * null to hide tooltip
+   */
+  closeBtnTooltip?: string | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -31,11 +35,15 @@ const { aiLoading } = useNocoAi()
       <div class="w-0"></div>
     </template>
     <template #rightExtra>
-      <div>
+      <NcTooltip
+        :title="closeBtnTooltip ?? $t('labels.disableNocoAI')"
+        :disabled="ncIsNull(closeBtnTooltip)"
+        class="flex children:flex-none"
+      >
         <NcButton v-if="showCloseBtn" size="small" type="text" @click.stop="emits('close')">
-          <GeneralIcon icon="close" class="text-gray-600" />
+          <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
         </NcButton>
-      </div>
+      </NcTooltip>
     </template>
     <a-tab-pane :key="AiWizardTabsType.AUTO_SUGGESTIONS" class="w-full" :disabled="aiLoading">
       <template #tab>
@@ -45,7 +53,7 @@ const { aiLoading } = useNocoAi()
             '!cursor-wait': aiLoading,
           }"
         >
-          Auto Suggested
+          {{ $t('labels.autoSuggested') }}
         </div>
       </template>
       <div>
@@ -57,7 +65,7 @@ const { aiLoading } = useNocoAi()
       <template #tab>
         <NcTooltip class="flex">
           <template #title> {{ $t('msg.toast.futureRelease') }}</template>
-          <div class="tab-title">Use Prompt</div>
+          <div class="tab-title">{{ $t('labels.usePrompt') }}</div>
         </NcTooltip>
       </template>
       <div>
@@ -91,7 +99,7 @@ const { aiLoading } = useNocoAi()
   }
 
   .tab-title {
-    @apply text-xs leading-[24px] px-2 rounded hover:bg-gray-100 transition-colors;
+    @apply text-xs leading-[24px] px-2 rounded hover:bg-nc-bg-gray-light transition-colors;
   }
 
   :deep(.ant-tabs-tab-disabled) {

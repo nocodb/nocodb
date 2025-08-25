@@ -57,6 +57,6 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
     }
 
     // we return a string all the time to support any input (number, boolean, etc.) on text fields
-    return { value };
+    return { value: isAIPromptCol(params.column) ? params.value : value };
   }
 }

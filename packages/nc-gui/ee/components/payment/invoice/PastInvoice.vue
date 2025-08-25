@@ -4,7 +4,7 @@ import type Stripe from 'stripe'
 
 const { t } = useI18n()
 
-const { invoices, invoicePaginationData, activeWorkspace, loadInvoices } = usePaymentStoreOrThrow()
+const { defaultInvoicePaginationData, invoices, invoicePaginationData, activeWorkspace, loadInvoices } = usePaymentStoreOrThrow()
 
 const paginatedData = computed(() => {
   const { page, pageSize } = invoicePaginationData.value
@@ -12,6 +12,10 @@ const paginatedData = computed(() => {
   const end = start + pageSize!
 
   return invoices.value.slice(start, end)
+})
+
+watchEffect(() => {
+  console.log('paginatedData', paginatedData.value, invoices.value)
 })
 
 const getPlanTitle = (record: Stripe.Invoice) => {
@@ -91,25 +95,44 @@ const columns: NcTableColumnProps<Stripe.Invoice>[] = [
 ]
 
 const showPagination = computed(() => {
-  return (
-    !invoicePaginationData.value.isLoading && invoicePaginationData.value.totalRows && invoicePaginationData.value.totalRows > 10
-  )
+  return invoices.value.length > 10 || invoicePaginationData.value.hasMore
 })
 
+const paginationCaption = computed(() => {
+  if (!invoices.value.length) return ''
+
+  const page = invoicePaginationData.value.page ?? 1
+  const pageSize = invoicePaginationData.value.pageSize ?? 10
+
+  const start = pageSize * (page - 1) + 1
+  const end = start + Math.min(paginatedData.value.length - 1, pageSize - 1)
+
+  return {
+    start,
+    end,
+  }
+})
+
+const onUpdatePageSize = (pageSize: number) => {
+  invoicePaginationData.value = { ...defaultInvoicePaginationData, pageSize }
+
+  loadInvoices()
+}
+
 onMounted(() => {
-  if (!activeWorkspace.value?.stripe_customer_id) return
+  // if (!activeWorkspace.value?.stripe_customer_id) return
 
   loadInvoices()
 })
 </script>
 
 <template>
-  <section v-if="activeWorkspace?.stripe_customer_id">
+  <section>
     <div class="text-base text-nc-content-gray font-700">{{ $t('labels.pastInvoices') }}</div>
     <div class="mt-3 flex-1 flex">
       <NcTable
         class="template-form flex-1 max-h-[540px]"
-        :body-row-class-name="`template-form-row !cursor-default ${!showPagination ? '!last:border-b-0' : ''}`"
+        :body-row-class-name="`template-form-row !cursor-default !last:border-b-0`"
         header-row-class-name="relative"
         :bordered="true"
         :data="paginatedData"
@@ -142,24 +165,22 @@ onMounted(() => {
             </a>
           </template>
         </template>
-        <template v-if="showPagination" #tableFooter>
+        <template #tableFooter>
           <div class="flex flex-row justify-center items-center bg-gray-50 min-h-10">
-            <div class="flex justify-between items-center w-full px-6">
-              <div>&nbsp;</div>
-              <NcPagination
+            <div class="flex items-center justify-end gap-6 w-full px-6">
+              <div v-if="paginationCaption" class="text-nc-content-gray-muted text-bodyDefaultSm">
+                Viewing {{ paginationCaption.start }}-{{ paginationCaption.end }} invoices
+              </div>
+
+              <NcPaginationStripe
+                v-if="showPagination"
                 v-model:current="invoicePaginationData.page"
                 v-model:page-size="invoicePaginationData.pageSize"
-                :total="+invoicePaginationData.totalRows"
-                show-size-changer
-                :use-stored-page-size="false"
-                :prev-page-tooltip="`${renderAltOrOptlKey()}+←`"
-                :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
-                :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
-                :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
+                :has-more="invoicePaginationData.hasMore"
+                entity-name="billing-invoices"
+                @update:current="loadInvoices"
+                @update:page-size="onUpdatePageSize"
               />
-              <div class="text-gray-500 text-xs">
-                {{ invoicePaginationData.totalRows }} {{ invoicePaginationData.totalRows === 1 ? 'record' : 'records' }}
-              </div>
             </div>
           </div>
         </template>

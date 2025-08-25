@@ -715,6 +715,7 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
       text: text,
       cc: cc,
       bcc: bcc,
+      attachments: processedAttachments
     };
  
     const requestUrl = \`${req.ncSiteUrl}/api/v2/internal/\${workspaceId}/\${baseId}?operation=sendEmail\`

@@ -387,7 +387,12 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           });
         } else {
           await baseModel.afterBulkInsert(
-            insertDatas,
+            insertDatas.map((data, index) => {
+              return {
+                ...responses[index],
+                ...data,
+              };
+            }),
             baseModel.dbDriver,
             cookie,
           );

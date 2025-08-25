@@ -69,6 +69,7 @@ export interface OnboardingRightSectionType {
 
 export interface OnboardingQuestionType {
   id: number
+  key?: string
   question: string
   description?: string
   inputType: 'singleSelect' | 'multiSelect'
@@ -138,6 +139,9 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
   const isSubmitting = ref(false)
 
+  /**
+   * @Note - Don't change `id` or `key` as this will be used in tele payload
+   */
   const questions = computed<OnboardingQuestionType[]>(() => {
     const list: OnboardingQuestionType[] = [
       {
@@ -511,6 +515,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
       },
       {
         id: 7,
+        key: 'ai',
         question: 'Choose AI Tools That You Are Familiar With',
         description: 'Unlocks Free Access To NocoAI 🎉 ',
         inputType: 'multiSelect',
@@ -902,11 +907,32 @@ export const useOnboardingFlow = createSharedComposable(() => {
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
   }
 
+  const formatForSubmission = (payload: {
+    timeTaken: string
+    skipped: boolean
+    questions: {
+      question: string
+      answer: string | string[]
+      key: string
+    }[]
+  }) => {
+    return {
+      time_taken: payload.timeTaken,
+      skipped: payload.skipped,
+      ...payload.questions.reduce((acc, curr) => {
+        acc[`onboarding_q_${curr.key}`] = curr.question
+        acc[`onboarding_a_${curr.key}`] = Array.isArray(curr.answer) ? curr.answer.join(':') : curr.answer
+        return acc
+      }, {} as Record<string, string>),
+    }
+  }
+
   const postCompleteOnboardingFlow = (skipped: boolean = false) => {
     const formattedQuestionAnswers = questions.value.map((q) => {
       const answer = formState.value[q.id]
 
       return {
+        key: q.key ?? q.id,
         question: q.question,
         answer,
       }
@@ -918,7 +944,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
       questions: formattedQuestionAnswers,
     }
 
-    $e('a:auth:onboarding-flow', data)
+    $e('a:auth:onboarding-flow', undefined, formatForSubmission(data))
   }
 
   const resetOnboardingFlow = () => {

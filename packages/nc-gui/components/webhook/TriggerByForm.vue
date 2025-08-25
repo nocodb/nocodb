@@ -62,7 +62,6 @@ onMounted(() => {
       :table-id="tableId"
       :filter-view="filterView"
       :disable-label="true"
-      :auto-select="true"
       size="small"
       class="w-50"
     />

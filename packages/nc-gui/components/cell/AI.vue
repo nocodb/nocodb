@@ -81,9 +81,6 @@ const generate = async () => {
 
       if (obj && typeof obj === 'object') {
         vModel.value = obj
-        setTimeout(() => {
-          isAiEdited.value = false
-        }, 100)
       } else {
         vModel.value = {
           ...(ncIsObject(vModel.value) ? vModel.value : {}),
@@ -91,7 +88,13 @@ const generate = async () => {
           value: resRow[column.value.title!],
         }
       }
+
+      setTimeout(() => {
+        isAiEdited.value = false
+      }, 100)
     }
+
+    emits('save')
   }
 
   generatingRows.value = generatingRows.value.filter((v) => v !== pk.value)

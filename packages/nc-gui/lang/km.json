@@ -1466,7 +1466,9 @@
     "sharingRestricted": "ការចែកចាយត្រូវបានកំណត់សិទ្ធិ",
     "importOptions": "ជម្រើសនាំចូល",
     "newScript": "ស្គ្រីបថ្មី",
-    "emptyScript": "ស្គ្រីបទទេ"
+    "emptyScript": "ស្គ្រីបទទេ",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "ចុចដើម្បីដោះស្រាយ",

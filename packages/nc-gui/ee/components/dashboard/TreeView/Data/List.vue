@@ -15,11 +15,13 @@ const { isUIAllowed } = useRoles()
 
 const dashboardStore = useDashboardStore()
 
-const { activeTables } = storeToRefs(useTablesStore())
+const { baseTables } = storeToRefs(useTablesStore())
 
 const { activeDashboardId, activeBaseDashboards } = storeToRefs(dashboardStore)
 
 const base = inject(ProjectInj)!
+
+const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
 
 const menuRef = useTemplateRef('menuRef')
 
@@ -40,7 +42,7 @@ const allEntities = computed<Array<(DashboardType & { type: 'dashboard' }) | (Ta
   // Add tables from default source with type identifier
   if (base.value?.sources?.length && base.value?.sources?.[0]?.enabled) {
     const sourceId = base.value?.sources?.[0]?.id
-    for (const table of activeTables.value) {
+    for (const table of tables.value) {
       if (table.source_id !== sourceId) continue
       entities.push({ ...table, type: 'table' as const })
     }
@@ -122,12 +124,17 @@ const initSortable = (el: Element) => {
 
       // Update backend based on item type
       if (item.type === 'dashboard') {
+        const dashboards = activeBaseDashboards.value
+        const dashboardIndex = dashboards.findIndex((d) => d.id === item.id)
+        if (dashboardIndex !== -1) {
+          dashboards[dashboardIndex].order = item.order
+        }
         await dashboardStore.updateDashboard(baseId.value, item.id, {
           order: item.order,
         })
       } else if (item.type === 'table') {
-        // Update local table order in the activeTables array
-        const tables = activeTables.value
+        // Update local table order in the tables array
+        const tables = baseTables.value.get(baseId.value)
         const tableIndex = tables.findIndex((t) => t.id === item.id)
         if (tableIndex !== -1) {
           tables[tableIndex].order = item.order

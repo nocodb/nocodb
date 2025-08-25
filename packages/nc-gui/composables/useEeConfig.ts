@@ -68,6 +68,8 @@ export const useEeConfig = createSharedComposable(() => {
     return Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50)
   })
 
+  const blockAiPromptField = computed(() => true)
+
   const calculatePrice = (..._args: any[]) => {}
 
   const getLimit = (..._args: any[]) => {}
@@ -126,6 +128,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showScriptPlanLimitExceededModal = (..._args: any[]) => {}
 
+  const showUpgradeToUseAiPromptField = (..._args: any[]) => {}
+
   return {
     calculatePrice,
     getLimit,
@@ -183,5 +187,7 @@ export const useEeConfig = createSharedComposable(() => {
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
     blockAddNewDashboard,
+    blockAiPromptField,
+    showUpgradeToUseAiPromptField,
   }
 })

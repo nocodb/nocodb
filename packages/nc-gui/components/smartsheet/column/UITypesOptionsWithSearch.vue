@@ -10,9 +10,11 @@ const emits = defineEmits<{ selected: [UITypes] }>()
 
 const { options } = toRefs(props)
 
-const searchQuery = ref('')
-
 const { isMetaReadOnly } = useRoles()
+
+const { showUpgradeToUseAiPromptField } = useEeConfig()
+
+const searchQuery = ref('')
 
 const searchBasisInfoMap = ref<Record<string, string>>({})
 
@@ -42,6 +44,10 @@ const isDisabledUIType = (type: UITypes) => {
 
 const onClick = (uidt: UITypes) => {
   if (!uidt || isDisabledUIType(uidt)) return
+
+  if (uidt === AIPrompt && showUpgradeToUseAiPromptField()) {
+    return
+  }
 
   emits('selected', uidt)
 }

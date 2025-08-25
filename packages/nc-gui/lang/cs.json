@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Sdílení omezeno",
     "importOptions": "Možnosti importu",
     "newScript": "Nový skript",
-    "emptyScript": "Prázdný skript"
+    "emptyScript": "Prázdný skript",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Kliknutím vyřešíte",

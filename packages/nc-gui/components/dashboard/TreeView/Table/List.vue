@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BaseType, TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
-import TableNode from './TableNode.vue'
+import TableNode from './Node.vue'
 
 const props = withDefaults(
   defineProps<{

@@ -37,6 +37,10 @@ body {
   }
 }
 
+.ant-collapse-content {
+  @apply bg-nc-bg-default text-nc-content-gray;
+}
+
 /* windicss layer base */
 @layer base {
   [theme='dark'] {

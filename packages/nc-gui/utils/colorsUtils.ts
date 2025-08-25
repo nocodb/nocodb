@@ -718,6 +718,7 @@ export const themeVariables = {
     'nc-border-purple': {
       DEFAULT: themeV4Colors.purple[500],
       medium: themeV4Colors.purple[200],
+      light: themeV4Colors.purple[100],
     },
     'nc-border-pink': {
       DEFAULT: themeV4Colors.pink[500],

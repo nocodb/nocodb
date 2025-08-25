@@ -6,6 +6,7 @@ import {
   renderSpinner,
   truncateText,
 } from '../utils/canvas'
+import { getButtonColors } from './Button/utils'
 
 const getButtonDimensions = ({
   ctx,
@@ -84,6 +85,7 @@ const renderAIButton = (
     ctx,
     width,
     hasIcon: true,
+    label: isLoading ? 'Generating...' : 'Generate',
   })
   const startX = x + (width - dims.buttonWidth) / 2
   const startY = y + 4
@@ -100,11 +102,13 @@ const renderAIButton = (
 
   if (isHovered) setCursor('pointer')
 
-  const colors = {
-    background: disabled ? '#F4F4F5' : isHovered ? '#E5D4F5' : '#F3ECFA',
-    text: disabled ? '#9AA2AF' : '#7D26CD',
-    loader: '#7D26CD',
+  ctx.font = '550 13px Inter'
+
+  if (disabled) {
+    ctx.globalAlpha = 0.5
   }
+
+  const colors = getButtonColors('light', 'purple', !!isHovered, !!disabled)
 
   ctx.beginPath()
   ctx.roundRect(startX, startY, dims.buttonWidth, dims.buttonHeight, 6)
@@ -131,6 +135,10 @@ const renderAIButton = (
   ctx.fillStyle = colors.text
   ctx.textBaseline = 'middle'
   ctx.fillText(dims.truncatedLabel, contentX, startY + 13)
+
+  if (disabled) {
+    ctx.globalAlpha = 1
+  }
 
   return {
     buttonBounds: {

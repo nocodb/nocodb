@@ -12,7 +12,7 @@ declare module '#app' {
       emit: (event: string, data: any) => void
     }
     /** {@link import('./plugins/tele') Telemetry} Emit telemetry event */
-    $e: (event: string, data?: any) => void
+    $e: (event: string, data?: any, rootProps?: Record<string, any>) => void
     /** {@link import('./plugins/report') Error reporting} Error reporting */
     $report: (event: Error) => void
     $state: UseGlobalReturn

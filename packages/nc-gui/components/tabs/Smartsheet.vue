@@ -169,7 +169,7 @@ watch([activeViewTitleOrId, activeTableId], () => {
   handleSidebarOpenOnMobileForNonViews()
 })
 
-const { leftSidebarWidth, windowSize, isLeftSidebarOpen, isFullScreen } = storeToRefs(useSidebarStore())
+const { leftSidebarWidth, windowSize, isFullScreen } = storeToRefs(useSidebarStore())
 
 const { isPanelExpanded, extensionPanelSize } = useExtensions()
 

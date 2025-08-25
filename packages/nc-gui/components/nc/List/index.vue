@@ -6,7 +6,7 @@ interface Emits {
   (e: 'update:value', value: RawValueType): void
   (e: 'update:open', open: boolean): void
   (e: 'change', option: NcListItemType): void
-  (e: 'escape', e: KeyboardEvent): void
+  (e: 'escape', event: KeyboardEvent): void
 }
 
 const props = withDefaults(defineProps<NcListProps>(), {
@@ -334,6 +334,10 @@ watch(searchQuery, () => {
 defineExpose({
   list,
 })
+
+const handleEscape = (event: KeyboardEvent) => {
+  emits('escape', event)
+}
 </script>
 
 <template>
@@ -343,8 +347,8 @@ defineExpose({
     class="flex flex-col nc-list-root pt-2 w-64 !focus:(shadow-none outline-none)"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
-    @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex])"
-    @keydown.esc="emits('escape', $event)"
+    @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex], undefined, $event)"
+    @keydown.esc="handleEscape($event)"
   >
     <template v-if="isSearchEnabled">
       <div

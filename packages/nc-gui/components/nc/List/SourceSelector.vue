@@ -93,11 +93,6 @@ defineExpose({
     <NcListDropdown
       v-model:is-open="isOpenSourceSelectDropdown"
       :disabled="!showSourceSelector"
-      :default-slot-wrapper-class="
-        !showSourceSelector
-          ? 'text-nc-content-gray-muted cursor-not-allowed bg-nc-bg-gray-light children:opacity-60'
-          : 'text-nc-content-gray'
-      "
       :has-error="!!selectedSource?.ncItemDisabled"
     >
       <div class="flex-1 flex items-center gap-2">

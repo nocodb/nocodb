@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Partajarea este restricționată",
     "importOptions": "Opțiuni de import",
     "newScript": "Script nou",
-    "emptyScript": "Script gol"
+    "emptyScript": "Script gol",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Fă clic pentru a rezolva",

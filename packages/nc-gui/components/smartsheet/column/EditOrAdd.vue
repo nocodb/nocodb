@@ -98,6 +98,8 @@ const { t } = useI18n()
 
 const { isMetaReadOnly } = useRoles()
 
+const { showUpgradeToUseAiPromptField, blockAiPromptField } = useEeConfig()
+
 const { eventBus } = useSmartsheetStoreOrThrow()
 
 const columnLabel = computed(() => props.columnLabel || t('objects.field'))
@@ -131,6 +133,17 @@ const mounted = ref(false)
 const showDefaultValueInput = ref(false)
 
 const showHoverEffectOnSelectedType = ref(true)
+
+const columnUidt = computed({
+  get: () => formState.value.uidt,
+  set: (value: UITypes) => {
+    if (value === AIPrompt && showUpgradeToUseAiPromptField()) {
+      return
+    }
+
+    formState.value.uidt = value
+  },
+})
 
 const isVisibleDefaultValueInput = computed({
   get: () => {
@@ -292,6 +305,8 @@ const handleScrollDebounce = useDebounceFn(() => {
 
 const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSearchList = false) => {
   let preload
+
+  if (uidt === AIPrompt && blockAiPromptField.value) return
 
   if (fromSearchList && !isEdit.value && aiAutoSuggestMode.value) {
     onInit()
@@ -1097,7 +1112,7 @@ const lookupRollupFilterEnabled = computed(() => {
             >
             <a-select
               v-model:open="isColumnTypeOpen"
-              v-model:value="formState.uidt"
+              v-model:value="columnUidt"
               show-search
               class="nc-column-type-input nc-select-shadow !rounded-lg"
               :class="{

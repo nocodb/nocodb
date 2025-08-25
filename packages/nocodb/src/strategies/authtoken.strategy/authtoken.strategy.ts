@@ -12,8 +12,19 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
   async validate(req: NcRequest, callback: Function) {
     try {
       let user;
-      if (req.headers['xc-token']) {
-        const apiToken = await ApiToken.getByToken(req.headers['xc-token']);
+      
+      // Extract token from either xc-token header or Authorization Bearer header
+      let token = req.headers['xc-token'];
+      
+      if (!token && req.headers.authorization) {
+        const authHeader = req.headers.authorization;
+        if (authHeader.toLowerCase().startsWith('bearer ')) {
+          token = authHeader.substring(7); // Remove 'Bearer ' prefix
+        }
+      }
+      
+      if (token) {
+        const apiToken = await ApiToken.getByToken(token);
         if (!apiToken) {
           return callback({ msg: 'Invalid token' });
         }

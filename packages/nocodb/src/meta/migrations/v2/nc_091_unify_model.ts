@@ -27,50 +27,11 @@ const up = async (knex: Knex) => {
 
   logger.log('Starting migration of data from nc_models to nc_dashboards_v2');
 
-  // First get all dashboard pairs
-  const dashboardPairs = await knex
-    .select('fk_workspace_id', 'base_id')
-    .from(MetaTable.DASHBOARDS)
-    .groupBy('fk_workspace_id', 'base_id');
-
-  // Then get max orders only for those specific pairs
-  const maxOrders = await knex
-    .from(MetaTable.MODELS)
-    .select('fk_workspace_id', 'base_id')
-    .max('order as max_order')
-    .whereIn(
-      ['fk_workspace_id', 'base_id'],
-      dashboardPairs.map((p) => [p.fk_workspace_id, p.base_id]),
-    )
-    .where((builder) => {
-      builder.whereNull('source_id').orWhereExists((subquery) => {
-        subquery
-          .select('*')
-          .from(MetaTable.SOURCES)
-          .where('nc_sources_v2.id', 'nc_models_v2.source_id')
-          .where('nc_sources_v2.is_meta', true)
-          .where('nc_sources_v2.is_local', true);
-      });
-    })
-    .groupBy('fk_workspace_id', 'base_id');
-
-  // Create lookup map
-  const maxOrderMap = new Map();
-  maxOrders.forEach((row) => {
-    maxOrderMap.set(
-      `${row.fk_workspace_id}:${row.base_id}`,
-      row.max_order || -1,
-    );
-  });
-
   await migrateTableInBatches(
     knex,
     MetaTable.DASHBOARDS,
     MetaTable.MODELS,
-    async (dashboard) => {
-      const key = `${dashboard.fk_workspace_id}:${dashboard.base_id}`;
-      dashboard.order = (maxOrderMap.get(key) || -1) + 1;
-
+    (dashboard) => {
       return {
         id: dashboard.id,
         base_id: dashboard.base_id,

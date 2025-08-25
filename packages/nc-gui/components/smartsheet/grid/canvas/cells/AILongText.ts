@@ -166,7 +166,7 @@ export const AILongTextCellRenderer: CellRenderer = {
 
     const isReadonlyCol = !!(readonly || column.readonly)
 
-    if (!value) {
+    if (!value && !isReadonlyCol) {
       const buttonDisabled = disabled?.isInvalid || isReadonlyCol
 
       const btnWidth = width - horizontalPadding * 2
@@ -196,13 +196,13 @@ export const AILongTextCellRenderer: CellRenderer = {
     const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
       x: x + padding,
       y,
-      text: value.value,
+      text: value?.value || '',
       maxWidth: width - padding * 2,
       fillStyle: '#4a5268',
       height,
     })
 
-    if (selected) {
+    if (selected && (!isReadonlyCol || value)) {
       renderIconButton(ctx, {
         buttonX: x + width - 28,
         buttonY: y + 7,
@@ -253,15 +253,10 @@ export const AILongTextCellRenderer: CellRenderer = {
     const expandIconBox = { x: x + width - 28, y: y + 7, width: 20, height: 20 }
     const regenerateIconBox = { x: x + width - 52, y: y + 7, width: 20, height: 20 }
 
-    if (column?.isInvalidColumn?.isInvalid && selected) {
-      // If the column is invalid and user clicked on regenerate icon
-      if (isBoxHovered(regenerateIconBox, mousePosition)) {
-        return true
-      }
-    }
+    const isReadOnlyCol = !!(column.readonly || column.columnObj?.readonly)
 
     if (!value) {
-      if (column.readonly || column.columnObj?.readonly) {
+      if (isReadOnlyCol) {
         return true
       }
 
@@ -285,10 +280,16 @@ export const AILongTextCellRenderer: CellRenderer = {
       }
     }
 
+    if (column?.isInvalidColumn?.isInvalid && selected) {
+      // If the column is invalid and user clicked on regenerate icon
+      if (isBoxHovered(regenerateIconBox, mousePosition)) {
+        return true
+      }
+    }
+
     if (
       selected &&
-      (isBoxHovered(expandIconBox, mousePosition) ||
-        (!column.readonly && !column.columnObj?.readonly && isBoxHovered(regenerateIconBox, mousePosition)))
+      (isBoxHovered(expandIconBox, mousePosition) || (!isReadOnlyCol && isBoxHovered(regenerateIconBox, mousePosition)))
     ) {
       makeCellEditable(row, column)
       return true

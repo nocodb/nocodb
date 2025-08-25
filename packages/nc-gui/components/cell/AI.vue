@@ -87,6 +87,8 @@ const generate = async () => {
           isStale: false,
           value: resRow[column.value.title!],
           isAiEdited: true,
+          lastModifiedBy: null,
+          lastModifiedTime: null,
         }
       }
 

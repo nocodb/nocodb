@@ -979,7 +979,6 @@ export class TablesService {
           order: tableCreatePayLoad.columns.length + i + 1,
         })),
       ],
-      order: +(tables?.pop()?.order ?? 0) + 1,
     } as any);
 
     try {

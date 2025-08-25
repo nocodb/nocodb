@@ -1435,8 +1435,8 @@ onBeforeRouteUpdate((_to, from, next) => {
                     :shadow="false"
                     @click="addField()"
                   >
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="plus" class="w-3" />
+                    <div class="flex items-center gap-1.5">
+                      <GeneralIcon icon="plus" class="w-4" />
                       {{ $t('labels.multiField.newField') }}
                     </div>
                   </NcButton>

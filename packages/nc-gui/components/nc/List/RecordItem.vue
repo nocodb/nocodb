@@ -28,6 +28,8 @@ provide(IsUnderLookupInj, ref(true))
 
 provide(IsLinkRecordDropdownInj, ref(true))
 
+provide(IsCanvasInjectionInj, false)
+
 const { row: currentRow, columns: allColumns, isSelected, isLoading } = toRefs(props)
 
 useProvideSmartsheetRowStore(currentRow)

@@ -1466,7 +1466,9 @@
     "sharingRestricted": "공유 제한",
     "importOptions": "가져오기 옵션",
     "newScript": "새 스크립트",
-    "emptyScript": "빈 스크립트"
+    "emptyScript": "빈 스크립트",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",

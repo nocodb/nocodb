@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Jakaminen rajoitettu",
     "importOptions": "Tuontivaihtoehdot",
     "newScript": "Uusi skripti",
-    "emptyScript": "Tyhjä skripti"
+    "emptyScript": "Tyhjä skripti",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Klikkaa ratkaistaksesi",

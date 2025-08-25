@@ -7,6 +7,8 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue', 'navigateToIntegrations'])
 
+const { appInfo } = useGlobal()
+
 const { t } = useI18n()
 
 const meta = inject(MetaInj)!
@@ -239,7 +241,13 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
         </NcTooltip>
         <div class="flex-1"></div>
 
-        <div class="absolute right-0">
+        <!-- Todo @rameshmane7218 remove hidden after enabling other integrations, hidden for now as we allow only nocoai -->
+        <div
+          class="absolute right-0"
+          :class="{
+            hidden: appInfo.env !== 'development' && appInfo.ee,
+          }"
+        >
           <AiSettings
             v-model:fk-integration-id="vModel.fk_integration_id"
             v-model:model="vModel.model"

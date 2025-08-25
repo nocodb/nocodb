@@ -84,7 +84,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
-const toggleFullScreenState = () => {
+  const toggleFullScreenState = () => {
     if (isFullScreen.value) {
       isLeftSidebarOpen.value = true
 

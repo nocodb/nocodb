@@ -1064,9 +1064,9 @@ watch(activeBaseId, () => {
                   </a-select-option>
                 </a-select>
               </div>
-              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
+              <PaymentUpgradeBadgeProvider v-if="isEeUI" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
                 <template #default="{ click }">
-                  <div v-if="isEeUI" class="w-full space-y-2">
+                  <div class="w-full space-y-2">
                     <NcButton
                       v-if="range.fk_to_column_id === null"
                       size="small"
@@ -1079,7 +1079,7 @@ watch(activeBaseId, () => {
                       </div>
                       <PaymentUpgradeBadge
                         class="ml-2"
-                        :limit-or-feature="$t('upgrade.upgradeToUseCalendarRangeSubtitle')"
+                        :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
                         :content="
                           $t('upgrade.upgradeToUseCalendarRangeSubtitle', {
                             plan: getPlanTitle(PlanTitles.PLUS),
@@ -1089,11 +1089,11 @@ watch(activeBaseId, () => {
                       />
                     </NcButton>
 
-                    <template v-else-if="isEeUI">
+                    <template>
                       <div class="flex gap-2 items-center text-nc-content-gray-subtle">
                         {{ $t('activity.withEndDate') }}
                         <PaymentUpgradeBadge
-                          :limit-or-feature="$t('upgrade.upgradeToUseCalendarRangeSubtitle')"
+                          :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
                           :content="
                             $t('upgrade.upgradeToUseCalendarRangeSubtitle', {
                               plan: getPlanTitle(PlanTitles.PLUS),

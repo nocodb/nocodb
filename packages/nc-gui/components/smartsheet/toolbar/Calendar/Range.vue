@@ -279,7 +279,7 @@ const onValueChange = async () => {
                     <component :is="iconMap.plus" class="h-4 w-4" />
                     {{ $t('activity.endDate') }}
                     <PaymentUpgradeBadge
-                      :limit-or-feature="$t('upgrade.upgradeToUseCalendarRangeSubtitle')"
+                      :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
                       :content="
                         $t('upgrade.upgradeToUseCalendarRangeSubtitle', {
                           plan: getPlanTitle(PlanTitles.PLUS),
@@ -290,11 +290,11 @@ const onValueChange = async () => {
                   </div>
                 </NcButton>
 
-                <template v-else-if="isEeUI">
+                <template v-else>
                   <div class="flex gap-2 items-center">
                     {{ $t('activity.withEndDate') }}
                     <PaymentUpgradeBadge
-                      :limit-or-feature="$t('upgrade.upgradeToUseCalendarRangeSubtitle')"
+                      :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
                       :content="
                         $t('upgrade.upgradeToUseCalendarRangeSubtitle', {
                           plan: getPlanTitle(PlanTitles.PLUS),

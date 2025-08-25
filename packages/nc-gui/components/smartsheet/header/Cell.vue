@@ -223,11 +223,17 @@ const onClick = (e: Event) => {
 
       <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
-      <GeneralIcon
+      <PermissionsTooltip
         v-if="!isAllowedToEditField"
-        icon="ncLock"
-        class="nc-column-lock-icon flex-none !ml-1 w-3.5 h-3.5 opacity-90"
-      />
+        :entity="PermissionEntity.FIELD"
+        :entity-id="column.id"
+        :permission="PermissionKey.RECORD_FIELD_EDIT"
+        :show-pointer-event-none="false"
+        hide-on-click
+        class="!ml-1 flex children:flex"
+      >
+        <GeneralIcon icon="ncLock" class="nc-column-lock-icon flex-none w-3.5 h-3.5 opacity-90" />
+      </PermissionsTooltip>
 
       <GeneralIcon
         v-if="isExpandedForm && !isExpandedBulkUpdateForm && !isMobileMode && isUIAllowed('fieldEdit') && !hideMenu"

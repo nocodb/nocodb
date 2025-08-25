@@ -2,9 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { NcApiVersion } from 'nocodb-sdk';
 import { BasesV3Service as BasesV3ServiceCE } from 'src/services/v3/bases-v3.service';
 import type { NcContext } from '~/interface/config';
-import { getFeature, PlanFeatureTypes } from '~/helpers/paymentHelpers';
 import { NcError } from '~/helpers/ncError';
-import { isOnPrem } from '~/utils';
+import { checkForFeature, PlanFeatureTypes } from '~/helpers/paymentHelpers';
 import { Base } from '~/models';
 import { BasesService } from '~/services/bases.service';
 
@@ -34,19 +33,7 @@ export class BasesV3Service extends BasesV3ServiceCE {
     base: any,
   ) {
     if (base.type === 'private') {
-      if (
-        !(await getFeature(
-          PlanFeatureTypes.FEATURE_PRIVATE_BASES,
-          context.workspace_id,
-        ))
-      ) {
-        NcError.get({
-          api_version: NcApiVersion.V3,
-        }).featureNotSupported({
-          feature: PlanFeatureTypes.FEATURE_PRIVATE_BASES,
-          isOnPrem: isOnPrem,
-        });
-      }
+      await checkForFeature(PlanFeatureTypes.FEATURE_PRIVATE_BASES, context);
     }
     if (base.type && !['default', 'private'].includes(base.type)) {
       NcError.get({

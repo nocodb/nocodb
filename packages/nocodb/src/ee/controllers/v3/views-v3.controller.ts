@@ -11,7 +11,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { getFeature, PlanFeatureTypes } from '~/ee/helpers/paymentHelpers';
+import { checkForFeature, PlanFeatureTypes } from '~/ee/helpers/paymentHelpers';
 import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -20,8 +20,6 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { NcContext } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ViewsV3Service } from '~/services/v3/views-v3.service';
-import { NcError } from '~/helpers/ncError';
-import { isOnPrem } from '~/utils';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -36,17 +34,8 @@ export class ViewsV3Controller {
     @Query('includeM2M') includeM2M: string,
     @Request() req,
   ) {
-    if (
-      !(await getFeature(
-        PlanFeatureTypes.FEATURE_API_VIEW_V3,
-        context.workspace_id,
-      ))
-    ) {
-      NcError.get(context).featureNotSupported({
-        feature: PlanFeatureTypes.FEATURE_API_VIEW_V3,
-        isOnPrem: isOnPrem,
-      });
-    }
+    await checkForFeature(PlanFeatureTypes.FEATURE_API_VIEW_V3, context);
+
     return new PagedResponseImpl(
       await this.viewsV3Service.getViews(context, {
         tableId,
@@ -62,17 +51,8 @@ export class ViewsV3Controller {
     @Param('viewId') viewId: string,
     @Request() req,
   ) {
-    if (
-      !(await getFeature(
-        PlanFeatureTypes.FEATURE_API_VIEW_V3,
-        context.workspace_id,
-      ))
-    ) {
-      NcError.get(context).featureNotSupported({
-        feature: PlanFeatureTypes.FEATURE_API_VIEW_V3,
-        isOnPrem: isOnPrem,
-      });
-    }
+    await checkForFeature(PlanFeatureTypes.FEATURE_API_VIEW_V3, context);
+
     const view = await this.viewsV3Service.getView(context, {
       viewId: viewId,
       req,
@@ -89,17 +69,8 @@ export class ViewsV3Controller {
     @Body() body: any,
     @Request() req,
   ) {
-    if (
-      !(await getFeature(
-        PlanFeatureTypes.FEATURE_API_VIEW_V3,
-        context.workspace_id,
-      ))
-    ) {
-      NcError.get(context).featureNotSupported({
-        feature: PlanFeatureTypes.FEATURE_API_VIEW_V3,
-        isOnPrem: isOnPrem,
-      });
-    }
+    await checkForFeature(PlanFeatureTypes.FEATURE_API_VIEW_V3, context);
+
     const view = await this.viewsV3Service.create(context, {
       req,
       tableId,
@@ -114,17 +85,8 @@ export class ViewsV3Controller {
     @Param('viewId') viewId: string,
     @Request() req,
   ) {
-    if (
-      !(await getFeature(
-        PlanFeatureTypes.FEATURE_API_VIEW_V3,
-        context.workspace_id,
-      ))
-    ) {
-      NcError.get(context).featureNotSupported({
-        feature: PlanFeatureTypes.FEATURE_API_VIEW_V3,
-        isOnPrem: isOnPrem,
-      });
-    }
+    await checkForFeature(PlanFeatureTypes.FEATURE_API_VIEW_V3, context);
+
     const view = await this.viewsV3Service.update(context, {
       viewId: viewId,
       req,
@@ -139,17 +101,8 @@ export class ViewsV3Controller {
     @Param('viewId') viewId: string,
     @Request() req,
   ) {
-    if (
-      !(await getFeature(
-        PlanFeatureTypes.FEATURE_API_VIEW_V3,
-        context.workspace_id,
-      ))
-    ) {
-      NcError.get(context).featureNotSupported({
-        feature: PlanFeatureTypes.FEATURE_API_VIEW_V3,
-        isOnPrem: isOnPrem,
-      });
-    }
+    await checkForFeature(PlanFeatureTypes.FEATURE_API_VIEW_V3, context);
+
     const view = await this.viewsV3Service.delete(context, {
       viewId: viewId,
       req,

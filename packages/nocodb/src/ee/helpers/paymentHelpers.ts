@@ -6,7 +6,11 @@ import {
   PlanLimitTypes,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
-import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import type {
+  NcApiVersion,
+  ProjectRoles,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import { NcError } from '~/helpers/catchError';
 import { Domain, Org, Subscription, Workspace } from '~/models';
@@ -18,7 +22,7 @@ import Plan, {
   GraceLimits,
   LegacyFreePlan,
 } from '~/models/Plan';
-import { isCloud } from '~/utils';
+import { isCloud, isOnPrem } from '~/utils';
 
 async function getLimit(
   type: PlanLimitTypes,
@@ -279,6 +283,23 @@ async function getFeature(
   return workspace?.payment?.plan?.meta?.[type] || false;
 }
 
+async function checkForFeature(
+  type: PlanFeatureTypes,
+  context: {
+    workspace_id: string;
+    api_version?: NcApiVersion;
+  },
+  ncMeta = Noco.ncMeta,
+) {
+  if (!(await getFeature(type, context.workspace_id, ncMeta))) {
+    NcError.get(context).featureNotSupported({
+      feature: type,
+      isOnPrem: isOnPrem,
+    });
+  }
+  return true;
+}
+
 async function getWorkspaceOrOrg(
   workspaceOrOrgId: string,
   ncMeta = Noco.ncMeta,
@@ -430,4 +451,5 @@ export {
   getWorkspaceOrOrg,
   getActivePlanAndSubscription,
   checkSeatLimit,
+  checkForFeature,
 };

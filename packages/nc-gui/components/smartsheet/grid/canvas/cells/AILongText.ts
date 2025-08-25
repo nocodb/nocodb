@@ -177,7 +177,6 @@ export const AILongTextCellRenderer: CellRenderer = {
       }
     }
 
-    if (value?.value) {
       const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
         x: x + padding,
         y,
@@ -222,7 +221,7 @@ export const AILongTextCellRenderer: CellRenderer = {
         x: xOffset,
         y: yOffset,
       }
-    }
+    
 
     return {
       x,
@@ -271,10 +270,10 @@ export const AILongTextCellRenderer: CellRenderer = {
     }
     return false
   },
-  async handleHover({ row, column, mousePosition, getCellPosition, t }) {
+  async handleHover({ row, column, mousePosition, getCellPosition, t, value }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
-    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return
+    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid || !value || !value?.value) return
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
     const expandIconBox = { x: x + width - 28, y: y + 7, width: 18, height: 18 }

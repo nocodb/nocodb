@@ -786,13 +786,20 @@ useResizeObserver(inputWrapperRef, () => {
                   :bordered="false"
                   theme="ai"
                   size="small"
+                  inner-class="!gap-2"
                   :disabled="!isFieldAiIntegrationAvailable"
+                  :loading="isAiGenerating"
+                  isAiGenerating
                   @click.stop="generate"
                 >
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="refresh" :class="{ 'animate-infinite animate-spin': isAiGenerating }" />
-                    <span class="text-sm font-bold"> {{ isAiGenerating ? 'Re-generating...' : 'Re-generate' }} </span>
-                  </div>
+                  <template #icon>
+                    <GeneralIcon icon="refresh" />
+                  </template>
+                  <template #loadingIcon>
+                    <GeneralIcon icon="refresh" class="animate-infinite animate-spin" />
+                  </template>
+
+                  <span class="text-sm font-bold"> {{ isAiGenerating ? 'Re-generating...' : 'Re-generate' }} </span>
                 </NcButton>
               </NcTooltip>
             </div>

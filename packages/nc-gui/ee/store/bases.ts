@@ -39,7 +39,7 @@ export const useBases = defineStore('basesStore', () => {
     return route.value.params.baseId as string | undefined
   })
 
-  const forceShowBaseList = ref(true)
+  const forceShowBaseList = ref(false)
 
   const showProjectList = ref<boolean>(route.value.params.typeOrId === 'base' ? false : !route.value.params.baseId)
 
@@ -457,6 +457,9 @@ export const useBases = defineStore('basesStore', () => {
        * @note - Manually we have to set to false on click any base or on toggle from minisidebar
        * */
       forceShowBaseList.value = true
+    },
+    {
+      immediate: true,
     },
   )
 

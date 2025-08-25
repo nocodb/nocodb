@@ -21,7 +21,8 @@ const availableFields = computed(() => {
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn } = useColumnCreateStoreOrThrow()
+const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn, updateFieldName } =
+  useColumnCreateStoreOrThrow()
 
 const { isAiBetaFeaturesEnabled, aiIntegrationAvailable, generateRows } = useNocoAi()
 
@@ -157,6 +158,8 @@ const richMode = computed({
 })
 
 const handleDisableSubmitBtn = () => {
+  updateFieldName()
+
   if (!isEnabledGenerateText.value) {
     if (disableSubmitBtn.value) {
       disableSubmitBtn.value = false

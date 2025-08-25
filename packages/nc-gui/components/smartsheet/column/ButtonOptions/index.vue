@@ -31,7 +31,8 @@ const { getMeta } = useMetas()
 
 const { isAiBetaFeaturesEnabled } = useNocoAi()
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode } = useColumnCreateStoreOrThrow()
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName } =
+  useColumnCreateStoreOrThrow()
 
 const { isRowActionsEnabled } = useActionPane()
 
@@ -382,6 +383,7 @@ const selectIcon = (icon: string) => {
 }
 
 const handleUpdateActionType = () => {
+  updateFieldName(true, undefined, true)
   vModel.value.formula_raw = ''
 }
 </script>

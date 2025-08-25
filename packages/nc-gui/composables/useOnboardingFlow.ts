@@ -139,6 +139,9 @@ export const useOnboardingFlow = createSharedComposable(() => {
 
   const isSubmitting = ref(false)
 
+  /**
+   * @Note - Don't change `id` or `key` as this will be used in tele payload
+   */
   const questions = computed<OnboardingQuestionType[]>(() => {
     const list: OnboardingQuestionType[] = [
       {

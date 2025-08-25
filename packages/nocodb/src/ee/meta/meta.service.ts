@@ -7,14 +7,13 @@ import XcMigrationSourcev3 from '~/meta/migrations/XcMigrationSourcev3';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
+import { isWorker } from '~/utils';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const nanoidWorkspace = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz',
   7,
 );
-
-const isWorker = process.env.NC_WORKER_CONTAINER === 'true';
 
 @Injectable()
 export class MetaService extends MetaServiceCE {

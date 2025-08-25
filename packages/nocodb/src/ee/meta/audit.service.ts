@@ -5,6 +5,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import XcMigrationSourceAudit from '~/meta/migrations/XcMigrationSourceAudit';
 import { NcConfig } from '~/utils/nc-config';
+import { isWorker } from '~/utils';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -16,6 +17,11 @@ export class AuditService extends AuditServiceCE {
   }
 
   public async init(): Promise<boolean> {
+    // skip init if worker instance
+    if (isWorker) {
+      return true;
+    }
+
     await this.connection.migrate.latest({
       migrationSource: new XcMigrationSourceAudit(),
       tableName: 'xc_knex_migrations_audit',

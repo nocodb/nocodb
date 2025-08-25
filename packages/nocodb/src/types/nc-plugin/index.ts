@@ -1,4 +1,4 @@
-import IEmailAdapter, { XcEmail } from './lib/IEmailAdapter';
+import IEmailAdapter, { XcEmail, XcEmailAttachment } from './lib/IEmailAdapter';
 import IStorageAdapter, { XcFile } from './lib/IStorageAdapter';
 import IStorageAdapterV2 from './lib/IStorageAdapterV2';
 import IWebhookNotificationAdapter from './lib/IWebhookNotificationAdapter';
@@ -17,6 +17,7 @@ export {
   XcPluginMigration,
   XcStoragePlugin,
   XcEmailPlugin,
+  XcEmailAttachment,
   IEmailAdapter,
   IStorageAdapter,
   XcFile,

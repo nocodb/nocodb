@@ -648,7 +648,7 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
   };
   
   const _____nc_mail = async (params) => {
-    const { to, subject, html, text } = params;
+    const { to, subject, html, text, attachments, cc, bcc } = params;
  
     if (!to) {
       throw new Error('Email recipient (to) is required');
@@ -661,6 +661,48 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
     if (!html && !text) {
       throw new Error('Email content (html or text) is required');
     }
+    
+    let processedAttachments = [];
+    if (attachments && Array.isArray(attachments)) {
+      for (let i = 0; i < attachments.length; i++) {
+        const attachment = attachments[i];
+      
+        // Check if this is a NocoDB file format
+        const isNocoDbFile = attachment && 
+          typeof attachment === 'object' && 
+          'title' in attachment && 
+          'mimetype' in attachment && 
+          'size' in attachment &&
+          (attachment.signedUrl || attachment.url);
+      
+        if (isNocoDbFile) {
+          // Convert NocoDB file format to email attachment format
+          const emailAttachment = {
+            filename: attachment.title,
+            contentType: attachment.mimetype,
+          };
+        
+          // Only use URLs (signedUrl preferred, then url)
+          if (attachment.signedUrl) {
+            emailAttachment.href = attachment.signedUrl;
+          } else if (attachment.url) {
+            emailAttachment.href = attachment.url;
+          } else {
+            throw new Error(\`NocoDB file at index \${i} must have either signedUrl or url\`);
+          }
+        
+          processedAttachments.push(emailAttachment);
+        } else {
+          // Regular email attachment format - only support URLs and content
+          if (!attachment.content && !attachment.href) {
+            throw new Error(\`Attachment at index \${i} must have either content or href (URL)\`);
+          }
+        
+          processedAttachments.push(attachment);
+        }
+      }
+    }
+    
     // Get workspace and base context
     const workspaceId = '${context.workspace_id}';
     const baseId = '${context.base_id}';
@@ -671,6 +713,9 @@ function generateStepAPI(req: NcRequest, context: NcContext) {
       subject: subject.trim(),
       html: html,
       text: text,
+      cc: cc,
+      bcc: bcc,
+      attachments: processedAttachments
     };
  
     const requestUrl = \`${req.ncSiteUrl}/api/v2/internal/\${workspaceId}/\${baseId}?operation=sendEmail\`

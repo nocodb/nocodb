@@ -2417,7 +2417,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
-                      overlay-class-name="nc-dropdown-add-column"
+                      overlay-class-name="nc-dropdown-add-column rounded-2xl"
                       @visible-change="onVisibilityChange"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">

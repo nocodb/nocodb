@@ -21,6 +21,8 @@ dayjs.extend(timezone);
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
+const isWorker = process.env.NC_WORKER_CONTAINER === 'true';
+
 @Injectable()
 export class MetaService {
   protected _knex: knex.Knex;
@@ -820,6 +822,11 @@ export class MetaService {
   }
 
   public async init(): Promise<boolean> {
+    // skip migration in worker container
+    if (isWorker) {
+      return true;
+    }
+
     await this.connection.migrate.latest({
       migrationSource: new XcMigrationSource(),
       tableName: 'xc_knex_migrations',

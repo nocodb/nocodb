@@ -2274,7 +2274,7 @@ onBeforeRouteUpdate((_to, from, next) => {
 }
 
 .nc-fields-add-new-field-btn-wrapper {
-  @apply flex items-center mr-1;
+  @apply flex items-center;
 
   .nc-field-add-new {
     &.focused {

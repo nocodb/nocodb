@@ -4,7 +4,7 @@ import type Stripe from 'stripe'
 
 const { t } = useI18n()
 
-const { defaultInvoicePaginationData, invoices, invoicePaginationData, activeWorkspace, loadInvoices } = usePaymentStoreOrThrow()
+const { defaultInvoicePaginationData, invoices, invoicePaginationData, loadInvoices } = usePaymentStoreOrThrow()
 
 const paginatedData = computed(() => {
   const { page, pageSize } = invoicePaginationData.value

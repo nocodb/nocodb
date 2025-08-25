@@ -22,7 +22,7 @@ const rowColorInfo = computed(() => {
 
 <template>
   <div
-    class="border-1 cursor-pointer h-12.5 flex-none border-gray-200 flex gap-2 flex-col rounded-lg overflow-hidden"
+    class="border-1 cursor-pointer h-12.5 flex-none border-nc-border-gray-medium flex gap-2 flex-col rounded-lg overflow-hidden"
     :style="rowColorInfo.rowBgColor"
   >
     <div class="flex relative items-center gap-2">
@@ -45,14 +45,14 @@ const rowColorInfo = computed(() => {
           :class="{
             '!max-w-35': invalid,
           }"
-          class="text-[13px] leading-4 max-w-56 font-medium truncate text-gray-800"
+          class="text-[13px] leading-4 max-w-56 font-medium truncate text-nc-content-gray"
         >
           <slot />
         </span>
         <NcTooltip v-if="invalid" placement="left" class="top-1 absolute right-1">
           <NcBadge color="red" :border="false" class="!h-5">
             <div class="flex items-center gap-1">
-              <GeneralIcon icon="warning" class="text-red-500 !h-4 !w-4" />
+              <GeneralIcon icon="warning" class="text-nc-content-red-medium !h-4 !w-4" />
 
               <span class="font-normal text-xs"> Date Error </span>
             </div>
@@ -62,7 +62,7 @@ const rowColorInfo = computed(() => {
             record.
           </template>
         </NcTooltip>
-        <NcTooltip v-if="showDate" show-on-truncate-only class="text-xs font-medium truncate max-w-58 leading-4 text-gray-600">
+        <NcTooltip v-if="showDate" show-on-truncate-only class="text-xs font-medium truncate max-w-58 leading-4 text-nc-content-gray-subtle2">
           {{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }}
           <template #title> {{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }} </template>
         </NcTooltip>

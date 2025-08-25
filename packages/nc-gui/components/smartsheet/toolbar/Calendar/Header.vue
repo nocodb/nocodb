@@ -51,12 +51,12 @@ const headerText = computed(() => {
             :class="{
               'max-w-38 truncate': activeCalendarView === 'week',
             }"
-            class="font-bold text-[13px] text-center text-gray-800"
+            class="font-bold text-[13px] text-center text-nc-content-gray"
             data-testid="nc-calendar-active-date"
             >{{ headerText }}</span
           >
           <div class="flex-1" />
-          <component :is="iconMap.arrowDown" class="h-4 min-w-4 text-gray-700" />
+          <component :is="iconMap.arrowDown" class="h-4 min-w-4 text-nc-content-gray-subtle" />
         </div>
       </NcButton>
 

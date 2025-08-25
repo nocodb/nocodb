@@ -789,7 +789,6 @@ useResizeObserver(inputWrapperRef, () => {
                   inner-class="!gap-2"
                   :disabled="!isFieldAiIntegrationAvailable"
                   :loading="isAiGenerating"
-                  isAiGenerating
                   @click.stop="generate"
                 >
                   <template #icon>

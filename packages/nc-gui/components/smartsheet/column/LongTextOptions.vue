@@ -342,7 +342,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
                 <LazySmartsheetCell
                   :edit-enabled="true"
                   :model-value="previewRow.row[previewFieldTitle]"
-                  :column="{ ...vModel, title: vModel.title || 'Untitled Long Text' }"
+                  :column="{ ...vModel, title: vModel.title || 'Untitled AI Text' }"
                   class="!border-none h-auto my-auto pl-1"
                 />
               </LazySmartsheetRow>

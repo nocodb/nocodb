@@ -29738,6 +29738,12 @@
         "in": "header",
         "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable `NC_JWT_EXPIRES_IN`."
       },
+      "bearerAuth": {
+        "name": "Authorization",
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Bearer token authentication. Use 'Authorization: Bearer <token>' header format. This is an alternative to the xc-token header."
+      },
       "xc-shared-base-id": {
         "name": "Shared Base ID",
         "type": "apiKey",

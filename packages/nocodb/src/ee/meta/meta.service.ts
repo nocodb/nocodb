@@ -14,6 +14,8 @@ const nanoidWorkspace = customAlphabet(
   7,
 );
 
+const isWorker = process.env.NC_WORKER_CONTAINER === 'true';
+
 @Injectable()
 export class MetaService extends MetaServiceCE {
   constructor(config: NcConfig, @Optional() trx = null) {
@@ -21,6 +23,11 @@ export class MetaService extends MetaServiceCE {
   }
 
   public async init(): Promise<boolean> {
+    // skip migration in worker container
+    if (isWorker) {
+      return true;
+    }
+
     await super.init();
     await this.connection.migrate.latest({
       migrationSource: new XcMigrationSourcev3(),

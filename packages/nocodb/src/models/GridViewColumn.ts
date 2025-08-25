@@ -1,4 +1,8 @@
-import { VIEW_GRID_DEFAULT_WIDTH, type BoolType, type GridColumnType } from 'nocodb-sdk';
+import {
+  type BoolType,
+  type GridColumnType,
+  VIEW_GRID_DEFAULT_WIDTH,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type Upgrader from '~/Upgrader';
 import View from '~/models/View';

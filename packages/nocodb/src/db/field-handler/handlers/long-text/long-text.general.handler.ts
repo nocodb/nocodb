@@ -1,6 +1,11 @@
 import { NcError } from 'src/helpers/catchError';
 import { NC_MAX_TEXT_LENGTH } from 'src/constants';
-import type { NcContext } from 'nocodb-sdk';
+import {
+  AIRecordType,
+  isAIPromptCol,
+  ncIsObject,
+  type NcContext,
+} from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
 import type { Column } from '~/models';
@@ -17,6 +22,14 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
       metaService?: MetaService;
     };
   }): Promise<{ value: any }> {
+    let value = params.value;
+
+    if (isAIPromptCol(params.column) && ncIsObject(value)) {
+      value = (value as AIRecordType).value ?? '';
+    }
+
+    value = value?.toString() ?? '';
+
     // if (typeof params.value !== 'string') {
     //   NcError.invalidValueForField({
     //     value: params.value,
@@ -34,9 +47,9 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
     //     type: params.column.uidt,
     //   });
     // }
-    if (params.value.length > NC_MAX_TEXT_LENGTH) {
+    if (value.length > NC_MAX_TEXT_LENGTH) {
       NcError._.valueLengthExceedLimit({
-        length: params.value.length,
+        length: value.length,
         column: params.column.title,
         type: params.column.uidt,
         maxLength: NC_MAX_TEXT_LENGTH,
@@ -44,6 +57,6 @@ export class LongTextGeneralHandler extends GenericFieldHandler {
     }
 
     // we return a string all the time to support any input (number, boolean, etc.) on text fields
-    return { value: `${params.value}` };
+    return { value };
   }
 }

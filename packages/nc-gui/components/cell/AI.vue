@@ -80,7 +80,10 @@ const generate = async () => {
       const obj: AIRecordType = resRow[column.value.title!]
 
       if (ncIsObject(obj)) {
-        vModel.value = { ...obj, isAiEdited: true }
+        vModel.value = {
+          ...obj,
+          isAiEdited: true,
+        }
       } else {
         vModel.value = {
           ...(ncIsObject(vModel.value) ? vModel.value : {}),

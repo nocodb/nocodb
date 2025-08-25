@@ -545,7 +545,7 @@ useResizeObserver(inputWrapperRef, () => {
             'py-1 h-full': isForm,
             'px-2': isExpandedFormOpen,
             'border-none': !(props.isAi && isExpandedFormOpen),
-            'border-1 border-nc-border-gray-medium rounded-lg !focus:(shadow-selected border-primary ring-0) transition-shadow duration-300':
+            'border-1 border-nc-border-gray-medium rounded-lg !focus:(shadow-selected-ai border-nc-border-purple ring-0) transition-shadow duration-300':
               props.isAi && isExpandedFormOpen,
             'bg-transparent': isUnderFormula,
           }"
@@ -831,7 +831,11 @@ useResizeObserver(inputWrapperRef, () => {
           <a-textarea
             ref="inputRef"
             v-model:value="vModel"
-            class="nc-text-area-expanded !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
+            class="nc-text-area-expanded !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg disabled:!bg-nc-bg-gray-extralight nc-longtext-scrollbar"
+            :class="{
+              '!focus:border-nc-border-brand': !props.isAi,
+              '!hover:border-nc-border-purple !focus:border-nc-border-purple': props.isAi,
+            }"
             :placeholder="$t('activity.enterText')"
             :style="{
               resize: 'both',

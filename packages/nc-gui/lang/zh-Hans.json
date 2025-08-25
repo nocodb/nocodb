@@ -1466,7 +1466,9 @@
     "sharingRestricted": "共享受限",
     "importOptions": "导入选项",
     "newScript": "新建脚本",
-    "emptyScript": "空脚本"
+    "emptyScript": "空脚本",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "点击解决",

@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Paylaşım kısıtlı",
     "importOptions": "İçe Aktarma Seçenekleri",
     "newScript": "Yeni Script",
-    "emptyScript": "Boş Script"
+    "emptyScript": "Boş Script",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Çözmek için tıklayın",

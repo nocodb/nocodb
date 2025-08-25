@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Partekaketa mugatuta",
     "importOptions": "Inportatzeko aukerak",
     "newScript": "Script berria",
-    "emptyScript": "Script hutsik"
+    "emptyScript": "Script hutsik",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Egin klik ebazteko",

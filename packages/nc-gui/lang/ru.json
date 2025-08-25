@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Доступ к публикации ограничен",
     "importOptions": "Параметры импорта",
     "newScript": "Новый скрипт",
-    "emptyScript": "Пустой скрипт"
+    "emptyScript": "Пустой скрипт",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Нажмите, чтобы разрешить",

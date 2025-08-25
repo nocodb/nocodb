@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Chia sẻ bị hạn chế",
     "importOptions": "Tùy chọn nhập",
     "newScript": "Kịch bản mới",
-    "emptyScript": "Kịch bản trống"
+    "emptyScript": "Kịch bản trống",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Nhấp để đánh dấu đã giải quyết",

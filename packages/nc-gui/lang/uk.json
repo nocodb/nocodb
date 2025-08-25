@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Обмежене спільне використання",
     "importOptions": "Параметри імпорту",
     "newScript": "Новий скрипт",
-    "emptyScript": "Порожній скрипт"
+    "emptyScript": "Порожній скрипт",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Натисніть для вирішення",

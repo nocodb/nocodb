@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Megosztás korlátozott",
     "importOptions": "Importálási lehetőségek",
     "newScript": "Új szkript",
-    "emptyScript": "Üres szkript"
+    "emptyScript": "Üres szkript",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Kattintson a megoldáshoz",

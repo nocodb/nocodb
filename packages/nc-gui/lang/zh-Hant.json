@@ -1466,7 +1466,9 @@
     "sharingRestricted": "分享受限",
     "importOptions": "匯入選項",
     "newScript": "新腳本",
-    "emptyScript": "空白腳本"
+    "emptyScript": "空白腳本",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "點擊解決",

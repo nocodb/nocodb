@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Delen beperkt",
     "importOptions": "Importopties",
     "newScript": "Nieuw script",
-    "emptyScript": "Leeg script"
+    "emptyScript": "Leeg script",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Klik om op te lossen",

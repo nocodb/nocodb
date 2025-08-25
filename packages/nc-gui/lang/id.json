@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Berbagi dibatasi",
     "importOptions": "Opsi Impor",
     "newScript": "Skrip Baru",
-    "emptyScript": "Skrip Kosong"
+    "emptyScript": "Skrip Kosong",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Klik untuk selesaikan",

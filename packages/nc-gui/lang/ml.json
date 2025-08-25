@@ -1466,7 +1466,9 @@
     "sharingRestricted": "ഷെയറിംഗ് പരിധിയേറ്റത്",
     "importOptions": "ഇമ്പോർട്ട് ഓപ്ഷനുകൾ",
     "newScript": "പുതിയ സ്ക്രിപ്റ്റ്",
-    "emptyScript": "ശൂന്യമായ സ്ക്രിപ്റ്റ്"
+    "emptyScript": "ശൂന്യമായ സ്ക്രിപ്റ്റ്",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "പരിഹരിക്കാൻ ക്ലിക് ചെയ്യുക",

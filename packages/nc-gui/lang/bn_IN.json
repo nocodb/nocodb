@@ -1466,7 +1466,9 @@
     "sharingRestricted": "শেয়ারিং সীমাবদ্ধ",
     "importOptions": "ইম্পোর্ট অপশনসমূহ",
     "newScript": "নতুন স্ক্রিপ্ট",
-    "emptyScript": "ফাঁকা স্ক্রিপ্ট"
+    "emptyScript": "ফাঁকা স্ক্রিপ্ট",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "সমাধান করতে ক্লিক করুন",

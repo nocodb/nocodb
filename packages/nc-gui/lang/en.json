@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Sharing restricted",
     "importOptions": "Import Options",
     "newScript": "New Script",
-    "emptyScript": "Empty Script"
+    "emptyScript": "Empty Script",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

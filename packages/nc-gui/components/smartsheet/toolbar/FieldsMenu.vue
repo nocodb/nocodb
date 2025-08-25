@@ -916,8 +916,11 @@ const onAddColumnDropdownVisibilityChange = () => {
             v-if="isAddingColumnAllowed"
             v-model:visible="addColumnDropdown"
             :trigger="['click']"
-            overlay-class-name="nc-dropdown-add-column !bg-transparent !border-none !shadow-none"
+            overlay-class-name="nc-dropdown-add-column !bg-transparent !border-none !shadow-none !rounded-2xl"
             placement="right"
+            :align="{
+              offset: [9, -15],
+            }"
             @visible-change="onAddColumnDropdownVisibilityChange"
           >
             <NcButton class="nc-fields-add-new-field !font-semibold !px-2" size="small" type="text">

@@ -169,7 +169,7 @@ watch([activeViewTitleOrId, activeTableId], () => {
   handleSidebarOpenOnMobileForNonViews()
 })
 
-const { leftSidebarWidth, windowSize } = storeToRefs(useSidebarStore())
+const { leftSidebarWidth, windowSize, isLeftSidebarOpen, isFullScreen } = storeToRefs(useSidebarStore())
 
 const { isPanelExpanded, extensionPanelSize } = useExtensions()
 
@@ -233,49 +233,51 @@ const onReady = () => {
     @drop="onDrop"
     @dragover.prevent
   >
-    <SmartsheetTopbar />
+    <SmartsheetTopbar v-if="!isFullScreen" />
     <div style="height: calc(100% - var(--topbar-height))">
-      <Splitpanes
-        v-if="openedViewsTab === 'view'"
-        class="nc-extensions-content-resizable-wrapper"
-        :class="{
-          'nc-is-open-extensions': isPanelExpanded,
-          'nc-is-open-actions': isActionPanelExpanded,
-        }"
-        @ready="() => onReady()"
-        @resize="onResize"
-        @resized="onResized"
-      >
-        <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
-          <SmartsheetToolbar v-if="!isForm" />
-          <div
-            :style="{ height: isForm || isMobileMode ? '100%' : 'calc(100% - var(--toolbar-height))' }"
-            class="flex flex-row w-full"
-          >
-            <Transition name="layout" mode="out-in">
-              <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
-                <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">
-                  <SmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
+      <NcFullScreen v-if="openedViewsTab === 'view'" v-model="isFullScreen" class="h-full" :page-only="true">
+        <Splitpanes
+          class="nc-extensions-content-resizable-wrapper"
+          :class="{
+            'nc-is-open-extensions': isPanelExpanded,
+            'nc-is-open-actions': isActionPanelExpanded,
+          }"
+          @ready="() => onReady()"
+          @resize="onResize"
+          @resized="onResized"
+        >
+          <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
+            <SmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
+            <div
+              :style="{ height: isForm || isMobileMode ? '100%' : 'calc(100% - var(--toolbar-height))' }"
+              class="flex flex-row w-full"
+            >
+              <Transition name="layout" mode="out-in">
+                <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
+                  <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">
+                    <SmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
 
-                  <template v-if="activeView && meta">
-                    <SmartsheetGallery v-if="isGallery" />
+                    <template v-if="activeView && meta">
+                      <SmartsheetGallery v-if="isGallery" />
 
-                    <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
+                      <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
-                    <SmartsheetKanban v-else-if="isKanban" />
+                      <SmartsheetKanban v-else-if="isKanban" />
 
-                    <SmartsheetCalendar v-else-if="isCalendar" />
+                      <SmartsheetCalendar v-else-if="isCalendar" />
 
-                    <LazySmartsheetMap v-else-if="isMap" />
-                  </template>
+                      <LazySmartsheetMap v-else-if="isMap" />
+                    </template>
+                  </div>
                 </div>
-              </div>
-            </Transition>
-          </div>
-        </Pane>
-        <ExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
-        <ActionsPane v-if="isActionPanelExpanded" ref="actionPaneRef" />
-      </Splitpanes>
+              </Transition>
+            </div>
+          </Pane>
+          <ExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
+          <ActionsPane v-if="isActionPanelExpanded" ref="actionPaneRef" />
+        </Splitpanes>
+      </NcFullScreen>
+
       <SmartsheetDetails v-else />
     </div>
     <LazySmartsheetExpandedFormDetached />

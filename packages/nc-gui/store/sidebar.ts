@@ -12,6 +12,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     return MINI_SIDEBAR_WIDTH
   })
 
+  const isFullScreen = ref(false)
+
   const tablesStore = useTablesStore()
   const isLeftSidebarOpen = computed({
     get() {
@@ -82,6 +84,28 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
+const toggleFullScreenState = () => {
+    if (isFullScreen.value) {
+      isLeftSidebarOpen.value = true
+
+      document.exitFullscreen()
+
+      if (navigator.keyboard?.unlock) {
+        navigator.keyboard.unlock()
+      }
+    } else {
+      isLeftSidebarOpen.value = false
+
+      document.documentElement.requestFullscreen()
+
+      if (navigator.keyboard?.lock) {
+        navigator.keyboard.lock(['Escape'])
+      }
+    }
+
+    isFullScreen.value = !isFullScreen.value
+  }
+
   onMounted(() => {
     if (!isViewPortMobile() || tablesStore.activeTableId) return
 
@@ -105,6 +129,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     hideSidebar,
     showTopbar,
     miniSidebarWidth,
+    isFullScreen,
+    toggleFullScreenState,
   }
 })
 

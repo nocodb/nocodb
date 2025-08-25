@@ -35,7 +35,7 @@ const onChangeTriggerForm = (val: boolean) => {
 }
 
 onMounted(() => {
-  if (triggerFormId.value && formOptions.value.findIndex((o) => o.value === triggerFormId.value) === -1) {
+  if (triggerFormId.value && formOptions.value.every((o) => o.value !== triggerFormId.value)) {
     triggerFormId.value = undefined
   }
   if (formOptions.value.length === 0) {

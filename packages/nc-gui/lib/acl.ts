@@ -91,12 +91,14 @@ const rolePermissions = {
       sourceCreate: true,
       baseAuditList: true,
 
-      extensionList: true,
-
       // Row colouring
       rowColourUpdate: true,
 
       projectOverviewTab: true,
+
+      // Extensions
+      extensionCreate: true,
+      extensionDelete: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -110,6 +112,9 @@ const rolePermissions = {
       csvTableImport: true,
       excelTableImport: true,
       hookTrigger: true,
+
+      // Extensions
+      extensionUpdate: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -129,6 +134,9 @@ const rolePermissions = {
       commentCount: true,
       recordAuditList: true,
       newUser: true,
+
+      // Extensions
+      extensionList: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {

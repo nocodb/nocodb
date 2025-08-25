@@ -10,6 +10,8 @@ const { isSharedBase, isSharedErd } = storeToRefs(useBase())
 
 const basesStore = useBases()
 
+const { forceShowBaseList } = storeToRefs(basesStore)
+
 const { populateWorkspace } = useWorkspace()
 
 const { signedIn } = useGlobal()
@@ -23,6 +25,9 @@ const route = router.currentRoute
 const { basesList } = storeToRefs(basesStore)
 
 const autoNavigateToProject = async () => {
+  // If it is auto navigate to project that means we have to show base list sidebar instead of directly showing active base sidebar
+  forceShowBaseList.value = true
+
   const routeName = route.value.name as string
   if (routeName !== 'index-typeOrId' && routeName !== 'index') {
     return

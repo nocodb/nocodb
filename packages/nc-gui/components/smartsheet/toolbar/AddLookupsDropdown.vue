@@ -173,7 +173,7 @@ watch(isOpened, async (val) => {
     placement="right"
     overlay-class-name="!min-w-[256px]"
     :align="{
-      offset: [8, 15],
+      offset: [9, 15],
     }"
   >
     <slot :is-opened="isOpened" />

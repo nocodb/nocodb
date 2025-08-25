@@ -5,11 +5,13 @@ const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { sharedView, allowCSVDownload } = useSharedView()
 
+const { isFullScreen } = storeToRefs(useSidebarStore())
+
 const router = useRouter()
 
 const route = router.currentRoute
 
-const disableTopbar = computed(() => route.value.query?.disableTopbar === 'true')
+const disableTopbar = computed(() => route.value.query?.disableTopbar === 'true' || isFullScreen.value)
 
 const ncNotFound = computed(() => route.value.query?.ncNotFound === 'true')
 
@@ -106,15 +108,17 @@ export default {
             </a>
           </div>
         </a-layout-header>
-        <div
-          class="nc-shared-view-container w-full overflow-hidden"
-          :class="{
-            'nc-shared-mobile-view': isMobileMode,
-            'disable-topbar': disableTopbar,
-          }"
-        >
-          <slot />
-        </div>
+        <NcFullScreen v-model="isFullScreen" class="h-full" :page-only="true">
+          <div
+            class="nc-shared-view-container w-full overflow-hidden"
+            :class="{
+              'nc-shared-mobile-view': isMobileMode,
+              'disable-topbar': disableTopbar,
+            }"
+          >
+            <slot />
+          </div>
+        </NcFullScreen>
       </template>
     </a-layout>
   </a-layout>

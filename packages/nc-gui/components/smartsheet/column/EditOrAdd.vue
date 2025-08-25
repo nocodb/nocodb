@@ -14,6 +14,7 @@ import { AiWizardTabsType, type PredictedFieldType, type UiTypesType } from '#im
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
+import { isEeUI } from '#imports'
 
 const props = defineProps<{
   preload?: Partial<ColumnType>
@@ -97,6 +98,8 @@ const { t } = useI18n()
 
 const { isMetaReadOnly } = useRoles()
 
+const { showUpgradeToUseAiPromptField, blockAiPromptField } = useEeConfig()
+
 const { eventBus } = useSmartsheetStoreOrThrow()
 
 const columnLabel = computed(() => props.columnLabel || t('objects.field'))
@@ -130,6 +133,17 @@ const mounted = ref(false)
 const showDefaultValueInput = ref(false)
 
 const showHoverEffectOnSelectedType = ref(true)
+
+const columnUidt = computed({
+  get: () => formState.value.uidt,
+  set: (value: UITypes) => {
+    if (value === AIPrompt && showUpgradeToUseAiPromptField()) {
+      return
+    }
+
+    formState.value.uidt = value
+  },
+})
 
 const isVisibleDefaultValueInput = computed({
   get: () => {
@@ -185,8 +199,8 @@ const uiFilters = (t: UiTypesType) => {
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
-  const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isAiBetaFeaturesEnabled.value && !isEdit.value : true
-  const isAllowToAddInFormView = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
+  const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI : true
+  const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
   const showLTAR =
     t.name === UITypes.LinkToAnotherRecord ? isFeatureEnabled(FEATURE_FLAG.LINK_TO_ANOTHER_RECORD) && !isEdit.value : true
@@ -291,6 +305,8 @@ const handleScrollDebounce = useDebounceFn(() => {
 
 const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSearchList = false) => {
   let preload
+
+  if (uidt === AIPrompt && blockAiPromptField.value) return
 
   if (fromSearchList && !isEdit.value && aiAutoSuggestMode.value) {
     onInit()
@@ -570,6 +586,7 @@ const triggerDescriptionEnable = () => {
     enableDescription.value = true
     setTimeout(() => {
       descInputEl.value?.focus()
+      descInputEl.value?.$el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 100)
   }
   nextTick(() => {
@@ -1095,7 +1112,7 @@ const lookupRollupFilterEnabled = computed(() => {
             >
             <a-select
               v-model:open="isColumnTypeOpen"
-              v-model:value="formState.uidt"
+              v-model:value="columnUidt"
               show-search
               class="nc-column-type-input nc-select-shadow !rounded-lg"
               :class="{

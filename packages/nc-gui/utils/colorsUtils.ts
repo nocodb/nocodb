@@ -691,7 +691,10 @@ export const themeVariables = {
     },
   },
   border: {
-    'nc-border-brand': themeV4Colors.brand[500],
+    'nc-border-brand': {
+      DEFAULT: themeV4Colors.brand[500],
+      medium: themeV4Colors.brand[200],
+    },
     'nc-border-gray': {
       extralight: themeV4Colors.gray[50],
       light: themeV4Colors.gray[100],
@@ -714,6 +717,8 @@ export const themeVariables = {
     },
     'nc-border-purple': {
       DEFAULT: themeV4Colors.purple[500],
+      medium: themeV4Colors.purple[200],
+      light: themeV4Colors.purple[100],
     },
     'nc-border-pink': {
       DEFAULT: themeV4Colors.pink[500],

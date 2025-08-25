@@ -2747,7 +2747,7 @@ watch(
           !openAggregationField && !openColumnDropdownField && !openGroupContextMenuDropdown && !openAddNewRowDropdown
             ? '!border-none !shadow-none'
             : ''
-        }`"
+        } ${isCreateOrEditColumnDropdownOpen ? '!rounded-2xl' : ''}`"
         placement="bottomRight"
         @visible-change="onVisibilityChange"
         @update:visible="onVisibilityChange"

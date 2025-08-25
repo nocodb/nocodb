@@ -79,19 +79,28 @@ const generate = async () => {
     } else {
       const obj: AIRecordType = resRow[column.value.title!]
 
-      if (obj && typeof obj === 'object') {
-        vModel.value = obj
-        setTimeout(() => {
-          isAiEdited.value = false
-        }, 100)
+      if (ncIsObject(obj)) {
+        vModel.value = {
+          ...obj,
+          isAiEdited: true,
+        }
       } else {
         vModel.value = {
           ...(ncIsObject(vModel.value) ? vModel.value : {}),
           isStale: false,
           value: resRow[column.value.title!],
+          isAiEdited: true,
+          lastModifiedBy: null,
+          lastModifiedTime: null,
         }
       }
+
+      setTimeout(() => {
+        isAiEdited.value = false
+      }, 100)
     }
+
+    emits('save')
   }
 
   generatingRows.value = generatingRows.value.filter((v) => v !== pk.value)
@@ -115,6 +124,13 @@ const handleSave = () => {
 
 const debouncedSave = useDebounceFn(handleSave, 1000)
 
+const handleDebouncedSave = () => {
+  vModel.value!.isAiEdited = false
+  isAiEdited.value = true
+
+  debouncedSave()
+}
+
 const isDisabledAiButton = computed(() => {
   return !isFieldAiIntegrationAvailable.value || isLoading.value || isPublic.value || !isUIAllowed('dataEdit')
 })
@@ -132,11 +148,24 @@ const isDisabledAiButton = computed(() => {
       <template #title>
         {{ aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure') }}
       </template>
-      <button class="nc-cell-ai-button nc-cell-button h-6" size="small" :disabled="isDisabledAiButton" @click.stop="generate">
+      <button
+        class="nc-cell-ai-button nc-cell-button"
+        :class="{
+          'is-expanded-form': isExpandedForm,
+        }"
+        size="small"
+        :disabled="isDisabledAiButton"
+        @click.stop="generate"
+      >
         <div class="flex items-center gap-1">
           <GeneralLoader v-if="isLoading" size="regular" />
           <GeneralIcon v-else icon="ncAutoAwesome" class="h-4 w-4" />
-          <span class="text-small leading-[18px] truncate font-medium">Generate</span>
+          <span
+            class="leading-[18px] truncate"
+            :class="{ 'text-sm font-semibold': isExpandedForm, 'text-small font-medium': !isExpandedForm }"
+          >
+            Generate
+          </span>
         </div>
       </button>
     </NcTooltip>
@@ -149,7 +178,7 @@ const isDisabledAiButton = computed(() => {
     :is-ai="true"
     :ai-meta="vModel"
     :is-field-ai-integration-available="isFieldAiIntegrationAvailable"
-    @update:model-value="debouncedSave"
+    @update:model-value="handleDebouncedSave"
     @generate="generate"
     @close="editEnabled = false"
   />
@@ -157,17 +186,25 @@ const isDisabledAiButton = computed(() => {
 
 <style scoped lang="scss">
 .nc-cell-button {
-  @apply rounded-md px-2 flex items-center gap-2 transition-all justify-center bg-purple-100 hover:bg-purple-200 text-gray-700;
+  @apply px-2 flex items-center gap-2 transition-all justify-center bg-nc-bg-purple-light hover:bg-nc-bg-purple-dark text-nc-content-purple-medium;
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 
   .nc-loader {
-    @apply !text-purple-600;
+    @apply !text-nc-content-purple-dark;
+  }
+
+  &.is-expanded-form {
+    @apply h-8 rounded-lg my-1;
+  }
+
+  &:not(.is-expanded-form) {
+    @apply h-6 rounded-md;
   }
 
   &:focus-within {
     @apply outline-none ring-0;
-    box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+    box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px var(--color-purple-500);
   }
 
   &[disabled] {

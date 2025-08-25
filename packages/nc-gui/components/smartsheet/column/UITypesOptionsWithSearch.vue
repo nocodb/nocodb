@@ -10,9 +10,11 @@ const emits = defineEmits<{ selected: [UITypes] }>()
 
 const { options } = toRefs(props)
 
-const searchQuery = ref('')
-
 const { isMetaReadOnly } = useRoles()
+
+const { showUpgradeToUseAiPromptField } = useEeConfig()
+
+const searchQuery = ref('')
 
 const searchBasisInfoMap = ref<Record<string, string>>({})
 
@@ -42,6 +44,10 @@ const isDisabledUIType = (type: UITypes) => {
 
 const onClick = (uidt: UITypes) => {
   if (!uidt || isDisabledUIType(uidt)) return
+
+  if (uidt === AIPrompt && showUpgradeToUseAiPromptField()) {
+    return
+  }
 
   emits('selected', uidt)
 }
@@ -127,7 +133,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
               'hover:bg-gray-100 cursor-pointer': !isDisabledUIType(option.name),
               'bg-gray-100 nc-column-list-option-active': activeFieldIndex === index && !isDisabledUIType(option.name),
               '!text-gray-400 cursor-not-allowed': isDisabledUIType(option.name),
-              '!text-nc-content-purple-dark': option.name === 'AIButton' || option.name === 'AIPrompt',
+              '!text-nc-content-purple-dark': [AIButton, AIPrompt].includes(option.name),
             },
           ]"
           :data-testid="option.name"

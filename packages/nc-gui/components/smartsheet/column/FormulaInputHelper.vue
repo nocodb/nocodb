@@ -790,7 +790,7 @@ const validationErrorDisplay = computed(() => {
         <div class="prompt-input-wrapper w-full flex">
           <div class="nc-triangle-bottom-bar"></div>
 
-          <div class="flex items-center gap-2 pl-3 pr-1 py-1">
+          <div class="flex items-center gap-2 pl-3 pr-1 py-1 border-b-1 border-transparent">
             <div class="flex-1 text-small leading-[18px] font-bold text-nc-content-gray-subtle2">Prompt</div>
             <div class="flex items-center gap-2">
               <NcButton

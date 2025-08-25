@@ -6,6 +6,7 @@ import {
   renderSpinner,
   truncateText,
 } from '../utils/canvas'
+import { getButtonColors } from './Button/utils'
 
 const getButtonDimensions = ({
   ctx,
@@ -84,6 +85,7 @@ const renderAIButton = (
     ctx,
     width,
     hasIcon: true,
+    label: isLoading ? 'Generating...' : 'Generate',
   })
   const startX = x + (width - dims.buttonWidth) / 2
   const startY = y + 4
@@ -100,11 +102,13 @@ const renderAIButton = (
 
   if (isHovered) setCursor('pointer')
 
-  const colors = {
-    background: disabled ? '#F4F4F5' : isHovered ? '#E5D4F5' : '#F3ECFA',
-    text: disabled ? '#9AA2AF' : '#7D26CD',
-    loader: '#7D26CD',
+  ctx.font = '550 13px Inter'
+
+  if (disabled) {
+    ctx.globalAlpha = 0.5
   }
+
+  const colors = getButtonColors('light', 'purple', !!isHovered, !!disabled)
 
   ctx.beginPath()
   ctx.roundRect(startX, startY, dims.buttonWidth, dims.buttonHeight, 6)
@@ -132,6 +136,10 @@ const renderAIButton = (
   ctx.textBaseline = 'middle'
   ctx.fillText(dims.truncatedLabel, contentX, startY + 13)
 
+  if (disabled) {
+    ctx.globalAlpha = 1
+  }
+
   return {
     buttonBounds: {
       x: startX,
@@ -144,14 +152,30 @@ const renderAIButton = (
 
 export const AILongTextCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props) => {
-    const { value, x, y, width, height, spriteLoader, disabled, padding, mousePosition, actionManager, pk, column } = props
-
-    const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
+    const {
+      value,
+      x,
+      y,
+      width,
+      height,
+      spriteLoader,
+      disabled,
+      padding,
+      mousePosition,
+      actionManager,
+      pk,
+      column,
+      setCursor,
+      selected,
+      readonly,
+    } = props
 
     const horizontalPadding = 12
 
-    if (!value) {
-      const buttonDisabled = disabled?.isInvalid
+    const isReadonlyCol = !!(readonly || column.readonly)
+
+    if (!value && !isReadonlyCol) {
+      const buttonDisabled = disabled?.isInvalid || isReadonlyCol
 
       const btnWidth = width - horizontalPadding * 2
 
@@ -177,79 +201,73 @@ export const AILongTextCellRenderer: CellRenderer = {
       }
     }
 
-    if (value?.value) {
-      const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
-        x: x + padding,
-        y,
-        text: value.value,
-        maxWidth: width - padding * 2,
-        fillStyle: '#4a5268',
-        height,
+    const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
+      x: x + padding,
+      y,
+      text: value?.value || '',
+      maxWidth: width - padding * 2,
+      fillStyle: '#4a5268',
+      height,
+    })
+
+    if (selected && (!isReadonlyCol || value)) {
+      renderIconButton(ctx, {
+        buttonX: x + width - 28,
+        buttonY: y + 7,
+        buttonSize: 20,
+        borderRadius: 6,
+        iconData: {
+          size: 12,
+          xOffset: 4,
+          yOffset: 4,
+        },
+        mousePosition,
+        spriteLoader,
+        icon: 'maximize',
+        background: 'white',
+        setCursor,
       })
 
-      if (isHovered) {
-        renderIconButton(ctx, {
-          buttonX: x + width - 28,
-          buttonY: y + 7,
-          buttonSize: 18,
-          borderRadius: 3,
-          iconData: {
-            size: 13,
-            xOffset: (18 - 13) / 2,
-            yOffset: (18 - 13) / 2,
-          },
-          mousePosition,
-          spriteLoader,
-          icon: 'maximize',
-        })
+      if (!isReadonlyCol) {
         renderIconButton(ctx, {
           buttonX: x + width - 52,
           buttonY: y + 7,
-          buttonSize: 18,
-          borderRadius: 3,
+          buttonSize: 20,
+          borderRadius: 6,
           iconData: {
-            size: 13,
-            xOffset: (18 - 13) / 2,
-            yOffset: (18 - 13) / 2,
+            size: 12,
+            xOffset: 4,
+            yOffset: 4,
           },
           mousePosition,
           spriteLoader,
           icon: 'refresh',
+          background: 'white',
+          setCursor,
         })
-      }
-
-      return {
-        x: xOffset,
-        y: yOffset,
       }
     }
 
     return {
-      x,
-      y,
+      x: xOffset,
+      y: yOffset,
     }
   },
-  async handleClick({ mousePosition, column, row, value, pk, actionManager, getCellPosition, makeCellEditable, path }) {
+  async handleClick({ mousePosition, column, row, value, pk, actionManager, getCellPosition, makeCellEditable, path, selected }) {
     if (!row || !column?.id || !mousePosition) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!) || column?.isInvalidColumn?.isInvalid
 
-    if (column?.isInvalidColumn?.isInvalid) {
-      // If the column is invalid and user clicked on regenerate icon
-      if (isBoxHovered({ x: x + width - 52, y: y + 7, width: 18, height: 18 }, mousePosition)) {
+    const expandIconBox = { x: x + width - 28, y: y + 7, width: 20, height: 20 }
+    const regenerateIconBox = { x: x + width - 52, y: y + 7, width: 20, height: 20 }
+
+    const isReadOnlyCol = !!(column.readonly || column.columnObj?.readonly)
+
+    if (!value) {
+      if (isReadOnlyCol) {
         return true
       }
-    }
 
-    if (
-      isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition) ||
-      isBoxHovered({ x: x + width - 52, y: y + 7, width: 18, height: 18 }, mousePosition)
-    ) {
-      makeCellEditable(row, column)
-      return true
-    }
-
-    if (!value || !value?.value) {
       const { buttonWidth } = getButtonDimensions({
         width,
         hasIcon: true,
@@ -269,31 +287,66 @@ export const AILongTextCellRenderer: CellRenderer = {
         return false
       }
     }
+
+    if (column?.isInvalidColumn?.isInvalid && selected) {
+      // If the column is invalid and user clicked on regenerate icon
+      if (isBoxHovered(regenerateIconBox, mousePosition)) {
+        return true
+      }
+    }
+
+    if (
+      selected &&
+      (isBoxHovered(expandIconBox, mousePosition) || (!isReadOnlyCol && isBoxHovered(regenerateIconBox, mousePosition)))
+    ) {
+      makeCellEditable(row, column)
+      return true
+    }
+
     return false
   },
-  async handleHover({ row, column, mousePosition, getCellPosition, t }) {
+  async handleHover({ row, column, mousePosition, getCellPosition, t, value, selected }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
-    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid) return
+    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid || !value || !value?.value || !selected) {
+      return
+    }
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
     const expandIconBox = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
     const regenerateIconBox = { x: x + width - 52, y: y + 7, width: 18, height: 18 }
     tryShowTooltip({ text: t('title.expand'), rect: expandIconBox, mousePosition })
-    tryShowTooltip({ text: 'Re-generate', rect: regenerateIconBox, mousePosition })
+
+    if (!column.readonly && !column?.columnObj?.readonly) {
+      tryShowTooltip({ text: 'Re-generate', rect: regenerateIconBox, mousePosition })
+    }
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable, value, pk, actionManager, path } = ctx
-    if (column.readonly || column.columnObj?.readonly) return false
-    if (!value?.value && e.key === 'Enter') {
+
+    const columnObj = column?.columnObj
+
+    if (column.readonly || columnObj?.readonly) return false
+
+    if (!value && e.key === 'Enter') {
       actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true, path })
       return true
     }
 
-    if (e.key.length === 1) {
+    if (isExpandCellKey(e)) {
+      // prevent default to avoid adding space to the end of the cell
+      e.preventDefault()
+    }
+
+    if (e.key.length === 1 && columnObj.title) {
+      if (!value && columnObj.title) {
+        row.row[columnObj.title] = { value: '' }
+      }
+
       makeCellEditable(row, column)
       return true
     }
+
     return false
   },
 }

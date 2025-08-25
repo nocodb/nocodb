@@ -301,7 +301,9 @@ export const AILongTextCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable, value, pk, actionManager, path } = ctx
+
     if (column.readonly || column.columnObj?.readonly) return false
+
     if (!value?.value && e.key === 'Enter') {
       actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true, path })
       return true

@@ -923,7 +923,7 @@ export const useOnboardingFlow = createSharedComposable(() => {
         acc[`onboarding_q_${curr.key}`] = curr.question
         acc[`onboarding_a_${curr.key}`] = Array.isArray(curr.answer) ? curr.answer.join(':') : curr.answer
         return acc
-      }, {}),
+      }, {} as Record<string, string>),
     }
   }
 

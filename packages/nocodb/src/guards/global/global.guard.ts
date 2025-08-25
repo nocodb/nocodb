@@ -5,6 +5,7 @@ import { extractRolesObj } from 'nocodb-sdk';
 import type { Request } from 'express';
 import type { ExecutionContext } from '@nestjs/common';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
+import { getApiTokenFromAuthHeader } from '~/helpers';
 
 @Injectable()
 export class GlobalGuard extends AuthGuard(['jwt']) {
@@ -48,7 +49,10 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
 
     if (result) return true;
 
-    if (req.headers['xc-token']) {
+    if (
+      req.headers['xc-token'] ||
+      getApiTokenFromAuthHeader(req.headers['authorization'])
+    ) {
       let canActivate = false;
       try {
         const guard = new (AuthGuard('authtoken'))(context);

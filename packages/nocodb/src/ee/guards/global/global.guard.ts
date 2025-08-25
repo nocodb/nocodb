@@ -7,6 +7,7 @@ import type { ExecutionContext } from '@nestjs/common';
 import { checkLimit } from '~/helpers/paymentHelpers';
 import { UsageStat } from '~/models';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
+import { getApiTokenFromAuthHeader } from '~/helpers';
 
 @Injectable()
 export class GlobalGuard extends AuthGuard(['jwt']) {
@@ -52,7 +53,10 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
 
     if (result) return true;
 
-    if (req.headers['xc-token']) {
+    if (
+      req.headers['xc-token'] ||
+      getApiTokenFromAuthHeader(req.headers['authorization'])
+    ) {
       let canActivate = false;
       try {
         const guard = new (AuthGuard('authtoken'))(context);

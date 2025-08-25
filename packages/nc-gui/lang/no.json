@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Deling begrenset",
     "importOptions": "Importalternativer",
     "newScript": "Nytt skript",
-    "emptyScript": "Tomt skript"
+    "emptyScript": "Tomt skript",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Klikk for å løse",

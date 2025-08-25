@@ -10,13 +10,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { PlanFeatureTypes } from 'nocodb-sdk';
-import { NcContext, NcRequest } from '~/interface/config';
-import { NcError } from '~/helpers/catchError';
-import { GlobalGuard } from '~/guards/global/global.guard';
-import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { getFeature } from '~/helpers/paymentHelpers';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { NcError } from '~/helpers/catchError';
+import { checkForFeature } from '~/helpers/paymentHelpers';
+import { NcContext, NcRequest } from '~/interface/config';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { WorkspaceMembersV3Service } from '~/services/v3/workspace-members-v3.service';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -27,16 +27,10 @@ export class WorkspaceMembersV3Controller {
   ) {}
 
   async canExecute(context: NcContext) {
-    if (
-      !(await getFeature(
-        PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
-        context.workspace_id,
-      ))
-    ) {
-      NcError.get(context).invalidRequestBody(
-        'Accessing member management api is only available on paid plans. Please upgrade your workspace plan to enable this feature.',
-      );
-    }
+    await checkForFeature(
+      PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
+      context,
+    );
   }
 
   //

@@ -5,9 +5,7 @@ import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transfo
 import { BaseUser } from '~/models';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
-import { getFeature, PlanFeatureTypes } from '~/ee/helpers/paymentHelpers';
-import { NcError } from '~/helpers/ncError';
-import { isOnPrem } from '~/utils';
+import { checkForFeature, PlanFeatureTypes } from '~/ee/helpers/paymentHelpers';
 
 export class BaseMemberHelpers extends BaseMemberHelpersCE {
   constructor() {
@@ -48,21 +46,12 @@ export class BaseMemberHelpers extends BaseMemberHelpersCE {
     },
     ncMeta?: MetaService,
   ) {
-    if (
-      !(await getFeature(
-        PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
-        context.workspace_id,
-      ))
-    ) {
-      if (isOnPrem) {
-        NcError.get(context).forbidden(
-          'Accessing member management api is available on self-hosted Enterprise plans. Please upgrade your workspace plan to enable this feature.',
-        );
-      }
-      NcError.get(context).forbidden(
-        'Accessing member management api is only available on Business+ plans. Please upgrade your workspace plan to enable this feature.',
-      );
-    }
+    await checkForFeature(
+      PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
+      context,
+      ncMeta,
+    );
+
     const baseUsers = await BaseUser.getUsersList(
       context,
       {

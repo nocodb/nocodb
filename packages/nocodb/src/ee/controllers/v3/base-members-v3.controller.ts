@@ -22,7 +22,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { BaseMembersV3Service } from '~/services/v3/base-members-v3.service';
-import { getFeature } from '~/helpers/paymentHelpers';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
@@ -30,16 +30,10 @@ export class BaseMembersV3Controller {
   constructor(protected readonly baseMembersV3Service: BaseMembersV3Service) {}
 
   async canExecute(context: NcContext) {
-    if (
-      !(await getFeature(
-        PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
-        context.workspace_id,
-      ))
-    ) {
-      NcError.get(context).forbidden(
-        'Accessing member management api is only available on paid plans. Please upgrade your workspace plan to enable this feature.',
-      );
-    }
+    await checkForFeature(
+      PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
+      context,
+    );
   }
 
   @Post(['/api/v3/meta/bases/:baseId/members'])

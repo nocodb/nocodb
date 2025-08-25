@@ -570,6 +570,7 @@ const triggerDescriptionEnable = () => {
     enableDescription.value = true
     setTimeout(() => {
       descInputEl.value?.focus()
+      descInputEl.value?.$el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 100)
   }
   nextTick(() => {

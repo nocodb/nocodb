@@ -4,6 +4,7 @@ import {
   ButtonActionsType,
   ColumnHelper,
   UITypes,
+  hiddenColumnTypes,
   isAIPromptCol,
   isLinksOrLTAR,
   isSystemColumn,
@@ -160,6 +161,7 @@ const fields = computed<TableExplorerColumn[]>({
       .filter((field) => {
         const isAllowToShowCol = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
         return (
+          !hiddenColumnTypes.includes(field.uidt) &&
           !field.fk_column_id &&
           (showOrHideSystemFields.value ? !!viewFieldsMap.value[field.id] : !isSystemColumn(field)) &&
           isAllowToShowCol

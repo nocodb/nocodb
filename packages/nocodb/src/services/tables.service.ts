@@ -9,11 +9,11 @@ import {
   isOrderCol,
   isVirtualCol,
   ModelTypes,
+  NcApiVersion,
   ProjectRoles,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
-import { NcApiVersion } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
 import type {
@@ -43,6 +43,9 @@ import {
 } from '~/helpers/getUniqueName';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { isEE } from '~/utils';
+import { META_COL_NAME } from '~/constants';
+import { DriverClient } from '~/utils/nc-config';
 
 @Injectable()
 export class TablesService {
@@ -639,7 +642,16 @@ export class TablesService {
         UITypes.CreatedBy,
         UITypes.LastModifiedBy,
         UITypes.Order,
+        UITypes.Meta,
       ]) {
+        // skip meta column creation in non pg and non EE
+        if (
+          uidt === UITypes.Meta &&
+          (!isEE || source.type !== DriverClient.PG)
+        ) {
+          continue;
+        }
+
         const col = tableCreatePayLoad.columns.find(
           (c) => c.uidt === uidt,
         ) as ColumnType;
@@ -670,6 +682,10 @@ export class TablesService {
           case UITypes.ID:
             columnTitle = 'Id';
             columnName = 'id';
+            break;
+          case UITypes.Meta:
+            columnTitle = META_COL_NAME;
+            columnName = META_COL_NAME;
             break;
         }
 

@@ -85,6 +85,7 @@ export interface IBaseModelSqlV2 {
     model?: Model;
     knex?: XKnex;
     baseModel?: IBaseModelSqlV2;
+    updatedColIds: string[];
   }): Promise<void>;
   readOnlyPrimariesByPkFromModel(
     props: { model: Model; id: any; extractDisplayValueData?: boolean }[],

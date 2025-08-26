@@ -58,14 +58,12 @@ import { ActionsService } from '~/services/actions.service';
 
 export const nocoModuleEeMetadata = {
   imports: [
-    ...nocoModuleMetadata.imports,
     NocoAiModule,
     NocoSyncModule,
     PaymentModule,
+    ...nocoModuleMetadata.imports,
   ],
   providers: [
-    ...nocoModuleMetadata.providers,
-
     /* Generic */
     CustomUrlsService,
 
@@ -99,6 +97,7 @@ export const nocoModuleEeMetadata = {
     DashboardsService,
 
     ActionsService,
+    ...nocoModuleMetadata.providers,
   ],
   controllers: [
     ActionsController,
@@ -131,7 +130,6 @@ export const nocoModuleEeMetadata = {
     ...nocoModuleMetadata.controllers,
   ],
   exports: [
-    ...nocoModuleMetadata.exports,
     ScriptsService,
     DashboardsService,
     PermissionsService,
@@ -151,6 +149,7 @@ export const nocoModuleEeMetadata = {
     /* Orgs */
     OrgsService,
     OrgWorkspacesService,
+    ...nocoModuleMetadata.exports,
   ],
 };
 

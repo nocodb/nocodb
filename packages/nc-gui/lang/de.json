@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Upgrade, um ein Workspace-Bild hochzuladen",
     "upgradeToUploadWsImageSubtitle": "Ihr aktueller {activePlan}-Tarif erlaubt nur Symbole und Emojis. Aktualisieren Sie auf den {plan}-Tarif, um ein eigenes Bild als Workspace-Avatar hochzuladen.",
     "upgradeToUseCurrentUserFilter": "Upgrade deinen Tarif um nach dem aktuellen Nutzer zu filtern.",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade auf {plan} um Filter zu nutzen, die Daten basierend auf dem aktuellen Nutzer zeigen.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

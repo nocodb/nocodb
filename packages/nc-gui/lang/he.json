@@ -1466,7 +1466,9 @@
     "sharingRestricted": "השיתוף מוגבל",
     "importOptions": "אפשרויות ייבוא",
     "newScript": "סקריפט חדש",
-    "emptyScript": "סקריפט ריק"
+    "emptyScript": "סקריפט ריק",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "לחץ כדי לפתור",

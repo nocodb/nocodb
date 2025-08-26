@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "升級以上傳工作區圖像",
     "upgradeToUploadWsImageSubtitle": "您目前的 {activePlan} 方案僅允許使用圖示與表情符號。升級至 {plan} 方案即可上傳自訂影像作為工作區頭像。",
     "upgradeToUseCurrentUserFilter": "升級以使用依當前用戶篩選",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "升級到 {plan} 方案以使用根據目前用戶顯示資料的篩選器。",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -1466,7 +1468,9 @@
     "sharingRestricted": "分享受限",
     "importOptions": "匯入選項",
     "newScript": "新腳本",
-    "emptyScript": "空白腳本"
+    "emptyScript": "空白腳本",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "點擊解決",

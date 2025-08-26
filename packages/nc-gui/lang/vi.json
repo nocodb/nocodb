@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Nâng cấp để tải lên hình ảnh cho workspace",
     "upgradeToUploadWsImageSubtitle": "Gói {activePlan} hiện tại chỉ cho phép sử dụng biểu tượng và emoji. Nâng cấp lên gói {plan} để tải lên ảnh tùy chỉnh làm ảnh đại diện workspace.",
     "upgradeToUseCurrentUserFilter": "Nâng cấp để lọc theo người dùng hiện tại",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Nâng cấp lên gói {plan} để sử dụng bộ lọc hiển thị dữ liệu dựa trên người dùng hiện tại.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -1466,7 +1468,9 @@
     "sharingRestricted": "Chia sẻ bị hạn chế",
     "importOptions": "Tùy chọn nhập",
     "newScript": "Kịch bản mới",
-    "emptyScript": "Kịch bản trống"
+    "emptyScript": "Kịch bản trống",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Nhấp để đánh dấu đã giải quyết",

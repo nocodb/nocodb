@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Actualiza para subir una imagen del espacio de trabajo",
     "upgradeToUploadWsImageSubtitle": "Tu plan {activePlan} actual solo permite iconos y emojis. Actualiza al plan {plan} para subir una imagen personalizada como avatar de tu espacio de trabajo.",
     "upgradeToUseCurrentUserFilter": "Actualiza para filtrar por usuario actual",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Actualiza al plan {plan} para usar filtros que muestren datos basados en el usuario actual.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -1466,7 +1468,9 @@
     "sharingRestricted": "Compartir restringido",
     "importOptions": "Opciones de importación",
     "newScript": "Nuevo script",
-    "emptyScript": "Script vacío"
+    "emptyScript": "Script vacío",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Clic para resolver",

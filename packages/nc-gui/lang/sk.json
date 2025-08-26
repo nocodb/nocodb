@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Upgradujte na nahranie obrázka pracovného priestoru",
     "upgradeToUploadWsImageSubtitle": "Váš aktuálny plán {activePlan} povoľuje iba ikony a emotikony. Upgradujte na plán {plan} a nahrajte vlastný obrázok ako avatar pracovného priestoru.",
     "upgradeToUseCurrentUserFilter": "Upgradujte pre filtrovanie podľa aktuálneho používateľa",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgradujte na plán {plan}, aby ste mohli používať filtre zobrazujúce údaje na základe aktuálneho používateľa.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -1466,7 +1468,9 @@
     "sharingRestricted": "Zdieľanie obmedzené",
     "importOptions": "Možnosti importu",
     "newScript": "Nový skript",
-    "emptyScript": "Prázdny skript"
+    "emptyScript": "Prázdny skript",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Kliknite na vyriešenie",

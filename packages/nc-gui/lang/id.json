@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Tingkatkan untuk mengunggah gambar ruang kerja",
     "upgradeToUploadWsImageSubtitle": "Paket {activePlan} Anda saat ini hanya mengizinkan ikon dan emoji. Tingkatkan ke paket {plan} untuk mengunggah gambar kustom sebagai avatar ruang kerja Anda.",
     "upgradeToUseCurrentUserFilter": "Tingkatkan untuk memfilter berdasarkan pengguna saat ini",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Tingkatkan ke paket {plan} untuk menggunakan filter yang menunjukkan data berdasarkan pengguna saat ini.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -1466,7 +1468,9 @@
     "sharingRestricted": "Berbagi dibatasi",
     "importOptions": "Opsi Impor",
     "newScript": "Skrip Baru",
-    "emptyScript": "Skrip Kosong"
+    "emptyScript": "Skrip Kosong",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Klik untuk selesaikan",

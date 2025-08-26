@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Igoera egin lan-espazioaren irudia igotzeko",
     "upgradeToUploadWsImageSubtitle": "Zure uneko {activePlan} planak ikonoak eta emojiak soilik onartzen ditu. {plan} planera igota, irudi pertsonalizatua igo dezakezu lan-espazioko avatar gisa.",
     "upgradeToUseCurrentUserFilter": "Igo zaitez uneko erabiltzailearen araberako iragazkia erabiltzeko",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Igo zaitez {plan} planera uneko erabiltzailean oinarritutako datuak erakusten dituzten iragazkiak erabiltzeko.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -1466,7 +1468,9 @@
     "sharingRestricted": "Partekaketa mugatuta",
     "importOptions": "Inportatzeko aukerak",
     "newScript": "Script berria",
-    "emptyScript": "Script hutsik"
+    "emptyScript": "Script hutsik",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Egin klik ebazteko",

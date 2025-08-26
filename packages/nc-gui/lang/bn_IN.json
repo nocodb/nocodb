@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "ওয়ার্কস্পেসের ছবি আপলোড করতে আপগ্রেড করুন",
     "upgradeToUploadWsImageSubtitle": "আপনার বর্তমান {activePlan} প্ল্যান কেবল আইকন ও ইমোজি অনুমতি দেয়। কাস্টম ছবি ওয়ার্কস্পেস অবতার হিসেবে আপলোড করতে {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToUseCurrentUserFilter": "বর্তমান ব্যবহারকারী দ্বারা ফিল্টার করতে আপগ্রেড করুন",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "বর্তমান ব্যবহারকারীর উপর ভিত্তি করে ডেটা প্রদর্শনের জন্য ফিল্টার ব্যবহার করতে {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

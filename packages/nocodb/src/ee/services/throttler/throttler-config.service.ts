@@ -7,11 +7,9 @@ import type {
   ThrottlerOptionsFactory,
 } from '@nestjs/throttler';
 import { getRedisURL, NC_REDIS_TYPE } from '~/helpers/redisHelpers';
-import { getApiTokenFromAuthHeader } from '~/helpers';
+import { getApiTokenFromHeader } from '~/helpers';
 
-const HEADER_NAME = 'xc-token';
 const HEADER_NAME_GUI = 'xc-auth';
-const HEADER_NAME_AUTH = 'authorization';
 
 @Injectable()
 export class ThrottlerConfigService implements ThrottlerOptionsFactory {
@@ -28,10 +26,7 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
           blockDuration: config.meta.block_duration,
           skipIf: (context) => {
             const req = context.switchToHttp().getRequest();
-            return (
-              !req.headers[HEADER_NAME] &&
-              !getApiTokenFromAuthHeader(req.headers[HEADER_NAME_AUTH])
-            );
+            return !getApiTokenFromHeader(req);
           },
           name: 'meta',
         },
@@ -52,10 +47,7 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
           blockDuration: config.data.block_duration,
           skipIf: (context) => {
             const req = context.switchToHttp().getRequest();
-            return (
-              !req.headers[HEADER_NAME] &&
-              !getApiTokenFromAuthHeader(req.headers[HEADER_NAME_AUTH])
-            );
+            return !getApiTokenFromHeader(req);
           },
           name: 'data',
         },

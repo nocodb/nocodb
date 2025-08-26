@@ -1861,14 +1861,14 @@ onBeforeRouteUpdate((_to, from, next) => {
                         v-if="field && isVirtualCol(fieldState(field) || field)"
                         :column-meta="fieldState(field) || field"
                         :class="{
-                          'text-brand-500': compareCols(field, activeField),
+                          '!text-brand-500': compareCols(field, activeField),
                         }"
                       />
                       <SmartsheetHeaderCellIcon
                         v-else
                         :column-meta="fieldState(field) || field"
                         :class="{
-                          'text-brand-500': compareCols(field, activeField),
+                          '!text-brand-500': compareCols(field, activeField),
                         }"
                       />
                       <NcTooltip
@@ -2066,11 +2066,19 @@ onBeforeRouteUpdate((_to, from, next) => {
                         }"
                       />
                       <NcCheckbox :disabled="true" :checked="true" data-testid="nc-field-visibility-checkbox" />
-                      <SmartsheetHeaderCellIcon
-                        v-if="displayColumn"
+
+                      <SmartsheetHeaderVirtualCellIcon
+                        v-if="displayColumn && isVirtualCol(fieldState(displayColumn) || displayColumn)"
                         :column-meta="fieldState(displayColumn) || displayColumn"
                         :class="{
-                          'text-brand-500': compareCols(displayColumn, activeField),
+                          '!text-brand-500': compareCols(displayColumn, activeField),
+                        }"
+                      />
+                      <SmartsheetHeaderCellIcon
+                        v-else-if="displayColumn"
+                        :column-meta="fieldState(displayColumn) || displayColumn"
+                        :class="{
+                          '!text-brand-500': compareCols(displayColumn, activeField),
                         }"
                       />
                       <NcTooltip

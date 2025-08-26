@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Uaktualnij, aby przesłać obraz przestrzeni roboczej",
     "upgradeToUploadWsImageSubtitle": "Twój obecny plan {activePlan} umożliwia jedynie używanie ikon i emoji. Uaktualnij do planu {plan}, aby przesłać niestandardowy obraz jako avatar przestrzeni roboczej.",
     "upgradeToUseCurrentUserFilter": "Uaktualnij, aby filtrować według bieżącego użytkownika",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Uaktualnij do planu {plan}, aby używać filtrów pokazujących dane na podstawie bieżącego użytkownika.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

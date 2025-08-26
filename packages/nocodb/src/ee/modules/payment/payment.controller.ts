@@ -196,7 +196,8 @@ export class PaymentController {
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/seat-count')
   @Acl('paymentSeatCount', {
-    scope: 'workspace',
+    scope: 'org',
+    extendedScope: 'workspace',
   })
   async seatCount(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,

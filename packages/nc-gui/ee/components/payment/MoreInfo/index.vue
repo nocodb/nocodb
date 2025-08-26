@@ -6,7 +6,17 @@ interface Props {
 
 defineProps<Props>()
 
+const isOrgBilling = inject(IsOrgBillingInj, ref(false))
+
 const { navigateToPricing } = useEeConfig()
+
+const handleGoToPage = () => {
+  if (isOrgBilling.value) {
+    navigateTo('https://nocodb.com/pricing#faq', { external: true, open: navigateToBlankTargetOpenOption })
+  } else {
+    navigateToPricing({ autoScroll: 'faq', triggerEvent: false })
+  }
+}
 </script>
 
 <template>
@@ -26,13 +36,7 @@ const { navigateToPricing } = useEeConfig()
 
     <PaymentMoreInfoCard :title="$t('title.faq')" :subtitle="$t('title.faqSubtitle')">
       <template #action>
-        <NcButton
-          v-e="['c:payment:billing:faq']"
-          type="secondary"
-          inner-class="!gap-2"
-          size="small"
-          @click="navigateToPricing({ autoScroll: 'faq', triggerEvent: false })"
-        >
+        <NcButton v-e="['c:payment:billing:faq']" type="secondary" inner-class="!gap-2" size="small" @click="handleGoToPage">
           <template #icon>
             <GeneralIcon icon="ncExternalLink" />
           </template>

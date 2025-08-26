@@ -5,7 +5,7 @@ import { Strategy } from 'passport-custom';
 import type { NcRequest } from '~/interface/config';
 import { ApiToken, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
-import { getApiTokenFromAuthHeader } from '~/helpers';
+import { getApiTokenFromHeader } from '~/helpers';
 
 @Injectable()
 export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
@@ -15,11 +15,7 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
       let user;
 
       // Extract token from either xc-token header or Authorization Bearer header
-      let token = req.headers['xc-token'];
-
-      if (!token && req.headers.authorization) {
-        token = getApiTokenFromAuthHeader(req.headers.authorization);
-      }
+      const token = getApiTokenFromHeader(req);
 
       if (token) {
         const apiToken = await ApiToken.getByToken(token);

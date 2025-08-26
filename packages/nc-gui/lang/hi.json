@@ -1466,7 +1466,9 @@
     "sharingRestricted": "शेयरिंग सीमित",
     "importOptions": "आयात विकल्प",
     "newScript": "नई स्क्रिप्ट",
-    "emptyScript": "खाली स्क्रिप्ट"
+    "emptyScript": "खाली स्क्रिप्ट",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "समाधान के लिए क्लिक करें",

@@ -148,8 +148,8 @@ describe('dataApiV3', () => {
         expect(response.body.error).to.equal('BASE_NOT_FOUND');
         expect(response.body.message).to.eq(`Base '234567890' not found`);
       });
-      // TODO: reenable after fix/not-found-module
-      it.skip('invalid api version', async () => {
+
+      it('invalid api version', async () => {
         const response = await ncAxiosGet({
           url: `/api/v4/1234567890/2134567890`,
           status: 404,
@@ -387,8 +387,7 @@ describe('dataApiV3', () => {
         );
       });
 
-      // TODO: reenable after fix/not-found-module
-      it.skip('url path not found', async () => {
+      it('url path not found', async () => {
         const response = await ncAxiosGet({
           url: `/api/v3/mybase/mytable/unknown-path/1234`,
           status: 404,

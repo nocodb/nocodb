@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Upgradujte pro nahrání obrázku pracovního prostoru",
     "upgradeToUploadWsImageSubtitle": "Váš současný tarif {activePlan} povoluje pouze ikony a emotikony. Přejděte na tarif {plan}, abyste mohli nahrát vlastní obrázek jako avatar pracovního prostoru.",
     "upgradeToUseCurrentUserFilter": "Upgradujte pro filtrování podle aktuálního uživatele",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Abyste mohli použít filtry zobrazující data na základě aktuálního uživatele, upgradujte na tarif {plan}.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

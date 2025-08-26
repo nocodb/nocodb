@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Upgrade om een werkruimte-afbeelding te uploaden",
     "upgradeToUploadWsImageSubtitle": "Uw huidige {activePlan}-abonnement staat alleen pictogrammen en emoji’s toe. Upgrade naar het {plan}-abonnement om een eigen afbeelding als werkruimte-avatar te uploaden.",
     "upgradeToUseCurrentUserFilter": "Upgrade om te filteren op huidige gebruiker",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade naar het {plan}-abonnement om filters te gebruiken waarmee gegevens worden weergegeven op basis van de huidige gebruiker.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

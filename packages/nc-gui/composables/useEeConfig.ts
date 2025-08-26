@@ -11,6 +11,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const { appInfo } = useGlobal()
 
+  const isOrgBilling = inject(IsOrgBillingInj, ref(false))
+
   const isSideBannerExpanded = ref(false)
 
   const isPaidPlan = computed(() => false)
@@ -189,5 +191,6 @@ export const useEeConfig = createSharedComposable(() => {
     blockAddNewDashboard,
     blockCalendarRange,
     showUpgradeToUseCalendarRange,
+    isOrgBilling,
   }
 })

@@ -9,6 +9,8 @@ const props = withDefaults(defineProps<Props>(), {})
 
 const { workspaceId } = toRefs(props)
 
+const isOrgBilling = inject(IsOrgBillingInj, ref(false))
+
 const route = useRoute()
 
 const router = useRouter()
@@ -64,7 +66,7 @@ const onClosePaymentBanner = () => {
 }
 
 onMounted(async () => {
-  if (workspaceId.value || activeWorkspaceId.value) {
+  if (!isOrgBilling.value && (workspaceId.value || activeWorkspaceId.value)) {
     await workspaceStore.loadWorkspace(workspaceId.value || activeWorkspaceId.value!)
   }
 
@@ -115,7 +117,7 @@ const handleScroll = (e) => {
 watch(
   () => route?.query?.tab,
   async (tab) => {
-    if (tab !== 'billing') return
+    if (tab !== 'billing' || isOrgBilling.value) return
 
     await workspaceStore.loadWorkspace(workspaceId.value || activeWorkspaceId.value!)
 
@@ -132,7 +134,7 @@ watch(
     }"
     @scroll.passive="handleScroll"
   >
-    <PaymentBanner />
+    <PaymentBanner v-if="!isOrgBilling" />
     <div>
       <div
         class="p-6 pb-16 flex flex-col gap-8 min-w-[740px] w-full"

@@ -18,7 +18,7 @@ export enum PaymentState {
   ERROR = 'ERROR',
 }
 
-const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: boolean = false) => {
+const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const annualDiscount = 20
 
   const defaultInvoicePaginationData = {
@@ -30,6 +30,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
     pageCursors: [undefined],
   }
 
+  const isOrgBilling = inject(IsOrgBillingInj, ref(false))
+
   const { $state, $api } = useNuxtApp()
 
   const router = useRouter()
@@ -37,16 +39,14 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
 
   const { navigateToCheckout, isLoyaltyDiscountAvailable, calculatePrice } = useEeConfig()
 
-  const orgStore = useOrg()
-
-  const { org, orgId } = storeToRefs(orgStore)
+  const { org, orgId } = storeToRefs(useOrg())
 
   const workspaceStore = useWorkspace()
 
   const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
 
   const activeWorkspaceOrOrgId = computed(() => {
-    if (isOrg) return orgId.value
+    if (isOrgBilling.value) return orgId.value
 
     return activeWorkspaceId.value
   })
@@ -74,18 +74,20 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
   >(defaultInvoicePaginationData)
 
   const isPaidPlan = computed(() => {
-    if (isOrg) return !!org.value?.payment?.subscription
+    if (isOrgBilling.value) return !!org.value?.payment?.subscription
 
     return !!activeWorkspace.value?.payment?.subscription
   })
 
-  const activePlan = computed(() => (isOrg ? org.value?.payment?.plan : activeWorkspace.value?.payment?.plan))
+  const activePlan = computed(() => (isOrgBilling.value ? org.value?.payment?.plan : activeWorkspace.value?.payment?.plan))
 
   const activeSubscription = computed(() =>
-    isOrg ? org.value?.payment?.subscription : activeWorkspace.value?.payment?.subscription,
+    isOrgBilling.value ? org.value?.payment?.subscription : activeWorkspace.value?.payment?.subscription,
   )
 
-  const stripeCustomerId = computed(() => (isOrg ? org.value?.stripe_customer_id : activeWorkspace.value?.stripe_customer_id))
+  const stripeCustomerId = computed(() =>
+    isOrgBilling.value ? org.value?.stripe_customer_id : activeWorkspace.value?.stripe_customer_id,
+  )
 
   const loadWorkspaceOrOrgSeatCount = async () => {
     try {
@@ -203,7 +205,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
   }
 
   const createPaymentForm = async () => {
-    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrg ? 'No active org' : 'No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrgBilling.value ? 'No active org' : 'No active workspace')
     if (!selectedPlan.value) throw new Error('No plan selected')
     if (!selectedPlan.value.prices) throw new Error('No prices found')
 
@@ -227,7 +229,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
   }
 
   const updateSubscription = async (planId: string, priceId?: string, afterUpgrade = false) => {
-    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrg ? 'No active org' : 'No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrgBilling.value ? 'No active org' : 'No active workspace')
 
     const plan = plansAvailable.value.find((plan) => plan.id === planId)
 
@@ -248,13 +250,13 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
       },
     })
 
-    window.location.href = isOrg
+    window.location.href = isOrgBilling.value
       ? `/#/admin/${orgId.value}/billing?afterUpgrade=true`
       : `/#/${activeWorkspaceOrOrgId.value}/settings?tab=billing${afterUpgrade ? '&afterUpgrade=true' : ''}`
   }
 
   const cancelSubscription = async () => {
-    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrg ? 'No active org' : 'No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrgBilling.value ? 'No active org' : 'No active workspace')
 
     await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/cancel-subscription`, {
       baseURL,
@@ -262,11 +264,13 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
       headers: { 'xc-auth': $state.token.value as string },
     })
 
-    window.location.href = isOrg ? `/#/admin/${orgId.value}/billing` : `/#/${activeWorkspaceOrOrgId.value}/settings?tab=billing`
+    window.location.href = isOrgBilling.value
+      ? `/#/admin/${orgId.value}/billing`
+      : `/#/${activeWorkspaceOrOrgId.value}/settings?tab=billing`
   }
 
   const getCustomerPortalSession = async () => {
-    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrg ? 'No active org' : 'No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrgBilling.value ? 'No active org' : 'No active workspace')
 
     const res = await $fetch(
       `/api/payment/${activeWorkspaceOrOrgId.value}/customer-portal?isAccountPage=${isAccountPage.value}`,
@@ -281,7 +285,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
   }
 
   const getSessionResult = async (sessionId: string): Promise<StripeCheckoutSession> => {
-    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrg ? 'No active org' : 'No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrgBilling.value ? 'No active org' : 'No active workspace')
 
     return $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/get-session-result/${sessionId}`, {
       baseURL,
@@ -311,7 +315,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
       return
     }
 
-    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrg ? 'No active org' : 'No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrgBilling.value ? 'No active org' : 'No active workspace')
 
     try {
       const res = (await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/invoice`, {
@@ -398,7 +402,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
     loadInvoices,
     invoices,
     invoicePaginationData,
-    isOrg,
+    isOrgBilling,
     activeWorkspaceOrOrgId,
     org,
     orgId,

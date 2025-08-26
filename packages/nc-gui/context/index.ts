@@ -146,3 +146,5 @@ export const IsMiniSidebarInj: InjectionKey<Ref<boolean>> = Symbol('is-mini-side
 
 export const ExtensionConfigInj: InjectionKey<Ref<ExtensionConfigInjType> | ComputedRef<ExtensionConfigInjType>> =
   Symbol('extension-config-injection')
+
+export const IsOrgBillingInj: InjectionKey<Ref<boolean>> = Symbol('is-org-billing-injection')

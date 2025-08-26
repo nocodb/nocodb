@@ -18,6 +18,9 @@ const eeConfigState = createGlobalState(() => {
 export const useEeConfig = createSharedComposable(() => {
   const { t } = useI18n()
 
+  // it's not possible to use inject in a shared composable we manually we have to set this value
+  const isOrgBilling = ref(false)
+
   const { $state, $api, $e } = useNuxtApp()
 
   const baseURL = $api.instance.defaults.baseURL
@@ -25,6 +28,8 @@ export const useEeConfig = createSharedComposable(() => {
   const { user, appInfo } = useGlobal()
 
   const { isUIAllowed } = useRoles()
+
+  const { org } = storeToRefs(useOrg())
 
   const workspaceStore = useWorkspace()
 
@@ -46,13 +51,23 @@ export const useEeConfig = createSharedComposable(() => {
       roles: user.value?.workspace_roles,
     }),
   )
-  const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription || appInfo.value?.isOnPrem)
+  const isPaidPlan = computed(
+    () =>
+      (isOrgBilling.value ? !!org.value?.payment?.subscription : !!activeWorkspace.value?.payment?.subscription) ||
+      appInfo.value?.isOnPrem,
+  )
 
-  const activePlan = computed(() => activeWorkspace.value?.payment?.plan)
+  const activePlan = computed(() => (isOrgBilling.value ? org.value?.payment?.plan : activeWorkspace.value?.payment?.plan))
 
   const activePlanTitle = computed(() => (activePlan.value?.title as PlanTitles) ?? PlanTitles.FREE)
 
-  const activeSubscription = computed(() => activeWorkspace.value?.payment?.subscription)
+  watchEffect(() => {
+    console.log('useEeConfig', isOrgBilling.value, org.value?.payment?.plan)
+  })
+
+  const activeSubscription = computed(() =>
+    isOrgBilling.value ? org.value?.payment?.subscription : activeWorkspace.value?.payment?.subscription,
+  )
 
   const isLoyaltyDiscountAvailable = computed(() => {
     if (!activeWorkspace.value) return false
@@ -1117,5 +1132,6 @@ export const useEeConfig = createSharedComposable(() => {
     blockAddNewDashboard,
     blockCalendarRange,
     showUpgradeToUseCalendarRange,
+    isOrgBilling,
   }
 })

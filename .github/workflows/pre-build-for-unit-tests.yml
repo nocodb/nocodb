@@ -8,8 +8,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pre-build-for-unit-tests:
-    runs-on: [self-hosted, v4, generic]
+  build-unit-test:
+    runs-on: [self-hosted, v4, prebuild]
     timeout-minutes: 40
     steps:
       - name: Checkout

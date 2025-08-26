@@ -20,13 +20,27 @@ export const DateCellRenderer: CellRenderer = {
     }
 
     if (value) {
-      const date = dayjs(/^\d+$/.test(value) ? +value : value, defaultDateFormat)
-      if (date.isValid()) {
-        formattedDate = date.format(dateFormat)
+      if (/^\d+$/.test(value)) {
+        // Number timestamp → let dayjs auto-detect
+        const date = dayjs(Number(value))
+        if (date.isValid()) {
+          formattedDate = date.format(dateFormat)
+        }
       } else {
-        const parsedDate = parseFlexibleDate(value)
-        if (parsedDate) {
-          formattedDate = parsedDate.format(dateFormat)
+        // First try with explicit dateFormat
+        const date = dayjs(value, dateFormat, true)
+        if (date.isValid()) {
+          formattedDate = date.format(dateFormat)
+        } else {
+          // Then try with defaultDateFormat
+          const fallback = dayjs(value, defaultDateFormat, true)
+          if (fallback.isValid()) {
+            formattedDate = fallback.format(dateFormat)
+          } else {
+            // Finally fallback to custom parser
+            const parsed = parseFlexibleDate(value)
+            if (parsed) formattedDate = parsed.format(dateFormat)
+          }
         }
       }
     }

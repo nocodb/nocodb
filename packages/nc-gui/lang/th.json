@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "อัปเกรดเพื่ออัปโหลดภาพเวิร์กสเปซ",
     "upgradeToUploadWsImageSubtitle": "แผน {activePlan} ปัจจุบันของคุณอนุญาตเฉพาะไอคอนและอีโมจิ อัปเกรดเป็นแผน {plan} เพื่ออัปโหลดภาพที่กำหนดเองเป็นอวาตาร์เวิร์กสเปซ",
     "upgradeToUseCurrentUserFilter": "อัปเกรดเพื่อกรองตามผู้ใช้ปัจจุบัน",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "อัปเกรดเป็นแผน {plan} เพื่อใช้ตัวกรองที่แสดงข้อมูลตามผู้ใช้ปัจจุบัน",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

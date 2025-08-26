@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "برای بارگذاری تصویر ورک‌اسپیس ارتقاء دهید",
     "upgradeToUploadWsImageSubtitle": "پلن فعلی {activePlan} تنها از آیکن‌ها و ایموجی‌ها پشتیبانی می‌کند. برای بارگذاری تصویر سفارشی به عنوان آواتار ورک‌اسپیس، به پلن {plan} ارتقاء دهید.",
     "upgradeToUseCurrentUserFilter": "ارتقاء برای فیلتر بر اساس کاربر فعلی",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "برای استفاده از فیلترهایی که داده را بر اساس کاربر فعلی نمایش می‌دهند، به پلن {plan} ارتقاء دهید.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

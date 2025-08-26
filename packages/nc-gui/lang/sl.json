@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Nadgradite, da naložite sliko delovnega prostora",
     "upgradeToUploadWsImageSubtitle": "Vaš trenutni načrt {activePlan} dovoljuje le ikone in emojije. Nadgradite na načrt {plan}, da naložite poljubno sliko kot avatar delovnega prostora.",
     "upgradeToUseCurrentUserFilter": "Nadgradi za filtriranje po trenutnem uporabniku",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Nadgradi na paket {plan}, da uporabiš filtre, ki prikazujejo podatke glede na trenutnega uporabnika.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

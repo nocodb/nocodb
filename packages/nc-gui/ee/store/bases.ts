@@ -444,10 +444,18 @@ export const useBases = defineStore('basesStore', () => {
 
   watch(
     () => route.value.params.baseId,
-    (newBaseId) => {
+    (newBaseId, oldBaseId) => {
       baseHomeSearchQuery.value = ''
 
       if (newBaseId) {
+        /**
+         * If oldBaseId is present that means we are navigation from one base to another base
+         * In that case we have to set forceShowBaseList to false
+         * */
+        if (oldBaseId) {
+          forceShowBaseList.value = false
+        }
+
         return
       }
 
@@ -462,6 +470,10 @@ export const useBases = defineStore('basesStore', () => {
       immediate: true,
     },
   )
+
+  watchEffect(() => {
+    console.log('table', route.value.params)
+  })
 
   /**
    * Will have to show base home page sidebar if any base/table/view/script is active

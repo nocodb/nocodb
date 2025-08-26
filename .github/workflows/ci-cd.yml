@@ -36,7 +36,7 @@ jobs:
       test_set: 1
 
   unit-tests-pg-2:
-    if: ${{ inputs.force == true || (contains(github.event.pull_request.labels.*.name, 'Backend') && (github.event_name == 'push' || !github.event.pull_request.draft)) }}
+    if: ${{ inputs.force == true || (contains(github.event.pull_request.labels.*.name, 'backend') && (github.event_name == 'push' || !github.event.pull_request.draft)) }}
     uses: ./.github/workflows/unit-test-pg.yml
     with:
       test_set: 2

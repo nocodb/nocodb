@@ -25,12 +25,11 @@ export class AuthService {
       const { password, salt, ...result } = user;
 
       // `salt` will be null,
-      // 1. If the user signup still in progeress
-      // 2. If the user is invited and yet to set password
-      // 3. If the user is created via non email-password auth (OAuth)
+      // 1. If the user is invited and yet to set password
+      // 2. If the user is created via non email-password auth (OAuth)
       if (!user.salt) {
         return NcError.badRequest(
-          'If signing up, wait to finish. If invited, use the email link. Otherwise, reset your password or contact the super admin.',
+          'If invited, sign up via the email link; otherwise, use forgot password or contact the super admin.',
         );
       }
 

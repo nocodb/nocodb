@@ -127,7 +127,7 @@ onMounted(() => {
     <div class="mt-3 flex-1 flex">
       <NcTable
         class="template-form flex-1 max-h-[540px]"
-        body-row-class-name="template-form-row !cursor-default !last:border-b-0"
+        body-row-class-name="template-form-row !cursor-default"
         header-row-class-name="relative"
         :bordered="true"
         :data="paginatedData"
@@ -160,7 +160,7 @@ onMounted(() => {
             </a>
           </template>
         </template>
-        <template #tableFooter>
+        <template v-if="showPagination || paginationCaption" #tableFooter>
           <div class="flex flex-row justify-center items-center bg-gray-50 min-h-10">
             <div class="flex items-center justify-end gap-6 w-full px-6">
               <div v-if="paginationCaption" class="text-nc-content-gray-muted text-bodyDefaultSm">

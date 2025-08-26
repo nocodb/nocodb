@@ -1,5 +1,8 @@
 name: "Unit Test PG"
 
+on:
+  workflow_call:
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -45,6 +48,7 @@ jobs:
   unit-tests-pg-1:
     needs: pre-build-for-unit-tests
     runs-on: [self-hosted, v4, generic]
+    timeout-minutes: 40
     steps:
       - name: run sql-executor
         working-directory: ./packages/nc-sql-executor
@@ -57,6 +61,7 @@ jobs:
   unit-tests-pg-2:
     needs: pre-build-for-unit-tests
     runs-on: [self-hosted, v4, generic]
+    timeout-minutes: 40
     steps:
       - name: run sql-executor
         working-directory: ./packages/nc-sql-executor

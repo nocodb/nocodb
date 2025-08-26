@@ -122,7 +122,14 @@ onMounted(async () => {
       <div class="flex flex-col gap-6 w-150">
         <div class="flex justify-between items-center" data-rec="true">
           <span class="font-bold text-xl"> SSO </span>
-          <a class="!text-gray-700 !hover:text-gray-700"> Go to documentation </a>
+          <a
+            class="!text-gray-700 !hover:text-gray-700"
+            href="https://nocodb.com/docs/product-docs/account-settings/authentication#single-sign-on-sso"
+            target="_blank"
+            rel="noopener"
+          >
+            Go to documentation
+          </a>
         </div>
 
         <AdminDomains is-workspace />

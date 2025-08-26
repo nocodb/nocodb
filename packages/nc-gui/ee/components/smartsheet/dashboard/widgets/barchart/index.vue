@@ -57,8 +57,11 @@ const legendConfig = computed(() => {
       ? (name: string) => {
           // Find the series data to show aggregated value
           const seriesData = widgetData.value?.series?.find((s: any) => s.name === name)
-          if (seriesData) {
-            const total = seriesData.data.reduce((sum: number, val: number) => sum + val, 0)
+          if (seriesData && Array.isArray(seriesData.data)) {
+            const total = seriesData.data.reduce((sum: number, item: any) => {
+              const value = typeof item === 'object' ? item.value || 0 : item
+              return sum + value
+            }, 0)
             const truncatedName = truncateText(name, 25)
             return `${truncatedName}: ${total}`
           }
@@ -124,7 +127,8 @@ const chartOption = computed<ECOption>(() => {
         let tooltip = `<strong>${params[0].axisValue}</strong><br/>`
         params.forEach((param: any) => {
           const value = param.data?.formatted_value !== undefined ? param.data.formatted_value : param.value
-          tooltip += `${param.marker}${param.seriesName}: ${value}<br/>`
+          const count = param.data?.count ? ` (${param.data.count} records)` : ''
+          tooltip += `${param.marker}${param.seriesName}: ${value}${count}<br/>`
         })
         return tooltip
       },

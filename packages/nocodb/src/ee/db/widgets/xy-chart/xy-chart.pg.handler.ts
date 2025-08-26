@@ -14,21 +14,6 @@ import { getColumnNameQuery } from '~/db/getColumnNameQuery';
 import conditionV2 from '~/db/conditionV2';
 
 export class XyChartPgHandler extends XyChartCommonHandler {
-  /**
-   * Get the MAX function expression based on column type for ordering
-   */
-  private getMaxExpressionForColumn(column: Column): string {
-    switch (column.uidt) {
-      case UITypes.Checkbox:
-        return 'BOOL_OR(original_x_axis)';
-      case UITypes.Date:
-      case UITypes.DateTime:
-        return 'MAX(original_x_axis)';
-      default:
-        return 'MAX(original_x_axis)';
-    }
-  }
-
   async getWidgetData(
     context: NcContext,
     params: {
@@ -41,19 +26,17 @@ export class XyChartPgHandler extends XyChartCommonHandler {
   ) {
     const { widget } = params;
     const { config } = widget;
-
     const { dataSource, data: chartData } = config;
 
+    // Get models and columns
     const model = await Model.getByIdOrName(context, {
       id: widget.fk_model_id,
     });
-
-    let view = null;
-    if (dataSource === 'view' && widget.fk_view_id) {
-      view = await View.get(context, widget.fk_view_id);
-    }
+    const view =
+      dataSource === 'view' && widget.fk_view_id
+        ? await View.get(context, widget.fk_view_id)
+        : null;
     const source = await Source.get(context, model.source_id);
-
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
@@ -61,12 +44,9 @@ export class XyChartPgHandler extends XyChartCommonHandler {
       source,
     });
 
-    // Get X-axis column
     const xAxisColumn = await Column.get(context, {
       colId: chartData.xAxis.column_id,
     });
-
-    // Get Y-axis columns
     const yAxisColumns = await Promise.all(
       chartData.yAxis.fields.map((field) =>
         Column.get(context, { colId: field.column_id }),
@@ -75,271 +55,215 @@ export class XyChartPgHandler extends XyChartCommonHandler {
 
     const filters =
       dataSource === 'filter'
-        ? await Filter.rootFilterListByWidget(context, {
-            widgetId: widget.id,
-          })
+        ? await Filter.rootFilterListByWidget(context, { widgetId: widget.id })
         : [];
 
+    // Build base query with common filters
+    const buildBaseQuery = () => {
+      const query = baseModel.dbDriver(baseModel.tnPath);
+      baseModel.applySortAndFilter({
+        table: model,
+        qb: query,
+        filters,
+        view,
+        skipSort: true,
+        sort: '',
+        where: '',
+      });
+
+      // Filter empty records if not checkbox and not including empties
+      if (
+        !chartData.xAxis?.includeEmptyRecords &&
+        xAxisColumn.uidt !== UITypes.Checkbox
+      ) {
+        conditionV2(
+          baseModel,
+          {
+            fk_column_id: xAxisColumn.id,
+            comparison_op: 'notblank',
+          },
+          query,
+        );
+      }
+
+      return query;
+    };
+
+    // Get X-axis column name query
     const xAxisColumnNameQuery = await getColumnNameQuery({
       baseModelSqlv2: baseModel,
       column: xAxisColumn,
       context: context,
     });
 
+    // Build Y-axis aggregations - we support multiple Y-axis fields and each field can have different aggregation
+    const yAxisSelections = await Promise.all(
+      chartData.yAxis.fields.map(async (field, i) => {
+        const aggSql = await applyAggregation({
+          baseModelSqlv2: baseModel,
+          aggregation: field.aggregation as unknown as any,
+          column: yAxisColumns[i],
+        });
+        return { alias: `y_axis_${i}`, aggSql, field };
+      }),
+    );
+
+    // Build top 10 query
+    const top10Query = buildBaseQuery();
     const xAxisAlias = 'x_axis';
-    const isCheckbox = xAxisColumn.uidt === UITypes.Checkbox;
 
-    const subQuery = baseModel.dbDriver(baseModel.tnPath);
+    top10Query
+      .select(
+        baseModel.dbDriver.raw(`(??) as ??`, [
+          xAxisColumnNameQuery.builder,
+          xAxisAlias,
+        ]),
+      )
+      .groupBy(xAxisAlias)
+      .count('* as record_count');
 
-    await baseModel.applySortAndFilter({
-      table: model,
-      qb: subQuery,
-      filters,
-      view,
-      skipSort: true,
-      sort: '',
-      where: '',
+    // Add Y-axis aggregations to top 10 query
+    yAxisSelections.forEach(({ alias, aggSql }) => {
+      top10Query.select(baseModel.dbDriver.raw(`(${aggSql}) as ??`, [alias]));
     });
 
-    // Filter empty records if not included
-    if (!chartData.xAxis?.includeEmptyRecords && !isCheckbox) {
-      await conditionV2(
-        baseModel,
-        {
-          fk_column_id: xAxisColumn.id,
-          comparison_op: 'notblank',
-        },
-        subQuery,
-      );
-    }
+    // Determine sort field and direction
+    // If order by is default, sort by record count in descending order
+    // If order by is custom, sort by custom field in ascending order
+    const orderDirection = (
+      chartData.xAxis.orderBy === 'default'
+        ? 'desc'
+        : chartData.xAxis.orderBy ?? 'desc'
+    ).toUpperCase();
+    // If sort by is xAxis, sort by x axis alias
+    // If sort by is yAxis and only one y axis field, sort by that field
+    // If sort by is yAxis and multiple y axis fields, sort by first y axis field
+    // If sort by is undefined, sort by x axis alias
+    const sortField =
+      chartData.xAxis.sortBy === 'xAxis'
+        ? xAxisAlias
+        : chartData.xAxis.sortBy === 'yAxis' && yAxisSelections.length === 1
+        ? yAxisSelections[0].alias
+        : yAxisSelections[0]?.alias || xAxisAlias;
 
-    // Select X-axis
-    subQuery.select(
-      baseModel.dbDriver.raw(`(??) as ??`, [
-        xAxisColumnNameQuery.builder,
-        xAxisAlias,
-      ]),
-    );
+    // Get Plain Query for sort field - To use in others sub query, as we can't use alias
+    const sortFieldQuery =
+      chartData.xAxis.sortBy === 'yAxis' && yAxisSelections.length >= 1
+        ? baseModel.dbDriver.raw(yAxisSelections[0].aggSql)
+        : xAxisColumnNameQuery.builder;
 
-    subQuery.groupBy(xAxisAlias);
-    subQuery.count('* as record_count');
+    // Order by sort field and limit to max widget category count
+    top10Query
+      .orderByRaw(baseModel.dbDriver.raw(`?? ${orderDirection}`, [sortField]))
+      .limit(this.MAX_WIDGET_CATEGORY_COUNT);
 
-    // Add Y-axis aggregations
-    const yAxisSelections = [];
-    for (let i = 0; i < chartData.yAxis.fields.length; i++) {
-      const field = chartData.yAxis.fields[i];
-      const column = yAxisColumns[i];
-      const alias = `y_axis_${i}`;
-
-      const aggSql = await applyAggregation({
-        baseModelSqlv2: baseModel,
-        aggregation: field.aggregation as unknown as string,
-        column: column,
-      });
-
-      subQuery.select(baseModel.dbDriver.raw(`(${aggSql}) as ??`, [alias]));
-
-      yAxisSelections.push({ alias, aggSql, column, field });
-    }
-
-    // Determine sorting expression
-    let sortExpression = '';
-    if (chartData.xAxis.sortBy === 'xAxis') {
-      sortExpression = xAxisColumnNameQuery.builder;
-    } else if (
-      chartData.xAxis.sortBy === 'yAxis' &&
-      yAxisSelections.length > 0
-    ) {
-      // Sort by first Y-axis field
-      sortExpression = yAxisSelections[0].aggSql;
-    } else {
-      // Default sort by x-axis
-      sortExpression = xAxisColumnNameQuery.builder;
-    }
-
-    // Add row number for potential limiting
-    const orderDirection =
-      chartData.xAxis.orderBy === 'asc'
-        ? 'ASC'
-        : chartData.xAxis.orderBy === 'desc'
-        ? 'DESC'
-        : chartData.xAxis.sortBy === 'yAxis'
-        ? 'DESC'
-        : 'ASC';
-
-    subQuery.select(
-      baseModel.dbDriver.raw(
-        `ROW_NUMBER() OVER (ORDER BY ${sortExpression} ${orderDirection}) as rn`,
-      ),
-    );
-
-    // Cast TEXT to avoid type conflicts, preserve original for sorting
-    const mainQuery = baseModel.dbDriver
-      .select('*')
-      .select(
-        baseModel.dbDriver.raw(`
-        CASE 
-          WHEN rn <= ${
-            this.MAX_WIDGET_CATEGORY_COUNT || 20
-          } THEN CAST(x_axis AS TEXT)
-          ELSE 'Others'
-        END as final_x_axis
-      `),
-      )
-      // Original value used for ordering
-      .select(
-        baseModel.dbDriver.raw(`
-        CASE 
-          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT || 20} THEN x_axis
-          ELSE NULL
-        END as original_x_axis
-      `),
-      );
-
-    // Add final Y-axis selections with Others handling
-    for (const selection of yAxisSelections) {
-      mainQuery.select(
-        baseModel.dbDriver.raw(
-          `
-        CASE 
-          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT || 20} THEN ??
-          ELSE 0
-        END as final_${selection.alias}
-      `,
-          [selection.alias],
-        ),
-      );
-
-      mainQuery.select(
-        baseModel.dbDriver.raw(
-          `
-        CASE 
-          WHEN rn > ${this.MAX_WIDGET_CATEGORY_COUNT || 20} THEN ??
-          ELSE 0
-        END as others_${selection.alias}
-      `,
-          [selection.alias],
-        ),
-      );
-    }
-
-    mainQuery.select(
-      baseModel.dbDriver.raw(`
-      CASE 
-        WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT || 20} THEN record_count
-        ELSE 0
-      END as final_count
-    `),
-    );
-
-    mainQuery.select(
-      baseModel.dbDriver.raw(`
-      CASE 
-        WHEN rn > ${this.MAX_WIDGET_CATEGORY_COUNT || 20} THEN record_count
-        ELSE 0
-      END as others_count
-    `),
-    );
-
-    mainQuery.from(baseModel.dbDriver.raw(`(??) as ranked_data`, subQuery));
-
-    // Get the MAX expression for this column type
-    const maxExpression = this.getMaxExpressionForColumn(xAxisColumn);
-
-    // Final aggregation
-    const finalQuery = baseModel.dbDriver
-      .select({ x_axis: baseModel.dbDriver.raw('(final_x_axis)::TEXT') })
-      .select(baseModel.dbDriver.raw(`${maxExpression} as original_x_axis`))
-      .select(
-        baseModel.dbDriver.raw(
-          'SUM(final_count) + SUM(others_count) as total_count',
-        ),
-      );
-
-    // Add aggregated Y-axis values
-    for (const selection of yAxisSelections) {
-      finalQuery.select(
-        baseModel.dbDriver.raw(
-          `SUM(final_${selection.alias}) + SUM(others_${selection.alias}) as ${selection.alias}`,
-        ),
-      );
-    }
-
-    finalQuery
-      .from(baseModel.dbDriver.raw(`(??) as categorized_data`, [mainQuery]))
-      .groupBy('final_x_axis');
-
-    // Apply final ordering
-    if (chartData.xAxis.sortBy === 'xAxis') {
-      if (chartData.xAxis.orderBy === 'asc') {
-        finalQuery.orderByRaw(baseModel.dbDriver.raw(`${maxExpression} ASC`));
-      } else if (chartData.xAxis.orderBy === 'desc') {
-        finalQuery.orderByRaw(baseModel.dbDriver.raw(`${maxExpression} DESC`));
-      } else {
-        finalQuery.orderByRaw(baseModel.dbDriver.raw(`${maxExpression} ASC`));
-      }
-    } else if (
-      chartData.xAxis.sortBy === 'yAxis' &&
-      yAxisSelections.length > 0
-    ) {
-      const firstYAxis = yAxisSelections[0].alias;
-      if (chartData.xAxis.orderBy === 'asc') {
-        finalQuery.orderBy(firstYAxis, 'ASC');
-      } else {
-        finalQuery.orderBy(firstYAxis, 'DESC');
-      }
-    }
-
-    const rawData = await baseModel.execAndParse(finalQuery, null, {
+    // Execute top 10 query
+    const top10Data = await baseModel.execAndParse(top10Query, null, {
       skipDateConversion: true,
       skipAttachmentConversion: true,
       skipUserConversion: true,
     });
 
-    // Format the response
-    const categories = [];
-    const series = [];
+    // Build and execute others query only if includeOthers is true
+    let othersData = [];
+    if (chartData.xAxis?.includeOthers) {
+      const othersQuery = buildBaseQuery();
 
-    // Initialize series array
-    for (let i = 0; i < yAxisColumns.length; i++) {
-      const column = yAxisColumns[i];
-      const field = chartData.yAxis.fields[i];
+      // Create subquery to get top x-axis values (same logic as original)
+      const top10ValuesSubquery = buildBaseQuery();
+      top10ValuesSubquery
+        .select(baseModel.dbDriver.raw(`??`, [xAxisColumnNameQuery.builder]))
+        .groupBy(baseModel.dbDriver.raw(`??`, [xAxisColumnNameQuery.builder]));
 
-      series.push({
-        name: column.title,
-        data: [],
+      // Add sorting aggregation to subquery for top 10 values
+      const sortAggSql =
+        yAxisSelections.length > 0 ? yAxisSelections[0].aggSql : 'COUNT(*)';
+      top10ValuesSubquery
+        .select(baseModel.dbDriver.raw(`(${sortAggSql}) as sort_val`))
+        .orderByRaw(`sort_val ${orderDirection}`)
+        .limit(this.MAX_WIDGET_CATEGORY_COUNT);
+
+      // Now build others query excluding top 10 values
+      othersQuery
+        .select(baseModel.dbDriver.raw(`'Others' as ??`, [xAxisAlias]))
+        .count('* as record_count')
+        .whereRaw(`?? NOT IN (??)`, [
+          baseModel.dbDriver.raw(`??`, [xAxisColumnNameQuery.builder]),
+          top10ValuesSubquery
+            .clone()
+            .clearSelect()
+            .clearOrder()
+            // Order by sort field query as we can't use alias
+            // Alias requires us to select the column in the subquery, which we can't do as we are inside where clause
+            .orderByRaw(
+              baseModel.dbDriver.raw(`(??) ${orderDirection}`, [
+                sortFieldQuery,
+              ]),
+            )
+            .select(
+              baseModel.dbDriver.raw(`??`, [xAxisColumnNameQuery.builder]),
+            ),
+        ]);
+
+      // Add Y-axis aggregations for others query
+      yAxisSelections.forEach(({ alias, aggSql }) => {
+        othersQuery.select(
+          baseModel.dbDriver.raw(`(${aggSql}) as ??`, [alias]),
+        );
+      });
+
+      othersData = await baseModel.execAndParse(othersQuery, null, {
+        skipDateConversion: true,
+        skipAttachmentConversion: true,
+        skipUserConversion: true,
       });
     }
 
-    // Process data
-    for (const row of rawData) {
-      // Format x-axis category
-      const formattedXAxis = await this.formatValue(
-        context,
-        row.x_axis,
-        xAxisColumn,
-      );
+    // Combine results
+    const rawData = [...top10Data];
+    if (othersData.length > 0 && othersData[0].record_count > 0) {
+      rawData.push(othersData[0]);
+    }
 
-      categories.push(formattedXAxis || 'Empty');
+    const categories = [];
+    const series = yAxisColumns.map((col) => ({ name: col.title, data: [] }));
+
+    for (const row of rawData) {
+      const isOthersRow = row.x_axis === 'Others';
+
+      let formattedXAxis;
+      if (isOthersRow) {
+        formattedXAxis = 'Others';
+      } else {
+        const formattedValue = await this.formatValue(
+          context,
+          row.x_axis,
+          xAxisColumn,
+        );
+        formattedXAxis = formattedValue || 'Empty';
+      }
+
+      categories.push(formattedXAxis);
 
       // Process each Y-axis series
-      for (let i = 0; i < yAxisColumns.length; i++) {
-        const column = yAxisColumns[i];
-        const field = chartData.yAxis.fields[i];
-        const alias = `y_axis_${i}`;
+      yAxisSelections.forEach(({ alias, field }, i) => {
         const value = row[alias] || 0;
-
         const formattedValue = formatAggregation(
           field.aggregation,
           value,
-          column,
+          yAxisColumns[i],
         );
 
-        series[i].data.push({
-          value: value,
+        const dataPoint = {
+          value,
           formatted_value: formattedValue,
-        });
-      }
+          // Add count information
+          ...(row.record_count && { count: row.record_count }),
+          ...(isOthersRow && { isOthers: true }),
+        };
+
+        series[i].data.push(dataPoint);
+      });
     }
 
     return {

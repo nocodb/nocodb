@@ -16,11 +16,14 @@ const selectedOrderValue = ref(selectedWidget.value?.config?.data?.xAxis?.orderB
 
 const includeEmptyRecords = ref(selectedWidget.value?.config?.data?.xAxis?.includeEmptyRecords || false)
 
+const includeOthers = ref(selectedWidget.value?.config?.data?.xAxis?.includeOthers || true)
+
 const modelId = computed(() => selectedWidget.value?.fk_model_id || null)
 
 const handleChange = (type: 'field' | 'sort' | 'order' | 'includeEmptyRecords') => {
   const xAxis = {
     includeEmptyRecords: includeEmptyRecords.value,
+    includeOthers: includeOthers.value,
   }
 
   if (type === 'field') {
@@ -113,6 +116,19 @@ const filterField = (column: ColumnType) => {
     <div>
       <NcSwitch v-model:checked="includeEmptyRecords" @change="handleChange('includeEmptyRecords')">
         <span class="text-caption text-nc-content-gray select-none">Include empty records</span>
+      </NcSwitch>
+    </div>
+    <div class="flex items-center">
+      <NcSwitch v-model:checked="includeOthers" class="flex items-center" @change="handleChange">
+        <span class="text-caption text-nc-content-gray select-none">
+          <NcTooltip class="flex items-center" hide-on-click>
+            <template #title>
+              By default the chart will show top 10 categories and remaining categories will be grouped as "Others". Disabling
+              this will hide "Others" category.
+            </template>
+            Include others
+          </NcTooltip>
+        </span>
       </NcSwitch>
     </div>
   </GroupedSettings>

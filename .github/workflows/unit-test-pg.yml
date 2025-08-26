@@ -8,10 +8,6 @@ on:
         required: true
         type: string
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   unit-tests-pg:
     runs-on: [self-hosted, v4, generic]

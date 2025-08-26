@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   type CalendarRangeType,
+  PlanFeatureTypes,
   UITypes,
   ViewTypes,
   workerWithTimezone,
@@ -10,6 +11,7 @@ import type { NcContext } from '~/interface/config';
 import { Column, Model, View } from '~/models';
 import CalendarRange from '~/models/CalendarRange';
 import { NcError } from '~/helpers/catchError';
+import { getFeature } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class CalendarDatasService extends CalendarDatasServiceCE {
@@ -40,6 +42,8 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
     const ranges = await CalendarRange.read(context, view.id);
 
     if (!ranges?.ranges.length) NcError.badRequest('No ranges found');
+
+    ranges.ranges = await this.patchCalendarRange(context, ranges.ranges);
 
     let timezone;
 
@@ -137,6 +141,11 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
     const calendarRange = await CalendarRange.read(context, viewId);
     if (!calendarRange?.ranges?.length) NcError.badRequest('No ranges found');
 
+    calendarRange.ranges = await this.patchCalendarRange(
+      context,
+      calendarRange.ranges,
+    );
+
     const filterArr: any = [];
 
     if (isDate) {
@@ -220,5 +229,26 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
     });
 
     return filterArr;
+  }
+
+  private async patchCalendarRange(
+    context: NcContext,
+    ranges: CalendarRange[],
+  ) {
+    const isCalendarEndDateEnabled = await getFeature(
+      PlanFeatureTypes.FEATURE_CALENDAR_RANGE,
+      context.workspace_id,
+    );
+
+    return ranges.map((range) => {
+      if (isCalendarEndDateEnabled || !range.fk_to_column_id) {
+        return range;
+      } else if (range.fk_to_column_id) {
+        return {
+          ...range,
+          fk_to_column_id: null,
+        };
+      }
+    });
   }
 }

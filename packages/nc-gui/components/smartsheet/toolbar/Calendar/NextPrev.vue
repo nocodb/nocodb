@@ -9,7 +9,7 @@ const { activeCalendarView, paginateCalendarView } = useCalendarViewStoreOrThrow
 
       <a-button
         v-e="`['c:calendar:calendar-${activeCalendarView}-prev-btn']`"
-        class="!w-7 !h-7 prev-next-btn !hover:text-gray-700 transition-all !rounded-lg flex items-center justify-center !border-0"
+        class="!w-7 !h-7 prev-next-btn !hover:text-nc-content-gray-subtle transition-all !rounded-lg flex items-center justify-center !border-0"
         data-testid="nc-calendar-prev-btn"
         size="small"
         @click="paginateCalendarView('prev')"
@@ -21,7 +21,7 @@ const { activeCalendarView, paginateCalendarView } = useCalendarViewStoreOrThrow
       <template #title> {{ $t('labels.next') }}</template>
       <a-button
         v-e="`['c:calendar:calendar-${activeCalendarView}-next-btn']`"
-        class="!w-7 !h-7 !rounded-lg flex items-center !hover:text-gray-700 prev-next-btn !border-0 justify-center"
+        class="!w-7 !h-7 !rounded-lg flex items-center !hover:text-nc-content-gray-subtle prev-next-btn !border-0 justify-center"
         data-testid="nc-calendar-next-btn"
         size="small"
         @click="paginateCalendarView('next')"

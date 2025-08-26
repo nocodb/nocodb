@@ -59,6 +59,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAddNewDashboard = computed(() => true)
 
+  const blockCalendarRange = computed(() => true)
+
   const blockAddNewScript = computed(() => true)
 
   const showUserMayChargeAlert = computed(() => false)
@@ -126,6 +128,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showScriptPlanLimitExceededModal = (..._args: any[]) => {}
 
+  const showUpgradeToUseCalendarRange = (..._args: any[]) => {}
+
   return {
     calculatePrice,
     getLimit,
@@ -183,5 +187,7 @@ export const useEeConfig = createSharedComposable(() => {
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
     blockAddNewDashboard,
+    blockCalendarRange,
+    showUpgradeToUseCalendarRange,
   }
 })

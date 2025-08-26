@@ -15,7 +15,7 @@ import {
 } from 'nocodb-sdk';
 import { ViewRowColorService } from './view-row-color.service';
 import type { NcContext } from '~/interface/config';
-import type { FormView, FormViewColumn, View } from '~/models';
+import type { CalendarRange, FormView, FormViewColumn, View } from '~/models';
 import { Base, Dashboard, Permission, Workspace } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getFeature } from '~/helpers/paymentHelpers';
@@ -39,6 +39,14 @@ export class PublicMetasService extends PublicMetasServiceCE {
     if (view.type === ViewTypes.FORM) {
       view = await this.validateFormViewPlanLimitAndFeatures(view, workspace);
     }
+
+    if (view.type === ViewTypes.CALENDAR) {
+      view = await this.validateCalendarViewPlanLimitAndFeatures(
+        view,
+        workspace,
+      );
+    }
+
     this.checkViewBaseType(view, base);
 
     const viewRowColorInfo = await this.viewRowColorService.getByViewId({
@@ -245,6 +253,42 @@ export class PublicMetasService extends PublicMetasServiceCE {
             ? parseProp(formView.meta).hide_branding
             : false,
         },
+      },
+    });
+    return view;
+  }
+
+  async validateCalendarViewPlanLimitAndFeatures(
+    view: Awaited<
+      ReturnType<typeof PublicMetasServiceCE.prototype.viewMetaGet>
+    >,
+    workspace: Workspace,
+  ) {
+    const isCalendarEndDateEnabled = await getFeature(
+      PlanFeatureTypes.FEATURE_CALENDAR_RANGE,
+      workspace,
+    );
+
+    const calendarView = view.view as any;
+
+    const calendarRanges = (calendarView.calendar_range ||
+      []) as CalendarRange[];
+    const calendarRangesWithEndDate = calendarRanges.map((range) => {
+      if (isCalendarEndDateEnabled || !range.fk_to_column_id) {
+        return range;
+      } else if (range.fk_to_column_id) {
+        return {
+          ...range,
+          fk_to_column_id: null,
+        };
+      }
+    });
+
+    Object.assign(view, {
+      ...view,
+      view: {
+        ...calendarView,
+        calendar_range: calendarRangesWithEndDate,
       },
     });
     return view;

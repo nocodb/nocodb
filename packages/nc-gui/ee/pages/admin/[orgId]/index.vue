@@ -146,6 +146,20 @@ onMounted(async () => {
                 <div class="select-none">{{ $t('title.sso') }}</div>
               </div>
             </NcMenuItem>
+            <NcMenuItem
+              key="billing"
+              :class="{
+                active: $route.params.page === 'billing',
+              }"
+              class="item"
+              data-test-id="nc-org-billing-settings"
+              @click="navigateTo(`/admin/${$route.params.orgId}/billing`)"
+            >
+              <div class="flex items-center space-x-2">
+                <GeneralIcon class="!h-4 !w-4" icon="ncDollarSign" />
+                <div class="select-none">{{ $t('general.billing') }}</div>
+              </div>
+            </NcMenuItem>
 
             <NcMenuItem
               key="settings"

@@ -56,7 +56,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r @swc-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:filter-transformation": "ts-node scripts/test-filter-transformation.ts"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^2.2.11",

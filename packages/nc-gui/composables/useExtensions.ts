@@ -34,6 +34,7 @@ abstract class ExtensionType {
   abstract kvStore: IKvStore<any>
   abstract meta: any
   abstract order: number
+  abstract minAccessRole: ExtensionManifest['minAccessRole']
   abstract setTitle(title: string): Promise<any>
   abstract setMeta(key: string, value: any): Promise<any>
   abstract clear(): Promise<any>
@@ -205,7 +206,7 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
-    const { id: _id, order: _order, ...extensionData } = extension.serialize()
+    const { id: _id, order: _order, minAccessRole: _minAccessRole, ...extensionData } = extension.serialize()
 
     const newExtension = await $api.extensions.create(base.value.id, {
       ...extensionData,
@@ -311,7 +312,7 @@ export const useExtensions = createSharedComposable(() => {
     private _kvStore: KvStore
     private _meta: any
     private _order: number
-
+    private _minAccessRole: ExtensionManifest['minAccessRole']
     public uiKey = 0
 
     constructor(data: any) {
@@ -323,6 +324,7 @@ export const useExtensions = createSharedComposable(() => {
       this._kvStore = new KvStore(this._id, data.kv_store)
       this._meta = data.meta
       this._order = data.order
+      this._minAccessRole = data.minAccessRole
     }
 
     get id() {
@@ -357,6 +359,10 @@ export const useExtensions = createSharedComposable(() => {
       return this._order
     }
 
+    get minAccessRole() {
+      return this._minAccessRole
+    }
+
     serialize() {
       return {
         id: this._id,
@@ -367,6 +373,7 @@ export const useExtensions = createSharedComposable(() => {
         kv_store: this._kvStore.serialize(),
         meta: this._meta,
         order: this._order,
+        minAccessRole: this._minAccessRole,
       }
     }
 
@@ -379,6 +386,7 @@ export const useExtensions = createSharedComposable(() => {
       this._kvStore = new KvStore(this._id, data.kv_store)
       this._meta = data.meta
       this._order = data.order
+      this._minAccessRole = data.minAccessRole
     }
 
     setTitle(title: string): Promise<any> {

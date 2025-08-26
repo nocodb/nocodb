@@ -198,6 +198,10 @@ function openTableCreateDialog(baseIndex?: number | undefined, showSourceSelecto
     onCloseCallback: () => {
       isExpanded.value = true
 
+      if (forceShowBaseList.value) {
+        forceShowBaseList.value = false
+      }
+
       if (!activeKey.value || !activeKey.value.includes(`collapse-${sourceId}`)) {
         activeKey.value.push(`collapse-${sourceId}`)
       }

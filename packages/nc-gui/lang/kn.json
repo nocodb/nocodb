@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "ಕಾರ್ಯಕ್ಷೇತ್ರ ಚಿತ್ರವನ್ನು ಅಪ್\r\u000bಲೋಡ್ ಮಾಡಲು ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ",
     "upgradeToUploadWsImageSubtitle": "ನಿಮ್ಮ ಪ್ರಸ್ತುತ {activePlan} ಯೋಜನೆ ಐಕಾನ್‌ಗಳು ಮತ್ತು ಇಮೋಜಿಗಳನ್ನು ಮಾತ್ರ ಅನುಮತಿಸುತ್ತದೆ. ಕಾರ್ಯಕ್ಷೇತ್ರ ಅವತಾರವಾಗಿ ಕಸ್ಟಮ್ ಚಿತ್ರವನ್ನು ಅಪ್\r\u000bಲೋಡ್ ಮಾಡಲು {plan} ಯೋಜನೆಗೆ ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToUseCurrentUserFilter": "ಪ್ರಸ್ತುತ ಬಳಕೆದಾರ ಆಧಾರದ ಮೇಲೆ ಫಿಲ್ಟರ್ ಮಾಡಲು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "ಪ್ರಸ್ತುತ ಬಳಕೆದಾರ ಆಧಾರಿತ ಫಿಲ್ಟರ್‌ಗಳನ್ನು ಬಳಸಲು {plan} ಯೋಜನೆಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

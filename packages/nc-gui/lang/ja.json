@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "アップグレードしてワークスペース画像をアップロード",
     "upgradeToUploadWsImageSubtitle": "現在の{activePlan}プランではアイコンと絵文字のみ使用できます。{plan}プランへアップグレードしてカスタム画像をワークスペースのアバターとしてアップロードしましょう。",
     "upgradeToUseCurrentUserFilter": "現在のユーザーでフィルタリングにアップグレード",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "現在のユーザーに基づくデータフィルター機能を利用するには{plan}プランにアップグレードしてください。",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

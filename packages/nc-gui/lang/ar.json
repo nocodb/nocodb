@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "قم بالترقية لتحميل صورة لمساحة العمل",
     "upgradeToUploadWsImageSubtitle": "تسمح خطتك الحالية {activePlan} بالأيقونات والرموز التعبيرية فقط. قم بالترقية إلى خطة {plan} لتحميل صورة مخصصة كصورة رمزية لمساحة العمل.",
     "upgradeToUseCurrentUserFilter": "قم بالترقية للتصفية حسب المستخدم الحالي",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "قم بالترقية إلى خطة {plan} لاستخدام عوامل التصفية التي تعرض البيانات حسب المستخدم الحالي.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

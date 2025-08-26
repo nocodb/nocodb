@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Çalışma alanı resmi yüklemek için yükseltin",
     "upgradeToUploadWsImageSubtitle": "Mevcut {activePlan} planınız yalnızca simgeler ve emojilere izin veriyor. Çalışma alanı avatarınız için özel bir resim yüklemek adına {plan} planına yükseltin.",
     "upgradeToUseCurrentUserFilter": "Mevcut kullanıcıya göre filtrelemek için yükseltin",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Mevcut kullanıcıya göre veri gösteren filtreleri kullanmak için {plan} planına yükseltin.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -1466,7 +1468,9 @@
     "sharingRestricted": "Paylaşım kısıtlı",
     "importOptions": "İçe Aktarma Seçenekleri",
     "newScript": "Yeni Script",
-    "emptyScript": "Boş Script"
+    "emptyScript": "Boş Script",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Çözmek için tıklayın",

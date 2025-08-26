@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "ធ្វើបច្ចុប្បន្នភាពដើម្បីផ្ទុករូប Workspace",
     "upgradeToUploadWsImageSubtitle": "គម្រោង {activePlan} បច្ចុប្បន្នអនុញ្ញាតបានតែរូបតំណាងនិងអ៊ីមូជី។ សូមធ្វើបច្ចុប្បន្នភាពទៅគម្រោង {plan} ដើម្បីផ្ទុករូបភាពផ្ទាល់ខ្លួនជារូបអាវ៉ាតារ Workspace របស់អ្នក។",
     "upgradeToUseCurrentUserFilter": "ធ្វើបច្ចុប្បន្នភាពដើម្បីត្រងតាមអ្នកប្រើបច្ចុប្បន្ន",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "ធ្វើបច្ចុប្បន្នភាពទៅផែនការ {plan} ដើម្បីប្រើ filter បង្ហាញទិន្នន័យផ្អែកលើអ្នកប្រើប្រាស់បច្ចុប្បន្ន។",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -1466,7 +1468,9 @@
     "sharingRestricted": "ការចែកចាយត្រូវបានកំណត់សិទ្ធិ",
     "importOptions": "ជម្រើសនាំចូល",
     "newScript": "ស្គ្រីបថ្មី",
-    "emptyScript": "ស្គ្រីបទទេ"
+    "emptyScript": "ស្គ្រីបទទេ",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "ចុចដើម្បីដោះស្រាយ",

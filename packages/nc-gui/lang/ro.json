@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Fă upgrade pentru a încărca o imagine pentru workspace",
     "upgradeToUploadWsImageSubtitle": "Planul tău {activePlan} permite doar pictograme și emoji. Fă upgrade la planul {plan} pentru a încărca o imagine personalizată ca avatar al workspace-ului.",
     "upgradeToUseCurrentUserFilter": "Actualizați pentru a filtra după utilizatorul curent",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Faceți upgrade la planul {plan} pentru a utiliza filtre care afișează datele pe baza utilizatorului curent.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -1466,7 +1468,9 @@
     "sharingRestricted": "Partajarea este restricționată",
     "importOptions": "Opțiuni de import",
     "newScript": "Script nou",
-    "emptyScript": "Script gol"
+    "emptyScript": "Script gol",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Fă clic pentru a rezolva",

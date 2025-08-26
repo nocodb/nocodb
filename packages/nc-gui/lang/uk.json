@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Оновіть тариф, щоб завантажити зображення робочого простору",
     "upgradeToUploadWsImageSubtitle": "Ваш поточний тариф {activePlan} дозволяє лише іконки та емодзі. Перейдіть на тариф {plan}, щоб завантажити власне зображення як аватар робочого простору.",
     "upgradeToUseCurrentUserFilter": "Оновіть тариф, щоб фільтрувати за поточним користувачем",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Оновіть до тарифного плану {plan}, щоб використовувати фільтри, які відображають дані на основі поточного користувача.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -1466,7 +1468,9 @@
     "sharingRestricted": "Обмежене спільне використання",
     "importOptions": "Параметри імпорту",
     "newScript": "Новий скрипт",
-    "emptyScript": "Порожній скрипт"
+    "emptyScript": "Порожній скрипт",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Натисніть для вирішення",

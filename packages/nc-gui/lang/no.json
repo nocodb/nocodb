@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Oppgrader for å laste opp et arbeidsområdebilde",
     "upgradeToUploadWsImageSubtitle": "Den nåværende {activePlan}-planen tillater kun ikoner og emojier. Oppgrader til {plan}-planen for å laste opp et eget bilde som arbeidsområde-avatar.",
     "upgradeToUseCurrentUserFilter": "Oppgrader for å filtrere etter nåværende bruker",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Oppgrader til {plan}-planen for å bruke filtre som viser data basert på nåværende bruker.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -1466,7 +1468,9 @@
     "sharingRestricted": "Deling begrenset",
     "importOptions": "Importalternativer",
     "newScript": "Nytt skript",
-    "emptyScript": "Tomt skript"
+    "emptyScript": "Tomt skript",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Klikk for å løse",

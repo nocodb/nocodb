@@ -1466,7 +1466,9 @@
     "sharingRestricted": "ಹಂಚಿಕೆ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ",
     "importOptions": "ಆಮದು ಆಯ್ಕೆಗಳು",
     "newScript": "ಹೊಸ ಸ್ಕ್ರಿಪ್ಟ್",
-    "emptyScript": "ಖಾಲಿ ಸ್ಕ್ರಿಪ್ಟ್"
+    "emptyScript": "ಖಾಲಿ ಸ್ಕ್ರಿಪ್ಟ್",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "ಪರಿಹರಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",

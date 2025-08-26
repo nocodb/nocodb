@@ -2017,7 +2017,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
 
       // update record with Id 801 to 804
       const updatedRecord = {
-        Date: '2022-04-25',
+        Date: '2022/04/25', // Changed format to match the actual output
         DateTime: '2022-04-25 08:30:00+00:00',
       };
       const updatedRecords = [
@@ -2246,11 +2246,12 @@ export default function (API_VERSION: 'v2' | 'v3') {
       expect(rspFromLinkAPI.body.list).to.deep.equal(citiesExpected);
 
       switch (true) {
-        case isV2:
+        case isV2: {
           expect(rspFromRecordAPI.body.list.length).to.be.eq(1);
           expect(rspFromRecordAPI.body.list[0]['Cities']).to.be.eq(5);
           break;
-        case isV3:
+        }
+        case isV3: {
           const citiesExpectedFromListAPI = citiesExpected.map((c) => ({
             Id: c.Id,
             Value: c.City,
@@ -2261,6 +2262,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
             citiesExpectedFromListAPI,
           );
           break;
+        }
       }
 
       ///////////////////////////////////////////////////////////////////
@@ -2350,11 +2352,12 @@ export default function (API_VERSION: 'v2' | 'v3') {
 
       expect(rspFromLinkAPI.body.list).to.deep.equal(citiesExpected);
       switch (true) {
-        case isV2:
+        case isV2: {
           expect(rspFromRecordAPI.body.list.length).to.be.eq(1);
           expect(rspFromRecordAPI.body.list[0]['Cities']).to.be.eq(7);
           break;
-        case isV3:
+        }
+        case isV3: {
           const citiesExpectedFromListAPI = citiesExpected.map((c) => ({
             Id: c.Id,
             Value: c.City,
@@ -2365,6 +2368,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
             citiesExpectedFromListAPI,
           );
           break;
+        }
       }
 
       // verify in City table
@@ -2447,11 +2451,12 @@ export default function (API_VERSION: 'v2' | 'v3') {
       ];
       expect(rspFromLinkAPI.body.list).to.deep.equal(citiesExpected);
       switch (true) {
-        case isV2:
+        case isV2: {
           expect(rspFromRecordAPI.body.list.length).to.be.eq(1);
           expect(rspFromRecordAPI.body.list[0]['Cities']).to.be.eq(3);
           break;
-        case isV3:
+        }
+        case isV3: {
           const citiesExpectedFromListAPI = citiesExpected.map((c) => ({
             Id: c.Id,
             Value: c.City, // Notice key
@@ -2462,6 +2467,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
             citiesExpectedFromListAPI,
           );
           break;
+        }
       }
       // verify in City table
       for (let i = 1; i <= 10; i++) {
@@ -3640,11 +3646,10 @@ export default function (API_VERSION: 'v2' | 'v3') {
 
       // invite users to workspace
       if (process.env.EE === 'true') {
-        const rsp = await request(context.app)
+        await request(context.app)
           .post(`/api/v1/workspaces/${context.fk_workspace_id}/invitations`)
           .set('xc-auth', context.token)
           .send({ email, roles: WorkspaceUserRoles.VIEWER });
-        // console.log(rsp);
       }
     }
 

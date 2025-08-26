@@ -25,7 +25,6 @@ import {
   LongTextAiMetaProp,
   NcApiVersion,
   NcErrorType,
-  ncIsArray,
   ncIsNull,
   ncIsObject,
   ncIsUndefined,
@@ -96,7 +95,7 @@ import {
   isPrimitiveType,
   nanoidv2,
   populatePk,
-  transformObject,
+  transformObjectKeys,
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
@@ -125,6 +124,7 @@ import {
   generateAuditV1Payload,
   nocoExecute,
   populateUpdatePayloadDiff,
+  processConcurrently,
   remapWithAlias,
   removeBlankPropsAndMask,
 } from '~/utils';
@@ -145,6 +145,9 @@ const JSON_COLUMN_TYPES = [UITypes.Button];
 const ORDER_STEP_INCREMENT = 1;
 
 const MAX_RECURSION_DEPTH = 2;
+
+const SELECT_REGEX = /^(\(|)select/i;
+const INSERT_REGEX = /^(\(|)insert/i;
 
 /**
  * Base class for models
@@ -5217,9 +5220,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (this.isPg || this.isSnowflake) {
       return (await trx.raw(query))?.rows;
-    } else if (/^(\(|)select/i.test(query)) {
+    } else if (SELECT_REGEX.test(query)) {
       return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
-    } else if (this.isMySQL && /^(\(|)insert/i.test(query)) {
+    } else if (this.isMySQL && INSERT_REGEX.test(query)) {
       const res = await trx.raw(query);
       if (res && res[0] && res[0].insertId) {
         return res[0].insertId;
@@ -5353,9 +5356,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     const idToAliasMap: Record<string, string> = {};
-    const idToAliasPromiseMap: Record<string, Promise<string>> = {};
     const ltarMap: Record<string, boolean> = {};
+    const missingColumnIds = new Set<string>();
 
+    // Build initial maps and collect missing column IDs
     for (let col of modelColumns) {
       if (aliasColumns && col.id in aliasColumns) {
         aliasColumns[col.id].id = col.id;
@@ -5364,101 +5368,112 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       idToAliasMap[col.id] = col.title;
-      if ([UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(col.uidt)) {
+
+      const isLtarColumn = [
+        UITypes.LinkToAnotherRecord,
+        UITypes.Lookup,
+      ].includes(col.uidt);
+      if (isLtarColumn) {
         if (col.uidt === UITypes.Lookup) {
           const nestedCol = await this.getNestedColumn(col);
           if (nestedCol?.uidt !== UITypes.LinkToAnotherRecord) {
+            ltarMap[col.id] = false;
             continue;
           }
         }
 
         ltarMap[col.id] = true;
-        const linkData = Object.values(data).find(
+
+        // Find any data that contains this column and collect missing column IDs
+        const linkData = data.find(
           (d) =>
             d[col.id] &&
-            // we need this check because Object.keys of array exists with 0 length
-            // so if it's an array we need to check if it contains item
-            ((!Array.isArray(d[col.id]) && Object.keys(d[col.id])) ||
+            ((!Array.isArray(d[col.id]) && Object.keys(d[col.id]).length > 0) ||
               (Array.isArray(d[col.id]) && d[col.id].length > 0)),
         );
-        if (linkData) {
-          if (typeof linkData[col.id] === 'object') {
-            for (const k of Object.keys(
-              Array.isArray(linkData[col.id])
-                ? linkData[col.id][0] || {}
-                : linkData[col.id],
-            )) {
-              const linkAlias = idToAliasMap[k];
-              if (!linkAlias) {
-                idToAliasPromiseMap[k] = Column.get(this.context, {
-                  colId: k,
-                })
-                  .then((col) => {
-                    return col?.title;
-                  })
-                  .catch((e) => {
-                    return Promise.resolve(e);
-                  });
-              }
+
+        if (linkData && typeof linkData[col.id] === 'object') {
+          const sampleData = Array.isArray(linkData[col.id])
+            ? linkData[col.id][0] || {}
+            : linkData[col.id];
+
+          Object.keys(sampleData).forEach((k) => {
+            if (!idToAliasMap[k]) {
+              missingColumnIds.add(k);
             }
-          } else {
-            // Has Many BT
-            const linkAlias = idToAliasMap[col.id];
-            if (!linkAlias) {
-              idToAliasPromiseMap[col.id] = Column.get(this.context, {
-                colId: col.id,
-              })
-                .then((col) => {
-                  return col?.title;
-                })
-                .catch((e) => {
-                  return Promise.resolve(e);
-                });
-            }
-          }
+          });
         }
       } else {
         ltarMap[col.id] = false;
       }
     }
-    for (const k of Object.keys(idToAliasPromiseMap)) {
-      idToAliasMap[k] = await idToAliasPromiseMap[k];
-      if ((idToAliasMap[k] as unknown) instanceof Error) {
-        throw idToAliasMap[k];
-      }
-    }
-    data.forEach((item) => {
-      Object.entries(item).forEach(([key, value]) => {
-        const alias = idToAliasMap[key];
-        if (alias) {
-          if (ltarMap[key]) {
-            // Handle LTAR/Lookup columns
-            if (
-              ncIsArray(value) &&
-              value.length > 0 &&
-              ncIsObject(value.filter((k) => k)[0])
-            ) {
-              // Transform array of objects
-              item[alias] = value.map((arrVal) =>
-                transformObject(arrVal, idToAliasMap),
-              );
-            } else if (ncIsObject(value) && !ncIsArray(value)) {
-              // Transform non-array objects
-              item[alias] = transformObject(value, idToAliasMap);
-            } else {
-              // Directly assign arrays of primitives or primitive values
-              item[alias] = value;
-            }
-          } else {
-            // Non-LTAR/Lookup columns: direct assignment
-            item[alias] = value;
-          }
-          delete item[key];
+
+    // Fetch all missing column aliases concurrently
+    if (missingColumnIds.size > 0) {
+      const columnPromises = Array.from(missingColumnIds).map(async (k) => {
+        try {
+          const col = await Column.get(this.context, { colId: k });
+          return { id: k, title: col?.title };
+        } catch (e) {
+          // ignore error to avoid breaking the entire response
+          return {};
         }
       });
-    });
 
-    return data;
+      const columnResults = await Promise.all(columnPromises);
+
+      // Update the alias map with fetched columns
+      columnResults.forEach(({ id, title }) => {
+        if (title) {
+          idToAliasMap[id] = title;
+        }
+      });
+    }
+
+    // Transform data in a single pass
+    return data.map((item) => {
+      const transformedItem = {};
+
+      Object.entries(item).forEach(([key, value]) => {
+        const alias = idToAliasMap[key];
+        const targetKey = alias || key;
+
+        if (alias && ltarMap[key]) {
+          // Handle LTAR/Lookup columns
+          if (
+            Array.isArray(value) &&
+            value.length > 0 &&
+            value[0] &&
+            typeof value[0] === 'object' &&
+            !Array.isArray(value[0])
+          ) {
+            // Transform array of objects
+            transformedItem[targetKey] = value.map((arrVal) => {
+              if (!arrVal || typeof arrVal !== 'object') return arrVal;
+              return transformObjectKeys(arrVal, idToAliasMap);
+            });
+          } else if (
+            value &&
+            typeof value === 'object' &&
+            !Array.isArray(value)
+          ) {
+            // Transform non-array objects
+            transformedItem[targetKey] = transformObjectKeys(
+              value,
+              idToAliasMap,
+            );
+          } else {
+            // Directly assign arrays of primitives or primitive values
+            transformedItem[targetKey] = value;
+          }
+        } else {
+          // Non-LTAR/Lookup columns or unmapped columns: direct assignment
+          transformedItem[targetKey] = value;
+        }
+      });
+
+      return transformedItem;
+    });
   }
 
   protected async convertUserFormat(
@@ -5468,69 +5483,84 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     // user is stored as id within the database
     // convertUserFormat is used to convert the response in id to user object in API response
-    if (data) {
-      let userColumns = [];
+    if (!data) {
+      return data;
+    }
 
-      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+    const columns = this.model?.columns.concat(dependencyColumns ?? []);
 
-      for (const col of columns) {
-        if (col.uidt === UITypes.Lookup) {
-          if (
-            [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
-              (await this.getNestedColumn(col))?.uidt as UITypes,
-            )
-          ) {
-            userColumns.push(col);
-          }
-        } else {
-          if (
-            [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
-              col.uidt,
-            )
-          ) {
-            userColumns.push(col);
-          }
-        }
-      }
+    // Separate columns by type for more efficient processing
+    const directUserColumns = [];
+    const lookupColumns = [];
 
-      // filter user columns that are not present in data
-      if (userColumns.length) {
-        if (Array.isArray(data)) {
-          const row = data[0];
-          if (row) {
-            userColumns = userColumns.filter((col) => col.id in row);
-          }
-        } else {
-          userColumns = userColumns.filter((col) => col.id in data);
-        }
-      }
-
-      // process user columns that are present in data
-      if (userColumns.length) {
-        const baseUsers = await BaseUser.getUsersList(this.context, {
-          base_id: this.model.base_id,
-          include_internal_user: true,
-        });
-
-        await PresignedUrl.signMetaIconImage(baseUsers);
-
-        if (Array.isArray(data)) {
-          data = await Promise.all(
-            data.map((d) =>
-              this._convertUserFormat(userColumns, baseUsers, d, apiVersion),
-            ),
-          );
-        } else {
-          data = this._convertUserFormat(
-            userColumns,
-            baseUsers,
-            data,
-            apiVersion,
-          );
-        }
+    for (const col of columns) {
+      if (col.uidt === UITypes.Lookup) {
+        lookupColumns.push(col);
+      } else if (
+        [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+          col.uidt,
+        )
+      ) {
+        directUserColumns.push(col);
       }
     }
-    return data;
+
+    // Process lookup columns in parallel to find user columns
+    const lookupUserColumns =
+      lookupColumns.length > 0
+        ? await Promise.all(
+            lookupColumns.map(async (col) => {
+              try {
+                const nestedCol = await this.getNestedColumn(col);
+                return [
+                  UITypes.User,
+                  UITypes.CreatedBy,
+                  UITypes.LastModifiedBy,
+                ].includes(nestedCol?.uidt as UITypes)
+                  ? col
+                  : null;
+              } catch {
+                return null;
+              }
+            }),
+          ).then((results) => results.filter(Boolean))
+        : [];
+
+    const allUserColumns = [...directUserColumns, ...lookupUserColumns];
+
+    if (!allUserColumns.length) {
+      return data;
+    }
+
+    // Fetch users and sign meta icons in parallel
+    const baseUsers = await BaseUser.getUsersList(this.context, {
+      base_id: this.model.base_id,
+      include_internal_user: true,
+    });
+
+    await PresignedUrl.signMetaIconImage(baseUsers);
+
+    if (Array.isArray(data)) {
+      const userMap = new Map(baseUsers.map((user) => [user.id, user]));
+      return Promise.all(
+        data.map((d) =>
+          this._convertUserFormat(
+            allUserColumns,
+            baseUsers,
+            d,
+            apiVersion,
+            userMap,
+          ),
+        ),
+      );
+    } else {
+      return this._convertUserFormat(
+        allUserColumns,
+        baseUsers,
+        data,
+        apiVersion,
+      );
+    }
   }
 
   protected _convertUserFormat(
@@ -5538,19 +5568,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     baseUsers: Partial<User>[],
     d: Record<string, any>,
     apiVersion?: NcApiVersion,
+    userMapInit?: Map<string, Partial<User> & BaseUser>,
   ) {
     try {
-      if (d) {
+      if (d && baseUsers.length) {
+        const userMap =
+          userMapInit || new Map(baseUsers.map((user) => [user.id, user]));
+
         const availableUserColumns = userColumns.filter(
           (col) => d[col.id] && d[col.id].length,
         );
+
         for (const col of availableUserColumns) {
           d[col.id] = d[col.id].split(',');
 
           d[col.id] = d[col.id].map((fid) => {
-            const { id, email, display_name, meta } = baseUsers.find(
-              (u) => u.id === fid,
-            );
+            const user = userMap.get(fid);
+            if (!user) {
+              return { id: fid, email: null, display_name: null, meta: null };
+            }
+
+            const { id, email, display_name, meta } = user;
 
             let metaObj: any;
             if (apiVersion !== NcApiVersion.V3) {
@@ -5582,191 +5620,151 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     d: Record<string, any>,
   ) {
     try {
-      if (d) {
-        const promises = [];
-        for (const col of attachmentColumns) {
-          if (d[col.id] && typeof d[col.id] === 'string') {
+      if (!d || !attachmentColumns.length) {
+        return d;
+      }
+
+      const allAttachments = [];
+      const allThumbnails = [];
+
+      // First pass: parse JSON and collect all attachment instances (no deduplication)
+      for (const col of attachmentColumns) {
+        if (!d[col.id]) continue;
+
+        // Parse JSON if needed
+        if (typeof d[col.id] === 'string') {
+          try {
             d[col.id] = JSON.parse(d[col.id]);
+          } catch {
+            continue;
+          }
+        }
+
+        if (!Array.isArray(d[col.id]) || !d[col.id].length) continue;
+
+        // Process each attachment instance individually
+        for (let i = 0; i < d[col.id].length; i++) {
+          const item = d[col.id][i];
+
+          if (typeof item === 'string') {
+            try {
+              d[col.id][i] = JSON.parse(item);
+            } catch {
+              continue;
+            }
           }
 
-          if (d[col.id]?.length) {
-            d[col.id] = d[col.id].filter(
-              (attr) => !attr.id?.startsWith('temp_'),
-            );
-            for (let i = 0; i < d[col.id].length; i++) {
-              if (typeof d[col.id][i] === 'string') {
-                d[col.id][i] = JSON.parse(d[col.id][i]);
-              }
+          const attachment = d[col.id][i];
 
-              const attachment = d[col.id][i];
+          if (attachment.id?.startsWith('temp_')) {
+            // Skip temporary attachments
+            continue;
+          }
 
-              // we expect array of array of attachments in case of lookup
-              if (Array.isArray(attachment)) {
-                for (const lookedUpAttachment of attachment) {
-                  if (lookedUpAttachment?.path) {
-                    promises.push(
-                      PresignedUrl.signAttachment({
-                        attachment: lookedUpAttachment,
-                        filename: lookedUpAttachment.title,
-                      }),
-                    );
-
-                    if (!supportsThumbnails(lookedUpAttachment)) {
-                      continue;
-                    }
-
-                    lookedUpAttachment.thumbnails = {
-                      tiny: {},
-                      small: {},
-                      card_cover: {},
-                    };
-
-                    const thumbnailPath = `thumbnails/${lookedUpAttachment.path.replace(
-                      /^download[/\\]/i,
-                      '',
-                    )}`;
-
-                    for (const key of Object.keys(
-                      lookedUpAttachment.thumbnails,
-                    )) {
-                      promises.push(
-                        PresignedUrl.signAttachment({
-                          attachment: {
-                            ...lookedUpAttachment,
-                            path: `${thumbnailPath}/${key}.jpg`,
-                          },
-                          filename: lookedUpAttachment.title,
-                          mimetype: 'image/jpeg',
-                          nestedKeys: ['thumbnails', key],
-                        }),
-                      );
-                    }
-                  } else if (lookedUpAttachment?.url) {
-                    if (lookedUpAttachment?.url.startsWith('data:')) {
-                      continue;
-                    }
-
-                    promises.push(
-                      PresignedUrl.signAttachment({
-                        attachment: lookedUpAttachment,
-                        filename: lookedUpAttachment.title,
-                      }),
-                    );
-
-                    if (!supportsThumbnails(lookedUpAttachment)) {
-                      continue;
-                    }
-
-                    const thumbnailUrl = lookedUpAttachment.url.replace(
-                      'nc/uploads',
-                      'nc/thumbnails',
-                    );
-
-                    lookedUpAttachment.thumbnails = {
-                      tiny: {},
-                      small: {},
-                      card_cover: {},
-                    };
-
-                    for (const key of Object.keys(
-                      lookedUpAttachment.thumbnails,
-                    )) {
-                      promises.push(
-                        PresignedUrl.signAttachment({
-                          attachment: {
-                            ...lookedUpAttachment,
-                            url: `${thumbnailUrl}/${key}.jpg`,
-                          },
-                          filename: lookedUpAttachment.title,
-                          mimetype: 'image/jpeg',
-                          nestedKeys: ['thumbnails', key],
-                        }),
-                      );
-                    }
-                  }
-                }
-              } else {
-                if (attachment?.path) {
-                  promises.push(
-                    PresignedUrl.signAttachment({
-                      attachment,
-                      filename: attachment.title,
-                    }),
-                  );
-
-                  if (!supportsThumbnails(attachment)) {
-                    continue;
-                  }
-
-                  const thumbnailPath = `thumbnails/${attachment.path.replace(
-                    /^download[/\\]/i,
-                    '',
-                  )}`;
-
-                  attachment.thumbnails = {
-                    tiny: {},
-                    small: {},
-                    card_cover: {},
-                  };
-
-                  for (const key of Object.keys(attachment.thumbnails)) {
-                    promises.push(
-                      PresignedUrl.signAttachment({
-                        attachment: {
-                          ...attachment,
-                          path: `${thumbnailPath}/${key}.jpg`,
-                        },
-                        filename: attachment.title,
-                        mimetype: 'image/jpeg',
-                        nestedKeys: ['thumbnails', key],
-                      }),
-                    );
-                  }
-                } else if (attachment?.url) {
-                  if (attachment?.url.startsWith('data:')) {
-                    continue;
-                  }
-
-                  promises.push(
-                    PresignedUrl.signAttachment({
-                      attachment,
-                      filename: attachment.title,
-                    }),
-                  );
-
-                  const thumbhailUrl = attachment.url.replace(
-                    'nc/uploads',
-                    'nc/thumbnails',
-                  );
-
-                  attachment.thumbnails = {
-                    tiny: {},
-                    small: {},
-                    card_cover: {},
-                  };
-
-                  for (const key of Object.keys(attachment.thumbnails)) {
-                    promises.push(
-                      PresignedUrl.signAttachment({
-                        attachment: {
-                          ...attachment,
-                          url: `${thumbhailUrl}/${key}.jpg`,
-                        },
-                        filename: attachment.title,
-                        mimetype: 'image/jpeg',
-                        nestedKeys: ['thumbnails', key],
-                      }),
-                    );
-                  }
-                }
-              }
+          // Handle array of arrays (lookup case)
+          for (const lookedUpAttachment of Array.isArray(attachment)
+            ? attachment
+            : [attachment]) {
+            const thumbnails =
+              this.prepareAttachmentForSigning(lookedUpAttachment);
+            if (
+              lookedUpAttachment &&
+              (lookedUpAttachment.path || lookedUpAttachment.url)
+            ) {
+              allAttachments.push(lookedUpAttachment);
+              allThumbnails.push(...thumbnails);
             }
           }
         }
-        await Promise.all(promises);
       }
-    } catch {}
+
+      await processConcurrently(
+        allAttachments,
+        async (item) => {
+          try {
+            await PresignedUrl.signAttachment({
+              attachment: item,
+              filename: item.title,
+            });
+          } catch (e) {}
+        },
+        15,
+      );
+
+      await processConcurrently(
+        allThumbnails,
+        async ({ attachment, thumbnailKey, thumbnailPath }) => {
+          try {
+            await PresignedUrl.signAttachment({
+              attachment: {
+                ...attachment,
+                ...(attachment.path
+                  ? { path: thumbnailPath }
+                  : { url: thumbnailPath }),
+              },
+              filename: attachment.title,
+              mimetype: 'image/jpeg',
+              nestedKeys: ['thumbnails', thumbnailKey],
+            });
+          } catch (e) {}
+        },
+        15,
+      );
+    } catch (error) {
+      // Log error but don't throw to avoid breaking the entire response
+      console.warn('Error in _convertAttachmentType:', error.message);
+    }
+
     return d;
+  }
+
+  private prepareAttachmentForSigning(attachment: any) {
+    const thumbnails = [];
+
+    if (!attachment || (!attachment.path && !attachment.url)) {
+      return thumbnails;
+    }
+
+    // Skip data URLs
+    if (attachment.url?.startsWith('data:')) {
+      return thumbnails;
+    }
+
+    // Process thumbnails for images
+    if (supportsThumbnails(attachment)) {
+      attachment.thumbnails = {
+        tiny: {},
+        small: {},
+        card_cover: {},
+      };
+
+      const thumbnailKeys = Object.keys(attachment.thumbnails);
+
+      for (const key of thumbnailKeys) {
+        let thumbnailPath: string;
+
+        if (attachment.path) {
+          const cleanPath = attachment.path.replace(/^download[/\\]/i, '');
+          thumbnailPath = `thumbnails/${cleanPath}/${key}.jpg`;
+        } else if (attachment.url) {
+          const thumbnailUrl = attachment.url.replace(
+            'nc/uploads',
+            'nc/thumbnails',
+          );
+          thumbnailPath = `${thumbnailUrl}/${key}.jpg`;
+        }
+
+        if (thumbnailPath) {
+          thumbnails.push({
+            attachment,
+            thumbnailKey: key,
+            thumbnailPath,
+          });
+        }
+      }
+    }
+
+    return thumbnails;
   }
 
   protected async _convertJsonType(
@@ -5843,69 +5841,86 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     // buttons & AI result are stringified json in Sqlite and need to be parsed
     // converJsonTypes is used to convert the response in string to object in API response
-    if (data) {
-      const jsonCols = [];
+    if (!data) {
+      return data;
+    }
 
-      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+    const columns = this.model?.columns.concat(dependencyColumns ?? []);
 
-      for (const col of columns) {
-        if (col.uidt === UITypes.Lookup) {
-          const lookupNestedCol = await this.getNestedColumn(col);
+    // Separate JSON and lookup columns for efficient processing
+    const directJsonColumns = [];
+    const lookupColumns = [];
 
-          if (
-            JSON_COLUMN_TYPES.includes(lookupNestedCol.uidt) ||
-            isAIPromptCol(lookupNestedCol)
-          ) {
-            jsonCols.push(col);
-          }
-        } else {
-          if (JSON_COLUMN_TYPES.includes(col.uidt) || isAIPromptCol(col)) {
-            jsonCols.push(col);
-          }
-        }
-      }
-
-      if (jsonCols.length) {
-        if (Array.isArray(data)) {
-          data = await Promise.all(
-            data.map((d) => this._convertJsonType(jsonCols, d)),
-          );
-        } else {
-          data = await this._convertJsonType(jsonCols, data);
-        }
+    for (const col of columns) {
+      if (JSON_COLUMN_TYPES.includes(col.uidt) || isAIPromptCol(col)) {
+        directJsonColumns.push(col);
+      } else if (col.uidt === UITypes.Lookup) {
+        lookupColumns.push(col);
       }
     }
-    return data;
+
+    // Process lookup columns in parallel to find JSON columns
+    const lookupJsonColumns =
+      lookupColumns.length > 0
+        ? await Promise.all(
+            lookupColumns.map(async (col) => {
+              try {
+                const lookupNestedCol = await this.getNestedColumn(col);
+                return JSON_COLUMN_TYPES.includes(lookupNestedCol.uidt) ||
+                  isAIPromptCol(lookupNestedCol)
+                  ? col
+                  : null;
+              } catch (error) {
+                // Log error but continue processing
+                console.warn(
+                  `Error processing lookup column ${col.id}:`,
+                  error,
+                );
+                return null;
+              }
+            }),
+          ).then((results) => results.filter(Boolean))
+        : [];
+
+    const allJsonColumns = [...directJsonColumns, ...lookupJsonColumns];
+
+    if (!allJsonColumns.length) {
+      return data;
+    }
+
+    if (Array.isArray(data)) {
+      return Promise.all(
+        data.map((d) => this._convertJsonType(allJsonColumns, d)),
+      );
+    } else {
+      return this._convertJsonType(allJsonColumns, data);
+    }
   }
 
   public async convertMultiSelectTypes(
     data: Record<string, any>,
     dependencyColumns?: Column[],
   ) {
-    if (data) {
-      const multiSelectColumns = [];
-
-      const columns = this.model?.columns.concat(dependencyColumns ?? []);
-
-      for (const col of columns) {
-        if (col.uidt === UITypes.MultiSelect) {
-          multiSelectColumns.push(col);
-        }
-      }
-
-      if (multiSelectColumns.length) {
-        if (Array.isArray(data)) {
-          data = await Promise.all(
-            data.map((d) =>
-              this._convertMultiSelectType(multiSelectColumns, d),
-            ),
-          );
-        } else {
-          data = await this._convertMultiSelectType(multiSelectColumns, data);
-        }
-      }
+    if (!data) {
+      return data;
     }
-    return data;
+
+    const columns = this.model?.columns.concat(dependencyColumns ?? []);
+    const multiSelectColumns = columns.filter(
+      (col) => col.uidt === UITypes.MultiSelect,
+    );
+
+    if (!multiSelectColumns.length) {
+      return data;
+    }
+
+    if (Array.isArray(data)) {
+      return Promise.all(
+        data.map((d) => this._convertMultiSelectType(multiSelectColumns, d)),
+      );
+    } else {
+      return this._convertMultiSelectType(multiSelectColumns, data);
+    }
   }
 
   public async convertAttachmentType(
@@ -5914,34 +5929,60 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
-    if (data) {
-      const attachmentColumns = [];
+    if (!data) {
+      return data;
+    }
 
-      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+    const columns = this.model?.columns.concat(dependencyColumns ?? []);
 
-      for (const col of columns) {
-        if (col.uidt === UITypes.Lookup) {
-          if ((await this.getNestedColumn(col))?.uidt === UITypes.Attachment) {
-            attachmentColumns.push(col);
-          }
-        } else {
-          if (col.uidt === UITypes.Attachment) {
-            attachmentColumns.push(col);
-          }
-        }
-      }
+    // Separate attachment and lookup columns for efficient processing
+    const directAttachmentColumns = [];
+    const lookupColumns = [];
 
-      if (attachmentColumns.length) {
-        if (Array.isArray(data)) {
-          data = await Promise.all(
-            data.map((d) => this._convertAttachmentType(attachmentColumns, d)),
-          );
-        } else {
-          data = await this._convertAttachmentType(attachmentColumns, data);
-        }
+    for (const col of columns) {
+      if (col.uidt === UITypes.Attachment) {
+        directAttachmentColumns.push(col);
+      } else if (col.uidt === UITypes.Lookup) {
+        lookupColumns.push(col);
       }
     }
-    return data;
+
+    // Process lookup columns in parallel to find attachment columns
+    const lookupAttachmentColumns =
+      lookupColumns.length > 0
+        ? await Promise.all(
+            lookupColumns.map(async (col) => {
+              try {
+                const nestedCol = await this.getNestedColumn(col);
+                return nestedCol?.uidt === UITypes.Attachment ? col : null;
+              } catch (error) {
+                // Log error but continue processing
+                console.warn(
+                  `Error processing lookup column ${col.id}:`,
+                  error,
+                );
+                return null;
+              }
+            }),
+          ).then((results) => results.filter(Boolean))
+        : [];
+
+    const allAttachmentColumns = [
+      ...directAttachmentColumns,
+      ...lookupAttachmentColumns,
+    ];
+
+    if (!allAttachmentColumns.length) {
+      return data;
+    }
+
+    if (Array.isArray(data)) {
+      return Promise.all(
+        data.map((d) => this._convertAttachmentType(allAttachmentColumns, d)),
+      );
+    } else {
+      return this._convertAttachmentType(allAttachmentColumns, data);
+    }
   }
 
   // TODO(timezone): retrieve the format from the corresponding column meta
@@ -5950,9 +5991,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     d: Record<string, any>,
   ) {
     if (!d) return d;
+
+    // Cache timezone and regex patterns at the method level for better performance
+    const cachedTimeZone = this.isSqlite
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone
+      : null;
+
+    // Pre-compile regex patterns to avoid repeated compilation
+    // the pre-compiled patterns have mutable `lastIndex` property that we use below, so it cannot be made global to avoid race condition
+    const isoRegex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g;
+    const datetimeRegex =
+      /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g;
+    const noTimezoneRegex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
+
     for (const col of dateTimeColumns) {
       if (!d[col.id]) continue;
-
       if (col.uidt === UITypes.Formula) {
         if (!d[col.id] || typeof d[col.id] !== 'string') {
           continue;
@@ -5963,65 +6016,63 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           d[col.id] = d[col.id].replace(/\.000000/g, '');
         }
 
-        if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g.test(d[col.id])) {
+        // Reset regex lastIndex for reuse
+        isoRegex.lastIndex = 0;
+        if (isoRegex.test(d[col.id])) {
           // convert ISO string (e.g. in MSSQL) to YYYY-MM-DD hh:mm:ssZ
           // e.g. 2023-05-18T05:30:00.000Z -> 2023-05-18 11:00:00+05:30
-          d[col.id] = d[col.id].replace(
-            /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g,
-            (d: string) => {
-              if (!dayjs(d).isValid()) return d;
-              if (this.isSqlite) {
-                // e.g. DATEADD formula
-                return dayjs(d).utc().format('YYYY-MM-DD HH:mm:ssZ');
-              }
-              return dayjs(d).utc(true).format('YYYY-MM-DD HH:mm:ssZ');
-            },
-          );
+          isoRegex.lastIndex = 0; // Reset for replace
+          d[col.id] = d[col.id].replace(isoRegex, (dateStr: string) => {
+            if (!dayjs(dateStr).isValid()) return dateStr;
+            if (this.isSqlite) {
+              // e.g. DATEADD formula
+              return dayjs(dateStr).utc().format('YYYY-MM-DD HH:mm:ssZ');
+            }
+            return dayjs(dateStr).utc(true).format('YYYY-MM-DD HH:mm:ssZ');
+          });
           continue;
         }
 
         // convert all date time values to utc
         // the datetime is either YYYY-MM-DD hh:mm:ss (xcdb)
         // or YYYY-MM-DD hh:mm:ss+/-xx:yy (ext)
-        d[col.id] = d[col.id].replace(
-          /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g,
-          (d: string) => {
-            if (!dayjs(d).isValid()) {
-              return d;
-            }
+        datetimeRegex.lastIndex = 0; // Reset for replace
+        d[col.id] = d[col.id].replace(datetimeRegex, (dateStr: string) => {
+          if (!dayjs(dateStr).isValid()) {
+            return dateStr;
+          }
 
-            if (this.isSqlite) {
-              // if there is no timezone info,
-              // we assume the input is on NocoDB server timezone
-              // then we convert to UTC from server timezone
-              // example: datetime without timezone
-              // we need to display 2023-04-27 10:00:00 (in HKT)
-              // we convert d (e.g. 2023-04-27 18:00:00) to utc, i.e. 2023-04-27 02:00:00+00:00
-              // if there is timezone info,
-              // we simply convert it to UTC
-              // example: datetime with timezone
-              // e.g. 2023-04-27 10:00:00+05:30  -> 2023-04-27 04:30:00+00:00
-              return dayjs(d)
-                .tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
-                .utc()
-                .format('YYYY-MM-DD HH:mm:ssZ');
-            }
+          if (this.isSqlite) {
+            // if there is no timezone info,
+            // we assume the input is on NocoDB server timezone
+            // then we convert to UTC from server timezone
+            // example: datetime without timezone
+            // we need to display 2023-04-27 10:00:00 (in HKT)
+            // we convert d (e.g. 2023-04-27 18:00:00) to utc, i.e. 2023-04-27 02:00:00+00:00
+            // if there is timezone info,
+            // we simply convert it to UTC
+            // example: datetime with timezone
+            // e.g. 2023-04-27 10:00:00+05:30  -> 2023-04-27 04:30:00+00:00
+            return dayjs(dateStr)
+              .tz(cachedTimeZone)
+              .utc()
+              .format('YYYY-MM-DD HH:mm:ssZ');
+          }
 
-            // set keepLocalTime to true if timezone info is not found
-            const keepLocalTime = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/g.test(
-              d,
-            );
+          // set keepLocalTime to true if timezone info is not found
+          const keepLocalTime = noTimezoneRegex.test(dateStr);
 
-            return dayjs(d).utc(keepLocalTime).format('YYYY-MM-DD HH:mm:ssZ');
-          },
-        );
+          return dayjs(dateStr)
+            .utc(keepLocalTime)
+            .format('YYYY-MM-DD HH:mm:ssZ');
+        });
         continue;
       }
 
       if (col.uidt === UITypes.Date) {
         const dateFormat = col.meta?.date_format;
         if (dateFormat) {
-          d[col.title] = dayjs(d[col.title], dateFormat).format(dateFormat);
+          d[col.id] = dayjs(d[col.id]).format(dateFormat);
         }
         continue;
       }

@@ -798,3 +798,18 @@ export const dataWrapper = (data: any) => {
     },
   };
 };
+
+// Helper method to transform object keys using the alias map
+export function transformObjectKeys(
+  obj: Record<string, any>,
+  aliasMap: Record<string, string>,
+): Record<string, any> {
+  if (!obj || typeof obj !== 'object') return obj;
+
+  const result = {};
+  Object.entries(obj).forEach(([key, value]) => {
+    const alias = aliasMap[key];
+    result[alias || key] = value;
+  });
+  return result;
+}

@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "വർക്ക്സ്പേസ് ഇമേജ് അപ്‌ലോഡ് ചെയ്യാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "upgradeToUploadWsImageSubtitle": "നിങ്ങളുടെ നിലവിലെ {activePlan} പ്ലാൻ ഐക്കണുകളും ഇമോജികളും മാത്രം പിന്തുണയ്ക്കുന്നു. വർക്ക്സ്പേസ് അവതാറായി കസ്റ്റം ഇമേജ് അപ്‌ലോഡ് ചെയ്യാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToUseCurrentUserFilter": "ഇപ്പോഴത്തെ ഉപയോക്താവിനെ അടിസ്ഥാനമാക്കി ഫിൽറ്റർ ചെയ്യാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "ഇപ്പോഴത്തെ ഉപയോക്താവിനെ അടിസ്ഥാനമാക്കി ഡാറ്റ കാണിക്കുന്ന ഫിൽറ്ററുകൾ ഉപയോഗിക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യു.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

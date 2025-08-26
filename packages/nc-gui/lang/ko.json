@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "작업 영역 이미지를 업로드하도록 업그레이드",
     "upgradeToUploadWsImageSubtitle": "현재 {activePlan} 요금제는 아이콘과 이모티콘만 허용합니다. {plan} 플랜으로 업그레이드하여 사용자 지정 이미지를 작업 영역 아바타로 업로드합니다.",
     "upgradeToUseCurrentUserFilter": "현재 사용자를 기준으로 필터링하도록 업그레이드",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "현재 사용자를 기반으로 데이터를 표시하는 필터를 사용하려면 {plan} 플랜으로 업그레이드합니다.",
     "upgradeToUseRowColoring": "행 색상 지정을 사용하도록 업그레이드",
     "upgradeToUseRowColoringSubtitle": "{plan} 플랜으로 업그레이드하여 필드 값 또는 조건에 따라 행의 색상을 지정하면 데이터를 더 쉽게 스캔하고 우선 순위를 지정할 수 있습니다.",

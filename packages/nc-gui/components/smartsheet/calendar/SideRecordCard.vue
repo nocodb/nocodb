@@ -62,7 +62,11 @@ const rowColorInfo = computed(() => {
             record.
           </template>
         </NcTooltip>
-        <NcTooltip v-if="showDate" show-on-truncate-only class="text-xs font-medium truncate max-w-58 leading-4 text-nc-content-gray-subtle2">
+        <NcTooltip
+          v-if="showDate"
+          show-on-truncate-only
+          class="text-xs font-medium truncate max-w-58 leading-4 text-nc-content-gray-subtle2"
+        >
           {{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }}
           <template #title> {{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }} </template>
         </NcTooltip>

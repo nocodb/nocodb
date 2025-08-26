@@ -78,3 +78,13 @@ export const validatePayload = (
     });
   }
 };
+
+export const getApiTokenFromAuthHeader = (headerValue?: string) => {
+  if (!headerValue) return;
+
+  if (!headerValue.toLowerCase?.()?.startsWith('bearer ')) {
+    return;
+  }
+
+  return headerValue.substring(7);
+};

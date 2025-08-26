@@ -4,7 +4,7 @@ import { NcError } from 'src/helpers/catchError';
 
 const V1_PATH_PREFIX = '/api/v1/*';
 const V2_PATH_PREFIX = '/api/v2/*';
-const NOT_FOUND_PATH_PREFIX = '/api/:apiVersion/*';
+const NOT_FOUND_PATH_PREFIX = '/api/v:apiVersion(\\d+)/*';
 
 @Controller()
 export class ApiVersionNotFoundController {

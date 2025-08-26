@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Udostępnianie ograniczone",
     "importOptions": "Opcje importu",
     "newScript": "Nowy skrypt",
-    "emptyScript": "Pusty skrypt"
+    "emptyScript": "Pusty skrypt",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Kliknij, aby rozwiązać",

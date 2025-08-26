@@ -1,9 +1,13 @@
 import { expect } from 'chai';
+import { isEE } from 'playwright/setup/db';
 import { type INcAxios, ncAxios } from '../dataApiV3/ncAxios';
 import { beforeEach as initBeforeEach } from './beforeEach';
 import type { ITestContext } from './helpers';
 
 export function paymentTest() {
+  if (!isEE()) {
+    return true;
+  }
   describe(`Payment`, () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;

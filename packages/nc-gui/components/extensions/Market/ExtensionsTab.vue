@@ -29,7 +29,7 @@ const {
   addExtension,
   getExtensionAssetsUrl,
   showExtensionDetails,
-  hasAccessToExtension,
+  userHasAccessToExtension,
   userCurrentBaseRole,
 } = useExtensions()
 
@@ -102,7 +102,7 @@ const onAddExtension = (ext: any) => {
                 {{ ext.subTitle }}
               </NcTooltip>
             </div>
-            <NcTooltip v-if="!blockAddNewExtension" :disabled="hasAccessToExtension(ext.id)">
+            <NcTooltip v-if="!blockAddNewExtension" :disabled="userHasAccessToExtension(ext.id)">
               <template #title>
                 {{
                   $t('tooltip.extensionAccessRestrictionTooltip', {
@@ -115,7 +115,7 @@ const onAddExtension = (ext: any) => {
                 size="small"
                 type="secondary"
                 class="flex-none !px-7px"
-                :disabled="!hasAccessToExtension(ext.id)"
+                :disabled="!userHasAccessToExtension(ext.id)"
                 @click.stop="onAddExtension(ext)"
               >
                 <div class="flex items-center gap-1 -ml-3px text-small">

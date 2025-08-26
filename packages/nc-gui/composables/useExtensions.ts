@@ -138,7 +138,7 @@ export const useExtensions = createSharedComposable(() => {
    * @param extensionId - The id of the extension which is defined in manifest.json to check if the user has access to
    * @returns True if the user has access to the extension, false otherwise
    */
-  const hasAccessToExtension = (extensionId: string) => {
+  const userHasAccessToExtension = (extensionId: string) => {
     return hasMinimumRoleAccess(user.value, getExtensionMinAccessRole(extensionId) as ProjectRoles)
   }
 
@@ -513,7 +513,7 @@ export const useExtensions = createSharedComposable(() => {
     extensionPanelSize,
     eventBus,
     getExtensionMinAccessRole,
-    hasAccessToExtension,
+    userHasAccessToExtension,
     userCurrentBaseRole,
   }
 })

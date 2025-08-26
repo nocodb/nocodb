@@ -36,7 +36,6 @@ export const overrideFeature = async ({
       },
     };
     await NocoCache.set(planCacheKey, overriddenPlan);
-    console.log('planCacheKey', planCacheKey);
 
     // delete workspace cache
     await NocoCache.del(`${CacheScope.WORKSPACE}:${workspace_id}`);

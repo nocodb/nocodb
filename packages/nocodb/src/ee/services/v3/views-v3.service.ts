@@ -589,12 +589,6 @@ export class ViewsV3Service {
         true,
         context,
       );
-      validatePayload(
-        `swagger-v3.json#/components/schemas/ViewOptionBase`,
-        body.options,
-        true,
-        context,
-      );
     }
 
     if (!body.title) {
@@ -1054,12 +1048,6 @@ export class ViewsV3Service {
         viewTypeStr.substring(1).toLowerCase();
       validatePayload(
         `swagger-v3.json#/components/schemas/${optionsSchemaName}`,
-        body.options,
-        true,
-        context,
-      );
-      validatePayload(
-        `swagger-v3.json#/components/schemas/ViewOptionBase`,
         body.options,
         true,
         context,

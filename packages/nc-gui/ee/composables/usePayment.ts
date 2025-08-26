@@ -2,8 +2,6 @@ import { type StripeCheckoutSession } from '@stripe/stripe-js'
 import type Stripe from 'stripe'
 import { LoyaltyPriceLookupKeyMap, type PaginatedType, PlanPriceLookupKeys, PlanTitles } from 'nocodb-sdk'
 
-const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 0, isLoading: true }
-
 export interface PaymentPlan {
   id: string
   title: PlanTitles
@@ -22,6 +20,15 @@ export enum PaymentState {
 
 const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const annualDiscount = 20
+
+  const defaultInvoicePaginationData = {
+    page: 1,
+    pageSize: 10,
+    totalRows: 0,
+    isLoading: true,
+    hasMore: false,
+    pageCursors: [undefined],
+  }
 
   const { $state, $api } = useNuxtApp()
 
@@ -52,7 +59,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const invoices = ref<Stripe.Invoice[]>([])
 
-  const invoicePaginationData = ref<PaginatedType & { isLoading?: boolean }>(defaultPaginationData)
+  const invoicePaginationData = ref<
+    PaginatedType & { isLoading?: boolean; hasMore?: boolean; pageCursors: (string | undefined)[] }
+  >(defaultInvoicePaginationData)
 
   const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
 
@@ -267,15 +276,36 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       return
     }
 
+    const page = invoicePaginationData.value.page!
+
+    const starting_after = invoicePaginationData.value.pageCursors[page - 1]
+    const nextPage_starting_after = invoicePaginationData.value.pageCursors[page]
+
+    // If nextPage_starting_after is not undefined, it means we have already loaded that page, so we don't need to load it again
+    if (nextPage_starting_after) {
+      if (!invoicePaginationData.value.hasMore) {
+        invoicePaginationData.value.hasMore = true
+      }
+
+      return
+    }
+
     try {
       const res = (await $fetch(`/api/payment/${activeWorkspaceId.value}/invoice`, {
         baseURL,
         method: 'GET',
         headers: { 'xc-auth': $state.token.value as string },
+        query: {
+          starting_after,
+        },
       })) as Stripe.ApiList<Stripe.Invoice>
 
-      invoices.value = res?.data || []
-      invoicePaginationData.value = { ...defaultPaginationData, totalRows: invoices.value.length }
+      const resData = res?.data || []
+
+      invoices.value = [...invoices.value, ...resData]
+
+      invoicePaginationData.value.pageCursors[page] = res?.data[res?.data.length - 1]?.id
+      invoicePaginationData.value.hasMore = res?.has_more ?? false
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -316,6 +346,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   return {
     annualDiscount,
+    defaultInvoicePaginationData,
     plansAvailable,
     loadPlans,
     loadPlan,

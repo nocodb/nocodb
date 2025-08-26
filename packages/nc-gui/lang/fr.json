@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Passez à une version supérieure pour téléverser une image d'espace de travail",
     "upgradeToUploadWsImageSubtitle": "Votre plan {activePlan} actuel autorise uniquement les icônes et les émojis. Passez au plan {plan} pour téléverser une image personnalisée comme avatar de votre espace de travail.",
     "upgradeToUseCurrentUserFilter": "Passez à la version supérieure pour filtrer par l'utilisateur actuel",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Passez au plan {plan} pour utiliser des filtres affichant les données en fonction de l’utilisateur actuel.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

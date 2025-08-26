@@ -29,9 +29,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  pre-build-for-unit-test:
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || inputs.force == true }}
+    uses: ./.github/workflows/pre-build-for-unit-tests.yml
+
   unit-tests-pg:
+    needs: pre-build-for-unit-tests
     if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || inputs.force == true }}
     uses: ./.github/workflows/unit-test-pg.yml
+    with:
+      test_set: 1
+
+  unit-tests-pg-2:
+    needs: pre-build-for-unit-tests
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || inputs.force == true }}
+    uses: ./.github/workflows/unit-test-pg.yml
+    with:
+      test_set: 2
 
   pre-build-for-playwright:
     if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || inputs.force == true }}

@@ -364,12 +364,12 @@ export async function checkIfWorkspaceSSOAvail(
 
 export function calculateUnitPrice(
   price: Stripe.Price,
-  workspaceSeatCount: number,
+  workspaceOrOrgSeatCount: number,
   mode: 'month' | 'year',
 ) {
   if (price.billing_scheme === 'tiered' && price.tiers_mode === 'volume') {
     const tier = price.tiers.find(
-      (tier: any) => workspaceSeatCount <= (tier.up_to ?? Infinity),
+      (tier: any) => workspaceOrOrgSeatCount <= (tier.up_to ?? Infinity),
     );
 
     if (!tier) return 0;
@@ -381,7 +381,7 @@ export function calculateUnitPrice(
     price.billing_scheme === 'tiered' &&
     price.tiers_mode === 'graduated'
   ) {
-    let remainingSeats = workspaceSeatCount;
+    let remainingSeats = workspaceOrOrgSeatCount;
     let total = 0;
     let previousUpTo = 0;
 
@@ -395,7 +395,7 @@ export function calculateUnitPrice(
         remainingSeats -= seatsInTier;
       }
 
-      if (tier.up_to === null || workspaceSeatCount <= tierLimit) break;
+      if (tier.up_to === null || workspaceOrOrgSeatCount <= tierLimit) break;
 
       previousUpTo = tierLimit;
     }

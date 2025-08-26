@@ -19,7 +19,7 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const {
   paymentState,
-  loadWorkspaceSeatCount,
+  loadWorkspaceOrOrgSeatCount,
   getSessionResult,
   isAccountPage,
   paymentMode,
@@ -119,7 +119,7 @@ watch(
 
     await workspaceStore.loadWorkspace(workspaceId.value || activeWorkspaceId.value!)
 
-    await loadWorkspaceSeatCount()
+    await loadWorkspaceOrOrgSeatCount()
   },
 )
 </script>

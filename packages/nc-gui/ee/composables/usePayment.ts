@@ -18,7 +18,7 @@ export enum PaymentState {
   ERROR = 'ERROR',
 }
 
-const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
+const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: boolean = false) => {
   const annualDiscount = 20
 
   const defaultInvoicePaginationData = {
@@ -37,9 +37,19 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const { navigateToCheckout, isLoyaltyDiscountAvailable, calculatePrice } = useEeConfig()
 
+  const orgStore = useOrg()
+
+  const { org, orgId } = storeToRefs(orgStore)
+
   const workspaceStore = useWorkspace()
 
   const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
+
+  const activeWorkspaceOrOrgId = computed(() => {
+    if (isOrg) return orgId.value
+
+    return activeWorkspaceId.value
+  })
 
   const baseURL = $api.instance.defaults.baseURL
 
@@ -51,7 +61,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const selectedPlan = ref<PaymentPlan | null>(null)
 
-  const workspaceSeatCount = ref<number>(1)
+  const workspaceOrOrgSeatCount = ref<number>(1)
 
   const plansAvailable = ref<PaymentPlan[]>([])
 
@@ -69,9 +79,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const activeSubscription = computed(() => activeWorkspace.value?.payment?.subscription)
 
-  const loadWorkspaceSeatCount = async () => {
+  const loadWorkspaceOrOrgSeatCount = async () => {
     try {
-      const { count } = (await $fetch(`/api/payment/${activeWorkspaceId.value}/seat-count`, {
+      const { count } = (await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/seat-count`, {
         baseURL,
         method: 'GET',
         headers: { 'xc-auth': $state.token.value as string },
@@ -79,7 +89,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         count: number
       }
 
-      workspaceSeatCount.value = count
+      workspaceOrOrgSeatCount.value = count
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -172,13 +182,13 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     const price = getPrice(plan, mode) || plan.prices[0]
 
     if (price.billing_scheme === 'tiered' && price.tiers_mode === 'volume') {
-      const tier = price.tiers.find((tier: any) => workspaceSeatCount.value <= (tier.up_to ?? Infinity))
+      const tier = price.tiers.find((tier: any) => workspaceOrOrgSeatCount.value <= (tier.up_to ?? Infinity))
 
       if (!tier) return 0
 
       return (tier.unit_amount + tier.flat_amount) / 100 / (mode === 'year' ? 12 : 1)
     } else if (price.billing_scheme === 'tiered' && price.tiers_mode === 'graduated') {
-      return calculatePrice(price, workspaceSeatCount.value, mode)
+      return calculatePrice(price, workspaceOrOrgSeatCount.value, mode)
     }
 
     return price.unit_amount / 100 / (mode === 'year' ? 12 : 1)
@@ -198,7 +208,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
       body: {
-        seat: workspaceSeatCount.value,
+        seat: workspaceOrOrgSeatCount.value,
         plan_id: selectedPlan.value.id,
         price_id: price.id,
         isAccountPage: isAccountPage.value,
@@ -224,7 +234,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
       body: {
-        seat: workspaceSeatCount.value,
+        seat: workspaceOrOrgSeatCount.value,
         plan_id: plan.id,
         price_id: priceId,
       },
@@ -339,7 +349,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     async () => {
       if (route.value.name === 'upgrade' || !activeWorkspaceId.value) return
 
-      await loadWorkspaceSeatCount()
+      await loadWorkspaceOrOrgSeatCount()
     },
     { immediate: true },
   )
@@ -350,12 +360,12 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     plansAvailable,
     loadPlans,
     loadPlan,
-    loadWorkspaceSeatCount,
+    loadWorkspaceOrOrgSeatCount,
     getPlanPrice,
     onPaymentModeChange,
     onSelectPlan,
     selectedPlan,
-    workspaceSeatCount,
+    workspaceOrOrgSeatCount,
     paymentMode,
     paymentState,
     subscriptionId,
@@ -375,6 +385,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     loadInvoices,
     invoices,
     invoicePaginationData,
+    isOrg,
+    activeWorkspaceOrOrgId,
   }
 }, 'injected-payment-store')
 

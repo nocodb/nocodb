@@ -18,7 +18,7 @@ const activeWorkspace = computed(() =>
   workspaceId.value ? workspacesList.value.find((w) => w.id === workspaceId.value)! : _activeWorkspace.value!,
 )
 
-const { paymentState, workspaceSeatCount, activeSubscription, onManageSubscription, plansAvailable, updateSubscription } =
+const { paymentState, workspaceOrOrgSeatCount, activeSubscription, onManageSubscription, plansAvailable, updateSubscription } =
   usePaymentStoreOrThrow()
 
 const {
@@ -84,7 +84,7 @@ const currentPlanTitle = computed(() => {
 })
 
 const showWarningStatusForSeatCount = computed(() => {
-  return currentPlanTitle.value === PlanTitles.FREE && workspaceSeatCount.value >= getLimit(PlanLimitTypes.LIMIT_EDITOR) - 1
+  return currentPlanTitle.value === PlanTitles.FREE && workspaceOrOrgSeatCount.value >= getLimit(PlanLimitTypes.LIMIT_EDITOR) - 1
 })
 
 const formatTotalLimit = (value: number) => {
@@ -377,12 +377,12 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string, type:
           :show-warning-status="showWarningStatusForSeatCount"
           :tooltip="
             $t('upgrade.editorLimitExceedTooltip', {
-              prefix: getTooltipPrefix(workspaceSeatCount, getLimit(PlanLimitTypes.LIMIT_EDITOR)),
+              prefix: getTooltipPrefix(workspaceOrOrgSeatCount, getLimit(PlanLimitTypes.LIMIT_EDITOR)),
               activePlan: activePlanTitle,
               limit: getLimit(PlanLimitTypes.LIMIT_EDITOR),
             })
           "
-          :is-limit-exceeded="workspaceSeatCount > getLimit(PlanLimitTypes.LIMIT_EDITOR)"
+          :is-limit-exceeded="workspaceOrOrgSeatCount > getLimit(PlanLimitTypes.LIMIT_EDITOR)"
         >
           <template #label>
             {{
@@ -392,8 +392,8 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string, type:
             }}
           </template>
           <template #value
-            >{{ workspaceSeatCount }} {{ currentPlanTitle === PlanTitles.FREE ? 'Billable' : 'Paid' }}
-            {{ workspaceSeatCount === 1 ? 'User' : 'Users' }}</template
+            >{{ workspaceOrOrgSeatCount }} {{ currentPlanTitle === PlanTitles.FREE ? 'Billable' : 'Paid' }}
+            {{ workspaceOrOrgSeatCount === 1 ? 'User' : 'Users' }}</template
           >
         </PaymentPlanUsageRow>
         <PaymentPlanUsageRow

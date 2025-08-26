@@ -19,6 +19,8 @@ const { baseTables } = storeToRefs(useTablesStore())
 
 const { activeDashboardId, activeBaseDashboards } = storeToRefs(dashboardStore)
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const base = inject(ProjectInj)!
 
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
@@ -34,9 +36,11 @@ let sortable: Sortable
 const allEntities = computed<Array<(DashboardType & { type: 'dashboard' }) | (TableType & { type: 'table' })>>(() => {
   const entities = []
 
-  // Add dashboards with type identifier
-  for (const dashboard of activeBaseDashboards.value) {
-    entities.push({ ...dashboard, type: 'dashboard' as const })
+  if (!isSharedBase.value) {
+    // Add dashboards with type identifier
+    for (const dashboard of activeBaseDashboards.value) {
+      entities.push({ ...dashboard, type: 'dashboard' as const })
+    }
   }
 
   // Add tables from default source with type identifier

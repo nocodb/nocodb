@@ -14,6 +14,10 @@ const { activeWorkspaceOrOrgId, paymentState } = useProvidePaymentStore(true)
 const orgStore = useOrg()
 
 const { org } = storeToRefs(orgStore)
+
+onMounted(() => {
+  paymentState.value = PaymentState.SELECT_PLAN
+})
 </script>
 
 <template>

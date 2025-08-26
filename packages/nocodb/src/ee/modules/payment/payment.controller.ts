@@ -212,7 +212,8 @@ export class PaymentController {
   @HttpCode(200)
   @Post('/api/payment/:workspaceOrOrgId/create-subscription-form')
   @Acl('manageSubscription', {
-    scope: 'workspace',
+    scope: 'org',
+    extendedScope: 'workspace',
   })
   async createSubscriptionForm(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -230,7 +231,8 @@ export class PaymentController {
   @HttpCode(200)
   @Post('/api/payment/:workspaceOrOrgId/update-subscription')
   @Acl('manageSubscription', {
-    scope: 'workspace',
+    scope: 'org',
+    extendedScope: 'workspace',
   })
   async updateSubscription(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -248,7 +250,8 @@ export class PaymentController {
   @HttpCode(200)
   @Delete('/api/payment/:workspaceOrOrgId/cancel-subscription')
   @Acl('manageSubscription', {
-    scope: 'workspace',
+    scope: 'org',
+    extendedScope: 'workspace',
   })
   async cancelSubscription(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -260,7 +263,8 @@ export class PaymentController {
   @HttpCode(200)
   @Post('/api/payment/:workspaceOrOrgId/recover-subscription')
   @Acl('manageSubscription', {
-    scope: 'workspace',
+    scope: 'org',
+    extendedScope: 'workspace',
   })
   async recoverSubscription(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -272,7 +276,8 @@ export class PaymentController {
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/get-session-result/:sessionId')
   @Acl('manageSubscription', {
-    scope: 'workspace',
+    scope: 'org',
+    extendedScope: 'workspace',
   })
   async getCheckoutSession(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -285,7 +290,8 @@ export class PaymentController {
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/customer-portal')
   @Acl('manageSubscription', {
-    scope: 'workspace',
+    scope: 'org',
+    extendedScope: 'workspace',
   })
   async getCustomerPortal(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -298,7 +304,8 @@ export class PaymentController {
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/invoice')
   @Acl('manageSubscription', {
-    scope: 'workspace',
+    scope: 'org',
+    extendedScope: 'workspace',
   })
   async getInvoice(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,

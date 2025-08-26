@@ -85,6 +85,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
     isOrg ? org.value?.payment?.subscription : activeWorkspace.value?.payment?.subscription,
   )
 
+  const stripeCustomerId = computed(() => (isOrg ? org.value?.stripe_customer_id : activeWorkspace.value?.stripe_customer_id))
+
   const loadWorkspaceOrOrgSeatCount = async () => {
     try {
       const { count } = (await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/seat-count`, {
@@ -289,9 +291,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
   }
 
   const loadInvoices = async () => {
-    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrg ? 'No active org' : 'No active workspace')
-
-    if (isOrg ? !org.value?.stripe_customer_id : !activeWorkspace.value?.stripe_customer_id) {
+    if (!stripeCustomerId.value) {
       invoicePaginationData.value.isLoading = false
 
       return
@@ -310,6 +310,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
 
       return
     }
+
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrg ? 'No active org' : 'No active workspace')
 
     try {
       const res = (await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/invoice`, {
@@ -398,6 +400,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
     invoicePaginationData,
     isOrg,
     activeWorkspaceOrOrgId,
+    org,
+    orgId,
+    stripeCustomerId,
   }
 }, 'injected-payment-store')
 

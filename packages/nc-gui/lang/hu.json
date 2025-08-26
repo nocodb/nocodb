@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Frissítés munkatérkép feltöltéséhez",
     "upgradeToUploadWsImageSubtitle": "A jelenlegi {activePlan} csomag csak ikonokat és emojikat enged. Frissítsen a(z) {plan} csomagra, hogy egyéni képet tölthessen fel munkatér avatárként.",
     "upgradeToUseCurrentUserFilter": "Frissítés az aktuális felhasználó szerinti szűréshez",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "A szűrők használatához, amelyek az aktuális felhasználó adatai alapján jelenítik meg az adatokat, frissítsen a(z) {plan} csomagra.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

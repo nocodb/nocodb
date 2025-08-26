@@ -1466,7 +1466,9 @@
     "sharingRestricted": "اشتراک‌گذاری محدود شده",
     "importOptions": "گزینه‌های وارد کردن",
     "newScript": "اسکریپت جدید",
-    "emptyScript": "اسکریپت خالی"
+    "emptyScript": "اسکریپت خالی",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "کلیک کنید تا حل شود",

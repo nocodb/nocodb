@@ -43,7 +43,7 @@ export class ExtensionsController {
     @Param('baseId') baseId: string,
     @Body() body: Partial<ExtensionReqType>,
     @Req() req: NcRequest,
-    @Query('extensionEntry') extensionEntry?: string,
+    @Query('minAccessRole') minAccessRole?: string,
   ) {
     return await this.extensionsService.extensionCreate(context, {
       extension: {
@@ -51,7 +51,7 @@ export class ExtensionsController {
         base_id: baseId,
       },
       req,
-      extensionEntry,
+      minAccessRole,
     });
   }
 
@@ -71,13 +71,13 @@ export class ExtensionsController {
     @Param('extensionId') extensionId: string,
     @Body() body: Partial<ExtensionReqType>,
     @Req() req: NcRequest,
-    @Query('extensionEntry') extensionEntry?: string,
+    @Query('minAccessRole') minAccessRole?: string,
   ) {
     return await this.extensionsService.extensionUpdate(context, {
       extensionId,
       extension: body,
       req,
-      extensionEntry,
+      minAccessRole,
     });
   }
 
@@ -87,12 +87,12 @@ export class ExtensionsController {
     @TenantContext() context: NcContext,
     @Param('extensionId') extensionId: string,
     @Req() req: NcRequest,
-    @Query('extensionEntry') extensionEntry?: string,
+    @Query('minAccessRole') minAccessRole?: string,
   ) {
     return await this.extensionsService.extensionDelete(context, {
       extensionId,
       req,
-      extensionEntry,
+      minAccessRole,
     });
   }
 }

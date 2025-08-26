@@ -7,6 +7,7 @@ import XcMigrationSourcev3 from '~/meta/migrations/XcMigrationSourcev3';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
+import { isWorker } from '~/utils';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const nanoidWorkspace = customAlphabet(
@@ -21,6 +22,11 @@ export class MetaService extends MetaServiceCE {
   }
 
   public async init(): Promise<boolean> {
+    // skip migration in worker container
+    if (isWorker) {
+      return true;
+    }
+
     await super.init();
     await this.connection.migrate.latest({
       migrationSource: new XcMigrationSourcev3(),

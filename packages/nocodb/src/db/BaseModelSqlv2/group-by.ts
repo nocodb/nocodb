@@ -113,9 +113,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               (column.colOptions as FormulaColumn).getParsedTree().dataType ===
                 FormulaDataTypes.STRING
             ) {
-              columnQuery = baseModel.dbDriver.raw(`??::text`, [
-                columnQuery,
-              ]);
+              columnQuery = baseModel.dbDriver.raw(`??::text`, [columnQuery]);
             }
           } catch (e) {
             logger.log(e);

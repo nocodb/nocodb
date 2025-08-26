@@ -14,6 +14,7 @@ import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
+import { isWorker } from '~/utils';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -820,6 +821,11 @@ export class MetaService {
   }
 
   public async init(): Promise<boolean> {
+    // skip migration in worker container
+    if (isWorker) {
+      return true;
+    }
+
     await this.connection.migrate.latest({
       migrationSource: new XcMigrationSource(),
       tableName: 'xc_knex_migrations',

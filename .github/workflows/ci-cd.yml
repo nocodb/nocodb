@@ -29,7 +29,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pre-build-for-unit-test:
+  pre-build-for-unit-tests:
     if: ${{ github.event_name == 'push' || !github.event.pull_request.draft || inputs.force == true }}
     uses: ./.github/workflows/pre-build-for-unit-tests.yml
 

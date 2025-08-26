@@ -1466,7 +1466,9 @@
     "sharingRestricted": "จำกัดการแชร์",
     "importOptions": "ตัวเลือกการนำเข้า",
     "newScript": "สคริปต์ใหม่",
-    "emptyScript": "สคริปต์เปล่า"
+    "emptyScript": "สคริปต์เปล่า",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "คลิกเพื่อแก้ไข",

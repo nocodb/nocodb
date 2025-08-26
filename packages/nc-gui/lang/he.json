@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "שדרג כדי להעלות תמונת סביבת עבודה",
     "upgradeToUploadWsImageSubtitle": "התוכנית הנוכחית שלך {activePlan} מאפשרת שימוש באייקונים ואימוג׳ים בלבד. שדרג לתוכנית {plan} כדי להעלות תמונה מותאמת כאווטאר של סביבת העבודה.",
     "upgradeToUseCurrentUserFilter": "שדרג לסנן לפי משתמש נוכחי",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "שדרג לתוכנית {plan} כדי להשתמש במסננים שמציגים נתונים על פי המשתמש הנוכחי.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

@@ -310,19 +310,17 @@ async function getWorkspaceOrOrg(
 }
 
 async function getActivePlanAndSubscription(
-  workspace: Workspace,
+  workspaceOrOrgId: string,
+  loyal = false,
   ncMeta = Noco.ncMeta,
 ) {
   const subscription = await Subscription.getByWorkspaceOrOrg(
-    workspace.fk_org_id || workspace.id,
+    workspaceOrOrgId,
     ncMeta,
   );
 
   if (!subscription) {
-    if (
-      workspace.loyal &&
-      dayjs().isBefore(dayjs(LOYALTY_GRACE_PERIOD_END_DATE))
-    ) {
+    if (loyal && dayjs().isBefore(dayjs(LOYALTY_GRACE_PERIOD_END_DATE))) {
       return { plan: LegacyFreePlan };
     }
 

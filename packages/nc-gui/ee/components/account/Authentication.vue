@@ -157,7 +157,14 @@ onMounted(async () => {
             <span class="font-bold text-xl">
               {{ $t('labels.ssoSettings') }}
             </span>
-            <a class="!text-gray-700 !hover:text-gray-700"> Go to documentation </a>
+            <a
+              class="!text-gray-700 !hover:text-gray-700"
+              href="https://nocodb.com/docs/product-docs/account-settings/authentication#single-sign-on-sso"
+              target="_blank"
+              rel="noopener"
+            >
+              Go to documentation
+            </a>
           </div>
           <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2">
             <div class="flex font-bold text-base" data-rec="true">{{ $t('labels.generalSettings') }}</div>

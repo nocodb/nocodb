@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Jauniniet, lai augšupielādētu darba telpas attēlu",
     "upgradeToUploadWsImageSubtitle": "Pašreizējais plāns {activePlan} ļauj izmantot tikai ikonas un emocijzīmes. Jauniniet uz plānu {plan}, lai kā darba telpas avatāru augšupielādētu pielāgotu attēlu.",
     "upgradeToUseCurrentUserFilter": "Jauniniet, lai filtrētu pēc pašreizējā lietotāja",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Jauniniet uz {plan} plānu, lai izmantotu filtrus, kas parāda datus, balstoties uz pašreizējo lietotāju.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

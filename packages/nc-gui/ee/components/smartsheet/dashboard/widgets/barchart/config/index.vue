@@ -55,6 +55,23 @@ const handleConfigUpdate = async (type: string, updates: any) => {
         },
       },
     })
+  } else if (type === 'appearance') {
+    await updateWidget(activeDashboardId.value, selectedWidget.value?.id, {
+      config: {
+        ...selectedWidget.value?.config,
+        appearance: {
+          ...selectedWidget.value?.config?.appearance,
+          ...updates,
+        },
+      },
+    })
+  } else if (type === 'size') {
+    await updateWidget(activeDashboardId.value, selectedWidget.value?.id, {
+      position: {
+        ...selectedWidget.value?.position,
+        ...updates,
+      },
+    })
   }
 }
 </script>
@@ -70,6 +87,11 @@ const handleConfigUpdate = async (type: string, updates: any) => {
       <SmartsheetDashboardWidgetsCommonDataPermission @update:permission="handleConfigUpdate('permission', $event)" />
 -->
     </template>
-    <template #appearance> </template>
+    <template #appearance>
+      <SmartsheetDashboardWidgetsBarchartConfigAppearance
+        @update:appearance="handleConfigUpdate('appearance', $event)"
+        @update:size="handleConfigUpdate('size', $event)"
+      />
+    </template>
   </SmartsheetDashboardWidgetsCommonConfig>
 </template>

@@ -630,7 +630,7 @@ export class PaymentService {
     );
     if (!existingSub) NcError.genericNotFound('Subscription', workspaceOrOrgId);
 
-    const oldPlan = await Plan.get(existingSub.fk_plan_id, ncMeta);
+    const oldPlan = await Plan.get(existingSub.fk_plan_id, ncMeta, true);
     if (!oldPlan) NcError.genericNotFound('Plan', existingSub.fk_plan_id);
     const oldPrice = oldPlan.prices.find(
       (p) => p.id === existingSub.stripe_price_id,

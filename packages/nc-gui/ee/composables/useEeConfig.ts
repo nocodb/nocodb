@@ -61,10 +61,6 @@ export const useEeConfig = createSharedComposable(() => {
 
   const activePlanTitle = computed(() => (activePlan.value?.title as PlanTitles) ?? PlanTitles.FREE)
 
-  watchEffect(() => {
-    console.log('useEeConfig', isOrgBilling.value, org.value?.payment?.plan)
-  })
-
   const activeSubscription = computed(() =>
     isOrgBilling.value ? org.value?.payment?.subscription : activeWorkspace.value?.payment?.subscription,
   )

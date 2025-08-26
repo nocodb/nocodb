@@ -248,6 +248,7 @@ const getDefaultChartConfig = (
       };
 
     case ChartTypes.BAR:
+    case ChartTypes.LINE:
       return {
         ...baseConfig,
         chartType: ChartTypes.BAR,

@@ -4,7 +4,7 @@ import { CHART_COLORS } from '~/lib/constants'
 import { truncateText } from '~/utils/stringUtils'
 
 interface Props {
-  widget: ChartWidgetType<ChartTypes.LINE>
+  widget: ChartWidgetType<ChartTypes.SCATTER>
   isEditing?: boolean
 }
 
@@ -115,7 +115,6 @@ const chartOption = computed<ECOption>(() => {
 
   const showPercentageOnChart = chartConfig.value?.appearance?.showPercentageOnChart ?? false
   const startAtZero = chartConfig.value?.data?.yAxis?.startAtZero ?? true
-  const smooth = chartConfig.value?.appearance?.smooth ?? true
 
   return {
     color: CHART_COLORS,
@@ -198,10 +197,6 @@ const chartOption = computed<ECOption>(() => {
       name: series.name,
       type: 'line',
       data: series.data,
-      smooth,
-      lineStyle: {
-        width: 2,
-      },
       itemStyle: {
         borderWidth: 2,
       },

@@ -1466,7 +1466,9 @@
     "sharingRestricted": "共有制限あり",
     "importOptions": "インポートオプション",
     "newScript": "新しいスクリプト",
-    "emptyScript": "空のスクリプト"
+    "emptyScript": "空のスクリプト",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "クリックして解決",

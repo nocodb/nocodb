@@ -1848,7 +1848,11 @@
     "addLookupFields": "Add Lookup Fields",
     "sourceVisibilityIsHidden": "Data source visibility is hidden",
     "youDontHavePermissionToEditThisField": "You don't have permission to edit this field",
-    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\"."
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToDeleteExtension": "You do not have sufficient permission to delete extension",
+    "youDoNotHaveSufficientPermissionToAccessThisExtension": "You do not have sufficient permission to access this extension"
   },
   "placeholder": {
     "searchIcons": "Search icons",

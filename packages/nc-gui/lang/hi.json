@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "वर्कस्पेस इमेज अपलोड करने के लिए अपग्रेड करें",
     "upgradeToUploadWsImageSubtitle": "आपका मौजूदा {activePlan} प्लान केवल आइकन और इमोजी की अनुमति देता है। कस्टम इमेज को वर्कस्पेस अवतार के रूप में अपलोड करने के लिए {plan} प्लान में अपग्रेड करें।",
     "upgradeToUseCurrentUserFilter": "वर्तमान उपयोगकर्ता द्वारा फ़िल्टर करने के लिए अपग्रेड करें",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "वर्तमान उपयोगकर्ता के आधार पर डेटा दिखाने वाले फ़िल्टर का उपयोग करने हेतु {plan} प्लान में अपग्रेड करें।",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Koplietošana ierobežota",
     "importOptions": "Importēšanas iespējas",
     "newScript": "Jauns skripts",
-    "emptyScript": "Tukšs skripts"
+    "emptyScript": "Tukšs skripts",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Noklikšķiniet, lai atrisinātu",

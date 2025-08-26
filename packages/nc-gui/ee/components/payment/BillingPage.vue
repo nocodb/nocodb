@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { PaymentState } from '#imports'
+import { ReturnToBillingPage } from 'nocodb-sdk'
 
 interface Props {
   workspaceId?: string
@@ -23,7 +24,7 @@ const {
   paymentState,
   loadWorkspaceOrOrgSeatCount,
   getSessionResult,
-  isAccountPage,
+  returnToPage,
   paymentMode,
   plansAvailable,
   onSelectPlan,
@@ -72,7 +73,13 @@ onMounted(async () => {
 
   paymentState.value = PaymentState.SELECT_PLAN
 
-  isAccountPage.value = !!workspaceId.value
+  if (isOrgBilling.value) {
+    returnToPage.value = ReturnToBillingPage.ORG
+  } else if (!!workspaceId.value) {
+    returnToPage.value = ReturnToBillingPage.ACCOUNT
+  } else {
+    returnToPage.value = ReturnToBillingPage.WS
+  }
 
   if (route.query.pay === 'true') {
     const planTitle = route.query.plan as string

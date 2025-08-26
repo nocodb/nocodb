@@ -246,7 +246,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]:
     'to use member management api.',
   [PlanFeatureTypes.FEATURE_API_VIEW_V3]: 'to use view api.',
-  [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]: 'to visualize records in a calendar range.',
+  [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]:
+    'to visualize records in a calendar range.',
 };
 
 export const getUpgradeMessage = (
@@ -264,3 +265,9 @@ export const getUpgradeMessage = (
 
   return limitOrFeature;
 };
+
+export enum ReturnToBillingPage {
+  ORG = 'org',
+  ACCOUNT = 'account',
+  WS = 'ws',
+}

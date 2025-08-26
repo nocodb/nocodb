@@ -9,6 +9,7 @@ import {
   LoyaltyPriceReverseLookupKeyMap,
   PlanOrder,
   WorkspaceUserRoles,
+  ReturnToBillingPage,
 } from 'nocodb-sdk';
 import type { PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
@@ -388,12 +389,17 @@ export class PaymentService {
       seat: number;
       plan_id: string;
       price_id: string;
-      isAccountPage?: boolean;
+      returnToPage?: boolean;
     },
     req: NcRequest,
     ncMeta = Noco.ncMeta,
   ) {
-    const { seat, plan_id, price_id, isAccountPage = true } = payload;
+    const {
+      seat,
+      plan_id,
+      price_id,
+      returnToPage = ReturnToBillingPage.ACCOUNT,
+    } = payload;
 
     const { user } = req;
 
@@ -548,7 +554,7 @@ export class PaymentService {
         },
       ],
       ui_mode: 'embedded',
-      return_url: `${req.ncSiteUrl}/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}&isAccountPage=${isAccountPage}`,
+      return_url: `${req.ncSiteUrl}/?afterPayment=true&workspaceId=${workspaceOrOrg.id}&session_id={CHECKOUT_SESSION_ID}&returnToPage=${returnToPage}`,
       automatic_tax: {
         enabled: true,
       },
@@ -1150,7 +1156,7 @@ export class PaymentService {
       customer: workspaceOrOrg.stripe_customer_id,
       return_url: `${req.ncSiteUrl}?afterManage=true&workspaceId=${
         workspaceOrOrg.id
-      }&isAccountPage=${req.query.isAccountPage ?? true}`,
+      }&returnToPage=${req.query.returnToPage ?? ReturnToBillingPage.ACCOUNT}`,
     });
 
     return session;

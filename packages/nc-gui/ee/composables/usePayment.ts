@@ -1,6 +1,6 @@
 import { type StripeCheckoutSession } from '@stripe/stripe-js'
 import type Stripe from 'stripe'
-import { LoyaltyPriceLookupKeyMap, type PaginatedType, PlanPriceLookupKeys, PlanTitles } from 'nocodb-sdk'
+import { LoyaltyPriceLookupKeyMap, type PaginatedType, PlanPriceLookupKeys, PlanTitles, ReturnToBillingPage } from 'nocodb-sdk'
 
 export interface PaymentPlan {
   id: string
@@ -65,7 +65,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const plansAvailable = ref<PaymentPlan[]>([])
 
-  const isAccountPage = ref<boolean>(false)
+  const returnToPage = ref<ReturnToBillingPage>(ReturnToBillingPage.WS)
 
   const invoices = ref<Stripe.Invoice[]>([])
 
@@ -221,7 +221,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         seat: workspaceOrOrgSeatCount.value,
         plan_id: selectedPlan.value.id,
         price_id: price.id,
-        isAccountPage: isAccountPage.value,
+        returnToPage: returnToPage.value,
       },
     })
 
@@ -272,14 +272,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   const getCustomerPortalSession = async () => {
     if (!activeWorkspaceOrOrgId.value) throw new Error(isOrgBilling.value ? 'No active org' : 'No active workspace')
 
-    const res = await $fetch(
-      `/api/payment/${activeWorkspaceOrOrgId.value}/customer-portal?isAccountPage=${isAccountPage.value}`,
-      {
-        baseURL,
-        method: 'GET',
-        headers: { 'xc-auth': $state.token.value as string },
-      },
-    )
+    const res = await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/customer-portal?returnToPage=${returnToPage.value}`, {
+      baseURL,
+      method: 'GET',
+      headers: { 'xc-auth': $state.token.value as string },
+    })
 
     return res.url
   }
@@ -396,7 +393,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     activeWorkspace,
     getSessionResult,
     getCustomerPortalSession,
-    isAccountPage,
+    returnToPage,
     onManageSubscription,
     isLoyaltyDiscountAvailable,
     loadInvoices,

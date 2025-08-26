@@ -44,7 +44,7 @@ jobs:
       - name: remove use-node-version line from .npmrc
         run: sed -i '/^use-node-version/d' .npmrc
       - name: install dependencies
-        run: pnpm bootstrap:nocodb:test
+        run: pnpm bootstrap
       - name: run sql-executor
         working-directory: ./packages/nc-sql-executor
         run: |

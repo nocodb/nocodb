@@ -402,6 +402,8 @@ export const useBases = defineStore('basesStore', () => {
       baseHomeSearchQuery.value = ''
 
       if (newBaseId) {
+        if (!forceShowBaseList.value) return
+
         /**
          * If oldBaseId is present that means we are navigation from one base to another base
          * In that case we have to set forceShowBaseList to false

@@ -2,7 +2,7 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import type { ErrorObject } from 'ajv';
 import type { NextFunction, Request, Response } from 'express';
-import type { NcApiVersion } from 'nocodb-sdk';
+import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import swagger, { swaggerV3Validation } from '~/schema';
 
@@ -78,3 +78,34 @@ export const validatePayload = (
     });
   }
 };
+
+/**
+ * Extracts API token from request headers.
+ * - Prefers `xc-token` header
+ * - Falls back to `Authorization: Bearer <token>`
+ */
+export function getApiTokenFromHeader(
+  req?:
+    | NcRequest
+    | {
+        headers?: Record<string, unknown>;
+      },
+): string | undefined {
+  const headers = req?.headers;
+  if (!headers) return;
+
+  // 1) Prefer explicit xc-token header
+  const token = headers['xc-token'];
+  if (typeof token === 'string' && token.trim()) {
+    return token.trim();
+  }
+
+  // 2) Fallback to Authorization: Bearer <token>
+  const auth = headers['authorization'];
+  if (typeof auth !== 'string') return;
+
+  const value = auth.trim();
+  if (value.toLowerCase().startsWith('bearer ')) {
+    return value.slice(7).trim();
+  }
+}

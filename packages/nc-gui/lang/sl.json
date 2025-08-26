@@ -1466,7 +1466,9 @@
     "sharingRestricted": "Deljenje omejeno",
     "importOptions": "Možnosti uvoza",
     "newScript": "Nova skripta",
-    "emptyScript": "Prazna skripta"
+    "emptyScript": "Prazna skripta",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Kliknite za razrešitev",

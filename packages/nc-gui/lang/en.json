@@ -1481,6 +1481,7 @@
     "resolvedBy": "Resolved by",
     "leaveWorkspace": "Leave workspace",
     "removeUser": "Remove user",
+    "removeMember": "Remove member",
     "filterByThisField": "Filter by this field",
     "groupByThisField": "Group by this field",
     "addToStarred": "Add to starred",

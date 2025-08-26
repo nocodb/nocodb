@@ -5,7 +5,11 @@ const props = withDefaults(defineProps<Props>(), {})
 
 const {} = toRefs(props)
 
-const { activeWorkspaceOrOrgId } = useProvidePaymentStore(true)
+const route = useRoute()
+
+const router = useRouter()
+
+const { activeWorkspaceOrOrgId, paymentState } = useProvidePaymentStore(true)
 
 const orgStore = useOrg()
 
@@ -36,7 +40,12 @@ const { org } = storeToRefs(orgStore)
 
     <div
       class="nc-content-max-w flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col items-center gap-6 p-6"
-    ></div>
+    >
+      <Payment v-if="paymentState" />
+      <div v-else class="min-h-[80dvh] grid place-items-center">
+        <GeneralLoader size="xlarge" />
+      </div>
+    </div>
   </div>
 </template>
 

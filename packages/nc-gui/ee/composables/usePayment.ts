@@ -73,11 +73,17 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
     PaginatedType & { isLoading?: boolean; hasMore?: boolean; pageCursors: (string | undefined)[] }
   >(defaultInvoicePaginationData)
 
-  const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
+  const isPaidPlan = computed(() => {
+    if (isOrg) return !!org.value?.payment?.subscription
 
-  const activePlan = computed(() => activeWorkspace.value?.payment?.plan)
+    return !!activeWorkspace.value?.payment?.subscription
+  })
 
-  const activeSubscription = computed(() => activeWorkspace.value?.payment?.subscription)
+  const activePlan = computed(() => (isOrg ? org.value?.payment?.plan : activeWorkspace.value?.payment?.plan))
+
+  const activeSubscription = computed(() =>
+    isOrg ? org.value?.payment?.subscription : activeWorkspace.value?.payment?.subscription,
+  )
 
   const loadWorkspaceOrOrgSeatCount = async () => {
     try {
@@ -195,7 +201,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
   }
 
   const createPaymentForm = async () => {
-    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrg ? 'No active org' : 'No active workspace')
     if (!selectedPlan.value) throw new Error('No plan selected')
     if (!selectedPlan.value.prices) throw new Error('No prices found')
 
@@ -203,7 +209,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
 
     if (!price) throw new Error('No price found')
 
-    const res = await $fetch(`/api/payment/${activeWorkspaceId.value}/create-subscription-form`, {
+    const res = await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/create-subscription-form`, {
       baseURL,
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
@@ -219,7 +225,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
   }
 
   const updateSubscription = async (planId: string, priceId?: string, afterUpgrade = false) => {
-    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrg ? 'No active org' : 'No active workspace')
 
     const plan = plansAvailable.value.find((plan) => plan.id === planId)
 
@@ -229,7 +235,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
 
     if (!priceId) throw new Error('No price found')
 
-    await $fetch(`/api/payment/${activeWorkspaceId.value}/update-subscription`, {
+    await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/update-subscription`, {
       baseURL,
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
@@ -240,37 +246,42 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
       },
     })
 
-    window.location.href = `/#/${activeWorkspaceId.value}/settings?tab=billing${afterUpgrade ? '&afterUpgrade=true' : ''}`
+    window.location.href = isOrg
+      ? `/#/admin/${orgId.value}/billing?afterUpgrade=true`
+      : `/#/${activeWorkspaceOrOrgId.value}/settings?tab=billing${afterUpgrade ? '&afterUpgrade=true' : ''}`
   }
 
   const cancelSubscription = async () => {
-    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrg ? 'No active org' : 'No active workspace')
 
-    await $fetch(`/api/payment/${activeWorkspaceId.value}/cancel-subscription`, {
+    await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/cancel-subscription`, {
       baseURL,
       method: 'DELETE',
       headers: { 'xc-auth': $state.token.value as string },
     })
 
-    window.location.href = `/#/${activeWorkspaceId.value}/settings?tab=billing`
+    window.location.href = isOrg ? `/#/admin/${orgId.value}/billing` : `/#/${activeWorkspaceOrOrgId.value}/settings?tab=billing`
   }
 
   const getCustomerPortalSession = async () => {
-    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrg ? 'No active org' : 'No active workspace')
 
-    const res = await $fetch(`/api/payment/${activeWorkspaceId.value}/customer-portal?isAccountPage=${isAccountPage.value}`, {
-      baseURL,
-      method: 'GET',
-      headers: { 'xc-auth': $state.token.value as string },
-    })
+    const res = await $fetch(
+      `/api/payment/${activeWorkspaceOrOrgId.value}/customer-portal?isAccountPage=${isAccountPage.value}`,
+      {
+        baseURL,
+        method: 'GET',
+        headers: { 'xc-auth': $state.token.value as string },
+      },
+    )
 
     return res.url
   }
 
   const getSessionResult = async (sessionId: string): Promise<StripeCheckoutSession> => {
-    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrg ? 'No active org' : 'No active workspace')
 
-    return $fetch(`/api/payment/${activeWorkspaceId.value}/get-session-result/${sessionId}`, {
+    return $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/get-session-result/${sessionId}`, {
       baseURL,
       method: 'GET',
       headers: { 'xc-auth': $state.token.value as string },
@@ -278,9 +289,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
   }
 
   const loadInvoices = async () => {
-    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrg ? 'No active org' : 'No active workspace')
 
-    if (!activeWorkspace.value?.stripe_customer_id) {
+    if (isOrg ? !org.value?.stripe_customer_id : !activeWorkspace.value?.stripe_customer_id) {
       invoicePaginationData.value.isLoading = false
 
       return
@@ -301,7 +312,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
     }
 
     try {
-      const res = (await $fetch(`/api/payment/${activeWorkspaceId.value}/invoice`, {
+      const res = (await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/invoice`, {
         baseURL,
         method: 'GET',
         headers: { 'xc-auth': $state.token.value as string },
@@ -345,9 +356,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState((isOrg: bool
   }
 
   watch(
-    activeWorkspaceId,
+    activeWorkspaceOrOrgId,
     async () => {
-      if (route.value.name === 'upgrade' || !activeWorkspaceId.value) return
+      if (route.value.name === 'upgrade' || !activeWorkspaceOrOrgId.value) return
 
       await loadWorkspaceOrOrgSeatCount()
     },

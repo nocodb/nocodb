@@ -297,7 +297,7 @@ watch(
       </div>
     </div>
 
-    <!-- Group by Field Section -->
+    <!-- Group by Field Section - TBD
     <div class="flex flex-col gap-2 flex-1 min-w-0">
       <label>Group by field</label>
       <NcListColumnSelector
@@ -309,6 +309,8 @@ watch(
         :table-id="modelId"
         @update:value="handleChange"
       />
+
     </div>
+     -->
   </GroupedSettings>
 </template>

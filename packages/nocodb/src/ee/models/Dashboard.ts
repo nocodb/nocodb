@@ -45,6 +45,10 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     dashboardId: string,
     ncMeta = Noco.ncMeta,
   ) {
+    if (!dashboardId) {
+      return null;
+    }
+
     let dashboard =
       dashboardId &&
       (await NocoCache.get(

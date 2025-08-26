@@ -76,7 +76,7 @@ watch(activeCalendarView, () => {
     data-testid="nc-calendar-view-mode"
     @click.stop
   >
-    <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+    <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
 
     <a-select-option v-for="option in ['day', 'week', 'month', 'year']" :key="option" :value="option">
       <div class="w-full flex gap-2 items-center justify-between" :title="option">

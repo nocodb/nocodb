@@ -21,7 +21,8 @@ const workspaceStore = useWorkspace()
 
 const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
-const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading } = storeToRefs(workspaceStore)
+const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading, removingCollaboratorMap } =
+  storeToRefs(workspaceStore)
 
 const {
   isPaymentEnabled,
@@ -453,7 +454,10 @@ const handleScroll = (e) => {
                         danger
                         @click="removeCollaborator(record.id, currentWorkspace?.id)"
                       >
-                        <GeneralIcon icon="delete" />
+                        <div v-if="removingCollaboratorMap[record.id]" class="h-4 w-4 flex items-center justify-center">
+                          <GeneralLoader class="!flex-none !text-current" />
+                        </div>
+                        <GeneralIcon v-else icon="delete" />
                         {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeUser') }}
                       </NcMenuItem>
                     </NcTooltip>

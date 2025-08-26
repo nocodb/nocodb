@@ -41,5 +41,3 @@ onBeforeUnmount(() => {
     <PaymentBillingPage is-org class="flex-1 !h-[calc(100vh_-_100px)]" />
   </div>
 </template>
-
-<style lang="scss" scoped></style>

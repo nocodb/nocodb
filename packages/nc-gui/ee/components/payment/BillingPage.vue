@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { PaymentState } from '#imports'
 import { ReturnToBillingPage } from 'nocodb-sdk'
+import { PaymentState } from '#imports'
 
 interface Props {
   workspaceId?: string
@@ -75,7 +75,7 @@ onMounted(async () => {
 
   if (isOrgBilling.value) {
     returnToPage.value = ReturnToBillingPage.ORG
-  } else if (!!workspaceId.value) {
+  } else if (workspaceId.value) {
     returnToPage.value = ReturnToBillingPage.ACCOUNT
   } else {
     returnToPage.value = ReturnToBillingPage.WS

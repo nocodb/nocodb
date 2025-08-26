@@ -33,6 +33,10 @@ const keys = ref<Record<string, number>>({})
 
 let sortable: Sortable
 
+const hasTableCreatePermission = computed(() => {
+  return isUIAllowed('tableCreate', { roles: base.value.project_role, source: base.value?.sources?.[0] })
+})
+
 const allEntities = computed<Array<(DashboardType & { type: 'dashboard' }) | (TableType & { type: 'table' })>>(() => {
   const entities = []
 
@@ -172,6 +176,42 @@ const initSortable = (el: Element) => {
   })
 }
 
+/**
+ * Opens a dialog to create a new table.
+ *
+ * @returns {void}
+ *
+ * @remarks
+ * This function is triggered when the user initiates the table creation process.
+ * It opens a dialog for table creation, handles the dialog closure,
+ * and potentially scrolls to the newly created table.
+ *
+ * @see {@link packages/nc-gui/components/smartsheet/topbar/TableListDropdown.vue} for a similar implementation
+ * of table creation dialog. If this function is updated, consider updating the other implementation as well.
+ */
+function openTableCreateDialog() {
+  const isOpen = ref(true)
+  const sourceId = base.value!.sources?.[0].id
+
+  if (!sourceId || !base.value?.id) return
+
+  const { close } = useDialog(resolveComponent('DlgTableCreate'), {
+    'modelValue': isOpen,
+    sourceId,
+    'baseId': base.value!.id,
+    'onCreate': closeDialog,
+    'showSourceSelector': false,
+    'onUpdate:modelValue': () => closeDialog(),
+  })
+
+  function closeDialog(table?: TableType) {
+    isOpen.value = false
+
+    if (!table) return
+
+    close(1000)
+  }
+}
 watchEffect(() => {
   if (menuRef.value && isUIAllowed('viewCreateOrEdit')) {
     initSortable(menuRef.value)
@@ -181,7 +221,31 @@ watchEffect(() => {
 
 <template>
   <div>
-    <div ref="menuRef" :key="`data-${keys.data || 0}`" class="nc-data-menu flex flex-col w-full !border-r-0 !bg-inherit">
+    <div
+      v-if="!allEntities.length && hasTableCreatePermission"
+      class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-brand-500 hover:text-brand-600"
+      role="button"
+      @click="openTableCreateDialog"
+    >
+      <div class="nc-project-home-section-item">
+        <GeneralIcon icon="plus" />
+        <div>
+          {{
+            $t('general.createEntity', {
+              entity: $t('objects.table'),
+            })
+          }}
+        </div>
+      </div>
+    </div>
+    <div
+      v-else-if="!allEntities.length && !hasTableCreatePermission"
+      class="py-0.5 text-gray-500 nc-project-home-section-item font-normal"
+    >
+      {{ $t('placeholder.noTables') }}
+    </div>
+
+    <div v-else ref="menuRef" :key="`data-${keys.data || 0}`" class="nc-data-menu flex flex-col w-full !border-r-0 !bg-inherit">
       <template v-for="entity of allEntities" :key="entity.id">
         <DashboardTreeViewDashboardNode
           v-if="entity.type === ModelTypes.DASHBOARD"

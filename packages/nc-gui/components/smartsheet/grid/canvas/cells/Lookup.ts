@@ -65,7 +65,7 @@ export const LookupCellRenderer: CellRenderer = {
         return (ncIsArray(value) ? value : [value]).map(getCheckBoxValue)
       }
 
-      if (!value) return []
+      if (ncIsNullOrUndefined(value)) return []
 
       if (lookupColumn.uidt === UITypes.Attachment) {
         if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relatedColObj?.colOptions?.type)) {

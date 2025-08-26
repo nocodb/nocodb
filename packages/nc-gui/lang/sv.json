@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Uppgradera för att ladda upp en arbetsutrymmesbild",
     "upgradeToUploadWsImageSubtitle": "Din nuvarande {activePlan}-plan tillåter endast ikoner och emojis. Uppgradera till {plan}-planen för att ladda upp en egen bild som arbetsutrymmesavatar.",
     "upgradeToUseCurrentUserFilter": "Uppgradera för att filtrera på aktuell användare",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Uppgradera till {plan}-nivån för att använda filter som visar data baserat på aktuell användare.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

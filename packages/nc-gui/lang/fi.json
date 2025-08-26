@@ -160,6 +160,8 @@
     "upgradeToUploadWsImage": "Päivitä ladataksesi työtilan kuvan",
     "upgradeToUploadWsImageSubtitle": "Nykyinen {activePlan}-pakettisi sallii vain kuvakkeet ja emojit. Päivitä {plan}-pakettiin ladataksesi mukautetun kuvan työtilan avatariksi.",
     "upgradeToUseCurrentUserFilter": "Päivitä suodattaaksesi nykyisen käyttäjän mukaan",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Päivitä {plan}-pakettiin, jotta voit käyttää suodattimia, jotka näyttävät tietoja nykyisen käyttäjän perusteella.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",

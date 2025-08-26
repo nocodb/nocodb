@@ -1,4 +1,4 @@
-name: "Unit Test PG"
+name: Pre-build for unit tests
 
 on:
   workflow_call:

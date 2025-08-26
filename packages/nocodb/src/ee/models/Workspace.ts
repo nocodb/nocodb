@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import {
+  ModelTypes,
   NON_SEAT_ROLES,
   PlanLimitTypes,
   type WorkspacePlan,
@@ -625,8 +626,9 @@ export default class Workspace implements WorkspaceType {
             .where('fk_workspace_id', id)
             .whereIn('base_id', activeBaseIds),
           [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]: ncMeta
-            .knexConnection(MetaTable.DASHBOARDS)
+            .knexConnection(MetaTable.MODELS)
             .count('*')
+            .where('type', ModelTypes.DASHBOARD)
             .where('fk_workspace_id', id)
             .whereIn('base_id', activeBaseIds),
           [PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE]: ncMeta

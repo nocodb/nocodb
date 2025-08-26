@@ -281,10 +281,11 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     return await ncMeta.metaCount(
       context.workspace_id,
       context.base_id,
-      MetaTable.DASHBOARDS,
+      MetaTable.MODELS,
       {
         condition: {
           base_id: baseId,
+          type: ModelTypes.DASHBOARD,
         },
       },
     );

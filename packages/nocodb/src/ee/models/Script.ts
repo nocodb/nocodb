@@ -15,7 +15,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { defaultScript } from '~/utils/scriptDefault';
-const logger = new Logger('Base');
+const logger = new Logger('Script');
 
 export default class Script extends ScriptCE implements ScriptType {
   id?: string;

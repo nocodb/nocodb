@@ -111,8 +111,13 @@ export async function getCommandPaletteForUserWorkspace(
           END = 1`),
         );
       })
-      .leftJoin(`${MetaTable.MODELS} as d`, function () {
-        this.on(`d.base_id`, `=`, `root.base_id`);
+      .leftJoin(`${MetaTable.MODELS} as d`, function (qb) {
+        qb.on(`d.base_id`, `=`, `root.base_id`);
+        qb.andOn(
+          `d.type`,
+          `=`,
+          ncMeta.knexConnection.raw('?', [ModelTypes.DASHBOARD]),
+        );
       })
       .where(function () {
         this.where('t.mm', false).orWhereNull('t.mm');
@@ -123,9 +128,6 @@ export async function getCommandPaletteForUserWorkspace(
       })
       .andWhere(function () {
         this.where('dm.disabled', false).orWhereNull('dm.disabled');
-      })
-      .andWhere(function () {
-        this.where(`d.type`, '=', ModelTypes.DASHBOARD);
       })
       .andWhereNot(function () {
         this.where('root.base_role', ProjectRoles.NO_ACCESS).orWhereNull(

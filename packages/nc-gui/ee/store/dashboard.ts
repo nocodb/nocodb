@@ -8,6 +8,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const { showDashboardPlanLimitExceededModal, updateStatLimit } = useEeConfig()
 
+  const { refreshCommandPalette } = useCommandPalette()
+
   const route = useRoute()
 
   const baseStore = useBases()
@@ -141,6 +143,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
       } as any)
       dashboards.value.set(baseId, baseDashboards)
 
+      await refreshCommandPalette()
+
       ncNavigateTo({
         workspaceId: activeWorkspaceId.value,
         baseId: activeProjectId.value,
@@ -193,6 +197,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
         dashboards.value.set(baseId, baseDashboards)
       }
 
+      await refreshCommandPalette()
+
       return updated
     } catch (e) {
       console.error(e)
@@ -232,6 +238,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
           })
         }
       }
+
+      await refreshCommandPalette()
 
       if (!filtered.length) {
         ncNavigateTo({
@@ -314,12 +322,14 @@ export const useDashboardStore = defineStore('dashboard', () => {
                     dashboardId: duplicatedDashboard.id,
                   })
                 }
+                await refreshCommandPalette()
 
                 $e('a:dashboard:duplicate')
                 resolve(data.data?.result)
               } else if (data.status === JobStatus.FAILED) {
                 const errorMsg = data.data?.error?.message || 'There was an error duplicating the dashboard.'
                 message.error(errorMsg)
+                await refreshCommandPalette()
                 reject(new Error(errorMsg))
               }
             }

@@ -1,5 +1,6 @@
 import DashboardCE from 'src/models/Dashboard';
 import { ModelTypes, PlanLimitTypes } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { DashboardType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Widget from '~/models/Widget';
@@ -14,6 +15,9 @@ import {
 } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { CustomUrl, Source } from '~/models';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+
+const logger = new Logger('Dashboard');
 
 export default class Dashboard extends DashboardCE implements DashboardType {
   id?: string;
@@ -168,6 +172,10 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       1,
     );
 
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
     return Dashboard.get(context, id, ncMeta).then(async (dashboard) => {
       await NocoCache.appendToList(
         CacheScope.DASHBOARD,
@@ -214,6 +222,10 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       prepareForResponse(updateObj),
     );
 
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
     return this.get(context, dashboardId, ncMeta);
   }
 
@@ -245,6 +257,10 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       `${CacheScope.DASHBOARD}:${dashboardId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     await NocoCache.incrHashField(
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,

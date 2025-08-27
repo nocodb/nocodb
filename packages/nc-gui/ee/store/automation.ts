@@ -13,6 +13,8 @@ export const useAutomationStore = defineStore('automation', () => {
 
   const { showScriptPlanLimitExceededModal, updateStatLimit } = useEeConfig()
 
+  const { refreshCommandPalette } = useCommandPalette()
+
   // State
   const automations = ref<Map<string, (ScriptType & { _dirty?: string | number })[]>>(new Map())
   const isUpdatingAutomation = ref(false)
@@ -125,6 +127,8 @@ export const useAutomationStore = defineStore('automation', () => {
         automationId: created.id,
       })
 
+      await refreshCommandPalette()
+
       return created
     } catch (e) {
       console.error(e)
@@ -156,6 +160,8 @@ export const useAutomationStore = defineStore('automation', () => {
         baseId: activeProjectId.value,
         automationId: created.id,
       })
+
+      await refreshCommandPalette()
 
       return created
     } catch (e) {
@@ -194,6 +200,8 @@ export const useAutomationStore = defineStore('automation', () => {
               id: automationId,
             },
           )
+
+      await refreshCommandPalette()
 
       const baseAutomations = automations.value.get(baseId) || []
       const index = baseAutomations.findIndex((a) => a.id === automationId)
@@ -246,6 +254,8 @@ export const useAutomationStore = defineStore('automation', () => {
           })
         }
       }
+
+      await refreshCommandPalette()
 
       if (!filtered.length) {
         ncNavigateTo({

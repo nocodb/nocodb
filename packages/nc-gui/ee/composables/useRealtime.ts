@@ -17,6 +17,8 @@ export const useRealtime = createSharedComposable(() => {
 
   const { showInfoModal } = useNcConfirmModal()
 
+  const { refreshCommandPalette } = useCommandPalette()
+
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
   const basesStore = useBases()
@@ -55,6 +57,7 @@ export const useRealtime = createSharedComposable(() => {
           baseObj.sources!.push(payload)
         }
       }
+      refreshCommandPalette()
     } else if (event.action === 'source_update') {
       const { payload } = event
       const baseId = payload.base_id
@@ -79,6 +82,7 @@ export const useRealtime = createSharedComposable(() => {
           }
         }
       }
+      refreshCommandPalette()
     } else if (event.action === 'table_create') {
       const tables = baseTables.value.get(activeBaseId.value)
       if (!tables) {
@@ -87,6 +91,7 @@ export const useRealtime = createSharedComposable(() => {
         tables.push(event.payload)
         baseTables.value.set(activeBaseId.value, tables)
       }
+      refreshCommandPalette()
     } else if (event.action === 'table_update') {
       const updatedTable = event.payload
       const tables = baseTables.value.get(activeBaseId.value)
@@ -102,6 +107,7 @@ export const useRealtime = createSharedComposable(() => {
       } else {
         loadProjectTables(activeBaseId.value, true)
       }
+      refreshCommandPalette()
     } else if (event.action === 'table_delete') {
       const deletedTableId = event.payload.id
       const tables = baseTables.value.get(activeBaseId.value)
@@ -130,6 +136,7 @@ export const useRealtime = createSharedComposable(() => {
       } else {
         loadProjectTables(activeBaseId.value, true)
       }
+      refreshCommandPalette()
     } else if (event.action === 'column_add' || event.action === 'column_update' || event.action === 'column_delete') {
       const { table, column } = event.payload
       setMeta(table)
@@ -140,6 +147,7 @@ export const useRealtime = createSharedComposable(() => {
     } else if (event.action === 'view_create') {
       const views = viewsByTable.value.get(event.payload.fk_model_id) || []
       views.push(event.payload)
+      refreshCommandPalette()
     } else if (event.action === 'view_update') {
       const tableViews = viewsByTable.value.get(event.payload.fk_model_id)
       const view = tableViews?.find((v) => v.id === event.payload.id)
@@ -153,6 +161,7 @@ export const useRealtime = createSharedComposable(() => {
         if (event.payload?.from_row_color)
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE, { viewChange: true })
       }
+      refreshCommandPalette()
     } else if (event.action === 'view_delete') {
       const views = viewsByTable.value.get(event.payload.fk_model_id)
       if (views) {
@@ -172,6 +181,7 @@ export const useRealtime = createSharedComposable(() => {
           views.splice(index, 1)
         }
       }
+      refreshCommandPalette()
     } else if (event.action === 'permission_update') {
       const { payload, baseId } = event
       if (base.value?.id === baseId) {
@@ -197,6 +207,8 @@ export const useRealtime = createSharedComposable(() => {
         const updatedAutomations = [...existingAutomations, automation]
         automations.value.set(baseId, updatedAutomations)
         updateStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE, 1)
+        refreshCommandPalette()
+
         break
       }
       case 'update': {
@@ -213,6 +225,8 @@ export const useRealtime = createSharedComposable(() => {
         const updatedAutomations = existingAutomations.filter((d) => d.id !== id)
         automations.value.set(baseId, updatedAutomations)
         updateStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE, -1)
+        refreshCommandPalette()
+
         if (activeAutomationId.value === id) {
           const nextAutomation = updatedAutomations[0]
           if (nextAutomation) {
@@ -250,6 +264,7 @@ export const useRealtime = createSharedComposable(() => {
         const updatedDashboards = [...existingDashboards, dashboard]
         updateStatLimit(PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE, 1)
         dashboards.value.set(baseId, updatedDashboards)
+        refreshCommandPalette()
         break
       }
       case 'update': {
@@ -264,6 +279,7 @@ export const useRealtime = createSharedComposable(() => {
         const updatedDashboards = existingDashboards.filter((d) => d.id !== id)
         updateStatLimit(PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE, -1)
         dashboards.value.set(baseId, updatedDashboards)
+        refreshCommandPalette()
         if (activeDashboardId.value === id) {
           const nextDashboard = updatedDashboards[0]
           if (nextDashboard) {
@@ -335,12 +351,14 @@ export const useRealtime = createSharedComposable(() => {
         await workspaceStore.loadCollaborators({} as any, workspace.id)
         basesStore.clearBasesUser()
       }
+      refreshCommandPalette()
     } else if (event.action === 'workspace_update') {
       const updatedWorkspace = event.payload
       const workspace = workspaces.value.get(updatedWorkspace.id)
       if (workspace) {
         Object.assign(workspace, updatedWorkspace)
       }
+      refreshCommandPalette()
     } else if (event.action === 'workspace_user_update') {
       const { workspaceId } = event
 
@@ -373,6 +391,7 @@ export const useRealtime = createSharedComposable(() => {
           basesStore.clearBasesUser()
         }
       }
+      refreshCommandPalette()
     }
 
     // base ops
@@ -393,12 +412,14 @@ export const useRealtime = createSharedComposable(() => {
             Object.assign(existingBaseUser, baseUser)
           }
         }
+        refreshCommandPalette()
       } else if (event.action === 'base_update') {
         const updatedBase = event.payload
         const base = bases.value.get(updatedBase.id)
         if (base) {
           Object.assign(base, updatedBase)
         }
+        refreshCommandPalette()
       } else if (event.action === 'base_user_update') {
         const { payload, baseId } = event
 
@@ -427,6 +448,7 @@ export const useRealtime = createSharedComposable(() => {
             })
           }
         }
+        refreshCommandPalette()
       } else if (event.action === 'base_user_remove') {
         const { payload, baseId } = event
 
@@ -446,6 +468,7 @@ export const useRealtime = createSharedComposable(() => {
           }
 
           bases.value.delete(baseId)
+          refreshCommandPalette()
         } else {
           const baseUsers = basesUser.value.get(baseId)
 

@@ -5746,12 +5746,10 @@
                 },
                 "created_by": {
                   "type": "string",
-                  "format": "uuid",
                   "description": "User ID of the creator."
                 },
                 "owned_by": {
                   "type": "string",
-                  "format": "uuid",
                   "description": "User ID of the owner. Applicable only for personal views."
                 },
                 "created_at": {
@@ -6375,7 +6373,6 @@
             "properties": {
               "id": {
                 "type": "string",
-                "format": "uuid",
                 "description": "Unique identifier for the view."
               },
               "is_default": {
@@ -6394,12 +6391,10 @@
             "properties": {
               "created_by": {
                 "type": "string",
-                "format": "uuid",
                 "description": "User ID of the creator."
               },
               "owned_by": {
                 "type": "string",
-                "format": "uuid",
                 "description": "User ID of the owner."
               },
               "created_at": {

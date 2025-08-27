@@ -9,7 +9,6 @@ import {
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { FilterOperatorRegistryService } from '~/services/filter-operator-registry.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Column, Filter, View } from '~/models';
@@ -21,11 +20,8 @@ import RowColorCondition from '~/models/RowColorCondition';
 
 @Injectable()
 export class FiltersService extends FiltersServiceCE {
-  constructor(
-    protected readonly appHooksService: AppHooksService,
-    protected readonly filterOperatorRegistry: FilterOperatorRegistryService,
-  ) {
-    super(appHooksService, filterOperatorRegistry);
+  constructor(protected readonly appHooksService: AppHooksService) {
+    super(appHooksService);
   }
 
   async filterCreate(

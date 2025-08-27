@@ -1,46 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import RowColorCondition from 'src/models/RowColorCondition';
-import { AppEvents, EventType, UITypes } from 'nocodb-sdk';
+import { Injectable, Logger } from '@nestjs/common';
+import { AppEvents, comparisonOpList, EventType, UITypes } from 'nocodb-sdk';
 import type { FilterReqType, FilterType, UserType, ViewType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import type { MetaService } from 'src/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { FilterOperatorRegistryService } from '~/services/filter-operator-registry.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import NocoSocket from '~/socket/NocoSocket';
 import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 import { Column, Filter, Hook, View } from '~/models';
 import Noco from '~/Noco';
-
-export interface FilterTransformationImpact {
-  viewId: string;
-  viewTitle: string;
-  originalFilters: FilterType;
-  transformedFilters: FilterType | null;
-  removedFilters: FilterType[];
-  modifiedFilters: FilterType[];
-  reason: string;
-}
-
-export interface ColumnTypeChangeImpact {
-  columnId: string;
-  columnTitle: string;
-  fromType: UITypes;
-  toType: UITypes;
-  impactedViews: FilterTransformationImpact[];
-  totalViewsImpacted: number;
-  totalFiltersRemoved: number;
-  totalFiltersModified: number;
-}
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class FiltersService {
-  constructor(
-    protected readonly appHooksService: AppHooksService,
-    protected readonly filterOperatorRegistry: FilterOperatorRegistryService,
-  ) {}
+  protected readonly logger = new Logger(FiltersService.name);
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async hookFilterCreate(
     context: NcContext,
@@ -322,680 +300,178 @@ export class FiltersService {
   }
 
   /**
-   * Analyze the impact of a column type change on all views and filters
-   */
-  async analyzeColumnTypeChangeImpact(
-    context: NcContext,
-    columnId: string,
-    fromType: UITypes,
-    toType: UITypes,
-    ncMeta = Noco.ncMeta,
-  ): Promise<ColumnTypeChangeImpact> {
-    const column = await Column.get(context, { colId: columnId }, ncMeta);
-    if (!column) {
-      throw new Error(`Column ${columnId} not found`);
-    }
-
-    // Get all views that reference this column
-    const views = await this.getViewsReferencingColumn(
-      context,
-      columnId,
-      ncMeta,
-    );
-
-    const impactedViews: FilterTransformationImpact[] = [];
-    let totalFiltersRemoved = 0;
-    let totalFiltersModified = 0;
-
-    for (const view of views) {
-      const impact = await this.analyzeViewFilterImpact(
-        context,
-        view,
-        columnId,
-        fromType,
-        toType,
-        ncMeta,
-      );
-
-      if (impact) {
-        impactedViews.push(impact);
-        totalFiltersRemoved += impact.removedFilters.length;
-        totalFiltersModified += impact.modifiedFilters.length;
-      }
-    }
-
-    return {
-      columnId,
-      columnTitle: column.title,
-      fromType,
-      toType,
-      impactedViews,
-      totalViewsImpacted: impactedViews.length,
-      totalFiltersRemoved,
-      totalFiltersModified,
-    };
-  }
-
-  /**
-   * Transform all filters for a column type change
+   * Transform filters for a column type change - remove incompatible ones
+   * Works for all filter types: hook, link, grid, etc.
    */
   async transformFiltersForColumnTypeChange(
     context: NcContext,
     columnId: string,
-    fromType: UITypes,
-    toType: UITypes,
+    newColumnType: UITypes,
+    oldColumnType: UITypes,
+    sqlUi: any,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    const impact = await this.analyzeColumnTypeChangeImpact(
+    // Get all filters that reference this column from all tables
+    const filtersToCheck = await this.getAllFiltersForColumn(
       context,
       columnId,
-      fromType,
-      toType,
       ncMeta,
     );
 
-    // Apply transformations to each impacted view
-    for (const viewImpact of impact.impactedViews) {
-      await this.applyFilterTransformationToView(
-        context,
-        viewImpact.viewId,
-        viewImpact.transformedFilters,
-        ncMeta,
+    // Remove incompatible filters
+    for (const filter of filtersToCheck) {
+      const validation = this.validateFilterForTypeChange(
+        filter,
+        newColumnType,
+        oldColumnType,
+        sqlUi,
       );
+      console.log(validation);
+      if (validation.shouldRemove) {
+        await this.deleteFilter(context, filter.id, ncMeta);
+      }
     }
-
-    // Log the transformation
-    await this.logFilterTransformation(context, impact, ncMeta);
   }
 
   /**
-   * Get all views that reference a specific column
+   * Get all filters that reference a specific column from all filter tables
    */
-  private async getViewsReferencingColumn(
+  private async getAllFiltersForColumn(
     context: NcContext,
     columnId: string,
-    ncMeta = Noco.ncMeta,
-  ): Promise<ViewType[]> {
-    // Get the column to find its model ID
-    const column = await Column.get(context, { colId: columnId }, ncMeta);
-    if (!column) {
-      throw new Error(`Column ${columnId} not found`);
-    }
-
-    // Get all views in the model
-    const views = await View.list(context, column.fk_model_id, ncMeta);
-
-    const viewsWithFilters: ViewType[] = [];
-
-    for (const view of views) {
-      try {
-        const filters = await Filter.getFilterObject(
-          context,
-          {
-            viewId: view.id,
-          },
-          ncMeta,
-        );
-
-        // Check if this view has filters that reference the column
-        if (this.viewReferencesColumn(filters, columnId)) {
-          viewsWithFilters.push(view);
-        }
-      } catch (error) {
-        // Log warning but continue processing other views
-        console.warn(
-          `Failed to get filters for view ${view.id}: ${error.message}`,
-        );
-      }
-    }
-
-    return viewsWithFilters;
-  }
-
-  /**
-   * Check if a view's filters reference a specific column
-   */
-  private viewReferencesColumn(filters: FilterType, columnId: string): boolean {
-    if (!filters || !filters.children) {
-      return false;
-    }
-
-    return this.filterTreeReferencesColumn(filters.children, columnId);
-  }
-
-  /**
-   * Recursively check if a filter tree references a specific column
-   */
-  private filterTreeReferencesColumn(
-    filters: FilterType[],
-    columnId: string,
-  ): boolean {
-    for (const filter of filters) {
-      if (filter.fk_column_id === columnId) {
-        return true;
-      }
-
-      if (filter.children && filter.children.length > 0) {
-        if (this.filterTreeReferencesColumn(filter.children, columnId)) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * Analyze the impact of a column type change on a specific view
-   */
-  private async analyzeViewFilterImpact(
-    context: NcContext,
-    view: ViewType,
-    columnId: string,
-    fromType: UITypes,
-    toType: UITypes,
-    ncMeta = Noco.ncMeta,
-  ): Promise<FilterTransformationImpact | null> {
-    try {
-      const originalFilters = await Filter.getFilterObject(
-        context,
-        {
-          viewId: view.id,
-        },
-        ncMeta,
-      );
-
-      if (!originalFilters || !originalFilters.children) {
-        return null;
-      }
-
-      const transformedFilters = await this.transformFilterTree(
-        context,
-        originalFilters.children,
-        columnId,
-        fromType,
-        toType,
-        ncMeta,
-      );
-
-      const removedFilters = this.getRemovedFilters(
-        originalFilters.children,
-        transformedFilters,
-        columnId,
-      );
-
-      const modifiedFilters = this.getModifiedFilters(
-        originalFilters.children,
-        transformedFilters,
-        columnId,
-      );
-
-      // Only return impact if there are actual changes
-      if (removedFilters.length === 0 && modifiedFilters.length === 0) {
-        return null;
-      }
-
-      return {
-        viewId: view.id,
-        viewTitle: view.title,
-        originalFilters,
-        transformedFilters:
-          transformedFilters.length > 0
-            ? {
-                ...originalFilters,
-                children: transformedFilters,
-              }
-            : null,
-        removedFilters,
-        modifiedFilters,
-        reason: this.getTransformationReason(
-          fromType,
-          toType,
-          removedFilters,
-          modifiedFilters,
-        ),
-      };
-    } catch (error) {
-      console.warn(`Failed to analyze view ${view.id}: ${error.message}`);
-      return null;
-    }
-  }
-
-  /**
-   * Transform a filter tree for a column type change
-   */
-  private async transformFilterTree(
-    context: NcContext,
-    filters: FilterType[],
-    columnId: string,
-    fromType: UITypes,
-    toType: UITypes,
     ncMeta = Noco.ncMeta,
   ): Promise<FilterType[]> {
-    const transformedFilters: FilterType[] = [];
+    const filters: FilterType[] = [];
 
-    for (const filter of filters) {
-      if (filter.is_group && filter.children) {
-        // Recursively transform group filters
-        const transformedChildren = await this.transformFilterTree(
-          context,
-          filter.children,
-          columnId,
-          fromType,
-          toType,
-          ncMeta,
-        );
+    try {
+      // Query nc_filter table directly for all filters referencing this column
+      const filterResults = await ncMeta
+        .knex(MetaTable.FILTER_EXP)
+        .where({
+          base_id: context.base_id,
+          ...(context.workspace_id
+            ? { fk_workspace_id: context.workspace_id }
+            : {}),
+        })
+        .where('fk_column_id', columnId)
+        .select('*');
 
-        if (transformedChildren.length > 0) {
-          transformedFilters.push({
-            ...filter,
-            children: transformedChildren,
-          });
-        }
-      } else if (filter.fk_column_id === columnId) {
-        // Transform individual filter
-        const transformedFilter = this.transformIndividualFilter(
-          filter,
-          fromType,
-          toType,
-        );
-
-        if (transformedFilter) {
-          transformedFilters.push(transformedFilter);
-        }
-      } else {
-        // Keep filter unchanged
-        transformedFilters.push(filter);
+      // Convert to FilterType objects
+      for (const row of filterResults) {
+        filters.push({
+          id: row.id,
+          fk_column_id: row.fk_column_id,
+          comparison_op: row.comparison_op,
+          comparison_sub_op: row.comparison_sub_op,
+          value: row.value,
+          logical_op: row.logical_op,
+          is_group: row.is_group,
+          fk_view_id: row.fk_view_id,
+          fk_hook_id: row.fk_hook_id,
+          fk_parent_id: row.fk_parent_id,
+          children: [], // Will be populated if needed
+        });
       }
+    } catch (error) {
+      console.warn(
+        `Failed to query filters for column ${columnId}: ${error.message}`,
+      );
     }
 
-    return transformedFilters;
+    return filters;
   }
 
   /**
-   * Transform an individual filter for a column type change
+   * Delete a filter directly from the database
    */
-  private transformIndividualFilter(
-    filter: FilterType,
-    fromType: UITypes,
-    toType: UITypes,
-  ): FilterType | null {
-    // Check if operator is still valid for the new type
-    if (
-      !this.filterOperatorRegistry.isOperatorCompatible(
-        filter.comparison_op!,
-        toType,
-      )
-    ) {
-      return null; // Remove filter if operator is not compatible
-    }
-
-    // For incompatible type changes (like number to string, string to number),
-    // we simply delete the filter instead of trying to convert it
-    if (this.isIncompatibleTypeChange(fromType, toType)) {
-      return null; // Remove filter for incompatible type changes
-    }
-
-    // Keep the filter unchanged if it's compatible
-    return filter;
-  }
-
-  /**
-   * Check if a type change is incompatible and should result in filter deletion
-   */
-  private isIncompatibleTypeChange(
-    fromType: UITypes,
-    toType: UITypes,
-  ): boolean {
-    // Number to String or String to Number - incompatible
-    if (
-      [
-        UITypes.Number,
-        UITypes.Decimal,
-        UITypes.Currency,
-        UITypes.Percent,
-        UITypes.Year,
-        UITypes.Duration,
-        UITypes.Rating,
-      ].includes(fromType) &&
-      [
-        UITypes.SingleLineText,
-        UITypes.LongText,
-        UITypes.Email,
-        UITypes.PhoneNumber,
-        UITypes.URL,
-        UITypes.GeoData,
-        UITypes.JSON,
-      ].includes(toType)
-    ) {
-      return true;
-    }
-
-    if (
-      [
-        UITypes.SingleLineText,
-        UITypes.LongText,
-        UITypes.Email,
-        UITypes.PhoneNumber,
-        UITypes.URL,
-        UITypes.GeoData,
-        UITypes.JSON,
-      ].includes(fromType) &&
-      [
-        UITypes.Number,
-        UITypes.Decimal,
-        UITypes.Currency,
-        UITypes.Percent,
-        UITypes.Year,
-        UITypes.Duration,
-        UITypes.Rating,
-      ].includes(toType)
-    ) {
-      return true;
-    }
-
-    // Select to LinkToAnotherRecord - incompatible
-    if (
-      [UITypes.SingleSelect, UITypes.MultiSelect].includes(fromType) &&
-      [UITypes.LinkToAnotherRecord, UITypes.Links].includes(toType)
-    ) {
-      return true;
-    }
-
-    // Date/Time to Text - incompatible
-    if (
-      [
-        UITypes.Date,
-        UITypes.DateTime,
-        UITypes.Time,
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-      ].includes(fromType) &&
-      [
-        UITypes.SingleLineText,
-        UITypes.LongText,
-        UITypes.Email,
-        UITypes.PhoneNumber,
-        UITypes.URL,
-        UITypes.GeoData,
-        UITypes.JSON,
-      ].includes(toType)
-    ) {
-      return true;
-    }
-
-    // Text to Date/Time - incompatible
-    if (
-      [
-        UITypes.SingleLineText,
-        UITypes.LongText,
-        UITypes.Email,
-        UITypes.PhoneNumber,
-        UITypes.URL,
-        UITypes.GeoData,
-        UITypes.JSON,
-      ].includes(fromType) &&
-      [
-        UITypes.Date,
-        UITypes.DateTime,
-        UITypes.Time,
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-      ].includes(toType)
-    ) {
-      return true;
-    }
-
-    // Checkbox to Text - incompatible
-    if (
-      fromType === UITypes.Checkbox &&
-      [
-        UITypes.SingleLineText,
-        UITypes.LongText,
-        UITypes.Email,
-        UITypes.PhoneNumber,
-        UITypes.URL,
-        UITypes.GeoData,
-        UITypes.JSON,
-      ].includes(toType)
-    ) {
-      return true;
-    }
-
-    // Text to Checkbox - incompatible
-    if (
-      [
-        UITypes.SingleLineText,
-        UITypes.LongText,
-        UITypes.Email,
-        UITypes.PhoneNumber,
-        UITypes.URL,
-        UITypes.GeoData,
-        UITypes.JSON,
-      ].includes(fromType) &&
-      toType === UITypes.Checkbox
-    ) {
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   * Get filters that were removed during transformation
-   */
-  private getRemovedFilters(
-    originalFilters: FilterType[],
-    transformedFilters: FilterType[],
-    columnId: string,
-  ): FilterType[] {
-    const removed: FilterType[] = [];
-
-    for (const originalFilter of originalFilters) {
-      if (originalFilter.fk_column_id === columnId) {
-        const stillExists = transformedFilters.some(
-          (tf) => tf.id === originalFilter.id && tf.fk_column_id === columnId,
-        );
-
-        if (!stillExists) {
-          removed.push(originalFilter);
-        }
-      }
-    }
-
-    return removed;
-  }
-
-  /**
-   * Get filters that were modified during transformation
-   */
-  private getModifiedFilters(
-    originalFilters: FilterType[],
-    transformedFilters: FilterType[],
-    columnId: string,
-  ): FilterType[] {
-    const modified: FilterType[] = [];
-
-    for (const originalFilter of originalFilters) {
-      if (originalFilter.fk_column_id === columnId) {
-        const transformedFilter = transformedFilters.find(
-          (tf) => tf.id === originalFilter.id && tf.fk_column_id === columnId,
-        );
-
-        if (
-          transformedFilter &&
-          this.filtersAreDifferent(originalFilter, transformedFilter)
-        ) {
-          modified.push(originalFilter);
-        }
-      }
-    }
-
-    return modified;
-  }
-
-  /**
-   * Check if two filters are different
-   */
-  private filtersAreDifferent(
-    filter1: FilterType,
-    filter2: FilterType,
-  ): boolean {
-    return (
-      filter1.comparison_op !== filter2.comparison_op ||
-      filter1.comparison_sub_op !== filter2.comparison_sub_op ||
-      filter1.value !== filter2.value ||
-      filter1.logical_op !== filter2.logical_op
-    );
-  }
-
-  /**
-   * Get a human-readable reason for the transformation
-   */
-  private getTransformationReason(
-    fromType: UITypes,
-    toType: UITypes,
-    removedFilters: FilterType[],
-    modifiedFilters: FilterType[],
-  ): string {
-    if (removedFilters.length > 0 && modifiedFilters.length === 0) {
-      return `Column type changed from ${fromType} to ${toType}. ${removedFilters.length} filter(s) removed due to incompatibility.`;
-    } else if (removedFilters.length === 0 && modifiedFilters.length > 0) {
-      return `Column type changed from ${fromType} to ${toType}. ${modifiedFilters.length} filter(s) kept unchanged.`;
-    } else if (removedFilters.length > 0 && modifiedFilters.length > 0) {
-      return `Column type changed from ${fromType} to ${toType}. ${removedFilters.length} filter(s) removed due to incompatibility, ${modifiedFilters.length} filter(s) kept unchanged.`;
-    } else {
-      return `Column type changed from ${fromType} to ${toType}. No filters were affected.`;
-    }
-  }
-
-  /**
-   * Apply transformed filters to a view
-   */
-  private async applyFilterTransformationToView(
+  private async deleteFilter(
     context: NcContext,
-    viewId: string,
-    transformedFilters: FilterType | null,
+    filterId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
     try {
-      if (transformedFilters === null) {
-        // Remove all filters for this view
-        await Filter.deleteAll(context, viewId, ncMeta);
-      } else {
-        // Update filters for this view
-        await this.updateViewFilters(
-          context,
-          viewId,
-          transformedFilters,
-          ncMeta,
-        );
-      }
+      // Delete directly from nc_filters table
+      await Filter.delete(context, filterId, ncMeta);
     } catch (error) {
-      console.error(
-        `Failed to apply filter transformation to view ${viewId}: ${error.message}`,
-      );
+      console.warn(`Failed to delete filter ${filterId}: ${error.message}`);
       throw error;
     }
   }
 
   /**
-   * Update filters for a view
+   * Check if an operator is compatible with a column type
    */
-  private async updateViewFilters(
-    context: NcContext,
-    viewId: string,
-    filters: FilterType,
-    ncMeta = Noco.ncMeta,
-  ): Promise<void> {
-    // First, remove all existing filters
-    await Filter.deleteAll(context, viewId, ncMeta);
+  isOperatorCompatible(
+    operator: string,
+    columnType: UITypes,
+    oldColumnType: UITypes,
+  ): boolean {
+    const operators = comparisonOpList(columnType);
+    const oldOperators = comparisonOpList(oldColumnType);
 
-    // Then, insert the new transformed filters
-    if (filters.children && filters.children.length > 0) {
-      await this.insertFilterTree(
-        context,
-        viewId,
-        filters.children,
-        null,
-        ncMeta,
-      );
-    }
-  }
+    const isInOldOperators = oldOperators.find((op) => op.value === operator);
 
-  /**
-   * Recursively insert a filter tree
-   */
-  private async insertFilterTree(
-    context: NcContext,
-    viewId: string,
-    filters: FilterType[],
-    parentId: string | null,
-    ncMeta = Noco.ncMeta,
-  ): Promise<void> {
-    for (const filter of filters) {
-      const insertData = {
-        ...filter,
-        fk_view_id: viewId,
-        fk_parent_id: parentId,
-      };
-
-      const insertedFilter = await Filter.insert(context, insertData, ncMeta);
-
-      if (filter.children && filter.children.length > 0) {
-        await this.insertFilterTree(
-          context,
-          viewId,
-          filter.children,
-          insertedFilter.id,
-          ncMeta,
-        );
-      }
-    }
-  }
-
-  /**
-   * Log the filter transformation for audit purposes
-   */
-  private async logFilterTransformation(
-    context: NcContext,
-    impact: ColumnTypeChangeImpact,
-    ncMeta = Noco.ncMeta,
-  ): Promise<void> {
-    // This could be extended to write to an audit log table
-    console.log(
-      `Filter transformation completed for column ${impact.columnTitle}: ${impact.totalViewsImpacted} views impacted, ${impact.totalFiltersRemoved} filters removed, ${impact.totalFiltersModified} filters modified`,
+    return operators.some(
+      (op) =>
+        op.value === operator &&
+        (isInOldOperators?.text === op.text) && (
+          (op.includedTypes && op.includedTypes?.includes(columnType)) ||
+            (op.excludedTypes && !op.excludedTypes?.includes(columnType)),
+        ),
     );
   }
+    }
 
   /**
-   * Get a summary of the transformation impact for user display
+   * Validate if a filter should be removed due to column type change
    */
-  getTransformationSummary(impact: ColumnTypeChangeImpact): string {
-    const { totalViewsImpacted, totalFiltersRemoved, totalFiltersModified } =
-      impact;
-
-    let summary = `Column type change will impact ${totalViewsImpacted} view(s). `;
-
-    if (totalFiltersRemoved > 0) {
-      summary += `${totalFiltersRemoved} filter(s) will be removed. `;
+  validateFilterForTypeChange(
+    filter: FilterType,
+    newColumnType: UITypes,
+    oldColumnType: UITypes,
+    sqlUI: any,
+  ): { shouldRemove: boolean; reason?: string } {
+    const operator = filter.comparison_op;
+    if (!operator) {
+      return {
+        shouldRemove: true,
+        reason: 'Filter has no comparison operator',
+      };
     }
 
-    if (totalFiltersModified > 0) {
-      summary += `${totalFiltersModified} filter(s) will be modified. `;
+    // check if abstract type changed
+    const oldAbstractType = sqlUI.getAbstractType({ uidt: oldColumnType });
+    const newAbstractType = sqlUI.getAbstractType({ uidt: newColumnType });
+
+    console.log(
+      newColumnType,
+      oldColumnType,
+      `Validating filter ${filter.id}: ${oldAbstractType} -> ${newAbstractType}, operator: ${operator}`,
+    );
+    if (oldAbstractType !== newAbstractType) {
+      return {
+        shouldRemove: true,
+        reason: `Column abstract type changed from ${oldAbstractType} to ${newAbstractType}`,
+      };
     }
 
-    if (totalFiltersRemoved === 0 && totalFiltersModified === 0) {
-      summary += 'No filters will be affected.';
+    // Check if operator is compatible with new type
+    if (this.isOperatorCompatible(operator, newColumnType, oldColumnType)) {
+      return { shouldRemove: false };
     }
 
-    return summary;
+    // Operator is not compatible, filter must be removed
+    return {
+      shouldRemove: true,
+      reason: `Operator ${operator} is not compatible with column type ${newColumnType}`,
+    };
   }
 
   /**
-   * Check if a column type change requires user confirmation
+   * Get all operators compatible with a column type
    */
-  requiresUserConfirmation(impact: ColumnTypeChangeImpact): boolean {
-    return impact.totalFiltersRemoved > 0 || impact.totalFiltersModified > 0;
+  getCompatibleOperators(columnType: UITypes): string[] {
+    const operators = comparisonOpList(columnType);
+    return operators.map((op) => op.value);
   }
 }

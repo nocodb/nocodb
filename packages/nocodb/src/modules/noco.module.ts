@@ -150,7 +150,6 @@ import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { ViewRowColorController } from '~/controllers/view-row-color.controller';
 import { AttachmentUrlUploadHandler } from '~/services/emit-handler/attachment-url-upload.handler';
-import { FilterOperatorRegistryService } from '~/services/filter-operator-registry.service';
 
 /* ACL */
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -342,9 +341,6 @@ export const nocoModuleMetadata = {
 
     /* emit handlers */
     AttachmentUrlUploadHandler,
-
-    /* Filter transformation services */
-    FilterOperatorRegistryService,
   ],
   exports: [
     /* Generic */
@@ -390,9 +386,6 @@ export const nocoModuleMetadata = {
     DataV3Service,
     DataAttachmentV3Service,
     'IViewsV3Service',
-
-    /* Filter transformation services */
-    FilterOperatorRegistryService,
 
     AttachmentUrlUploadHandler,
   ],

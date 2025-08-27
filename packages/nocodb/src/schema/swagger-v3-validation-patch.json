@@ -70,7 +70,7 @@
         "type": "object",
         "allOf": [
           {
-            "$ref": "#/components/schemas/ViewBase"
+            "$ref": "#/components/schemas/ViewBaseInUpdate"
           },
           {
             "properties": {

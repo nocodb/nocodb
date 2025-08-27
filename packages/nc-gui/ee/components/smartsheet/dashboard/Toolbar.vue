@@ -127,19 +127,18 @@ const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SC
         Donut
       </div>
     </NcButton>
-
-    <NcButton size="small" type="text" @click="addIframeWidget">
-      <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
-        <GeneralIcon icon="cellUrl" class="w-5 h-5" />
-        iFrame
-      </div>
-    </NcButton>
     <!--    <NcButton size="small" type="text" @click="addScatterPlotWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="ncChartScatterPlot" class="w-5 h-5" />
         Scatter Plot
       </div>
     </NcButton> -->
+    <NcButton size="small" type="text" @click="addIframeWidget">
+      <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
+        <GeneralIcon icon="cellUrl" class="w-5 h-5" />
+        iFrame
+      </div>
+    </NcButton>
   </div>
 </template>
 

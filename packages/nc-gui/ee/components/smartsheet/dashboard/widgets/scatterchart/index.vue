@@ -34,7 +34,10 @@ const chartSize = computed(() => {
   return sizeMap[widgetSize.value]
 })
 
+const disableLegend = computed(() => widgetRef.value?.config?.data?.yAxis?.fields?.length < 2)
+
 const legendConfig = computed(() => {
+  if (disableLegend.value) return { show: false }
   const position = chartConfig.value?.appearance?.legendPosition ?? 'top'
   const showCountInLegend = chartConfig.value?.appearance?.showCountInLegend ?? true
 
@@ -44,7 +47,7 @@ const legendConfig = computed(() => {
 
   const positionMap = {
     top: { orient: 'horizontal', top: '0%', left: 'center' },
-    bottom: { orient: 'horizontal', bottom: '0%', left: 'center' },
+    bottom: { orient: 'horizontal', bottom: '8%', left: 'center' },
     left: { orient: 'vertical', left: '0%', top: 'center' },
     right: { orient: 'vertical', right: '0%', top: 'center' },
   }
@@ -77,7 +80,7 @@ const legendConfig = computed(() => {
 
 const gridConfig = computed(() => {
   const legendPosition = chartConfig.value?.appearance?.legendPosition ?? 'top'
-  const hasLegend = legendPosition !== 'none' && widgetData.value?.series?.length > 1
+  const hasLegend = legendPosition !== 'none' && !disableLegend.value
 
   const baseConfig = {
     left: '5%',
@@ -118,22 +121,11 @@ const chartOption = computed<ECOption>(() => {
   return {
     color: CHART_COLORS,
     tooltip: {
-      trigger: 'axis',
-      axisPointer: {
-        type: 'line',
-        lineStyle: {
-          color: '#666',
-          type: 'dashed',
-        },
-      },
+      trigger: 'item',
       formatter: (params: any) => {
-        let tooltip = `<strong>${params[0].axisValue}</strong><br/>`
-        params.forEach((param: any) => {
-          const value = param.data?.formatted_value !== undefined ? param.data.formatted_value : param.value
-          const count = param.data?.count ? ` (${param.data.count} records)` : ''
-          tooltip += `${param.marker}${param.seriesName}: ${value}${count}<br/>`
-        })
-        return tooltip
+        const categoryName = params.data.name
+        const value = params.data?.formatted_value !== undefined ? params.data.formatted_value : params.value[1]
+        return `<strong>${categoryName}</strong><br/>${params.marker}${params.seriesName}: ${value}`
       },
       backgroundColor: 'rgba(50, 50, 50, 0.9)',
       textStyle: {
@@ -259,7 +251,7 @@ watch([() => widgetRef.value?.config?.dataSource, () => widgetRef.value?.config?
 </script>
 
 <template>
-  <div class="nc-line-chart-widget h-full w-full flex flex-col relative bg-white !rounded-xl">
+  <div class="nc-scatter-chart-widget h-full w-full flex flex-col relative bg-white !rounded-xl">
     <div class="flex flex-col p-4 pb-3">
       <div class="flex items-center">
         <div class="text-nc-content-gray-emphasis flex-1 text-subHeading2 truncate font-medium">

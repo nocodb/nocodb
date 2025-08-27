@@ -20,5 +20,3 @@ const isExpanded = ref(true)
     <DashboardTreeViewDataList v-if="isExpanded" :base-id="baseId!" />
   </div>
 </template>
-
-<style scoped lang="scss"></style>

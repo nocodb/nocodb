@@ -93,7 +93,7 @@ const focusInput = () => {
 
 /** validate dashboard title */
 function validateDashboardTitle(dashboard: DashboardType) {
-  if (!dashboard.title || dashboard.title.trim().length < 0) {
+  if (!dashboard.title?.trim()) {
     return t('msg.error.dashboardNameRequired')
   }
 

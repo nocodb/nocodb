@@ -1,19 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { expect } from 'chai';
-import { checkboxTypeMap, ClientType, type ColumnType } from 'nocodb-sdk';
+import { type Column, type Model } from '../../../../../src/models';
 import {
-  beforeEachAttachment,
-  beforeEachCheckbox,
-  beforeEachLinkBased,
   beforeEachTextBased,
-  beforeEachUserBased,
-  beforeEach as dataApiV3BeforeEach,
+  beforeEach as dataApiV3BeforeEach
 } from './beforeEach';
-import { ncAxios } from './ncAxios';
-import { getUsers } from './helpers';
 import type { ITestContext } from './helpers';
-import { Base, type Column, type Model } from '../../../../../src/models';
 import type { INcAxios } from './ncAxios';
+import { ncAxios } from './ncAxios';
 
 const API_VERSION = 'v3';
 
@@ -70,20 +64,6 @@ describe('dataApiV3', () => {
       };
 
       it('audit log', async function () {
-        const source = (
-          await (
-            await Base.get(
-              {
-                fk_workspace_id: testContext.context.fk_workspace_id,
-                base_id: testContext.base.id,
-              },
-              testContext.base.id,
-            )
-          ).getSources()
-        )[0];
-        if(source.type === ClientType.SQLITE) {
-          return;
-        }
         const rsp = await ncAxiosPost({
           url: `${urlPrefix}/${table.id}/records`,
           body: newRecord,
@@ -102,7 +82,49 @@ describe('dataApiV3', () => {
             row_id: expectedId,
           },
         });
+        expect(rsp2.body.list.length).to.greaterThan(0);
+        await ncAxiosPatch({
+          url: `${urlPrefix}/${table.id}/records`,
+          body: [
+            {
+              id: expectedId,
+              fields: {
+                SingleLineText: 'AAADC',
+              },
+            },
+          ],
+        });
 
+        const rsp3 = await ncAxiosGet({
+          url: urlAuditLogApi,
+          query: {
+            operation: 'recordAuditList',
+            fk_model_id: table.id,
+            row_id: expectedId,
+          },
+        });
+        expect(rsp3.body.list.length).to.greaterThan(rsp2.body.list.length);
+      });
+
+      it('audit log bulk', async function () {
+        const rsp = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}/records`,
+          body: [newRecord, newRecord],
+        });
+
+        const expectedId = 401;
+        expect(rsp.body.records).to.have.length(2);
+        expect(rsp.body.records[0]).to.have.property('id', expectedId);
+        expect(rsp.body.records[0]).to.have.property('fields');
+
+        const rsp2 = await ncAxiosGet({
+          url: urlAuditLogApi,
+          query: {
+            operation: 'recordAuditList',
+            fk_model_id: table.id,
+            row_id: expectedId,
+          },
+        });
         expect(rsp2.body.list.length).to.greaterThan(0);
         await ncAxiosPatch({
           url: `${urlPrefix}/${table.id}/records`,

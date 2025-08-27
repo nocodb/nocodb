@@ -13,6 +13,7 @@ import {
 import { createView, updateView } from '../../../factory/view';
 import { createTable } from '../../../factory/table';
 import { createBulkRows, createBulkRowsV3 } from '../../../factory/row';
+import { initTblCountry } from '../../../init/initTblCountry';
 import {
   beforeEachNumberBased,
   beforeEachTextBased,
@@ -20,7 +21,7 @@ import {
 } from './beforeEach';
 import { ncAxios } from './ncAxios';
 import { normalizeObject, verifyColumnsInRsp } from './helpers';
-import type { ITestContext } from './helpers';
+import type { ITestContext } from '../../../init';
 import type { Column, Model } from '../../../../../src/models';
 import type { INcAxios } from './ncAxios';
 
@@ -48,7 +49,7 @@ describe('dataApiV3', () => {
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/data/${testContext.sakilaProject.id}`;
+      urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -60,9 +61,19 @@ describe('dataApiV3', () => {
     });
 
     describe('general-based', () => {
+      let countryTable: Model;
+      let cityTable: Model;
+      beforeEach(async () => {
+        const tables = await initTblCountry(
+          testContext.context,
+          testContext.base,
+        );
+        countryTable = tables.countryTable;
+        cityTable = tables.cityTable;
+      });
       it('get list country with limit 4 and next offset', async function () {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
+          url: `${urlPrefix}/${countryTable!.id}/records`,
           query: {
             limit: 4,
           },
@@ -71,7 +82,7 @@ describe('dataApiV3', () => {
         expect(result.records.length).to.eq(4);
 
         const nextResponse = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
+          url: `${urlPrefix}/${countryTable!.id}/records`,
           query: {
             limit: 4,
             page: 2,
@@ -86,7 +97,7 @@ describe('dataApiV3', () => {
 
       it('get list country with 1 field', async function () {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
+          url: `${urlPrefix}/${countryTable!.id}/records`,
           query: {
             fields: 'Country',
           },
@@ -105,9 +116,9 @@ describe('dataApiV3', () => {
 
       it('get list country with primary key field included', async function () {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
+          url: `${urlPrefix}/${countryTable!.id}/records`,
           query: {
-            fields: ['CountryId', 'Country'],
+            fields: ['id', 'Country'],
           },
         });
         const result = response.body as ListResult;
@@ -125,7 +136,7 @@ describe('dataApiV3', () => {
 
       it.skip('get list country with 2 fields on same query param', async function () {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
+          url: `${urlPrefix}/${countryTable!.id}/records`,
           query: {
             fields: 'CountryId,Country',
           },
@@ -136,7 +147,7 @@ describe('dataApiV3', () => {
         // TODO: handle space between fields
         // with space after delimiter
         const nextResponse = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
+          url: `${urlPrefix}/${countryTable!.id}/records`,
           query: {
             fields: 'CountryId, Country',
           },
@@ -147,9 +158,9 @@ describe('dataApiV3', () => {
 
       it('get list country with 2 fields on different query param (array)', async function () {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
+          url: `${urlPrefix}/${countryTable!.id}/records`,
           query: {
-            fields: ['CountryId', 'Country'],
+            fields: ['id', 'Country'],
           },
         });
         const result = response.body as ListResult;
@@ -158,7 +169,7 @@ describe('dataApiV3', () => {
 
       it('get list country with name like Ind', async function () {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
+          url: `${urlPrefix}/${countryTable!.id}/records`,
           query: {
             filter: '(Country,like,Ind)',
           },
@@ -173,15 +184,15 @@ describe('dataApiV3', () => {
       });
 
       it('Nested List - Link to another record', async function () {
-        const expectedRecords = [1, 3, 1, 2, 1, 13, 1, 1, 3, 2];
+        const expectedRecords = [0, 2, 0, 1, 0, 6, 0, 0, 1, 1];
+
         const records = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
+          url: `${urlPrefix}/${countryTable!.id}/records`,
           query: {
             limit: 10,
           },
         });
         expect(records.body.records.length).to.equal(expectedRecords.length);
-
         const cityList = records.body.records.map(
           (r: any) => r.fields['Cities'],
         );
@@ -190,43 +201,36 @@ describe('dataApiV3', () => {
 
       it('Nested List - Lookup', async function () {
         await createLookupColumn(testContext.context, {
-          base: testContext.sakilaProject,
+          base: testContext.base,
           title: 'Lookup',
-          table: testContext.countryTable,
-          relatedTableName: testContext.cityTable.table_name,
+          table: countryTable,
+          relatedTableName: cityTable!.table_name,
           relatedTableColumnTitle: 'City',
         });
 
         const expectedRecords = [
-          ['Kabul'],
-          ['Batna', 'Bchar', 'Skikda'],
-          ['Tafuna'],
-          ['Benguela', 'Namibe'],
-          ['South Hill'],
+          [],
+          ['Batna', 'Bchar'],
+          [],
+          ['Benguela'],
+          [],
           [
             'Almirante Brown',
-            'Avellaneda',
-            'Baha Blanca',
             'Crdoba',
             'Escobar',
             'Ezeiza',
-            'La Plata',
-            'Merlo',
-            'Quilmes',
-            'San Miguel de Tucumn',
-            'Santa F',
-            'Tandil',
-            'Vicente Lpez',
+            'Avellaneda',
+            'Baha Blanca',
           ],
-          ['Yerevan'],
-          ['Woodridge'],
-          ['Graz', 'Linz', 'Salzburg'],
-          ['Baku', 'Sumqayit'],
+          [],
+          [],
+          ['Graz'],
+          ['Baku'],
         ];
 
         // read first 10 records
         const records = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
+          url: `${urlPrefix}/${countryTable!.id}/records`,
           query: {
             limit: 10,
           },
@@ -242,17 +246,17 @@ describe('dataApiV3', () => {
 
       it('Nested List - Rollup', async function () {
         await createRollupColumn(testContext.context, {
-          base: testContext.sakilaProject,
+          base: testContext.base,
           title: 'Rollup',
-          table: testContext.countryTable,
-          relatedTableName: testContext.cityTable.table_name,
+          table: countryTable,
+          relatedTableName: cityTable!.table_name,
           relatedTableColumnTitle: 'City',
           rollupFunction: 'count',
         });
 
-        const expectedRecords = [1, 3, 1, 2, 1, 13, 1, 1, 3, 2];
+        const expectedRecords = [0, 2, 0, 1, 0, 6, 0, 0, 1, 1];
         const records = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records`,
+          url: `${urlPrefix}/${countryTable!.id}/records`,
           query: {
             limit: 10,
           },

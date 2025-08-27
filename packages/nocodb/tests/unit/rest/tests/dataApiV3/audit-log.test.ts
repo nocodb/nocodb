@@ -66,6 +66,49 @@ describe('dataApiV3', () => {
       it('audit log', async function () {
         const rsp = await ncAxiosPost({
           url: `${urlPrefix}/${table.id}/records`,
+          body: newRecord,
+        });
+
+        const expectedId = 401;
+        expect(rsp.body.records).to.have.length(1);
+        expect(rsp.body.records[0]).to.have.property('id', expectedId);
+        expect(rsp.body.records[0]).to.have.property('fields');
+
+        const rsp2 = await ncAxiosGet({
+          url: urlAuditLogApi,
+          query: {
+            operation: 'recordAuditList',
+            fk_model_id: table.id,
+            row_id: expectedId,
+          },
+        });
+        expect(rsp2.body.list.length).to.greaterThan(0);
+        await ncAxiosPatch({
+          url: `${urlPrefix}/${table.id}/records`,
+          body: [
+            {
+              id: expectedId,
+              fields: {
+                SingleLineText: 'AAADC',
+              },
+            },
+          ],
+        });
+
+        const rsp3 = await ncAxiosGet({
+          url: urlAuditLogApi,
+          query: {
+            operation: 'recordAuditList',
+            fk_model_id: table.id,
+            row_id: expectedId,
+          },
+        });
+        expect(rsp3.body.list.length).to.greaterThan(rsp2.body.list.length);
+      });
+
+      it('audit log bulk', async function () {
+        const rsp = await ncAxiosPost({
+          url: `${urlPrefix}/${table.id}/records`,
           body: [newRecord, newRecord],
         });
 

@@ -189,8 +189,8 @@ export default function () {
         );
       }
     });
-    // TODO: improve swagger if possible, otherwise introduce other validation
-    it.skip('Invite Base User v3 - Base role not specified', async () => {
+
+    it('Invite Base User v3 - Base role not specified', async () => {
       // Invite base user
       const inviteData = [
         {

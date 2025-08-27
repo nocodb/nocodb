@@ -26,6 +26,8 @@ const fieldConfigurations = ref(selectedWidget.value?.config?.data?.yAxis?.field
 
 const groupByField = ref(selectedWidget.value?.config?.data?.yAxis?.groupBy || null)
 
+const startAtZero = ref(selectedWidget.value?.config?.data?.yAxis?.startAtZero || true)
+
 const fieldDropdownStates = ref<boolean[]>([])
 
 const aggregationDropdownStates = ref<boolean[]>([])
@@ -105,6 +107,7 @@ const handleChange = () => {
   emit('update:yAxis', {
     fields: fieldConfigurations.value,
     groupBy: groupByField.value,
+    startAtZero: startAtZero.value,
   })
 }
 
@@ -295,6 +298,12 @@ watch(
           Add Field
         </div>
       </div>
+    </div>
+
+    <div>
+      <NcSwitch v-model:checked="startAtZero" @change="handleChange()">
+        <span class="text-caption text-nc-content-gray select-none">Start at zero</span>
+      </NcSwitch>
     </div>
 
     <!-- Group by Field Section - TBD

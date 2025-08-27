@@ -34,6 +34,10 @@ const showCountInLegend = ref(selectedWidget.value?.config?.appearance?.showCoun
 
 const showPercentageOnChart = ref(selectedWidget.value?.config?.appearance?.showPercentageOnChart || true)
 
+const plotDataPoints = ref(selectedWidget.value?.config?.appearance?.plotDataPoints || true)
+
+const smoothLines = ref(selectedWidget.value?.config?.appearance?.smoothLines || true)
+
 const fieldsYAxis = computed(() => selectedWidget.value?.config?.data?.yAxis?.fields || [])
 
 const handleChange = (type?: string, value?: any) => {
@@ -49,6 +53,8 @@ const handleChange = (type?: string, value?: any) => {
     legendPosition: appearanceLegendPosition.value,
     showCountInLegend: showCountInLegend.value,
     showPercentageOnChart: showPercentageOnChart.value,
+    plotDataPoints: plotDataPoints.value,
+    smoothLines: smoothLines.value,
   })
 }
 </script>
@@ -98,6 +104,16 @@ const handleChange = (type?: string, value?: any) => {
       <div>
         <NcSwitch v-model:checked="showCountInLegend" @change="handleChange">
           <span class="text-caption text-nc-content-gray select-none">Show count in legend</span>
+        </NcSwitch>
+      </div>
+      <div>
+        <NcSwitch v-model:checked="plotDataPoints" @change="handleChange">
+          <span class="text-caption text-nc-content-gray select-none">Plot data points</span>
+        </NcSwitch>
+      </div>
+      <div>
+        <NcSwitch v-model:checked="smoothLines" @change="handleChange">
+          <span class="text-caption text-nc-content-gray select-none">Smooth lines</span>
         </NcSwitch>
       </div>
     </div>

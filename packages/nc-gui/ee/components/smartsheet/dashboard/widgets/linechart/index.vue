@@ -118,7 +118,8 @@ const chartOption = computed<ECOption>(() => {
 
   const showPercentageOnChart = chartConfig.value?.appearance?.showPercentageOnChart ?? false
   const startAtZero = chartConfig.value?.data?.yAxis?.startAtZero ?? true
-  const smooth = chartConfig.value?.appearance?.smooth ?? true
+  const smooth = chartConfig.value?.appearance?.smoothLines ?? true
+  const plotDataPoints = chartConfig.value?.appearance?.plotDataPoints ?? false
 
   return {
     color: CHART_COLORS,
@@ -208,7 +209,7 @@ const chartOption = computed<ECOption>(() => {
         borderWidth: 2,
       },
       symbol: 'circle',
-      symbolSize: 6,
+      symbolSize: plotDataPoints ? 6 : 0,
       emphasis: {
         itemStyle: {
           borderWidth: 3,

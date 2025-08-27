@@ -284,11 +284,11 @@ async function getFeature(
 }
 
 async function checkForFeature(
-  type: PlanFeatureTypes,
   context: {
     workspace_id: string;
     api_version?: NcApiVersion;
   },
+  type: PlanFeatureTypes,
   ncMeta = Noco.ncMeta,
 ) {
   if (!(await getFeature(type, context.workspace_id, ncMeta))) {

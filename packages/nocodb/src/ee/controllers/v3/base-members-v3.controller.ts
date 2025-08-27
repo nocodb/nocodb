@@ -31,8 +31,8 @@ export class BaseMembersV3Controller {
 
   async canExecute(context: NcContext) {
     await checkForFeature(
-      PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
       context,
+      PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
     );
   }
 

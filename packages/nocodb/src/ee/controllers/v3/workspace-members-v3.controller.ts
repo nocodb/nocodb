@@ -28,8 +28,8 @@ export class WorkspaceMembersV3Controller {
 
   async canExecute(context: NcContext) {
     await checkForFeature(
-      PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
       context,
+      PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
     );
   }
 

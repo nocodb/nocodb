@@ -147,7 +147,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
   }) {
     const { context } = params;
     const ncMeta = params.ncMeta ?? Noco.ncMeta;
-    await checkForFeature(PlanFeatureTypes.FEATURE_ROW_COLOUR, context, ncMeta);
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_ROW_COLOUR, ncMeta);
 
     let view: View;
     if (params.fk_view_id) {
@@ -330,7 +330,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
   }) {
     const { context, ncMeta } = params;
 
-    await checkForFeature(PlanFeatureTypes.FEATURE_ROW_COLOUR, context, ncMeta);
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_ROW_COLOUR, ncMeta);
 
     let view: View;
     if (params.fk_view_id) {

@@ -30,7 +30,7 @@ export class ViewRowColorV3Service {
   ) {
     const { viewId, body } = params;
 
-    await checkForFeature(PlanFeatureTypes.FEATURE_ROW_COLOUR, context, ncMeta);
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_ROW_COLOUR, ncMeta);
 
     await this.viewRowColorService.removeRowColorInfo({
       context,

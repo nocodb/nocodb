@@ -872,9 +872,12 @@ export class AclMiddleware implements NestInterceptor {
       const base = await Base.get(req.context, req.ncBaseId);
 
       if (base.default_role) {
-        await checkForFeature(PlanFeatureTypes.FEATURE_PRIVATE_BASES, {
-          workspace_id: req.ncWorkspaceId,
-        });
+        await checkForFeature(
+          {
+            workspace_id: req.ncWorkspaceId,
+          },
+          PlanFeatureTypes.FEATURE_PRIVATE_BASES,
+        );
       }
     }
 

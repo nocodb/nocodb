@@ -47,8 +47,8 @@ export class BaseMemberHelpers extends BaseMemberHelpersCE {
     ncMeta?: MetaService,
   ) {
     await checkForFeature(
-      PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
       context,
+      PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
       ncMeta,
     );
 

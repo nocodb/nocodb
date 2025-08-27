@@ -33,7 +33,7 @@ export class BasesV3Service extends BasesV3ServiceCE {
     base: any,
   ) {
     if (base.type === 'private') {
-      await checkForFeature(PlanFeatureTypes.FEATURE_PRIVATE_BASES, context);
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_PRIVATE_BASES);
     }
     if (base.type && !['default', 'private'].includes(base.type)) {
       NcError.get({

@@ -34,7 +34,7 @@ export class ViewsV3Controller {
     @Query('includeM2M') includeM2M: string,
     @Request() req,
   ) {
-    await checkForFeature(PlanFeatureTypes.FEATURE_API_VIEW_V3, context);
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_API_VIEW_V3);
 
     return new PagedResponseImpl(
       await this.viewsV3Service.getViews(context, {
@@ -51,7 +51,7 @@ export class ViewsV3Controller {
     @Param('viewId') viewId: string,
     @Request() req,
   ) {
-    await checkForFeature(PlanFeatureTypes.FEATURE_API_VIEW_V3, context);
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_API_VIEW_V3);
 
     const view = await this.viewsV3Service.getView(context, {
       viewId: viewId,
@@ -69,7 +69,7 @@ export class ViewsV3Controller {
     @Body() body: any,
     @Request() req,
   ) {
-    await checkForFeature(PlanFeatureTypes.FEATURE_API_VIEW_V3, context);
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_API_VIEW_V3);
 
     const view = await this.viewsV3Service.create(context, {
       req,
@@ -85,7 +85,7 @@ export class ViewsV3Controller {
     @Param('viewId') viewId: string,
     @Request() req,
   ) {
-    await checkForFeature(PlanFeatureTypes.FEATURE_API_VIEW_V3, context);
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_API_VIEW_V3);
 
     const view = await this.viewsV3Service.update(context, {
       viewId: viewId,
@@ -101,7 +101,7 @@ export class ViewsV3Controller {
     @Param('viewId') viewId: string,
     @Request() req,
   ) {
-    await checkForFeature(PlanFeatureTypes.FEATURE_API_VIEW_V3, context);
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_API_VIEW_V3);
 
     const view = await this.viewsV3Service.delete(context, {
       viewId: viewId,

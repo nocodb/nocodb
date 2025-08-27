@@ -3,11 +3,11 @@ import { expect } from 'chai';
 import { type Column, type Model } from '../../../../../src/models';
 import {
   beforeEachTextBased,
-  beforeEach as dataApiV3BeforeEach
+  beforeEach as dataApiV3BeforeEach,
 } from './beforeEach';
-import type { ITestContext } from './helpers';
-import type { INcAxios } from './ncAxios';
 import { ncAxios } from './ncAxios';
+import type { ITestContext } from '../../../init';
+import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';
 

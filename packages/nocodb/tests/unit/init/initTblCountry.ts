@@ -568,6 +568,10 @@ export const initTblCountry = async (context: IInitContext, base: Base) => {
       title: 'City',
       uidt: UITypes.SingleLineText,
     },
+    {
+      title: 'Area',
+      uidt: UITypes.Decimal,
+    },
   ];
   const cityTable = await createTable(context, base, {
     table_name: 'city',

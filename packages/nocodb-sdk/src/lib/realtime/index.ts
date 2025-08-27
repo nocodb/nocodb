@@ -8,6 +8,7 @@ export enum EventType {
   USER_EVENT = 'event-user',
   DATA_EVENT = 'event-data',
   META_EVENT = 'event-meta',
+  COMMENT_EVENT = 'event-comment',
   DASHBOARD_EVENT = 'event-dashboard',
   WIDGET_EVENT = 'event-widget',
   SCRIPT_EVENT = 'event-script',
@@ -43,6 +44,12 @@ export interface DataPayload extends BaseSocketPayload {
   action: 'add' | 'update' | 'delete' | 'reorder';
   payload: Record<string, any>;
   before?: string;
+}
+
+export interface CommentPayload extends BaseSocketPayload {
+  id: string; // rowId
+  action: 'add' | 'update' | 'delete';
+  payload: Record<string, any>;
 }
 
 export interface MetaPayload<T = any> extends BaseSocketPayload {
@@ -84,7 +91,8 @@ export type SocketEventPayload =
   | ConnectionWelcomePayload
   | ConnectionErrorPayload
   | DataPayload
-  | MetaPayload;
+  | MetaPayload
+  | CommentPayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = {
@@ -93,6 +101,7 @@ export type SocketEventPayloadMap = {
   [EventType.DATA_EVENT]: DataPayload;
   [EventType.META_EVENT]: MetaPayload;
   [EventType.USER_EVENT]: UserEventPayload;
+  [EventType.COMMENT_EVENT]: CommentPayload;
   [key: string]: BaseSocketPayload;
 };
 

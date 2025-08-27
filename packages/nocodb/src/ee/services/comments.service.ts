@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { CommentsService as CommentsServiceCE } from 'src/services/comments.service';
-import type { UserType } from 'nocodb-sdk';
+import { EventType, type UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import Comment from '~/models/Comment';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MailService } from '~/services/mail/mail.service';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class CommentsService extends CommentsServiceCE {
@@ -29,6 +30,20 @@ export class CommentsService extends CommentsServiceCE {
       resolved_by: comment.resolved_by ? null : param.user.id,
       resolved_by_email: comment.resolved_by ? null : param.user.email,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.COMMENT_EVENT,
+        payload: {
+          action: 'update',
+          payload: res,
+          id: comment.row_id,
+        },
+        scopes: [comment.fk_model_id],
+      },
+      context.socket_id,
+    );
 
     return res;
   }

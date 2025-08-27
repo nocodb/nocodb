@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, EventType } from 'nocodb-sdk';
 import { Base, Model } from '../models';
 import type {
   CommentReqType,
@@ -13,6 +13,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Comment from '~/models/Comment';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class CommentsService {
@@ -65,6 +66,20 @@ export class CommentsService {
       context,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.COMMENT_EVENT,
+        payload: {
+          action: 'add',
+          payload: res,
+          id: param.body.row_id,
+        },
+        scopes: [model.id],
+      },
+      context.socket_id,
+    );
+
     return res;
   }
 
@@ -97,6 +112,21 @@ export class CommentsService {
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.COMMENT_EVENT,
+        payload: {
+          action: 'delete',
+          payload: comment,
+          id: comment.row_id,
+        },
+        scopes: [model.id],
+      },
+      context.socket_id,
+    );
+
     return res;
   }
 
@@ -176,6 +206,20 @@ export class CommentsService {
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.COMMENT_EVENT,
+        payload: {
+          action: 'update',
+          payload: res,
+          id: comment.row_id,
+        },
+        scopes: [model.id],
+      },
+      context.socket_id,
+    );
 
     return res;
   }

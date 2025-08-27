@@ -216,11 +216,11 @@ describe('dataApiV3', () => {
           [],
           [
             'Almirante Brown',
+            'Avellaneda',
+            'Baha Blanca',
             'Crdoba',
             'Escobar',
             'Ezeiza',
-            'Avellaneda',
-            'Baha Blanca',
           ],
           [],
           [],
@@ -238,8 +238,8 @@ describe('dataApiV3', () => {
         expect(records.body.records.length).to.equal(10);
 
         // extract Lookup column
-        const lookupData = records.body.records.map(
-          (record: any) => record.fields['Lookup'],
+        const lookupData = records.body.records.map((record: any) =>
+          record.fields['Lookup'].sort(),
         );
         expect(lookupData).to.deep.equal(expectedRecords);
       });

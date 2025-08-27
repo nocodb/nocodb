@@ -252,6 +252,11 @@ const getDefaultChartConfig = (
       return {
         ...baseConfig,
         chartType: ChartTypes.BAR,
+        appearance: {
+          showCountInLegend: true,
+          legendPosition: 'top',
+          showPercentageOnChart: true,
+        },
         data: {
           xAxis: {
             column_id: getDefaultCategoryColumn(columns),

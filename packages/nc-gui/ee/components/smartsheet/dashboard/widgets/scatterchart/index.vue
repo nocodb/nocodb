@@ -23,14 +23,13 @@ const chartConfig = computed(() => {
 })
 
 const widgetSize = computed(() => {
-  return chartConfig.value?.appearance?.size ?? 'medium'
+  return widgetRef.value?.position?.h === 5 ? 'small' : 'medium'
 })
 
 const chartSize = computed(() => {
   const sizeMap = {
-    small: { height: widgetRef?.value?.description ? '280px' : '320px' },
-    medium: { height: widgetRef?.value?.description ? '360px' : '400px' },
-    large: { height: widgetRef?.value?.description ? '440px' : '480px' },
+    small: { height: widgetRef?.value?.description ? '390px' : '420px' },
+    medium: { height: widgetRef?.value?.description ? '480px' : '520px' },
   }
   return sizeMap[widgetSize.value]
 })

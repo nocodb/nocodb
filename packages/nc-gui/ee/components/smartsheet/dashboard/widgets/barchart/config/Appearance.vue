@@ -32,6 +32,8 @@ const appearanceLegendPosition = ref(selectedWidget.value?.config?.appearance?.l
 
 const showCountInLegend = ref(selectedWidget.value?.config?.appearance?.showCountInLegend || true)
 
+const fieldsYAxis = computed(() => selectedWidget.value?.config?.data?.yAxis?.fields || [])
+
 const showPercentageOnChart = ref(selectedWidget.value?.config?.appearance?.showPercentageOnChart || true)
 
 const handleChange = (type?: string, value?: any) => {
@@ -71,7 +73,7 @@ const handleChange = (type?: string, value?: any) => {
         </a-select>
       </div>
 
-      <div class="flex flex-col gap-2 flex-1 min-w-0">
+      <div v-if="fieldsYAxis.length > 1" class="flex flex-col gap-2 flex-1 min-w-0">
         <label>Legend Orientation</label>
         <a-select
           v-model:value="appearanceLegendPosition"

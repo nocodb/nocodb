@@ -23,19 +23,21 @@ const chartConfig = computed(() => {
 })
 
 const widgetSize = computed(() => {
-  return chartConfig.value?.appearance?.size ?? 'medium'
+  return widgetRef.value?.position?.h === 5 ? 'small' : 'medium'
 })
 
 const chartSize = computed(() => {
   const sizeMap = {
-    small: { height: widgetRef?.value?.description ? '280px' : '320px' },
-    medium: { height: widgetRef?.value?.description ? '360px' : '400px' },
-    large: { height: widgetRef?.value?.description ? '440px' : '480px' },
+    small: { height: widgetRef?.value?.description ? '390px' : '420px' },
+    medium: { height: widgetRef?.value?.description ? '480px' : '520px' },
   }
   return sizeMap[widgetSize.value]
 })
 
+const disableLegend = computed(() => widgetRef.value?.config?.data?.yAxis?.fields?.length < 2)
+
 const legendConfig = computed(() => {
+  if (disableLegend.value) return { show: false }
   const position = chartConfig.value?.appearance?.legendPosition ?? 'top'
   const showCountInLegend = chartConfig.value?.appearance?.showCountInLegend ?? true
 
@@ -45,7 +47,7 @@ const legendConfig = computed(() => {
 
   const positionMap = {
     top: { orient: 'horizontal', top: '0%', left: 'center' },
-    bottom: { orient: 'horizontal', bottom: '0%', left: 'center' },
+    bottom: { orient: 'horizontal', bottom: '8%', left: 'center' },
     left: { orient: 'vertical', left: '0%', top: 'center' },
     right: { orient: 'vertical', right: '0%', top: 'center' },
   }
@@ -78,7 +80,7 @@ const legendConfig = computed(() => {
 
 const gridConfig = computed(() => {
   const legendPosition = chartConfig.value?.appearance?.legendPosition ?? 'top'
-  const hasLegend = legendPosition !== 'none' && widgetData.value?.series?.length > 1
+  const hasLegend = legendPosition !== 'none' && !disableLegend.value
 
   const baseConfig = {
     left: '5%',
@@ -127,8 +129,7 @@ const chartOption = computed<ECOption>(() => {
         let tooltip = `<strong>${params[0].axisValue}</strong><br/>`
         params.forEach((param: any) => {
           const value = param.data?.formatted_value !== undefined ? param.data.formatted_value : param.value
-          const count = param.data?.count ? ` (${param.data.count} records)` : ''
-          tooltip += `${param.marker}${param.seriesName}: ${value}${count}<br/>`
+          tooltip += `${param.marker}${param.seriesName}: ${value}<br/>`
         })
         return tooltip
       },

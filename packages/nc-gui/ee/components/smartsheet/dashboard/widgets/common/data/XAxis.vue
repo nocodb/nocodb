@@ -42,7 +42,7 @@ const handleChange = (type: 'field' | 'sort' | 'order' | 'includeEmptyRecords') 
 }
 
 const fieldOrderOptions = [
-  { value: 'default', label: 'Default field order' },
+  { value: 'default', label: 'Default order' },
   { value: 'asc', label: 'Ascending' },
   { value: 'desc', label: 'Descending' },
 ]

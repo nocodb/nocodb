@@ -28,8 +28,8 @@ const widgetSize = computed(() => {
 
 const chartSize = computed(() => {
   const sizeMap = {
-    small: { height: widgetRef?.value?.description ? '390px' : '420px' },
-    medium: { height: widgetRef?.value?.description ? '480px' : '520px' },
+    small: { height: widgetRef?.value?.description ? '380px' : '420px' },
+    medium: { height: widgetRef?.value?.description ? '460px' : '520px' },
   }
   return sizeMap[widgetSize.value]
 })

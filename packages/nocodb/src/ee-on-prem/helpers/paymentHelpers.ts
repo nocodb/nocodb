@@ -19,8 +19,9 @@ const getOnPremPlan = () => {
   return EnterprisePlan;
 };
 
-export async function getActivePlanAndSubscription(
-  _workspace: Workspace,
+async function getActivePlanAndSubscription(
+  _workspaceOrOrgId: string,
+  _loyal = false,
   _ncMeta = Noco.ncMeta,
 ) {
   const plan = getOnPremPlan();

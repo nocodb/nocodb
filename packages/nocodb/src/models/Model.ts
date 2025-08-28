@@ -206,7 +206,7 @@ export default class Model implements TableType {
     const source = await Source.get(context, sourceId, false, ncMeta);
 
     if (!source?.isMeta()) {
-      condition.sourceId = sourceId;
+      condition.source_id = sourceId;
     }
 
     if (isEE) {

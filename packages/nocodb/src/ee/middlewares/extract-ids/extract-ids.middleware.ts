@@ -59,9 +59,9 @@ import { beforeAclValidationHook } from '~/middlewares/extract-ids/extract-ids.h
 import { RootScopes } from '~/utils/globals';
 import SSOClient from '~/models/SSOClient';
 import {
+  checkForFeature,
   checkIfEmailAllowedNonSSO,
   checkIfWorkspaceSSOAvail,
-  getFeature,
 } from '~/helpers/paymentHelpers';
 import MCPToken from '~/models/MCPToken';
 import Widget from '~/models/Widget';
@@ -871,16 +871,14 @@ export class AclMiddleware implements NestInterceptor {
     ) {
       const base = await Base.get(req.context, req.ncBaseId);
 
-      if (
-        base.default_role &&
-        !(await getFeature(
+      if (base.default_role) {
+        await checkForFeature(
+          {
+            workspace_id: req.ncWorkspaceId,
+          },
           PlanFeatureTypes.FEATURE_PRIVATE_BASES,
-          req.ncWorkspaceId,
-        ))
-      )
-        NcError.forbidden(
-          `Please upgrade your plan to access private base or make the base to default`,
         );
+      }
     }
 
     // check if permission have source level permission restriction

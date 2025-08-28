@@ -259,14 +259,12 @@ export interface BaseMemberList {
 }
 
 /** Array of members to be created. */
-export type BaseMemberCreate = (
+export type BaseMemberCreate = ((
   | {
       /** Unique identifier for the user (skip if email is provided) */
       user_id: string;
       /** Full name of the user. */
       user_name?: string;
-      /** Base roles for the user. */
-      base_role: BaseRoles;
     }
   | {
       /**
@@ -276,10 +274,11 @@ export type BaseMemberCreate = (
       email: string;
       /** Full name of the user. */
       user_name?: string;
-      /** Base roles for the user. */
-      base_role: BaseRoles;
     }
-)[];
+) & {
+  /** Base roles for the user. */
+  base_role: BaseRoles;
+})[];
 
 /** Array of member updates. */
 export type BaseMemberUpdate = {

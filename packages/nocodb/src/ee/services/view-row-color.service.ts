@@ -21,11 +21,10 @@ import type { ViewMetaRowColoring } from '~/models/View';
 import { MetaTable } from '~/cli';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { Model, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
-import { getFeature } from '~/helpers/paymentHelpers';
-import { isOnPrem } from '~/utils';
 
 @Injectable()
 export class ViewRowColorService extends ViewRowColorServiceCE {
@@ -148,18 +147,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
   }) {
     const { context } = params;
     const ncMeta = params.ncMeta ?? Noco.ncMeta;
-    if (
-      !(await getFeature(
-        PlanFeatureTypes.FEATURE_ROW_COLOUR,
-        context.workspace_id,
-        ncMeta,
-      ))
-    ) {
-      NcError.get(context).featureNotSupported({
-        feature: PlanFeatureTypes.FEATURE_ROW_COLOUR,
-        isOnPrem: isOnPrem,
-      });
-    }
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_ROW_COLOUR, ncMeta);
 
     let view: View;
     if (params.fk_view_id) {
@@ -342,18 +330,8 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
   }) {
     const { context, ncMeta } = params;
 
-    if (
-      !(await getFeature(
-        PlanFeatureTypes.FEATURE_ROW_COLOUR,
-        context.workspace_id,
-        ncMeta,
-      ))
-    ) {
-      NcError.get(context).featureNotSupported({
-        feature: PlanFeatureTypes.FEATURE_ROW_COLOUR,
-        isOnPrem: isOnPrem,
-      });
-    }
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_ROW_COLOUR, ncMeta);
+
     let view: View;
     if (params.fk_view_id) {
       view = await View.get(params.context, params.fk_view_id);

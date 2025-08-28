@@ -71,6 +71,7 @@ export interface BarChartDataConfig {
     sortBy: 'xAxis' | 'yAxis';
     orderBy?: 'default' | 'asc' | 'desc';
     includeEmptyRecords?: boolean;
+    includeOthers?: boolean;
   };
   yAxis: {
     startAtZero: boolean;

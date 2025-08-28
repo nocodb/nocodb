@@ -89,7 +89,7 @@ const handleChange = (type?: string, value?: any) => {
       </div>
     </div>
 
-    <div class="space-y-1">
+    <div class="space-y-2">
       <div v-if="fieldsYAxis.length === 1">
         <NcSwitch v-model:checked="showValueInChart" @change="handleChange">
           <span class="text-caption text-nc-content-gray select-none">Show value in chart</span>

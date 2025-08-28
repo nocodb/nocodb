@@ -45,7 +45,7 @@ const handleChange = () => {
         </template>
       </a-select>
     </div>
-    <div class="space-y-1">
+    <div class="space-y-2">
       <div>
         <NcSwitch v-model:checked="showPercentageOnChart" @change="handleChange">
           <span class="text-caption text-nc-content-gray select-none">Show percentage in chart</span>

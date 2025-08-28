@@ -567,7 +567,7 @@ describe('dataApiV3', () => {
 
         // update record with Id 801 to 804
         const updatedRecord = {
-          Date: '2022/04/25',
+          Date: '2022-04-25',
           DateTime: '2022-04-25 08:30:00+00:00',
         };
         const updatedRecords = [801, 802, 803, 804].map((id) => ({

@@ -2017,7 +2017,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
 
       // update record with Id 801 to 804
       const updatedRecord = {
-        Date: '2022/04/25', // Changed format to match the actual output
+        Date: '2022-04-25',
         DateTime: '2022-04-25 08:30:00+00:00',
       };
       const updatedRecords = [

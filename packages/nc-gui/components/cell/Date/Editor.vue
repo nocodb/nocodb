@@ -61,9 +61,7 @@ const localState = computed({
       return undefined
     }
 
-    const format = dateFormat.value
-
-    if (!dayjs(modelValue, format).isValid()) {
+    if (!dayjs(modelValue).isValid()) {
       const parsedDate = parseFlexibleDate(modelValue)
       if (parsedDate) {
         return parsedDate
@@ -72,6 +70,8 @@ const localState = computed({
       isDateInvalid.value = true
       return undefined
     }
+
+    const format = picker.value === 'month' ? dateFormat : 'YYYY-MM-DD'
 
     const value = dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, format)
 

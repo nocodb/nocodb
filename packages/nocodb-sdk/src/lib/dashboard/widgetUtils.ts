@@ -179,14 +179,14 @@ const getDefaultChartConfig = (
 
     // Fallback: first column
     return (
-      columns.filter(
+      columns.find(
         (col) =>
-          isSystemColumn(col) &&
-          isButton(col) &&
-          isLookup(col) &&
-          isQrCode(col) &&
-          isBarcode(col)
-      )[0]?.id || ''
+          !isSystemColumn(col) &&
+          !isButton(col) &&
+          !isLookup(col) &&
+          !isQrCode(col) &&
+          !isBarcode(col)
+      )?.id || null
     );
   };
 
@@ -251,7 +251,7 @@ const getDefaultChartConfig = (
     case ChartTypes.LINE:
       return {
         ...baseConfig,
-        chartType: ChartTypes.BAR,
+        chartType: chartType,
         appearance: {
           showCountInLegend: true,
           legendPosition: 'top',

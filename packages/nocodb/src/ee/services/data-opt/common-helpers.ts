@@ -13,8 +13,6 @@ export function shouldSkipCache(
 ) {
   const queryParamKeys = isList
     ? [
-        'sortArr',
-        'filterArr',
         'sort',
         'filter',
         'where',
@@ -26,7 +24,8 @@ export function shouldSkipCache(
         'r',
         'pks',
       ]
-    : ['filterArr', 'filter', 'where', 'w', 'fields', 'f', 'nested'];
+    : ['filter', 'where', 'w', 'fields', 'f', 'nested'];
+  const arrayParamsKey = isList ? ['sortArr', 'filterArr'] : ['filterArr'];
   return (
     process.env.NC_DISABLE_CACHE === 'true' ||
     ctx.validateFormula ||
@@ -36,6 +35,14 @@ export function shouldSkipCache(
         ctx.params[key] !== '' &&
         ctx.params[key] !== null &&
         ctx.params[key] !== undefined,
+    ) ||
+    arrayParamsKey.some(
+      (key) =>
+        key in ctx.params &&
+        ctx.params[key] !== '' &&
+        ctx.params[key] !== null &&
+        ctx.params[key] !== undefined &&
+        ctx.params[key]?.length > 0,
     ) ||
     ctx.customConditions?.length > 0
   );

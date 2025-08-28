@@ -6,7 +6,6 @@ interface MigrationOptions {
   READ_BATCH_SIZE?: number;
   INSERT_BATCH_SIZE?: number;
   whereConditions?: (queryBuilder: Knex.QueryBuilder) => Knex.QueryBuilder;
-  orderBy?: string | string[] | { column: string; order?: 'asc' | 'desc' }[];
   selectColumns?: string | string[];
 }
 
@@ -25,7 +24,6 @@ export async function migrateTableInBatches(
     READ_BATCH_SIZE = 1000,
     INSERT_BATCH_SIZE = 200,
     whereConditions,
-    orderBy = 'id',
     selectColumns = '*',
   } = options;
 
@@ -40,20 +38,6 @@ export async function migrateTableInBatches(
     if (whereConditions) {
       query = whereConditions(query);
     }
-
-    // Apply ordering and pagination
-    if (Array.isArray(orderBy)) {
-      orderBy.forEach((order) => {
-        if (typeof order === 'string') {
-          query = query.orderBy(order);
-        } else {
-          query = query.orderBy(order.column, order.order || 'asc');
-        }
-      });
-    } else {
-      query = query.orderBy(orderBy as string);
-    }
-
     const rows = await query.offset(offset).limit(READ_BATCH_SIZE + 1); // +1 to check if there are more rows
 
     logger.log(

@@ -71,6 +71,7 @@ export interface BarChartDataConfig {
     sortBy: 'xAxis' | 'yAxis';
     orderBy?: 'default' | 'asc' | 'desc';
     includeEmptyRecords?: boolean;
+    includeOthers?: boolean;
   };
   yAxis: {
     startAtZero: boolean;
@@ -85,7 +86,7 @@ export interface BarChartDataConfig {
 export interface BarChartAppearanceConfig {
   size: 'small' | 'medium' | 'large';
   showCountInLegend: boolean;
-  showPercentageOnChart: boolean;
+  showValueInChart: boolean;
   legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
   colorSchema: 'default' | 'custom';
 }
@@ -103,7 +104,7 @@ export interface LineChartAppearanceConfig {
   smoothLines: boolean;
   plotDataPoints: boolean;
   showCountInLegend: boolean;
-  showPercentageOnChart: boolean;
+  showValueInChart: boolean;
   legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
   colorSchema: 'default' | 'custom';
 }
@@ -119,7 +120,7 @@ export interface LineChartConfig extends BaseChartConfig {
 export interface ScatterPlotAppearanceConfig {
   size: 'small' | 'medium' | 'large';
   showCountInLegend: boolean;
-  showPercentageOnChart: boolean;
+  showValueInChart: boolean;
   legendPosition: 'top' | 'right' | 'bottom' | 'left' | 'none';
   colorSchema: 'default' | 'custom';
 }

@@ -5,7 +5,16 @@ import {
   WidgetType,
   WidgetTypes,
 } from '.';
-import { ColumnType, UITypes } from '~/lib';
+import {
+  AllAggregations,
+  ColumnType,
+  isBarcode,
+  isButton,
+  isLookup,
+  isQrCode,
+  isSystemColumn,
+  UITypes,
+} from '~/lib';
 
 export const calculateNextPosition = (
   existingWidgets: WidgetType[],
@@ -153,6 +162,34 @@ const getDefaultChartConfig = (
     return columns[0]?.id || '';
   };
 
+  const getDefaultYAxisColumn = (columns?: Array<ColumnType>): string => {
+    if (!columns || columns?.length === 0) return '';
+
+    // Priority 1: SingleSelect
+    const singleSelectColumn = columns.find(
+      (col) => col.uidt === UITypes.SingleSelect
+    );
+    if (singleSelectColumn) return singleSelectColumn.id;
+
+    // Priority 2: SingleLineText
+    const singleLineTextColumn = columns.find(
+      (col) => col.uidt === UITypes.SingleLineText
+    );
+    if (singleLineTextColumn) return singleLineTextColumn.id;
+
+    // Fallback: first column
+    return (
+      columns.find(
+        (col) =>
+          !isSystemColumn(col) &&
+          !isButton(col) &&
+          !isLookup(col) &&
+          !isQrCode(col) &&
+          !isBarcode(col)
+      )?.id || null
+    );
+  };
+
   switch (chartType) {
     case ChartTypes.PIE:
       return {
@@ -206,6 +243,40 @@ const getDefaultChartConfig = (
         },
         permissions: {
           allowUserToPrint: true,
+          allowUsersToViewRecords: false,
+        },
+      };
+
+    case ChartTypes.BAR:
+    case ChartTypes.LINE:
+      return {
+        ...baseConfig,
+        chartType: chartType,
+        appearance: {
+          showCountInLegend: true,
+          legendPosition: 'top',
+          showPercentageOnChart: true,
+        },
+        data: {
+          xAxis: {
+            column_id: getDefaultCategoryColumn(columns),
+            sortBy: 'xAxis' as const,
+            orderBy: 'default' as const,
+            includeEmptyRecords: false,
+          },
+          yAxis: {
+            startAtZero: true,
+            fields: [
+              {
+                column_id: getDefaultYAxisColumn(columns),
+                aggregation: AllAggregations.CountUnique,
+              },
+            ],
+            groupBy: null,
+          },
+        },
+        permissions: {
+          allowUserToPrint: false,
           allowUsersToViewRecords: false,
         },
       };

@@ -17,7 +17,7 @@ const {
   paymentMode,
   annualDiscount,
   onPaymentModeChange,
-  workspaceSeatCount,
+  workspaceOrOrgSeatCount,
   getPlanPrice,
   updateSubscription,
   cancelSubscription,
@@ -64,13 +64,13 @@ const changes = computed(() => {
     changes.change = 'cancel'
 
     changes.decrease = [
-      ...(workspaceSeatCount.value > 3
+      ...(workspaceOrOrgSeatCount.value > 3
         ? [
             {
               title: 'Number of editors',
-              oldValue: `${workspaceSeatCount.value}`,
+              oldValue: `${workspaceOrOrgSeatCount.value}`,
               newValue: '3',
-              percent: (((workspaceSeatCount.value - 3) / workspaceSeatCount.value) * 100).toFixed(2),
+              percent: (((workspaceOrOrgSeatCount.value - 3) / workspaceOrOrgSeatCount.value) * 100).toFixed(2),
             },
           ]
         : []),
@@ -116,7 +116,7 @@ const changes = computed(() => {
 const priceInfo = computed(() => {
   const p = getPlanPrice(props.plan)
 
-  let total = p * Math.min(workspaceSeatCount.value, SEAT_PRICE_CAP)
+  let total = p * Math.min(workspaceOrOrgSeatCount.value, SEAT_PRICE_CAP)
 
   const pMonthly = getPlanPrice(props.plan, 'month')
 
@@ -125,7 +125,7 @@ const priceInfo = computed(() => {
   if (paymentMode.value === 'year') {
     total = total * 12
 
-    discount = pMonthly * 12 * Math.min(workspaceSeatCount.value, SEAT_PRICE_CAP) - total
+    discount = pMonthly * 12 * Math.min(workspaceOrOrgSeatCount.value, SEAT_PRICE_CAP) - total
 
     if (discount < 0) {
       discount = 0
@@ -212,7 +212,7 @@ const onCancelSubscription = async () => {
         <div class="flex flex-col gap-8 text-nc-content-gray-subtle2">
           <div>
             <div class="nc-upgrade-info-subtitle">
-              This workspace has <span class="nc-upgrade-info-title"> {{ workspaceSeatCount }} billable users.</span>
+              This workspace has <span class="nc-upgrade-info-title"> {{ workspaceOrOrgSeatCount }} billable users.</span>
             </div>
             <div class="nc-upgrade-info-subtitle mt-1">
               Credits from the unused portion of your current billing period will be applied to your new plan’s invoice.
@@ -257,7 +257,7 @@ const onCancelSubscription = async () => {
                     {{ paymentMode === 'year' ? 'yearly' : 'monthly' }}
                   </div>
                 </div>
-                <div>x{{ workspaceSeatCount }}</div>
+                <div>x{{ workspaceOrOrgSeatCount }}</div>
                 <div class="min-w-[100px] text-right">${{ priceInfo.price + priceInfo.discount }}</div>
               </div>
               <div class="flex justify-between text-nc-content-gray text-sm font-500">
@@ -305,7 +305,7 @@ const onCancelSubscription = async () => {
                 <span class="mr-2 h-6 inline-flex items-center">
                   <span class="rounded inline-flex items-center justify-center h-4 w-4"> • </span>
                 </span>
-                <span class="relative"> <span class="font-bold">Billable users:</span> {{ workspaceSeatCount }}</span>
+                <span class="relative"> <span class="font-bold">Billable users:</span> {{ workspaceOrOrgSeatCount }}</span>
               </div>
               <div class="flex items-start text-nc-content-gray-subtle text-sm leading-[24px] font-weight-500">
                 <span class="mr-2 h-6 inline-flex items-center">
@@ -359,7 +359,7 @@ const onCancelSubscription = async () => {
                 <span class="mr-2 h-6 inline-flex items-center">
                   <span class="rounded inline-flex items-center justify-center h-4 w-4"> • </span>
                 </span>
-                <span class="relative"> <span class="font-bold">Billable users:</span> {{ workspaceSeatCount }}</span>
+                <span class="relative"> <span class="font-bold">Billable users:</span> {{ workspaceOrOrgSeatCount }}</span>
               </div>
               <div class="flex items-start text-nc-content-gray-subtle text-sm leading-[24px] font-weight-500">
                 <span class="mr-2 h-6 inline-flex items-center">

@@ -4,7 +4,7 @@ import type Stripe from 'stripe'
 
 const { t } = useI18n()
 
-const { defaultInvoicePaginationData, invoices, invoicePaginationData, loadInvoices } = usePaymentStoreOrThrow()
+const { defaultInvoicePaginationData, invoices, invoicePaginationData, loadInvoices, stripeCustomerId } = usePaymentStoreOrThrow()
 
 const paginatedData = computed(() => {
   const { page, pageSize } = invoicePaginationData.value
@@ -122,7 +122,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <section>
+  <section v-if="stripeCustomerId">
     <div class="text-base text-nc-content-gray font-700">{{ $t('labels.pastInvoices') }}</div>
     <div class="mt-3 flex-1 flex">
       <NcTable

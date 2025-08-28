@@ -18,7 +18,7 @@ const {
   paymentMode,
   loadPlan,
   activeWorkspace,
-  loadWorkspaceSeatCount,
+  loadWorkspaceOrOrgSeatCount,
   annualDiscount,
   onPaymentModeChange,
   getPlanPrice,
@@ -79,7 +79,7 @@ onMounted(() => {
     loadStripe().then((s) => {
       stripe.value = s
 
-      loadWorkspaceSeatCount().then(() => {
+      loadWorkspaceOrOrgSeatCount().then(() => {
         loadPlan(route.params.planId as string).then((plan) => {
           if (!plan) {
             navigateToPricing({ isBackToPricing: true })

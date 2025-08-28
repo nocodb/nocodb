@@ -15,6 +15,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { deserializeJSON, serializeJSON } from '~/utils/serialize';
 import { BaseUser, PresignedUrl } from '~/models';
+import { getActivePlanAndSubscription } from '~/helpers/paymentHelpers';
 
 type OrganizationType = Omit<OrgType, 'image'> & {
   image?: AttachmentResType | string;
@@ -133,6 +134,8 @@ export default class Org implements OrganizationType {
       }
       if (!org) return null;
     }
+
+    org.payment = await getActivePlanAndSubscription(org.id, false, ncMeta);
 
     return new Org(org);
   }

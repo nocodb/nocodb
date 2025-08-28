@@ -113,7 +113,13 @@ export default class Workspace implements WorkspaceType {
       }
     }
 
-    workspace.payment = await getActivePlanAndSubscription(workspace, ncMeta);
+    if (workspace) {
+      workspace.payment = await getActivePlanAndSubscription(
+        workspace.fk_org_id || workspace.id,
+        workspace.loyal,
+        ncMeta,
+      );
+    }
 
     return workspace && new Workspace(workspace);
   }
@@ -153,7 +159,8 @@ export default class Workspace implements WorkspaceType {
     if (!workspaceData || (workspaceData?.deleted && !force)) return undefined;
 
     workspaceData.payment = await getActivePlanAndSubscription(
-      workspaceData,
+      workspaceData.fk_org_id || workspaceData.id,
+      workspaceData.loyal,
       ncMeta,
     );
 

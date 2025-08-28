@@ -1,6 +1,6 @@
 import { type StripeCheckoutSession } from '@stripe/stripe-js'
 import type Stripe from 'stripe'
-import { LoyaltyPriceLookupKeyMap, type PaginatedType, PlanPriceLookupKeys, PlanTitles } from 'nocodb-sdk'
+import { LoyaltyPriceLookupKeyMap, type PaginatedType, PlanPriceLookupKeys, PlanTitles, ReturnToBillingPage } from 'nocodb-sdk'
 
 export interface PaymentPlan {
   id: string
@@ -30,6 +30,8 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     pageCursors: [undefined],
   }
 
+  const isOrgBilling = inject(IsOrgBillingInj, ref(false))
+
   const { $state, $api } = useNuxtApp()
 
   const router = useRouter()
@@ -37,9 +39,17 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const { navigateToCheckout, isLoyaltyDiscountAvailable, calculatePrice } = useEeConfig()
 
+  const { org, orgId } = storeToRefs(useOrg())
+
   const workspaceStore = useWorkspace()
 
   const { activeWorkspace, activeWorkspaceId } = storeToRefs(workspaceStore)
+
+  const activeWorkspaceOrOrgId = computed(() => {
+    if (isOrgBilling.value) return orgId.value
+
+    return activeWorkspaceId.value
+  })
 
   const baseURL = $api.instance.defaults.baseURL
 
@@ -51,11 +61,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
   const selectedPlan = ref<PaymentPlan | null>(null)
 
-  const workspaceSeatCount = ref<number>(1)
+  const workspaceOrOrgSeatCount = ref<number>(1)
 
   const plansAvailable = ref<PaymentPlan[]>([])
 
-  const isAccountPage = ref<boolean>(false)
+  const returnToPage = ref<ReturnToBillingPage>(ReturnToBillingPage.WS)
 
   const invoices = ref<Stripe.Invoice[]>([])
 
@@ -63,15 +73,25 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     PaginatedType & { isLoading?: boolean; hasMore?: boolean; pageCursors: (string | undefined)[] }
   >(defaultInvoicePaginationData)
 
-  const isPaidPlan = computed(() => !!activeWorkspace.value?.payment?.subscription)
+  const isPaidPlan = computed(() => {
+    if (isOrgBilling.value) return !!org.value?.payment?.subscription
 
-  const activePlan = computed(() => activeWorkspace.value?.payment?.plan)
+    return !!activeWorkspace.value?.payment?.subscription
+  })
 
-  const activeSubscription = computed(() => activeWorkspace.value?.payment?.subscription)
+  const activePlan = computed(() => (isOrgBilling.value ? org.value?.payment?.plan : activeWorkspace.value?.payment?.plan))
 
-  const loadWorkspaceSeatCount = async () => {
+  const activeSubscription = computed(() =>
+    isOrgBilling.value ? org.value?.payment?.subscription : activeWorkspace.value?.payment?.subscription,
+  )
+
+  const stripeCustomerId = computed(() =>
+    isOrgBilling.value ? org.value?.stripe_customer_id : activeWorkspace.value?.stripe_customer_id,
+  )
+
+  const loadWorkspaceOrOrgSeatCount = async () => {
     try {
-      const { count } = (await $fetch(`/api/payment/${activeWorkspaceId.value}/seat-count`, {
+      const { count } = (await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/seat-count`, {
         baseURL,
         method: 'GET',
         headers: { 'xc-auth': $state.token.value as string },
@@ -79,7 +99,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         count: number
       }
 
-      workspaceSeatCount.value = count
+      workspaceOrOrgSeatCount.value = count
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -172,20 +192,20 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     const price = getPrice(plan, mode) || plan.prices[0]
 
     if (price.billing_scheme === 'tiered' && price.tiers_mode === 'volume') {
-      const tier = price.tiers.find((tier: any) => workspaceSeatCount.value <= (tier.up_to ?? Infinity))
+      const tier = price.tiers.find((tier: any) => workspaceOrOrgSeatCount.value <= (tier.up_to ?? Infinity))
 
       if (!tier) return 0
 
       return (tier.unit_amount + tier.flat_amount) / 100 / (mode === 'year' ? 12 : 1)
     } else if (price.billing_scheme === 'tiered' && price.tiers_mode === 'graduated') {
-      return calculatePrice(price, workspaceSeatCount.value, mode)
+      return calculatePrice(price, workspaceOrOrgSeatCount.value, mode)
     }
 
     return price.unit_amount / 100 / (mode === 'year' ? 12 : 1)
   }
 
   const createPaymentForm = async () => {
-    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrgBilling.value ? 'No active org' : 'No active workspace')
     if (!selectedPlan.value) throw new Error('No plan selected')
     if (!selectedPlan.value.prices) throw new Error('No prices found')
 
@@ -193,15 +213,15 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
     if (!price) throw new Error('No price found')
 
-    const res = await $fetch(`/api/payment/${activeWorkspaceId.value}/create-subscription-form`, {
+    const res = await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/create-subscription-form`, {
       baseURL,
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
       body: {
-        seat: workspaceSeatCount.value,
+        seat: workspaceOrOrgSeatCount.value,
         plan_id: selectedPlan.value.id,
         price_id: price.id,
-        isAccountPage: isAccountPage.value,
+        returnToPage: returnToPage.value,
       },
     })
 
@@ -209,7 +229,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   }
 
   const updateSubscription = async (planId: string, priceId?: string, afterUpgrade = false) => {
-    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrgBilling.value ? 'No active org' : 'No active workspace')
 
     const plan = plansAvailable.value.find((plan) => plan.id === planId)
 
@@ -219,36 +239,40 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
     if (!priceId) throw new Error('No price found')
 
-    await $fetch(`/api/payment/${activeWorkspaceId.value}/update-subscription`, {
+    await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/update-subscription`, {
       baseURL,
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
       body: {
-        seat: workspaceSeatCount.value,
+        seat: workspaceOrOrgSeatCount.value,
         plan_id: plan.id,
         price_id: priceId,
       },
     })
 
-    window.location.href = `/#/${activeWorkspaceId.value}/settings?tab=billing${afterUpgrade ? '&afterUpgrade=true' : ''}`
+    window.location.href = isOrgBilling.value
+      ? `/#/admin/${orgId.value}/billing?afterUpgrade=true`
+      : `/#/${activeWorkspaceOrOrgId.value}/settings?tab=billing${afterUpgrade ? '&afterUpgrade=true' : ''}`
   }
 
   const cancelSubscription = async () => {
-    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrgBilling.value ? 'No active org' : 'No active workspace')
 
-    await $fetch(`/api/payment/${activeWorkspaceId.value}/cancel-subscription`, {
+    await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/cancel-subscription`, {
       baseURL,
       method: 'DELETE',
       headers: { 'xc-auth': $state.token.value as string },
     })
 
-    window.location.href = `/#/${activeWorkspaceId.value}/settings?tab=billing`
+    window.location.href = isOrgBilling.value
+      ? `/#/admin/${orgId.value}/billing`
+      : `/#/${activeWorkspaceOrOrgId.value}/settings?tab=billing`
   }
 
   const getCustomerPortalSession = async () => {
-    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrgBilling.value ? 'No active org' : 'No active workspace')
 
-    const res = await $fetch(`/api/payment/${activeWorkspaceId.value}/customer-portal?isAccountPage=${isAccountPage.value}`, {
+    const res = await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/customer-portal?returnToPage=${returnToPage.value}`, {
       baseURL,
       method: 'GET',
       headers: { 'xc-auth': $state.token.value as string },
@@ -258,9 +282,9 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   }
 
   const getSessionResult = async (sessionId: string): Promise<StripeCheckoutSession> => {
-    if (!activeWorkspaceId.value) throw new Error('No active workspace')
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrgBilling.value ? 'No active org' : 'No active workspace')
 
-    return $fetch(`/api/payment/${activeWorkspaceId.value}/get-session-result/${sessionId}`, {
+    return $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/get-session-result/${sessionId}`, {
       baseURL,
       method: 'GET',
       headers: { 'xc-auth': $state.token.value as string },
@@ -268,9 +292,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   }
 
   const loadInvoices = async () => {
-    if (!activeWorkspaceId.value) throw new Error('No active workspace')
-
-    if (!activeWorkspace.value?.stripe_customer_id) {
+    if (!stripeCustomerId.value) {
       invoicePaginationData.value.isLoading = false
 
       return
@@ -290,8 +312,10 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
       return
     }
 
+    if (!activeWorkspaceOrOrgId.value) throw new Error(isOrgBilling.value ? 'No active org' : 'No active workspace')
+
     try {
-      const res = (await $fetch(`/api/payment/${activeWorkspaceId.value}/invoice`, {
+      const res = (await $fetch(`/api/payment/${activeWorkspaceOrOrgId.value}/invoice`, {
         baseURL,
         method: 'GET',
         headers: { 'xc-auth': $state.token.value as string },
@@ -335,11 +359,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
   }
 
   watch(
-    activeWorkspaceId,
+    activeWorkspaceOrOrgId,
     async () => {
-      if (route.value.name === 'upgrade' || !activeWorkspaceId.value) return
+      if (route.value.name === 'upgrade' || !activeWorkspaceOrOrgId.value) return
 
-      await loadWorkspaceSeatCount()
+      await loadWorkspaceOrOrgSeatCount()
     },
     { immediate: true },
   )
@@ -350,12 +374,12 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     plansAvailable,
     loadPlans,
     loadPlan,
-    loadWorkspaceSeatCount,
+    loadWorkspaceOrOrgSeatCount,
     getPlanPrice,
     onPaymentModeChange,
     onSelectPlan,
     selectedPlan,
-    workspaceSeatCount,
+    workspaceOrOrgSeatCount,
     paymentMode,
     paymentState,
     subscriptionId,
@@ -369,12 +393,17 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     activeWorkspace,
     getSessionResult,
     getCustomerPortalSession,
-    isAccountPage,
+    returnToPage,
     onManageSubscription,
     isLoyaltyDiscountAvailable,
     loadInvoices,
     invoices,
     invoicePaginationData,
+    isOrgBilling,
+    activeWorkspaceOrOrgId,
+    org,
+    orgId,
+    stripeCustomerId,
   }
 }, 'injected-payment-store')
 

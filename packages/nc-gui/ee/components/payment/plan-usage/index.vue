@@ -18,8 +18,16 @@ const activeWorkspace = computed(() =>
   workspaceId.value ? workspacesList.value.find((w) => w.id === workspaceId.value)! : _activeWorkspace.value!,
 )
 
-const { paymentState, workspaceSeatCount, activeSubscription, onManageSubscription, plansAvailable, updateSubscription } =
-  usePaymentStoreOrThrow()
+const {
+  isOrgBilling,
+  org,
+  paymentState,
+  workspaceOrOrgSeatCount,
+  activeSubscription,
+  onManageSubscription,
+  plansAvailable,
+  updateSubscription,
+} = usePaymentStoreOrThrow()
 
 const {
   getLimit,
@@ -80,11 +88,11 @@ const nextInvoiceInfo = computed(() => {
 })
 
 const currentPlanTitle = computed(() => {
-  return activeWorkspace.value?.payment?.plan.title ?? PlanTitles.FREE
+  return (isOrgBilling.value ? org.value?.payment?.plan.title : activeWorkspace.value?.payment?.plan.title) ?? PlanTitles.FREE
 })
 
 const showWarningStatusForSeatCount = computed(() => {
-  return currentPlanTitle.value === PlanTitles.FREE && workspaceSeatCount.value >= getLimit(PlanLimitTypes.LIMIT_EDITOR) - 1
+  return currentPlanTitle.value === PlanTitles.FREE && workspaceOrOrgSeatCount.value >= getLimit(PlanLimitTypes.LIMIT_EDITOR) - 1
 })
 
 const formatTotalLimit = (value: number) => {
@@ -285,7 +293,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string, type:
         <div class="flex gap-2 items-center text-base font-weight-700 text-nc-content-gray !leading-7">
           <span>{{ $t('title.currentPlan') }}:</span>
           <span :style="{ color: activePlanMeta?.primary }">
-            {{ $t(`objects.paymentPlan.${activeWorkspace?.payment?.plan.title ?? PlanTitles.FREE}`) }}
+            {{ $t(`objects.paymentPlan.${activePlanTitle}`) }}
           </span>
           <NcBadge
             v-if="activeSubscription?.period"
@@ -300,7 +308,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string, type:
             {{ $t('labels.manageSubscription') }}
           </NcButton>
           <NcButton
-            v-if="!isAnyPlanLimitReached"
+            v-if="!isAnyPlanLimitReached && !isOrgBilling"
             v-e="['c:payment:billing:upgrade', { activePlan: activePlanTitle }]"
             type="primary"
             size="small"
@@ -316,7 +324,7 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string, type:
       </div>
 
       <NcAlert
-        v-if="isAnyPlanLimitReached"
+        v-if="isAnyPlanLimitReached && !isOrgBilling"
         type="warning"
         message="Plan Limit Reached"
         description="Please upgrade to continue using the service without interruptions."
@@ -372,17 +380,18 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string, type:
             <div v-else>{{ nextInvoiceInfo?.amount }}, {{ nextInvoiceInfo?.date }}</div>
           </template>
         </PaymentPlanUsageRow>
+
         <PaymentPlanUsageRow
           :plan-meta="activePlanMeta"
           :show-warning-status="showWarningStatusForSeatCount"
           :tooltip="
             $t('upgrade.editorLimitExceedTooltip', {
-              prefix: getTooltipPrefix(workspaceSeatCount, getLimit(PlanLimitTypes.LIMIT_EDITOR)),
+              prefix: getTooltipPrefix(workspaceOrOrgSeatCount, getLimit(PlanLimitTypes.LIMIT_EDITOR)),
               activePlan: activePlanTitle,
               limit: getLimit(PlanLimitTypes.LIMIT_EDITOR),
             })
           "
-          :is-limit-exceeded="workspaceSeatCount > getLimit(PlanLimitTypes.LIMIT_EDITOR)"
+          :is-limit-exceeded="workspaceOrOrgSeatCount > getLimit(PlanLimitTypes.LIMIT_EDITOR)"
         >
           <template #label>
             {{
@@ -392,50 +401,52 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string, type:
             }}
           </template>
           <template #value
-            >{{ workspaceSeatCount }} {{ currentPlanTitle === PlanTitles.FREE ? 'Billable' : 'Paid' }}
-            {{ workspaceSeatCount === 1 ? 'User' : 'Users' }}</template
+            >{{ workspaceOrOrgSeatCount }} {{ currentPlanTitle === PlanTitles.FREE ? 'Billable' : 'Paid' }}
+            {{ workspaceOrOrgSeatCount === 1 ? 'User' : 'Users' }}</template
           >
         </PaymentPlanUsageRow>
-        <PaymentPlanUsageRow
-          :plan-meta="activePlanMeta"
-          :show-warning-status="recordInfo.showWarningStatus"
-          :tooltip="recordInfo.tooltip"
-          :is-limit-exceeded="recordInfo.isLimitExceeded"
-        >
-          <template #label>
-            <span class="capitalize">
-              {{ $t('objects.records') }}
-            </span>
-          </template>
-          <template #value> {{ recordInfo.value }} of {{ recordInfo.total }} records</template>
-        </PaymentPlanUsageRow>
-        <PaymentPlanUsageRow
-          :plan-meta="activePlanMeta"
-          :show-warning-status="storageInfo.showWarningStatus"
-          :tooltip="storageInfo.tooltip"
-          :is-limit-exceeded="storageInfo.isLimitExceeded"
-        >
-          <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>
-          <template #value> {{ storageInfo.value }} GB of {{ storageInfo.total }} GB attachments </template>
-        </PaymentPlanUsageRow>
-        <PaymentPlanUsageRow
-          :plan-meta="activePlanMeta"
-          :show-warning-status="automationInfo.showWarningStatus"
-          :tooltip="automationInfo.tooltip"
-          :is-limit-exceeded="automationInfo.isLimitExceeded"
-        >
-          <template #label> {{ $t('objects.currentPlan.webhookCallsMonthly') }} </template>
-          <template #value> {{ automationInfo.value }} of {{ automationInfo.total }} webhook calls per month </template>
-        </PaymentPlanUsageRow>
-        <PaymentPlanUsageRow
-          :plan-meta="activePlanMeta"
-          :show-warning-status="apiCallsInfo.showWarningStatus"
-          :tooltip="apiCallsInfo.tooltip"
-          :is-limit-exceeded="apiCallsInfo.isLimitExceeded"
-        >
-          <template #label> {{ $t('objects.currentPlan.apiCallsMonthly') }} </template>
-          <template #value> {{ apiCallsInfo.value }} of {{ apiCallsInfo.total }} API calls per month </template>
-        </PaymentPlanUsageRow>
+        <template v-if="!isOrgBilling">
+          <PaymentPlanUsageRow
+            :plan-meta="activePlanMeta"
+            :show-warning-status="recordInfo.showWarningStatus"
+            :tooltip="recordInfo.tooltip"
+            :is-limit-exceeded="recordInfo.isLimitExceeded"
+          >
+            <template #label>
+              <span class="capitalize">
+                {{ $t('objects.records') }}
+              </span>
+            </template>
+            <template #value> {{ recordInfo.value }} of {{ recordInfo.total }} records</template>
+          </PaymentPlanUsageRow>
+          <PaymentPlanUsageRow
+            :plan-meta="activePlanMeta"
+            :show-warning-status="storageInfo.showWarningStatus"
+            :tooltip="storageInfo.tooltip"
+            :is-limit-exceeded="storageInfo.isLimitExceeded"
+          >
+            <template #label> {{ $t('objects.currentPlan.storageUsedGB') }} </template>
+            <template #value> {{ storageInfo.value }} GB of {{ storageInfo.total }} GB attachments </template>
+          </PaymentPlanUsageRow>
+          <PaymentPlanUsageRow
+            :plan-meta="activePlanMeta"
+            :show-warning-status="automationInfo.showWarningStatus"
+            :tooltip="automationInfo.tooltip"
+            :is-limit-exceeded="automationInfo.isLimitExceeded"
+          >
+            <template #label> {{ $t('objects.currentPlan.webhookCallsMonthly') }} </template>
+            <template #value> {{ automationInfo.value }} of {{ automationInfo.total }} webhook calls per month </template>
+          </PaymentPlanUsageRow>
+          <PaymentPlanUsageRow
+            :plan-meta="activePlanMeta"
+            :show-warning-status="apiCallsInfo.showWarningStatus"
+            :tooltip="apiCallsInfo.tooltip"
+            :is-limit-exceeded="apiCallsInfo.isLimitExceeded"
+          >
+            <template #label> {{ $t('objects.currentPlan.apiCallsMonthly') }} </template>
+            <template #value> {{ apiCallsInfo.value }} of {{ apiCallsInfo.total }} API calls per month </template>
+          </PaymentPlanUsageRow>
+        </template>
       </div>
     </div>
   </div>

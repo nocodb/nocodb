@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { ReturnToBillingPage } from 'nocodb-sdk'
 import { PaymentState } from '#imports'
 
 interface Props {
@@ -8,6 +9,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {})
 
 const { workspaceId } = toRefs(props)
+
+const isOrgBilling = inject(IsOrgBillingInj, ref(false))
 
 const route = useRoute()
 
@@ -19,9 +22,9 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const {
   paymentState,
-  loadWorkspaceSeatCount,
+  loadWorkspaceOrOrgSeatCount,
   getSessionResult,
-  isAccountPage,
+  returnToPage,
   paymentMode,
   plansAvailable,
   onSelectPlan,
@@ -64,13 +67,19 @@ const onClosePaymentBanner = () => {
 }
 
 onMounted(async () => {
-  if (workspaceId.value || activeWorkspaceId.value) {
+  if (!isOrgBilling.value && (workspaceId.value || activeWorkspaceId.value)) {
     await workspaceStore.loadWorkspace(workspaceId.value || activeWorkspaceId.value!)
   }
 
   paymentState.value = PaymentState.SELECT_PLAN
 
-  isAccountPage.value = !!workspaceId.value
+  if (isOrgBilling.value) {
+    returnToPage.value = ReturnToBillingPage.ORG
+  } else if (workspaceId.value) {
+    returnToPage.value = ReturnToBillingPage.ACCOUNT
+  } else {
+    returnToPage.value = ReturnToBillingPage.WS
+  }
 
   if (route.query.pay === 'true') {
     const planTitle = route.query.plan as string
@@ -115,11 +124,11 @@ const handleScroll = (e) => {
 watch(
   () => route?.query?.tab,
   async (tab) => {
-    if (tab !== 'billing') return
+    if (tab !== 'billing' || isOrgBilling.value) return
 
     await workspaceStore.loadWorkspace(workspaceId.value || activeWorkspaceId.value!)
 
-    await loadWorkspaceSeatCount()
+    await loadWorkspaceOrOrgSeatCount()
   },
 )
 </script>
@@ -132,7 +141,7 @@ watch(
     }"
     @scroll.passive="handleScroll"
   >
-    <PaymentBanner />
+    <PaymentBanner v-if="!isOrgBilling" />
     <div>
       <div
         class="p-6 pb-16 flex flex-col gap-8 min-w-[740px] w-full"

@@ -256,6 +256,7 @@ async function copyComment(comment: CommentType) {
       />
       <SmartsheetExpandedFormRichComment
         v-else
+        :key="`${props.comment.id}-${props.comment.comment}`"
         :value="`${props.comment.comment}  ${editedAt(props.comment)}`"
         class="!text-small !leading-18px !text-nc-content-gray px-4 py-3"
         read-only

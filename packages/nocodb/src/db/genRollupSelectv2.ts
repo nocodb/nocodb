@@ -13,6 +13,7 @@ import { RelationManager } from '~/db/relation-manager';
 import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
+import { NcError } from '~/helpers/ncError';
 
 export default async function genRollupSelectv2({
   baseModelSqlv2,
@@ -20,14 +21,25 @@ export default async function genRollupSelectv2({
   alias,
   columnOptions,
   nestedLevel = 0,
+  visitedNodes = new Set<string>(),
 }: {
   baseModelSqlv2: IBaseModelSqlV2;
   knex: XKnex;
   alias?: string;
   columnOptions: RollupColumn | LinksColumn;
   nestedLevel?: number;
+  visitedNodes?: Set<string>;
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
   const context = baseModelSqlv2.context;
+  if (visitedNodes.has(columnOptions.fk_column_id)) {
+    const column = await Column.get(context, {
+      colId: columnOptions.fk_column_id,
+    });
+    NcError.get(context).badRequest(
+      `Circular rollup/links reference detected at column '${column?.title}'`,
+    );
+  }
+  visitedNodes.add(columnOptions.fk_column_id);
 
   const column = await Column.get(context, {
     colId: columnOptions.fk_column_id,
@@ -102,8 +114,11 @@ export default async function genRollupSelectv2({
         baseModelSqlv2: refBaseModel,
         knex,
         alias: refTableAlias,
-        columnOptions: await rollupColumn.getColOptions<RollupColumn>(refContext),
+        columnOptions: await rollupColumn.getColOptions<RollupColumn>(
+          refContext,
+        ),
         nestedLevel: nestedLevel + 1,
+        visitedNodes,
       });
 
       // Use the inner builder directly as a subquery

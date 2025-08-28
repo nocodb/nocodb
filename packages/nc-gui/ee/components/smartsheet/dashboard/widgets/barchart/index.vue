@@ -190,7 +190,7 @@ const chartOption = computed<ECOption>(() => {
         },
       },
     },
-    series: widgetData.value.series.map((series: any, index: number) => ({
+    series: widgetData.value.series.map((series: any, _index: number) => ({
       name: series.name,
       type: 'bar',
       data: series.data,

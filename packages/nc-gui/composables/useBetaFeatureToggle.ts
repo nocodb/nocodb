@@ -172,6 +172,8 @@ const FEATURES = [
     enabled: true,
     version: 2,
     isEE: true,
+    isCloud: false,
+    isEngineering: true,
   },
 ] as const
 
@@ -194,8 +196,9 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     return features.value.reduce((acc, feature) => {
       const isEeFeatureEnabled = feature.isEE && !isEeUI ? false : feature.enabled
       const isOnPremFeatureEnabled = !appInfo.value.isOnPrem || feature.isOnPrem !== false
+      const isCloudFeatureEnabled = !appInfo.value.isCloud || feature.isCloud !== false
 
-      acc[feature.id] = isEeFeatureEnabled && isOnPremFeatureEnabled
+      acc[feature.id] = isEeFeatureEnabled && isOnPremFeatureEnabled && isCloudFeatureEnabled
       return acc
     }, {} as Record<BetaFeatureId, boolean>)
   })

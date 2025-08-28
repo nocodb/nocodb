@@ -265,7 +265,7 @@ const getDefaultChartConfig = (
             includeEmptyRecords: false,
           },
           yAxis: {
-            startAtZero: false,
+            startAtZero: true,
             fields: [
               {
                 column_id: getDefaultYAxisColumn(columns),
@@ -274,14 +274,6 @@ const getDefaultChartConfig = (
             ],
             groupBy: null,
           },
-        },
-        appearance: {
-          orientation: 'vertical' as const,
-          showDataLabels: false,
-          showLegend: true,
-          legendPosition: 'top' as const,
-          colorSchema: 'default' as const,
-          customColorSchema: [],
         },
         permissions: {
           allowUserToPrint: false,

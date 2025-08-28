@@ -282,6 +282,15 @@ watch(
   { immediate: true },
 )
 
+watch(
+  () => comments.value?.length,
+  () => {
+    nextTick(() => {
+      scrollComments()
+    })
+  },
+)
+
 onBeforeUnmount(() => {
   resetTooltipInstances()
 })

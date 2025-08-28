@@ -183,8 +183,8 @@ export function useSharedView() {
       sharedView.value.uuid!,
       {
         ...param,
-        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
-        sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),
+        filterArrJson: stringifyFilterOrSortArr(param.filtersArr ?? nestedFilters.value),
+        sortArrJson: stringifyFilterOrSortArr(param.sortsArr ?? sorts.value),
         include_row_color: true,
       } as any,
       {
@@ -226,8 +226,8 @@ export function useSharedView() {
       {
         limit: sharedView.value?.type === ViewTypes.CALENDAR ? 3000 : undefined,
         ...param,
-        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
-        sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),
+        filterArrJson: stringifyFilterOrSortArr(param.filtersArr ?? nestedFilters.value),
+        sortArrJson: stringifyFilterOrSortArr(param.sortsArr ?? sorts.value),
         include_row_color: true,
       } as any,
       {
@@ -252,7 +252,7 @@ export function useSharedView() {
       sharedView.value.uuid!,
       {
         ...param,
-        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+        filterArrJson: stringifyFilterOrSortArr(param.filtersArr ?? nestedFilters.value),
       } as any,
       {
         headers: {
@@ -283,7 +283,7 @@ export function useSharedView() {
       bulkFilterList,
       {
         ...param,
-        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+        filterArrJson: stringifyFilterOrSortArr(param.filtersArr ?? nestedFilters.value),
       } as any,
       {
         headers: {
@@ -326,7 +326,7 @@ export function useSharedView() {
       bulkFilterList,
       {
         ...param,
-        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+        filterArrJson: stringifyFilterOrSortArr(param.filtersArr ?? nestedFilters.value),
       } as any,
       {
         headers: {
@@ -356,8 +356,8 @@ export function useSharedView() {
       sharedView.value.uuid!,
       {
         ...param,
-        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
-        sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),
+        filterArrJson: stringifyFilterOrSortArr(param.filtersArr ?? nestedFilters.value),
+        sortArrJson: stringifyFilterOrSortArr(param.sortsArr ?? sorts.value),
       } as any,
       {
         headers: {
@@ -371,7 +371,7 @@ export function useSharedView() {
     const data = await $api.public.dbViewRowCount(
       sharedView.value.uuid!,
       {
-        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+        filterArrJson: stringifyFilterOrSortArr(param.filtersArr ?? nestedFilters.value),
         where: param.where,
       },
       {
@@ -398,8 +398,8 @@ export function useSharedView() {
       columnId,
       {
         offset: (page - 1) * pageSize,
-        filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
-        sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
+        filterArrJson: stringifyFilterOrSortArr(filtersArr ?? nestedFilters.value),
+        sortArrJson: stringifyFilterOrSortArr(sortsArr ?? sorts.value),
         include_row_color,
       } as any,
       {
@@ -443,8 +443,8 @@ export function useSharedView() {
       query: {
         fields: fields.map((field) => field.title),
         offset,
-        filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
-        sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
+        filterArrJson: stringifyFilterOrSortArr(filtersArr ?? nestedFilters.value),
+        sortArrJson: stringifyFilterOrSortArr(sortsArr ?? sorts.value),
         encoding: type === ExportTypes.EXCEL ? 'base64' : undefined,
       },
       headers: {

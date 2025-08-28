@@ -61,10 +61,10 @@ const filterReferencedInfoByUidt = ({
     referencedInfo.uidtCandidates?.filter((uidt) =>
       allowedUidts.includes(uidt)
     ) ?? [];
-  if (isPureOperation) {
+  if (!isPureOperation) {
     uidtCandidates = uidtCandidates.map((c) =>
-      IMPURE_OPR_UIDT_MAP.get(c as UITypes)
-    );
+      IMPURE_OPR_UIDT_MAP.get(c as UITypes) ?? c
+    ).filter(k => k);
   }
   return {
     ...referencedInfo,

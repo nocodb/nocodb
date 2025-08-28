@@ -2,6 +2,7 @@ import type { ComputedRef, Ref } from 'vue'
 import {
   type Api,
   type ColumnType,
+  type CommentPayload,
   type DataPayload,
   EventType,
   type FilterType,
@@ -2020,7 +2021,8 @@ export function useInfiniteData(args: {
     }
   })
 
-  const activeChannel = ref<string | null>(null)
+  const activeDataChannel = ref<string | null>(null)
+  const activeCommentChannel = ref<string | null>(null)
 
   watch(
     meta,
@@ -2028,15 +2030,21 @@ export function useInfiniteData(args: {
       if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
         if (oldMeta?.id && oldMeta.id === newMeta.id) return
 
-        if (activeChannel.value) {
-          $ncSocket.offMessage(activeChannel.value)
+        if (activeDataChannel.value) {
+          $ncSocket.offMessage(activeDataChannel.value)
         }
 
-        activeChannel.value = `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`
+        if (activeCommentChannel.value) {
+          $ncSocket.offMessage(activeCommentChannel.value)
+        }
 
-        $ncSocket.subscribe(activeChannel.value)
+        activeDataChannel.value = `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`
+        activeCommentChannel.value = `${EventType.COMMENT_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`
 
-        $ncSocket.onMessage(activeChannel.value, (data: DataPayload) => {
+        $ncSocket.subscribe(activeDataChannel.value)
+        $ncSocket.subscribe(activeCommentChannel.value)
+
+        $ncSocket.onMessage(activeDataChannel.value, (data: DataPayload) => {
           const { id, action, payload, before } = data
 
           if (action === 'add') {
@@ -2312,6 +2320,38 @@ export function useInfiniteData(args: {
             } catch (e) {
               console.error('Failed to reorder cached row on socket event', e)
             }
+          }
+        })
+
+        $ncSocket.onMessage(activeCommentChannel.value, (data: CommentPayload) => {
+          const { action, id } = data
+
+          const dataCache = getDataCache()
+
+          let row = null
+
+          for (const [_, cachedRow] of dataCache.cachedRows.value.entries()) {
+            const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+            if (pk && `${pk}` === `${id}`) {
+              row = cachedRow
+              break
+            }
+          }
+
+          if (row) {
+            if (action === 'add') {
+              if (row) {
+                row.rowMeta.commentCount = (row.rowMeta.commentCount || 0) + 1
+              }
+            } else if (action === 'update') {
+              // Handle updated comment
+            } else if (action === 'delete') {
+              if (row) {
+                row.rowMeta.commentCount = Math.max((row.rowMeta.commentCount || 0) - 1, 0)
+              }
+            }
+
+            callbacks?.syncVisibleData?.()
           }
         })
       }

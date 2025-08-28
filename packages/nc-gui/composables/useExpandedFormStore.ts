@@ -1,4 +1,12 @@
-import type { AuditType, ColumnType, DataPayload, MetaType, PlanLimitExceededDetailsType, TableType } from 'nocodb-sdk'
+import type {
+  AuditType,
+  ColumnType,
+  CommentPayload,
+  DataPayload,
+  MetaType,
+  PlanLimitExceededDetailsType,
+  TableType,
+} from 'nocodb-sdk'
 import {
   EventType,
   PermissionEntity,
@@ -767,7 +775,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     })
 
-    const activeChannel = ref<string | null>(null)
+    const activeDataChannel = ref<string | null>(null)
+    const activeCommentChannel = ref<string | null>(null)
 
     watch(
       meta,
@@ -775,15 +784,21 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
           if (oldMeta?.id && oldMeta.id === newMeta.id) return
 
-          if (activeChannel.value) {
-            $ncSocket.offMessage(activeChannel.value)
+          if (activeDataChannel.value) {
+            $ncSocket.offMessage(activeDataChannel.value)
           }
 
-          activeChannel.value = `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`
+          if (activeCommentChannel.value) {
+            $ncSocket.offMessage(activeCommentChannel.value)
+          }
 
-          $ncSocket.subscribe(activeChannel.value)
+          activeDataChannel.value = `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`
+          activeCommentChannel.value = `${EventType.COMMENT_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`
 
-          $ncSocket.onMessage(activeChannel.value, (data: DataPayload) => {
+          $ncSocket.subscribe(activeDataChannel.value)
+          $ncSocket.subscribe(activeCommentChannel.value)
+
+          $ncSocket.onMessage(activeDataChannel.value, (data: DataPayload) => {
             const { id, action, payload } = data
 
             const activePk = extractPkFromRow(row.value.row, meta.value?.columns as ColumnType[])
@@ -819,6 +834,32 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                 } catch (e) {
                   console.error('Failed to delete cached row on socket event', e)
                 }
+              }
+            }
+          })
+
+          $ncSocket.onMessage(activeCommentChannel.value, (data: CommentPayload) => {
+            const { action, id, payload } = data
+
+            if (primaryKey.value && `${id}` === `${primaryKey.value}`) {
+              const commentId = payload.id
+              const user = baseUsers.value.find((u) => u.id === payload.created_by)
+              const finalPayload = {
+                ...payload,
+                created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+                created_by_email: user?.email,
+                created_by_meta: user?.meta,
+              }
+
+              if (action === 'add') {
+                comments.value.push(finalPayload)
+              } else if (action === 'update') {
+                const index = comments.value.findIndex((comment) => comment.id === commentId)
+                if (index !== -1) {
+                  comments.value[index] = finalPayload
+                }
+              } else if (action === 'delete') {
+                comments.value = comments.value.filter((comment) => comment.id !== commentId)
               }
             }
           })

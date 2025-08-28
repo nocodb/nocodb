@@ -13,6 +13,16 @@ import { validateAggregationColType } from '~/db/aggregation';
 export class CircularChartCommonHandler extends BaseWidgetHandler {
   protected MAX_WIDGET_CATEGORY_COUNT = 10;
 
+  /**
+   * Validate and sanitize order direction
+   */
+  protected validateOrderBy(orderBy: string): 'ASC' | 'DESC' | null {
+    orderBy = orderBy?.toLowerCase();
+    if (orderBy === 'asc') return 'ASC';
+    if (orderBy === 'desc') return 'DESC';
+    return null; // For default case
+  }
+
   async validateWidgetData(
     context: NcContext,
     widget: WidgetType<WidgetTypes.CHART>,

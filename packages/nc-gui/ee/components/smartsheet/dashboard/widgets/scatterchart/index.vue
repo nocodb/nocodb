@@ -4,7 +4,7 @@ import { CHART_COLORS } from '~/lib/constants'
 import { truncateText } from '~/utils/stringUtils'
 
 interface Props {
-  widget: ChartWidgetType<ChartTypes.LINE>
+  widget: ChartWidgetType<ChartTypes.SCATTER>
   isEditing?: boolean
 }
 
@@ -28,8 +28,8 @@ const widgetSize = computed(() => {
 
 const chartSize = computed(() => {
   const sizeMap = {
-    small: { height: widgetRef?.value?.description ? '380px' : '420px' },
-    medium: { height: widgetRef?.value?.description ? '460px' : '520px' },
+    small: { height: widgetRef?.value?.description ? '390px' : '420px' },
+    medium: { height: widgetRef?.value?.description ? '480px' : '520px' },
   }
   return sizeMap[widgetSize.value]
 })
@@ -38,7 +38,6 @@ const disableLegend = computed(() => widgetRef.value?.config?.data?.yAxis?.field
 
 const legendConfig = computed(() => {
   if (disableLegend.value) return { show: false }
-
   const position = chartConfig.value?.appearance?.legendPosition ?? 'top'
   const showCountInLegend = chartConfig.value?.appearance?.showCountInLegend ?? true
 
@@ -118,27 +117,15 @@ const chartOption = computed<ECOption>(() => {
 
   const showValueInChart = chartConfig.value?.appearance?.showValueInChart ?? false
   const startAtZero = chartConfig.value?.data?.yAxis?.startAtZero ?? true
-  const smooth = chartConfig.value?.appearance?.smoothLines ?? true
-  const plotDataPoints = chartConfig.value?.appearance?.plotDataPoints ?? false
 
   return {
     color: CHART_COLORS,
     tooltip: {
-      trigger: 'axis',
-      axisPointer: {
-        type: 'line',
-        lineStyle: {
-          color: '#666',
-          type: 'dashed',
-        },
-      },
+      trigger: 'item',
       formatter: (params: any) => {
-        let tooltip = `<strong>${params[0].axisValue}</strong><br/>`
-        params.forEach((param: any) => {
-          const value = param.data?.formatted_value !== undefined ? param.data.formatted_value : param.value
-          tooltip += `${param.marker}${param.seriesName}: ${value}<br/>`
-        })
-        return tooltip
+        const categoryName = params.data.name
+        const value = params.data?.formatted_value !== undefined ? params.data.formatted_value : params.value[1]
+        return `<strong>${categoryName}</strong><br/>${params.marker}${params.seriesName}: ${value}`
       },
       backgroundColor: 'rgba(50, 50, 50, 0.9)',
       textStyle: {
@@ -198,19 +185,14 @@ const chartOption = computed<ECOption>(() => {
       },
     },
     series: widgetData.value.series.map((series: any, index: number) => ({
-      name:
-        widgetData.value.series.filter((s) => s.name === series.name).length > 1 ? `${series.name} #${index + 1}` : series.name,
+      name: series.name,
       type: 'line',
       data: series.data,
-      smooth,
-      lineStyle: {
-        width: 2,
-      },
       itemStyle: {
         borderWidth: 2,
       },
       symbol: 'circle',
-      symbolSize: plotDataPoints ? 6 : 0,
+      symbolSize: 6,
       emphasis: {
         itemStyle: {
           borderWidth: 3,
@@ -269,7 +251,7 @@ watch([() => widgetRef.value?.config?.dataSource, () => widgetRef.value?.config?
 </script>
 
 <template>
-  <div class="nc-line-chart-widget h-full w-full flex flex-col relative bg-white !rounded-xl">
+  <div class="nc-scatter-chart-widget h-full w-full flex flex-col relative bg-white !rounded-xl">
     <div class="flex flex-col p-4 pb-3">
       <div class="flex items-center">
         <div class="text-nc-content-gray-emphasis flex-1 text-subHeading2 truncate font-medium">

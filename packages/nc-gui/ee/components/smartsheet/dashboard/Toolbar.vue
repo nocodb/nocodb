@@ -76,11 +76,13 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
 const addTextWidget = () => createWidget(WidgetTypes.TEXT)
 const addNumberWidget = () => createWidget(WidgetTypes.METRIC)
 const addIframeWidget = () => createWidget(WidgetTypes.IFRAME)
-// const addBarChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.BAR)
-// const addLineChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.LINE)
+const addBarChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.BAR)
+const addLineChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.LINE)
 const addPieChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.PIE)
 const addDonutChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.DONUT)
-// const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SCATTER)
+/*
+const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SCATTER)
+*/
 </script>
 
 <template>
@@ -99,7 +101,7 @@ const addDonutChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.DON
         Number
       </div>
     </NcButton>
-    <!--
+
     <NcButton size="small" type="text" @click="addBarChartWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="ncChartBar" class="w-5 h-5" />
@@ -112,7 +114,7 @@ const addDonutChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.DON
         <GeneralIcon icon="ncChartLine" class="w-5 h-5" />
         Line Chart
       </div>
-    </NcButton> -->
+    </NcButton>
     <NcButton size="small" type="text" @click="addPieChartWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="ncChartPie" class="w-5 h-5" />
@@ -125,19 +127,18 @@ const addDonutChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.DON
         Donut
       </div>
     </NcButton>
-
-    <NcButton size="small" type="text" @click="addIframeWidget">
-      <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
-        <GeneralIcon icon="cellUrl" class="w-5 h-5" />
-        iFrame
-      </div>
-    </NcButton>
     <!--    <NcButton size="small" type="text" @click="addScatterPlotWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="ncChartScatterPlot" class="w-5 h-5" />
         Scatter Plot
       </div>
     </NcButton> -->
+    <NcButton size="small" type="text" @click="addIframeWidget">
+      <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
+        <GeneralIcon icon="cellUrl" class="w-5 h-5" />
+        iFrame
+      </div>
+    </NcButton>
   </div>
 </template>
 

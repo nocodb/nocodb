@@ -88,7 +88,7 @@ const handleConfigUpdate = async (type: string, updates: any) => {
 -->
     </template>
     <template #appearance>
-      <SmartsheetDashboardWidgetsBarchartConfigAppearance
+      <SmartsheetDashboardWidgetsLinechartConfigAppearance
         @update:appearance="handleConfigUpdate('appearance', $event)"
         @update:size="handleConfigUpdate('size', $event)"
       />

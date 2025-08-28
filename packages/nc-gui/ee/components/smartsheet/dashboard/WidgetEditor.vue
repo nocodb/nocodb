@@ -4,6 +4,8 @@ import MetricsWidgetConfig from './widgets/metrics/config/index.vue'
 import PieChartWidgetConfig from './widgets/piechart/config/index.vue'
 import DonutChartWidgetConfig from './widgets/donutchart/config/index.vue'
 import BarChartWidgetConfig from './widgets/barchart/config/index.vue'
+import LineChartWidgetConfig from './widgets/linechart/config/index.vue'
+import ScatterChartWidgetConfig from './widgets/scatterchart/config/index.vue'
 import TextWidgetConfig from './widgets/text/config/index.vue'
 import IframeWidgetConfig from './widgets/iframe/config/index.vue'
 const widgetStore = useWidgetStore()
@@ -27,6 +29,10 @@ const configComponent = computed(() => {
           return DonutChartWidgetConfig
         case ChartTypes.BAR:
           return BarChartWidgetConfig
+        case ChartTypes.LINE:
+          return LineChartWidgetConfig
+        case ChartTypes.SCATTER:
+          return ScatterChartWidgetConfig
         default:
           return null
       }

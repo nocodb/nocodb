@@ -90,7 +90,7 @@ watch([() => selectedWidget.value?.fk_model_id], ([value], [oldValue]) => {
     <div class="flex items-center">
       <NcSwitch v-model:checked="includeOthers" class="flex items-center" @change="handleChange">
         <span class="text-caption text-nc-content-gray select-none">
-          <NcTooltip class="flex items-center">
+          <NcTooltip class="flex items-center" hide-on-click>
             <template #title>
               By default the chart will show top 10 categories and remaining categories will be grouped as "Others". Disabling
               this will hide "Others" category.

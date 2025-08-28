@@ -3,6 +3,9 @@ import { ChartTypes, type ChartWidgetConfig, type WidgetType, WidgetTypes } from
 import MetricWidget from './widgets/metrics/index.vue'
 import DonutChartWidget from './widgets/donutchart/index.vue'
 import PieChartWidget from './widgets/piechart/index.vue'
+import BarChartWidget from './widgets/barchart/index.vue'
+import LineChartWidget from './widgets/linechart/index.vue'
+import ScatterChartWidget from './widgets/scatterchart/index.vue'
 import TextWidget from './widgets/text/index.vue'
 import IFrameWidget from './widgets/iframe/index.vue'
 import PlaceholderImage from '~/assets/img/dashboards/placeholder.svg'
@@ -71,6 +74,12 @@ const getWidgetComponent = (widget: WidgetType) => {
           return PieChartWidget
         case ChartTypes.DONUT:
           return DonutChartWidget
+        case ChartTypes.BAR:
+          return BarChartWidget
+        case ChartTypes.LINE:
+          return LineChartWidget
+        case ChartTypes.SCATTER:
+          return ScatterChartWidget
       }
       return 'div'
     default:

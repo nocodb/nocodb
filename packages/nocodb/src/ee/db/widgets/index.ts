@@ -6,6 +6,9 @@ import { Model, Source } from '~/models';
 import { CircularChartPgHandler } from '~/db/widgets/circular-chart/circular-chart.pg.handler';
 import { CircularChartMysqlHandler } from '~/db/widgets/circular-chart/circular-chart.mysql.handler';
 import { CircularChartCommonHandler } from '~/db/widgets/circular-chart/circular-chart.common.handler';
+import { XyChartPgHandler } from '~/db/widgets/xy-chart/xy-chart.pg.handler';
+import { XyChartMysqlHandler } from '~/db/widgets/xy-chart/xy-chart.mysql.handler';
+import { XyChartCommonHandler } from '~/db/widgets/xy-chart/xy-chart.common.handler';
 import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
 
 export async function getWidgetHandler(
@@ -40,6 +43,15 @@ export async function getWidgetHandler(
             return new CircularChartMysqlHandler();
           }
           return new CircularChartCommonHandler();
+        case ChartTypes.BAR:
+        case ChartTypes.LINE:
+        case ChartTypes.SCATTER:
+          if (source?.type === 'pg') {
+            return new XyChartPgHandler();
+          } else if (['mysql', 'mysql2'].includes(source?.type)) {
+            return new XyChartMysqlHandler();
+          }
+          return new XyChartCommonHandler();
         default:
           return new BaseWidgetHandler();
       }

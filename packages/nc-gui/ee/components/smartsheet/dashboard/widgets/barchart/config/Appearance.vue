@@ -32,7 +32,9 @@ const appearanceLegendPosition = ref(selectedWidget.value?.config?.appearance?.l
 
 const showCountInLegend = ref(selectedWidget.value?.config?.appearance?.showCountInLegend || true)
 
-const showPercentageOnChart = ref(selectedWidget.value?.config?.appearance?.showPercentageOnChart || true)
+const fieldsYAxis = computed(() => selectedWidget.value?.config?.data?.yAxis?.fields || [])
+
+const showValueInChart = ref(selectedWidget.value?.config?.appearance?.showValueInChart || true)
 
 const handleChange = (type?: string, value?: any) => {
   if (type === 'size') {
@@ -46,7 +48,7 @@ const handleChange = (type?: string, value?: any) => {
   emit('update:appearance', {
     legendPosition: appearanceLegendPosition.value,
     showCountInLegend: showCountInLegend.value,
-    showPercentageOnChart: showPercentageOnChart.value,
+    showValueInChart: showValueInChart.value,
   })
 }
 </script>
@@ -71,7 +73,7 @@ const handleChange = (type?: string, value?: any) => {
         </a-select>
       </div>
 
-      <div class="flex flex-col gap-2 flex-1 min-w-0">
+      <div v-if="fieldsYAxis.length > 1" class="flex flex-col gap-2 flex-1 min-w-0">
         <label>Legend Orientation</label>
         <a-select
           v-model:value="appearanceLegendPosition"
@@ -88,9 +90,9 @@ const handleChange = (type?: string, value?: any) => {
     </div>
 
     <div class="space-y-2">
-      <div>
-        <NcSwitch v-model:checked="showPercentageOnChart" @change="handleChange">
-          <span class="text-caption text-nc-content-gray select-none">Show percentage in chart</span>
+      <div v-if="fieldsYAxis.length === 1">
+        <NcSwitch v-model:checked="showValueInChart" @change="handleChange">
+          <span class="text-caption text-nc-content-gray select-none">Show value in chart</span>
         </NcSwitch>
       </div>
       <div>

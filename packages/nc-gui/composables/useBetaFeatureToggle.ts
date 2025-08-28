@@ -169,9 +169,8 @@ const FEATURES = [
     id: 'row_actions',
     title: 'Row Actions',
     description: 'Execute scripts and webhooks to a record.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
+    enabled: true,
+    version: 2,
     isEE: true,
   },
 ] as const

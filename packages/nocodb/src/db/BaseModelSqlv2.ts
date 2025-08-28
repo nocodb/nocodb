@@ -6070,10 +6070,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       if (col.uidt === UITypes.Date) {
-        const dateFormat = col.meta?.date_format;
-        if (dateFormat) {
-          d[col.id] = dayjs(d[col.id]).format(dateFormat);
-        }
+        d[col.id] = dayjs(d[col.id]).format('YYYY-MM-DD');
         continue;
       }
 

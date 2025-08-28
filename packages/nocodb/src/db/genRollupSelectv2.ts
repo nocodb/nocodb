@@ -97,31 +97,17 @@ export default async function genRollupSelectv2({
     } else if ([UITypes.Rollup].includes(rollupColumn.uidt)) {
       const knex = refBaseModel.dbDriver;
 
-      // if it's rollup of rollup, then we need to call recursively
-      selectColumnName = knex
-        .raw('??', [
-          knex(refBaseModel.getTnPath(refBaseModel.model.table_name))
-            // .where(
-            //   `${refBaseModel.getTnPath(refBaseModel.model.table_name)}.id`,
-            //   '=',
-            //   knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
-            // )
-            .select({
-              rollup: (
-                await genRollupSelectv2({
-                  baseModelSqlv2: refBaseModel,
-                  knex,
-                  columnOptions: await rollupColumn.getColOptions<RollupColumn>(
-                    refContext,
-                  ),
-                  nestedLevel: nestedLevel + 1,
-                })
-              ).builder,
-            }),
-        ])
-        .wrap('(', ')');
+      // Rollup-of-rollup: compute inner rollup correlated to the current level
+      const inner = await genRollupSelectv2({
+        baseModelSqlv2: refBaseModel,
+        knex,
+        alias: refTableAlias,
+        columnOptions: await rollupColumn.getColOptions<RollupColumn>(refContext),
+        nestedLevel: nestedLevel + 1,
+      });
 
-      console.log(selectColumnName + '');
+      // Use the inner builder directly as a subquery
+      selectColumnName = knex.raw('(?)', [inner.builder]);
     } else if (
       [
         UITypes.CreatedTime,

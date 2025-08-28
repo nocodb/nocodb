@@ -7,6 +7,8 @@ on:
         description: 'Test set number'
         required: true
         type: string
+  # Triggered manually
+  workflow_dispatch:
 
 jobs:
   unit-tests-pg:

@@ -116,7 +116,7 @@ const chartOption = computed<ECOption>(() => {
     return {}
   }
 
-  const showPercentageOnChart = chartConfig.value?.appearance?.showPercentageOnChart ?? false
+  const showValueInChart = chartConfig.value?.appearance?.showValueInChart ?? false
   const startAtZero = chartConfig.value?.data?.yAxis?.startAtZero ?? true
   const smooth = chartConfig.value?.appearance?.smoothLines ?? true
   const plotDataPoints = chartConfig.value?.appearance?.plotDataPoints ?? false
@@ -198,7 +198,8 @@ const chartOption = computed<ECOption>(() => {
       },
     },
     series: widgetData.value.series.map((series: any, index: number) => ({
-      name: series.name,
+      name:
+        widgetData.value.series.filter((s) => s.name === series.name).length > 1 ? `${series.name} #${index + 1}` : series.name,
       type: 'line',
       data: series.data,
       smooth,
@@ -221,7 +222,7 @@ const chartOption = computed<ECOption>(() => {
         },
       },
       label: {
-        show: showPercentageOnChart && widgetData.value.series.length === 1,
+        show: showValueInChart && widgetData.value.series.length === 1,
         position: 'top',
         fontSize: 10,
         color: '#666',

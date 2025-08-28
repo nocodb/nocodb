@@ -115,7 +115,7 @@ const chartOption = computed<ECOption>(() => {
     return {}
   }
 
-  const showPercentageOnChart = chartConfig.value?.appearance?.showPercentageOnChart ?? false
+  const showValueInChart = chartConfig.value?.appearance?.showValueInChart ?? false
   const startAtZero = chartConfig.value?.data?.yAxis?.startAtZero ?? true
 
   return {
@@ -190,8 +190,9 @@ const chartOption = computed<ECOption>(() => {
         },
       },
     },
-    series: widgetData.value.series.map((series: any, _index: number) => ({
-      name: series.name,
+    series: widgetData.value.series.map((series: any, index: number) => ({
+      name:
+        widgetData.value.series.filter((s) => s.name === series.name).length > 1 ? `${series.name} #${index + 1}` : series.name,
       type: 'bar',
       data: series.data,
       barMaxWidth: 40,
@@ -199,7 +200,7 @@ const chartOption = computed<ECOption>(() => {
         borderRadius: [2, 2, 0, 0],
       },
       label: {
-        show: showPercentageOnChart && widgetData.value.series.length === 1,
+        show: showValueInChart && widgetData.value.series.length === 1,
         position: 'top',
         fontSize: 10,
         color: '#666',

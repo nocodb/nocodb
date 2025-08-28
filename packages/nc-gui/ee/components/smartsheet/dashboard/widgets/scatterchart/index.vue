@@ -115,7 +115,7 @@ const chartOption = computed<ECOption>(() => {
     return {}
   }
 
-  const showPercentageOnChart = chartConfig.value?.appearance?.showPercentageOnChart ?? false
+  const showValueInChart = chartConfig.value?.appearance?.showValueInChart ?? false
   const startAtZero = chartConfig.value?.data?.yAxis?.startAtZero ?? true
 
   return {
@@ -204,7 +204,7 @@ const chartOption = computed<ECOption>(() => {
         },
       },
       label: {
-        show: showPercentageOnChart && widgetData.value.series.length === 1,
+        show: showValueInChart && widgetData.value.series.length === 1,
         position: 'top',
         fontSize: 10,
         color: '#666',

@@ -32,7 +32,7 @@ const appearanceLegendPosition = ref(selectedWidget.value?.config?.appearance?.l
 
 const showCountInLegend = ref(selectedWidget.value?.config?.appearance?.showCountInLegend || true)
 
-const showPercentageOnChart = ref(selectedWidget.value?.config?.appearance?.showPercentageOnChart || true)
+const showValueInChart = ref(selectedWidget.value?.config?.appearance?.showValueInChart || true)
 
 const plotDataPoints = ref(selectedWidget.value?.config?.appearance?.plotDataPoints || true)
 
@@ -52,7 +52,7 @@ const handleChange = (type?: string, value?: any) => {
   emit('update:appearance', {
     legendPosition: appearanceLegendPosition.value,
     showCountInLegend: showCountInLegend.value,
-    showPercentageOnChart: showPercentageOnChart.value,
+    showValueInChart: showValueInChart.value,
     plotDataPoints: plotDataPoints.value,
     smoothLines: smoothLines.value,
   })
@@ -96,8 +96,8 @@ const handleChange = (type?: string, value?: any) => {
     </div>
 
     <div class="space-y-1">
-      <div>
-        <NcSwitch v-model:checked="showPercentageOnChart" @change="handleChange">
+      <div v-if="fieldsYAxis.length === 1">
+        <NcSwitch v-model:checked="showValueInChart" @change="handleChange">
           <span class="text-caption text-nc-content-gray select-none">Show percentage in chart</span>
         </NcSwitch>
       </div>

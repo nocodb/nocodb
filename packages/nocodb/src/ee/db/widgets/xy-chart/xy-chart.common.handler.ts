@@ -321,11 +321,11 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
     // Determine sort field and direction
     // If order by is default, sort by record count in descending order
     // If order by is custom, sort by custom field in ascending order
-    const orderDirection = (
-      chartData.xAxis.orderBy === 'default'
-        ? 'desc'
-        : chartData.xAxis.orderBy ?? 'desc'
-    ).toUpperCase();
+    const orderDirection =
+      chartData.xAxis.orderBy === 'default' ||
+      chartData.xAxis.orderBy === 'desc'
+        ? 'DESC'
+        : 'ASC';
     // If sort by is xAxis, sort by x axis alias
     // If sort by is yAxis and only one y axis field, sort by that field
     // If sort by is yAxis and multiple y axis fields, sort by first y axis field

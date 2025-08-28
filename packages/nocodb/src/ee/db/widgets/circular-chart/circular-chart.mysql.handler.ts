@@ -131,14 +131,17 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       aggregationExpression = aggSql;
     }
 
+    // Validate orderBy parameter
+    const safeOrderBy = this.validateOrderBy(chartData.category.orderBy);
+
     // Add row number for ranking
-    if (chartData.category.orderBy === 'asc') {
+    if (safeOrderBy === 'ASC') {
       subQuery.select(
         baseModel.dbDriver.raw(`ROW_NUMBER() OVER (ORDER BY (??) ASC) as rn`, [
           categoryColumnNameQuery.builder,
         ]),
       );
-    } else if (chartData.category.orderBy === 'desc') {
+    } else if (safeOrderBy === 'DESC') {
       subQuery.select(
         baseModel.dbDriver.raw(`ROW_NUMBER() OVER (ORDER BY (??) DESC) as rn`, [
           categoryColumnNameQuery.builder,
@@ -234,9 +237,9 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       );
 
     // Apply ordering - use original_category for proper sorting
-    if (chartData.category.orderBy === 'asc') {
+    if (safeOrderBy === 'ASC') {
       finalQuery.orderByRaw(baseModel.dbDriver.raw(`${maxExpression} ASC`));
-    } else if (chartData.category.orderBy === 'desc') {
+    } else if (safeOrderBy === 'DESC') {
       finalQuery.orderByRaw(baseModel.dbDriver.raw(`${maxExpression} DESC`));
     } else {
       // Default: order by value DESC

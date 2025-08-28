@@ -8,7 +8,10 @@ export class XyChartPgHandler extends XyChartCommonHandler {
     sortField: string,
     orderDirection: string,
   ): void {
-    query.orderByRaw(query.client.raw(`?? ${orderDirection}`, [sortField]));
+    // Validate and sanitize orderDirection
+    const safeDirection =
+      orderDirection.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+    query.orderByRaw(query.client.raw(`?? ${safeDirection}`, [sortField]));
   }
 
   protected buildOthersQuery(
@@ -29,6 +32,10 @@ export class XyChartPgHandler extends XyChartCommonHandler {
     sortFieldQuery: string | Knex.QueryBuilder | Knex.Raw,
     orderDirection: string,
   ): any {
+    // Validate and sanitize orderDirection
+    const safeDirection =
+      orderDirection.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
     const othersQuery = buildBaseQuery();
 
     // Create subquery to get top x-axis values (same logic as original)
@@ -42,7 +49,7 @@ export class XyChartPgHandler extends XyChartCommonHandler {
       yAxisSelections.length > 0 ? yAxisSelections[0].aggSql : 'COUNT(*)';
     top10ValuesSubquery
       .select(baseModel.dbDriver.raw(`(${sortAggSql}) as sort_val`))
-      .orderByRaw(`sort_val ${orderDirection}`)
+      .orderByRaw(`sort_val ${safeDirection}`)
       .limit(this.MAX_WIDGET_CATEGORY_COUNT);
 
     // Now build others query excluding top 10 values
@@ -58,7 +65,7 @@ export class XyChartPgHandler extends XyChartCommonHandler {
           // Order by sort field query as we can't use alias
           // Alias requires us to select the column in the subquery, which we can't do as we are inside where clause
           .orderByRaw(
-            baseModel.dbDriver.raw(`(??) ${orderDirection}`, [sortFieldQuery]),
+            baseModel.dbDriver.raw(`(??) ${safeDirection}`, [sortFieldQuery]),
           )
           .select(baseModel.dbDriver.raw(`??`, [xAxisColumnNameQuery.builder])),
       ]);

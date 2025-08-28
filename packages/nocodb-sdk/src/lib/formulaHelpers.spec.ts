@@ -297,7 +297,7 @@ describe('Formula parsing and type validation', () => {
     });
   });
 
-  describe.only('referenced info', () => {
+  describe('referenced info', () => {
     it(`will return referenced column when directly referenced`, async () => {
       const result = await validateFormulaAndExtractTreeWithType({
         formula: '{column1}',
@@ -436,6 +436,38 @@ describe('Formula parsing and type validation', () => {
       });
       expect(result.referencedColumn.id).toEqual('id1');
       expect(result.referencedColumn.uidt).toEqual(UITypes.Number);
+    });
+
+    it(`will return referenced column with pure call expression for arrays`, async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: '{column1}',
+        columns: [
+          {
+            id: 'id1',
+            title: 'column1',
+            uidt: UITypes.LinkToAnotherRecord,
+          },
+        ],
+        clientOrSqlUi: 'mysql2',
+        getMeta: async () => ({}),
+      });
+      expect(result.referencedColumn.id).toEqual('id1');
+      expect(result.referencedColumn.uidt).toEqual(UITypes.LinkToAnotherRecord);
+
+      const result1 = await validateFormulaAndExtractTreeWithType({
+        formula: '{column1}',
+        columns: [
+          {
+            id: 'id1',
+            title: 'column1',
+            uidt: UITypes.Lookup,
+          },
+        ],
+        clientOrSqlUi: 'mysql2',
+        getMeta: async () => ({}),
+      });
+      expect(result1.referencedColumn.id).toEqual('id1');
+      expect(result1.referencedColumn.uidt).toEqual(UITypes.Lookup);
     });
 
     it(`will not return referenced column with impure call expression`, async () => {

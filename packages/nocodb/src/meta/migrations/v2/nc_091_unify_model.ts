@@ -27,11 +27,34 @@ const up = async (knex: Knex) => {
 
   logger.log('Starting migration of data from nc_models to nc_dashboards_v2');
 
+  const contextCombinations = await knex(MetaTable.DASHBOARDS)
+    .distinct('base_id', 'fk_workspace_id')
+    .select();
+
+  const maxOrdersByContext = await knex(MetaTable.MODELS)
+    .select('base_id', 'fk_workspace_id')
+    .max('order as maxOrder')
+    .whereIn(
+      ['base_id', 'fk_workspace_id'],
+      contextCombinations.map((c) => [c.base_id, c.fk_workspace_id]),
+    )
+    .groupBy('base_id', 'fk_workspace_id');
+
+  const orderMap = new Map();
+  maxOrdersByContext.forEach((row) => {
+    const key = `${row.base_id}_${row.fk_workspace_id}`;
+    orderMap.set(key, row.maxOrder || 0);
+  });
+
   await migrateTableInBatches(
     knex,
     MetaTable.DASHBOARDS,
     MetaTable.MODELS,
     (dashboard) => {
+      const key = `${dashboard.base_id}_${dashboard.fk_workspace_id}`;
+      const currentMax = orderMap.get(key) || 0;
+      const nextOrder = currentMax + 1;
+      orderMap.set(key, nextOrder);
       return {
         id: dashboard.id,
         base_id: dashboard.base_id,
@@ -39,7 +62,7 @@ const up = async (knex: Knex) => {
         type: ModelTypes.DASHBOARD, // Set type to distinguish from other records
         meta: dashboard.meta,
         deleted: false,
-        order: dashboard.order,
+        order: nextOrder,
         created_at: dashboard.created_at,
         updated_at: dashboard.updated_at,
         description: dashboard.description,
@@ -52,6 +75,12 @@ const up = async (knex: Knex) => {
       };
     },
     logger,
+    {
+      whereConditions: (queryBuilder) => {
+        // Order by indexed fields first, then by order
+        return queryBuilder.orderBy(['base_id', 'fk_workspace_id', 'order']);
+      },
+    },
   );
 
   logger.log('Data migration completed for nc_dashboards_v2 to nc_models');

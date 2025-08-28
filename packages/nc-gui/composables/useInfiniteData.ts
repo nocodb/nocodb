@@ -386,10 +386,10 @@ export function useInfiniteData(args: {
           offset: req.chunkId * CHUNK_SIZE,
           limit: CHUNK_SIZE,
           alias: `chunk_${req.chunkId}_${req.path.join('_')}`,
-          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value) }),
           ...(isUIAllowed('filterSync')
-            ? { filterArrJson: JSON.stringify(filterArrJson) }
-            : { filterArrJson: JSON.stringify([...(nestedFilters.value ?? []), ...filterArrJson]) }),
+            ? { filterArrJson: stringifyFilterOrSortArr(filterArrJson) }
+            : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value ?? []), ...filterArrJson]) }),
         })
       }
 
@@ -627,10 +627,10 @@ export function useInfiniteData(args: {
       const response = !isPublic?.value
         ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,
-            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value) }),
             ...(isUIAllowed('filterSync')
-              ? { filterArrJson: JSON.stringify(jsonWhereFilterArr) }
-              : { filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
+              ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
+              : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
             includeSortAndFilterColumns: true,
             where: whereFilter,
             include_row_color: true,
@@ -1886,7 +1886,7 @@ export function useInfiniteData(args: {
           })
         : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
             where: whereFilter,
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr(nestedFilters.value) }),
           })
 
       if (fetchTotalRowsWithSearchQuery.value) {
@@ -1897,7 +1897,7 @@ export function useInfiniteData(args: {
             })
           : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
               where: whereQueryFromUrl.value as string,
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr(nestedFilters.value) }),
             })
 
         if (!disableSmartsheet && !path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {

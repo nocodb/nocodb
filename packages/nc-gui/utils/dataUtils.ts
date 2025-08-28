@@ -585,3 +585,10 @@ export const parsePlainCellValue = (
 
   return value as unknown as string
 }
+
+// Utility to stringify filter or sort array, if the array is empty return undefined
+export const stringifyFilterOrSortArr = (arr: any[]) => {
+  if (!arr || (Array.isArray(arr) && !arr.length)) return undefined
+
+  return JSON.stringify(arr)
+}

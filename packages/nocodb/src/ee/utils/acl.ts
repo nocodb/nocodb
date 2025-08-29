@@ -54,6 +54,9 @@ const permissionScopes = {
     'orgUserList',
     'orgBaseList',
     'orgSsoClientList',
+
+    'paymentSeatCount',
+    'manageSubscription',
   ],
   org: [
     // SSO Client
@@ -127,8 +130,6 @@ const permissionScopes = {
     'createDataReflection',
     'deleteDataReflection',
     'getDataReflection',
-    'paymentSeatCount',
-    'manageSubcription',
     'requestUpgrade',
 
     'cloud-org_orgDomainAdd',
@@ -137,6 +138,9 @@ const permissionScopes = {
     'cloud-org_orgDomainDelete',
 
     'cloud-org_orgDomainList',
+
+    'cloud-org_paymentSeatCount',
+    'cloud-org_manageSubscription',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -345,6 +349,9 @@ const rolePermissions:
       orgSsoClientCreate: true,
       orgSsoClientUpdate: true,
       orgSsoClientDelete: true,
+
+      manageSubscription: true,
+      paymentSeatCount: true,
     },
   },
   [CloudOrgUserRoles.CREATOR]: {
@@ -377,7 +384,7 @@ const rolePermissions:
   [WorkspaceUserRoles.CREATOR]: {
     exclude: {
       workspaceDelete: true,
-      manageSubcription: true,
+      'cloud-org_manageSubscription': true,
     },
   },
   [WorkspaceUserRoles.OWNER]: {

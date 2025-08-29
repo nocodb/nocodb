@@ -94,6 +94,7 @@ export class SortsV3Service {
       'swagger-v3.json#/components/schemas/SortCreate',
       param.sort,
       true,
+      context,
     );
 
     // check for existing filter with same field
@@ -102,7 +103,9 @@ export class SortsV3Service {
       (s) => s.fk_column_id === param.sort.field_id,
     );
     if (existingSort) {
-      NcError.badRequest('Sort already exists for this field');
+      NcError.get(context).invalidRequestBody(
+        'Sort already exists for this field',
+      );
     }
 
     // check column exists
@@ -113,7 +116,7 @@ export class SortsV3Service {
     );
 
     if (!column) {
-      NcError.notFound('Column not found');
+      NcError.get(context).notFound('Column not found');
     }
 
     const sort = await this.sortsService.sortCreate(

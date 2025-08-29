@@ -46,6 +46,9 @@ export const validatePayload = (
   context: { api_version?: NcApiVersion } = undefined,
 ) => {
   const validate = ajv.getSchema(schema);
+  if (!validate) {
+    NcError.get(context).genericNotFound('Validation schema', schema);
+  }
   // Validate the request body against the schema
   const valid = validate(payload);
 

@@ -10,7 +10,7 @@ const column = inject(ColumnInj) as Ref<
 
 const cellValue = inject(CellValueInj, ref())
 
-const { currentRow } = useSmartsheetRowStoreOrThrow()
+const { currentRow, displayValue } = useSmartsheetRowStoreOrThrow()
 
 const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
@@ -35,6 +35,8 @@ const rowId = computed(() => {
 })
 
 const { runScript, activeExecutions, fieldIDRowMapping } = useScriptExecutor()
+
+const { addScriptExecution } = useActionPane()
 
 const automationStore = useAutomationStore()
 
@@ -192,12 +194,27 @@ const triggerAction = async () => {
 
       const script = await loadAutomation(colOptions.fk_script_id)
 
-      const id = await runScript(script, currentRow.value.row, {
-        pk: pk.value,
-        fieldId: column.value.id,
+      if (!script) {
+        throw new Error('Script not found')
+      }
+
+      const rowId = pk.value
+
+      const scriptExecutionId = await runScript(script, currentRow.value.row, {
+        pk: rowId!,
+        fieldId: column.value.id!,
+        executionId: `${rowId}-${column.value.id!}-${Date.now()}`,
       })
 
-      isExecutingId.value = id
+      addScriptExecution(scriptExecutionId, {
+        recordId: rowId,
+        displayValue: displayValue.value,
+        scriptId: script?.id!,
+        scriptName: script?.title || 'Untitled Script',
+        buttonFieldName: column.value.title || 'Button',
+      })
+
+      isExecutingId.value = scriptExecutionId
 
       afterActionStatus.value = { status: 'success' }
       ncDelay(2000).then(() => {

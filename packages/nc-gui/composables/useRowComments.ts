@@ -221,7 +221,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
         }
         return c
       })
-      await $api.utils.commentUpdate(commentId, comment)
+      await $api.utils.commentUpdate(commentId, { ...comment, fk_model_id: comment.fk_model_id ?? meta.value.id })
     } catch (e: any) {
       comments.value = comments.value.map((c) => {
         if (c.id === commentId) {

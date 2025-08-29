@@ -6,11 +6,15 @@ const { t } = useI18n()
 
 const dashboardStore = useDashboardStore()
 
+const widgetStore = useWidgetStore()
+
 const baseStore = useBases()
 
 const { openedProject } = storeToRefs(baseStore)
 
 const { isEditingDashboard, activeDashboard, activeBaseDashboards, dashboards } = storeToRefs(dashboardStore)
+
+const { selectedWidget } = storeToRefs(widgetStore)
 
 const confirmUnsavedChangesBeforeLeaving = (
   to: RouteLocationNormalizedLoadedGeneric,
@@ -59,6 +63,7 @@ const confirmUnsavedChangesBeforeLeaving = (
     'onCancel': () => {
       isEditingDashboard.value = false
       isOpen.value = false
+      selectedWidget.value = null
       close(1000)
       next()
     },

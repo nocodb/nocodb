@@ -1747,17 +1747,11 @@ export function useInfiniteData(args: {
 
     // check if the column is part of group by and value changed
     if (row.rowMeta?.path?.length && groupByColumns?.value) {
-      const whereFilter = await callbacks?.getWhereFilter?.(row.rowMeta?.path, true)
+      const groupByFilter = await callbacks?.getWhereFilterArr?.(row.rowMeta?.path)
       const index = groupByColumns.value.findIndex((c) => c.column.title === property) ?? 0
 
-      const { filters: allGroupFilter } = extractFilterFromXwhere(
-        { api_version: NcApiVersion.V1 },
-        whereFilter ?? '',
-        columnsByAlias.value,
-      )
-
-      const isGroupValidationFailed = !validateRowFilters(
-        [...(allGroupFilter ?? [])],
+      row.rowMeta.isGroupChanged = !validateRowFilters(
+        [...(groupByFilter ?? [])],
         data,
         meta.value?.columns as ColumnType[],
         getBaseType(viewMeta.value?.view?.source_id),
@@ -1766,7 +1760,6 @@ export function useInfiniteData(args: {
           currentUser: user.value,
         },
       )
-      row.rowMeta.isGroupChanged = isGroupValidationFailed
       row.rowMeta.changedGroupIndex = index
     }
     const changedFields = property ? [property] : Object.keys(row.row)

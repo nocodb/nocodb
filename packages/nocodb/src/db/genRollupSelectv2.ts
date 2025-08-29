@@ -13,19 +13,33 @@ import { RelationManager } from '~/db/relation-manager';
 import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
+import { NcError } from '~/helpers/ncError';
 
-export default async function ({
+export default async function genRollupSelectv2({
   baseModelSqlv2,
   knex,
   alias,
   columnOptions,
+  nestedLevel = 0,
+  visitedNodes = new Set<string>(),
 }: {
   baseModelSqlv2: IBaseModelSqlV2;
   knex: XKnex;
   alias?: string;
   columnOptions: RollupColumn | LinksColumn;
+  nestedLevel?: number;
+  visitedNodes?: Set<string>;
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
   const context = baseModelSqlv2.context;
+  if (visitedNodes.has(columnOptions.fk_column_id)) {
+    const column = await Column.get(context, {
+      colId: columnOptions.fk_column_id,
+    });
+    NcError.get(context).badRequest(
+      `Circular rollup/links reference detected at column '${column?.title}'`,
+    );
+  }
+  visitedNodes.add(columnOptions.fk_column_id);
 
   const column = await Column.get(context, {
     colId: columnOptions.fk_column_id,
@@ -42,7 +56,8 @@ export default async function ({
   const childModel = await childCol?.getModel(childContext);
   const parentCol = await relationColumnOption.getParentColumn(parentContext);
   const parentModel = await parentCol?.getModel(parentContext);
-  const refTableAlias = `__nc_rollup`;
+  const refTableAlias =
+    `__nc_rollup` + (nestedLevel > 0 ? `_${nestedLevel}` : ``);
 
   const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
     model: parentModel,
@@ -52,6 +67,11 @@ export default async function ({
     model: childModel,
     dbDriver: knex,
   });
+
+  const refBaseModel =
+    rollupColumn.fk_model_id === childModel.id
+      ? childBaseModel
+      : parentBaseModel;
 
   const applyFunction = async (qb: any) => {
     let selectColumnName = knex.raw('??.??', [
@@ -86,6 +106,23 @@ export default async function ({
       });
 
       selectColumnName = knex.raw(formulaQb.builder).wrap('(', ')');
+    } else if ([UITypes.Rollup].includes(rollupColumn.uidt)) {
+      const knex = refBaseModel.dbDriver;
+
+      // Rollup-of-rollup: compute inner rollup correlated to the current level
+      const inner = await genRollupSelectv2({
+        baseModelSqlv2: refBaseModel,
+        knex,
+        alias: refTableAlias,
+        columnOptions: await rollupColumn.getColOptions<RollupColumn>(
+          refContext,
+        ),
+        nestedLevel: nestedLevel + 1,
+        visitedNodes,
+      });
+
+      // Use the inner builder directly as a subquery
+      selectColumnName = knex.raw('(?)', [inner.builder]);
     } else if (
       [
         UITypes.CreatedTime,

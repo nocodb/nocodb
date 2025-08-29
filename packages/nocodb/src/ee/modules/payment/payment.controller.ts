@@ -196,7 +196,7 @@ export class PaymentController {
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/seat-count')
   @Acl('paymentSeatCount', {
-    scope: 'org',
+    scope: 'cloud-org',
     extendedScope: 'workspace',
   })
   async seatCount(
@@ -212,7 +212,7 @@ export class PaymentController {
   @HttpCode(200)
   @Post('/api/payment/:workspaceOrOrgId/create-subscription-form')
   @Acl('manageSubscription', {
-    scope: 'org',
+    scope: 'cloud-org',
     extendedScope: 'workspace',
   })
   async createSubscriptionForm(
@@ -231,7 +231,7 @@ export class PaymentController {
   @HttpCode(200)
   @Post('/api/payment/:workspaceOrOrgId/update-subscription')
   @Acl('manageSubscription', {
-    scope: 'org',
+    scope: 'cloud-org',
     extendedScope: 'workspace',
   })
   async updateSubscription(
@@ -250,7 +250,7 @@ export class PaymentController {
   @HttpCode(200)
   @Delete('/api/payment/:workspaceOrOrgId/cancel-subscription')
   @Acl('manageSubscription', {
-    scope: 'org',
+    scope: 'cloud-org',
     extendedScope: 'workspace',
   })
   async cancelSubscription(
@@ -263,7 +263,7 @@ export class PaymentController {
   @HttpCode(200)
   @Post('/api/payment/:workspaceOrOrgId/recover-subscription')
   @Acl('manageSubscription', {
-    scope: 'org',
+    scope: 'cloud-org',
     extendedScope: 'workspace',
   })
   async recoverSubscription(
@@ -276,7 +276,7 @@ export class PaymentController {
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/get-session-result/:sessionId')
   @Acl('manageSubscription', {
-    scope: 'org',
+    scope: 'cloud-org',
     extendedScope: 'workspace',
   })
   async getCheckoutSession(
@@ -290,7 +290,7 @@ export class PaymentController {
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/customer-portal')
   @Acl('manageSubscription', {
-    scope: 'org',
+    scope: 'cloud-org',
     extendedScope: 'workspace',
   })
   async getCustomerPortal(
@@ -304,7 +304,7 @@ export class PaymentController {
   @HttpCode(200)
   @Get('/api/payment/:workspaceOrOrgId/invoice')
   @Acl('manageSubscription', {
-    scope: 'org',
+    scope: 'cloud-org',
     extendedScope: 'workspace',
   })
   async getInvoice(

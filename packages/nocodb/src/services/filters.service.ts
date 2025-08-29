@@ -1,14 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
-import type { FilterReqType, UserType } from 'nocodb-sdk';
+import { Injectable, Logger } from '@nestjs/common';
+import { AppEvents, comparisonOpList } from 'nocodb-sdk';
+import type { FilterReqType, FilterType, UITypes, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { Filter, Hook, View } from '~/models';
+import { Column, Filter, Hook, View } from '~/models';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class FiltersService {
+  protected readonly logger = new Logger(FiltersService.name);
   constructor(protected readonly appHooksService: AppHooksService) {}
 
   async hookFilterCreate(
@@ -167,5 +170,180 @@ export class FiltersService {
   ): Promise<any> {
     // placeholder method
     return null;
+  }
+
+  /**
+   * Transform filters for a column type change - remove incompatible ones
+   * Works for all filter types: hook, link, grid, etc.
+   */
+  async transformFiltersForColumnTypeChange(
+    context: NcContext,
+    columnId: string,
+    newColumnType: UITypes,
+    oldColumnType: UITypes,
+    sqlUi: any,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    // Get all filters that reference this column from all tables
+    const filtersToCheck = await this.getAllFiltersForColumn(
+      context,
+      columnId,
+      ncMeta,
+    );
+
+    // Remove incompatible filters
+    for (const filter of filtersToCheck) {
+      const validation = this.validateFilterForTypeChange(
+        filter,
+        newColumnType,
+        oldColumnType,
+        sqlUi,
+      );
+      console.log(validation);
+      if (validation.shouldRemove) {
+        await this.deleteFilter(context, filter.id, ncMeta);
+      }
+    }
+  }
+
+  /**
+   * Get all filters that reference a specific column from all filter tables
+   */
+  private async getAllFiltersForColumn(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<FilterType[]> {
+    const filters: FilterType[] = [];
+
+    try {
+      // Query nc_filter table directly for all filters referencing this column
+      const filterResults = await ncMeta
+        .knex(MetaTable.FILTER_EXP)
+        .where({
+          base_id: context.base_id,
+          ...(context.workspace_id
+            ? { fk_workspace_id: context.workspace_id }
+            : {}),
+        })
+        .where('fk_column_id', columnId)
+        .select('*');
+
+      // Convert to FilterType objects
+      for (const row of filterResults) {
+        filters.push({
+          id: row.id,
+          fk_column_id: row.fk_column_id,
+          comparison_op: row.comparison_op,
+          comparison_sub_op: row.comparison_sub_op,
+          value: row.value,
+          logical_op: row.logical_op,
+          is_group: row.is_group,
+          fk_view_id: row.fk_view_id,
+          fk_hook_id: row.fk_hook_id,
+          fk_parent_id: row.fk_parent_id,
+          children: [], // Will be populated if needed
+        });
+      }
+    } catch (error) {
+      console.warn(
+        `Failed to query filters for column ${columnId}: ${error.message}`,
+      );
+    }
+
+    return filters;
+  }
+
+  /**
+   * Delete a filter directly from the database
+   */
+  private async deleteFilter(
+    context: NcContext,
+    filterId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    try {
+      // Delete directly from nc_filters table
+      await Filter.delete(context, filterId, ncMeta);
+    } catch (error) {
+      console.warn(`Failed to delete filter ${filterId}: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if an operator is compatible with a column type
+   */
+  isOperatorCompatible(
+    operator: string,
+    columnType: UITypes,
+    oldColumnType: UITypes,
+  ): boolean {
+    const operators = comparisonOpList(columnType);
+    const oldOperators = comparisonOpList(oldColumnType);
+
+    const isInOldOperators = oldOperators.find((op) => op.value === operator);
+
+    return operators.some(
+      (op) =>
+        op.value === operator &&
+        (isInOldOperators?.text === op.text) && (
+          (op.includedTypes && op.includedTypes?.includes(columnType)) ||
+            (op.excludedTypes && !op.excludedTypes?.includes(columnType)),
+        ),
+    );
+  }
+
+  /**
+   * Validate if a filter should be removed due to column type change
+   */
+  validateFilterForTypeChange(
+    filter: FilterType,
+    newColumnType: UITypes,
+    oldColumnType: UITypes,
+    sqlUI: any,
+  ): { shouldRemove: boolean; reason?: string } {
+    const operator = filter.comparison_op;
+    if (!operator) {
+      return {
+        shouldRemove: true,
+        reason: 'Filter has no comparison operator',
+      };
+    }
+
+    // check if abstract type changed
+    const oldAbstractType = sqlUI.getAbstractType({ uidt: oldColumnType });
+    const newAbstractType = sqlUI.getAbstractType({ uidt: newColumnType });
+
+    console.log(
+      newColumnType,
+      oldColumnType,
+      `Validating filter ${filter.id}: ${oldAbstractType} -> ${newAbstractType}, operator: ${operator}`,
+    );
+    if (oldAbstractType !== newAbstractType) {
+      return {
+        shouldRemove: true,
+        reason: `Column abstract type changed from ${oldAbstractType} to ${newAbstractType}`,
+      };
+    }
+
+    // Check if operator is compatible with new type
+    if (this.isOperatorCompatible(operator, newColumnType, oldColumnType)) {
+      return { shouldRemove: false };
+    }
+
+    // Operator is not compatible, filter must be removed
+    return {
+      shouldRemove: true,
+      reason: `Operator ${operator} is not compatible with column type ${newColumnType}`,
+    };
+  }
+
+  /**
+   * Get all operators compatible with a column type
+   */
+  getCompatibleOperators(columnType: UITypes): string[] {
+    const operators = comparisonOpList(columnType);
+    return operators.map((op) => op.value);
   }
 }

@@ -1,17 +1,15 @@
 import type { ComputedRef, Ref } from 'vue'
-import {
+import { EventType, FormulaDataTypes, UITypes, isSystemColumn, isVirtualCol, workerWithTimezone } from 'nocodb-sdk'
+import type {
   type Api,
   type CalendarRangeType,
   type CalendarType,
   type ColumnType,
-  FormulaDataTypes,
+  CommentPayload,
+  DataPayload,
   type PaginatedType,
   type TableType,
-  UITypes,
   type ViewType,
-  isSystemColumn,
-  isVirtualCol,
-  workerWithTimezone,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
@@ -150,7 +148,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { base } = storeToRefs(useBase())
 
-    const { $api, $e } = useNuxtApp()
+    const { $api, $e, $ncSocket } = useNuxtApp()
 
     const { t } = useI18n()
 
@@ -1019,6 +1017,235 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         return row
       })
     })
+
+    const updateActiveDatesForNewRecord = (rowData: Record<string, any>): void => {
+      if (!calendarRange.value?.length) return
+
+      for (const range of calendarRange.value) {
+        const fromCol = range.fk_from_col
+        const toCol = range.fk_to_col
+
+        const fromDate = fromCol ? rowData[fromCol.title!] : null
+        const toDate = toCol ? rowData[toCol.title!] : null
+
+        if (fromDate) {
+          const date = timezoneDayjs.timezonize(fromDate)
+          if (!activeDates.value.some((activeDate) => activeDate.isSame(date, 'day'))) {
+            activeDates.value.push(date)
+          }
+        }
+
+        if (toDate && toDate !== fromDate) {
+          const date = timezoneDayjs.timezonize(toDate)
+          if (!activeDates.value.some((activeDate) => activeDate.isSame(date, 'day'))) {
+            activeDates.value.push(date)
+          }
+        }
+      }
+
+      // Sort active dates
+      activeDates.value.sort((a, b) => a.valueOf() - b.valueOf())
+    }
+
+    const activeDataChannel = ref<string | null>(null)
+
+    watch(
+      meta,
+      (newMeta: any, oldMeta: any) => {
+        if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
+          if (oldMeta?.id && oldMeta.id === newMeta.id) return
+
+          if (activeDataChannel.value) {
+            $ncSocket.offMessage(activeDataChannel.value)
+          }
+
+          activeDataChannel.value = `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`
+
+          $ncSocket.subscribe(activeDataChannel.value)
+
+          $ncSocket.onMessage(activeDataChannel.value, (data: DataPayload) => {
+            const { id, action, payload } = data
+
+            if (action === 'add') {
+              try {
+                // Add to main calendar data if it matches current view's date range
+                const newRow = {
+                  row: payload,
+                  oldRow: { ...payload },
+                  rowMeta: {
+                    new: false,
+                    ...getEvaluatedRowMetaRowColorInfo(payload),
+                  },
+                }
+
+                // Check if the new row falls within current calendar view date range
+                const shouldAddToCalendar = isRowInCurrentDateRange(
+                  payload,
+                  calendarRange.value,
+                  activeCalendarView.value!,
+                  selectedDate.value,
+                  selectedDateRange.value,
+                  selectedMonth.value,
+                  timezoneDayjs,
+                )
+                if (shouldAddToCalendar) {
+                  formattedData.value.push(newRow)
+                }
+
+                // Always check if it should be in sidebar based on current sidebar filter
+                const shouldAddToSidebar = isRowMatchingSidebarFilter(
+                  payload,
+                  sideBarFilterOption.value,
+                  calendarRange.value,
+                  selectedDate.value,
+                  selectedDateRange.value,
+                  selectedMonth.value,
+                  selectedTime.value,
+                  timezoneDayjs,
+                )
+                if (shouldAddToSidebar) {
+                  // Avoid duplicates in sidebar
+                  const existingIndex = formattedSideBarData.value.findIndex(
+                    (row: Row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === id,
+                  )
+
+                  if (existingIndex === -1) {
+                    formattedSideBarData.value.unshift(newRow)
+                  }
+                }
+
+                // Update active dates if the new record contains a date
+                updateActiveDatesForNewRecord(payload)
+              } catch (e) {
+                console.error('Failed to add calendar row on socket event', e)
+              }
+            } else if (action === 'update') {
+              try {
+                let updated = false
+
+                let updatedRow = null
+
+                // Update in main calendar data
+                formattedData.value = formattedData.value.map((row) => {
+                  const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                  if (pk && `${pk}` === `${id}`) {
+                    Object.assign(row.row, payload)
+                    Object.assign(row.oldRow, payload)
+                    Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+                    row.rowMeta.changed = false
+                    updated = true
+                    updatedRow = row.row
+                  }
+                  return row
+                })
+
+                // Update in sidebar data
+                formattedSideBarData.value = formattedSideBarData.value.map((row) => {
+                  const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                  if (pk && `${pk}` === `${id}`) {
+                    Object.assign(row.row, payload)
+                    Object.assign(row.oldRow, payload)
+                    Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+                    row.rowMeta.changed = false
+                    updated = true
+                  }
+                  return row
+                })
+
+                // Check if updated row should still be visible in current view/filters
+                if (updated) {
+                  // Remove from calendar view if no longer in date range
+                  const rowInDateRange = isRowInCurrentDateRange(
+                    updatedRow!,
+                    calendarRange.value,
+                    activeCalendarView.value!,
+                    selectedDate.value,
+                    selectedDateRange.value,
+                    selectedMonth.value,
+                    timezoneDayjs,
+                  )
+                  if (!rowInDateRange) {
+                    formattedData.value = formattedData.value.filter((row) => {
+                      const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                      return !(pk && `${pk}` === `${id}`)
+                    })
+                  }
+
+                  const matchesSidebarFilter = isRowMatchingSidebarFilter(
+                    updatedRow!,
+                    sideBarFilterOption.value,
+                    calendarRange.value,
+                    selectedDate.value,
+                    selectedDateRange.value,
+                    selectedMonth.value,
+                    selectedTime.value,
+                    timezoneDayjs,
+                  )
+
+                  const existingInSidebar = formattedSideBarData.value.findIndex((row) => {
+                    const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                    return pk && `${pk}` === `${id}`
+                  })
+
+                  if (matchesSidebarFilter) {
+                    // If it matches the filter but is not in sidebar, add it
+                    if (existingInSidebar === -1) {
+                      const newSidebarRow = {
+                        row: updatedRow,
+                        oldRow: { ...(updatedRow ?? {}) },
+                        rowMeta: {
+                          new: false,
+                          changed: false,
+                          ...getEvaluatedRowMetaRowColorInfo(updatedRow),
+                        },
+                      }
+                      formattedSideBarData.value.unshift(newSidebarRow)
+                    }
+                  } else {
+                    // If it doesn't match the filter and exists in sidebar, remove it
+                    if (existingInSidebar !== -1) {
+                      formattedSideBarData.value.splice(existingInSidebar, 1)
+                    }
+                  }
+
+                  // Update active dates
+                  fetchActiveDates()
+                }
+              } catch (e) {
+                console.error('Failed to update calendar row on socket event', e)
+              }
+            } else if (action === 'delete') {
+              try {
+                // Remove from main calendar data
+                const calendarIndex = formattedData.value.findIndex((row) => {
+                  const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                  return pk && `${pk}` === `${id}`
+                })
+
+                if (calendarIndex !== -1) {
+                  formattedData.value.splice(calendarIndex, 1)
+                }
+
+                // Remove from sidebar data
+                const sidebarIndex = formattedSideBarData.value.findIndex((row) => {
+                  const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                  return pk && `${pk}` === `${id}`
+                })
+
+                if (sidebarIndex !== -1) {
+                  formattedSideBarData.value.splice(sidebarIndex, 1)
+                }
+
+                fetchActiveDates()
+              } catch (e) {
+                console.error('Failed to delete calendar row on socket event', e)
+              }
+            }
+          })
+        }
+      },
+      { immediate: true },
+    )
 
     return {
       fetchActiveDates,

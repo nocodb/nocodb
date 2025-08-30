@@ -131,7 +131,11 @@ const setIcon = async (icon: string, table: TableType) => {
       ...((table.meta as object) || {}),
       icon,
     }
-    tables.value.splice(tables.value.indexOf(table), 1, { ...table })
+    const index = tables.value.findIndex((t) => t.id === table.id)
+
+    if (index !== -1) {
+      tables.value[index] = { ...table }
+    }
 
     await $api.dbTable.update(table.id as string, {
       meta: table.meta,

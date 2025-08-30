@@ -243,6 +243,7 @@ const rolePermissions:
       nestedDataList: true,
       baseUserList: true,
 
+      // Extensions
       extensionList: true,
       extensionRead: true,
 
@@ -310,6 +311,9 @@ const rolePermissions:
       // AI
       aiUtils: true,
       aiData: true,
+
+      // Extensions
+      extensionUpdate: true,
     },
   },
   [ProjectRoles.CREATOR]: {

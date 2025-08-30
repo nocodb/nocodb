@@ -17,11 +17,14 @@ const { workspaceRoles } = useRoles()
 
 const { user } = useGlobal()
 
+const { showInfoModal } = useNcConfirmModal()
+
 const workspaceStore = useWorkspace()
 
-const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
+const { removeCollaborator: _removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
-const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading } = storeToRefs(workspaceStore)
+const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading, removingCollaboratorMap } =
+  storeToRefs(workspaceStore)
 
 const {
   isPaymentEnabled,
@@ -70,7 +73,10 @@ const filterCollaborators = computed(() => {
 
   if (!collaborators.value) return []
 
-  return collaborators.value.filter((collab) => searchCompare([collab.display_name, collab.email], userSearchText.value))
+  return collaborators.value.filter(
+    (collab) =>
+      searchCompare([collab.display_name, collab.email], userSearchText.value) && !removingCollaboratorMap.value[collab.id],
+  )
 })
 
 const selected = reactive<{
@@ -186,7 +192,7 @@ const columns = [
   },
   {
     key: 'email',
-    title: t('objects.users'),
+    title: t('labels.members'),
     minWidth: 220,
     dataIndex: 'email',
     showOrderBy: true,
@@ -234,6 +240,23 @@ const handleScroll = (e) => {
   if (!isTopBannerVisible.value) return
 
   topScroll.value = e.target?.scrollTop
+}
+
+const removeCollaborator = (userId: string, workspaceId: string) => {
+  showInfoModal({
+    title: userId === user.value?.id ? t('title.confirmLeaveWorkspaceTitle') : t('title.confirmRemoveMemberFromWorkspaceTitle'),
+    content:
+      userId === user.value?.id ? t('title.confirmLeaveWorkspaceSubtile') : t('title.confirmRemoveMemberFromWorkspaceSubtitle'),
+    showCancelBtn: true,
+    showIcon: false,
+    okProps: {
+      type: 'danger',
+    },
+    okText: userId === user.value?.id ? t('activity.leaveWorkspace') : t('general.remove'),
+    okCallback: async () => {
+      _removeCollaborator(userId, workspaceId)
+    },
+  })
 }
 </script>
 
@@ -453,8 +476,11 @@ const handleScroll = (e) => {
                         danger
                         @click="removeCollaborator(record.id, currentWorkspace?.id)"
                       >
-                        <GeneralIcon icon="delete" />
-                        {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeUser') }}
+                        <div v-if="removingCollaboratorMap[record.id]" class="h-4 w-4 flex items-center justify-center">
+                          <GeneralLoader class="!flex-none !text-current" />
+                        </div>
+                        <GeneralIcon v-else icon="delete" />
+                        {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeMember') }}
                       </NcMenuItem>
                     </NcTooltip>
                   </NcMenu>

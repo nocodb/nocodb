@@ -11,6 +11,7 @@ import {
   getCompositePkValue,
   getOppositeRelationType,
 } from '~/helpers/dbHelpers';
+import { extractCorrespondingLinkColumn } from '~/db/BaseModelSqlv2/add-remove-links';
 
 interface AuditUpdateLog {
   pkValue?: Record<string, any>;
@@ -200,6 +201,7 @@ export class RelationManager {
   }) {
     const {
       relationColOptions: colOptions,
+      relationColumn: column,
       baseModel,
       parentBaseModel,
       parentColumn,
@@ -215,7 +217,13 @@ export class RelationManager {
       mmContext,
     } = this.relationContext;
 
-    const updatedColIds = [this.relationContext.relationColumn.id];
+    // Get the corresponding link column ID for the parent table
+    const parentTableCorrespondingColumnId = (
+      await extractCorrespondingLinkColumn(baseModel.context, {
+        ltarColumn: column,
+        referencedTable: parentTable,
+      })
+    )?.id;
 
     const { onlyUpdateAuditLogs, req } = params;
     if (onlyUpdateAuditLogs && colOptions.type !== RelationTypes.BELONGS_TO) {
@@ -294,7 +302,7 @@ export class RelationManager {
             rowIds: [parentId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: updatedColIds,
+            updatedColIds: [parentTableCorrespondingColumnId],
           });
 
           await parentBaseModel.broadcastLinkUpdates([parentId]);
@@ -305,7 +313,7 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: updatedColIds,
+            updatedColIds: [column.id],
           });
 
           await childBaseModel.broadcastLinkUpdates([childId]);
@@ -351,7 +359,14 @@ export class RelationManager {
               model: parentTable,
               rowIds: [oldRowId],
               cookie: req,
-              updatedColIds: [colOptions.fk_column_id],
+              updatedColIds: [
+                (
+                  await extractCorrespondingLinkColumn(childBaseModel.context, {
+                    ltarColumn: column,
+                    referencedTable: parentTable,
+                  })
+                )?.id,
+              ],
             });
           }
 
@@ -380,7 +395,7 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: updatedColIds,
+            updatedColIds: [column.id],
           });
 
           await childBaseModel.broadcastLinkUpdates([childId]);
@@ -391,7 +406,7 @@ export class RelationManager {
             rowIds: [parentId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: updatedColIds,
+            updatedColIds: [parentTableCorrespondingColumnId],
           });
 
           await parentBaseModel.broadcastLinkUpdates([parentId]);
@@ -437,7 +452,14 @@ export class RelationManager {
               model: parentTable,
               rowIds: [oldParentRowId],
               cookie: req,
-              updatedColIds: [colOptions.fk_column_id],
+              updatedColIds: [
+                (
+                  await extractCorrespondingLinkColumn(childBaseModel.context, {
+                    ltarColumn: column,
+                    referencedTable: parentTable,
+                  })
+                )?.id,
+              ],
             });
           }
 
@@ -466,7 +488,7 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [],
+            updatedColIds: [column.id],
           });
 
           await childBaseModel.broadcastLinkUpdates([childId]);
@@ -477,7 +499,7 @@ export class RelationManager {
             rowIds: [parentId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [],
+            updatedColIds: [parentTableCorrespondingColumnId],
           });
 
           await parentBaseModel.broadcastLinkUpdates([parentId]);
@@ -527,7 +549,17 @@ export class RelationManager {
                 model: childTable,
                 rowIds: [oldChildRowId],
                 cookie: req,
-                updatedColIds: [colOptions.fk_column_id],
+                updatedColIds: [
+                  (
+                    await extractCorrespondingLinkColumn(
+                      childBaseModel.context,
+                      {
+                        ltarColumn: column,
+                        referencedTable: childTable,
+                      },
+                    )
+                  )?.id,
+                ],
               });
             }
           }
@@ -570,7 +602,14 @@ export class RelationManager {
               model: parentTable,
               rowIds: [oldRowId],
               cookie: req,
-              updatedColIds: [colOptions.fk_column_id],
+              updatedColIds: [
+                (
+                  await extractCorrespondingLinkColumn(childBaseModel.context, {
+                    ltarColumn: column,
+                    referencedTable: parentTable,
+                  })
+                )?.id,
+              ],
             });
           }
           // todo: unlink if it's already mapped
@@ -617,7 +656,7 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [],
+            updatedColIds: [column.id],
           });
 
           await childBaseModel.broadcastLinkUpdates([childId]);
@@ -628,7 +667,7 @@ export class RelationManager {
             rowIds: parentId,
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [],
+            updatedColIds: [parentTableCorrespondingColumnId],
           });
 
           await parentBaseModel.broadcastLinkUpdates([parentId]);
@@ -725,7 +764,14 @@ export class RelationManager {
             rowIds: [parentId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [],
+            updatedColIds: [
+              (
+                await extractCorrespondingLinkColumn(childBaseModel.context, {
+                  ltarColumn: this.relationContext.relationColumn,
+                  referencedTable: parentTable,
+                })
+              )?.id,
+            ],
           });
 
           await parentBaseModel.broadcastLinkUpdates([parentId]);
@@ -736,7 +782,7 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [],
+            updatedColIds: [colOptions.fk_column_id],
           });
 
           await childBaseModel.broadcastLinkUpdates([childId]);
@@ -764,7 +810,7 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [],
+            updatedColIds: [colOptions.fk_column_id],
           });
 
           await childBaseModel.broadcastLinkUpdates([childId]);
@@ -775,7 +821,14 @@ export class RelationManager {
             rowIds: [parentId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [],
+            updatedColIds: [
+              (
+                await extractCorrespondingLinkColumn(childBaseModel.context, {
+                  ltarColumn: this.relationContext.relationColumn,
+                  referencedTable: parentTable,
+                })
+              )?.id,
+            ],
           });
 
           await parentBaseModel.broadcastLinkUpdates([parentId]);
@@ -815,7 +868,14 @@ export class RelationManager {
             rowIds: [parentId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [],
+            updatedColIds: [
+              (
+                await extractCorrespondingLinkColumn(childBaseModel.context, {
+                  ltarColumn: this.relationContext.relationColumn,
+                  referencedTable: parentTable,
+                })
+              )?.id,
+            ],
           });
 
           await parentBaseModel.broadcastLinkUpdates([parentId]);
@@ -838,7 +898,7 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [],
+            updatedColIds: [colOptions.fk_column_id],
           });
 
           await childBaseModel.broadcastLinkUpdates([childId]);
@@ -849,7 +909,14 @@ export class RelationManager {
             rowIds: [parentId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [],
+            updatedColIds: [
+              (
+                await extractCorrespondingLinkColumn(childBaseModel.context, {
+                  ltarColumn: this.relationContext.relationColumn,
+                  referencedTable: parentTable,
+                })
+              )?.id,
+            ],
           });
           await parentBaseModel.broadcastLinkUpdates([parentId]);
         }

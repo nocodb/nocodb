@@ -1,8 +1,9 @@
 import type { Column } from '~/models';
 import type { Knex } from 'knex';
+import {XKnex} from "~/db/CustomKnex";
 
 export function prepareMetaUpdateQuery(_: {
-  knex: Knex;
+  knex: Knex | XKnex;
   colIds: string[];
   props: Record<string, unknown>;
   metaColumn: Column;

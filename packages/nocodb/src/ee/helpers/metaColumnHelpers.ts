@@ -22,10 +22,16 @@ export function prepareMetaUpdateQuery({
     return;
   }
 
+  const filteredColIds = colIds.filter(Boolean);
+
+  if (!filteredColIds.length) {
+    return;
+  }
+
   const jsonObjQuery = knex.raw('?::jsonb', JSON.stringify(props)).toString();
 
   return knex.raw(
-    `COALESCE((:column:)::jsonb, '{}'::jsonb) || ${colIds
+    `COALESCE((:column:)::jsonb, '{}'::jsonb) || ${filteredColIds
       .map((id) => {
         const idString = knex.raw('?::text', [id]);
 

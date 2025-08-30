@@ -304,7 +304,6 @@ export class RelationManager {
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            // Todo: extract rel in ref table
             updatedColIds: [refTableLinkColumnId],
           });
 
@@ -315,7 +314,6 @@ export class RelationManager {
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            // Todo: extract rel in ref table
             updatedColIds: [column.id],
           });
 
@@ -390,7 +388,6 @@ export class RelationManager {
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            // Todo: extract rel in ref table
             updatedColIds: [refTableLinkColumnId],
           });
 
@@ -401,7 +398,6 @@ export class RelationManager {
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            // Todo: extract rel in ref table
             updatedColIds: [column.id],
           });
 
@@ -483,7 +479,6 @@ export class RelationManager {
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            // Todo: extract rel in ref table
             updatedColIds: [column.id],
           });
 
@@ -494,7 +489,6 @@ export class RelationManager {
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            // Todo: extract rel in ref table
             updatedColIds: [refTableLinkColumnId],
           });
 
@@ -740,7 +734,6 @@ export class RelationManager {
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            // Todo: extract rel in ref table
             updatedColIds: [
               (
                 await extractCorrespondingLinkColumn(childBaseModel.context, {
@@ -758,7 +751,6 @@ export class RelationManager {
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            // Todo: extract rel in ref table
             updatedColIds: [colOptions.fk_column_id],
           });
 
@@ -786,7 +778,6 @@ export class RelationManager {
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            // Todo: extract rel in ref table
             updatedColIds: [colOptions.fk_column_id],
           });
 
@@ -797,7 +788,6 @@ export class RelationManager {
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            // Todo: extract rel in ref table
             updatedColIds: [
               (
                 await extractCorrespondingLinkColumn(childBaseModel.context, {
@@ -844,7 +834,6 @@ export class RelationManager {
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            // Todo: extract rel in ref table
             updatedColIds: [
               (
                 await extractCorrespondingLinkColumn(childBaseModel.context, {
@@ -874,7 +863,6 @@ export class RelationManager {
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            // Todo: extract rel in ref table
             updatedColIds: [colOptions.fk_column_id],
           });
 
@@ -885,7 +873,6 @@ export class RelationManager {
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            // Todo: extract rel in ref table
             updatedColIds: [
               (
                 await extractCorrespondingLinkColumn(childBaseModel.context, {

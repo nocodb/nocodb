@@ -31,11 +31,17 @@ export default defineNuxtRouteMiddleware(() => {
 
   if (afterPayment || afterManage || afterUpgrade) {
     const workspaceId = params.get('workspaceId')
-    const isAccountPage = params.get('isAccountPage') === 'true'
+    const returnToPage = params.get('returnToPage')
 
-    const url = isAccountPage
-      ? `/#/account/workspace/${workspaceId}/settings?${params.toString()}`
-      : `/#/${workspaceId}/settings?tab=billing&${params.toString()}`
+    let url = ''
+
+    if (returnToPage === 'org') {
+      url = `/#/admin/${workspaceId}/billing?${params.toString()}`
+    } else if (returnToPage === 'account') {
+      url = `/#/account/workspace/${workspaceId}/settings?${params.toString()}`
+    } else {
+      url = `/#/${workspaceId}/settings?tab=billing&${params.toString()}`
+    }
 
     window.location.href = url
   }

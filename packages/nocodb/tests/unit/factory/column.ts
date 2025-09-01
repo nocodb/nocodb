@@ -948,6 +948,9 @@ const createRollupColumn = async (
     relatedTableName: string;
     relatedTableColumnTitle: string;
   },
+  option?: {
+    throwError?: boolean;
+  },
 ) => {
   const ctx = {
     workspace_id: base.fk_workspace_id,
@@ -972,15 +975,20 @@ const createRollupColumn = async (
       column.colOptions?.fk_related_model_id === childTable.id,
   );
 
-  const rollupColumn = await createColumn(context, table, {
-    title: title,
-    uidt: UITypes.Rollup,
-    fk_relation_column_id: ltarColumn?.id,
-    fk_rollup_column_id: childTableColumn?.id,
-    rollup_function: rollupFunction,
-    table_name: table.table_name,
-    column_name: title,
-  });
+  const rollupColumn = await createColumn(
+    context,
+    table,
+    {
+      title: title,
+      uidt: UITypes.Rollup,
+      fk_relation_column_id: ltarColumn?.id,
+      fk_rollup_column_id: childTableColumn?.id,
+      rollup_function: rollupFunction,
+      table_name: table.table_name,
+      column_name: title,
+    },
+    option,
+  );
 
   return rollupColumn;
 };

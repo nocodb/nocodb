@@ -100,7 +100,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   }
 
   const runScript = async () => {
-    if (isRunning.value || !isValidConfig.value) return
+    if (isRunning.value || !isValidConfig.value || !activeAutomation.value?.id) return
 
     isSettingsOpen.value = false
 

@@ -306,6 +306,8 @@ watch(projectPageTab, () => {
 })
 
 const evtListener = (event: string, data: any) => {
+  if (event !== 'base_user_update') return
+
   const { baseId } = data
 
   if (baseId !== currentBase.value?.id) return
@@ -315,11 +317,11 @@ const evtListener = (event: string, data: any) => {
 
 onMounted(() => {
   loadSorts()
-  $eventBus.realtimeEventBus.on(evtListener)
+  $eventBus.realtimeBaseUserEventBus.on(evtListener)
 })
 
 onBeforeUnmount(() => {
-  $eventBus.realtimeEventBus.off(evtListener)
+  $eventBus.realtimeBaseUserEventBus.off(evtListener)
 })
 </script>
 

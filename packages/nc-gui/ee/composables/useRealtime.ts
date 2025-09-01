@@ -171,6 +171,10 @@ export const useRealtime = createSharedComposable(() => {
       if (base.value?.id === baseId) {
         base.value.permissions = payload
       }
+    } else if (event.action === 'sort_create' || event.action === 'sort_update' || event.action === 'sort_delete') {
+      $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
+    } else if (event.action === 'filter_create' || event.action === 'filter_update' || event.action === 'filter_delete') {
+      $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
     }
   }
 

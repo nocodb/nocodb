@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, EventType } from 'nocodb-sdk';
 import type { SortReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
@@ -7,6 +7,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Column, Sort, View } from '~/models';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class SortsService {
@@ -39,6 +40,19 @@ export class SortsService {
       column,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'sort_delete',
+          payload: sort,
+        },
+      },
+      context.socket_id,
+    );
+
     return true;
   }
 
@@ -71,6 +85,21 @@ export class SortsService {
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'sort_update',
+          payload: {
+            ...sort,
+            ...param.sort,
+          },
+        },
+      },
+      context.socket_id,
+    );
 
     return res;
   }
@@ -110,6 +139,18 @@ export class SortsService {
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'sort_create',
+          payload: sort,
+        },
+      },
+      context.socket_id,
+    );
 
     return sort;
   }

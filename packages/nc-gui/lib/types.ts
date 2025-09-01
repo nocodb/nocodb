@@ -885,13 +885,6 @@ type NcDropdownPlacement =
   | 'bottomCenter'
   | 'right'
 
-interface NcBaseThemeColorsType {
-  bgLight?: string
-  bgDark?: string
-  color?: string
-  textColor?: string
-}
-
 export type {
   User,
   ProjectMetaInfo,
@@ -956,5 +949,4 @@ export type {
   RawValueType,
   NcDropdownPlacement,
   MakeCellEditableFn,
-  NcBaseThemeColorsType,
 }

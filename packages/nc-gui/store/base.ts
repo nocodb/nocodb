@@ -39,10 +39,6 @@ export const useBase = defineStore('baseStore', () => {
   const base = computed<NcProject>(() => basesStore.bases.get(baseId.value) || sharedProject.value || {})
   const tables = computed<TableType[]>(() => tablesStore.baseTables.get(baseId.value) || [])
 
-  const baseThemeColors = computed<NcBaseThemeColorsType>(() => {
-    return {}
-  })
-
   const baseLoadedHook = createEventHook<BaseType>()
 
   const sources = computed<SourceType[]>(() => base.value?.sources || [])
@@ -325,7 +321,6 @@ export const useBase = defineStore('baseStore', () => {
     idUserMap,
     isPrivateBase,
     showBaseAccessRequestOverlay,
-    baseThemeColors,
   }
 })
 

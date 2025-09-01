@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-const { baseThemeColors } = storeToRefs(useBase())
-
 const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
 
 const { isUIAllowed } = useRoles()
@@ -37,9 +35,6 @@ const onClickDetails = () => {
       class="tab"
       :class="{
         active: openedViewsTab !== 'view',
-      }"
-      :style="{
-        ['--active-tab-color']: baseThemeColors.textColor || themeV3Colors.brand[600],
       }"
       @click="onClickDetails"
     >

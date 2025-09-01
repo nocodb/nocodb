@@ -816,3 +816,21 @@ export const getOppositeColorOfBackground = (color: string) => {
     ? '#fff'
     : tinycolor.mostReadable(color || '#ccc', ['#0b1d05', '#fff']).toHex8String()
 }
+
+export const getTintRelativeToBase = (
+  inputColor: string,
+  percent: number, // +ve for lighter, -ve for darker
+): string => {
+  const baseHSL = tinycolor(inputColor).toHsl()
+
+  // Reset to standard midpoint lightness
+  const neutralL = 0.5
+
+  // Shift lightness by percent of range
+  let newL = neutralL + percent / 100
+
+  // Clamp between 0 and 1
+  newL = Math.max(0, Math.min(1, newL))
+
+  return tinycolor({ h: baseHSL.h, s: baseHSL.s, l: newL }).toHexString()
+}

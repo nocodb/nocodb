@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+const { baseThemeColors } = storeToRefs(useBase())
+
 const { openedViewsTab, activeView } = storeToRefs(useViewsStore())
 
 const { isUIAllowed } = useRoles()
@@ -15,12 +17,20 @@ const onClickDetails = () => {
 </script>
 
 <template>
-  <div class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab">
+  <div
+    class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab"
+    :style="{
+      backgroundColor: baseThemeColors.bgDark,
+    }"
+  >
     <div
       v-e="['c:project:mode:data']"
       class="tab"
       :class="{
         active: openedViewsTab === 'view',
+      }"
+      :style="{
+        ['--active-tab-color']: baseThemeColors.textColor || themeV3Colors.brand[600],
       }"
       @click="onViewsTabChange('view')"
     >
@@ -33,6 +43,9 @@ const onClickDetails = () => {
       class="tab"
       :class="{
         active: openedViewsTab !== 'view',
+      }"
+      :style="{
+        ['--active-tab-color']: baseThemeColors.textColor || themeV3Colors.brand[600],
       }"
       @click="onClickDetails"
     >
@@ -67,7 +80,13 @@ const onClickDetails = () => {
 }
 
 .active {
-  @apply bg-white text-brand-600 hover:text-brand-600;
+  @apply bg-white;
+
+  color: var(--active-tab-color);
+
+  &:hover {
+    color: var(--active-tab-color);
+  }
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 }

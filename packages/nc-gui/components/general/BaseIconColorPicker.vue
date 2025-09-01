@@ -14,7 +14,7 @@ const props = withDefaults(
   },
 )
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'save'])
 
 const { modelValue, readonly } = toRefs(props)
 const { size } = props
@@ -28,6 +28,8 @@ const updateIconColor = (color: string) => {
   if (tcolor.isValid()) {
     colorRef.value = color
   }
+
+  emit('update:modelValue', colorRef.value)
 }
 
 const onClick = (e: Event) => {
@@ -41,9 +43,9 @@ const onClick = (e: Event) => {
 watch(
   isOpen,
   (value) => {
-    if (!value && colorRef.value !== modelValue.value) {
-      emit('update:modelValue', colorRef.value)
-    }
+    if (value) return
+
+    emit('save', colorRef.value)
   },
   {
     immediate: true,

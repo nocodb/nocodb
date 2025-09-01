@@ -170,6 +170,13 @@ const copyProjectInfo = async () => {
 }
 
 const setColor = async (color: string, base: BaseType) => {
+  base.meta = {
+    ...parseProp(base.meta),
+    iconColor: color,
+  }
+}
+
+const saveColor = async (color: string, base: BaseType) => {
   try {
     const meta = {
       ...parseProp(base.meta),
@@ -527,6 +534,7 @@ defineExpose({
                       (base?.type && base?.type !== 'database') || !isUIAllowed('baseRename') || isProjectNodeContextMenuOpen
                     "
                     @update:model-value="setColor($event, base)"
+                    @save="saveColor($event, base)"
                   >
                   </GeneralBaseIconColorPicker>
                 </div>

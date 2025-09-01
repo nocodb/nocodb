@@ -443,7 +443,7 @@ const execBulkAction = async (path: Array<number>) => {
     >
       <template #default="{ isAllowed }">
         <NcMenuItem
-          v-if="selection.isSingleCell() && (isLinksOrLTAR(columns[contextMenuCol]?.columnObj!) || !columns[contextMenuCol]!.virtual)"
+          v-if="selection.isSingleCell() && ((columns[contextMenuCol]?.columnObj && isLinksOrLTAR(columns[contextMenuCol]?.columnObj!)) || !columns[contextMenuCol]?.virtual)"
           key="cell-clear"
           class="nc-base-menu-item"
           :disabled="disableClearCell || !isAllowed"

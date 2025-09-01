@@ -1068,18 +1068,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
             if (action === 'add') {
               try {
-                // Add to main calendar data if it matches current view's date range
-                const newRow = {
-                  row: payload,
-                  oldRow: { ...payload },
-                  rowMeta: {
-                    new: false,
-                    ...getEvaluatedRowMetaRowColorInfo(payload),
-                  },
-                }
-
-                // Check if the new row falls within current calendar view date range
-                const shouldAddToCalendar = isRowInCurrentDateRange(
+                // For 'add', the row definitely doesn't exist yet, so we only need to check if it should be added
+                // Check if new row should be in calendar view
+                const shouldBeInCalendar = isRowInCurrentDateRange(
                   payload,
                   calendarRange.value,
                   activeCalendarView.value!,
@@ -1088,12 +1079,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                   selectedMonth.value,
                   timezoneDayjs,
                 )
-                if (shouldAddToCalendar) {
-                  formattedData.value.push(newRow)
-                }
 
-                // Always check if it should be in sidebar based on current sidebar filter
-                const shouldAddToSidebar = isRowMatchingSidebarFilter(
+                // Check if new row should be in sidebar
+                const shouldBeInSidebar = isRowMatchingSidebarFilter(
                   payload,
                   sideBarFilterOption.value,
                   calendarRange.value,
@@ -1103,140 +1091,163 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                   selectedTime.value,
                   timezoneDayjs,
                 )
-                if (shouldAddToSidebar) {
-                  // Avoid duplicates in sidebar
-                  const existingIndex = formattedSideBarData.value.findIndex(
-                    (row: Row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === id,
-                  )
 
-                  if (existingIndex === -1) {
-                    formattedSideBarData.value.unshift(newRow)
-                  }
+                const newRowData = {
+                  row: payload,
+                  oldRow: { ...payload },
+                  rowMeta: {
+                    new: false,
+                    ...getEvaluatedRowMetaRowColorInfo(payload),
+                  },
                 }
 
-                // Update active dates if the new record contains a date
-                updateActiveDatesForNewRecord(payload)
+                // Add to calendar if it should be there
+                if (shouldBeInCalendar) {
+                  formattedData.value.push({ ...newRowData })
+                }
+
+                // Add to sidebar if it should be there
+                if (shouldBeInSidebar) {
+                  formattedSideBarData.value.unshift({ ...newRowData })
+                }
+
+                // Update active dates if any row was added
+                if (shouldBeInCalendar || shouldBeInSidebar) {
+                  updateActiveDatesForNewRecord(payload)
+                }
               } catch (e) {
                 console.error('Failed to add calendar row on socket event', e)
               }
             } else if (action === 'update') {
               try {
-                let updated = false
-
-                let updatedRow = null
-
-                // Update in main calendar data
-                formattedData.value = formattedData.value.map((row) => {
+                // Check if row currently exists in calendar view
+                const calendarRowIndex = formattedData.value.findIndex((row) => {
                   const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                  if (pk && `${pk}` === `${id}`) {
-                    Object.assign(row.row, payload)
-                    Object.assign(row.oldRow, payload)
-                    Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
-                    row.rowMeta.changed = false
-                    updated = true
-                    updatedRow = row.row
-                  }
-                  return row
+                  return pk && `${pk}` === `${id}`
                 })
 
-                // Update in sidebar data
-                formattedSideBarData.value = formattedSideBarData.value.map((row) => {
+                // Check if row currently exists in sidebar
+                const sidebarRowIndex = formattedSideBarData.value.findIndex((row) => {
                   const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                  if (pk && `${pk}` === `${id}`) {
-                    Object.assign(row.row, payload)
-                    Object.assign(row.oldRow, payload)
-                    Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
-                    row.rowMeta.changed = false
-                    updated = true
-                  }
-                  return row
+                  return pk && `${pk}` === `${id}`
                 })
 
-                // Check if updated row should still be visible in current view/filters
-                if (updated) {
-                  // Remove from calendar view if no longer in date range
-                  const rowInDateRange = isRowInCurrentDateRange(
-                    updatedRow!,
-                    calendarRange.value,
-                    activeCalendarView.value!,
-                    selectedDate.value,
-                    selectedDateRange.value,
-                    selectedMonth.value,
-                    timezoneDayjs,
-                  )
-                  if (!rowInDateRange) {
-                    formattedData.value = formattedData.value.filter((row) => {
-                      const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                      return !(pk && `${pk}` === `${id}`)
-                    })
+                // Check if updated row should be in current calendar view
+                const shouldBeInCalendar = isRowInCurrentDateRange(
+                  payload,
+                  calendarRange.value,
+                  activeCalendarView.value!,
+                  selectedDate.value,
+                  selectedDateRange.value,
+                  selectedMonth.value,
+                  timezoneDayjs,
+                )
+
+                // Check if updated row should be in sidebar
+                const shouldBeInSidebar = isRowMatchingSidebarFilter(
+                  payload,
+                  sideBarFilterOption.value,
+                  calendarRange.value,
+                  selectedDate.value,
+                  selectedDateRange.value,
+                  selectedMonth.value,
+                  selectedTime.value,
+                  timezoneDayjs,
+                )
+
+                // Handle calendar view updates
+                if (calendarRowIndex !== -1 && shouldBeInCalendar) {
+                  // Case 1: Row exists in calendar AND should stay → Update in place
+                  const existingRow = formattedData.value[calendarRowIndex]
+                  Object.assign(existingRow.row, payload)
+                  Object.assign(existingRow.oldRow, payload)
+                  Object.assign(existingRow.rowMeta, getEvaluatedRowMetaRowColorInfo(existingRow.row))
+                  existingRow.rowMeta.changed = false
+                } else if (calendarRowIndex !== -1 && !shouldBeInCalendar) {
+                  // Case 2: Row exists in calendar BUT should be removed → Remove from calendar
+                  formattedData.value.splice(calendarRowIndex, 1)
+                } else if (calendarRowIndex === -1 && shouldBeInCalendar) {
+                  // Case 3: Row doesn't exist in calendar BUT should be added → Add to calendar
+                  const newCalendarRow = {
+                    row: payload,
+                    oldRow: { ...payload },
+                    rowMeta: {
+                      new: false,
+                      changed: false,
+                      ...getEvaluatedRowMetaRowColorInfo(payload),
+                    },
                   }
-
-                  const matchesSidebarFilter = isRowMatchingSidebarFilter(
-                    updatedRow!,
-                    sideBarFilterOption.value,
-                    calendarRange.value,
-                    selectedDate.value,
-                    selectedDateRange.value,
-                    selectedMonth.value,
-                    selectedTime.value,
-                    timezoneDayjs,
-                  )
-
-                  const existingInSidebar = formattedSideBarData.value.findIndex((row) => {
-                    const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                    return pk && `${pk}` === `${id}`
-                  })
-
-                  if (matchesSidebarFilter) {
-                    // If it matches the filter but is not in sidebar, add it
-                    if (existingInSidebar === -1) {
-                      const newSidebarRow = {
-                        row: updatedRow,
-                        oldRow: { ...(updatedRow ?? {}) },
-                        rowMeta: {
-                          new: false,
-                          changed: false,
-                          ...getEvaluatedRowMetaRowColorInfo(updatedRow),
-                        },
-                      }
-                      formattedSideBarData.value.unshift(newSidebarRow)
-                    }
-                  } else {
-                    // If it doesn't match the filter and exists in sidebar, remove it
-                    if (existingInSidebar !== -1) {
-                      formattedSideBarData.value.splice(existingInSidebar, 1)
-                    }
-                  }
-
-                  // Update active dates
-                  fetchActiveDates()
+                  formattedData.value.push(newCalendarRow)
+                } else {
+                  // Case 4: Row doesn't exist in calendar AND shouldn't be added → No action
                 }
+
+                // Handle sidebar updates
+                if (sidebarRowIndex !== -1 && shouldBeInSidebar) {
+                  // Case 5: Row exists in sidebar AND should stay → Update in place
+                  const existingSidebarRow = formattedSideBarData.value[sidebarRowIndex]
+                  Object.assign(existingSidebarRow.row, payload)
+                  Object.assign(existingSidebarRow.oldRow, payload)
+                  Object.assign(existingSidebarRow.rowMeta, getEvaluatedRowMetaRowColorInfo(existingSidebarRow.row))
+                  existingSidebarRow.rowMeta.changed = false
+                } else if (sidebarRowIndex !== -1 && !shouldBeInSidebar) {
+                  // Case 6: Row exists in sidebar BUT should be removed → Remove from sidebar
+                  formattedSideBarData.value.splice(sidebarRowIndex, 1)
+                } else if (sidebarRowIndex === -1 && shouldBeInSidebar) {
+                  // Case 7: Row doesn't exist in sidebar BUT should be added → Add to sidebar
+                  const newSidebarRow = {
+                    row: payload,
+                    oldRow: { ...payload },
+                    rowMeta: {
+                      new: false,
+                      changed: false,
+                      ...getEvaluatedRowMetaRowColorInfo(payload),
+                    },
+                  }
+                  formattedSideBarData.value.unshift(newSidebarRow)
+                } else {
+                  // Case 8: Row doesn't exist in sidebar AND shouldn't be added → No action
+                }
+
+                // Update active dates after any changes
+                fetchActiveDates()
               } catch (e) {
                 console.error('Failed to update calendar row on socket event', e)
               }
             } else if (action === 'delete') {
               try {
-                // Remove from main calendar data
-                const calendarIndex = formattedData.value.findIndex((row) => {
+                // For delete, we need to remove the row from wherever it exists
+                // We don't need to check filters since we're removing it entirely
+
+                let removedFromCalendar = false
+                let removedFromSidebar = false
+
+                // Remove from calendar view if it exists there
+                const calendarRowIndex = formattedData.value.findIndex((row) => {
                   const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
                   return pk && `${pk}` === `${id}`
                 })
 
-                if (calendarIndex !== -1) {
-                  formattedData.value.splice(calendarIndex, 1)
+                if (calendarRowIndex !== -1) {
+                  formattedData.value.splice(calendarRowIndex, 1)
+                  removedFromCalendar = true
                 }
 
-                // Remove from sidebar data
-                const sidebarIndex = formattedSideBarData.value.findIndex((row) => {
+                // Remove from sidebar if it exists there
+                const sidebarRowIndex = formattedSideBarData.value.findIndex((row) => {
                   const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
                   return pk && `${pk}` === `${id}`
                 })
 
-                if (sidebarIndex !== -1) {
-                  formattedSideBarData.value.splice(sidebarIndex, 1)
+                if (sidebarRowIndex !== -1) {
+                  formattedSideBarData.value.splice(sidebarRowIndex, 1)
+                  removedFromSidebar = true
+                  console.log('Removed row from sidebar')
                 }
-
-                fetchActiveDates()
+                // Update active dates if anything was removed
+                if (removedFromCalendar || removedFromSidebar) {
+                  fetchActiveDates()
+                }
               } catch (e) {
                 console.error('Failed to delete calendar row on socket event', e)
               }

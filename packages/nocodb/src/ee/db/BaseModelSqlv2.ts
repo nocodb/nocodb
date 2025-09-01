@@ -3321,7 +3321,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         payload: {
           id,
           action: 'update',
-          payload: data,
+          payload: newData,
         },
         scopes: [this.model.id],
       },

@@ -123,14 +123,17 @@ test.describe('Preview Mode', () => {
     await dashboard.treeView.verifyTable({
       title: 'Actor',
       exists: true,
+      baseTitle: context.base.title,
     });
     await dashboard.treeView.verifyTable({
       title: 'Language',
       exists: false,
+      baseTitle: context.base.title,
     });
     await dashboard.treeView.verifyTable({
       title: 'CustomerList',
       exists: false,
+      baseTitle: context.base.title,
     });
   });
 });

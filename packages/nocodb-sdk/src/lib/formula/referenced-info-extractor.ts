@@ -1,4 +1,4 @@
-import { uniq } from '../arrayHelpers';
+import { arrUniq } from '../arrayHelpers';
 import UITypes from '../UITypes';
 import { FormulaDataTypes } from './enums';
 import {
@@ -55,7 +55,7 @@ const filterReferencedInfoByUidt = ({
     ...referencedInfo,
     referencedColumn,
     uidtCandidates:
-      uidtCandidates.length > 0 ? uniq(uidtCandidates) : [defaultUidt],
+      uidtCandidates.length > 0 ? arrUniq(uidtCandidates) : [defaultUidt],
     invalidForReferenceColumn:
       referencedInfo.invalidForReferenceColumn ||
       // if the referencedColumn is somehow filtered out, make it invalidForReferenceColumn
@@ -76,7 +76,7 @@ export const getReferencedInfoFromArgs = (
   const referencedColumns = invalidForReferenceColumn
     ? []
     : nodes.map((k) => k.referencedColumn).filter((k) => k);
-  const uniqueLength = uniq(referencedColumns.map((k) => k.id)).length;
+  const uniqueLength = arrUniq(referencedColumns.map((k) => k.id)).length;
   if (uniqueLength === 1) {
     referencedColumn = referencedColumns[0];
   } else if (uniqueLength > 1) {
@@ -254,7 +254,7 @@ export const extractCallExpressionReferencedInfo = ({
     case 'IF': {
       nodeArgs = nodeArgs.slice(1);
       // is pure operation if the 2nd and 3rd arguments only has data type NULL or single referenced column
-      const uniqueReferencedColumnIds = uniq(
+      const uniqueReferencedColumnIds = arrUniq(
         nodeArgs.map((n) => n.referencedColumn?.id).filter((k) => k)
       );
       const notNullDataTypes = nodeArgs
@@ -273,7 +273,7 @@ export const extractCallExpressionReferencedInfo = ({
       // is pure operation if resulting arguments only has data type NULL or single referenced column
 
       // is pure operation if the 2nd and 3rd arguments only has data type NULL or single referenced column
-      const uniqueReferencedColumnIds = uniq(
+      const uniqueReferencedColumnIds = arrUniq(
         nodeArgs.map((n) => n.referencedColumn?.id).filter((k) => k)
       );
       const notNullDataTypes = nodeArgs

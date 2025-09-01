@@ -175,7 +175,7 @@ onMounted(() => {
   <div class="h-full nc-base-view">
     <div
       v-if="!isAdminPanel"
-      class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-transparent bg-[var(--topbar-bg-color)]"
+      class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-[var(--topbar-border-color,var(--color-grey-200))] bg-[var(--topbar-bg-color)]"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >
       <div class="flex-1 flex flex-row items-center gap-x-3">

@@ -40,7 +40,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
     :class="{
       'bg-nc-bg-brand': isEditingDashboard,
     }"
-    class="nc-table-topbar py-2 border-b-1 border-transparent flex gap-3 items-center justify-between overflow-hidden relative h-[var(--topbar-height)] max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1) bg-[var(--topbar-bg-color)]"
+    class="nc-table-topbar py-2 border-b-1 border-[var(--topbar-border-color,var(--color-grey-200))] flex gap-3 items-center justify-between overflow-hidden relative h-[var(--topbar-height)] max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1) bg-[var(--topbar-bg-color)]"
     style="z-index: 7"
   >
     <template v-if="isViewsLoading && !activeAutomationId && !activeDashboardId">

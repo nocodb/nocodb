@@ -93,6 +93,6 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
 }
 
 .nc-sidebar-left-toggle-icon {
-  @apply !hover:bg-[var(--topbar-bg-dark-color,#F4F4F5)];
+  @apply !hover:bg-[var(--topbar-bg-dark-color,var(--color-grey-200))];
 }
 </style>

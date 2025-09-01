@@ -583,9 +583,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
     const proto = await this.getProto();
 
-
-    console.log('query:', qb.toQuery());
-
     let data;
     try {
       data = await this.execAndParse(qb, undefined, {

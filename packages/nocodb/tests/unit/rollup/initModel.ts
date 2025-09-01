@@ -274,8 +274,15 @@ export async function initRollupColumns(context: ITestContext) {
     relatedTableName: context.tables.table1.table_name,
     relatedTableColumnTitle: 'Title',
   });
+  const t1_HM_t2_Ltar = await createLtarColumn2(context.context, {
+    title: 'T2s',
+    parentTable: context.tables.table1,
+    childTable: context.tables.table2,
+    type: 'hm',
+  });
 
   return {
     t1TitleCount,
+    t1_HM_t2_Ltar,
   };
 }

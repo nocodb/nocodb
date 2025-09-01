@@ -4,8 +4,6 @@ const route = router.currentRoute
 
 const { isUIAllowed } = useRoles()
 
-const { baseThemeColors } = storeToRefs(useBase())
-
 const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
 const { activeAutomationId } = storeToRefs(useAutomationStore())

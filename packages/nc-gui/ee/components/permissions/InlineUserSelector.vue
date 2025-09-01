@@ -34,7 +34,7 @@ const baseUsers = computed(() => {
 const selectedUsersList = computed(() => {
   return Array.from(selectedUsers.value)
     .map((userId) => baseUsers.value.find((user) => user.id === userId))
-    .filter((user) => user !== null)
+    .filter(Boolean)
 })
 
 const visibleUsers = ref<User[]>([])
@@ -50,7 +50,7 @@ async function calculateVisibleUsers() {
   for (const selectedUser of selectedUsersList.value) {
     const tagWidth = Math.min(
       estimateTagWidth({
-        text: selectedUser.display_name?.trim() || extractNameFromEmail(selectedUser.email),
+        text: selectedUser!.display_name?.trim() || extractNameFromEmail(selectedUser!.email),
         iconWidth: 20,
         paddingX: 16,
       }),

@@ -42,3 +42,9 @@ const onClick = () => {
     </NcTooltip>
   </div>
 </template>
+
+<style scoped lang="scss">
+.nc-sidebar-left-toggle-icon {
+  @apply !hover:bg-[var(--topbar-bg-dark-color,#F4F4F5)];
+}
+</style>

@@ -20,7 +20,7 @@ const onClickDetails = () => {
   <div
     class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab"
     :style="{
-      backgroundColor: baseThemeColors.bgDark,
+      backgroundColor: 'var(--topbar-select-mode-bg-color)',
     }"
   >
     <div
@@ -28,9 +28,6 @@ const onClickDetails = () => {
       class="tab"
       :class="{
         active: openedViewsTab === 'view',
-      }"
-      :style="{
-        ['--active-tab-color']: baseThemeColors.textColor || themeV3Colors.brand[600],
       }"
       @click="onViewsTabChange('view')"
     >
@@ -80,12 +77,12 @@ const onClickDetails = () => {
 }
 
 .active {
-  @apply bg-white;
+  @apply bg-white !text-brand-500 !hover:text-brand-500;
 
-  color: var(--active-tab-color);
+  color: var(--topbar-text-color) !important;
 
   &:hover {
-    color: var(--active-tab-color);
+    color: var(--topbar-text-color) !important;
   }
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);

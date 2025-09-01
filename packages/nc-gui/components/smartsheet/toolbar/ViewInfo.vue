@@ -70,7 +70,7 @@ const viewModeInfo = computed(() => {
       <SmartsheetTopbarProjectListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer max-w-1/3"
+            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-[var(--topbar-bg-dark-color,#F4F4F5)] text-gray-900) flex items-center gap-1 cursor-pointer max-w-1/3"
             :class="{
               '!max-w-none': isSharedBase && !isMobileMode,
               '': !isMobileMode && isLeftSidebarOpen,
@@ -123,7 +123,7 @@ const viewModeInfo = computed(() => {
       <SmartsheetTopbarTableListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer"
+            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-[var(--topbar-bg-dark-color,#F4F4F5)] text-gray-900) flex items-center gap-1 cursor-pointer"
             :class="{
               'max-w-full': isMobileMode,
               'max-w-1/2': activeView?.is_default && !isMobileMode,
@@ -218,7 +218,7 @@ const viewModeInfo = computed(() => {
               </div>
             </template>
             <div
-              class="rounded-lg h-8 px-2 text-gray-800 font-semibold hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer"
+              class="rounded-lg h-8 px-2 text-gray-800 font-semibold hover:(bg-[var(--topbar-bg-dark-color,#F4F4F5)] text-gray-900) flex items-center gap-1 cursor-pointer"
               :class="{
                 'max-w-full': !isSharedBase || isMobileMode,
                 'max-w-none': isSharedBase && !isMobileMode,

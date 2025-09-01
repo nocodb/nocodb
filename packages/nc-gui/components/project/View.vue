@@ -175,11 +175,8 @@ onMounted(() => {
   <div class="h-full nc-base-view">
     <div
       v-if="!isAdminPanel"
-      class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-nc-border-gray-medium"
+      class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-transparent bg-[var(--topbar-bg-color)]"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
-      :style="{
-        backgroundColor: baseThemeColors.bgLight,
-      }"
     >
       <div class="flex-1 flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />

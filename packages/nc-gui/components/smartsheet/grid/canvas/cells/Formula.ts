@@ -23,6 +23,11 @@ import { FloatCellRenderer } from './Number'
 import { LongTextCellRenderer } from './LongText'
 import { SingleSelectCellRenderer } from './SingleSelect'
 import { MultiSelectCellRenderer } from './MultiSelect'
+import { LookupCellRenderer } from './Lookup'
+import { UserFieldCellRenderer } from './User'
+import { BarcodeCellRenderer } from './Barcode'
+import { QRCodeCellRenderer } from './QRCode'
+import { AttachmentCellRenderer } from './Attachment'
 
 function getDisplayValueCellRenderer(column: ColumnType) {
   const colExtra = column.extra
@@ -44,6 +49,15 @@ function getDisplayValueCellRenderer(column: ColumnType) {
   else if (isPhoneNumber(modifiedColumn)) return PhoneNumberCellRenderer
   else if (isTextArea(modifiedColumn)) return LongTextCellRenderer
   else if (isSingleSelect(modifiedColumn)) return SingleSelectCellRenderer
+  else if (isMultiSelect(modifiedColumn)) return MultiSelectCellRenderer
+  else if (isBarcode(modifiedColumn)) return BarcodeCellRenderer
+  else if (isQrCode(modifiedColumn)) return QRCodeCellRenderer
+  else if (isAttachment(modifiedColumn)) return AttachmentCellRenderer
+  else if (isUser(modifiedColumn)) return UserFieldCellRenderer
+  else if (isLookup(modifiedColumn)) return LookupCellRenderer
+  // TODO: handle LTAR
+  // LtarCellModifier need array of key value object as data
+  // else if (isLTAR(modifiedColumn.uidt, modifiedColumn.colOptions)) return LtarCellRenderer
   else if (isMultiSelect(modifiedColumn)) return MultiSelectCellRenderer
   else return SingleLineTextCellRenderer
 }

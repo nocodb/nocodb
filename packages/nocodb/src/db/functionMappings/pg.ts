@@ -1,11 +1,19 @@
 import dayjs from 'dayjs';
+import { customAlphabet } from 'nanoid';
 import { FormulaDataTypes, JSEPNode } from 'nocodb-sdk';
 import { sanitize } from 'src/helpers/sqlSanitize';
-import { customAlphabet } from 'nanoid';
 import commonFns from './commonFns';
 import type { MapFnArgs } from '~/db/mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
+
+const getArraySource = async (argument: any, args: MapFnArgs) => {
+  return await args.fn({
+    ...argument,
+    fnName:
+      argument.type === JSEPNode.IDENTIFIER ? 'ARRAY_AGG' : argument.fnName,
+  });
+};
 
 const pg = {
   ...commonFns,
@@ -417,15 +425,7 @@ END`,
   },
   ARRAYSORT: async (args: MapFnArgs) => {
     const { fn, knex, pt } = args;
-    const source = (
-      await fn({
-        ...pt.arguments[0],
-        fnName:
-          pt.arguments[0].type === JSEPNode.IDENTIFIER
-            ? 'ARRAY_AGG'
-            : pt.arguments[0].fnName,
-      })
-    ).builder;
+    const source = (await getArraySource(pt.arguments[0], args)).builder;
     const direction = pt.arguments[1]
       ? sanitize(
           knex.raw(
@@ -441,31 +441,15 @@ END`,
     };
   },
   ARRAYUNIQUE: async (args: MapFnArgs) => {
-    const { fn, knex, pt } = args;
-    const source = (
-      await fn({
-        ...pt.arguments[0],
-        fnName:
-          pt.arguments[0].type === JSEPNode.IDENTIFIER
-            ? 'ARRAY_AGG'
-            : pt.arguments[0].fnName,
-      })
-    ).builder;
+    const { knex, pt } = args;
+    const source = (await getArraySource(pt.arguments[0], args)).builder;
     return {
       builder: knex.raw(`ARRAY(SELECT DISTINCT UNNEST(??))`, [source]),
     };
   },
   ARRAYCOMPACT: async (args: MapFnArgs) => {
-    const { fn, knex, pt } = args;
-    const source = (
-      await fn({
-        ...pt.arguments[0],
-        fnName:
-          pt.arguments[0].type === JSEPNode.IDENTIFIER
-            ? 'ARRAY_AGG'
-            : pt.arguments[0].fnName,
-      })
-    ).builder;
+    const { knex, pt } = args;
+    const source = (await getArraySource(pt.arguments[0], args)).builder;
     const tableName = customAlphabet(
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
     )(6);
@@ -483,15 +467,7 @@ END`,
   },
   ARRAYSLICE: async (args: MapFnArgs) => {
     const { fn, knex, pt } = args;
-    const source = (
-      await fn({
-        ...pt.arguments[0],
-        fnName:
-          pt.arguments[0].type === JSEPNode.IDENTIFIER
-            ? 'ARRAY_AGG'
-            : pt.arguments[0].fnName,
-      })
-    ).builder;
+    const source = (await getArraySource(pt.arguments[0], args)).builder;
 
     const start = sanitize(knex.raw((await fn(pt.arguments[1])).builder));
     const end = pt.arguments[2]

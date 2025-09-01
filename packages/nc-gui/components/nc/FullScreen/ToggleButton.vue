@@ -5,7 +5,39 @@ const sidebarStore = useSidebarStore()
 
 const { isFullScreen } = storeToRefs(sidebarStore)
 
-const { toggleFullScreenState } = sidebarStore
+const { toggleFullScreenState: _toggleFullScreenState } = sidebarStore
+
+const showLockResetLoading = ref(false)
+
+const userClickedOnToggleBtn = ref(false)
+
+let lockResetTimer: any
+
+watch(isFullScreen, async (newValue, _oldValue, onCleanup) => {
+  if (newValue || userClickedOnToggleBtn.value) {
+    userClickedOnToggleBtn.value = false
+
+    return
+  }
+
+  showLockResetLoading.value = true
+
+  lockResetTimer = setTimeout(() => {
+    showLockResetLoading.value = false
+  }, 1500)
+
+  onCleanup(() => {
+    clearTimeout(lockResetTimer)
+  })
+})
+
+const toggleFullScreenState = () => {
+  if (isFullScreen.value) {
+    userClickedOnToggleBtn.value = true
+  }
+
+  _toggleFullScreenState()
+}
 
 /**
  * hide-on-click is not working when we enter in fullscreen mode as tooltip is getting disabled as soon as we enter in fullscreen mode.
@@ -18,15 +50,19 @@ const { toggleFullScreenState } = sidebarStore
     v-if="!isMobileMode"
     :key="`${isFullScreen}`"
     hide-on-click
-    :title="$t('labels.enterFullscreen')"
+    :title="showLockResetLoading ? $t('tooltip.releasingPreviousFullscreenLock') : $t('labels.enterFullscreen')"
     :disabled="isFullScreen"
     placement="left"
+    :class="{
+      '!cursor-wait': showLockResetLoading,
+    }"
   >
     <NcButton
       :type="isFullScreen ? 'primary' : 'text'"
       size="xs"
       :class="{
         '!px-1': !isFullScreen,
+        'pointer-events-none': showLockResetLoading,
       }"
       :icon-only="!isFullScreen"
       @click="toggleFullScreenState"

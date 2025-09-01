@@ -59,7 +59,7 @@ test.describe('Verify shortcuts', () => {
       skipOpeningModal: true,
       baseTitle: context.base.title,
     });
-    await dashboard.treeView.verifyTable({ title: 'New Table' });
+    await dashboard.treeView.verifyTable({ title: 'New Table', baseTitle: context.base.title });
 
     // create new row
     await grid.column.clickColumnHeader({ title: 'Title' });

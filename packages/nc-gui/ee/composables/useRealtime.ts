@@ -175,6 +175,8 @@ export const useRealtime = createSharedComposable(() => {
       $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
     } else if (event.action === 'filter_create' || event.action === 'filter_update' || event.action === 'filter_delete') {
       $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
+    } else if (event.action === 'view_column_update') {
+      $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
     }
   }
 

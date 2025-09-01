@@ -39,11 +39,11 @@ export const useRealtime = createSharedComposable(() => {
   const { automations, activeAutomationId } = storeToRefs(useAutomationStore())
   const { widgets, selectedWidget } = storeToRefs(useWidgetStore())
 
-  const activeUserChannel = ref<string | null>(null)
-  const activeBaseMetaChannel = ref<string | null>(null)
-  const activeAutomationChannel = ref<string | null>(null)
-  const activeDashboardChannel = ref<string | null>(null)
-  const activeWidgetChannel = ref<string | null>(null)
+  const activeUserListener = ref<string | null>(null)
+  const activeBaseMetaListener = ref<string | null>(null)
+  const activeAutomationListener = ref<string | null>(null)
+  const activeDashboardListener = ref<string | null>(null)
+  const activeWidgetListener = ref<string | null>(null)
 
   const handleBaseMetaEvent = (event: MetaPayload) => {
     if (event.action === 'source_create') {
@@ -449,60 +449,60 @@ export const useRealtime = createSharedComposable(() => {
   watch(
     [activeWorkspaceId, activeBaseId],
     () => {
-      if (activeUserChannel.value) {
-        $ncSocket.offMessage(activeUserChannel.value)
+      if (activeUserListener.value) {
+        $ncSocket.offMessage(activeUserListener.value)
       }
 
       if (user.value?.id) {
-        activeUserChannel.value = `user:${user.value.id}`
-        $ncSocket.onMessage(activeUserChannel.value, handleUserEvent)
+        activeUserListener.value = $ncSocket.onMessage(`user:${user.value.id}`, handleUserEvent)
       }
 
       if (activeBaseId.value) {
         // Handle base meta events
-        if (activeBaseMetaChannel.value) {
-          $ncSocket.offMessage(activeBaseMetaChannel.value)
+        if (activeBaseMetaListener.value) {
+          $ncSocket.offMessage(activeBaseMetaListener.value)
         }
 
-        activeBaseMetaChannel.value = `${EventType.META_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`
-        $ncSocket.subscribe(activeBaseMetaChannel.value)
-
-        $ncSocket.onMessage(activeBaseMetaChannel.value, handleBaseMetaEvent)
+        activeBaseMetaListener.value = $ncSocket.onMessage(
+          `${EventType.META_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`,
+          handleBaseMetaEvent,
+        )
 
         // Handle automation events
-        if (activeAutomationChannel.value) {
-          $ncSocket.offMessage(activeAutomationChannel.value)
+        if (activeAutomationListener.value) {
+          $ncSocket.offMessage(activeAutomationListener.value)
         }
 
-        activeAutomationChannel.value = `${EventType.SCRIPT_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`
-        $ncSocket.subscribe(activeAutomationChannel.value)
-
-        $ncSocket.onMessage(activeAutomationChannel.value, (payload: ScriptPayload) => {
-          handleScriptEvent(payload, activeBaseId.value)
-        })
+        activeAutomationListener.value = $ncSocket.onMessage(
+          `${EventType.SCRIPT_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`,
+          (payload: ScriptPayload) => {
+            handleScriptEvent(payload, activeBaseId.value)
+          },
+        )
 
         // Handle dashboard events
-        if (activeDashboardChannel.value) {
-          $ncSocket.offMessage(activeDashboardChannel.value)
+        if (activeDashboardListener.value) {
+          $ncSocket.offMessage(activeDashboardListener.value)
         }
 
-        activeDashboardChannel.value = `${EventType.DASHBOARD_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`
-        $ncSocket.subscribe(activeDashboardChannel.value)
-
-        $ncSocket.onMessage(activeDashboardChannel.value, (payload: DashboardPayload) => {
-          handleDashboardEvent(payload, activeBaseId.value)
-        })
+        activeDashboardListener.value = $ncSocket.onMessage(
+          `${EventType.DASHBOARD_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`,
+          (payload: DashboardPayload) => {
+            handleDashboardEvent(payload, activeBaseId.value)
+          },
+        )
 
         // Handle widget events
-        if (activeWidgetChannel.value) {
-          $ncSocket.offMessage(activeWidgetChannel.value)
+        if (activeWidgetListener.value) {
+          $ncSocket.offMessage(activeWidgetListener.value)
         }
 
-        activeWidgetChannel.value = `${EventType.WIDGET_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`
-        $ncSocket.subscribe(activeWidgetChannel.value)
-        $ncSocket.onMessage(activeWidgetChannel.value, (payload: WidgetPayload) => {
-          handleRealtimeWidgetEvent(payload)
-        })
+        activeWidgetListener.value = $ncSocket.onMessage(
+          `${EventType.WIDGET_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`,
+          (payload: WidgetPayload) => {
+            handleRealtimeWidgetEvent(payload)
+          },
+        )
       }
     },
     { immediate: true },
@@ -510,11 +510,11 @@ export const useRealtime = createSharedComposable(() => {
 
   const unsubscribeActiveChannels = (): void => {
     ;[
-      activeUserChannel.value,
-      activeBaseMetaChannel.value,
-      activeAutomationChannel.value,
-      activeDashboardChannel.value,
-      activeWidgetChannel.value,
+      activeUserListener.value,
+      activeBaseMetaListener.value,
+      activeAutomationListener.value,
+      activeDashboardListener.value,
+      activeWidgetListener.value,
     ]
       .filter(Boolean)
       .forEach((channel) => {

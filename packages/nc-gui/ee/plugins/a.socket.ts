@@ -6,7 +6,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   let socket: Socket
   const subscribedChannels: string[] = []
-  const messageHandlers: Map<string, (...args: any[]) => void> = new Map()
+  const messageHandlers: Map<string, { evt: string; handler: (...args: any[]) => void }> = new Map()
 
   const init = async (token: string) => {
     try {
@@ -52,26 +52,31 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   const ncSocket = {
     id: () => socket?.id || null,
-    subscribe: (event: string) => {
-      if (!socket || subscribedChannels.includes(event)) return
-      socket.emit('event:subscribe', event)
-      subscribedChannels.push(event)
-    },
     onMessage: (evt: string, handler: (...args: any[]) => void) => {
       if (!socket) return
+
+      if (!subscribedChannels.includes(evt)) {
+        socket.emit('event:subscribe', evt)
+        subscribedChannels.push(evt)
+      }
+
+      const listenerId = generateRandomNumber()
+
       const localHandler = (...args: any[]) => {
         // if socketId is same skip the event
         if (args[0]?.socketId && args[0].socketId === socket.id) return
         handler(...args)
       }
       socket.on(evt, localHandler)
-      messageHandlers.set(evt, localHandler)
+      messageHandlers.set(listenerId, { evt, handler: localHandler })
+
+      return listenerId
     },
-    offMessage: (evt: string) => {
-      const handler = messageHandlers.get(evt)
+    offMessage: (listenerId: string) => {
+      const handler = messageHandlers.get(listenerId)
       if (handler) {
-        socket.off(evt, handler)
-        messageHandlers.delete(evt)
+        socket.off(handler.evt, handler.handler)
+        messageHandlers.delete(listenerId)
       }
     },
   }

@@ -66,7 +66,13 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'view_create'
     | 'view_update'
     | 'view_delete'
-    | 'permission_update';
+    | 'permission_update'
+    | 'filter_create'
+    | 'filter_update'
+    | 'filter_delete'
+    | 'sort_create'
+    | 'sort_update'
+    | 'sort_delete';
   payload: T;
   baseId?: string;
 }

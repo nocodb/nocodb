@@ -22,12 +22,27 @@ const IMPURE_OPR_UIDT_MAP = new Map<UITypes, UITypes>([
   [UITypes.Year, UITypes.Number],
 ]);
 
+/**
+ * Filters and refines referenced column information based on allowed UI data types (UIDTs).
+ * This function ensures that the data types associated with referenced columns and their candidates
+ * are valid and consistent with a set of allowed UIDTs for a specific operation or formula.
+ *
+ * @param {object} params - The parameters for filtering.
+ * @param {ReferencedInfo} params.referencedInfo - An object containing details about a referenced column,
+ *   including the `referencedColumn` itself (with its ID and UIDT) and a list of `uidtCandidates` (potential UIDTs).
+ * @param {UITypes[]} params.allowedUidts - An array of `UITypes` that are considered valid for the current context.
+ * @param {UITypes} params.defaultUidt - A fallback `UIType` to use if no valid `uidtCandidates` are found after filtering.
+ * @param {boolean} [params.isPureOperation=false] - A flag indicating if the operation is "pure."
+ *   A pure operation (e.g., TRIM, ARRAYUNIQUE) doesn't fundamentally change the display value's
+ *   underlying type, even if it modifies the value itself. Impure operations might map certain
+ *   UI types (like SingleSelect) to a more generic type (like SingleLineText).
+ * @returns {ReferencedInfo} A new `ReferencedInfo` object with the updated `referencedColumn`,
+ *   `uidtCandidates`, and `invalidForReferenceColumn` status, ensuring consistency with formula requirements.
+ */
 const filterReferencedInfoByUidt = ({
   referencedInfo,
   allowedUidts,
   defaultUidt,
-  // isPureOperation = operation that don't modify the value
-  // meaningful enough to change it's display value, like TRIM, ARRAYUNIQUE
   isPureOperation = false,
 }: {
   referencedInfo: ReferencedInfo;
@@ -63,6 +78,9 @@ const filterReferencedInfoByUidt = ({
   };
 };
 
+/**
+ * get referenced column info
+ */
 export const getReferencedInfoFromArgs = (
   nodes: ParsedFormulaNode[],
   dataType: FormulaDataTypes,
@@ -167,6 +185,9 @@ export const getReferencedInfoFromArgs = (
   }
 };
 
+/**
+ * get referenced column info for call expression
+ */
 export const extractBinaryExpReferencedInfo = ({
   parsedTree,
   left,
@@ -181,6 +202,9 @@ export const extractBinaryExpReferencedInfo = ({
   });
 };
 
+/**
+ * get referenced column info for call expression
+ */
 export const extractCallExpressionReferencedInfo = ({
   parsedTree,
 }: {

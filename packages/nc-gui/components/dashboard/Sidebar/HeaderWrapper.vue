@@ -15,6 +15,8 @@ const { activeWorkspace, isWorkspacesLoading } = storeToRefs(workspaceStore)
 
 const { showProjectList } = storeToRefs(useBases())
 
+const { baseThemeColors } = storeToRefs(useBase())
+
 const { activeViewTitleOrId } = storeToRefs(useViewsStore())
 
 const { activeTableId } = storeToRefs(useTablesStore())
@@ -29,6 +31,9 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
     class="nc-sidebar-header"
     :class="showProjectList ? 'nc-project-list' : 'nc-active-project'"
     :data-workspace-title="activeWorkspace?.title"
+    :style="{
+      backgroundColor: baseThemeColors.bgLight,
+    }"
   >
     <template v-if="!isWorkspacesLoading && !isLoading">
       <div class="nc-sidebar-header-content text-subHeading2 truncate">

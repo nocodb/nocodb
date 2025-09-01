@@ -18,7 +18,7 @@ const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesSt
 const { activeTable } = storeToRefs(useTablesStore())
 const { activeWorkspace } = storeToRefs(useWorkspace())
 
-const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
+const { isSharedBase, isPrivateBase, baseThemeColors } = storeToRefs(useBase())
 
 const { $e, $api } = useNuxtApp()
 
@@ -177,6 +177,9 @@ onMounted(() => {
       v-if="!isAdminPanel"
       class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-nc-border-gray-medium"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
+      :style="{
+        backgroundColor: baseThemeColors.bgLight,
+      }"
     >
       <div class="flex-1 flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />

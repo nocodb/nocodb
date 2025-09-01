@@ -179,9 +179,10 @@ const FEATURES = [
     id: 'base_theme_colours',
     title: 'Base Theme Colours',
     description: 'Change base topbar colours according to base icon colour.',
-    enabled: true,
+    enabled: false,
     version: 1,
     isEE: true,
+    isEngineering: true,
   },
 ] as const
 

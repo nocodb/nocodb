@@ -181,7 +181,7 @@ export const TaskItem = Node.create<TaskItemOptions, { markdown: MarkdownNodeSpe
         find: inputRegex,
         type: this.type,
         getAttributes: (match) => ({
-          checked: match[match.length - 1].toLowerCase() === 'x',
+          checked: match[match.length - 1]?.toLowerCase() === 'x',
         }),
       }),
     ]

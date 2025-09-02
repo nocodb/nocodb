@@ -213,6 +213,7 @@ const onRollupFunctionChange = () => {
 watch(
   () => vModel.value.fk_rollup_column_id,
   () => {
+    if (!vModel.value.fk_rollup_column_id) return
     const childFieldColumn = columns.value?.find((column: ColumnType) => column.id === vModel.value.fk_rollup_column_id)
 
     aggFunctionsList.value = availableRollupPerColumn.value[childFieldColumn?.id as string] || []
@@ -227,6 +228,9 @@ watch(
     vModel.value.rollupColumnTitle = childFieldColumn?.title || childFieldColumn?.column_name
 
     updateFieldName()
+  },
+  {
+    immediate: true,
   },
 )
 

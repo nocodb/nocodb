@@ -161,7 +161,7 @@ const {
 // VModels
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
-const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
+const { eventBus, isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
 
 const { metas, getMeta } = useMetas()
 
@@ -1702,7 +1702,7 @@ const getHeaderTooltipRegions = (
 
     if (column.uidt) {
       totalIconWidth += 26
-      tooltipText = getCustomColumnTooltip({ column, metas: metas.value, isExternalLink: true, getMeta })
+      tooltipText = getCustomColumnTooltip({ column, metas: metas.value, isExternalLink: isExternalSource.value, getMeta })
       regions.push({
         x: xOffset + 8 - scrollLeftValue,
         width: 13,

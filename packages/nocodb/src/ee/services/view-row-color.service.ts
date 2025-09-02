@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   arrayToNested,
+  EventType,
   parseProp,
   PlanFeatureTypes,
   ROW_COLORING_MODE,
@@ -25,6 +26,7 @@ import { checkForFeature } from '~/helpers/paymentHelpers';
 import { Model, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class ViewRowColorService extends ViewRowColorServiceCE {
@@ -228,9 +230,23 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
 
       await ncMetaTrans.commit();
 
+      const rowColorInfo = await this.getByViewId({ ...params });
+
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'row_color_update',
+            payload: rowColorInfo,
+          },
+        },
+        context.socket_id,
+      );
+
       return {
         id: rowColoringCondition.id,
-        info: await this.getByViewId({ ...params }),
+        info: rowColorInfo,
       };
     } catch (e) {
       await ncMetaTrans.rollback(e);
@@ -279,6 +295,19 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       },
       params.fk_row_coloring_conditions_id,
     );
+
+    NocoSocket.broadcastEvent(
+      params.context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'row_color_update',
+          payload: await this.getByViewId({ ...params }),
+        },
+      },
+      params.context.socket_id,
+    );
+
     return rowColorCondition;
   }
 
@@ -319,6 +348,18 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       params.fk_row_coloring_conditions_id,
       params.ncMeta,
     );
+
+    NocoSocket.broadcastEvent(
+      params.context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'row_color_update',
+          payload: await this.getByViewId({ ...params }),
+        },
+      },
+      params.context.socket_id,
+    );
   }
 
   async setRowColoringSelect(params: {
@@ -356,7 +397,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       is_set_as_background: params.is_set_as_background ?? false,
     };
 
-    await View.update(
+    const result = await View.update(
       params.context,
       view.id,
       {
@@ -365,6 +406,21 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       },
       false,
       ncMeta,
+    );
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_update',
+          payload: {
+            ...result,
+            from_row_color: true,
+          },
+        },
+      },
+      context.socket_id,
     );
   }
 
@@ -410,7 +466,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           );
         }
 
-        await View.update(
+        const result = await View.update(
           params.context,
           view.id,
           {
@@ -418,6 +474,21 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           },
           false,
           ncMeta,
+        );
+
+        NocoSocket.broadcastEvent(
+          params.context,
+          {
+            event: EventType.META_EVENT,
+            payload: {
+              action: 'view_update',
+              payload: {
+                ...result,
+                from_row_color: true,
+              },
+            },
+          },
+          params.context.socket_id,
         );
 
         await ncMetaTrans.commit();
@@ -429,7 +500,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       const viewMeta = parseProp(view.meta);
       delete viewMeta.rowColoringInfo;
 
-      await View.update(
+      const result = await View.update(
         params.context,
         view.id,
         {
@@ -438,6 +509,21 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         },
         false,
         ncMeta,
+      );
+
+      NocoSocket.broadcastEvent(
+        params.context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'view_update',
+            payload: {
+              ...result,
+              from_row_color: true,
+            },
+          },
+        },
+        params.context.socket_id,
       );
     }
   }

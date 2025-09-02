@@ -151,6 +151,8 @@ export const useRealtime = createSharedComposable(() => {
         tableViews?.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
 
         if (needReload) $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+        if (event.payload?.from_row_color)
+          $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE, { viewChange: true })
       }
     } else if (event.action === 'view_delete') {
       const views = viewsByTable.value.get(event.payload.fk_model_id)
@@ -182,6 +184,8 @@ export const useRealtime = createSharedComposable(() => {
       $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
     } else if (event.action === 'view_column_update') {
       $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
+    } else if (event.action === 'row_color_update') {
+      $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE, { rowColorInfo: event.payload || {} })
     }
   }
 
@@ -399,7 +403,7 @@ export const useRealtime = createSharedComposable(() => {
       } else if (event.action === 'base_user_update') {
         const { payload, baseId } = event
 
-        $eventBus.realtimeBaseUserEventBus.emit('base_user_update', { baseUser: payload, baseId })
+        $eventBus.realtimeBaseUserEventBus.emit(event.action, { baseUser: payload, baseId })
 
         const baseUsers = basesUser.value.get(baseId)
         if (baseUsers) {

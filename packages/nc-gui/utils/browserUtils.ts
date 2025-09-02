@@ -200,3 +200,6 @@ export const removeQueryParamsFromURL = (keysToRemove: string[]) => {
   keysToRemove.forEach((key) => url.searchParams.delete(key))
   window.history.replaceState({}, '', url.toString())
 }
+
+// Feature detection.
+export const supportsKeyboardLock = 'keyboard' in navigator && 'lock' in (navigator.keyboard as any)

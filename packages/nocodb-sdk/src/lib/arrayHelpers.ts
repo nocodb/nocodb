@@ -49,3 +49,7 @@ export const arrFlattenChildren = <
   }
   return acc;
 };
+// fallback due to target tsconfig not support flatMap
+export const arrFlatMap = (array: any[]) => {
+  return array.reduce( (a, b) => a.concat(b), []);
+}

@@ -19,4 +19,10 @@ export const HardBreak = TiptapHardBreak.extend<HardBreakOptions, { markdown: Ma
       },
     }
   },
+  addKeyboardShortcuts() {
+    return {
+      'Shift-Enter': () => this.editor.commands.setHardBreak(),
+      // 'Mod-Enter' is intentionally omitted
+    }
+  },
 })

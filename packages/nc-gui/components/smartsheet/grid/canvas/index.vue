@@ -22,7 +22,7 @@ import Aggregation from './context/Aggregation.vue'
 import { clearTextCache, defaultOffscreen2DContext, isBoxHovered, renderSingleLineText } from './utils/canvas'
 import Tooltip from './components/Tooltip.vue'
 import Scroller from './components/Scroller.vue'
-import { columnTypeName } from './utils/headerUtils'
+import { columnTypeName, getCustomColumnTooltip } from './utils/headerUtils'
 import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType, parseCellWidth } from './utils/cell'
 import {
   ADD_NEW_COLUMN_WIDTH,
@@ -161,7 +161,9 @@ const {
 // VModels
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
-const { eventBus, isSqlView } = useSmartsheetStoreOrThrow()
+const { eventBus, isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
+
+const { metas, getMeta } = useMetas()
 
 const { withLoading } = useLoadingTrigger()
 
@@ -1667,12 +1669,14 @@ const getHeaderTooltipRegions = (
   type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron'
   text: string
   disableTooltip?: boolean
+  tooltipText?: boolean
 }[] => {
   const regions: {
     x: number
     width: number
     type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron'
     text: string
+    tooltipText?: string
     height?: number
     y?: number
     disableTooltip?: boolean
@@ -1694,14 +1698,17 @@ const getHeaderTooltipRegions = (
 
     const rightPadding = 8
     let totalIconWidth = rightPadding + 16
+    let tooltipText: string
 
     if (column.uidt) {
       totalIconWidth += 26
+      tooltipText = getCustomColumnTooltip({ column, metas: metas.value, isExternalLink: isExternalSource.value, getMeta })
       regions.push({
         x: xOffset + 8 - scrollLeftValue,
         width: 13,
         type: 'columnIcon',
         text: columnTypeName(column),
+        tooltipText,
       })
     }
 
@@ -1723,7 +1730,8 @@ const getHeaderTooltipRegions = (
       width: Math.max(column.uidt ? 0 : 16, isTruncated ? availableTextWidth : measuredTextWidth),
       type: 'title',
       text: column.title!,
-      disableTooltip: !isTruncated,
+      tooltipText,
+      disableTooltip: !isTruncated && !tooltipText,
     })
 
     let rightOffset = xOffset + width - rightPadding - (isFieldEditAllowed.value ? 16 : 0)
@@ -1821,7 +1829,7 @@ const handleMouseMove = (e: MouseEvent) => {
       if (activeFixedRegion && !activeFixedRegion.disableTooltip) {
         tryShowTooltip({
           rect: activeFixedRegion,
-          text: activeFixedRegion.text,
+          text: activeFixedRegion.tooltipText || activeFixedRegion.text,
           mousePosition,
         })
       }
@@ -1856,7 +1864,7 @@ const handleMouseMove = (e: MouseEvent) => {
         if (activeRegion && !activeRegion.disableTooltip) {
           tryShowTooltip({
             rect: activeRegion,
-            text: activeRegion.text,
+            text: activeRegion.tooltipText || activeRegion.text,
             mousePosition,
           })
         }

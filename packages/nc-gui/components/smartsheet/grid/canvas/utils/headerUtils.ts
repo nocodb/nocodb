@@ -42,7 +42,8 @@ export function getCustomColumnTooltip({
   let mmTable: TableType
   if (relOptions.type === RelationTypes.MANY_TO_MANY) {
     if (metas[relOptions.fk_mm_model_id]) {
-      mmTable = metas[relOptions.fk_mm_model_id]
+      // skip if created by NocoDB
+      mmTable = metas[relOptions.fk_mm_model_id]?.title?.includes('nc_m2m_') ? null : metas[relOptions.fk_mm_model_id]
     } else {
       // if metas not found in store, fetch it
       getMeta?.(relOptions.fk_mm_model_id).catch((e) => {
@@ -83,7 +84,7 @@ export function getCustomColumnTooltip({
   //   Link column: Customers(id) → Products(product_id)
   //
   //   Through Orders_Products(customer_id, product_id)
-  const tooltip = `${columnTypeName(column)}:\n\n${[
+  const tooltip = `${columnTypeName(column)}: ${[
     // Current table and column
     currentTable?.title || '',
     currentTableColName ? `(${currentTableColName})` : '',
@@ -96,7 +97,7 @@ export function getCustomColumnTooltip({
     refTableColName ? `(${refTableColName})` : '',
 
     // Many-to-many (optional)
-    mmTable ? '\n\nThrough: ' : '',
+    mmTable ? '\n\nThrough ' : '',
     mmTable ? mmTable.title : '',
     mmTableColName && mmTableRefColName ? `(${mmTableColName}, ${mmTableRefColName})` : '',
   ].join('')}`

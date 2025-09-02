@@ -51,7 +51,6 @@ describe('Formula parsing and type validation', () => {
       clientOrSqlUi: 'mysql2',
       getMeta: async () => ({}),
     });
-
     expect(result.dataType).toEqual(FormulaDataTypes.STRING);
 
     const result1 = await validateFormulaAndExtractTreeWithType({
@@ -295,6 +294,197 @@ describe('Formula parsing and type validation', () => {
           length: 8,
         });
       }
+    });
+  });
+
+  describe('referenced info', () => {
+    it(`will return referenced column when directly referenced`, async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: '{column1}',
+        columns: [
+          {
+            id: 'id1',
+            title: 'column1',
+            uidt: UITypes.Number,
+          },
+        ],
+        clientOrSqlUi: 'mysql2',
+        getMeta: async () => ({}),
+      });
+
+      expect(result.referencedColumn.id).toEqual('id1');
+      expect(result.referencedColumn.uidt).toEqual(UITypes.Number);
+    });
+    it(`will return referenced column with binary operation`, async () => {
+      const supportedTypes = [
+        UITypes.Decimal,
+        UITypes.Currency,
+        UITypes.Percent,
+        UITypes.SingleLineText,
+        UITypes.LongText,
+      ];
+      for (const supportedType of supportedTypes) {
+        const result = await validateFormulaAndExtractTreeWithType({
+          formula: '{column1} + 3',
+          columns: [
+            {
+              id: 'id1',
+              title: 'column1',
+              uidt: supportedType,
+            },
+          ],
+          clientOrSqlUi: 'mysql2',
+          getMeta: async () => ({}),
+        });
+        expect(result.referencedColumn.id).toEqual('id1');
+        expect(result.referencedColumn.uidt).toEqual(supportedType);
+      }
+    });
+    it(`will not return referenced column with impure binary operation`, async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: '{column1} + 3',
+        columns: [
+          {
+            id: 'id1',
+            title: 'column1',
+            uidt: UITypes.Number,
+          },
+        ],
+        clientOrSqlUi: 'mysql2',
+        getMeta: async () => ({}),
+      });
+      expect(result.referencedColumn).toBeUndefined();
+      expect(result.uidtCandidates).toEqual([UITypes.Decimal]);
+    });
+    it(`will not return referenced column when multiple columns is used`, async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: '{column1} + {column2}',
+        columns: [
+          {
+            id: 'id1',
+            title: 'column1',
+            uidt: UITypes.Decimal,
+          },
+          {
+            id: 'id2',
+            title: 'column2',
+            uidt: UITypes.Decimal,
+          },
+        ],
+        clientOrSqlUi: 'mysql2',
+        getMeta: async () => ({}),
+      });
+
+      expect(result.referencedColumn).toBeUndefined();
+      const result2 = await validateFormulaAndExtractTreeWithType({
+        formula: '{column1} + ({column2} + {column3})',
+        columns: [
+          {
+            id: 'id1',
+            title: 'column1',
+            uidt: UITypes.Decimal,
+          },
+          {
+            id: 'id2',
+            title: 'column2',
+            uidt: UITypes.Decimal,
+          },
+          {
+            id: 'id3',
+            title: 'column3',
+            uidt: UITypes.Decimal,
+          },
+        ],
+        clientOrSqlUi: 'mysql2',
+        getMeta: async () => ({}),
+      });
+
+      expect(result2.referencedColumn).toBeUndefined();
+      const result3 = await validateFormulaAndExtractTreeWithType({
+        formula: '{column1} + ({column2} + 1)',
+        columns: [
+          {
+            id: 'id1',
+            title: 'column1',
+            uidt: UITypes.Decimal,
+          },
+          {
+            id: 'id2',
+            title: 'column2',
+            uidt: UITypes.Number,
+          },
+        ],
+        clientOrSqlUi: 'mysql2',
+        getMeta: async () => ({}),
+      });
+
+      expect(result3.referencedColumn).toBeUndefined();
+    });
+
+    it(`will return referenced column with pure call expression`, async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: 'MAX({column1}, 3)',
+        columns: [
+          {
+            id: 'id1',
+            title: 'column1',
+            uidt: UITypes.Number,
+          },
+        ],
+        clientOrSqlUi: 'mysql2',
+        getMeta: async () => ({}),
+      });
+      expect(result.referencedColumn.id).toEqual('id1');
+      expect(result.referencedColumn.uidt).toEqual(UITypes.Number);
+    });
+
+    it(`will return referenced column with pure call expression for arrays`, async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: '{column1}',
+        columns: [
+          {
+            id: 'id1',
+            title: 'column1',
+            uidt: UITypes.LinkToAnotherRecord,
+          },
+        ],
+        clientOrSqlUi: 'mysql2',
+        getMeta: async () => ({}),
+      });
+      expect(result.referencedColumn.id).toEqual('id1');
+      expect(result.referencedColumn.uidt).toEqual(UITypes.LinkToAnotherRecord);
+
+      const result1 = await validateFormulaAndExtractTreeWithType({
+        formula: '{column1}',
+        columns: [
+          {
+            id: 'id1',
+            title: 'column1',
+            uidt: UITypes.Lookup,
+          },
+        ],
+        clientOrSqlUi: 'mysql2',
+        getMeta: async () => ({}),
+      });
+      expect(result1.referencedColumn.id).toEqual('id1');
+      expect(result1.referencedColumn.uidt).toEqual(UITypes.Lookup);
+    });
+
+    it(`will not return referenced column with impure call expression`, async () => {
+      const result = await validateFormulaAndExtractTreeWithType({
+        formula: 'CEILING({column1})',
+        columns: [
+          {
+            id: 'id1',
+            title: 'column1',
+            uidt: UITypes.Number,
+          },
+        ],
+        clientOrSqlUi: 'mysql2',
+        getMeta: async () => ({}),
+      });
+      expect(result.referencedColumn).toBeUndefined();
+      expect(result.uidtCandidates).toEqual([UITypes.Decimal]);
     });
   });
 });

@@ -2578,7 +2578,7 @@ watch(
       v-if="isBulkOperationInProgress"
       class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-white/30"
     >
-      <GeneralLoader size="regular" />
+      <a-spin size="large" />
     </div>
     <Scroller
       ref="scroller"

@@ -72,20 +72,33 @@ export function getCustomColumnTooltip({
     refTableColName = refTable?.columns?.find((c) => c.id === relOptions.fk_child_column_id)?.title
   }
 
-  // generate a detailed tooltip for link to another record with relation columns and many to many table
-  // including column names from the current table, related table and many to many table
-  // Format: "Link column: Current table(column in current table) -> Related Table (column in related table)"
-  const tooltip = `${columnTypeName(column)}:\n\n ${[
-    currentTable?.title,
+  // Generate a detailed tooltip for link-to-record fields.
+  // The tooltip includes:
+  // - Column type
+  // - Current table and column
+  // - Related table and column
+  // - (Optional) many-to-many table with its linking columns
+  //
+  // Format example:
+  //   Link column: Customers(id) → Products(product_id)
+  //
+  //   Through Orders_Products(customer_id, product_id)
+  const tooltip = `${columnTypeName(column)}:\n\n${[
+    // Current table and column
+    currentTable?.title || '',
     currentTableColName ? `(${currentTableColName})` : '',
+
+    // Relation arrow
     ' → ',
-    refTable?.title,
+
+    // Related table and column
+    refTable?.title || '',
     refTableColName ? `(${refTableColName})` : '',
-    mmTable ? '\n\nVia ' : '',
+
+    // Many-to-many (optional)
+    mmTable ? '\n\nThrough: ' : '',
     mmTable ? mmTable.title : '',
-    mmTableRefColName ? `(${mmTableRefColName})` : '',
-    mmTable && mmTableColName ? ',' : '',
-    mmTableColName ? `(${mmTableColName})` : '',
+    mmTableColName && mmTableRefColName ? `(${mmTableColName}, ${mmTableRefColName})` : '',
   ].join('')}`
 
   return tooltip

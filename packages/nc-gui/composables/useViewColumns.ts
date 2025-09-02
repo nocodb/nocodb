@@ -567,7 +567,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       if (evt === 'view_column_update') {
         const col = gridViewCols.value?.[payload.fk_column_id]
         if (col) {
-          const reloadNeeded = payload?.group_by || (!col.show && payload?.show)
+          const reloadNeeded = payload?.group_by !== col?.group_by || (!col.show && payload?.show)
 
           Object.assign(col, payload)
 

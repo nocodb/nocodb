@@ -699,8 +699,10 @@ export function useViewFilters(
     if (payload.fk_view_id !== view.value?.id) return
 
     if (evt === 'filter_create') {
-      filters.value.push(payload)
       allFilters.value.push(payload)
+      if (!payload.fk_parent_id || payload.fk_parent_id === parentId.value) {
+        filters.value.push(payload)
+      }
       reloadHook?.trigger()
     } else if (evt === 'filter_update') {
       const index = filters.value.findIndex((f) => f.id === payload.id)
@@ -716,7 +718,11 @@ export function useViewFilters(
       reloadHook?.trigger()
     } else if (evt === 'filter_delete') {
       filters.value = filters.value.filter((f) => f.id !== payload.id)
-      allFilters.value = allFilters.value.filter((f) => f.id !== payload.id)
+      if (payload.is_group) {
+        deleteFilterGroupFromAllFilters(payload)
+      } else {
+        allFilters.value = allFilters.value.filter((f) => f.id !== payload.id)
+      }
       reloadHook?.trigger()
     }
   }

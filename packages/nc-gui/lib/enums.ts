@@ -214,6 +214,7 @@ export enum WorkspaceIconType {
 
 export const EventBusEnum = {
   SmartsheetStore: Symbol('SmartsheetStore'),
-  Realtime: Symbol('Realtime'),
+  RealtimeBaseUser: Symbol('RealtimeBaseUser'),
+  RealtimeViewMeta: Symbol('RealtimeViewMeta'),
   SmartsheetActions: Symbol('SmartSheetActions'),
 }

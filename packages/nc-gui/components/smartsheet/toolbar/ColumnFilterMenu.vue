@@ -127,6 +127,13 @@ if (isEeUI) {
     },
   )
 }
+
+watch(
+  () => nonDeletedFilters.value.length,
+  () => {
+    filtersLength.value = nonDeletedFilters.value.length || 0
+  },
+)
 </script>
 
 <template>

@@ -43,4 +43,4 @@ export const EMIT_EVENT = {
 export const CONTEXT_INFO_EXTRACT_COLUMN_ALIAS = 'extractColumnAlias';
 export const CONTEXT_INFO_IS_CACHE_EXTRACT_COLUMN = 'isCacheExtractColumn';
 
-export const META_COL_NAME = '_nc_meta';
+export const META_COL_NAME = 'nc_row_meta';

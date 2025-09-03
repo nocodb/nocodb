@@ -78,6 +78,17 @@ export const useBase = defineStore('baseStore', () => {
     return temp
   })
 
+  /**
+   * @Note - Always use this fn inside computed as `sqlUis` is computed property
+   */
+  function getSqlUiBySourceId(sourceId?: string): any {
+    if (sourceId && sqlUis.value[sourceId]) {
+      return sqlUis.value[sourceId]
+    }
+
+    return Object.values(sqlUis.value)[0]
+  }
+
   function getBaseType(sourceId?: string) {
     return sources.value.find((source) => source.id === sourceId)?.type || ClientType.MYSQL
   }
@@ -302,6 +313,7 @@ export const useBase = defineStore('baseStore', () => {
     isSnowflake,
     isDatabricks,
     sqlUis,
+    getSqlUiBySourceId,
     isSharedBase,
     isSharedErd,
     loadProjectMetaInfo,

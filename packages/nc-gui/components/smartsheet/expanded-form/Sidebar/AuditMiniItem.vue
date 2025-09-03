@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type AttachmentType, type AuditType, checkboxIconListMap, ratingIconListMap } from 'nocodb-sdk'
+import { type AttachmentType, type AuditType, checkboxIconListMap, parseHelper, ratingIconListMap } from 'nocodb-sdk'
 
 const props = defineProps<{
   audit: AuditType
@@ -68,7 +68,10 @@ function processOldDataFor(key: string) {
   const ndata = newData.value[key]
 
   if (meta.value?.[key]?.type === 'Attachment') {
-    return odata?.filter((it: AttachmentType) => !ndata?.some((t: AttachmentType) => t.title === it.title))
+    // Attachment cell value can be string so we have to parse it
+    return parseHelper(odata)?.filter(
+      (it: AttachmentType) => !parseHelper(ndata)?.some((t: AttachmentType) => t.title === it.title),
+    )
   }
   if (meta.value?.[key]?.type === 'MultiSelect') {
     return odata?.filter?.((it: string) => !ndata?.includes?.(it)) ?? odata

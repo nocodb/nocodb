@@ -504,7 +504,7 @@ export const ButtonCellRenderer: CellRenderer = {
     tryShowTooltip({ rect: box, mousePosition, text: tooltip })
   },
   async handleKeyDown(ctx) {
-    const { e, row, column, actionManager, pk, path } = ctx
+    const { e, row, column, actionManager, pk, path, allowLocalUrl } = ctx
     if (e.key === 'Enter') {
       const isLoading = actionManager.isLoading(pk, column.id!)
 

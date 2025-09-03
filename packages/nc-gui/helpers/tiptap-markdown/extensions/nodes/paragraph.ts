@@ -1,5 +1,5 @@
 import { Node } from '@tiptap/core'
-import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
+import { defaultMarkdownSerializer, defaultMarkdownParser } from '@tiptap/pm/markdown'
 import type { MarkdownNodeSpec } from '../../types'
 
 // TODO: Extend from tiptap extension
@@ -16,16 +16,8 @@ export const Paragraph = Node.create<any, { markdown: MarkdownNodeSpec }>({
           // Check if it's the last block in the document
           const isLastNode = parent && parent.child(parent.childCount - 1) === node
 
-          // Handle empty paragraphs
           if (isEmpty && !isLastNode) {
-            // Add `<br>` with a newline if the next node is a block
-            const nextNode = parent.child(parent.children.indexOf(node) + 1)
-
-            if (nextNode?.isBlock && !['hardBreak', 'paragraph'].includes(nextNode.type.name)) {
-              state.write(' <br>\n\n ') // Ensure block starts correctly
-            } else {
-              state.write(' <br> ') // Inline <br>` for non-block contexts
-            }
+            state.write(' <br>\n\n ')
             return
           }
 

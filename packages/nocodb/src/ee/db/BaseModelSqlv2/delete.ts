@@ -56,15 +56,15 @@ export class BaseModelDelete extends BaseModelDeleteCE {
           await Promise.all(execQuery({ trx, qb: qb.clone(), ids, rows }));
         }
       }
-      for (const metaQuery of metaQueries) {
-        await metaQuery({ trx, qb: qb.clone(), ids, rows });
-      }
       await trx.commit();
       response.push(...rows);
     } catch (ex) {
       await trx.rollback();
       // silent error, may be improved to log into response
       this.logger.error(ex.message);
+    }
+    for (const metaQuery of metaQueries) {
+      await metaQuery({ qb: qb.clone(), ids, rows });
     }
 
     await this.baseModel.statsUpdate({

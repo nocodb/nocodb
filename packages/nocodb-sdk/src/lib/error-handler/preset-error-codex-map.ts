@@ -246,4 +246,8 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) => message,
     code: 422,
   },
+  [NcErrorType.OUT_OF_SYNC]: {
+    message: (message: string) => message || `Please refresh the page and try again.`,
+    code: 409,
+  },
 };

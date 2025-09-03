@@ -3,7 +3,7 @@ import { clearRowColouringCache } from '../../../components/smartsheet/grid/canv
 import { SmartsheetStoreEvents } from '#imports'
 
 export function useViewRowColorProvider(params: { shared?: boolean }) {
-  const { $api } = useNuxtApp()
+  const { $api, $eventBus } = useNuxtApp()
 
   const { activeView, activeViewRowColorInfo } = storeToRefs(useViewsStore())
 
@@ -27,13 +27,13 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
    * Reload row color info
    * @returns void
    */
-  const reloadRowColorInfo = async (isViewChange: boolean = false) => {
+  const reloadRowColorInfo = async (isViewChange: boolean = false, customPayload = null) => {
     clearRowColouringCache()
 
     if (!viewId.value) return
 
     const rowColorInfoResponse = !params.shared
-      ? await $api.dbView.getViewRowColor(viewId.value)
+      ? customPayload || (await $api.dbView.getViewRowColor(viewId.value))
       : (activeView.value as ViewType & { viewRowColorInfo: RowColoringInfo | null })?.viewRowColorInfo
 
     eventBus.emit(SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE)
@@ -66,8 +66,32 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
       }
     }
 
-    eventBus.emit(SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE)
+    // add some delay before re-render as it is not reflecting immediately otherwise
+    setTimeout(() => eventBus.emit(SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE), 100)
   }
+
+  const evtListener = (evt: string, payload: any) => {
+    if (['filter_create', 'filter_update', 'filter_delete'].includes(evt)) {
+      // check if row color condition exists
+      const condition =
+        payload.fk_row_color_condition_id &&
+        (activeViewRowColorInfo.value as RowColoringInfoFilter)?.conditions?.find(
+          (c) => c.id === payload.fk_row_color_condition_id,
+        )
+      if (!condition) return
+
+      // TODO: manipulate filters inline instead of reload
+      reloadRowColorInfo()
+    }
+  }
+
+  onMounted(() => {
+    $eventBus.realtimeViewMetaEventBus.on(evtListener)
+  })
+
+  onBeforeUnmount(() => {
+    $eventBus.realtimeViewMetaEventBus.off(evtListener)
+  })
 
   /**
    * Watch viewId and reload row color info
@@ -83,9 +107,9 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
   /**
    * Watch row color update and field update events and reload row color info
    */
-  eventBus.on((event) => {
+  eventBus.on((event, payload?: { viewChange?: boolean; rowColorInfo?: any }) => {
     if ([SmartsheetStoreEvents.ROW_COLOR_UPDATE].includes(event)) {
-      reloadRowColorInfo()
+      reloadRowColorInfo(payload?.viewChange ?? false, payload?.rowColorInfo)
     } else if ([SmartsheetStoreEvents.FIELD_UPDATE, SmartsheetStoreEvents.FIELD_RELOAD].includes(event)) {
       reloadRowColorInfo(true)
     }

@@ -33,7 +33,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const filterQuery = ref('')
 
-    const { $api, $e } = useNuxtApp()
+    const { $api, $e, $eventBus } = useNuxtApp()
 
     const { t } = useI18n()
 
@@ -560,6 +560,48 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       },
       { immediate: true },
     )
+
+    const evtListener = (evt: string, payload: any) => {
+      if (payload.fk_view_id !== view.value?.id) return
+
+      if (evt === 'view_column_update') {
+        const col = gridViewCols.value?.[payload.fk_column_id]
+        if (col) {
+          const reloadNeeded = payload?.group_by !== col?.group_by || (!col.show && payload?.show)
+
+          Object.assign(col, payload)
+
+          const field = fields.value?.find((f) => f.fk_column_id === payload.fk_column_id)
+          if (field) {
+            const currentColumnField = col || {}
+            Object.assign(field, {
+              show: currentColumnField.show || isColumnViewEssential(currentColumnField),
+              order: currentColumnField.order || order++,
+              aggregation: currentColumnField?.aggregation ?? CommonAggregations.None,
+            })
+
+            fields.value?.sort((a: Field, b: Field) => a.order - b.order)
+          }
+
+          if (reloadNeeded) {
+            nextTick(() => reloadData?.({ shouldShowLoading: false }))
+          }
+
+          $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+        }
+      } else if (evt === 'view_column_refresh') {
+        loadViewColumns()
+        nextTick(() => reloadData?.({ shouldShowLoading: false }))
+      }
+    }
+
+    onMounted(() => {
+      $eventBus.realtimeViewMetaEventBus.on(evtListener)
+    })
+
+    onBeforeUnmount(() => {
+      $eventBus.realtimeViewMetaEventBus.off(evtListener)
+    })
 
     provide(FieldsInj, rootFields)
 

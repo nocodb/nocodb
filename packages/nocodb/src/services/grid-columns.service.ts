@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, EventType } from 'nocodb-sdk';
 import type { GridColumnReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
@@ -11,6 +11,7 @@ import { validatePayload } from '~/helpers';
 import { Column, GridViewColumn, View } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class GridColumnsService {
@@ -59,23 +60,41 @@ export class GridColumnsService {
       param.grid,
       ncMeta,
     );
+
+    const viewColumn = extractProps(param.grid, [
+      'order',
+      'show',
+      'width',
+      'group_by',
+      'group_by_order',
+      'group_by_sort',
+      'aggregation',
+    ]);
+
     this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {
       oldViewColumn: oldGridViewColumn,
       // todo: improve and move it to one place rather than repetition
-      viewColumn: extractProps(param.grid, [
-        'order',
-        'show',
-        'width',
-        'group_by',
-        'group_by_order',
-        'group_by_sort',
-        'aggregation',
-      ]),
+      viewColumn,
       column,
       view,
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_column_update',
+          payload: {
+            ...oldGridViewColumn,
+            ...viewColumn,
+          },
+        },
+      },
+      context.socket_id,
+    );
 
     return res;
   }

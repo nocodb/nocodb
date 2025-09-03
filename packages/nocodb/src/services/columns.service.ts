@@ -1928,6 +1928,9 @@ export class ColumnsService implements IColumnsService {
 
     const table = await Model.get(context, column.fk_model_id);
 
+    // to reflect properly on realtime
+    await table.getColumns(context);
+
     if (oldPrimaryColumn) {
       this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
         table,
@@ -1938,6 +1941,21 @@ export class ColumnsService implements IColumnsService {
         context,
         columns: table.columns,
       });
+
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'column_update',
+            payload: {
+              table,
+              column: { ...oldPrimaryColumn, pv: false },
+            },
+          },
+        },
+        context.socket_id,
+      );
     }
 
     this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
@@ -1949,6 +1967,21 @@ export class ColumnsService implements IColumnsService {
       context,
       columns: table.columns,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'column_update',
+          payload: {
+            table,
+            column,
+          },
+        },
+      },
+      context.socket_id,
+    );
 
     return result;
   }
@@ -4373,7 +4406,7 @@ export class ColumnsService implements IColumnsService {
     }
 
     if (table.columnsHash !== params.hash) {
-      NcError.badRequest(
+      NcError.get(context).outOfSync(
         'Columns are updated by someone else! Your changes are rejected. Please refresh the page and try again.',
       );
     }

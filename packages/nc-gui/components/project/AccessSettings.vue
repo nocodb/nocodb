@@ -306,20 +306,21 @@ watch(projectPageTab, () => {
 })
 
 const evtListener = (event: string, data: any) => {
-  const { baseId } = data
+  if (data.baseId !== currentBase.value?.id) return
 
-  if (baseId !== currentBase.value?.id) return
-  // Handle the event
-  loadCollaborators()
+  if (event === 'base_user_update') {
+    // Handle the event
+    loadCollaborators()
+  }
 }
 
 onMounted(() => {
   loadSorts()
-  $eventBus.realtimeEventBus.on(evtListener)
+  $eventBus.realtimeBaseUserEventBus.on(evtListener)
 })
 
 onBeforeUnmount(() => {
-  $eventBus.realtimeEventBus.off(evtListener)
+  $eventBus.realtimeBaseUserEventBus.off(evtListener)
 })
 </script>
 

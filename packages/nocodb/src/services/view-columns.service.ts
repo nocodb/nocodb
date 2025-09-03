@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { APIContext, AppEvents, ViewTypes } from 'nocodb-sdk';
+import { APIContext, AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
 import GridViewColumn from '../models/GridViewColumn';
 import GalleryViewColumn from '../models/GalleryViewColumn';
 import KanbanViewColumn from '../models/KanbanViewColumn';
@@ -21,6 +21,7 @@ import { validatePayload } from '~/helpers';
 import { CalendarViewColumn, Column, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class ViewColumnsService {
@@ -126,6 +127,21 @@ export class ViewColumnsService {
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_column_update',
+          payload: {
+            ...oldViewColumn,
+            ...viewColumn,
+          },
+        },
+      },
+      context.socket_id,
+    );
 
     return result;
   }

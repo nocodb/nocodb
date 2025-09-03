@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Không được phép thêm bản ghi trống vào bảng này",
     "addLookupFields": "Thêm trường tra cứu",
     "sourceVisibilityIsHidden": "Khả năng hiển thị nguồn dữ liệu đang bị ẩn",
-    "youDontHavePermissionToEditThisField": "Bạn không có quyền chỉnh sửa trường này"
+    "youDontHavePermissionToEditThisField": "Bạn không có quyền chỉnh sửa trường này",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Tìm kiếm biểu tượng",

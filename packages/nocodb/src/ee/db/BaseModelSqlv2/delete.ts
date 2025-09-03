@@ -61,7 +61,7 @@ export class BaseModelDelete extends BaseModelDeleteCE {
       await trx.commit();
       response.push(...rows);
     } catch (ex) {
-      await trx.rollback();
+      await trx?.rollback();
       // silent error, may be improved to log into response
       this.logger.error(ex.message);
     }

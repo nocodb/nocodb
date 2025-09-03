@@ -1,11 +1,26 @@
-import { Node } from '@tiptap/core'
-import { defaultMarkdownSerializer, defaultMarkdownParser } from '@tiptap/pm/markdown'
+import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
 import type { MarkdownNodeSpec } from '../../types'
+import TiptapParagraph, { type ParagraphOptions } from '@tiptap/extension-paragraph'
 
-// TODO: Extend from tiptap extension
-export const Paragraph = Node.create<any, { markdown: MarkdownNodeSpec }>({
-  name: 'paragraph',
+export const Paragraph = TiptapParagraph.extend<ParagraphOptions, { markdown: MarkdownNodeSpec }>({
+  addKeyboardShortcuts() {
+    return {
+      ...(this.parent?.() ?? {}),
+      Enter: () => {
+        const { state, view } = this.editor
 
+        // Remove all stored marks for the next typed text
+        const tr = state.tr
+        Object.values(state.schema.marks).forEach((markType) => {
+          tr.removeStoredMark(markType)
+        })
+
+        view.dispatch(tr)
+
+        return false // return false to avoid preventing the default Enter behavior
+      },
+    }
+  },
   addStorage() {
     return {
       markdown: {

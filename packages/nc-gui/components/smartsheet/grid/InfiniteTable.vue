@@ -2241,7 +2241,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
         {{ tableState.viewProgress?.progress }}
         {{ tableState.viewProgress?.message }}
       </div>
-      <GeneralLoader size="regular" />
+      <a-spin size="large" />
     </div>
 
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative !overflow-auto">

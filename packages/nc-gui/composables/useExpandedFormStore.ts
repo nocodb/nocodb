@@ -775,8 +775,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     })
 
-    const activeDataChannel = ref<string | null>(null)
-    const activeCommentChannel = ref<string | null>(null)
+    const activeDataListener = ref<string | null>(null)
+    const activeCommentListener = ref<string | null>(null)
 
     watch(
       meta,
@@ -784,85 +784,85 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
           if (oldMeta?.id && oldMeta.id === newMeta.id) return
 
-          if (activeDataChannel.value) {
-            $ncSocket.offMessage(activeDataChannel.value)
+          if (activeDataListener.value) {
+            $ncSocket.offMessage(activeDataListener.value)
           }
 
-          if (activeCommentChannel.value) {
-            $ncSocket.offMessage(activeCommentChannel.value)
+          if (activeCommentListener.value) {
+            $ncSocket.offMessage(activeCommentListener.value)
           }
 
-          activeDataChannel.value = `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`
-          activeCommentChannel.value = `${EventType.COMMENT_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`
+          activeDataListener.value = $ncSocket.onMessage(
+            `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+            (data: DataPayload) => {
+              const { id, action, payload } = data
 
-          $ncSocket.subscribe(activeDataChannel.value)
-          $ncSocket.subscribe(activeCommentChannel.value)
+              const activePk = extractPkFromRow(row.value.row, meta.value?.columns as ColumnType[])
 
-          $ncSocket.onMessage(activeDataChannel.value, (data: DataPayload) => {
-            const { id, action, payload } = data
-
-            const activePk = extractPkFromRow(row.value.row, meta.value?.columns as ColumnType[])
-
-            if (`${id}` === activePk) {
-              if (action === 'update') {
-                try {
-                  if (payload) {
-                    // Merge payload with local row, but preserve locally changed columns
-                    const mergedRow = { ...row.value.row, ...payload }
-                    for (const col of changedColumns.value) {
-                      if (Object.prototype.hasOwnProperty.call(row.value.row, col)) {
-                        mergedRow[col] = row.value.row[col]
-                        if (row.value.row[col] !== payload[col]) {
-                          localOnlyChanges.value[col] = payload[col]
+              if (`${id}` === activePk) {
+                if (action === 'update') {
+                  try {
+                    if (payload) {
+                      // Merge payload with local row, but preserve locally changed columns
+                      const mergedRow = { ...row.value.row, ...payload }
+                      for (const col of changedColumns.value) {
+                        if (Object.prototype.hasOwnProperty.call(row.value.row, col)) {
+                          mergedRow[col] = row.value.row[col]
+                          if (row.value.row[col] !== payload[col]) {
+                            localOnlyChanges.value[col] = payload[col]
+                          }
                         }
                       }
+                      Object.assign(row.value, {
+                        row: mergedRow,
+                        oldRow: { ...mergedRow },
+                      })
+                      // Do NOT clear changedColumns here, as we want to preserve local changes
+                    } else {
+                      console.warn('No payload provided for update action')
                     }
-                    Object.assign(row.value, {
-                      row: mergedRow,
-                      oldRow: { ...mergedRow },
-                    })
-                    // Do NOT clear changedColumns here, as we want to preserve local changes
-                  } else {
-                    console.warn('No payload provided for update action')
+                  } catch (e) {
+                    console.error('Failed to update cached row on socket event', e)
                   }
-                } catch (e) {
-                  console.error('Failed to update cached row on socket event', e)
-                }
-              } else if (action === 'delete') {
-                try {
-                  //
-                } catch (e) {
-                  console.error('Failed to delete cached row on socket event', e)
+                } else if (action === 'delete') {
+                  try {
+                    //
+                  } catch (e) {
+                    console.error('Failed to delete cached row on socket event', e)
+                  }
                 }
               }
-            }
-          })
+            },
+          )
 
-          $ncSocket.onMessage(activeCommentChannel.value, (data: CommentPayload) => {
-            const { action, id, payload } = data
+          activeCommentListener.value = $ncSocket.onMessage(
+            `${EventType.COMMENT_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+            (data: CommentPayload) => {
+              const { action, id, payload } = data
 
-            if (primaryKey.value && `${id}` === `${primaryKey.value}`) {
-              const commentId = payload.id
-              const user = baseUsers.value.find((u) => u.id === payload.created_by)
-              const finalPayload = {
-                ...payload,
-                created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
-                created_by_email: user?.email,
-                created_by_meta: user?.meta,
-              }
-
-              if (action === 'add') {
-                comments.value.push(finalPayload)
-              } else if (action === 'update') {
-                const index = comments.value.findIndex((comment) => comment.id === commentId)
-                if (index !== -1) {
-                  comments.value[index] = finalPayload
+              if (primaryKey.value && `${id}` === `${primaryKey.value}`) {
+                const commentId = payload.id
+                const user = baseUsers.value.find((u) => u.id === payload.created_by)
+                const finalPayload = {
+                  ...payload,
+                  created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+                  created_by_email: user?.email,
+                  created_by_meta: user?.meta,
                 }
-              } else if (action === 'delete') {
-                comments.value = comments.value.filter((comment) => comment.id !== commentId)
+
+                if (action === 'add') {
+                  comments.value.push(finalPayload)
+                } else if (action === 'update') {
+                  const index = comments.value.findIndex((comment) => comment.id === commentId)
+                  if (index !== -1) {
+                    comments.value[index] = finalPayload
+                  }
+                } else if (action === 'delete') {
+                  comments.value = comments.value.filter((comment) => comment.id !== commentId)
+                }
               }
-            }
-          })
+            },
+          )
         }
       },
       { immediate: true },

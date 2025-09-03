@@ -36,9 +36,8 @@ declare module '#app' {
     }
     $ncSocket: {
       id: () => string | null
-      subscribe: (event: string) => void
-      onMessage: (evt: string, handler: (...args: any[]) => void) => void
-      offMessage: (evt: string) => void
+      onMessage: (evt: string, handler: (...args: any[]) => void) => string
+      offMessage: (listenerId: string) => void
     }
     $eventBus: {
       smartsheetStoreEventBus: UseEventBusReturn<string, any>

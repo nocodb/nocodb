@@ -306,13 +306,12 @@ watch(projectPageTab, () => {
 })
 
 const evtListener = (event: string, data: any) => {
-  if (event !== 'base_user_update') return
+  if (data.baseId !== currentBase.value?.id) return
 
-  const { baseId } = data
-
-  if (baseId !== currentBase.value?.id) return
-  // Handle the event
-  loadCollaborators()
+  if (event === 'base_user_update') {
+    // Handle the event
+    loadCollaborators()
+  }
 }
 
 onMounted(() => {

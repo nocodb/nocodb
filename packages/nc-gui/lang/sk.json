@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Nie je povolené pridávať prázdny záznam v tejto tabuľke",
     "addLookupFields": "Pridať vyhľadávacie polia",
     "sourceVisibilityIsHidden": "Viditeľnosť zdroja dát je skrytá",
-    "youDontHavePermissionToEditThisField": "Nemáte povolenie na úpravu tohto poľa"
+    "youDontHavePermissionToEditThisField": "Nemáte povolenie na úpravu tohto poľa",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Vyhľadať ikony",

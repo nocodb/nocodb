@@ -181,7 +181,7 @@ export const useRealtime = createSharedComposable(() => {
       $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
     } else if (event.action === 'filter_create' || event.action === 'filter_update' || event.action === 'filter_delete') {
       $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
-    } else if (event.action === 'view_column_update') {
+    } else if (event.action === 'view_column_update' || event.action === 'view_column_refresh') {
       $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
     } else if (event.action === 'row_color_update') {
       $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE, { rowColorInfo: event.payload || {} })

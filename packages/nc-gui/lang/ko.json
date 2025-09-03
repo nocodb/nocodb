@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "이 테이블에서는 빈 레코드를 추가할 수 없습니다",
     "addLookupFields": "조회 필드 추가",
     "sourceVisibilityIsHidden": "데이터 원본 가시성이 숨겨짐",
-    "youDontHavePermissionToEditThisField": "이 필드를 편집할 수 있는 권한이 없습니다."
+    "youDontHavePermissionToEditThisField": "이 필드를 편집할 수 있는 권한이 없습니다.",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",

@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Adicionar registro vazio não é permitido nesta tabela",
     "addLookupFields": "Adicionar campos de busca",
     "sourceVisibilityIsHidden": "Visibilidade da fonte de dados está oculta",
-    "youDontHavePermissionToEditThisField": "Você não tem permissão para editar este campo"
+    "youDontHavePermissionToEditThisField": "Você não tem permissão para editar este campo",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Pesquisar ícones",

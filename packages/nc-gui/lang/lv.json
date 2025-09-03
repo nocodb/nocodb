@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Šajā tabulā nav atļauts pievienot tukšu ierakstu",
     "addLookupFields": "Pievienot meklēšanas laukus",
     "sourceVisibilityIsHidden": "Datu avota redzamība ir paslēpta",
-    "youDontHavePermissionToEditThisField": "Jums nav atļaujas rediģēt šo lauku"
+    "youDontHavePermissionToEditThisField": "Jums nav atļaujas rediģēt šo lauku",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Meklēt ikonas",

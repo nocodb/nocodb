@@ -4373,7 +4373,7 @@ export class ColumnsService implements IColumnsService {
     }
 
     if (table.columnsHash !== params.hash) {
-      NcError.badRequest(
+      NcError.get(context).outOfSync(
         'Columns are updated by someone else! Your changes are rejected. Please refresh the page and try again.',
       );
     }

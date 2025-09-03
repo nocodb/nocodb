@@ -126,8 +126,7 @@ const createLookups = async () => {
     selectedFields.value = {}
     emit('created')
   } catch (e) {
-    console.error(e)
-    message.error(t('msg.error.failedToCreateLookupFields'))
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isLoading.value = false
   }

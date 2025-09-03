@@ -513,4 +513,10 @@ export class NcErrorBase {
   }): never {
     throw new OptionsNotExistsError(props);
   }
+
+  outOfSync(message: string): never {
+    throw this.errorCodex.generateError(NcErrorType.OUT_OF_SYNC, {
+      params: message,
+    });
+  }
 }

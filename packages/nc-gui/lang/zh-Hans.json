@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "此表不允许添加空记录",
     "addLookupFields": "添加查找字段",
     "sourceVisibilityIsHidden": "数据源可见性为隐藏",
-    "youDontHavePermissionToEditThisField": "您没有权限编辑此字段"
+    "youDontHavePermissionToEditThisField": "您没有权限编辑此字段",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "搜索图标",

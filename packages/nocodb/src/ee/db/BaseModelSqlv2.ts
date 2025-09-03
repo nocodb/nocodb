@@ -1359,11 +1359,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     data: any,
     _trx: any,
     req,
-    isBulkAllOperation = false,
+    _isBulkAllOperation = false,
   ): Promise<void> {
-    if (!isBulkAllOperation) {
-      await this.handleHooks('after.bulkDelete', null, data, req);
-    }
+    await this.handleHooks('after.bulkDelete', null, data, req);
 
     for (const d of data) {
       const id = this.extractPksValues(d);

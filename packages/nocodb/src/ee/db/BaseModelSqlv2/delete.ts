@@ -24,6 +24,7 @@ export class BaseModelDelete extends BaseModelDeleteCE {
     rows: any[];
     qb: any;
   }) {
+    const response: any[] = [];
     const queries: string[] = [];
     if (this.isDbExternal) {
       for (const execQuery of execQueries) {
@@ -40,12 +41,15 @@ export class BaseModelDelete extends BaseModelDeleteCE {
     const trx = await this.baseModel.dbDriver.transaction();
     try {
       if (this.isDbExternal) {
-        await runExternal(
+        const runResponse = await runExternal(
           this.baseModel.sanitizeQuery(queries),
           (this.baseModel.dbDriver as any).extDb,
           {
             raw: true,
           },
+        );
+        response.push(
+          ...(Array.isArray(runResponse) ? runResponse : [runResponse]),
         );
       } else {
         for (const execQuery of execQueries) {
@@ -56,6 +60,7 @@ export class BaseModelDelete extends BaseModelDeleteCE {
         await metaQuery({ trx, qb: qb.clone(), ids, rows });
       }
       await trx.commit();
+      response.push(...rows);
     } catch (ex) {
       await trx.rollback();
       // silent error, may be improved to log into response
@@ -65,5 +70,7 @@ export class BaseModelDelete extends BaseModelDeleteCE {
     await this.baseModel.statsUpdate({
       count: -ids.length,
     });
+
+    return response;
   }
 }

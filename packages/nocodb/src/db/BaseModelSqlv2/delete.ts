@@ -242,6 +242,7 @@ export class BaseModelDelete {
     qb: any;
   }) {
     const trx = await this.baseModel.dbDriver.transaction();
+    const response: any[] = [];
     try {
       for (const execQuery of execQueries) {
         await execQuery({ trx, qb: qb.clone(), ids, rows });
@@ -250,11 +251,13 @@ export class BaseModelDelete {
         await metaQuery({ trx, qb: qb.clone(), ids, rows });
       }
       await trx.commit();
+      response.push(...rows);
     } catch (ex) {
       await trx.rollback();
       // silent error, may be improved to log into response
       this.logger.error(ex.message);
     }
+    return response;
   }
 
   async bulkAll(params: {
@@ -311,7 +314,6 @@ export class BaseModelDelete {
         }
         return primaryData;
       }) as any[];
-      response.push(...chunkPrimaryKeyObjects);
       const ids =
         this.baseModel.model.primaryKeys.length > 1
           ? chunkPrimaryKeyObjects
@@ -319,13 +321,15 @@ export class BaseModelDelete {
               (row) => row[this.baseModel.model.primaryKey.title],
             );
 
-      await this.executeBulkAll({
-        execQueries,
-        metaQueries,
-        ids,
-        rows,
-        qb,
-      });
+      response.push(
+        ...(await this.executeBulkAll({
+          execQueries,
+          metaQueries,
+          ids,
+          rows,
+          qb,
+        })),
+      );
       // insert records updating record details to audit table
       await this.baseModel.bulkAudit({
         qb: qb.clone(),

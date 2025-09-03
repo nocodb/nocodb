@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "不允許在此資料表中新增空記錄",
     "addLookupFields": "新增查找欄位",
     "sourceVisibilityIsHidden": "資料來源可見性已隱藏",
-    "youDontHavePermissionToEditThisField": "您無權編輯該欄位"
+    "youDontHavePermissionToEditThisField": "您無權編輯該欄位",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "搜索圖標",

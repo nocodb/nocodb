@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { BaseModelDelete as BaseModelDeleteCE } from 'src/db/BaseModelSqlv2/delete';
+import type { Knex } from 'knex';
 import type {
   ExecQueryType,
   MetaQueryType,
@@ -38,7 +39,7 @@ export class BaseModelDelete extends BaseModelDeleteCE {
         );
       }
     }
-    const trx = await this.baseModel.dbDriver.transaction();
+    let trx: Knex.Transaction;
     try {
       if (this.isDbExternal) {
         const runResponse = await runExternal(
@@ -52,6 +53,7 @@ export class BaseModelDelete extends BaseModelDeleteCE {
           ...(Array.isArray(runResponse) ? runResponse : [runResponse]),
         );
       } else {
+        trx = await this.baseModel.dbDriver.transaction();
         for (const execQuery of execQueries) {
           await Promise.all(execQuery({ trx, qb: qb.clone(), ids, rows }));
         }

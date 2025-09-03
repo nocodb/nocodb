@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "यस तालिकामा खाली रेकर्ड थप्न अनुमति छैन",
     "addLookupFields": "लुकअप फिल्डहरू थप्नुहोस्",
     "sourceVisibilityIsHidden": "डेटा स्रोत दृश्यता लुकेको छ",
-    "youDontHavePermissionToEditThisField": "यो फिल्ड सम्पादन गर्न तपाईंलाई अनुमति छैन"
+    "youDontHavePermissionToEditThisField": "यो फिल्ड सम्पादन गर्न तपाईंलाई अनुमति छैन",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "आइकनहरू खोज्नुहोस्",

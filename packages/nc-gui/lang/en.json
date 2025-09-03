@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
     "addLookupFields": "Add Lookup Fields",
     "sourceVisibilityIsHidden": "Data source visibility is hidden",
-    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Search icons",

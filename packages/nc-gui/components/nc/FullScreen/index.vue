@@ -129,7 +129,7 @@ function onChangeFullScreen() {
   emit('change', isFullscreen.value)
 }
 
-const handleFullScreenChange = () => {
+const handleFullScreenChange = async () => {
   const isBrowserFullScreen = !!document.fullscreenElement
 
   if (isFullscreen.value !== isBrowserFullScreen) {
@@ -139,6 +139,16 @@ const handleFullScreenChange = () => {
 
     isLeftSidebarOpen.value = !isBrowserFullScreen
   }
+
+  if (!supportsKeyboardLock) return
+
+  if (isFullscreen.value) {
+    await navigator.keyboard.lock(['Escape'])
+
+    return
+  }
+
+  navigator.keyboard.unlock()
 }
 
 useEventListener(document, 'fullscreenchange', handleFullScreenChange)

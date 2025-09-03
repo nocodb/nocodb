@@ -74,6 +74,7 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'sort_update'
     | 'sort_delete'
     | 'view_column_update'
+    | 'view_column_refresh' // hide/show all
     | 'row_color_update';
   payload: T;
   baseId?: string;

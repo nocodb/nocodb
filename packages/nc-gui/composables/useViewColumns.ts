@@ -589,6 +589,9 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
         }
+      } else if (evt === 'view_column_refresh') {
+        loadViewColumns()
+        nextTick(() => reloadData?.({ shouldShowLoading: false }))
       }
     }
 

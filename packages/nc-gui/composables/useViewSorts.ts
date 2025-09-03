@@ -6,7 +6,7 @@ import type { UndoRedoAction } from '~/lib/types'
 export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
   const { sorts, eventBus } = useSmartsheetStoreOrThrow()
 
-  const { $api, $e } = useNuxtApp()
+  const { $api, $e, $eventBus } = useNuxtApp()
 
   const { isUIAllowed } = useRoles()
 
@@ -237,6 +237,32 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
     lastSorts.value = clone(sorts.value)
   }
+
+  const evtListener = (evt: string, payload: any) => {
+    if (payload.fk_view_id !== view.value?.id) return
+
+    if (evt === 'sort_create') {
+      sorts.value.push(payload)
+      reloadHook?.trigger()
+    } else if (evt === 'sort_update') {
+      const index = sorts.value.findIndex((s) => s.id === payload.id)
+      if (index !== -1) {
+        sorts.value[index] = payload
+      }
+      reloadHook?.trigger()
+    } else if (evt === 'sort_delete') {
+      sorts.value = sorts.value.filter((s) => s.id !== payload.id)
+      reloadHook?.trigger()
+    }
+  }
+
+  onMounted(() => {
+    $eventBus.realtimeViewMetaEventBus.on(evtListener)
+  })
+
+  onBeforeUnmount(() => {
+    $eventBus.realtimeViewMetaEventBus.off(evtListener)
+  })
 
   return { sorts, loadSorts, addSort, deleteSort, saveOrUpdate, insertSort }
 }

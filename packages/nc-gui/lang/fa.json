@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "افزودن رکورد خالی در این جدول مجاز نیست",
     "addLookupFields": "افزودن فیلدهای جستجو",
     "sourceVisibilityIsHidden": "نمایان بودن منبع داده مخفی است",
-    "youDontHavePermissionToEditThisField": "شما اجازه ویرایش این فیلد را ندارید"
+    "youDontHavePermissionToEditThisField": "شما اجازه ویرایش این فیلد را ندارید",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "جستجو آیکون",

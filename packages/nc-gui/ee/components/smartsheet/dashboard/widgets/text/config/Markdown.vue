@@ -11,7 +11,7 @@ import TableCell from '@tiptap/extension-table-cell'
 import TaskList from '@tiptap/extension-task-list'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
-import { HardBreak, Italic, Link, Strike, TaskItem, Paragraph } from '~/helpers/tiptap-markdown/extensions'
+import { HardBreak, Italic, Link, Paragraph, Strike, TaskItem } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(
   defineProps<{

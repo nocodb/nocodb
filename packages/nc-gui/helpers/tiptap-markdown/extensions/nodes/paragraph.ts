@@ -1,6 +1,6 @@
 import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
-import type { MarkdownNodeSpec } from '../../types'
 import TiptapParagraph, { type ParagraphOptions } from '@tiptap/extension-paragraph'
+import type { MarkdownNodeSpec } from '../../types'
 
 export const Paragraph = TiptapParagraph.extend<ParagraphOptions, { markdown: MarkdownNodeSpec }>({
   addKeyboardShortcuts() {

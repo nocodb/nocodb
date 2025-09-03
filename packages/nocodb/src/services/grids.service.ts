@@ -129,6 +129,24 @@ export class GridsService {
       context,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_update',
+          payload: {
+            ...view,
+            view: {
+              ...oldGridView,
+              ...param.grid,
+            },
+          },
+        },
+      },
+      context.socket_id,
+    );
+
     return res;
   }
 }

@@ -32,11 +32,9 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
 
     if (!viewId.value) return
 
-    const rowColorInfoResponse =
-      customPayload ||
-      (!params.shared
-        ? await $api.dbView.getViewRowColor(viewId.value)
-        : (activeView.value as ViewType & { viewRowColorInfo: RowColoringInfo | null })?.viewRowColorInfo)
+    const rowColorInfoResponse = !params.shared
+      ? customPayload || (await $api.dbView.getViewRowColor(viewId.value))
+      : (activeView.value as ViewType & { viewRowColorInfo: RowColoringInfo | null })?.viewRowColorInfo
 
     eventBus.emit(SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE)
 
@@ -73,14 +71,16 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
   }
 
   const evtListener = (evt: string, payload: any) => {
-    // check if row color condition exists
-    const condition =
-      payload.fk_row_color_condition_id &&
-      (activeViewRowColorInfo.value as RowColoringInfoFilter)?.conditions?.find((c) => c.id === payload.fk_row_color_condition_id)
-    if (!condition) return
+    if (['filter_create', 'filter_update', 'filter_delete'].includes(evt)) {
+      // check if row color condition exists
+      const condition =
+        payload.fk_row_color_condition_id &&
+        (activeViewRowColorInfo.value as RowColoringInfoFilter)?.conditions?.find(
+          (c) => c.id === payload.fk_row_color_condition_id,
+        )
+      if (!condition) return
 
-    // TODO: manipulate filters inline instead of reload
-    if (evt === 'filter_create' || evt === 'filter_update' || evt === 'filter_delete') {
+      // TODO: manipulate filters inline instead of reload
       reloadRowColorInfo()
     }
   }

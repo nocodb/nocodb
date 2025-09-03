@@ -144,8 +144,7 @@ export const useRealtime = createSharedComposable(() => {
       const tableViews = viewsByTable.value.get(event.payload.fk_model_id)
       const view = tableViews?.find((v) => v.id === event.payload.id)
       if (view) {
-        let needReload = false
-        if (!view?.show_system_fields && event.payload?.show_system_fields) needReload = true
+        const needReload = !view?.show_system_fields && event.payload?.show_system_fields
 
         Object.assign(view, event.payload)
         tableViews?.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))

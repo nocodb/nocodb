@@ -745,6 +745,15 @@ export class MetaService {
     return new MetaService(this.config, trx);
   }
 
+  withTransaction(trx: Knex.Transaction<any, any[]>) {
+    // todo: Extend transaction class to add our custom properties
+    Object.assign(trx, {
+      clientType: this.connection.clientType,
+      searchPath: (this.connection as any).searchPath,
+    });
+    return new MetaService(this.config, trx);
+  }
+
   /***
    * Update base config
    * @param baseId - Base id

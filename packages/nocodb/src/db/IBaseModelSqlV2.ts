@@ -6,6 +6,8 @@ import type {
 import type { XKnex } from '~/db/CustomKnex';
 import type {
   AuditV1OperationTypes,
+  BulkAuditV1OperationTypes,
+  FilterType,
   NcApiVersion,
   NcContext,
   NcRequest,
@@ -15,7 +17,7 @@ import type {
 } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
-import type { Column, Model, View } from '~/models';
+import type { Column, Model, Source, View } from '~/models';
 
 export interface IBaseModelSqlV2 {
   context: NcContext;
@@ -194,6 +196,13 @@ export interface IBaseModelSqlV2 {
 
   afterBulkInsert(data: any[], _trx: any, req): Promise<void>;
 
+  afterBulkDelete(
+    data: any,
+    _trx: any,
+    req: any,
+    isBulkAllOperation?: boolean,
+  ): Promise<void>;
+
   applySortAndFilter(param: {
     table: Model;
     view?: View;
@@ -202,6 +211,20 @@ export interface IBaseModelSqlV2 {
     sort: string;
     onlySort?: boolean;
     skipViewFilter?: boolean;
+  }): Promise<void>;
+
+  bulkAudit({
+    qb,
+    data,
+    conditions,
+    req,
+    event,
+  }: {
+    qb: any;
+    data?: Record<string, any>;
+    conditions: FilterType[];
+    req: NcRequest;
+    event: BulkAuditV1OperationTypes;
   }): Promise<void>;
 
   _getListArgs(
@@ -286,6 +309,7 @@ export interface IBaseModelSqlV2 {
     }>,
   ): Promise<void>;
 
+  sanitizeQuery(query: string | string[]): any;
   getNestedColumn(column: Column): Promise<Column | any>;
 
   checkPermission(params: {
@@ -304,6 +328,7 @@ export interface IBaseModelSqlV2 {
   }): Promise<any[]>;
 
   broadcastLinkUpdates(ids: Array<string>): Promise<void>;
+  getSource(): Promise<Source>;
 
   get viewId(): string;
   get dbDriver(): CustomKnex;

@@ -13,6 +13,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const key = ref(0)
 
+const { appInfo } = useGlobal()
+
 const scriptConfig = computed(() => {
   return props.widget.config || {}
 })
@@ -21,7 +23,7 @@ const isValidUrl = computed(() => {
   try {
     new URL(scriptConfig.value?.url)
 
-    if (!isIframeUrlAllowed(scriptConfig.value?.url)) {
+    if (!isIframeUrlAllowed(scriptConfig.value?.url, appInfo.value.iframeWhitelistDomains)) {
       return false
     }
 

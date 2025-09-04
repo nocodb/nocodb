@@ -46,6 +46,7 @@ export interface AppInfo {
   openReplayKey?: string | null
   disableSupportChat: boolean
   disableOnboardingFlow: boolean
+  iframeWhitelistDomains?: Array<string>
 }
 
 export interface StoredState {

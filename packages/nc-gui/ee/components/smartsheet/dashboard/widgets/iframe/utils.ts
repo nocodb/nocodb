@@ -73,7 +73,7 @@ const allowedDomains = [
   '*.nocodb.com',
 ]
 
-export function isIframeUrlAllowed(url: string) {
+export function isIframeUrlAllowed(url: string, customWhiteListDomains?: Array<string>) {
   let hostname
 
   try {
@@ -82,7 +82,9 @@ export function isIframeUrlAllowed(url: string) {
     return false
   }
 
-  return allowedDomains.some((domain) => {
+  const domains = [...allowedDomains, ...(customWhiteListDomains || [])]
+
+  return domains.some((domain) => {
     if (domain.startsWith('*.')) {
       const baseDomain = domain.slice(2)
       return hostname === baseDomain || hostname.endsWith(`.${baseDomain}`)

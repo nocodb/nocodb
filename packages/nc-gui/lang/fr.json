@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "L'ajout d'un enregistrement vide n'est pas autoris\u0000e9 dans cette table",
     "addLookupFields": "Ajouter des champs de recherche",
     "sourceVisibilityIsHidden": "La visibilit\u0000e9 de la source de donn\u0000e9es est masqu\u0000e9e",
-    "youDontHavePermissionToEditThisField": "Vous n'avez pas la permission de modifier ce champ"
+    "youDontHavePermissionToEditThisField": "Vous n'avez pas la permission de modifier ce champ",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Rechercher des icônes",

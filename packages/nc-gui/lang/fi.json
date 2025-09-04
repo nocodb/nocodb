@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Tyhjien tietueiden lisääminen ei ole sallittua tässä taulussa",
     "addLookupFields": "Lisää hakukentät",
     "sourceVisibilityIsHidden": "Tietolähteen näkyvyys on piilotettu",
-    "youDontHavePermissionToEditThisField": "Sinulla ei ole oikeuksia muokata tätä kenttää"
+    "youDontHavePermissionToEditThisField": "Sinulla ei ole oikeuksia muokata tätä kenttää",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Etsi kuvakkeita",

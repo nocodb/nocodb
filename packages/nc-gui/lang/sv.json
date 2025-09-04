@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Det är inte tillåtet att lägga till tom post i denna tabell",
     "addLookupFields": "Lägg till uppslagsfält",
     "sourceVisibilityIsHidden": "Datakällans synlighet är dold",
-    "youDontHavePermissionToEditThisField": "Du har inte behörighet att redigera detta fält"
+    "youDontHavePermissionToEditThisField": "Du har inte behörighet att redigera detta fält",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Sök ikoner",

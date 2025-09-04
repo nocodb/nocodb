@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Üres rekord hozzáadása ebben a táblában nem engedélyezett",
     "addLookupFields": "Keresőmezők hozzáadása",
     "sourceVisibilityIsHidden": "Az adatforrás láthatósága elrejtve",
-    "youDontHavePermissionToEditThisField": "Nincs jogosultsága ennek a mezőnek a szerkesztésére"
+    "youDontHavePermissionToEditThisField": "Nincs jogosultsága ennek a mezőnek a szerkesztésére",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Ikonok keresése",

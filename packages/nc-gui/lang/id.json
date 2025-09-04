@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Menambahkan catatan kosong tidak diperbolehkan di tabel ini",
     "addLookupFields": "Tambahkan Field Lookup",
     "sourceVisibilityIsHidden": "Visibilitas sumber data disembunyikan",
-    "youDontHavePermissionToEditThisField": "Anda tidak memiliki izin untuk mengedit field ini"
+    "youDontHavePermissionToEditThisField": "Anda tidak memiliki izin untuk mengedit field ini",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Cari ikon",

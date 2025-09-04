@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "הוספת רשומה ריקה אינה מותרת בטבלה זו",
     "addLookupFields": "הוסף שדות חיפוש",
     "sourceVisibilityIsHidden": "הנראות של מקור הנתונים מוסתרת",
-    "youDontHavePermissionToEditThisField": "אין לך הרשאה לערוך שדה זה"
+    "youDontHavePermissionToEditThisField": "אין לך הרשאה לערוך שדה זה",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "חפש אייקונים",

@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "ไม่อนุญาตให้เพิ่มระเบียนว่างในตารางนี้",
     "addLookupFields": "เพิ่มฟิลด์ Lookup",
     "sourceVisibilityIsHidden": "แหล่งข้อมูลนี้ถูกซ่อนอยู่",
-    "youDontHavePermissionToEditThisField": "คุณไม่มีสิทธิ์แก้ไขฟิลด์นี้"
+    "youDontHavePermissionToEditThisField": "คุณไม่มีสิทธิ์แก้ไขฟิลด์นี้",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "ค้นหาไอคอน",

@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Lege records toevoegen is niet toegestaan in deze tabel",
     "addLookupFields": "Lookup-velden toevoegen",
     "sourceVisibilityIsHidden": "Zichtbaarheid van gegevensbron is verborgen",
-    "youDontHavePermissionToEditThisField": "Je hebt geen toestemming om dit veld te bewerken"
+    "youDontHavePermissionToEditThisField": "Je hebt geen toestemming om dit veld te bewerken",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Zoek pictogrammen",

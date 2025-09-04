@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "इस टेबल में खाली रिकॉर्ड जोड़ना अनुमति नहीं है",
     "addLookupFields": "लुकअप फ़ील्ड्स जोड़ें",
     "sourceVisibilityIsHidden": "डेटा स्रोत दृश्यता छुपी हुई है",
-    "youDontHavePermissionToEditThisField": "आपको इस फ़ील्ड को संपादित करने की अनुमति नहीं है"
+    "youDontHavePermissionToEditThisField": "आपको इस फ़ील्ड को संपादित करने की अनुमति नहीं है",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "आइकन खोजें",

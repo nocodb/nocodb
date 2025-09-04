@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Dodavanje praznog zapisa nije dopušteno u ovoj tablici",
     "addLookupFields": "Dodaj lookup polja",
     "sourceVisibilityIsHidden": "Vidljivost izvora podataka je skrivena",
-    "youDontHavePermissionToEditThisField": "Nemate dozvolu za uređivanje ovog polja"
+    "youDontHavePermissionToEditThisField": "Nemate dozvolu za uređivanje ovog polja",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Pretraži ikone",

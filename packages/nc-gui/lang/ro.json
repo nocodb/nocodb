@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Adăugarea unei înregistrări goale nu este permisă în acest tabel",
     "addLookupFields": "Adaugă câmpuri de tip lookup",
     "sourceVisibilityIsHidden": "Vizibilitatea sursei de date este ascunsă",
-    "youDontHavePermissionToEditThisField": "Nu aveți permisiunea de a edita acest câmp"
+    "youDontHavePermissionToEditThisField": "Nu aveți permisiunea de a edita acest câmp",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Caută icoane",

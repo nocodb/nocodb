@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Det er ikke tilladt at tilføje tom post i denne tabel",
     "addLookupFields": "Tilføj opslagfelter",
     "sourceVisibilityIsHidden": "Datakilde synlighed er skjult",
-    "youDontHavePermissionToEditThisField": "Du har ikke tilladelse til at redigere dette felt"
+    "youDontHavePermissionToEditThisField": "Du har ikke tilladelse til at redigere dette felt",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Søg ikoner",

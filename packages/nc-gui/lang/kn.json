@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "ಈ ಟೇಬಲ್‌ನಲ್ಲಿ ಖಾಲಿ ದಾಖಲೆ ಸೇರಿಸುವುದನ್ನು ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ",
     "addLookupFields": "ಲುಕಪ್ ಕ್ಷೇತ್ರಗಳನ್ನು ಸೇರಿಸಿ",
     "sourceVisibilityIsHidden": "ಮೂಲದ ಗೋಚರತೆ ಮರೆಮಾಡಲಾಗಿದೆ",
-    "youDontHavePermissionToEditThisField": "ಈ ಕ್ಷೇತ್ರವನ್ನು ಸಂಪಾದಿಸಲು ನಿಮಗೆ ಅನುಮತಿ ಇಲ್ಲ"
+    "youDontHavePermissionToEditThisField": "ಈ ಕ್ಷೇತ್ರವನ್ನು ಸಂಪಾದಿಸಲು ನಿಮಗೆ ಅನುಮತಿ ಇಲ್ಲ",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "ಐಕಾನ್‌ಗಳನ್ನು ಹುಡುಕಿ",

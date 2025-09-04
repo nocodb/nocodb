@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "ഈ ടേബിളിൽ ശൂന്യമായ റെക്കോർഡ് ചേർക്കാൻ അനുവദിക്കില്ല",
     "addLookupFields": "ലുക്കപ്പ് ഫീൽഡുകൾ ചേർക്കുക",
     "sourceVisibilityIsHidden": "ഡാറ്റ സ്രോതസ്സിന്റെ ദൃശ്യവിധാനം മറച്ചിരിക്കുന്നു",
-    "youDontHavePermissionToEditThisField": "ഈ ഫീൽഡ് എഡിറ്റ് ചെയ്യാൻ നിങ്ങൾക്ക് അനുമതിയില്ല"
+    "youDontHavePermissionToEditThisField": "ഈ ഫീൽഡ് എഡിറ്റ് ചെയ്യാൻ നിങ്ങൾക്ക് അനുമതിയില്ല",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "ചിഹ്നങ്ങൾ തിരയുക",

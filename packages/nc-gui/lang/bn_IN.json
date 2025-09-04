@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "এই টেবিলে খালি রেকর্ড যুক্ত করার অনুমতি নেই",
     "addLookupFields": "লুকআপ ফিল্ডগুলি যোগ করুন",
     "sourceVisibilityIsHidden": "ডেটা সোর্স ভিজিবিলিটি হিডেন",
-    "youDontHavePermissionToEditThisField": "এই ফিল্ড সম্পাদনা করার অনুমতি আপনার নেই"
+    "youDontHavePermissionToEditThisField": "এই ফিল্ড সম্পাদনা করার অনুমতি আপনার নেই",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "আইকন অনুসন্ধান করুন",

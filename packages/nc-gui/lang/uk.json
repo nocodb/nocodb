@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Додавання порожнього запису не дозволено у цій таблиці",
     "addLookupFields": "Додати Lookup-поля",
     "sourceVisibilityIsHidden": "Видимість джерела даних прихована",
-    "youDontHavePermissionToEditThisField": "У вас немає дозволу редагувати це поле"
+    "youDontHavePermissionToEditThisField": "У вас немає дозволу редагувати це поле",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Пошук іконок",

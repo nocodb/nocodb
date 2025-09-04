@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "このテーブルでは空のレコード追加はできません",
     "addLookupFields": "ルックアップフィールドを追加",
     "sourceVisibilityIsHidden": "データソースの表示は非表示です",
-    "youDontHavePermissionToEditThisField": "このフィールドを編集する権限がありません"
+    "youDontHavePermissionToEditThisField": "このフィールドを編集する権限がありません",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "アイコンを検索",

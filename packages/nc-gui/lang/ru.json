@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Добавление пустой записи в эту таблицу не допускается",
     "addLookupFields": "Добавить подстановочные поля",
     "sourceVisibilityIsHidden": "Видимость источника данных скрыта",
-    "youDontHavePermissionToEditThisField": "У вас нет разрешения редактировать это поле"
+    "youDontHavePermissionToEditThisField": "У вас нет разрешения редактировать это поле",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Поиск значков",

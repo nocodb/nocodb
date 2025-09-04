@@ -78,20 +78,20 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
 
     try {
-      dashboard =
-        dashboard ||
-        ((await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
+      if (!dashboard) {
+        dashboard = (await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
           operation: 'dashboardGet',
           id: dashboardId,
-        })) as unknown as DashboardType)
+        })) as unknown as DashboardType
 
-      const baseDashboards = dashboards.value.get(activeProjectId.value) || []
-      const filtered = baseDashboards.filter((a) => a.id !== dashboardId)
-      filtered.push(dashboard)
-      filtered.sort((a, b) => a.order - b.order)
-      dashboards.value.set(activeProjectId.value, filtered)
+        const baseDashboards = dashboards.value.get(activeProjectId.value) || []
+        const filtered = baseDashboards.filter((a) => a.id !== dashboardId)
+        filtered.push(dashboard)
+        filtered.sort((a, b) => a.order - b.order)
+        dashboards.value.set(activeProjectId.value, filtered)
 
-      return dashboard
+        return dashboard
+      }
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
@@ -446,6 +446,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
     if (dashboardId) {
       await loadDashboard(dashboardId)
     }
+  })
+
+  onMounted(async () => {
+    if (!activeDashboardId.value || !activeProjectId.value || !isDashboardEnabled.value) {
+      return
+    }
+    loadDashboard(activeDashboardId.value)
   })
 
   return {

@@ -10,7 +10,7 @@ import type { NcRequest } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import { _wherePk } from '~/helpers/dbHelpers';
+import { _wherePk, getCompositePkValue } from '~/helpers/dbHelpers';
 import conditionV2 from '~/db/conditionV2';
 import { Column, FileReference, Filter, Model } from '~/models';
 
@@ -237,12 +237,26 @@ export class BaseModelDelete {
   }) {
     const trx = await this.baseModel.dbDriver.transaction();
     const response: any[] = [];
+
+    const oldRecords = await this.baseModel.list(
+      {
+        pks: ids
+          .map((id) =>
+            getCompositePkValue(this.baseModel.model.primaryKeys, id),
+          )
+          .join(','),
+      },
+      {
+        limitOverride: ids.length,
+        ignoreViewFilterAndSort: true,
+      },
+    );
     try {
       for (const execQuery of execQueries) {
         await execQuery({ trx, qb: qb.clone(), ids, rows });
       }
       await trx.commit();
-      response.push(...rows);
+      response.push(...oldRecords);
     } catch (ex) {
       await trx.rollback();
       // silent error, may be improved to log into response

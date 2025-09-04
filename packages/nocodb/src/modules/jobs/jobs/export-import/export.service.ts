@@ -814,7 +814,9 @@ export class ExportService {
           model.columns
             .filter(
               (c) =>
-                isSystemColumn(c) && c.uidt === UITypes.LinkToAnotherRecord,
+                isSystemColumn(c) &&
+                c.uidt === UITypes.LinkToAnotherRecord &&
+                /.*_nc_m2m_.*/.test(c.title!),
             )
             .map((c) => c.id)
         : model.columns.filter((c) => isSystemColumn(c)).map((c) => c.id);

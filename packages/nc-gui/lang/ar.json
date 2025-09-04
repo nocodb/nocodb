@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "إضافة سجل فارغ غير مسموح به في هذا الجدول",
     "addLookupFields": "إضافة حقول البحث",
     "sourceVisibilityIsHidden": "رؤية مصدر البيانات مخفية",
-    "youDontHavePermissionToEditThisField": "ليس لديك إذن لتعديل هذا الحقل"
+    "youDontHavePermissionToEditThisField": "ليس لديك إذن لتعديل هذا الحقل",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "البحث عن الأيقونات",

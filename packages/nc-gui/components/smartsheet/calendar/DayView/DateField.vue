@@ -247,7 +247,7 @@ const newRecord = () => {
   <div
     v-else
     ref="container"
-    class="w-full h-full cursor-pointer flex text-md font-bold text-gray-500 items-center justify-center"
+    class="w-full h-full cursor-pointer flex text-md font-bold text-nc-content-gray-muted items-center justify-center"
     @drop="dropEvent"
     @dblclick="newRecord"
   >

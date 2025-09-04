@@ -6,6 +6,7 @@ interface Props {
   // for sqlite, when we clear a cell or empty the cell, it returns ""
   // otherwise, it is null type
   modelValue?: number | null | string
+  location?: 'cell' | 'filter'
 }
 
 interface Emits {
@@ -57,7 +58,7 @@ const vModel = computed({
   },
 })
 
-const inputType = computed(() => (isForm.value && !isEditColumn.value ? 'text' : 'number'))
+const inputType = computed(() => (isForm.value && !isEditColumn.value && props.location !== 'filter' ? 'text' : 'number'))
 
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()

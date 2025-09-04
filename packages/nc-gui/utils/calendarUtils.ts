@@ -30,7 +30,7 @@ const isRowInDateRange = (
     const rowEndDate = toDate ? timezoneDayjs.timezonize(toDate) : rowStartDate
 
     // Check if row's date range intersects with given range
-    if (rowStartDate.isBefore(rangeEnd) && rowEndDate.isAfter(rangeStart)) {
+    if (rowStartDate.isSameOrBefore(rangeEnd) && rowEndDate.isSameOrAfter(rangeStart)) {
       return true
     }
   }
@@ -130,7 +130,6 @@ const isRowMatchingSidebarFilter = (
       return true
 
     case 'withoutDates':
-      // Check if row has no dates in any calendar range
       for (const range of calendarRange) {
         const fromCol = range.fk_from_col
         const toCol = range.fk_to_col
@@ -138,7 +137,13 @@ const isRowMatchingSidebarFilter = (
         const fromDate = fromCol ? rowData[fromCol.title!] : null
         const toDate = toCol ? rowData[toCol.title!] : null
 
-        if (!fromDate && !toDate) {
+        // If both columns exist, both dates must be present
+        if (fromCol && toCol && (!fromDate || !toDate)) {
+          return true
+        }
+
+        // If only fromCol exists, fromDate must be present
+        if (fromCol && !toCol && !fromDate) {
           return true
         }
       }

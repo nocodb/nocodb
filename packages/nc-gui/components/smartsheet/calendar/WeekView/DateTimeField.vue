@@ -336,7 +336,7 @@ const recordsAcrossAllRange = computed<{
       .filter((record) => {
         if (fromCol && toCol) {
           const fromDate = timezoneDayjs.timezonize(record.row[fromCol.title!])
-          const toDate = timezoneDayjs.timezonize(record.row[toCol.title!])
+          const toDate = record.row[toCol.title!] ? timezoneDayjs.timezonize(record.row[toCol.title!]) : fromDate.add(1, 'hour')
 
           if (fromDate.isValid() && toDate.isValid()) {
             const isMultiDay = !fromDate.isSame(toDate, 'day')
@@ -359,7 +359,9 @@ const recordsAcrossAllRange = computed<{
       if (fromCol && toCol) {
         const { startDate, endDate } = calculateNewDates({
           startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
-          endDate: timezoneDayjs.timezonize(record.row[toCol.title!]),
+          endDate: record.row[toCol.title!]
+            ? timezoneDayjs.timezonize(record.row[toCol.title!])
+            : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour'),
           scheduleStart,
           scheduleEnd,
         })

@@ -121,7 +121,9 @@ const calendarData = computed(() => {
       const id = record.rowMeta.id ?? generateRandomNumber()
 
       const startDate = timezoneDayjs.timezonize(record.row[fk_from_col.title!])
-      const endDate = timezoneDayjs.timezonize(record.row[fk_to_col.title!])
+      const endDate = record.row[fk_to_col.title!]
+        ? timezoneDayjs.timezonize(record.row[fk_to_col.title!])
+        : startDate.endOf('day')
 
       const startDayIndex = Math.max(startDate.diff(viewStartDate.value, 'day'), 0)
       const endDayIndex = Math.min(endDate.diff(viewStartDate.value, 'day'), maxVisibleDays.value - 1)

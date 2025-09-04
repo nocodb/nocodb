@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "មិនអនុញ្ញាតឲ្យបញ្ចូលកំណត់ត្រាទទេ នៅក្នុងតារាងនេះទេ",
     "addLookupFields": "បន្ថែមវាល Lookup",
     "sourceVisibilityIsHidden": "មានការលាក់មើលប្រភពទិន្នន័យ",
-    "youDontHavePermissionToEditThisField": "អ្នកមិនមានសិទ្ធិកែសម្រួលវាលនេះទេ"
+    "youDontHavePermissionToEditThisField": "អ្នកមិនមានសិទ្ធិកែសម្រួលវាលនេះទេ",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "ស្វែងរកនិមិត្តសញ្ញា",

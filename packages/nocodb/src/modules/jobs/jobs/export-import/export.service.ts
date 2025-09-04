@@ -810,7 +810,13 @@ export class ExportService {
     const viewCols = await refView.getColumns(context);
     if (dataExportMode) {
       const hideSystemFields = view.show_system_fields
-        ? []
+        ? // at minimum filter mm fields used in Links field
+          model.columns
+            .filter(
+              (c) =>
+                isSystemColumn(c) && c.uidt === UITypes.LinkToAnotherRecord,
+            )
+            .map((c) => c.id)
         : model.columns.filter((c) => isSystemColumn(c)).map((c) => c.id);
 
       fields = viewCols

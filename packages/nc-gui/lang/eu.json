@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Erregistro hutsik gehitzea ez da baimenduta taula honetan",
     "addLookupFields": "Gehitu lookup eremuak",
     "sourceVisibilityIsHidden": "Datu iturriaren ikusgaitasuna ezkutatuta dago",
-    "youDontHavePermissionToEditThisField": "Ez duzu eremu hau editatzeko baimenik"
+    "youDontHavePermissionToEditThisField": "Ez duzu eremu hau editatzeko baimenik",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Bilatu ikonoak",

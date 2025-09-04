@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Det er ikke lov å legge til tom post i denne tabellen",
     "addLookupFields": "Legg til oppslagsfelt",
     "sourceVisibilityIsHidden": "Datakildevisibilitet er skjult",
-    "youDontHavePermissionToEditThisField": "Du har ikke tilgang til å redigere dette feltet"
+    "youDontHavePermissionToEditThisField": "Du har ikke tilgang til å redigere dette feltet",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Søk ikoner",

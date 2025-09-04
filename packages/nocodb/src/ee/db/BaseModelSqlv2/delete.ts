@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { BaseModelDelete as BaseModelDeleteCE } from 'src/db/BaseModelSqlv2/delete';
+import { getCompositePkValue } from 'src/helpers/dbHelpers';
 import type { Knex } from 'knex';
 import type {
   ExecQueryType,
@@ -39,27 +40,37 @@ export class BaseModelDelete extends BaseModelDeleteCE {
         );
       }
     }
+    const oldRecords = await this.baseModel.list(
+      {
+        pks: ids
+          .map((id) =>
+            getCompositePkValue(this.baseModel.model.primaryKeys, id),
+          )
+          .join(','),
+      },
+      {
+        limitOverride: ids.length,
+        ignoreViewFilterAndSort: true,
+      },
+    );
     let trx: Knex.Transaction;
     try {
       if (this.isDbExternal) {
-        const runResponse = await runExternal(
+        await runExternal(
           this.baseModel.sanitizeQuery(queries),
           (this.baseModel.dbDriver as any).extDb,
           {
             raw: true,
           },
         );
-        response.push(
-          ...(Array.isArray(runResponse) ? runResponse : [runResponse]),
-        );
       } else {
         trx = await this.baseModel.dbDriver.transaction();
         for (const execQuery of execQueries) {
           await Promise.all(execQuery({ trx, qb: qb.clone(), ids, rows }));
         }
+        await trx.commit();
       }
-      await trx.commit();
-      response.push(...rows);
+      response.push(...oldRecords);
     } catch (ex) {
       await trx?.rollback();
       // silent error, may be improved to log into response

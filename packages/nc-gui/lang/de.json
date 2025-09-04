@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Das Hinzufügen eines leeren Datensatzes ist in dieser Tabelle nicht erlaubt",
     "addLookupFields": "Lookup-Felder hinzufügen",
     "sourceVisibilityIsHidden": "Datenquellen-Sichtbarkeit ist verborgen",
-    "youDontHavePermissionToEditThisField": "Sie haben keine Berechtigung, dieses Feld zu bearbeiten"
+    "youDontHavePermissionToEditThisField": "Sie haben keine Berechtigung, dieses Feld zu bearbeiten",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "Icons suchen",

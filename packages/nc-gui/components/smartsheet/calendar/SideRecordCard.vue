@@ -109,13 +109,13 @@ const errorInfo = computed(() => {
     <div class="flex relative items-center gap-2">
       <span
         :class="{
-          'bg-maroon-500': props.color === 'maroon',
-          'bg-blue-500': props.color === 'blue',
-          'bg-green-500': props.color === 'green',
-          'bg-yellow-500': props.color === 'yellow',
-          'bg-pink-500': props.color === 'pink',
-          'bg-purple-500': props.color === 'purple',
-          'bg-gray-900': props.color === 'gray',
+          'bg-nc-fill-coloured-maroon-medium': props.color === 'maroon',
+          'bg-nc-fill-coloured-blue-medium': props.color === 'blue',
+          'bg-nc-fill-coloured-green-medium': props.color === 'green',
+          'bg-nc-fill-coloured-yellow-medium': props.color === 'yellow',
+          'bg-nc-fill-coloured-pink-medium': props.color === 'pink',
+          'bg-nc-fill-coloured-purple-medium': props.color === 'purple',
+          'bg-nc-gray-900': props.color === 'gray',
         }"
         class="block h-12 w-1"
         :style="rowColorInfo.rowLeftBorderColor"

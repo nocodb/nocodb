@@ -263,14 +263,26 @@ const newRecord = () => {
     ...rowDefaultData(meta.value?.columns),
   }
 
+  let fromDate
   if (activeCalendarView.value === 'day') {
-    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDate.value.format(updateFormat.value)
+    fromDate = selectedDate.value
   } else if (activeCalendarView.value === 'week') {
-    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDateRange.value.start.format(updateFormat.value)
+    fromDate = selectedDateRange.value.start
   } else if (activeCalendarView.value === 'month') {
-    row[calendarRange.value[0]!.fk_from_col!.title!] = (selectedDate.value ?? selectedMonth.value).format(updateFormat.value)
+    fromDate = selectedDate.value ?? selectedMonth.value
   } else if (activeCalendarView.value === 'year') {
-    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDate.value.format(updateFormat.value)
+    fromDate = selectedDate.value
+  }
+
+  // Set the from date
+  if (calendarRange.value[0]?.fk_from_col) {
+    row[calendarRange.value[0].fk_from_col.title!] = fromDate.format(updateFormat.value)
+  }
+
+  // Set the to date if to_col is configured (same as from date + 1 hour)
+  if (calendarRange.value[0]?.fk_to_col) {
+    const toDate = fromDate.endOf('hour')
+    row[calendarRange.value[0].fk_to_col.title!] = toDate.format(updateFormat.value)
   }
 
   emit('newRecord', { row, oldRow: {}, rowMeta: { new: true } })
@@ -421,7 +433,7 @@ const selectOption = (option) => {
           data-testid="nc-calendar-sidebar-search-btn"
           size="small"
           :class="{
-            '!bg-brand-50 nc-calendar-sidebar-search-active !text-nc-content-brand': showSearch,
+            '!bg-nc-brand-50 nc-calendar-sidebar-search-active !text-nc-content-brand': showSearch,
           }"
           :shadow="false"
           class="!h-7 !rounded-md nc-calendar-sidebar-search-btn !border-0"
@@ -480,8 +492,7 @@ const selectOption = (option) => {
             @click="newRecord"
           >
             <div class="flex items-center gap-2">
-              <component :is="iconMap.plus" />
-
+              <GeneralIcon icon="ncPlus" />
               Record
             </div>
           </NcButton>

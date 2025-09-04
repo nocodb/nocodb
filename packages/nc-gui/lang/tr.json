@@ -1845,7 +1845,8 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Bu tabloda boş kayıt eklemeye izin verilmiyor",
     "addLookupFields": "Arama Alanlarını Ekle",
     "sourceVisibilityIsHidden": "Veri kaynağı görünürlüğü gizli",
-    "youDontHavePermissionToEditThisField": "Bu alanı düzenleme izniniz yok"
+    "youDontHavePermissionToEditThisField": "Bu alanı düzenleme izniniz yok",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
   },
   "placeholder": {
     "searchIcons": "İkonları ara",

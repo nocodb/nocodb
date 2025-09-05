@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "प्राइवेट बेस {plan} प्लान में उपलब्ध हैं। उनका उपयोग प्रारंभ करने के लिए अभी अपग्रेड करें।",
     "upgradeLicenseToUsePrivateBases": "प्राइवेट बेस अनलॉक करने हेतु लाइसेंस अपग्रेड करें",
     "upgradeLicenseToUsePrivateBasesSubtitle": "एंटरप्राइज स्टार्टर लाइसेंस में प्राइवेट बेस उपलब्ध नहीं हैं। इन्हें उपयोग करने के लिए लाइसेंस कुंजी अपग्रेड करें।",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "आप इस सेल में अधिकतम {limit} {filePlural} ही अपलोड कर सकते हैं। अधिक फ़ाइल जोड़ने हेतु {plan} प्लान में अपग्रेड करें।"
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "आप इस सेल में अधिकतम {limit} {filePlural} ही अपलोड कर सकते हैं। अधिक फ़ाइल जोड़ने हेतु {plan} प्लान में अपग्रेड करें।",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "स्क्रिप्ट",
@@ -908,7 +910,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "अनलॉक करने के लिए, {plan} प्लान में अपग्रेड करें या इस बेस को साझा बेस में बदलें।",
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} फ़ील्ड्स में कस्टम अनुमति है",
     "cancelSubscriptionBeforeDeletingWorkspace": "वर्कस्पेस हटाने से पहले सदस्यता रद्द करें",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "इस कार्यक्षेत्र की एक सक्रिय सदस्यता है। कृपया आगे बढ़ने से पहले उसकी समीक्षा कर रद्द करें।"
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "इस कार्यक्षेत्र की एक सक्रिय सदस्यता है। कृपया आगे बढ़ने से पहले उसकी समीक्षा कर रद्द करें।",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1408,6 +1414,8 @@
     "generateFieldDataUsingAi": "AI का उपयोग करके फील्ड मान जनरेट करें",
     "preview": "पूर्वावलोकन",
     "autoSuggest": "स्वचालित सुझाव",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "सुझाव दिया जा रहा है...",
     "autoSuggestFields": "फील्ड्स के लिए स्वचालित सुझाव",
     "autoSuggestFormulas": "फार्मूलों के लिए स्वचालित सुझाव",
@@ -1477,6 +1485,7 @@
     "resolvedBy": "द्वारा हल किया गया",
     "leaveWorkspace": "वर्कस्पेस छोड़ें",
     "removeUser": "उपयोगकर्ता हटाएँ",
+    "removeMember": "Remove member",
     "filterByThisField": "इस फ़ील्ड द्वारा फ़िल्टर करें",
     "groupByThisField": "इस फ़ील्ड द्वारा समूहित करें",
     "addToStarred": "स्टारred में जोड़ें",

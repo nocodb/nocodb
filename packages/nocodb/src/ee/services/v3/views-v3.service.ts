@@ -7,6 +7,7 @@ import {
   viewTypeAlias,
   ViewTypes,
 } from 'nocodb-sdk';
+import { ViewsV3Service as ViewsV3ServiceCE } from 'src/services/v3/views-v3.service';
 import type { RowColoringInfo, ViewCreateV3Type } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { ApiV3DataTransformationBuilder } from '~/utils/data-transformation.builder';
@@ -39,6 +40,7 @@ import { validatePayload } from '~/helpers';
 import { FormColumnsService } from '~/services/form-columns.service';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 import { withoutId } from '~/helpers/exportImportHelpers';
+import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 
 const viewTypeMap = {
   grid: ViewTypes.GRID,
@@ -50,7 +52,7 @@ const viewTypeMap = {
 };
 
 @Injectable()
-export class ViewsV3Service {
+export class ViewsV3Service extends ViewsV3ServiceCE {
   protected logger = new Logger(ViewsV3Service.name);
   private builder;
   private viewBuilder;
@@ -80,6 +82,7 @@ export class ViewsV3Service {
     protected kanbansService: KanbansService,
     protected galleriesService: GalleriesService,
   ) {
+    super();
     this.builder = builderGenerator({
       allowed: [
         'id',
@@ -646,6 +649,11 @@ export class ViewsV3Service {
       ncMeta,
     );
     const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
+    const viewWebhookManagerBuilder = new ViewWebhookManagerBuilder(context);
+    const viewWebhookManager = (
+      await viewWebhookManagerBuilder.withModelId(tableId)
+    ).forCreate();
+
     try {
       let insertedV2View: View;
       switch (requestBody.type) {
@@ -671,6 +679,7 @@ export class ViewsV3Service {
               tableId,
               grid: requestBody,
               req: req,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -709,6 +718,7 @@ export class ViewsV3Service {
               calendar: requestBody,
               req: req,
               user: context.user,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -722,6 +732,7 @@ export class ViewsV3Service {
               kanban: requestBody,
               req: req,
               user: context.user,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -747,6 +758,7 @@ export class ViewsV3Service {
               gallery: requestBody,
               req: req,
               user: context.user,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -760,6 +772,7 @@ export class ViewsV3Service {
               body: requestBody,
               req: req,
               user: context.user,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -826,7 +839,13 @@ export class ViewsV3Service {
       if (!ncMeta) {
         await trxNcMeta.commit();
       }
-      return this.getView(context, { viewId: insertedV2View.id, req });
+      const result = await this.getView(context, {
+        viewId: insertedV2View.id,
+        req,
+      });
+      viewWebhookManager.withNewView(result);
+      viewWebhookManager.emit();
+      return result;
     } catch (ex) {
       await trxNcMeta.rollback();
       throw ex;

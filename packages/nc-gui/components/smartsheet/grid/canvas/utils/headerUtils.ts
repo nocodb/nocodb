@@ -46,7 +46,7 @@ export function getCustomColumnTooltip({
       mmTable = metas[relOptions.fk_mm_model_id]?.title?.includes('nc_m2m_') ? null : metas[relOptions.fk_mm_model_id]
     } else {
       // if metas not found in store, fetch it
-      getMeta?.(relOptions.fk_mm_model_id).catch((e) => {
+      getMeta?.(relOptions.fk_mm_model_id).catch((_e) => {
         // do nothing
       })
     }

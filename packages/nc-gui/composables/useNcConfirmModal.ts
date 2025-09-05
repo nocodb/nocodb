@@ -104,6 +104,7 @@ const useNcConfirmModal = () => {
           closeDialog()
         },
         'okClass': okClass,
+        'okProps': okProps,
         'update:visible': () => closeDialog(key),
         'showIcon': showIcon,
         'maskClosable': maskClosable,

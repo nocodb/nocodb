@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Bazele private sunt disponibile pe planul {plan}. Fă upgrade acum pentru a le folosi.",
     "upgradeLicenseToUsePrivateBases": "Fă upgrade licența pentru a debloca baze private",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Bazele private nu sunt disponibile în licența Enterprise Starter. Fă upgrade licența pentru a le utiliza.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Poți încărca maximum {limit} {filePlural} în această celulă. Fă upgrade la planul {plan} pentru a adăuga mai multe fișiere."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Poți încărca maximum {limit} {filePlural} în această celulă. Fă upgrade la planul {plan} pentru a adăuga mai multe fișiere.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Script",
@@ -908,7 +910,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "Pentru a debloca, fă upgrade la planul {plan} sau convertește această bază într-o bază partajată.",
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} câmpuri au permisiuni personalizate",
     "cancelSubscriptionBeforeDeletingWorkspace": "Anulează abonamentul înainte de a șterge spațiul de lucru",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "Acest spațiu de lucru are un abonament activ. Te rugăm să-l revizuiești și să-l anulezi înainte de ștergere."
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "Acest spațiu de lucru are un abonament activ. Te rugăm să-l revizuiești și să-l anulezi înainte de ștergere.",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1408,6 +1414,8 @@
     "generateFieldDataUsingAi": "Generează valoarea câmpului folosind AI",
     "preview": "Previzualizare",
     "autoSuggest": "Sugestie automată",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Se sugerează...",
     "autoSuggestFields": "Sugerează automat câmpuri",
     "autoSuggestFormulas": "Sugerează automat formule",
@@ -1477,6 +1485,7 @@
     "resolvedBy": "Rezolvat de",
     "leaveWorkspace": "Părăsește spațiul de lucru",
     "removeUser": "Elimină utilizator",
+    "removeMember": "Remove member",
     "filterByThisField": "Filtrează după acest câmp",
     "groupByThisField": "Grupează după acest câmp",
     "addToStarred": "Adaugă la favorite",

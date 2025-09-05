@@ -144,7 +144,8 @@ const renderAIButton = (
 
 export const AILongTextCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props) => {
-    const { value, x, y, width, height, spriteLoader, disabled, padding, mousePosition, actionManager, pk, column } = props
+    const { value, x, y, width, height, spriteLoader, disabled, padding, mousePosition, actionManager, pk, column, setCursor } =
+      props
 
     const isHovered = isBoxHovered({ x, y, width, height }, mousePosition)
 
@@ -177,51 +178,52 @@ export const AILongTextCellRenderer: CellRenderer = {
       }
     }
 
-      const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
-        x: x + padding,
-        y,
-        text: value.value,
-        maxWidth: width - padding * 2,
-        fillStyle: '#4a5268',
-        height,
+    const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
+      x: x + padding,
+      y,
+      text: value.value,
+      maxWidth: width - padding * 2,
+      fillStyle: '#4a5268',
+      height,
+    })
+
+    if (isHovered) {
+      renderIconButton(ctx, {
+        buttonX: x + width - 28,
+        buttonY: y + 7,
+        buttonSize: 18,
+        borderRadius: 3,
+        iconData: {
+          size: 13,
+          xOffset: (18 - 13) / 2,
+          yOffset: (18 - 13) / 2,
+        },
+        mousePosition,
+        spriteLoader,
+        icon: 'maximize',
+        setCursor,
       })
+      renderIconButton(ctx, {
+        buttonX: x + width - 52,
+        buttonY: y + 7,
+        buttonSize: 18,
+        borderRadius: 3,
+        iconData: {
+          size: 13,
+          xOffset: (18 - 13) / 2,
+          yOffset: (18 - 13) / 2,
+        },
+        mousePosition,
+        spriteLoader,
+        icon: 'refresh',
+        setCursor,
+      })
+    }
 
-      if (isHovered) {
-        renderIconButton(ctx, {
-          buttonX: x + width - 28,
-          buttonY: y + 7,
-          buttonSize: 18,
-          borderRadius: 3,
-          iconData: {
-            size: 13,
-            xOffset: (18 - 13) / 2,
-            yOffset: (18 - 13) / 2,
-          },
-          mousePosition,
-          spriteLoader,
-          icon: 'maximize',
-        })
-        renderIconButton(ctx, {
-          buttonX: x + width - 52,
-          buttonY: y + 7,
-          buttonSize: 18,
-          borderRadius: 3,
-          iconData: {
-            size: 13,
-            xOffset: (18 - 13) / 2,
-            yOffset: (18 - 13) / 2,
-          },
-          mousePosition,
-          spriteLoader,
-          icon: 'refresh',
-        })
-      }
-
-      return {
-        x: xOffset,
-        y: yOffset,
-      }
-    
+    return {
+      x: xOffset,
+      y: yOffset,
+    }
 
     return {
       x,

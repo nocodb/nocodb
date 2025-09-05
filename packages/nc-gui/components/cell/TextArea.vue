@@ -803,7 +803,7 @@ useResizeObserver(inputWrapperRef, () => {
                     <GeneralIcon icon="refresh" class="animate-infinite animate-spin" />
                   </template>
 
-                  <span class="text-sm font-bold"> {{ isAiGenerating ? 'Re-generating...' : 'Re-generate' }} </span>
+                  {{ isAiGenerating ? 'Re-generating...' : 'Re-generate' }}
                 </NcButton>
               </NcTooltip>
             </div>

@@ -256,7 +256,7 @@ const columns = [
   },
   {
     key: 'email',
-    title: t('objects.users'),
+    title: t('labels.members'),
     minWidth: 220,
     dataIndex: 'email',
     showOrderBy: true,

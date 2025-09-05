@@ -192,7 +192,7 @@ const columns = [
   },
   {
     key: 'email',
-    title: t('objects.users'),
+    title: t('labels.members'),
     minWidth: 220,
     dataIndex: 'email',
     showOrderBy: true,
@@ -480,7 +480,7 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
                           <GeneralLoader class="!flex-none !text-current" />
                         </div>
                         <GeneralIcon v-else icon="delete" />
-                        {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeUser') }}
+                        {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeMember') }}
                       </NcMenuItem>
                     </NcTooltip>
                   </NcMenu>

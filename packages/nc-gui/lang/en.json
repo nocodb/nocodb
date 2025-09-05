@@ -1412,6 +1412,8 @@
     "generateFieldDataUsingAi": "Generate field value using AI",
     "preview": "Preview",
     "autoSuggest": "Auto suggest",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Suggesting...",
     "autoSuggestFields": "Auto suggest fields",
     "autoSuggestFormulas": "Auto suggest formulas",

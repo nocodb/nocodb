@@ -61,13 +61,13 @@ const props = defineProps<{
 
   &.theme-ai {
     .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
-      @apply text-purple-600;
+      @apply text-nc-purple-600;
     }
     .ant-tabs-tab.ant-tabs-tab-active:hover .ant-tabs-tab-btn {
-      @apply text-purple-700;
+      @apply text-nc-content-purple-dark;
     }
     .ant-tabs-ink-bar {
-      @apply bg-purple-500;
+      @apply bg-nc-fill-purple-medium;
     }
   }
 }

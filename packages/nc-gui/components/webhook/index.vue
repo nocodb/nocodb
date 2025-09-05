@@ -1780,4 +1780,8 @@ const webhookV2AndV3Diff = computed(() => {
 :deep(.nc-filter-field-select .ant-select-selector .field-selection-tooltip-wrapper) {
   @apply !max-w-none;
 }
+
+:deep(.ant-select-selector .ant-select-selection-placeholder) {
+  @apply leading-[34px];
+}
 </style>

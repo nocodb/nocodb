@@ -5,7 +5,7 @@ import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import { NcMarkdownParser, suggestion } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
-import { HardBreak, Italic, Link, Strike, UserMention, UserMentionList } from '~/helpers/tiptap-markdown/extensions'
+import { HardBreak, Italic, Link, Paragraph, Strike, UserMention, UserMentionList } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -83,11 +83,14 @@ const getTiptapExtensions = () => {
       strike: false,
       hardBreak: false,
       italic: false,
+      paragraph: false,
     }),
     Strike,
     Underline,
     Link,
     Italic,
+
+    Paragraph,
     HardBreak,
     Placeholder.configure({
       emptyEditorClass: 'is-editor-empty',

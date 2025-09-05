@@ -58,8 +58,6 @@ const checkTypeFunctions: Record<string, (column: ColumnType, abstractType?: str
 
 type ValidationType = keyof typeof checkTypeFunctions
 
-const { sqlUis } = storeToRefs(useBase())
-
 const baseStore = useBase()
 
 const sqlUi = computed(() => baseStore.getSqlUiBySourceId(column.value?.source_id))

@@ -27,6 +27,19 @@ export class MarkdownParser {
     }
   }
 
+  replaceBlockBrWithEmptyParagraph(html: string): string {
+    const container = document.createElement('div')
+    container.innerHTML = html
+    ;[...container.children].forEach((child) => {
+      if (child.tagName === 'BR') {
+        const p = document.createElement('p')
+        child.replaceWith(p)
+      }
+    })
+
+    return container.innerHTML
+  }
+
   parse<T>(content: T, { inline }: { inline?: boolean } = {}): T | string {
     if (!ncIsString(content)) return content
 
@@ -37,13 +50,13 @@ export class MarkdownParser {
     const renderedHTML = this.md.render(content)
     const element = elementFromString(renderedHTML)
 
-    this.editor.extensionManager.extensions.forEach((extension) =>
-      getMarkdownSpec(extension)?.parse?.updateDOM?.call({ editor: this.editor, options: extension.options }, element),
-    )
+    this.editor.extensionManager.extensions.forEach((extension) => {
+      getMarkdownSpec(extension)?.parse?.updateDOM?.call({ editor: this.editor, options: extension.options }, element)
+    })
 
     this.normalizeDOM(element, { inline, content })
 
-    return element.innerHTML
+    return this.replaceBlockBrWithEmptyParagraph(element.innerHTML)
   }
 
   normalizeDOM(node: HTMLElement, { inline, content }: { inline?: boolean; content: string }) {

@@ -17,7 +17,7 @@ import type {
 } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
-import type { Column, Model, Source, View } from '~/models';
+import type { Column, Filter, Model, Sort, Source, View } from '~/models';
 
 export interface IBaseModelSqlV2 {
   context: NcContext;
@@ -326,6 +326,30 @@ export interface IBaseModelSqlV2 {
     apiVersion?: NcApiVersion;
     args?: any;
   }): Promise<any[]>;
+
+  list(
+    args?: {
+      where?: string;
+      limit?: any;
+      offset?: any;
+      filterArr?: Filter[];
+      sortArr?: Sort[];
+      sort?: string | string[];
+      fieldsSet?: Set<string>;
+      limitOverride?: number;
+      pks?: string;
+      customConditions?: Filter[];
+      apiVersion?: NcApiVersion;
+    },
+    options?: {
+      ignoreViewFilterAndSort?: boolean;
+      ignorePagination?: boolean;
+      validateFormula?: boolean;
+      throwErrorIfInvalidParams?: boolean;
+      limitOverride?: number;
+      skipSubstitutingColumnIds?: boolean;
+    },
+  ): Promise<any>;
 
   broadcastLinkUpdates(ids: Array<string>): Promise<void>;
   getSource(): Promise<Source>;

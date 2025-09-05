@@ -797,7 +797,6 @@ import NcCrown from '~icons/nc-icons-v2/crown'
 import NcMultiCircle from '~icons/nc-icons-v2/multi-circle'
 import NcChatwoot from '~icons/nc-icons-v2/chatwoot'
 import NcGraduationCap from '~icons/nc-icons-v2/graduation-cap'
-import NcSupportAgent from '~icons/nc-icons-v2/support-agent'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1802,7 +1801,6 @@ export const iconMap = {
   'ncChartPie': h(NcChartPie, { stroke: 'transparent' }),
   'ncSun': NcSun,
   'ncGraduationCap': NcGraduationCap,
-  'ncSupportAgent': h(NcSupportAgent, { stroke: 'transparent' }),
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4577,10 +4575,6 @@ export const searchableMap = {
   ncGraduationCap: {
     icon: NcGraduationCap,
     keywords: ['graduation', 'cap', 'school', 'education', 'academic'],
-  },
-  ncSupportAgent: {
-    icon: h(NcSupportAgent, { stroke: 'transparent' }),
-    keywords: ['support', 'agent', 'help', 'customer', 'service'],
   },
 }
 

@@ -1044,7 +1044,9 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
   return qb;
 }
 
-type CustomKnex = Knex;
+type CustomKnex = Knex & {
+  attachToTransaction?: (fn: () => void) => void;
+};
 
 function CustomKnex(
   arg: string | Knex.Config<any> | any,
@@ -1060,6 +1062,10 @@ function CustomKnex(
   const knexRaw = kn.raw;
 
   const knexTransaction = kn.transaction;
+
+  const knexCommit = kn.commit;
+
+  const knexRollback = kn.rollback;
 
   const overrideProps = {
     raw: {
@@ -1100,6 +1106,49 @@ function CustomKnex(
         Object.defineProperties(trx, overrideProps);
 
         return trx;
+      },
+    },
+    ops: {
+      enumerable: true,
+      writable: true,
+      value: [],
+    },
+    attachToTransaction: {
+      enumerable: true,
+      value: (fn: () => void) => {
+        if (!kn.isTransaction) {
+          return fn();
+        }
+        kn.ops.push(async () => {
+          try {
+            return await fn();
+          } catch (error) {
+            console.error(
+              'Error occurred while running attached operation:',
+              error,
+            );
+          }
+        });
+      },
+    },
+    knexCommit: {
+      enumerable: true,
+      value: async (...args) => {
+        const result = await knexCommit.apply(kn, args);
+
+        await Promise.all(kn.ops.map((op) => op()));
+
+        return result;
+      },
+    },
+    knexRollback: {
+      enumerable: true,
+      value: async (...args) => {
+        // Clear the operations queue
+        kn.ops = [];
+
+        const result = await knexRollback.apply(kn, args);
+        return result;
       },
     },
   };

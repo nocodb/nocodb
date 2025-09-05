@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "A privát bázisok a(z) {plan} csomagban érhetők el. Frissítsen most a használatukhoz.",
     "upgradeLicenseToUsePrivateBases": "Frissítés a privát bázisok használatához szükséges licenchez",
     "upgradeLicenseToUsePrivateBasesSubtitle": "A privát bázisok nem érhetők el az Enterprise Starter licenccel. Frissítsen nagyobb licencre a használathoz.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Legfeljebb {limit} {filePlural} tölthet fel ebbe a cellába. További fájlok hozzáadásához frissítsen a(z) {plan} csomagra."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Legfeljebb {limit} {filePlural} tölthet fel ebbe a cellába. További fájlok hozzáadásához frissítsen a(z) {plan} csomagra.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Szkript",
@@ -908,7 +910,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "A feloldáshoz frissítsen a(z) {plan} csomagra vagy alakítsa át ezt a bázist megosztott bázissá.",
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} mezőnek egyéni engedélye van",
     "cancelSubscriptionBeforeDeletingWorkspace": "Lemondás a munkaterület törlése előtt",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "Ez a munkaterület aktív előfizetéssel rendelkezik. A folytatás előtt tekintse át és mondja le az előfizetését."
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "Ez a munkaterület aktív előfizetéssel rendelkezik. A folytatás előtt tekintse át és mondja le az előfizetését.",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1408,6 +1414,8 @@
     "generateFieldDataUsingAi": "Mezőérték generálása MI segítségével",
     "preview": "Előnézet",
     "autoSuggest": "Automatikus javaslat",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Javaslat...",
     "autoSuggestFields": "Mezők automatikus javaslata",
     "autoSuggestFormulas": "Képletek automatikus javaslata",
@@ -1477,6 +1485,7 @@
     "resolvedBy": "Megoldotta",
     "leaveWorkspace": "Munkaterület elhagyása",
     "removeUser": "Felhasználó eltávolítása",
+    "removeMember": "Remove member",
     "filterByThisField": "Szűrés ezen mező szerint",
     "groupByThisField": "Csoportosítás ezen mező szerint",
     "addToStarred": "Csillagozás",

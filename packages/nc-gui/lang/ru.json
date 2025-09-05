@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Приватные базы доступны на тарифе {plan}. Обновите тариф сейчас, чтобы начать использовать их.",
     "upgradeLicenseToUsePrivateBases": "Обновите лицензию, чтобы разблокировать приватные базы",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Приватные базы недоступны в лицензии Enterprise Starter. Обновите лицензию, чтобы начать использовать их.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Вы можете загрузить не более {limit} {filePlural} в эту ячейку. Обновите тариф {plan}, чтобы добавить больше файлов."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Вы можете загрузить не более {limit} {filePlural} в эту ячейку. Обновите тариф {plan}, чтобы добавить больше файлов.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Скрипт",
@@ -908,7 +910,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "Чтобы разблокировать, обновите до тарифа {plan} или преобразуйте базу в общую.",
     "mOfNFieldsHaveCustomPermissions": "{m} из {n} полей имеют индивидуальные разрешения",
     "cancelSubscriptionBeforeDeletingWorkspace": "Отмените подписку перед удалением рабочего пространства",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "У этого рабочего пространства есть активная подписка. Пожалуйста, отмените её перед продолжением удаления."
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "У этого рабочего пространства есть активная подписка. Пожалуйста, отмените её перед продолжением удаления.",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1408,6 +1414,8 @@
     "generateFieldDataUsingAi": "Сгенерировать значение поля с помощью ИИ",
     "preview": "Предпросмотр",
     "autoSuggest": "Автопредложение",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Предлагаем...",
     "autoSuggestFields": "Автопредложение полей",
     "autoSuggestFormulas": "Автопредложение формул",
@@ -1477,6 +1485,7 @@
     "resolvedBy": "Разрешено пользователем",
     "leaveWorkspace": "Покинуть рабочее пространство",
     "removeUser": "Удалить пользователя",
+    "removeMember": "Remove member",
     "filterByThisField": "Фильтровать по этому полю",
     "groupByThisField": "Группировать по этому полю",
     "addToStarred": "Добавить в избранное",

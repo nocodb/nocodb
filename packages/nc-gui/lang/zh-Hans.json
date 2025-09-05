@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "专用基座仅在 {plan} 计划中提供。立即升级即可使用。",
     "upgradeLicenseToUsePrivateBases": "升级许可证以解锁专用基座",
     "upgradeLicenseToUsePrivateBasesSubtitle": "企业入门许可证不提供专用基地。升级许可证密钥即可开始使用。",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "您最多只能向该单元上传 {limit} {filePlural} 。升级到 {plan} 计划可添加更多文件。"
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "您最多只能向该单元上传 {limit} {filePlural} 。升级到 {plan} 计划可添加更多文件。",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "脚本",
@@ -908,7 +910,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "如需解锁，请升级到 {plan} 计划或将该基座转为共享基座。",
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} 个字段拥有自定义权限",
     "cancelSubscriptionBeforeDeletingWorkspace": "删除工作区前请先取消订阅",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "此工作区有活跃订阅，请先审核并取消订阅后再删除。"
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "此工作区有活跃订阅，请先审核并取消订阅后再删除。",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1408,6 +1414,8 @@
     "generateFieldDataUsingAi": "使用 AI 生成字段值",
     "preview": "预览",
     "autoSuggest": "自动建议",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "建议...",
     "autoSuggestFields": "自动建议字段",
     "autoSuggestFormulas": "自动建议公式",
@@ -1477,6 +1485,7 @@
     "resolvedBy": "已解决者",
     "leaveWorkspace": "离开工作区",
     "removeUser": "移除用户",
+    "removeMember": "Remove member",
     "filterByThisField": "根据此字段过滤",
     "groupByThisField": "按此字段分组",
     "addToStarred": "添加到已加星标",

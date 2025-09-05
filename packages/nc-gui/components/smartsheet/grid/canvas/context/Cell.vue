@@ -369,6 +369,7 @@ const execBulkAction = async (path: Array<number>) => {
         class="nc-base-menu-item"
         data-testid="context-menu-item-bulk"
         :disabled="isSelectionOnlyAI.disabled"
+        theme="ai"
         @click="execBulkAction(contextMenuPath || [])"
       >
         <div class="flex gap-2 items-center">

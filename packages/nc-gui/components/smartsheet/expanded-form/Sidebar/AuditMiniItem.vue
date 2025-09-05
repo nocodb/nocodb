@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { type AttachmentType, type AuditType, checkboxIconListMap, parseHelper, isAIPromptCol, ratingIconListMap } from 'nocodb-sdk'
+import {
+  type AttachmentType,
+  type AuditType,
+  checkboxIconListMap,
+  isAIPromptCol,
+  parseHelper,
+  ratingIconListMap,
+} from 'nocodb-sdk'
 
 const props = defineProps<{
   audit: AuditType

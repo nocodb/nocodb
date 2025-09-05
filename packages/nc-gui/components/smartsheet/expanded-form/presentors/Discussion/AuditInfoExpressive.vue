@@ -130,7 +130,11 @@ function isShowableValue(value: any) {
           class="rounded-md px-1 !h-[20px] inline-flex items-center gap-1 text-nc-content-gray-emphasis border-1 border-nc-border-gray-medium"
         >
           <SmartsheetHeaderCellIcon
-            :column-meta="{ uidt: meta[columnKey]?.type, dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined }"
+            :column-meta="{
+              uidt: meta[columnKey]?.type,
+              dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined,
+              meta: normalizeMeta(columnKey),
+            }"
             class="!w-[16px] !h-[16px] !m-0 !text-nc-content-gray-emphasis"
           />
 

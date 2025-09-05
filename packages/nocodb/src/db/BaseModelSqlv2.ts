@@ -65,6 +65,7 @@ import type {
 } from '~/models';
 import type LookupColumn from '~/models/LookupColumn';
 import type { ResolverObj } from '~/utils';
+import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
 import { FieldHandler } from '~/db/field-handler';
@@ -3535,253 +3536,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     args: { where?: string; filterArr?: Filter[]; viewId?: string } = {},
     { cookie, skip_hooks = false }: { cookie: NcRequest; skip_hooks?: boolean },
   ) {
-    let trx: Knex.Transaction;
-    try {
-      const columns = await this.model.getColumns(this.context);
-      const { where } = this._getListArgs(args);
-      const qb = this.dbDriver(this.tnPath);
-      const aliasColObjMap = await this.model.getAliasColObjMap(
-        this.context,
-        columns,
-      );
-      const { filters: filterObj } = extractFilterFromXwhere(
-        this.context,
-        where,
-        aliasColObjMap,
-        true,
-      );
-
-      await conditionV2(
-        this,
-        [
-          new Filter({
-            children: args.filterArr || [],
-            is_group: true,
-            logical_op: 'and',
-          }),
-          new Filter({
-            children: filterObj,
-            is_group: true,
-            logical_op: 'and',
-          }),
-          ...(args.viewId
-            ? await Filter.rootFilterList(this.context, {
-                viewId: args.viewId,
-              })
-            : []),
-        ],
-        qb,
-        undefined,
-        true,
-      );
-      const execQueries: ((trx: Knex.Transaction, qb: any) => Promise<any>)[] =
-        [];
-      // qb.del();
-
-      for (const column of this.model.columns) {
-        if (!isLinksOrLTAR(column)) continue;
-
-        const colOptions =
-          await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
-
-        const { refContext, mmContext, parentContext, childContext } =
-          await colOptions.getParentChildContext(this.context);
-
-        if (colOptions.type === 'bt') {
-          continue;
-        }
-
-        const childColumn = await colOptions.getChildColumn(childContext);
-        const parentColumn = await colOptions.getParentColumn(parentContext);
-        const parentTable = await parentColumn.getModel(parentContext);
-        const childTable = await childColumn.getModel(childContext);
-        await childTable.getColumns(childContext);
-        await parentTable.getColumns(parentContext);
-
-        const childBaseModel = await Model.getBaseModelSQL(childContext, {
-          model: childTable,
-          dbDriver: this.dbDriver,
-        });
-
-        const childTn = childBaseModel.getTnPath(childTable);
-
-        switch (colOptions.type) {
-          case 'mm':
-            {
-              const vChildCol = await colOptions.getMMChildColumn(mmContext);
-              const vTable = await colOptions.getMMModel(mmContext);
-              const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
-                model: vTable,
-                dbDriver: this.dbDriver,
-              });
-              const vTn = assocBaseModel.getTnPath(vTable);
-
-              execQueries.push(() =>
-                this.dbDriver(vTn)
-                  .where({
-                    [vChildCol.column_name]: this.dbDriver(childTn)
-                      .select(childColumn.column_name)
-                      .first(),
-                  })
-                  .delete(),
-              );
-            }
-            break;
-          case 'hm':
-            {
-              // skip if it's an mm table column
-              const relatedTable = await colOptions.getRelatedTable(refContext);
-              if (relatedTable.mm) {
-                break;
-              }
-
-              const childColumn = await Column.get(childContext, {
-                colId: colOptions.fk_child_column_id,
-              });
-
-              execQueries.push((trx, qb) =>
-                trx(childTn)
-                  .where({
-                    [childColumn.column_name]: this.dbDriver.from(
-                      qb
-                        .select(parentColumn.column_name)
-                        // .where(_wherePk(parentTable.primaryKeys, rowId))
-                        .first()
-                        .as('___cn_alias'),
-                    ),
-                  })
-                  .update({
-                    [childColumn.column_name]: null,
-                  }),
-              );
-            }
-            break;
-        }
-      }
-
-      const source = await this.getSource();
-
-      // remove FileReferences for attachments
-      const attachmentColumns = columns.filter(
-        (c) => c.uidt === UITypes.Attachment,
-      );
-
-      // paginate all the records and find file reference ids
-      const selectQb = qb
-        .clone()
-        .select(
-          attachmentColumns
-            .map((c) => c.column_name)
-            .concat(this.model.primaryKeys.map((pk) => pk.column_name)),
-        );
-
-      const response = [];
-
-      let offset = 0;
-      const limit = 100;
-
-      const fileReferenceIds: string[] = [];
-
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        const rows = await this.execAndParse(
-          selectQb
-            .clone()
-            .offset(offset)
-            .limit(limit + 1),
-          null,
-          {
-            raw: true,
-          },
-        );
-
-        if (rows.length === 0) {
-          break;
-        }
-
-        let lastPage = false;
-
-        if (rows.length > limit) {
-          rows.pop();
-        } else {
-          lastPage = true;
-        }
-
-        for (const row of rows) {
-          for (const c of attachmentColumns) {
-            if (row[c.column_name]) {
-              try {
-                let attachments;
-                if (typeof row[c.column_name] === 'string') {
-                  attachments = JSON.parse(row[c.column_name]);
-                  for (const attachment of attachments) {
-                    if (attachment.id) {
-                      fileReferenceIds.push(attachment.id);
-                    }
-                  }
-                }
-
-                if (Array.isArray(attachments)) {
-                  for (const attachment of attachments) {
-                    if (attachment.id) {
-                      fileReferenceIds.push(attachment.id);
-                    }
-                  }
-                }
-              } catch (e) {
-                // ignore error
-              }
-            }
-          }
-
-          const primaryData = {};
-
-          for (const pk of this.model.primaryKeys) {
-            primaryData[pk.title] = row[pk.column_name];
-          }
-
-          response.push(primaryData);
-        }
-
-        if (lastPage) {
-          break;
-        }
-
-        offset += limit;
-      }
-
-      // insert records updating record details to audit table
-      await this.bulkAudit({
-        qb: qb.clone(),
-        conditions: filterObj,
-        req: cookie,
-        event: AuditV1OperationTypes.DATA_BULK_DELETE,
-      });
-
-      await FileReference.delete(this.context, fileReferenceIds);
-
-      trx = await this.dbDriver.transaction();
-
-      // unlink LTAR data
-      if (source.isMeta()) {
-        for (const execQuery of execQueries) {
-          await execQuery(trx, qb.clone());
-        }
-      }
-
-      await qb.clone().transacting(trx).del();
-
-      await trx.commit();
-
-      if (!skip_hooks) {
-        await this.afterBulkDelete(response, this.dbDriver, cookie, true);
-      }
-
-      return response;
-    } catch (e) {
-      await trx?.rollback();
-      throw e;
-    }
+    return await new BaseModelDelete(this).bulkAll({
+      args,
+      cookie,
+      skip_hooks,
+    });
   }
 
   /**
@@ -3990,11 +3749,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     data: any,
     _trx: any,
     req,
-    isBulkAllOperation = false,
+    _isBulkAllOperation = false,
   ): Promise<void> {
-    if (!isBulkAllOperation) {
-      await this.handleHooks('after.bulkDelete', null, data, req);
-    }
+    await this.handleHooks('after.bulkDelete', null, data, req);
 
     const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
@@ -5324,7 +5081,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return data;
   }
 
-  protected sanitizeQuery(query: string | string[]) {
+  sanitizeQuery(query: string | string[]) {
     const fn = (q: string) => {
       if (!this.isPg && !this.isSnowflake) {
         return unsanitize(q);
@@ -7080,7 +6837,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
   }
 
-  protected async bulkAudit({
+  async bulkAudit({
     qb,
     data,
     conditions,

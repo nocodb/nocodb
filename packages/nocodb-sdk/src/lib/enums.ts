@@ -515,7 +515,7 @@ export enum HookOperationCode {
 }
 
 export enum WebhookActions {
-  CREATE = 'create',
+  INSERT = 'insert',
   UPDATE = 'update',
   DELETE = 'delete',
 }

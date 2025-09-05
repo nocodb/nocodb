@@ -3156,12 +3156,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
 
     try {
-      for (const d of datas) {
-        const rowId = this.extractPksValues(d, true);
+      for (const col of this.model.columns) {
+        // skip if not LTAR or Links
+        if (!isLinksOrLTAR(col)) continue;
 
-        for (const col of this.model.columns) {
-          // skip if not LTAR or Links
-          if (!isLinksOrLTAR(col)) continue;
+        for (const d of datas) {
+          const rowId = this.extractPksValues(d, true);
 
           // skip if value is not part of the update
           if (!(col.title in d)) continue;

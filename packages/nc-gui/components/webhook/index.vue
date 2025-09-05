@@ -1774,4 +1774,8 @@ const webhookV2AndV3Diff = computed(() => {
     }
   }
 }
+
+:deep(.nc-filter-field-select .ant-select-selector .field-selection-tooltip-wrapper) {
+  @apply !max-w-none;
+}
 </style>

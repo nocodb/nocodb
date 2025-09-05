@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "בסיסים פרטיים זמינים בתוכנית {plan}. שדרג כעת כדי להתחיל להשתמש.",
     "upgradeLicenseToUsePrivateBases": "שדרג רישיון כדי לפתוח בסיסים פרטיים",
     "upgradeLicenseToUsePrivateBasesSubtitle": "בסיסים פרטיים אינם זמינים ברישיון Enterprise Starter. שדרג את רישיון המפתח כדי להתחיל להשתמש בהם.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "תוכל להעלות עד {limit} {filePlural} לתא זה. שדרג לתוכנית {plan} כדי להוסיף עוד קבצים."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "תוכל להעלות עד {limit} {filePlural} לתא זה. שדרג לתוכנית {plan} כדי להוסיף עוד קבצים.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "סקריפט",
@@ -908,7 +910,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "כדי לבטל את הנעילה, שדרג לתוכנית {plan} או המר את הבסיס לבסיס משותף.",
     "mOfNFieldsHaveCustomPermissions": "ל-{m} מתוך {n} שדות יש הרשאות מותאמות אישית",
     "cancelSubscriptionBeforeDeletingWorkspace": "בטל מנוי לפני מחיקת סביבת עבודה",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "בסביבת עבודה זו יש מנוי פעיל. אנא סקור ובטל אותו לפני המשך המחיקה."
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "בסביבת עבודה זו יש מנוי פעיל. אנא סקור ובטל אותו לפני המשך המחיקה.",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1408,6 +1414,8 @@
     "generateFieldDataUsingAi": "צור ערך שדה באמצעות AI",
     "preview": "תצוגה מקדימה",
     "autoSuggest": "השלמה אוטומטית",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "מציע...",
     "autoSuggestFields": "השלמה אוטומטית לשדות",
     "autoSuggestFormulas": "הצעת נוסחאות אוטומטית",
@@ -1477,6 +1485,7 @@
     "resolvedBy": "נפתר על ידי",
     "leaveWorkspace": "צא ממרחב העבודה",
     "removeUser": "הסרת משתמש",
+    "removeMember": "Remove member",
     "filterByThisField": "סינון לפי שדה זה",
     "groupByThisField": "קבץ לפי שדה זה",
     "addToStarred": "הוסף למועדפים",

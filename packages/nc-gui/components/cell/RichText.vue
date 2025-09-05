@@ -14,6 +14,7 @@ import {
   Underline,
   UserMention,
   UserMentionList,
+  Paragraph,
 } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(
@@ -107,6 +108,7 @@ const getTiptapExtensions = () => {
       strike: false,
       hardBreak: false,
       italic: false,
+      paragraph: false,
     }),
     // Marks
     Strike,
@@ -115,6 +117,7 @@ const getTiptapExtensions = () => {
     Italic,
 
     // Nodes
+    Paragraph,
     HardBreak,
     TaskList,
     TaskItem.configure({

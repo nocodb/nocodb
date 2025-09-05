@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Súkromné databázy sú dostupné v pláne {plan}. Upgradujte hneď, aby ste ich mohli používať.",
     "upgradeLicenseToUsePrivateBases": "Upgradujte licenciu pre odomknutie súkromných databáz",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Súkromné databázy nie sú dostupné v licencii Enterprise Starter. Upgradujte kľúč licencie, aby ste ich mohli využívať.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Do tejto bunky je možné nahrať maximálne {limit} {filePlural}. Upgradujte na plán {plan}, aby ste mohli pridať viac súborov."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Do tejto bunky je možné nahrať maximálne {limit} {filePlural}. Upgradujte na plán {plan}, aby ste mohli pridať viac súborov.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Skript",
@@ -908,7 +910,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "Na odomknutie upgradujte na plán {plan} alebo premeňte túto databázu na zdieľanú.",
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} polí má vlastné oprávnenia",
     "cancelSubscriptionBeforeDeletingWorkspace": "Pred zmazaním pracovného priestoru zrušte predplatné",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "Tento pracovný priestor má aktívne predplatné. Skontrolujte ho a zrušte pred pokračovaním s vymazaním."
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "Tento pracovný priestor má aktívne predplatné. Skontrolujte ho a zrušte pred pokračovaním s vymazaním.",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1408,6 +1414,8 @@
     "generateFieldDataUsingAi": "Generovať hodnotu poľa pomocou AI",
     "preview": "Náhľad",
     "autoSuggest": "Automatický návrh",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Navrhuje sa...",
     "autoSuggestFields": "Automaticky navrhnúť polia",
     "autoSuggestFormulas": "Automaticky navrhnúť vzorce",
@@ -1477,6 +1485,7 @@
     "resolvedBy": "Vyriešil",
     "leaveWorkspace": "Opustiť pracovný priestor",
     "removeUser": "Odstrániť používateľa",
+    "removeMember": "Remove member",
     "filterByThisField": "Filtrovať podľa tohto poľa",
     "groupByThisField": "Zoskupiť podľa tohto poľa",
     "addToStarred": "Pridať k obľúbeným",

@@ -212,7 +212,7 @@ const isSingleOrMultiSelect = computed(() => {
   />
   <div
     v-else
-    class="bg-white border-1 flex flex-grow min-h-4 h-full px-1 items-center nc-filter-input-wrapper !rounded-lg"
+    class="bg-white border-1 flex flex-grow min-w-0 min-h-4 h-full px-1 items-center nc-filter-input-wrapper !rounded-lg"
     :class="{ 'px-2': hasExtraPadding, 'border-brand-500': isInputBoxOnFocus, '!max-w-100': isSingleOrMultiSelect }"
     @mouseup.stop
   >

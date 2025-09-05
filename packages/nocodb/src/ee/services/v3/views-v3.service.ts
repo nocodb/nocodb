@@ -466,15 +466,19 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
     return newViews;
   }
 
-  async getView(context: NcContext, param: { viewId: string; req: NcRequest }) {
-    const view = await View.get(context, param.viewId);
+  async getView(
+    context: NcContext,
+    param: { viewId: string; req: NcRequest },
+    ncMeta?: MetaService,
+  ) {
+    const view = await View.get(context, param.viewId, ncMeta);
     // todo: check for GUI permissions, since we are handling at ui level we can ignore for now
 
     if (!view) {
       NcError.viewNotFound(param.viewId);
     }
 
-    await view.getViewWithInfo(context);
+    await view.getViewWithInfo(context, ncMeta);
 
     const formattedView = this.viewBuilder().build(view);
 
@@ -504,7 +508,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       }
     }
 
-    const viewColumnList = await View.getColumns(context, view.id);
+    const viewColumnList = await View.getColumns(context, view.id, ncMeta);
 
     formattedView.fields = viewColumnBuilder().build(
       viewColumnList.sort((a, b) => a.order - b.order),
@@ -648,11 +652,12 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       },
       ncMeta,
     );
-    const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
     const viewWebhookManagerBuilder = new ViewWebhookManagerBuilder(context);
     const viewWebhookManager = (
       await viewWebhookManagerBuilder.withModelId(tableId)
     ).forCreate();
+
+    const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
 
     try {
       let insertedV2View: View;

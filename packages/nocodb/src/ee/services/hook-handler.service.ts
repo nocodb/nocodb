@@ -8,8 +8,6 @@ import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
 
-export const HANDLE_WEBHOOK = '__nc_handleHooks';
-
 @Injectable()
 export class HookHandlerService extends HookHandlerServiceCE {
   constructor(

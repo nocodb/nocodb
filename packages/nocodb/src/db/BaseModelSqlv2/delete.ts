@@ -277,7 +277,7 @@ export class BaseModelDelete {
     const { metaQueries, execQueries, qb, filterObj, attachmentColumns } =
       await this.prepareBulkDeleteAll(params);
 
-    let offset = 0;
+    const offset = 0;
     const limit = 100;
     const response = [];
 
@@ -329,15 +329,14 @@ export class BaseModelDelete {
               (row) => row[this.baseModel.model.primaryKey.title],
             );
 
-      response.push(
-        ...(await this.executeBulkAll({
-          execQueries,
-          metaQueries,
-          ids,
-          rows,
-          qb,
-        })),
-      );
+      const chunkResponse = await this.executeBulkAll({
+        execQueries,
+        metaQueries,
+        ids,
+        rows,
+        qb,
+      });
+      response.push(...chunkResponse);
       // insert records updating record details to audit table
       await this.baseModel.bulkAudit({
         qb: qb.clone(),
@@ -348,7 +347,7 @@ export class BaseModelDelete {
 
       if (!skip_hooks) {
         await this.baseModel.afterBulkDelete(
-          response,
+          chunkResponse,
           this.baseModel.dbDriver,
           cookie,
           true,
@@ -358,8 +357,6 @@ export class BaseModelDelete {
       if (lastPage) {
         break;
       }
-
-      offset += limit;
     }
     return response;
   }

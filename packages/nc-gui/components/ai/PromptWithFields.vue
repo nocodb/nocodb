@@ -6,7 +6,7 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import tippy from 'tippy.js'
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { suggestion } from '~/helpers/tiptap'
-import { FieldMentionList } from '~/helpers/tiptap-markdown/extensions'
+import { FieldMentionList, Paragraph } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -53,7 +53,9 @@ const editor = useEditor({
   extensions: [
     StarterKit.configure({
       heading: false,
+      paragraph: false,
     }) as any,
+    Paragraph,
     Placeholder.configure({
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,

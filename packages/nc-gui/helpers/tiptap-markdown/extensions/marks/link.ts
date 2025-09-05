@@ -10,7 +10,7 @@ export const Link = TiptapLink.extend<LinkOptions>({
       ...this.parent?.(),
       openOnClick: true,
       linkOnPaste: true,
-      autolink: true,
+      autolink: false,
       protocols: [],
       HTMLAttributes: {
         target: '_blank',
@@ -100,7 +100,7 @@ export const Link = TiptapLink.extend<LinkOptions>({
         if (!isAtEndOfLink) return false
 
         // ✅ Insert space and then remove ALL marks
-        const tr = state.tr.insertText(' ', $to.pos).setSelection(state.selection)
+        const tr = state.tr.insertText(' ', $to.pos)
         this.editor.view.dispatch(tr)
         this.editor.commands.unsetAllMarks() // This clears bold, italic, underline, link, etc.
 

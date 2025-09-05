@@ -9,6 +9,7 @@ import {
   HardBreak,
   Italic,
   Link,
+  Paragraph,
   Strike,
   TaskItem,
   Underline,
@@ -107,6 +108,7 @@ const getTiptapExtensions = () => {
       strike: false,
       hardBreak: false,
       italic: false,
+      paragraph: false,
     }),
     // Marks
     Strike,
@@ -115,6 +117,7 @@ const getTiptapExtensions = () => {
     Italic,
 
     // Nodes
+    Paragraph,
     HardBreak,
     TaskList,
     TaskItem.configure({
@@ -319,6 +322,7 @@ onClickOutside(editorDom, (e) => {
         v-if="editor && !isFormField && !isForm"
         :editor="editor"
         :hide-mention="hideMention"
+        hide-on-select-all-sortcut
       />
 
       <template v-if="shouldShowLinkOption">

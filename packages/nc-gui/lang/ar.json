@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "القواعد الخاصة متوفرة في خطة {plan}. قم بالترقية الآن للبدء في استخدامها.",
     "upgradeLicenseToUsePrivateBases": "الترقية لفتح القواعد الخاصة",
     "upgradeLicenseToUsePrivateBasesSubtitle": "القواعد الخاصة غير متوفرة في ترخيص Enterprise Starter. قم بترقية مفتاح الترخيص للبدء باستخدامها.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "يمكنك رفع {limit} {filePlural} بحد أقصى إلى هذه الخلية. قم بالترقية إلى خطة {plan} لإضافة المزيد من الملفات."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "يمكنك رفع {limit} {filePlural} بحد أقصى إلى هذه الخلية. قم بالترقية إلى خطة {plan} لإضافة المزيد من الملفات.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "سكريبت",
@@ -908,7 +910,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "لفتحها، يرجى الترقية إلى خطة {plan} أو تحويل هذه القاعدة إلى قاعدة مشتركة.",
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} حقول بها أذونات مخصصة",
     "cancelSubscriptionBeforeDeletingWorkspace": "قم بإلغاء الاشتراك قبل حذف مساحة العمل",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "هذه المساحة لديها اشتراك نشط. يرجى مراجعته وإلغاؤه قبل المتابعة في الحذف."
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "هذه المساحة لديها اشتراك نشط. يرجى مراجعته وإلغاؤه قبل المتابعة في الحذف.",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1408,6 +1414,8 @@
     "generateFieldDataUsingAi": "توليد قيمة الحقل باستخدام الذكاء الاصطناعي",
     "preview": "معاينة",
     "autoSuggest": "اقتراح تلقائي",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "جارٍ الاقتراح...",
     "autoSuggestFields": "اقتراح الحقول تلقائيًا",
     "autoSuggestFormulas": "اقتراح الصيغ تلقائيًا",
@@ -1477,6 +1485,7 @@
     "resolvedBy": "تم الحل بواسطة",
     "leaveWorkspace": "مغادرة مساحة العمل",
     "removeUser": "إزالة المستخدم",
+    "removeMember": "Remove member",
     "filterByThisField": "تصفية بواسطة هذا الحقل",
     "groupByThisField": "تجميع بواسطة هذا الحقل",
     "addToStarred": "إضافة إلى المفضلة",

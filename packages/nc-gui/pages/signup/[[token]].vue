@@ -111,7 +111,6 @@ async function signUp() {
           baseId: base.id,
           tableId: table.id,
           workspaceId: 'nc',
-          resetForceShowBaseList: false,
         })
       }
     } catch (e) {

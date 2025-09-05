@@ -15,7 +15,6 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
   const baseTables = ref<Map<string, SidebarTableNode[]>>(new Map())
   const basesStore = useBases()
-  const { forceShowBaseList } = storeToRefs(basesStore)
   // const baseStore = useBase()
 
   const workspaceStore = useWorkspace()
@@ -94,13 +93,11 @@ export const useTablesStore = defineStore('tablesStore', () => {
     tableId,
     viewTitle,
     workspaceId,
-    resetForceShowBaseList = true,
   }: {
     baseId?: string
     tableId: string
     viewTitle?: string
     workspaceId?: string
-    resetForceShowBaseList?: boolean
   }) => {
     const workspaceIdOrType = workspaceId ?? workspaceStore.activeWorkspaceId
     const baseIdOrBaseId = baseId ?? basesStore.activeProjectId
@@ -113,11 +110,6 @@ export const useTablesStore = defineStore('tablesStore', () => {
       query = route.value.query
     }
 
-    // If baselist is visible and we are navigating to a table, we need to reset the baselist to false
-    if (resetForceShowBaseList && forceShowBaseList.value) {
-      forceShowBaseList.value = false
-    }
-
     await ncNavigateTo({
       workspaceId: workspaceIdOrType,
       baseId: baseIdOrBaseId,
@@ -127,7 +119,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     })
   }
 
-  const openTable = async (table: TableType, replace = false, query?: any, resetForceShowBaseList = true) => {
+  const openTable = async (table: TableType, replace = false, query?: any) => {
     if (!table.base_id) return
 
     const bases = basesStore.bases
@@ -158,10 +150,6 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
     if (['base'].includes(route.value.params.typeOrId as string)) {
       baseIdOrBaseId = route.value.params.baseId as string
-    }
-
-    if (resetForceShowBaseList && forceShowBaseList.value) {
-      forceShowBaseList.value = false
     }
 
     ncNavigateTo({

@@ -55,13 +55,8 @@ const baseStore = useBase()
 
 const { isSharedBase } = storeToRefs(baseStore)
 
-const { forceShowBaseList } = storeToRefs(useBases())
-
 const switchWorkspace = async (workspaceId: string) => {
   $e('a:workspace:switch')
-
-  // If we are switching workspace, we have to show base list sidebar
-  forceShowBaseList.value = true
 
   navigateToProject({
     workspaceId,

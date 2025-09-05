@@ -39,8 +39,6 @@ export const useBases = defineStore('basesStore', () => {
     return route.value.params.baseId as string | undefined
   })
 
-  const forceShowBaseList = ref(false)
-
   const showProjectList = ref<boolean>(route.value.params.typeOrId === 'base' ? false : !route.value.params.baseId)
 
   const baseHomeSearchQuery = ref<string>('')
@@ -398,32 +396,8 @@ export const useBases = defineStore('basesStore', () => {
 
   watch(
     () => route.value.params.baseId,
-    (newBaseId, oldBaseId) => {
+    () => {
       baseHomeSearchQuery.value = ''
-
-      if (newBaseId) {
-        if (!forceShowBaseList.value) return
-
-        /**
-         * If oldBaseId is present that means we are navigation from one base to another base
-         * In that case we have to set forceShowBaseList to false
-         * */
-        if (oldBaseId) {
-          forceShowBaseList.value = false
-        }
-
-        return
-      }
-
-      /**
-       * If base id is undefined that means are navigated to different page,
-       * So in that case set forceShowBaseList to true so that on returning to bases we can show baseList sidebar
-       * @note - Manually we have to set to false on click any base or on toggle from minisidebar
-       * */
-      forceShowBaseList.value = true
-    },
-    {
-      immediate: true,
     },
   )
 
@@ -433,9 +407,11 @@ export const useBases = defineStore('basesStore', () => {
   watch(
     [() => route.value.params.baseId, () => route.value.params.viewId, () => route.value.params.viewTitle],
     ([newBaseId, newTableId, newViewId], [oldBaseId, oldTableId, oldViewId]) => {
-      const shouldShowProjectList =
-        forceShowBaseList.value ||
-        !((newBaseId && newBaseId !== oldBaseId) || newTableId !== oldTableId || newViewId !== oldViewId)
+      const shouldShowProjectList = !(
+        (newBaseId && newBaseId !== oldBaseId) ||
+        newTableId !== oldTableId ||
+        newViewId !== oldViewId
+      )
 
       if (showProjectList.value === shouldShowProjectList) return
 
@@ -443,19 +419,16 @@ export const useBases = defineStore('basesStore', () => {
     },
   )
 
-  watch(
-    () => route.value.params.baseId,
-    (newBaseId) => {
-      if (newBaseId) return
+  watch([() => basesList.value.length, () => isProjectsLoaded.value], ([baseListLength, newIsProjectsLoaded]) => {
+    /**
+     * Use case:
+     * If project list is empty and showProjectList is false,
+     * then we have to show project list else it will stuck in loading state (blank sidebar state)
+     */
+    if (baseListLength || !newIsProjectsLoaded || showProjectList.value) return
 
-      /**
-       * If base id is undefined that means are navigated to different page,
-       * So in that case set forceShowBaseList to true so that on returning to bases we can show baseList sidebar
-       * @note - Manually we have to set to false on click any base or on toggle from minisidebar
-       * */
-      forceShowBaseList.value = true
-    },
-  )
+    showProjectList.value = true
+  })
 
   watch(activeProjectId, () => {
     ncLastVisitedBase().set(activeProjectId.value)
@@ -495,7 +468,6 @@ export const useBases = defineStore('basesStore', () => {
     basesUser,
     clearBasesUser,
     isDataSourceLimitReached,
-    forceShowBaseList,
     showProjectList,
     baseHomeSearchQuery,
     getBaseRoles,

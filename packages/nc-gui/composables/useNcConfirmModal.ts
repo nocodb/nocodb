@@ -2,12 +2,25 @@ import NcModalConfirm, { type NcConfirmModalProps } from '../components/nc/Modal
 
 export type NcShowConfirmModalProps = Pick<
   NcConfirmModalProps,
-  'type' | 'title' | 'content' | 'okText' | 'okClass' | 'showCancelBtn' | 'cancelText' | 'showIcon' | 'maskClosable' | 'keyboard'
+  | 'type'
+  | 'title'
+  | 'content'
+  | 'okText'
+  | 'okClass'
+  | 'showCancelBtn'
+  | 'cancelText'
+  | 'showIcon'
+  | 'maskClosable'
+  | 'keyboard'
+  | 'okProps'
 > & {
   /**
    * Use key to avoid showing multiple modals
    */
   key?: string
+  okCallback?: () => Promise<void>
+  initialSlots?: MaybeRef<Record<string, () => VNode[]>>
+  showOkLoading?: boolean
 }
 
 const useNcConfirmModal = () => {
@@ -48,6 +61,10 @@ const useNcConfirmModal = () => {
     keyboard = true,
     showCancelBtn = false,
     key,
+    okProps: _okProps = {},
+    okCallback = () => Promise.resolve(),
+    initialSlots = {},
+    showOkLoading,
   }: NcShowConfirmModalProps) => {
     key = key || getModalKey()
 
@@ -59,22 +76,44 @@ const useNcConfirmModal = () => {
 
     const isOpen = ref(true)
 
-    const { close } = useDialog(NcModalConfirm, {
-      'visible': isOpen,
-      'type': type,
-      'title': title,
-      'content': content,
-      'okText': okText,
-      'cancelText': cancelText,
-      'onCancel': () => closeDialog(key),
-      'onOk': () => closeDialog(key),
-      'okClass': okClass,
-      'update:visible': () => closeDialog(key),
-      'showIcon': showIcon,
-      'maskClosable': maskClosable,
-      'keyboard': keyboard,
-      'showCancelBtn': showCancelBtn,
-    })
+    const okProps = ref({ loading: false, ..._okProps })
+
+    const slots = ref<Record<string, () => VNode[]>>(toValue(initialSlots))
+
+    const { close } = useDialog(
+      NcModalConfirm,
+      {
+        'visible': isOpen,
+        'type': type,
+        'title': title,
+        'content': content,
+        'okText': okText,
+        'cancelText': cancelText,
+        'onCancel': () => closeDialog(key),
+        'onOk': async () => {
+          if (showOkLoading) {
+            okProps.value.loading = true
+
+            await okCallback()
+
+            okProps.value.loading = false
+          } else {
+            await okCallback()
+          }
+
+          closeDialog()
+        },
+        'okClass': okClass,
+        'update:visible': () => closeDialog(key),
+        'showIcon': showIcon,
+        'maskClosable': maskClosable,
+        'keyboard': keyboard,
+        'showCancelBtn': showCancelBtn,
+      },
+      {
+        slots,
+      },
+    )
 
     function closeDialog(modalKey?: string) {
       isOpen.value = false

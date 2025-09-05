@@ -10,7 +10,7 @@ export const Link = TiptapLink.extend<LinkOptions>({
       ...this.parent?.(),
       openOnClick: true,
       linkOnPaste: true,
-      autolink: true,
+      autolink: false,
       protocols: [],
       HTMLAttributes: {
         target: '_blank',

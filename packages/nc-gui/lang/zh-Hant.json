@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "私人 Base 可在 {plan} 方案中使用。立即升級即可開始使用。",
     "upgradeLicenseToUsePrivateBases": "升級授權以解鎖私人 Base",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Enterprise Starter 授權無法使用私人 Base。請升級授權金鑰以開始使用。",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "您最多只能在此欄格上傳 {limit} 個{filePlural}。升級到 {plan} 方案即可新增更多檔案。"
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "您最多只能在此欄格上傳 {limit} 個{filePlural}。升級到 {plan} 方案即可新增更多檔案。",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Script",
@@ -908,7 +910,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "若要解鎖，請升級至 {plan} 方案或將此 Base 轉換為共享 Base。",
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} 欄位具有自訂權限",
     "cancelSubscriptionBeforeDeletingWorkspace": "刪除工作區前請先取消訂閱",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "此工作區有有效訂閱。請先檢視並取消訂閱再繼續刪除。"
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "此工作區有有效訂閱。請先檢視並取消訂閱再繼續刪除。",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1408,6 +1414,8 @@
     "generateFieldDataUsingAi": "透過 AI 生成欄位值",
     "preview": "預覽",
     "autoSuggest": "自動建議",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "建議中...",
     "autoSuggestFields": "自動建議欄位",
     "autoSuggestFormulas": "自動建議公式",
@@ -1477,6 +1485,7 @@
     "resolvedBy": "解決人",
     "leaveWorkspace": "離開工作區",
     "removeUser": "移除使用者",
+    "removeMember": "Remove member",
     "filterByThisField": "依此欄位篩選",
     "groupByThisField": "依此欄位分組",
     "addToStarred": "加入星號",

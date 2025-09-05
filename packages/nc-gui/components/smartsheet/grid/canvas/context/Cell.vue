@@ -211,7 +211,7 @@ const execBulkAction = async (path: Array<number>) => {
 
   if (!field || !field.id) return
 
-  const rows = await getRows(selection.value.start.row, selection.value.end.row + 1, path)
+  const rows = await getRows(selection.value.start.row, selection.value.end.row, path)
 
   if (!rows || rows.length === 0) return
 

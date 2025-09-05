@@ -65,26 +65,26 @@ onMounted(() => {
     }
 
     &.nc-create-base {
-      @apply border-brand-200;
+      @apply border-nc-border-brand-medium;
 
       &:hover {
         box-shadow: 0px 12px 16px -4px rgba(51, 102, 255, 0.12), 0px 4px 6px -2px rgba(51, 102, 255, 0.08);
       }
 
       .nc-placeholder-icon-wrapper {
-        @apply border-brand-200 bg-nc-bg-brand;
+        @apply border-nc-border-brand-medium bg-nc-bg-brand;
       }
     }
 
     &.nc-create-base-ai {
-      @apply border-purple-200;
+      @apply border-nc-border-purple-medium;
 
       &:hover {
         box-shadow: 0px 12px 16px -4px rgba(125, 38, 205, 0.12), 0px 4px 6px -2px rgba(125, 38, 205, 0.08);
       }
 
       .nc-placeholder-icon-wrapper {
-        @apply border-purple-200 bg-nc-bg-purple-light;
+        @apply border-nc-border-purple-medium bg-nc-bg-purple-light;
       }
     }
 

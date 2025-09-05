@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import {
   ButtonActionsType,
   IntegrationsType,
+  isAIPromptCol,
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
@@ -469,6 +470,10 @@ export class AiDataService {
               return 'no image attached';
             }
 
+            if (isAIPromptCol(col)) {
+              return row[col.title]?.value ?? '';
+            }
+
             return row[col.title];
           }),
           ...pkObj,
@@ -707,6 +712,10 @@ export class AiDataService {
               }
 
               return 'no image attached';
+            }
+
+            if (isAIPromptCol(col)) {
+              return row[col.title]?.value ?? '';
             }
 
             return row[col.title];
@@ -1166,6 +1175,10 @@ Please generate ${
 
             if (col.uidt === UITypes.Attachment) {
               return '@file';
+            }
+
+            if (isAIPromptCol(col)) {
+              return row[col.title]?.value ?? '';
             }
 
             return row[col.title];

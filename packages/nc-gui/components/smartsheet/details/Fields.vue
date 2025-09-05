@@ -748,6 +748,7 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
       if (column.type === ButtonActionsType.Ai) {
         column.output_column_ids = colOptions?.output_column_ids || ''
         column.fk_integration_id = colOptions?.fk_integration_id
+        column.model = colOptions?.model
       }
     } else {
       column.type = column?.type || ButtonActionsType.Url
@@ -774,6 +775,8 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
       const colOptions = column.colOptions as Record<string, any>
 
       column.prompt_raw = colOptions?.prompt_raw
+      column.fk_integration_id = colOptions?.fk_integration_id
+      column.model = colOptions?.model
     } else {
       column.prompt_raw = column.prompt_raw || ''
     }
@@ -1435,8 +1438,8 @@ onBeforeRouteUpdate((_to, from, next) => {
                     :shadow="false"
                     @click="addField()"
                   >
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="plus" class="w-3" />
+                    <div class="flex items-center gap-1.5">
+                      <GeneralIcon icon="plus" class="w-4" />
                       {{ $t('labels.multiField.newField') }}
                     </div>
                   </NcButton>
@@ -2282,7 +2285,7 @@ onBeforeRouteUpdate((_to, from, next) => {
 }
 
 .nc-fields-add-new-field-btn-wrapper {
-  @apply flex items-center mr-1;
+  @apply flex items-center;
 
   .nc-field-add-new {
     &.focused {

@@ -451,8 +451,8 @@ watch(_baseId, () => {
   >
     <div class="py-5 flex flex-col gap-5" @dblclick.stop="fullAuto">
       <div class="px-5 flex justify-between w-full items-center">
-        <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-gray-800">
-          <GeneralIcon icon="table" class="!text-gray-600 w-5 h-5" />
+        <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-nc-content-gray">
+          <GeneralIcon icon="table" class="!text-nc-content-gray-subtle2 w-5 h-5" />
           {{ aiMode ? $t('activity.createTable(s)') : $t('activity.createTable') }}
         </div>
         <AiToggleButton
@@ -718,19 +718,19 @@ watch(_baseId, () => {
             v-bind="validateInfos.description"
             :class="{ '!mb-1': isSnowflake(customSourceId), '!mb-0': !isSnowflake(customSourceId) }"
           >
-            <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
+            <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center justify-between">
               <span>
                 {{ $t('labels.description') }}
               </span>
               <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
-                <GeneralIcon icon="delete" class="text-gray-700 w-3.5 h-3.5" />
+                <GeneralIcon icon="delete" class="text-nc-content-gray-subtle w-3.5 h-3.5" />
               </NcButton>
             </div>
 
             <a-textarea
               ref="inputEl"
               v-model:value="table.description"
-              class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-gray-800 max-h-[150px] min-h-[100px]"
+              class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-nc-content-gray max-h-[150px] min-h-[100px]"
               hide-details
               data-testid="create-table-title-input"
               :placeholder="$t('msg.info.enterTableDescription')"
@@ -776,7 +776,7 @@ watch(_baseId, () => {
           }"
         >
           <NcButton v-if="!enableDescription && !aiMode" size="small" type="text" @click.stop="toggleDescription">
-            <div class="flex !text-gray-700 items-center gap-2">
+            <div class="flex !text-nc-content-gray-subtle items-center gap-2">
               <GeneralIcon icon="plus" class="h-4 w-4" />
 
               <span class="first-letter:capitalize">

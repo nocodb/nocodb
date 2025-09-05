@@ -1017,7 +1017,7 @@ watch(activeBaseId, () => {
               class="flex flex-col w-full gap-6"
             >
               <div class="w-full space-y-2">
-                <div class="text-nc-content-gray-subtle">
+                <div class="text-nc-content-gray">
                   {{ $t('labels.organiseBy') }}
                 </div>
 
@@ -1031,7 +1031,7 @@ watch(activeBaseId, () => {
                   @click.stop
                   @change="onValueChange"
                 >
-                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
                   <a-select-option
                     v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {
                   // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
@@ -1116,7 +1116,7 @@ watch(activeBaseId, () => {
                           dropdown-class-name="!rounded-lg"
                           @click.stop
                         >
-                          <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+                          <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
 
                           <a-select-option
                             v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
@@ -1437,9 +1437,9 @@ watch(activeBaseId, () => {
         </template>
       </a-form>
       <div v-else-if="!isNecessaryColumnsPresent" class="px-5">
-        <div class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full">
-          <div class="text-gray-500 flex gap-4">
-            <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="alertTriangle" />
+        <div class="flex flex-row p-4 border-nc-border-gray-medium border-1 gap-x-4 rounded-lg w-full">
+          <div class="text-nc-content-gray-subtle flex gap-4">
+            <GeneralIcon class="min-w-6 h-6 text-nc-content-orange-medium" icon="alertTriangle" />
             <div class="flex flex-col gap-1">
               <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">Suitable fields not present</h2>
               <span class="text-gray-500 font-default text-sm"> {{ errorMessages[form.type] }}</span>

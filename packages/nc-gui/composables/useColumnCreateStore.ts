@@ -127,7 +127,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const onUidtOrIdTypeChange = (preload?: Record<string, any>) => {
       disableSubmitBtn.value = false
 
-      const newTitle = updateFieldName(false)
+      const newTitle = updateFieldName(false, preload)
 
       const colProp = sqlUi.value?.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined) ?? {}
 
@@ -484,19 +484,19 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       }
     }
 
-    function updateFieldName(updateFormState = true) {
+    function updateFieldName(updateFormState = true, preload?: Record<string, any>, force = false) {
       if (
         formState.value?.is_ai_field ||
         isEdit.value ||
         !fromTableExplorer?.value ||
         formState.value?.userHasChangedTitle ||
-        !isColumnValid?.value?.(formState.value)
+        (!isColumnValid?.value?.(formState.value) && !force)
       ) {
         return
       }
 
       const defaultColumnName = generateUniqueColumnName({
-        formState: formState.value,
+        formState: { ...formState.value, ...(preload ?? {}) },
         tableExplorerColumns: tableExplorerColumns?.value || [],
         metaColumns: meta.value?.columns || [],
       })

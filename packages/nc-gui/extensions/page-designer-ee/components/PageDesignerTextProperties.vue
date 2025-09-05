@@ -127,6 +127,7 @@ function onTextFieldDelete() {
         :options="columns"
         placeholder="Lorem ipsum..."
         :markdown="false"
+        :show-plus-icon-tooltip="false"
         @keydown.delete="onTextFieldDelete"
       />
     </GroupedSettings>

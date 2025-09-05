@@ -13,6 +13,7 @@ export interface AppInfo {
     limitRecord: number
   }
   firstUser: boolean
+  env: string
   githubAuthEnabled: boolean
   googleAuthEnabled: boolean
   oidcAuthEnabled: boolean

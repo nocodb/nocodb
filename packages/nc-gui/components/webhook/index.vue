@@ -1263,6 +1263,8 @@ const webhookV2AndV3Diff = computed(() => {
                           size="medium"
                           class="nc-select-hook-url-method"
                           dropdown-class-name="nc-dropdown-hook-notification-url-method"
+                          show-search
+                          :filter-option="(input, option) => antSelectFilterOption(input, option, ['value'])"
                         >
                           <template #suffixIcon>
                             <GeneralIcon icon="arrowDown" class="text-gray-700" />
@@ -1637,6 +1639,10 @@ const webhookV2AndV3Diff = computed(() => {
   :deep(.ant-select) {
     .ant-select-selector {
       @apply !h-9;
+
+      .ant-select-selection-placeholder {
+        @apply leading-[36px];
+      }
     }
 
     .ant-select-selection-item {
@@ -1779,9 +1785,5 @@ const webhookV2AndV3Diff = computed(() => {
 
 :deep(.nc-filter-field-select .ant-select-selector .field-selection-tooltip-wrapper) {
   @apply !max-w-none;
-}
-
-:deep(.ant-select-selector .ant-select-selection-placeholder) {
-  @apply leading-[34px];
 }
 </style>

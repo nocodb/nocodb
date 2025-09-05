@@ -90,27 +90,7 @@ export class ViewSidebarPage extends BasePage {
   }
 
   // Todo: Make selection better
-  async verifyView({
-    title,
-    index,
-    baseTitle,
-    sourceTitle,
-  }: {
-    title: string;
-    index: number;
-    baseTitle?: string;
-    sourceTitle?: string;
-  }) {
-    await this.dashboard.leftSidebar.verifyBaseListOpen(!!baseTitle);
-
-    if (baseTitle) {
-      await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
-    }
-
-    if (sourceTitle) {
-      await this.dashboard.treeView.openSource({ title: sourceTitle });
-    }
-
+  async verifyView({ title, index }: { title: string; index: number }) {
     // flicker while page loading
     await this.get()
       .locator('[data-testid="view-item"]')

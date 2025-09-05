@@ -46,7 +46,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject, updateProject, toggleStarred } = basesStore
 
-const { bases, activeProjectId, basesUser, showProjectList, forceShowBaseList } = storeToRefs(basesStore)
+const { bases, activeProjectId, basesUser, showProjectList } = storeToRefs(basesStore)
 
 const collaborators = computed(() => {
   return (basesUser.value.get(base.value?.id) || []).map((user: any) => {
@@ -198,10 +198,6 @@ function openTableCreateDialog(baseIndex?: number | undefined, showSourceSelecto
     onCloseCallback: () => {
       isExpanded.value = true
 
-      if (forceShowBaseList.value) {
-        forceShowBaseList.value = false
-      }
-
       if (!activeKey.value || !activeKey.value.includes(`collapse-${sourceId}`)) {
         activeKey.value.push(`collapse-${sourceId}`)
       }
@@ -275,7 +271,6 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
       isExpanded.value = true
     }
 
-    forceShowBaseList.value = false
     showProjectList.value = false
     return
   }
@@ -335,7 +330,6 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
     updatedProject.isLoading = false
   }
 
-  forceShowBaseList.value = false
   showProjectList.value = false
 }
 

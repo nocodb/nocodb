@@ -88,11 +88,19 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     if (isFullScreen.value) {
       isLeftSidebarOpen.value = true
 
-      document.exitFullscreen()
+      if (document?.exitFullscreen && document?.fullscreenElement) {
+        document.exitFullscreen().catch((err) => {
+          console.warn('Exit fullscreen failed:', err)
+        })
+      }
     } else {
       isLeftSidebarOpen.value = false
 
-      document.documentElement.requestFullscreen()
+      if (document?.documentElement?.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch((err) => {
+          console.warn('Request fullscreen failed:', err)
+        })
+      }
     }
 
     isFullScreen.value = !isFullScreen.value

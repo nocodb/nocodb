@@ -1,19 +1,18 @@
+import { Logger } from '@nestjs/common';
 import {
   AuditV1OperationTypes,
   extractFilterFromXwhere,
   isLinksOrLTAR,
   UITypes,
 } from 'nocodb-sdk';
-import { Logger } from '@nestjs/common';
-import type CustomKnex from '~/db/CustomKnex';
 import type { Knex } from 'knex';
 import type { NcRequest } from 'nocodb-sdk';
+import type CustomKnex from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import conditionV2 from '~/db/conditionV2';
 import { _wherePk } from '~/helpers/dbHelpers';
+import conditionV2 from '~/db/conditionV2';
 import { Column, FileReference, Filter, Model } from '~/models';
-import Noco from '~/Noco';
 
 export type ExecQueryType = (param: {
   trx: Knex.Transaction | CustomKnex;
@@ -23,7 +22,6 @@ export type ExecQueryType = (param: {
 }) => any[];
 
 export type MetaQueryType = (param: {
-  trx: Knex.Transaction;
   qb: any;
   ids: any[];
   rows: any[];
@@ -166,7 +164,7 @@ export class BaseModelDelete {
       (c) => c.uidt === UITypes.Attachment,
     );
 
-    metaQueries.push(async ({ trx, rows }) => {
+    metaQueries.push(async ({ rows }) => {
       const fileReferenceIds: string[] = [];
       for (const row of rows) {
         for (const c of attachmentColumns) {
@@ -195,11 +193,7 @@ export class BaseModelDelete {
           }
         }
       }
-      await FileReference.delete(
-        this.baseModel.context,
-        fileReferenceIds,
-        Noco.ncMeta.withTransaction(trx),
-      );
+      await FileReference.delete(this.baseModel.context, fileReferenceIds);
     });
 
     // delete the rows in table
@@ -247,15 +241,15 @@ export class BaseModelDelete {
       for (const execQuery of execQueries) {
         await execQuery({ trx, qb: qb.clone(), ids, rows });
       }
-      for (const metaQuery of metaQueries) {
-        await metaQuery({ trx, qb: qb.clone(), ids, rows });
-      }
       await trx.commit();
       response.push(...rows);
     } catch (ex) {
       await trx.rollback();
       // silent error, may be improved to log into response
       this.logger.error(ex.message);
+    }
+    for (const metaQuery of metaQueries) {
+      await metaQuery({ qb: qb.clone(), ids, rows });
     }
     return response;
   }

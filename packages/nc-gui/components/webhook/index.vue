@@ -1249,6 +1249,8 @@ const webhookV2AndV3Diff = computed(() => {
                         class="w-full nc-select-shadow nc-select-hook-scrip-type"
                         data-testid="nc-dropdown-hook-notification-type"
                         placeholder="Select a script"
+                        show-search
+                        :filter-option="(input, option) => antSelectFilterOption(input, option, ['label'])"
                       ></NcSelect>
                     </a-form-item>
                   </template>

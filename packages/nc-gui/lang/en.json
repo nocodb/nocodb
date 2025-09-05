@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
     "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Script",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "Generate field value using AI",
     "preview": "Preview",
     "autoSuggest": "Auto suggest",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Suggesting...",
     "autoSuggestFields": "Auto suggest fields",
     "autoSuggestFormulas": "Auto suggest formulas",

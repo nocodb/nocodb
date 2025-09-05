@@ -211,7 +211,7 @@ const execBulkAction = async (path: Array<number>) => {
 
   if (!field || !field.id) return
 
-  const rows = await getRows(selection.value.start.row, selection.value.end.row + 1, path)
+  const rows = await getRows(selection.value.start.row, selection.value.end.row, path)
 
   if (!rows || rows.length === 0) return
 
@@ -369,6 +369,7 @@ const execBulkAction = async (path: Array<number>) => {
         class="nc-base-menu-item"
         data-testid="context-menu-item-bulk"
         :disabled="isSelectionOnlyAI.disabled"
+        theme="ai"
         @click="execBulkAction(contextMenuPath || [])"
       >
         <div class="flex gap-2 items-center">

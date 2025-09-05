@@ -192,7 +192,7 @@ if (props.isCreateNewActionMenu) {
   >
     <template v-if="aiMode === false" #header>
       <!-- Create A New Table -->
-      <div class="flex flex-row items-center text-base text-gray-800">
+      <div class="flex flex-row items-center text-base text-nc-content-gray">
         <GeneralProjectIcon :color="formState.meta.iconColor" class="mr-2.5" />
         {{
           $t('general.createEntity', {

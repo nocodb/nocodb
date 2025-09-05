@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "پایگاه‌های خصوصی فقط در پلن {plan} موجود هستند. اکنون ارتقاء دهید تا از آن‌ها استفاده کنید.",
     "upgradeLicenseToUsePrivateBases": "ارتقاء مجوز برای باز کردن پایگاه‌های خصوصی",
     "upgradeLicenseToUsePrivateBasesSubtitle": "پایگاه‌های خصوصی در مجوز Enterprise Starter در دسترس نیستند. کلید مجوز خود را برای استفاده ارتقاء دهید.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "شما فقط می‌توانید حداکثر {limit} {filePlural} در این سلول بارگذاری کنید. برای افزودن فایل بیشتر به پلن {plan} ارتقاء دهید."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "شما فقط می‌توانید حداکثر {limit} {filePlural} در این سلول بارگذاری کنید. برای افزودن فایل بیشتر به پلن {plan} ارتقاء دهید.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "اسکریپت",
@@ -908,7 +910,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "برای باز کردن قفل، لطفاً به پلن {plan} ارتقاء دهید یا این پایگاه را به پایگاه مشترک تبدیل کنید.",
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} فیلد دارای دسترسی سفارشی هستند",
     "cancelSubscriptionBeforeDeletingWorkspace": "لغو اشتراک قبل از حذف ورک‌اسپیس",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "این ورک‌اسپیس دارای اشتراک فعال است. قبل از ادامه، لطفاً آن را مرور و لغو کنید."
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "این ورک‌اسپیس دارای اشتراک فعال است. قبل از ادامه، لطفاً آن را مرور و لغو کنید.",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1408,6 +1414,8 @@
     "generateFieldDataUsingAi": "تولید مقدار فیلد با استفاده از هوش مصنوعی",
     "preview": "پیش‌نمایش",
     "autoSuggest": "پیشنهاد خودکار",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "در حال پیشنهاد...",
     "autoSuggestFields": "پیشنهاد خودکار فیلدها",
     "autoSuggestFormulas": "پیشنهاد خودکار فرمول‌ها",
@@ -1477,6 +1485,7 @@
     "resolvedBy": "حل‌شده توسط",
     "leaveWorkspace": "خروج از فضای کار",
     "removeUser": "حذف کاربر",
+    "removeMember": "Remove member",
     "filterByThisField": "فیلتر بر اساس این فیلد",
     "groupByThisField": "گروه‌بندی بر اساس این فیلد",
     "addToStarred": "افزودن به ستاره‌دارها",

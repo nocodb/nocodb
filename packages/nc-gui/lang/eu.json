@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Oinarri pribatuak {plan} planean eskuragarri daude. Igo zaitez eta hasi erabiltzen.",
     "upgradeLicenseToUsePrivateBases": "Igo lizentzia oinarri pribatuak desblokeatzeko",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Oinarri pribatuak ez daude eskuragarri Enterprise Starter lizentzian. Igo lizentzia gakoa erabiltzeko.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Gehienez {limit} {filePlural} fitxategi igo ditzakezu gelaxka honetara. Igo zaitez {plan} planera fitxategi gehiago gehitzeko."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Gehienez {limit} {filePlural} fitxategi igo ditzakezu gelaxka honetara. Igo zaitez {plan} planera fitxategi gehiago gehitzeko.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Script",
@@ -908,7 +910,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "Desblokeatzeko, igo zaitez {plan} planera edo bihurtu Oinarri hau Partekatutako Oinarrira.",
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} eremuk baimen pertsonalizatuak dituzte",
     "cancelSubscriptionBeforeDeletingWorkspace": "Bertan behera utzi harpidetza workspace ezabatu aurretik",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "Workspace honek harpidetza aktiboa du. Aztertu eta bertan behera utzi ezabaketa jarraitu aurretik."
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "Workspace honek harpidetza aktiboa du. Aztertu eta bertan behera utzi ezabaketa jarraitu aurretik.",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1408,6 +1414,8 @@
     "generateFieldDataUsingAi": "Sortu eremuaren balioa AI erabiliz",
     "preview": "Aurrebista",
     "autoSuggest": "Iradokizun automatikoa",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Iradokitzen...",
     "autoSuggestFields": "Eremuen iradokizun automatikoa",
     "autoSuggestFormulas": "Formulen iradokizun automatikoa",
@@ -1477,6 +1485,7 @@
     "resolvedBy": "Ebazlea",
     "leaveWorkspace": "Workspace-a utzi",
     "removeUser": "Erabiltzailea kendu",
+    "removeMember": "Remove member",
     "filterByThisField": "Iragazi eremu honen arabera",
     "groupByThisField": "Taldekatu eremu honen arabera",
     "addToStarred": "Gehitu izarrei",

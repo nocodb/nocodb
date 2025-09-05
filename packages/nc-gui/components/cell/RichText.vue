@@ -9,12 +9,12 @@ import {
   HardBreak,
   Italic,
   Link,
+  Paragraph,
   Strike,
   TaskItem,
   Underline,
   UserMention,
   UserMentionList,
-  Paragraph,
 } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(

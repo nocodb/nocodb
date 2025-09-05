@@ -21,11 +21,16 @@ const { isSharedBase, isSharedErd } = storeToRefs(useBase())
 
 const basesStore = useBases()
 
+const { forceShowBaseList } = storeToRefs(basesStore)
+
 const tableStore = useTablesStore()
 
 const navigating = ref(false)
 
 const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) => {
+  // If it is auto navigate to project that means we have to show base list sidebar instead of directly showing active base sidebar
+  forceShowBaseList.value = true
+
   const routeName = route.value.name as string
 
   if (routeName !== 'index-typeOrId' && routeName !== 'index') {

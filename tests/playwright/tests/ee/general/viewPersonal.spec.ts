@@ -65,7 +65,7 @@ test.describe('Grid view personal', () => {
 
     // create a grid view since the default view cannot be marked as personal
     await dashboard.viewSidebar.createGridView({ title: 'CountryGrid' });
-    await dashboard.viewSidebar.verifyView({ title: 'CountryGrid', index: 0 });
+    await dashboard.viewSidebar.verifyView({ title: 'CountryGrid', index: 0, baseTitle: context.base.title });
 
     // copy current page url
     const url = dashboard.rootPage.url();
@@ -101,7 +101,7 @@ test.describe('Grid view personal', () => {
     // open the copied url
     await dashboard.rootPage.goto(url);
 
-    await dashboard.viewSidebar.verifyView({ title: 'CountryGrid', index: 0 });
+    await dashboard.viewSidebar.verifyView({ title: 'CountryGrid', index: 0, baseTitle: context.base.title });
 
     // verify view lock
     await dashboard.grid.verifyPersonalMode();

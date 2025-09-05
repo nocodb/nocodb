@@ -34,7 +34,7 @@ const { isMobileMode, user } = useGlobal()
 
 const { createProject: _createProject, updateProject, getProjectMetaInfo } = basesStore
 
-const { bases, basesUser, showProjectList } = storeToRefs(basesStore)
+const { bases, basesUser, showProjectList, forceShowBaseList } = storeToRefs(basesStore)
 
 const collaborators = computed(() => {
   return (basesUser.value.get(base.value?.id) || []).map((user: any) => {
@@ -199,6 +199,10 @@ function openTableCreateDialog(sourceIndex?: number | undefined, showSourceSelec
     onCloseCallback: () => {
       base.value.isExpanded = true
 
+      if (forceShowBaseList.value) {
+        forceShowBaseList.value = false
+      }
+
       if (!activeKey.value || !activeKey.value.includes(`collapse-${sourceId}`)) {
         activeKey.value.push(`collapse-${sourceId}`)
       }
@@ -241,6 +245,7 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   if (!cmdOrCtrl && activeProjectId.value === base.id) {
+    forceShowBaseList.value = false
     showProjectList.value = false
     return
   }
@@ -296,6 +301,7 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
     updatedProject.isLoading = false
   }
 
+  forceShowBaseList.value = false
   showProjectList.value = false
 }
 

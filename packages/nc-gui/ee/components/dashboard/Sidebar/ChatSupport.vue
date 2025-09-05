@@ -27,7 +27,7 @@ const toggleVisibility = () => {
       }"
       @click="toggleVisibility"
     >
-      <GeneralIcon icon="chatwoot" class="h-6 w-6" />
+      <GeneralIcon icon="ncSupportAgent" class="h-4.5 w-4.5" />
     </div>
   </div>
 </template>

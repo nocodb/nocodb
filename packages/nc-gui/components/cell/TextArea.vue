@@ -774,7 +774,7 @@ useResizeObserver(inputWrapperRef, () => {
               </template>
             </div>
             <div class="flex-1"></div>
-            <div v-if="!readOnly" class="flex items-center gap-1 mr-3">
+            <div v-if="!readOnly" class="flex items-center gap-1">
               <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
                 <template #title>
                   {{
@@ -802,6 +802,12 @@ useResizeObserver(inputWrapperRef, () => {
                 </NcButton>
               </NcTooltip>
             </div>
+          </template>
+          <template v-if="props.isAi">
+            <div v-if="isEditColumn" class="flex-1"></div>
+            <NcButton class="mr-3" type="text" size="small" @click="isVisible = false">
+              <GeneralIcon icon="close" />
+            </NcButton>
           </template>
         </div>
         <div v-if="props.isAi && props.aiMeta?.isStale && !readOnly" ref="aiWarningRef" class="border-b-1 border-gray-100">

@@ -18,6 +18,7 @@ const props = withDefaults(
     placeholder?: string
     readOnly?: boolean
     markdown?: boolean
+    showPlusIconTooltip?: boolean
   }>(),
   {
     options: () => [],
@@ -31,6 +32,7 @@ const props = withDefaults(
     placeholder: 'Write your prompt here...',
     readOnly: false,
     markdown: true,
+    showPlusIconTooltip: true,
   },
 )
 
@@ -217,26 +219,33 @@ useEventListener(el, 'focusPromptWithFields', () => {
       @keydown.esc="handleOnEscRichTextEditor"
     />
 
-    <NcButton
-      size="xs"
-      type="text"
-      class="nc-prompt-with-field-suggestion-btn !px-1"
-      :disabled="readOnly"
-      @click.stop="newFieldSuggestionNode"
+    <NcTooltip
+      hide-on-click
+      :disabled="!showPlusIconTooltip || readOnly"
+      title="Mention fields"
+      class="nc-prompt-with-field-suggestion-btn-wrapper flex"
     >
-      <slot name="triggerIcon">
-        <GeneralIcon
-          icon="ncPlusSquareSolid"
-          class="text-nc-content-brand"
-          :class="[
-            `${suggestionIconClassName}`,
-            {
-              'opacity-75': readOnly,
-            },
-          ]"
-        />
-      </slot>
-    </NcButton>
+      <NcButton
+        size="xs"
+        type="text"
+        class="nc-prompt-with-field-suggestion-btn !px-1 flex-none"
+        :disabled="readOnly"
+        @click.stop="newFieldSuggestionNode"
+      >
+        <slot name="triggerIcon">
+          <GeneralIcon
+            icon="ncPlusSquareSolid"
+            class="text-nc-content-brand flex-none"
+            :class="[
+              `${suggestionIconClassName}`,
+              {
+                'opacity-75': readOnly,
+              },
+            ]"
+          />
+        </slot>
+      </NcButton>
+    </NcTooltip>
   </div>
 </template>
 
@@ -244,7 +253,7 @@ useEventListener(el, 'focusPromptWithFields', () => {
 .nc-ai-prompt-with-fields {
   @apply relative;
 
-  .nc-prompt-with-field-suggestion-btn {
+  .nc-prompt-with-field-suggestion-btn-wrapper {
     @apply absolute top-[2px] right-[1px];
   }
 

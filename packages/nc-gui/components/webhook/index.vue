@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { diff } from 'deep-object-diff'
 import { type HookReqType, type HookTestReqType, type HookType, PlanLimitTypes, hasInputCalls } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
@@ -32,6 +33,8 @@ const { $e, $api } = useNuxtApp()
 const { api, isLoading: loading } = useApi()
 
 const modalVisible = useVModel(props, 'value')
+
+const { clone } = useUndoRedo()
 
 const { hooks } = storeToRefs(useWebhooksStore())
 
@@ -89,6 +92,8 @@ const eventsEnum = computed(() => {
   return result
 })
 
+const oldHookRef = ref<HookType | undefined>()
+
 let hookRef = reactive<
   Omit<HookType, 'notification'> & {
     notification: Record<string, any> & {
@@ -135,6 +140,12 @@ let hookRef = reactive<
   trigger_fields: [],
   active: true,
   version: 'v3',
+})
+
+const hasUnsavedChanges = computed(() => {
+  if (!props.hook || !hookRef.id || !oldHookRef.value || !hookRef) return true
+
+  return !ncIsEmptyObject(diff(removeUndefinedFromObj(oldHookRef.value), removeUndefinedFromObj(hookRef)))
 })
 
 const operationsEnum = computed(() => {
@@ -511,6 +522,8 @@ function setHook(newHook: HookType) {
   }
 
   hookRef.trigger_field = !!hookRef?.trigger_field
+
+  oldHookRef.value = clone(hookRef)
 
   loadSampleData()
 }
@@ -973,7 +986,14 @@ const webhookV2AndV3Diff = computed(() => {
               {{ $t('general.cancel') }}
             </NcButton>
 
-            <NcButton :loading="loading" type="primary" size="small" data-testid="nc-save-webhook" @click.stop="saveHooks">
+            <NcButton
+              :loading="loading"
+              type="primary"
+              size="small"
+              :disabled="!hasUnsavedChanges"
+              data-testid="nc-save-webhook"
+              @click.stop="saveHooks"
+            >
               {{
                 showUpgradeModal
                   ? $t('general.upgrade')

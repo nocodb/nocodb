@@ -710,8 +710,11 @@ defineExpose({
       <template v-for="(filter, i) in filters" :key="i">
         <template v-if="filter.status !== 'delete'">
           <template v-if="filter.is_group">
-            <div class="flex flex-col min-w-full w-min gap-y-2">
-              <div class="flex rounded-lg p-2 min-w-full w-min border-1" :class="[`nc-filter-nested-level-${nestedLevel}`]">
+            <div class="flex flex-col min-w-full w-min max-w-full gap-y-2">
+              <div
+                class="flex rounded-lg p-2 min-w-full w-min max-w-full border-1"
+                :class="[`nc-filter-nested-level-${nestedLevel}`]"
+              >
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children || !autoSave"
                   :key="i"
@@ -842,7 +845,6 @@ defineExpose({
                 v-model="filter.fk_column_id"
                 :class="{
                   'max-w-32': !webHook,
-                  '!w-full': webHook,
                 }"
                 class="nc-filter-field-select min-w-32 max-h-8"
                 :columns="fieldsToFilter"
@@ -861,7 +863,6 @@ defineExpose({
                 :placeholder="$t('labels.operation')"
                 :class="{
                   '!max-w-26.75': !webHook,
-                  '!w-full': webHook,
                 }"
                 density="compact"
                 variant="solo"
@@ -928,7 +929,7 @@ defineExpose({
                   </a-select-option>
                 </template>
               </NcSelect>
-              <div class="flex items-center flex-grow">
+              <div class="flex items-center flex-grow min-w-0">
                 <div v-if="link && (filter.dynamic || filter.fk_value_col_id)" class="flex-grow">
                   <SmartsheetToolbarFieldListAutoCompleteDropdown
                     v-if="showFilterInput(filter)"

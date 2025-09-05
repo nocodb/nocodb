@@ -319,6 +319,7 @@ onClickOutside(editorDom, (e) => {
         v-if="editor && !isFormField && !isForm"
         :editor="editor"
         :hide-mention="hideMention"
+        hide-on-select-all-sortcut
       />
 
       <template v-if="shouldShowLinkOption">

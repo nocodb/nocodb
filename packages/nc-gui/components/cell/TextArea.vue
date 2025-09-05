@@ -773,7 +773,7 @@ useResizeObserver(inputWrapperRef, () => {
               </template>
             </div>
             <div class="flex-1"></div>
-            <div v-if="!readOnly" class="flex items-center gap-1 mr-4">
+            <div v-if="!readOnly" class="flex items-center gap-1 mr-3">
               <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
                 <template #title>
                   {{

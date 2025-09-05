@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Приватні бази доступні у плані {plan}. Оновіть тариф, щоб почати користуватись ними.",
     "upgradeLicenseToUsePrivateBases": "Оновіть ліцензію для розблокування приватних баз",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Приватні бази недоступні в Enterprise Starter license. Оновіть ліцензію, щоб почати користуватись ними.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Ви можете завантажити не більше {limit} {filePlural} у цю клітинку. Оновіть до тарифу {plan}, щоб додавати більше файлів."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Ви можете завантажити не більше {limit} {filePlural} у цю клітинку. Оновіть до тарифу {plan}, щоб додавати більше файлів.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Скрипт",
@@ -908,7 +910,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "Щоб розблокувати, оновіть до плану {plan} або перетворіть цю базу на спільну.",
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} полів мають власні дозволи",
     "cancelSubscriptionBeforeDeletingWorkspace": "Скасувати підписку перед видаленням робочого простору",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "У цьому робочому просторі є активна підписка. Перевірте та скасуйте її перед видаленням."
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "У цьому робочому просторі є активна підписка. Перевірте та скасуйте її перед видаленням.",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1408,6 +1414,8 @@
     "generateFieldDataUsingAi": "Згенеруйте значення поля за допомогою ШІ",
     "preview": "Попередній перегляд",
     "autoSuggest": "Автоматична підказка",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Запропонувати...",
     "autoSuggestFields": "Автоматична підказка полів",
     "autoSuggestFormulas": "Автоматичні підказки формул",
@@ -1477,6 +1485,7 @@
     "resolvedBy": "Вирішив",
     "leaveWorkspace": "Покинути робочий простір",
     "removeUser": "Видалити користувача",
+    "removeMember": "Remove member",
     "filterByThisField": "Фільтр за цим полем",
     "groupByThisField": "Групувати за цим полем",
     "addToStarred": "Додати до обраного",

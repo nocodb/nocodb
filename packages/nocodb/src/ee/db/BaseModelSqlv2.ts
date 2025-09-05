@@ -4,7 +4,6 @@ import {
   convertDurationToSeconds,
   enumColors,
   EventType,
-  extractFilterFromXwhere,
   isAIPromptCol,
   isAttachment,
   isCreatedOrLastModifiedByCol,
@@ -57,15 +56,7 @@ import {
   populateUpdatePayloadDiff,
   remapWithAlias,
 } from '~/utils';
-import {
-  Audit,
-  Column,
-  FileReference,
-  Filter,
-  Model,
-  ModelStat,
-  Permission,
-} from '~/models';
+import { Audit, Column, Filter, Model, ModelStat, Permission } from '~/models';
 import {
   getSingleQueryReadFn,
   singleQueryList,
@@ -2605,14 +2596,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (apiVersion === NcApiVersion.V3) {
-        for (const d of datas) {
-          // remove LTAR/Links if part of the update request
-          await this.updateLTARCols({
-            rowId: this.extractPksValues(d, true),
-            cookie,
-            newData: d,
-          });
-        }
+        // remove LTAR/Links if part of the update request
+        await this.updateLTARCols({
+          datas,
+          cookie,
+        });
         await Promise.all(postUpdateOps.map((ops) => ops()));
       }
 

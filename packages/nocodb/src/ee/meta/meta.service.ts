@@ -17,8 +17,12 @@ const nanoidWorkspace = customAlphabet(
 
 @Injectable()
 export class MetaService extends MetaServiceCE {
-  constructor(config: NcConfig, @Optional() trx = null) {
-    super(config, trx);
+  constructor(
+    config: NcConfig,
+    @Optional() trx = null,
+    @Optional() nested = 0,
+  ) {
+    super(config, trx, nested);
   }
 
   public async init(): Promise<boolean> {
@@ -36,15 +40,17 @@ export class MetaService extends MetaServiceCE {
   }
 
   async startTransaction(): Promise<MetaService> {
-    const trx = await this.connection.transaction();
+    const trx = this.connection.isTransaction
+      ? this.connection
+      : await this.connection.transaction();
 
-    // todo: Extend transaction class to add our custom properties
-    Object.assign(trx, {
-      clientType: this.connection.clientType,
-      searchPath: (this.connection as any).searchPath,
-    });
-
-    return new MetaService(this.config, trx);
+    // todo: tobe done
+    return new MetaService(
+      this.config,
+      trx,
+      // we need to keep track of the nested transaction level
+      this.connection.isTransaction ? this.nested + 1 : 0,
+    );
   }
 
   /***

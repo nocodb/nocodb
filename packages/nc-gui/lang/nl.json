@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Privé-bases zijn beschikbaar op het {plan}-abonnement. Upgrade nu om ermee te starten.",
     "upgradeLicenseToUsePrivateBases": "Upgrade de licentie om privé-bases te ontgrendelen",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Privé-bases zijn niet beschikbaar in het Enterprise Starter-licentie. Upgrade je licentiesleutel om ze te gebruiken.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Je kunt maximaal {limit} {filePlural} uploaden naar deze cel. Upgrade naar het {plan}-abonnement om meer bestanden toe te voegen."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Je kunt maximaal {limit} {filePlural} uploaden naar deze cel. Upgrade naar het {plan}-abonnement om meer bestanden toe te voegen.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Script",
@@ -908,7 +910,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "Om te ontgrendelen, upgrade naar het {plan}-abonnement of converteer deze basis naar een gedeelde basis.",
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} velden hebben aangepaste machtigingen",
     "cancelSubscriptionBeforeDeletingWorkspace": "Annuleer het abonnement voordat je de werkruimte verwijdert",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "Deze werkruimte heeft een actief abonnement. Bekijk en annuleer het voordat je doorgaat met verwijderen."
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "Deze werkruimte heeft een actief abonnement. Bekijk en annuleer het voordat je doorgaat met verwijderen.",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1408,6 +1414,8 @@
     "generateFieldDataUsingAi": "Genereer veldwaarde met AI",
     "preview": "Voorbeeld",
     "autoSuggest": "Automatisch voorstel",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Voorstellen...",
     "autoSuggestFields": "Velden automatisch voorstellen",
     "autoSuggestFormulas": "Formules automatisch voorstellen",
@@ -1477,6 +1485,7 @@
     "resolvedBy": "Opgelost door",
     "leaveWorkspace": "Werkruimte verlaten",
     "removeUser": "Gebruiker verwijderen",
+    "removeMember": "Remove member",
     "filterByThisField": "Filter op dit veld",
     "groupByThisField": "Groeperen op dit veld",
     "addToStarred": "Toevoegen aan favorieten",

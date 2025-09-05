@@ -382,7 +382,7 @@ watch(
       class="flex items-center justify-center absolute left-0 top-0 w-full h-full z-10 pointer-events-none"
     >
       <div class="flex flex-col justify-center items-center gap-2">
-        <GeneralLoader size="xlarge" />
+        <a-spin size="large" />
         <span class="text-center">{{ $t('general.loading') }}</span>
       </div>
     </div>

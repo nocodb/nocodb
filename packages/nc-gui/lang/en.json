@@ -908,7 +908,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
     "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion.",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Incomplete configuration",
@@ -1477,6 +1481,7 @@
     "resolvedBy": "Resolved by",
     "leaveWorkspace": "Leave workspace",
     "removeUser": "Remove user",
+    "removeMember": "Remove member",
     "filterByThisField": "Filter by this field",
     "groupByThisField": "Group by this field",
     "addToStarred": "Add to starred",

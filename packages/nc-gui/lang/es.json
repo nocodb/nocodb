@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Las bases privadas están disponibles en el plan {plan}. Actualiza ahora para comenzar a usarlas.",
     "upgradeLicenseToUsePrivateBases": "Actualiza la licencia para desbloquear las bases privadas",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Las bases privadas no están disponibles en la licencia Enterprise Starter. Actualiza la licencia para comenzar a usarlas.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Solo puedes subir como máximo {limit} {filePlural} a esta celda. Actualiza al plan {plan} para agregar más archivos."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Solo puedes subir como máximo {limit} {filePlural} a esta celda. Actualiza al plan {plan} para agregar más archivos.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Guion",
@@ -908,7 +910,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "Para desbloquearla, actualiza al plan {plan} o convierte esta base en una Base compartida.",
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} campos tienen permisos personalizados",
     "cancelSubscriptionBeforeDeletingWorkspace": "Cancela la suscripción antes de eliminar el espacio de trabajo",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "Este espacio de trabajo tiene una suscripción activa. Por favor revísala y cancélala antes de continuar con la eliminación."
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "Este espacio de trabajo tiene una suscripción activa. Por favor revísala y cancélala antes de continuar con la eliminación.",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1408,6 +1414,8 @@
     "generateFieldDataUsingAi": "Generar valor de campo con IA",
     "preview": "Vista previa",
     "autoSuggest": "Autocompletar",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Sugiriendo...",
     "autoSuggestFields": "Autocompletar campos",
     "autoSuggestFormulas": "Autocompletar fórmulas",
@@ -1477,6 +1485,7 @@
     "resolvedBy": "Resuelto por",
     "leaveWorkspace": "Salir del espacio de trabajo",
     "removeUser": "Eliminar usuario",
+    "removeMember": "Remove member",
     "filterByThisField": "Filtrar por este campo",
     "groupByThisField": "Agrupar por este campo",
     "addToStarred": "Añadir a destacados",

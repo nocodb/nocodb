@@ -789,6 +789,10 @@ useResizeObserver(inputWrapperRef, () => {
                   size="small"
                   inner-class="!gap-2"
                   :disabled="!isFieldAiIntegrationAvailable"
+                  :class="{
+                    '!text-nc-content-purple-medium !bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark':
+                      isFieldAiIntegrationAvailable,
+                  }"
                   :loading="isAiGenerating"
                   @click.stop="generate"
                 >

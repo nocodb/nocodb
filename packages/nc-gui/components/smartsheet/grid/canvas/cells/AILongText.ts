@@ -323,6 +323,11 @@ export const AILongTextCellRenderer: CellRenderer = {
       return true
     }
 
+    if (isExpandCellKey(e)) {
+      // prevent default to avoid adding space to the end of the cell
+      e.preventDefault()
+    }
+
     if (e.key.length === 1) {
       makeCellEditable(row, column)
       return true

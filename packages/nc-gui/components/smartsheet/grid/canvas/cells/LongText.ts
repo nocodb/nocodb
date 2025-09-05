@@ -161,6 +161,9 @@ export const LongTextCellRenderer: CellRenderer = {
     }
 
     if (isExpandCellKey(e)) {
+      // prevent default to avoid adding space to the end of the cell
+      e.preventDefault()
+
       makeCellEditable(row, column)
       return true
     }

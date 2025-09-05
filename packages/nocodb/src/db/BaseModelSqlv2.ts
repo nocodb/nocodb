@@ -6670,8 +6670,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else if (isAIPromptCol(column) && !extra?.raw) {
         if (data[column.column_name]) {
           let value = data[column.column_name];
+          /**
+           * IsAiEdited is used to fix edited by ai issue in expanded form as cookie?.system will be undefined in that case
+           */
+          let isAiEdited = false;
 
           if (typeof value === 'object') {
+            isAiEdited = value.isAiEdited;
             value = value.value;
           }
 
@@ -6682,7 +6687,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             isStale?: string;
           } = {};
 
-          if (cookie?.system === true) {
+          if (cookie?.system === true || isAiEdited) {
             Object.assign(obj, {
               value,
               lastModifiedBy: null,

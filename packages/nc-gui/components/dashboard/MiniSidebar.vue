@@ -16,7 +16,7 @@ const { activeWorkspaceId, isWorkspaceSettingsPageOpened, isIntegrationsPageOpen
 
 const { navigateToWorkspaceSettings, navigateToIntegrations: _navigateToIntegrations } = workspaceStore
 
-const { basesList, showProjectList } = storeToRefs(useBases())
+const { basesList, showProjectList, forceShowBaseList } = storeToRefs(useBases())
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -44,6 +44,10 @@ const isProjectPageOpen = computed(() => {
 const navigateToProjectPage = () => {
   if (route.value.name?.startsWith('index-typeOrId-baseId-')) {
     showProjectList.value = !showProjectList.value
+
+    if (forceShowBaseList.value) {
+      forceShowBaseList.value = false
+    }
 
     return
   }

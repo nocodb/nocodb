@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "专用基座仅在 {plan} 计划中提供。立即升级即可使用。",
     "upgradeLicenseToUsePrivateBases": "升级许可证以解锁专用基座",
     "upgradeLicenseToUsePrivateBasesSubtitle": "企业入门许可证不提供专用基地。升级许可证密钥即可开始使用。",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "您最多只能向该单元上传 {limit} {filePlural} 。升级到 {plan} 计划可添加更多文件。",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "您最多只能向该单元上传 {limit} {filePlural} 。升级到 {plan} 计划可添加更多文件。"
   },
   "general": {
     "script": "脚本",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "使用 AI 生成字段值",
     "preview": "预览",
     "autoSuggest": "自动建议",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "建议...",
     "autoSuggestFields": "自动建议字段",
     "autoSuggestFormulas": "自动建议公式",

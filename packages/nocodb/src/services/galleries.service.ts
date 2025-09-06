@@ -84,6 +84,8 @@ export class GalleriesService {
       context,
     });
 
+    await view.getView(context)
+
     NocoSocket.broadcastEvent(
       context,
       {

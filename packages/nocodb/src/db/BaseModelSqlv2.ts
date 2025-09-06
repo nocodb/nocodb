@@ -5912,7 +5912,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async addLinks(params: {
     cookie: any;
-    childIds: (string | number | Record<string, any>)[];
+    childIds: (string | number)[];
     colId: string;
     rowId: string;
   }) {
@@ -5929,7 +5929,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async removeLinks(params: {
     cookie: any;
-    childIds: (string | number | Record<string, any>)[];
+    childIds: (string | number)[];
     colId: string;
     rowId: string;
   }) {

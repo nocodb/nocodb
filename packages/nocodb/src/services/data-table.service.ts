@@ -16,6 +16,7 @@ import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { dataWrapper } from '~/helpers/dbHelpers';
 
 @Injectable()
 export class DataTableService {
@@ -740,7 +741,9 @@ export class DataTableService {
       if (deleteCellNestedList && Array.isArray(deleteCellNestedList)) {
         await baseModel.removeLinks({
           colId: column.id,
-          childIds: deleteCellNestedList,
+          childIds: deleteCellNestedList.map((nestedList) =>
+            dataWrapper(nestedList).extractPksValue(relatedModel),
+          ),
           rowId: operationMap.deleteAll.rowId,
           cookie: param.cookie,
         });
@@ -781,13 +784,13 @@ export class DataTableService {
       const filteredRowsToLink = this.filterAndMapRows(
         copiedCellNestedList,
         pasteCellNestedList,
-        relatedModel.primaryKeys,
+        relatedModel,
       );
 
       const filteredRowsToUnlink = this.filterAndMapRows(
         pasteCellNestedList,
         copiedCellNestedList,
-        relatedModel.primaryKeys,
+        relatedModel,
       );
 
       await Promise.all([
@@ -834,13 +837,13 @@ export class DataTableService {
   private filterAndMapRows(
     sourceList: Record<string, any>[],
     targetList: Record<string, any>[],
-    primaryKeys: Column<any>[],
-  ): Record<string, any>[] {
+    relatedModel: Model,
+  ): (string | number)[] {
     return sourceList
       .filter(
         (sourceRow: Record<string, any>) =>
           !targetList.some((targetRow: Record<string, any>) =>
-            primaryKeys.every(
+            relatedModel.primaryKeys.every(
               (key) =>
                 sourceRow[key.title || key.column_name] ===
                 targetRow[key.title || key.column_name],
@@ -848,11 +851,7 @@ export class DataTableService {
           ),
       )
       .map((item: Record<string, any>) =>
-        primaryKeys.reduce((acc, key) => {
-          acc[key.title || key.column_name] =
-            item[key.title || key.column_name];
-          return acc;
-        }, {} as Record<string, any>),
+        dataWrapper(item).extractPksValue(relatedModel, true),
       );
   }
 

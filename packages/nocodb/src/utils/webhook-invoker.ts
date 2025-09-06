@@ -252,7 +252,7 @@ export class WebhookInvoker {
     // TODO: construct webhook view data
     if (['v2', 'v3'].includes(hook.version)) {
       // extend in the future - currently only support records
-      const scope = ['after', 'manual'].includes(hook.event) ? 'records.' : '';
+      const scope = 'records';
       const isBulkInsert =
         hook.version === 'v2' && (hook.operation as any) === 'bulkInsert';
 
@@ -260,7 +260,7 @@ export class WebhookInvoker {
       const includeUser = parseMetaProp(hook, 'notification')?.include_user;
 
       return {
-        type: `${scope}${hook.event}.${hook.operation}`,
+        type: `${scope}.${hook.event}.${hook.operation}`,
         id: uuidv4(),
         ...(includeUser && isEE && user
           ? { user: sanitizeUserForHook(user) }

@@ -1,14 +1,26 @@
 import { WebhookEvents } from 'nocodb-sdk';
 import { WebhookInvoker as WebhookInvokerCE } from 'src/utils/webhook-invoker';
-import type { HookLogType, NcContext } from 'nocodb-sdk';
+import { v4 as uuidv4 } from 'uuid';
+import type {
+  HookLogType,
+  HookType,
+  NcContext,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk';
 import type { Filter } from '~/models';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/ncError';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 import { type Hook, HookLog, type Model, type View } from '~/models';
-import { handleHttpWebHook, parseBody } from '~/helpers/webhookHelpers';
+import {
+  handleHttpWebHook,
+  parseBody,
+  sanitizeUserForHook,
+} from '~/helpers/webhookHelpers';
 import { isEE, isOnPrem } from '~/utils';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 export class WebhookInvoker extends WebhookInvokerCE {
   override async invoke(
@@ -37,6 +49,72 @@ export class WebhookInvoker extends WebhookInvokerCE {
       }
     }
     return super.invoke(context, param);
+  }
+
+  override constructWebHookData(
+    hook: Hook | HookType,
+    model: Model | TableType,
+    _view: View | ViewType,
+    prevData: any,
+    newData: any,
+    user = null,
+  ) {
+    if ((hook.event as any) === WebhookEvents.VIEW) {
+      return this.constructViewWebHookData(
+        hook,
+        model,
+        _view,
+        prevData,
+        newData,
+        user,
+      );
+    }
+    return super.constructWebHookData(
+      hook,
+      model,
+      _view,
+      prevData,
+      newData,
+      user,
+    );
+  }
+  constructViewWebHookData(
+    hook: Hook | HookType,
+    model: Model | TableType,
+    _view: View | ViewType,
+    prevData: any,
+    newData: any,
+    user = null,
+  ) {
+    // Check for include_user in notification object first, fall back to hook.include_user for backward compatibility
+    const includeUser = parseMetaProp(hook, 'notification')?.include_user;
+
+    return {
+      type: `${hook.event}.${hook.operation}`,
+      id: uuidv4(),
+      ...(includeUser && isEE && user
+        ? { user: sanitizeUserForHook(user) }
+        : {}),
+      version: hook.version,
+      data: {
+        table_id: model.id,
+        table_name: model.title,
+        // webhook are table specific, so no need to send view_id and view_name
+        // view_id: view?.id,
+        // view_name: view?.title,
+        ...(prevData &&
+          (hook.operation as any) !== 'delete' && {
+            previous_view: Array.isArray(prevData) ? prevData : [prevData],
+          }),
+        ...(prevData &&
+          (hook.operation as any) === 'delete' && {
+            view: Array.isArray(prevData) ? prevData : [prevData],
+          }),
+        ...(newData && {
+          view: Array.isArray(newData) ? newData : [newData],
+        }),
+      },
+    };
   }
 
   async invokeViewEvent(

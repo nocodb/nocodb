@@ -15,6 +15,7 @@ import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { Job } from '~/models';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
+import { getCircularReplacer } from '~/utils/circularReplacer';
 
 @Injectable()
 export class JobsService implements OnModuleInit {
@@ -81,6 +82,9 @@ export class JobsService implements OnModuleInit {
       base_id: RootScopes.ROOT,
       ...(data?.context || {}),
     };
+
+    // to ensure data is serializable
+    data = JSON.parse(JSON.stringify(data, getCircularReplacer()));
 
     let jobData;
 

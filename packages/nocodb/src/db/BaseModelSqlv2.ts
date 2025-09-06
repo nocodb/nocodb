@@ -3093,16 +3093,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await transaction.rollback();
       }
 
-      // todo: wrap with transaction
       if (apiVersion === NcApiVersion.V3) {
-        for (const d of datas) {
-          // remove LTAR/Links if part of the update request
-          await this.updateLTARCols({
-            rowId: this.extractPksValues(d, true),
-            cookie,
-            newData: d,
-          });
-        }
+        // remove LTAR/Links if part of the update request
+        await this.updateLTARCols({
+          datas,
+          cookie,
+        });
         await Promise.all(postUpdateOps.map((ops) => ops()));
       }
 
@@ -3151,91 +3147,101 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  async updateLTARCols({
-    rowId,
-    newData,
-    cookie,
-  }: {
-    newData: any;
-    rowId: string;
-    cookie;
-  }) {
-    for (const col of this.model.columns) {
-      // skip if not LTAR or Links
-      if (!isLinksOrLTAR(col)) continue;
+  async updateLTARCols({ datas, cookie }: { datas: any[]; cookie: NcRequest }) {
+    const trx = await this.dbDriver.transaction();
 
-      // skip if value is not part of the update
-      if (!(col.title in newData)) continue;
+    const trxBaseModel = await Model.getBaseModelSQL(this.context, {
+      model: this.model,
+      dbDriver: trx,
+    });
 
-      // extract existing link values to current record
-      let existingLinks = [];
+    try {
+      for (const d of datas) {
+        const rowId = this.extractPksValues(d, true);
 
-      if (col.colOptions.type === RelationTypes.MANY_TO_MANY) {
-        existingLinks = await this.mmList({
-          colId: col.id,
-          parentId: rowId,
-        });
-      } else if (col.colOptions.type === RelationTypes.HAS_MANY) {
-        existingLinks = await this.hmList({
-          colId: col.id,
-          id: rowId,
-        });
-      } else {
-        existingLinks = await this.btRead({
-          colId: col.id,
-          id: rowId,
-        });
-      }
+        for (const col of this.model.columns) {
+          // skip if not LTAR or Links
+          if (!isLinksOrLTAR(col)) continue;
 
-      existingLinks = existingLinks || [];
+          // skip if value is not part of the update
+          if (!(col.title in d)) continue;
 
-      if (!Array.isArray(existingLinks)) {
-        existingLinks = [existingLinks];
-      }
+          // extract existing link values to current record
+          let existingLinks = [];
 
-      const idsToLink = [
-        ...(Array.isArray(newData[col.title])
-          ? newData[col.title]
-          : [newData[col.title]]
-        ).map((rec) => this.extractPksValues(rec, true)),
-      ];
-
-      // check for any missing links then unlink
-      const idsToUnlink = existingLinks
-        .map((link) => this.extractPksValues(link, true))
-        .filter((existingLinkPk) => {
-          const index = idsToLink.findIndex((linkPk) => {
-            return existingLinkPk === linkPk;
-          });
-
-          // if found remove from both list
-          if (index > -1) {
-            idsToLink.splice(index, 1);
-            return false;
+          if (col.colOptions.type === RelationTypes.MANY_TO_MANY) {
+            existingLinks = await trxBaseModel.mmList({
+              colId: col.id,
+              parentId: rowId,
+            });
+          } else if (col.colOptions.type === RelationTypes.HAS_MANY) {
+            existingLinks = await trxBaseModel.hmList({
+              colId: col.id,
+              id: rowId,
+            });
+          } else {
+            existingLinks = await trxBaseModel.btRead({
+              colId: col.id,
+              id: rowId,
+            });
           }
 
-          return true;
-        });
+          existingLinks = existingLinks || [];
 
-      // check for missing links in new data and unlink them
-      if (idsToUnlink?.length) {
-        await this.removeLinks({
-          colId: col.id,
-          childIds: idsToUnlink,
-          cookie,
-          rowId,
-        });
+          if (!Array.isArray(existingLinks)) {
+            existingLinks = [existingLinks];
+          }
+
+          const idsToLink = [
+            ...(Array.isArray(d[col.title])
+              ? d[col.title]
+              : [d[col.title]]
+            ).map((rec) => this.extractPksValues(rec, true)),
+          ];
+
+          // check for any missing links then unlink
+          const idsToUnlink = existingLinks
+            .map((link) => this.extractPksValues(link, true))
+            .filter((existingLinkPk) => {
+              const index = idsToLink.findIndex((linkPk) => {
+                return existingLinkPk === linkPk;
+              });
+
+              // if found remove from both list
+              if (index > -1) {
+                idsToLink.splice(index, 1);
+                return false;
+              }
+
+              return true;
+            });
+
+          // check for missing links in new data and unlink them
+          if (idsToUnlink?.length) {
+            await trxBaseModel.removeLinks({
+              colId: col.id,
+              childIds: idsToUnlink,
+              cookie,
+              rowId,
+            });
+          }
+
+          // check for new data and link them
+          if (idsToLink?.length) {
+            await trxBaseModel.addLinks({
+              colId: col.id,
+              childIds: idsToLink,
+              cookie,
+              rowId,
+            });
+          }
+        }
       }
 
-      // check for new data and link them
-      if (idsToLink?.length) {
-        await this.addLinks({
-          colId: col.id,
-          childIds: idsToLink,
-          cookie,
-          rowId,
-        });
-      }
+      await trx.commit();
+    } catch (e) {
+      await trx.rollback();
+      throw e;
     }
   }
 

@@ -1059,17 +1059,9 @@ function CustomKnex(
 
   const knexRaw = kn.raw;
 
-  /**
-   * Wrapper for knex.raw
-   *
-   * @param args1
-   * @returns {Knex.Raw<any>}
-   */
-  // knex.raw = function (...args) {
-  //   return knexRaw.apply(knex, args);
-  // };
+  const knexTransaction = kn.transaction;
 
-  Object.defineProperties(kn, {
+  const overrideProps = {
     raw: {
       enumerable: true,
       value: (...args) => {
@@ -1100,7 +1092,29 @@ function CustomKnex(
       enumerable: false,
       value: !!extDb && process.env.NC_DISABLE_MUX !== 'true',
     },
-  });
+    transaction: {
+      enumerable: true,
+      value: async (...args) => {
+        const trx = await knexTransaction.apply(kn, args);
+
+        Object.defineProperties(trx, overrideProps);
+
+        return trx;
+      },
+    },
+  };
+
+  /**
+   * Wrapper for knex.raw
+   *
+   * @param args1
+   * @returns {Knex.Raw<any>}
+   */
+  // knex.raw = function (...args) {
+  //   return knexRaw.apply(knex, args);
+  // };
+
+  Object.defineProperties(kn, overrideProps);
 
   /**
    * Returns database type

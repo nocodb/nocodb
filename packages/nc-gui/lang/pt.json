@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "Bases privadas estão disponíveis no plano {plan}. Faça upgrade agora para começar a usá-las.",
     "upgradeLicenseToUsePrivateBases": "Faça upgrade na licença para liberar bases privadas",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Bases privadas não estão disponíveis na licença Enterprise Starter. Faça upgrade da chave de licença para começar a usá-las.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Você pode carregar no máximo {limit} {filePlural} nesta célula. Faça upgrade para o plano {plan} para adicionar mais arquivos.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Você pode carregar no máximo {limit} {filePlural} nesta célula. Faça upgrade para o plano {plan} para adicionar mais arquivos."
   },
   "general": {
     "script": "Script",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "Gerar valor de campo usando IA",
     "preview": "Pré-visualizar",
     "autoSuggest": "Sugestão automática",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "A sugerir...",
     "autoSuggestFields": "Sugerir campos automaticamente",
     "autoSuggestFormulas": "Sugerir fórmulas automaticamente",

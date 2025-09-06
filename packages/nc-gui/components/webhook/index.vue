@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { diff } from 'deep-object-diff'
 import { type HookReqType, type HookTestReqType, type HookType, PlanLimitTypes, hasInputCalls } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
@@ -32,6 +33,8 @@ const { $e, $api } = useNuxtApp()
 const { api, isLoading: loading } = useApi()
 
 const modalVisible = useVModel(props, 'value')
+
+const { clone } = useUndoRedo()
 
 const { hooks } = storeToRefs(useWebhooksStore())
 
@@ -89,6 +92,8 @@ const eventsEnum = computed(() => {
   return result
 })
 
+const oldHookRef = ref<HookType | undefined>()
+
 let hookRef = reactive<
   Omit<HookType, 'notification'> & {
     notification: Record<string, any> & {
@@ -131,6 +136,12 @@ let hookRef = reactive<
   trigger_fields: [],
   active: true,
   version: 'v3',
+})
+
+const hasUnsavedChanges = computed(() => {
+  if (!props.hook || !hookRef.id || !oldHookRef.value || !hookRef) return true
+
+  return !ncIsEmptyObject(diff(removeUndefinedFromObj(oldHookRef.value), removeUndefinedFromObj(hookRef)))
 })
 
 const operationsEnum = computed(() => {
@@ -499,6 +510,8 @@ function setHook(newHook: HookType) {
   }
 
   hookRef.trigger_field = !!hookRef?.trigger_field
+
+  oldHookRef.value = clone(hookRef)
 
   loadSampleData()
 }
@@ -957,7 +970,14 @@ const webhookV2AndV3Diff = computed(() => {
               {{ $t('general.cancel') }}
             </NcButton>
 
-            <NcButton :loading="loading" type="primary" size="small" data-testid="nc-save-webhook" @click.stop="saveHooks">
+            <NcButton
+              :loading="loading"
+              type="primary"
+              size="small"
+              :disabled="!hasUnsavedChanges"
+              data-testid="nc-save-webhook"
+              @click.stop="saveHooks"
+            >
               {{
                 showUpgradeModal
                   ? $t('general.upgrade')
@@ -1249,6 +1269,8 @@ const webhookV2AndV3Diff = computed(() => {
                         class="w-full nc-select-shadow nc-select-hook-scrip-type"
                         data-testid="nc-dropdown-hook-notification-type"
                         placeholder="Select a script"
+                        show-search
+                        :filter-option="(input, option) => antSelectFilterOption(input, option, ['label'])"
                       ></NcSelect>
                     </a-form-item>
                   </template>
@@ -1261,6 +1283,8 @@ const webhookV2AndV3Diff = computed(() => {
                           size="medium"
                           class="nc-select-hook-url-method"
                           dropdown-class-name="nc-dropdown-hook-notification-url-method"
+                          show-search
+                          :filter-option="(input, option) => antSelectFilterOption(input, option, ['value'])"
                         >
                           <template #suffixIcon>
                             <GeneralIcon icon="arrowDown" class="text-gray-700" />
@@ -1635,6 +1659,10 @@ const webhookV2AndV3Diff = computed(() => {
   :deep(.ant-select) {
     .ant-select-selector {
       @apply !h-9;
+
+      .ant-select-selection-placeholder {
+        @apply leading-[36px];
+      }
     }
 
     .ant-select-selection-item {
@@ -1773,5 +1801,9 @@ const webhookV2AndV3Diff = computed(() => {
       @apply flex-1 flex overflow-hidden;
     }
   }
+}
+
+:deep(.nc-filter-field-select .ant-select-selector .field-selection-tooltip-wrapper) {
+  @apply !max-w-none;
 }
 </style>

@@ -1112,6 +1112,10 @@ const toggleIncludeUser = async () => {
   :deep(.ant-select) {
     .ant-select-selector {
       @apply !h-9;
+
+      .ant-select-selection-placeholder {
+        @apply leading-[36px];
+      }
     }
 
     .ant-select-selection-item {

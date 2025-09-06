@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "Private baser er tilgjengelig på {plan}-planen. Oppgrader nå for å begynne å bruke dem.",
     "upgradeLicenseToUsePrivateBases": "Oppgrader lisens for å låse opp private baser",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Private baser er ikke tilgjengelig i Enterprise Starter-lisensen. Oppgrader lisensnøkkelen for å begynne å bruke dem.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Du kan maksimalt laste opp {limit} {filePlural} til denne cellen. Oppgrader til {plan}-planen for å legge til flere filer.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Du kan maksimalt laste opp {limit} {filePlural} til denne cellen. Oppgrader til {plan}-planen for å legge til flere filer."
   },
   "general": {
     "script": "Skript",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "Generer feltverdi ved hjelp av AI",
     "preview": "Forhåndsvisning",
     "autoSuggest": "Foreslå automatisk",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "Foreslår...",
     "autoSuggestFields": "Foreslå felter automatisk",
     "autoSuggestFormulas": "Foreslå formler automatisk",

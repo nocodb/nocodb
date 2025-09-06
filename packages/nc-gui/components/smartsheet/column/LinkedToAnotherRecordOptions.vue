@@ -554,10 +554,19 @@ const handleScrollIntoView = () => {
               <span
                 v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
                 data-testid="nc-limit-record-filters"
-                class="cursor-pointer"
+                class="cursor-pointer inline-flex items-center gap-1"
                 @click="click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER, () => onFilterLabelClick())"
               >
                 {{ $t('labels.limitRecordSelectionToFilters') }}
+
+                <a
+                  href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/links#limit-by-filter-"
+                  target="_blank"
+                  @click.stop
+                  class="flex text-nc-content-gray-disabled hover:text-nc-content-gray-subtle"
+                >
+                  <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" />
+                </a>
               </span>
               <LazyPaymentUpgradeBadge
                 v-if="!limitRecToCond"

@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "Base privat tersedia di paket {plan}. Tingkatkan sekarang untuk mulai menggunakannya.",
     "upgradeLicenseToUsePrivateBases": "Tingkatkan lisensi untuk membuka base privat",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Base privat tidak tersedia di lisensi Enterprise Starter. Tingkatkan kunci lisensi untuk mulai menggunakannya.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Anda hanya dapat mengunggah maksimal {limit} {filePlural} ke sel ini. Tingkatkan ke paket {plan} untuk menambah lebih banyak file.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Anda hanya dapat mengunggah maksimal {limit} {filePlural} ke sel ini. Tingkatkan ke paket {plan} untuk menambah lebih banyak file."
   },
   "general": {
     "script": "Skrip",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "Hasilkan nilai kolom menggunakan AI",
     "preview": "Pratinjau",
     "autoSuggest": "Saran otomatis",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "Menyarankan...",
     "autoSuggestFields": "Saran otomatis kolom",
     "autoSuggestFormulas": "Saran otomatis rumus",

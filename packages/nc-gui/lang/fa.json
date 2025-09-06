@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "پایگاه‌های خصوصی فقط در پلن {plan} موجود هستند. اکنون ارتقاء دهید تا از آن‌ها استفاده کنید.",
     "upgradeLicenseToUsePrivateBases": "ارتقاء مجوز برای باز کردن پایگاه‌های خصوصی",
     "upgradeLicenseToUsePrivateBasesSubtitle": "پایگاه‌های خصوصی در مجوز Enterprise Starter در دسترس نیستند. کلید مجوز خود را برای استفاده ارتقاء دهید.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "شما فقط می‌توانید حداکثر {limit} {filePlural} در این سلول بارگذاری کنید. برای افزودن فایل بیشتر به پلن {plan} ارتقاء دهید.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "شما فقط می‌توانید حداکثر {limit} {filePlural} در این سلول بارگذاری کنید. برای افزودن فایل بیشتر به پلن {plan} ارتقاء دهید."
   },
   "general": {
     "script": "اسکریپت",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "تولید مقدار فیلد با استفاده از هوش مصنوعی",
     "preview": "پیش‌نمایش",
     "autoSuggest": "پیشنهاد خودکار",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "در حال پیشنهاد...",
     "autoSuggestFields": "پیشنهاد خودکار فیلدها",
     "autoSuggestFormulas": "پیشنهاد خودکار فرمول‌ها",

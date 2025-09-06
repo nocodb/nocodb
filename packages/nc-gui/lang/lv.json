@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "Privātās bāzes ir pieejamas plānā {plan}. Jauniniet tūlīt, lai sāktu tās izmantot.",
     "upgradeLicenseToUsePrivateBases": "Jauniniet licenci, lai atbloķētu privātās bāzes",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Privātās bāzes nav pieejamas Enterprise Starter licencē. Jauniniet licences atslēgu, lai sāktu tās izmantot.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Jūs varat augšupielādēt ne vairāk kā {limit} {filePlural} šajā šūnā. Jauniniet uz {plan} plānu, lai pievienotu vairāk failu.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Jūs varat augšupielādēt ne vairāk kā {limit} {filePlural} šajā šūnā. Jauniniet uz {plan} plānu, lai pievienotu vairāk failu."
   },
   "general": {
     "script": "Skripts",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "Ģenerēt lauka vērtību ar AI",
     "preview": "Priekšskatīt",
     "autoSuggest": "Automātiski ieteikt",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "Ieteikšana...",
     "autoSuggestFields": "Automātiski ieteikt laukus",
     "autoSuggestFormulas": "Automātiski ieteikt formulas",

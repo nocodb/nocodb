@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "ಪ್ರೈವೇಟ್ ಬೇಸ್‌ಗಳು {plan} ಯೋಜನೆಗೆ ಲಭ್ಯವಿವೆ. ಅವುಗಳನ್ನು ಬಳಸಲು ಈಗ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeLicenseToUsePrivateBases": "ಖಾಸಗಿ ಬೇಸ್‌ಗಳ ಬಳಕೆಗಾಗಿ ಪರವಾನಗಿ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Enterprise Starter ಪರವಾನಗಿಯಲ್ಲಿ ಖಾಸಗಿ ಬೇಸ್‌ಗಳು ಲಭ್ಯವಿಲ್ಲ. ಅವುಗಳನ್ನು ಬಳಸಲು ಪರವಾನಗಿ ಕೀ ಅನ್ನು ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "ಈ ಸೆಲ್‌ಗೆ ಗರಿಷ್ಠ {limit} {filePlural} ಅಗತ್ಯವಿದೆ. ಹೆಚ್ಚಿನ ಕಡತಗಳನ್ನು ಸೇರಿಸಲು {plan} ಯೋಜನೆಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "ಈ ಸೆಲ್‌ಗೆ ಗರಿಷ್ಠ {limit} {filePlural} ಅಗತ್ಯವಿದೆ. ಹೆಚ್ಚಿನ ಕಡತಗಳನ್ನು ಸೇರಿಸಲು {plan} ಯೋಜನೆಗೆ ಅಪ್‌ಗ್ರೇಡ್ ಮಾಡಿ."
   },
   "general": {
     "script": "ಸ್ಕ್ರಿಪ್ಟ್",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "AI ಬಳಸಿಕೊಂಡು ಫೀಲ್ಡ್ ಮೌಲ್ಯವನ್ನು ರಚಿಸಿ",
     "preview": "ಪೂರ್ವನೋಟ",
     "autoSuggest": "ಸ್ವಯಂ ಶಿಫಾರಸು",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "ಶಿಫಾರಸಿಸುತ್ತಿದೆ...",
     "autoSuggestFields": "ಫೀಲ್ಡ್‌ಗಳನ್ನು ಸ್ವಯಂ ಶಿಫಾರಸು ಮಾಡಿ",
     "autoSuggestFormulas": "ಸೂತ್ರಗಳನ್ನು ಸ್ವಯಂ ಶಿಫಾರಸು ಮಾಡಿ",

@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "{plan} প্ল্যানে প্রাইভেট বেস উপলব্ধ। এখনই আপগ্রেড করুন এবং ব্যবহার শুরু করুন।",
     "upgradeLicenseToUsePrivateBases": "লাইসেন্স আপগ্রেড করুন এবং প্রাইভেট বেস আনলক করুন",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Enterprise Starter লাইসেন্সে প্রাইভেট বেস উপলব্ধ নয়। ব্যবহার শুরু করতে লাইসেন্স আপগ্রেড করুন।",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "আপনি এই সেলে সর্বাধিক {limit}টি {filePlural} আপলোড করতে পারবেন। আরও ফাইল যোগ করতে {plan} প্ল্যানে আপগ্রেড করুন।",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "আপনি এই সেলে সর্বাধিক {limit}টি {filePlural} আপলোড করতে পারবেন। আরও ফাইল যোগ করতে {plan} প্ল্যানে আপগ্রেড করুন।"
   },
   "general": {
     "script": "স্ক্রিপ্ট",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "AI ব্যবহার করে ফিল্ড ভ্যালু জেনারেট করুন",
     "preview": "পূর্বরূপ",
     "autoSuggest": "স্বয়ংক্রিয় পরামর্শ",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "পরামর্শ দিচ্ছে...",
     "autoSuggestFields": "স্বয়ংক্রিয়ভাবে ফিল্ড সাজেস্ট করুন",
     "autoSuggestFormulas": "স্বয়ংক্রিয়ভাবে সূত্র সাজেস্ট করুন",

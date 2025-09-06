@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "Cơ sở riêng tư có sẵn trên gói {plan}. Nâng cấp ngay để sử dụng.",
     "upgradeLicenseToUsePrivateBases": "Nâng cấp giấy phép để mở khóa cơ sở riêng tư",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Cơ sở riêng tư không có sẵn trên giấy phép Enterprise Starter. Nâng cấp khóa giấy phép để bắt đầu sử dụng.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Bạn chỉ có thể tải lên tối đa {limit} {filePlural} vào ô này. Nâng cấp lên gói {plan} để thêm nhiều tệp hơn.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Bạn chỉ có thể tải lên tối đa {limit} {filePlural} vào ô này. Nâng cấp lên gói {plan} để thêm nhiều tệp hơn."
   },
   "general": {
     "script": "Kịch bản",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "Tạo giá trị trường bằng AI",
     "preview": "Xem trước",
     "autoSuggest": "Tự động gợi ý",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "Đang gợi ý...",
     "autoSuggestFields": "Tự động gợi ý trường",
     "autoSuggestFormulas": "Tự động gợi ý công thức",

@@ -6,6 +6,8 @@ const emit = defineEmits<{
   'update:url': any
 }>()
 
+const { appInfo } = useGlobal()
+
 const { selectedWidget } = storeToRefs(useWidgetStore())
 
 const inputEl = ref(null)
@@ -27,7 +29,7 @@ watch(url, () => {
   <GroupedSettings title="Config">
     <div
       :class="{
-        'ant-form-item-has-error': !isIframeUrlAllowed(url),
+        'ant-form-item-has-error': !isIframeUrlAllowed(url, appInfo.iframeWhitelistDomains),
       }"
       class="flex flex-col gap-2"
     >

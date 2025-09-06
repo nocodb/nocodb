@@ -86,3 +86,6 @@ export const CHATWOOT_IDENTITY_KEY = process.env.CHATWOOT_IDENTITY_KEY;
 
 export const NC_DISABLE_SUPPORT_CHAT =
   process.env.NC_DISABLE_SUPPORT_CHAT === 'true';
+
+export const NC_IFRAME_WHITELIST_DOMAINS =
+  process.env.NC_IFRAME_WHITELIST_DOMAINS || '';

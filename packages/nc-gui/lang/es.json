@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "Las bases privadas están disponibles en el plan {plan}. Actualiza ahora para comenzar a usarlas.",
     "upgradeLicenseToUsePrivateBases": "Actualiza la licencia para desbloquear las bases privadas",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Las bases privadas no están disponibles en la licencia Enterprise Starter. Actualiza la licencia para comenzar a usarlas.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Solo puedes subir como máximo {limit} {filePlural} a esta celda. Actualiza al plan {plan} para agregar más archivos.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Solo puedes subir como máximo {limit} {filePlural} a esta celda. Actualiza al plan {plan} para agregar más archivos."
   },
   "general": {
     "script": "Guion",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "Generar valor de campo con IA",
     "preview": "Vista previa",
     "autoSuggest": "Autocompletar",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "Sugiriendo...",
     "autoSuggestFields": "Autocompletar campos",
     "autoSuggestFormulas": "Autocompletar fórmulas",

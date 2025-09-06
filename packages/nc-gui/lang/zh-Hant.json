@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "私人 Base 可在 {plan} 方案中使用。立即升級即可開始使用。",
     "upgradeLicenseToUsePrivateBases": "升級授權以解鎖私人 Base",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Enterprise Starter 授權無法使用私人 Base。請升級授權金鑰以開始使用。",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "您最多只能在此欄格上傳 {limit} 個{filePlural}。升級到 {plan} 方案即可新增更多檔案。",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "您最多只能在此欄格上傳 {limit} 個{filePlural}。升級到 {plan} 方案即可新增更多檔案。"
   },
   "general": {
     "script": "Script",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "透過 AI 生成欄位值",
     "preview": "預覽",
     "autoSuggest": "自動建議",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "建議中...",
     "autoSuggestFields": "自動建議欄位",
     "autoSuggestFormulas": "自動建議公式",

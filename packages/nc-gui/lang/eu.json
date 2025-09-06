@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "Oinarri pribatuak {plan} planean eskuragarri daude. Igo zaitez eta hasi erabiltzen.",
     "upgradeLicenseToUsePrivateBases": "Igo lizentzia oinarri pribatuak desblokeatzeko",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Oinarri pribatuak ez daude eskuragarri Enterprise Starter lizentzian. Igo lizentzia gakoa erabiltzeko.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Gehienez {limit} {filePlural} fitxategi igo ditzakezu gelaxka honetara. Igo zaitez {plan} planera fitxategi gehiago gehitzeko.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Gehienez {limit} {filePlural} fitxategi igo ditzakezu gelaxka honetara. Igo zaitez {plan} planera fitxategi gehiago gehitzeko."
   },
   "general": {
     "script": "Script",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "Sortu eremuaren balioa AI erabiliz",
     "preview": "Aurrebista",
     "autoSuggest": "Iradokizun automatikoa",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "Iradokitzen...",
     "autoSuggestFields": "Eremuen iradokizun automatikoa",
     "autoSuggestFormulas": "Formulen iradokizun automatikoa",

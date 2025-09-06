@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "Özel tabanlar {plan} planında mevcuttur. Onları kullanmak için şimdi yükseltin.",
     "upgradeLicenseToUsePrivateBases": "Lisansı yükselterek özel tabanların kilidini açın",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Özel tabanlar Enterprise Starter lisansında mevcut değildir. Kullanmak için lisans anahtarınızı yükseltin.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Bu hücreye en fazla {limit} {filePlural} yükleyebilirsiniz. Daha fazla dosya eklemek için {plan} planına yükseltin.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Bu hücreye en fazla {limit} {filePlural} yükleyebilirsiniz. Daha fazla dosya eklemek için {plan} planına yükseltin."
   },
   "general": {
     "script": "Script",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "Alan değerini AI ile oluştur",
     "preview": "Önizleme",
     "autoSuggest": "Otomatik öner",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "Öneriliyor...",
     "autoSuggestFields": "Alanları otomatik öner",
     "autoSuggestFormulas": "Formülleri otomatik öner",

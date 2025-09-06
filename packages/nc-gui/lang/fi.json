@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "Yksityiset pohjat ovat käytettävissä {plan}-paketissa. Päivitä nyt päästäksesi käyttämään niitä.",
     "upgradeLicenseToUsePrivateBases": "Päivitä lisenssi avataksesi yksityiset pohjat",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Yksityisiä pohjia ei ole saatavilla Enterprise Starter -lisenssissä. Päivitä lisenssiavaimesi päästäksesi käyttämään niitä.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Voit ladata enintään {limit} {filePlural} tähän soluun. Päivitä {plan}-pakettiin lisätäksesi enemmän tiedostoja.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Voit ladata enintään {limit} {filePlural} tähän soluun. Päivitä {plan}-pakettiin lisätäksesi enemmän tiedostoja."
   },
   "general": {
     "script": "Skripti",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "Luo kentän arvo AI:n avulla",
     "preview": "Esikatselu",
     "autoSuggest": "Automaattinen ehdotus",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "Ehdotetaan...",
     "autoSuggestFields": "Ehdota kenttiä automaattisesti",
     "autoSuggestFormulas": "Ehdota kaavoja automaattisesti",

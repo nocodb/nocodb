@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "Приватные базы доступны на тарифе {plan}. Обновите тариф сейчас, чтобы начать использовать их.",
     "upgradeLicenseToUsePrivateBases": "Обновите лицензию, чтобы разблокировать приватные базы",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Приватные базы недоступны в лицензии Enterprise Starter. Обновите лицензию, чтобы начать использовать их.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Вы можете загрузить не более {limit} {filePlural} в эту ячейку. Обновите тариф {plan}, чтобы добавить больше файлов.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Вы можете загрузить не более {limit} {filePlural} в эту ячейку. Обновите тариф {plan}, чтобы добавить больше файлов."
   },
   "general": {
     "script": "Скрипт",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "Сгенерировать значение поля с помощью ИИ",
     "preview": "Предпросмотр",
     "autoSuggest": "Автопредложение",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "Предлагаем...",
     "autoSuggestFields": "Автопредложение полей",
     "autoSuggestFormulas": "Автопредложение формул",

@@ -1138,6 +1138,8 @@ function CustomKnex(
 
         await Promise.all(kn.ops.map((op) => op()));
 
+        kn.ops = [];
+
         return result;
       },
     },

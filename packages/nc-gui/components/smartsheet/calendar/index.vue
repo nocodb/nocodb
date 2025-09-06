@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
+import { type ColumnType, PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
 const { $e } = useNuxtApp()
@@ -8,7 +8,7 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, user } = useGlobal()
 
 const { isAllowed } = usePermissions()
 
@@ -28,6 +28,7 @@ provide(IsKanbanInj, ref(false))
 
 provide(IsCalendarInj, ref(true))
 
+const { allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
 const {
   activeCalendarView, // The active Calendar View - "week" | "day" | "month" | "year"
   calendarRange, // calendar Ranges
@@ -93,9 +94,19 @@ const newRecord = (row: RowType) => {
   }
 
   $e('c:calendar:new-record', activeCalendarView.value)
+
+  const rowFilters = getPlaceholderNewRow(
+    [...allFilters.value, ...validFiltersFromUrlParams.value],
+    meta.value?.columns as ColumnType[],
+    {
+      currentUser: user.value ?? undefined,
+    },
+  )
+
   expandRecord({
     row: {
       ...rowDefaultData(meta.value?.columns),
+      ...rowFilters,
       ...row.row,
     },
     oldRow: {},

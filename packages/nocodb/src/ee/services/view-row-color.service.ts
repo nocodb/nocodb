@@ -19,6 +19,10 @@ import type {
 import type { MetaService } from '~/meta/meta.service';
 import type { Column, Filter, SelectOption } from '~/models';
 import type { ViewMetaRowColoring } from '~/models/View';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 import { MetaTable } from '~/cli';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
@@ -145,6 +149,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     is_set_as_background: boolean;
     nc_order: number;
     filter?: FilterType;
+    viewWebhookManager?: ViewWebhookManager;
     ncMeta?: MetaService;
   }) {
     const { context } = params;
@@ -173,6 +178,17 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         'Invalid payload for row coloring condition',
       );
     }
+
+    const viewWebhookManager =
+      params.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(
+            params.context,
+            ncMeta,
+          ).withModelId(view.fk_model_id)
+        ).withViewId(view.id)
+      ).forUpdate();
 
     const ncMetaTrans = await ncMeta.startTransaction();
 
@@ -243,6 +259,9 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         },
         context.socket_id,
       );
+      if (!params.viewWebhookManager) {
+        (await viewWebhookManager.withNewViewId(view.id)).emit();
+      }
 
       return {
         id: rowColoringCondition.id,
@@ -261,6 +280,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     color: string;
     is_set_as_background: boolean;
     nc_order: number;
+    viewWebhookManager?: ViewWebhookManager;
     ncMeta?: MetaService;
   }) {
     const ncMeta = params.ncMeta ?? Noco.ncMeta;
@@ -281,6 +301,17 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         'Cannot directly change row coloring mode, remove it first',
       );
     }
+
+    const viewWebhookManager =
+      params.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(
+            params.context,
+            ncMeta,
+          ).withModelId(view.fk_model_id)
+        ).withViewId(view.id)
+      ).forUpdate();
 
     const rowColorCondition = await ncMeta.metaUpdate(
       params.context.workspace_id,
@@ -307,6 +338,9 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       },
       params.context.socket_id,
     );
+    if (!params.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
 
     return rowColorCondition;
   }
@@ -315,6 +349,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     context: NcContext;
     fk_view_id?: string;
     fk_row_coloring_conditions_id: string;
+    viewWebhookManager?: ViewWebhookManager;
     ncMeta?: MetaService;
   }) {
     const ncMeta = params.ncMeta ?? Noco.ncMeta;
@@ -343,6 +378,17 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       NcError.get(params.context).viewNotFound(params.fk_view_id);
     }
 
+    const viewWebhookManager =
+      params.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(
+            params.context,
+            ncMeta,
+          ).withModelId(view.fk_model_id)
+        ).withViewId(view.id)
+      ).forUpdate();
+
     await RowColorCondition.delete(
       params.context,
       params.fk_row_coloring_conditions_id,
@@ -360,6 +406,9 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       },
       params.context.socket_id,
     );
+    if (!params.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
   }
 
   async setRowColoringSelect(params: {
@@ -367,6 +416,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     fk_view_id?: string;
     fk_column_id: string;
     is_set_as_background: boolean;
+    viewWebhookManager?: ViewWebhookManager;
     ncMeta?: MetaService;
   }) {
     const { context, ncMeta } = params;
@@ -390,6 +440,17 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         NcError.get(context).fieldNotFound(params.fk_column_id);
       }
     }
+
+    const viewWebhookManager =
+      params.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(
+            params.context,
+            ncMeta,
+          ).withModelId(view.fk_model_id)
+        ).withViewId(view.id)
+      ).forUpdate();
 
     const viewMeta: ViewMetaRowColoring = parseProp(view.meta);
     viewMeta.rowColoringInfo = {
@@ -422,12 +483,16 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       },
       context.socket_id,
     );
+    if (!params.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
   }
 
   async removeRowColorInfo(params: {
     context: NcContext;
     fk_view_id?: string;
     ncMeta?: MetaService;
+    viewWebhookManager?: ViewWebhookManager;
   }) {
     const ncMeta = params.ncMeta ?? Noco.ncMeta;
     let view: View;
@@ -437,8 +502,19 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         NcError.get(params.context).viewNotFound(params.fk_view_id);
       }
     } else {
-      NcError.requiredFieldMissing('view_id');
+      NcError.get(params.context).requiredFieldMissing('view_id');
     }
+
+    const viewWebhookManager =
+      params.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(
+            params.context,
+            ncMeta,
+          ).withModelId(view.fk_model_id)
+        ).withViewId(view.id)
+      ).forUpdate();
 
     if (view.row_coloring_mode === ROW_COLORING_MODE.FILTER) {
       const rowColorConditions = await RowColorCondition.getByViewId(
@@ -525,6 +601,10 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         },
         params.context.socket_id,
       );
+    }
+
+    if (!params.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
     }
   }
 

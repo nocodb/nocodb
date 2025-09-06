@@ -53,6 +53,7 @@ export class ViewRowColorV3Service {
       context,
       fk_view_id: viewId,
       ncMeta,
+      viewWebhookManager,
     });
     if (!body) {
       return;
@@ -73,6 +74,7 @@ export class ViewRowColorV3Service {
         fk_column_id: body.field_id,
         is_set_as_background: body.apply_as_row_background,
         fk_view_id: viewId,
+        viewWebhookManager,
         ncMeta,
       });
     } else if (body?.mode === 'filter') {
@@ -81,6 +83,7 @@ export class ViewRowColorV3Service {
         {
           ...params,
           body: params.body!,
+          viewWebhookManager,
         },
         ncMeta,
       );
@@ -97,6 +100,7 @@ export class ViewRowColorV3Service {
       viewId: string;
       body: ViewRowColourV3Type | null;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta: MetaService = Noco.ncMeta,
   ) {
@@ -113,15 +117,19 @@ export class ViewRowColorV3Service {
             is_set_as_background: condition.apply_as_row_background ?? false,
             nc_order: i++,
             fk_view_id: params.viewId,
+            viewWebhookManager: params.viewWebhookManager,
             ncMeta,
           });
         await this.filtersV3Service.insertFilterGroup({
           context,
-          param: { rowColorConditionId: rowColorCondition.id },
+          param: {
+            rowColorConditionId: rowColorCondition.id,
+          },
           groupOrFilter: condition.filters,
           viewId: params.viewId,
           ncMeta,
           isRoot: true,
+          viewWebhookManager: params.viewWebhookManager,
         });
       }
     }

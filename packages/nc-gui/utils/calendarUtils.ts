@@ -96,7 +96,7 @@ const isRowInCurrentDateRange = (
     }
 
     // Check if date ranges overlap
-    if (rowStartDate.isBefore(viewEndDate) && rowEndDate.isAfter(viewStartDate)) {
+    if (rowStartDate.isSameOrBefore(viewEndDate) && rowEndDate.isSameOrAfter(viewStartDate)) {
       return true
     }
   }

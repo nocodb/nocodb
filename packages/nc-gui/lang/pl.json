@@ -175,9 +175,7 @@
     "upgradeToUsePrivateBasesSubtitle": "Prywatne bazy są dostępne w ramach planu {plan}. Uaktualnij, aby zacząć z nich korzystać.",
     "upgradeLicenseToUsePrivateBases": "Uaktualnij licencję, aby odblokować prywatne bazy",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Prywatne bazy nie są dostępne w licencji Enterprise Starter. Uaktualnij klucz licencyjny, aby zacząć ich używać.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Możesz przesłać maksymalnie {limit} {filePlural} do tej komórki. Uaktualnij do planu {plan}, aby dodać więcej plików.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Możesz przesłać maksymalnie {limit} {filePlural} do tej komórki. Uaktualnij do planu {plan}, aby dodać więcej plików."
   },
   "general": {
     "script": "Skrypt",
@@ -1414,8 +1412,6 @@
     "generateFieldDataUsingAi": "Generuj wartość pola za pomocą AI",
     "preview": "Podgląd",
     "autoSuggest": "Auto sugestie",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
     "suggesting": "Sugestowanie...",
     "autoSuggestFields": "Automatyczne sugerowanie pól",
     "autoSuggestFormulas": "Automatyczne sugerowanie formuł",

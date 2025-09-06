@@ -11,6 +11,8 @@ import animations from '@windicss/plugin-animations'
 // @ts-expect-error no types for plugin-question-mark
 import questionMark from '@windicss/plugin-question-mark'
 
+import ncTypographyPlugin from './assets/nc-typography-plugin'
+
 import {
   theme as colors,
   themeColors,
@@ -59,6 +61,7 @@ export default defineConfig({
     'text-grey',
   ],
   plugins: [
+    ncTypographyPlugin,
     scrollbar,
     animations,
     questionMark,
@@ -113,28 +116,6 @@ export default defineConfig({
         tiny: ['11px', '14px'],
         small: ['13px', '16px'],
         small1: ['13px', '18px'],
-        heading1: ['64px', { lineHeight: '92px', letterSpacing: '-0.02rem' }],
-        heading2: ['40px', { lineHeight: '64px', letterSpacing: '-0.02rem' }],
-        heading3: ['24px', { lineHeight: '36px', letterSpacing: '-0.02rem' }],
-        subHeading1: ['20px', { lineHeight: '32px', letterSpacing: '-0.02rem' }],
-        subHeading2: ['16px', { lineHeight: '24px', letterSpacing: '-0.02rem' }],
-        bodyLg: ['16px', { lineHeight: '28px', letterSpacing: '-0.02rem' }],
-        bodyLgBold: ['16px', { lineHeight: '28px', letterSpacing: '-0.02rem' }],
-        body: ['14px', { lineHeight: '24px' }],
-        bodyBold: ['14px', { lineHeight: '24px' }],
-        bodyDefaultSm: ['13px', { lineHeight: '18px' }],
-        bodyDefaultSmBold: ['13px', { lineHeight: '18px' }],
-        bodySm: ['12px', { lineHeight: '18px' }],
-        bodySmBold: ['12px', { lineHeight: '18px' }],
-        caption: ['14px', { lineHeight: '20px' }],
-        captionBold: ['14px', { lineHeight: '20px' }],
-        captionSm: ['12px', { lineHeight: '14px' }],
-        captionSmBold: ['12px', { lineHeight: '14px' }],
-        captionXs: ['10px', { lineHeight: '14px' }],
-        captionXsBold: ['10px', { lineHeight: '14px' }],
-        captionDropdownDefault: ['13px', { lineHeight: '20px' }],
-        sidebarDefault: ['14px', { lineHeight: '20px' }],
-        sidebarSelected: ['14px', { lineHeight: '20px' }],
       },
       fontWeight: {
         /**

@@ -22,7 +22,19 @@ export const HardBreak = TiptapHardBreak.extend<HardBreakOptions, { markdown: Ma
   },
   addKeyboardShortcuts() {
     return {
-      'Shift-Enter': () => this.editor.commands.setHardBreak(),
+      'Shift-Enter': () => {
+        const did = this.editor.commands.setHardBreak()
+
+        console.log('did', did)
+        // Only scroll if hard break was inserted
+        if (did) {
+          requestAnimationFrame(() => {
+            this.editor.view.dispatch(this.editor.state.tr.scrollIntoView())
+          })
+        }
+
+        return true
+      },
       // 'Mod-Enter' is intentionally omitted
     }
   },

@@ -652,9 +652,8 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       },
       ncMeta,
     );
-    const viewWebhookManagerBuilder = new ViewWebhookManagerBuilder(context);
     const viewWebhookManager = (
-      await viewWebhookManagerBuilder.withModelId(tableId)
+      await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(tableId)
     ).forCreate();
 
     const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
@@ -708,6 +707,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
                     (col) => col.fk_column_id === group.field_id,
                   ).id,
                   req,
+                  viewWebhookManager,
                 },
                 trxNcMeta,
               );
@@ -810,6 +810,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
             viewId: insertedV2View.id,
             body: body.row_coloring,
             req,
+            viewWebhookManager,
           },
           trxNcMeta,
         );
@@ -822,6 +823,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
           },
           groupOrFilter: requestBody.filters,
           viewId: insertedV2View.id,
+          viewWebhookManager,
         });
       }
       if (
@@ -835,6 +837,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
               viewId: insertedV2View.id,
               req,
               sort: withoutId(sort),
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -1131,6 +1134,13 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       ncMeta,
     );
 
+    const viewWebhookManager = (
+      await (
+        await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+          existingView.fk_model_id,
+        )
+      ).withViewId(existingView.id)
+    ).forUpdate();
     const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
     try {
       await this.viewsService.viewUpdate(context, {
@@ -1138,6 +1148,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         view: requestBody,
         user: context.user,
         req,
+        viewWebhookManager,
       });
 
       switch (existingView.type) {
@@ -1163,6 +1174,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
               grid: requestBody,
               req: req,
               viewId,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -1207,6 +1219,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
               calendar: requestBody,
               req: req,
               calendarViewId: viewId,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -1219,6 +1232,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
               kanbanViewId: viewId,
               kanban: requestBody,
               req: req,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -1229,6 +1243,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
               kanbanViewId: existingView.id,
               optionsOrder: requestBody.options.stack_by.stack_order ?? [],
               req,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -1242,6 +1257,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
               galleryViewId: viewId,
               gallery: requestBody,
               req: req,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -1254,6 +1270,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
               formViewId: viewId,
               form: requestBody,
               req: req,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -1281,6 +1298,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       }
 
       if ('filters' in requestBody) {
+        // skip viewWebhookManager for this, deleteAll is not a standalone operation, it's invoked by view service
         await this.filtersV3Service.filterDeleteAll(
           context,
           { viewId: existingView.id },
@@ -1293,6 +1311,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
           },
           groupOrFilter: requestBody.filters,
           viewId: existingView.id,
+          viewWebhookManager,
         });
       }
       if ('row_coloring' in body) {
@@ -1302,6 +1321,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
             viewId: existingView.id,
             body: body.row_coloring,
             req,
+            viewWebhookManager,
           },
           trxNcMeta,
         );
@@ -1311,6 +1331,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         ![ViewTypes.FORM].includes(existingView.type) &&
         Array.isArray(requestBody.sorts)
       ) {
+        // skip viewWebhookManager for this, Sort.deleteAll is not a standalone operation, it's invoked by view service
         await Sort.deleteAll(context, viewId, trxNcMeta);
         for (const sort of requestBody.sorts) {
           await this.sortsV3Service.sortCreate(
@@ -1319,6 +1340,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
               viewId,
               req,
               sort: withoutId(sort),
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -1328,7 +1350,9 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       if (!ncMeta) {
         await trxNcMeta.commit();
       }
-      return this.getView(context, { viewId, req });
+      const result = this.getView(context, { viewId, req });
+      viewWebhookManager.withNewView(result).emit();
+      return result;
     } catch (ex) {
       await trxNcMeta.rollback();
       throw ex;

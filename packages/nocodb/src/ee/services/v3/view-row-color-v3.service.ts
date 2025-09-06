@@ -6,6 +6,11 @@ import {
   type ViewRowColourV3Type,
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
+import { View } from '~/models';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 import { checkForFeature } from '~/ee/helpers/paymentHelpers';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/ncError';
@@ -25,12 +30,24 @@ export class ViewRowColorV3Service {
       viewId: string;
       body?: ViewRowColourV3Type | null;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
     const { viewId, body } = params;
 
     await checkForFeature(context, PlanFeatureTypes.FEATURE_ROW_COLOUR, ncMeta);
+    const view = await View.get(context, params.viewId, ncMeta);
+
+    const viewWebhookManager =
+      params.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
 
     await this.viewRowColorService.removeRowColorInfo({
       context,
@@ -67,6 +84,10 @@ export class ViewRowColorV3Service {
         },
         ncMeta,
       );
+    }
+
+    if (!params.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
     }
   }
 

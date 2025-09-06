@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PermissionEntity, PermissionKey, UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, PermissionEntity, PermissionKey, UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Attachment } from '../../lib/types'
 import type { Row as RowType } from '#imports'
 
@@ -13,8 +13,9 @@ const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook()
 const isPublic = inject(IsPublicInj, ref(false))
 const fields = inject(FieldsInj, ref([]))
 
+const { user } = useGlobal()
 const { isViewDataLoading } = storeToRefs(useViewsStore())
-const { isSqlView, xWhere, isExternalSource, isSyncedTable } = useSmartsheetStoreOrThrow()
+const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
 const route = useRoute()
 const router = useRouter()
@@ -153,8 +154,16 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
 }
 
 const openNewRecordFormHookHandler = async () => {
+  const rowFilters = getPlaceholderNewRow(
+    [...allFilters.value, ...validFiltersFromUrlParams.value],
+    meta.value?.columns as ColumnType[],
+    {
+      currentUser: user.value ?? undefined,
+    },
+  )
+
   expandForm({
-    row: { ...rowDefaultData(meta.value?.columns) },
+    row: { ...rowDefaultData(meta.value?.columns), ...rowFilters },
     oldRow: {},
     rowMeta: { new: true },
   })

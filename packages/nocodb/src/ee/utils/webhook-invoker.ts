@@ -90,7 +90,7 @@ export class WebhookInvoker extends WebhookInvokerCE {
     const includeUser = parseMetaProp(hook, 'notification')?.include_user;
 
     return {
-      type: `${hook.event}.${hook.operation}`,
+      type: `${hook.event}.after.${hook.operation}`,
       id: uuidv4(),
       ...(includeUser && isEE && user
         ? { user: sanitizeUserForHook(user) }

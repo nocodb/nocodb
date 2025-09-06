@@ -3,6 +3,7 @@ import { SortsService as SortsServiceCE } from 'src/services/sorts.service';
 import type { SortReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -19,7 +20,12 @@ export class SortsService extends SortsServiceCE {
 
   async sortCreate(
     context: NcContext,
-    param: { viewId: any; sort: SortReqType; req: NcRequest },
+    param: {
+      viewId: any;
+      sort: SortReqType;
+      req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
     ncMeta?: MetaService,
   ) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);

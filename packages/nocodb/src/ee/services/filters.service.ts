@@ -1,8 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { FiltersService as FiltersServiceCE } from 'src/services/filters.service';
 import { AppEvents, isLinksOrLTAR } from 'nocodb-sdk';
+import type { MetaService } from '~/meta/meta.service';
 import type { FilterReqType, UserType, WidgetType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -11,6 +16,7 @@ import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import Widget from '~/models/Widget';
+import RowColorCondition from '~/models/RowColorCondition';
 
 @Injectable()
 export class FiltersService extends FiltersServiceCE {
@@ -25,6 +31,7 @@ export class FiltersService extends FiltersServiceCE {
       viewId: string;
       user: UserType;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
   ) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
@@ -163,12 +170,37 @@ export class FiltersService extends FiltersServiceCE {
     param: {
       rowColorConditionsId: string;
       filter: FilterReqType;
+      viewWebhookManager?: ViewWebhookManager;
     },
+    ncMeta?: MetaService,
   ) {
+    let innerViewWebhookManager: ViewWebhookManager;
+    if (!param.viewWebhookManager) {
+      const rowColorCondition = await RowColorCondition.getById(
+        context,
+        (param as any).rowColorConditionId,
+        ncMeta,
+      );
+      const view = await View.get(context, (param as any).viewId, ncMeta);
+      innerViewWebhookManager = (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(rowColorCondition.fk_view_id)
+      ).forUpdate();
+    }
+
     const filter = await Filter.insert(context, {
       ...param.filter,
       fk_row_color_condition_id: param.rowColorConditionsId,
     } as any);
+
+    if (innerViewWebhookManager) {
+      (
+        await innerViewWebhookManager.withNewViewId((param as any).viewId)
+      ).emit();
+    }
     return filter;
   }
 }

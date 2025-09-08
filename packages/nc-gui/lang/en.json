@@ -956,6 +956,7 @@
     "duplicateBaseSuccessfull": "Base Duplication Successfull",
     "duplicateBaseFailed": "Base Duplication Failed",
     "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
     "currentWorkspace": "Current workspace",
     "currentBase": "Current base",

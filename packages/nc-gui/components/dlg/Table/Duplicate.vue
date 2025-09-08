@@ -2,6 +2,7 @@
 import {
   type BaseType,
   type LinkToAnotherRecordType,
+  ProjectRoles,
   type TableType,
   UITypes,
   type WorkspaceType,
@@ -76,7 +77,12 @@ const targetBases = computedAsync(async () => {
   if (!isEeUI || !targetWorkspace.value) {
     return []
   }
-  return await loadProjects(undefined, targetWorkspace.value.id)
+  const bases = await loadProjects(undefined, targetWorkspace.value.id)
+  return (bases as any[]).filter(
+    (base) =>
+      [WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(targetWorkspace.value!.roles as WorkspaceUserRoles) ||
+      [ProjectRoles.OWNER, ProjectRoles.CREATOR].includes(base.roles),
+  )
 })
 const selectBase = (option: BaseType) => {
   targetBase.value = option
@@ -270,7 +276,7 @@ const isEaster = ref(false)
               >
                 <template #listHeader>
                   <div class="text-nc-content-gray-muted text-[13px] px-3 pt-2.5 pb-1.5 font-medium leading-5">
-                    {{ $t('labels.duplicateBaseMessage') }}
+                    {{ $t('labels.duplicateTableMessage') }}
                   </div>
 
                   <NcDivider />
@@ -342,7 +348,7 @@ const isEaster = ref(false)
               >
                 <template #listHeader>
                   <div class="text-nc-content-gray-muted text-[13px] px-3 pt-2.5 pb-1.5 font-medium leading-5">
-                    {{ $t('labels.duplicateBaseMessage') }}
+                    {{ $t('labels.duplicateTableMessage') }}
                   </div>
 
                   <NcDivider />

@@ -93,7 +93,9 @@ export class DuplicateModelUtils extends DuplicateModelUtilsCE {
     await checkLimit({
       workspaceId: targetContext.workspace_id,
       type: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
-      count: workspaceRowCount + count,
+      count: workspaceRowCount,
+      delta: count,
+      throwError: true,
       message: ({ limit }) =>
         `Only ${limit} records are allowed in target workspace, for more please upgrade your plan`,
     });

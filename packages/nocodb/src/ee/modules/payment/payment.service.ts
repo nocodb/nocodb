@@ -6,10 +6,11 @@ import {
   AppEvents,
   EventType,
   getUpgradeMessage,
+  LOYALTY_GRACE_PERIOD_END_DATE,
   LoyaltyPriceReverseLookupKeyMap,
   PlanOrder,
-  WorkspaceUserRoles,
   ReturnToBillingPage,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import type { PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
@@ -448,7 +449,9 @@ export class PaymentService {
 
     if (
       price.lookup_key.includes('loyalty') &&
-      (!workspaceOrOrg.loyal || workspaceOrOrg.loyalty_discount_used)
+      (!workspaceOrOrg.loyal ||
+        workspaceOrOrg.loyalty_discount_used ||
+        dayjs().isAfter(dayjs(LOYALTY_GRACE_PERIOD_END_DATE)))
     ) {
       throw new Error('This plan is not available');
     }
@@ -1281,10 +1284,13 @@ export class PaymentService {
               .unix(invoice.period_end)
               .utc()
               .toISOString(),
-            upcoming_invoice_due_at: dayjs
-              .unix(invoice.next_payment_attempt || invoice.due_date)
-              .utc()
-              .toISOString(),
+            upcoming_invoice_due_at:
+              invoice.next_payment_attempt || invoice.due_date
+                ? dayjs
+                    .unix(invoice.next_payment_attempt || invoice.due_date)
+                    .utc()
+                    .toISOString()
+                : null,
             upcoming_invoice_amount: invoice.amount_due,
             upcoming_invoice_currency: invoice.currency,
           },

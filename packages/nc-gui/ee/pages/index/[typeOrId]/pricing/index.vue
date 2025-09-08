@@ -117,13 +117,7 @@ useEventListener('message', (event) => {
 })
 
 const embedPage = computed(() => {
-  let page = 'pricing'
-
-  if (isLoyaltyDiscountAvailable.value && activeWorkspace.value?.segment_code === 7) {
-    page = 'loyalty-pricing-2'
-  } else if (isLoyaltyDiscountAvailable.value) {
-    page = 'loyalty-pricing'
-  }
+  const page = 'pricing'
 
   const searchQuery = new URLSearchParams()
 

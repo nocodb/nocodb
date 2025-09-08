@@ -95,6 +95,14 @@ export class PaymentController {
   }
 
   @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/payment/:workspaceOrOrgId/recalculate-upcoming-invoice')
+  async recalculateUpcomingInvoice(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+  ) {
+    return this.paymentService.recalculateUpcomingInvoice(workspaceOrOrgId);
+  }
+
+  @UseGuards(AuthGuard('basic'))
   @Post('/api/internal/payment/:workspaceOrOrgId/update')
   async updateWorkspacePaymentMetadata(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,

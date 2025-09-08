@@ -96,13 +96,16 @@ const normalizeFilename = (filename: string) => {
 };
 
 export const getFileNameFromUrl = (param: { url: string; scope?: string }) => {
-  let filename = param.url.split('/').pop()?.split('?')[0] || 'attachment';
-  filename = param.scope
-    ? `${normalizeFilename(path.parse(filename).name)}${path.extname(filename)}`
-    : `${normalizeFilename(path.parse(filename).name)}_${nanoid(
+  const originalFileName =
+    param.url.split('/').pop()?.split('?')[0] || 'attachment';
+  const fileName = param.scope
+    ? `${normalizeFilename(path.parse(originalFileName).name)}${path.extname(
+        originalFileName,
+      )}`
+    : `${normalizeFilename(path.parse(originalFileName).name)}_${nanoid(
         5,
-      )}${path.extname(filename)}`;
-  return filename;
+      )}${path.extname(originalFileName)}`;
+  return { originalFileName, fileName };
 };
 
 export interface AttachmentFilePathConstructed {
@@ -115,6 +118,7 @@ export interface AttachmentFilePathConstructed {
   filePath: string;
   destPath: string;
   fileName: string;
+  originalFileName: string;
   storageDest: string;
 }
 
@@ -122,6 +126,7 @@ export const constructFilePath = (
   context: NcContext,
   param: {
     fileName: string;
+    originalFileName: string;
     modelId: string;
     columnId: string;
     scope?: string;
@@ -148,6 +153,7 @@ export const constructFilePath = (
     filePath,
     destPath,
     fileName: param.fileName,
+    originalFileName: param.originalFileName,
     storageDest: slash(path.join(destPath, param.fileName)),
   } as AttachmentFilePathConstructed;
 };

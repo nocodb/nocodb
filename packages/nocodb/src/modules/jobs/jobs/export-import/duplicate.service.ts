@@ -115,6 +115,8 @@ export class DuplicateService {
       options: body?.options,
     });
 
+    req.ncParentAuditId = parentAuditId;
+
     const job = await this.jobsService.add(JobTypes.DuplicateBase, {
       context,
       user: req.user,
@@ -123,12 +125,7 @@ export class DuplicateService {
       dupProjectId: dupProject.id,
       dupWorkspaceId: dupProject.fk_workspace_id,
       options: body.options || {},
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        headers: req.headers,
-        ncParentAuditId: parentAuditId,
-      },
+      req,
     });
 
     return { id: job.id, base_id: dupProject.id };

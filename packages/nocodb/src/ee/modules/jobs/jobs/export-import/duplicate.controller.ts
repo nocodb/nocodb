@@ -94,6 +94,8 @@ export class DuplicateController extends DuplicateControllerCE {
       req: { user: { id: req.user.id } } as any,
     });
 
+    req.ncParentAuditId = parentAuditId;
+
     const job = await this.jobsService.add(JobTypes.DuplicateBase, {
       context: {
         workspace_id: base.fk_workspace_id,
@@ -109,11 +111,7 @@ export class DuplicateController extends DuplicateControllerCE {
         excludeHooks: true,
         excludeScripts: true,
       },
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        ncParentAuditId: parentAuditId,
-      },
+      req,
     });
 
     return { id: job.id, base_id: dupProject.id, fk_workspace_id: workspaceId };
@@ -167,6 +165,7 @@ export class DuplicateController extends DuplicateControllerCE {
     });
 
     req.ncParentAuditId = parentAuditId;
+    req.ncBaseId = baseId;
 
     const job = await this.jobsService.add(JobTypes.DuplicateDashboard, {
       context,
@@ -174,13 +173,7 @@ export class DuplicateController extends DuplicateControllerCE {
       baseId: base.id,
       dashboardId: dashboard.id,
       extra: body.extra || {},
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        headers: req.headers,
-        ncParentAuditId: parentAuditId,
-        ncBaseId: baseId,
-      },
+      req,
     });
 
     return { id: job.id };

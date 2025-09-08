@@ -55,7 +55,10 @@ export class AttachmentUrlUploadPreparator {
             recordId,
             user: baseModel.context.user,
             attachments: attachmentData,
-            req,
+            req: {
+              context: baseModel.context,
+              user: req.user,
+            },
           } as AttachmentUrlUploadJobData);
           return '';
         });

@@ -168,12 +168,12 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 })
 
 const eventList = ref<Record<string, any>[]>([
-  { text: [t('objects.view'), t('general.insert').toLowerCase()], value: ['view', 'insert'] },
-  { text: [t('objects.view'), t('general.update').toLowerCase()], value: ['view', 'update'] },
-  { text: [t('objects.view'), t('general.delete').toLowerCase()], value: ['view', 'delete'] },
   { text: [t('general.record'), t('general.insert').toLowerCase()], value: ['after', 'insert'] },
   { text: [t('general.record'), t('general.update').toLowerCase()], value: ['after', 'update'] },
   { text: [t('general.record'), t('general.delete').toLowerCase()], value: ['after', 'delete'] },
+  { text: [t('objects.view'), t('general.insert').toLowerCase()], value: ['view', 'insert'] },
+  { text: [t('objects.view'), t('general.update').toLowerCase()], value: ['view', 'update'] },
+  { text: [t('objects.view'), t('general.delete').toLowerCase()], value: ['view', 'delete'] },
   {
     text: [t('general.manual'), t('general.trigger').toLowerCase()],
     value: ['manual', 'trigger'],

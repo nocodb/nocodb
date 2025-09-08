@@ -765,6 +765,14 @@ const supportedDocs = [
 ]
 
 watch(
+  () => hookRef?.event,
+  async () => {
+    await loadSampleData()
+  },
+  { immediate: true },
+)
+
+watch(
   () => hookRef?.operation,
   async () => {
     await loadSampleData()
@@ -775,6 +783,7 @@ watch(
 async function loadSampleData() {
   const samplePayload = await $api.dbTableWebhook.samplePayloadGet(
     meta?.value?.id as string,
+    hookRef?.event ?? 'after',
     ((hookRef?.operation && hookRef?.operation[0]) as any) || 'insert',
     hookRef.version!,
     {

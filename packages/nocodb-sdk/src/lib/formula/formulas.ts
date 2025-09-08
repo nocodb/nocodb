@@ -6,6 +6,7 @@ import {
   FormulaMeta,
   FormulaMetaCustomValidation,
 } from './types';
+import { isSystemColumn, isVirtualCol, UITypes } from '~/lib';
 export const API_DOC_PREFIX = 'https://nocodb.com/docs/product-docs/fields';
 
 const customValidationArray: FormulaMetaCustomValidation = (
@@ -1203,7 +1204,6 @@ export const formulas: Record<string, FormulaMeta> = {
   //   syntax: 'CREATED_TIME()',
   //   examples: ['CREATED_TIME()'],
   // },
-  /*
   LAST_MODIFIED_TIME: {
     validation: {
       args: {
@@ -1260,5 +1260,5 @@ export const formulas: Record<string, FormulaMeta> = {
       'LAST_MODIFIED_TIME({Status}, {Priority})',
     ],
     returnType: FormulaDataTypes.DATE,
-  }, */
+  },
 };

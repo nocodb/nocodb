@@ -52,14 +52,11 @@ const { isSyncedTable } = useSmartsheetStoreOrThrow()
 const {
   loadKanbanData,
   loadMoreKanbanData,
-  loadKanbanMeta,
   kanbanMetaData,
   formattedData,
   updateOrSaveRow,
-  updateKanbanMeta,
   addEmptyRow,
   groupingFieldColOptions,
-  updateKanbanStackMeta,
   groupingField,
   groupingFieldColumn,
   countByStack,
@@ -70,6 +67,8 @@ const {
   addNewStackId,
   removeRowFromUncategorizedStack,
   uncategorizedStackId,
+  updateStackProperty,
+  updateAllStacksProperty,
 } = useKanbanViewStoreOrThrow()
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
@@ -127,7 +126,6 @@ const selectedStackTitle = ref('')
 
 reloadViewDataHook?.on(
   withLoading(async () => {
-    await loadKanbanMeta()
     await loadKanbanData()
   }),
 )
@@ -157,8 +155,6 @@ const attachments = (record: any): Attachment[] => {
 const reloadAttachments = ref(false)
 
 reloadViewMetaHook?.on(async () => {
-  await loadKanbanMeta()
-
   reloadAttachments.value = true
 
   nextTick(() => {
@@ -237,31 +233,25 @@ function onMoveCallback(event: { draggedContext: { futureIndex: number } }) {
 async function onMoveStack(event: any, undo = false) {
   if (event.moved) {
     const { oldIndex, newIndex } = event.moved
-    const { fk_grp_col_id, meta: stack_meta } = kanbanMetaData.value
-    groupingFieldColOptions.value[oldIndex].order = newIndex
-    groupingFieldColOptions.value[newIndex].order = oldIndex
-    const stackMetaObj = parseProp(stack_meta) || {}
-    stackMetaObj[fk_grp_col_id as string] = groupingFieldColOptions.value
-    await updateKanbanMeta({
-      meta: stackMetaObj,
-    })
+
+    await updateStackProperty(oldIndex, { order: newIndex })
+    await updateStackProperty(newIndex, { order: oldIndex })
+
     if (!undo) {
       addUndo({
         undo: {
           fn: async (e: any) => {
-            const temp = groupingFieldColOptions.value.splice(e.moved.newIndex, 1)
-            groupingFieldColOptions.value.splice(e.moved.oldIndex, 0, temp[0])
-            await onMoveStack(e, true)
+            await updateStackProperty(e.moved.newIndex, { order: e.moved.oldIndex })
+            await updateStackProperty(e.moved.oldIndex, { order: e.moved.newIndex })
           },
           args: [{ moved: { oldIndex, newIndex } }],
         },
         redo: {
           fn: async (e: any) => {
-            const temp = groupingFieldColOptions.value.splice(e.moved.oldIndex, 1)
-            groupingFieldColOptions.value.splice(e.moved.newIndex, 0, temp[0])
-            await onMoveStack(e, true)
+            await updateStackProperty(e.moved.oldIndex, { order: e.moved.newIndex })
+            await updateStackProperty(e.moved.newIndex, { order: e.moved.oldIndex })
           },
-          args: [{ moved: { oldIndex, newIndex } }, true],
+          args: [{ moved: { oldIndex, newIndex } }],
         },
         scope: defineViewScope({ view: view.value }),
       })
@@ -334,38 +324,31 @@ const handleDeleteStackConfirmClick = async () => {
 }
 
 const handleCollapseStack = async (stackIdx: number) => {
-  groupingFieldColOptions.value[stackIdx].collapsed = !groupingFieldColOptions.value[stackIdx].collapsed
-  if (!isPublic.value) {
-    await updateKanbanStackMeta()
-  }
+  const currentCollapsed = groupingFieldColOptions.value[stackIdx].collapsed
+  await updateStackProperty(stackIdx, { collapsed: !currentCollapsed })
+}
+
+const handleCollapseAllStack = async () => {
+  await updateAllStacksProperty((stack, index) => {
+    if (stack.id !== addNewStackId && !stack.collapsed) {
+      return { collapsed: true }
+    }
+    return null // No update needed
+  })
+}
+
+const handleExpandAllStack = async () => {
+  await updateAllStacksProperty((stack, index) => {
+    if (stack.id !== addNewStackId && stack.collapsed) {
+      return { collapsed: false }
+    }
+    return null // No update needed
+  })
 }
 
 const handleCellClick = (col, event) => {
   if (isButton(col)) {
     event.stopPropagation()
-  }
-}
-
-const handleCollapseAllStack = async () => {
-  groupingFieldColOptions.value.forEach((stack) => {
-    if (stack.id !== addNewStackId && !stack.collapsed) {
-      stack.collapsed = true
-    }
-  })
-
-  if (!isPublic.value) {
-    await updateKanbanStackMeta()
-  }
-}
-const handleExpandAllStack = async () => {
-  groupingFieldColOptions.value.forEach((stack) => {
-    if (stack.id !== addNewStackId && stack.collapsed) {
-      stack.collapsed = false
-    }
-  })
-
-  if (!isPublic.value) {
-    await updateKanbanStackMeta()
   }
 }
 
@@ -401,9 +384,6 @@ watch(
       isViewDataLoading.value = true
 
       try {
-        // load kanban meta
-        await loadKanbanMeta()
-
         isViewDataLoading.value = false
 
         // load kanban data
@@ -454,12 +434,10 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
   isRenameOrNewStack.value = null
 
   if (stack && stack?.title && stack?.color && stackIdx !== undefined) {
-    groupingFieldColOptions.value[stackIdx].title = stack.title
-    groupingFieldColOptions.value[stackIdx].color = stack.color
-  }
-
-  if (loadMeta) {
-    await loadKanbanMeta()
+    await updateStackProperty(stackIdx, {
+      title: stack.title,
+      color: stack.color,
+    })
   }
 
   isSavingStack.value = null

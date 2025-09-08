@@ -41,7 +41,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
-    const activeView = inject(ActiveViewInj, ref())
+    const { views } = storeToRefs(useViewsStore())
 
     // save history of stack changes for undo/redo
     const moveHistory = ref<{ op: 'added' | 'removed'; pk: string; stack: string; index: number }[]>([])
@@ -83,9 +83,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       }
     })
 
-    // grouping field column options - e.g. title, fk_column_id, color etc
-    const groupingFieldColOptions = ref<GroupingFieldColOptionsType[]>([])
-
     // formattedData structure
     // {
     //   [val1] : [
@@ -122,7 +119,13 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     const groupingField = computed(() => groupingFieldColumn.value?.title ?? '')
 
     // stack meta in object format
-    const stackMetaObj = ref<Record<string, GroupingFieldColOptionsType[]>>({})
+    const stackMetaObj = computed(() => parseProp(kanbanMetaData.value?.meta) || {})
+
+    // grouping field column options - e.g. title, fk_column_id, color etc
+    const groupingFieldColOptions = computed(() => {
+      if (!groupingFieldColumn.value?.id) return []
+      return stackMetaObj.value[groupingFieldColumn.value?.id]?.sort((a, b) => a.order - b.order) || []
+    })
 
     const shouldScrollToRight = ref(false)
 
@@ -226,38 +229,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       ])
     }
 
-    async function loadKanbanMeta() {
-      if (!viewMeta?.value?.id || !meta?.value?.columns) return
-
-      const { fk_grp_col_id, meta: stack_meta } = kanbanMetaData.value
-
-      stackMetaObj.value = parseProp(stack_meta) || {}
-
-      if (stackMetaObj.value && fk_grp_col_id && stackMetaObj.value[fk_grp_col_id]) {
-        groupingFieldColOptions.value = [...stackMetaObj.value[fk_grp_col_id]]
-      } else {
-        // build stack meta
-
-        groupingFieldColOptions.value = [
-          ...((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []),
-          // enrich uncategorized stack
-          { id: uncategorizedStackId, title: null, order: 0, color: themeV3Colors.gray[500] } as any,
-        ]
-          // sort by initial order
-          .sort((a, b) => a.order! - b.order!)
-          // enrich `collapsed`
-          .map((ele) => ({
-            ...ele,
-            collapsed: false,
-          }))
-        await updateKanbanStackMeta()
-      }
-    }
-
     async function updateKanbanStackMeta() {
       const { fk_grp_col_id } = kanbanMetaData.value
       if (fk_grp_col_id) {
-        stackMetaObj.value[fk_grp_col_id] = groupingFieldColOptions.value
         await updateKanbanMeta({
           meta: stackMetaObj.value,
         })
@@ -273,6 +247,43 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       )
         return
       await $api.dbView.kanbanUpdate(viewMeta.value.id, updateObj)
+
+      const view = views.value.find((view) => view.id === viewMeta.value.id)
+      if (view) {
+        Object.assign(view.view, updateObj)
+      }
+    }
+
+    const updateStackProperty = async (stackIdx: number, updates: Partial<GroupingFieldColOptionsType>) => {
+      const stackMeta = [...groupingFieldColOptions.value]
+      stackMeta[stackIdx] = { ...stackMeta[stackIdx], ...updates }
+
+      const updatedStackMetaObj = {
+        ...stackMetaObj.value,
+        [kanbanMetaData.value.fk_grp_col_id!]: stackMeta,
+      }
+
+      await updateKanbanMeta({
+        meta: updatedStackMetaObj,
+      })
+    }
+
+    const updateAllStacksProperty = async (
+      updates: (stack: GroupingFieldColOptionsType, index: number) => Partial<GroupingFieldColOptionsType> | null,
+    ) => {
+      const stackMeta = groupingFieldColOptions.value.map((stack, index) => {
+        const stackUpdates = updates(stack, index)
+        return stackUpdates ? { ...stack, ...stackUpdates } : stack
+      })
+
+      const updatedStackMetaObj = {
+        ...stackMetaObj.value,
+        [kanbanMetaData.value.fk_grp_col_id!]: stackMeta,
+      }
+
+      await updateKanbanMeta({
+        meta: updatedStackMetaObj,
+      })
     }
 
     function findRowInState(rowData: Record<string, any>) {
@@ -485,10 +496,15 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           cdf: cdf === stackTitle ? null : cdf,
         } as any)
 
+        const splicedOps = [...groupingFieldColOptions.value].splice(stackIdx, 1)
         // update kanban stack meta
-        groupingFieldColOptions.value.splice(stackIdx, 1)
-        stackMetaObj.value[kanbanMetaData.value.fk_grp_col_id!] = groupingFieldColOptions.value
-        await updateKanbanStackMeta()
+        await updateKanbanMeta({
+          meta: {
+            ...stackMetaObj.value,
+            [kanbanMetaData.value.fk_grp_col_id!]: splicedOps,
+          },
+        })
+
         $e('a:kanban:delete-stack')
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
@@ -683,7 +699,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     return {
       loadKanbanData,
       loadMoreKanbanData,
-      loadKanbanMeta,
       updateKanbanMeta,
       kanbanMetaData,
       formattedData,
@@ -701,6 +716,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       deleteRow,
       moveHistory,
       addNewStackId,
+      updateStackProperty,
+      updateAllStacksProperty,
       uncategorizedStackId,
     }
   },

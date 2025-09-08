@@ -22,6 +22,15 @@ export class DuplicateModelUtils {
     return { context, isDifferent: false };
   }
 
+  async verifyTargetContext(
+    _sourceContext: NcContext,
+    _targetContext: NcContext,
+    _modelId: string,
+    _options?: DuplicateModelJobData['options'],
+  ) {
+    return true;
+  }
+
   async getDuplicateModelTaskInfo({
     context,
     baseId,
@@ -51,6 +60,12 @@ export class DuplicateModelUtils {
 
     const { context: targetContext, isDifferent: isTargetContextDifferent } =
       await this.getTargetContext(context, body.options);
+    await this.verifyTargetContext(
+      context,
+      targetContext,
+      modelId,
+      body.options,
+    );
 
     if (isTargetContextDifferent) {
       const baseUser = await BaseUser.get(

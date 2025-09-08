@@ -620,9 +620,32 @@ async function onRename() {
                     :data-testid="`sidebar-table-duplicate-${table.title}`"
                     @click="duplicateTable(table)"
                   >
-                    <div v-e="['c:table:duplicate']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="duplicate" class="opacity-80" />
-                      {{ $t('general.duplicate') }} {{ $t('objects.table').toLowerCase() }}
+                    <div class="w-full flex items-center">
+                      <div v-e="['c:table:duplicate']" class="flex-1 flex gap-2 items-center">
+                        <GeneralIcon icon="duplicate" class="opacity-80" />
+                        {{ $t('general.duplicate') }} {{ $t('objects.table').toLowerCase() }}
+                      </div>
+
+                      <div class="px-1 cursor-default flex items-center h-9 -my-2" @click.stop>
+                        <div class="h-7 w-px flex-none bg-nc-border-gray-medium" />
+                      </div>
+                      <NcSubMenu
+                        class="nc-sub-menu-item-icon-only"
+                        title-class="!p-0 hover:bg-brand-50 group"
+                        :popup-offset="[8, -2]"
+                        @click.stop
+                      >
+                        <template #title>
+                          <div
+                            class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer group-hover:text-nc-content-brand"
+                          >
+                            <GeneralIcon icon="ncChevronRight" />
+                          </div>
+                        </template>
+                        <template #expandIcon> </template>
+
+                        <NcMenuItem> To different {{ $t('objects.project') }} </NcMenuItem>
+                      </NcSubMenu>
                     </div>
                   </NcMenuItem>
                   <NcDivider />

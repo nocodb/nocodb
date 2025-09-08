@@ -207,9 +207,9 @@ const triggerAction = async () => {
       })
 
       addScriptExecution(scriptExecutionId, {
-        recordId: rowId,
+        recordId: rowId as string,
         displayValue: displayValue.value,
-        scriptId: script?.id!,
+        scriptId: script?.id as string,
         scriptName: script?.title || 'Untitled Script',
         buttonFieldName: column.value.title || 'Button',
       })

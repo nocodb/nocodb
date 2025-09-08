@@ -21,9 +21,9 @@ const scriptConfig = computed(() => {
 
 const isValidUrl = computed(() => {
   try {
-    new URL(scriptConfig.value?.url)
+    const newUrl = new URL(scriptConfig.value?.url)
 
-    if (!isIframeUrlAllowed(scriptConfig.value?.url, appInfo.value.iframeWhitelistDomains)) {
+    if (!isIframeUrlAllowed(scriptConfig.value?.url, appInfo.value.iframeWhitelistDomains, newUrl)) {
       return false
     }
 

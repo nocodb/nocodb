@@ -900,6 +900,24 @@ export class PaymentService {
     }
   }
 
+  async recalculateUpcomingInvoice(
+    workspaceOrOrgId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const existingSub = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrgId,
+      ncMeta,
+    );
+    if (!existingSub) return;
+
+    // update the next invoice
+    await this.updateNextInvoice(
+      existingSub.id,
+      await this.getNextInvoice(workspaceOrOrgId, ncMeta),
+      ncMeta,
+    );
+  }
+
   async reseatSubscriptionAwaited(
     workspaceOrOrgId: string,
     ncMeta = Noco.ncMeta,

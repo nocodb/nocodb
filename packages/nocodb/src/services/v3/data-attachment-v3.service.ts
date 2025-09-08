@@ -5,12 +5,17 @@ import axios from 'axios';
 import { nanoid } from 'nanoid';
 import slash from 'slash';
 import { AuditV1OperationTypes, ncIsNull } from 'nocodb-sdk';
-import type { DataUpdatePayload } from 'nocodb-sdk';
+import type { DataUpdatePayload, NcContext } from 'nocodb-sdk';
 import type {
   AttachmentBase64UploadParam,
   AttachmentUrlUploadParam,
 } from '~/types/data-columns/attachment';
-import { validateNumberOfFilesInCell } from '~/helpers/attachmentHelpers';
+import type { AttachmentFilePathConstructed } from '~/helpers/attachmentHelpers';
+import { extractProps } from '~/helpers/extractProps';
+import {
+  constructFilePath,
+  validateNumberOfFilesInCell,
+} from '~/helpers/attachmentHelpers';
 import { extractColsMetaForAudit, generateAuditV1Payload } from '~/utils';
 import { NcError } from '~/helpers/ncError';
 import { DataV3Service } from '~/services/v3/data-v3.service';
@@ -54,35 +59,36 @@ export class DataAttachmentV3Service {
 
     for (const attachment of attachments) {
       try {
-        if (attachment.id && !attachment.id.startsWith('temp_')) {
+        if (
+          attachment.id &&
+          'status' in attachment &&
+          attachment.status !== 'uploading'
+        ) {
           processedAttachments.push(attachment);
-        } else if (attachment.url) {
+        } else if (
+          attachment.url &&
+          'status' in attachment &&
+          attachment.status === 'uploading' &&
+          attachment.type === 'url_request'
+        ) {
           // If attachment has URL, download and process it
-          const downloadedAttachment = await this.downloadAndStoreAttachment({
-            filePath: path.join(
-              ...[
-                context.workspace_id,
-                context.base_id,
-                modelId,
-                column.id,
-                scope ? nanoid(5) : undefined,
-              ].filter((k) => k),
-            ),
-            url: attachment.url,
-            scope,
-          });
-          const attachmentId = await FileReference.insert(context, {
-            storage: downloadedAttachment.storageName,
+
+          const downloadedAttachment = await this.downloadAndStoreAttachment(
+            context,
+            {
+              filePath: attachment,
+              url: attachment.url,
+              scope,
+            },
+          );
+
+          // update fileSize, url due to fileName, etc
+          await FileReference.updateById(context, attachment.id, {
             file_url: downloadedAttachment.url ?? downloadedAttachment.path,
             file_size: downloadedAttachment.fileSize,
-            fk_user_id: context?.user?.id ?? 'anonymous',
-            source_id: baseModel.model.source_id,
-            fk_model_id: modelId,
-            fk_column_id: column.id,
-            is_external: !(await baseModel.getSource()).isMeta(),
           });
           const processedAttachment = {
-            id: attachmentId,
+            id: attachment.id,
             url: ncIsNull(downloadedAttachment.url)
               ? undefined
               : downloadedAttachment.url,
@@ -138,9 +144,12 @@ export class DataAttachmentV3Service {
             }),
             data: { [column.title]: processedAttachments },
             old_data: {
-              [column.title]: attachments.filter(
-                (attr) => attr.id && !attr.id.startsWith('temp_'),
-              ),
+              [column.title]: attachments.map((attr) => {
+                if (!('status' in attr)) {
+                  return attr;
+                }
+                return extractProps(attr, ['id', 'url', 'status', 'type']);
+              }),
             },
           },
           req: req ?? ({ user: context.user } as any),
@@ -325,15 +334,18 @@ export class DataAttachmentV3Service {
     });
   }
 
-  protected async downloadAndStoreAttachment({
-    url,
-    filePath,
-    scope,
-  }: {
-    url: string;
-    filePath: string;
-    scope: string;
-  }) {
+  protected async downloadAndStoreAttachment(
+    context: NcContext,
+    {
+      url,
+      filePath,
+      scope,
+    }: {
+      url: string;
+      filePath: AttachmentFilePathConstructed;
+      scope: string;
+    },
+  ) {
     // Configure axios for download
     const response = await axios({
       method: 'GET',
@@ -361,26 +373,27 @@ export class DataAttachmentV3Service {
     const mimeType = contentType.split(';')[0].trim();
 
     // Extract filename from URL or content-disposition header
-    let filename = url.split('/').pop()?.split('?')[0] || 'attachment';
+    let filename;
     if (contentDisposition) {
       const filenameMatch = contentDisposition.match(
         /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/,
       );
       if (filenameMatch && filenameMatch[1]) {
         filename = filenameMatch[1].replace(/['"]/g, '');
+        filename = scope
+          ? `${normalizeFilename(path.parse(filename).name)}${path.extname(
+              filename,
+            )}`
+          : `${normalizeFilename(path.parse(filename).name)}_${nanoid(
+              5,
+            )}${path.extname(filename)}`;
       }
     }
-    filename = scope
-      ? `${normalizeFilename(path.parse(filename).name)}${path.extname(
-          filename,
-        )}`
-      : `${normalizeFilename(path.parse(filename).name)}_${nanoid(
-          5,
-        )}${path.extname(filename)}`;
-
-    const destPath = path.join(...['nc', scope ?? 'uploads', filePath]);
+    const filePathConstructed = filename
+      ? constructFilePath(context, { ...filePath, fileName: filename })
+      : filePath;
     const resultAttachmentUrl = await storageAdapter.fileCreateByStream(
-      slash(path.join(destPath, filename)),
+      filePathConstructed.storageDest,
       response.data.pipe(passthrough),
     );
     const fileSize = contentLength ? Number(contentLength) : totalBytes;
@@ -388,7 +401,7 @@ export class DataAttachmentV3Service {
     return {
       storageName: storageAdapter.name,
       url: resultAttachmentUrl,
-      path: path.join('download', filePath, filename),
+      path: path.join('download', filePathConstructed.filePath, filename),
       filename,
       mimeType,
       fileSize,

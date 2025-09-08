@@ -3,6 +3,7 @@ import fs from 'fs';
 import mime from 'mime/lite';
 import slash from 'slash';
 import { PublicAttachmentScope } from 'nocodb-sdk';
+import { nanoid } from 'nanoid';
 import type { NcContext } from 'nocodb-sdk';
 import type { Column } from '~/models';
 import { getToolDir } from '~/utils/nc-config';
@@ -88,3 +89,65 @@ export const validateNumberOfFilesInCell = async (
   _number: number,
   _column: Column,
 ) => {};
+
+// ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html - extended with some more characters
+const normalizeFilename = (filename: string) => {
+  return filename.replace(/[\\/:*?"<>'`#|%~{}[\]^]/g, '_');
+};
+
+export const getFileNameFromUrl = (param: { url: string; scope?: string }) => {
+  let filename = param.url.split('/').pop()?.split('?')[0] || 'attachment';
+  filename = param.scope
+    ? `${normalizeFilename(path.parse(filename).name)}${path.extname(filename)}`
+    : `${normalizeFilename(path.parse(filename).name)}_${nanoid(
+        5,
+      )}${path.extname(filename)}`;
+  return filename;
+};
+
+export interface AttachmentFilePathConstructed {
+  workspaceId?: string;
+  baseId: string;
+  modelId: string;
+  columnId: string;
+  scope?: string;
+
+  filePath: string;
+  destPath: string;
+  fileName: string;
+  storageDest: string;
+}
+
+export const constructFilePath = (
+  context: NcContext,
+  param: {
+    fileName: string;
+    modelId: string;
+    columnId: string;
+    scope?: string;
+  },
+) => {
+  const filePath = path.join(
+    ...[
+      context.workspace_id,
+      context.base_id,
+      param.modelId,
+      param.columnId,
+      param.scope ? nanoid(5) : undefined,
+    ].filter((k) => k),
+  );
+
+  const destPath = path.join(...['nc', param.scope ?? 'uploads', filePath]);
+
+  return {
+    workspaceId: context.workspace_id,
+    baseId: context.base_id,
+    modelId: param.modelId,
+    columnId: param.columnId,
+    scope: param.scope,
+    filePath,
+    destPath,
+    fileName: param.fileName,
+    storageDest: slash(path.join(destPath, param.fileName)),
+  } as AttachmentFilePathConstructed;
+};

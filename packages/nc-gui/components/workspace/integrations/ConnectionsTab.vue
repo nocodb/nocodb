@@ -48,8 +48,6 @@ const isLoadingGetLinkedSources = ref(false)
 
 const tableWrapper = ref<HTMLDivElement>()
 
-const titleHeaderCellRef = ref<HTMLDivElement>()
-
 const orderBy = ref<Partial<Record<SortFields, 'asc' | 'desc' | undefined>>>({})
 
 const localCollaborators = ref<User[] | UserType[]>([])
@@ -290,7 +288,7 @@ const columns = [
   },
 ] as NcTableColumnProps[]
 
-const customRow = (record: Record<string, any>, recordIndex: number) => ({
+const customRow = (record: Record<string, any>) => ({
   onclick: () => {
     openEditIntegration(record)
   },

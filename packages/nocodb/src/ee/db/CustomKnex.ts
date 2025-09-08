@@ -4,7 +4,7 @@ import { DatabricksClient } from 'knex-databricks';
 import CustomKnexCE from 'src/db/CustomKnex';
 export { Condition, ConditionVal } from 'src/db/CustomKnex';
 
-type CustomKnex = Knex & {
+type CustomKnex = CustomKnexCE & {
   extDb?: {
     client: string;
     connection: Record<string, string>;

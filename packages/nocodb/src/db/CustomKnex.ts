@@ -1044,7 +1044,9 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
   return qb;
 }
 
-type CustomKnex = Knex;
+type CustomKnex = Knex & {
+  attachToTransaction?: (fn: () => void) => void;
+};
 
 function CustomKnex(
   arg: string | Knex.Config<any> | any,
@@ -1059,17 +1061,13 @@ function CustomKnex(
 
   const knexRaw = kn.raw;
 
-  /**
-   * Wrapper for knex.raw
-   *
-   * @param args1
-   * @returns {Knex.Raw<any>}
-   */
-  // knex.raw = function (...args) {
-  //   return knexRaw.apply(knex, args);
-  // };
+  const knexTransaction = kn.transaction;
 
-  Object.defineProperties(kn, {
+  const knexCommit = kn.commit;
+
+  const knexRollback = kn.rollback;
+
+  const overrideProps = {
     raw: {
       enumerable: true,
       value: (...args) => {
@@ -1100,7 +1098,74 @@ function CustomKnex(
       enumerable: false,
       value: !!extDb && process.env.NC_DISABLE_MUX !== 'true',
     },
-  });
+    transaction: {
+      enumerable: true,
+      value: async (...args) => {
+        const trx = await knexTransaction.apply(kn, args);
+
+        Object.defineProperties(trx, overrideProps);
+
+        return trx;
+      },
+    },
+    ops: {
+      enumerable: true,
+      writable: true,
+      value: [],
+    },
+    attachToTransaction: {
+      enumerable: true,
+      value: (fn: () => void) => {
+        if (!kn.isTransaction) {
+          return fn();
+        }
+        kn.ops.push(async () => {
+          try {
+            return await fn();
+          } catch (error) {
+            console.error(
+              'Error occurred while running attached operation:',
+              error,
+            );
+          }
+        });
+      },
+    },
+    knexCommit: {
+      enumerable: true,
+      value: async (...args) => {
+        const result = await knexCommit.apply(kn, args);
+
+        await Promise.all(kn.ops.map((op) => op()));
+
+        kn.ops = [];
+
+        return result;
+      },
+    },
+    knexRollback: {
+      enumerable: true,
+      value: async (...args) => {
+        // Clear the operations queue
+        kn.ops = [];
+
+        const result = await knexRollback.apply(kn, args);
+        return result;
+      },
+    },
+  };
+
+  /**
+   * Wrapper for knex.raw
+   *
+   * @param args1
+   * @returns {Knex.Raw<any>}
+   */
+  // knex.raw = function (...args) {
+  //   return knexRaw.apply(knex, args);
+  // };
+
+  Object.defineProperties(kn, overrideProps);
 
   /**
    * Returns database type

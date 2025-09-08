@@ -27,13 +27,18 @@ export class MetaService {
   protected _knex: knex.Knex;
   protected _config: any;
 
-  constructor(config: NcConfig, @Optional() trx = null) {
+  constructor(
+    config: NcConfig,
+    @Optional() trx = null,
+    @Optional() nested = 0,
+  ) {
     this._config = config;
     this._knex = XKnex({
       ...this._config.meta.db,
       useNullAsDefault: true,
     });
     this.trx = trx;
+    this.nested = nested;
   }
 
   get knexInstance(): knex.Knex {
@@ -355,6 +360,7 @@ export class MetaService {
   // private connection: XKnex;
   // todo: need to fix
   protected trx: Knex.Transaction;
+  protected nested: number;
 
   /***
    * Delete meta data
@@ -719,10 +725,10 @@ export class MetaService {
   }
 
   async commit() {
-    if (this.trx) {
+    if (this.trx && this.nested === 0) {
       await this.trx.commit();
+      this.trx = null;
     }
-    this.trx = null;
   }
 
   async rollback(e?) {
@@ -733,16 +739,17 @@ export class MetaService {
   }
 
   async startTransaction(): Promise<MetaService> {
-    const trx = await this.connection.transaction();
-
-    // todo: Extend transaction class to add our custom properties
-    Object.assign(trx, {
-      clientType: this.connection.clientType,
-      searchPath: (this.connection as any).searchPath,
-    });
+    const trx = this.connection.isTransaction
+      ? this.connection
+      : await this.connection.transaction();
 
     // todo: tobe done
-    return new MetaService(this.config, trx);
+    return new MetaService(
+      this.config,
+      trx,
+      // we need to keep track of the nested transaction level
+      this.connection.isTransaction ? this.nested + 1 : 0,
+    );
   }
 
   /***

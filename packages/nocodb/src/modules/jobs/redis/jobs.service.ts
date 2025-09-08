@@ -83,9 +83,6 @@ export class JobsService implements OnModuleInit {
       ...(data?.context || {}),
     };
 
-    // to ensure data is serializable
-    data = JSON.parse(JSON.stringify(data, getCircularReplacer()));
-
     let jobData;
 
     if (options?.jobId) {

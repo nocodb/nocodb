@@ -202,4 +202,4 @@ export const removeQueryParamsFromURL = (keysToRemove: string[]) => {
 }
 
 // Feature detection.
-export const supportsKeyboardLock = 'keyboard' in navigator && 'lock' in (navigator.keyboard as any)
+export const supportsKeyboardLock = 'keyboard' in navigator && navigator.keyboard && 'lock' in (navigator.keyboard as any)

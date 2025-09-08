@@ -1377,8 +1377,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 <NcTooltip
                                   :title="
                                     isRequired(element, element.required)
-                                      ? $t('tooltip.youCantHideARequiredField')
-                                      : $t('general.hideField')
+                                      ? $t('tooltip.youCantRemoveARequiredField')
+                                      : $t('tooltip.removeFromForm')
                                   "
                                 >
                                   <NcButton
@@ -1386,7 +1386,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     size="xsmall"
                                     class="nc-form-field-hide !bg-transparent !h-6 !w-6"
                                     :class="{
-                                      '!text-nc-content-gray-subtle2 !hover:text-nc-content-brand': !isRequired(
+                                      '!text-nc-content-gray-muted !hover:text-nc-content-brand': !isRequired(
                                         element,
                                         element.required,
                                       ),
@@ -1396,7 +1396,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     @click="showOrHideColumn(element, false, false)"
                                   >
                                     <template #icon>
-                                      <GeneralIcon icon="eyeSlash" class="!w-4 !h-4" />
+                                      <GeneralIcon icon="close" class="!w-4 !h-4" />
                                     </template>
                                   </NcButton>
                                 </NcTooltip>

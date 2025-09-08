@@ -114,7 +114,7 @@ export class KanbansService {
       context,
     });
 
-    await view.getView(context);
+    await view.getView<ViewTypes.KANBAN>(context);
 
     NocoSocket.broadcastEvent(
       context,
@@ -183,6 +183,20 @@ export class KanbansService {
       owner,
       context,
     });
+
+    await view.getView<ViewTypes.KANBAN>(context);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_update',
+          payload: view,
+        },
+      },
+      context.socket_id,
+    );
 
     return res;
   }

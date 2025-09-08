@@ -41,6 +41,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
+    const activeView = inject(ActiveViewInj, ref())
+
     // save history of stack changes for undo/redo
     const moveHistory = ref<{ op: 'added' | 'removed'; pk: string; stack: string; index: number }[]>([])
 
@@ -73,7 +75,13 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     provide(SharedViewPasswordInj, password)
 
     // kanban view meta data
-    const kanbanMetaData = ref<KanbanType>({})
+    const kanbanMetaData = computed(() => {
+      if (isPublic.value) {
+        return sharedView.value?.view as KanbanType
+      } else {
+        return viewMeta.value?.view
+      }
+    })
 
     // grouping field column options - e.g. title, fk_column_id, color etc
     const groupingFieldColOptions = ref<GroupingFieldColOptionsType[]>([])
@@ -101,11 +109,17 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     // }
     const countByStack = ref<Map<string | null, number>>(new Map<string | null, number>())
 
-    // grouping field title
-    const groupingField = ref<string>('')
+    const groupingFieldColumn = computed(() => {
+      if (!meta.value?.columns || !kanbanMetaData.value?.fk_grp_col_id) return undefined
 
-    // grouping field column
-    const groupingFieldColumn = ref<ColumnType | undefined>()
+      if (isPublic.value) {
+        return parseProp(sharedView.value?.meta).groupingFieldColumn as ColumnType
+      } else {
+        return (meta.value.columns as ColumnType[]).find((f) => f.id === kanbanMetaData.value.fk_grp_col_id)
+      }
+    })
+
+    const groupingField = computed(() => groupingFieldColumn.value?.title ?? '')
 
     // stack meta in object format
     const stackMetaObj = ref<Record<string, GroupingFieldColOptionsType[]>>({})
@@ -214,99 +228,13 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     async function loadKanbanMeta() {
       if (!viewMeta?.value?.id || !meta?.value?.columns) return
-      kanbanMetaData.value = isPublic.value
-        ? (sharedView.value?.view as KanbanType)
-        : await $api.dbView.kanbanRead(viewMeta.value.id)
-
-      // set groupingField
-      groupingFieldColumn.value = !isPublic.value
-        ? (meta.value.columns as ColumnType[]).filter((f) => f.id === kanbanMetaData.value.fk_grp_col_id)[0] || {}
-        : (parseProp(sharedView.value?.meta).groupingFieldColumn! as ColumnType)
-
-      groupingField.value = groupingFieldColumn.value.title!
 
       const { fk_grp_col_id, meta: stack_meta } = kanbanMetaData.value
 
       stackMetaObj.value = parseProp(stack_meta) || {}
 
       if (stackMetaObj.value && fk_grp_col_id && stackMetaObj.value[fk_grp_col_id]) {
-        // keep the existing order (index of the array) but update the values done outside kanban
-        let isChanged = false
-        let hasNewOptionsAdded = false
-        for (const option of (groupingFieldColumn.value.colOptions as SelectOptionsType)?.options ?? []) {
-          const idx = stackMetaObj.value[fk_grp_col_id].findIndex((ele) => ele.id === option.id)
-          if (idx !== -1) {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { collapsed, ...rest } = stackMetaObj.value[fk_grp_col_id][idx]
-            if (!deepCompare(rest, option)) {
-              // Don't update stack meta if it is shared view and
-              // shared view meta grouping field options not matched with actual column options
-              if (isPublic.value) continue
-
-              // update the option in stackMetaObj
-              stackMetaObj.value[fk_grp_col_id][idx] = {
-                ...stackMetaObj.value[fk_grp_col_id][idx],
-                ...option,
-              }
-              // rename the key in formattedData & countByStack
-              if (option.title !== rest.title) {
-                // option.title is new key
-                // rest.title is old key
-                formattedData.value.set(option.title!, formattedData.value.get(rest.title!)!)
-                countByStack.value.set(option.title!, countByStack.value.get(rest.title!)!)
-                // update grouping field value under the edited stack
-                await bulkUpdateGroupingFieldValue(option.title!)
-              }
-              isChanged = true
-            }
-          } else {
-            // new option found - add to stackMetaObj
-            stackMetaObj.value[fk_grp_col_id].push({
-              ...option,
-              collapsed: false,
-            })
-            formattedData.value.set(option.title!, [])
-            countByStack.value.set(option.title!, 0)
-            isChanged = true
-            hasNewOptionsAdded = true
-          }
-        }
-
-        // handle deleted options
-        const columnOptionIds = (groupingFieldColumn.value?.colOptions as SelectOptionsType)?.options.map(({ id }) => id!) ?? []
-        const cols = stackMetaObj.value[fk_grp_col_id].filter(
-          ({ id }) => id !== uncategorizedStackId && !columnOptionIds.includes(id),
-        )
-        for (const col of cols) {
-          const idx = stackMetaObj.value[fk_grp_col_id].map((ele: Record<string, any>) => ele.id).indexOf(col.id)
-          if (idx !== -1) {
-            stackMetaObj.value[fk_grp_col_id].splice(idx, 1)
-            // there are two cases
-            // 1. delete option from Add / Edit Stack in kanban view
-            // 2. delete option from grid view, then switch to kanban view
-            // for the second case, formattedData.value and countByStack.value would be empty at this moment
-            // however, the data will be correct after rendering
-            if (formattedData.value.size && countByStack.value.size && formattedData.value.has(col.title!)) {
-              // for the first case, no reload is executed.
-              // hence, we set groupingField to null for all records under the target stack
-              await bulkUpdateGroupingFieldValue(col.title!, true)
-              // merge the to-be-deleted stack to uncategorized stack
-              formattedData.value.set(null, [...(formattedData.value.get(null) || []), ...formattedData.value.get(col.title!)!])
-              // update the record count
-              countByStack.value.set(null, (countByStack.value.get(null) || 0) + (countByStack.value.get(col.title!) || 0))
-            }
-            isChanged = true
-          }
-        }
-
         groupingFieldColOptions.value = [...stackMetaObj.value[fk_grp_col_id]]
-
-        if (isChanged) {
-          await updateKanbanStackMeta()
-          if (hasNewOptionsAdded) {
-            shouldScrollToRight.value = true
-          }
-        }
       } else {
         // build stack meta
 
@@ -548,8 +476,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         const newOptions = (groupingFieldColumn.value.colOptions as SelectOptionsType).options.filter(
           (o) => o.title !== stackTitle,
         )
-        ;(groupingFieldColumn.value.colOptions as SelectOptionsType).options = newOptions
-
         const cdf = groupingFieldColumn.value.cdf ? groupingFieldColumn.value.cdf.replace(/^'/, '').replace(/'$/, '') : null
         await api.dbTableColumn.update(groupingFieldColumn.value.id!, {
           ...groupingFieldColumn.value,

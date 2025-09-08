@@ -145,9 +145,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       if ((!base?.value?.id || !meta.value?.id || !viewMeta?.value?.id || !groupingFieldColumn?.value?.id) && !isPublic.value)
         return
 
-      // reset formattedData & countByStack to avoid storing previous data after changing grouping field
-      formattedData.value = new Map<string | null, Row[]>()
-      countByStack.value = new Map<string | null, number>()
+      const newFormattedData = new Map<string | null, Row[]>()
+      const newCountByStack = new Map<string | null, number>()
 
       let groupData
 
@@ -171,9 +170,12 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
       for (const data of groupData ?? []) {
         const key = typeof data.key === 'string' ? (data.key?.length ? data.key : null) : null
-        formattedData.value.set(key, formatData(data.value.list, getEvaluatedRowMetaRowColorInfo))
-        countByStack.value.set(key, data.value.pageInfo.totalRows || 0)
+        newFormattedData.set(key, formatData(data.value.list, getEvaluatedRowMetaRowColorInfo))
+        newCountByStack.set(key, data.value.pageInfo.totalRows || 0)
       }
+
+      formattedData.value = newFormattedData
+      countByStack.value = newCountByStack
     }
 
     const filerDuplicateRecords = (existingRecords: Row[], newRecords: Row[]) => {

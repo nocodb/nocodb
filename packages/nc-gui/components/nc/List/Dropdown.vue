@@ -10,6 +10,7 @@ interface Props {
    */
   defaultSlotWrapperClass?: string
   disabled?: boolean
+  showAsDisabled?: boolean
   borderOnHover?: boolean
   hasError?: boolean
 }
@@ -19,6 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
   defaultSlotWrapper: true,
   defaultSlotWrapperClass: '',
   disabled: false,
+  showAsDisabled: true,
   borderOnHover: false,
   hasError: false,
 })
@@ -83,8 +85,8 @@ watch(vModelIsOpen, (newVal) => {
       :class="[
         defaultSlotWrapperClass,
         {
-          'cursor-not-allowed bg-nc-bg-gray-extralight text-nc-content-gray-muted': disabled,
-          'cursor-pointer': !disabled,
+          'cursor-not-allowed bg-nc-bg-gray-light text-nc-content-gray-muted children:opacity-60': disabled && showAsDisabled,
+          'cursor-pointer text-nc-content-gray': !disabled,
           'border-brand-500 shadow-selected': vModelIsOpen && !disabled && !hasError,
           'border-error shadow-error': vModelIsOpen && !disabled && hasError,
           'nc-list-dropdown-wrapper-default-state': !vModelIsOpen && !disabled && !borderOnHover,

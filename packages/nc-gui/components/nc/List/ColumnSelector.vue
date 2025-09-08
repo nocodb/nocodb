@@ -143,11 +143,6 @@ defineExpose({
     <NcListDropdown
       v-model:is-open="isOpenColumnSelectDropdown"
       :disabled="disabled"
-      :default-slot-wrapper-class="
-        disabled
-          ? 'text-nc-content-gray-muted cursor-not-allowed bg-nc-bg-gray-light children:opacity-60'
-          : 'text-nc-content-gray'
-      "
       :has-error="!!selectedColumn?.ncItemDisabled"
     >
       <div class="flex-1 flex group items-center gap-2 min-w-0">

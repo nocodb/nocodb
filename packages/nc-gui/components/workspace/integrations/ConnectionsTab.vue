@@ -5,6 +5,8 @@ import dayjs from 'dayjs'
 
 type SortFields = 'title' | 'sub_type' | 'created_at' | 'created_by' | 'source_count'
 
+const { t } = useI18n()
+
 const {
   integrations,
   isLoadingIntegrations,
@@ -51,8 +53,6 @@ const titleHeaderCellRef = ref<HTMLDivElement>()
 const orderBy = ref<Partial<Record<SortFields, 'asc' | 'desc' | undefined>>>({})
 
 const localCollaborators = ref<User[] | UserType[]>([])
-
-const { width } = useElementBounding(titleHeaderCellRef)
 
 const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string }) | User | UserType>>(() => {
   const map = new Map()
@@ -191,25 +191,6 @@ const loadOrgUsers = async () => {
   }
 }
 
-const updateOrderBy = (field: SortFields) => {
-  if (!integrations.value?.length) return
-
-  // Only single field sort supported, other old field sort config will reset
-  if (orderBy.value?.[field] === 'asc') {
-    orderBy.value = {
-      [field]: 'desc',
-    }
-  } else if (orderBy.value?.[field] === 'desc') {
-    orderBy.value = {
-      [field]: undefined,
-    }
-  } else {
-    orderBy.value = {
-      [field]: 'asc',
-    }
-  }
-}
-
 const handleSearchConnection = useDebounceFn(() => {
   loadConnections()
 }, 250)
@@ -259,6 +240,61 @@ onKeyStroke('ArrowLeft', onLeft)
 onKeyStroke('ArrowRight', onRight)
 onKeyStroke('ArrowUp', onUp)
 onKeyStroke('ArrowDown', onDown)
+
+const columns = [
+  {
+    key: 'title',
+    title: t('general.name'),
+    minWidth: 250,
+    dataIndex: 'title',
+    showOrderBy: true,
+  },
+  {
+    key: 'sub_type',
+    title: t('general.type'),
+    minWidth: 98,
+    width: 120,
+    dataIndex: 'sub_type',
+    showOrderBy: true,
+  },
+  {
+    key: 'created_at',
+    title: t('labels.dateAdded'),
+    basis: '20%',
+    minWidth: 200,
+
+    dataIndex: 'created_at',
+    showOrderBy: true,
+  },
+  {
+    key: 'created_by',
+    title: t('labels.addedBy'),
+    minWidth: 250,
+    basis: '20%',
+    dataIndex: 'created_by',
+    showOrderBy: true,
+  },
+  {
+    key: 'source_count',
+    title: t('general.usage'),
+    width: 120,
+    dataIndex: 'source_count',
+    showOrderBy: true,
+  },
+  {
+    key: 'action',
+    title: t('labels.actions'),
+    minWidth: 100,
+    width: 100,
+    justify: 'justify-end',
+  },
+] as NcTableColumnProps[]
+
+const customRow = (record: Record<string, any>, recordIndex: number) => ({
+  onclick: () => {
+    openEditIntegration(record)
+  },
+})
 </script>
 
 <template>
@@ -291,368 +327,195 @@ onKeyStroke('ArrowDown', onDown)
         </a-input>
       </div>
     </div>
-    <div class="table-container relative flex-1">
-      <div
-        ref="tableWrapper"
-        class="nc-workspace-integration-table relative nc-scrollbar-thin !overflow-auto max-h-[calc(100%_-_40px)]"
-        :class="{
-          'h-full': filteredIntegrations?.length,
-        }"
-      >
-        <table class="!sticky top-0 z-5 w-full">
-          <thead>
-            <tr>
-              <th
-                class="cell-title !hover:bg-nc-bg-gray-light select-none cursor-pointer"
-                :class="{
-                  'cursor-not-allowed': !filteredIntegrations?.length,
-                  '!text-nc-content-inverted-secondary': orderBy.title,
-                }"
-                @click="updateOrderBy('title')"
-              >
-                <div ref="titleHeaderCellRef" class="flex items-center gap-3">
-                  <div>{{ $t('general.name') }}</div>
-                  <GeneralIcon
-                    v-if="orderBy.title"
-                    icon="chevronDown"
-                    class="flex-none"
-                    :class="{
-                      'transform rotate-180': orderBy?.title === 'asc',
-                    }"
-                  />
-                  <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
-                </div>
-              </th>
-
-              <th
-                class="cell-type !hover:bg-nc-bg-gray-light select-none cursor-pointer"
-                :class="{
-                  'cursor-not-allowed': !filteredIntegrations?.length,
-                  '!text-nc-content-inverted-secondary': orderBy.sub_type,
-                }"
-                @click="updateOrderBy('sub_type')"
-              >
-                <div class="flex items-center gap-3">
-                  <div>{{ $t('general.type') }}</div>
-                  <GeneralIcon
-                    v-if="orderBy.sub_type"
-                    icon="chevronDown"
-                    class="flex-none"
-                    :class="{
-                      'transform rotate-180': orderBy.sub_type === 'asc',
-                    }"
-                  />
-                  <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
-                </div>
-              </th>
-
-              <th
-                class="cell-created-date !hover:bg-nc-bg-gray-light select-none cursor-pointer"
-                :class="{
-                  'cursor-not-allowed': !filteredIntegrations?.length,
-                  '!text-nc-content-inverted-secondary': orderBy.created_at,
-                }"
-                @click="updateOrderBy('created_at')"
-              >
-                <div class="flex items-center gap-3">
-                  <div>{{ $t('labels.dateAdded') }}</div>
-                  <GeneralIcon
-                    v-if="orderBy.created_at"
-                    icon="chevronDown"
-                    class="flex-none"
-                    :class="{
-                      'transform rotate-180': orderBy.created_at === 'asc',
-                    }"
-                  />
-                  <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
-                </div>
-              </th>
-              <th
-                class="cell-added-by !hover:bg-nc-bg-gray-light select-none cursor-pointer"
-                :class="{
-                  'cursor-not-allowed': !filteredIntegrations?.length,
-                  '!text-nc-content-inverted-secondary': orderBy.created_by,
-                }"
-                @click="updateOrderBy('created_by')"
-              >
-                <div class="flex items-center gap-3">
-                  <div>{{ $t('labels.addedBy') }}</div>
-                  <GeneralIcon
-                    v-if="orderBy.created_by"
-                    icon="chevronDown"
-                    class="flex-none"
-                    :class="{
-                      'transform rotate-180': orderBy.created_by === 'asc',
-                    }"
-                  />
-                  <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
-                </div>
-              </th>
-              <th
-                class="cell-usage !hover:bg-nc-bg-gray-light select-none cursor-pointer"
-                :class="{
-                  'cursor-not-allowed': !filteredIntegrations?.length,
-                }"
-                @click="updateOrderBy('source_count')"
-              >
-                <div class="flex items-center gap-3">
-                  <div>{{ $t('general.usage') }}</div>
-                  <GeneralIcon
-                    v-if="orderBy?.source_count"
-                    icon="chevronDown"
-                    class="flex-none"
-                    :class="{
-                      'transform rotate-180': orderBy?.source_count === 'asc',
-                    }"
-                  />
-                  <GeneralIcon v-else icon="chevronUpDown" class="flex-none" />
-                </div>
-              </th>
-              <th class="cell-actions">
-                <div>{{ $t('labels.actions') }}</div>
-              </th>
-            </tr>
-          </thead>
-        </table>
-        <template v-if="filteredIntegrations?.length">
-          <table class="h-full max-h-[calc(100%_-_55px)] w-full">
-            <tbody>
-              <tr v-for="integration of filteredIntegrations" :key="integration.id" @click="openEditIntegration(integration)">
-                <td class="cell-title">
-                  <div
-                    class="gap-3"
-                    :style="{
-                      maxWidth: `${width}px`,
-                    }"
-                  >
-                    <NcTooltip placement="bottom" class="truncate" show-on-truncate-only>
-                      <template #title> {{ integration.title }}</template>
-                      {{ integration.title }}
-                    </NcTooltip>
-                    <span v-if="integration.is_private">
-                      <NcBadge :border="false" class="text-primary !h-4.5 bg-nc-bg-brand text-xs">{{
-                        $t('general.private')
-                      }}</NcBadge>
-                    </span>
-                  </div>
-                </td>
-
-                <td class="cell-type">
-                  <div>
-                    <NcTooltip placement="bottom" class="h-8 w-8 flex-none flex items-center justify-center children:flex-none">
-                      <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
-
-                      <GeneralIntegrationIcon
-                        :type="integration.sub_type"
-                        :size="integration.sub_type === SyncDataType.NOCODB ? 'xxl' : 'lg'"
-                      />
-                    </NcTooltip>
-                  </div>
-                </td>
-
-                <td class="cell-created-date">
-                  <div>
-                    <NcTooltip placement="bottom" show-on-truncate-only>
-                      <template #title> {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}</template>
-
-                      {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}
-                    </NcTooltip>
-                  </div>
-                </td>
-                <td class="cell-added-by">
-                  <div>
-                    <div v-if="integration.sub_type === SyncDataType.NOCODB" class="flex items-center gap-3">
-                      <div class="h-8 w-8 grid place-items-center">
-                        <GeneralIcon icon="nocodb1" />
-                      </div>
-                      <div class="text-sm !leading-5 capitalize font-semibold truncate">NocoDB Cloud</div>
-                    </div>
-                    <NcTooltip v-else :disabled="!isUserDeleted(integration.created_by)" class="w-full">
-                      <template #title>
-                        {{ `User not part of this ${isEeUI ? 'workspace' : 'organisation'} anymore` }}
-                      </template>
-                      <div
-                        v-if="integration.created_by && collaboratorsMap.get(integration.created_by)?.email"
-                        class="w-full flex gap-3 items-center"
-                      >
-                        <GeneralUserIcon
-                          :user="collaboratorsMap.get(integration.created_by)"
-                          size="base"
-                          class="flex-none"
-                          :class="{
-                            '!grayscale': isUserDeleted(integration.created_by),
-                          }"
-                          :style="
-                            isUserDeleted(integration.created_by)
-                              ? {
-                                  filter: 'grayscale(100%) brightness(115%)',
-                                }
-                              : {}
-                          "
-                        />
-                        <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
-                          <div class="w-full flex gap-3">
-                            <NcTooltip
-                              class="text-sm !leading-5 capitalize font-semibold truncate"
-                              :class="{
-                                'text-nc-content-gray': !isUserDeleted(integration.created_by),
-                                'text-nc-content-gray-muted': isUserDeleted(integration.created_by),
-                              }"
-                              :disabled="isUserDeleted(integration.created_by)"
-                              show-on-truncate-only
-                              placement="bottom"
-                            >
-                              <template #title>
-                                {{ getUserNameByCreatedBy(integration.created_by) }}
-                              </template>
-                              {{ getUserNameByCreatedBy(integration.created_by) }}
-                            </NcTooltip>
-                          </div>
-                          <NcTooltip
-                            class="text-xs !leading-4 truncate"
-                            :class="{
-                              'text-nc-content-gray-subtle2': !isUserDeleted(integration.created_by),
-                              'text-nc-content-gray-muted': isUserDeleted(integration.created_by),
-                            }"
-                            :disabled="isUserDeleted(integration.created_by)"
-                            show-on-truncate-only
-                            placement="bottom"
-                          >
-                            <template #title>
-                              {{ collaboratorsMap.get(integration.created_by)?.email }}
-                            </template>
-                            {{ collaboratorsMap.get(integration.created_by)?.email }}
-                          </NcTooltip>
-                        </div>
-                      </div>
-                      <div v-else class="w-full truncate text-nc-content-gray-muted">{{ integration.created_by }}</div>
-                    </NcTooltip>
-                  </div>
-                </td>
-                <td class="cell-usage">
-                  <div>{{ integration?.source_count ?? 0 }}</div>
-                </td>
-                <td class="cell-actions" @click.stop>
-                  <div class="justify-end">
-                    <NcDropdown placement="bottomRight">
-                      <NcButton size="small" type="secondary">
-                        <GeneralIcon icon="threeDotVertical" />
-                      </NcButton>
-                      <template #overlay>
-                        <NcMenu variant="small">
-                          <NcMenuItem
-                            v-if="integration.type && integrationCategoryNeedDefault(integration.type) && !integration.is_default"
-                            @click="setDefaultIntegration(integration)"
-                          >
-                            <GeneralIcon class="text-current opacity-80" icon="star" />
-                            <span>Set as default</span>
-                          </NcMenuItem>
-                          <NcMenuItem
-                            :disabled="
-                              !isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB
-                            "
-                            @click="openEditIntegration(integration)"
-                          >
-                            <GeneralIcon class="text-current opacity-80" icon="edit" />
-                            <span>{{ $t('general.edit') }}</span>
-                          </NcMenuItem>
-                          <NcTooltip :disabled="integration?.sub_type !== ClientType.SQLITE">
-                            <template #title>
-                              Not allowed for type
-                              {{
-                                integration.sub_type && clientTypesMap[integration.sub_type]
-                                  ? clientTypesMap[integration.sub_type]?.text
-                                  : integration.sub_type
-                              }}
-                            </template>
-
-                            <NcMenuItem
-                              :disabled="
-                                integration?.sub_type === ClientType.SQLITE || integration?.sub_type === SyncDataType.NOCODB
-                              "
-                              @click="duplicateIntegration(integration)"
-                            >
-                              <GeneralIcon class="text-current opacity-80" icon="duplicate" />
-                              <span>{{ $t('general.duplicate') }}</span>
-                            </NcMenuItem>
-                          </NcTooltip>
-                          <template v-if="integration?.sub_type !== SyncDataType.NOCODB">
-                            <NcDivider />
-                            <NcMenuItem danger @click="openDeleteIntegration(integration)">
-                              <GeneralIcon icon="delete" />
-                              {{ $t('general.delete') }}
-                            </NcMenuItem>
-                          </template>
-                        </NcMenu>
-                      </template>
-                    </NcDropdown>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </template>
-      </div>
-
-      <div
-        v-show="isLoadingIntegrations"
-        class="flex items-center justify-center absolute left-0 top-0 w-full h-full z-10 pb-10 pointer-events-none"
-      >
-        <div class="flex flex-col justify-center items-center gap-2">
-          <GeneralLoader size="xlarge" />
-          <span class="text-center">{{ $t('general.loading') }}</span>
+    <NcTable
+      v-model:order-by="orderBy"
+      :columns="columns"
+      :data="filteredIntegrations"
+      :is-data-loading="isLoadingIntegrations"
+      sticky-first-column
+      :custom-row="customRow"
+      class="h-full"
+    >
+      <template #bodyCell="{ column, record: integration }">
+        <div v-if="column.key === 'title'" class="w-full flex items-center gap-3">
+          <NcTooltip placement="bottom" class="truncate !text-nc-content-gray font-semibold" show-on-truncate-only>
+            <template #title> {{ integration.title }}</template>
+            {{ integration.title }}
+          </NcTooltip>
+          <span v-if="integration.is_private">
+            <NcBadge :border="false" class="text-primary !h-4.5 bg-nc-bg-brand text-xs">{{ $t('general.private') }}</NcBadge>
+          </span>
         </div>
-      </div>
 
-      <div
-        v-if="!isLoadingIntegrations && (!integrations?.length || !filteredIntegrations.length)"
-        class="flex-none integration-table-empty flex items-center justify-center py-8 px-6 h-full max-h-[calc(100%_-_94px)]"
-      >
-        <div
-          v-if="integrations?.length && !filteredIntegrations.length"
-          class="px-2 py-6 text-nc-content-gray-muted flex flex-col items-center gap-6 text-center"
+        <NcTooltip
+          v-if="column.key === 'sub_type'"
+          placement="bottom"
+          class="h-8 w-8 flex-none flex items-center justify-center children:flex-none"
         >
-          <img
-            src="~assets/img/placeholder/no-search-result-found.png"
-            class="!w-[164px] flex-none"
-            alt="No search results found"
-          />
+          <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
 
-          {{ $t('title.noResultsMatchedYourSearch') }}
-        </div>
-
-        <div v-else class="flex-none text-center flex flex-col items-center gap-3">
-          <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
-        </div>
-      </div>
-      <div
-        v-if="integrationPaginationData.totalRows"
-        class="flex flex-row justify-center items-center bg-nc-bg-gray-extralight min-h-10"
-        :class="{
-          'pointer-events-none': isLoadingIntegrations,
-        }"
-      >
-        <div class="flex justify-between items-center w-full px-6">
-          <div>&nbsp;</div>
-          <NcPagination
-            v-model:current="integrationPaginationData.page"
-            v-model:page-size="integrationPaginationData.pageSize"
-            :total="+integrationPaginationData.totalRows"
-            show-size-changer
-            :use-stored-page-size="false"
-            :prev-page-tooltip="`${renderAltOrOptlKey()}+←`"
-            :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
-            :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
-            :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
-            @update:current="loadConnections(undefined, undefined, false)"
-            @update:page-size="loadConnections(integrationPaginationData.page, $event, false)"
+          <GeneralIntegrationIcon
+            :type="integration.sub_type"
+            :size="integration.sub_type === SyncDataType.NOCODB ? 'xxl' : 'lg'"
           />
-          <div class="text-nc-content-gray-muted text-xs">
-            {{ integrationPaginationData.totalRows }} {{ integrationPaginationData.totalRows === 1 ? 'record' : 'records' }}
+        </NcTooltip>
+
+        <NcTooltip v-if="column.key === 'created_at'" placement="bottom" show-on-truncate-only>
+          <template #title> {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}</template>
+
+          {{ dayjs(integration.created_at).local().format('DD MMM YYYY') }}
+        </NcTooltip>
+        <template v-if="column.key === 'created_by'">
+          <div v-if="integration.sub_type === SyncDataType.NOCODB" class="flex items-center gap-3">
+            <div class="h-8 w-8 grid place-items-center">
+              <GeneralIcon icon="nocodb1" />
+            </div>
+            <div class="text-sm !leading-5 capitalize font-semibold truncate">NocoDB Cloud</div>
+          </div>
+          <NcTooltip v-else :disabled="!isUserDeleted(integration.created_by)" class="w-full">
+            <template #title>
+              {{ `User not part of this ${isEeUI ? 'workspace' : 'organisation'} anymore` }}
+            </template>
+            <div
+              v-if="integration.created_by && collaboratorsMap.get(integration.created_by)?.email"
+              class="w-full flex gap-3 items-center"
+            >
+              <GeneralUserIcon
+                :user="collaboratorsMap.get(integration.created_by)"
+                size="base"
+                class="flex-none"
+                :class="{
+                  '!grayscale': isUserDeleted(integration.created_by),
+                }"
+                :style="
+                  isUserDeleted(integration.created_by)
+                    ? {
+                        filter: 'grayscale(100%) brightness(115%)',
+                      }
+                    : {}
+                "
+              />
+              <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
+                <div class="w-full flex gap-3">
+                  <NcTooltip
+                    class="text-sm !leading-5 capitalize font-semibold truncate"
+                    :class="{
+                      'text-nc-content-gray': !isUserDeleted(integration.created_by),
+                      'text-nc-content-gray-muted': isUserDeleted(integration.created_by),
+                    }"
+                    :disabled="isUserDeleted(integration.created_by)"
+                    show-on-truncate-only
+                    placement="bottom"
+                  >
+                    <template #title>
+                      {{ getUserNameByCreatedBy(integration.created_by) }}
+                    </template>
+                    {{ getUserNameByCreatedBy(integration.created_by) }}
+                  </NcTooltip>
+                </div>
+                <NcTooltip
+                  class="text-xs !leading-4 truncate"
+                  :class="{
+                    'text-nc-content-gray-subtle2': !isUserDeleted(integration.created_by),
+                    'text-nc-content-gray-muted': isUserDeleted(integration.created_by),
+                  }"
+                  :disabled="isUserDeleted(integration.created_by)"
+                  show-on-truncate-only
+                  placement="bottom"
+                >
+                  <template #title>
+                    {{ collaboratorsMap.get(integration.created_by)?.email }}
+                  </template>
+                  {{ collaboratorsMap.get(integration.created_by)?.email }}
+                </NcTooltip>
+              </div>
+            </div>
+            <div v-else class="w-full truncate text-nc-content-gray-muted">{{ integration.created_by }}</div>
+          </NcTooltip>
+        </template>
+
+        <div v-if="column.key === 'action'" @click.stop>
+          <NcDropdown placement="bottomRight">
+            <NcButton size="small" type="secondary">
+              <GeneralIcon icon="threeDotVertical" />
+            </NcButton>
+            <template #overlay>
+              <NcMenu variant="small">
+                <NcMenuItem
+                  v-if="integration.type && integrationCategoryNeedDefault(integration.type) && !integration.is_default"
+                  @click="setDefaultIntegration(integration)"
+                >
+                  <GeneralIcon class="text-current opacity-80" icon="star" />
+                  <span>Set as default</span>
+                </NcMenuItem>
+                <NcMenuItem
+                  :disabled="!isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) && integration.sub_type === SyncDataType.NOCODB"
+                  @click="openEditIntegration(integration)"
+                >
+                  <GeneralIcon class="text-current opacity-80" icon="edit" />
+                  <span>{{ $t('general.edit') }}</span>
+                </NcMenuItem>
+                <NcTooltip :disabled="integration?.sub_type !== ClientType.SQLITE">
+                  <template #title>
+                    Not allowed for type
+                    {{
+                      integration.sub_type && clientTypesMap[integration.sub_type]
+                        ? clientTypesMap[integration.sub_type]?.text
+                        : integration.sub_type
+                    }}
+                  </template>
+
+                  <NcMenuItem
+                    :disabled="integration?.sub_type === ClientType.SQLITE || integration?.sub_type === SyncDataType.NOCODB"
+                    @click="duplicateIntegration(integration)"
+                  >
+                    <GeneralIcon class="text-current opacity-80" icon="duplicate" />
+                    <span>{{ $t('general.duplicate') }}</span>
+                  </NcMenuItem>
+                </NcTooltip>
+                <template v-if="integration?.sub_type !== SyncDataType.NOCODB">
+                  <NcDivider />
+                  <NcMenuItem danger @click="openDeleteIntegration(integration)">
+                    <GeneralIcon icon="delete" />
+                    {{ $t('general.delete') }}
+                  </NcMenuItem>
+                </template>
+              </NcMenu>
+            </template>
+          </NcDropdown>
+        </div>
+      </template>
+
+      <template #tableFooter>
+        <div
+          v-if="integrationPaginationData.totalRows"
+          class="flex flex-row justify-center items-center bg-nc-bg-gray-extralight min-h-10"
+          :class="{
+            'pointer-events-none': isLoadingIntegrations,
+          }"
+        >
+          <div class="flex justify-between items-center w-full px-6">
+            <div>&nbsp;</div>
+            <NcPagination
+              v-model:current="integrationPaginationData.page"
+              v-model:page-size="integrationPaginationData.pageSize"
+              :total="+integrationPaginationData.totalRows"
+              show-size-changer
+              :use-stored-page-size="false"
+              :prev-page-tooltip="`${renderAltOrOptlKey()}+←`"
+              :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
+              :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
+              :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
+              @update:current="loadConnections(undefined, undefined, false)"
+              @update:page-size="loadConnections(integrationPaginationData.page, $event, false)"
+            />
+            <div class="text-nc-content-gray-muted text-xs">
+              {{ integrationPaginationData.totalRows }} {{ integrationPaginationData.totalRows === 1 ? 'record' : 'records' }}
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </template>
+    </NcTable>
 
     <GeneralDeleteModal
       v-model:visible="isDeleteIntegrationModalOpen"
@@ -794,122 +657,5 @@ onKeyStroke('ArrowDown', onDown)
 
 .nc-new-integration-type-wrapper {
   @apply flex flex-col gap-3;
-}
-
-.table-container {
-  @apply border-1 border-nc-border-gray-medium rounded-lg overflow-hidden w-full;
-
-  .nc-workspace-integration-table {
-    &.sticky-shadow {
-      th,
-      td {
-        &.cell-title {
-          @apply border-r-1 border-nc-border-gray-medium;
-        }
-      }
-    }
-
-    &:not(.sticky-shadow) {
-      th,
-      td {
-        &.cell-title {
-          @apply border-r-1 border-transparent;
-        }
-      }
-    }
-
-    thead {
-      @apply w-full;
-      th {
-        @apply bg-nc-bg-gray-extralight text-sm text-nc-content-gray-muted font-weight-500;
-
-        &.cell-title {
-          @apply sticky left-0 z-4 bg-nc-bg-gray-extralight;
-        }
-      }
-    }
-
-    tbody {
-      @apply w-full;
-      tr {
-        @apply cursor-pointer;
-
-        td {
-          @apply text-sm text-nc-content-gray-subtle2;
-
-          &.cell-title {
-            @apply sticky left-0 z-4 bg-nc-bg-default !text-nc-content-gray font-semibold;
-          }
-        }
-      }
-    }
-
-    tr {
-      @apply h-[54px] flex border-b-1 border-nc-border-gray-medium w-full;
-
-      &:hover td {
-        @apply !bg-nc-bg-gray-extralight;
-      }
-
-      &.selected td {
-        @apply !bg-nc-bg-gray-extralight;
-      }
-
-      th,
-      td {
-        @apply h-full;
-
-        & > div {
-          @apply px-6 h-full flex-1 flex items-center;
-        }
-
-        &.cell-title {
-          @apply flex-1 sticky left-0 z-5;
-          & > div {
-            @apply min-w-[250px];
-          }
-        }
-
-        &.cell-added-by {
-          @apply basis-[20%];
-          & > div {
-            @apply min-w-[250px];
-          }
-        }
-
-        &.cell-type {
-          @apply w-[120px];
-          & > div {
-            @apply min-w-[98px];
-          }
-        }
-
-        &.cell-created-date {
-          @apply basis-[20%];
-          & > div {
-            @apply min-w-[158px];
-          }
-        }
-
-        &.cell-usage {
-          @apply w-[120px];
-          & > div {
-            @apply min-w-[118px];
-          }
-        }
-
-        &.cell-actions {
-          @apply w-[100px];
-          & > div {
-            @apply min-w-[98px];
-          }
-        }
-      }
-    }
-  }
-}
-
-.cell-header {
-  @apply text-xs font-semibold text-nc-content-gray-muted;
 }
 </style>

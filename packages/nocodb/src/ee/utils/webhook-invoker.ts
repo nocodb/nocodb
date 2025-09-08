@@ -104,14 +104,14 @@ export class WebhookInvoker extends WebhookInvokerCE {
         // view_name: view?.title,
         ...(prevData &&
           (hook.operation as any) !== 'delete' && {
-            previous_view: Array.isArray(prevData) ? prevData : [prevData],
+            previous_views: Array.isArray(prevData) ? prevData : [prevData],
           }),
         ...(prevData &&
           (hook.operation as any) === 'delete' && {
-            view: Array.isArray(prevData) ? prevData : [prevData],
+            views: Array.isArray(prevData) ? prevData : [prevData],
           }),
         ...(newData && {
-          view: Array.isArray(newData) ? newData : [newData],
+          views: Array.isArray(newData) ? newData : [newData],
         }),
       },
     };

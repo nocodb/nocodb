@@ -168,9 +168,13 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 })
 
 const eventList = ref<Record<string, any>[]>([
-  { text: [t('general.record'), t('general.insert').toLowerCase()], value: ['after', 'insert'] },
-  { text: [t('general.record'), t('general.update').toLowerCase()], value: ['after', 'update'] },
-  { text: [t('general.record'), t('general.delete').toLowerCase()], value: ['after', 'delete'] },
+  ...((isEeUI && [
+    { text: [t('general.record'), t('general.insert').toLowerCase()], value: ['after', 'insert'] },
+    { text: [t('general.record'), t('general.update').toLowerCase()], value: ['after', 'update'] },
+    { text: [t('general.record'), t('general.delete').toLowerCase()], value: ['after', 'delete'] },
+  ]) ??
+    []),
+
   { text: [t('objects.view'), t('general.insert').toLowerCase()], value: ['view', 'insert'] },
   { text: [t('objects.view'), t('general.update').toLowerCase()], value: ['view', 'update'] },
   { text: [t('objects.view'), t('general.delete').toLowerCase()], value: ['view', 'delete'] },
@@ -265,7 +269,7 @@ const getHookTypeText = (hook: HookType) => {
       return `${prefix}${operations.join(` ${t('general.or').toLowerCase()} `)}`
     }
 
-    return t('labels.sendAllEvents')
+    return hook.event === 'view' ? `${prefix} ${t('labels.sendAllEvents')}` : t('labels.sendAllEvents')
   }
 
   const result = v2EventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text

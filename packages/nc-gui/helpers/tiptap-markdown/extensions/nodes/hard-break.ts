@@ -25,7 +25,6 @@ export const HardBreak = TiptapHardBreak.extend<HardBreakOptions, { markdown: Ma
       'Shift-Enter': () => {
         const did = this.editor.commands.setHardBreak()
 
-        console.log('did', did)
         // Only scroll if hard break was inserted
         if (did) {
           requestAnimationFrame(() => {

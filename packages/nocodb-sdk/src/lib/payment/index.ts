@@ -61,7 +61,7 @@ export enum PlanFeatureTypes {
   FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
   FEATURE_AI_BUTTON_FIELD = 'feature_ai_button_field',
   FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE = 'feature_duplicate_table_to_other_base',
-  FEATURE_DUPLICATE_TABLE_TO_OTHER_WORKSPACE = 'feature_duplicate_table_to_other_workspace',
+  FEATURE_DUPLICATE_TABLE_TO_OTHER_WS = 'feature_duplicate_table_to_other_ws',
 }
 
 // todo: separate as a new enum
@@ -256,7 +256,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: 'to use AI button fields.',
   [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE]:
     'to target different base when duplicate table.',
-  [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WORKSPACE]:
+  [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS]:
     'to target different workspace when duplicate table.',
 };
 

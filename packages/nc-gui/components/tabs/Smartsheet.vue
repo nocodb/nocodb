@@ -230,7 +230,10 @@ const onReady = () => {
 }
 
 onMounted(async () => {
-  await until(isViewsLoading).toBe(false)
+  await until(() => isViewsLoading.value).toBe(false)
+  await until(() => !!activeView.value).toBeTruthy({
+    timeout: 2000,
+  })
 
   if (!activeView.value) {
     ncNavigateTo({
@@ -240,7 +243,7 @@ onMounted(async () => {
   }
 })
 
-watch([() => isViewsLoading.value, () => activeView.value], ([isLoading, _]) => {
+watch([() => isViewsLoading.value], ([isLoading, _]) => {
   if (!isLoading && !activeView.value) {
     ncNavigateTo({
       workspaceId: activeWorkspaceId.value,

@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Bazele private sunt disponibile pe planul {plan}. Fă upgrade acum pentru a le folosi.",
     "upgradeLicenseToUsePrivateBases": "Fă upgrade licența pentru a debloca baze private",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Bazele private nu sunt disponibile în licența Enterprise Starter. Fă upgrade licența pentru a le utiliza.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Poți încărca maximum {limit} {filePlural} în această celulă. Fă upgrade la planul {plan} pentru a adăuga mai multe fișiere."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Poți încărca maximum {limit} {filePlural} în această celulă. Fă upgrade la planul {plan} pentru a adăuga mai multe fișiere.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Script",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "Generează valoarea câmpului folosind AI",
     "preview": "Previzualizare",
     "autoSuggest": "Sugestie automată",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Se sugerează...",
     "autoSuggestFields": "Sugerează automat câmpuri",
     "autoSuggestFormulas": "Sugerează automat formule",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "Adaugă câmpuri de tip lookup",
     "sourceVisibilityIsHidden": "Vizibilitatea sursei de date este ascunsă",
     "youDontHavePermissionToEditThisField": "Nu aveți permisiunea de a edita acest câmp",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Caută icoane",

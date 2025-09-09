@@ -1257,7 +1257,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     )
 
     onBeforeUnmount(() => {
-      $ncSocket?.offMessage?.(activeDataListener.value)
+      if (activeDataListener.value) {
+        $ncSocket?.offMessage?.(activeDataListener.value)
+      }
     })
 
     return {

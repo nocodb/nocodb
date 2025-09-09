@@ -23,7 +23,7 @@ import { _wherePk, getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { JobTypes } from '~/interface/Jobs';
-import { Audit, FileReference } from '~/models';
+import { Audit, FileReference, PresignedUrl } from '~/models';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { extractColsMetaForAudit, generateAuditV1Payload } from '~/utils';
@@ -98,22 +98,11 @@ export class DataAttachmentV3Service {
             title: downloadedAttachment.filename,
             mimetype: downloadedAttachment.mimeType,
             size: downloadedAttachment.fileSize,
+            signedUrl: undefined,
           };
           processedAttachments.push(processedAttachment);
           if (supportsThumbnails({ mimetype: downloadedAttachment.mimeType })) {
             generateThumbnailAttachments.push(processedAttachment);
-            // TODO: generate signed url
-            // if (processedAttachment.url) {
-            //   processedAttachment.signedUrl = await PresignedUrl.getSignedUrl(
-            //     {
-            //       pathOrUrl: attachment.url,
-            //       preview,
-            //       mimetype: mimetype || attachment.mimetype,
-            //       ...(extra ? { ...extra } : {}),
-            //     },
-            //     ncMeta,
-            //   );
-            // }
           }
         }
       } catch (error) {
@@ -137,6 +126,17 @@ export class DataAttachmentV3Service {
         attachments: generateThumbnailAttachments,
         scope,
       });
+      for (const processedAttachment of generateThumbnailAttachments) {
+        if (processedAttachment.url) {
+          processedAttachment.signedUrl = await PresignedUrl.getSignedUrl({
+            pathOrUrl: processedAttachment.url,
+            filename: processedAttachment.title,
+            expireSeconds: 3 * 60 * 60, // 3 hours
+            preview: true,
+            mimetype: processedAttachment.mimetype,
+          });
+        }
+      }
     }
 
     await Audit.insert(

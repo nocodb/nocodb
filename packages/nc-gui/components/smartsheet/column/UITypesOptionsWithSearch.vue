@@ -12,7 +12,7 @@ const { options } = toRefs(props)
 
 const { isMetaReadOnly } = useRoles()
 
-const { showUpgradeToUseAiPromptField } = useEeConfig()
+const { showUpgradeToUseAiPromptField, showUpgradeToUseAiButtonField } = useEeConfig()
 
 const searchQuery = ref('')
 
@@ -46,6 +46,10 @@ const onClick = (uidt: UITypes) => {
   if (!uidt || isDisabledUIType(uidt)) return
 
   if (uidt === AIPrompt && showUpgradeToUseAiPromptField()) {
+    return
+  }
+
+  if (uidt === AIButton && showUpgradeToUseAiButtonField()) {
     return
   }
 

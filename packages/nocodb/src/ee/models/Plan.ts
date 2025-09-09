@@ -250,6 +250,8 @@ const legacyLimitAndFeatures = {
   [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
   [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
   [PlanFeatureTypes.FEATURE_SSO]: false,
+  [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: false,
+  [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: false,
 };
 
 export const FreePlan = Plan.prepare({

@@ -74,6 +74,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAiPromptField = computed(() => true)
 
+  const blockAiButtonField = computed(() => true)
+
   const calculatePrice = (..._args: any[]) => {}
 
   const getLimit = (..._args: any[]) => {}
@@ -135,6 +137,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseCalendarRange = (..._args: any[]) => {}
 
   const showUpgradeToUseAiPromptField = (..._args: any[]) => {}
+
+  const showUpgradeToUseAiButtonField = (..._args: any[]) => {}
 
   return {
     calculatePrice,
@@ -198,5 +202,7 @@ export const useEeConfig = createSharedComposable(() => {
     isOrgBilling,
     blockAiPromptField,
     showUpgradeToUseAiPromptField,
+    blockAiButtonField,
+    showUpgradeToUseAiButtonField,
   }
 })

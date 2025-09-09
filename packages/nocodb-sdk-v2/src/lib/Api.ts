@@ -2675,7 +2675,7 @@ export class InternalApi<
          *
          * Example: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'.
          *
-         * You can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.
+         * You can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.
          *
          * If `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view.
          *
@@ -2908,7 +2908,7 @@ export class InternalApi<
          *
          * Example: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'.
          *
-         * You can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.
+         * You can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.
          *
          * If `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view.
          *
@@ -2977,7 +2977,7 @@ export class InternalApi<
          *
          * Example: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter linked records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'.
          *
-         * You can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.
+         * You can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.
          *
          * Please remember to maintain the specified format, and do not include spaces between the different condition components
          */

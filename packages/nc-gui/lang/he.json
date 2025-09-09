@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "בסיסים פרטיים זמינים בתוכנית {plan}. שדרג כעת כדי להתחיל להשתמש.",
     "upgradeLicenseToUsePrivateBases": "שדרג רישיון כדי לפתוח בסיסים פרטיים",
     "upgradeLicenseToUsePrivateBasesSubtitle": "בסיסים פרטיים אינם זמינים ברישיון Enterprise Starter. שדרג את רישיון המפתח כדי להתחיל להשתמש בהם.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "תוכל להעלות עד {limit} {filePlural} לתא זה. שדרג לתוכנית {plan} כדי להוסיף עוד קבצים."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "תוכל להעלות עד {limit} {filePlural} לתא זה. שדרג לתוכנית {plan} כדי להוסיף עוד קבצים.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "סקריפט",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "צור ערך שדה באמצעות AI",
     "preview": "תצוגה מקדימה",
     "autoSuggest": "השלמה אוטומטית",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "מציע...",
     "autoSuggestFields": "השלמה אוטומטית לשדות",
     "autoSuggestFormulas": "הצעת נוסחאות אוטומטית",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "הוסף שדות חיפוש",
     "sourceVisibilityIsHidden": "הנראות של מקור הנתונים מוסתרת",
     "youDontHavePermissionToEditThisField": "אין לך הרשאה לערוך שדה זה",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "חפש אייקונים",

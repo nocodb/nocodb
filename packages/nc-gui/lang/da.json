@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Private baser er tilgængelige på {plan}-planen. Opgrader nu for at bruge dem.",
     "upgradeLicenseToUsePrivateBases": "Opgrader licens for at låse op for private baser",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Private baser er ikke tilgængelige i Enterprise Starter-licens. Opgrader licensnøgle for at bruge dem.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Du kan maksimalt uploade {limit} {filePlural} til denne celle. Opgrader til {plan}-planen for at tilføje flere filer."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Du kan maksimalt uploade {limit} {filePlural} til denne celle. Opgrader til {plan}-planen for at tilføje flere filer.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Script",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "Generer feltværdi med AI",
     "preview": "Forhåndsvisning",
     "autoSuggest": "Foreslå automatisk",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Foreslår...",
     "autoSuggestFields": "Foreslå felter automatisk",
     "autoSuggestFormulas": "Foreslå formler automatisk",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "Tilføj opslagfelter",
     "sourceVisibilityIsHidden": "Datakilde synlighed er skjult",
     "youDontHavePermissionToEditThisField": "Du har ikke tilladelse til at redigere dette felt",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Søg ikoner",

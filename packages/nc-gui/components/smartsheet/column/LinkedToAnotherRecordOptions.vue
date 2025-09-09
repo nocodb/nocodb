@@ -503,11 +503,20 @@ const handleScrollIntoView = () => {
         ></a-switch>
         <span
           v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
-          class="text-s cursor-pointer"
+          class="cursor-pointer inline-flex items-center gap-1"
           data-testid="nc-limit-record-view"
           @click="onViewLabelClick"
-          >{{ $t('labels.limitRecordSelectionToView') }}</span
         >
+          {{ $t('labels.limitRecordSelectionToView') }}
+
+          <a
+            href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/links#limit-by-view"
+            target="_blank"
+            class="flex text-nc-content-gray-disabled hover:text-nc-content-gray-subtle"
+            @click.stop
+          >
+            <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" /> </a
+        ></span>
       </div>
       <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
         <NcSelect
@@ -554,10 +563,19 @@ const handleScrollIntoView = () => {
               <span
                 v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
                 data-testid="nc-limit-record-filters"
-                class="cursor-pointer"
+                class="cursor-pointer inline-flex items-center gap-1"
                 @click="click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER, () => onFilterLabelClick())"
               >
                 {{ $t('labels.limitRecordSelectionToFilters') }}
+
+                <a
+                  href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/links#limit-by-filter-"
+                  target="_blank"
+                  class="flex text-nc-content-gray-disabled hover:text-nc-content-gray-subtle"
+                  @click.stop
+                >
+                  <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" />
+                </a>
               </span>
               <LazyPaymentUpgradeBadge
                 v-if="!limitRecToCond"

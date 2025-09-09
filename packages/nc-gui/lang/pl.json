@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Prywatne bazy są dostępne w ramach planu {plan}. Uaktualnij, aby zacząć z nich korzystać.",
     "upgradeLicenseToUsePrivateBases": "Uaktualnij licencję, aby odblokować prywatne bazy",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Prywatne bazy nie są dostępne w licencji Enterprise Starter. Uaktualnij klucz licencyjny, aby zacząć ich używać.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Możesz przesłać maksymalnie {limit} {filePlural} do tej komórki. Uaktualnij do planu {plan}, aby dodać więcej plików."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Możesz przesłać maksymalnie {limit} {filePlural} do tej komórki. Uaktualnij do planu {plan}, aby dodać więcej plików.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Skrypt",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "Generuj wartość pola za pomocą AI",
     "preview": "Podgląd",
     "autoSuggest": "Auto sugestie",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Sugestowanie...",
     "autoSuggestFields": "Automatyczne sugerowanie pól",
     "autoSuggestFormulas": "Automatyczne sugerowanie formuł",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "Dodaj pola wyszukiwania",
     "sourceVisibilityIsHidden": "Widoczność źródła danych jest ukryta",
     "youDontHavePermissionToEditThisField": "Nie masz uprawnień do edycji tego pola",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Wyszukaj ikony",

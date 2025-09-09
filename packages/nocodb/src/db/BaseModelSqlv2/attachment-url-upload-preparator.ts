@@ -68,6 +68,7 @@ export class AttachmentUrlUploadPreparator {
               const uploadedPath = storageAdapter.getUploadedPath(
                 filePaths.storageDest,
               );
+              // TODO: insert a fileReference, or simply generate the id? (id collision risk)
               const id = await FileReference.insert(baseModel.context, {
                 storage: storageAdapter.name,
                 file_url: uploadedPath.url ?? uploadedPath.path,
@@ -77,12 +78,14 @@ export class AttachmentUrlUploadPreparator {
                 fk_model_id: baseModel.model.id,
                 fk_column_id: col.id,
                 is_external: !(await baseModel.getSource()).isMeta(),
+                deleted: true,
               });
               return {
                 id,
                 url: attr.url,
                 status: 'uploading',
                 type: 'url_request',
+                uploaded: uploadedPath,
                 ...filePaths,
               };
             } else {

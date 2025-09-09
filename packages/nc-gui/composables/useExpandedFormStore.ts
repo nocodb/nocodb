@@ -873,6 +873,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       { immediate: true },
     )
 
+    const unsubscribeActiveChannels = (): void => {
+      ;[activeDataListener.value, activeCommentListener.value].filter(Boolean).forEach((channel) => {
+        $ncSocket.offMessage(channel!)
+      })
+    }
+
+    onBeforeUnmount(() => {
+      unsubscribeActiveChannels()
+    })
+
     return {
       ...rowStore,
       loadComments,

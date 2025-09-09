@@ -1044,37 +1044,35 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
   return qb;
 }
 
-type CustomKnex = Knex;
+type CustomKnex = Knex & {
+  attachToTransaction?: (fn: () => void) => void;
+  ops?: (() => void)[];
+};
+
+type CustomTransaction = Knex.Transaction & {
+  attachToTransaction?: (fn: () => void) => void;
+  ops?: (() => void)[];
+  _nested?: number;
+  _aborted?: boolean;
+};
 
 function CustomKnex(
   arg: string | Knex.Config<any> | any,
   extDb?: any,
 ): CustomKnex {
-  // sqlite does not support inserting default values and knex fires a warning without this flag
   if (arg?.client === 'sqlite3') {
     arg.useNullAsDefault = true;
   }
 
-  const kn: any = knex(arg);
+  const kn: CustomKnex = knex(arg);
 
-  const knexRaw = kn.raw;
+  const knexRaw = kn.raw.bind(kn);
+  const knexTransaction = kn.transaction.bind(kn);
 
-  /**
-   * Wrapper for knex.raw
-   *
-   * @param args1
-   * @returns {Knex.Raw<any>}
-   */
-  // knex.raw = function (...args) {
-  //   return knexRaw.apply(knex, args);
-  // };
-
-  Object.defineProperties(kn, {
+  const overrideProps = {
     raw: {
       enumerable: true,
-      value: (...args) => {
-        return knexRaw.apply(kn, args);
-      },
+      value: (...args: any[]) => knexRaw(...args),
     },
     clientType: {
       enumerable: true,
@@ -1088,9 +1086,7 @@ function CustomKnex(
     },
     searchPath: {
       enumerable: true,
-      value: () => {
-        return arg?.searchPath?.[0];
-      },
+      value: () => arg?.searchPath?.[0],
     },
     extDb: {
       enumerable: true,
@@ -1100,17 +1096,184 @@ function CustomKnex(
       enumerable: false,
       value: !!extDb && process.env.NC_DISABLE_MUX !== 'true',
     },
-  });
 
-  /**
-   * Returns database type
-   *
-   * @returns {*|string}
-   */
-  // knex.clientType = function () {
-  //   return typeof arg === 'string' ? arg.match(/^(\w+):/) ?? [1] : arg.client;
-  // };
+    // Top-level transaction: create a real trx, then decorate it (including nested behavior)
+    transaction: {
+      enumerable: true,
+      value: async (...args: any[]) => {
+        const trx: CustomTransaction = await knexTransaction(...args);
 
+        const trxRaw = trx.raw.bind(trx);
+        const trxCommit = trx.commit.bind(trx);
+        const trxRollback = trx.rollback.bind(trx);
+
+        Object.defineProperties(trx, {
+          raw: {
+            enumerable: true,
+            value: (...a: any[]) => trxRaw(...a),
+          },
+          clientType: {
+            enumerable: true,
+            value: () => {
+              return typeof arg === 'string'
+                ? arg.match(/^(\w+):/) ?? [1]
+                : typeof arg.client === 'string'
+                ? arg.client
+                : arg.client?.prototype?.dialect ||
+                  arg.client?.prototype?.driverName;
+            },
+          },
+          searchPath: {
+            enumerable: true,
+            value: () => arg?.searchPath?.[0],
+          },
+          extDb: {
+            enumerable: true,
+            value: extDb,
+          },
+          isExternal: {
+            enumerable: false,
+            value: !!extDb && process.env.NC_DISABLE_MUX !== 'true',
+          },
+          ops: {
+            enumerable: true,
+            writable: true,
+            value: [],
+          },
+
+          // Nested transactions: Maintain a _nested depth counter; only outermost commit actually commits
+          transaction: {
+            enumerable: true,
+            value: async (...nArgs: any[]) => {
+              // Potential forms:
+              //  trx.transaction(trx2 => { ... })
+              //  trx.transaction(options, trx2 => { ... })
+              //  trx.transaction()
+              let cb: ((t: any) => any) | undefined;
+              if (typeof nArgs[0] === 'function') {
+                cb = nArgs[0];
+              } else if (typeof nArgs[1] === 'function') {
+                cb = nArgs[1];
+              }
+
+              if (!cb) {
+                // No callback => treat as “begin nested scope” and return same trx
+                console.warn(
+                  '[Warning]: Already in a transaction, returning the same transaction',
+                );
+                trx._nested++;
+                return trx;
+              }
+
+              // Callback form: run cb inside the SAME trx
+              trx._nested++;
+              try {
+                return await cb(trx);
+              } finally {
+                // Leave nested scope. No commit here; outermost commit will handle it.
+                if (trx._nested > 0) trx._nested--;
+              }
+            },
+          },
+
+          attachToTransaction: {
+            enumerable: true,
+            value: (fn: () => void) => {
+              if (!trx.isTransaction) {
+                return fn();
+              }
+              trx.ops.push(async () => {
+                try {
+                  return await fn();
+                } catch (error) {
+                  console.error(
+                    'Error occurred while running attached operation:',
+                    error,
+                  );
+                }
+              });
+            },
+          },
+
+          // Only the outermost commit actually commits & drains ops
+          commit: {
+            enumerable: true,
+            value: async (...cArgs: any[]) => {
+              if (trx._aborted) {
+                throw new Error('Transaction already rolled back');
+              }
+              if (trx._nested > 0) {
+                // Defer real commit to the outermost
+                trx._nested--;
+                return;
+              }
+
+              const result = await trxCommit(...cArgs);
+
+              try {
+                await Promise.all((trx.ops || []).map((op) => op()));
+              } finally {
+                trx.ops = [];
+              }
+
+              return result;
+            },
+          },
+
+          // First rollback rolls everything back; further commits become no-ops
+          rollback: {
+            enumerable: true,
+            value: async (...rArgs: any[]) => {
+              if (trx._aborted) return; // already rolled back - noop
+
+              // Clear the operations queue
+              trx.ops = [];
+
+              const result = await trxRollback(...rArgs);
+
+              // Mark aborted so future commits from outer scopes no-op
+              trx._aborted = true;
+              // Collapse nesting; we’re done
+              trx._nested = 0;
+
+              return result;
+            },
+          },
+
+          _nested: { enumerable: true, writable: true, value: 0 },
+          _aborted: { enumerable: true, writable: true, value: false },
+        });
+
+        return trx;
+      },
+    },
+
+    ops: {
+      enumerable: true,
+      writable: true,
+      value: [],
+    },
+    attachToTransaction: {
+      enumerable: true,
+      value: (fn: () => void) => {
+        if (!kn.isTransaction) {
+          return fn();
+        }
+        kn.ops.push(async () => {
+          try {
+            return await fn();
+          } catch (error) {
+            console.error(
+              'Error occurred while running attached operation:',
+              error,
+            );
+          }
+        });
+      },
+    },
+  };
+
+  Object.defineProperties(kn, overrideProps);
   return kn;
 }
 

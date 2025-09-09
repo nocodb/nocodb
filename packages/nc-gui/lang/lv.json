@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Privātās bāzes ir pieejamas plānā {plan}. Jauniniet tūlīt, lai sāktu tās izmantot.",
     "upgradeLicenseToUsePrivateBases": "Jauniniet licenci, lai atbloķētu privātās bāzes",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Privātās bāzes nav pieejamas Enterprise Starter licencē. Jauniniet licences atslēgu, lai sāktu tās izmantot.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Jūs varat augšupielādēt ne vairāk kā {limit} {filePlural} šajā šūnā. Jauniniet uz {plan} plānu, lai pievienotu vairāk failu."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Jūs varat augšupielādēt ne vairāk kā {limit} {filePlural} šajā šūnā. Jauniniet uz {plan} plānu, lai pievienotu vairāk failu.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Skripts",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "Ģenerēt lauka vērtību ar AI",
     "preview": "Priekšskatīt",
     "autoSuggest": "Automātiski ieteikt",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Ieteikšana...",
     "autoSuggestFields": "Automātiski ieteikt laukus",
     "autoSuggestFormulas": "Automātiski ieteikt formulas",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "Pievienot meklēšanas laukus",
     "sourceVisibilityIsHidden": "Datu avota redzamība ir paslēpta",
     "youDontHavePermissionToEditThisField": "Jums nav atļaujas rediģēt šo lauku",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Meklēt ikonas",

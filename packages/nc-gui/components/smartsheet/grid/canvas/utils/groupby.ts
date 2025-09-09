@@ -208,7 +208,6 @@ export function generateGroupPath(data?: CanvasGroup) {
 
 export function comparePath(pathA?: Array<number | string> | null, pathB?: Array<number | string> | null) {
   if (!ncIsArray(pathA) || !ncIsArray(pathB)) {
-    console.error('Path is not an array', pathA, pathB)
     return false
   }
 

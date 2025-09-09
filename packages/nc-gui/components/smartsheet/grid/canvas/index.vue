@@ -2653,7 +2653,6 @@ watch(
               :bulk-delete-all="bulkDeleteAll"
               :call-add-new-row="callAddNewRow"
               :copy-value="copyValue"
-              :read-only="!hasEditPermission"
               :get-rows="getRows"
               :bulk-update-rows="bulkUpdateRows"
               :expand-form="expandForm"

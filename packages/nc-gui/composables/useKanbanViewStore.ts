@@ -1,4 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
+import { ViewTypes } from 'nocodb-sdk'
 import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
@@ -253,11 +254,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       )
         return
       await updateViewMeta(viewMeta.value.id, ViewTypes.KANBAN, updateObj)
-
-      const view = views.value.find((view) => view.id === viewMeta.value.id)
-      if (view) {
-        Object.assign(view.view, updateObj)
-      }
     }
 
     const updateStackProperty = async (stackIdx: number, updates: Partial<GroupingFieldColOptionsType>) => {

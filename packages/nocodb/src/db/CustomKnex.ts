@@ -1204,6 +1204,7 @@ function CustomKnex(
               }
               if (trx._nested > 0) {
                 // Defer real commit to the outermost
+                trx._nested--;
                 return;
               }
 

@@ -25,7 +25,7 @@ const fontStyleMap: Record<string, [string, { lineHeight: string; letterSpacing?
   sidebarSelected: ['14px', { lineHeight: '20px', fontWeight: 650 }],
 }
 
-export default plugin(({ addDynamic, addUtilities }) => {
+export default plugin(({ addUtilities }) => {
   const utils: Record<string, any> = {}
 
   Object.entries(fontStyleMap).forEach(([key, [fontSize, opts]]) => {

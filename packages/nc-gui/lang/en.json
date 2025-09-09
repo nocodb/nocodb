@@ -1851,7 +1851,10 @@
     "addLookupFields": "Add Lookup Fields",
     "sourceVisibilityIsHidden": "Data source visibility is hidden",
     "youDontHavePermissionToEditThisField": "You don't have permission to edit this field",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Search icons",

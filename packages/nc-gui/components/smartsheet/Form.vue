@@ -1360,18 +1360,48 @@ const { message: templatedMessage } = useTemplatedMessage(
                             data-testid="nc-form-fields"
                             @click.stop="onFormItemClick(element)"
                           >
-                            <div v-if="activeRow === element.id" class="absolute -left-3 top-6">
-                              <NcButton
-                                type="primary"
-                                size="small"
-                                class="nc-form-field-drag-handler !cursor-move !p-1 !min-w-6 !h-auto !rounded"
-                              >
-                                <component
-                                  :is="iconMap.drag"
-                                  class="nc-form-field-drag-handler flex-none !h-4 !w-4 text-white font-bold"
-                                />
-                              </NcButton>
-                            </div>
+                            <template v-if="activeRow === element.id">
+                              <div class="absolute -left-3 top-6">
+                                <NcButton
+                                  type="primary"
+                                  size="small"
+                                  class="nc-form-field-drag-handler !cursor-move !p-1 !min-w-6 !h-auto !rounded"
+                                >
+                                  <component
+                                    :is="iconMap.drag"
+                                    class="nc-form-field-drag-handler flex-none !h-4 !w-4 text-white font-bold"
+                                  />
+                                </NcButton>
+                              </div>
+                              <div class="absolute right-1 top-1">
+                                <NcTooltip
+                                  :title="
+                                    isRequired(element, element.required)
+                                      ? $t('tooltip.youCantRemoveARequiredField')
+                                      : $t('tooltip.removeFromForm')
+                                  "
+                                >
+                                  <NcButton
+                                    type="link"
+                                    size="xsmall"
+                                    class="nc-form-field-hide !bg-transparent !h-6 !w-6"
+                                    :class="{
+                                      '!text-nc-content-gray-muted !hover:text-nc-content-brand': !isRequired(
+                                        element,
+                                        element.required,
+                                      ),
+                                    }"
+                                    icon-only
+                                    :disabled="isRequired(element, element.required)"
+                                    @click="showOrHideColumn(element, false, false)"
+                                  >
+                                    <template #icon>
+                                      <GeneralIcon icon="close" class="!w-4 !h-4" />
+                                    </template>
+                                  </NcButton>
+                                </NcTooltip>
+                              </div>
+                            </template>
                             <div class="flex items-center gap-3">
                               <NcTooltip
                                 v-if="allViewFilters[element.fk_column_id]?.length && !isLocked"
@@ -1797,7 +1827,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     class="flex"
                                     placement="topRight"
                                   >
-                                    <template #title> You can't hide a required field.</template>
+                                    <template #title> $t('tooltip.youCantHideARequiredField')</template>
                                     <a-switch
                                       :checked="!!field.show"
                                       :disabled="field.required || isLocked || !isEditable"

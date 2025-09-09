@@ -66,6 +66,8 @@ export const useEeConfig = createSharedComposable(() => {
   )
 
   const isLoyaltyDiscountAvailable = computed(() => {
+    return false
+
     if (!activeWorkspace.value) return false
 
     return activeWorkspace.value?.loyal && !activeWorkspace.value?.loyalty_discount_used

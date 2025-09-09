@@ -12,6 +12,7 @@ const props = withDefaults(
     autoClose?: boolean
     // if true, the dropdown will not have the nc-dropdown class (used for blocking keyboard events)
     nonNcDropdown?: boolean
+    onVisibleChange?: (val: boolean) => void
   }>(),
   {
     trigger: () => ['click'],
@@ -80,6 +81,8 @@ const onVisibleUpdate = (event: boolean) => {
  * @param isVisible - the new visibility state of the dropdown
  */
 const onVisibilityChange = (isVisible: boolean) => {
+  props.onVisibleChange?.(isVisible)
+
   if (!ncIsUndefined(props.visible)) return
 
   localIsVisible.value = isVisible

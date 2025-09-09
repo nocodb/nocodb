@@ -40,7 +40,8 @@ const contentRef = ref<HTMLDivElement>()
 const { height: contentRefHeight } = useElementBounding(contentRef)
 
 const showUpgradeToHigherPlanBanner = computed(() => {
-  const isNewUser = !activeWorkspace.value?.loyal
+  // const isNewUser = !activeWorkspace.value?.loyal
+  const isNewUser = true
 
   let isRecordLimitReaching = false
   let isStorageLimitReaching = false

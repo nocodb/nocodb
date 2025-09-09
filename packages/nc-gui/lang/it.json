@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Le basi private sono disponibili con il piano {plan}. Aggiorna ora per iniziare a usarle.",
     "upgradeLicenseToUsePrivateBases": "Aggiorna la licenza per sbloccare le basi private",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Le basi private non sono disponibili con la licenza Enterprise Starter. Aggiorna la chiave di licenza per iniziare a usarle.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Puoi caricare al massimo {limit} {filePlural} in questa cella. Esegui l'upgrade al piano {plan} per aggiungere più file."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Puoi caricare al massimo {limit} {filePlural} in questa cella. Esegui l'upgrade al piano {plan} per aggiungere più file.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Script",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "Genera valore campo tramite AI",
     "preview": "Anteprima",
     "autoSuggest": "Suggerimento automatico",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Suggerimento in corso...",
     "autoSuggestFields": "Suggerisci campi automaticamente",
     "autoSuggestFormulas": "Suggerisci formule automaticamente",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "Aggiungi campi Lookup",
     "sourceVisibilityIsHidden": "La visibilità della sorgente dati è nascosta",
     "youDontHavePermissionToEditThisField": "Non hai il permesso di modificare questo campo",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Icona di ricerca",

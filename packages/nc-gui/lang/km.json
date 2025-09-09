@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "base ឯកជនមានសម្រាប់ផែនការ {plan}។ ធ្វើបច្ចុប្បន្នភាពឥឡូវនេះដើម្បីចាប់ផ្តើមប្រើ។",
     "upgradeLicenseToUsePrivateBases": "ធ្វើបច្ចុប្បន្នភាពអាជ្ញាប័ណ្ណដើម្បីដោះសោ base ឯកជន",
     "upgradeLicenseToUsePrivateBasesSubtitle": "base ឯកជនមិនមាននៅក្នុងអាជ្ញាប័ណ្ណ Enterprise Starter ទេ។ ធ្វើបច្ចុប្បន្នភាពកូនសោអាជ្ញាប័ណ្ណដើម្បីចាប់ផ្តើមប្រើ។",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "អ្នកអាចផ្ទុក {limit} {filePlural} ច្រើនបំផុតទៅក្នុងក្រឡាចត្រង្គនេះ។ ធ្វើបច្ចុប្បន្នភាពទៅផែនការ {plan} ដើម្បីបន្ថែមឯកសារច្រើន។"
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "អ្នកអាចផ្ទុក {limit} {filePlural} ច្រើនបំផុតទៅក្នុងក្រឡាចត្រង្គនេះ។ ធ្វើបច្ចុប្បន្នភាពទៅផែនការ {plan} ដើម្បីបន្ថែមឯកសារច្រើន។",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "ស្គ្រីប",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "បង្កើតតម្លៃវាលដោយប្រើ AI",
     "preview": "មើលមុន",
     "autoSuggest": "ណែនាំដោយស្វ័យប្រវត្តិ",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "កំពុងណែនាំ...",
     "autoSuggestFields": "ណែនាំវាលដោយស្វ័យប្រវត្តិ",
     "autoSuggestFormulas": "ណែនាំរូបមន្តដោយស្វ័យប្រវត្តិ",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "បន្ថែមវាល Lookup",
     "sourceVisibilityIsHidden": "មានការលាក់មើលប្រភពទិន្នន័យ",
     "youDontHavePermissionToEditThisField": "អ្នកមិនមានសិទ្ធិកែសម្រួលវាលនេះទេ",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "ស្វែងរកនិមិត្តសញ្ញា",

@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "ฐานข้อมูลส่วนตัวมีให้ใช้ในแผน {plan} อัปเกรดตอนนี้เพื่อเริ่มใช้งาน",
     "upgradeLicenseToUsePrivateBases": "อัปเกรดไลเซนส์เพื่อปลดล็อกฐานข้อมูลส่วนตัว",
     "upgradeLicenseToUsePrivateBasesSubtitle": "ฐานข้อมูลส่วนตัวไม่รวมอยู่ในไลเซนส์ Enterprise Starter อัปเกรดไลเซนส์เพื่อเริ่มใช้งาน",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "คุณสามารถอัปโหลดได้สูงสุด {limit} {filePlural} ในเซลล์นี้ อัปเกรดเป็นแผน {plan} เพื่อเพิ่มไฟล์ได้มากขึ้น"
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "คุณสามารถอัปโหลดได้สูงสุด {limit} {filePlural} ในเซลล์นี้ อัปเกรดเป็นแผน {plan} เพื่อเพิ่มไฟล์ได้มากขึ้น",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "สคริปต์",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "สร้างค่าฟิลด์ด้วย AI",
     "preview": "ดูตัวอย่าง",
     "autoSuggest": "แนะนำอัตโนมัติ",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "กำลังแนะนำ...",
     "autoSuggestFields": "แนะนำฟิลด์อัตโนมัติ",
     "autoSuggestFormulas": "แนะนำสูตรอัตโนมัติ",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "เพิ่มฟิลด์ Lookup",
     "sourceVisibilityIsHidden": "แหล่งข้อมูลนี้ถูกซ่อนอยู่",
     "youDontHavePermissionToEditThisField": "คุณไม่มีสิทธิ์แก้ไขฟิลด์นี้",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "ค้นหาไอคอน",

@@ -29,19 +29,19 @@ import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 const sqlNullIfBlank = ({
   baseModel,
   columnName,
-  useNullIf = false,
+  isStringType = false,
 }: {
   baseModel: IBaseModelSqlV2;
   columnName: any;
-  useNullIf?: boolean;
+  isStringType?: boolean;
 }) => {
-  if (baseModel.isPg) {
+  if (baseModel.isPg && !isStringType) {
     return baseModel.dbDriver.raw(
       `CASE 
         WHEN (pg_typeof(:column:) = 'text'::regtype 
           OR pg_typeof(:column:) = 'varchar'::regtype 
           OR pg_typeof(:column:) = 'char'::regtype) 
-          AND :column:::text = '' 
+          AND (:column:)::text = '' 
         THEN NULL
         ELSE :column:
       END`,
@@ -144,7 +144,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 sqlNullIfBlank({
                   columnName: columnQuery,
                   baseModel,
-                  useNullIf: true,
+                  isStringType: true,
                 }),
               ]);
             }

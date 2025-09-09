@@ -72,9 +72,14 @@ function processOldDataFor(key: string) {
 
   if (meta.value?.[key]?.type === 'Attachment') {
     // Attachment cell value can be string so we have to parse it
-    return parseHelper(odata)?.filter(
-      (it: AttachmentType) => !parseHelper(ndata)?.some((t: AttachmentType) => t.title === it.title),
-    )
+
+    if (!ncIsArray(parseHelper(odata))) return []
+
+    return parseHelper(odata)?.filter((it: AttachmentType) => {
+      if (!ncIsArray(parseHelper(ndata))) return true
+
+      return !parseHelper(ndata)?.some((t: AttachmentType) => t.title === it.title)
+    })
   }
   if (meta.value?.[key]?.type === 'MultiSelect') {
     return odata?.filter?.((it: string) => !ndata?.includes?.(it)) ?? odata

@@ -1430,32 +1430,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
-    // First priority View Sort
-    if (view && !skipSort) {
-      const sortObj = await view.getSorts(this.context);
-      await sortV2(this, sortObj, qb);
-    }
-
-    if (!skipSort) {
-      // skip order column if v3
-      if (this.context.api_version !== NcApiVersion.V3) {
-        let orderColumnBy = '';
-        await table.getColumns(this.context);
-        const orderCol = table.columns?.find(
-          (col) => col.uidt === UITypes.Order,
-        );
-        const childTn = await this.getTnPath(table);
-        if (orderCol) {
-          orderColumnBy = `${childTn}.${orderCol.column_name}`;
-        }
-        // Second priority Order column sort
-        if (orderColumnBy) {
-          qb.orderBy(orderColumnBy);
-        }
-      }
-
-      // Third priority query string sort
-      if (!sort) return;
+    // First priority on v3 api is sort object if exists
+    if (this.context.api_version === NcApiVersion.V3 && sort) {
       const sortObj = extractSortsObject(
         this.context,
         sort,
@@ -1464,6 +1440,39 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         this.context.api_version,
       );
       if (sortObj) await sortV2(this, sortObj, qb);
+    }
+    // First priority View Sort
+    if (view && !skipSort) {
+      const sortObj = await view.getSorts(this.context);
+      await sortV2(this, sortObj, qb);
+    }
+
+    if (!skipSort) {
+      let orderColumnBy = '';
+      await table.getColumns(this.context);
+      const orderCol = table.columns?.find((col) => col.uidt === UITypes.Order);
+      const childTn = await this.getTnPath(table);
+      if (orderCol) {
+        orderColumnBy = `${childTn}.${orderCol.column_name}`;
+      }
+      // Second priority Order column sort
+      if (orderColumnBy) {
+        qb.orderBy(orderColumnBy);
+      }
+
+      // backward compatibility: if not v3, apply sort on this priority
+      if (this.context.api_version !== NcApiVersion.V3) {
+        // Third priority query string sort
+        if (!sort) return;
+        const sortObj = extractSortsObject(
+          this.context,
+          sort,
+          childAliasColMap,
+          undefined,
+          this.context.api_version,
+        );
+        if (sortObj) await sortV2(this, sortObj, qb);
+      }
     }
   }
 

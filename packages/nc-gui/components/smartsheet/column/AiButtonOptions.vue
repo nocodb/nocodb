@@ -119,7 +119,8 @@ const availableFields = computed(() => {
     (c) =>
       c.title &&
       !c.system &&
-      ![UITypes.ID, UITypes.Button, UITypes.Links].includes(c.uidt) &&
+      (!vModel.value?.id || c.id !== vModel.value.id) &&
+      ![UITypes.ID, UITypes.Button, UITypes.Links, UITypes.LinkToAnotherRecord].includes(c.uidt) &&
       (isEdit.value ? column.value?.id !== c.id : true),
   )
 })

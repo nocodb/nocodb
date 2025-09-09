@@ -5,9 +5,11 @@ import {
   ButtonActionsType,
   IntegrationsType,
   isAIPromptCol,
+  isJSON,
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
+  parseJsonValue,
   UITypes,
 } from 'nocodb-sdk';
 import mime from 'mime/lite';
@@ -474,6 +476,10 @@ export class AiDataService {
               return row[col.title]?.value ?? '';
             }
 
+            if (isJSON(col)) {
+              return `\"${parseJsonValue(row[col.title])}\"`;
+            }
+
             return row[col.title];
           }),
           ...pkObj,
@@ -716,6 +722,10 @@ export class AiDataService {
 
             if (isAIPromptCol(col)) {
               return row[col.title]?.value ?? '';
+            }
+
+            if (isJSON(col)) {
+              return `\"${parseJsonValue(row[col.title])}\"`;
             }
 
             return row[col.title];
@@ -1179,6 +1189,10 @@ Please generate ${
 
             if (isAIPromptCol(col)) {
               return row[col.title]?.value ?? '';
+            }
+
+            if (isJSON(col)) {
+              return `\"${parseJsonValue(row[col.title])}\"`;
             }
 
             return row[col.title];

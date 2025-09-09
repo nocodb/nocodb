@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 const props = withDefaults(
   defineProps<{
-    checked: boolean
+    checked?: boolean
     disabled?: boolean
     size?: 'default' | 'small' | 'xsmall' | 'xxsmall'
     placement?: 'left' | 'right'

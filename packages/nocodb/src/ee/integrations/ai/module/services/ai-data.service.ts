@@ -384,7 +384,7 @@ export class AiDataService {
         const col = model.columns.find((c) => c.title === p1);
 
         if (!col) {
-          NcError.badRequest(`Prompt field '${p1}' not found`);
+          NcError.badRequest(`Field '${p1}' not found`);
         }
 
         return `{${col.id}}`;
@@ -426,7 +426,7 @@ export class AiDataService {
       const col = model.columnsById[p1];
 
       if (!col) {
-        NcError.badRequest(`Prompt field '${p1}' not found`);
+        NcError.badRequest(`Field '${p1}' not found`);
       }
 
       referencedColumns.push(col);
@@ -455,7 +455,7 @@ export class AiDataService {
             const col = model.columnsById[p1];
 
             if (!col) {
-              NcError.badRequest(`Prompt field '${p1}' not found`);
+              NcError.badRequest(`Field '${p1}' not found`);
             }
 
             if (col.uidt === UITypes.Attachment) {
@@ -622,7 +622,7 @@ export class AiDataService {
           const col = model.columns.find((c) => c.title === p1);
 
           if (!col) {
-            NcError.badRequest(`Prompt field '${p1}' not found`);
+            NcError.badRequest(`Field '${p1}' not found`);
           }
 
           return `{${col.id}}`;
@@ -641,7 +641,7 @@ export class AiDataService {
       const col = model.columnsById[p1];
 
       if (!col) {
-        NcError.badRequest(`Prompt field '${p1}' not found`);
+        NcError.badRequest(`Field '${p1}' not found`);
       }
 
       referencedColumns.push(col);
@@ -705,7 +705,7 @@ export class AiDataService {
             const col = model.columnsById[p1];
 
             if (!col) {
-              NcError.badRequest(`Prompt field '${p1}' not found`);
+              NcError.badRequest(`Field '${p1}' not found`);
             }
 
             if (col.uidt === UITypes.Attachment) {
@@ -1138,7 +1138,7 @@ Please generate ${
       const col = model.columnsById[p1];
 
       if (!col) {
-        NcError.badRequest(`Prompt field '${p1}' not found`);
+        NcError.badRequest(`Field '${p1}' not found`);
       }
 
       referencedColumns.push(col);
@@ -1182,7 +1182,7 @@ Please generate ${
             const col = model.columnsById[p1];
 
             if (!col) {
-              NcError.badRequest(`Prompt field '${p1}' not found`);
+              NcError.badRequest(`Field '${p1}' not found`);
             }
 
             if (col.uidt === UITypes.Attachment) {

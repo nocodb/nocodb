@@ -198,7 +198,7 @@ export class KanbansService {
       context.socket_id,
     );
 
-    return res;
+    return view;
   }
 
   async kanbanOptionsReorder(
@@ -260,7 +260,8 @@ export class KanbansService {
     unorderedMetaOptions.forEach((opt, idx) => {
       opt.order = maxOrder + idx + 1;
     });
-    await this.kanbanViewUpdate(
+
+    return await this.kanbanViewUpdate(
       context,
       {
         kanbanViewId: param.kanbanViewId,

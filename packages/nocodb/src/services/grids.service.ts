@@ -151,6 +151,6 @@ export class GridsService {
       context.socket_id,
     );
 
-    return res;
+    return view;
   }
 }

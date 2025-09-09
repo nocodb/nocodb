@@ -153,6 +153,6 @@ export class CalendarsService {
 
     await view.getView(context);
 
-    return res;
+    return view;
   }
 }

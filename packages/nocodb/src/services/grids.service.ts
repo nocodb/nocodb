@@ -71,6 +71,8 @@ export class GridsService {
       context,
     });
 
+    await view.getView(context);
+
     NocoSocket.broadcastEvent(
       context,
       {
@@ -128,6 +130,8 @@ export class GridsService {
       owner,
       context,
     });
+
+    await view.getView(context);
 
     NocoSocket.broadcastEvent(
       context,

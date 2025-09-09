@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
-import type { MetaService } from '~/meta/meta.service';
 import type {
   FormUpdateReqType,
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
+import type { MetaService } from '~/meta/meta.service';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
@@ -20,8 +20,7 @@ export class FormsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
   async formViewGet(context: NcContext, param: { formViewId: string }) {
-    const formViewData = await FormView.getWithInfo(context, param.formViewId);
-    return formViewData;
+    return await FormView.getWithInfo(context, param.formViewId);
   }
 
   async formViewCreate(
@@ -96,6 +95,8 @@ export class FormsService {
       context,
     });
 
+    await view.getView(context);
+
     NocoSocket.broadcastEvent(
       context,
       {
@@ -153,6 +154,8 @@ export class FormsService {
       context,
       owner,
     });
+
+    await view.getView(context);
 
     return res;
   }

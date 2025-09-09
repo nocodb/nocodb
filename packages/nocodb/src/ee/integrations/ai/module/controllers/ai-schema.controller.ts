@@ -40,6 +40,15 @@ export class AiSchemaController {
   ) {
     const { operation } = body;
 
+    // For AI Schema generation, the response will be streamed by realtime.
+    // So, we need to remove the socket_id from the request headers.
+    if (req.headers['xc-socket-id']) {
+      delete req.headers['xc-socket-id'];
+    } else if (context.socket_id) {
+      delete context.socket_id;
+    }
+    delete req.context.socket_id;
+
     if (operation === 'generateTables') {
       const { title, description, sourceId } = body.input;
 

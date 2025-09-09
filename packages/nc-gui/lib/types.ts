@@ -887,6 +887,22 @@ type NcDropdownPlacement =
   | 'bottomCenter'
   | 'right'
 
+interface CreateViewForm {
+  title: string
+  type: ViewTypes
+  description?: string
+  copy_from_id: string | null
+  // for kanban view only
+  fk_grp_col_id: string | null
+  fk_geo_data_col_id: string | null
+  // for calendar view only
+  calendar_range: Array<{
+    fk_from_column_id: string
+    fk_to_column_id: string | null // for ee only
+  }>
+  fk_cover_image_col_id: string | null | undefined
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -951,4 +967,5 @@ export type {
   RawValueType,
   NcDropdownPlacement,
   MakeCellEditableFn,
+  CreateViewForm,
 }

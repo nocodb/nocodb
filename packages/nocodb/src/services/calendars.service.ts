@@ -150,6 +150,9 @@ export class CalendarsService {
       context,
       owner,
     });
+
+    await view.getView(context);
+
     return res;
   }
 }

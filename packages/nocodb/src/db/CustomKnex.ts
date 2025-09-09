@@ -1140,6 +1140,15 @@ function CustomKnex(
             writable: true,
             value: [],
           },
+          transaction: {
+            enumerable: true,
+            value: () => {
+              console.warn(
+                '[Warning]: Already in a transaction, returning the same transaction',
+              );
+              return trx;
+            },
+          },
           attachToTransaction: {
             enumerable: true,
             value: (fn: () => void) => {

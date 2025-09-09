@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Приватні бази доступні у плані {plan}. Оновіть тариф, щоб почати користуватись ними.",
     "upgradeLicenseToUsePrivateBases": "Оновіть ліцензію для розблокування приватних баз",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Приватні бази недоступні в Enterprise Starter license. Оновіть ліцензію, щоб почати користуватись ними.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Ви можете завантажити не більше {limit} {filePlural} у цю клітинку. Оновіть до тарифу {plan}, щоб додавати більше файлів."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Ви можете завантажити не більше {limit} {filePlural} у цю клітинку. Оновіть до тарифу {plan}, щоб додавати більше файлів.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Скрипт",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "Згенеруйте значення поля за допомогою ШІ",
     "preview": "Попередній перегляд",
     "autoSuggest": "Автоматична підказка",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Запропонувати...",
     "autoSuggestFields": "Автоматична підказка полів",
     "autoSuggestFormulas": "Автоматичні підказки формул",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "Додати Lookup-поля",
     "sourceVisibilityIsHidden": "Видимість джерела даних прихована",
     "youDontHavePermissionToEditThisField": "У вас немає дозволу редагувати це поле",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Пошук іконок",

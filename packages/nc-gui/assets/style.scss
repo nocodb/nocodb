@@ -1022,7 +1022,14 @@ svg.nc-virtual-cell-icon {
 
   &:hover .nc-search-icon,
   &.ant-input-affix-wrapper-focused .nc-search-icon {
-    @apply text-primary;
+    @apply text-nc-content-brand;
+  }
+
+  &.nc-theme-ai {
+    &:hover .nc-search-icon,
+    &.ant-input-affix-wrapper-focused .nc-search-icon {
+      @apply text-nc-content-purple-medium;
+    }
   }
 }
 

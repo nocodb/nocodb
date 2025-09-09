@@ -30,6 +30,7 @@ const props = withDefaults(defineProps<NcListProps>(), {
   itemFullWidth: false,
   stopPropagationOnItemClick: false,
   searchBasisOptions: () => [] as NcListSearchBasisOptionType[],
+  theme: 'default',
 })
 
 const emits = defineEmits<Emits>()
@@ -365,6 +366,7 @@ const handleEscape = (event: KeyboardEvent) => {
           v-model:value="searchQuery"
           :placeholder="searchInputPlaceholder"
           class="nc-toolbar-dropdown-search-field-input !pl-2 !pr-1.5 flex-1"
+          :class="`nc-theme-${theme}`"
           allow-clear
           :bordered="inputBordered"
           @keydown.enter.stop="handleKeydownEnter"
@@ -509,11 +511,6 @@ const handleEscape = (event: KeyboardEvent) => {
 
 <style lang="scss" scoped>
 :deep(.nc-toolbar-dropdown-search-field-input) {
-  &.ant-input-affix-wrapper-focused {
-    .ant-input-prefix svg {
-      @apply text-nc-content-brand;
-    }
-  }
   .ant-input {
     @apply placeholder-gray-500;
   }

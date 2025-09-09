@@ -1063,10 +1063,6 @@ function CustomKnex(
 
   const knexTransaction = kn.transaction;
 
-  const knexCommit = kn.commit;
-
-  const knexRollback = kn.rollback;
-
   const overrideProps = {
     raw: {
       enumerable: true,
@@ -1103,8 +1099,88 @@ function CustomKnex(
       value: async (...args) => {
         const trx = await knexTransaction.apply(kn, args);
 
-        Object.defineProperties(trx, overrideProps);
+        const trxRaw = trx.raw;
+        const trxCommit = trx.commit;
+        const trxRollback = trx.rollback;
 
+        Object.defineProperties(trx, {
+          raw: {
+            enumerable: true,
+            value: (...args) => {
+              return trxRaw.apply(trx, args);
+            },
+          },
+          clientType: {
+            enumerable: true,
+            value: () => {
+              return typeof arg === 'string'
+                ? arg.match(/^(\w+):/) ?? [1]
+                : typeof arg.client === 'string'
+                ? arg.client
+                : arg.client?.prototype?.dialect ||
+                  arg.client?.prototype?.driverName;
+            },
+          },
+          searchPath: {
+            enumerable: true,
+            value: () => {
+              return arg?.searchPath?.[0];
+            },
+          },
+          extDb: {
+            enumerable: true,
+            value: extDb,
+          },
+          isExternal: {
+            enumerable: false,
+            value: !!extDb && process.env.NC_DISABLE_MUX !== 'true',
+          },
+          ops: {
+            enumerable: true,
+            writable: true,
+            value: [],
+          },
+          attachToTransaction: {
+            enumerable: true,
+            value: (fn: () => void) => {
+              if (!trx.isTransaction) {
+                return fn();
+              }
+              trx.ops.push(async () => {
+                try {
+                  return await fn();
+                } catch (error) {
+                  console.error(
+                    'Error occurred while running attached operation:',
+                    error,
+                  );
+                }
+              });
+            },
+          },
+          commit: {
+            enumerable: true,
+            value: async (...args) => {
+              const result = await trxCommit.apply(trx, args);
+
+              await Promise.all(trx.ops.map((op) => op()));
+
+              trx.ops = [];
+
+              return result;
+            },
+          },
+          rollback: {
+            enumerable: true,
+            value: async (...args) => {
+              // Clear the operations queue
+              trx.ops = [];
+
+              const result = await trxRollback.apply(trx, args);
+              return result;
+            },
+          },
+        });
         return trx;
       },
     },
@@ -1129,28 +1205,6 @@ function CustomKnex(
             );
           }
         });
-      },
-    },
-    knexCommit: {
-      enumerable: true,
-      value: async (...args) => {
-        const result = await knexCommit.apply(kn, args);
-
-        await Promise.all(kn.ops.map((op) => op()));
-
-        kn.ops = [];
-
-        return result;
-      },
-    },
-    knexRollback: {
-      enumerable: true,
-      value: async (...args) => {
-        // Clear the operations queue
-        kn.ops = [];
-
-        const result = await knexRollback.apply(kn, args);
-        return result;
       },
     },
   };

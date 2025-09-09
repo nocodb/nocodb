@@ -311,6 +311,10 @@ const triggerAction = async () => {
     }
   }
 
+  &:has(.nc-cell-button.is-expanded-form) {
+    @apply -mt-1 -ml-1;
+  }
+
   .nc-cell-attachment {
     @apply !border-none;
   }

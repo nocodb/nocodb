@@ -223,5 +223,9 @@ const isDisabledAiButton = computed(() => {
       box-shadow: none !important;
     }
   }
+
+  &:has(.nc-cell-ai-button.is-expanded-form) {
+    @apply -mt-1 -ml-1;
+  }
 }
 </style>

@@ -80,12 +80,16 @@ const editor = useEditor({
       renderHTML: ({ node }) => {
         const matchedOption = props.options?.find((option) => option.title === node.attrs.id)
         const isAttachment = matchedOption?.uidt === UITypes.Attachment
+
         return [
           'span',
           {
-            'class': `prompt-field-tag ${isAttachment ? '!bg-green-200' : ''} ${props.promptFieldTagClassName}`,
+            'class': `prompt-field-tag ${isAttachment ? '!bg-green-200' : ''} ${!matchedOption ? 'line-through' : ''} ${
+              props.promptFieldTagClassName
+            }`,
             'style': 'max-width: 200px; white-space: nowrap; overflow: hidden; display: inline-block; text-overflow: ellipsis;', // Enforces truncation
             'data-tooltip': node.attrs.id, // Tooltip content
+            'data-deleted-tooltip': !matchedOption ? 'This field has been deleted' : '',
           },
           `${node.attrs.id}`,
         ]
@@ -168,10 +172,14 @@ const tooltipInstances: any[] = []
 function loadMentionFieldTagTooltip() {
   document.querySelectorAll('.nc-ai-prompt-with-fields .prompt-field-tag').forEach((el) => {
     const tooltip = Object.values(el.attributes).find((attr) => attr.name === 'data-tooltip')
-    if (!tooltip || el.scrollWidth <= el.clientWidth) return
+    const deletedTooltip = Object.values(el.attributes).find((attr) => attr.name === 'data-deleted-tooltip')
+
+    if (!tooltip || (el.scrollWidth <= el.clientWidth && !deletedTooltip?.value)) return
     // Show tooltip only on truncate
     const instance = tippy(el, {
-      content: `<div class="tooltip nc-ai-prompt-with-fields-tooltip">${tooltip.value}</div>`,
+      content: `<div class="tooltip nc-ai-prompt-with-fields-tooltip">${
+        deletedTooltip?.value ? deletedTooltip.value : tooltip.value
+      }</div>`,
       placement: 'top',
       allowHTML: true,
       arrow: true,

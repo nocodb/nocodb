@@ -70,7 +70,17 @@ export function parseFlexibleDate(dateString: string) {
 
 const timezones = getTimeZones({ includeUtc: true })
 export function getTimeZoneFromName(name: string = Intl.DateTimeFormat().resolvedOptions().timeZone) {
-  return timezones.find((k) => isSameTimezone(k.name, name))
+  let timezone = timezones.find((k) => isSameTimezone(k.name, name))
+
+  if (!timezone) {
+    timezone = timezones.find((k) => k.group.includes(name))
+  }
+
+  if (!timezone) {
+    console.log('Timezone not found', name)
+  }
+
+  return timezone
 }
 
 export function withTimezone(timezone?: string) {

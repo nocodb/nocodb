@@ -160,8 +160,8 @@
     "upgradeToUploadWsImage": "Оновіть тариф, щоб завантажити зображення робочого простору",
     "upgradeToUploadWsImageSubtitle": "Ваш поточний тариф {activePlan} дозволяє лише іконки та емодзі. Перейдіть на тариф {plan}, щоб завантажити власне зображення як аватар робочого простору.",
     "upgradeToUseCurrentUserFilter": "Оновіть тариф, щоб фільтрувати за поточним користувачем",
-    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
-    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
+    "upgradeToUseCalendarRange": "Оновіться, щоб переглядати записи у вигляді діапазону календаря",
+    "upgradeToUseCalendarRangeSubtitle": "Оновіться до плану {plan}, щоб переглядати записи у вигляді діапазону календаря.",
     "upgradeToUseCurrentUserFilterSubtitle": "Оновіть до тарифного плану {plan}, щоб використовувати фільтри, які відображають дані на основі поточного користувача.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -176,8 +176,8 @@
     "upgradeLicenseToUsePrivateBases": "Оновіть ліцензію для розблокування приватних баз",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Приватні бази недоступні в Enterprise Starter license. Оновіть ліцензію, щоб почати користуватись ними.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Ви можете завантажити не більше {limit} {filePlural} у цю клітинку. Оновіть до тарифу {plan}, щоб додавати більше файлів.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToUseAiTextField": "Оновіться, щоб використовувати ШІ текстові поля",
+    "upgradeToUseAiTextFieldSubtitle": "Оновіться до {plan} плану аби використовувати ШІ текстові поля для генерації текст на основі вашого запиту."
   },
   "general": {
     "script": "Скрипт",
@@ -911,10 +911,10 @@
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} полів мають власні дозволи",
     "cancelSubscriptionBeforeDeletingWorkspace": "Скасувати підписку перед видаленням робочого простору",
     "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "У цьому робочому просторі є активна підписка. Перевірте та скасуйте її перед видаленням.",
-    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
-    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
-    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
+    "confirmLeaveWorkspaceTitle": "Ви впевнені, що хочете покинути цей робочий простір?",
+    "confirmLeaveWorkspaceSubtile": "Якщо ви покинете цей робочий простір, ви втратите доступ до всіх баз і даних у цьому просторі. Щоб повернутися, вам знадобиться запрошення.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Ви впевнені, що хочете видалити користувача з робочого простору?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "Якщо ви видалите, вони втратять доступ до всіх баз та даних у цьому робочому просторі. Для повторного приєднання їм знадобиться запрошення."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -1414,8 +1414,8 @@
     "generateFieldDataUsingAi": "Згенеруйте значення поля за допомогою ШІ",
     "preview": "Попередній перегляд",
     "autoSuggest": "Автоматична підказка",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
+    "autoSuggested": "Автоматично запропоновано",
+    "usePrompt": "Використати запит",
     "suggesting": "Запропонувати...",
     "autoSuggestFields": "Автоматична підказка полів",
     "autoSuggestFormulas": "Автоматичні підказки формул",
@@ -1477,15 +1477,15 @@
     "importOptions": "Параметри імпорту",
     "newScript": "Новий скрипт",
     "emptyScript": "Порожній скрипт",
-    "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "enterFullscreen": "Повноекранний режим",
+    "exitFullscreen": "Вийти з повноекранного режиму"
   },
   "activity": {
     "clickToResolve": "Натисніть для вирішення",
     "resolvedBy": "Вирішив",
     "leaveWorkspace": "Покинути робочий простір",
     "removeUser": "Видалити користувача",
-    "removeMember": "Remove member",
+    "removeMember": "Видалити учасника",
     "filterByThisField": "Фільтр за цим полем",
     "groupByThisField": "Групувати за цим полем",
     "addToStarred": "Додати до обраного",
@@ -1855,10 +1855,10 @@
     "addLookupFields": "Додати Lookup-поля",
     "sourceVisibilityIsHidden": "Видимість джерела даних прихована",
     "youDontHavePermissionToEditThisField": "У вас немає дозволу редагувати це поле",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
-    "youCantHideARequiredField": "You can't hide a required field.",
-    "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "releasingPreviousFullscreenLock": "Зняття попереднього повноекранного блокування...",
+    "youCantHideARequiredField": "Ви не можете приховати обов'язкове поле.",
+    "youCantRemoveARequiredField": "Ви не можете видалити обов'язкове поле.",
+    "removeFromForm": "Видалити з форми"
   },
   "placeholder": {
     "searchIcons": "Пошук іконок",

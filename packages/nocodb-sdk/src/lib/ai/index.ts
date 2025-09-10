@@ -63,8 +63,6 @@ export function substituteColumnIdWithAliasInPrompt(
 ): { substituted: string; missingIds: { id: string; title: string }[] } {
   const columnIdMap = columns.reduce((acc, col) => {
     acc[col.id] = col;
-    acc[col.column_name] = col;
-    acc[col.title] = col;
     return acc;
   }, {} as Record<string, ColumnType>);
 
@@ -84,15 +82,22 @@ export function substituteColumnIdWithAliasInPrompt(
     }
 
     const oldName = rawMatches[idx]?.[1];
+
     if (oldName) {
+      // Nothing found → keep original and log it
+      missingIds.push({
+        id: key,
+        title: oldName,
+      });
       return `{${oldName}}`;
     }
 
     // Nothing found → keep original and log it
     missingIds.push({
       id: key,
-      title: oldName,
+      title: key,
     });
+
     return fullMatch;
   });
 

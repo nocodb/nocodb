@@ -13,6 +13,7 @@ import {
   isValidURL,
   isVirtualCol,
   ratingIconList,
+  substituteColumnIdWithAliasInPrompt,
   validateEmail,
 } from 'nocodb-sdk'
 import isMobilePhone from 'validator/lib/isMobilePhone'
@@ -282,11 +283,19 @@ const isColumnSupportsGroupBySettings = (colOrUidt: ColumnType) => {
   return [UITypes.SingleSelect, UITypes.User, UITypes.CreatedBy, UITypes.Checkbox, UITypes.Rating].includes(uidt)
 }
 
-const isColumnInvalid = (
-  col: ColumnType,
-  aiIntegrations: Partial<IntegrationType>[] = [],
+const isColumnInvalid = ({
+  col,
+  aiIntegrations = [],
   isReadOnly = false,
-): { isInvalid: boolean; tooltip: string; ignoreTooltip?: boolean } => {
+  isNocoAiAvailable = false,
+  columns = [],
+}: {
+  col: ColumnType
+  aiIntegrations?: Partial<IntegrationType>[]
+  isReadOnly?: boolean
+  isNocoAiAvailable?: boolean
+  columns?: ColumnType[]
+}): { isInvalid: boolean; tooltip: string; ignoreTooltip?: boolean } => {
   const result = {
     isInvalid: false,
     tooltip: 'msg.invalidColumnConfiguration',
@@ -308,12 +317,28 @@ const isColumnInvalid = (
       } else if (colOptions.type === ButtonActionsType.Url) {
         result.isInvalid = !!colOptions.error
       } else if (colOptions.type === ButtonActionsType.Ai) {
-        result.isInvalid =
-          !colOptions.fk_integration_id ||
-          (isReadOnly
-            ? false
-            : !!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
-        result.tooltip = 'title.aiIntegrationMissing'
+        const colOptions = col.colOptions as ButtonType
+
+        const missingIds = substituteColumnIdWithAliasInPrompt(
+          (colOptions as Record<string, any>)?.formula ?? '',
+          columns,
+          (colOptions as Record<string, any>)?.formula_raw,
+        ).missingIds
+
+        const isIntegrationMissing = isNocoAiAvailable
+          ? false
+          : !colOptions.fk_integration_id ||
+            (isReadOnly
+              ? false
+              : !!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
+
+        if (isIntegrationMissing) {
+          result.isInvalid = true
+          result.tooltip = 'title.aiIntegrationMissing'
+        } else if (missingIds.length) {
+          result.isInvalid = true
+          result.tooltip = `Input prompt has deleted column(s): ${missingIds.map((id) => id.title).join(', ')}`
+        }
       }
       break
     }
@@ -321,13 +346,26 @@ const isColumnInvalid = (
       if (isAIPromptCol(col)) {
         const colOptions = col.colOptions as ButtonType
 
-        result.isInvalid =
-          !colOptions.fk_integration_id ||
-          (isReadOnly
-            ? false
-            : !!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
+        const missingIds = substituteColumnIdWithAliasInPrompt(
+          (colOptions as Record<string, any>)?.prompt ?? '',
+          columns,
+          (colOptions as Record<string, any>)?.prompt_raw,
+        ).missingIds
 
-        result.tooltip = 'title.aiIntegrationMissing'
+        const isIntegrationMissing = isNocoAiAvailable
+          ? false
+          : !colOptions.fk_integration_id ||
+            (isReadOnly
+              ? false
+              : !!colOptions.fk_integration_id && !ncIsArrayIncludes(aiIntegrations, colOptions.fk_integration_id, 'id'))
+
+        if (isIntegrationMissing) {
+          result.isInvalid = true
+          result.tooltip = 'title.aiIntegrationMissing'
+        } else if (missingIds.length) {
+          result.isInvalid = true
+          result.tooltip = `Prompt has deleted column(s): ${missingIds.map((id) => id.title).join(', ')}`
+        }
       }
       break
     }

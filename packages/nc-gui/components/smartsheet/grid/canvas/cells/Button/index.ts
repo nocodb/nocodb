@@ -278,11 +278,15 @@ export const ButtonCellRenderer: CellRenderer = {
       contentWidth += labelWidth
     }
 
-    const tooltip = cellRenderStore.invalidUrlTooltip
-      ? cellRenderStore.invalidUrlTooltip
-      : aiIntegrations.value.length
-      ? t('tooltip.aiIntegrationReConfigure')
-      : t('tooltip.aiIntegrationAddAndReConfigure')
+    let tooltip = ''
+
+    if (cellRenderStore.invalidUrlTooltip) {
+      tooltip = cellRenderStore.invalidUrlTooltip
+    } else if (isAiButton(column.columnObj)) {
+      tooltip = column?.isInvalidColumn?.tooltip ?? ''
+    }
+
+    if (!tooltip) return
 
     const buttonWidth = Math.min(maxButtonWidth, Math.max(buttonMinWidth, contentWidth + horizontalPadding * 2))
 

@@ -247,7 +247,12 @@ export const presetErrorCodexMap: Partial<
     code: 422,
   },
   [NcErrorType.OUT_OF_SYNC]: {
-    message: (message: string) => message || `Please refresh the page and try again.`,
+    message: (message: string) =>
+      message || `Please refresh the page and try again.`,
     code: 409,
+  },
+  [NcErrorType.FILTER_VERIFICATION_FAILED]: {
+    message: (message: string) => `Filter verification failed: ${message}`,
+    code: 422,
   },
 };

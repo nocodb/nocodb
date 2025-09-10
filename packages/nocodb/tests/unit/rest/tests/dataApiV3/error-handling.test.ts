@@ -278,9 +278,9 @@ describe('dataApiV3', () => {
           },
           status: 422,
         });
-        expect(response.body.error).to.eq(`INVALID_FILTER`);
+        expect(response.body.error).to.eq(`FILTER_VERIFICATION_FAILED`);
         expect(response.body.message).to.eq(
-          `Invalid filter expression: Value HELLO is not supported for type Decimal on column Amount`,
+          `Filter verification failed: Value HELLO is not supported for type Decimal on column Amount`,
         );
       });
 

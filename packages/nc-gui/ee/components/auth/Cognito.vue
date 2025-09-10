@@ -136,6 +136,13 @@ watch(emailVerifyDlg, (val) => {
             Privacy Policy
           </a>
         </div>
+
+        <!-- Sigin using SSO button -->
+        <NcButton class="mx-4 mb-4" type="primary" block @click="navigateTo('/sso')"> Sign in using Single Sign On </NcButton>
+      </template>
+      <template #sign-in-footer>
+        <!-- Sigin using SSO button -->
+        <NcButton class="mx-4 mb-4" type="primary" block @click="navigateTo('/sso')"> Sign in using Single Sign On </NcButton>
       </template>
 
       <template #reset-password-footer>

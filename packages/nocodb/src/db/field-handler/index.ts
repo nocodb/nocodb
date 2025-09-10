@@ -424,13 +424,9 @@ export class FieldHandler implements IFieldHandler {
   async verifyFilters(filters: Filter[], options: FilterOptions = {}) {
     const verificationResult = await this.verifyFiltersSafe(filters, options);
     if (!verificationResult.isValid) {
-      if (this.info.context.api_version === NcApiVersion.V3) {
-        NcError.get(this.info.context).invalidFilter(
-          verificationResult.errors.join(', '),
-        );
-      } else {
-        throw new FilterVerificationError(verificationResult.errors!);
-      }
+      NcError.get(this.info.context).filterVerificationFailed(
+        verificationResult.errors,
+      );
     }
     return true;
   }

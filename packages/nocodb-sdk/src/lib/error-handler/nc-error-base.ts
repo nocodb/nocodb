@@ -519,4 +519,13 @@ export class NcErrorBase {
       params: message,
     });
   }
+
+  filterVerificationFailed(errors: string[]): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.FILTER_VERIFICATION_FAILED,
+      {
+        params: errors.join(', '),
+      }
+    );
+  }
 }

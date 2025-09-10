@@ -151,11 +151,11 @@ const allowedDomains = [
   '*.zeplin.io',
 ]
 
-export function isIframeUrlAllowed(url: string, customWhiteListDomains?: Array<string>) {
+export function isIframeUrlAllowed(url: string, customWhiteListDomains?: Array<string>, newUrl?: URL) {
   let hostname
 
   try {
-    hostname = new URL(url).hostname
+    hostname = newUrl ? newUrl.hostname : new URL(url).hostname
   } catch {
     return false
   }

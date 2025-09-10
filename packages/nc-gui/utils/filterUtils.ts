@@ -834,6 +834,8 @@ export const adjustFilterWhenColumnChange = ({
   column: ColumnTypeForFilter
   showNullAndEmptyInFilter?: boolean
 }) => {
+  if (!column) return
+
   const evalUidt: UITypes = column.filterUidt ?? column.uidt
   if (isVirtualCol(column)) {
     filter.dynamic = false

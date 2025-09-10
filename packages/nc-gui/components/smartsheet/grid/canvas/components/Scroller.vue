@@ -322,10 +322,10 @@ const decayAnimation = (value: number, velocity: number): number => {
 
 const animateScroll = () => {
   const state = scrollState.value
-  if (!state.animation) return
+  if (!state.animation || !contentWrapper.value || !wrapperRef.value) return
 
-  const maxScrollY = contentWrapper.value!.scrollHeight - wrapperRef.value.clientHeight
-  const maxScrollX = contentWrapper.value!.scrollWidth - wrapperRef.value.clientWidth
+  const maxScrollY = contentWrapper.value.scrollHeight - wrapperRef.value.clientHeight
+  const maxScrollX = contentWrapper.value.scrollWidth - wrapperRef.value.clientWidth
 
   let newX = scrollLeft.value
   let newY = scrollTop.value

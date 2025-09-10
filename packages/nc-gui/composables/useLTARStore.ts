@@ -157,7 +157,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       const viewId = colOptions.value.fk_target_view_id ?? relatedTableMeta.value?.views?.[0]?.id ?? ''
       if (!viewId) return
-      targetViewColumns.value = (await getViewColumns(viewId)) ?? []
+
+      try {
+        targetViewColumns.value = (await getViewColumns(viewId)) ?? []
+      } catch {
+        targetViewColumns.value = []
+        message.error('Field to load related table view columns')
+      }
     }
 
     const relatedTableDisplayValueColumn = computed(() => {

@@ -36,7 +36,7 @@ const modelId = computed(() => selectedWidget.value?.fk_model_id || null)
 
 const tableMeta = ref<any>(null)
 
-const filterField = (column: ColumnType) => {
+const _filterField = (column: ColumnType) => {
   if (
     isSystemColumn(column) ||
     isAttachment(column) ||
@@ -313,7 +313,7 @@ watch(
         v-model:value="groupByField"
         :allow-clear="true"
         disable-label
-        :filter-column="filterField"
+        :filter-column="_filterField"
         :disabled="!modelId"
         :table-id="modelId"
         @update:value="handleChange"

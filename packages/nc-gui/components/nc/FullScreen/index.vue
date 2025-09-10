@@ -143,12 +143,24 @@ const handleFullScreenChange = async () => {
   if (!supportsKeyboardLock) return
 
   if (isFullscreen.value) {
-    await navigator.keyboard.lock(['Escape'])
+    if (ncIsIframe()) {
+      window.parent.postMessage({
+        type: 'request-fullscreen-esc-key-lock',
+      })
+    } else {
+      await navigator.keyboard.lock(['Escape'])
+    }
 
     return
   }
 
-  navigator.keyboard.unlock()
+  if (ncIsIframe()) {
+    window.parent.postMessage({
+      type: 'request-fullscreen-esc-key-unlock',
+    })
+  } else {
+    navigator.keyboard.unlock()
+  }
 }
 
 useEventListener(document, 'fullscreenchange', handleFullScreenChange)

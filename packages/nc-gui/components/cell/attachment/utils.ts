@@ -389,7 +389,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
                 urlOrPath: src,
               })
 
-        const res = await apiPromise()
+        let res
+
+        try {
+          res = await apiPromise()
+        } catch {}
+
         if (!res) {
           console.error('Invalid response')
           message.error('Failed to download file')

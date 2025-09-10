@@ -21,9 +21,9 @@ const scriptConfig = computed(() => {
 
 const isValidUrl = computed(() => {
   try {
-    new URL(scriptConfig.value?.url)
+    const newUrl = new URL(scriptConfig.value?.url)
 
-    if (!isIframeUrlAllowed(scriptConfig.value?.url, appInfo.value.iframeWhitelistDomains)) {
+    if (!isIframeUrlAllowed(scriptConfig.value?.url, appInfo.value.iframeWhitelistDomains, newUrl)) {
       return false
     }
 
@@ -39,6 +39,23 @@ watch(
     key.value++
   },
 )
+
+useEventListener('message', (event) => {
+  if (!isValidUrl.value || !supportsKeyboardLock) return
+
+  try {
+    const iframeOrigin = new URL(scriptConfig.value?.url).origin
+    if (event.origin !== iframeOrigin) return
+  } catch (e) {
+    return
+  }
+
+  if (event.data.type === 'request-fullscreen-esc-key-lock') {
+    navigator.keyboard.lock(['Escape'])
+  } else if (event.data.type === 'request-fullscreen-esc-key-unlock') {
+    navigator.keyboard.unlock()
+  }
+})
 </script>
 
 <template>
@@ -58,6 +75,8 @@ watch(
         'pointer-events-none': isEditing,
       }"
       :src="scriptConfig?.url"
+      allowfullscreen
+      allow="fullscreen"
       class="w-full h-full border-0"
     />
 

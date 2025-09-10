@@ -10,7 +10,7 @@ import { FieldMentionList, Paragraph } from '~/helpers/tiptap-markdown/extension
 
 const props = withDefaults(
   defineProps<{
-    modelValue: string
+    modelValue?: string
     options?: ColumnType[]
     autoFocus?: boolean
     promptFieldTagClassName?: string
@@ -39,7 +39,7 @@ const props = withDefaults(
 const emits = defineEmits(['update:modelValue', 'keydown'])
 
 const vModel = computed({
-  get: () => props.modelValue,
+  get: () => props.modelValue ?? '',
   set: (v) => {
     emits('update:modelValue', v)
   },

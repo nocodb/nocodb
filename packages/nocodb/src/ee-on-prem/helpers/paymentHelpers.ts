@@ -1,4 +1,3 @@
-import type { Workspace } from '~/models';
 import Noco from '~/Noco';
 import { LicenseService } from '~/services/license/license.service';
 import { EnterprisePlan, EnterpriseStarterPlan, FreePlan } from '~/models/Plan';

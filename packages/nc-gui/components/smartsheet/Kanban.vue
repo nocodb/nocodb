@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
-import { PermissionEntity, PermissionKey, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, isVirtualCol } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
 interface Attachment {
@@ -361,7 +361,7 @@ const handleCollapseStack = async (stackIdx: number) => {
 }
 
 const handleCollapseAllStack = async () => {
-  await updateAllStacksProperty((stack, index) => {
+  await updateAllStacksProperty((stack) => {
     if (stack.id !== addNewStackId && !stack.collapsed) {
       return { collapsed: true }
     }
@@ -370,7 +370,7 @@ const handleCollapseAllStack = async () => {
 }
 
 const handleExpandAllStack = async () => {
-  await updateAllStacksProperty((stack, index) => {
+  await updateAllStacksProperty((stack) => {
     if (stack.id !== addNewStackId && stack.collapsed) {
       return { collapsed: false }
     }

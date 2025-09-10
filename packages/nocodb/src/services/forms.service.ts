@@ -133,12 +133,7 @@ export class FormsService {
 
     const oldFormView = await FormView.get(context, param.formViewId, ncMeta);
 
-    await FormView.update(
-      context,
-      param.formViewId,
-      param.form,
-      ncMeta,
-    );
+    await FormView.update(context, param.formViewId, param.form, ncMeta);
 
     let owner = param.req.user;
 

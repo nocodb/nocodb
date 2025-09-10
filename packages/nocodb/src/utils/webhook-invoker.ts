@@ -43,7 +43,9 @@ interface WebhookResponseLog {
   data: any;
 }
 
-type HookPayloadType = Omit<HookType, 'operation'> & { operation: string };
+export type HookPayloadType = Omit<HookType, 'operation'> & {
+  operation: string;
+};
 
 export class WebhookInvoker {
   protected logger = new Logger(WebhookInvoker.name);

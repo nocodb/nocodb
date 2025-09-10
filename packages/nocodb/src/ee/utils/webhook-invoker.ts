@@ -1,13 +1,8 @@
 import { WebhookEvents } from 'nocodb-sdk';
 import { WebhookInvoker as WebhookInvokerCE } from 'src/utils/webhook-invoker';
 import { v4 as uuidv4 } from 'uuid';
-import type {
-  HookLogType,
-  HookType,
-  NcContext,
-  TableType,
-  ViewType,
-} from 'nocodb-sdk';
+import type { HookPayloadType } from 'src/utils/webhook-invoker';
+import type { HookLogType, NcContext, TableType, ViewType } from 'nocodb-sdk';
 import type { Filter } from '~/models';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/ncError';
@@ -52,7 +47,7 @@ export class WebhookInvoker extends WebhookInvokerCE {
   }
 
   override constructWebHookData(
-    hook: Hook | HookType,
+    hook: HookPayloadType,
     model: Model | TableType,
     _view: View | ViewType,
     prevData: any,
@@ -79,7 +74,7 @@ export class WebhookInvoker extends WebhookInvokerCE {
     );
   }
   constructViewWebHookData(
-    hook: Hook | HookType,
+    hook: HookPayloadType,
     model: Model | TableType,
     _view: View | ViewType,
     prevData: any,
@@ -160,6 +155,11 @@ export class WebhookInvoker extends WebhookInvokerCE {
         .toLowerCase() as any;
     }
 
+    const hookPayload: HookPayloadType = {
+      ...hook,
+      operation: hook.operation as any as string,
+    };
+
     let hookLog: HookLogType;
     const startTime = process.hrtime();
     let notification, filters;
@@ -174,7 +174,7 @@ export class WebhookInvoker extends WebhookInvokerCE {
         case 'Email':
           {
             const webhookData = this.constructHookDataForNonURLHooks({
-              hook,
+              hook: hookPayload,
               model,
               view,
               prevData,
@@ -211,7 +211,7 @@ export class WebhookInvoker extends WebhookInvokerCE {
             reqPayload = this.populateAxiosReq({
               apiMeta: notification?.payload,
               user,
-              hook,
+              hook: hookPayload,
               model,
               view,
               prevData,
@@ -249,7 +249,7 @@ export class WebhookInvoker extends WebhookInvokerCE {
         default:
           {
             const webhookData = this.constructHookDataForNonURLHooks({
-              hook,
+              hook: hookPayload,
               model,
               view,
               prevData,

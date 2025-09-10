@@ -654,6 +654,9 @@ export default class Workspace implements WorkspaceType {
             )
             .countDistinct('wu.fk_user_id')
             .where('wu.fk_workspace_id', id)
+            .andWhere(function () {
+              this.where('wu.deleted', false).orWhereNull('wu.deleted');
+            })
             .andWhere((qb) => {
               qb.whereNotIn('wu.roles', NON_SEAT_ROLES).orWhereNotIn(
                 'bu.roles',
@@ -669,6 +672,9 @@ export default class Workspace implements WorkspaceType {
             )
             .countDistinct('wu.fk_user_id')
             .where('wu.fk_workspace_id', id)
+            .andWhere(function () {
+              this.where('wu.deleted', false).orWhereNull('wu.deleted');
+            })
             .whereNotIn('wu.fk_user_id', function () {
               this.select('wu2.fk_user_id')
                 .from(`${MetaTable.WORKSPACE_USER} AS wu2`)

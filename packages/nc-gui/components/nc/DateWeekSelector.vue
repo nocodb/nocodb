@@ -281,10 +281,10 @@ const paginate = (action: 'next' | 'prev') => {
           <span
             v-if="isActiveDate(date)"
             :class="{
-              '!border-nc-white': isSelectedDate(date),
+              '!border-nc-base-white': isSelectedDate(date),
               '!border-nc-brand-50': isSameDate(date, timezoneDayjs.dayjsTz()),
             }"
-            class="absolute top-1 transition right-1 h-1.5 w-1.5 z-2 border-1 rounded-full border-nc-white bg-nc-fill-primary"
+            class="absolute top-1 transition right-1 h-1.5 w-1.5 z-2 border-1 rounded-full border-nc-base-white bg-nc-fill-primary"
           ></span>
           <span class="nc-date-item-inner z-2">
             {{ date.get('date') }}

@@ -283,10 +283,10 @@ watch(activeDates, (newActiveDates) => {
             :class="{
               'h-1.25 w-1.25 top-0.5 right-0.5': size === 'small',
               'h-1.5 w-1.5 top-1 right-1': size === 'medium',
-              '!border-nc-white': date.isDateSelected,
+              '!border-nc-base-white': date.isDateSelected,
               '!border-nc-brand-50': date.isToday,
             }"
-            class="absolute z-2 transition border-1 rounded-full border-nc-white bg-nc-brand-500"
+            class="absolute z-2 transition border-1 rounded-full border-nc-base-white bg-nc-brand-500"
           ></span>
           <span class="z-2">
             {{ date.dayVal }}

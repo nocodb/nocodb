@@ -37,12 +37,12 @@ const rowColorInfo = computed(() => {
       'rounded-r-[4px] !border-l-0 mr-1': position === 'rightRounded',
       'rounded-[4px] ml-0.8 mr-1': position === 'rounded',
       'rounded-none !border-x-0': position === 'none',
-      'bg-nc-bg-coloured-marooon': color === 'maroon',
-      'bg-nc-bg-coloured-blue': color === 'blue',
-      'bg-nc-bg-coloured-green': color === 'green',
-      'bg-nc-bg-coloured-yellow': color === 'yellow',
-      'bg-nc-bg-coloured-pink': color === 'pink',
-      'bg-nc-bg-coloured-purple': color === 'purple',
+      'bg-nc-maroon-50': props.color === 'maroon',
+      'bg-nc-blue-50': props.color === 'blue',
+      'bg-nc-green-50': props.color === 'green',
+      'bg-nc-yellow-50': props.color === 'yellow',
+      'bg-nc-pink-50': props.color === 'pink',
+      'bg-nc-purple-50': props.color === 'purple',
       'bg-nc-bg-default border-nc-border-gray-dark': color === 'gray',
       '!bg-nc-bg-gray-light': hover || dragging,
     }"
@@ -59,12 +59,12 @@ const rowColorInfo = computed(() => {
     <div
       v-if="position === 'leftRounded' || position === 'rounded'"
       :class="{
-        'bg-nc-fill-coloured-maroon-medium': props.color === 'maroon',
-        'bg-nc-fill-coloured-blue-medium': props.color === 'blue',
-        'bg-nc-fill-coloured-green-medium': props.color === 'green',
-        'bg-nc-fill-coloured-yellow-medium': props.color === 'yellow',
-        'bg-nc-fill-coloured-pink-medium': props.color === 'pink',
-        'bg-nc-fill-coloured-purple-medium': props.color === 'purple',
+        'bg-nc-maroon-500': props.color === 'maroon',
+        'bg-nc-blue-500': props.color === 'blue',
+        'bg-nc-green-500': props.color === 'green',
+        'bg-nc-yellow-500': props.color === 'yellow',
+        'bg-nc-pink-500': props.color === 'pink',
+        'bg-nc-purple-500': props.color === 'purple',
         'bg-nc-gray-900': color === 'gray',
       }"
       class="w-1 min-h-6.5"

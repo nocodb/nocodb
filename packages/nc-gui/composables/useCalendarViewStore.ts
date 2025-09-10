@@ -1256,6 +1256,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       { immediate: true },
     )
 
+    onBeforeUnmount(() => {
+      $ncSocket?.offMessage?.(activeDataListener.value)
+    })
+
     return {
       fetchActiveDates,
       formattedSideBarData,

@@ -21,7 +21,8 @@ export const DateTimeCellRenderer: CellRenderer = {
 
     const is12hrFormat = columnMeta?.is12hrFormat
     const isValueValid = value && dayjs(value).isValid()
-    const timezoneWidth = isValueValid && isDisplayTimezone ? ctx.measureText(timezone.abbreviation).width + 8 : 0
+    const timezoneWidth =
+      isValueValid && isDisplayTimezone && timezone?.abbreviation ? ctx.measureText(timezone.abbreviation).width + 8 : 0
 
     const totalAvailableWidth = width - padding * 3
     const dateTimeWidth = totalAvailableWidth - timezoneWidth
@@ -62,13 +63,13 @@ export const DateTimeCellRenderer: CellRenderer = {
     const timeStr = dateTimeValue?.format(is12hrFormat ? timeFormatsObj[timeFormat] : timeFormat) ?? ''
     const truncatedTime = truncateText(ctx, timeStr, timeWidth)
     ctx.fillText(truncatedTime, x + dateWidth + padding * 2, textY)
-    if (timezoneWidth && timezoneWidth > 0) {
+    if (timezoneWidth && timezoneWidth > 0 && timezone?.abbreviation) {
       const gray400 = '#6A7184'
       const oldFillStyle = ctx.fillStyle
       const oldFont = ctx.font
       ctx.font = ctx.font = `500 11px Inter`
       ctx.fillStyle = gray400
-      ctx.fillText(timezone!.abbreviation, x + dateTimeWidth + padding * 3.5, textY)
+      ctx.fillText(timezone.abbreviation, x + dateTimeWidth + padding * 3.5, textY)
       ctx.font = oldFont
       ctx.fillStyle = oldFillStyle
     }

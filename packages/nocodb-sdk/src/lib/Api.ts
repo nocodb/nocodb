@@ -5202,6 +5202,8 @@ export interface AIRecordType {
   lastModifiedTime?: string;
   /** Is any referenced value updated? */
   isStale?: boolean;
+  /** Is edited by AI? */
+  isAiEdited?: boolean;
 }
 
 export enum ButtonActionsType {

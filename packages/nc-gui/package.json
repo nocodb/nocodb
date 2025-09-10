@@ -63,7 +63,7 @@
     "@vueuse/core": "^10.11.1",
     "@vueuse/integrations": "^10.11.1",
     "@vueuse/motion": "^2.2.6",
-    "@vvo/tzdb": "^6.161.0",
+    "@vvo/tzdb": "^6.183.0",
     "ant-design-vue": "^3.2.20",
     "chart.js": "^4.4.7",
     "crossoriginworker": "^1.1.0",

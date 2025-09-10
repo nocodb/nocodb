@@ -361,7 +361,7 @@ const placeholderAboveHeight = computed(() => {
 const { width, height } = useWindowSize()
 
 watch(
-  [() => width.value, () => height.value, () => columnsPerRow.value, () => scrollContainerWidth.value],
+  [() => width.value, () => height.value, () => columnsPerRow.value, () => scrollContainerWidth.value, () => totalRows.value],
   () => {
     calculateSlices()
   },

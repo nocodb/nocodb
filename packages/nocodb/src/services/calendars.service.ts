@@ -83,6 +83,8 @@ export class CalendarsService {
       owner,
     });
 
+    await view.getView(context);
+
     NocoSocket.broadcastEvent(
       context,
       {

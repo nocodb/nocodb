@@ -684,6 +684,9 @@ export default class Workspace implements WorkspaceType {
                   'bu2.fk_user_id',
                 )
                 .where('wu2.fk_workspace_id', id)
+                .andWhere(function () {
+                  this.where('wu2.deleted', false).orWhereNull('wu2.deleted');
+                })
                 .andWhere((qb) => {
                   qb.whereNotIn('wu2.roles', NON_SEAT_ROLES).orWhereNotIn(
                     'bu2.roles',

@@ -257,7 +257,7 @@ export function useCanvasRender({
 
     // Regular columns
     ctx.fillStyle = '#6a7184'
-    ctx.font = '550 12px Inter'
+    ctx.font = '600 12px Inter'
     ctx.textBaseline = 'middle'
     ctx.imageSmoothingEnabled = false
 

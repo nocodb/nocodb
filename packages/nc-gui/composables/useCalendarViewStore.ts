@@ -1239,7 +1239,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
                   if (sidebarRowIndex !== -1) {
                     formattedSideBarData.value.splice(sidebarRowIndex, 1)
                     removedFromSidebar = true
-                    console.log('Removed row from sidebar')
                   }
                   // Update active dates if anything was removed
                   if (removedFromCalendar || removedFromSidebar) {

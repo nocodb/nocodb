@@ -1430,6 +1430,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
+    // First priority on v3 api is sort object if exists
+    if (this.context.api_version === NcApiVersion.V3 && sort) {
+      const sortObj = extractSortsObject(
+        this.context,
+        sort,
+        childAliasColMap,
+        undefined,
+        this.context.api_version,
+      );
+      if (sortObj) await sortV2(this, sortObj, qb);
+    }
     // First priority View Sort
     if (view && !skipSort) {
       const sortObj = await view.getSorts(this.context);
@@ -1449,10 +1460,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         qb.orderBy(orderColumnBy);
       }
 
-      // Third priority query string sort
-      if (!sort) return;
-      const sortObj = extractSortsObject(this.context, sort, childAliasColMap);
-      if (sortObj) await sortV2(this, sortObj, qb);
+      // backward compatibility: if not v3, apply sort on this priority
+      if (this.context.api_version !== NcApiVersion.V3) {
+        // Third priority query string sort
+        if (!sort) return;
+        const sortObj = extractSortsObject(
+          this.context,
+          sort,
+          childAliasColMap,
+          undefined,
+          this.context.api_version,
+        );
+        if (sortObj) await sortV2(this, sortObj, qb);
+      }
     }
   }
 

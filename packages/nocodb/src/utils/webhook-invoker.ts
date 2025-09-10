@@ -43,6 +43,8 @@ interface WebhookResponseLog {
   data: any;
 }
 
+type HookPayloadType = Omit<HookType, 'operation'> & { operation: string };
+
 export class WebhookInvoker {
   protected logger = new Logger(WebhookInvoker.name);
 
@@ -57,7 +59,7 @@ export class WebhookInvoker {
   }: {
     apiMeta: any;
     user: UserType;
-    hook: HookType | Hook;
+    hook: HookPayloadType;
     model: TableType;
     view?: ViewType;
     prevData: Record<string, unknown>;
@@ -176,7 +178,7 @@ export class WebhookInvoker {
     hook,
     model,
   }: {
-    hook: Hook;
+    hook: HookPayloadType;
     model: Model;
     view: View;
     newData: Record<string, unknown>;
@@ -242,7 +244,7 @@ export class WebhookInvoker {
   }
 
   constructWebHookData(
-    hook: Hook | HookType,
+    hook: HookPayloadType,
     model: Model | TableType,
     _view: View | ViewType,
     prevData: Record<string, unknown>,
@@ -333,7 +335,6 @@ export class WebhookInvoker {
     } = param;
 
     let { newData } = param;
-
     if (hook.version === 'v3' && hookName) {
       // since we already verified the operation in v3,
       // we'll assign the event and operation back to v2 format
@@ -344,6 +345,10 @@ export class WebhookInvoker {
         .replace('bulk', '')
         .toLowerCase() as any;
     }
+    const hookPayload: HookPayloadType = {
+      ...hook,
+      operation: hook.operation as any as string,
+    };
 
     let hookLog: HookLogType;
     const startTime = process.hrtime();
@@ -445,7 +450,7 @@ export class WebhookInvoker {
         case 'Email':
           {
             const webhookData = this.constructHookDataForNonURLHooks({
-              hook,
+              hook: hookPayload,
               model,
               view,
               prevData,
@@ -466,7 +471,7 @@ export class WebhookInvoker {
             ) {
               hookLog = {
                 ...hook,
-                operation: hookName?.split('.')?.[1] as any,
+                operation: hookPayload.operation as any,
                 fk_hook_id: hook.id,
                 type: notification.type,
                 payload: JSON.stringify(parsedPayload),
@@ -482,7 +487,7 @@ export class WebhookInvoker {
             reqPayload = this.populateAxiosReq({
               apiMeta: notification?.payload,
               user,
-              hook,
+              hook: hookPayload,
               model,
               view,
               prevData,
@@ -501,7 +506,7 @@ export class WebhookInvoker {
             ) {
               hookLog = {
                 ...hook,
-                operation: hookName?.split('.')?.[1] as any,
+                operation: hookPayload.operation as any,
                 fk_hook_id: hook.id,
                 type: notification.type,
                 payload: JSON.stringify(requestPayload),
@@ -559,7 +564,7 @@ export class WebhookInvoker {
         default:
           {
             const webhookData = this.constructHookDataForNonURLHooks({
-              hook,
+              hook: hookPayload,
               model,
               view,
               prevData,

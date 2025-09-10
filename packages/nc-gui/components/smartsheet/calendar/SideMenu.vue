@@ -341,7 +341,7 @@ const selectOption = (option) => {
       '!min-w-[100svw]': props.visible && isMobileMode,
       'nc-calendar-side-menu-open': props.visible,
     }"
-    class="h-full relative border-l-1 min-w-[288px] border-gray-200 transition transition-all"
+    class="h-full relative border-l-1 min-w-[288px] border-nc-border-gray-medium transition transition-all"
     data-testid="nc-calendar-side-menu"
   >
     <div class="flex min-w-[288px] flex-col">

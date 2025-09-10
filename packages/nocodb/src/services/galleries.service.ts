@@ -152,6 +152,17 @@ export class GalleriesService {
 
     await view.getView(context);
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_update',
+          payload: view,
+        },
+      },
+      context.socket_id,
+    );
     return view;
   }
 }

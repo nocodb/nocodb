@@ -114,6 +114,8 @@ export class KanbansService {
       context,
     });
 
+    await view.getView(context);
+
     NocoSocket.broadcastEvent(
       context,
       {

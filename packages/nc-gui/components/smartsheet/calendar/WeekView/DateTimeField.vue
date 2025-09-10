@@ -983,7 +983,7 @@ const addRecord = (date: dayjs.Dayjs) => {
 watch(
   () => recordsAcrossAllRange.value,
   () => {
-    if (dragRecord.value) return
+    if (dragRecord.value || resizeRecord.value) return
     const records = document.querySelectorAll('.draggable-record')
     if (records.length) records.item(0)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     else document.querySelectorAll('.nc-calendar-day-hour').item(9)?.scrollIntoView({ behavior: 'smooth', block: 'center' })

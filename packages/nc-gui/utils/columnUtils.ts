@@ -318,7 +318,7 @@ const isColumnInvalid = (
       break
     }
     case UITypes.LongText: {
-      if (parseProp(col.meta)[LongTextAiMetaProp]) {
+      if (isAIPromptCol(col)) {
         const colOptions = col.colOptions as ButtonType
 
         result.isInvalid =

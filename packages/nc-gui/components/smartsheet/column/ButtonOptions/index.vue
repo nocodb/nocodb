@@ -6,6 +6,7 @@ import {
   UITypes,
   isHiddenCol,
   substituteColumnIdWithAliasInFormula,
+  substituteColumnIdWithAliasInPrompt,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
 import { searchIcons } from '~/utils/iconUtils'
@@ -315,6 +316,13 @@ if (vModel.value?.type === ButtonActionsType.Url || (column.value?.colOptions as
   } else {
     vModel.value.formula_raw = ''
   }
+} else if (vModel.value?.type === ButtonActionsType.Ai || (column.value?.colOptions as any)?.type === ButtonActionsType.Ai) {
+  vModel.value.formula_raw =
+    substituteColumnIdWithAliasInPrompt(
+      (column.value?.colOptions as ButtonType)?.formula ?? '',
+      meta?.value?.columns as ColumnType[],
+      (column.value?.colOptions as any)?.formula_raw,
+    ).substituted || ''
 }
 
 const colorClass = {

@@ -252,8 +252,7 @@ export const presetErrorCodexMap: Partial<
     code: 409,
   },
   [NcErrorType.FILTER_VERIFICATION_FAILED]: {
-    message: (message: string) =>
-      `Filter verification failed, errors: ${message}`,
+    message: (message: string) => `Filter verification failed: ${message}`,
     code: 422,
   },
 };

@@ -901,20 +901,6 @@ export default class Model implements TableType {
         table_name,
       },
       tableId,
-      {
-        _or: [
-          {
-            type: {
-              eq: ModelTypes.TABLE,
-            },
-          },
-          {
-            type: {
-              eq: ModelTypes.VIEW,
-            },
-          },
-        ],
-      },
     );
 
     // get default view and update alias
@@ -986,20 +972,6 @@ export default class Model implements TableType {
         mm: isMm,
       },
       tableId,
-      {
-        _or: [
-          {
-            type: {
-              eq: ModelTypes.TABLE,
-            },
-          },
-          {
-            type: {
-              eq: ModelTypes.VIEW,
-            },
-          },
-        ],
-      },
     );
 
     await NocoCache.update(`${CacheScope.MODEL}:${tableId}`, {
@@ -1042,20 +1014,6 @@ export default class Model implements TableType {
         order,
       },
       tableId,
-      {
-        _or: [
-          {
-            type: {
-              eq: ModelTypes.TABLE,
-            },
-          },
-          {
-            type: {
-              eq: ModelTypes.VIEW,
-            },
-          },
-        ],
-      },
     );
 
     await NocoCache.update(`${CacheScope.MODEL}:${tableId}`, {

@@ -58,9 +58,11 @@ const {
   addEmptyRow,
   groupingFieldColOptions,
   groupingField,
+  stackMetaObj,
   groupingFieldColumn,
   countByStack,
   deleteStack,
+  updateKanbanMeta,
   shouldScrollToRight,
   deleteRow,
   moveHistory,
@@ -234,22 +236,52 @@ async function onMoveStack(event: any, undo = false) {
   if (event.moved) {
     const { oldIndex, newIndex } = event.moved
 
-    await updateStackProperty(oldIndex, { order: newIndex })
-    await updateStackProperty(newIndex, { order: oldIndex })
+    // Create a copy of the current stack metadata
+    const stackMeta = [...groupingFieldColOptions.value]
+
+    // Update both stacks in the local copy
+    stackMeta[oldIndex] = { ...stackMeta[oldIndex], order: newIndex }
+    stackMeta[newIndex] = { ...stackMeta[newIndex], order: oldIndex }
+
+    // Prepare the updated stack metadata object
+    const updatedStackMetaObj = {
+      ...stackMetaObj.value,
+      [kanbanMetaData.value.fk_grp_col_id!]: stackMeta,
+    }
+
+    await updateKanbanMeta({
+      meta: updatedStackMetaObj,
+    })
 
     if (!undo) {
       addUndo({
         undo: {
           fn: async (e: any) => {
-            await updateStackProperty(e.moved.newIndex, { order: e.moved.oldIndex })
-            await updateStackProperty(e.moved.oldIndex, { order: e.moved.newIndex })
+            const undoStackMeta = [...groupingFieldColOptions.value]
+            undoStackMeta[e.moved.newIndex] = { ...undoStackMeta[e.moved.newIndex], order: e.moved.oldIndex }
+            undoStackMeta[e.moved.oldIndex] = { ...undoStackMeta[e.moved.oldIndex], order: e.moved.newIndex }
+
+            const undoStackMetaObj = {
+              ...stackMetaObj.value,
+              [kanbanMetaData.value.fk_grp_col_id!]: undoStackMeta,
+            }
+
+            await updateKanbanMeta({ meta: undoStackMetaObj })
           },
           args: [{ moved: { oldIndex, newIndex } }],
         },
         redo: {
           fn: async (e: any) => {
-            await updateStackProperty(e.moved.oldIndex, { order: e.moved.newIndex })
-            await updateStackProperty(e.moved.newIndex, { order: e.moved.oldIndex })
+            const redoStackMeta = [...groupingFieldColOptions.value]
+            redoStackMeta[e.moved.oldIndex] = { ...redoStackMeta[e.moved.oldIndex], order: e.moved.newIndex }
+            redoStackMeta[e.moved.newIndex] = { ...redoStackMeta[e.moved.newIndex], order: e.moved.oldIndex }
+
+            const redoStackMetaObj = {
+              ...stackMetaObj.value,
+              [kanbanMetaData.value.fk_grp_col_id!]: redoStackMeta,
+            }
+
+            await updateKanbanMeta({ meta: redoStackMetaObj })
           },
           args: [{ moved: { oldIndex, newIndex } }],
         },
@@ -377,40 +409,27 @@ watch(contextMenu, () => {
   }
 })
 
-watch(
-  view,
-  async (nextView) => {
-    if (nextView?.type === ViewTypes.KANBAN) {
-      isViewDataLoading.value = true
+onMounted(async () => {
+  try {
+    isViewDataLoading.value = true
+    await loadKanbanData()
 
-      try {
-        isViewDataLoading.value = false
-
-        // load kanban data
-        await loadKanbanData()
-
-        // horizontally scroll to the end of the kanban container
-        // when a new option is added within kanban view
-        nextTick(() => {
-          if (shouldScrollToRight.value && kanbanContainerRef.value) {
-            kanbanContainerRef.value.scrollTo({
-              left: kanbanContainerRef.value.scrollWidth,
-              behavior: 'smooth',
-            })
-            // reset shouldScrollToRight
-            shouldScrollToRight.value = false
-          }
+    nextTick(() => {
+      if (shouldScrollToRight.value && kanbanContainerRef.value) {
+        kanbanContainerRef.value.scrollTo({
+          left: kanbanContainerRef.value.scrollWidth,
+          behavior: 'smooth',
         })
-      } catch (error) {
-        console.error(error)
-        isViewDataLoading.value = false
+        // reset shouldScrollToRight
+        shouldScrollToRight.value = false
       }
-    }
-  },
-  {
-    immediate: true,
-  },
-)
+    })
+    isViewDataLoading.value = false
+  } catch (error) {
+    console.error(error)
+    isViewDataLoading.value = false
+  }
+})
 
 const getRowId = (row: RowType) => {
   const pk = extractPkFromRow(row.row, meta.value!.columns!)

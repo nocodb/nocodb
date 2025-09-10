@@ -499,31 +499,46 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
-  const updateViewMeta = async (viewId: string, viewType: ViewTypes, updates: Record<string, any>): Promise<ViewType | null> => {
+  const updateViewMeta = async (
+    viewId: string,
+    viewType: ViewTypes,
+    updates: Record<string, any>,
+    { skipNetworkCall = false },
+  ): Promise<ViewType | null> => {
     try {
-      let updatedView: ViewType
+      let updatedView
 
-      switch (viewType) {
-        case ViewTypes.GRID:
-          updatedView = await $api.dbView.gridUpdate(viewId, updates)
-          break
-        case ViewTypes.GALLERY:
-          updatedView = await $api.dbView.galleryUpdate(viewId, updates)
-          break
-        case ViewTypes.KANBAN:
-          updatedView = await $api.dbView.kanbanUpdate(viewId, updates)
-          break
-        case ViewTypes.MAP:
-          updatedView = await $api.dbView.mapUpdate(viewId, updates)
-          break
-        case ViewTypes.CALENDAR:
-          updatedView = await $api.dbView.calendarUpdate(viewId, updates)
-          break
-        case ViewTypes.FORM:
-          updatedView = await $api.dbView.formUpdate(viewId, updates)
-          break
-        default:
-          throw new Error(`Unsupported view type for meta update: ${viewType}`)
+      if (!skipNetworkCall) {
+        switch (viewType) {
+          case ViewTypes.GRID:
+            updatedView = await $api.dbView.gridUpdate(viewId, updates)
+            break
+          case ViewTypes.GALLERY:
+            updatedView = await $api.dbView.galleryUpdate(viewId, updates)
+            break
+          case ViewTypes.KANBAN:
+            updatedView = await $api.dbView.kanbanUpdate(viewId, updates)
+            break
+          case ViewTypes.MAP:
+            updatedView = await $api.dbView.mapUpdate(viewId, updates)
+            break
+          case ViewTypes.CALENDAR:
+            updatedView = await $api.dbView.calendarUpdate(viewId, updates)
+            break
+          case ViewTypes.FORM:
+            updatedView = await $api.dbView.formUpdate(viewId, updates)
+            break
+          default:
+            throw new Error(`Unsupported view type for meta update: ${viewType}`)
+        }
+      } else {
+        updatedView = {
+          ...activeView.value,
+          view: {
+            ...(activeView.value || {}).view,
+            ...updates,
+          },
+        }
       }
 
       // Find the table and update the view in the store
@@ -535,6 +550,16 @@ export const useViewsStore = defineStore('viewsStore', () => {
         if (viewIndex !== -1) {
           tableViews[viewIndex] = updatedView
           viewsByTable.value.set(tableId, [...tableViews])
+        }
+      }
+
+      if (isPublic.value) {
+        sharedView.value = {
+          ...sharedView.value,
+          view: {
+            ...(sharedView.value?.view || {}),
+            ...updates,
+          },
         }
       }
 

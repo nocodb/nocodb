@@ -421,13 +421,13 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
           );
           outerQb.orderBy(
-            baseModel.dbDriver.raw('??.??', ['g', getAs(column)]).toQuery(),
+            baseModel.dbDriver.raw('??.??', ['g', getAs(column)]) as any,
             sort.direction,
             sort.direction === 'desc' ? 'LAST' : 'FIRST',
           );
         } else {
           outerQb.orderBy(
-            baseModel.dbDriver.raw('??.??', ['g', getAs(column)]).toQuery(),
+            baseModel.dbDriver.raw('??.??', ['g', getAs(column)]) as any,
             sort.direction,
             sort.direction === 'desc' ? 'LAST' : 'FIRST',
           );
@@ -632,7 +632,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               );
               selectors.push(
                 baseModel.dbDriver.raw('?? as ??', [
-                  sqlNullIfBlank({ columnName, baseModel, isStringType: true }),
+                  sqlNullIfBlank({ columnName, baseModel }),
                   getAs(column),
                 ]),
               );

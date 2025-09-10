@@ -293,7 +293,9 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
     base.isLoading = false
 
     const updatedProject = bases.value.get(base.id!)!
-    updatedProject.isLoading = false
+    if (updatedProject) {
+      updatedProject.isLoading = false
+    }
   }
 
   showProjectList.value = false

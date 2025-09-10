@@ -87,8 +87,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const toggleFullScreenState = () => {
     if (isFullScreen.value) {
       isLeftSidebarOpen.value = true
-
-      if (document?.exitFullscreen && document?.fullscreenElement) {
+      if (ncIframeFullscreenSupportConfig.get() && document?.exitFullscreen && document?.fullscreenElement) {
         document.exitFullscreen().catch((err) => {
           console.warn('Exit fullscreen failed:', err)
         })
@@ -96,7 +95,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     } else {
       isLeftSidebarOpen.value = false
 
-      if (document?.documentElement?.requestFullscreen) {
+      if (ncIframeFullscreenSupportConfig.get() && document?.documentElement?.requestFullscreen) {
         document.documentElement.requestFullscreen().catch((err) => {
           console.warn('Request fullscreen failed:', err)
         })

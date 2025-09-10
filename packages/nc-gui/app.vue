@@ -35,6 +35,7 @@ const { chatwootInit } = useProvideChatwoot()
 
 onMounted(() => {
   window.addEventListener('chatwoot:ready', chatwootInit)
+  ncIframeFullscreenSupportConfig.toggle(true)
 })
 
 onBeforeUnmount(() => {

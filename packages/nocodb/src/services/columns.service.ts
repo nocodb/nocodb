@@ -1784,20 +1784,18 @@ export class ColumnsService implements IColumnsService {
       });
     }
 
+    const DATE_TIME_TYPES = [
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+    ];
+
     if (
-      [
-        UITypes.Date,
-        UITypes.DateTime,
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-      ].includes(column.uidt) &&
-      ![
-        UITypes.Date,
-        UITypes.DateTime,
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-      ].includes(colBody.uidt)
+      DATE_TIME_TYPES.includes(column.uidt) &&
+      !DATE_TIME_TYPES.includes(colBody.uidt)
     ) {
+      // Column type changed from date/time to non-date/time - delete all ranges
       const calendarRanges = await CalendarRange.IsColumnBeingUsedAsRange(
         context,
         column.id,
@@ -1805,33 +1803,32 @@ export class ColumnsService implements IColumnsService {
       for (const col of calendarRanges ?? []) {
         await CalendarRange.delete(col.id, context);
       }
-    } else if (
-      [
-        UITypes.Date,
-        UITypes.DateTime,
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-      ].includes(colBody.uidt)
-    ) {
+    } else if (DATE_TIME_TYPES.includes(colBody.uidt)) {
+      // Column is still/becoming a date/time type - validate ranges
       const calendarRanges = await CalendarRange.IsColumnBeingUsedAsRange(
         context,
         column.id,
       );
 
       for (const range of calendarRanges ?? []) {
+        let shouldDeleteRange = false;
+
         if (range.fk_from_column_id === column.id && range.fk_to_column_id) {
           const endColumn = await Column.get(context, {
             colId: range.fk_to_column_id,
           });
 
-          const uidtMatches = endColumn && endColumn.uidt === colBody.uidt;
-          const timezoneMatches =
-            !colBody.meta?.timezone ||
-            !endColumn?.meta?.timezone ||
-            colBody.meta.timezone === endColumn.meta.timezone;
+          if (!endColumn || endColumn.uidt !== colBody.uidt) {
+            shouldDeleteRange = true;
+          } else {
+            // Check timezone compatibility
+            const newTimezone = colBody.meta?.timezone;
+            const endTimezone = endColumn.meta?.timezone;
 
-          if (!uidtMatches || !timezoneMatches) {
-            await CalendarRange.delete(range.id, context);
+            // Delete if both have timezones but they don't match
+            if (newTimezone && endTimezone && newTimezone !== endTimezone) {
+              shouldDeleteRange = true;
+            }
           }
         } else if (
           range.fk_to_column_id === column.id &&
@@ -1841,15 +1838,22 @@ export class ColumnsService implements IColumnsService {
             colId: range.fk_from_column_id,
           });
 
-          const uidtMatches = startColumn && startColumn.uidt === colBody.uidt;
-          const timezoneMatches =
-            !colBody.meta?.timezone ||
-            !startColumn?.meta?.timezone ||
-            colBody.meta.timezone === startColumn.meta.timezone;
+          if (!startColumn || startColumn.uidt !== colBody.uidt) {
+            shouldDeleteRange = true;
+          } else {
+            // Check timezone compatibility
+            const newTimezone = colBody.meta?.timezone;
+            const startTimezone = startColumn.meta?.timezone;
 
-          if (!uidtMatches || !timezoneMatches) {
-            await CalendarRange.delete(range.id, context);
+            // Delete if both have timezones but they don't match
+            if (newTimezone && startTimezone && newTimezone !== startTimezone) {
+              shouldDeleteRange = true;
+            }
           }
+        }
+
+        if (shouldDeleteRange) {
+          await CalendarRange.delete(range.id, context);
         }
       }
     }

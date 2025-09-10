@@ -37,13 +37,13 @@ const rowColorInfo = computed(() => {
       'rounded-r-[4px] !border-l-0 mr-1': position === 'rightRounded',
       'rounded-[4px] ml-0.8 mr-1': position === 'rounded',
       'rounded-none !border-x-0': position === 'none',
-      'bg-maroon-50': color === 'maroon',
-      'bg-blue-50': color === 'blue',
-      'bg-green-50': color === 'green',
-      'bg-yellow-50': color === 'yellow',
-      'bg-pink-50': color === 'pink',
-      'bg-purple-50': color === 'purple',
-      'bg-white border-gray-300': color === 'gray',
+      'bg-nc-maroon-50': props.color === 'maroon',
+      'bg-nc-blue-50': props.color === 'blue',
+      'bg-nc-green-50': props.color === 'green',
+      'bg-nc-yellow-50': props.color === 'yellow',
+      'bg-nc-pink-50': props.color === 'pink',
+      'bg-nc-purple-50': props.color === 'purple',
+      'bg-nc-bg-default border-nc-border-gray-dark': color === 'gray',
       '!bg-nc-bg-gray-light': hover || dragging,
     }"
     :style="{
@@ -59,15 +59,15 @@ const rowColorInfo = computed(() => {
     <div
       v-if="position === 'leftRounded' || position === 'rounded'"
       :class="{
-        'bg-maroon-500': color === 'maroon',
-        'bg-blue-500': color === 'blue',
-        'bg-green-500': color === 'green',
-        'bg-yellow-500': color === 'yellow',
-        'bg-pink-500': color === 'pink',
-        'bg-purple-500': color === 'purple',
-        'bg-gray-900': color === 'gray',
+        'bg-nc-maroon-500': props.color === 'maroon',
+        'bg-nc-blue-500': props.color === 'blue',
+        'bg-nc-green-500': props.color === 'green',
+        'bg-nc-yellow-500': props.color === 'yellow',
+        'bg-nc-pink-500': props.color === 'pink',
+        'bg-nc-purple-500': props.color === 'purple',
+        'bg-nc-gray-900': color === 'gray',
       }"
-      class="w-1 min-h-6.5 bg-blue-500"
+      class="w-1 min-h-6.5"
       :style="rowColorInfo.rowLeftBorderColor"
     ></div>
 
@@ -95,7 +95,7 @@ const rowColorInfo = computed(() => {
           show-on-truncate-only
           wrap-child="span"
         >
-          <slot class="text-sm text-nowrap text-gray-800 leading-7" />
+          <slot class="text-sm text-nowrap text-nc-content-gray leading-7" />
           <template #title>
             <slot />
           </template>
@@ -120,7 +120,7 @@ const rowColorInfo = computed(() => {
 .plain-cell {
   line-height: 18px;
   .bold {
-    @apply !text-gray-800 font-bold;
+    @apply !text-nc-content-gray font-bold;
   }
 }
 </style>

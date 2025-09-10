@@ -34,13 +34,13 @@ const rowColorInfo = computed(() => {
       ...rowColorInfo.rowBgColor,
     }"
     :class="{
-      'bg-maroon-50': color === 'maroon',
-      'bg-blue-50': color === 'blue',
-      'bg-green-50': color === 'green',
-      'bg-yellow-50': color === 'yellow',
-      'bg-pink-50': color === 'pink',
-      'bg-purple-50': color === 'purple',
-      'bg-white border-gray-300': color === 'gray',
+      'bg-nc-maroon-50': props.color === 'maroon',
+      'bg-nc-blue-50': props.color === 'blue',
+      'bg-nc-green-50': props.color === 'green',
+      'bg-nc-yellow-50': props.color === 'yellow',
+      'bg-nc-pink-50': props.color === 'pink',
+      'bg-nc-purple-50': props.color === 'purple',
+      'bg-nc-bg-default border-nc-border-gray-dark': color === 'gray',
       'z-90': hover,
       '!bg-nc-bg-gray-light': hover || dragging,
     }"
@@ -53,13 +53,13 @@ const rowColorInfo = computed(() => {
     ></div>
     <div
       :class="{
-        'bg-maroon-500': color === 'maroon',
-        'bg-blue-500': color === 'blue',
-        'bg-green-500': color === 'green',
-        'bg-yellow-500': color === 'yellow',
-        'bg-pink-500': color === 'pink',
-        'bg-purple-500': color === 'purple',
-        'bg-gray-900': color === 'gray',
+        'bg-nc-maroon-500': props.color === 'maroon',
+        'bg-nc-blue-500': props.color === 'blue',
+        'bg-nc-green-500': props.color === 'green',
+        'bg-nc-yellow-500': props.color === 'yellow',
+        'bg-nc-pink-500': props.color === 'pink',
+        'bg-nc-purple-500': props.color === 'purple',
+        'bg-nc-gray-900': props.color === 'gray',
       }"
       class="h-full min-h-3 w-1.25 -ml-0.25"
       :style="rowColorInfo.rowLeftBorderColor"
@@ -97,7 +97,7 @@ const rowColorInfo = computed(() => {
 .plain-cell {
   line-height: 18px;
   .bold {
-    @apply !text-gray-800 font-bold;
+    @apply !text-nc-content-gray font-bold;
   }
 }
 </style>

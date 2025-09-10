@@ -230,7 +230,7 @@ const onDuplicateRow = () => {
   setTimeout(async () => {
     _row.value = newRow
     duplicatingRowInProgress.value = false
-    message.success(t('msg.success.rowDuplicatedWithoutSavedYet'))
+    message.toast(t('msg.success.rowDuplicatedWithoutSavedYet'))
   }, 500)
 }
 
@@ -542,9 +542,6 @@ const onConfirmDeleteRowClick = async () => {
   await deleteRowById(primaryKey.value || undefined)
 
   emits('deletedRecord')
-
-  message.success(t('msg.rowDeleted'))
-
   showDeleteRowModal.value = false
   onClose(true)
 

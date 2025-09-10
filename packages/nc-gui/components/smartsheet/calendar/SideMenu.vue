@@ -525,27 +525,8 @@ const selectOption = (option) => {
             <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex" :row="record">
               <LazySmartsheetCalendarSideRecordCard
                 :draggable="sideBarFilterOption === 'withoutDates' && activeCalendarView !== 'year'"
-                :from-date="
-                record.rowMeta.range?.fk_from_col
-                  ? calDataType === UITypes.Date
-                    ? timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM')
-                    : timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')
-                  : null
-              "
-                :invalid="
-                record.rowMeta.range!.fk_to_col &&
-                timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_from_col.title!]).isAfter(
-                  timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]),
-                )
-              "
                 :row="record"
-                :to-date="
-                record.rowMeta.range!.fk_to_col && dayjs(record.row[record.rowMeta.range!.fk_to_col.title!])?.isValid()
-                  ? calDataType === UITypes.Date
-                    ? timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM')
-                    : timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A')
-                  : null
-              "
+                :cal-data-type="calDataType"
                 data-testid="nc-sidebar-record-card"
                 @click="emit('expandRecord', record)"
                 @dragstart="dragStart($event, record)"

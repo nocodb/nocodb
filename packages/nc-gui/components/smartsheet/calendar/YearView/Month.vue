@@ -229,7 +229,7 @@ watch(activeDates, (newActiveDates) => {
 
 <template>
   <div>
-    <div class="flex justify-center px-2 nc-date-week-header text-gray-700 text-sm py-2 font-semibold items-center">
+    <div class="flex justify-center px-2 nc-date-week-header text-nc-content-gray-subtle text-sm py-2 font-semibold items-center">
       {{ currentMonthYear }}
     </div>
     <div
@@ -240,7 +240,7 @@ watch(activeDates, (newActiveDates) => {
       class="max-w-[320px]"
     >
       <div class="px-2.5">
-        <div class="flex border-b-1 justify-between gap-0.5 border-gray-200">
+        <div class="flex border-b-1 justify-between gap-0.5 border-nc-border-gray-medium">
           <span
             v-for="(day, index) in days"
             :key="index"
@@ -248,7 +248,7 @@ watch(activeDates, (newActiveDates) => {
               'w-8 h-8 text-sm': size === 'medium',
               'text-xs w-6 h-6': size === 'small',
             }"
-            class="flex items-center uppercase py-1 font-medium justify-center text-gray-500"
+            class="flex items-center uppercase py-1 font-medium justify-center text-nc-content-gray-muted"
             >{{ day[0] }}</span
           >
         </div>
@@ -264,15 +264,15 @@ watch(activeDates, (newActiveDates) => {
           v-for="(date, index) in dates"
           :key="index"
           :class="{
-            'bg-gray-300 border-1 !font-semibold': date.isSelectedAndIsInCurrentMonth,
-            'hover:(border-1 border-gray-200 bg-gray-100)': !date.isSelected,
-            'text-gray-400': !date.isDayInCurrentMonth,
-            'text-brand-500 !font-semibold nc-calendar-today': date.isTodayInCurrentMonth,
-            'text-gray-500': date.isWeekend,
+            'bg-nc-bg-gray-dark border-1 !font-semibold': date.isSelectedAndIsInCurrentMonth,
+            'hover:(border-1 border-nc-border-gray-medium bg-nc-bg-gray-light)': !date.isSelected,
+            'text-nc-content-gray-disabled': !date.isDayInCurrentMonth,
+            'text-nc-content-brand !font-semibold nc-calendar-today': date.isTodayInCurrentMonth,
+            'text-nc-content-gray-muted': date.isWeekend,
             'h-8 w-8 text-sm': size === 'medium',
             'h-6 w-6 text-xs': size === 'small',
           }"
-          class="px-1 py-1.5 relative rounded border-transparent transition border-1 font-medium flex text-gray-700 items-center cursor-pointer justify-center"
+          class="px-1 py-1.5 relative rounded border-transparent transition border-1 font-medium flex text-nc-content-gray-subtle items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
           :data-date="date.date.format('DD MMM YYYY')"
           @click="handleSelectDate(date.date)"
@@ -283,10 +283,10 @@ watch(activeDates, (newActiveDates) => {
             :class="{
               'h-1.25 w-1.25 top-0.5 right-0.5': size === 'small',
               'h-1.5 w-1.5 top-1 right-1': size === 'medium',
-              '!border-white': date.isDateSelected,
-              '!border-brand-50': date.isToday,
+              '!border-nc-base-white': date.isDateSelected,
+              '!border-nc-brand-50': date.isToday,
             }"
-            class="absolute z-2 transition border-1 rounded-full border-white bg-brand-500"
+            class="absolute z-2 transition border-1 rounded-full border-nc-base-white bg-nc-brand-500"
           ></span>
           <span class="z-2">
             {{ date.dayVal }}

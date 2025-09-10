@@ -179,16 +179,16 @@ const paginate = (action: 'next' | 'prev') => {
           </template>
         </NcTooltip>
 
-        <div v-if="isCellInputField" class="text-gray-700 text-sm font-semibold">
-          <span class="nc-month-picker-btn cursor-pointer hover:text-brand-500" @click="pickerType = 'month'">{{
+        <div v-if="isCellInputField" class="text-nc-content-gray-subtle text-sm font-semibold">
+          <span class="nc-month-picker-btn cursor-pointer hover:text-nc-content-brand" @click="pickerType = 'month'">{{
             currentMonth
           }}</span>
           {{ ' ' }}
-          <span class="nc-year-picker-btn cursor-pointer hover:text-brand-500" @click="pickerType = 'year'">{{
+          <span class="nc-year-picker-btn cursor-pointer hover:text-nc-content-brand" @click="pickerType = 'year'">{{
             currentYear
           }}</span>
         </div>
-        <span v-else class="text-gray-700 text-sm font-semibold">{{ currentMonthYear }}</span>
+        <span v-else class="text-nc-content-gray-subtle text-sm font-semibold">{{ currentMonthYear }}</span>
 
         <NcTooltip hide-on-click>
           <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="text" @click="paginate('next')">
@@ -200,7 +200,7 @@ const paginate = (action: 'next' | 'prev') => {
         </NcTooltip>
       </template>
       <template v-else>
-        <div class="text-gray-700 text-sm font-semibold">
+        <div class="text-nc-content-gray-subtle text-sm font-semibold">
           <span class="px-1 font-bold leading-6 text-sm text-nc-content-gray-subtle py-2">
             {{ currentMonthYear }}
           </span>
@@ -231,13 +231,13 @@ const paginate = (action: 'next' | 'prev') => {
         <div
           class="flex justify-between gap-1"
           :class="{
-            'border-b-1 border-gray-200 ': isCellInputField,
+            'border-b-1 border-nc-border-gray-medium ': isCellInputField,
           }"
         >
           <span
             v-for="(day, index) in days"
             :key="index"
-            class="flex w-8 h-8 items-center font-[400] justify-center text-gray-500"
+            class="flex w-8 h-8 items-center font-[400] justify-center text-nc-content-gray-muted"
             >{{ day }}</span
           >
         </div>
@@ -255,18 +255,20 @@ const paginate = (action: 'next' | 'prev') => {
           :class="{
             'rounded-lg': !isWeekPicker && !isCellInputField,
             'border-1 ': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date),
-            'bg-gray-200 !font-bold': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date) && !isCellInputField,
-            'bg-gray-300 !font-weight-600': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date) && isCellInputField,
-            'hover:(border-1 border-gray-200 bg-gray-100)': !isSelectedDate(date) && !isWeekPicker,
+            'bg-nc-bg-gray-medium !font-bold':
+              isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date) && !isCellInputField,
+            'bg-nc-bg-gray-dark !font-weight-600':
+              isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date) && isCellInputField,
+            'hover:(border-1 border-nc-border-gray-medium bg-nc-bg-gray-light)': !isSelectedDate(date) && !isWeekPicker,
             'nc-selected-week !font-semibold z-1': isDateInSelectedWeek(date) && isWeekPicker,
             'border-none': isWeekPicker,
             'border-transparent': !isWeekPicker,
-            'text-gray-400': !isDateInCurrentMonth(date),
+            'text-nc-content-gray-disabled': !isDateInCurrentMonth(date),
             'nc-selected-week-start': isSameDate(date, selectedWeek?.start),
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
-            'rounded-md text-brand-500 !font-semibold nc-calendar-today':
+            'rounded-md text-nc-content-brand !font-semibold nc-calendar-today':
               isSameDate(date, timezoneDayjs.dayjsTz()) && isDateInCurrentMonth(date),
-            'text-gray-500': date.get('day') === 0 || date.get('day') === 6,
+            'text-nc-content-gray-muted': date.get('day') === 0 || date.get('day') === 6,
             'nc-date-item font-weight-400': isCellInputField,
             'font-medium': !isCellInputField,
             'rounded': !isWeekPicker && isCellInputField,
@@ -279,10 +281,10 @@ const paginate = (action: 'next' | 'prev') => {
           <span
             v-if="isActiveDate(date)"
             :class="{
-              '!border-white': isSelectedDate(date),
-              '!border-brand-50': isSameDate(date, timezoneDayjs.dayjsTz()),
+              '!border-nc-base-white': isSelectedDate(date),
+              '!border-nc-brand-50': isSameDate(date, timezoneDayjs.dayjsTz()),
             }"
-            class="absolute top-1 transition right-1 h-1.5 w-1.5 z-2 border-1 rounded-full border-white bg-brand-500"
+            class="absolute top-1 transition right-1 h-1.5 w-1.5 z-2 border-1 rounded-full border-nc-base-white bg-nc-fill-primary"
           ></span>
           <span class="nc-date-item-inner z-2">
             {{ date.get('date') }}
@@ -323,7 +325,7 @@ const paginate = (action: 'next' | 'prev') => {
 }
 
 .nc-selected-week:before {
-  @apply absolute top-0 left-0 w-full h-full bg-gray-200;
+  @apply absolute top-0 left-0 w-full h-full bg-nc-bg-gray-medium;
   content: '';
   width: 134%;
   height: 100%;

@@ -1030,7 +1030,7 @@ const expandRecord = (record: Row) => {
           :class="{
             'selected-hour': hour.isSame(selectedTime),
           }"
-          class="flex w-full border-l-gray-100 h-13 transition nc-calendar-day-hour relative border-1 group hover:bg-nc-bg-gray-extralight border-nc-base-white border-b-nc-border-gray-light"
+          class="flex w-full border-l-nc-border-gray-light h-13 transition nc-calendar-day-hour relative border-1 group hover:bg-nc-bg-gray-extralight border-nc-base-white border-b-nc-border-gray-light"
           data-testid="nc-calendar-day-hour"
           @click="selectHour(hour)"
           @dblclick="newRecord(hour)"

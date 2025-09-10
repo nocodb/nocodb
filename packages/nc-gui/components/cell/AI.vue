@@ -160,10 +160,7 @@ const isDisabledAiButton = computed(() => {
         <div class="flex items-center gap-1">
           <GeneralLoader v-if="isLoading" size="regular" />
           <GeneralIcon v-else icon="ncAutoAwesome" class="h-4 w-4" />
-          <span
-            class="leading-[18px] truncate"
-            :class="{ 'text-sm font-semibold': isExpandedForm, 'text-small font-medium': !isExpandedForm }"
-          >
+          <span class="leading-[18px] truncate font-medium" :class="{ 'text-sm': isExpandedForm, 'text-small': !isExpandedForm }">
             Generate
           </span>
         </div>

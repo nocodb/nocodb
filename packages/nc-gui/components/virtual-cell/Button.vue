@@ -291,7 +291,7 @@ const triggerAction = async () => {
         />
         <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
         <NcTooltip v-if="column.colOptions.label" class="!truncate" show-on-truncate-only>
-          <span class="truncate" :class="{ 'text-sm font-semibold': isExpandedForm, 'text-[13px] font-medium': !isExpandedForm }">
+          <span class="truncate font-medium" :class="{ 'text-sm': isExpandedForm, 'text-[13px]': !isExpandedForm }">
             {{ column.colOptions.label }}
           </span>
           <template #title>

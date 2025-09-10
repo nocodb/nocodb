@@ -142,14 +142,16 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       integrations.value = list
 
-      integrations.value.unshift({
-        id: 'nc-data-reflection',
-        title: 'NocoDB',
-        sub_type: SyncDataType.NOCODB,
-        type: IntegrationsType.Database,
-        fk_workspace_id: activeWorkspaceId.value,
-        source_count: basesList.value.length,
-      })
+      if (searchCompare('nocodb', searchQuery.value)) {
+        integrations.value.unshift({
+          id: 'nc-data-reflection',
+          title: 'NocoDB',
+          sub_type: SyncDataType.NOCODB,
+          type: IntegrationsType.Database,
+          fk_workspace_id: activeWorkspaceId.value,
+          source_count: basesList.value.length,
+        })
+      }
 
       if (!type) {
         integrationPaginationData.value.totalRows = list.filter((i) => ![IntegrationsType.Sync].includes(i.type)).length || 0

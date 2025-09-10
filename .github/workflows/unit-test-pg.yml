@@ -9,6 +9,11 @@ on:
         type: string
   # Triggered manually
   workflow_dispatch:
+    inputs:
+      test_set:
+        description: 'Test set number'
+        required: true
+        type: string
 
 jobs:
   unit-tests-pg:

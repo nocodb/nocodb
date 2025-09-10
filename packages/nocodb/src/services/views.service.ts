@@ -246,6 +246,8 @@ export class ViewsService {
       owner,
     });
 
+    await result.getView(context);
+
     NocoSocket.broadcastEvent(
       context,
       {

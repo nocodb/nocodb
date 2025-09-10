@@ -15,6 +15,7 @@ import {
   NcApiVersion,
   ncIsNull,
   ncIsUndefined,
+  parseProp,
   partialUpdateAllowedTypes,
   ProjectRoles,
   readonlyMetaAllowedTypes,
@@ -1463,7 +1464,7 @@ export class ColumnsService implements IColumnsService {
 
           // Update kanban stack meta when column options are modified
           if (colBody.colOptions?.options) {
-            const stackMetaObj = parseMetaProp(kanbanView.meta) || {};
+            const stackMetaObj = parseProp(kanbanView.meta) || {};
 
             if (!stackMetaObj[column.id]) {
               stackMetaObj[column.id] = [];

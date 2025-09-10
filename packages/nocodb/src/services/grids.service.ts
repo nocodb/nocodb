@@ -109,12 +109,7 @@ export class GridsService {
     }
 
     const oldGridView = await GridView.get(context, param.viewId, ncMeta);
-    await GridView.update(
-      context,
-      param.viewId,
-      param.grid,
-      ncMeta,
-    );
+    await GridView.update(context, param.viewId, param.grid, ncMeta);
 
     let owner = param.req.user;
 
@@ -144,7 +139,6 @@ export class GridsService {
       },
       context.socket_id,
     );
-
     return view;
   }
 }

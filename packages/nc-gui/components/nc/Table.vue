@@ -271,7 +271,9 @@ watch(
               class="nc-table-header-cell"
               :class="[
                 `${headerCellClassName}`,
+                `${col.headerCellClassName ?? ''}`,
                 `nc-table-header-cell-${index}`,
+                `nc-table-header-cell-${col.key}`,
                 {
                   '!hover:bg-nc-bg-gray-light select-none cursor-pointer': col.showOrderBy,
                   'cursor-not-allowed': col.showOrderBy && !data?.length,
@@ -341,7 +343,9 @@ watch(
                 class="nc-table-cell"
                 :class="[
                   `${bodyCellClassName}`,
+                  `${col.bodyCellClassName ?? ''}`,
                   `nc-table-cell-${recordIndex}`,
+                  `nc-table-cell-${col.key}`,
                   {
                     'flex-1': !col.width && !col.basis,
                   },

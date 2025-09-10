@@ -347,6 +347,8 @@ interface NcTableColumnProps<T extends object = Record<string, any>> {
   // name can be used as value, which will be used to display in header if title is absent and in data-test-id
   name?: string
   format?: (value: any, record: T) => any
+  bodyCellClassName?: string
+  headerCellClassName?: string
   [key: string]: any
 }
 

@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "আনলিমিটেড ওয়েবহুক যোগ করতে আপগ্রেড করুন",
     "upgradeToAddWebhookSubtitle": "{activePlan} প্ল্যানে সর্বোচ্চ {limit}টি ওয়েবহুক অনুমোদিত। আনলিমিটেড ওয়েবহুকের জন্য {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToAccessWebhookLogsSubtitle": "আপনার ওয়ার্কস্পেসকে {plan} প্ল্যানে আপগ্রেড করে ওয়েবহুক লগ অ্যাক্সেস করুন।",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "ফর্মের মালিককে জানানো হয়েছে",
     "formOwnerNotifiedSubtitle": "আপনার জমা অনুরোধ সম্পর্কে ফর্মের মালিককে জানানো হয়েছে।",
     "WorkspaceOwnerNotified": "ওয়ার্কস্পেস মালিককে জানানো হয়েছে",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "বেস ডুপ্লিকেশন সফল",
     "duplicateBaseFailed": "বেস ডুপ্লিকেশন ব্যর্থ",
     "duplicateBaseMessage": "আপনি শুধু সেই ওয়ার্কস্পেসে বেস ডুপ্লিকেট করতে পারেন যেখানে আপনার ক্রিয়েটর অথবা তার উপরের অনুমতি রয়েছে।",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "আপনি শুধুমাত্র সেই ওয়ার্কস্পেসে রিস্টোর করতে পারেন যেখানে আপনার ক্রিয়েটর অথবা তার উপরের অনুমতি রয়েছে।",
     "currentWorkspace": "বর্তমান ওয়ার্কস্পেস",
     "currentBase": "বর্তমান বেস",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "আপগ্রেডের জন্য আপনার পেমেন্ট প্রক্রিয়াকরণ সম্পন্ন হয়েছে। এখন আপনি আপনার নতুন প্ল্যান ব্যবহার করতে পারেন।",
       "mcpUrlCopied": "MCP URL ক্লিপবোর্ডে অনুলিপি করা হয়েছে",
       "nlookupFieldsCreatedSuccessfully": "{n}টি লুকআপ ফিল্ড সফলভাবে তৈরি হয়েছে",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n}টি লুকআপ ফিল্ড সফলভাবে তৈরি হয়েছে"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n}টি লুকআপ ফিল্ড সফলভাবে তৈরি হয়েছে",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "শূন্য থেকে শুরু করুন।",

@@ -495,24 +495,23 @@ export class MetaService {
    * Get order value for the next record
    * @param target - Table name
    * @param condition - Condition to be applied
+   * @param xcCondition - Additional nested or complex condition to be added to the query.
    * @returns {Promise<number>} - Order value
    * */
   public async metaGetNextOrder(
     target: string,
     condition: { [key: string]: any },
+    xcCondition?: Condition,
   ): Promise<number> {
     const query = this.knexConnection(target);
 
-    if (!condition) {
-      condition = {};
+    if (condition) {
+      query.where(condition);
     }
-    Object.entries(condition).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        query.whereIn(key, value);
-      } else {
-        query.where(key, value);
-      }
-    });
+
+    if (xcCondition) {
+      (query as any).condition(xcCondition);
+    }
 
     query.max('order', { as: 'order' });
 

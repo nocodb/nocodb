@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "असीमित वेबहुकहरू थप्न अपग्रेड गर्नुहोस्",
     "upgradeToAddWebhookSubtitle": "{activePlan} योजनाले अधिकतम {limit} वेबहुकहरू अनुमति दिन्छ। असीमित वेबहुक पहुँचका लागि {plan} योजना मा अपग्रेड गर्नुहोस्।",
     "upgradeToAccessWebhookLogsSubtitle": "तपाईंको कार्यस्थानलाई {plan} योजना मा अपग्रेड गरेर वेबहुक लगहरू पहुँच गर्नुहोस्।",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "फारम मालिकलाई सूचना पठाइयो",
     "formOwnerNotifiedSubtitle": "हामीले तपाईंको पेशा अनुरोधबारे फारम मालिकलाई सूचना दिएका छौँ।",
     "WorkspaceOwnerNotified": "वर्कस्पेस मालिकलाई सूचना पठाइयो",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "बेस नक्कल सफल",
     "duplicateBaseFailed": "बेस नक्कल असफल",
     "duplicateBaseMessage": "तपाईंले सिर्जनाकर्ता पहुँच वा सो भन्दा माथि भएको कार्यक्षेत्रमा मात्र बेसहरू नक्कल गर्न सक्नुहुन्छ।",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "तपाईंले सिर्जनाकर्ता पहुँच वा सो भन्दा माथि भएको कार्यक्षेत्रमा मात्र पुनर्स्थापना गर्न सक्नुहुन्छ।",
     "currentWorkspace": "हालको कार्यक्षेत्र",
     "currentBase": "हालको बेस",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "अपग्रेडका लागि तपाईंको भुक्तानी प्रशोधन भयो। अब तपाईं नयाँ योजना प्रयोग गर्न सक्नुहुन्छ।",
       "mcpUrlCopied": "MCP URL क्लिपबोर्डमा कपी गरियो",
       "nlookupFieldsCreatedSuccessfully": "{n} लुकअप फिल्ड सफलतापूर्वक सिर्जना भयो",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} लुकअप फिल्डहरू सफलतापूर्वक सिर्जना भए"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} लुकअप फिल्डहरू सफलतापूर्वक सिर्जना भए",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "शून्यबाट सुरु गर्नुहोस्।",

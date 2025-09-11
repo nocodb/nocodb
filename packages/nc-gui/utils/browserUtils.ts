@@ -204,20 +204,3 @@ export const removeQueryParamsFromURL = (keysToRemove: string[]) => {
 
 // Feature detection.
 export const supportsKeyboardLock = 'keyboard' in navigator && navigator.keyboard && 'lock' in (navigator.keyboard as any)
-
-/**
- * Iframe fullscreen support config
- */
-export const ncIframeFullscreenSupportConfig = {
-  // Call toggle from top level window
-  toggle: (ncAllowFullscreen: boolean) => {
-    if (!window || ncIsIframe()) return
-    ;(window as any).ncAllowFullscreen = ncAllowFullscreen
-  },
-  // Check iframe fullscreen enabled or not from iframe
-  get: () => {
-    if (!window || !ncIsIframe()) return true
-
-    return (window as any).top?.ncAllowFullscreen
-  },
-}

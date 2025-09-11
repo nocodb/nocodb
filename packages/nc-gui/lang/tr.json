@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Sınırsız webhook eklemek için yükseltin",
     "upgradeToAddWebhookSubtitle": "{activePlan} planı en fazla {limit} webhook'a izin verir. Sınırsız webhook erişimi için {plan} planına yükseltin.",
     "upgradeToAccessWebhookLogsSubtitle": "Çalışma alanınızı {plan} planına yükselterek webhook günlüklerine erişin.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Form sahibi bilgilendirildi",
     "formOwnerNotifiedSubtitle": "Gönderim talebiniz hakkında form sahibini bilgilendirdik.",
     "WorkspaceOwnerNotified": "Çalışma alanı sahibi bilgilendirildi",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Taban Çoğaltma Başarılı",
     "duplicateBaseFailed": "Taban Çoğaltma Başarısız",
     "duplicateBaseMessage": "Tabanları yalnızca oluşturucu veya üzeri erişiminiz olan çalışma alanlarına çoğaltabilirsiniz.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Yalnızca oluşturucu veya üzeri erişiminiz olan çalışma alanlarına geri yükleyebilirsiniz.",
     "currentWorkspace": "Geçerli çalışma alanı",
     "currentBase": "Mevcut taban",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Yükseltme ödemeniz işlendi. Artık yeni planınızı kullanabilirsiniz.",
       "mcpUrlCopied": "MCP URL panoya kopyalandı",
       "nlookupFieldsCreatedSuccessfully": "{n} Arama alanı başarıyla oluşturuldu",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Arama alanı başarıyla oluşturuldu"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Arama alanı başarıyla oluşturuldu",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Sıfırdan başlayın.",

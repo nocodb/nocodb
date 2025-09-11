@@ -213,7 +213,7 @@ async function onOpenModal({
 }
 
 .plus {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 </style>
 

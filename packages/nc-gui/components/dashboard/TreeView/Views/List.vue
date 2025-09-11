@@ -418,8 +418,8 @@ const filteredViews = computed(() => {
       >
         <div
           :class="{
-            'text-brand-500 hover:text-brand-600': activeTableId === table.id,
-            'text-gray-500 hover:text-brand-500': activeTableId !== table.id,
+            'text-nc-content-brand hover:text-nc-content-brand-disabled': activeTableId === table.id,
+            'text-nc-content-gray-muted hover:text-nc-content-brand': activeTableId !== table.id,
           }"
           class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
           role="button"
@@ -443,7 +443,7 @@ const filteredViews = computed(() => {
         :id="view.id"
         :key="view.id"
         :class="{
-          'bg-gray-200': isMarked === view.id,
+          'bg-nc-bg-gray-medium': isMarked === view.id,
           'active': activeView?.id === view.id,
           [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
         }"
@@ -488,7 +488,7 @@ const filteredViews = computed(() => {
   }
 
   .sortable-chosen {
-    @apply !bg-gray-200;
+    @apply !bg-nc-bg-gray-medium;
   }
 
   .active {

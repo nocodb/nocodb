@@ -458,7 +458,7 @@ watch(isProjectsLoaded, () => {
                 v-model:is-open="isCreateProjectOpen"
                 modal
                 type="text"
-                class="nc-sidebar-create-base-btn nc-project-home-section-item !text-brand-500 !hover:(text-brand-600 bg-none) !xs:hidden w-full"
+                class="nc-sidebar-create-base-btn nc-project-home-section-item !text-nc-content-brand !hover:(text-nc-content-brand-disabled bg-none) !xs:hidden w-full"
                 data-testid="nc-sidebar-create-base-btn"
               >
               </WorkspaceCreateProjectBtn>
@@ -572,6 +572,6 @@ watch(isProjectsLoaded, () => {
 }
 
 :deep(.nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default) {
-  @apply hover:bg-brand-50 pl-[15px];
+  @apply hover:bg-nc-bg-brand pl-[15px];
 }
 </style>

@@ -151,8 +151,8 @@ const filteredAvailableTables = computed(() => {
       <div
         v-if="!availableTables.length && showCreateTableBtn"
         :class="{
-          'text-brand-500 hover:text-brand-600': openedProject?.id === base.id,
-          'text-gray-500 hover:text-brand-500': openedProject?.id !== base.id,
+          'text-nc-content-brand hover:text-nc-content-brand-disabled': openedProject?.id === baseId,
+          'text-nc-content-gray-muted hover:text-nc-content-brand': openedProject?.id !== baseId,
         }"
         class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full"
         role="button"
@@ -172,7 +172,7 @@ const filteredAvailableTables = computed(() => {
 
       <div
         v-if="!availableTables.length || !filteredAvailableTables.length"
-        class="py-0.5 text-gray-500 font-normal"
+        class="py-0.5 text-nc-content-gray-muted font-normal"
         :class="{
           'nc-project-home-section-item': sourceIndex === 0,
           'ml-9 xs:(ml-9.75)': sourceIndex !== 0,

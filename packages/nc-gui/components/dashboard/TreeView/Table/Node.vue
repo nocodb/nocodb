@@ -452,9 +452,9 @@ async function onRename() {
     <div class="flex items-center py-0.5">
       <div
         v-e="['a:table:open']"
-        class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-gray-200"
+        class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-nc-bg-gray-medium"
         :class="{
-          'hover:bg-gray-200': openedTableId !== table.id,
+          'hover:bg-nc-bg-gray-medium': openedTableId !== table.id,
           'pl-8 !xs:(pl-7)': sourceIndex !== 0,
           'pl-2 xs:(pl-2)': sourceIndex === 0,
           '!bg-primary-selected': isTableOpened,
@@ -465,7 +465,7 @@ async function onRename() {
       >
         <div class="flex flex-row h-full items-center">
           <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
-            <GeneralLoader v-if="table.isViewsLoading" class="flex items-center w-6 h-full !text-gray-600" />
+            <GeneralLoader v-if="table.isViewsLoading" class="flex items-center w-6 h-full !text-nc-content-gray-subtle2" />
             <div
               v-else
               v-e="['c:table:emoji-picker']"
@@ -492,17 +492,21 @@ async function onRename() {
                       :is="iconMap.ncZap"
                       v-if="table?.synced"
                       class="w-4 text-sm"
-                      :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'"
+                      :class="isTableOpened ? '!text-nc-content-brand-disabled/85' : '!text-nc-content-gray-subtle2/75'"
                     />
 
                     <component
                       :is="iconMap.table"
                       v-else-if="table.type === 'table'"
                       class="w-4 text-sm"
-                      :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'"
+                      :class="isTableOpened ? '!text-nc-content-brand-disabled/85' : '!text-nc-content-gray-subtle2/75'"
                     />
 
-                    <MdiEye v-else class="flex w-5 text-sm" :class="isTableOpened ? '!text-brand-600' : '!text-gray-600'" />
+                    <MdiEye
+                      v-else
+                      class="flex w-5 text-sm"
+                      :class="isTableOpened ? '!text-nc-content-brand-disabled' : '!text-nc-content-gray-subtle2'"
+                    />
                   </NcTooltip>
                 </template>
               </LazyGeneralEmojiPicker>
@@ -515,7 +519,7 @@ async function onRename() {
             v-model:value="formState.title"
             class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
             :class="{
-              '!font-semibold !text-brand-600': isTableOpened,
+              '!font-semibold !text-nc-content-brand-disabled': isTableOpened,
             }"
             :style="{
               fontWeight: 'inherit',
@@ -531,7 +535,7 @@ async function onRename() {
         >
           <template #title>{{ table.title }}</template>
           <span
-            :class="isTableOpened ? 'text-brand-600 font-semibold' : 'text-gray-700'"
+            :class="isTableOpened ? 'text-nc-content-brand-disabled font-semibold' : 'text-nc-content-gray-subtle'"
             :data-testid="`nc-tbl-title-${table.title}`"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             @dblclick.stop="onRenameMenuClick(table)"
@@ -553,7 +557,7 @@ async function onRename() {
           <NcDropdown v-model:visible="isOptionsOpen" :trigger="['click']" @click.stop>
             <NcButton
               v-e="['c:table:option']"
-              class="nc-sidebar-node-btn nc-tbl-context-menu text-gray-700 hover:text-gray-800"
+              class="nc-sidebar-node-btn nc-tbl-context-menu text-nc-content-gray-subtle hover:text-nc-content-gray"
               :class="{
                 '!opacity-100 !inline-block': isOptionsOpen,
               }"
@@ -723,7 +727,7 @@ async function onRename() {
             v-e="['c:table:toggle-expand']"
             type="text"
             size="xxsmall"
-            class="nc-sidebar-node-btn nc-sidebar-expand text-gray-700 hover:text-gray-800"
+            class="nc-sidebar-node-btn nc-sidebar-expand text-nc-content-gray-subtle2 hover:text-nc-content-gray"
             :class="{
               '!opacity-100 !visible': isOptionsOpen,
             }"

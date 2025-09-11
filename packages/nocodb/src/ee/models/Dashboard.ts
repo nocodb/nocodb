@@ -145,9 +145,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
         fk_workspace_id: context.workspace_id,
       },
       {
-        source_id: {
-          in: sources,
-        },
+        _or: [{ source_id: { in: sources } }, { source_id: { eq: null } }],
       },
     );
 

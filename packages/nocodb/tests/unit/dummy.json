@@ -1,3 +1,4 @@
 {
-  "test": "JIRA"
+  "test": "JIRA",
+  "url": "https://your-domain.atlassian.net"
 }

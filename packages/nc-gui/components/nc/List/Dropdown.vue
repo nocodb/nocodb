@@ -10,6 +10,7 @@ interface Props {
    */
   defaultSlotWrapperClass?: string
   disabled?: boolean
+  showAsDisabled?: boolean
   borderOnHover?: boolean
   hasError?: boolean
 }
@@ -19,11 +20,14 @@ const props = withDefaults(defineProps<Props>(), {
   defaultSlotWrapper: true,
   defaultSlotWrapperClass: '',
   disabled: false,
+  showAsDisabled: true,
   borderOnHover: false,
   hasError: false,
 })
 
 const emits = defineEmits(['update:isOpen'])
+
+const { disabled } = toRefs(props)
 
 // Controlled or uncontrolled pattern:
 const isControlled = computed(() => props.isOpen !== undefined)
@@ -50,20 +54,43 @@ const onEsc = (_e: KeyboardEvent) => {
     triggerRef.value?.focus()
   })
 }
+
+const onEnter = (e: KeyboardEvent) => {
+  if (disabled.value || vModelIsOpen.value) return
+
+  e.preventDefault()
+  e.stopPropagation()
+
+  vModelIsOpen.value = true
+}
+
+/**
+ * On close dropdown it's important to focus the trigger element so that tabbing works as expected
+ */
+watch(vModelIsOpen, (newVal) => {
+  if (newVal) return
+
+  nextTick(() => {
+    triggerRef.value?.focus()
+  })
+})
 </script>
 
 <template>
   <NcDropdown v-model:visible="vModelIsOpen" :disabled="disabled">
     <div
       v-if="defaultSlotWrapper"
-      class="border-1 rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none"
+      tabindex="0"
+      class="nc-list-dropdown-wrapper border-1 rounded-lg h-8 px-3 py-1 flex items-center justify-between transition-all select-none outline-none"
       :class="[
         defaultSlotWrapperClass,
         {
-          'cursor-pointer': !disabled,
+          'nc-has-error': hasError,
+          'cursor-not-allowed bg-nc-bg-gray-light text-nc-content-gray-muted children:opacity-60': disabled && showAsDisabled,
+          'cursor-pointer text-nc-content-gray': !disabled,
           'border-brand-500 shadow-selected': vModelIsOpen && !disabled && !hasError,
           'border-error shadow-error': vModelIsOpen && !disabled && hasError,
-          'shadow-default hover:shadow-hover': !vModelIsOpen && !disabled && !borderOnHover,
+          'nc-list-dropdown-wrapper-default-state': !vModelIsOpen && !disabled && !borderOnHover,
           'hover:(border-brand-500 shadow-selected)': vModelIsOpen && !disabled && borderOnHover,
           'hover:(shadow-default hover:shadow-hover)': !vModelIsOpen && !disabled && borderOnHover,
           'border-transparent hover:(border-nc-gray-medium)': (borderOnHover || vModelIsOpen) && !disabled,
@@ -71,6 +98,7 @@ const onEsc = (_e: KeyboardEvent) => {
           'border-error': !borderOnHover && hasError,
         },
       ]"
+      @keydown.enter.exact="onEnter"
     >
       <button
         ref="triggerRef"
@@ -97,3 +125,29 @@ const onEsc = (_e: KeyboardEvent) => {
     </template>
   </NcDropdown>
 </template>
+
+<style scoped lang="scss">
+.nc-list-dropdown-wrapper {
+  &.nc-list-dropdown-wrapper-default-state {
+    @apply shadow-default;
+
+    &:not(:focus-visible):not(:focus-within):not(:focus) {
+      @apply hover:shadow-hover;
+    }
+
+    &:focus-visible,
+    &:focus-within,
+    &:focus {
+      @apply outline-none;
+
+      &:not(.nc-has-error) {
+        @apply border-brand-500 shadow-selected;
+      }
+
+      &.nc-has-error {
+        @apply border-error shadow-error;
+      }
+    }
+  }
+}
+</style>

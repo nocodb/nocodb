@@ -8,29 +8,23 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import {
-  appendToLength,
-  AppendToLengthSuffix,
-  AppEvents,
-  ProjectStatus,
-  readonlyMetaAllowedTypes,
-  SqlUiFactory,
-} from 'nocodb-sdk';
-import { GlobalGuard } from '~/guards/global/global.guard';
-import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { BasesService } from '~/services/bases.service';
-import { Base, Column, Model, Source } from '~/models';
-import { generateUniqueName } from '~/helpers/exportImportHelpers';
-import { JobTypes } from '~/interface/Jobs';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { AppEvents, ProjectStatus, readonlyMetaAllowedTypes } from 'nocodb-sdk';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { NcContext, NcRequest } from '~/interface/config';
-import { MetaTable, RootScopes } from '~/utils/globals';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcError } from '~/helpers/catchError';
+import { generateUniqueName } from '~/helpers/exportImportHelpers';
+import { NcContext, NcRequest } from '~/interface/config';
+import { JobTypes } from '~/interface/Jobs';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Base, Column, Model, Source } from '~/models';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { DuplicateService } from '~/modules/jobs/jobs/export-import/duplicate.service';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { DuplicateService } from '~/modules/jobs/jobs/export-import/duplicate.service';
+import { BasesService } from '~/services/bases.service';
+import { DuplicateModelUtils } from '~/utils/duplicate-model.utils';
+import { MetaTable, RootScopes } from '~/utils/globals';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -173,24 +167,22 @@ export class DuplicateController {
         excludeData?: boolean;
         excludeViews?: boolean;
         excludeHooks?: boolean;
+        targetWorkspaceId?: string;
+        targetBaseId?: string;
       };
     },
   ) {
-    const base = await Base.get(context, baseId);
-
-    if (!base) {
-      throw new Error(`Base not found for id '${baseId}'`);
-    }
-
-    const model = await Model.get(context, modelId);
-
-    if (!model) {
-      throw new Error(`Model not found!`);
-    }
+    const { sourceBase, sourceModel, sourceSource, targetSource, uniqueTitle } =
+      await DuplicateModelUtils._.getDuplicateModelTaskInfo({
+        baseId,
+        body,
+        context,
+        modelId,
+      });
 
     const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
     this.appHooksService.emit(AppEvents.TABLE_DUPLICATE_START, {
-      sourceTable: model,
+      sourceTable: sourceModel,
       user: req.user,
       req,
       context,
@@ -200,34 +192,13 @@ export class DuplicateController {
     });
     req.ncParentAuditId = parentAuditId;
 
-    const source = await Source.get(context, model.source_id);
-
-    // if data/schema is readonly, then restrict duplication
-    if (source.is_schema_readonly) {
-      NcError.sourceMetaReadOnly(source.alias);
-    }
-    if (source.is_data_readonly) {
-      NcError.sourceDataReadOnly(source.alias);
-    }
-
-    const models = await source.getModels(context);
-    const tableNameLengthLimit = SqlUiFactory.create({
-      client: source.type,
-    }).tableNameLengthLimit;
-    const uniqueTitle = await appendToLength({
-      value: body.title ?? model.title,
-      appendage: body.title ? '' : ' copy',
-      isExists: async (needle) => models.some((k) => k.title === needle),
-      maxLength: tableNameLengthLimit,
-      suffix: AppendToLengthSuffix._,
-    });
-
     const job = await this.jobsService.add(JobTypes.DuplicateModel, {
       context,
       user: req.user,
-      baseId: base.id,
-      sourceId: source.id,
-      modelId: model.id,
+      baseId: sourceBase.id,
+      sourceId: sourceSource.id,
+      targetSourceId: targetSource.id,
+      modelId: sourceModel.id,
       title: uniqueTitle,
       options: body.options || {},
       req: {

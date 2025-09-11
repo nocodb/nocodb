@@ -158,6 +158,8 @@ const isNewAttachmentModalOpen = ref(false)
             :allow-selection="true"
             :allow-rename="!isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)"
             :allow-delete="!readOnly"
+            :icon-height="72"
+            :icon-width="72"
             @clicked="onClick(item)"
           />
           <div v-if="isLoading" class="flex flex-col gap-1">

@@ -13,6 +13,8 @@ const props = withDefaults(
     previewClassOverride?: string
     renameInline?: boolean
     confirmToDelete?: boolean
+    iconWidth?: number
+    iconHeight?: number
   }>(),
   {
     selected: false,
@@ -108,6 +110,8 @@ const handleFileDeleteStart = () => {
         :class="previewClassOverride ? `${previewClassOverride}` : ''"
         object-fit="contain"
         class="!w-full !m-0 rounded-t-[5px] justify-center"
+        :icon-height="iconHeight"
+        :icon-width="iconWidth"
       />
     </div>
 

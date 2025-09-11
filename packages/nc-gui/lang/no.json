@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Oppgrader for å legge til ubegrensede webhooks",
     "upgradeToAddWebhookSubtitle": "Planen {activePlan} tillater opptil {limit} webhooks. Oppgrader til {plan}-planen for å få tilgang til ubegrensede webhooks.",
     "upgradeToAccessWebhookLogsSubtitle": "Få tilgang til webhook-loggene ved å oppgradere arbeidsområdet ditt til {plan}-planen.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Skjemaeier varslet",
     "formOwnerNotifiedSubtitle": "Vi har varslet skjemaeieren om innsendingen din.",
     "WorkspaceOwnerNotified": "Arbeidsområdeeier varslet",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Duplisering av prosjekt var vellykket",
     "duplicateBaseFailed": "Duplisering av prosjekt feilet",
     "duplicateBaseMessage": "Du kan bare duplisere prosjekter til arbeidsområder der du har skaperrettigheter eller høyere.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Du kan bare gjenopprette til arbeidsområder der du har skaperrettigheter eller høyere.",
     "currentWorkspace": "Gjeldende arbeidsområde",
     "currentBase": "Nåværende base",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Betalingen for oppgraderingen er behandlet. Du kan nå bruke den nye planen.",
       "mcpUrlCopied": "MCP-URL kopiert til utklippstavlen",
       "nlookupFieldsCreatedSuccessfully": "{n} oppslagsfelt opprettet",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} oppslagsfelt opprettet"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} oppslagsfelt opprettet",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Start fra bunnen av.",

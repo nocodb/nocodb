@@ -620,7 +620,7 @@ async function onRename() {
                     :data-testid="`sidebar-table-duplicate-${table.title}`"
                     @click="duplicateTable(table)"
                   >
-                    <div v-e="['c:table:duplicate']" class="flex gap-2 items-center">
+                    <div v-e="['c:table:duplicate']" class="flex-1 flex gap-2 items-center">
                       <GeneralIcon icon="duplicate" class="opacity-80" />
                       {{ $t('general.duplicate') }} {{ $t('objects.table').toLowerCase() }}
                     </div>

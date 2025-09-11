@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Upgrade to add unlimited webhooks",
     "upgradeToAddWebhookSubtitle": "The {activePlan} plan allows up to {limit} webhooks. Upgrade to the {plan} plan and get access to unlimited webhooks.",
     "upgradeToAccessWebhookLogsSubtitle": "Access webhook logs by upgrading your workspace to the {plan} plan.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Form creator notified",
     "formOwnerNotifiedSubtitle": "We've notified the form creator about your submission request.",
     "WorkspaceOwnerNotified": "Workspace owner notified",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Base Duplication Successfull",
     "duplicateBaseFailed": "Base Duplication Failed",
     "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
     "currentWorkspace": "Current workspace",
     "currentBase": "Current base",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan.",
       "mcpUrlCopied": "MCP URL copied to clipboard",
       "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

@@ -148,6 +148,7 @@ const handleClickDropdown = (e: MouseEvent) => {
           :default-slot-wrapper-class="`${!readonly ? 'w-[165px]' : removeReadonlyPadding ? '!px-0 !border-0' : '!border-0'}`"
           :placement="placement"
           :disabled="readonly"
+          :show-as-disabled="false"
           :border-on-hover="borderOnHover"
           @click="handleClickDropdown"
         >

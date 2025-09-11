@@ -26,6 +26,8 @@ const { dataReflectionState, dataReflectionText } = toRefs(props)
 
 const base = inject(ProjectInj)!
 
+const baseRole = inject(ProjectRoleInj)!
+
 const { appInfo } = useGlobal()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
@@ -34,7 +36,7 @@ const { isUIAllowed } = useRoles()
 
 const isOptionVisible = computed(() => {
   return {
-    baseDuplicate: isUIAllowed('baseDuplicate', { roles: base.value.project_role || base.value.workspace_role }),
+    baseDuplicate: isUIAllowed('baseDuplicate', { roles: baseRole.value }),
     dataReflection:
       isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
       isUIAllowed('createConnectionDetails') &&
@@ -42,7 +44,7 @@ const isOptionVisible = computed(() => {
     baseOptions:
       (base.value?.sources?.[0]?.enabled || (base.value?.sources || []).length > 1) &&
       props.showBaseOption(base.value.sources[0]),
-    baseDelete: isUIAllowed('baseDelete', { roles: base.value.project_role || base.value.workspace_role }),
+    baseDelete: isUIAllowed('baseDelete', { roles: baseRole.value }),
   }
 })
 </script>

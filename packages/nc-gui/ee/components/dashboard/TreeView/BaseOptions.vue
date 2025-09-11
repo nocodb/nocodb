@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { BaseType, SourceType } from 'nocodb-sdk'
+import { extractBaseRoleFromWorkspaceRole, type BaseType, type SourceType } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -31,7 +31,7 @@ const base = useVModel(props, 'base', emits)
 
 const { isUIAllowed } = useRoles()
 
-const baseRole = computed(() => base.value?.project_role || base.value?.workspace_role)
+const baseRole = computed(() => base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role))
 
 const { $e } = useNuxtApp()
 

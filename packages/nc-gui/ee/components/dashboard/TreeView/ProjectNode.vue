@@ -32,6 +32,8 @@ const { isMobileMode, user } = useGlobal()
 
 const base = inject(ProjectInj)!
 
+const baseRole = inject(ProjectRoleInj)!
+
 // For starred base we will have seperate isExpanded state
 const isExpanded = computed<boolean>({
   get: () => {
@@ -719,7 +721,10 @@ defineExpose({
 
                 <NcButton
                   v-if="
-                    isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source: base?.sources?.[0] })
+                    isUIAllowed('tableCreate', {
+                      roles: baseRole,
+                      source: base?.sources?.[0],
+                    })
                   "
                   :disabled="!base?.sources?.[0]?.enabled && base?.sources?.length === 1"
                   class="nc-sidebar-node-btn"

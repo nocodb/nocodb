@@ -97,10 +97,6 @@ const rolePermissions = {
     include: {
       baseCreate: true,
       baseDuplicate: true,
-      tableCreate: true,
-      tableRename: true,
-      tableDelete: true,
-      viewCreateOrEdit: true,
       baseReorder: true,
       airtableImport: true,
       jsonImport: true,

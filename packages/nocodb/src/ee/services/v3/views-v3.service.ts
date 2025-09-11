@@ -1,9 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  isCreatedOrLastModifiedByCol,
+  isOrderCol,
+  isSystemColumn,
   ncIsNullOrUndefined,
   parseProp,
+  RelationTypes,
   RowHeight,
   RowHeightMap,
+  UITypes,
   viewTypeAlias,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -12,7 +17,16 @@ import type { RowColoringInfo, ViewCreateV3Type } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { ApiV3DataTransformationBuilder } from '~/utils/data-transformation.builder';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { Column, GridViewColumn } from '~/models';
+import type {
+  CalendarViewColumn,
+  Column,
+  FormViewColumn,
+  GalleryViewColumn,
+  GridViewColumn,
+  KanbanViewColumn,
+  LinksColumn,
+  MapViewColumn,
+} from '~/models';
 import { handleFieldsRequestBody } from '~/services/v3/view-v3/fields.helper';
 import { ViewRowColorV3Service } from '~/services/v3/view-row-color-v3.service';
 import { GridsService } from '~/services/grids.service';
@@ -49,6 +63,72 @@ const viewTypeMap = {
   calendar: ViewTypes.CALENDAR,
   form: ViewTypes.FORM,
   ...viewTypeAlias,
+};
+
+const filterResponseFields = async (
+  context: NcContext,
+  param: {
+    view: View;
+    viewColumns: (
+      | GridViewColumn
+      | FormViewColumn
+      | GalleryViewColumn
+      | KanbanViewColumn
+      | MapViewColumn
+      | CalendarViewColumn
+    )[];
+  },
+  ncMeta?: MetaService,
+) => {
+  const model = await Model.getByAliasOrId(
+    context,
+    {
+      base_id: param.view.base_id,
+      aliasOrId: param.view.fk_model_id,
+    },
+    ncMeta,
+  );
+  const modelColumns = await Promise.all(
+    (
+      await model.getColumns(context, ncMeta)
+    ).map(async (col) => {
+      if (col.uidt === UITypes.LinkToAnotherRecord) {
+        await col.getColOptions(context, ncMeta);
+      }
+      return col;
+    }),
+  );
+  const modelColumnMap: Record<string, Column> = modelColumns.reduce(
+    (acc, cur) => {
+      acc[cur.id] = cur;
+      return acc;
+    },
+    {},
+  );
+  return param.viewColumns.filter((vCol) => {
+    if (!modelColumnMap[vCol.fk_column_id]) {
+      return false;
+    }
+    const col = modelColumnMap[vCol.fk_column_id];
+    // remove _nc_mm_ field
+    if (
+      col.uidt === UITypes.LinkToAnotherRecord &&
+      col.system &&
+      (col.colOptions as LinksColumn).type === RelationTypes.HAS_MANY
+    ) {
+      return false;
+    }
+    if (isOrderCol(col) && col.system) {
+      return false;
+    }
+    if (isCreatedOrLastModifiedByCol(col) && col.system) {
+      return false;
+    }
+    if (!param.view.show_system_fields && isSystemColumn(col)) {
+      return false;
+    }
+    return true;
+  });
 };
 
 @Injectable()
@@ -508,8 +588,12 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       }
     }
 
-    const viewColumnList = await View.getColumns(context, view.id, ncMeta);
-
+    let viewColumnList = await View.getColumns(context, view.id, ncMeta);
+    viewColumnList = await filterResponseFields(
+      context,
+      { view, viewColumns: viewColumnList },
+      ncMeta,
+    );
     formattedView.fields = viewColumnBuilder().build(
       viewColumnList.sort((a, b) => a.order - b.order),
     );

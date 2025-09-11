@@ -125,9 +125,6 @@ export default {
             :disabled="(!isAllowedAddNewRecord && isNew) || (changedColumns.size === 0 && !isUnsavedFormExist)"
             :loading="isSaving"
             class="nc-expand-form-save-btn !xs:(text-sm) !px-2"
-            :class="{
-              '!h-7': !isMobileMode,
-            }"
             data-testid="nc-expanded-form-save"
             type="primary"
             :size="isMobileMode ? 'small' : 'xsmall'"

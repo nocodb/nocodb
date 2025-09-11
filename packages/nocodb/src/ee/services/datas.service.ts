@@ -32,6 +32,7 @@ export class DatasService extends DatasServiceCE {
       apiVersion?: NcApiVersion;
       includeSortAndFilterColumns?: boolean;
       includeRowColorColumns?: boolean;
+      skipSortBasedOnOrderCol?: boolean;
     },
   ) {
     let { model, view: _view } = param as { view?: View; model?: Model };

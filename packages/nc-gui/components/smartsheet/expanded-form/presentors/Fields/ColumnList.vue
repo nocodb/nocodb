@@ -192,12 +192,16 @@ const revertLocalOnlyChanges = (col: string) => {
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
     @apply !shadow-selected;
   }
-  :deep(.nc-qrcode-container) {
-    height: 100%;
-  }
-  :deep(.nc-multi-select) {
-    > div {
-      margin-top: 3px;
+
+  :deep(.nc-lookup-cell) {
+    .nc-qrcode-container {
+      height: 100%;
+    }
+
+    .nc-multi-select {
+      > div {
+        margin-top: 3px;
+      }
     }
   }
   &:has(.nc-virtual-cell-qrcode .nc-qrcode-container),

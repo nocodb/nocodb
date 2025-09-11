@@ -271,6 +271,11 @@ export class KanbansService {
       newStackMeta.push(uncategorizedStack);
 
       // Process each column option, preserving existing order when possible
+      let currentMaxOrder = Math.max(
+        ...existingStacks.map((s) => s.order || 0),
+        0,
+      );
+
       for (const option of colOptions.options) {
         const existingStack = existingStacks.find(
           (stack) => stack.id === option.id,
@@ -285,13 +290,10 @@ export class KanbansService {
           });
         } else {
           // Add new stack for new option - assign next available order
-          const maxOrder = Math.max(
-            ...existingStacks.map((s) => s.order || 0),
-            0,
-          );
+          currentMaxOrder += 1; // Increment for each new item
           newStackMeta.push({
             ...option,
-            order: maxOrder + 1, // Assign next order for new items
+            order: currentMaxOrder,
             collapsed: false,
           });
         }

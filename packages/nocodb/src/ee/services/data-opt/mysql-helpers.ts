@@ -1622,10 +1622,10 @@ export async function singleQueryList(
   if (orderColumn) {
     rootQb.orderBy(orderColumn.column_name);
   }
-// Ensure stable ordering:
-// - Use auto-increment PK if available
-// - Otherwise, fallback to system CreatedTime
-// This avoids issues when order column has duplicates
+  // Ensure stable ordering:
+  // - Use auto-increment PK if available
+  // - Otherwise, fallback to system CreatedTime
+  // This avoids issues when order column has duplicates
   if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
     rootQb.orderBy(ctx.model.primaryKey.column_name);
   } else {
@@ -1696,10 +1696,10 @@ export async function singleQueryList(
     qb.orderBy(orderColumn.column_name);
   }
 
-// Ensure stable ordering:
-// - Use auto-increment PK if available
-// - Otherwise, fallback to system CreatedTime
-// This avoids issues when order column has duplicates
+  // Ensure stable ordering:
+  // - Use auto-increment PK if available
+  // - Otherwise, fallback to system CreatedTime
+  // This avoids issues when order column has duplicates
   if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
     qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
   } else if (ctx.model.columns.find((c) => c.column_name === 'created_at')) {

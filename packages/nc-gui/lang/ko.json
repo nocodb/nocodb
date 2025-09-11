@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "무제한 웹훅을 추가하도록 업그레이드",
     "upgradeToAddWebhookSubtitle": "{activePlan} 플랜은 최대 {limit}개의 웹훅을 허용합니다. {plan} 플랜으로 업그레이드하고 무제한 웹훅에 액세스하세요.",
     "upgradeToAccessWebhookLogsSubtitle": "작업 영역을 {plan} 플랜으로 업그레이드하여 웹훅 로그에 액세스합니다.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "양식 작성자에게 알림",
     "formOwnerNotifiedSubtitle": "귀하의 제출 요청에 대해 양식 생성자에게 알렸습니다.",
     "WorkspaceOwnerNotified": "작업공간 소유자 알림",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "기본 복제 성공",
     "duplicateBaseFailed": "기본 복제 실패",
     "duplicateBaseMessage": "작성자 액세스 권한이 있는 작업 공간 이상에만 베이스를 복제할 수 있습니다.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Creator 액세스 권한이 있는 작업 영역 이상으로만 복원할 수 있습니다.",
     "currentWorkspace": "현재 작업공간",
     "currentBase": "현재 베이스",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "업그레이드에 대한 결제가 처리되었습니다. 이제 새 요금제를 사용할 수 있습니다.",
       "mcpUrlCopied": "MCP URL이 클립보드에 복사됨",
       "nlookupFieldsCreatedSuccessfully": "{n} 조회 필드가 성공적으로 생성되었습니다.",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} 조회 필드가 성공적으로 생성되었습니다."
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} 조회 필드가 성공적으로 생성되었습니다.",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "처음부터 시작하세요.",

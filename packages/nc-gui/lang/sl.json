@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Nadgradite za dodajanje neomejenih webhookov",
     "upgradeToAddWebhookSubtitle": "Načrt {activePlan} omogoča do {limit} webhookov. Nadgradite na načrt {plan} za neomejene webhooke.",
     "upgradeToAccessWebhookLogsSubtitle": "Dostopajte do dnevnikov webhookov tako, da delovni prostor nadgradite na načrt {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Lastnik obrazca obveščen",
     "formOwnerNotifiedSubtitle": "Lastnika obrazca smo obvestili o vaši zahtevi za oddajo.",
     "WorkspaceOwnerNotified": "Lastnik delovnega prostora obveščen",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Podvajanje baze uspešno",
     "duplicateBaseFailed": "Podvajanje baze ni uspelo",
     "duplicateBaseMessage": "Baze lahko podvojite le v delovne prostore, kjer imate dovoljenja ustvarjalca ali višja.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Obnovitev je možna samo v delovnih prostorih, kjer imate dovoljenja ustvarjalca ali višja.",
     "currentWorkspace": "Trenutni delovni prostor",
     "currentBase": "Trenutna baza",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Vaše plačilo za nadgradnjo je bilo obdelano. Zdaj lahko uporabljate svoj novi načrt.",
       "mcpUrlCopied": "MCP URL je bil kopiran v odložišče",
       "nlookupFieldsCreatedSuccessfully": "{n} polje za iskanje je bilo uspešno ustvarjeno",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} polji za iskanje sta bili uspešno ustvarjeni"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} polji za iskanje sta bili uspešno ustvarjeni",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Začni iz nič.",

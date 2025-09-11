@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "अनलिमिटेड वेबहुक्स जोड़ने के लिए अपग्रेड करें",
     "upgradeToAddWebhookSubtitle": "{activePlan} प्लान में अधिकतम {limit} वेबहुक्स की अनुमति है। अनलिमिटेड वेबहुक्स पाने के लिए {plan} प्लान में अपग्रेड करें।",
     "upgradeToAccessWebhookLogsSubtitle": "{plan} प्लान में वर्कस्पेस को अपग्रेड करके वेबहुक लॉग्स तक पहुँचें।",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "फ़ॉर्म मालिक को सूचित किया गया",
     "formOwnerNotifiedSubtitle": "आपके सबमिशन अनुरोध के बारे में हमने फ़ॉर्म मालिक को सूचित कर दिया है।",
     "WorkspaceOwnerNotified": "वर्कस्पेस मालिक को सूचित किया गया",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "बेस डुप्लिकेशन सफल",
     "duplicateBaseFailed": "बेस डुप्लिकेशन विफल",
     "duplicateBaseMessage": "आप केवल उन्ही वर्कस्पेस में बेस डुप्लिकेट कर सकते हैं, जहाँ आपके पास क्रिएटर एक्सेस या उससे ऊपर है।",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "आप केवल उन्ही वर्कस्पेस में पुनर्स्थापित कर सकते हैं, जहाँ आपके पास क्रिएटर एक्सेस या उससे ऊपर है।",
     "currentWorkspace": "वर्तमान वर्कस्पेस",
     "currentBase": "वर्तमान बेस",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "अपग्रेड के लिए आपका भुगतान प्रोसेस हो गया है। अब आप अपना नया प्लान उपयोग कर सकते हैं।",
       "mcpUrlCopied": "MCP URL क्लिपबोर्ड में कॉपी किया गया",
       "nlookupFieldsCreatedSuccessfully": "{n} लुकअप फ़ील्ड सफलतापूर्वक बनाया गया",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} लुकअप फ़ील्ड्स सफलतापूर्वक बनाए गए"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} लुकअप फ़ील्ड्स सफलतापूर्वक बनाए गए",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "शुरुआत से शुरू करें।",

@@ -72,7 +72,7 @@ const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, is
 
 const showAllAttachments = ref(false)
 
-const { width: sortableRefWidth } = useElementBounding(sortableRef)
+const { width: sortableRefWidth } = useElementSize(sortableRef)
 
 const maxVisibleCards = computed(() => {
   // min of total visible items and max cards per row * 2

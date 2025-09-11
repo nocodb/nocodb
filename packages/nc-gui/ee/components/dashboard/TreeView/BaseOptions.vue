@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { extractBaseRoleFromWorkspaceRole, type BaseType, type SourceType } from 'nocodb-sdk'
+import { type BaseType, type SourceType, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{

@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Tingkatkan untuk menambahkan webhook tak terbatas",
     "upgradeToAddWebhookSubtitle": "Paket {activePlan} memungkinkan hingga {limit} webhook. Tingkatkan ke paket {plan} untuk mendapatkan akses ke webhook tak terbatas.",
     "upgradeToAccessWebhookLogsSubtitle": "Akses log webhook dengan meningkatkan ruang kerja Anda ke paket {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Pemilik formulir telah diberitahu",
     "formOwnerNotifiedSubtitle": "Kami telah memberi tahu pemilik formulir tentang permintaan pengiriman Anda.",
     "WorkspaceOwnerNotified": "Pemilik ruang kerja telah diberitahu",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Duplikasi Basis Berhasil",
     "duplicateBaseFailed": "Duplikasi Basis Gagal",
     "duplicateBaseMessage": "Anda hanya dapat menduplikasi basis ke workspace di mana Anda memiliki akses kreator atau lebih tinggi.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Anda hanya dapat memulihkan ke workspace di mana Anda memiliki akses kreator atau lebih tinggi.",
     "currentWorkspace": "Workspace saat ini",
     "currentBase": "Basis saat ini",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Pembayaran Anda untuk peningkatan telah diproses. Anda sekarang dapat menggunakan paket baru Anda.",
       "mcpUrlCopied": "URL MCP disalin ke papan klip",
       "nlookupFieldsCreatedSuccessfully": "{n} field Lookup berhasil dibuat",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} field Lookup berhasil dibuat"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} field Lookup berhasil dibuat",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Mulai dari awal.",

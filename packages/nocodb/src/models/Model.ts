@@ -44,18 +44,20 @@ import { isEE } from '~/utils';
 
 const logger = new Logger('Model');
 
-const modelOrViewXcCondition = [
-  {
-    type: {
-      eq: ModelTypes.TABLE,
+const modelOrViewXcCondition = {
+  _or: [
+    {
+      type: {
+        eq: ModelTypes.TABLE,
+      },
     },
-  },
-  {
-    type: {
-      eq: ModelTypes.VIEW,
+    {
+      type: {
+        eq: ModelTypes.VIEW,
+      },
     },
-  },
-];
+  ],
+};
 
 export default class Model implements TableType {
   copy_enabled: BoolType;
@@ -335,9 +337,7 @@ export default class Model implements TableType {
             order: 'asc',
           },
           ...(source_id ? { condition: { source_id } } : {}),
-          xcCondition: {
-            _or: modelOrViewXcCondition,
-          },
+          xcCondition: modelOrViewXcCondition,
         },
       );
 
@@ -389,9 +389,7 @@ export default class Model implements TableType {
         context.base_id,
         MetaTable.MODELS,
         {
-          xcCondition: {
-            _or: modelOrViewXcCondition,
-          },
+          xcCondition: modelOrViewXcCondition,
         },
       );
 
@@ -424,9 +422,7 @@ export default class Model implements TableType {
         MetaTable.MODELS,
         id,
         undefined,
-        {
-          _or: modelOrViewXcCondition,
-        },
+        modelOrViewXcCondition,
       );
 
       if (modelData) {
@@ -464,9 +460,7 @@ export default class Model implements TableType {
         MetaTable.MODELS,
         k,
         undefined,
-        {
-          _or: modelOrViewXcCondition,
-        },
+        modelOrViewXcCondition,
       );
       if (modelData) {
         modelData.meta = parseMetaProp(modelData);
@@ -1107,9 +1101,7 @@ export default class Model implements TableType {
             null,
             {
               _and: [
-                {
-                  _or: modelOrViewXcCondition,
-                },
+                modelOrViewXcCondition,
                 {
                   _or: [
                     {
@@ -1135,9 +1127,7 @@ export default class Model implements TableType {
             null,
             {
               _and: [
-                {
-                  _or: modelOrViewXcCondition,
-                },
+                modelOrViewXcCondition,
                 {
                   _or: [
                     {
@@ -1185,7 +1175,7 @@ export default class Model implements TableType {
       {
         _and: [
           {
-            _or: modelOrViewXcCondition,
+            ...modelOrViewXcCondition,
             ...(exclude_id
               ? {
                   id: {
@@ -1220,7 +1210,7 @@ export default class Model implements TableType {
       {
         _and: [
           {
-            _or: modelOrViewXcCondition,
+            ...modelOrViewXcCondition,
             ...(exclude_id
               ? {
                   id: {
@@ -1265,9 +1255,7 @@ export default class Model implements TableType {
       MetaTable.MODELS,
       prepareForDb(updateObj),
       tableId,
-      {
-        _or: modelOrViewXcCondition,
-      },
+      modelOrViewXcCondition,
     );
 
     await NocoCache.update(

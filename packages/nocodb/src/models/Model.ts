@@ -218,11 +218,6 @@ export default class Model implements TableType {
     const condition: Record<string, any> = {
       base_id: baseId,
     };
-    const source = await Source.get(context, sourceId, false, ncMeta);
-
-    if (!source?.isMeta()) {
-      condition.source_id = sourceId;
-    }
 
     if (isEE) {
       condition.fk_workspace_id = context.workspace_id;
@@ -232,6 +227,20 @@ export default class Model implements TableType {
       insertObj.order = await ncMeta.metaGetNextOrder(
         MetaTable.MODELS,
         condition,
+        {
+          _or: [
+            {
+              source_id: {
+                eq: sourceId, // Match the given source_id
+              },
+            },
+            {
+              source_id: {
+                eq: null, // Also include records with null source_id
+              },
+            },
+          ],
+        },
       );
     }
 

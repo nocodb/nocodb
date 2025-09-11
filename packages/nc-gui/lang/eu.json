@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Igoera egin webhook mugagabeak gehitzeko",
     "upgradeToAddWebhookSubtitle": "{activePlan} planak gehienez {limit} webhook baimentzen ditu. {plan} planera igota, webhook mugagabeak izango dituzu.",
     "upgradeToAccessWebhookLogsSubtitle": "Webhook erregistroetara sartzeko, igo zure lan-espazioa {plan} planeraino.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Inprimakiaren jabea jakinarazita",
     "formOwnerNotifiedSubtitle": "Zure bidalketa-eskaeraren berri eman diogu inprimakiaren jabeari.",
     "WorkspaceOwnerNotified": "Lan-espazioko jabea jakinarazita",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Basea arrakastaz bikoiztuta",
     "duplicateBaseFailed": "Basea bikoizteak huts egin du",
     "duplicateBaseMessage": "Baseak soilik sortzaile baimena edo handiagoa duzun workspace-etan bikoiztu ditzakezu.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Soilik sortzaile baimena edo handiagoa duzun workspace-etan berreskuratu dezakezu.",
     "currentWorkspace": "Uneko workspace-a",
     "currentBase": "Uneko oinarria",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Igoerarako zure ordainketa prozesatu da. Orain zure plan berria erabil dezakezu.",
       "mcpUrlCopied": "MCP URLa arbelean kopiatu da",
       "nlookupFieldsCreatedSuccessfully": "{n} lookup eremu ongi sortu da",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} lookup eremuak ongi sortu dira"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} lookup eremuak ongi sortu dira",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Hasi hutsetik.",

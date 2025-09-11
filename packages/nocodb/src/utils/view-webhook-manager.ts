@@ -149,7 +149,7 @@ export class ViewWebhookManager {
   }
 
   getViewId() {
-    return this.params.oldView?.id ?? this.params.newView?.id;
+    return (this.params.oldView?.id ?? this.params.newView?.id) as string;
   }
 
   emit() {

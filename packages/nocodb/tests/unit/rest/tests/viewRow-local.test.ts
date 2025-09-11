@@ -6,10 +6,10 @@ import request from 'supertest';
 import { createProject } from '../../factory/base';
 import { createColumn, createLtarColumn } from '../../factory/column';
 import { createChildRow, createRow, getRow } from '../../factory/row';
-import { createTable } from '../../factory/table';
+import { createTable, getTable } from '../../factory/table';
 import { createView } from '../../factory/view';
 import init from '../../init';
-import { initCustomerTable } from './viewRowInit';
+import { initCustomerTable, initFilmTable } from './viewRowInit';
 import type View from '../../../../src/models/View';
 import type Base from '~/models/Base';
 import type { Model } from '~/models';
@@ -21,10 +21,15 @@ let ctx: {
 // bases
 let base: Base;
 let customerTable: Model;
+let filmTable: Model;
+let filmColumns;
+
 // views
 let customerGridView: View;
 let customerGalleryView: View;
 let customerFormView: View;
+// use film table because it has single select field
+let filmKanbanView: View;
 
 function viewRowLocalStaticTests() {
   beforeEach(async function () {
@@ -52,6 +57,18 @@ function viewRowLocalStaticTests() {
       type: ViewTypes.FORM,
     });
 
+    const _filmTable = await initFilmTable(context, base);
+    filmTable = await getTable({
+      base: base,
+      name: _filmTable.table_name,
+    });
+    filmColumns = await filmTable.getColumns(ctx);
+    filmKanbanView = await createView(context, {
+      title: 'Film Kanban',
+      table: filmTable,
+      type: ViewTypes.KANBAN,
+    });
+
     console.timeEnd('#### viewRowLocalTests');
   });
 
@@ -70,33 +87,33 @@ function viewRowLocalStaticTests() {
     }
   };
 
-  // const testGetViewRowListKanban = async (view: View) => {
-  //   const ratingColumn = filmColumns.find((c) => c.column_name === 'rating');
+  const testGetViewRowListKanban = async (view: View) => {
+    const ratingColumn = filmColumns.find((c) => c.column_name === 'rating');
 
-  //   const response = await request(context.app)
-  //     .get(
-  //       `/api/v1/db/data/noco/${base.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
-  //     )
-  //     .set('xc-auth', context.token)
-  //     .expect(200);
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
 
-  //   expect(response.body).to.be.an('array');
-  //   // PG, R, NC-17, G, PG-17, null (uncategorized)
-  //   expect(response.body).to.be.have.length(6);
-  //   expect(response.body[0]).to.have.property('key');
-  //   expect(response.body[0]).to.have.property('value');
-  //   expect(response.body[0])
-  //     .to.have.property('value')
-  //     .and.to.be.an('object')
-  //     .and.to.have.property('list')
-  //     .and.to.be.an('array');
-  //   expect(response.body[0]).to.have.property('key').and.to.be.a('string');
-  //   expect(response.body[0].value)
-  //     .to.have.property('pageInfo')
-  //     .and.to.be.an('object')
-  //     .and.to.have.property('totalRows')
-  //     .and.to.be.a('number');
-  // };
+    expect(response.body).to.be.an('array');
+    // PG, R, NC-17, G, PG-17, null (uncategorized)
+    expect(response.body).to.be.have.length(6);
+    expect(response.body[0]).to.have.property('key');
+    expect(response.body[0]).to.have.property('value');
+    expect(response.body[0])
+      .to.have.property('value')
+      .and.to.be.an('object')
+      .and.to.have.property('list')
+      .and.to.be.an('array');
+    expect(response.body[0]).to.have.property('key').and.to.be.a('string');
+    expect(response.body[0].value)
+      .to.have.property('pageInfo')
+      .and.to.be.an('object')
+      .and.to.have.property('totalRows')
+      .and.to.be.a('number');
+  };
 
   // const testGetViewRowListCalendar = async (view: View) => {
   //   const response = await request(context.app)
@@ -114,9 +131,9 @@ function viewRowLocalStaticTests() {
   it('Get view row list gallery', async () => {
     await testGetViewRowList(customerGalleryView);
   });
-  // it('Get view row list kanban', async () => {
-  //   await testGetViewRowListKanban(filmKanbanView);
-  // });
+  it('Get view row list kanban', async () => {
+    await testGetViewRowListKanban(filmKanbanView);
+  });
   it('Get view row list form', async () => {
     await testGetViewRowList(customerFormView);
   });

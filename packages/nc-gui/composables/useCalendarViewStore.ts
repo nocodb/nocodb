@@ -1,15 +1,14 @@
 import type { ComputedRef, Ref } from 'vue'
 import { EventType, FormulaDataTypes, UITypes, isSystemColumn, isVirtualCol, workerWithTimezone } from 'nocodb-sdk'
 import type {
-  type Api,
-  type CalendarRangeType,
-  type CalendarType,
-  type ColumnType,
-  CommentPayload,
+  Api,
+  CalendarRangeType,
+  CalendarType,
+  ColumnType,
+  PaginatedType,
+  TableType,
+  ViewType,
   DataPayload,
-  type PaginatedType,
-  type TableType,
-  type ViewType,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 

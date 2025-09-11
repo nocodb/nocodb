@@ -53,9 +53,11 @@ const [searchActive] = useToggle()
 
 const base = inject(ProjectInj)!
 
+const baseRole = inject(ProjectRoleInj)!
+
 const hasTableCreatePermission = computed(() => {
   return isUIAllowed('tableCreate', {
-    roles: base.value.project_role || base.value.workspace_role,
+    roles: baseRole.value,
     source: base.value?.sources?.[0],
   })
 })
@@ -424,7 +426,7 @@ onKeyStroke('Escape', () => {
                           </NcDropdown>
 
                           <NcButton
-                            v-if="isUIAllowed('tableCreate', { roles: base.project_role || base.workspace_role, source })"
+                            v-if="isUIAllowed('tableCreate', { roles: baseRole, source })"
                             type="text"
                             size="xxsmall"
                             class="nc-sidebar-node-btn"

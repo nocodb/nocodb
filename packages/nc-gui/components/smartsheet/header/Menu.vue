@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { isColumnInvalid } from '#imports'
 import type { ColumnType } from 'nocodb-sdk'
+import { isColumnInvalid } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean }>()
 

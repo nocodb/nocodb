@@ -235,7 +235,7 @@ export const ButtonCellRenderer: CellRenderer = {
     return true
   },
 
-  async handleHover({ column, getCellPosition, row, mousePosition, t, cellRenderStore }) {
+  async handleHover({ column, getCellPosition, row, mousePosition, cellRenderStore }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
 
@@ -245,8 +245,6 @@ export const ButtonCellRenderer: CellRenderer = {
     const ignoreTooltip = column?.isInvalidColumn?.ignoreTooltip
 
     if (!cellRenderStore.invalidUrlTooltip && (!isInvalid || ignoreTooltip)) return
-
-    const { aiIntegrations } = useNocoAi()
 
     const colOptions = column.columnObj?.colOptions as ButtonType
 

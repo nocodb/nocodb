@@ -740,20 +740,6 @@ export default class Model implements TableType {
       context.base_id,
       MetaTable.MODELS,
       this.id,
-      {
-        _or: [
-          {
-            type: {
-              eq: ModelTypes.TABLE,
-            },
-          },
-          {
-            type: {
-              eq: ModelTypes.VIEW,
-            },
-          },
-        ],
-      },
     );
 
     // delete alias cache

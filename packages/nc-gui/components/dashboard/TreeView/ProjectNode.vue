@@ -11,7 +11,7 @@ const props = withDefaults(defineProps<Props>(), {})
 const { isProjectHeader } = toRefs(props)
 
 const indicator = h(LoadingOutlined, {
-  class: '!text-gray-400',
+  class: '!text-nc-content-gray-disabled',
   style: {
     fontSize: '0.85rem',
   },
@@ -465,17 +465,19 @@ defineExpose({
           <div class="flex flex-col gap-3">
             <div class="text-small leading-[18px] mb-1">{{ base.title }}</div>
             <div v-if="currentUserRole">
-              <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('title.yourBaseRole') }}</div>
+              <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">
+                {{ $t('title.yourBaseRole') }}
+              </div>
               <div
                 class="text-xs font-medium flex items-start gap-2 flex items-center gap-1"
                 :class="{
-                  'text-purple-200': RoleColors[currentUserRole] === 'purple',
-                  'text-blue-200': RoleColors[currentUserRole] === 'blue',
-                  'text-green-200': RoleColors[currentUserRole] === 'green',
-                  'text-orange-200': RoleColors[currentUserRole] === 'orange',
-                  'text-yellow-200': RoleColors[currentUserRole] === 'yellow',
-                  'text-red-200': RoleColors[currentUserRole] === 'red',
-                  'text-maroon-200': RoleColors[currentUserRole] === 'maroon',
+                  'text-nc-purple-200': RoleColors[currentUserRole] === 'purple',
+                  'text-nc-blue-200': RoleColors[currentUserRole] === 'blue',
+                  'text-nc-green-200': RoleColors[currentUserRole] === 'green',
+                  'text-nc-orange-200': RoleColors[currentUserRole] === 'orange',
+                  'text-nc-yellow-200': RoleColors[currentUserRole] === 'yellow',
+                  'text-nc-red-200': RoleColors[currentUserRole] === 'red',
+                  'text-nc-maroon-200': RoleColors[currentUserRole] === 'maroon',
                 }"
               >
                 <GeneralIcon :icon="RoleIcons[currentUserRole]" class="w-4 h-4" />
@@ -500,7 +502,7 @@ defineExpose({
               'bg-nc-bg-gray-medium': isProjectHeader && isProjectNodeContextMenuOpen,
               'h-7 pr-1 pl-2.5 xs:(pl-0) flex-grow w-full': !isProjectHeader,
               'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode && !isProjectHeader,
-              'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen) && !isProjectHeader,
+              'hover:bg-nc-bg-gray-medium': !(activeProjectId === base.id && baseViewOpen) && !isProjectHeader,
             }"
             :data-id="base.id"
             :data-testid="`nc-sidebar-base-title-${base.title}`"
@@ -542,8 +544,8 @@ defineExpose({
               class="capitalize !bg-transparent !flex-1 mr-4 !rounded-md !pr-1.5 !h-6 animate-sidebar-node-input-padding"
               :class="
                 activeProjectId === base.id && baseViewOpen && !isProjectHeader
-                  ? '!text-brand-600 !font-semibold'
-                  : '!text-gray-700'
+                  ? '!text-nc-content-brand-disabled !font-semibold'
+                  : '!text-nc-content-gray-subtle'
               "
               :style="{
                 fontWeight: 'inherit',
@@ -561,8 +563,8 @@ defineExpose({
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
               :class="[
                 activeProjectId === base.id && baseViewOpen && !isProjectHeader
-                  ? 'text-brand-600 font-semibold'
-                  : 'text-gray-700',
+                  ? 'text-nc-content-gray-subtle2 font-semibold'
+                  : 'text-nc-content-gray-subtle',
                 {
                   'flex-1': !isProjectHeader,
                 },
@@ -585,7 +587,7 @@ defineExpose({
                   <NcButton
                     v-e="['c:base:options']"
                     class="nc-sidebar-node-btn"
-                    :class="{ '!text-black !opacity-100 !inline-block': isOptionsOpen }"
+                    :class="{ '!text-nc-content-gray-extreme !opacity-100 !inline-block': isOptionsOpen }"
                     data-testid="nc-sidebar-context-menu"
                     type="text"
                     :size="isProjectHeader ? 'small' : 'xxsmall'"
@@ -624,7 +626,7 @@ defineExpose({
                   type="text"
                   data-testid="nc-sidebar-add-base-entity"
                   :class="{
-                    '!text-black !inline-block !opacity-100': isAddNewProjectChildEntityLoading,
+                    '!text-nc-content-gray-extreme !inline-block !opacity-100': isAddNewProjectChildEntityLoading,
                     '!inline-block !opacity-100': isOptionsOpen,
                   }"
                   :loading="isAddNewProjectChildEntityLoading"
@@ -758,10 +760,10 @@ defineExpose({
 
 <style lang="scss" scoped>
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-7.5 h-7 !xs:(pl-6 h-[3rem]) !pr-0.5 !py-0 hover:bg-gray-200 xs:(hover:bg-gray-50) !rounded-md;
+  @apply !mx-0 !pl-7.5 h-7 !xs:(pl-6 h-[3rem]) !pr-0.5 !py-0 hover:bg-nc-bg-gray-medium xs:(hover:bg-nc-bg-gray-extra-light) !rounded-md;
 
   .ant-collapse-arrow {
-    @apply !right-1 !xs:(flex-none border-1 border-gray-200 w-6.5 h-6.5 mr-1);
+    @apply !right-1 !xs:(flex-none border-1 border-nc-border-gray-medium w-6.5 h-6.5 mr-1);
   }
 }
 

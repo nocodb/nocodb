@@ -225,6 +225,7 @@ export class DatasService {
       apiVersion?: NcApiVersion;
       includeSortAndFilterColumns?: boolean;
       includeRowColorColumns?: boolean;
+      skipSortBasedOnOrderCol?: boolean;
     },
   ) {
     const {
@@ -233,6 +234,7 @@ export class DatasService {
       query = {},
       ignoreViewFilterAndSort = false,
       includeSortAndFilterColumns = false,
+      skipSortBasedOnOrderCol = false,
       apiVersion,
     } = param;
 
@@ -287,6 +289,7 @@ export class DatasService {
                 skipSubstitutingColumnIds:
                   context.api_version === NcApiVersion.V3 &&
                   query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+                skipSortBasedOnOrderCol,
               },
             ),
             {},

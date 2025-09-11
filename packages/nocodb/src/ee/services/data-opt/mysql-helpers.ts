@@ -1454,6 +1454,7 @@ export async function singleQueryList(
     apiVersion?: NcApiVersion;
     includeSortAndFilterColumns?: boolean;
     skipPaginateWrapper?: boolean;
+    skipSortBasedOnOrderCol?: boolean;
   },
 ): Promise<
   PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
@@ -1617,10 +1618,13 @@ export async function singleQueryList(
 
   const orderColumn = columns.find((c) => isOrderCol(c));
 
-  // apply sort on root query
-  if (sorts?.length) await sortV2(baseModel, sorts, rootQb);
-  if (orderColumn) {
-    rootQb.orderBy(orderColumn.column_name);
+  // apply sort on root query only if not skipped
+  if (!ctx.skipSortBasedOnOrderCol) {
+    // apply sort on root query
+    if (sorts?.length) await sortV2(baseModel, sorts, rootQb);
+    if (orderColumn) {
+      rootQb.orderBy(orderColumn.column_name);
+    }
   }
   // Ensure stable ordering:
   // - Use auto-increment PK if available
@@ -1690,10 +1694,13 @@ export async function singleQueryList(
     }
   }
 
-  // apply the sort on final query to get the result in correct order
-  if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
-  if (orderColumn) {
-    qb.orderBy(orderColumn.column_name);
+  // apply sort on root query only if not skipped
+  if (!ctx.skipSortBasedOnOrderCol) {
+    // apply the sort on final query to get the result in correct order
+    if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
+    if (orderColumn) {
+      qb.orderBy(orderColumn.column_name);
+    }
   }
 
   // Ensure stable ordering:

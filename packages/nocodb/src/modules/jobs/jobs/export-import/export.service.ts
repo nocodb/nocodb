@@ -1127,6 +1127,7 @@ export class ExportService {
           baseModel,
           ignoreViewFilterAndSort: !dataExportMode,
           limitOverride: limit,
+          skipSortBasedOnOrderCol: true,
         })
         .then((result) => {
           if (result.list.length === 0 && offset === 0) {
@@ -1228,6 +1229,7 @@ export class ExportService {
           ignoreViewFilterAndSort: true,
           limitOverride: limit,
           apiVersion: NcApiVersion.V1,
+          skipSortBasedOnOrderCol: true,
         })
         .then((result) => {
           try {

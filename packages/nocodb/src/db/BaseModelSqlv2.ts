@@ -430,6 +430,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       throwErrorIfInvalidParams?: boolean;
       limitOverride?: number;
       skipSubstitutingColumnIds?: boolean;
+      skipSortBasedOnOrderCol?: boolean;
     } = {},
   ): Promise<any> {
     const {
@@ -438,6 +439,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       validateFormula = false,
       throwErrorIfInvalidParams = false,
       limitOverride,
+      skipSortBasedOnOrderCol = false,
     } = options;
 
     const columns = await this.model.getColumns(this.context);
@@ -549,11 +551,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await sortV2(this, sorts, qb, undefined, throwErrorIfInvalidParams);
     }
 
-    const orderColumn = columns.find((c) => isOrderCol(c));
+    // skip sorting based on order column if specified in options
+    if (!skipSortBasedOnOrderCol) {
+      const orderColumn = columns.find((c) => isOrderCol(c));
 
-    // sort by order column if present
-    if (orderColumn) {
-      qb.orderBy(orderColumn.column_name);
+      // sort by order column if present
+      if (orderColumn) {
+        qb.orderBy(orderColumn.column_name);
+      }
     }
 
     // Ensure stable ordering:

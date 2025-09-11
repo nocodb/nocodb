@@ -124,6 +124,7 @@ export class DatasService extends DatasServiceCE {
         getHiddenColumns: param.getHiddenColumns,
         apiVersion: param.apiVersion,
         includeSortAndFilterColumns: param.includeSortAndFilterColumns,
+        skipSortBasedOnOrderCol: param.skipSortBasedOnOrderCol,
       });
     } else {
       responseData = await this.getDataList(context, {
@@ -138,6 +139,7 @@ export class DatasService extends DatasServiceCE {
         getHiddenColumns: param.getHiddenColumns,
         apiVersion: param.apiVersion,
         includeSortAndFilterColumns: param.includeSortAndFilterColumns,
+        skipSortBasedOnOrderCol: param.skipSortBasedOnOrderCol,
       });
     }
 

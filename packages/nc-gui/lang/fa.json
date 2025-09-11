@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "ارتقاء برای افزودن وبهوک‌های نامحدود",
     "upgradeToAddWebhookSubtitle": "پلن {activePlan} حداکثر {limit} وبهوک را پشتیبانی می‌کند. با ارتقاء به پلن {plan} به وبهوک‌های نامحدود دسترسی پیدا کنید.",
     "upgradeToAccessWebhookLogsSubtitle": "با ارتقاء ورک‌اسپیس به پلن {plan}، به لاگ‌های وبهوک دسترسی پیدا کنید.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "به مالک فرم اطلاع داده شد",
     "formOwnerNotifiedSubtitle": "ما مالک فرم را دربارهٔ درخواست ارسال شما مطلع کردیم.",
     "WorkspaceOwnerNotified": "به مالک ورک‌اسپیس اطلاع داده شد",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "تکثیر پایگاه موفق بود",
     "duplicateBaseFailed": "تکثیر پایگاه ناموفق بود",
     "duplicateBaseMessage": "فقط می‌توانید پایگاه‌ها را به فضاهای کاری که دسترسی سازنده یا بالاتر دارید تکثیر کنید.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "فقط می‌توانید به فضاهای کاری که دسترسی سازنده یا بالاتر دارید بازیابی کنید.",
     "currentWorkspace": "فضای کار فعلی",
     "currentBase": "پایگاه فعلی",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "پرداخت شما برای ارتقاء با موفقیت انجام شد. اکنون می‌توانید از پلن جدید خود استفاده کنید.",
       "mcpUrlCopied": "آدرس MCP در کلیپ‌بورد کپی شد",
       "nlookupFieldsCreatedSuccessfully": "{n} فیلد جستجو با موفقیت ایجاد شد",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} فیلد جستجو با موفقیت ایجاد شدند"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} فیلد جستجو با موفقیت ایجاد شدند",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "شروع از ابتدا.",

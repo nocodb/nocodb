@@ -44,6 +44,19 @@ import { isEE } from '~/utils';
 
 const logger = new Logger('Model');
 
+const modelOrViewXcCondition = [
+  {
+    type: {
+      eq: ModelTypes.TABLE,
+    },
+  },
+  {
+    type: {
+      eq: ModelTypes.VIEW,
+    },
+  },
+];
+
 export default class Model implements TableType {
   copy_enabled: BoolType;
   source_id: 'db' | string;
@@ -323,18 +336,7 @@ export default class Model implements TableType {
           },
           ...(source_id ? { condition: { source_id } } : {}),
           xcCondition: {
-            _or: [
-              {
-                type: {
-                  eq: ModelTypes.TABLE,
-                },
-              },
-              {
-                type: {
-                  eq: ModelTypes.VIEW,
-                },
-              },
-            ],
+            _or: modelOrViewXcCondition,
           },
         },
       );
@@ -388,18 +390,7 @@ export default class Model implements TableType {
         MetaTable.MODELS,
         {
           xcCondition: {
-            _or: [
-              {
-                type: {
-                  eq: ModelTypes.TABLE,
-                },
-              },
-              {
-                type: {
-                  eq: ModelTypes.VIEW,
-                },
-              },
-            ],
+            _or: modelOrViewXcCondition,
           },
         },
       );
@@ -434,18 +425,7 @@ export default class Model implements TableType {
         id,
         undefined,
         {
-          _or: [
-            {
-              type: {
-                eq: ModelTypes.TABLE,
-              },
-            },
-            {
-              type: {
-                eq: ModelTypes.VIEW,
-              },
-            },
-          ],
+          _or: modelOrViewXcCondition,
         },
       );
 
@@ -485,18 +465,7 @@ export default class Model implements TableType {
         k,
         undefined,
         {
-          _or: [
-            {
-              type: {
-                eq: ModelTypes.TABLE,
-              },
-            },
-            {
-              type: {
-                eq: ModelTypes.VIEW,
-              },
-            },
-          ],
+          _or: modelOrViewXcCondition,
         },
       );
       if (modelData) {
@@ -1139,18 +1108,7 @@ export default class Model implements TableType {
             {
               _and: [
                 {
-                  _or: [
-                    {
-                      type: {
-                        eq: ModelTypes.TABLE,
-                      },
-                    },
-                    {
-                      type: {
-                        eq: ModelTypes.VIEW,
-                      },
-                    },
-                  ],
+                  _or: modelOrViewXcCondition,
                 },
                 {
                   _or: [
@@ -1178,18 +1136,7 @@ export default class Model implements TableType {
             {
               _and: [
                 {
-                  _or: [
-                    {
-                      type: {
-                        eq: ModelTypes.TABLE,
-                      },
-                    },
-                    {
-                      type: {
-                        eq: ModelTypes.VIEW,
-                      },
-                    },
-                  ],
+                  _or: modelOrViewXcCondition,
                 },
                 {
                   _or: [
@@ -1238,18 +1185,7 @@ export default class Model implements TableType {
       {
         _and: [
           {
-            _or: [
-              {
-                type: {
-                  eq: ModelTypes.TABLE,
-                },
-              },
-              {
-                type: {
-                  eq: ModelTypes.VIEW,
-                },
-              },
-            ],
+            _or: modelOrViewXcCondition,
             ...(exclude_id
               ? {
                   id: {
@@ -1284,18 +1220,7 @@ export default class Model implements TableType {
       {
         _and: [
           {
-            _or: [
-              {
-                type: {
-                  eq: ModelTypes.TABLE,
-                },
-              },
-              {
-                type: {
-                  eq: ModelTypes.VIEW,
-                },
-              },
-            ],
+            _or: modelOrViewXcCondition,
             ...(exclude_id
               ? {
                   id: {
@@ -1341,18 +1266,7 @@ export default class Model implements TableType {
       prepareForDb(updateObj),
       tableId,
       {
-        _or: [
-          {
-            type: {
-              eq: ModelTypes.TABLE,
-            },
-          },
-          {
-            type: {
-              eq: ModelTypes.VIEW,
-            },
-          },
-        ],
+        _or: modelOrViewXcCondition,
       },
     );
 

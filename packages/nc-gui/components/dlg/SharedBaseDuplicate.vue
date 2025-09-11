@@ -73,7 +73,7 @@ const _duplicate = async () => {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
             console.log('job completed', jobData)
-            await ncNavigateTo({
+            ncNavigateTo({
               ...(isEeUI ? { workspaceId: jobData.fk_workspace_id } : {}),
               baseId: jobData.base_id,
             })

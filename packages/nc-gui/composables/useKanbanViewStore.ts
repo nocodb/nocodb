@@ -818,6 +818,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             (data: DataPayload) => {
               const { id, action, payload, before } = data
 
+              // TODO: @mertmit handle filters and sort for newly added and updated records
               if (action === 'add') {
                 try {
                   const stackKey =

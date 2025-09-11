@@ -6,7 +6,6 @@ interface Props {
 
 interface Emits {
   (event: 'update:modelValue', data: boolean): void
-  (event: 'deleted'): void
 }
 
 const props = defineProps<Props>()

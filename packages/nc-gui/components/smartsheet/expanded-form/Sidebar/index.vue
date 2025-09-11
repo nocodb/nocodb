@@ -7,7 +7,11 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const expandedFormStore = useExpandedFormStoreOrThrow()
 
-const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields' : 'comments')
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
+const tab = ref<'fields' | 'comments' | 'audits'>(
+  props.showFieldsTab && (!isExpandedFormCommentMode.value || isSqlView.value) ? 'fields' : 'comments',
+)
 
 watch(tab, (newValue) => {
   if (newValue === 'audits') {

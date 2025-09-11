@@ -1351,7 +1351,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       if (!ncMeta) {
         await trxNcMeta.commit();
       }
-      const result = this.getView(context, { viewId, req });
+      const result = await this.getView(context, { viewId, req });
       viewWebhookManager.withNewView(result).emit();
       return result;
     } catch (ex) {

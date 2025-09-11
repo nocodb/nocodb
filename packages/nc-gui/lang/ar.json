@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "قم بالترقية لإضافة Webhooks غير محدودة",
     "upgradeToAddWebhookSubtitle": "تسمح خطة {activePlan} بما يصل إلى {limit} Webhook. قم بالترقية إلى خطة {plan} للحصول على Webhooks غير محدودة.",
     "upgradeToAccessWebhookLogsSubtitle": "يمكنك الوصول إلى سجلات الـ Webhook بترقية مساحة العمل إلى خطة {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "تم إعلام مالك النموذج",
     "formOwnerNotifiedSubtitle": "لقد قمنا بإخطار مالك النموذج بطلب الإرسال الخاص بك.",
     "WorkspaceOwnerNotified": "تم إعلام مالك مساحة العمل",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "تم تكرار القاعدة بنجاح",
     "duplicateBaseFailed": "فشل تكرار القاعدة",
     "duplicateBaseMessage": "لا يمكنك تكرار القواعد إلا في مساحات العمل التي تمتلك فيها صلاحية منشئ أو أعلى.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "يمكنك الاستعادة فقط إلى مساحات العمل التي تمتلك فيها صلاحية منشئ أو أعلى.",
     "currentWorkspace": "مساحة العمل الحالية",
     "currentBase": "القاعدة الحالية",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "تمت معالجة دفعتك للترقية. يمكنك الآن استخدام خطتك الجديدة.",
       "mcpUrlCopied": "تم نسخ عنوان URL الخاص بـ MCP إلى الحافظة",
       "nlookupFieldsCreatedSuccessfully": "تم إنشاء {n} حقل بحث بنجاح",
-      "nlookupFieldsCreatedSuccessfullyPlural": "تم إنشاء {n} حقول بحث بنجاح"
+      "nlookupFieldsCreatedSuccessfullyPlural": "تم إنشاء {n} حقول بحث بنجاح",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "البدء من الصفر.",

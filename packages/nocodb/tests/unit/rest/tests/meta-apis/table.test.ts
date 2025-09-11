@@ -162,7 +162,7 @@ export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
         );
       } else {
         expect(response.body.columns.length).to.eq(
-          defaultColumns(context, isV3).length + 5, // nc_order, createdby, updatedby, created_at, updated_at
+          defaultColumns(context, isV3).length + (isEE ? 6 : 5), // nc_order, createdby, updatedby, created_at, updated_at, meta(EE)
         );
       }
 

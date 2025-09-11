@@ -1,5 +1,6 @@
 import { SqlUiFactory } from '../sqlUi';
 import UITypes from '../UITypes';
+import { ColumnType } from '../Api';
 import { FormulaDataTypes } from './enums';
 export interface ReferencedInfo {
   referencedColumn?: { id: string; uidt: string };
@@ -18,7 +19,11 @@ export interface FormulaMeta {
       // types should be in order of args
       type?: FormulaDataTypes | FormulaDataTypes[];
     };
-    custom?: (args: FormulaDataTypes[], parseTree: any) => void;
+    custom?: (
+      args: FormulaDataTypes[],
+      parseTree: any,
+      columns: ColumnType[]
+    ) => void;
   };
   description?: string;
   syntax?: string;

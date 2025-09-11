@@ -20,8 +20,6 @@ import type {
   Model,
 } from '~/models';
 import type { ViewMetaRowColoring } from '~/models/View';
-import { MetaTable } from '~/cli';
-import { NcError } from '~/helpers/catchError';
 import {
   CalendarRange,
   Filter,
@@ -31,6 +29,8 @@ import {
   KanbanViewColumn,
   View,
 } from '~/models';
+import { MetaTable } from '~/cli';
+import { NcError } from '~/helpers/catchError';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
 
@@ -294,8 +294,10 @@ const getAst = async (
     const isSortOrFilterColumn =
       includeSortAndFilterColumns &&
       (sortColumnIds.includes(col.id) || filterColumnIds.includes(col.id));
-
-    if (isSortOrFilterColumn) {
+    // exclude row meta column
+    if (col.uidt === UITypes.Meta) {
+      isRequested = false;
+    } else if (isSortOrFilterColumn) {
       isRequested = true;
     } else if (rowColoringColumnIds.has(col.id)) {
       isRequested = true;

@@ -34,7 +34,6 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
   DataBulkDeletePayload,
@@ -49,8 +48,8 @@ import type {
   NcRequest,
   UpdatePayload,
 } from 'nocodb-sdk';
-import type CustomKnex from '~/db/CustomKnex';
-import type { XKnex } from '~/db/CustomKnex';
+import type { Knex } from 'knex';
+import type CustomKnex, { XKnex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type {
   XcFilter,
@@ -66,6 +65,32 @@ import type {
 import type LookupColumn from '~/models/LookupColumn';
 import type { ResolverObj } from '~/utils';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
+import type { TrackModificationsColumnOptions } from '~/models/TrackModificationsColumn';
+import type { LastModColumnOptions } from '~/models/LastModColumn';
+import {
+  batchUpdate,
+  extractColsMetaForAudit,
+  extractExcludedColumnNames,
+  generateAuditV1Payload,
+  nocoExecute,
+  populateUpdatePayloadDiff,
+  processConcurrently,
+  remapWithAlias,
+  removeBlankPropsAndMask,
+} from '~/utils';
+import {
+  Audit,
+  BaseUser,
+  Column,
+  FileReference,
+  Filter,
+  GridViewColumn,
+  Model,
+  PresignedUrl,
+  Sort,
+  Source,
+  View,
+} from '~/models';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
 import { FieldHandler } from '~/db/field-handler';
@@ -103,36 +128,13 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
 import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
-import {
-  Audit,
-  BaseUser,
-  Column,
-  FileReference,
-  Filter,
-  GridViewColumn,
-  Model,
-  PresignedUrl,
-  Sort,
-  Source,
-  View,
-} from '~/models';
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
-import {
-  batchUpdate,
-  extractColsMetaForAudit,
-  extractExcludedColumnNames,
-  generateAuditV1Payload,
-  nocoExecute,
-  populateUpdatePayloadDiff,
-  processConcurrently,
-  remapWithAlias,
-  removeBlankPropsAndMask,
-} from '~/utils';
 import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
+import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 
 dayjs.extend(utc);
@@ -4113,7 +4115,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         if (
           !allowSystemColumn &&
           column.system &&
-          ![UITypes.ForeignKey, UITypes.Order].includes(column.uidt)
+          ![UITypes.ForeignKey, UITypes.Order, UITypes.Meta].includes(
+            column.uidt,
+          )
         ) {
           NcError.badRequest(
             `Column "${column.title}" is system column and cannot be updated`,
@@ -6097,12 +6101,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     model = this.model,
     knex = this.dbDriver,
     baseModel = this,
+    updatedColIds,
   }: {
     rowIds: any | any[];
     cookie?: { user?: any };
     model?: Model;
     knex?: XKnex;
     baseModel?: BaseModelSqlv2;
+    updatedColIds: string[];
   }) {
     const columns = await model.getColumns(this.context);
 
@@ -6116,12 +6122,26 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       (c) => c.uidt === UITypes.LastModifiedBy && c.system,
     );
 
+    const metaColumn = columns.find((c) => c.uidt === UITypes.Meta);
+
     if (lastModifiedTimeColumn) {
       updateObject[lastModifiedTimeColumn.column_name] = this.now();
     }
 
     if (lastModifiedByColumn) {
       updateObject[lastModifiedByColumn.column_name] = cookie?.user?.id;
+    }
+
+    if (metaColumn && updatedColIds.length > 0) {
+      updateObject[metaColumn.column_name] = prepareMetaUpdateQuery({
+        knex: this.dbDriver,
+        colIds: updatedColIds,
+        props: {
+          modifiedBy: cookie?.user?.id,
+          modifiedTime: this.now(),
+        },
+        metaColumn,
+      });
     }
 
     if (Object.keys(updateObject).length === 0) return;
@@ -6310,7 +6330,33 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       undo?: boolean;
     },
   ): Promise<void> {
+    const runAfterForLoop = [];
+    const updatedColIds = [];
+
     for (const column of this.model.columns) {
+      if (column.uidt === UITypes.Meta && this.isPg) {
+        if (!isInsertData)
+          runAfterForLoop.push(() => {
+            if (!updatedColIds.length) return;
+
+            data[column.column_name] = prepareMetaUpdateQuery({
+              knex: this.dbDriver,
+              colIds: updatedColIds,
+              props: {
+                modifiedBy: cookie?.user?.id,
+                modifiedTime: this.now(),
+              },
+              metaColumn: column,
+            });
+          });
+
+        continue;
+      }
+
+      if (!ncIsUndefined(data[column.column_name]) && !isInsertData) {
+        updatedColIds.push(column.id);
+      }
+
       if (
         !ncIsUndefined(data[column.column_name]) &&
         !ncIsNull(data[column.column_name]) &&
@@ -6742,6 +6788,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           data[column.column_name] = JSON.stringify(obj);
         }
+      }
+    }
+
+    if (runAfterForLoop.length) {
+      for (const fn of runAfterForLoop) {
+        await fn();
       }
     }
   }

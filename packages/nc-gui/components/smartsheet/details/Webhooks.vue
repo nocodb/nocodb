@@ -250,7 +250,7 @@ const getHookTypeText = (hook: HookType) => {
     let prefix = ''
     switch (hook.event) {
       case 'after': {
-        prefix = `${t('general.after')} `
+        prefix = `${t('general.record')} `
         break
       }
       case 'manual': {
@@ -270,7 +270,7 @@ const getHookTypeText = (hook: HookType) => {
       return `${prefix}${operations.join(` ${t('general.or').toLowerCase()} `)}`
     }
 
-    return hook.event === 'view' ? `${prefix} ${t('labels.sendAllEvents')}` : t('labels.sendAllEvents')
+    return `${prefix} ${t('labels.sendAllEvents')}`
   }
 
   const result = v2EventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text

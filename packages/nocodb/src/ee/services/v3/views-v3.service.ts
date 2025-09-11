@@ -1181,7 +1181,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
           if (groups && Array.isArray(groups)) {
             await this.gridColumnsService.gridColumnClearGroupBy(
               context,
-              { viewId },
+              { viewId, viewWebhookManager },
               trxNcMeta,
             );
             if (groups.length > 0) {
@@ -1203,6 +1203,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
                     gridViewColumnId: gridColumns.find(
                       (col) => col.fk_column_id === group.field_id,
                     ).id,
+                    viewWebhookManager,
                     req,
                   },
                   trxNcMeta,

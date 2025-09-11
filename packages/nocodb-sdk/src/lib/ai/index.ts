@@ -1,4 +1,5 @@
 import { ColumnType } from '../Api';
+import { stringAllMatches } from '../stringHelpers';
 
 export interface SerializedAiTableType {
   tables?: {
@@ -69,7 +70,8 @@ export function substituteColumnIdWithAliasInPrompt(
   // Keep flexible regex: matches anything inside {}
   const regex = /{(.*?)}/g;
 
-  const rawMatches = rawPrompt ? [...rawPrompt.matchAll(regex)] : [];
+  const rawMatches = rawPrompt ? [...stringAllMatches(rawPrompt, regex)] : [];
+
   let matchIndex = 0;
   const missingIds: { id: string; title: string }[] = [];
 

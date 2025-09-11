@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Обновите тарифный план, чтобы добавить неограниченное количество вебхуков",
     "upgradeToAddWebhookSubtitle": "План {activePlan} позволяет использовать до {limit} вебхуков. Перейдите на тариф {plan}, чтобы получить неограниченное количество вебхуков.",
     "upgradeToAccessWebhookLogsSubtitle": "Получите доступ к журналам вебхуков, обновив рабочее пространство до тарифа {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Владелец формы уведомлён",
     "formOwnerNotifiedSubtitle": "Мы уведомили владельца формы о вашем запросе на отправку.",
     "WorkspaceOwnerNotified": "Владелец рабочего пространства уведомлён",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "База успешно дублирована",
     "duplicateBaseFailed": "Ошибка дублирования базы",
     "duplicateBaseMessage": "Дублировать базы можно только в рабочие пространства, где у вас есть права создателя или выше.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Восстанавливать снимки можно только в рабочие пространства, где у вас есть права создателя или выше.",
     "currentWorkspace": "Текущее рабочее пространство",
     "currentBase": "Текущая база",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Платёж за обновление успешно обработан. Теперь вы можете использовать новый тарифный план.",
       "mcpUrlCopied": "URL MCP скопирован в буфер обмена",
       "nlookupFieldsCreatedSuccessfully": "{n} подстановочное поле успешно создано",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} подстановочных полей успешно создано"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} подстановочных полей успешно создано",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Начните с нуля.",

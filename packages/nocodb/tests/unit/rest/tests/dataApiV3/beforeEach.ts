@@ -9,7 +9,6 @@ import {
 import { createBulkRows, listRow, rowMixedValue } from '../../../factory/row';
 import { createTable } from '../../../factory/table';
 import init from '../../../init';
-import { initTblCountry } from '../../../init/initTblCountry';
 import { addUsers, getUsers, prepareRecords } from './helpers';
 import type { ITestContext } from '../../../init';
 import type { Model } from '../../../../../src/models';

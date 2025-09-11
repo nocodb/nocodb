@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Upgradujte na pridanie neobmedzeného počtu webhookov",
     "upgradeToAddWebhookSubtitle": "Plán {activePlan} umožňuje až {limit} webhookov. Upgradujte na plán {plan} a získajte neobmedzený počet webhookov.",
     "upgradeToAccessWebhookLogsSubtitle": "Získajte prístup k záznamom webhookov upgradovaním pracovného priestoru na plán {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Majiteľ formulára bol informovaný",
     "formOwnerNotifiedSubtitle": "Majiteľa formulára sme informovali o vašej žiadosti o odoslanie.",
     "WorkspaceOwnerNotified": "Majiteľ pracovného priestoru bol informovaný",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Duplikácia databázy bola úspešná",
     "duplicateBaseFailed": "Duplikácia databázy zlyhala",
     "duplicateBaseMessage": "Databázy môžete duplikovať len do pracovných priestorov, v ktorých máte oprávnenie tvorcu alebo vyššie.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Obnovovať môžete len do pracovných priestorov, v ktorých máte oprávnenie tvorcu alebo vyššie.",
     "currentWorkspace": "Aktuálny pracovný priestor",
     "currentBase": "Aktuálna databáza",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Vaša platba za upgrade bola spracovaná. Teraz môžete používať svoj nový plán.",
       "mcpUrlCopied": "MCP URL bolo skopírované do schránky",
       "nlookupFieldsCreatedSuccessfully": "{n} vyhľadávacie pole bolo úspešne vytvorené",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} vyhľadávacích polí bolo úspešne vytvorených"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} vyhľadávacích polí bolo úspešne vytvorených",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Začnite od začiatku.",

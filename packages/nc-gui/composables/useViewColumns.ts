@@ -71,68 +71,66 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const gridViewCols = ref<Record<string, GridColumnType>>({})
 
     const loadViewColumns = async () => {
-      if (!meta || !view) return
+      if (!meta.value || !view.value?.id) return
 
       let order = 1
 
-      if (view.value?.id) {
-        const data = (isPublic ? meta.value?.columns : (await $api.dbViewColumn.list(view.value.id)).list) as any[]
+      const data = ((isPublic ? meta.value?.columns : (await $api.dbViewColumn.list(view.value.id)).list) as any[]) ?? []
 
-        const fieldById = data.reduce<Record<string, any>>((acc, curr) => {
-          curr.show = !!curr.show
+      const fieldById = data.reduce<Record<string, any>>((acc, curr) => {
+        curr.show = !!curr.show
+
+        return {
+          ...acc,
+          [curr.fk_column_id]: curr,
+        }
+      }, {})
+
+      fields.value = (meta.value?.columns || [])
+        .filter((column: ColumnType) => {
+          // filter created by and last modified by system columns
+          if (isHiddenCol(column, meta.value)) return false
+          return true
+        })
+        .map((column: ColumnType) => {
+          const currentColumnField = fieldById[column.id!] || {}
 
           return {
-            ...acc,
-            [curr.fk_column_id]: curr,
+            title: column.title,
+            fk_column_id: column.id,
+            ...currentColumnField,
+            show: currentColumnField.show || isColumnViewEssential(currentColumnField),
+            order: currentColumnField.order || order++,
+            aggregation: currentColumnField?.aggregation ?? CommonAggregations.None,
+            system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
+            isViewEssentialField: isColumnViewEssential(column),
+            initialShow:
+              currentColumnField.show ||
+              isColumnViewEssential(currentColumnField) ||
+              (currentColumnField as GridColumnType)?.group_by,
           }
-        }, {})
+        })
+        .sort((a: Field, b: Field) => a.order - b.order)
 
-        fields.value = meta.value?.columns
-          ?.filter((column: ColumnType) => {
-            // filter created by and last modified by system columns
-            if (isHiddenCol(column, meta.value)) return false
-            return true
-          })
-          .map((column: ColumnType) => {
-            const currentColumnField = fieldById[column.id!] || {}
-
-            return {
-              title: column.title,
-              fk_column_id: column.id,
-              ...currentColumnField,
-              show: currentColumnField.show || isColumnViewEssential(currentColumnField),
-              order: currentColumnField.order || order++,
-              aggregation: currentColumnField?.aggregation ?? CommonAggregations.None,
-              system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
-              isViewEssentialField: isColumnViewEssential(column),
-              initialShow:
-                currentColumnField.show ||
-                isColumnViewEssential(currentColumnField) ||
-                (currentColumnField as GridColumnType)?.group_by,
-            }
-          })
-          .sort((a: Field, b: Field) => a.order - b.order)
-
-        if (isLocalMode.value && fields.value) {
-          for (const key in localChanges.value) {
-            const fieldIndex = fields.value.findIndex((f) => f.fk_column_id === key)
-            if (fieldIndex !== undefined && fieldIndex > -1) {
-              fields.value[fieldIndex] = localChanges.value[key]
-              fields.value = fields.value.sort((a: Field, b: Field) => a.order - b.order)
-            }
+      if (isLocalMode.value && fields.value) {
+        for (const key in localChanges.value) {
+          const fieldIndex = fields.value.findIndex((f) => f.fk_column_id === key)
+          if (fieldIndex !== undefined && fieldIndex > -1) {
+            fields.value[fieldIndex] = localChanges.value[key]
+            fields.value = fields.value.sort((a: Field, b: Field) => a.order - b.order)
           }
         }
-
-        const colsData: GridColumnType[] = (isPublic.value ? view.value?.columns : fields.value) ?? []
-
-        gridViewCols.value = colsData.reduce<Record<string, GridColumnType>>(
-          (o, col) => ({
-            ...o,
-            [col.fk_column_id as string]: col,
-          }),
-          {},
-        )
       }
+
+      const colsData: GridColumnType[] = (isPublic.value ? view.value?.columns : fields.value) ?? []
+
+      gridViewCols.value = colsData.reduce<Record<string, GridColumnType>>(
+        (o, col) => ({
+          ...o,
+          [col.fk_column_id as string]: col,
+        }),
+        {},
+      )
     }
 
     const updateDefaultViewColumnMeta = async (

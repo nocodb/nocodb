@@ -101,7 +101,7 @@ const hasTableCreatePermission = computed(() => {
               type="text"
               size="small"
               full-width
-              class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-brand-500 !hover:(text-brand-600) !xs:hidden !w-full !px-3"
+              class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-brand !hover:(text-nc-content-brand-disabled) !xs:hidden !w-full !px-3"
               :class="isVisibleCreateNew ? 'active' : ''"
               icon-position="right"
               data-testid="nc-home-create-new-btn"
@@ -133,8 +133,8 @@ const hasTableCreatePermission = computed(() => {
           class="nc-sidebar-top-button !h-8 w-full !pl-0"
           :centered="false"
           :class="{
-            '!text-brand-600 !bg-brand-50 !hover:bg-brand-50': activeProjectId === base.id && baseViewOpen,
-            '!hover:(bg-gray-200 text-gray-700)': !(activeProjectId === base.id && baseViewOpen),
+            '!text-nc-content-brand-disabled !bg-nc-bg-brand !hover:bg-nc-bg-brand': activeProjectId === base.id && baseViewOpen,
+            '!hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle)': !(activeProjectId === base.id && baseViewOpen),
           }"
           data-testid="nc-sidebar-base-overview-btn"
           @click="openBaseHomePage"
@@ -162,10 +162,10 @@ const hasTableCreatePermission = computed(() => {
 
 <style lang="scss" scoped>
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-2 h-7 !xs:(pl-2 h-[3rem]) !pr-0.5 !py-0 hover:bg-gray-200 xs:(hover:bg-gray-50) !rounded-md;
+  @apply !mx-0 !pl-2 h-7 !xs:(pl-2 h-[3rem]) !pr-0.5 !py-0 hover:bg-nc-bg-gray-medium xs:(hover:bg-gray-50) !rounded-md;
 
   .ant-collapse-arrow {
-    @apply !right-1 !xs:(flex-none border-1 border-gray-200 w-6.5 h-6.5 mr-1);
+    @apply !right-1 !xs:(flex-none border-1 border-nc-border-gray-medium w-6.5 h-6.5 mr-1);
   }
 }
 
@@ -204,10 +204,10 @@ const hasTableCreatePermission = computed(() => {
 }
 
 :deep(.nc-home-create-new-btn.nc-button) {
-  @apply hover:bg-brand-50 !pr-1.5;
+  @apply hover:bg-nc-bg-brand !pr-1.5;
 
   &.active {
-    @apply !bg-brand-50;
+    @apply !bg-nc-bg-brand;
   }
 }
 </style>

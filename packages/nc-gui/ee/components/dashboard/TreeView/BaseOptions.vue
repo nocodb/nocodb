@@ -164,11 +164,13 @@ const isNocoDbImportAllowed = computed(() => {
   <a-sub-menu v-if="TODOMagic">
     <template #title>
       <div class="nc-base-menu-item group">
-        <GeneralIcon icon="magic" class="group-hover:text-black" />
+        <GeneralIcon icon="magic" class="group-hover:text-nc-content-gray-extreme" />
         NocoAI
         <div class="flex-1" />
 
-        <MaterialSymbolsChevronRightRounded class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400" />
+        <MaterialSymbolsChevronRightRounded
+          class="transform group-hover:(scale-115 text-accent) text-xl text-nc-content-gray-disabled"
+        />
       </div>
     </template>
 
@@ -176,13 +178,13 @@ const isNocoDbImportAllowed = computed(() => {
 
     <a-menu-item key="table-magic" @click="openTableCreateMagicDialog(source.id)">
       <div class="color-transition nc-base-menu-item group">
-        <GeneralIcon icon="magic1" class="group-hover:text-black" />
+        <GeneralIcon icon="magic1" class="group-hover:text-nc-content-gray-extreme" />
         Create table
       </div>
     </a-menu-item>
     <a-menu-item key="schema-magic" @click="openSchemaMagicDialog(source.id)">
       <div class="color-transition nc-base-menu-item group">
-        <GeneralIcon icon="magic1" class="group-hover:text-black" />
+        <GeneralIcon icon="magic1" class="group-hover:text-nc-content-gray-extreme" />
         Create schema
       </div>
     </a-menu-item>
@@ -204,7 +206,7 @@ const isNocoDbImportAllowed = computed(() => {
   >
     <template #title>
       <slot name="title">
-        <GeneralIcon icon="download" />
+        <GeneralIcon icon="download" class="group-hover:text-nc-content-gray-extreme" />
 
         {{ $t('labels.importData') }}
       </slot>

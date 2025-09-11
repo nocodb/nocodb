@@ -172,8 +172,8 @@ const filteredDashboards = computed(() => {
       <div @click="openNewDashboardModal({ baseId })">
         <div
           :class="{
-            'text-brand-500 hover:text-brand-600': openedProject?.id === baseId,
-            'text-gray-500 hover:text-brand-500': openedProject?.id !== baseId,
+            'text-nc-content-brand hover:text-nc-content-brand-disabled': openedProject?.id === baseId,
+            'text-nc-content-gray-muted hover:text-nc-content-brand': openedProject?.id !== baseId,
           }"
           class="nc-create-dashboard-btn flex flex-row items-center cursor-pointer rounded-md w-full"
           role="button"
@@ -192,7 +192,10 @@ const filteredDashboards = computed(() => {
       </div>
     </template>
 
-    <div v-if="!dashboards?.length || !filteredDashboards.length" class="nc-project-home-section-item text-gray-500 font-normal">
+    <div
+      v-if="!dashboards?.length || !filteredDashboards.length"
+      class="nc-project-home-section-item text-nc-content-gray-muted font-normal"
+    >
       {{
         dashboards?.length && !filteredDashboards.length
           ? $t('placeholder.noResultsFoundForYourSearch')
@@ -205,7 +208,7 @@ const filteredDashboards = computed(() => {
       :key="dashboard.id"
       class="nc-dashboard-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
       :class="{
-        'bg-gray-200': isMarked === dashboard.id,
+        'bg-nc-bg-gray-medium': isMarked === dashboard.id,
         'active': activeDashboardId === dashboard.id,
       }"
       :dashboard="dashboard"
@@ -239,7 +242,7 @@ const filteredDashboards = computed(() => {
   }
 
   .sortable-chosen {
-    @apply !bg-gray-200;
+    @apply !bg-nc-bg-gray-medium;
   }
 
   .active {

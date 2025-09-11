@@ -223,7 +223,7 @@ watchEffect(() => {
   <div>
     <div
       v-if="!allEntities.length && hasTableCreatePermission"
-      class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-brand-500 hover:text-brand-600"
+      class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-nc-content-brand hover:text-nc-content-brand-disabled"
       role="button"
       @click="openTableCreateDialog"
     >
@@ -240,7 +240,7 @@ watchEffect(() => {
     </div>
     <div
       v-else-if="!allEntities.length && !hasTableCreatePermission"
-      class="py-0.5 text-gray-500 nc-project-home-section-item font-normal"
+      class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item font-normal"
     >
       {{ $t('placeholder.noTables') }}
     </div>
@@ -300,7 +300,7 @@ watchEffect(() => {
   }
 
   .sortable-chosen {
-    @apply !bg-gray-200;
+    @apply !bg-nc-bg-gray-medium;
   }
 
   .active {

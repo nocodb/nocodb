@@ -269,8 +269,8 @@ const filteredScripts = computed(() => {
       <div @click="openNewScriptModal({ baseId })">
         <div
           :class="{
-            'text-brand-500 hover:text-brand-600': openedProject?.id === baseId,
-            'text-gray-500 hover:text-brand-500': openedProject?.id !== baseId,
+            'text-nc-content-brand hover:text-nc-content-brand-disabled': openedProject?.id === baseId,
+            'text-nc-content-gray-muted hover:text-nc-content-brand': openedProject?.id !== baseId,
           }"
           class="nc-create-script-btn flex flex-row items-center cursor-pointer rounded-md w-full"
           role="button"
@@ -288,7 +288,10 @@ const filteredScripts = computed(() => {
         </div>
       </div>
     </template>
-    <div v-if="!scripts?.length || !filteredScripts.length" class="nc-project-home-section-item text-gray-500 font-normal">
+    <div
+      v-if="!scripts?.length || !filteredScripts.length"
+      class="nc-project-home-section-item text-nc-content-gray-muted font-normal"
+    >
       {{
         scripts?.length && !filteredScripts.length
           ? $t('placeholder.noResultsFoundForYourSearch')
@@ -302,7 +305,7 @@ const filteredScripts = computed(() => {
         :key="script.id"
         class="nc-script-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
         :class="{
-          'bg-gray-200': isMarked === script.id,
+          'bg-nc-bg-gray-medium': isMarked === script.id,
           'active': activeAutomationId === script.id,
         }"
         :on-validate="validate"
@@ -342,7 +345,7 @@ const filteredScripts = computed(() => {
   }
 
   .sortable-chosen {
-    @apply !bg-gray-200;
+    @apply !bg-nc-bg-gray-medium;
   }
 
   .active {

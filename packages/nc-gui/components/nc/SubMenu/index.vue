@@ -39,11 +39,11 @@ const props = withDefaults(
 
 <style lang="scss">
 .ant-dropdown-menu-submenu.nc-sub-menu {
-  @apply flex mx-1.5 rounded-md overflow-hidden !hover:bg-gray-100;
+  @apply flex mx-1.5 rounded-md overflow-hidden !hover:bg-nc-bg-gray-light;
 
   &:not(.ant-dropdown-menu-submenu-disabled) {
     .nc-submenu-title {
-      @apply hover:text-gray-800;
+      @apply hover:text-nc-content-gray;
     }
 
     .nc-icon {
@@ -99,21 +99,21 @@ const props = withDefaults(
     }
 
     &:not(.ant-dropdown-menu-submenu-disabled) {
-      @apply hover:text-black text-gray-700;
+      @apply hover:text-nc-content-gray-extreme text-nc-content-gray-subtle;
 
       & .nc-submenu-title {
-        @apply hover:text-black text-gray-700;
+        @apply hover:text-nc-content-gray-extreme text-nc-content-gray-subtle;
       }
     }
   }
 }
 
 .ant-dropdown-menu-submenu .ant-dropdown-menu-submenu-title:hover {
-  @apply !bg-gray-100;
+  @apply !bg-nc-bg-gray-light;
 }
 
 .nc-submenu-popup {
-  @apply !rounded-lg border-1 border-gray-50 min-w-[144px];
+  @apply !rounded-lg border-1 border-nc-border-gray-extra-light min-w-[144px];
 
   .ant-dropdown-menu.ant-dropdown-menu-sub {
     @apply !rounded-lg !shadow-lg shadow-gray-200;
@@ -130,7 +130,7 @@ const props = withDefaults(
       }
 
       &:not(.ant-dropdown-menu-item-disabled) {
-        @apply hover:text-black text-gray-700;
+        @apply hover:text-nc-content-gray-extreme text-nc-content-gray-subtle;
       }
 
       .nc-icon {

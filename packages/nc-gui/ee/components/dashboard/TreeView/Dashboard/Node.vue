@@ -317,7 +317,7 @@ const deleteDashboard = () => {
 
 <template>
   <div
-    class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
+    class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     :data-testid="`view-sidebar-dashboard-${vModel.title}`"
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
@@ -333,11 +333,13 @@ const deleteDashboard = () => {
       <template #title>
         <div class="flex flex-col gap-3">
           <div>
-            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.dashboardName') }}</div>
+            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">
+              {{ $t('labels.dashboardName') }}
+            </div>
             <div class="text-small leading-[18px]">{{ vModel.title }}</div>
           </div>
           <div v-if="vModel?.created_by && idUserMap[vModel?.created_by]">
-            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.createdBy') }}</div>
+            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.createdBy') }}</div>
             <div class="text-xs">
               {{
                 idUserMap[vModel?.created_by]?.id === user?.id
@@ -368,7 +370,9 @@ const deleteDashboard = () => {
             <template #default>
               <GeneralIcon
                 icon="dashboards"
-                :class="activeDashboardId === vModel.id ? '!text-brand-600/85' : '!text-gray-600/75'"
+                :class="
+                  activeDashboardId === vModel.id ? '!text-nc-content-brand-disabled/85' : '!text-nc-content-gray-subtle2/75'
+                "
                 class="w-4 text-nc-content-gray-subtle !text-[16px]"
               />
             </template>
@@ -381,7 +385,7 @@ const deleteDashboard = () => {
           v-model:value="_title"
           class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
           :class="{
-            'font-semibold !text-brand-600': activeDashboardId === vModel.id,
+            'font-semibold !text-nc-content-brand-disabled': activeDashboardId === vModel.id,
           }"
           :style="{
             fontWeight: 'inherit',
@@ -399,7 +403,7 @@ const deleteDashboard = () => {
           <div
             data-testid="sidebar-dashboard-title w-full"
             :class="{
-              'font-semibold text-brand-600': activeDashboardId === vModel.id,
+              'font-semibold text-nc-content-brand-disabled': activeDashboardId === vModel.id,
             }"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
           >
@@ -417,7 +421,10 @@ const deleteDashboard = () => {
               {{ vModel.description }}
             </template>
             <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
-              <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0" />
+              <GeneralIcon
+                icon="info"
+                class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-nc-content-gray-subtle2 opacity-0"
+              />
             </NcButton>
           </NcTooltip>
           <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
@@ -457,7 +464,7 @@ const deleteDashboard = () => {
                     class="nc-dashboard-rename"
                     @click="onRenameMenuClick(dashboard)"
                   >
-                    <GeneralIcon icon="rename" class="text-gray-700" />
+                    <GeneralIcon icon="rename" class="text-nc-content-gray-subtle" />
                     {{ $t('general.rename') }} {{ $t('labels.dashboard').toLowerCase() }}
                   </NcMenuItem>
                   <NcMenuItem
@@ -466,7 +473,7 @@ const deleteDashboard = () => {
                     class="nc-dashboard-description"
                     @click="openDashboardDescriptionDialog(dashboard)"
                   >
-                    <GeneralIcon icon="ncAlignLeft" class="text-gray-700" />
+                    <GeneralIcon icon="ncAlignLeft" class="text-nc-content-gray-subtle" />
                     {{ $t('labels.editDescription') }}
                   </NcMenuItem>
 

@@ -293,7 +293,7 @@ onKeyStroke('Escape', () => {
                       >
                         <div
                           v-if="baseIndex === 0"
-                          class="source-context flex items-center gap-2 text-gray-800 nc-sidebar-node-title"
+                          class="source-context flex items-center gap-2 text-nc-content-gray nc-sidebar-node-title"
                           @contextmenu="setMenuContext('source', source)"
                         >
                           <GeneralBaseLogo class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
@@ -301,7 +301,7 @@ onKeyStroke('Escape', () => {
                         </div>
                         <div
                           v-else
-                          class="source-context flex flex-grow items-center gap-1 text-gray-800 min-w-1/20 max-w-full"
+                          class="source-context flex flex-grow items-center gap-1 text-nc-content-gray min-w-1/20 max-w-full"
                           @contextmenu="setMenuContext('source', source)"
                         >
                           <NcTooltip
@@ -325,7 +325,7 @@ onKeyStroke('Escape', () => {
                           <a-input
                             v-if="source.id && sourceRenameHelpers[source.id]?.editMode"
                             v-model:value="sourceRenameHelpers[source.id].tempTitle"
-                            class="capitalize !bg-transparent flex-1 mr-4 !pr-1.5 !text-gray-700 !rounded-md !h-6 animate-sidebar-node-input-padding"
+                            class="capitalize !bg-transparent flex-1 mr-4 !pr-1.5 !text-nc-content-gray-subtle !rounded-md !h-6 animate-sidebar-node-input-padding"
                             :style="{
                               fontWeight: 'inherit',
                             }"
@@ -339,7 +339,7 @@ onKeyStroke('Escape', () => {
                           />
                           <NcTooltip
                             v-else
-                            class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none text-gray-700"
+                            class="nc-sidebar-node-title capitalize text-ellipsis overflow-hidden select-none text-nc-content-gray-subtle"
                             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
                             show-on-truncate-only
                           >
@@ -379,7 +379,7 @@ onKeyStroke('Escape', () => {
                           >
                             <NcButton
                               class="nc-sidebar-node-btn"
-                              :class="{ '!text-black !opacity-100 !inline-block': isBasesOptionsOpen[source!.id!] }"
+                              :class="{ '!text-nc-content-gray-extreme !opacity-100 !inline-block': isBasesOptionsOpen[source!.id!] }"
                               type="text"
                               size="xxsmall"
                               @click.stop="isBasesOptionsOpen[source!.id!] = !isBasesOptionsOpen[source!.id!]"

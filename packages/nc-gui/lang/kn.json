@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "ಅನಿಯಮಿತ ವೆಬ್\r\u000bಹುಕ್\r\u000bಗಳನ್ನು ಸೇರಿಸಲು ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ",
     "upgradeToAddWebhookSubtitle": "{activePlan} ಯೋಜನೆ {limit} ವೆಬ್\r\u000bಹುಕ್\r\u000bಗಳವರೆಗೆ ಅನುಮತಿಸುತ್ತದೆ. ಅನಿಯಮಿತ ವೆಬ್\r\u000bಹುಕ್\r\u000bಗಳಿಗೆ ಪ್ರವೇಶ ಪಡೆಯಲು {plan} ಯೋಜನೆಗೆ ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡಿ.",
     "upgradeToAccessWebhookLogsSubtitle": "ನಿಮ್ಮ ಕಾರ್ಯಕ್ಷೇತ್ರವನ್ನು {plan} ಯೋಜನೆಗೆ ಅಪ್\r\u000bಗ್ರೇಡ್ ಮಾಡುವ ಮೂಲಕ ವೆಬ್\r\u000bಹುಕ್ ಲಾಗ್\r\u000bಗಳಿಗೆ ಪ್ರವೇಶ ಪಡೆಯಿರಿ.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "ಫಾರ್ಮ್ ಮಾಲೀಕಿಗೆ ತಿಳಿಸಲಾಗಿದೆ",
     "formOwnerNotifiedSubtitle": "ನಾವು ನಿಮ್ಮ ಸಲ್ಲಿಕೆ ವಿನಂತಿಯನ್ನು ಫಾರ್ಮ್ ಮಾಲೀಕಿಗೆ ತಿಳಿಸಿದ್ದೇವೆ.",
     "WorkspaceOwnerNotified": "ಕಾರ್ಯಕ್ಷೇತ್ರ ಮಾಲೀಕಿಗೆ ತಿಳಿಸಲಾಗಿದೆ",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "ಬೇಸ್ ನಕಲಿಕೆಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಪೂರ್ಣಗೊಳಿಸಲಾಗಿದೆ",
     "duplicateBaseFailed": "ಬೇಸ್ ನಕಲಿಕೆ ವಿಫಲವಾಗಿದೆ",
     "duplicateBaseMessage": "ನೀವು ರಚನಾ ಪ್ರವೇಶ ಹೊಂದಿರುವ ವರ್ಕ್‌ಸ್ಪೇಸ್‌ಗಳಿಗೆ ಮಾತ್ರ ಬೇಸ್‌ಗಳನ್ನು ನಕಲಿಸಬಹುದು.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "ನೀವು ರಚನಾ ಪ್ರವೇಶ ಅಥವಾ ಹೆಚ್ಚಿನ ಅನುಮತಿ ಇರುವ ವರ್ಕ್‌ಸ್ಪೇಸ್‌ಗಳಿಗೆ ಮಾತ್ರ ಪುನಸ್ಥಾಪಿಸಬಹುದು.",
     "currentWorkspace": "ಪ್ರಸ್ತುತ ವರ್ಕ್‌ಸ್ಪೇಸ್",
     "currentBase": "ಪ್ರಸ್ತುತ ಬೇಸ್",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "ಅಪ್\r\u000bಗ್ರೇಡ್‌ನಿಗಾಗಿ ваша ಪಾವತಿ ಪ್ರಕ್ರಿಯೆ ಪೂರ್ಣಗೊಂಡಿದೆ. ಈಗ ನೀವು ನಿಮ್ಮ ಹೊಸ ಯೋಜನೆಯನ್ನು ಬಳಸಬಹುದು.",
       "mcpUrlCopied": "MCP URL ಕ್ಲಿಪ್\rಬೋರ್ಡ್‌ಗೆ ನಕಲಿಸಲಾಗಿದೆ",
       "nlookupFieldsCreatedSuccessfully": "{n} ಲುಕಪ್ ಕ್ಷೇತ್ರವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} ಲುಕಪ್ ಕ್ಷೇತ್ರಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} ಲುಕಪ್ ಕ್ಷೇತ್ರಗಳನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "ಶೂನ್ಯದಿಂದ ಆರಂಭಿಸಿ.",

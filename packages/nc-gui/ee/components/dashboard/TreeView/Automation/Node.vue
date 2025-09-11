@@ -309,9 +309,7 @@ const deleteScript = () => {
                 </template>
 
                 <GeneralIcon
-                  :class="
-                    activeAutomationId === vModel.id ? '!text-nc-content-brand-disabled/85' : '!text-nc-content-gray-subtle2/75'
-                  "
+                  :class="activeAutomationId === vModel.id ? '!text-brand-600/85' : '!text-gray-600/75'"
                   class="w-4 text-nc-content-gray-subtle !text-[16px]"
                   icon="ncScript"
                 />

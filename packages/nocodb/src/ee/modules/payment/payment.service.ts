@@ -1225,23 +1225,58 @@ export class PaymentService {
 
       let invoice;
 
-      if (subscription.schedule_stripe_price_id) {
-        invoice = await stripe.invoices.createPreview({
-          subscription_details: {
-            items: [
-              {
-                price: subscription.schedule_stripe_price_id,
-                quantity: subscription.seat_count,
-              },
-            ],
-            start_date: dayjs(subscription.schedule_phase_start).unix(),
-          },
-        });
+      if (subscription.period === 'year') {
+        if (subscription.schedule_stripe_price_id) {
+          invoice = await stripe.invoices.createPreview({
+            subscription_details: {
+              items: [
+                {
+                  price: subscription.schedule_stripe_price_id,
+                  quantity: subscription.seat_count,
+                },
+              ],
+              start_date: dayjs(subscription.schedule_phase_start).unix(),
+            },
+          });
+        } else {
+          invoice = await stripe.invoices.createPreview({
+            customer: workspaceOrOrg.stripe_customer_id,
+            subscription: subscription.stripe_subscription_id,
+          });
+        }
       } else {
-        invoice = await stripe.invoices.createPreview({
-          customer: workspaceOrOrg.stripe_customer_id,
-          subscription: subscription.stripe_subscription_id,
-        });
+        if (subscription.schedule_stripe_price_id) {
+          // Calculate the start of the month for the scheduled phase start month
+          const scheduleStart = dayjs(subscription.schedule_phase_start)
+            .startOf('month')
+            .unix();
+
+          // Check if the schedule start is within the next month
+          // This ensures that the schedule is relevant for the upcoming invoice
+          if (
+            scheduleStart <= dayjs().add(1, 'month').startOf('month').unix()
+          ) {
+            invoice = await stripe.invoices.createPreview({
+              subscription_details: {
+                items: [
+                  {
+                    price: subscription.schedule_stripe_price_id,
+                    quantity: subscription.seat_count,
+                  },
+                ],
+                start_date: scheduleStart,
+              },
+            });
+          }
+        }
+
+        // If no invoice was created for the schedule, fall back to the current subscription
+        if (!invoice) {
+          invoice = await stripe.invoices.createPreview({
+            customer: workspaceOrOrg.stripe_customer_id,
+            subscription: subscription.stripe_subscription_id,
+          });
+        }
       }
 
       return invoice;

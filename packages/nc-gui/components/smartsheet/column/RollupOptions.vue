@@ -108,7 +108,7 @@ const columns = computed<ColumnType[]>(() => {
   return metas.value[selectedTable.value.id]?.columns.filter(
     (c: ColumnType) =>
       (!isVirtualCol(c.uidt as UITypes) ||
-        [UITypes.CreatedTime, UITypes.CreatedBy, UITypes.LastModifiedTime, UITypes.LastModifiedBy, UITypes.Formula].includes(
+        [UITypes.CreatedTime, UITypes.CreatedBy, UITypes.LastModifiedTime, UITypes.LastModifiedBy, UITypes.Formula, UITypes.Rollup].includes(
           c.uidt as UITypes,
         )) &&
       (!isSystemColumn(c) || c.pk),

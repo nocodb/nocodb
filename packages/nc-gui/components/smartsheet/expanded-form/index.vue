@@ -579,7 +579,7 @@ const preventModalStatus = computed({
 const onIsExpandedUpdate = (v: boolean) => {
   let isDropdownOpen = false
   document.querySelectorAll('.ant-select-dropdown').forEach((el) => {
-    isDropdownOpen = isDropdownOpen || el.checkVisibility()
+    isDropdownOpen = isDropdownOpen || el?.checkVisibility?.()
   })
 
   if (isDropdownOpen) return

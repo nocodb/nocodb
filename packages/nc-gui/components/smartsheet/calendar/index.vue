@@ -12,8 +12,6 @@ const { isMobileMode, user } = useGlobal()
 
 const { isAllowed } = usePermissions()
 
-const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
-
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
 const isPublic = inject(IsPublicInj, ref(false))

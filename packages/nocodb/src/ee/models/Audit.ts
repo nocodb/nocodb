@@ -4,7 +4,6 @@ import dayjs from 'dayjs';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
-import { isOnPrem } from '~/utils';
 import { extractProps } from '~/helpers/extractProps';
 import { stringifyMetaProp } from '~/utils/modelUtils';
 import {

@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "อัปเกรดเพื่อเพิ่มเว็บฮุคไม่จำกัด",
     "upgradeToAddWebhookSubtitle": "แผน {activePlan} ใช้เว็บฮุคได้สูงสุด {limit} อัปเกรดเป็นแผน {plan} เพื่อใช้งานเว็บฮุคได้ไม่จำกัด",
     "upgradeToAccessWebhookLogsSubtitle": "เข้าถึงบันทึกเว็บฮุคได้โดยอัปเกรดเวิร์กสเปซของคุณเป็นแผน {plan}",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "แจ้งเจ้าของฟอร์มแล้ว",
     "formOwnerNotifiedSubtitle": "เราได้แจ้งเจ้าของฟอร์มเกี่ยวกับคำขอส่งข้อมูลของคุณแล้ว",
     "WorkspaceOwnerNotified": "แจ้งเจ้าของเวิร์กสเปซแล้ว",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "ทำสำเนาฐานสำเร็จแล้ว",
     "duplicateBaseFailed": "ทำสำเนาฐานไม่สำเร็จ",
     "duplicateBaseMessage": "คุณสามารถทำสำเนาฐานได้เฉพาะในพื้นที่ทำงานที่คุณมีสิทธิ์ผู้สร้างขึ้นไปเท่านั้น",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "คุณสามารถกู้คืนได้เฉพาะในพื้นที่ทำงานที่คุณมีสิทธิ์ผู้สร้างขึ้นไปเท่านั้น",
     "currentWorkspace": "พื้นที่ทำงานปัจจุบัน",
     "currentBase": "ฐานข้อมูลปัจจุบัน",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "การชำระเงินเพื่ออัปเกรดของคุณได้รับการประมวลผลแล้ว คุณสามารถใช้แผนใหม่ได้ทันที",
       "mcpUrlCopied": "คัดลอก URL MCP ไปยังคลิปบอร์ดแล้ว",
       "nlookupFieldsCreatedSuccessfully": "สร้างฟิลด์ Lookup จำนวน {n} ฟิลด์สำเร็จแล้ว",
-      "nlookupFieldsCreatedSuccessfullyPlural": "สร้างฟิลด์ Lookup {n} ฟิลด์สำเร็จแล้ว"
+      "nlookupFieldsCreatedSuccessfullyPlural": "สร้างฟิลด์ Lookup {n} ฟิลด์สำเร็จแล้ว",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "เริ่มจากศูนย์",

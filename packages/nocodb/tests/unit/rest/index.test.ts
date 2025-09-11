@@ -47,7 +47,6 @@ function restTests() {
     orgTests();
     baseTests();
     tableRowTests();
-    viewRowTests();
     viewRowLocalTests();
     columnTypeSpecificTests();
     attachmentTests();
@@ -68,7 +67,9 @@ function restTests() {
     bulkV1Test();
     oauthDCRTest();
   }
-
+  if (willRunOnSet(2)) {
+    viewRowTests();
+  }
   if (testVersion.includes('v1')) tableTests('v1');
   if (testVersion.includes('v2')) dataAPIsV3Test('v2');
 

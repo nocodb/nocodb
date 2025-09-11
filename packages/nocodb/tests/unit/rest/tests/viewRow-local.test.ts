@@ -1,5 +1,6 @@
 import 'mocha';
 // @ts-ignore
+import { expect } from 'chai';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import request from 'supertest';
 import { createProject } from '../../factory/base';
@@ -8,8 +9,10 @@ import { createChildRow, createRow, getRow } from '../../factory/row';
 import { createTable } from '../../factory/table';
 import { createView } from '../../factory/view';
 import init from '../../init';
+import { initCustomerTable } from './viewRowInit';
+import type View from '../../../../src/models/View';
 import type Base from '~/models/Base';
-
+import type { Model } from '~/models';
 let context;
 let ctx: {
   workspace_id: string;
@@ -17,6 +20,116 @@ let ctx: {
 };
 // bases
 let base: Base;
+let customerTable: Model;
+// views
+let customerGridView: View;
+let customerGalleryView: View;
+let customerFormView: View;
+
+function viewRowLocalStaticTests() {
+  beforeEach(async function () {
+    console.time('#### viewRowLocalTests');
+    context = await init();
+    base = await createProject(context);
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+    customerTable = await initCustomerTable(context, base);
+    customerGridView = await createView(context, {
+      title: 'Customer Grid',
+      table: customerTable,
+      type: ViewTypes.GRID,
+    });
+    customerGalleryView = await createView(context, {
+      title: 'Customer Gallery',
+      table: customerTable,
+      type: ViewTypes.GALLERY,
+    });
+    customerFormView = await createView(context, {
+      title: 'Customer Form',
+      table: customerTable,
+      type: ViewTypes.FORM,
+    });
+
+    console.timeEnd('#### viewRowLocalTests');
+  });
+
+  //#region Get view row
+  const testGetViewRowList = async (view: View) => {
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${customerTable.id}/views/${view.id}`,
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    const pageInfo = response.body.pageInfo;
+    if (pageInfo.totalRows < 30 || response.body.list[0]['CustomerId'] !== 1) {
+      throw new Error('View row list is not correct');
+    }
+  };
+
+  // const testGetViewRowListKanban = async (view: View) => {
+  //   const ratingColumn = filmColumns.find((c) => c.column_name === 'rating');
+
+  //   const response = await request(context.app)
+  //     .get(
+  //       `/api/v1/db/data/noco/${base.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
+  //     )
+  //     .set('xc-auth', context.token)
+  //     .expect(200);
+
+  //   expect(response.body).to.be.an('array');
+  //   // PG, R, NC-17, G, PG-17, null (uncategorized)
+  //   expect(response.body).to.be.have.length(6);
+  //   expect(response.body[0]).to.have.property('key');
+  //   expect(response.body[0]).to.have.property('value');
+  //   expect(response.body[0])
+  //     .to.have.property('value')
+  //     .and.to.be.an('object')
+  //     .and.to.have.property('list')
+  //     .and.to.be.an('array');
+  //   expect(response.body[0]).to.have.property('key').and.to.be.a('string');
+  //   expect(response.body[0].value)
+  //     .to.have.property('pageInfo')
+  //     .and.to.be.an('object')
+  //     .and.to.have.property('totalRows')
+  //     .and.to.be.a('number');
+  // };
+
+  // const testGetViewRowListCalendar = async (view: View) => {
+  //   const response = await request(context.app)
+  //     .get(`/api/v1/db/data/noco/${base.id}/${rentalTable.id}/views/${view.id}`)
+  //     .set('xc-auth', context.token)
+  //     .expect(200);
+
+  //   const pageInfo = response.body.pageInfo;
+
+  //   if (pageInfo.totalRows !== 16044 && response.body.list.length !== 16044) {
+  //     throw new Error('Calendar View row list is not correct');
+  //   }
+  // };
+
+  it('Get view row list gallery', async () => {
+    await testGetViewRowList(customerGalleryView);
+  });
+  // it('Get view row list kanban', async () => {
+  //   await testGetViewRowListKanban(filmKanbanView);
+  // });
+  it('Get view row list form', async () => {
+    await testGetViewRowList(customerFormView);
+  });
+  it('Get view row list grid', async () => {
+    await testGetViewRowList(customerGridView);
+  });
+
+  // it('Get view row list Calendar', async () => {
+  //   await testGetViewRowListCalendar(rentalCalendarView);
+  // });
+
+  //#endregion Get view row
+}
 
 function viewRowLocalTests() {
   beforeEach(async function () {
@@ -30,6 +143,7 @@ function viewRowLocalTests() {
     console.timeEnd('#### viewRowLocalTests');
   });
 
+  //#region Create row view
   // todo: gallery view doesnt seem to support rollup
   // it('Get nested sorted filtered table with nested fields data list with a rollup column in customer table view gallery', async () => {
   //   await testGetNestedSortedFilteredTableDataListWithLookupColumn(ViewTypes.GALLERY);
@@ -75,7 +189,9 @@ function viewRowLocalTests() {
   it('Create table row Calendar', async function () {
     await testCreateRowView(ViewTypes.CALENDAR);
   });
+  //#endregion Create row view
 
+  //#region Update row view
   const testUpdateViewRow = async (viewType: ViewTypes) => {
     const table = await createTable(context, base);
     const row = await createRow(context, { base, table });
@@ -126,7 +242,9 @@ function viewRowLocalTests() {
   it('Update view row CALENDAR', async function () {
     await testUpdateViewRow(ViewTypes.CALENDAR);
   });
+  //#endregion Update row view
 
+  //#region Update row view WithValidationAndInvalidData
   const testUpdateViewRowWithValidationAndInvalidData = async (
     viewType: ViewTypes,
   ) => {
@@ -184,9 +302,12 @@ function viewRowLocalTests() {
   it('Update view row with validation and invalid data CALENDAR', async function () {
     await testUpdateViewRowWithValidationAndInvalidData(ViewTypes.CALENDAR);
   });
+  //#endregion Update row view WithValidationAndInvalidData
+
   // todo: Test webhooks of before and after update
   // todo: Test with form view
 
+  //#region Update row view WithValidationAndValidData
   const testUpdateViewRowWithValidationAndValidData = async (
     viewType: ViewTypes,
   ) => {
@@ -252,7 +373,9 @@ function viewRowLocalTests() {
   it('Update view row with validation and valid data CALENDAR', async function () {
     await testUpdateViewRowWithValidationAndValidData(ViewTypes.CALENDAR);
   });
+  //#endregion Update row view WithValidationAndValidData
 
+  //#region Delete row view
   const testDeleteViewRow = async (viewType: ViewTypes) => {
     const table = await createTable(context, base);
 
@@ -301,7 +424,9 @@ function viewRowLocalTests() {
   it('Delete view row CALENDAR', async function () {
     await testDeleteViewRow(ViewTypes.CALENDAR);
   });
+  //#endregion Delete row view
 
+  //#region Delete row view WithForeignKeyConstraint
   const testDeleteViewRowWithForeignKeyConstraint = async (
     viewType: ViewTypes,
   ) => {
@@ -357,8 +482,10 @@ function viewRowLocalTests() {
   it('Delete view row with ltar foreign key constraint Calendar', async function () {
     await testDeleteViewRowWithForeignKeyConstraint(ViewTypes.CALENDAR);
   });
+  //#endregion Delete row view WithForeignKeyConstraint
 }
 
 export default function () {
+  describe.only('ViewRowLocal', viewRowLocalStaticTests);
   describe('ViewRowLocal', viewRowLocalTests);
 }

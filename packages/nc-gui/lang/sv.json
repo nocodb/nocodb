@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Uppgradera för att lägga till obegränsade webhooks",
     "upgradeToAddWebhookSubtitle": "Planen {activePlan} tillåter upp till {limit} webhooks. Uppgradera till {plan}-planen för att få tillgång till obegränsade webhooks.",
     "upgradeToAccessWebhookLogsSubtitle": "Få åtkomst till webhook-loggar genom att uppgradera ditt arbetsutrymme till {plan}-planen.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Formulärägaren har meddelats",
     "formOwnerNotifiedSubtitle": "Vi har meddelat formulärägaren om din begäran om inlämning.",
     "WorkspaceOwnerNotified": "Arbetsutrymmesägaren har meddelats",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Bas duplicerades",
     "duplicateBaseFailed": "Basduplicering misslyckades",
     "duplicateBaseMessage": "Du kan bara duplicera baser till arbetsutrymmen där du har skaparbehörighet eller högre.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Du kan bara återställa till arbetsutrymmen där du har skaparbehörighet eller högre.",
     "currentWorkspace": "Aktuellt arbetsutrymme",
     "currentBase": "Aktuell bas",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Din betalning för uppgraderingen har bearbetats. Du kan nu använda din nya plan.",
       "mcpUrlCopied": "MCP-URL har kopierats till urklipp",
       "nlookupFieldsCreatedSuccessfully": "{n} uppslagsfält skapades",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} uppslagsfält skapades"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} uppslagsfält skapades",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Börja från början.",

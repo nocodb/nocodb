@@ -492,21 +492,17 @@ async function onRename() {
                       :is="iconMap.ncZap"
                       v-if="table?.synced"
                       class="w-4 text-sm"
-                      :class="isTableOpened ? '!text-nc-content-brand-disabled/85' : '!text-nc-content-gray-subtle2/75'"
+                      :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'"
                     />
 
                     <component
                       :is="iconMap.table"
                       v-else-if="table.type === 'table'"
                       class="w-4 text-sm"
-                      :class="isTableOpened ? '!text-nc-content-brand-disabled/85' : '!text-nc-content-gray-subtle2/75'"
+                      :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'"
                     />
 
-                    <MdiEye
-                      v-else
-                      class="flex w-5 text-sm"
-                      :class="isTableOpened ? '!text-nc-content-brand-disabled' : '!text-nc-content-gray-subtle2'"
-                    />
+                    <MdiEye v-else class="flex w-5 text-sm" :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'" />
                   </NcTooltip>
                 </template>
               </LazyGeneralEmojiPicker>

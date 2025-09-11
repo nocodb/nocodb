@@ -284,7 +284,7 @@ watch(isDropdownOpen, async () => {
 
 <template>
   <a-menu-item
-    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
+    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     :class="{
       '!pl-7.5 !xs:(pl-7.5)': isDefaultBaseLocal,
       '!pl-14': !isDefaultBaseLocal,
@@ -302,12 +302,12 @@ watch(isDropdownOpen, async () => {
       <template #title>
         <div class="flex flex-col gap-3">
           <div>
-            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.viewName') }}</div>
+            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.viewName') }}</div>
             <div class="text-small leading-[18px]">{{ vModel.alias || vModel.title }}</div>
           </div>
 
           <div v-if="vModel?.created_by && idUserMap[vModel?.created_by]">
-            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.createdBy') }}</div>
+            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.createdBy') }}</div>
             <div class="text-xs">
               {{
                 idUserMap[vModel?.created_by]?.id === user?.id
@@ -317,7 +317,7 @@ watch(isDropdownOpen, async () => {
             </div>
           </div>
           <div>
-            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.viewMode') }}</div>
+            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.viewMode') }}</div>
             <div class="text-xs flex items-start gap-2">
               {{ viewModeInfo }}
             </div>
@@ -352,7 +352,7 @@ watch(isDropdownOpen, async () => {
           v-model:value="_title"
           class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
           :class="{
-            '!font-semibold !text-brand-600': activeView?.id === vModel.id,
+            '!font-semibold !text-nc-content-brand-disabled': activeView?.id === vModel.id,
           }"
           :style="{
             fontWeight: 'inherit',
@@ -373,7 +373,7 @@ watch(isDropdownOpen, async () => {
           <div
             data-testid="sidebar-view-title"
             :class="{
-              'font-semibold text-brand-600': activeView?.id === vModel.id,
+              'font-semibold text-nc-content-brand-disabled': activeView?.id === vModel.id,
             }"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             @dblclick.stop="onDblClick"
@@ -386,8 +386,8 @@ watch(isDropdownOpen, async () => {
             :is="viewLockIcons[vModel.lock_type].icon"
             class="ml-1 flex-none w-3.5 h-3.5"
             :class="{
-              'text-brand-400': vModel?.lock_type === ViewLockType.Personal && isViewOwner,
-              'text-gray-400': !(vModel?.lock_type === ViewLockType.Personal && isViewOwner),
+              'text-nc-brand-400': vModel?.lock_type === ViewLockType.Personal && isViewOwner,
+              'text-nc-content-gray-disabled': !(vModel?.lock_type === ViewLockType.Personal && isViewOwner),
             }"
           />
         </div>
@@ -403,7 +403,10 @@ watch(isDropdownOpen, async () => {
               {{ vModel.description }}
             </template>
             <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
-              <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0" />
+              <GeneralIcon
+                icon="info"
+                class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-nc-content-gray-subtle2 opacity-0"
+              />
             </NcButton>
           </NcTooltip>
           <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">

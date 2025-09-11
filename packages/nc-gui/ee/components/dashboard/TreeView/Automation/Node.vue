@@ -249,7 +249,7 @@ const deleteScript = () => {
 <template>
   <a-menu-item
     :data-testid="`view-sidebar-script-${vModel.title}`"
-    class="nc-sidebar-node !rounded-md !px-0.75 !pl-2 !xs:(pl-2) !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
+    class="nc-sidebar-node !rounded-md !px-0.75 !pl-2 !xs:(pl-2) !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
   >
@@ -263,11 +263,11 @@ const deleteScript = () => {
       <template #title>
         <div class="flex flex-col gap-3">
           <div>
-            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.scriptName') }}</div>
+            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.scriptName') }}</div>
             <div class="text-small leading-[18px]">{{ vModel.title }}</div>
           </div>
           <div v-if="vModel?.created_by && idUserMap[vModel?.created_by]">
-            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.createdBy') }}</div>
+            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.createdBy') }}</div>
             <div class="text-xs">
               {{
                 idUserMap[vModel?.created_by]?.id === user?.id
@@ -323,7 +323,7 @@ const deleteScript = () => {
           ref="input"
           v-model:value="_title"
           :class="{
-            'font-semibold !text-brand-600': activeAutomationId === vModel.id,
+            'font-semibold !text-nc-content-brand-disabled': activeAutomationId === vModel.id,
           }"
           :style="{
             fontWeight: 'inherit',
@@ -341,7 +341,7 @@ const deleteScript = () => {
           <template #title> {{ vModel.title }}</template>
           <div
             :class="{
-              'font-semibold text-brand-600': activeAutomationId === vModel.id,
+              'font-semibold text-nc-content-brand-disabled': activeAutomationId === vModel.id,
             }"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             data-testid="sidebar-script-title"
@@ -360,7 +360,10 @@ const deleteScript = () => {
               {{ vModel.description }}
             </template>
             <NcButton class="!hover:bg-transparent" size="xsmall" type="text">
-              <GeneralIcon class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0" icon="info" />
+              <GeneralIcon
+                class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-nc-content-gray-subtle2 opacity-0"
+                icon="info"
+              />
             </NcButton>
           </NcTooltip>
           <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
@@ -400,7 +403,7 @@ const deleteScript = () => {
                     class="nc-script-rename"
                     @click="onRenameMenuClick(script)"
                   >
-                    <GeneralIcon class="text-gray-700" icon="rename" />
+                    <GeneralIcon class="text-nc-content-gray-subtle" icon="rename" />
                     {{ $t('general.rename') }} {{ $t('objects.script').toLowerCase() }}
                   </NcMenuItem>
 
@@ -410,7 +413,7 @@ const deleteScript = () => {
                     class="nc-script-description"
                     @click="openAutomationDescriptionDialog(script)"
                   >
-                    <GeneralIcon class="text-gray-700" icon="ncAlignLeft" />
+                    <GeneralIcon class="text-nc-content-gray-subtle" icon="ncAlignLeft" />
                     {{ $t('labels.editDescription') }}
                   </NcMenuItem>
                   <NcDivider />
@@ -421,7 +424,7 @@ const deleteScript = () => {
                     @click="duplicateScript(script)"
                   >
                     <GeneralLoader v-if="isLoading" />
-                    <GeneralIcon v-else class="text-gray-700" icon="duplicate" />
+                    <GeneralIcon v-else class="text-nc-content-gray-subtle" icon="duplicate" />
                     {{ $t('general.duplicate') }} {{ $t('objects.script').toLowerCase() }}
                   </NcMenuItem>
                   <NcDivider />

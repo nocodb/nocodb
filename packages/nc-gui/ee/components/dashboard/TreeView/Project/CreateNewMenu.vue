@@ -87,7 +87,7 @@ const openMarketPlace = () => {
       <GeneralIcon icon="dashboards" />
       {{ $t('labels.dashboard') }}
       <div class="flex-1 w-full" />
-      <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Beta </NcBadge>
+      <NcBadge :border="false" size="xs" class="!text-nc-content-brand-disabled !bg-nc-bg-brand"> Beta </NcBadge>
     </NcMenuItem>
 
     <NcMenuItemLabel>
@@ -122,7 +122,7 @@ const openMarketPlace = () => {
             <span class="normal-case min-w-[180px]"> {{ $t('labels.newScript') }} </span>
           </NcMenuItemLabel>
           <NcMenuItem @click="emits('emptyScript')">
-            <GeneralIcon icon="ncScript" class="w-4 h-4 text-brand-500" />
+            <GeneralIcon icon="ncScript" class="w-4 h-4 text-nc-content-brand" />
             {{ $t('labels.emptyScript') }}
           </NcMenuItem>
           <NcMenuItem @click="openMarketPlace">
@@ -136,7 +136,7 @@ const openMarketPlace = () => {
       <GeneralIcon icon="ncAutomation" />
       {{ $t('general.automation') }}
       <div class="flex-1 w-full" />
-      <NcBadge :border="false" size="xs" class="!text-brand-600 !bg-brand-50"> Soon </NcBadge>
+      <NcBadge :border="false" size="xs" class="!text-nc-content-brand-disabled !bg-nc-bg-brand"> Soon </NcBadge>
     </NcMenuItem>
   </NcMenu>
 </template>

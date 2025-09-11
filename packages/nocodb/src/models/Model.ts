@@ -40,8 +40,24 @@ import {
 import { Source } from '~/models';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import { dataWrapper } from '~/helpers/dbHelpers';
+import { isEE } from '~/utils';
 
 const logger = new Logger('Model');
+
+const modelOrViewXcCondition = {
+  _or: [
+    {
+      type: {
+        eq: ModelTypes.TABLE,
+      },
+    },
+    {
+      type: {
+        eq: ModelTypes.VIEW,
+      },
+    },
+  ],
+};
 
 export default class Model implements TableType {
   copy_enabled: BoolType;
@@ -199,12 +215,31 @@ export default class Model implements TableType {
 
     insertObj.mm = !!insertObj.mm;
 
+    const condition: Record<string, any> = {
+      base_id: baseId,
+    };
+
+    if (isEE) {
+      condition.fk_workspace_id = context.workspace_id;
+    }
+
     if (!insertObj.order) {
       insertObj.order = await ncMeta.metaGetNextOrder(
-        MetaTable.FORM_VIEW_COLUMNS,
+        MetaTable.MODELS,
+        condition,
         {
-          base_id: baseId,
-          source_id: sourceId,
+          _or: [
+            {
+              source_id: {
+                eq: sourceId, // Match the given source_id
+              },
+            },
+            {
+              source_id: {
+                eq: null, // Also include records with null source_id
+              },
+            },
+          ],
         },
       );
     }
@@ -311,6 +346,7 @@ export default class Model implements TableType {
             order: 'asc',
           },
           ...(source_id ? { condition: { source_id } } : {}),
+          xcCondition: modelOrViewXcCondition,
         },
       );
 
@@ -361,6 +397,9 @@ export default class Model implements TableType {
         context.workspace_id,
         context.base_id,
         MetaTable.MODELS,
+        {
+          xcCondition: modelOrViewXcCondition,
+        },
       );
 
       // parse meta of each model
@@ -391,6 +430,8 @@ export default class Model implements TableType {
         context.base_id,
         MetaTable.MODELS,
         id,
+        undefined,
+        modelOrViewXcCondition,
       );
 
       if (modelData) {
@@ -427,6 +468,8 @@ export default class Model implements TableType {
         context.base_id,
         MetaTable.MODELS,
         k,
+        undefined,
+        modelOrViewXcCondition,
       );
       if (modelData) {
         modelData.meta = parseMetaProp(modelData);
@@ -464,6 +507,21 @@ export default class Model implements TableType {
         MetaTable.MODELS,
         id || {
           table_name,
+        },
+        undefined,
+        {
+          _or: [
+            {
+              type: {
+                eq: ModelTypes.TABLE,
+              },
+            },
+            {
+              type: {
+                eq: ModelTypes.VIEW,
+              },
+            },
+          ],
         },
       );
       if (modelData) {
@@ -1051,16 +1109,21 @@ export default class Model implements TableType {
             { base_id, source_id },
             null,
             {
-              _or: [
+              _and: [
+                modelOrViewXcCondition,
                 {
-                  id: {
-                    eq: aliasOrId,
-                  },
-                },
-                {
-                  title: {
-                    eq: aliasOrId,
-                  },
+                  _or: [
+                    {
+                      id: {
+                        eq: aliasOrId,
+                      },
+                    },
+                    {
+                      title: {
+                        eq: aliasOrId,
+                      },
+                    },
+                  ],
                 },
               ],
             },
@@ -1072,16 +1135,21 @@ export default class Model implements TableType {
             { base_id },
             null,
             {
-              _or: [
+              _and: [
+                modelOrViewXcCondition,
                 {
-                  id: {
-                    eq: aliasOrId,
-                  },
-                },
-                {
-                  title: {
-                    eq: aliasOrId,
-                  },
+                  _or: [
+                    {
+                      id: {
+                        eq: aliasOrId,
+                      },
+                    },
+                    {
+                      title: {
+                        eq: aliasOrId,
+                      },
+                    },
+                  ],
                 },
               ],
             },
@@ -1113,7 +1181,20 @@ export default class Model implements TableType {
         ...(source_id ? { source_id } : {}),
       },
       null,
-      exclude_id && { id: { neq: exclude_id } },
+      {
+        _and: [
+          {
+            ...modelOrViewXcCondition,
+            ...(exclude_id
+              ? {
+                  id: {
+                    neq: exclude_id,
+                  },
+                }
+              : {}),
+          },
+        ],
+      },
     ));
   }
 
@@ -1135,7 +1216,20 @@ export default class Model implements TableType {
         ...(source_id ? { source_id } : {}),
       },
       null,
-      exclude_id && { id: { neq: exclude_id } },
+      {
+        _and: [
+          {
+            ...modelOrViewXcCondition,
+            ...(exclude_id
+              ? {
+                  id: {
+                    neq: exclude_id,
+                  },
+                }
+              : {}),
+          },
+        ],
+      },
     ));
   }
 
@@ -1170,6 +1264,7 @@ export default class Model implements TableType {
       MetaTable.MODELS,
       prepareForDb(updateObj),
       tableId,
+      modelOrViewXcCondition,
     );
 
     await NocoCache.update(

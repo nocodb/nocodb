@@ -1,4 +1,5 @@
 import {
+  ModelTypes,
   ProjectRoles,
   WorkspaceRolesToProjectRoles,
   WorkspaceUserRoles,
@@ -110,11 +111,17 @@ export async function getCommandPaletteForUserWorkspace(
           END = 1`),
         );
       })
-      .leftJoin(`${MetaTable.DASHBOARDS} as d`, function () {
-        this.on(`d.base_id`, `=`, `root.base_id`);
+      .leftJoin(`${MetaTable.MODELS} as d`, function (qb) {
+        qb.on(`d.base_id`, `=`, `root.base_id`);
+        qb.andOn(
+          `d.type`,
+          `=`,
+          ncMeta.knexConnection.raw('?', [ModelTypes.DASHBOARD]),
+        );
       })
       .where(function () {
         this.where('t.mm', false).orWhereNull('t.mm');
+        this.whereNotIn('t.type', [ModelTypes.DASHBOARD]);
       })
       .andWhere(function () {
         this.where('t.deleted', false).orWhereNull('t.deleted');

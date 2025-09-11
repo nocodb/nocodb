@@ -1,5 +1,6 @@
 import DashboardCE from 'src/models/Dashboard';
-import { PlanLimitTypes } from 'nocodb-sdk';
+import { ModelTypes, PlanLimitTypes } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { DashboardType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Widget from '~/models/Widget';
@@ -13,7 +14,10 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
-import { CustomUrl } from '~/models';
+import { CustomUrl, Source } from '~/models';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+
+const logger = new Logger('Dashboard');
 
 export default class Dashboard extends DashboardCE implements DashboardType {
   id?: string;
@@ -45,6 +49,10 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     dashboardId: string,
     ncMeta = Noco.ncMeta,
   ) {
+    if (!dashboardId) {
+      return null;
+    }
+
     let dashboard =
       dashboardId &&
       (await NocoCache.get(
@@ -55,8 +63,11 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       dashboard = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
-        MetaTable.DASHBOARDS,
-        dashboardId,
+        MetaTable.MODELS,
+        {
+          id: dashboardId,
+          type: ModelTypes.DASHBOARD,
+        },
       );
       if (dashboard) {
         dashboard = prepareForResponse(dashboard, ['meta']);
@@ -82,10 +93,11 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       dashboardsList = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
-        MetaTable.DASHBOARDS,
+        MetaTable.MODELS,
         {
           condition: {
             base_id: baseId,
+            type: ModelTypes.DASHBOARD,
           },
           orderBy: {
             order: 'asc',
@@ -121,21 +133,34 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     ]);
 
     // get order value
-    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.DASHBOARDS, {
-      base_id: context.base_id,
-      fk_workspace_id: context.workspace_id,
-    });
+    const sources = (await Source.list(context, { baseId: context.base_id }))
+      .filter((c) => c.isMeta())
+      .map((c) => c.id)
+      .filter(Boolean);
+
+    insertObj.order = await ncMeta.metaGetNextOrder(
+      MetaTable.MODELS,
+      {
+        base_id: context.base_id,
+        fk_workspace_id: context.workspace_id,
+      },
+      {
+        _or: [{ source_id: { in: sources } }, { source_id: { eq: null } }],
+      },
+    );
 
     if (!insertObj.meta) {
       insertObj.meta = {};
     }
+
+    (insertObj as any).type = ModelTypes.DASHBOARD;
 
     insertObj = prepareForDb(insertObj, ['meta']);
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
-      MetaTable.DASHBOARDS,
+      MetaTable.MODELS,
       insertObj,
     );
 
@@ -144,6 +169,10 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE,
       1,
     );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     return Dashboard.get(context, id, ncMeta).then(async (dashboard) => {
       await NocoCache.appendToList(
@@ -178,15 +207,22 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.DASHBOARDS,
+      MetaTable.MODELS,
       updateObj,
-      dashboardId,
+      {
+        id: dashboardId,
+        type: ModelTypes.DASHBOARD,
+      },
     );
 
     await NocoCache.update(
       `${CacheScope.DASHBOARD}:${dashboardId}`,
       prepareForResponse(updateObj),
     );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     return this.get(context, dashboardId, ncMeta);
   }
@@ -208,14 +244,21 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
-      MetaTable.DASHBOARDS,
-      dashboardId,
+      MetaTable.MODELS,
+      {
+        id: dashboardId,
+        type: ModelTypes.DASHBOARD,
+      },
     );
 
     await NocoCache.deepDel(
       `${CacheScope.DASHBOARD}:${dashboardId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     await NocoCache.incrHashField(
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
@@ -239,8 +282,9 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     const dashboard = await ncMeta.metaGet2(
       context.workspace_id,
       context.base_id,
-      MetaTable.DASHBOARDS,
+      MetaTable.MODELS,
       {
+        type: ModelTypes.DASHBOARD,
         uuid,
       },
     );
@@ -255,10 +299,11 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     return await ncMeta.metaCount(
       context.workspace_id,
       context.base_id,
-      MetaTable.DASHBOARDS,
+      MetaTable.MODELS,
       {
         condition: {
           base_id: baseId,
+          type: ModelTypes.DASHBOARD,
         },
       },
     );

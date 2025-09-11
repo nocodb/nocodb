@@ -102,7 +102,7 @@ const isOptionVisible = computed(() => {
       <GeneralLoader v-if="dataReflectionState === 1" />
       <GeneralIcon v-else-if="dataReflectionState === 2" icon="circleCheckSolid" class="text-success" />
       <GeneralIcon v-else-if="dataReflectionState === 3" icon="ncXCircle" />
-      <GeneralIntegrationIcon v-else type="nocodb1" class="group-hover:text-black" />
+      <GeneralIntegrationIcon v-else type="nocodb1" class="group-hover:text-nc-content-gray-extreme" />
       {{ dataReflectionText }}
     </NcMenuItem>
 

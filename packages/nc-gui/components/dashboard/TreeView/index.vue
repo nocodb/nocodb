@@ -339,7 +339,7 @@ watch(
 
 <template>
   <div class="nc-treeview-container flex flex-col justify-between select-none">
-    <div v-if="!isSharedBase" class="text-gray-500 font-medium pl-3.5 mb-1">{{ $t('objects.projects') }}</div>
+    <div v-if="!isSharedBase" class="text-nc-content-gray-muted font-medium pl-3.5 mb-1">{{ $t('objects.projects') }}</div>
     <div mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
       <div v-if="basesList?.length">
         <Draggable

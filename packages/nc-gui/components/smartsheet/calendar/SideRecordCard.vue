@@ -141,9 +141,14 @@ const errorInfo = computed(() => {
             {{ errorInfo.tooltip }}
           </template>
         </NcTooltip>
-        <div v-if="showDate" class="text-xs font-medium truncate max-w-58 leading-4 text-nc-content-gray-subtle2">
-          {{ fromDate }}{{ toDate ? ` - ${toDate}` : '' }}
-        </div>
+        <NcTooltip
+          v-if="showDate"
+          show-on-truncate-only
+          class="text-xs font-medium truncate max-w-58 leading-4 text-nc-content-gray-subtle2"
+        >
+          {{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }}
+          <template #title> {{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }} </template>
+        </NcTooltip>
       </div>
     </div>
   </div>

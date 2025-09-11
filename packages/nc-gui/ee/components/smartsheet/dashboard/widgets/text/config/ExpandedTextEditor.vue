@@ -96,10 +96,6 @@ const dragStart = (e: MouseEvent) => {
   document.addEventListener('mouseup', onMouseUp, true)
 }
 
-const getResizeEl = (): HTMLElement | null => {
-  return document.querySelector('.nc-text-widget-expanded-textarea') as HTMLElement
-}
-
 watch(
   position,
   () => {
@@ -114,6 +110,10 @@ watch(
   },
   { flush: 'post' },
 )
+
+const getResizeEl = (): HTMLElement | null => {
+  return document.querySelector('.nc-text-widget-expanded-textarea') as HTMLElement
+}
 
 const updateSize = () => {
   if (skipSizeUpdate.value) {

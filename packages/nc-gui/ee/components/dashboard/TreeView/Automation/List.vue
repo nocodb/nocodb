@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Sortable from 'sortablejs'
 import { type SortableEvent } from 'sortablejs'
-import { type DashboardType } from 'nocodb-sdk'
+import { type ScriptType } from 'nocodb-sdk'
 import type { Menu as AntMenu } from 'ant-design-vue/lib/components'
 
 const props = defineProps<{
@@ -22,21 +22,19 @@ const bases = useBases()
 
 const { isUIAllowed } = useRoles()
 
-const { showDashboardPlanLimitExceededModal } = useEeConfig()
-
 const { isSharedBase } = storeToRefs(useBase())
 
-const { baseHomeSearchQuery, openedProject } = storeToRefs(bases)
+const { openedProject, baseHomeSearchQuery } = storeToRefs(bases)
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-const dashboardStore = useDashboardStore()
+const automationStore = useAutomationStore()
 
-const { updateDashboard, openNewDashboardModal } = dashboardStore
+const { updateAutomation, openNewScriptModal } = automationStore
 
-const { activeDashboardId, dashboards: baseDashboards } = storeToRefs(dashboardStore)
+const { activeAutomationId, automations } = storeToRefs(automationStore)
 
-const dashboards = computed(() => baseDashboards.value.get(baseId.value) ?? [])
+const scripts = computed(() => automations.value.get(baseId.value) ?? [])
 
 let sortable: Sortable
 
@@ -56,7 +54,7 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
     dragging.value = false
   }
 
-  if (dashboards.value.length < 2) return
+  if (scripts.value.length < 2) return
 
   let { newIndex = 0, oldIndex = 0 } = evt
 
@@ -87,7 +85,7 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
         },
         args: [],
       },
-      scope: defineModelScope({ view: activeDashboardId.value }),
+      scope: defineModelScope({ view: activeAutomationId.value }),
     })
   }
 
@@ -99,20 +97,20 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
   const previousEl = children[newIndex - 1]
   const nextEl = children[newIndex + 1]
 
-  const currentItem = dashboards.value.find((v) => v.id === evt.item.id)
+  const currentItem = scripts.value.find((v) => v.id === evt.item.id)
 
   if (!currentItem || !currentItem.id) return
 
   // set default order value as 0 if item not found
   const previousItem = (
-    previousEl ? dashboards.value.find((v) => v.id === previousEl.id) ?? { order: 0 } : { order: 0 }
-  ) as DashboardType
-  const nextItem = (nextEl ? dashboards.value.find((v) => v.id === nextEl.id) : {}) as DashboardType
+    previousEl ? scripts.value.find((v) => v.id === previousEl.id) ?? { order: 0 } : { order: 0 }
+  ) as ScriptType
+  const nextItem = (nextEl ? scripts.value.find((v) => v.id === nextEl.id) : {}) as ScriptType
 
   let nextOrder: number
 
   // set new order value based on the new order of the items
-  if (dashboards.value.length - 1 === newIndex) {
+  if (scripts.value.length - 1 === newIndex) {
     nextOrder = parseFloat(String(previousItem.order)) + 1
   } else if (newIndex === 0) {
     nextOrder = parseFloat(String(nextItem.order)) / 2
@@ -124,19 +122,20 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
 
   currentItem.order = _nextOrder
 
-  await updateDashboard(baseId.value, currentItem.id, {
-    order: _nextOrder,
+  await updateAutomation(baseId.value, currentItem.id, {
+    order: currentItem.order,
   })
 
   markItem(currentItem.id)
 
-  $e('a:dashboard:reorder')
+  $e('a:script:reorder')
 }
-async function changeDashboard(dashboard: DashboardType) {
+
+async function changeScript(script: ScriptType) {
   ncNavigateTo({
     workspaceId: activeWorkspaceId.value,
     baseId: baseId.value,
-    dashboardId: dashboard.id,
+    automationId: script.id,
   })
 }
 
@@ -150,45 +149,45 @@ function markItem(id: string) {
   }, 300)
 }
 
-/** validate dashboard title */
-function validate(dashboard: DashboardType) {
-  if (!dashboard.title || dashboard.title.trim().length < 0) {
-    return t('msg.error.dashboardNameRequired')
+/** validate script title */
+function validate(script: ScriptType) {
+  if (!script.title || script.title.trim().length < 0) {
+    return t('msg.error.scriptNameRequired')
   }
 
-  if (dashboards.value.some((s) => s.title === dashboard.title && s.id !== dashboard.id)) {
-    return t('msg.error.dashboardNameDuplicate')
+  if (scripts.value.some((s) => s.title === script.title && s.id !== script.id)) {
+    return t('msg.error.scriptNameDuplicate')
   }
 
   return true
 }
 
-async function onRename(dashboard: DashboardType, originalTitle?: string, undo = false) {
+async function onRename(script: ScriptType, originalTitle?: string, undo = false) {
   try {
-    await updateDashboard(dashboard.base_id, dashboard.id!, {
-      title: dashboard.title,
-      order: dashboard.order,
+    await updateAutomation(script.base_id, script.id as string, {
+      title: script.title,
+      order: script.order,
     })
 
     if (!undo) {
       addUndo({
         redo: {
-          fn: (s: DashboardType, title: string) => {
+          fn: (s: ScriptType, title: string) => {
             const tempTitle = s.title
             s.title = title
             onRename(s, tempTitle, true)
           },
-          args: [dashboard, dashboard.title],
+          args: [script, script.title],
         },
         undo: {
-          fn: (s: DashboardType, title: string) => {
+          fn: (s: ScriptType, title: string) => {
             const tempTitle = s.title
             s.title = title
             onRename(s, tempTitle, true)
           },
-          args: [dashboard, originalTitle],
+          args: [script, originalTitle],
         },
-        scope: defineModelScope({ base_id: dashboard.base_id }),
+        scope: defineModelScope({ base_id: script.base_id }),
       })
     }
   } catch (e: any) {
@@ -196,63 +195,41 @@ async function onRename(dashboard: DashboardType, originalTitle?: string, undo =
   }
 }
 
-/** Open delete modal */
-function openDeleteDialog(dashboard: DashboardType) {
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgDashboardDelete'), {
-    'visible': isOpen,
-    'dashboard': dashboard,
-    'onUpdate:visible': closeDialog,
-    'onDeleted': () => {
-      closeDialog()
-    },
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-const duplicateDashboard = async (dashboard: DashboardType) => {
-  if (showDashboardPlanLimitExceededModal()) {
-    return
-  }
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgDashboardDuplicate'), {
-    'modelValue': isOpen,
-    'dashboard': dashboard,
-    'onUpdate:modelValue': closeDialog,
-    'onDeleted': () => {
-      closeDialog()
-    },
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-const updateDashboardIcon = async (icon: string, dashboard: DashboardType) => {
+const updateScriptIcon = async (icon: string, script: ScriptType) => {
   try {
     // modify the icon property in meta
-    dashboard.meta = {
-      ...parseProp(dashboard.meta),
+    script.meta = {
+      ...parseProp(script.meta),
       icon,
     }
 
-    await updateDashboard(dashboard.base_id, dashboard.id!, {
-      meta: dashboard.meta,
+    await updateAutomation(script.base_id, script.id!, {
+      meta: script.meta,
     })
 
-    $e('a:dashboard:icon:sidebar', { icon })
+    $e('a:script:icon:sidebar', { icon })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+/** Open delete modal */
+function openDeleteDialog(script: ScriptType) {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgAutomationDelete'), {
+    'modelValue': isOpen,
+    'script': script,
+    'onUpdate:modelValue': closeDialog,
+    'onDeleted': async () => {
+      closeDialog()
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
   }
 }
 
@@ -263,6 +240,7 @@ const initSortable = (el: HTMLElement) => {
   if (isMobileMode.value) return
 
   sortable = new Sortable(el, {
+    // handle: '.nc-drag-icon',
     ghostClass: 'ghost',
     onStart: onSortStart,
     onEnd: onSortEnd,
@@ -270,13 +248,13 @@ const initSortable = (el: HTMLElement) => {
 }
 
 onMounted(() => {
-  if (isUIAllowed('dashboardEdit') && menuRef.value) {
+  if (isUIAllowed('scriptCreateOrEdit') && menuRef.value) {
     initSortable(menuRef.value.$el)
   }
 })
 
-const filteredDashboards = computed(() => {
-  return dashboards.value.filter((dashboard) => searchCompare(dashboard.title, baseHomeSearchQuery.value))
+const filteredScripts = computed(() => {
+  return scripts.value.filter((script) => searchCompare(script.title, baseHomeSearchQuery.value))
 })
 </script>
 
@@ -285,16 +263,16 @@ const filteredDashboards = computed(() => {
     ref="menuRef"
     :class="{ dragging }"
     :selected-keys="selected"
-    class="nc-dashboards-menu flex flex-col w-full !border-r-0 !bg-inherit"
+    class="nc-scripts-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
-    <template v-if="!dashboards?.length && !isSharedBase && isUIAllowed('dashboardCreate')">
-      <div @click="openNewDashboardModal({ baseId })">
+    <template v-if="!scripts?.length && !isSharedBase && isUIAllowed('scriptCreateOrEdit')">
+      <div @click="openNewScriptModal({ baseId })">
         <div
           :class="{
-            'text-brand-500 hover:text-brand-600': openedProject?.id === baseId,
-            'text-gray-500 hover:text-brand-500': openedProject?.id !== baseId,
+            'text-nc-content-brand hover:text-nc-content-brand-disabled': openedProject?.id === baseId,
+            'text-nc-content-gray-muted hover:text-nc-content-brand': openedProject?.id !== baseId,
           }"
-          class="nc-create-dashboard-btn flex flex-row items-center cursor-pointer rounded-md w-full"
+          class="nc-create-script-btn flex flex-row items-center cursor-pointer rounded-md w-full"
           role="button"
         >
           <div class="nc-project-home-section-item">
@@ -302,7 +280,7 @@ const filteredDashboards = computed(() => {
             <div>
               {{
                 $t('general.createEntity', {
-                  entity: $t('objects.dashboard'),
+                  entity: $t('objects.script'),
                 })
               }}
             </div>
@@ -310,36 +288,39 @@ const filteredDashboards = computed(() => {
         </div>
       </div>
     </template>
-
-    <div v-if="!dashboards?.length || !filteredDashboards.length" class="nc-project-home-section-item text-gray-500 font-normal">
+    <div
+      v-if="!scripts?.length || !filteredScripts.length"
+      class="nc-project-home-section-item text-nc-content-gray-muted font-normal"
+    >
       {{
-        dashboards?.length && !filteredDashboards.length
+        scripts?.length && !filteredScripts.length
           ? $t('placeholder.noResultsFoundForYourSearch')
-          : $t('placeholder.noDashboards')
+          : $t('placeholder.noAutomations')
       }}
     </div>
-    <DashboardTreeViewDashboardNode
-      v-for="dashboard of filteredDashboards"
-      :id="dashboard.id"
-      :key="dashboard.id"
-      class="nc-dashboard-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
-      :class="{
-        'bg-gray-200': isMarked === dashboard.id,
-        'active': activeDashboardId === dashboard.id,
-      }"
-      :on-validate="validate"
-      :dashboard="dashboard"
-      @change-dashboard="changeDashboard"
-      @rename="onRename"
-      @delete="openDeleteDialog(dashboard)"
-      @select-icon="updateDashboardIcon($event, dashboard)"
-      @duplicate="duplicateDashboard(dashboard)"
-    />
+    <template v-if="filteredScripts?.length">
+      <DashboardTreeViewAutomationNode
+        v-for="script of filteredScripts"
+        :id="script.id"
+        :key="script.id"
+        class="nc-script-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
+        :class="{
+          'bg-nc-bg-gray-medium': isMarked === script.id,
+          'active': activeAutomationId === script.id,
+        }"
+        :on-validate="validate"
+        :script="script"
+        @change-script="changeScript"
+        @rename="onRename"
+        @delete="openDeleteDialog"
+        @select-icon="updateScriptIcon($event, script)"
+      />
+    </template>
   </a-menu>
 </template>
 
 <style lang="scss">
-.nc-dashboards-menu {
+.nc-scripts-menu {
   .ghost,
   .ghost > * {
     @apply !pointer-events-none;
@@ -364,7 +345,7 @@ const filteredDashboards = computed(() => {
   }
 
   .sortable-chosen {
-    @apply !bg-gray-200;
+    @apply !bg-nc-bg-gray-medium;
   }
 
   .active {

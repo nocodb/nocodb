@@ -4,32 +4,19 @@ import type { WritableComputedRef } from '@vue/reactivity'
 
 interface Props {
   dashboard: DashboardType
-  onValidate: (dashboard: DashboardType) => boolean | string
-}
-
-interface Emits {
-  (event: 'update:dashboard', data: Record<string, any>): void
-
-  (event: 'selectIcon', icon: string): void
-
-  (event: 'changeDashboard', dashboard: Record<string, any>): void
-
-  (event: 'rename', dashboard: DashboardType, title: string | undefined): void
-
-  (event: 'delete', dashboard: DashboardType): void
-
-  (event: 'duplicate', dashboard: DashboardType): void
 }
 
 const props = defineProps<Props>()
 
-const emits = defineEmits<Emits>()
-
-const vModel = useVModel(props, 'dashboard', emits) as WritableComputedRef<DashboardType>
+const vModel = useVModel(props, 'dashboard') as WritableComputedRef<DashboardType>
 
 const { $e } = useNuxtApp()
 
-const { isMobileMode, user } = useGlobal()
+const { t } = useI18n()
+
+const { addUndo, defineModelScope } = useUndoRedo()
+
+const { isMobileMode, ncNavigateTo, user } = useGlobal()
 
 const { isSharedBase } = useBase()
 
@@ -37,7 +24,11 @@ const { basesUser } = storeToRefs(useBases())
 
 const { isUIAllowed } = useRoles()
 
-const { activeDashboardId } = storeToRefs(useDashboardStore())
+const dashboardStore = useDashboardStore()
+
+const { updateDashboard } = dashboardStore
+
+const { activeDashboardId, activeBaseDashboards } = storeToRefs(dashboardStore)
 
 const { meta: metaKey, control } = useMagicKeys()
 
@@ -68,9 +59,17 @@ const idUserMap = computed(() => {
   }, {} as Record<string, any>)
 })
 
+const changeDashboard = (dashboard: DashboardType) => {
+  ncNavigateTo({
+    workspaceId: dashboard.fk_workspace_id,
+    baseId: dashboard.base_id,
+    dashboardId: dashboard.id,
+  })
+}
+
 /** Debounce click handler, so we can potentially enable editing dashboard name {@see onDblClick} */
 const onClick = useDebounceFn(() => {
-  emits('changeDashboard', vModel.value)
+  changeDashboard(vModel.value)
 }, 250)
 
 const handleOnClick = () => {
@@ -79,7 +78,7 @@ const handleOnClick = () => {
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   if (cmdOrCtrl) {
-    emits('changeDashboard', vModel.value)
+    changeDashboard(vModel.value)
   } else {
     onClick()
   }
@@ -90,6 +89,19 @@ const focusInput = () => {
     input.value?.focus()
     input.value?.select()
   })
+}
+
+/** validate dashboard title */
+function validateDashboardTitle(dashboard: DashboardType) {
+  if (!dashboard.title?.trim()) {
+    return t('msg.error.dashboardNameRequired')
+  }
+
+  if (activeBaseDashboards.value.some((s) => s.title === dashboard.title && s.id !== dashboard.id)) {
+    return t('msg.error.dashboardNameDuplicate')
+  }
+
+  return true
 }
 
 /** Enable editing dashboard name on dbl click */
@@ -153,6 +165,39 @@ const onRenameMenuClick = () => {
   }
 }
 
+async function onRenameDashboard(dashboard: DashboardType, originalTitle?: string, undo = false) {
+  try {
+    await updateDashboard(dashboard.base_id, dashboard.id!, {
+      title: dashboard.title,
+      order: dashboard.order,
+    })
+
+    if (!undo) {
+      addUndo({
+        redo: {
+          fn: (s: DashboardType, title: string) => {
+            const tempTitle = s.title
+            s.title = title
+            onRenameDashboard(s, tempTitle, true)
+          },
+          args: [dashboard, dashboard.title],
+        },
+        undo: {
+          fn: (s: DashboardType, title: string) => {
+            const tempTitle = s.title
+            s.title = title
+            onRenameDashboard(s, tempTitle, true)
+          },
+          args: [dashboard, originalTitle],
+        },
+        scope: defineModelScope({ base_id: dashboard.base_id }),
+      })
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 /** Rename a dashboard */
 async function onRename() {
   isDropdownOpen.value = false
@@ -162,7 +207,7 @@ async function onRename() {
     _title.value = _title.value.trim()
   }
 
-  const isValid = props.onValidate({ ...vModel.value, title: _title.value! })
+  const isValid = validateDashboardTitle({ ...vModel.value, title: _title.value! })
 
   if (isValid !== true) {
     message.error(isValid)
@@ -180,7 +225,7 @@ async function onRename() {
 
   vModel.value.title = _title.value || ''
 
-  emits('rename', vModel.value, originalTitle)
+  onRenameDashboard(vModel.value, originalTitle)
 
   onStopEdit()
 }
@@ -212,18 +257,67 @@ function onStopEdit() {
 const duplicateDashboard = (dashboard: DashboardType) => {
   isDropdownOpen.value = false
 
-  emits('duplicate', dashboard)
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgDashboardDuplicate'), {
+    'modelValue': isOpen,
+    'dashboard': dashboard,
+    'onUpdate:modelValue': closeDialog,
+    'onDeleted': () => {
+      closeDialog()
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+const updateDashboardIcon = async (icon: string, dashboard: DashboardType) => {
+  try {
+    // modify the icon property in meta
+    dashboard.meta = {
+      ...parseProp(dashboard.meta),
+      icon,
+    }
+
+    await updateDashboard(dashboard.base_id, dashboard.id!, {
+      meta: dashboard.meta,
+    })
+
+    $e('a:dashboard:icon:sidebar', { icon })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 const deleteDashboard = () => {
   isDropdownOpen.value = false
-  emits('delete', vModel.value)
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgDashboardDelete'), {
+    'visible': isOpen,
+    'dashboard': vModel.value,
+    'onUpdate:visible': closeDialog,
+    'onDeleted': () => {
+      closeDialog()
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
 }
 </script>
 
 <template>
-  <a-menu-item
-    class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
+  <div
+    class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     :data-testid="`view-sidebar-dashboard-${vModel.title}`"
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
@@ -232,17 +326,20 @@ const deleteDashboard = () => {
       :tooltip-style="{ width: '240px', zIndex: '1049' }"
       :overlay-inner-style="{ width: '240px' }"
       trigger="hover"
+      class="w-full"
       placement="right"
       :disabled="isEditing || isDropdownOpen || !showDashboardNodeTooltip"
     >
       <template #title>
         <div class="flex flex-col gap-3">
           <div>
-            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.dashboardName') }}</div>
+            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">
+              {{ $t('labels.dashboardName') }}
+            </div>
             <div class="text-small leading-[18px]">{{ vModel.title }}</div>
           </div>
           <div v-if="vModel?.created_by && idUserMap[vModel?.created_by]">
-            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.createdBy') }}</div>
+            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.createdBy') }}</div>
             <div class="text-xs">
               {{
                 idUserMap[vModel?.created_by]?.id === user?.id
@@ -253,7 +350,7 @@ const deleteDashboard = () => {
           </div>
         </div>
       </template>
-      <div v-e="['a:dashboard:open']" class="text-sm flex items-center w-full gap-1" data-testid="dashboard-item">
+      <div v-e="['a:dashboard:open']" class="text-sm flex items-center flex-1 w-full gap-1" data-testid="dashboard-item">
         <div
           v-e="['c:dashboard:emoji-picker']"
           class="flex min-w-6"
@@ -268,7 +365,7 @@ const deleteDashboard = () => {
             :emoji="props.dashboard?.meta?.icon"
             :clearable="true"
             :readonly="isMobileMode || !isUIAllowed('dashboardEdit')"
-            @emoji-selected="emits('selectIcon', $event)"
+            @emoji-selected="updateDashboardIcon($event, vModel)"
           >
             <template #default>
               <GeneralIcon
@@ -286,7 +383,7 @@ const deleteDashboard = () => {
           v-model:value="_title"
           class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
           :class="{
-            'font-semibold !text-brand-600': activeDashboardId === vModel.id,
+            'font-semibold !text-nc-content-brand-disabled': activeDashboardId === vModel.id,
           }"
           :style="{
             fontWeight: 'inherit',
@@ -302,9 +399,9 @@ const deleteDashboard = () => {
         >
           <template #title> {{ vModel.title }}</template>
           <div
-            data-testid="sidebar-dashboard-title"
+            data-testid="sidebar-dashboard-title w-full"
             :class="{
-              'font-semibold text-brand-600': activeDashboardId === vModel.id,
+              'font-semibold text-nc-content-brand-disabled': activeDashboardId === vModel.id,
             }"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
           >
@@ -322,7 +419,10 @@ const deleteDashboard = () => {
               {{ vModel.description }}
             </template>
             <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
-              <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0" />
+              <GeneralIcon
+                icon="info"
+                class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-nc-content-gray-subtle2 opacity-0"
+              />
             </NcButton>
           </NcTooltip>
           <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
@@ -362,7 +462,7 @@ const deleteDashboard = () => {
                     class="nc-dashboard-rename"
                     @click="onRenameMenuClick(dashboard)"
                   >
-                    <GeneralIcon icon="rename" class="text-gray-700" />
+                    <GeneralIcon icon="rename" class="text-nc-content-gray-subtle" />
                     {{ $t('general.rename') }} {{ $t('labels.dashboard').toLowerCase() }}
                   </NcMenuItem>
                   <NcMenuItem
@@ -371,7 +471,7 @@ const deleteDashboard = () => {
                     class="nc-dashboard-description"
                     @click="openDashboardDescriptionDialog(dashboard)"
                   >
-                    <GeneralIcon icon="ncAlignLeft" class="text-gray-700" />
+                    <GeneralIcon icon="ncAlignLeft" class="text-nc-content-gray-subtle" />
                     {{ $t('labels.editDescription') }}
                   </NcMenuItem>
 
@@ -406,5 +506,5 @@ const deleteDashboard = () => {
         </template>
       </div>
     </NcTooltip>
-  </a-menu-item>
+  </div>
 </template>

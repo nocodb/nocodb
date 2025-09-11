@@ -101,6 +101,7 @@ export enum PluginCategory {
 export enum ModelTypes {
   TABLE = 'table',
   VIEW = 'view',
+  DASHBOARD = 'dashboard',
 }
 
 export enum ProjectStatus {

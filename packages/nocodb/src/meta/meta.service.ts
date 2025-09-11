@@ -503,7 +503,17 @@ export class MetaService {
   ): Promise<number> {
     const query = this.knexConnection(target);
 
-    query.where(condition);
+    if (!condition) {
+      condition = {};
+    }
+    Object.entries(condition).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        query.whereIn(key, value);
+      } else {
+        query.where(key, value);
+      }
+    });
+
     query.max('order', { as: 'order' });
 
     return (+(await query.first())?.order || 0) + 1;

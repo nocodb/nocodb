@@ -557,10 +557,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     // Ensure stable ordering:
-// - Use auto-increment PK if available
-// - Otherwise, fallback to system CreatedTime
-// This avoids issues when order column has duplicates
-if (this.model.primaryKey && this.model.primaryKey.ai) {
+    // - Use auto-increment PK if available
+    // - Otherwise, fallback to system CreatedTime
+    // This avoids issues when order column has duplicates
+    if (this.model.primaryKey && this.model.primaryKey.ai) {
       qb.orderBy(this.model.primaryKey.column_name);
     } else {
       const createdCol = this.model.columns.find(

@@ -346,14 +346,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     }
 
     async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
-      if (
-        !viewMeta?.value?.id ||
-        !isUIAllowed('viewCreateOrEdit', {
-          skipSourceCheck: true,
-        })
-      )
-        return
-      await updateViewMeta(viewMeta.value.id, ViewTypes.KANBAN, updateObj)
+      if (!viewMeta?.value?.id) return
+      await updateViewMeta(viewMeta.value.id, ViewTypes.KANBAN, updateObj, {
+        skipNetworkCall: isPublic.value || !isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true }),
+      })
     }
 
     const updateStackProperty = async (stackIdx: number, updates: Partial<GroupingFieldColOptionsType>) => {
@@ -974,6 +970,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       removeRowFromUncategorizedStack,
       shouldScrollToRight,
       deleteRow,
+      stackMetaObj,
       moveHistory,
       addNewStackId,
       updateStackProperty,

@@ -2,7 +2,7 @@ import process from 'process';
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
-import { ViewTypes } from 'nocodb-sdk';
+import { getCircularReplacer, ViewTypes } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
 import { useAgent } from 'request-filtering-agent';
 import dayjs from 'dayjs';
@@ -29,7 +29,6 @@ import {
 } from '~/helpers/extractLimitAndOffset';
 import { DriverClient, NC_DISABLE_SUPPORT_CHAT } from '~/utils/nc-config';
 import NocoCache from '~/cache/NocoCache';
-import { getCircularReplacer } from '~/utils';
 
 const versionCache = {
   releaseVersion: null,

@@ -1,5 +1,6 @@
 import debug from 'debug';
 import { Logger } from '@nestjs/common';
+import { getCircularReplacer } from 'nocodb-sdk';
 import type { ChainableCommander } from 'ioredis';
 import type IORedis from 'ioredis';
 import { CacheDelDirection, CacheGetType } from '~/utils/globals';
@@ -23,20 +24,6 @@ export default abstract class CacheMgr {
   client: IORedis;
   prefix: string;
   context: string;
-
-  // avoid circular structure to JSON
-  getCircularReplacer = () => {
-    const seen = new WeakSet();
-    return (_, value) => {
-      if (typeof value === 'object' && value !== null) {
-        if (seen.has(value)) {
-          return;
-        }
-        seen.add(value);
-      }
-      return value;
-    };
-  };
 
   // @ts-ignore
   async del(key: string[] | string): Promise<any> {
@@ -160,7 +147,7 @@ export default abstract class CacheMgr {
       return this.client
         .set(
           key,
-          JSON.stringify(value, this.getCircularReplacer()),
+          JSON.stringify(value, getCircularReplacer()),
           'EX',
           NC_REDIS_TTL,
         )
@@ -231,7 +218,7 @@ export default abstract class CacheMgr {
 
       return this.client.set(
         key,
-        JSON.stringify(value, this.getCircularReplacer()),
+        JSON.stringify(value, getCircularReplacer()),
         'EX',
         seconds,
       );
@@ -622,7 +609,7 @@ export default abstract class CacheMgr {
                   o.timestamp = timestamp;
                   pipeline.set(
                     key,
-                    JSON.stringify(o, this.getCircularReplacer()),
+                    JSON.stringify(o, getCircularReplacer()),
                     'EX',
                     NC_REDIS_TTL,
                   );
@@ -653,7 +640,7 @@ export default abstract class CacheMgr {
             rawValue.timestamp = timestamp;
             pipeline.set(
               key,
-              JSON.stringify(rawValue, this.getCircularReplacer()),
+              JSON.stringify(rawValue, getCircularReplacer()),
               'EX',
               NC_REDIS_TTL,
             );
@@ -785,6 +772,6 @@ export default abstract class CacheMgr {
     if (Object.prototype.hasOwnProperty.call(value, 'toString')) {
       return value;
     }
-    return JSON.stringify(value, this.getCircularReplacer());
+    return JSON.stringify(value, getCircularReplacer());
   }
 }

@@ -1,9 +1,9 @@
 import { Inject, Logger } from '@nestjs/common';
+import { getCircularReplacer } from 'nocodb-sdk';
 import { customAlphabet } from 'nanoid';
 import type { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { PubSubRedis } from '~/redis/pubsub-redis';
-import { getCircularReplacer } from '~/utils';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 

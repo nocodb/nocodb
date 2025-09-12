@@ -15,7 +15,7 @@ export const getCircularReplacer = () => {
 export const getTrueCircularReplacer = () => {
   const stack = []; // objects along the current traversal path
 
-  return function replacer(key, value) {
+  return function replacer(_, value) {
     // Keep the stack aligned with the current traversal parent (`this`)
     const parentIndex = stack.indexOf(this);
     if (parentIndex === -1) {

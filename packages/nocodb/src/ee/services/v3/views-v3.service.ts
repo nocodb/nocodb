@@ -145,6 +145,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
   private v2Tov3ViewBuilders: {
     formFieldByIds?: () => ApiV3DataTransformationBuilder<any, any>;
     rowColors?: () => ApiV3DataTransformationBuilder<RowColoringInfo, any>;
+    viewMeta?: () => ApiV3DataTransformationBuilder<RowColoringInfo, any>;
   } = {};
 
   constructor(
@@ -247,9 +248,9 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
 
         const { rowColoringInfo: _rowColoringInfo, ...optionMeta } = meta ?? {};
         if (Object.keys(optionMeta ?? {}).length > 0) {
-          formattedData.options = {
+          formattedData.options = this.v2Tov3ViewBuilders.viewMeta().build({
             ...optionMeta,
-          };
+          });
         }
         if (Object.keys(options).length > 0) {
           formattedData.options = options;
@@ -527,6 +528,13 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         }
         field = JSON.parse(JSON.stringify(field));
         return Object.keys(field).length > 0 ? field : undefined;
+      },
+    }) as any;
+
+    this.v2Tov3ViewBuilders.viewMeta = builderGenerator<any, any>({
+      mappings: {
+        lockedViewDescription: 'locked_view_description',
+        lockedByUserId: 'locked_by_user_id',
       },
     }) as any;
   }

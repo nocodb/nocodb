@@ -138,11 +138,17 @@ watch(emailVerifyDlg, (val) => {
         </div>
 
         <!-- Sigin using SSO button -->
-        <NcButton class="mx-4 mb-4" type="primary" block @click="navigateTo('/sso')"> Sign in using Single Sign On </NcButton>
+        <div class="w-full p-6 pt-0 -mt-6">
+          <a-divider />
+          <NcButton class="w-full !text-base" type="primary" @click="navigateTo('/sso')"> Sign in using Single Sign On </NcButton>
+        </div>
       </template>
       <template #sign-in-footer>
         <!-- Sigin using SSO button -->
-        <NcButton class="mx-4 mb-4" type="primary" block @click="navigateTo('/sso')"> Sign in using Single Sign On </NcButton>
+        <div class="w-full p-6 pt-0 -mt-6">
+          <a-divider />
+          <NcButton class="w-full" type="primary" @click="navigateTo('/sso')"> Sign in using Single Sign On </NcButton>
+        </div>
       </template>
 
       <template #reset-password-footer>

@@ -73,6 +73,9 @@ importers:
       '@pinia/nuxt':
         specifier: ^0.5.5
         version: 0.5.5(magicast@0.3.5)(typescript@5.8.3)(vue@3.5.15(typescript@5.8.3))
+      '@productdevbook/chatwoot':
+        specifier: ^2.0.0
+        version: 2.0.0(magicast@0.3.5)(vue@3.5.15(typescript@5.8.3))
       '@readme/httpsnippet':
         specifier: ^11.0.0
         version: 11.0.0
@@ -4317,6 +4320,11 @@ packages:
     resolution: {integrity: sha512-5NCTbZjw7a+WIZ/ey6G8SY+YKcyM2zBF0hOT1muvqC9TbVtTCr5Qv3RL/2iNDOzLUHEvo4I1uEfioyfuNOGK8Q==}
     peerDependencies:
       '@opentelemetry/api': ^1.8
+
+  '@productdevbook/chatwoot@2.0.0':
+    resolution: {integrity: sha512-9A8LY3Jw+KEA3pKJ3zB4zooq4QJ5IdHDBsFhemMuTb3QI/JO0WeWtV1kPO+DYMuGp/FLaHe3T81fh5pAXSlh6g==}
+    peerDependencies:
+      vue: '>=3.3.0'
 
   '@purge-icons/core@0.10.0':
     resolution: {integrity: sha512-AtJbZv5Yy+vWX5v32DPTr+CW7AkSK8HJx52orDbrYt/9s4lGM2t4KKAmwaTQEH2HYr2HVh1mlqs54/S1s3WT1g==}
@@ -18935,6 +18943,14 @@ snapshots:
       '@opentelemetry/instrumentation': 0.57.2(@opentelemetry/api@1.9.0)
     transitivePeerDependencies:
       - supports-color
+
+  '@productdevbook/chatwoot@2.0.0(magicast@0.3.5)(vue@3.5.15(typescript@5.8.3))':
+    dependencies:
+      '@nuxt/kit': 3.17.4(magicast@0.3.5)
+      defu: 6.1.4
+      vue: 3.5.15(typescript@5.8.3)
+    transitivePeerDependencies:
+      - magicast
 
   '@purge-icons/core@0.10.0(encoding@0.1.13)':
     dependencies:

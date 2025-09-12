@@ -521,9 +521,9 @@ function setHook(newHook: HookType) {
     },
   })
   if (
-    toAssign.event === 'after' &&
+    ['view', 'after'].includes(toAssign.event) &&
     toAssign.operation &&
-    toAssign.operation.length === eventList.value.filter((k) => k.value[0] === 'after').length
+    toAssign.operation.length === eventList.value.filter((k) => k.value[0] === toAssign.event).length
   ) {
     sendMeEverythingChecked.value = true
   } else {

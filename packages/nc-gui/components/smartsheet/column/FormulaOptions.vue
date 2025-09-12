@@ -195,7 +195,7 @@ const supportedFormulaAlias = computed(() => {
         value: uidt,
         label: t(`datatype.${uidt}`),
         icon: h(resolveComponent('SmartsheetHeaderIcon'), {
-          field: {
+          column: {
             uidt,
           },
         }),

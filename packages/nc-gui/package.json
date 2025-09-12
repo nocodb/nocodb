@@ -41,6 +41,7 @@
     "@floating-ui/vue": "^1.1.6",
     "@iconify/vue": "^4.3.0",
     "@pinia/nuxt": "^0.5.5",
+    "@productdevbook/chatwoot": "^2.0.0",
     "@readme/httpsnippet": "^11.0.0",
     "@sentry/vue": "^9.2.0",
     "@tiptap/extension-hard-break": "^2.11.5",

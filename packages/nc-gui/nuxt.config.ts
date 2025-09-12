@@ -19,7 +19,7 @@ export default defineNuxtConfig({
     // 'pages/playground/**/*'
   ],
 
-  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt'],
+  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
   ssr: false,
 
   router: {
@@ -27,7 +27,16 @@ export default defineNuxtConfig({
       hashMode: true,
     },
   },
-
+  chatwoot: {
+    init: {
+      websiteToken: 'ke2YjiPnKw9gnz4PCq4RuQqR',
+      baseUrl: 'https://app.chatwoot.com',
+    },
+    settings: {
+      darkMode: 'light',
+      hideMessageBubble: true,
+    },
+  },
   spaLoadingTemplate: false,
 
   app: {

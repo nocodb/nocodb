@@ -958,7 +958,7 @@ export const excludeAttachmentProps = (obj: Record<string, unknown>) => {
 
   return fromEntries(
     Object.entries(obj).filter(([key]) => {
-      return !['data', 'signedPath', 'thumbnails'].includes(key);
+      return !['data', 'signedPath', 'thumbnails', 'signedUrl'].includes(key);
     }),
   );
 };

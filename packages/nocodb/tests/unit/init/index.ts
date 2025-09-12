@@ -5,6 +5,7 @@ import nocobuild from '../../../src/nocobuild';
 import { createUser } from '../factory/user';
 import cleanupMeta from './cleanupMeta';
 import { cleanUpSakila, resetAndSeedSakila } from './cleanupSakila';
+import type { Base } from '../../../src/models';
 import type { INestApplication } from '@nestjs/common';
 
 let server;
@@ -28,7 +29,7 @@ const serverInit = async () => {
 
 const isFirstTimeRun = () => !server;
 
-export default async function (forceReset = false, roles = 'editor') {
+export default async function init(forceReset = false, roles = 'editor') {
   const { default: TestDbMngr } = await import('../TestDbMngr');
 
   if (isFirstTimeRun()) {
@@ -81,4 +82,15 @@ export default async function (forceReset = false, roles = 'editor') {
     sakilaDbConfig: TestDbMngr.getSakilaDbConfig(),
     ...extra,
   };
+}
+
+export type IInitContext = Awaited<ReturnType<typeof init>>;
+
+export interface ITestContext {
+  context: IInitContext;
+  ctx: {
+    workspace_id: any;
+    base_id: any;
+  };
+  base: Base;
 }

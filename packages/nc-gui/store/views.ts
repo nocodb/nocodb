@@ -503,12 +503,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
     viewId: string,
     viewType: ViewTypes,
     updates: Record<string, any>,
-    { skipNetworkCall = false },
+    args?: {
+      skipNetworkCall?: boolean
+    },
   ): Promise<ViewType | null> => {
     try {
       let updatedView
 
-      if (!skipNetworkCall) {
+      if (!args?.skipNetworkCall) {
         switch (viewType) {
           case ViewTypes.GRID:
             updatedView = await $api.dbView.gridUpdate(viewId, updates)

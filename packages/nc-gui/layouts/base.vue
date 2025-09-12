@@ -35,7 +35,7 @@ hooks.hook('page:finish', () => {
       <div v-show="hasSider" id="nc-sidebar-left" ref="sidebar" />
     </Transition>
 
-    <a-layout class="!flex-col h-screen">
+    <a-layout class="!flex-col nc-h-screen">
       <a-layout-header v-if="!route.meta.public && signedIn && !route.meta.hideHeader" class="nc-navbar">
         <div
           v-if="!route.params.baseType"

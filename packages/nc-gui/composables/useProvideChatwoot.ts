@@ -1,8 +1,13 @@
 export const useProvideChatwoot = () => {
   const { setUser, setConversationCustomAttributes } = useChatWoot()
+
+  const { $api } = useNuxtApp()
+
   const { user, appInfo } = useGlobal()
   const router = useRouter()
   const route = router.currentRoute
+
+  const metaInfo = ref()
 
   const chatwootReady = ref(false)
 
@@ -26,6 +31,8 @@ export const useProvideChatwoot = () => {
       user_id: String(userId),
       email: user.value?.email || '',
       base_id: baseId || '',
+      user_count: metaInfo.value?.userCount || 0,
+      bases_count: metaInfo.value?.baseCount || 0,
     })
   }
 
@@ -33,6 +40,12 @@ export const useProvideChatwoot = () => {
     if (ncIsIframe()) return
     chatwootReady.value = true
     initUserCustomerAttributes()
+  }
+
+  const loadAggMetaInfo = async () => {
+    try {
+      metaInfo.value = await $api.utils.aggregatedMetaInfo()
+    } catch (e) {}
   }
 
   watch(
@@ -45,6 +58,10 @@ export const useProvideChatwoot = () => {
 
   router.afterEach(() => {
     initUserCustomerAttributes()
+  })
+
+  onMounted(() => {
+    loadAggMetaInfo()
   })
 
   return {

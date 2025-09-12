@@ -69,7 +69,7 @@ const refTables = computed(() => {
   }
 
   const _refTables = meta.value.columns
-    .filter((c: ColumnType) => canUseForRollup(c))
+    .filter((c: ColumnType) => canUseForRollupLinkField(c))
     .map((c: ColumnType) => {
       const relTableId = (c.colOptions as any)?.fk_related_model_id
       const table = metas.value[relTableId] ?? tables.value.find((t) => t.id === relTableId)
@@ -91,14 +91,7 @@ const columns = computed<ColumnType[]>(() => {
     return []
   }
 
-  return metas.value[selectedTable.value.id]?.columns.filter(
-    (c: ColumnType) =>
-      (!isVirtualCol(c.uidt as UITypes) ||
-        [UITypes.CreatedTime, UITypes.CreatedBy, UITypes.LastModifiedTime, UITypes.LastModifiedBy, UITypes.Formula].includes(
-          c.uidt as UITypes,
-        )) &&
-      (!isSystemColumn(c) || c.pk),
-  )
+  return metas.value[selectedTable.value.id]?.columns.filter((c: ColumnType) => getValidRollupColumn(c))
 })
 
 const limitRecToCond = computed({

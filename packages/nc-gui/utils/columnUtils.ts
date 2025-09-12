@@ -11,6 +11,7 @@ import {
   isLinksOrLTAR,
   isSystemColumn,
   isValidURL,
+  isVirtualCol,
   ratingIconList,
   validateEmail,
 } from 'nocodb-sdk'
@@ -467,7 +468,7 @@ const disableMakeCellEditable = (col: ColumnType) => {
   return showEditRestrictedColumnTooltip(col) && !isLinksOrLTAR(col)
 }
 
-const canUseForRollup = (c: ColumnType) => {
+const canUseForRollupLinkField = (c: ColumnType) => {
   return (
     c &&
     isLinksOrLTAR(c) &&
@@ -485,7 +486,7 @@ const canUseForRollup = (c: ColumnType) => {
   )
 }
 
-const canUseForLookup = (c: ColumnType, metaSourceId?: string) => {
+const canUseForLookupLinkField = (c: ColumnType, metaSourceId?: string) => {
   return (
     c &&
     isLinksOrLTAR(c) &&
@@ -497,6 +498,16 @@ const canUseForLookup = (c: ColumnType, metaSourceId?: string) => {
         (c.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
       )) &&
     c.source_id === metaSourceId
+  )
+}
+
+const getValidRollupColumn = (c: ColumnType) => {
+  return (
+    (!isVirtualCol(c.uidt as UITypes) ||
+      [UITypes.CreatedTime, UITypes.CreatedBy, UITypes.LastModifiedTime, UITypes.LastModifiedBy, UITypes.Formula].includes(
+        c.uidt as UITypes,
+      )) &&
+    (!isSystemColumn(c) || c.pk)
   )
 }
 
@@ -523,6 +534,7 @@ export {
   showReadonlyColumnTooltip,
   showEditRestrictedColumnTooltip,
   disableMakeCellEditable,
-  canUseForRollup,
-  canUseForLookup,
+  canUseForRollupLinkField,
+  canUseForLookupLinkField,
+  getValidRollupColumn,
 }

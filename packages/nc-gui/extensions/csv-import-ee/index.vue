@@ -1620,7 +1620,7 @@ const errorMsgsTableColumns = [
                           :disabled="col.readonly && col.id !== importPayload.upsertColumnId"
                         >
                           <div class="flex items-center gap-2 w-full">
-                            <NcIconField :field="col" class="flex-none h-3.5 w-3.5 !mx-0" />
+                            <SmartsheetHeaderIcon :column="col" class="flex-none h-3.5 w-3.5 !mx-0" />
                             <NcTooltip
                               class="truncate flex-1"
                               :show-on-truncate-only="!(col.readonly && col.id !== importPayload.upsertColumnId)"

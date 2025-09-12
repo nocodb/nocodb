@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PermissionEntity, PermissionKey, UITypes, type ColumnType, type TableType } from 'nocodb-sdk'
+import { type ColumnType, PermissionEntity, PermissionKey, type TableType, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -56,7 +56,7 @@ const onNavigateToPermissionsOverview = () => {
           <GeneralIcon icon="ncLock" class="w-5 h-5 flex-none" />
           <div class="text-subHeading2">{{ $t('title.fieldPermissions') }}</div>
           <div class="flex items-center bg-nc-bg-gray-medium px-1 gap-1 rounded-md text-caption text-nc-content-gray-subtle">
-            <NcIconField :field="field" :default-uidt="UITypes.SingleLineText" class="flex-none h-4 w-4 !mx-0" />
+            <SmartsheetHeaderIcon :column="field" :default-uidt="UITypes.SingleLineText" class="flex-none h-4 w-4 !mx-0" />
             <div>{{ fieldTitle }}</div>
           </div>
         </div>

@@ -180,9 +180,9 @@ watch(
           <div class="flex-1 min-w-0">
             <NcDropdown v-model:visible="fieldDropdownStates[index]">
               <div class="flex-1 flex items-center gap-2 min-w-0 cursor-pointer">
-                <NcIconField
+                <SmartsheetHeaderIcon
                   v-if="getSelectedColumn(field.column_id)"
-                  :field="getSelectedColumn(field.column_id)"
+                  :column="getSelectedColumn(field.column_id)"
                   color="text-nc-content-gray-muted"
                 />
                 <NcTooltip hide-on-click class="truncate flex-1" show-on-truncate-only>
@@ -212,11 +212,13 @@ watch(
                 >
                   <template #item="{ item }">
                     <div class="w-full flex items-center gap-2">
-                      <NcIconField :field="item" color="text-nc-content-gray-muted" />
+                      <SmartsheetHeaderIcon :column="item" color="text-nc-content-gray-muted" />
+
                       <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                         <template #title>{{ item.label }}</template>
                         <span>{{ item.label }}</span>
                       </NcTooltip>
+
                       <component
                         :is="iconMap.check"
                         v-if="field.column_id === item.value"

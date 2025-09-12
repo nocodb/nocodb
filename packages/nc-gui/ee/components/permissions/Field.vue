@@ -113,7 +113,7 @@ const handlePermissionSave = () => {
         </div>
 
         <div class="flex items-center gap-3">
-          <NcIconField :field="record.col" class="flex-none h-4 w-4 !mx-0" color="text-nc-content-gray-subtle" />
+          <SmartsheetHeaderIcon :column="record.col" class="flex-none h-4 w-4 !mx-0" color="text-nc-content-gray-subtle" />
           <span class="text-captionBold text-nc-content-gray truncate">
             {{ record.field_name }}
           </span>

@@ -20,8 +20,6 @@ const meta = toRef(restProps, 'meta')
 
 const fieldNameAlias = inject(FieldNameAlias, ref({} as Record<string, string>))
 
-const { metas } = useMetas()
-
 const localValue = computed({
   get: () => modelValue,
   set: (val) => emit('update:modelValue', val),

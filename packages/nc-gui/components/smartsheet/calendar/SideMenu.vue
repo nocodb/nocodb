@@ -32,7 +32,6 @@ const {
   activeDates,
   activeCalendarView,
   isSidebarLoading,
-  isCalendarMetaLoading,
   formattedSideBarData,
   calDataType,
   loadMoreSidebarData,
@@ -500,7 +499,7 @@ const selectOption = (option) => {
       </div>
 
       <div
-        v-if="calendarRange?.length && !isCalendarMetaLoading"
+        v-if="calendarRange?.length"
         :ref="sideBarListRef"
         :class="{
           '!h-[calc(100svh-22.15rem)]':
@@ -554,31 +553,6 @@ const selectOption = (option) => {
           </div>
         </template>
       </div>
-      <template v-else-if="isCalendarMetaLoading">
-        <div
-          :class="{
-            '!h-[calc(100svh-22.15rem)]':
-              height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-            '!h-[calc(100svh-24.9rem)]':
-              height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-            '!h-[calc(100svh-13.85rem)]':
-              height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-            '!h-[calc(100svh-16.61rem)]':
-              height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-            '!h-[calc(100svh-30.15rem)]':
-              height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-            ' !h-[calc(100svh-32.9rem)]':
-              height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
-            '!h-[calc(100svh-13.8rem)]':
-              height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-            '!h-[calc(100svh-16.6rem)]':
-              height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
-          }"
-          class="flex items-center justify-center h-full"
-        >
-          <GeneralLoader size="xlarge" />
-        </div>
-      </template>
       <div
         v-else
         :class="{

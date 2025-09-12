@@ -51,19 +51,84 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { getValidSearchQueryForColumn } = useFieldQuery()
 
+    const { sharedView, fetchSharedViewData, fetchSharedViewActiveDate, fetchSharedCalendarViewData } = useSharedView()
+
     const displayField = computed(() => meta.value?.columns?.find((c) => c.pv))
 
-    const activeCalendarView = ref<'month' | 'year' | 'day' | 'week'>()
+    const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
+
+    const calendarMetaData = computed<CalendarType>(() => {
+      return isPublic.value ? (sharedView.value?.view as CalendarType) : (viewMeta.value?.view as CalendarType)
+    })
+
+    // The current view meta properties
+    const viewMetaProperties = computed<{
+      active_view: string
+      hide_weekend: boolean
+    }>(() => {
+      let meta = calendarMetaData.value?.meta ?? {}
+
+      if (typeof meta === 'string') {
+        try {
+          meta = JSON.parse(meta)
+        } catch (e) {}
+      }
+
+      return meta as {
+        active_view: string
+        hide_weekend: boolean
+      }
+    })
 
     // The range of columns that are used for the calendar view
-    const calendarRange = ref<
+    const calendarRange = computed<
       Array<{
         fk_from_col: ColumnType
         fk_to_col?: ColumnType | null
         id: string
         is_readonly: boolean
       }>
-    >([])
+    >(() => {
+      return calendarMetaData.value?.calendar_range
+        ?.map(
+          (
+            range: CalendarRangeType & {
+              id?: string
+            },
+          ) => {
+            const fromCol = meta.value?.columns?.find((col) => col.id === range.fk_from_column_id)
+            const toCol = range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null
+
+            if (fromCol?.uidt === UITypes.Formula || toCol?.uidt === UITypes.Formula) {
+              // Check if fromCol Formula return type is Date
+              const isFromColDate =
+                fromCol?.uidt === UITypes.Formula && (fromCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
+              // Check if toCol Formula return type is Date
+
+              const isToColDate =
+                toCol?.uidt === UITypes.Formula && (toCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
+
+              if (!isFromColDate) {
+                message.error(`Please update the Formula column ${fromCol?.title} to return a date`)
+                return null
+              }
+
+              if (toCol && !isToColDate) {
+                message.error(`Please update the Formula column ${toCol?.title} to return a date`)
+                return null
+              }
+            }
+
+            return {
+              id: range?.id,
+              fk_from_col: fromCol,
+              fk_to_col: toCol,
+              is_readonly: [fromCol, toCol].some((col) => isSystemColumn(col) || isVirtualCol(col)),
+            }
+          },
+        )
+        .filter(Boolean) as any
+    })
 
     const calDataType = computed(() => {
       if (!calendarRange.value || !calendarRange.value[0]) return null
@@ -114,8 +179,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isCalendarDataLoading = ref<boolean>(false)
 
-    const isCalendarMetaLoading = ref<boolean>(false)
-
     // show/hide side menu in calendar
     const showSideMenu = ref(!isMobileMode.value)
 
@@ -138,6 +201,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const activeDates = ref<dayjs.Dayjs[]>([])
 
+    const activeCalendarView = ref<'month' | 'year' | 'day' | 'week'>((viewMetaProperties.value?.active_view as any) ?? 'month')
+
     // The active filter in the sidebar
     const sideBarFilterOption = ref<string>(activeCalendarView.value ?? 'allRecords')
 
@@ -153,19 +218,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-    const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
-
     const { sorts, nestedFilters, isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
-
-    const { sharedView, fetchSharedViewData, fetchSharedViewActiveDate, fetchSharedCalendarViewData } = useSharedView()
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
     const viewStore = useViewsStore()
 
     const { updateViewMeta } = viewStore
-
-    const calendarMetaData = ref<CalendarType>({})
 
     const paginationData = ref<PaginatedType>({ page: 1, pageSize: defaultPageSize })
 
@@ -177,25 +236,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     // In timezone is removed from the date string for mysql for reverse compatibility upto mysql5
     const updateFormat = computed(() => {
       return isMysql(meta.value?.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
-    })
-
-    // The current view meta properties
-    const viewMetaProperties = computed<{
-      active_view: string
-      hide_weekend: boolean
-    }>(() => {
-      let meta = calendarMetaData.value?.meta ?? {}
-
-      if (typeof meta === 'string') {
-        try {
-          meta = JSON.parse(meta)
-        } catch (e) {}
-      }
-
-      return meta as {
-        active_view: string
-        hide_weekend: boolean
-      }
     })
 
     // sideBarFilter - The sideBar filter is automatically generated based on the current calendar view
@@ -504,11 +544,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         activeCalendarView.value = view
 
         if (isUIAllowed('calendarViewUpdate')) {
-          await updateCalendarMeta({
+          await updateViewMeta(viewMeta.value.id, ViewTypes.CALENDAR, {
             meta: {
-              ...(typeof calendarMetaData.value.meta === 'string'
-                ? JSON.parse(calendarMetaData.value.meta)
-                : calendarMetaData.value.meta),
+              ...viewMetaProperties.value,
               active_view: view,
             },
           })
@@ -531,68 +569,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         })
       )
     })
-
-    async function loadCalendarMeta() {
-      if (!viewMeta?.value?.id || !meta?.value?.columns) return
-      isCalendarMetaLoading.value = true
-      try {
-        const res = isPublic.value ? (sharedView.value?.view as CalendarType) : await $api.dbView.calendarRead(viewMeta.value.id)
-        calendarMetaData.value = res
-        const calMeta = typeof res.meta === 'string' ? JSON.parse(res.meta) : res.meta
-        activeCalendarView.value = calMeta?.active_view
-        if (!activeCalendarView.value) activeCalendarView.value = 'month'
-        calendarRange.value = res?.calendar_range
-          ?.map(
-            (
-              range: CalendarRangeType & {
-                id?: string
-              },
-            ) => {
-              const fromCol = meta.value?.columns?.find((col) => col.id === range.fk_from_column_id)
-              const toCol = range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null
-
-              if (fromCol?.uidt === UITypes.Formula || toCol?.uidt === UITypes.Formula) {
-                // Check if fromCol Formula return type is Date
-                const isFromColDate =
-                  fromCol?.uidt === UITypes.Formula &&
-                  (fromCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
-                // Check if toCol Formula return type is Date
-
-                const isToColDate =
-                  toCol?.uidt === UITypes.Formula && (toCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
-
-                if (!isFromColDate) {
-                  message.error(`Please update the Formula column ${fromCol?.title} to return a date`)
-                  return null
-                }
-
-                if (toCol && !isToColDate) {
-                  message.error(`Please update the Formula column ${toCol?.title} to return a date`)
-                  return null
-                }
-              }
-
-              return {
-                id: range?.id,
-                fk_from_col: fromCol,
-                fk_to_col: toCol,
-                is_readonly: [fromCol, toCol].some((col) => isSystemColumn(col) || isVirtualCol(col)),
-              }
-            },
-          )
-          .filter(Boolean) as any
-      } catch (e: unknown) {
-        message.error(
-          `Error loading calendar meta ${await extractSdkResponseErrorMsg(
-            e as Error & {
-              response: { data: { message: string } }
-            },
-          )}`,
-        )
-      } finally {
-        isCalendarMetaLoading.value = false
-      }
-    }
 
     async function loadCalendarData(showLoading = true) {
       if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) || !calendarRange.value?.length)
@@ -687,27 +663,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         console.log(e)
       } finally {
         isCalendarDataLoading.value = false
-      }
-    }
-
-    async function updateCalendarMeta(updateObj: Partial<CalendarType>) {
-      if (!viewMeta?.value?.id || !isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true }) || isPublic.value) return
-
-      const updateValue = {
-        ...(typeof calendarMetaData.value.meta === 'string'
-          ? JSON.parse(calendarMetaData.value.meta)
-          : calendarMetaData.value.meta),
-        ...(typeof updateObj.meta === 'string' ? JSON.parse(updateObj.meta) : updateObj.meta),
-      }
-
-      try {
-        await updateViewMeta(viewMeta.value.id, ViewTypes.CALENDAR, {
-          ...updateObj,
-          meta: JSON.stringify(updateValue),
-        })
-      } catch (e) {
-        message.error('Error updating changes')
-        console.log(e)
       }
     }
 
@@ -1263,17 +1218,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       fetchActiveDates,
       formattedSideBarData,
       loadMoreSidebarData,
-      updateCalendarMeta,
       loadSidebarData,
       displayField,
       sideBarFilterOption,
       searchQuery,
       activeDates,
       isCalendarDataLoading,
-      isCalendarMetaLoading,
       changeCalendarView,
       calDataType,
-      loadCalendarMeta,
       calendarRange,
       loadCalendarData,
       formattedData,

@@ -23,16 +23,16 @@ const viewStore = useViewsStore()
 
 const { updateViewMeta } = viewStore
 
-const { loadCalendarData, loadSidebarData, fetchActiveDates, updateCalendarMeta, viewMetaProperties } =
-  useCalendarViewStoreOrThrow()
+const { loadCalendarData, loadSidebarData, fetchActiveDates, viewMetaProperties } = useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
 
 const showWeekends = computed({
   get: () => !viewMetaProperties.value?.hide_weekend,
   set: (newValue) => {
-    updateCalendarMeta({
+    updateViewMeta(activeView.value?.id as string, ViewTypes.CALENDAR, {
       meta: {
+        ...(viewMetaProperties.value || {}),
         hide_weekend: !newValue,
       },
     })
@@ -110,6 +110,11 @@ watch(
   },
   { immediate: true },
 )
+
+// Update the local state from realtime
+watch(calendarRange, () => {
+  _calendar_ranges.value = calendarRange.value
+})
 
 const saveCalendarRanges = async () => {
   if (activeView.value) {

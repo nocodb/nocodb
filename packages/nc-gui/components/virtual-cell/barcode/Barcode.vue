@@ -4,6 +4,8 @@ import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
 import { IsCanvasInjectionInj } from '../../../context'
 import JsBarcodeWrapper from './JsBarcodeWrapper.vue'
 
+const { isMobileMode } = useGlobal()
+
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
@@ -84,6 +86,7 @@ onMounted(() => {
     :body-style="{ padding: '0px' }"
     :footer="null"
     :closable="false"
+    :centered="isMobileMode"
     @ok="handleModalOkClick"
   >
     <template #title>

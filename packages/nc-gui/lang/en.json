@@ -1031,6 +1031,8 @@
     "clearAll": "Clear all",
     "addNewLookupHelperText1": "Lookup fields show data from linked records. Select specific fields from ",
     "addNewLookupHelperText2": " table to add them as Lookup fields in this table.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "Formatting",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Format type",

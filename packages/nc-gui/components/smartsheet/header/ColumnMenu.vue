@@ -449,11 +449,14 @@ const linksAssociated = computed(() => {
   )
 })
 
-const addLookupMenu = ref(false)
+const addLookupOrRollupMenu = ref(false)
 
-const openLookupMenuDialog = () => {
+const addLookupOrRollupType = ref<UITypes.Lookup | UITypes.Rollup>(UITypes.Lookup)
+
+const openLookupOrRollupMenuDialog = (type: UITypes.Lookup | UITypes.Rollup) => {
   isOpen.value = false
-  addLookupMenu.value = true
+  addLookupOrRollupMenu.value = true
+  addLookupOrRollupType.value = type
 }
 
 const changeTitleFieldMenu = ref(false)
@@ -629,7 +632,11 @@ const onDeleteColumn = () => {
       </PaymentUpgradeBadgeProvider>
     </NcTooltip>
 
-    <NcMenuItem v-if="canUseForLookup(column, meta?.source_id)" :disabled="isSqlView" @click="openLookupMenuDialog">
+    <NcMenuItem
+      v-if="canUseForLookup(column, meta?.source_id)"
+      :disabled="isSqlView"
+      @click="openLookupOrRollupMenuDialog(UITypes.Lookup)"
+    >
       <div v-e="['a:field:lookup:create']" class="nc-column-lookup-create nc-header-menu-item">
         <SmartsheetHeaderVirtualCellIcon
           :column-meta="{
@@ -644,7 +651,7 @@ const onDeleteColumn = () => {
         {{ t('general.addLookupField') }}
       </div>
     </NcMenuItem>
-    <NcMenuItem v-if="canUseForRollup(column)" :disabled="isSqlView" @click="openLookupMenuDialog">
+    <NcMenuItem v-if="canUseForRollup(column)" :disabled="isSqlView" @click="openLookupOrRollupMenuDialog(UITypes.Rollup)">
       <div v-e="['a:field:rollup:create']" class="nc-column-rollup-create nc-header-menu-item">
         <SmartsheetHeaderVirtualCellIcon
           :column-meta="{
@@ -820,7 +827,7 @@ const onDeleteColumn = () => {
         :column="column"
         :extra="selectedColumnExtra"
       />
-      <LazySmartsheetHeaderAddLookups key="dcx" v-model:value="addLookupMenu" />
+      <LazySmartsheetHeaderAddLookupsOrRollups key="dcx" v-model:value="addLookupOrRollupMenu" :type="addLookupOrRollupType" />
       <LazySmartsheetHeaderUpdateDisplayValue
         key="dcxx"
         v-model:value="changeTitleFieldMenu"

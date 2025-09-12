@@ -139,13 +139,7 @@ export class GridsService {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_update',
-          payload: {
-            ...view,
-            view: {
-              ...oldGridView,
-              ...param.grid,
-            },
-          },
+          payload: view,
         },
       },
       context.socket_id,

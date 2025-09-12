@@ -49,7 +49,7 @@ export const useProvideChatwoot = () => {
   }
 
   watch(
-    [() => user.value?.email, () => user.value?.id, () => appInfo.value.disableSupportChat],
+    [() => user.value?.email, () => user.value?.id, () => appInfo.value.disableSupportChat, () => metaInfo.value],
     () => {
       initUserCustomerAttributes()
     },

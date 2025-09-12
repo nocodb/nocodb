@@ -20,7 +20,7 @@ const isToolbarIconMode = inject(
 
 const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
-const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
+const { kanbanMetaData, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -42,7 +42,6 @@ const updateGroupingField = async (v: string) => {
   await updateKanbanMeta({
     fk_grp_col_id: v,
   })
-  await loadKanbanMeta()
   await loadKanbanData()
   ;(activeView.value?.view as KanbanType).fk_grp_col_id = v
 }
@@ -76,7 +75,6 @@ const updateHideEmptyStack = async (v: boolean) => {
   await updateKanbanMeta({
     meta: payload,
   })
-  await loadKanbanMeta()
   ;(activeView.value?.view as KanbanType).meta = payload
 }
 

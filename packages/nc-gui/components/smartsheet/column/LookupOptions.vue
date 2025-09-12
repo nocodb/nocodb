@@ -57,7 +57,7 @@ const refTables = computed(() => {
   }
 
   const _refTables = meta.value.columns
-    .filter((column) => canUseForLookup(column, meta.value?.source_id))
+    .filter((column) => canUseForLookupLinkField(column, meta.value?.source_id))
     .map((column) => ({
       col: column.colOptions,
       column,

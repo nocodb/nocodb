@@ -9,7 +9,11 @@ import { createChildRow, createRow, getRow } from '../../factory/row';
 import { createTable, getTable } from '../../factory/table';
 import { createView } from '../../factory/view';
 import init from '../../init';
-import { initCustomerTable, initFilmTable } from './viewRowInit';
+import {
+  initCustomerTable,
+  initFilmTable,
+  initRentalTable,
+} from './viewRowInit';
 import type View from '../../../../src/models/View';
 import type Base from '~/models/Base';
 import type { Model } from '~/models';
@@ -22,14 +26,16 @@ let ctx: {
 let base: Base;
 let customerTable: Model;
 let filmTable: Model;
+let rentalTable: Model;
 let filmColumns;
-
+let rentalColumns;
 // views
 let customerGridView: View;
 let customerGalleryView: View;
 let customerFormView: View;
 // use film table because it has single select field
 let filmKanbanView: View;
+let rentalCalendarView: View;
 
 function viewRowLocalStaticTests() {
   beforeEach(async function () {
@@ -67,6 +73,23 @@ function viewRowLocalStaticTests() {
       title: 'Film Kanban',
       table: filmTable,
       type: ViewTypes.KANBAN,
+    });
+
+    rentalTable = await initRentalTable(context, base);
+    rentalColumns = await rentalTable.getColumns(ctx);
+    rentalCalendarView = await createView(context, {
+      title: 'Rental Calendar',
+      table: rentalTable,
+      type: ViewTypes.CALENDAR,
+    });
+    rentalCalendarView = await createView(context, {
+      title: 'Rental Calendar 2',
+      table: rentalTable,
+      type: ViewTypes.CALENDAR,
+      range: {
+        fk_from_column_id: rentalColumns.find((c) => c.title === 'RentalDate')
+          .id,
+      },
     });
 
     console.timeEnd('#### viewRowLocalTests');
@@ -115,18 +138,18 @@ function viewRowLocalStaticTests() {
       .and.to.be.a('number');
   };
 
-  // const testGetViewRowListCalendar = async (view: View) => {
-  //   const response = await request(context.app)
-  //     .get(`/api/v1/db/data/noco/${base.id}/${rentalTable.id}/views/${view.id}`)
-  //     .set('xc-auth', context.token)
-  //     .expect(200);
+  const testGetViewRowListCalendar = async (view: View) => {
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${base.id}/${rentalTable.id}/views/${view.id}`)
+      .set('xc-auth', context.token)
+      .expect(200);
 
-  //   const pageInfo = response.body.pageInfo;
+    const pageInfo = response.body.pageInfo;
 
-  //   if (pageInfo.totalRows !== 16044 && response.body.list.length !== 16044) {
-  //     throw new Error('Calendar View row list is not correct');
-  //   }
-  // };
+    if (pageInfo.totalRows < 40 && response.body.list.length < 40) {
+      throw new Error('Calendar View row list is not correct');
+    }
+  };
 
   it('Get view row list gallery', async () => {
     await testGetViewRowList(customerGalleryView);
@@ -141,9 +164,9 @@ function viewRowLocalStaticTests() {
     await testGetViewRowList(customerGridView);
   });
 
-  // it('Get view row list Calendar', async () => {
-  //   await testGetViewRowListCalendar(rentalCalendarView);
-  // });
+  it('Get view row list Calendar', async () => {
+    await testGetViewRowListCalendar(rentalCalendarView);
+  });
 
   //#endregion Get view row
 }

@@ -205,7 +205,20 @@ export default class Source extends SourceCE implements SourceType {
       ),
     );
 
-    return super.delete(context, ncMeta, { force });
+    const softDeleted = this.deleted;
+
+    const res = super.delete(context, ncMeta, { force });
+
+    // decrement only if not soft deleted before and not meta source
+    if (!softDeleted && !this.isMeta()) {
+      await NocoCache.incrHashField(
+        `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+        PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
+        -1,
+      );
+    }
+
+    return res;
   }
 
   static async countSourcesInBase(

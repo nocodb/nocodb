@@ -266,7 +266,7 @@ watch(
               <a-select-option v-for="option in supportedFormulaAlias" :key="option.value" :value="option.value">
                 <div class="flex w-full items-center gap-2 justify-between">
                   <div class="w-full">
-                    <component :is="option.icon" class="w-4 h-4 !text-gray-600" />
+                    <component :is="option.icon" class="w-4 h-4" color="text-nc-content-gray-subtle2" />
                     {{ option.label }}
                   </div>
                   <component

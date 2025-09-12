@@ -1863,16 +1863,12 @@ onBeforeRouteUpdate((_to, from, next) => {
                       <SmartsheetHeaderVirtualCellIcon
                         v-if="field && isVirtualCol(fieldState(field) || field)"
                         :column-meta="fieldState(field) || field"
-                        :class="{
-                          '!text-brand-500': compareCols(field, activeField),
-                        }"
+                        :color="compareCols(field, activeField) ? 'text-brand-500' : 'text-nc-content-gray-subtle2'"
                       />
                       <SmartsheetHeaderCellIcon
                         v-else
                         :column-meta="fieldState(field) || field"
-                        :class="{
-                          '!text-brand-500': compareCols(field, activeField),
-                        }"
+                        :color="compareCols(field, activeField) ? 'text-brand-500' : 'text-nc-content-gray-subtle2'"
                       />
                       <NcTooltip
                         :class="{
@@ -2073,16 +2069,12 @@ onBeforeRouteUpdate((_to, from, next) => {
                       <SmartsheetHeaderVirtualCellIcon
                         v-if="displayColumn && isVirtualCol(fieldState(displayColumn) || displayColumn)"
                         :column-meta="fieldState(displayColumn) || displayColumn"
-                        :class="{
-                          '!text-brand-500': compareCols(displayColumn, activeField),
-                        }"
+                        :color="compareCols(displayColumn, activeField) ? 'text-brand-500' : 'text-nc-content-gray-subtle2'"
                       />
                       <SmartsheetHeaderCellIcon
                         v-else-if="displayColumn"
                         :column-meta="fieldState(displayColumn) || displayColumn"
-                        :class="{
-                          '!text-brand-500': compareCols(displayColumn, activeField),
-                        }"
+                        :color="compareCols(displayColumn, activeField) ? 'text-brand-500' : 'text-nc-content-gray-subtle2'"
                       />
                       <NcTooltip
                         class="truncate flex-1"

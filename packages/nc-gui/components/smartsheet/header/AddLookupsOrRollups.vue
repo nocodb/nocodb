@@ -265,7 +265,7 @@ onMounted(async () => {
             >
               <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
               <div class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[5px] pr-2">
-                <component :is="getIcon(field)" class="!w-3.5 !h-3.5 !text-gray-500" />
+                <component :is="getIcon(field)" class="!w-3.5 !h-3.5" color="text-nc-content-gray-muted" />
                 <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only>
                   <template #title>
                     {{ field.title }}

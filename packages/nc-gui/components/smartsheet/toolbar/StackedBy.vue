@@ -187,7 +187,8 @@ const getIcon = (c: ColumnType) =>
                       <component
                         :is="getIcon(metaColumnById[option.value])"
                         v-if="option.value"
-                        class="!w-3.5 !h-3.5 !text-current opacity-80 !ml-0"
+                        class="!w-3.5 !h-3.5 opacity-80 !ml-0"
+                        color="text-current"
                       />
 
                       <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>

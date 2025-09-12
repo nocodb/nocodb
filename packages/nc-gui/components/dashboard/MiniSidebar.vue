@@ -272,7 +272,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             <DashboardSidebarFeed />
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
-        <DashboardMiniSidebarItemWrapper v-if="!appInfo.disableSupportChat && appInfo.ee">
+        <DashboardMiniSidebarItemWrapper v-if="!appInfo.disableSupportChat">
           <NcTooltip :title="`${$t('labels.chatWithNocoDBSupport')}!`" placement="right" hide-on-click :arrow="false">
             <DashboardSidebarChatSupport />
           </NcTooltip>

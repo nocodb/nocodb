@@ -224,7 +224,7 @@ export const getModelPaths = async (
         },
         description: 'Base Identifier'
       },
-      ...viewIdParams(ctx.views)
+      viewIdParams(ctx.views)
     ],
     get: {
       summary: `${ctx.tableName} count`,

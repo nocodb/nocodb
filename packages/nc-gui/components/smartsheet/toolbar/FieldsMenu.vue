@@ -617,7 +617,8 @@ const onAddColumnDropdownVisibilityChange = () => {
                     <component
                       :is="getIcon(metaColumnById[option.value])"
                       v-if="option.value"
-                      class="!w-3.5 !h-3.5 !text-gray-700 !ml-0"
+                      class="!w-3.5 !h-3.5 !ml-0"
+                      color="text-nc-content-gray-subtle"
                     />
 
                     <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
@@ -771,7 +772,8 @@ const onAddColumnDropdownVisibilityChange = () => {
                       >
                         <component
                           :is="getIcon(metaColumnById[field.fk_column_id])"
-                          class="!w-3.5 !h-3.5 !text-gray-600"
+                          class="!w-3.5 !h-3.5"
+                          color="text-nc-content-gray-subtle2"
                           @click.stop
                         />
 

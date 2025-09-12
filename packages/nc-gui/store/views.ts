@@ -446,7 +446,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
             tableId: view.fk_model_id,
           })
         } else {
-          await ncNavigateTo({
+          ncNavigateTo({
             workspaceId: activeWorkspaceId.value,
             baseId: view.base_id,
           })

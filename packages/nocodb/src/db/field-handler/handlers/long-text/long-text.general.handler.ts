@@ -1,7 +1,7 @@
 import { NcError } from 'src/helpers/catchError';
 import { NC_MAX_TEXT_LENGTH } from 'src/constants';
-import { isAIPromptCol, type NcContext, ncIsObject } from 'nocodb-sdk';
-import type { AIRecordType } from 'nocodb-sdk';
+import { isAIPromptCol, ncIsObject } from 'nocodb-sdk';
+import type { AIRecordType, NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
 import type { Column } from '~/models';

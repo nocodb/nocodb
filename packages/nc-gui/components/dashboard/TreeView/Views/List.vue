@@ -42,8 +42,6 @@ const { t } = useI18n()
 
 const { viewsByTable, activeView, allRecentViews } = storeToRefs(useViewsStore())
 
-const { navigateToTable } = useTablesStore()
-
 const views = computed(() => viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? [])
 
 const { api } = useApi()
@@ -52,7 +50,7 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineModelScope } = useUndoRedo()
 
-const { navigateToView, loadViews, removeFromRecentViews } = useViewsStore()
+const { navigateToView, loadViews } = useViewsStore()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -285,24 +283,6 @@ function openDeleteDialog(view: ViewType) {
       closeDialog()
 
       emits('deleted')
-
-      removeFromRecentViews({
-        viewId: view.id,
-        tableId: view.fk_model_id,
-        baseId: base.value.id,
-      })
-      refreshCommandPalette()
-      if (activeView.value?.id === view.id) {
-        navigateToTable({
-          tableId: table.value.id!,
-          baseId: base.value.id!,
-        })
-      }
-
-      await loadViews({
-        tableId: table.value.id!,
-        force: true,
-      })
     },
   })
 

@@ -245,6 +245,12 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.SHARED_BASE_DELETE_LINK:
         break;
       case AppEvents.ATTACHMENT_UPLOAD:
+        {
+          this.telemetryService.sendEvent({
+            evt_type: 'image:uploaded',
+            type: data?.type,
+          });
+        }
         break;
       case AppEvents.APIS_CREATED:
         break;

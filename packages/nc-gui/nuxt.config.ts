@@ -19,7 +19,7 @@ export default defineNuxtConfig({
     // 'pages/playground/**/*'
   ],
 
-  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt'],
+  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
   ssr: false,
 
   router: {

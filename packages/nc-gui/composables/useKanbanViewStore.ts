@@ -698,6 +698,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       })
     })
 
+    watch([groupingFieldColumn], () => {
+      loadKanbanData()
+    })
+
     return {
       loadKanbanData,
       loadMoreKanbanData,

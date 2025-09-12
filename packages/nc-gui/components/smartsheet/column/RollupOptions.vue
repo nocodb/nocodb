@@ -69,21 +69,7 @@ const refTables = computed(() => {
   }
 
   const _refTables = meta.value.columns
-    .filter(
-      (c: ColumnType) =>
-        isLinksOrLTAR(c) &&
-        (c.colOptions as LinkToAnotherRecordType).type &&
-        ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
-          (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
-        ) &&
-        // exclude system columns
-        (!c.system ||
-          // include system columns if it's self-referencing, mm, oo and bt are self-referencing
-          // hm is only used for LTAR with junction table
-          [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
-            (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
-          )),
-    )
+    .filter((c: ColumnType) => canUseForRollup(c))
     .map((c: ColumnType) => {
       const relTableId = (c.colOptions as any)?.fk_related_model_id
       const table = metas.value[relTableId] ?? tables.value.find((t) => t.id === relTableId)

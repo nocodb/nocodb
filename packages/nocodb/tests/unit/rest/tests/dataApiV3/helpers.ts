@@ -2,20 +2,7 @@ import { expect } from 'chai';
 import request from 'supertest';
 import { type ColumnType, WorkspaceUserRoles } from 'nocodb-sdk';
 import { defaultUserArgs } from '../../../factory/user';
-import type init from '../../../init';
-import type { Base, Model } from '../../../../../src/models';
-
-export interface ITestContext {
-  context: Awaited<ReturnType<typeof init>>;
-  ctx: {
-    workspace_id: any;
-    base_id: any;
-  };
-  sakilaProject: Base;
-  base: Base;
-  countryTable: Model;
-  cityTable: Model;
-}
+import type { ITestContext } from '../../../init';
 
 export const normalizeObject = (obj) => {
   return Object.keys(obj)
@@ -34,7 +21,7 @@ export const verifyColumnsInRsp = (
   const fieldsObject = row.fields || row;
   const responseColumnsListStr = Object.keys(fieldsObject).sort().join(',');
   const expectedColumnsListStr = columns
-    .filter((c) => !c.system && !c.pk)  // Exclude both system columns and primary key
+    .filter((c) => !c.system && !c.pk) // Exclude both system columns and primary key
     .map((c) => c.title)
     .sort()
     .join(',');

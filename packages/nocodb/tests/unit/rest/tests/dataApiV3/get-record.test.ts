@@ -4,12 +4,13 @@ import {
   createLookupColumn,
   createRollupColumn,
 } from '../../../factory/column';
+import { initTblCountry } from '../../../init/initTblCountry';
 import {
   beforeEachTextBased,
   beforeEach as dataApiV3BeforeEach,
 } from './beforeEach';
 import { ncAxios } from './ncAxios';
-import type { ITestContext } from './helpers';
+import type { ITestContext } from '../../../init';
 import type { Column, Model } from '../../../../../src/models';
 import type { INcAxios } from './ncAxios';
 
@@ -27,11 +28,13 @@ describe('dataApiV3', () => {
     let ncAxiosLinkGet: INcAxios['ncAxiosLinkGet'];
     let ncAxiosLinkAdd: INcAxios['ncAxiosLinkAdd'];
     let ncAxiosLinkRemove: INcAxios['ncAxiosLinkRemove'];
+    let countryTable: Model;
+    let cityTable: Model;
 
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/data/${testContext.sakilaProject.id}`;
+      urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -40,48 +43,54 @@ describe('dataApiV3', () => {
       ncAxiosLinkGet = testAxios.ncAxiosLinkGet;
       ncAxiosLinkAdd = testAxios.ncAxiosLinkAdd;
       ncAxiosLinkRemove = testAxios.ncAxiosLinkRemove;
+      const tables = await initTblCountry(
+        testContext.context,
+        testContext.base,
+      );
+      countryTable = tables.countryTable;
+      cityTable = tables.cityTable;
     });
 
     describe('general-based', () => {
       it('Nested Read - Link to another record', async function () {
         const country = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
+          url: `${urlPrefix}/${countryTable.id}/records/2`,
         });
 
-        expect(country.body.fields.Cities).to.equal(1);
+        expect(country.body.fields.Cities).to.equal(2);
       });
 
       it('Nested Read - Lookup', async function () {
         await createLookupColumn(testContext.context, {
-          base: testContext.sakilaProject,
+          base: testContext.base,
           title: 'Lookup',
-          table: testContext.countryTable,
-          relatedTableName: testContext.cityTable.table_name,
+          table: countryTable,
+          relatedTableName: cityTable.table_name,
           relatedTableColumnTitle: 'City',
         });
 
         const country = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
+          url: `${urlPrefix}/${countryTable.id}/records/2`,
         });
 
-        expect(country.body.fields.Lookup).to.deep.equal(['Kabul']);
+        expect(country.body.fields.Lookup).to.deep.equal(['Batna', 'Bchar']);
       });
 
       it('Nested Read - Rollup', async function () {
         await createRollupColumn(testContext.context, {
-          base: testContext.sakilaProject,
+          base: testContext.base,
           title: 'Rollup',
-          table: testContext.countryTable,
-          relatedTableName: testContext.cityTable.table_name,
+          table: countryTable,
+          relatedTableName: cityTable.table_name,
           relatedTableColumnTitle: 'City',
           rollupFunction: 'count',
         });
 
         const country = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
+          url: `${urlPrefix}/${countryTable.id}/records/2`,
         });
 
-        expect(country.body.fields.Rollup).to.equal(1);
+        expect(country.body.fields.Rollup).to.equal(2);
       });
     });
 
@@ -100,17 +109,14 @@ describe('dataApiV3', () => {
       });
       it('Read: all fields', async function () {
         const firstRow = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
+          url: `${urlPrefix}/${countryTable.id}/records/1`,
         });
-        expect(firstRow.body.fields).to.contain.keys([
-          'Country',
-          'Cities',
-        ]);
+        expect(firstRow.body.fields).to.contain.keys(['Country', 'Cities']);
       });
 
       it('Read: specific field without primary key', async function () {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
+          url: `${urlPrefix}/${countryTable.id}/records/1`,
           query: {
             fields: 'Country',
           },
@@ -127,9 +133,9 @@ describe('dataApiV3', () => {
 
       it('Read: specific field with primary key', async function () {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records/1`,
+          url: `${urlPrefix}/${countryTable.id}/records/1`,
           query: {
-            fields: ['CountryId', 'Country'],
+            fields: ['id', 'Country'],
           },
         });
 
@@ -144,7 +150,7 @@ describe('dataApiV3', () => {
 
       it('Read: invalid ID', async function () {
         await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/records/9999`,
+          url: `${urlPrefix}/${countryTable.id}/records/9999`,
           status: 404,
         });
       });

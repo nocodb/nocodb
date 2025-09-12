@@ -1,25 +1,23 @@
-import fs from 'fs';
-import path from 'path';
-import { NcApiVersion, UITypes } from 'nocodb-sdk';
 import { expect } from 'chai';
-import { createProject, createSakilaProject } from '../../../factory/base';
+import { NcApiVersion, UITypes } from 'nocodb-sdk';
+import { createProject } from '../../../factory/base';
 import {
   createLtarColumn,
   createLtarColumn2,
   customColumns,
 } from '../../../factory/column';
 import { createBulkRows, listRow, rowMixedValue } from '../../../factory/row';
-import { createTable, getTable } from '../../../factory/table';
+import { createTable } from '../../../factory/table';
 import init from '../../../init';
 import { addUsers, getUsers, prepareRecords } from './helpers';
+import type { ITestContext } from '../../../init';
 import type { Model } from '../../../../../src/models';
 import type { ColumnType } from 'nocodb-sdk';
-import type { ITestContext } from './helpers';
 
 export const beforeEach = async () => {
   const context = await init();
 
-  const sakilaProject = await createSakilaProject(context);
+  // const sakilaProject = await createSakilaProject(context);
   const base = await createProject(context);
 
   const ctx = {
@@ -27,23 +25,10 @@ export const beforeEach = async () => {
     base_id: base.id,
   };
 
-  const countryTable = await getTable({
-    base: sakilaProject,
-    name: 'country',
-  });
-
-  const cityTable = await getTable({
-    base: sakilaProject,
-    name: 'city',
-  });
-
   return {
     context,
     ctx,
-    sakilaProject,
     base,
-    countryTable,
-    cityTable,
   } as ITestContext;
 };
 

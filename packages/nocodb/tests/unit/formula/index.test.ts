@@ -1,4 +1,5 @@
 import 'mocha';
+import { runOnSet } from '../utils/runOnSet';
 import { formulaLookupLtarTest } from './tests/formula-lookup-ltar.test';
 import { formulaQrBarcodeTest } from './tests/formula-qr-barcode.test';
 import { formulaFormulaTest } from './tests/formula-formula.test';
@@ -11,6 +12,6 @@ function _formulaTests() {
   formulaErrorTest();
 }
 
-export function formulaTests() {
+export const formulaTests = runOnSet(2, function () {
   describe('Formula', _formulaTests);
-}
+});

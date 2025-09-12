@@ -335,16 +335,16 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     // group by using the column aliases
     qb.groupBy(...groupBySelectors);
 
-    if (!isOnPrem) {
-      applyPaginate(qb, rest);
-    }
-
-    // --- Wrap in a CTE to allow referencing grouped/aliased columns in subqueries (esp. for Postgres) ---
+    // Wrap in a CTE to allow referencing grouped/aliased columns in subqueries (esp. for Postgres)
     // We'll use: WITH grouped AS (<qb>) SELECT ... FROM grouped g
     const outerQb = baseModel.dbDriver
       .with('grouped', qb.clone())
       .select('*')
       .from({ g: 'grouped' });
+
+    if (!isOnPrem) {
+      applyPaginate(outerQb, rest);
+    }
 
     // Apply order by on the outer query, referencing g.<alias>
     for (const sort of sorts || []) {

@@ -57,7 +57,7 @@ jobs:
           fi
   unit-tests:
     runs-on: ubuntu-22.04
-    timeout-minutes: 40
+    timeout-minutes: 60
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
     steps:
       - name: Setup pnpm
@@ -92,7 +92,7 @@ jobs:
         run: pnpm run test:unit
   unit-tests-pg:
     runs-on: ubuntu-22.04
-    timeout-minutes: 40
+    timeout-minutes: 60
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
     steps:
       - name: Setup pnpm

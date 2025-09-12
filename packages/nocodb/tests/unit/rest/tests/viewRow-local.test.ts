@@ -503,6 +503,6 @@ function viewRowLocalTests() {
 }
 
 export default function () {
-  describe.only('ViewRowLocal', viewRowLocalStaticTests);
+  describe('ViewRowLocal', viewRowLocalStaticTests);
   describe('ViewRowLocal', viewRowLocalTests);
 }

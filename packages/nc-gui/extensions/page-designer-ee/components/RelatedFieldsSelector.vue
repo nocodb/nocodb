@@ -81,7 +81,7 @@ const filteredFieldSet = computed(() => {
 
 const getIcon = (c: ColumnType) =>
   h(resolveComponent('SmartsheetHeaderIcon'), {
-    columnMeta: c,
+    column: c,
   })
 
 const selectedMap = computed(() => {

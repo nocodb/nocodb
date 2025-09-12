@@ -37,6 +37,8 @@ export class AuditsService {
         };
 
         for (const col of Object.values(column_meta || {})) {
+          // re-generate new signedUrl for attachment files
+          // to prevent it from expiring when displayed
           if (col.type === UITypes.Attachment) {
             if (data && data[col.title]) {
               await processConcurrently(

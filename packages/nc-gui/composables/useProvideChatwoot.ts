@@ -1,5 +1,5 @@
 export const useProvideChatwoot = () => {
-  const { setUser, setConversationCustomAttributes } = useChatWoot()
+  const { setUser, setConversationCustomAttributes, setCustomAttributes } = useChatWoot()
 
   const { $api } = useNuxtApp()
 
@@ -27,6 +27,11 @@ export const useProvideChatwoot = () => {
       name: user.value?.display_name || '',
       identifier_hash: identity_hash,
     })
+
+    setCustomAttributes({
+      is_oss: true as any,
+    })
+
     setConversationCustomAttributes({
       user_id: String(userId),
       email: user.value?.email || '',

@@ -1,5 +1,5 @@
 export const useProvideChatwoot = () => {
-  const { setUser, setConversationCustomAttributes } = useChatWoot()
+  const { setUser, setConversationCustomAttributes, setCustomAttributes } = useChatWoot()
   const { user, appInfo } = useGlobal()
   const router = useRouter()
   const { activeWorkspace } = storeToRefs(useWorkspace())
@@ -24,6 +24,17 @@ export const useProvideChatwoot = () => {
       name: user.value?.display_name || '',
       identifier_hash: identity_hash,
     })
+
+    const attributes: Record<string, any> = {}
+    if (appInfo.value.isCloud) {
+      attributes.is_cloud = true as any
+    }
+    if (appInfo.value.isOnPrem) {
+      attributes.is_onprem = true as any
+    }
+
+    setCustomAttributes(attributes)
+
     setConversationCustomAttributes({
       user_id: String(userId),
       email: user.value?.email || '',

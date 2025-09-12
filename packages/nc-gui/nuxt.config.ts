@@ -27,7 +27,16 @@ export default defineNuxtConfig({
       hashMode: true,
     },
   },
-
+  chatwoot: {
+    init: {
+      websiteToken: 'ke2YjiPnKw9gnz4PCq4RuQqR',
+      baseUrl: 'https://app.chatwoot.com',
+    },
+    settings: {
+      darkMode: 'light',
+      hideMessageBubble: true,
+    },
+  },
   spaLoadingTemplate: false,
 
   app: {

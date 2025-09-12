@@ -152,6 +152,6 @@ export class GalleriesService {
 
     await view.getView(context);
 
-    return res;
+    return view;
   }
 }

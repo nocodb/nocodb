@@ -84,7 +84,7 @@ export class MapsService {
       NcError.viewNotFound(param.mapViewId);
     }
 
-    const res = await MapView.update(context, param.mapViewId, param.map);
+    await MapView.update(context, param.mapViewId, param.map);
 
     let owner = param.req.user;
 
@@ -100,6 +100,8 @@ export class MapsService {
       owner,
     });
 
-    return res;
+    await view.getView(context);
+
+    return view;
   }
 }

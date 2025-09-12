@@ -106,11 +106,7 @@ export class DuplicateController {
         ...body.options,
         excludeHooks: true,
       },
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        headers: req.headers,
-      },
+      req,
     });
 
     return { id: job.id, base_id: dupProject.id };
@@ -190,6 +186,7 @@ export class DuplicateController {
       title: body?.title,
       options: body?.options,
     });
+
     req.ncParentAuditId = parentAuditId;
 
     const job = await this.jobsService.add(JobTypes.DuplicateModel, {
@@ -201,12 +198,7 @@ export class DuplicateController {
       modelId: sourceModel.id,
       title: uniqueTitle,
       options: body.options || {},
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        headers: req.headers,
-        ncParentAuditId: parentAuditId,
-      },
+      req,
     });
 
     return { id: job.id };
@@ -276,6 +268,10 @@ export class DuplicateController {
       }
     }
 
+    req.ncParentAuditId = parentAuditId;
+    req.ncBaseId = baseId;
+    req.ncSourceId = source.id;
+
     const job = await this.jobsService.add(JobTypes.DuplicateColumn, {
       context,
       user: req.user,
@@ -285,14 +281,7 @@ export class DuplicateController {
       columnId: column.id,
       options: body.options || {},
       extra: body.extra || {},
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        headers: req.headers,
-        ncParentAuditId: parentAuditId,
-        ncSourceId: source.id,
-        ncBaseId: baseId,
-      },
+      req,
     });
 
     return { id: job.id };

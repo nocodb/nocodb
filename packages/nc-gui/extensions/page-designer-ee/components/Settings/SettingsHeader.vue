@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../../lib/context'
 
 interface Props {
@@ -18,11 +18,6 @@ const payload = inject(PageDesignerPayloadInj)!
 function unselectCurrentWidget() {
   payload.value.currentWidgetId = -1
 }
-
-const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
-  })
 </script>
 
 <template>
@@ -41,7 +36,8 @@ const getIcon = (c: ColumnType) =>
 
         <slot v-if="$slots.field || field" name="field">
           <template v-if="field">
-            <component :is="getIcon(field)" class="!m-0 flex-none" />
+            <SmartsheetHeaderIcon :column="field" class="!mx-0" />
+
             <NcTooltip class="truncate max-w-[220px] text-bodyBold !font-semibold" show-on-truncate-only>
               <template #title>
                 {{ field.title }}

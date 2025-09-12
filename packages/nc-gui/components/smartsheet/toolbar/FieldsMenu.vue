@@ -1,15 +1,6 @@
 <script lang="ts" setup>
-import {
-  type ColumnType,
-  type GalleryType,
-  type KanbanType,
-  type LookupType,
-  UITypes,
-  ViewTypes,
-  isLinksOrLTAR,
-  isSystemColumn,
-  isVirtualCol,
-} from 'nocodb-sdk'
+import type { ColumnType, GalleryType, KanbanType, LookupType } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
@@ -365,11 +356,6 @@ const showAllColumns = computed({
   },
 })
 
-const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
-  })
-
 const open = ref(false)
 
 const showSystemField = computed({
@@ -614,9 +600,9 @@ const onAddColumnDropdownVisibilityChange = () => {
                       'max-w-full': coverImageColumnId !== option.value,
                     }"
                   >
-                    <component
-                      :is="getIcon(metaColumnById[option.value])"
-                      v-if="option.value"
+                    <SmartsheetHeaderIcon
+                      v-if="option.value && metaColumnById[option.value]"
+                      :column="metaColumnById[option.value]"
                       class="!w-3.5 !h-3.5 !ml-0"
                       color="text-nc-content-gray-subtle"
                     />
@@ -770,8 +756,9 @@ const onAddColumnDropdownVisibilityChange = () => {
                         }"
                         @click="conditionalToggleFieldVisibility(field)"
                       >
-                        <component
-                          :is="getIcon(metaColumnById[field.fk_column_id])"
+                        <SmartsheetHeaderIcon
+                          v-if="field.fk_column_id && metaColumnById[field.fk_column_id]"
+                          :column="metaColumnById[field.fk_column_id]"
                           class="!w-3.5 !h-3.5"
                           color="text-nc-content-gray-subtle2"
                           @click.stop

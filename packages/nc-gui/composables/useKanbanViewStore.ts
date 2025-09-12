@@ -138,7 +138,107 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     // grouping field column options - e.g. title, fk_column_id, color etc
     const groupingFieldColOptions = computed(() => {
       if (!groupingFieldColumn.value?.id) return []
-      return stackMetaObj.value[groupingFieldColumn.value?.id]?.sort((a, b) => a.order - b.order) || []
+
+      const columnId = groupingFieldColumn.value.id
+      const columnOptions = (groupingFieldColumn.value.colOptions as SelectOptionsType)?.options ?? []
+
+      // Check if we have valid stack meta
+      const stackMeta = stackMetaObj.value[columnId]
+
+      if (!Array.isArray(stackMeta) || stackMeta.length === 0) {
+        // Missing or invalid stack meta - rebuild locally
+        const rebuiltOptions: GroupingFieldColOptionsType[] = []
+
+        // Add uncategorized stack first
+        rebuiltOptions.push({
+          id: uncategorizedStackId,
+          title: null,
+          order: 0,
+          color: '#6A7184',
+          collapsed: false,
+        })
+
+        // Add column options
+        columnOptions.forEach((option, index) => {
+          rebuiltOptions.push({
+            ...option,
+            order: index + 1,
+            collapsed: false,
+          })
+        })
+
+        // Try to persist if user has permissions (fire and forget)
+        if (!isPublic.value && isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true })) {
+          nextTick(() => {
+            updateKanbanMeta({
+              meta: {
+                ...stackMetaObj.value,
+                [columnId]: rebuiltOptions,
+              },
+            }).catch(() => {
+              // Silently fail - continue with local rebuild
+            })
+          })
+        }
+
+        return rebuiltOptions.sort((a, b) => (a.order || 0) - (b.order || 0))
+      }
+
+      // Valid stack meta exists - sync with column options
+      const syncedOptions = [...stackMeta]
+      let needsSync = false
+
+      // Update existing options with latest column data
+      for (const option of columnOptions) {
+        const idx = syncedOptions.findIndex((stack) => stack.id === option.id)
+        if (idx !== -1) {
+          // Check if select option properties changed
+          const existing = syncedOptions[idx]
+          if (existing.title !== option.title || existing.color !== option.color) {
+            syncedOptions[idx] = {
+              ...existing,
+              title: option.title,
+              color: option.color,
+            }
+            needsSync = true
+          }
+        } else {
+          // New option - add with proper order
+          const maxOrder = Math.max(...syncedOptions.map((s) => s.order || 0), 0)
+          syncedOptions.push({
+            ...option,
+            order: maxOrder + 1,
+            collapsed: false,
+          })
+          needsSync = true
+        }
+      }
+
+      // Remove deleted options (except uncategorized)
+      const columnOptionIds = columnOptions.map((opt) => opt.id)
+      const filteredOptions = syncedOptions.filter(
+        (stack) => stack.id === uncategorizedStackId || columnOptionIds.includes(stack.id),
+      )
+
+      if (filteredOptions.length !== syncedOptions.length) {
+        needsSync = true
+      }
+
+      // Persist changes if needed and allowed
+      if (needsSync && !isPublic.value && isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true })) {
+        nextTick(() => {
+          updateKanbanMeta({
+            meta: {
+              ...stackMetaObj.value,
+              [columnId]: filteredOptions,
+            },
+          }).catch(() => {
+            // Silently fail
+          })
+        })
+      }
+
+      return filteredOptions.sort((a, b) => (a.order || 0) - (b.order || 0))
     })
 
     const shouldScrollToRight = ref(false)

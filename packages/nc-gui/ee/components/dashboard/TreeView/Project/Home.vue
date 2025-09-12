@@ -12,6 +12,8 @@ const { openNewScriptModal } = useAutomationStore()
 
 const base = inject(ProjectInj)!
 
+const baseRole = inject(ProjectRoleInj)!
+
 const basesStore = useBases()
 
 const { activeProjectId } = storeToRefs(basesStore)
@@ -61,7 +63,7 @@ const isVisibleCreateNew = ref(false)
 
 const hasTableCreatePermission = computed(() => {
   return isUIAllowed('tableCreate', {
-    roles: base.value.project_role || base.value.workspace_role,
+    roles: baseRole.value,
     source: base.value?.sources?.[0],
   })
 })

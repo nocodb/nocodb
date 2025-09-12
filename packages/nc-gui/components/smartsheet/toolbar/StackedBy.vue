@@ -42,8 +42,6 @@ const updateGroupingField = async (v: string) => {
   await updateKanbanMeta({
     fk_grp_col_id: v,
   })
-  await loadKanbanData()
-  ;(activeView.value?.view as KanbanType).fk_grp_col_id = v
 }
 
 const groupingFieldColumnId = computed({

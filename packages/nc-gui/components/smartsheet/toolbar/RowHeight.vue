@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type GridType, ViewTypes } from 'nocodb-sdk';
+import { type GridType, ViewTypes } from 'nocodb-sdk'
 
 const rowHeightOptions: { icon: keyof typeof iconMap; heightClass: string }[] = [
   {
@@ -61,7 +61,7 @@ const updateRowHeight = async (rh: number, undo = false) => {
 
     try {
       if (!isPublic.value && !isSharedBase.value && isUIAllowed('viewCreateOrEdit')) {
-        await updateViewMeta(view.value.id, ViewTypes.GRID, , {
+        await updateViewMeta(view.value.id, ViewTypes.GRID, {
           row_height: rh,
         })
       }

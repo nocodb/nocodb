@@ -133,7 +133,7 @@ export class FormsService {
 
     const oldFormView = await FormView.get(context, param.formViewId, ncMeta);
 
-    const res = await FormView.update(
+    await FormView.update(
       context,
       param.formViewId,
       param.form,
@@ -157,6 +157,6 @@ export class FormsService {
 
     await view.getView(context);
 
-    return res;
+    return view;
   }
 }

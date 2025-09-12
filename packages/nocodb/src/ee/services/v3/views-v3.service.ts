@@ -170,6 +170,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         'title',
         'lock_type',
         'description',
+        'fk_model_id',
         'is_default',
         'locked_view_description',
         'locked_by_user_id',
@@ -180,7 +181,9 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         'view',
         'type',
       ],
-      mappings: {},
+      mappings: {
+        fk_model_id: 'table_id',
+      },
       excludeEmptyObjectProps: true,
       transformFn: (viewData) => {
         const { view, ...formattedData } = viewData;
@@ -219,6 +222,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       allowed: [
         'id',
         'title',
+        'fk_model_id',
         'view_type',
         'lock_type',
         'description',
@@ -233,7 +237,9 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         'view',
         'type',
       ],
-      mappings: {},
+      mappings: {
+        fk_model_id: 'table_id',
+      },
       excludeEmptyObjectProps: true,
       transformFn: (viewData) => {
         const { view, meta, ...formattedData } = viewData;

@@ -7,8 +7,8 @@ import type { ModelWebhookManager } from '~/utils/model-webhook-manager';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { IViewsV3Service } from '~/services/v3/views-v3.types';
 import type { MetaService } from '~/meta/meta.service';
+import type { Model } from '~/models';
 import Noco from '~/Noco';
-import { Model } from '~/models';
 import { NcError } from '~/helpers/ncError';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 
@@ -18,7 +18,6 @@ export class ViewWebhookManagerBuilder {
     protected readonly ncMeta?: MetaService,
   ) {}
   modelWebhookManager?: ModelWebhookManager;
-  model?: Model;
   modelId?: string;
   oldView?: any;
   withModelManager(modelWebhookManager: ModelWebhookManager) {
@@ -26,18 +25,10 @@ export class ViewWebhookManagerBuilder {
     return this;
   }
   withModel(model: Model) {
-    this.model = model;
     this.modelId = model.id;
     return this;
   }
   async withModelId(modelId: string) {
-    this.model = await Model.getByIdOrName(
-      this.context,
-      {
-        id: modelId,
-      },
-      this.ncMeta,
-    );
     this.modelId = modelId;
     return this;
   }
@@ -60,21 +51,20 @@ export class ViewWebhookManagerBuilder {
   }
 
   forCreate() {
-    if (!this.model) {
+    if (!this.modelId) {
       NcError.get(this.context).internalServerError(
         `Need to call 'withModel' before running 'forCreate'`,
       );
     }
     return new ViewWebhookManager(this.context, {
       action: WebhookActions.INSERT,
-      model: this.model!,
       modelId: this.modelId!,
       modelWebhookManager: this.modelWebhookManager,
     });
   }
 
   forUpdate() {
-    if (!this.model) {
+    if (!this.modelId) {
       NcError.get(this.context).internalServerError(
         `Need to call 'withModel' before running 'forUpdate'`,
       );
@@ -86,7 +76,6 @@ export class ViewWebhookManagerBuilder {
     }
     return new ViewWebhookManager(this.context, {
       action: WebhookActions.UPDATE,
-      model: this.model!,
       modelId: this.modelId!,
       oldView: this.oldView,
       modelWebhookManager: this.modelWebhookManager,
@@ -94,7 +83,7 @@ export class ViewWebhookManagerBuilder {
   }
 
   forDelete() {
-    if (!this.model) {
+    if (!this.modelId) {
       NcError.get(this.context).internalServerError(
         `Need to call 'withModel' before running 'forDelete'`,
       );
@@ -108,7 +97,6 @@ export class ViewWebhookManagerBuilder {
       this.context,
       {
         action: WebhookActions.DELETE,
-        model: this.model!,
         modelId: this.modelId!,
         oldView: this.oldView,
         modelWebhookManager: this.modelWebhookManager,
@@ -124,7 +112,6 @@ export class ViewWebhookManager {
     protected readonly params: {
       action: WebhookActions;
       modelId: string;
-      model: Model;
       oldView?: any;
       newView?: any;
       modelWebhookManager?: ModelWebhookManager;

@@ -150,6 +150,8 @@ export class GalleriesService {
       owner,
     });
 
+    await view.getView(context);
+
     return res;
   }
 }

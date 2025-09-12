@@ -9,12 +9,14 @@ const { sharedView } = useSharedView()
 
 const { t } = useI18n()
 
-const { $api, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { activeView, views } = storeToRefs(useViewsStore())
-const { loadViews, removeFromRecentViews } = useViewsStore()
+const viewStore = useViewsStore()
+
+const { activeView, views } = storeToRefs(viewStore)
+const { loadViews, removeFromRecentViews, updateView } = viewStore
 
 const { navigateToTable } = useTablesStore()
 
@@ -72,7 +74,7 @@ const onRenameBlur = async () => {
     isRenaming.value = false
     error.value = undefined
 
-    await $api.dbView.update(activeView.value!.id!, {
+    await updateView(activeView.value!.id, {
       title: viewRenameTitle.value,
     })
   } else {

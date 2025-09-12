@@ -28,7 +28,7 @@ const view = computed(() => props.view)
 
 const table = computed(() => props.table)
 
-const { loadViews, navigateToView, duplicateView } = useViewsStore()
+const { navigateToView, duplicateView, updateView } = useViewsStore()
 
 const { user } = useGlobal()
 
@@ -117,10 +117,10 @@ async function changeLockType(type: LockType) {
 
   try {
     view.value.lock_type = type
-    await $api.dbView.update(view.value.id as string, {
+
+    await updateView(view.value?.id, {
       lock_type: type,
     })
-
     message.success(`Successfully Switched to ${type} view`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -138,11 +138,6 @@ async function onDuplicate() {
   const duplicatedView = await duplicateView(view.value)
 
   refreshCommandPalette()
-
-  await loadViews({
-    force: true,
-    tableId: table.value!.id!,
-  })
 
   if (duplicatedView) {
     navigateToView({

@@ -5,9 +5,12 @@ import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
   value?: boolean
+  type?: UITypes.Lookup | UITypes.Rollup
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  type: UITypes.Lookup,
+})
 
 const { $api } = useNuxtApp()
 
@@ -141,16 +144,27 @@ onMounted(async () => {
   <NcModal v-model:visible="value" size="small">
     <div class="flex flex-col gap-3">
       <div>
-        <h1 class="text-base text-gray-800 font-semibold">
-          <component :is="iconMap.cellLookup" class="text-gray-500 pb-1" /> {{ $t('general.addLookupField') }}
+        <h1 class="text-base text-gray-800 font-semibold flex items-center gap-2">
+          <SmartsheetHeaderVirtualCellIcon
+            :column-meta="{
+              uidt: type,
+              fk_model_id: column?.fk_model_id,
+              colOptions: {
+                fk_relation_column_id: column?.id,
+              },
+            }"
+            class="h-5 w-5 !mx-0"
+          />
+
+          {{ $t(type === UITypes.Lookup ? 'general.addLookupField' : 'general.addRollupField') }}
         </h1>
         <div class="text-gray-500 text-[13px] leading-5">
-          {{ $t('labels.addNewLookupHelperText1') }}
+          {{ type === UITypes.Lookup ? $t('labels.addNewLookupHelperText1') : $t('labels.addNewRollupHelperText1') }}
 
           <span class="font-semibold">
             {{ relatedModel?.title ?? relatedModel?.table_name }}
           </span>
-          {{ $t('labels.addNewLookupHelperText2') }}
+          {{ type === UITypes.Lookup ? $t('labels.addNewLookupHelperText2') : $t('labels.addNewRollupHelperText2') }}
         </div>
       </div>
 
@@ -215,7 +229,7 @@ onMounted(async () => {
           @click="createLookups"
         >
           {{
-            $t('general.addLookupField', {
+            $t(type === UITypes.Lookup ? 'general.addLookupField' : 'general.addRollupField', {
               count: Object.values(selectedFields).filter(Boolean).length || '',
             })
           }}

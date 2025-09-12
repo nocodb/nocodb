@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes, isHiddenCol, isVirtualCol, jsepCurlyHook, type ColumnType } from 'nocodb-sdk'
+import { UITypes, isHiddenCol, jsepCurlyHook, type ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
 import {
@@ -89,8 +89,8 @@ const sortOrder: Record<string, number> = {
 }
 
 const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
+  h(resolveComponent('NcIconField'), {
+    field: c,
   })
 
 const suggestionsList = computed(() => {

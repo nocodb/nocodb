@@ -111,7 +111,7 @@ export default defineComponent({
 
       const { icon: Icon, color } = renderIcon(column.value, relationColumn)
 
-      return h(Icon, { class: `${color || defaultColor.value || 'text-inherit'} mx-1 nc-virtual-cell-icon` })
+      return h(Icon, { class: `${color || defaultColor.value || 'text-inherit'} mx-1 flex-none nc-virtual-cell-icon` })
     }
   },
 })

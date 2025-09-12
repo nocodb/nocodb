@@ -6,7 +6,6 @@ import {
   UITypes,
   getUITypesForFormulaDataType,
   isHiddenCol,
-  isVirtualCol,
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
@@ -195,14 +194,11 @@ const supportedFormulaAlias = computed(() => {
       return {
         value: uidt,
         label: t(`datatype.${uidt}`),
-        icon: h(
-          isVirtualCol(uidt) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
-          {
-            columnMeta: {
-              uidt,
-            },
+        icon: h(resolveComponent('NcIconField'), {
+          field: {
+            uidt,
           },
-        ),
+        }),
       }
     })
   } catch (e) {

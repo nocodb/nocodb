@@ -5,13 +5,11 @@ import {
   ColumnHelper,
   PlanFeatureTypes,
   PlanTitles,
-  RelationTypes,
   UITypes,
   getAvailableRollupForColumn,
   getRenderAsTextFunForUiType,
-  isLinksOrLTAR,
-  isSystemColumn,
   isVirtualCol,
+  rollupAllFunctions,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -154,22 +152,18 @@ const cellIcon = (column: ColumnType) =>
 
 const aggFunctionsList: Ref<Record<string, string>[]> = ref([])
 
-const allFunctions = [
-  { text: t('datatype.Count'), value: 'count' },
-  { text: t('general.min'), value: 'min' },
-  { text: t('general.max'), value: 'max' },
-  { text: t('general.avg'), value: 'avg' },
-  { text: t('general.sum'), value: 'sum' },
-  { text: t('general.countDistinct'), value: 'countDistinct' },
-  { text: t('general.sumDistinct'), value: 'sumDistinct' },
-  { text: t('general.avgDistinct'), value: 'avgDistinct' },
-]
-
 const availableRollupPerColumn = computed(() => {
   const fnMap: Record<string, { text: string; value: string }[]> = {}
   columns.value?.forEach((column) => {
     if (!column?.id) return
-    fnMap[column.id] = allFunctions.filter((func) => getAvailableRollupForColumn(column).includes(func.value))
+    fnMap[column.id] = rollupAllFunctions
+      .map((obj) => {
+        return {
+          ...obj,
+          text: t(obj.text),
+        }
+      })
+      .filter((func) => getAvailableRollupForColumn(column).includes(func.value))
   })
   return fnMap
 })

@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { type ColumnType, type TableType, UITypes, isVirtualCol } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type TableType,
+  UITypes,
+  getAvailableRollupForColumn,
+  isVirtualCol,
+  rollupAllFunctions,
+} from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
@@ -15,6 +22,8 @@ const props = withDefaults(defineProps<Props>(), {
 const { $api } = useNuxtApp()
 
 const { getMeta, metas } = useMetas()
+
+const { t } = useI18n()
 
 const meta = inject(MetaInj, ref())
 
@@ -61,7 +70,57 @@ const selectAll = () => {
   filteredColumns.value.forEach((c) => (selectedFields.value[c.id] = true))
 }
 
-const createLookups = async () => {
+const getLookupColPayload = (selectedColumn: ColumnType) => {
+  return {
+    fk_lookup_column_id: selectedColumn.id,
+    lookupTableTitle: relatedModel.value?.title,
+    lookupColumnTitle: selectedColumn?.title || selectedColumn?.column_name,
+    title: `${selectedColumn?.title} from ${relatedModel.value?.title}`,
+    column_name: `${selectedColumn?.title} from (${relatedModel.value?.title})`,
+  }
+}
+
+const availableRollupPerColumn = computed(() => {
+  const relatedTableColumns: ColumnType[] = metas.value[relatedModel.value?.id]?.columns || []
+
+  return relatedTableColumns.reduce((acc, curr) => {
+    if (!curr?.id) return acc
+
+    acc[curr.id] = rollupAllFunctions
+      .map((obj) => {
+        return {
+          ...obj,
+          text: t(obj.text),
+        }
+      })
+      .filter((func) => getAvailableRollupForColumn(curr).includes(func.value))
+
+    return acc
+  }, {} as Record<string, { text: string; value: string }[]>)
+})
+
+const getRollupColPayload = (selectedColumn: ColumnType) => {
+  const aggFunctionsList = availableRollupPerColumn.value[selectedColumn?.id as string] || []
+
+  return {
+    fk_rollup_column_id: selectedColumn.id,
+    rollupTableTitle: relatedModel.value?.title,
+    rollupColumnTitle: selectedColumn?.title || selectedColumn?.column_name,
+    meta: {
+      precision: 0,
+      isLocaleString: false,
+    },
+
+    ...(aggFunctionsList.length
+      ? {
+          rollup_function: aggFunctionsList[0]!.value,
+          rollup_function_name: aggFunctionsList[0]!.text,
+        }
+      : {}),
+  }
+}
+
+const createLookupsOrRollup = async () => {
   try {
     isLoading.value = true
 
@@ -73,23 +132,19 @@ const createLookups = async () => {
     const currIndex = meta.value?.columns?.length ?? 0
 
     for (const [k] of Object.entries(selectedFields.value).filter(([, v]) => v)) {
-      const lookupCol = metas.value[relatedModel.value?.id].columns.find((c) => c.id === k)
+      const selectedColumn = metas.value[relatedModel.value?.id].columns.find((c) => c.id === k)
       const index = filteredColumns.value.findIndex((c) => c.id === k)
       const tempCol = {
-        uidt: UITypes.Lookup,
-        fk_lookup_column_id: k,
+        uidt: props.type,
         fk_relation_column_id: column.value.id,
-        lookupTableTitle: relatedModel.value?.title,
-        lookupColumnTitle: lookupCol?.title || lookupCol.column_name,
         table_name: meta.value?.table_name,
-        title: `${lookupCol?.title} from ${relatedModel.value?.title}`,
         view_id: activeView.value?.id,
         order: currIndex + index,
-        column_name: `${lookupCol?.title} from (${relatedModel.value?.title})`,
         column_order: {
           order: currIndex + index,
           view_id: activeView.value?.id,
         },
+        ...(props.type === UITypes.Lookup ? getLookupColPayload(selectedColumn) : getRollupColPayload(selectedColumn)),
       }
 
       const newColName = generateUniqueColumnName({
@@ -103,6 +158,7 @@ const createLookups = async () => {
         column: {
           ...tempCol,
           title: newColName,
+          column_name: newColName,
         },
       })
     }
@@ -123,22 +179,30 @@ const createLookups = async () => {
   }
 }
 
-watch([relatedModel, searchField, value, () => props.type], async () => {
-  if (relatedModel.value) {
-    const columns = metas.value[relatedModel.value.id]?.columns || []
-    filteredColumns.value = columns.filter((c: any) => {
-      if (props.type === UITypes.Lookup) {
-        return (
-          getValidLookupColumn({
-            column: c,
-          }) && searchCompare([c?.title], searchField.value)
-        )
-      }
+watch(
+  [relatedModel, searchField, value, () => props.type, availableRollupPerColumn],
+  async () => {
+    if (relatedModel.value) {
+      const columns = metas.value[relatedModel.value.id]?.columns || []
+      filteredColumns.value = columns.filter((c: any) => {
+        if (props.type === UITypes.Lookup) {
+          return (
+            getValidLookupColumn({
+              column: c,
+            }) && searchCompare([c?.title], searchField.value)
+          )
+        }
 
-      return getValidRollupColumn(c) && searchCompare([c?.title], searchField.value)
-    })
-  }
-})
+        return (
+          getValidRollupColumn(c) && availableRollupPerColumn.value[c.id]?.length && searchCompare([c?.title], searchField.value)
+        )
+      })
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 onMounted(async () => {
   relatedModel.value = await getMeta(fkRelatedModelId.value)
@@ -231,7 +295,7 @@ onMounted(async () => {
           :loading="isLoading"
           :disabled="!Object.values(selectedFields).filter(Boolean).length"
           size="small"
-          @click="createLookups"
+          @click="createLookupsOrRollup"
         >
           {{
             $t(type === UITypes.Lookup ? 'general.addLookupField' : 'general.addRollupField', {

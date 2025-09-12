@@ -183,7 +183,7 @@ watch(
                 <NcIconField
                   v-if="getSelectedColumn(field.column_id)"
                   :field="getSelectedColumn(field.column_id)"
-                  class="text-gray-500"
+                  color="text-nc-content-gray-muted"
                 />
                 <NcTooltip hide-on-click class="truncate flex-1" show-on-truncate-only>
                   <span v-if="getSelectedColumn(field.column_id)" class="text-sm flex-1 truncate text-nc-content-gray-default">
@@ -212,7 +212,7 @@ watch(
                 >
                   <template #item="{ item }">
                     <div class="w-full flex items-center gap-2">
-                      <NcIconField :field="item" class="text-gray-500" />
+                      <NcIconField :field="item" color="text-nc-content-gray-muted" />
                       <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                         <template #title>{{ item.label }}</template>
                         <span>{{ item.label }}</span>

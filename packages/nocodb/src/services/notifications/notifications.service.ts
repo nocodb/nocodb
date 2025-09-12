@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, getCircularReplacer } from 'nocodb-sdk';
 import type {
   ProjectInviteEvent,
   WelcomeEvent,
@@ -12,8 +12,6 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Notification } from '~/models';
-
-import { getCircularReplacer } from '~/utils';
 import { PubSubRedis } from '~/redis/pubsub-redis';
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {

@@ -20,7 +20,7 @@ const isToolbarIconMode = inject(
 
 const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
-const { kanbanMetaData, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
+const { kanbanMetaData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 

@@ -127,7 +127,7 @@ export class GalleriesService {
       ncMeta,
     );
 
-    const res = await GalleryView.update(
+    await GalleryView.update(
       context,
       param.galleryViewId,
       param.gallery,

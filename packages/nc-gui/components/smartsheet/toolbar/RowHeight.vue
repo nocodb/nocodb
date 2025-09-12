@@ -34,8 +34,6 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { isUIAllowed } = useRoles()
 
-const { $api } = useNuxtApp()
-
 const { addUndo, defineViewScope } = useUndoRedo()
 
 const open = ref(false)

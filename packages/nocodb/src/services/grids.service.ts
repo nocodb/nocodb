@@ -109,7 +109,7 @@ export class GridsService {
     }
 
     const oldGridView = await GridView.get(context, param.viewId, ncMeta);
-    const res = await GridView.update(
+    await GridView.update(
       context,
       param.viewId,
       param.grid,

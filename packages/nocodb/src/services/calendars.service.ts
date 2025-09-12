@@ -126,7 +126,7 @@ export class CalendarsService {
       ncMeta,
     );
 
-    const res = await CalendarView.update(
+    await CalendarView.update(
       context,
       param.calendarViewId,
       param.calendar,

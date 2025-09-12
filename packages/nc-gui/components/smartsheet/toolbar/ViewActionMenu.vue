@@ -20,7 +20,7 @@ const { isUIAllowed, isDataReadOnly } = useRoles()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
-const { $api, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 

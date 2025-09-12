@@ -64,7 +64,7 @@ export const defaultRowColorInfo: RowColoringInfo = {
   is_set_as_background: null,
 }
 
-const getDefaultViewMetas = (viewType: ViewTypes) => {
+export const getDefaultViewMetas = (viewType: ViewTypes) => {
   switch (viewType) {
     case ViewTypes.FORM:
       return {

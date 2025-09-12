@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { GridType } from 'nocodb-sdk'
+import { type GridType, ViewTypes } from 'nocodb-sdk';
 
 const rowHeightOptions: { icon: keyof typeof iconMap; heightClass: string }[] = [
   {
@@ -21,6 +21,10 @@ const rowHeightOptions: { icon: keyof typeof iconMap; heightClass: string }[] = 
 ]
 
 const { isSharedBase } = storeToRefs(useBase())
+
+const viewStore = useViewsStore()
+
+const { updateViewMeta } = viewStore
 
 const view = inject(ActiveViewInj, ref())
 
@@ -57,12 +61,10 @@ const updateRowHeight = async (rh: number, undo = false) => {
 
     try {
       if (!isPublic.value && !isSharedBase.value && isUIAllowed('viewCreateOrEdit')) {
-        await $api.dbView.gridUpdate(view.value.id, {
+        await updateViewMeta(view.value.id, ViewTypes.GRID, , {
           row_height: rh,
         })
       }
-
-      ;(view.value.view as GridType).row_height = rh
 
       open.value = false
     } catch (e: any) {

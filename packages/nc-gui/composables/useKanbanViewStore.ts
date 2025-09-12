@@ -41,7 +41,11 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
-    const { views } = storeToRefs(useViewsStore())
+    const viewStore = useViewsStore()
+
+    const { updateViewMeta } = viewStore
+
+    const { views } = storeToRefs(viewStore)
 
     // save history of stack changes for undo/redo
     const moveHistory = ref<{ op: 'added' | 'removed'; pk: string; stack: string; index: number }[]>([])
@@ -248,7 +252,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         })
       )
         return
-      await $api.dbView.kanbanUpdate(viewMeta.value.id, updateObj)
+      await updateViewMeta(viewMeta.value.id, ViewTypes.KANBAN, updateObj)
 
       const view = views.value.find((view) => view.id === viewMeta.value.id)
       if (view) {

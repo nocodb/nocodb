@@ -161,6 +161,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
+    const viewStore = useViewsStore()
+
+    const { updateViewMeta } = viewStore
+
     const calendarMetaData = ref<CalendarType>({})
 
     const paginationData = ref<PaginatedType>({ page: 1, pageSize: defaultPageSize })
@@ -697,15 +701,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
 
       try {
-        await $api.dbView.calendarUpdate(viewMeta.value.id, {
+        await updateViewMeta(viewMeta.value.id, ViewTypes.CALENDAR, {
           ...updateObj,
           meta: JSON.stringify(updateValue),
         })
-        calendarMetaData.value = {
-          ...calendarMetaData.value,
-          ...updateObj,
-          meta: updateValue,
-        }
       } catch (e) {
         message.error('Error updating changes')
         console.log(e)

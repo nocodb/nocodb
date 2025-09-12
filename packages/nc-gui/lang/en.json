@@ -200,6 +200,8 @@
     "trigger": "Trigger",
     "addLookupField": "Add {count} lookup field",
     "addLookupFieldPlural": "Add {count} lookup fields",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "Style",
     "label": "Label",
     "role": "Role",

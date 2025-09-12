@@ -629,14 +629,34 @@ const onDeleteColumn = () => {
       </PaymentUpgradeBadgeProvider>
     </NcTooltip>
 
-    <NcMenuItem
-      v-if="[UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)"
-      :disabled="isSqlView"
-      @click="openLookupMenuDialog"
-    >
+    <NcMenuItem v-if="canUseForLookup(column, meta?.source_id)" :disabled="isSqlView" @click="openLookupMenuDialog">
       <div v-e="['a:field:lookup:create']" class="nc-column-lookup-create nc-header-menu-item">
-        <component :is="iconMap.cellLookup" class="opacity-80 !w-4.5 !h-4.5" />
+        <SmartsheetHeaderVirtualCellIcon
+          :column-meta="{
+            uidt: UITypes.Lookup,
+            fk_model_id: column.fk_model_id,
+            colOptions: {
+              fk_relation_column_id: column.id,
+            },
+          }"
+          class="opacity-80 !w-4.5 !h-4.5 !mx-0"
+        />
         {{ t('general.addLookupField') }}
+      </div>
+    </NcMenuItem>
+    <NcMenuItem v-if="canUseForRollup(column)" :disabled="isSqlView" @click="openLookupMenuDialog">
+      <div v-e="['a:field:rollup:create']" class="nc-column-rollup-create nc-header-menu-item">
+        <SmartsheetHeaderVirtualCellIcon
+          :column-meta="{
+            uidt: UITypes.Rollup,
+            fk_model_id: column.fk_model_id,
+            colOptions: {
+              fk_relation_column_id: column.id,
+            },
+          }"
+          class="opacity-80 !w-4.5 !h-4.5 !mx-0"
+        />
+        {{ t('general.addRollupField') }}
       </div>
     </NcMenuItem>
     <NcDivider v-if="isUIAllowed('fieldAlter') && !column?.pv" />

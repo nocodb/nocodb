@@ -57,18 +57,7 @@ const refTables = computed(() => {
   }
 
   const _refTables = meta.value.columns
-    .filter(
-      (column) =>
-        isLinksOrLTAR(column) &&
-        // exclude system columns
-        (!column.system ||
-          // include system columns if it's self-referencing, mm, oo and bt are self-referencing
-          // hm is only used for LTAR with junction table
-          [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
-            (column.colOptions as LinkToAnotherRecordType).type as RelationTypes,
-          )) &&
-        column.source_id === meta.value?.source_id,
-    )
+    .filter((column) => canUseForLookup(column, meta.value?.source_id))
     .map((column) => ({
       col: column.colOptions,
       column,

@@ -467,6 +467,39 @@ const disableMakeCellEditable = (col: ColumnType) => {
   return showEditRestrictedColumnTooltip(col) && !isLinksOrLTAR(col)
 }
 
+const canUseForRollup = (c: ColumnType) => {
+  return (
+    c &&
+    isLinksOrLTAR(c) &&
+    (c.colOptions as LinkToAnotherRecordType)?.type &&
+    ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+      (c.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
+    ) &&
+    // exclude system columns
+    (!c.system ||
+      // include system columns if it's self-referencing, mm, oo and bt are self-referencing
+      // hm is only used for LTAR with junction table
+      [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
+        (c.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
+      ))
+  )
+}
+
+const canUseForLookup = (c: ColumnType, metaSourceId?: string) => {
+  return (
+    c &&
+    isLinksOrLTAR(c) &&
+    // exclude system columns
+    (!c.system ||
+      // include system columns if it's self-referencing, mm, oo and bt are self-referencing
+      // hm is only used for LTAR with junction table
+      [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
+        (c.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
+      )) &&
+    c.source_id === metaSourceId
+  )
+}
+
 export {
   uiTypes,
   isTypableInputColumn,
@@ -490,4 +523,6 @@ export {
   showReadonlyColumnTooltip,
   showEditRestrictedColumnTooltip,
   disableMakeCellEditable,
+  canUseForRollup,
+  canUseForLookup,
 }

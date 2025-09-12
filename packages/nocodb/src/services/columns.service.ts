@@ -1446,95 +1446,111 @@ export class ColumnsService implements IColumnsService {
       });
 
       if (column.uidt === UITypes.SingleSelect) {
-        const kanbanViewsByColId = await KanbanView.getViewsByGroupingColId(
-          context,
-          column.id,
-        );
+        const kanbanViewsByColId =
+          (await KanbanView.getViewsByGroupingColId(context, column.id)) || [];
         for (const kanbanView of kanbanViewsByColId) {
           const view = await View.get(context, kanbanView.fk_view_id);
-          // Update groupingFieldColumn from view meta which will be used in shared kanban view
           view.meta = parseMetaProp(view);
-          await View.update(context, view.id, {
-            ...view,
-            meta: {
-              ...view.meta,
-              groupingFieldColumn: colBody,
-            },
-          });
 
-          // Update kanban stack meta when column options are modified
-          if (colBody.colOptions?.options) {
-            const stackMetaObj = parseProp(kanbanView.meta) || {};
+          if (colBody.uidt === UITypes.SingleSelect) {
+            // Column is/remains SingleSelect - update the kanban view
+            await View.update(context, view.id, {
+              ...view,
+              meta: {
+                ...view.meta,
+                groupingFieldColumn: colBody,
+              },
+            });
 
-            if (!stackMetaObj[column.id]) {
-              stackMetaObj[column.id] = [];
-            }
+            // Update kanban stack meta when column options are modified
+            if (colBody.colOptions?.options) {
+              const stackMetaObj = parseProp(kanbanView.meta) || {};
 
-            // Build new stack meta based on updated column options
-            const newStackMeta = [];
-            const existingStacks = stackMetaObj[column.id] || [];
-
-            // Add uncategorized stack first (preserve its existing order if it exists)
-            const existingUncategorized = existingStacks.find(
-              (stack) => stack.id === 'uncategorized',
-            );
-            const uncategorizedStack = existingUncategorized || {
-              id: 'uncategorized',
-              title: null,
-              order: 0,
-              color: '#6A7184',
-              collapsed: false,
-            };
-            newStackMeta.push(uncategorizedStack);
-
-            // Process each column option, preserving existing order when possible
-            for (const option of colBody.colOptions.options) {
-              const existingStack = existingStacks.find(
-                (stack) => stack.id === option.id,
-              );
-
-              if (existingStack) {
-                // Update existing stack with new option data but preserve order and collapsed state
-                newStackMeta.push({
-                  ...option,
-                  order: existingStack.order, // Preserve existing order
-                  collapsed: existingStack.collapsed || false,
-                });
-              } else {
-                // Add new stack for new option - assign next available order
-                const maxOrder = Math.max(
-                  ...existingStacks.map((s) => s.order || 0),
-                  0,
-                );
-                newStackMeta.push({
-                  ...option,
-                  order: maxOrder + 1, // Assign next order for new items
-                  collapsed: false,
-                });
+              if (!stackMetaObj[column.id]) {
+                stackMetaObj[column.id] = [];
               }
+
+              // Build new stack meta based on updated column options
+              const newStackMeta = [];
+              const existingStacks = stackMetaObj[column.id] || [];
+
+              // Add uncategorized stack first
+              const existingUncategorized = existingStacks.find(
+                (stack) => stack.id === 'uncategorized',
+              );
+              const uncategorizedStack = existingUncategorized || {
+                id: 'uncategorized',
+                title: null,
+                order: 0,
+                color: '#6A7184',
+                collapsed: false,
+              };
+              newStackMeta.push(uncategorizedStack);
+
+              // Process each column option, preserving existing order when possible
+              for (const option of colBody.colOptions.options) {
+                const existingStack = existingStacks.find(
+                  (stack) => stack.id === option.id,
+                );
+
+                if (existingStack) {
+                  newStackMeta.push({
+                    ...option,
+                    order: existingStack.order,
+                    collapsed: existingStack.collapsed || false,
+                  });
+                } else {
+                  const maxOrder = Math.max(
+                    ...existingStacks.map((s) => s.order || 0),
+                    0,
+                  );
+                  newStackMeta.push({
+                    ...option,
+                    order: maxOrder + 1,
+                    collapsed: false,
+                  });
+                }
+              }
+
+              // Sort by order
+              newStackMeta.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+              // Update kanban view meta
+              stackMetaObj[column.id] = newStackMeta;
+              await KanbanView.update(context, kanbanView.fk_view_id, {
+                meta: stackMetaObj,
+              });
             }
+          } else {
+            // Column is no longer SingleSelect - remove grouping
+            await View.update(context, view.id, {
+              ...view,
+              meta: {
+                ...view.meta,
+                groupingFieldColumn: null, // or undefined, depending on your schema
+              },
+            });
 
-            // Sort by preserved/assigned order
-            newStackMeta.sort((a, b) => (a.order || 0) - (b.order || 0));
-
-            // Update kanban view meta
-            stackMetaObj[column.id] = newStackMeta;
+            // Clear the kanban stack meta for this column
+            const stackMetaObj = parseProp(kanbanView.meta) || {};
+            delete stackMetaObj[column.id];
             await KanbanView.update(context, kanbanView.fk_view_id, {
               meta: stackMetaObj,
             });
-            await view.getView(context);
-            NocoSocket.broadcastEvent(
-              context,
-              {
-                event: EventType.META_EVENT,
-                payload: {
-                  action: 'view_update',
-                  payload: view,
-                },
-              },
-              context.socket_id,
-            );
           }
+
+          await view.getView(context);
+          NocoSocket.broadcastEvent(
+            context,
+            {
+              event: EventType.META_EVENT,
+              payload: {
+                action: 'view_update',
+                payload: view,
+              },
+            },
+            context.socket_id,
+          );
         }
       }
     } else if (colBody.uidt === UITypes.User) {

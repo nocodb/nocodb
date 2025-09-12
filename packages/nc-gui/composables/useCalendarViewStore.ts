@@ -69,9 +69,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       let meta = calendarMetaData.value?.meta ?? {}
 
       if (typeof meta === 'string') {
-        try {
-          meta = JSON.parse(meta)
-        } catch (e) {}
+        meta = parseProp(meta)
       }
 
       return meta as {

@@ -90,7 +90,7 @@ const sortOrder: Record<string, number> = {
 
 const getIcon = (c: ColumnType) =>
   h(resolveComponent('SmartsheetHeaderIcon'), {
-    field: c,
+    column: c,
   })
 
 const suggestionsList = computed(() => {

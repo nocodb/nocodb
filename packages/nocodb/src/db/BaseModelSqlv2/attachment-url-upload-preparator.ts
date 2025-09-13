@@ -84,7 +84,6 @@ export class AttachmentUrlUploadPreparator {
                 id,
                 url: attr.url,
                 status: 'uploading',
-                type: 'url_request',
                 uploaded: uploadedPath,
                 ...filePaths,
               };

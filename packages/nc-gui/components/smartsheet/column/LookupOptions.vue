@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
-import { PlanFeatureTypes, PlanTitles, RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any

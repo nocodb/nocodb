@@ -448,7 +448,7 @@ export class WorkspaceUsersService {
       invitePassive?: boolean;
       baseEditor?: boolean;
     },
-    ncMeta?: MetaService,
+    ncMeta = Noco.ncMeta,
   ) {
     validateParams(['email', 'roles'], param.body);
 

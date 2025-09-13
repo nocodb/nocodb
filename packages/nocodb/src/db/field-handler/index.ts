@@ -2,12 +2,10 @@ import {
   isLinksOrLTAR,
   isLookup,
   isRollup,
-  NcApiVersion,
   ncIsUndefined,
   UITypes,
 } from 'nocodb-sdk';
 import { ClientType } from 'nocodb-sdk';
-import { FilterVerificationError } from './error/filter-verification.error';
 import { CurrencyGeneralHandler } from './handlers/currency/currency.general.handler';
 import { CurrencyPgHandler } from './handlers/currency/currency.pg.handler';
 import { CurrencyMysqlHandler } from './handlers/currency/currency.mysql.handler';

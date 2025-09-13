@@ -209,7 +209,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    await ncNavigateTo({
+    ncNavigateTo({
       workspaceId,
     })
   }

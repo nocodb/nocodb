@@ -1,10 +1,8 @@
 <script lang="ts" setup>
-import { type CalendarRangeType, FormulaDataTypes, PlanFeatureTypes, PlanTitles, UITypes } from 'nocodb-sdk'
+import { type CalendarRangeType, FormulaDataTypes, PlanFeatureTypes, PlanTitles, UITypes, ViewTypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 const meta = inject(MetaInj, ref())
-
-const { $api } = useNuxtApp()
 
 const { blockCalendarRange, getPlanTitle } = useEeConfig()
 
@@ -21,16 +19,20 @@ const isToolbarIconMode = inject(
 
 const { loadViewColumns } = useViewColumnsOrThrow()
 
-const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates, updateCalendarMeta, viewMetaProperties } =
-  useCalendarViewStoreOrThrow()
+const viewStore = useViewsStore()
+
+const { updateViewMeta } = viewStore
+
+const { loadCalendarData, loadSidebarData, fetchActiveDates, viewMetaProperties } = useCalendarViewStoreOrThrow()
 
 const calendarRangeDropdown = ref(false)
 
 const showWeekends = computed({
   get: () => !viewMetaProperties.value?.hide_weekend,
   set: (newValue) => {
-    updateCalendarMeta({
+    updateViewMeta(activeView.value?.id as string, ViewTypes.CALENDAR, {
       meta: {
+        ...(viewMetaProperties.value || {}),
         hide_weekend: !newValue,
       },
     })
@@ -109,6 +111,11 @@ watch(
   { immediate: true },
 )
 
+// Update the local state from realtime
+watch(calendarRange, () => {
+  _calendar_ranges.value = calendarRange.value
+})
+
 const saveCalendarRanges = async () => {
   if (activeView.value) {
     try {
@@ -118,13 +125,11 @@ const saveCalendarRanges = async () => {
           fk_from_column_id: range.fk_from_column_id,
           fk_to_column_id: range.fk_to_column_id,
         }))
-      await $api.dbView.calendarUpdate(activeView.value?.id as string, {
+
+      await updateViewMeta(activeView.value?.id as string, ViewTypes.CALENDAR, {
         calendar_range: calRanges as CalendarRangeType[],
       })
 
-      if (activeView.value.view) activeView.value.view.calendar_range = calRanges
-
-      await loadCalendarMeta()
       await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
       // calendarRangeDropdown.value = false
     } catch (e) {

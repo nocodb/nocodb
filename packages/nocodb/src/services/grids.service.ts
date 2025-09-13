@@ -71,6 +71,8 @@ export class GridsService {
       context,
     });
 
+    await view.getView(context);
+
     NocoSocket.broadcastEvent(
       context,
       {
@@ -107,12 +109,7 @@ export class GridsService {
     }
 
     const oldGridView = await GridView.get(context, param.viewId, ncMeta);
-    const res = await GridView.update(
-      context,
-      param.viewId,
-      param.grid,
-      ncMeta,
-    );
+    await GridView.update(context, param.viewId, param.grid, ncMeta);
 
     let owner = param.req.user;
 
@@ -129,24 +126,19 @@ export class GridsService {
       context,
     });
 
+    await view.getView(context);
+
     NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_update',
-          payload: {
-            ...view,
-            view: {
-              ...oldGridView,
-              ...param.grid,
-            },
-          },
+          payload: view,
         },
       },
       context.socket_id,
     );
-
-    return res;
+    return view;
   }
 }

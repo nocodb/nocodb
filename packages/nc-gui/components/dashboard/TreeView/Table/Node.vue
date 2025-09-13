@@ -337,13 +337,6 @@ async function onPermissions(_table: SidebarTableNode) {
   isTablePermissionsDialogVisible.value = true
 }
 
-// TODO: Should find a way to render the components without using the `nextTick` function
-const refreshViews = async () => {
-  isExpanded.value = false
-  await nextTick()
-  isExpanded.value = true
-}
-
 /** Cancel renaming view */
 function onCancel() {
   if (!isEditing.value) return
@@ -750,7 +743,7 @@ async function onRename() {
       :table-id="table.id"
       :title="table.title"
     />
-    <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :base-id="base.id" @deleted="refreshViews" />
+    <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :base-id="base.id" />
   </div>
 </template>
 

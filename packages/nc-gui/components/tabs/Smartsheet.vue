@@ -28,7 +28,7 @@ const meta = computed<TableType | undefined>(() => {
 })
 
 const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
-const { activeTableId, activeTable } = storeToRefs(useTablesStore())
+const { activeTableId } = storeToRefs(useTablesStore())
 
 const { activeProjectId } = storeToRefs(useBases())
 
@@ -231,7 +231,7 @@ const onReady = () => {
 
 onMounted(async () => {
   await until(() => isViewsLoading.value).toBe(false)
-  await until(() => !activeTable.value?.isViewsLoading).toBeTruthy({
+   await until(() => !!activeView.value).toBeTruthy({
     timeout: 5000,
   })
 

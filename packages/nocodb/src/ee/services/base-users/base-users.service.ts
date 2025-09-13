@@ -312,12 +312,16 @@ export class BaseUsersService extends BaseUsersServiceCE {
           ncMeta,
         );
         this.checkMultipleOwnerExist(baseUsers, base);
-        await this.ensureBaseOwner(context, {
-          baseUsers,
-          ignoreUserId: user.id,
-          baseId: base.id,
-          req: param.req,
-        });
+        await this.ensureBaseOwner(
+          context,
+          {
+            baseUsers,
+            ignoreUserId: user.id,
+            baseId: base.id,
+            req: param.req,
+          },
+          ncMeta,
+        );
       }
 
       // if already exists and has a role then return error

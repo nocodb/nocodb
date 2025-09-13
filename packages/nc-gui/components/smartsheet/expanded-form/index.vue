@@ -984,7 +984,12 @@ export default {
   @apply xs:my-0;
 
   .ant-drawer-content-wrapper {
-    @apply !h-[90vh];
+    @apply !h-[90dvh];
+
+    @supports (height: 90dvh) {
+      @apply !h-[90dvh];
+    }
+
     .ant-drawer-content {
       @apply rounded-t-2xl;
     }

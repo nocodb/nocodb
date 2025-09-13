@@ -5,13 +5,11 @@ import {
   ColumnHelper,
   PlanFeatureTypes,
   PlanTitles,
-  RelationTypes,
   UITypes,
   getAvailableRollupForColumn,
   getRenderAsTextFunForUiType,
-  isLinksOrLTAR,
-  isSystemColumn,
   isVirtualCol,
+  rollupAllFunctions,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -69,21 +67,7 @@ const refTables = computed(() => {
   }
 
   const _refTables = meta.value.columns
-    .filter(
-      (c: ColumnType) =>
-        isLinksOrLTAR(c) &&
-        (c.colOptions as LinkToAnotherRecordType).type &&
-        ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
-          (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
-        ) &&
-        // exclude system columns
-        (!c.system ||
-          // include system columns if it's self-referencing, mm, oo and bt are self-referencing
-          // hm is only used for LTAR with junction table
-          [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
-            (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
-          )),
-    )
+    .filter((c: ColumnType) => canUseForRollupLinkField(c))
     .map((c: ColumnType) => {
       const relTableId = (c.colOptions as any)?.fk_related_model_id
       const table = metas.value[relTableId] ?? tables.value.find((t) => t.id === relTableId)
@@ -105,14 +89,7 @@ const columns = computed<ColumnType[]>(() => {
     return []
   }
 
-  return metas.value[selectedTable.value.id]?.columns.filter(
-    (c: ColumnType) =>
-      (!isVirtualCol(c.uidt as UITypes) ||
-        [UITypes.CreatedTime, UITypes.CreatedBy, UITypes.LastModifiedTime, UITypes.LastModifiedBy, UITypes.Formula].includes(
-          c.uidt as UITypes,
-        )) &&
-      (!isSystemColumn(c) || c.pk),
-  )
+  return metas.value[selectedTable.value.id]?.columns.filter((c: ColumnType) => getValidRollupColumn(c))
 })
 
 const limitRecToCond = computed({
@@ -175,22 +152,18 @@ const cellIcon = (column: ColumnType) =>
 
 const aggFunctionsList: Ref<Record<string, string>[]> = ref([])
 
-const allFunctions = [
-  { text: t('datatype.Count'), value: 'count' },
-  { text: t('general.min'), value: 'min' },
-  { text: t('general.max'), value: 'max' },
-  { text: t('general.avg'), value: 'avg' },
-  { text: t('general.sum'), value: 'sum' },
-  { text: t('general.countDistinct'), value: 'countDistinct' },
-  { text: t('general.sumDistinct'), value: 'sumDistinct' },
-  { text: t('general.avgDistinct'), value: 'avgDistinct' },
-]
-
 const availableRollupPerColumn = computed(() => {
   const fnMap: Record<string, { text: string; value: string }[]> = {}
   columns.value?.forEach((column) => {
     if (!column?.id) return
-    fnMap[column.id] = allFunctions.filter((func) => getAvailableRollupForColumn(column).includes(func.value))
+    fnMap[column.id] = rollupAllFunctions
+      .map((obj) => {
+        return {
+          ...obj,
+          text: t(obj.text),
+        }
+      })
+      .filter((func) => getAvailableRollupForColumn(column).includes(func.value))
   })
   return fnMap
 })

@@ -313,13 +313,14 @@ watch(textAreaRef, (el) => {
   }
 })
 
-const onCellEvent = (event?: Event) => {
+const onCellEvent = (event?: Event, isCanvasEvent?: boolean) => {
   if (!(event instanceof KeyboardEvent) || !event.target) return
 
   if (isExpandCellKey(event)) {
     if (isVisible.value && !isActiveInputElementExist(event)) {
       handleClose()
-    } else {
+    } else if (!isActiveInputElementExist(event) || isCanvasEvent) {
+      // Expand only if user is not editing inline
       onExpand()
     }
 
@@ -333,7 +334,7 @@ onMounted(() => {
   if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value || isEditColumn.value) return
   const position = { clientX: clientMousePosition.clientX, clientY: clientMousePosition.clientY + 2 }
   forcedNextTick(() => {
-    if (onCellEvent(canvasCellEventData.event)) return
+    if (onCellEvent(canvasCellEventData.event, true)) return
 
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-expand', position)) {
       onExpand()

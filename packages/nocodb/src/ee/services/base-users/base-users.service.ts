@@ -155,15 +155,19 @@ export class BaseUsersService extends BaseUsersServiceCE {
     try {
       for (const email of emails) {
         const { postOperations: eachPostOperations } =
-          await this.unhandledUserInviteByEmail(context, {
-            email,
-            roles: param.baseUser.roles as ProjectRoles,
-            base,
-            req: param.req,
-            emailUserMap,
-            invite_token,
-            workspaceInvited: param.workspaceInvited,
-          });
+          await this.unhandledUserInviteByEmail(
+            context,
+            {
+              email,
+              roles: param.baseUser.roles as ProjectRoles,
+              base,
+              req: param.req,
+              emailUserMap,
+              invite_token,
+              workspaceInvited: param.workspaceInvited,
+            },
+            transaction,
+          );
         postOperations.push(...eachPostOperations);
       }
 

@@ -80,7 +80,7 @@ const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeVa
           <a-select-option v-for="(option, index) of columnsAllowedAsBarcodeValue" :key="index" :value="option.id">
             <div class="w-full flex gap-2 truncate items-center justify-between" :data-testid="`nc-barcode-${option.title}`">
               <div class="inline-flex items-center gap-2 flex-1 truncate">
-                <NcIconField :field="option" class="!mx-0" color="text-nc-content-gray-subtle2" />
+                <SmartsheetHeaderIcon :column="option" class="!mx-0" color="text-nc-content-gray-subtle2" />
 
                 <div class="truncate flex-1">{{ option.title }}</div>
               </div>

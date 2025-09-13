@@ -130,8 +130,8 @@ watch(
               class="nc-erd-table-node-column flex items-center gap-2"
               :class="`nc-erd-table-node-${data.table}-column-${col.title}`"
             >
-              <NcIconField
-                :field="{
+              <SmartsheetHeaderIcon
+                :column="{
                   uidt: col.type,
                 }"
               />

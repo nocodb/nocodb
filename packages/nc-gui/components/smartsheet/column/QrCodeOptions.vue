@@ -65,7 +65,7 @@ setAvoidShowingToastMsgForValidations({
         <a-select-option v-for="(option, index) of columnsAllowedAsQrValue" :key="index" :value="option.id">
           <div class="flex gap-2 w-full truncate items-center" :data-testid="`nc-qr-${option.title}`">
             <div class="inline-flex items-center gap-2 flex-1 truncate">
-              <NcIconField :field="option" class="!mx-0 w-4 h-4" color="text-nc-content-gray-subtle2" />
+              <SmartsheetHeaderIcon :column="option" class="!mx-0 w-4 h-4" color="text-nc-content-gray-subtle2" />
 
               <NcTooltip show-on-truncate-only class="flex-1 truncate">
                 <template #title>{{ option.title }}</template>

@@ -7,7 +7,6 @@ import {
   isAIPromptCol,
   isLinksOrLTAR,
   isSystemColumn,
-  isVirtualCol,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'

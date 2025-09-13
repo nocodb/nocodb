@@ -21,5 +21,5 @@ const columnMeta = computed(() => column.value ?? injectedColumn.value)
 <template>
   <SmartsheetHeaderVirtualCellIcon v-if="columnMeta && isVirtualCol(columnMeta)" :column-meta="columnMeta" :color="color" />
   <SmartsheetHeaderCellIcon v-else-if="columnMeta" :column-meta="columnMeta" :color="color" />
-  <component v-else-if="defaultUidt" :is="getUIDTIcon(defaultUidt)" class="flex-none h-4 w-4" :class="color" />
+  <component :is="getUIDTIcon(defaultUidt)" v-else-if="defaultUidt" class="flex-none h-4 w-4" :class="color" />
 </template>

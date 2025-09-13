@@ -2,8 +2,7 @@ import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 
-import validator from 'validator';
-import { v4 as uuidv4 } from 'uuid';
+import { ConfigService } from '@nestjs/config';
 import {
   AppEvents,
   CloudOrgUserRoles,
@@ -14,14 +13,24 @@ import {
   parseProp,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
-import { ConfigService } from '@nestjs/config';
+import { v4 as uuidv4 } from 'uuid';
+import validator from 'validator';
+import type { MetaService } from '~/meta/meta.service';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import type { WorkspaceUserDeleteEvent } from '~/services/app-hooks/interfaces';
-import WorkspaceUser from '~/models/WorkspaceUser';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
+import { handleOrphanBases } from '~/ee/utils/orphanBaseHandler';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import validateParams from '~/helpers/validateParams';
 import { NcError } from '~/helpers/catchError';
+import {
+  checkSeatLimit,
+  getLimit,
+  PlanLimitTypes,
+} from '~/helpers/paymentHelpers';
+import validateParams from '~/helpers/validateParams';
+import { MailEvent } from '~/interface/Mail';
 import {
   Base,
   BaseUser,
@@ -30,23 +39,15 @@ import {
   Subscription,
   User,
 } from '~/models';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Workspace from '~/models/Workspace';
-import { UsersService } from '~/services/users/users.service';
-import { MailService } from '~/services/mail/mail.service';
-import { getWorkspaceRolePower } from '~/utils/roleHelper';
-import Noco from '~/Noco';
-import {
-  checkSeatLimit,
-  getLimit,
-  PlanLimitTypes,
-} from '~/helpers/paymentHelpers';
-import { MailEvent } from '~/interface/Mail';
+import WorkspaceUser from '~/models/WorkspaceUser';
 import { PaymentService } from '~/modules/payment/payment.service';
-import NocoCache from '~/cache/NocoCache';
-import { CacheScope } from '~/utils/globals';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MailService } from '~/services/mail/mail.service';
+import { UsersService } from '~/services/users/users.service';
 import NocoSocket from '~/socket/NocoSocket';
-import { handleOrphanBases } from '~/ee/utils/orphanBaseHandler';
+import { CacheScope } from '~/utils/globals';
+import { getWorkspaceRolePower } from '~/utils/roleHelper';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -435,7 +436,7 @@ export class WorkspaceUsersService {
     return res;
   }
 
-  async invite(
+  async preInviteValidate(
     param: {
       workspaceId: string;
       body: any;
@@ -598,6 +599,28 @@ export class WorkspaceUsersService {
       }
     }
 
+    return { workspace, emails, roles };
+  }
+
+  async invite(
+    param: {
+      workspaceId: string;
+      body: any;
+      invitedBy?: UserType;
+      siteUrl: string;
+      req: NcRequest;
+      skipEmailInvite?: boolean;
+      // invite user as soft deleted from workspace
+      invitePassive?: boolean;
+      baseEditor?: boolean;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const { workspace, emails, roles } = await this.preInviteValidate(
+      param,
+      ncMeta,
+    );
+
     const invite_token = uuidv4();
     const error = [];
     const emailUserMap = new Map<string, User>();
@@ -630,38 +653,24 @@ export class WorkspaceUsersService {
     }
 
     const transaction = await ncMeta.startTransaction();
+    const postOperations = [];
 
     try {
       // invite users
       for (const email of emails) {
-        const user = emailUserMap.get(email);
-
-        const workspaceUser = await WorkspaceUser.get(
-          workspaceId,
-          user.id,
-          transaction,
-        );
-
-        if (workspaceUser) {
-          error.push({
+        const { postOperations: eachPostOperations } =
+          await this.unhandledUserInviteByEmail({
+            workspace,
             email,
-            msg: `${user.email} with role ${workspaceUser.roles} already exists in this base`,
+            error,
+            roles,
+            req: param.req,
+            emailUserMap,
+            invite_token,
+            invitePassive: param.invitePassive,
+            skipEmailInvite: param.skipEmailInvite,
           });
-          continue;
-        }
-
-        await WorkspaceUser.insert(
-          {
-            fk_workspace_id: workspaceId,
-            fk_user_id: user.id,
-            roles: roles || WorkspaceUserRoles.VIEWER,
-            invited_by: param.req?.user?.id,
-            ...(param.invitePassive
-              ? { deleted: true, deleted_at: transaction.now() }
-              : {}),
-          },
-          transaction,
-        );
+        postOperations.push(...eachPostOperations);
       }
 
       await transaction.commit();
@@ -672,7 +681,7 @@ export class WorkspaceUsersService {
       for (const email of emails) {
         const user = emailUserMap.get(email);
         await NocoCache.del(
-          `${CacheScope.WORKSPACE_USER}:${workspaceId}:${user.id}`,
+          `${CacheScope.WORKSPACE_USER}:${workspace.id}:${user.id}`,
         );
       }
 
@@ -681,62 +690,8 @@ export class WorkspaceUsersService {
 
     await this.paymentService.reseatSubscription(workspace.id, ncMeta);
 
-    // send email and add audit log
-    for (const email of emails) {
-      const user = emailUserMap.get(email);
-
-      if (!param.skipEmailInvite) {
-        this.mailService
-          .sendMail({
-            mailEvent: MailEvent.WORKSPACE_INVITE,
-            payload: {
-              workspace,
-              user,
-              req: param.req,
-              token: registeredEmails.includes(email)
-                ? user.invite_token
-                : null,
-            },
-          })
-          .then(() => {
-            /* ignore */
-          })
-          .catch((e) => {
-            console.error(e);
-          });
-      }
-
-      this.appHooksService.emit(AppEvents.WORKSPACE_USER_INVITE, {
-        workspace,
-        user,
-        roles: roles || WorkspaceUserRoles.NO_ACCESS,
-        invitedBy: param.req?.user,
-        req: param.req,
-      });
-
-      const workspaceUser = await WorkspaceUser.get(
-        workspace.id,
-        user.id,
-        ncMeta,
-      );
-
-      NocoSocket.broadcastEventToWorkspaceUsers(
-        {
-          workspace_id: workspace.id,
-          base_id: null,
-        },
-        {
-          event: EventType.USER_EVENT,
-          payload: {
-            action: 'workspace_user_add',
-            payload: {
-              workspaceUser,
-              workspace,
-            },
-          },
-        },
-        param.req.ncSocketId,
-      );
+    for (const postOperation of postOperations) {
+      await postOperation();
     }
 
     if (emails.length === 1) {
@@ -746,6 +701,206 @@ export class WorkspaceUsersService {
     } else {
       return { invite_token, emails, error };
     }
+  }
+
+  async prepareUserInviteByEmail(
+    param: {
+      roles: WorkspaceUserRoles;
+      email: string;
+      siteUrl: string;
+      workspaceId: string;
+      req: NcRequest;
+      // to keep refactor at minimum, we pass error array
+      error?: any[];
+      invitePassive?: boolean;
+      invite_token?: string;
+      skipEmailInvite?: boolean;
+      // to keep refactor at minimum, we pass emailUserMap
+      emailUserMap?: Map<string, User>;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const {
+      email,
+      roles,
+      emailUserMap = new Map(),
+      invite_token = uuidv4(),
+      error = [],
+    } = param;
+    const { workspace } = await this.preInviteValidate(
+      {
+        ...param,
+        body: {
+          email,
+          roles,
+        },
+      },
+      ncMeta,
+    );
+
+    return {
+      execute: async () => {
+        const result = await this.unhandledUserInviteByEmail(
+          {
+            email,
+            req: param.req,
+            roles,
+            workspace,
+            emailUserMap,
+            invite_token,
+            invitePassive: param.invitePassive,
+            skipEmailInvite: param.skipEmailInvite,
+            error,
+          },
+          ncMeta,
+        );
+        await this.paymentService.reseatSubscription(workspace.id, ncMeta);
+        return result;
+      },
+      rollback: async () => {
+        // rollback cache
+
+        const user = emailUserMap.get(email);
+        if (user) {
+          await NocoCache.del(
+            `${CacheScope.WORKSPACE_USER}:${workspace.id}:${user.id}`,
+          );
+        }
+      },
+    };
+  }
+
+  async unhandledUserInviteByEmail(
+    param: {
+      workspace: Workspace;
+      email: string;
+      roles: WorkspaceUserRoles;
+      req: NcRequest;
+      // to keep refactor at minimum, we pass error array
+      error?: any[];
+      invitePassive?: boolean;
+      invite_token?: string;
+      skipEmailInvite?: boolean;
+      // to keep refactor at minimum, we pass emailUserMap
+      emailUserMap?: Map<string, User>;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const {
+      workspace,
+      email,
+      invite_token = uuidv4(),
+      emailUserMap,
+      roles,
+      error,
+    } = param;
+    const postOperations = [];
+    let isUserCreated = false;
+
+    // register user if not exists
+    let user = await User.getByEmail(email, ncMeta);
+    if (!user) {
+      const salt = await promisify(bcrypt.genSalt)(10);
+      user = await this.usersService.registerNewUserIfAllowed(
+        {
+          email,
+          password: '',
+          email_verification_token: null,
+          avatar: null,
+          user_name: null,
+          display_name: '',
+          salt,
+          invite_token,
+          req: param.req,
+          workspace_invite: true,
+        },
+        ncMeta,
+      );
+      isUserCreated = true;
+    }
+
+    emailUserMap?.set(email, user);
+
+    const workspaceUser = await WorkspaceUser.get(
+      workspace.id,
+      user.id,
+      ncMeta,
+    );
+
+    if (workspaceUser) {
+      error?.push({
+        email,
+        msg: `${user.email} with role ${workspaceUser.roles} already exists in this base`,
+      });
+      return;
+    }
+
+    await WorkspaceUser.insert(
+      {
+        fk_workspace_id: workspace.id,
+        fk_user_id: user.id,
+        roles: roles || WorkspaceUserRoles.VIEWER,
+        invited_by: param.req?.user?.id,
+        ...(param.invitePassive
+          ? { deleted: true, deleted_at: ncMeta.now() }
+          : {}),
+      },
+      ncMeta,
+    );
+
+    if (!param.skipEmailInvite) {
+      postOperations.push(async () => {
+        this.mailService
+          .sendMail({
+            mailEvent: MailEvent.WORKSPACE_INVITE,
+            payload: {
+              workspace,
+              user,
+              req: param.req,
+              token: isUserCreated ? invite_token : null,
+            },
+          })
+          .then(() => {
+            /* ignore */
+          })
+          .catch((e) => {
+            console.error(e);
+          });
+
+        this.appHooksService.emit(AppEvents.WORKSPACE_USER_INVITE, {
+          workspace,
+          user,
+          roles: roles || WorkspaceUserRoles.NO_ACCESS,
+          invitedBy: param.req?.user,
+          req: param.req,
+        });
+
+        const workspaceUser = await WorkspaceUser.get(
+          workspace.id,
+          user.id,
+          ncMeta,
+        );
+
+        NocoSocket.broadcastEventToWorkspaceUsers(
+          {
+            workspace_id: workspace.id,
+            base_id: null,
+          },
+          {
+            event: EventType.USER_EVENT,
+            payload: {
+              action: 'workspace_user_add',
+              payload: {
+                workspaceUser,
+                workspace,
+              },
+            },
+          },
+          param.req.ncSocketId,
+        );
+      });
+    }
+    return { postOperations, user };
   }
 
   async acceptInvite(param: { invitationToken: string; userId: string }) {

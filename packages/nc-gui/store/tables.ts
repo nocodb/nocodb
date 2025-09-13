@@ -110,7 +110,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
       query = route.value.query
     }
 
-    await ncNavigateTo({
+    ncNavigateTo({
       workspaceId: workspaceIdOrType,
       baseId: baseIdOrBaseId,
       tableId,

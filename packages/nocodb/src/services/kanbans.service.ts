@@ -90,13 +90,15 @@ export class KanbansService {
       ncMeta,
     );
 
-    // populate  cache and add to list since the list cache already exist
     const view = await View.get(context, id, ncMeta);
     await NocoCache.appendToList(
       CacheScope.VIEW,
       [view.fk_model_id],
       `${CacheScope.VIEW}:${id}`,
     );
+
+    await this.initializeKanbanMetaForGroupingColumn(context, view, ncMeta);
+
     let owner = param.req.user;
 
     if (param.ownedBy) {
@@ -114,7 +116,7 @@ export class KanbansService {
       context,
     });
 
-    await view.getView(context);
+    await view.getView<ViewTypes.KANBAN>(context);
 
     NocoSocket.broadcastEvent(
       context,
@@ -157,12 +159,20 @@ export class KanbansService {
       ncMeta,
     );
 
-    const res = await KanbanView.update(
-      context,
-      param.kanbanViewId,
-      param.kanban,
-      ncMeta,
-    );
+    const groupingColumnChanged =
+      oldKanbanView.fk_grp_col_id !== param.kanban.fk_grp_col_id;
+
+    await KanbanView.update(context, param.kanbanViewId, param.kanban, ncMeta);
+
+    if (groupingColumnChanged) {
+      const updatedView = await View.get(context, param.kanbanViewId, ncMeta);
+      await this.initializeKanbanMetaForGroupingColumn(
+        context,
+        updatedView,
+        ncMeta,
+      );
+    }
+
     let owner = param.req.user;
 
     if (view.owned_by && view.owned_by !== param.req.user?.id) {
@@ -184,7 +194,120 @@ export class KanbansService {
       context,
     });
 
-    return res;
+    await view.getView<ViewTypes.KANBAN>(context);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_update',
+          payload: view,
+        },
+      },
+      context.socket_id,
+    );
+
+    return view;
+  }
+
+  /**
+   * Initialize or update kanban meta for the grouping column
+   */
+  private async initializeKanbanMetaForGroupingColumn(
+    context: NcContext,
+    view: View,
+    ncMeta?: MetaService,
+  ) {
+    const kanbanView = await KanbanView.get(context, view.id, ncMeta);
+
+    if (!kanbanView.fk_grp_col_id) {
+      return; // No grouping column set
+    }
+
+    const model = await Model.get(context, view.fk_model_id, ncMeta);
+    const column = (await model.getColumns(context, ncMeta)).find(
+      (col) => col.id === kanbanView.fk_grp_col_id,
+    );
+
+    if (!column || column.uidt !== UITypes.SingleSelect) {
+      return; // Only handle SingleSelect columns
+    }
+
+    // Update groupingFieldColumn in view meta
+    const viewMeta = parseProp(view) || {};
+    await View.update(context, view.id, {
+      ...view,
+      meta: {
+        ...viewMeta,
+        groupingFieldColumn: column,
+      },
+    });
+
+    // Update kanban stack meta
+    const colOptions = await column.getColOptions(context);
+    if (colOptions?.options) {
+      const stackMetaObj = parseProp(kanbanView.meta) || {};
+
+      if (!stackMetaObj[column.id]) {
+        stackMetaObj[column.id] = [];
+      }
+
+      // Build new stack meta based on column options
+      const newStackMeta = [];
+      const existingStacks = stackMetaObj[column.id] || [];
+
+      // Add uncategorized stack first (preserve its existing order if it exists)
+      const existingUncategorized = existingStacks.find(
+        (stack) => stack.id === 'uncategorized',
+      );
+      const uncategorizedStack = existingUncategorized || {
+        id: 'uncategorized',
+        title: null,
+        order: 0,
+        color: '#6A7184',
+        collapsed: false,
+      };
+      newStackMeta.push(uncategorizedStack);
+
+      // Process each column option, preserving existing order when possible
+      let currentMaxOrder = Math.max(
+        ...existingStacks.map((s) => s.order || 0),
+        0,
+      );
+
+      for (const option of colOptions.options) {
+        const existingStack = existingStacks.find(
+          (stack) => stack.id === option.id,
+        );
+
+        if (existingStack) {
+          // Update existing stack with new option data but preserve order and collapsed state
+          newStackMeta.push({
+            ...option,
+            order: existingStack.order, // Preserve existing order
+            collapsed: existingStack.collapsed || false,
+          });
+        } else {
+          // Add new stack for new option - assign next available order
+          currentMaxOrder += 1; // Increment for each new item
+          newStackMeta.push({
+            ...option,
+            order: currentMaxOrder,
+            collapsed: false,
+          });
+        }
+      }
+
+      // Sort by preserved/assigned order
+      newStackMeta.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+      // Update kanban view meta
+      stackMetaObj[column.id] = newStackMeta;
+      await KanbanView.update(context, kanbanView.fk_view_id, {
+        meta: stackMetaObj,
+      });
+    }
   }
 
   async kanbanOptionsReorder(
@@ -246,7 +369,8 @@ export class KanbansService {
     unorderedMetaOptions.forEach((opt, idx) => {
       opt.order = maxOrder + idx + 1;
     });
-    await this.kanbanViewUpdate(
+
+    return await this.kanbanViewUpdate(
       context,
       {
         kanbanViewId: param.kanbanViewId,

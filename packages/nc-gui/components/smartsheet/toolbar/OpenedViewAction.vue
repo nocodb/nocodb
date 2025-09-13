@@ -3,20 +3,18 @@ const { activeTable } = storeToRefs(useTablesStore())
 
 const { isMobileMode } = useGlobal()
 
-const { isSharedBase, base } = storeToRefs(useBase())
+const { isSharedBase } = storeToRefs(useBase())
 
 const { sharedView } = useSharedView()
 
 const { t } = useI18n()
 
-const { $api, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
 
-const { refreshCommandPalette } = useCommandPalette()
+const viewStore = useViewsStore()
 
-const { activeView, views } = storeToRefs(useViewsStore())
-const { loadViews, removeFromRecentViews } = useViewsStore()
-
-const { navigateToTable } = useTablesStore()
+const { activeView, views } = storeToRefs(viewStore)
+const { updateView } = viewStore
 
 const isDropdownOpen = ref(false)
 
@@ -72,7 +70,7 @@ const onRenameBlur = async () => {
     isRenaming.value = false
     error.value = undefined
 
-    await $api.dbView.update(activeView.value!.id!, {
+    await updateView(activeView.value!.id, {
       title: viewRenameTitle.value,
     })
   } else {
@@ -127,23 +125,6 @@ function openDeleteDialog() {
     'modelValue': isOpen,
     'view': activeView.value,
     'onUpdate:modelValue': closeDialog,
-    'onDeleted': async () => {
-      closeDialog()
-
-      removeFromRecentViews({ viewId: activeView.value!.id, tableId: activeView.value!.fk_model_id, baseId: base.value.id })
-      refreshCommandPalette()
-      if (activeView.value?.id === activeView.value!.id) {
-        navigateToTable({
-          tableId: activeTable.value!.id!,
-          baseId: base.value.id!,
-        })
-      }
-
-      await loadViews({
-        tableId: activeTable.value!.id!,
-        force: true,
-      })
-    },
   })
 
   function closeDialog() {

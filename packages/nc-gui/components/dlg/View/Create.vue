@@ -89,7 +89,9 @@ const { baseId: activeBaseId } = storeToRefs(baseStore)
 
 const { blockCalendarRange, getPlanTitle } = useEeConfig()
 
-const { viewsByTable } = storeToRefs(useViewsStore())
+const viewStore = useViewsStore()
+
+const { viewsByTable } = storeToRefs(viewStore)
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -108,8 +110,6 @@ const formValidator = ref<typeof AntForm>()
 const vModel = useVModel(props, 'modelValue', emits)
 
 const { t } = useI18n()
-
-const { api } = useApi()
 
 const isViewCreating = ref(false)
 
@@ -254,22 +254,6 @@ const onAiEnter = async () => {
   }
 }
 
-const getDefaultViewMetas = (viewType: ViewTypes) => {
-  switch (viewType) {
-    case ViewTypes.FORM:
-      return {
-        submit_another_form: false,
-        show_blank_form: false,
-        meta: {
-          hide_branding: false,
-          background_color: '#F9F9FA',
-          hide_banner: false,
-        },
-      }
-  }
-  return {}
-}
-
 async function onSubmit() {
   if (aiMode.value) {
     return onAiEnter()
@@ -291,58 +275,22 @@ async function onSubmit() {
     if (!tableId.value) return
 
     try {
-      let data: GridType | KanbanType | GalleryType | FormType | MapType | null = null
-
       isViewCreating.value = true
 
-      switch (form.type) {
-        case ViewTypes.GRID:
-          data = await api.dbView.gridCreate(tableId.value, form)
-          break
-        case ViewTypes.GALLERY:
-          data = await api.dbView.galleryCreate(tableId.value, form)
-          break
-        case ViewTypes.FORM:
-          data = await api.dbView.formCreate(tableId.value, {
-            ...form,
-            ...getDefaultViewMetas(ViewTypes.FORM),
-          })
-          break
-        case ViewTypes.KANBAN:
-          data = await api.dbView.kanbanCreate(tableId.value, form)
-          break
-        case ViewTypes.MAP:
-          data = await api.dbView.mapCreate(tableId.value, form)
-          break
-        case ViewTypes.CALENDAR:
-          data = await api.dbView.calendarCreate(tableId.value, {
-            ...form,
-            calendar_range: form.calendar_range.map((range) => ({
-              fk_from_column_id: range.fk_from_column_id,
-              fk_to_column_id: range.fk_to_column_id,
-            })),
-          })
-          break
-      }
+      const data = await viewStore.createView(tableId.value, form)
 
       if (data) {
-        // View created successfully
-        // message.success(t('msg.toast.createView'))
-
         emits('created', data)
       }
     } catch (e: any) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsg(e))
     } finally {
-      await refreshCommandPalette()
+      setTimeout(() => {
+        isViewCreating.value = false
+      }, 500)
     }
 
     vModel.value = false
-
-    setTimeout(() => {
-      isViewCreating.value = false
-    }, 500)
   }
 }
 

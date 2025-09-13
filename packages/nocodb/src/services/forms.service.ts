@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
-import type { MetaService } from '~/meta/meta.service';
 import type {
   FormUpdateReqType,
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
+import type { MetaService } from '~/meta/meta.service';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
@@ -20,8 +20,7 @@ export class FormsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
   async formViewGet(context: NcContext, param: { formViewId: string }) {
-    const formViewData = await FormView.getWithInfo(context, param.formViewId);
-    return formViewData;
+    return await FormView.getWithInfo(context, param.formViewId);
   }
 
   async formViewCreate(
@@ -96,6 +95,8 @@ export class FormsService {
       context,
     });
 
+    await view.getViewWithInfo(context);
+
     NocoSocket.broadcastEvent(
       context,
       {
@@ -132,12 +133,7 @@ export class FormsService {
 
     const oldFormView = await FormView.get(context, param.formViewId, ncMeta);
 
-    const res = await FormView.update(
-      context,
-      param.formViewId,
-      param.form,
-      ncMeta,
-    );
+    await FormView.update(context, param.formViewId, param.form, ncMeta);
 
     let owner = param.req.user;
 
@@ -154,6 +150,20 @@ export class FormsService {
       owner,
     });
 
-    return res;
+    await view.getViewWithInfo(context);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_update',
+          payload: view,
+        },
+      },
+      context.socket_id,
+    );
+
+    return view;
   }
 }

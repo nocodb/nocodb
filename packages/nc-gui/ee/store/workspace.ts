@@ -529,7 +529,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (!workspaceId) {
       throw new Error('Workspace not selected')
     }
-    await ncNavigateTo({ workspaceId })
+    ncNavigateTo({ workspaceId })
   }
 
   const navigateToWorkspaceSettings = async (workspaceId?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {

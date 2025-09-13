@@ -1,5 +1,15 @@
 import type { ComputedRef, Ref } from 'vue'
-import type { Api, ColumnType, KanbanType, SelectOptionType, SelectOptionsType, TableType, ViewType } from 'nocodb-sdk'
+import { EventType, ViewTypes } from 'nocodb-sdk'
+import type {
+  Api,
+  ColumnType,
+  type DataPayload,
+  KanbanType,
+  SelectOptionType,
+  SelectOptionsType,
+  TableType,
+  ViewType,
+} from 'nocodb-sdk'
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
 
@@ -23,7 +33,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { base } = storeToRefs(useBase())
 
-    const { $e, $api } = useNuxtApp()
+    const { $e, $api, $ncSocket } = useNuxtApp()
 
     const { sorts, nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
 
@@ -40,6 +50,12 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
+
+    const viewStore = useViewsStore()
+
+    const { updateViewMeta } = viewStore
+
+    const { setMeta } = useMetas()
 
     // save history of stack changes for undo/redo
     const moveHistory = ref<{ op: 'added' | 'removed'; pk: string; stack: string; index: number }[]>([])
@@ -73,10 +89,13 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     provide(SharedViewPasswordInj, password)
 
     // kanban view meta data
-    const kanbanMetaData = ref<KanbanType>({})
-
-    // grouping field column options - e.g. title, fk_column_id, color etc
-    const groupingFieldColOptions = ref<GroupingFieldColOptionsType[]>([])
+    const kanbanMetaData = computed(() => {
+      if (isPublic.value) {
+        return sharedView.value?.view as KanbanType
+      } else {
+        return viewMeta.value?.view
+      }
+    })
 
     // formattedData structure
     // {
@@ -101,14 +120,126 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     // }
     const countByStack = ref<Map<string | null, number>>(new Map<string | null, number>())
 
-    // grouping field title
-    const groupingField = ref<string>('')
+    const groupingFieldColumn = computed(() => {
+      if (!meta.value?.columns || !kanbanMetaData.value?.fk_grp_col_id) return undefined
 
-    // grouping field column
-    const groupingFieldColumn = ref<ColumnType | undefined>()
+      if (isPublic.value) {
+        return parseProp(sharedView.value?.meta).groupingFieldColumn as ColumnType
+      } else {
+        return (meta.value.columns as ColumnType[]).find((f) => f.id === kanbanMetaData.value.fk_grp_col_id)
+      }
+    })
+
+    const groupingField = computed(() => groupingFieldColumn.value?.title ?? '')
 
     // stack meta in object format
-    const stackMetaObj = ref<Record<string, GroupingFieldColOptionsType[]>>({})
+    const stackMetaObj = computed(() => parseProp(kanbanMetaData.value?.meta) || {})
+
+    // grouping field column options - e.g. title, fk_column_id, color etc
+    const groupingFieldColOptions = computed(() => {
+      if (!groupingFieldColumn.value?.id) return []
+
+      const columnId = groupingFieldColumn.value.id
+      const columnOptions = (groupingFieldColumn.value.colOptions as SelectOptionsType)?.options ?? []
+
+      // Check if we have valid stack meta
+      const stackMeta = stackMetaObj.value[columnId]
+
+      if (!Array.isArray(stackMeta) || stackMeta.length === 0) {
+        // Missing or invalid stack meta - rebuild locally
+        const rebuiltOptions: GroupingFieldColOptionsType[] = []
+
+        // Add uncategorized stack first
+        rebuiltOptions.push({
+          id: uncategorizedStackId,
+          title: null,
+          order: 0,
+          color: '#6A7184',
+          collapsed: false,
+        })
+
+        // Add column options
+        columnOptions.forEach((option, index) => {
+          rebuiltOptions.push({
+            ...option,
+            order: index + 1,
+            collapsed: false,
+          })
+        })
+
+        // Try to persist if user has permissions (fire and forget)
+        if (!isPublic.value && isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true })) {
+          nextTick(() => {
+            updateKanbanMeta({
+              meta: {
+                ...stackMetaObj.value,
+                [columnId]: rebuiltOptions,
+              },
+            }).catch(() => {
+              // Silently fail - continue with local rebuild
+            })
+          })
+        }
+
+        return rebuiltOptions.sort((a, b) => (a.order || 0) - (b.order || 0))
+      }
+
+      // Valid stack meta exists - sync with column options
+      const syncedOptions = [...stackMeta]
+      let needsSync = false
+
+      // Update existing options with latest column data
+      for (const option of columnOptions) {
+        const idx = syncedOptions.findIndex((stack) => stack.id === option.id)
+        if (idx !== -1) {
+          // Check if select option properties changed
+          const existing = syncedOptions[idx]
+          if (existing.title !== option.title || existing.color !== option.color) {
+            syncedOptions[idx] = {
+              ...existing,
+              title: option.title,
+              color: option.color,
+            }
+            needsSync = true
+          }
+        } else {
+          // New option - add with proper order
+          const maxOrder = Math.max(...syncedOptions.map((s) => s.order || 0), 0)
+          syncedOptions.push({
+            ...option,
+            order: maxOrder + 1,
+            collapsed: false,
+          })
+          needsSync = true
+        }
+      }
+
+      // Remove deleted options (except uncategorized)
+      const columnOptionIds = columnOptions.map((opt) => opt.id)
+      const filteredOptions = syncedOptions.filter(
+        (stack) => stack.id === uncategorizedStackId || columnOptionIds.includes(stack.id),
+      )
+
+      if (filteredOptions.length !== syncedOptions.length) {
+        needsSync = true
+      }
+
+      // Persist changes if needed and allowed
+      if (needsSync && !isPublic.value && isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true })) {
+        nextTick(() => {
+          updateKanbanMeta({
+            meta: {
+              ...stackMetaObj.value,
+              [columnId]: filteredOptions,
+            },
+          }).catch(() => {
+            // Silently fail
+          })
+        })
+      }
+
+      return filteredOptions.sort((a, b) => (a.order || 0) - (b.order || 0))
+    })
 
     const shouldScrollToRight = ref(false)
 
@@ -128,9 +259,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       if ((!base?.value?.id || !meta.value?.id || !viewMeta?.value?.id || !groupingFieldColumn?.value?.id) && !isPublic.value)
         return
 
-      // reset formattedData & countByStack to avoid storing previous data after changing grouping field
-      formattedData.value = new Map<string | null, Row[]>()
-      countByStack.value = new Map<string | null, number>()
+      const newFormattedData = new Map<string | null, Row[]>()
+      const newCountByStack = new Map<string | null, number>()
 
       let groupData
 
@@ -154,9 +284,12 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
       for (const data of groupData ?? []) {
         const key = typeof data.key === 'string' ? (data.key?.length ? data.key : null) : null
-        formattedData.value.set(key, formatData(data.value.list, getEvaluatedRowMetaRowColorInfo))
-        countByStack.value.set(key, data.value.pageInfo.totalRows || 0)
+        newFormattedData.set(key, formatData(data.value.list, getEvaluatedRowMetaRowColorInfo))
+        newCountByStack.set(key, data.value.pageInfo.totalRows || 0)
       }
+
+      formattedData.value = newFormattedData
+      countByStack.value = newCountByStack
     }
 
     const filerDuplicateRecords = (existingRecords: Row[], newRecords: Row[]) => {
@@ -212,139 +345,43 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       ])
     }
 
-    async function loadKanbanMeta() {
-      if (!viewMeta?.value?.id || !meta?.value?.columns) return
-      kanbanMetaData.value = isPublic.value
-        ? (sharedView.value?.view as KanbanType)
-        : await $api.dbView.kanbanRead(viewMeta.value.id)
-
-      // set groupingField
-      groupingFieldColumn.value = !isPublic.value
-        ? (meta.value.columns as ColumnType[]).filter((f) => f.id === kanbanMetaData.value.fk_grp_col_id)[0] || {}
-        : (parseProp(sharedView.value?.meta).groupingFieldColumn! as ColumnType)
-
-      groupingField.value = groupingFieldColumn.value.title!
-
-      const { fk_grp_col_id, meta: stack_meta } = kanbanMetaData.value
-
-      stackMetaObj.value = parseProp(stack_meta) || {}
-
-      if (stackMetaObj.value && fk_grp_col_id && stackMetaObj.value[fk_grp_col_id]) {
-        // keep the existing order (index of the array) but update the values done outside kanban
-        let isChanged = false
-        let hasNewOptionsAdded = false
-        for (const option of (groupingFieldColumn.value.colOptions as SelectOptionsType)?.options ?? []) {
-          const idx = stackMetaObj.value[fk_grp_col_id].findIndex((ele) => ele.id === option.id)
-          if (idx !== -1) {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { collapsed, ...rest } = stackMetaObj.value[fk_grp_col_id][idx]
-            if (!deepCompare(rest, option)) {
-              // Don't update stack meta if it is shared view and
-              // shared view meta grouping field options not matched with actual column options
-              if (isPublic.value) continue
-
-              // update the option in stackMetaObj
-              stackMetaObj.value[fk_grp_col_id][idx] = {
-                ...stackMetaObj.value[fk_grp_col_id][idx],
-                ...option,
-              }
-              // rename the key in formattedData & countByStack
-              if (option.title !== rest.title) {
-                // option.title is new key
-                // rest.title is old key
-                formattedData.value.set(option.title!, formattedData.value.get(rest.title!)!)
-                countByStack.value.set(option.title!, countByStack.value.get(rest.title!)!)
-                // update grouping field value under the edited stack
-                await bulkUpdateGroupingFieldValue(option.title!)
-              }
-              isChanged = true
-            }
-          } else {
-            // new option found - add to stackMetaObj
-            stackMetaObj.value[fk_grp_col_id].push({
-              ...option,
-              collapsed: false,
-            })
-            formattedData.value.set(option.title!, [])
-            countByStack.value.set(option.title!, 0)
-            isChanged = true
-            hasNewOptionsAdded = true
-          }
-        }
-
-        // handle deleted options
-        const columnOptionIds = (groupingFieldColumn.value?.colOptions as SelectOptionsType)?.options.map(({ id }) => id!) ?? []
-        const cols = stackMetaObj.value[fk_grp_col_id].filter(
-          ({ id }) => id !== uncategorizedStackId && !columnOptionIds.includes(id),
-        )
-        for (const col of cols) {
-          const idx = stackMetaObj.value[fk_grp_col_id].map((ele: Record<string, any>) => ele.id).indexOf(col.id)
-          if (idx !== -1) {
-            stackMetaObj.value[fk_grp_col_id].splice(idx, 1)
-            // there are two cases
-            // 1. delete option from Add / Edit Stack in kanban view
-            // 2. delete option from grid view, then switch to kanban view
-            // for the second case, formattedData.value and countByStack.value would be empty at this moment
-            // however, the data will be correct after rendering
-            if (formattedData.value.size && countByStack.value.size && formattedData.value.has(col.title!)) {
-              // for the first case, no reload is executed.
-              // hence, we set groupingField to null for all records under the target stack
-              await bulkUpdateGroupingFieldValue(col.title!, true)
-              // merge the to-be-deleted stack to uncategorized stack
-              formattedData.value.set(null, [...(formattedData.value.get(null) || []), ...formattedData.value.get(col.title!)!])
-              // update the record count
-              countByStack.value.set(null, (countByStack.value.get(null) || 0) + (countByStack.value.get(col.title!) || 0))
-            }
-            isChanged = true
-          }
-        }
-
-        groupingFieldColOptions.value = [...stackMetaObj.value[fk_grp_col_id]]
-
-        if (isChanged) {
-          await updateKanbanStackMeta()
-          if (hasNewOptionsAdded) {
-            shouldScrollToRight.value = true
-          }
-        }
-      } else {
-        // build stack meta
-
-        groupingFieldColOptions.value = [
-          ...((groupingFieldColumn.value?.colOptions as SelectOptionsType & { collapsed: boolean })?.options ?? []),
-          // enrich uncategorized stack
-          { id: uncategorizedStackId, title: null, order: 0, color: themeV3Colors.gray[500] } as any,
-        ]
-          // sort by initial order
-          .sort((a, b) => a.order! - b.order!)
-          // enrich `collapsed`
-          .map((ele) => ({
-            ...ele,
-            collapsed: false,
-          }))
-        await updateKanbanStackMeta()
-      }
-    }
-
-    async function updateKanbanStackMeta() {
-      const { fk_grp_col_id } = kanbanMetaData.value
-      if (fk_grp_col_id) {
-        stackMetaObj.value[fk_grp_col_id] = groupingFieldColOptions.value
-        await updateKanbanMeta({
-          meta: stackMetaObj.value,
-        })
-      }
-    }
-
     async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
-      if (
-        !viewMeta?.value?.id ||
-        !isUIAllowed('viewCreateOrEdit', {
-          skipSourceCheck: true,
-        })
-      )
-        return
-      await $api.dbView.kanbanUpdate(viewMeta.value.id, updateObj)
+      if (!viewMeta?.value?.id) return
+      await updateViewMeta(viewMeta.value.id, ViewTypes.KANBAN, updateObj, {
+        skipNetworkCall: isPublic.value || !isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true }),
+      })
+    }
+
+    const updateStackProperty = async (stackIdx: number, updates: Partial<GroupingFieldColOptionsType>) => {
+      const stackMeta = [...groupingFieldColOptions.value]
+      stackMeta[stackIdx] = { ...stackMeta[stackIdx], ...updates }
+
+      const updatedStackMetaObj = {
+        ...stackMetaObj.value,
+        [kanbanMetaData.value.fk_grp_col_id!]: stackMeta,
+      }
+
+      await updateKanbanMeta({
+        meta: updatedStackMetaObj,
+      })
+    }
+
+    const updateAllStacksProperty = async (
+      updates: (stack: GroupingFieldColOptionsType, index: number) => Partial<GroupingFieldColOptionsType> | null,
+    ) => {
+      const stackMeta = groupingFieldColOptions.value.map((stack, index) => {
+        const stackUpdates = updates(stack, index)
+        return stackUpdates ? { ...stack, ...stackUpdates } : stack
+      })
+
+      const updatedStackMetaObj = {
+        ...stackMetaObj.value,
+        [kanbanMetaData.value.fk_grp_col_id!]: stackMeta,
+      }
+
+      await updateKanbanMeta({
+        meta: updatedStackMetaObj,
+      })
     }
 
     function findRowInState(rowData: Record<string, any>) {
@@ -548,21 +585,25 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         const newOptions = (groupingFieldColumn.value.colOptions as SelectOptionsType).options.filter(
           (o) => o.title !== stackTitle,
         )
-        ;(groupingFieldColumn.value.colOptions as SelectOptionsType).options = newOptions
-
         const cdf = groupingFieldColumn.value.cdf ? groupingFieldColumn.value.cdf.replace(/^'/, '').replace(/'$/, '') : null
-        await api.dbTableColumn.update(groupingFieldColumn.value.id!, {
+        const newMeta = await api.dbTableColumn.update(groupingFieldColumn.value.id!, {
           ...groupingFieldColumn.value,
           colOptions: {
             options: newOptions,
           },
           cdf: cdf === stackTitle ? null : cdf,
         } as any)
+        await setMeta(newMeta)
 
+        const splicedOps = [...groupingFieldColOptions.value].splice(stackIdx, 1)
         // update kanban stack meta
-        groupingFieldColOptions.value.splice(stackIdx, 1)
-        stackMetaObj.value[kanbanMetaData.value.fk_grp_col_id!] = groupingFieldColOptions.value
-        await updateKanbanStackMeta()
+        await updateKanbanMeta({
+          meta: {
+            ...stackMetaObj.value,
+            [kanbanMetaData.value.fk_grp_col_id!]: splicedOps,
+          },
+        })
+
         $e('a:kanban:delete-stack')
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
@@ -754,10 +795,169 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       })
     })
 
+    watch([groupingFieldColumn], () => {
+      loadKanbanData()
+    })
+
+    const activeDataListener = ref<string | null>(null)
+
+    watch(
+      meta,
+      (newMeta, oldMeta) => {
+        if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
+          if (oldMeta?.id && oldMeta.id === newMeta.id) return
+
+          // Clean up existing listeners
+          if (activeDataListener.value) {
+            $ncSocket.offMessage(activeDataListener.value)
+          }
+
+          // Set up data event listener
+          activeDataListener.value = $ncSocket.onMessage(
+            `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+            (data: DataPayload) => {
+              const { id, action, payload, before } = data
+
+              // TODO: @mertmit handle filters and sort for newly added and updated records
+              if (action === 'add') {
+                try {
+                  const stackKey =
+                    typeof payload[groupingField.value] === 'string'
+                      ? payload[groupingField.value]?.length
+                        ? payload[groupingField.value]
+                        : null
+                      : null
+
+                  const newRow: Row = {
+                    row: payload,
+                    oldRow: { ...payload },
+                    rowMeta: { new: false, ...getEvaluatedRowMetaRowColorInfo(payload) },
+                  }
+
+                  if (!formattedData.value.has(stackKey)) {
+                    formattedData.value.set(stackKey, [])
+                    countByStack.value.set(stackKey, 0)
+                  }
+
+                  const stackRows = formattedData.value.get(stackKey)!
+
+                  if (before) {
+                    const beforeIndex = stackRows.findIndex((row) => {
+                      const pk = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
+                      return pk && `${pk}` === `${before}`
+                    })
+                    if (beforeIndex !== -1) {
+                      stackRows.splice(beforeIndex, 0, newRow)
+                    } else {
+                      stackRows.push(newRow)
+                    }
+                  } else {
+                    stackRows.push(newRow)
+                  }
+
+                  countByStack.value.set(stackKey, (countByStack.value.get(stackKey) || 0) + 1)
+                  formattedData.value.set(stackKey, [...stackRows])
+                } catch (e) {
+                  console.error('Failed to add row to kanban on socket event', e)
+                }
+              } else if (action === 'update') {
+                try {
+                  let found = null
+                  let foundStackKey = null
+                  let foundIndex = -1
+
+                  // Find the row across all stacks
+                  for (const [stackKey, rows] of formattedData.value.entries()) {
+                    const index = rows.findIndex((row) => {
+                      const pk = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
+                      return pk && `${pk}` === `${id}`
+                    })
+                    if (index !== -1) {
+                      found = rows[index]
+                      foundStackKey = stackKey
+                      foundIndex = index
+                      break
+                    }
+                  }
+
+                  if (!found) return
+
+                  const oldStackKey = foundStackKey
+                  const newStackKey =
+                    typeof payload[groupingField.value] === 'string'
+                      ? payload[groupingField.value]?.length
+                        ? payload[groupingField.value]
+                        : null
+                      : null
+
+                  // Update row data
+                  Object.assign(found.row, payload)
+                  Object.assign(found.oldRow, payload)
+                  Object.assign(found.rowMeta, getEvaluatedRowMetaRowColorInfo(payload))
+                  found.rowMeta.changed = false
+
+                  // Handle stack change
+                  if (oldStackKey !== newStackKey) {
+                    // Remove from old stack
+                    const oldStackRows = formattedData.value.get(oldStackKey)!
+                    oldStackRows.splice(foundIndex, 1)
+                    formattedData.value.set(oldStackKey, [...oldStackRows])
+                    countByStack.value.set(oldStackKey, (countByStack.value.get(oldStackKey) || 0) - 1)
+
+                    // Add to new stack
+                    if (!formattedData.value.has(newStackKey)) {
+                      formattedData.value.set(newStackKey, [])
+                      countByStack.value.set(newStackKey, 0)
+                    }
+
+                    const newStackRows = formattedData.value.get(newStackKey)!
+                    newStackRows.push(found)
+                    formattedData.value.set(newStackKey, [...newStackRows])
+                    countByStack.value.set(newStackKey, (countByStack.value.get(newStackKey) || 0) + 1)
+                  } else {
+                    // Row stays in same stack
+                    const stackRows = formattedData.value.get(foundStackKey)!
+                    stackRows[foundIndex] = found
+                    formattedData.value.set(foundStackKey, [...stackRows])
+                  }
+                } catch (e) {
+                  console.error('Failed to update row in kanban on socket event', e)
+                }
+              } else if (action === 'delete') {
+                try {
+                  for (const [stackKey, rows] of formattedData.value.entries()) {
+                    const index = rows.findIndex((row) => {
+                      const pk = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
+                      return pk && `${pk}` === `${id}`
+                    })
+                    if (index !== -1) {
+                      const stackRows = formattedData.value.get(stackKey)!
+                      stackRows.splice(index, 1)
+                      formattedData.value.set(stackKey, [...stackRows])
+                      countByStack.value.set(stackKey, Math.max((countByStack.value.get(stackKey) || 0) - 1, 0))
+                      break
+                    }
+                  }
+                } catch (e) {
+                  console.error('Failed to delete row from kanban on socket event', e)
+                }
+              }
+            },
+          )
+        }
+      },
+      { immediate: true },
+    )
+
+    onBeforeUnmount(() => {
+      if (activeDataListener.value) {
+        $ncSocket?.offMessage?.(activeDataListener.value)
+      }
+    })
+
     return {
       loadKanbanData,
       loadMoreKanbanData,
-      loadKanbanMeta,
       updateKanbanMeta,
       kanbanMetaData,
       formattedData,
@@ -769,12 +969,14 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
       addEmptyRow,
       addOrEditStackRow,
       deleteStack,
-      updateKanbanStackMeta,
       removeRowFromUncategorizedStack,
       shouldScrollToRight,
       deleteRow,
+      stackMetaObj,
       moveHistory,
       addNewStackId,
+      updateStackProperty,
+      updateAllStacksProperty,
       uncategorizedStackId,
     }
   },

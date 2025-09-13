@@ -74,7 +74,11 @@ export function useViewData(
 
   const routeQuery = computed(() => route.value.query as Record<string, string>)
 
-  const { isPaginationLoading } = storeToRefs(useViewsStore())
+  const viewStore = useViewsStore()
+
+  const { isPaginationLoading } = storeToRefs(viewStore)
+
+  const { updateViewMeta } = viewStore
 
   const paginationData = computed({
     get: () => (isPublic.value ? sharedPaginationData.value : _paginationData.value),
@@ -402,7 +406,7 @@ export function useViewData(
     if (!viewMeta?.value?.id || !view || !isUIAllowed('viewFieldEdit')) return
 
     try {
-      await $api.dbView.formUpdate(viewMeta.value.id, view)
+      await updateViewMeta(viewMeta.value.id, ViewTypes.FORM, view)
     } catch (e: any) {
       return message.error(`${t('msg.error.formViewUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }

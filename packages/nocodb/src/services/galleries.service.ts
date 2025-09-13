@@ -127,7 +127,7 @@ export class GalleriesService {
       ncMeta,
     );
 
-    const res = await GalleryView.update(
+    await GalleryView.update(
       context,
       param.galleryViewId,
       param.gallery,
@@ -150,6 +150,19 @@ export class GalleriesService {
       owner,
     });
 
-    return res;
+    await view.getView(context);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_update',
+          payload: view,
+        },
+      },
+      context.socket_id,
+    );
+    return view;
   }
 }

@@ -2656,7 +2656,7 @@ export default class View implements ViewType {
         this.view = await MapView.get(context, this.id, ncMeta);
         break;
       case ViewTypes.FORM:
-        this.view = await FormView.get(context, this.id, ncMeta);
+        this.view = await FormView.getWithInfo(context, this.id, ncMeta);
         break;
       case ViewTypes.CALENDAR:
         this.view = await CalendarView.get(context, this.id, ncMeta);

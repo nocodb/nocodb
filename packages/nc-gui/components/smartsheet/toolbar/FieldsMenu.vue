@@ -1,6 +1,15 @@
 <script lang="ts" setup>
-import { type CalendarType, type ColumnType, type GalleryType, type KanbanType, type LookupType, isLinksOrLTAR } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type GalleryType,
+  type KanbanType,
+  type LookupType,
+  UITypes,
+  ViewTypes,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
@@ -8,8 +17,6 @@ import type { SelectProps } from 'ant-design-vue'
 const activeView = inject(ActiveViewInj, ref())
 
 const meta = inject(MetaInj, ref())
-
-const reloadViewMetaHook = inject(ReloadViewMetaHookInj, undefined)!
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
@@ -28,7 +35,7 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const { $api, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -56,6 +63,10 @@ const { eventBus, isDefaultView, isSqlView } = useSmartsheetStoreOrThrow()
 const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
 const { addUndo, defineViewScope } = useUndoRedo()
+
+const viewStore = useViewsStore()
+
+const { updateViewMeta } = viewStore
 
 eventBus.on((event) => {
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
@@ -161,24 +172,9 @@ const updateCoverImage = async (val?: string | null) => {
     activeView.value?.id &&
     activeView.value?.view
   ) {
-    if (activeView.value?.type === ViewTypes.GALLERY) {
-      await $api.dbView.galleryUpdate(activeView.value?.id, {
-        fk_cover_image_col_id: val,
-      })
-      ;(activeView.value.view as GalleryType).fk_cover_image_col_id = val
-    } else if (activeView.value?.type === ViewTypes.KANBAN) {
-      await $api.dbView.kanbanUpdate(activeView.value?.id, {
-        fk_cover_image_col_id: val,
-      })
-      ;(activeView.value.view as KanbanType).fk_cover_image_col_id = val
-    } else if (activeView.value?.type === ViewTypes.CALENDAR) {
-      await $api.dbView.calendarUpdate(activeView.value?.id, {
-        fk_cover_image_col_id: val,
-      })
-      ;(activeView.value.view as CalendarType).fk_cover_image_col_id = val
-    }
-
-    await reloadViewMetaHook?.trigger()
+    await updateViewMeta(activeView.value?.id, activeView.value?.type, {
+      fk_cover_image_col_id: val,
+    })
 
     // Load data only if the view column is hidden to fetch cover image column data in records.
     if (val && !fields.value?.find((f) => f.fk_column_id === val)?.show) {
@@ -230,27 +226,14 @@ const updateCoverImageObjectFit = async (val: string) => {
     return
   }
 
-  if (activeView.value?.type === ViewTypes.GALLERY) {
-    const payload = {
-      ...parseProp((activeView.value?.view as GalleryType)?.meta),
-      fk_cover_image_object_fit: val,
-    }
-    await $api.dbView.galleryUpdate(activeView.value?.id, {
-      meta: payload,
-    })
-    ;(activeView.value.view as GalleryType).meta = payload
-  } else if (activeView.value?.type === ViewTypes.KANBAN) {
-    const payload = {
-      ...parseProp((activeView.value?.view as KanbanType)?.meta),
-      fk_cover_image_object_fit: val,
-    }
-    await $api.dbView.kanbanUpdate(activeView.value?.id, {
-      meta: payload,
-    })
-    ;(activeView.value.view as KanbanType).meta = payload
+  const payload = {
+    ...parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta),
+    fk_cover_image_object_fit: val,
   }
 
-  await reloadViewMetaHook?.trigger()
+  await updateViewMeta(activeView.value?.id, activeView.value?.type, {
+    meta: payload,
+  })
 }
 
 const coverImageObjectFitOptions = [

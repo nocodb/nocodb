@@ -7927,11 +7927,28 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "number"
+                  "$ref": "#/components/schemas/View"
                 },
                 "examples": {
                   "Example 1": {
-                    "value": 1
+                    "value": {
+                      "id": "vw_qp94qfnvffgk5f",
+                      "source_id": "ds_a95vextjl510z7",
+                      "base_id": "p_slkm6i3v31q4bc",
+                      "fk_model_id": "md_8hr3xndx8umuce",
+                      "title": "Gallery-1",
+                      "type": 2,
+                      "is_default": null,
+                      "show_system_fields": null,
+                      "lock_type": "collaborative",
+                      "uuid": null,
+                      "password": null,
+                      "show": true,
+                      "order": 3,
+                      "created_at": "2023-03-13T07:29:18.707Z",
+                      "updated_at": "2023-03-13T07:29:18.707Z",
+                      "meta": {}
+                    }
                   }
                 }
               }
@@ -8146,11 +8163,28 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "number"
+                  "$ref": "#/components/schemas/View"
                 },
                 "examples": {
                   "Example 1": {
-                    "value": 1
+                    "value": {
+                      "id": "vw_qp94qfnvffgk5f",
+                      "source_id": "ds_a95vextjl510z7",
+                      "base_id": "p_slkm6i3v31q4bc",
+                      "fk_model_id": "md_8hr3xndx8umuce",
+                      "title": "Gallery-1",
+                      "type": 2,
+                      "is_default": null,
+                      "show_system_fields": null,
+                      "lock_type": "collaborative",
+                      "uuid": null,
+                      "password": null,
+                      "show": true,
+                      "order": 3,
+                      "created_at": "2023-03-13T07:29:18.707Z",
+                      "updated_at": "2023-03-13T07:29:18.707Z",
+                      "meta": {}
+                    }
                   }
                 }
               }
@@ -8421,11 +8455,28 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "number"
+                  "$ref": "#/components/schemas/View"
                 },
                 "examples": {
                   "Example 1": {
-                    "value": 1
+                    "value": {
+                      "id": "vw_qp94qfnvffgk5f",
+                      "source_id": "ds_a95vextjl510z7",
+                      "base_id": "p_slkm6i3v31q4bc",
+                      "fk_model_id": "md_8hr3xndx8umuce",
+                      "title": "Gallery-1",
+                      "type": 2,
+                      "is_default": null,
+                      "show_system_fields": null,
+                      "lock_type": "collaborative",
+                      "uuid": null,
+                      "password": null,
+                      "show": true,
+                      "order": 3,
+                      "created_at": "2023-03-13T07:29:18.707Z",
+                      "updated_at": "2023-03-13T07:29:18.707Z",
+                      "meta": {}
+                    }
                   }
                 }
               }
@@ -8598,11 +8649,28 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "number"
+                  "$ref": "#/components/schemas/View"
                 },
                 "examples": {
                   "Example 1": {
-                    "value": 1
+                    "value": {
+                      "id": "vw_qp94qfnvffgk5f",
+                      "source_id": "ds_a95vextjl510z7",
+                      "base_id": "p_slkm6i3v31q4bc",
+                      "fk_model_id": "md_8hr3xndx8umuce",
+                      "title": "Gallery-1",
+                      "type": 2,
+                      "is_default": null,
+                      "show_system_fields": null,
+                      "lock_type": "collaborative",
+                      "uuid": null,
+                      "password": null,
+                      "show": true,
+                      "order": 3,
+                      "created_at": "2023-03-13T07:29:18.707Z",
+                      "updated_at": "2023-03-13T07:29:18.707Z",
+                      "meta": {}
+                    }
                   }
                 }
               }

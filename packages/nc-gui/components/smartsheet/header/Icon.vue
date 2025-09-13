@@ -1,11 +1,25 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, UITypes } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
 
-const { column } = defineProps<{ column: ColumnType }>()
+const props = defineProps<{
+  column?: ColumnType
+  /**
+   * Windicss color class
+   */
+  color?: string
+  defaultUidt?: UITypes
+}>()
+
+const { column } = toRefs(props)
+
+const injectedColumn = inject(ColumnInj, column)
+
+const columnMeta = computed(() => column.value ?? injectedColumn.value)
 </script>
 
 <template>
-  <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(column)" :column-meta="column" />
-  <SmartsheetHeaderCellIcon v-else :column-meta="column" />
+  <SmartsheetHeaderVirtualCellIcon v-if="columnMeta && isVirtualCol(columnMeta)" :column-meta="columnMeta" :color="color" />
+  <SmartsheetHeaderCellIcon v-else-if="columnMeta" :column-meta="columnMeta" :color="color" />
+  <component v-else-if="defaultUidt" :is="getUIDTIcon(defaultUidt)" class="flex-none h-4 w-4" :class="color" />
 </template>

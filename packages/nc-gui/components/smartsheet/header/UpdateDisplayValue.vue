@@ -90,11 +90,6 @@ const changeDisplayField = async () => {
   }
 }
 
-const cellIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
-  })
-
 onMounted(() => {
   selectedFieldId.value = useMetaFields.value
     ? meta.value?.columns?.find((c) => c.id === column.value.id)?.id
@@ -130,7 +125,7 @@ onMounted(() => {
           container-class-name="!max-h-[200px]"
         >
           <template #listItemExtraLeft="{ option }">
-            <component :is="cellIcon(option.column)" class="!mx-0 opacity-70" />
+            <SmartsheetHeaderIcon :column="option.column" class="!mx-0 opacity-70" />
           </template>
         </NcList>
       </div>

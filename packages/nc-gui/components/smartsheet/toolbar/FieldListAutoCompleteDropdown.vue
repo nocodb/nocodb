@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
 const { modelValue, isSort, allowEmpty, disableSmartsheet, ...restProps } = defineProps<{
   modelValue?: string
@@ -119,12 +119,9 @@ const options = computed<SelectProps['options']>(() =>
     ?.map((c: ColumnType) => ({
       value: c.id,
       label: fieldNameAlias.value[c.id!] || c.title,
-      icon: h(
-        isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
-        {
-          columnMeta: c,
-        },
-      ),
+      icon: h(resolveComponent('SmartsheetHeaderIcon'), {
+        column: c,
+      }),
       ncItemDisabled: c.ncItemDisabled,
       ncItemTooltip: c.ncItemTooltip,
       c,

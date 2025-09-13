@@ -169,15 +169,15 @@ const displayValue = computed(() => {
             </div>
           </div>
         </div>
-        <div v-if="!isForm && !isPublic" class="flex-none flex items-center w-7">
-          <NcTooltip class="flex">
+        <div v-if="!isForm && !isPublic" @clcik.stop class="flex-none flex items-center w-7">
+          <NcTooltip class="flex" hide-on-click>
             <template #title>{{ $t('title.expand') }}</template>
 
             <button
               v-e="['c:row-expand:open']"
               :tabindex="-1"
               class="z-10 flex items-center justify-center nc-expand-item !group-hover:visible !invisible !h-7 !w-7 transition-all !hover:children:(w-4.5 h-4.5)"
-              @click.stop="$emit('expand', row)"
+              @click="$emit('expand', row)"
             >
               <GeneralIcon icon="maximize" class="flex-none w-4 h-4 scale-125" />
             </button>

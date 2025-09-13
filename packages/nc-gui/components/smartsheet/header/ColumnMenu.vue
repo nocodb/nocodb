@@ -449,11 +449,14 @@ const linksAssociated = computed(() => {
   )
 })
 
-const addLookupMenu = ref(false)
+const addLookupOrRollupMenu = ref(false)
 
-const openLookupMenuDialog = () => {
+const addLookupOrRollupType = ref<UITypes.Lookup | UITypes.Rollup>(UITypes.Lookup)
+
+const openLookupOrRollupMenuDialog = (type: UITypes.Lookup | UITypes.Rollup) => {
   isOpen.value = false
-  addLookupMenu.value = true
+  addLookupOrRollupMenu.value = true
+  addLookupOrRollupType.value = type
 }
 
 const changeTitleFieldMenu = ref(false)
@@ -630,13 +633,37 @@ const onDeleteColumn = () => {
     </NcTooltip>
 
     <NcMenuItem
-      v-if="[UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)"
+      v-if="canUseForLookupLinkField(column, meta?.source_id)"
       :disabled="isSqlView"
-      @click="openLookupMenuDialog"
+      @click="openLookupOrRollupMenuDialog(UITypes.Lookup)"
     >
       <div v-e="['a:field:lookup:create']" class="nc-column-lookup-create nc-header-menu-item">
-        <component :is="iconMap.cellLookup" class="opacity-80 !w-4.5 !h-4.5" />
+        <SmartsheetHeaderVirtualCellIcon
+          :column-meta="{
+            uidt: UITypes.Lookup,
+            fk_model_id: column.fk_model_id,
+            colOptions: {
+              fk_relation_column_id: column.id,
+            },
+          }"
+          class="opacity-80 !w-4.5 !h-4.5 !mx-0"
+        />
         {{ t('general.addLookupField') }}
+      </div>
+    </NcMenuItem>
+    <NcMenuItem v-if="canUseForRollupLinkField(column)" :disabled="isSqlView" @click="openLookupOrRollupMenuDialog(UITypes.Rollup)">
+      <div v-e="['a:field:rollup:create']" class="nc-column-rollup-create nc-header-menu-item">
+        <SmartsheetHeaderVirtualCellIcon
+          :column-meta="{
+            uidt: UITypes.Rollup,
+            fk_model_id: column.fk_model_id,
+            colOptions: {
+              fk_relation_column_id: column.id,
+            },
+          }"
+          class="opacity-80 !w-4.5 !h-4.5 !mx-0"
+        />
+        {{ t('general.addRollupField') }}
       </div>
     </NcMenuItem>
     <NcDivider v-if="isUIAllowed('fieldAlter') && !column?.pv" />
@@ -800,7 +827,7 @@ const onDeleteColumn = () => {
         :column="column"
         :extra="selectedColumnExtra"
       />
-      <LazySmartsheetHeaderAddLookups key="dcx" v-model:value="addLookupMenu" />
+      <LazySmartsheetHeaderAddLookupsOrRollups key="dcx" v-model:value="addLookupOrRollupMenu" :type="addLookupOrRollupType" />
       <LazySmartsheetHeaderUpdateDisplayValue
         key="dcxx"
         v-model:value="changeTitleFieldMenu"

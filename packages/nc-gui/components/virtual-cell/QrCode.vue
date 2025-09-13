@@ -7,6 +7,8 @@ import { base64ToBlob, copyPNGToClipboard } from '~/utils/svgToPng'
 
 const { t } = useI18n()
 
+const { isMobileMode } = useGlobal()
+
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
@@ -112,6 +114,7 @@ onMounted(() => {
     wrap-class-name="nc-qr-code-large qrcode-modal"
     :body-style="{ padding: '0px', display: 'flex', justifyContent: 'center' }"
     :closable="false"
+    :centered="isMobileMode"
     @ok="handleModalOkClick"
   >
     <template #title>

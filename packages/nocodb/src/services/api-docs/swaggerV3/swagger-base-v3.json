@@ -33,8 +33,10 @@
             "type": "number"
           },
           "next": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "URL to retrieve the next page of records"
           }
         }
@@ -73,6 +75,69 @@
             "description": "the value of the given column"
           }
         }
+      },
+      "DataRecordV3": {
+        "type": "object",
+        "description": "V3 Data Record format with id and fields separation",
+        "properties": {
+          "id": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "description": "Record identifier (primary key value)"
+          },
+          "fields": {
+            "type": "object",
+            "description": "Record fields data (excluding primary key). Undefined when empty.",
+            "additionalProperties": true
+          }
+        },
+        "required": ["id"]
+      },
+      "DataListResponseV3": {
+        "type": "object",
+        "description": "V3 Data List Response format",
+        "properties": {
+          "records": {
+            "type": "array",
+            "description": "Array of records for has-many and many-to-many relationships",
+            "items": {
+              "$ref": "#/components/schemas/DataRecordV3"
+            }
+          },
+          "next": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pagination token for next page"
+          },
+          "prev": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Pagination token for previous page"
+          },
+          "page": {
+            "type": "integer",
+            "description": "Current page number"
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "Number of records per page"
+          },
+          "totalRows": {
+            "type": "integer",
+            "description": "Total number of records"
+          }
+        },
+        "required": ["records"]
       }
     },
     "securitySchemes": {

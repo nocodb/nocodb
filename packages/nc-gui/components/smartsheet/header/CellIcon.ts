@@ -97,7 +97,7 @@ export default defineComponent({
       if (!column.value && !columnMeta.value) return null
 
       return h(renderIcon((columnMeta.value ?? column.value)!, abstractType.value), {
-        class: `${defaultColor.value || 'text-inherit'} mx-1 nc-cell-icon`,
+        class: `${defaultColor.value || 'text-inherit'} mx-1 flex-none nc-cell-icon`,
       })
     }
   },

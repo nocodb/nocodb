@@ -1555,12 +1555,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                       <div class="px-1.75 text-gray-500 text-xl font-normal">/</div>
 
                       <div class="flex items-center pr-1 py-1.5 text-gray-800">
-                        <SmartsheetHeaderVirtualCellIcon
-                          v-if="isVirtualCol(activeField)"
-                          :column-meta="activeField"
-                          class="flex-none"
-                        />
-                        <SmartsheetHeaderCellIcon v-else :column-meta="activeField" class="flex-none" />
+                        <NcIconField :field="activeField" />
 
                         <NcTooltip class="truncate max-w-[120px] text-sm font-semibold" show-on-truncate-only>
                           <template #title>
@@ -1778,12 +1773,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     class="flex-1 flex items-center cursor-pointer max-w-[calc(100%_-_40px)]"
                                     @click.prevent="onFormItemClick(field, true)"
                                   >
-                                    <SmartsheetHeaderVirtualCellIcon
-                                      v-if="field && isVirtualCol(field)"
-                                      :column-meta="field"
-                                      color="text-nc-content-gray-subtle"
-                                    />
-                                    <SmartsheetHeaderCellIcon v-else :column-meta="field" color="text-nc-content-gray-subtle" />
+                                    <NcIconField :field="field" color="text-nc-content-gray-subtle" />
+
                                     <div class="flex-1 flex items-center justify-start max-w-[calc(100%_-_28px)]">
                                       <div class="w-full flex items-center">
                                         <div class="ml-1 inline-flex" :class="field.label?.trim() ? 'max-w-1/2' : 'max-w-[95%]'">

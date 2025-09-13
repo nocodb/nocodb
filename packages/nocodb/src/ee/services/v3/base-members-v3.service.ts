@@ -103,6 +103,8 @@ export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
             },
             ncMeta,
           );
+        // we collect the rollback actions need to be performed during rollback
+        // TODO: attach to meta transaction when it's ready
         rollbacks.push(eachRollback);
         const { postOperations: eachPostOperations } = await execute();
         postOperations.push(...eachPostOperations);

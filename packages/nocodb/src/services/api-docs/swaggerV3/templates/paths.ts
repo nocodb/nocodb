@@ -1,23 +1,21 @@
 import { ModelTypes } from 'nocodb-sdk';
 import {
   fieldsParam,
-  getNestedParams,
-  limitParam,
+  pageParam,
+  pageSizeParam,
+  nestedPageParam,
   linkFieldNameParam,
-  offsetParam,
   recordIdParam,
-  shuffleParam,
   sortParam,
-  viewIdParams,
+  viewIdParam,
   whereParam,
 } from './params';
 import type { SwaggerColumn } from '../getSwaggerColumnMetasV3';
 import type { SwaggerView } from '~/services/api-docs/swaggerV3/getSwaggerJSONV3';
-import type { NcContext } from '~/interface/config';
 import { isRelationExist } from '~/services/api-docs/swagger/templates/paths';
 
 export const getModelPaths = async (
-  context: NcContext,
+  _context: any,
   ctx: {
     tableName: string;
     type: ModelTypes;
@@ -33,23 +31,20 @@ export const getModelPaths = async (
       description: `List of all rows from ${ctx.tableName} ${ctx.type} and response data fields can be filtered based on query params.`,
       tags: [ctx.tableName],
       parameters: [
-        viewIdParams(ctx.views),
         fieldsParam,
         sortParam,
         whereParam,
-        limitParam,
-        shuffleParam,
-        offsetParam,
-        ...(await getNestedParams(context, ctx.columns)),
+        pageParam,
+        nestedPageParam,
+        pageSizeParam,
+        viewIdParam(ctx.views),
       ],
       responses: {
         '200': {
           description: 'OK',
           content: {
             'application/json': {
-              schema: {
-                $ref: '#/components/schemas/DataListResponseV3'
-              },
+              schema: getPaginatedResponseTypeV3(`${ctx.tableName}Response`),
             },
           },
         },
@@ -187,7 +182,7 @@ export const getModelPaths = async (
           content: {
             'application/json': {
               schema: {
-                $ref: '#/components/schemas/DataRecordV3'
+                $ref: `#/components/schemas/${ctx.tableName}Response`
               },
             },
           },
@@ -197,7 +192,7 @@ export const getModelPaths = async (
   },
   [`/api/v3/data/{baseId}/${ctx.tableId}/records/count`]: {
     parameters: [
-      viewIdParams(ctx.views)
+      viewIdParam(ctx.views)
     ],
     get: {
       summary: `${ctx.tableName} count`,
@@ -254,17 +249,15 @@ export const getModelPaths = async (
                 fieldsParam,
                 sortParam,
                 whereParam,
-                limitParam,
-                offsetParam,
+                pageParam,
+                pageSizeParam,
               ],
               responses: {
                 '200': {
                   description: 'OK',
                   content: {
                     'application/json': {
-                      schema: {
-                        $ref: '#/components/schemas/DataListResponseV3'
-                      },
+                      schema: getPaginatedResponseTypeV3(`${ctx.tableName}Response`),
                     },
                   },
                 },
@@ -393,4 +386,45 @@ export const getModelPaths = async (
       }
     : {}),
 });
+
+function getPaginatedResponseTypeV3(type: string) {
+  return {
+    type: 'object',
+    properties: {
+      records: {
+        type: 'array',
+        items: {
+          $ref: `#/components/schemas/${type}`,
+        },
+      },
+      next: {
+        type: [
+          'string',
+          'null'
+        ],
+        description: 'Pagination token for next page'
+      },
+      prev: {
+        type: [
+          'string',
+          'null'
+        ],
+        description: 'Pagination token for previous page'
+      },
+      page: {
+        type: 'integer',
+        description: 'Current page number'
+      },
+      pageSize: {
+        type: 'integer',
+        description: 'Number of records per page'
+      },
+      totalRows: {
+        type: 'integer',
+        description: 'Total number of records'
+      }
+    },
+    required: ['records']
+  };
+}
 

@@ -7,24 +7,38 @@ export const getModelSchemas = (ctx: {
   baseName: string;
   columns: Array<SwaggerColumn>;
 }) => ({
-  [`${ctx.tableName}Fields`]: {
-    title: `${ctx.tableName} Fields`,
+  [`${ctx.tableName}Response`]: {
+    title: `${ctx.tableName} Response`,
     type: 'object',
-    description: 'Fields data for the record (excluding primary key)',
+    description: '',
     'x-internal': false,
     properties: {
-      ...(ctx.columns?.reduce(
-        (colsObj, { title, virtual, column, ...fieldProps }) => ({
-          ...colsObj,
-          ...(column.system || column.pk
-            ? {}
-            : {
-                [title]: fieldProps,
-              }),
-        }),
-        {},
-      ) || {}),
+      id: {
+        oneOf: [
+          { type: 'string' },
+          { type: 'number' }
+        ],
+        description: 'Record identifier (primary key value)'
+      },
+      fields: {
+        type: 'object',
+        description: 'Record fields data (excluding primary key)',
+        properties: {
+          ...(ctx.columns?.reduce(
+            (colsObj, { title, virtual, column, ...fieldProps }) => ({
+              ...colsObj,
+              ...(column.system || column.pk
+                ? {}
+                : {
+                    [title]: fieldProps,
+                  }),
+            }),
+            {},
+          ) || {}),
+        }
+      }
     },
+    required: ['id']
   },
   [`${ctx.tableName}Request`]: {
     title: `${ctx.tableName} Request`,

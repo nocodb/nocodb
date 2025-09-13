@@ -27,6 +27,8 @@ const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope
 
 const { cmdK, cmdL, cmdJ, setActiveCmdView } = useCommand()
 
+useUserSync()
+
 useRealtime()
 
 applyNonSelectable()

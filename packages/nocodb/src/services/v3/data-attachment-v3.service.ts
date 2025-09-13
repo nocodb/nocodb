@@ -67,8 +67,7 @@ export class DataAttachmentV3Service {
         } else if (
           attachment.url &&
           'status' in attachment &&
-          attachment.status === 'uploading' &&
-          attachment.type === 'url_request'
+          attachment.status === 'uploading'
         ) {
           // If attachment has URL, download and process it
 

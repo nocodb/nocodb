@@ -8,7 +8,6 @@ import {
   UITypes,
   getAvailableRollupForColumn,
   getRenderAsTextFunForUiType,
-  isVirtualCol,
   rollupAllFunctions,
 } from 'nocodb-sdk'
 

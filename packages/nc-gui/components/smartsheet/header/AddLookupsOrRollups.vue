@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import {
-  type ColumnType,
-  type TableType,
-  UITypes,
-  getAvailableRollupForColumn,
-  rollupAllFunctions,
-} from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes, getAvailableRollupForColumn, rollupAllFunctions } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 

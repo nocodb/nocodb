@@ -435,6 +435,10 @@ onClickOutside(editorDom, (e) => {
       resize: vertical;
       min-width: 100%;
       max-height: min(800px, calc(100vh - 200px)) !important;
+
+      @supports (height: 100dvh) {
+        max-height: min(800px, calc(100dvh - 200px)) !important;
+      }
     }
   }
 }
@@ -442,7 +446,7 @@ onClickOutside(editorDom, (e) => {
 .nc-rich-text-full {
   @apply px-3;
   .ProseMirror {
-    @apply !p-2 h-[min(797px,100vh_-_170px)] w-[min(1256px,100vw_-_124px)];
+    @apply !p-2 h-[min(797px,100dvh_-_170px)] w-[min(1256px,100vw_-_124px)];
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin !important;
@@ -451,6 +455,15 @@ onClickOutside(editorDom, (e) => {
     max-height: min(797px, calc(100vh - 170px));
     min-width: 256px;
     max-width: min(1256px, 100vw - 126px);
+
+    @supports (height: 100dvh) {
+      max-height: min(797px, calc(100dvh - 170px));
+    }
+
+    @media (max-width: 767px) {
+      min-width: 100%;
+      max-width: min(1256px, 100vw - 58px);
+    }
   }
   &.readonly {
     .ProseMirror {

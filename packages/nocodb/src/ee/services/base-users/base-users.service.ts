@@ -11,7 +11,6 @@ import {
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
-import type { MetaService } from '~/meta/meta.service';
 import type { ProjectUserReqType, ProjectUserUpdateReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { validatePayload } from '~/helpers';
@@ -65,7 +64,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       req: NcRequest;
       workspaceInvited?: boolean;
     },
-    ncMeta?: MetaService,
+    ncMeta = Noco.ncMeta,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUserReq',
@@ -218,7 +217,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       // to keep refactor at minimum, we pass emailUserMap
       emailUserMap?: Map<string, User>;
     },
-    ncMeta?: MetaService,
+    ncMeta = Noco.ncMeta,
   ) {
     const { email, emailUserMap = new Map(), baseId } = param;
 
@@ -278,7 +277,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       // to keep refactor at minimum, we pass emailUserMap
       emailUserMap?: Map<string, User>;
     },
-    ncMeta?: MetaService,
+    ncMeta = Noco.ncMeta,
   ) {
     const postOperations = [];
     const { email, invite_token = uuidv4(), emailUserMap, roles, base } = param;

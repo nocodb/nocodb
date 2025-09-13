@@ -34,7 +34,9 @@ const { activeProjectId } = storeToRefs(useBases())
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-const { activeView, openedViewsTab, activeViewTitleOrId, isViewsLoading } = storeToRefs(useViewsStore())
+const viewStore = useViewsStore()
+
+const { activeView, openedViewsTab, activeViewTitleOrId, isViewsLoading } = storeToRefs(viewStore)
 const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, xWhere, eventBus } = useProvideSmartsheetStore(
   activeView,
   meta,
@@ -231,11 +233,14 @@ const onReady = () => {
 
 onMounted(async () => {
   await until(() => isViewsLoading.value).toBe(false)
-   await until(() => !!activeView.value).toBeTruthy({
-    timeout: 5000,
-  })
 
-  if (!activeView.value) {
+  const views = await viewStore.loadViews()
+
+  // If no views exist or the current view is not found, navigate to workspace/base
+  if (
+    !views?.length ||
+    !views.find((view) => view.id === activeViewTitleOrId.value || view.title === activeViewTitleOrId.value)
+  ) {
     ncNavigateTo({
       workspaceId: activeWorkspaceId.value,
       baseId: activeProjectId.value,

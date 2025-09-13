@@ -837,6 +837,7 @@ const onDeleteColumn = () => {
         v-if="column && meta && isEeUI"
         key="dfp"
         v-model:visible="showFieldPermissionsModal"
+        :field="column"
         :field-id="column.id!"
         :field-title="column.title!"
         :field-uidt="column.uidt!"

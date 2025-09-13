@@ -147,7 +147,7 @@ defineExpose({
     >
       <div class="flex-1 flex group items-center gap-2 min-w-0">
         <div v-if="selectedColumn" class="min-w-5 flex items-center justify-center">
-          <NcIconField :field="selectedColumn" class="text-gray-500" />
+          <NcIconField :field="selectedColumn" color="text-nc-content-gray-muted" />
         </div>
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
           <span v-if="selectedColumn" class="text-sm flex-1 truncate text-nc-content-gray-default">
@@ -187,7 +187,7 @@ defineExpose({
           <template #item="{ item }">
             <div class="w-full flex items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
-                <NcIconField :field="item" class="text-gray-500" />
+                <NcIconField :field="item" color="text-nc-content-gray-muted" />
               </div>
               <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                 <template #title>{{ item.label }}</template>

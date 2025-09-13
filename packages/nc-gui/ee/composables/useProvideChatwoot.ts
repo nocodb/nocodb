@@ -33,7 +33,9 @@ export const useProvideChatwoot = () => {
       attributes.is_onprem = true as any
     }
 
-    setCustomAttributes(attributes)
+    if (!ncIsEmptyObject(attributes)) {
+      setCustomAttributes(attributes)
+    }
 
     setConversationCustomAttributes({
       user_id: String(userId),

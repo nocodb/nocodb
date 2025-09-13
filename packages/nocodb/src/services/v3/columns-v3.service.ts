@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { isLinksOrLTAR, NcApiVersion, UITypes } from 'nocodb-sdk';
-import { NcError } from 'src/helpers/ncError';
+import {
+  isLinksOrLTAR,
+  NcApiVersion,
+  UITypes,
+  WebhookActions,
+} from 'nocodb-sdk';
 import type {
   ColumnReqType,
   FieldUpdateV3Type,
@@ -9,6 +13,12 @@ import type {
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ReusableParams } from '~/services/columns.service';
+import type { MetaService } from '~/meta/meta.service';
+import { NcError } from '~/helpers/ncError';
+import {
+  type ColumnWebhookManager,
+  ColumnWebhookManagerBuilder,
+} from '~/utils/column-webhook-manager';
 import { ColumnsService } from '~/services/columns.service';
 import { Column } from '~/models';
 import Noco from '~/Noco';
@@ -31,7 +41,9 @@ export class ColumnsV3Service {
       cookie?: any;
       user: UserType;
       reuse?: ReusableParams;
+      columnWebhookManager?: ColumnWebhookManager;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger-v3.json#/components/schemas/FieldUpdate',
@@ -55,6 +67,15 @@ export class ColumnsV3Service {
       NcError.get(context).fieldNotFound(param.columnId);
     }
 
+    const columnWebhookManager =
+      param.columnWebhookManager ??
+      (
+        await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
+          column.fk_model_id,
+        )
+      )
+        .addColumn(column)
+        .forUpdate();
     const type = (param.column?.type ?? column.uidt) as FieldV3Type['type'];
 
     const processedColumnReq = columnV3ToV2Builder().build({
@@ -92,12 +113,18 @@ export class ColumnsV3Service {
       column: processedColumnReq,
       apiVersion: NcApiVersion.V3,
       req: param.req,
+      columnWebhookManager: columnWebhookManager,
     });
 
     column = await Column.get(context, { colId: param.columnId });
 
     // do tranformation
-    return columnBuilder().build(column);
+    const v3Response = columnBuilder().build(column);
+    if (!param.columnWebhookManager) {
+      await columnWebhookManager.populateNewColumns();
+      columnWebhookManager.emit();
+    }
+    return v3Response;
   }
 
   async columnGet(context: NcContext, param: { columnId: string }) {
@@ -116,7 +143,9 @@ export class ColumnsV3Service {
       column: FieldV3Type;
       user: UserType;
       reuse?: ReusableParams;
+      columnWebhookManager?: ColumnWebhookManager;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger-v3.json#/components/schemas/CreateField',
@@ -131,6 +160,13 @@ export class ColumnsV3Service {
       context,
     );
 
+    const columnWebhookManager =
+      param.columnWebhookManager ??
+      (
+        await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
+          param.tableId,
+        )
+      ).forCreate();
     const column = columnV3ToV2Builder().build(
       param.column,
     ) as ColumnReqType & {
@@ -158,14 +194,24 @@ export class ColumnsV3Service {
         .join('');
     }
 
-    const res = await this.columnsService.columnAdd(context, {
-      ...param,
-      column,
-      apiVersion: NcApiVersion.V3,
-    });
+    const res = await this.columnsService.columnAdd(
+      context,
+      {
+        ...param,
+        column,
+        apiVersion: NcApiVersion.V3,
+        columnWebhookManager: columnWebhookManager,
+      },
+      ncMeta,
+    );
 
     // do tranformation
-    return columnBuilder().build(res);
+    const v3Response = columnBuilder().build(res);
+    await columnWebhookManager.addNewColumn(v3Response, WebhookActions.INSERT);
+    if (!param.columnWebhookManager) {
+      columnWebhookManager.emit();
+    }
+    return v3Response;
   }
 
   async columnDelete(
@@ -176,6 +222,7 @@ export class ColumnsV3Service {
       user: UserType;
       forceDeleteSystem?: boolean;
       reuse?: ReusableParams;
+      columnWebhookManager?: ColumnWebhookManager;
     },
     ncMeta = Noco.ncMeta,
   ) {

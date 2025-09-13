@@ -42,6 +42,10 @@ import type {
   IColumnsService,
   ReusableParams,
 } from '~/services/columns.service.type';
+import {
+  type ColumnWebhookManager,
+  ColumnWebhookManagerBuilder,
+} from '~/utils/column-webhook-manager';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
@@ -310,6 +314,7 @@ export class ColumnsService implements IColumnsService {
       reuse?: ReusableParams;
       apiVersion?: NcApiVersion;
       forceUpdateSystem?: boolean;
+      columnWebhookManager?: ColumnWebhookManager;
     },
   ): Promise<Model | Column<any>> {
     const reuse = param.reuse || {};
@@ -2090,7 +2095,9 @@ export class ColumnsService implements IColumnsService {
       reuse?: ReusableParams;
       suppressFormulaError?: boolean;
       apiVersion?: T;
+      columnWebhookManager?: ColumnWebhookManager;
     },
+    ncMeta?: MetaService,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
     let savedColumn;
     // if column_name is defined and title is not defined, set title to column_name
@@ -2128,6 +2135,14 @@ export class ColumnsService implements IColumnsService {
     const base = await reuseOrSave('base', reuse, async () =>
       source.getProject(context),
     );
+
+    const columnWebhookManager =
+      param.columnWebhookManager ??
+      (
+        await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
+          param.tableId,
+        )
+      ).forCreate();
 
     if (param.column.title || param.column.column_name) {
       const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
@@ -4493,6 +4508,7 @@ export class ColumnsService implements IColumnsService {
         op: 'add' | 'update' | 'delete';
         column: Partial<Column>;
       }[];
+      columnWebhookManager?: ColumnWebhookManager;
     },
     req: NcRequest,
   ) {

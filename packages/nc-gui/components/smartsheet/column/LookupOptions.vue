@@ -243,7 +243,12 @@ const handleScrollIntoView = () => {
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
             <div class="flex gap-2 w-full justify-between truncate items-center">
               <div class="min-w-1/2 flex items-center gap-2">
-                <component :is="cellIcon(table.column)" :column-meta="table.column" class="!mx-0" />
+                <component
+                  :is="cellIcon(table.column)"
+                  :column-meta="table.column"
+                  class="!mx-0"
+                  color="text-nc-content-gray-subtle2"
+                />
 
                 <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
                   <template #title>{{ table.column.title }}</template>

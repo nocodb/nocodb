@@ -137,31 +137,6 @@ const filterOption = (input: string, option: any) => option.label.toLowerCase()?
 if (!localValue.value && allowEmpty !== true) {
   localValue.value = (options.value?.[0]?.value as string) || ''
 }
-
-const relationColor = {
-  [RelationTypes.BELONGS_TO]: 'text-blue-500',
-  [RelationTypes.ONE_TO_ONE]: 'text-purple-500',
-  [RelationTypes.HAS_MANY]: 'text-orange-500',
-  [RelationTypes.MANY_TO_MANY]: 'text-pink-500',
-}
-
-// extract colors for Lookup and Rollup columns
-const colors = computed(() => {
-  return (
-    meta.value?.columns?.reduce((obj, col) => {
-      if ((col && isLookup(col)) || isRollup(col)) {
-        const relationColumn = metas.value?.[meta.value.id]?.columns?.find(
-          (c) => c.id === col.colOptions?.fk_relation_column_id,
-        ) as ColumnType
-
-        if (relationColumn) {
-          obj[col.id] = relationColor[relationColumn.colOptions?.type as RelationTypes]
-        }
-      }
-      return obj
-    }, {}) || {}
-  )
-})
 </script>
 
 <template>
@@ -187,7 +162,7 @@ const colors = computed(() => {
 
         <div class="flex items-center w-full justify-between gap-2">
           <div class="flex gap-1.5 flex-1 items-center truncate h-full">
-            <component :is="option.icon" class="!w-3.5 !h-3.5 !mx-0" :class="colors[option.value] || '!text-gray-500'" />
+            <component :is="option.icon" class="!w-3.5 !h-3.5 !mx-0" color="text-nc-content-gray-muted" />
             <NcTooltip
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
               class="field-selection-tooltip-wrapper truncate select-none"

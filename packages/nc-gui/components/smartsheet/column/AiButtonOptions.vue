@@ -458,7 +458,7 @@ onBeforeUnmount(() => {
                             <NcCheckbox :checked="isSelected" />
 
                             <div class="inline-flex items-center gap-2 flex-1 truncate">
-                              <component :is="cellIcon(option)" class="!mx-0" />
+                              <component :is="cellIcon(option)" class="!mx-0" color="text-nc-content-gray-subtle2" />
                               <NcTooltip class="truncate flex-1" show-on-truncate-only>
                                 <template #title>
                                   {{ option?.title }}

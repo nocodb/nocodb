@@ -5,7 +5,7 @@
     "connect_data_sources": "Підключення джерел даних",
     "alert": "Оповіщення",
     "alert-message": "Не підключено жодної бази даних. З’єднайте бази даних для створення інтерфейсів. Пропустіть цей крок і додайте бази даних з основної домашньої сторінки пізніше.",
-    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "Виберіть базу даних, які Ви хочете прив'язати до цього інтерфейсу.",
+    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "Виберіть базу даних, які Ви хочете привʼязати до цього інтерфейсу.",
     "create_interface": "Створення інтерфейсу",
     "project_name": "Назва бази",
     "connect": "Підключитися",

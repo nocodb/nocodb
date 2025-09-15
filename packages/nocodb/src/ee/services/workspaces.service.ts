@@ -53,8 +53,9 @@ import {
 import { JobTypes } from '~/interface/Jobs';
 import NocoCache from '~/cache/NocoCache';
 import { PaymentService } from '~/modules/payment/payment.service';
-import { generateRandomTxt, verifyTXTRecord } from '~/utils';
+import { generateRandomTxt, isCloud, verifyTXTRecord } from '~/utils';
 import NocoSocket from '~/socket/NocoSocket';
+import { isMuxEnabled } from '~/utils/envs';
 
 const mockUser = {
   id: '1',
@@ -557,10 +558,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       NcError.internalServerError('Workspace is already upgraded');
     }
 
-    if (
-      process.env.NC_DISABLE_MUX === 'true' &&
-      process.env.NC_CLOUD === 'true'
-    ) {
+    if (!isMuxEnabled && isCloud) {
       await this.createWorkspaceSubdomain({
         titleOrId: workspace.id,
         user: param.user?.email ?? param.user?.id,

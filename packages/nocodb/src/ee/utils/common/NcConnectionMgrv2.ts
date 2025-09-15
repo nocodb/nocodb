@@ -20,6 +20,7 @@ import {
   getWorkspaceDbConnection,
   getWorkspaceDbServer,
 } from '~/utils/cloudDb';
+import { isMuxEnabled } from '~/utils/envs';
 
 export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
   protected static dataKnex?: XKnex;
@@ -74,7 +75,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       return this.connectionRefs?.[source.base_id]?.[source.id];
     }
 
-    if (process.env.NC_DISABLE_MUX === 'true') {
+    if (!isMuxEnabled) {
       this.connectionRefs[source.base_id] =
         this.connectionRefs?.[source.base_id] || {};
 

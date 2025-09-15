@@ -65,6 +65,7 @@ import {
 } from '~/helpers/paymentHelpers';
 import MCPToken from '~/models/MCPToken';
 import Widget from '~/models/Widget';
+import { isMuxEnabled } from '~/utils/envs';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -575,7 +576,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       if (
         workspace.plan &&
         workspace.plan !== WorkspacePlan.FREE &&
-        process.env.NC_DISABLE_MUX === 'true'
+        !isMuxEnabled
       ) {
         logger.error(
           `id: ${workspace.id} - status: ${workspace.status} - plan: ${workspace.plan} request reached to multi tenant server`,

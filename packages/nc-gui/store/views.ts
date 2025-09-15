@@ -150,6 +150,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
   }: { tableId?: string; ignoreLoading?: boolean; force?: boolean } = {}) => {
     tableId = tableId ?? tablesStore.activeTableId
 
+    let response
     if (tableId) {
       if (!force && viewsByTable.value.get(tableId)) {
         viewsByTable.value.set(
@@ -157,11 +158,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
           (viewsByTable.value.get(tableId) ?? []).sort((a, b) => a.order! - b.order!),
         )
         isViewsLoading.value = false
-        return
+        return viewsByTable.value.get(tableId)
       }
       if (!ignoreLoading) isViewsLoading.value = true
 
-      const response = (await $api.dbView.list(tableId)).list as ViewType[]
+      response = (await $api.dbView.list(tableId)).list as ViewType[]
       if (response) {
         viewsByTable.value.set(
           tableId,
@@ -171,6 +172,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
       if (!ignoreLoading) isViewsLoading.value = false
     }
+
+    return response
   }
 
   const navigateToView = async ({

@@ -381,7 +381,7 @@ export function useInfiniteData(args: {
       for (let i = 0; i < batch.length; i++) {
         const req = batch[i]
         const where = await callbacks?.getWhereFilter?.(req.path)
-        const filterArrJson = (await callbacks?.getWhereFilterArr(req.path)) ?? []
+        const filterArrJson = (await callbacks?.getWhereFilterArr?.(req.path)) ?? []
         bulkRequests.push({
           where,
           offset: req.chunkId * CHUNK_SIZE,

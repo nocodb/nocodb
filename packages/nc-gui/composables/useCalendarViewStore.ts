@@ -942,7 +942,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     })
 
     watch(
-      () => viewMetaProperties.value.hide_weekend,
+      () => viewMetaProperties.value?.hide_weekend,
       async () => {
         if (activeCalendarView.value === 'week') {
           await loadCalendarData()

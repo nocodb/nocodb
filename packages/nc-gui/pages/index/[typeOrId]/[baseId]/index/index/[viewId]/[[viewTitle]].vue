@@ -18,7 +18,7 @@ watch(
     until(tables)
       .toMatch((tables) => tables.length > 0)
       .then(() => {
-        getMeta(viewId as string)
+        getMeta(viewId as string, undefined, undefined, undefined, undefined, true)
       })
   },
   { immediate: true },

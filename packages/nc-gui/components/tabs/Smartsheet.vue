@@ -18,7 +18,7 @@ const { isUIAllowed } = useRoles()
 
 const { metas, getMeta } = useMetas()
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, ncNavigateTo } = useGlobal()
 
 const route = useRoute()
 
@@ -30,7 +30,13 @@ const meta = computed<TableType | undefined>(() => {
 const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
 const { activeTableId } = storeToRefs(useTablesStore())
 
-const { activeView, openedViewsTab, activeViewTitleOrId } = storeToRefs(useViewsStore())
+const { activeProjectId } = storeToRefs(useBases())
+
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+const viewStore = useViewsStore()
+
+const { activeView, openedViewsTab, activeViewTitleOrId, isViewsLoading } = storeToRefs(viewStore)
 const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, xWhere, eventBus } = useProvideSmartsheetStore(
   activeView,
   meta,
@@ -224,6 +230,32 @@ const onReady = () => {
     }, 300)
   }
 }
+
+onMounted(async () => {
+  await until(() => isViewsLoading.value).toBe(false)
+
+  const views = await viewStore.loadViews()
+
+  // If no views exist or the current view is not found, navigate to workspace/base
+  if (
+    !views?.length ||
+    !views.find((view) => view.id === activeViewTitleOrId.value || view.title === activeViewTitleOrId.value)
+  ) {
+    ncNavigateTo({
+      workspaceId: activeWorkspaceId.value,
+      baseId: activeProjectId.value,
+    })
+  }
+})
+
+watch([() => isViewsLoading.value], ([isLoading, _]) => {
+  if (!isLoading && !activeView.value) {
+    ncNavigateTo({
+      workspaceId: activeWorkspaceId.value,
+      baseId: activeProjectId.value,
+    })
+  }
+})
 </script>
 
 <template>

@@ -311,13 +311,6 @@ export function useViewData(
     }
   }
 
-  async function loadGalleryData() {
-    if (!viewMeta?.value?.id) return
-    galleryData.value = isPublic.value
-      ? (sharedView.value?.view as GalleryType)
-      : await $api.dbView.galleryRead(viewMeta.value.id)
-  }
-
   async function changePage(page: number) {
     paginationData.value.page = page
     await loadData(
@@ -483,7 +476,6 @@ export function useViewData(
     syncCount,
     syncPagination,
     galleryData,
-    loadGalleryData,
     loadFormView,
     formColumnData,
     formViewData,

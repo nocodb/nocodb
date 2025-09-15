@@ -815,6 +815,8 @@ function generalHelpers() {
       'YYYY MM DD',
       'DD MMM YYYY',
       'DD MMM YY',
+      'DD.MM.YYYY',
+      'DD.MM.YY',
     ];
     
     const parseDateString = (dateStr, format) => {

@@ -707,6 +707,9 @@ const isLookupOrRollup = computed(() => {
 const lookupRollupFilterEnabled = computed(() => {
   return isLookupOrRollup.value && !!parseProp(formState.value?.meta)?.enableConditions
 })
+
+const easterEggCount = ref(0)
+const easterEgg = computed(() => easterEggCount.value >= 2)
 </script>
 
 <template>
@@ -729,6 +732,7 @@ const lookupRollupFilterEnabled = computed(() => {
     @keydown="handleEscape"
     @click.stop
     @scroll="handleScrollDebounce"
+    @dblclick="easterEggCount += 1"
   >
     <a-form
       v-model="formState"
@@ -1329,31 +1333,33 @@ const lookupRollupFilterEnabled = computed(() => {
               </NcSwitch>
             </div>
           </div>
-
-          <div
-            v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
-            class="text-xs text-gray-400 flex items-center justify-end"
-          >
+          <template v-if="easterEgg || (appInfo.ee && isAttachment(formState))">
+            <!-- TODO: Refactor the if condition and verify AttachmentOption -->
             <div
-              class="nc-more-options flex items-center gap-1 cursor-pointer select-none"
-              @click="advancedOptions = !advancedOptions"
+              v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
+              class="text-xs text-gray-400 flex items-center justify-end"
             >
-              {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
-              <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
+              <div
+                class="nc-more-options flex items-center gap-1 cursor-pointer select-none"
+                @click="advancedOptions = !advancedOptions"
+              >
+                {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
+                <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
+              </div>
             </div>
-          </div>
 
-          <Transition name="layout" mode="out-in">
-            <div v-if="advancedOptions" class="overflow-hidden">
-              <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
+            <Transition name="layout" mode="out-in">
+              <div v-if="advancedOptions" class="overflow-hidden">
+                <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
 
-              <LazySmartsheetColumnAdvancedOptions
-                v-if="formState.uidt !== UITypes.Attachment"
-                v-model:value="formState"
-                :advanced-db-options="advancedOptions || formState.uidt === UITypes.SpecificDBType"
-              />
-            </div>
-          </Transition>
+                <LazySmartsheetColumnAdvancedOptions
+                  v-if="formState.uidt !== UITypes.Attachment"
+                  v-model:value="formState"
+                  :advanced-db-options="advancedOptions || formState.uidt === UITypes.SpecificDBType"
+                />
+              </div>
+            </Transition>
+          </template>
         </template>
 
         <a-form-item

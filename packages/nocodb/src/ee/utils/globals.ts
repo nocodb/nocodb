@@ -91,6 +91,7 @@ export enum MetaTable {
   PERMISSION_SUBJECTS = 'nc_permission_subjects',
   DASHBOARDS = 'nc_dashboards_v2',
   WIDGETS = 'nc_widgets_v2',
+  OAUTH_CLIENTS = 'nc_oauth_clients',
 }
 
 export const BaseRelatedMetaTables = [
@@ -280,6 +281,7 @@ export enum CacheScope {
   PERMISSION_USER = 'permissionUser',
   DASHBOARD = 'dashboard',
   WIDGET = 'widget',
+  OAUTH_CLIENT = 'oAuthClient',
 }
 
 export const RootScopeTables = {

@@ -1333,7 +1333,8 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
               </NcSwitch>
             </div>
           </div>
-          <template v-if="easterEgg">
+          <template v-if="easterEgg || (appInfo.ee && isAttachment(formState))">
+            <!-- TODO: Refactor the if condition and verify AttachmentOption -->
             <div
               v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
               class="text-xs text-gray-400 flex items-center justify-end"

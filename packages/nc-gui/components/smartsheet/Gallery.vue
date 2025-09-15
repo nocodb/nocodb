@@ -35,7 +35,6 @@ provide(ReloadRowDataHookInj, reloadViewDataHook!)
 
 const {
   fetchChunk,
-  loadGalleryData,
   deleteRow,
   syncCount,
   navigateToSiblingRow,
@@ -182,8 +181,6 @@ onBeforeUnmount(() => openNewRecordFormHook.off(openNewRecordFormHookHandler))
 const reloadAttachments = ref(false)
 
 reloadViewMetaHook?.on(async () => {
-  await loadGalleryData()
-
   reloadAttachments.value = true
 
   await nextTick(() => {
@@ -329,8 +326,6 @@ watch(
     isViewDataLoading.value = true
     try {
       if (nextView?.type === ViewTypes.GALLERY) {
-        await loadGalleryData()
-
         await syncCount()
         if (rowSlice.end === 0) {
           rowSlice.end = Math.min(100, totalRows.value)

@@ -214,6 +214,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       baseId: string;
       workspaceInvited?: boolean;
       invite_token?: string;
+      displayName?: string;
       // to keep refactor at minimum, we pass emailUserMap
       emailUserMap?: Map<string, User>;
     },
@@ -269,6 +270,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
     context: NcContext,
     param: {
       email: string;
+      displayName?: string;
       roles?: ProjectRoles;
       req: NcRequest;
       base: Base;
@@ -280,7 +282,14 @@ export class BaseUsersService extends BaseUsersServiceCE {
     ncMeta = Noco.ncMeta,
   ) {
     const postOperations = [];
-    const { email, invite_token = uuidv4(), emailUserMap, roles, base } = param;
+    const {
+      email,
+      displayName,
+      invite_token = uuidv4(),
+      emailUserMap,
+      roles,
+      base,
+    } = param;
     // add user to base if user already exist
     const user = await User.getByEmail(email, ncMeta);
     if (user) {
@@ -451,6 +460,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
           invite_token,
           invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
           email,
+          display_name: displayName,
           roles: OrgUserRoles.VIEWER,
           token_version: randomTokenString(),
         },

@@ -120,6 +120,7 @@ export class WorkspaceMembersV3Service {
             {
               workspaceId: param.workspaceId,
               email: workspaceUser.email,
+              displayName: workspaceUser.user_name,
               roles: workspaceUser.workspace_role,
               siteUrl: param.req.ncSiteUrl,
               req: param.req,

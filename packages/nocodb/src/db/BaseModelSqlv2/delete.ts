@@ -238,7 +238,6 @@ export class BaseModelDelete {
     rows: any[];
     qb: any;
   }) {
-    const trx = await this.baseModel.dbDriver.transaction();
     const response: any[] = [];
 
     const oldRecords = await this.baseModel.list(
@@ -254,6 +253,7 @@ export class BaseModelDelete {
         ignoreViewFilterAndSort: true,
       },
     );
+    const trx = await this.baseModel.dbDriver.transaction();
     try {
       for (const execQuery of execQueries) {
         await Promise.all(execQuery({ trx, qb: qb.clone(), ids, rows }));

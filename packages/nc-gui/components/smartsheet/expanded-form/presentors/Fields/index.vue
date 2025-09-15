@@ -67,7 +67,7 @@ export default {
 
       <div
         v-if="canEdit"
-        class="w-full flex items-center justify-end px-2 xs:(p-0 gap-x-4 justify-between)"
+        class="nc-expanded-form-footer w-full flex items-center justify-end px-2 xs:(p-0 gap-x-4 justify-between) sticky bottom-0"
         :class="{
           'xs(border-t-1 border-nc-border-gray-medium)': !isNew,
         }"
@@ -125,9 +125,6 @@ export default {
             :disabled="(!isAllowedAddNewRecord && isNew) || (changedColumns.size === 0 && !isUnsavedFormExist)"
             :loading="isSaving"
             class="nc-expand-form-save-btn !xs:(text-sm) !px-2"
-            :class="{
-              '!h-7': !isMobileMode,
-            }"
             data-testid="nc-expanded-form-save"
             type="primary"
             :size="isMobileMode ? 'small' : 'xsmall'"

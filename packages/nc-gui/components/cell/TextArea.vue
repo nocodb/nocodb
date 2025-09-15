@@ -937,6 +937,15 @@ textarea:focus {
       max-width: min(1280px, 100vw - 100px);
       max-height: min(864px, 100vh - 100px);
 
+      @supports (height: 100dvh) {
+        max-height: min(864px, 100dvh - 100px);
+      }
+
+      @media (max-width: 767px) {
+        max-width: min(1280px, 100vw - 32px);
+        min-width: min(1280px, 100vw - 32px);
+      }
+
       .nc-longtext-scrollbar {
         @apply scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent;
       }
@@ -944,6 +953,10 @@ textarea:focus {
       .expanded-cell-input-ai {
         .nc-text-area-expanded {
           max-height: min(783px - 76px, 100vh - 180px);
+
+          @supports (height: 100dvh) {
+            max-height: min(783px - 76px, 100dvh - 180px);
+          }
         }
       }
     }

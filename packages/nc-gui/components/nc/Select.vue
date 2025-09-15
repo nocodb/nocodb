@@ -76,9 +76,7 @@ const onChange = (value: string) => {
 .ant-select-item {
   @apply !xs:h-13 !min-h-[2.375rem] !p-2;
 }
-.ant-select-item-option-content {
-  @apply !xs:mt-2.5;
-}
+
 .ant-select-item-option-state {
   @apply !xs:mt-1.75;
 }

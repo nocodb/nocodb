@@ -253,7 +253,7 @@ export class BaseModelDelete {
     );
     try {
       for (const execQuery of execQueries) {
-        await execQuery({ trx, qb: qb.clone(), ids, rows });
+        await Promise.all(execQuery({ trx, qb: qb.clone(), ids, rows }));
       }
       await trx.commit();
       response.push(...oldRecords);

@@ -43,6 +43,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const isViewColumnsLoading = ref(true)
 
+    const skipShowViewColumnsLoading = ref(false)
+
     const { addUndo, defineViewScope } = useUndoRedo()
 
     const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
@@ -490,6 +492,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     watch(
       [() => view?.value?.id, () => meta.value?.columns],
       async ([newViewId]) => {
+        if (skipShowViewColumnsLoading.value) return
+
         // reload only if view belongs to current table
         if (newViewId && view.value?.fk_model_id === meta.value?.id) {
           isViewColumnsLoading.value = true
@@ -620,6 +624,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       toggleFieldVisibility,
       toggleFieldStyles,
       isViewColumnsLoading,
+      skipShowViewColumnsLoading,
       updateGridViewColumn,
       gridViewCols,
       resizingColOldWith,

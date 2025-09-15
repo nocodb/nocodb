@@ -214,6 +214,9 @@ export class BaseModelDelete {
     });
     return {
       metaQueries,
+      // TODO: exec queries returned can be
+      // modified to just a single object and not array
+      // inside, it'll promise.all
       execQueries,
       source,
       qb,

@@ -21,6 +21,8 @@ const props = withDefaults(
 
 defineEmits(['expand', 'linkOrUnlink'])
 
+const { showExtraFields, relatedTableMeta } = useLTARStoreOrThrow()!
+
 provide(IsExpandedFormOpenInj, ref(true))
 
 provide(RowHeightInj, ref(1 as const))
@@ -33,6 +35,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 provide(IsFormInj, ref(false))
 
+provide(MetaInj, relatedTableMeta)
+
 const row = useVModel(props, 'row')
 
 const { isLinked, isLoading, isSelected } = toRefs(props)
@@ -42,8 +46,6 @@ const isPublic = inject(IsPublicInj, ref(false))
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const { getPossibleAttachmentSrc } = useAttachment()
-
-const { showExtraFields, relatedTableMeta } = useLTARStoreOrThrow()!
 
 interface Attachment {
   url: string
@@ -105,7 +107,6 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
           <div class="flex justify-start">
             <SmartsheetPlainCell
               v-if="displayValueColumn"
-              :meta="relatedTableMeta"
               class="font-semibold text-brand-500 nc-display-value truncate leading-[20px]"
               :column="displayValueColumn"
               :model-value="row[displayValueColumn.title]"

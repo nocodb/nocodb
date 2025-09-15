@@ -659,17 +659,20 @@ export class WorkspaceUsersService {
       // invite users
       for (const email of emails) {
         const { postOperations: eachPostOperations } =
-          await this.unhandledUserInviteByEmail({
-            workspace,
-            email,
-            error,
-            roles,
-            req: param.req,
-            emailUserMap,
-            invite_token,
-            invitePassive: param.invitePassive,
-            skipEmailInvite: param.skipEmailInvite,
-          });
+          await this.unhandledUserInviteByEmail(
+            {
+              workspace,
+              email,
+              error,
+              roles,
+              req: param.req,
+              emailUserMap,
+              invite_token,
+              invitePassive: param.invitePassive,
+              skipEmailInvite: param.skipEmailInvite,
+            },
+            transaction,
+          );
         postOperations.push(...eachPostOperations);
       }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ColumnType, KanbanType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import type { KanbanType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 provide(IsKanbanInj, ref(true))
@@ -117,11 +117,6 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
 const handleChange = () => {
   open.value = false
 }
-
-const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
-  })
 </script>
 
 <template>
@@ -184,10 +179,11 @@ const getIcon = (c: ColumnType) =>
                 <a-select-option v-for="option of singleSelectFieldOptions" :key="option.value" :value="option.value">
                   <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                     <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                      <component
-                        :is="getIcon(metaColumnById[option.value])"
-                        v-if="option.value"
-                        class="!w-3.5 !h-3.5 !text-current opacity-80 !ml-0"
+                      <SmartsheetHeaderIcon
+                        v-if="option.value && metaColumnById[option.value]"
+                        :column="metaColumnById[option.value]"
+                        class="!w-3.5 !h-3.5 opacity-80 !ml-0"
+                        color="text-current"
                       />
 
                       <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>

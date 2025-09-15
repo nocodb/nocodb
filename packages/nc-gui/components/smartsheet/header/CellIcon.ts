@@ -70,9 +70,16 @@ export default defineComponent({
       type: Object as PropType<ColumnType>,
       required: false,
     },
+    /**
+     * Windicss color class
+     */
+    color: {
+      type: String,
+      required: false,
+    },
   },
   setup(props) {
-    const columnMeta = toRef(props, 'columnMeta')
+    const { columnMeta, color: defaultColor } = toRefs(props)
 
     const injectedColumn = inject(ColumnInj, columnMeta)
 
@@ -90,7 +97,7 @@ export default defineComponent({
       if (!column.value && !columnMeta.value) return null
 
       return h(renderIcon((columnMeta.value ?? column.value)!, abstractType.value), {
-        class: 'text-inherit mx-1 nc-cell-icon',
+        class: `${defaultColor.value || 'text-inherit'} mx-1 flex-none nc-cell-icon`,
       })
     }
   },

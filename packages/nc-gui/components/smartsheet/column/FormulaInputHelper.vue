@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes, isHiddenCol, jsepCurlyHook } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isHiddenCol, jsepCurlyHook } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
 import {
@@ -88,6 +88,11 @@ const sortOrder: Record<string, number> = {
   op: 2,
 }
 
+const getIcon = (c: ColumnType) =>
+  h(resolveComponent('SmartsheetHeaderIcon'), {
+    column: c,
+  })
+
 const suggestionsList = computed(() => {
   const unsupportedFnList = sqlUi.value.getUnsupportedFnList()
   return (
@@ -112,7 +117,7 @@ const suggestionsList = computed(() => {
         .map((c: any) => ({
           text: c.title,
           type: 'column',
-          icon: getUIDTIcon(c.uidt) ? markRaw(getUIDTIcon(c.uidt)!) : undefined,
+          icon: markRaw(getIcon(c)),
           uidt: c.uidt,
         })),
       ...availableBinOps.map((op: string) => ({
@@ -884,11 +889,16 @@ const validationErrorDisplay = computed(() => {
             <a-list-item-meta>
               <template #title>
                 <div class="flex items-center gap-x-1" :class="{ 'text-gray-400': item.unsupported }">
-                  <component :is="iconMap.function" v-if="item.type === 'function'" class="w-4 h-4 !text-gray-600" />
+                  <component
+                    :is="iconMap.function"
+                    v-if="item.type === 'function'"
+                    class="w-4 h-4 !text-nc-content-gray-subtle2"
+                  />
 
-                  <component :is="iconMap.calculator" v-if="item.type === 'op'" class="w-4 h-4 !text-gray-600" />
+                  <component :is="iconMap.calculator" v-if="item.type === 'op'" class="w-4 h-4 !text-nc-content-gray-subtle2" />
 
-                  <component :is="item.icon" v-if="item.type === 'column'" class="w-4 h-4 !text-gray-600" />
+                  <component :is="item.icon" v-if="item.type === 'column'" class="w-4 h-4" color="text-nc-content-gray-subtle2" />
+
                   <span class="text-small leading-[18px]" :class="{ 'text-gray-800': !item.unsupported }">{{ item.text }}</span>
                 </div>
                 <div v-if="item.unsupported" class="ml-5 text-gray-400 text-xs">{{ $t('msg.formulaNotSupported') }}</div>
@@ -930,7 +940,7 @@ const validationErrorDisplay = computed(() => {
               <template #title>
                 <div class="flex items-center gap-x-1 justify-between">
                   <div class="flex items-center gap-x-1 rounded-md px-1 h-5">
-                    <component :is="item.icon" class="w-4 h-4 !text-gray-600" />
+                    <component :is="item.icon" class="w-4 h-4" color="text-nc-content-gray-subtle2" />
 
                     <span class="text-small leading-[18px] text-gray-800 font-weight-500">{{ item.text }}</span>
                   </div>

@@ -841,7 +841,8 @@ const addRecord = (date: dayjs.Dayjs) => {
                     "
                     >
                       <div class="flex items-center gap-1">
-                        <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
+                        <LazySmartsheetHeaderIcon :column="range.fk_from_col" />
+
                         <span class="ml-1">{{ range.fk_from_col!.title }}</span>
                       </div>
                     </NcMenuItem>

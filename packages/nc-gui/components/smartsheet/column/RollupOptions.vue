@@ -8,7 +8,6 @@ import {
   UITypes,
   getAvailableRollupForColumn,
   getRenderAsTextFunForUiType,
-  isVirtualCol,
   rollupAllFunctions,
 } from 'nocodb-sdk'
 
@@ -144,11 +143,6 @@ const onRelationColChange = async () => {
   vModel.value.fk_rollup_column_id = getNextColumnId() || columns.value?.[0]?.id
   onDataTypeChange()
 }
-
-const cellIcon = (column: ColumnType) =>
-  h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: column,
-  })
 
 const aggFunctionsList: Ref<Record<string, string>[]> = ref([])
 
@@ -298,7 +292,7 @@ const handleScrollIntoView = () => {
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
             <div class="flex gap-2 w-full justify-between truncate items-center">
               <div class="min-w-1/2 flex items-center gap-2">
-                <component :is="cellIcon(table.column)" :column-meta="table.column" class="!mx-0" />
+                <SmartsheetHeaderIcon :column="table.column" class="!mx-0" color="text-nc-content-gray-subtle2" />
 
                 <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
                   <template #title>{{ table.column.title }}</template>
@@ -346,7 +340,8 @@ const handleScrollIntoView = () => {
           <a-select-option v-for="column of filteredColumns" :key="column.title" :value="column.id">
             <div class="w-full flex gap-2 truncate items-center justify-between">
               <div class="flex items-center gap-2 flex-1 truncate">
-                <component :is="cellIcon(column)" :column-meta="column" class="!mx-0" />
+                <SmartsheetHeaderIcon :column="column" class="!mx-0" color="text-nc-content-gray-subtle2" />
+
                 <div class="truncate flex-1">{{ column.title }}</div>
               </div>
               <component

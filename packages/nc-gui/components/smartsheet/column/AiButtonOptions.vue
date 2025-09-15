@@ -171,11 +171,6 @@ const removeFromOutputFieldOptions = (id: string) => {
   outputColumnIds.value = outputColumnIds.value.filter((op) => op !== id)
 }
 
-const cellIcon = (column: ColumnType) =>
-  h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: column,
-  })
-
 const generate = async () => {
   if (!selectedRecordPk.value || !outputColumnIds.value.length) return
 
@@ -458,7 +453,12 @@ onBeforeUnmount(() => {
                             <NcCheckbox :checked="isSelected" />
 
                             <div class="inline-flex items-center gap-2 flex-1 truncate">
-                              <component :is="cellIcon(option)" class="!mx-0" />
+                              <SmartsheetHeaderIcon
+                                :column="option as ColumnType"
+                                class="!mx-0"
+                                color="text-nc-content-gray-subtle"
+                              />
+
                               <NcTooltip class="truncate flex-1" show-on-truncate-only>
                                 <template #title>
                                   {{ option?.title }}
@@ -481,7 +481,8 @@ onBeforeUnmount(() => {
                     <template v-for="op in outputFieldOptions">
                       <a-tag v-if="outputColumnIds.includes(op.id)" :key="op.id" class="nc-ai-button-output-field">
                         <div class="flex flex-row items-center gap-1 py-[2px] text-sm">
-                          <component :is="cellIcon(op)" class="!mx-0 !mr-1 opacity-80" />
+                          <SmartsheetHeaderIcon :column="op" class="!mx-0 !mr-1 opacity-80" />
+
                           <NcTooltip show-on-truncate-only class="truncate max-w-[150px]">
                             <template #title>{{ op.title }}</template>
                             {{ op.title }}
@@ -652,7 +653,8 @@ onBeforeUnmount(() => {
                                 class="!my-0 nc-input-required-error"
                               >
                                 <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
-                                  <component :is="cellIcon(field)" class="!mx-0" />
+                                  <SmartsheetHeaderIcon :column="field" class="!mx-0" />
+
                                   <NcTooltip class="truncate flex-1" show-on-truncate-only>
                                     <template #title>
                                       {{ field?.title }}
@@ -822,7 +824,8 @@ onBeforeUnmount(() => {
                                 class="!my-0 nc-input-required-error"
                               >
                                 <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
-                                  <component :is="cellIcon(field)" class="!mx-0" />
+                                  <SmartsheetHeaderIcon :column="field" class="!mx-0" />
+
                                   <NcTooltip class="truncate flex-1" show-on-truncate-only>
                                     <template #title>
                                       {{ field?.title }}

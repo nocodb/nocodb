@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { isVirtualCol } from 'nocodb-sdk'
+
 interface Props {
   columns: ColumnType[]
   triggerField?: boolean
@@ -67,8 +67,7 @@ const removeColumnId = (colId: string) => {
 
           <template #listItem="{ option }">
             <div class="flex items-center w-full truncate gap-3 text-nc-content-gray-subtle hover:text-black transition-colors">
-              <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(option)" :column-meta="option" />
-              <SmartsheetHeaderCellIcon v-else :column-meta="option" />
+              <SmartsheetHeaderIcon :column="option" />
 
               <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                 <template #title>
@@ -93,8 +92,8 @@ const removeColumnId = (colId: string) => {
         :key="col.id"
         class="bg-nc-bg-gray-medium text-nc-content-gray-subtle2 px-1 py-0.5 rounded-md flex gap-1 items-center"
       >
-        <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(col)" :column-meta="col" />
-        <SmartsheetHeaderCellIcon v-else :column-meta="col" />
+        <SmartsheetHeaderIcon :column="col" />
+
         <div class="text-[13px] font-default leading-4.5">
           {{ col.title }}
         </div>

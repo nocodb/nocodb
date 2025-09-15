@@ -210,7 +210,8 @@ const urls = replaceUrlsWithLink(result)
         class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 pt-3 border-b-1 border-gray-100 overflow-hidden cursor-move select-none"
         @mousedown="dragStart"
       >
-        <SmartsheetHeaderCellIcon :column-meta="column" class="flex" />
+        <SmartsheetHeaderIcon :column="column" class="flex" />
+
         <div class="flex max-w-38">
           <span class="truncate">
             {{ column.title }}

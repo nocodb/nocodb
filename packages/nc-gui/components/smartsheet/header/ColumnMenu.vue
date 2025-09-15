@@ -651,7 +651,11 @@ const onDeleteColumn = () => {
         {{ t('general.addLookupField') }}
       </div>
     </NcMenuItem>
-    <NcMenuItem v-if="canUseForRollupLinkField(column)" :disabled="isSqlView" @click="openLookupOrRollupMenuDialog(UITypes.Rollup)">
+    <NcMenuItem
+      v-if="canUseForRollupLinkField(column)"
+      :disabled="isSqlView"
+      @click="openLookupOrRollupMenuDialog(UITypes.Rollup)"
+    >
       <div v-e="['a:field:rollup:create']" class="nc-column-rollup-create nc-header-menu-item">
         <SmartsheetHeaderVirtualCellIcon
           :column-meta="{
@@ -837,6 +841,7 @@ const onDeleteColumn = () => {
         v-if="column && meta && isEeUI"
         key="dfp"
         v-model:visible="showFieldPermissionsModal"
+        :field="column"
         :field-id="column.id!"
         :field-title="column.title!"
         :field-uidt="column.uidt!"

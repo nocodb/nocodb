@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-  type ColumnType,
-  type TableType,
-  UITypes,
-  getAvailableRollupForColumn,
-  isVirtualCol,
-  rollupAllFunctions,
-} from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes, getAvailableRollupForColumn, rollupAllFunctions } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
@@ -50,11 +43,6 @@ const filteredColumns = ref<
 >([])
 
 const selectedFields = ref<Record<string, boolean>>({})
-
-const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
-  })
 
 const isLoadingModel = ref(false)
 
@@ -265,7 +253,7 @@ onMounted(async () => {
             >
               <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
               <div class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[5px] pr-2">
-                <component :is="getIcon(field)" class="!w-3.5 !h-3.5 !text-gray-500" />
+                <SmartsheetHeaderIcon :column="field" class="!w-3.5 !h-3.5" color="text-nc-content-gray-muted" />
                 <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only>
                   <template #title>
                     {{ field.title }}

@@ -51,6 +51,7 @@ const dateFieldOptions = computed<SelectProps['options']>(() => {
         label: c.title,
         value: c.id,
         uidt: c.uidt,
+        col: c,
       })) ?? []
   ).sort((a, b) => {
     const priority = {
@@ -246,7 +247,7 @@ const onValueChange = async () => {
             >
               <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                 <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                  <SmartsheetHeaderIcon :column="option" />
+                  <SmartsheetHeaderIcon :column="option.col" />
 
                   <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
                     <template #title>
@@ -329,7 +330,7 @@ const onValueChange = async () => {
                       >
                         <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                           <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                            <SmartsheetHeaderIcon :column="option" />
+                            <SmartsheetHeaderIcon :column="option.col" />
 
                             <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
                               <template #title>

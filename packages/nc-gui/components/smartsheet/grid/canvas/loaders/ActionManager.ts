@@ -246,9 +246,9 @@ export class ActionManager {
     try {
       url = addMissingUrlSchma(url)
       url = decodeURI(url) === url ? encodeURI(url) : url
-      confirmPageLeavingRedirect(url, '_blank', allowLocalUrl)
+      confirmPageLeavingRedirect(url, '_blank', allowLocalUrl, this.userSync?.value)
     } catch {
-      confirmPageLeavingRedirect(encodeURI(url), '_blank', allowLocalUrl)
+      confirmPageLeavingRedirect(encodeURI(url), '_blank', allowLocalUrl, this.userSync?.value)
     }
   }
 

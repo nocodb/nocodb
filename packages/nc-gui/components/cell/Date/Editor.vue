@@ -15,7 +15,7 @@ const emit = defineEmits(['update:modelValue', 'currentDate'])
 
 const { t } = useI18n()
 
-const { showNull } = useGlobal()
+const { showNull, isMobileMode } = useGlobal()
 
 const columnMeta = inject(ColumnInj, null)!
 
@@ -370,7 +370,7 @@ onMounted(() => {
         :value="localState?.format(dateFormat) ?? ''"
         :placeholder="placeholder"
         class="nc-date-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
-        :readonly="readOnly"
+        :readonly="readOnly || !!isMobileMode"
         @blur="onBlur"
         @focus="onFocus"
         @keydown="handleKeydown($event, open)"

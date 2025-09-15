@@ -15,7 +15,7 @@ interface Props {
 
 const { isXcdbBase } = useBase()
 
-const { showNull } = useGlobal()
+const { showNull, isMobileMode } = useGlobal()
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -523,7 +523,7 @@ const minimizeMaxWidth = computed(() => {
             :value="localState?.format(dateFormat) ?? ''"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.date"
             class="nc-date-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
-            :readonly="isColDisabled"
+            :readonly="isColDisabled || !!isMobileMode"
             @focus="onFocus(true)"
             @blur="onBlur($event, true)"
             @keydown="handleKeydown($event, isOpen, true)"
@@ -553,7 +553,7 @@ const minimizeMaxWidth = computed(() => {
             :value="cellValue"
             :placeholder="typeof placeholder === 'string' ? placeholder : placeholder?.time"
             class="nc-time-input w-full !truncate border-transparent outline-none !text-current !bg-transparent !focus:(border-none ring-transparent)"
-            :readonly="isColDisabled"
+            :readonly="isColDisabled || !!isMobileMode"
             @focus="onFocus(false)"
             @blur="onBlur($event, false)"
             @keydown="handleKeydown($event, open)"

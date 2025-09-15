@@ -1,4 +1,5 @@
 import type { Api, ButtonType, TableType } from 'nocodb-sdk'
+import type { UserObject } from 'packages/nc-gui/composables/useUserSync'
 
 interface ActionState {
   status: 'loading' | 'success' | 'error' | 'queued'
@@ -31,6 +32,8 @@ export class ActionManager {
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
 
+  private readonly userSync: Ref<UserObject>
+
   private eventBus?: any
 
   // Consolidated state maps
@@ -56,6 +59,7 @@ export class ActionManager {
       isRowSortRequiredRows: ComputedRef<Array<Row>>
     },
     eventBus?: any,
+    userSync?: any,
   ) {
     this.api = api
     this.loadAutomation = loadAutomation
@@ -64,6 +68,7 @@ export class ActionManager {
     this.triggerRefreshCanvas = triggerRefreshCanvas
     this.getDataCache = getDataCache
     this.eventBus = eventBus
+    this.userSync = userSync
 
     this.setupEventListeners()
   }

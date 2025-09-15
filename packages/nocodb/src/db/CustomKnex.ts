@@ -5,6 +5,7 @@ import type { FilterType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import Filter from '~/models/Filter';
 import { NcError } from '~/helpers/catchError';
+import { isMuxEnabled } from '~/utils/envs';
 
 // refer : https://github.com/brianc/node-pg-types/blob/master/lib/builtins.js
 const pgTypes = {
@@ -1094,7 +1095,7 @@ function CustomKnex(
     },
     isExternal: {
       enumerable: false,
-      value: !!extDb && process.env.NC_DISABLE_MUX !== 'true',
+      value: !!extDb && isMuxEnabled,
     },
 
     // Top-level transaction: create a real trx, then decorate it (including nested behavior)
@@ -1133,7 +1134,7 @@ function CustomKnex(
           },
           isExternal: {
             enumerable: false,
-            value: !!extDb && process.env.NC_DISABLE_MUX !== 'true',
+            value: !!extDb && isMuxEnabled,
           },
           ops: {
             enumerable: true,

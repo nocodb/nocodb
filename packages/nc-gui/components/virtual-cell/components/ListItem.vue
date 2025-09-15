@@ -64,21 +64,6 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
     return []
   }
 })
-
-const displayValue = computed(() => {
-  if (
-    row.value[props.relatedTableDisplayValueProp] &&
-    props.displayValueTypeAndFormatProp.type &&
-    props.displayValueTypeAndFormatProp.format
-  ) {
-    return parseStringDateTime(
-      row.value[props.relatedTableDisplayValueProp],
-      props.displayValueTypeAndFormatProp.format,
-      !(props.displayValueTypeAndFormatProp.format === UITypes.Time),
-    )
-  }
-  return row.value[props.relatedTableDisplayValueProp]
-})
 </script>
 
 <template>

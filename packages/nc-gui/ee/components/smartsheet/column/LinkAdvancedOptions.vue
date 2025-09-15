@@ -276,12 +276,7 @@ onMounted(async () => {
             <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
               <div class="flex w-full items-center gap-2">
                 <div class="flex items-center justify-center">
-                  <SmartsheetHeaderVirtualCellIcon
-                    v-if="isVirtualCol(column)"
-                    :column-meta="column"
-                    class="nc-cell-icon"
-                  ></SmartsheetHeaderVirtualCellIcon>
-                  <SmartsheetHeaderCellIcon v-else :column-meta="column" class="nc-cell-icon"></SmartsheetHeaderCellIcon>
+                  <SmartsheetHeaderIcon :column="column" class="nc-cell-icon" />
                 </div>
                 <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                   <template #title>{{ column.title }}</template>
@@ -380,12 +375,7 @@ onMounted(async () => {
               >
                 <div class="flex w-full items-center gap-2">
                   <div class="flex items-center justify-center">
-                    <SmartsheetHeaderVirtualCellIcon
-                      v-if="isVirtualCol(column)"
-                      :column-meta="column"
-                      class="nc-cell-icon"
-                    ></SmartsheetHeaderVirtualCellIcon>
-                    <SmartsheetHeaderCellIcon v-else :column-meta="column" class="nc-cell-icon"></SmartsheetHeaderCellIcon>
+                    <SmartsheetHeaderIcon :column="column" class="nc-cell-icon" />
                   </div>
                   <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sqlUi.isEqual(sourceColumn?.dt, column.dt)">
                     <template #title
@@ -430,12 +420,7 @@ onMounted(async () => {
               >
                 <div class="flex w-full items-center gap-2">
                   <div class="flex items-center justify-center">
-                    <SmartsheetHeaderVirtualCellIcon
-                      v-if="isVirtualCol(column)"
-                      :column-meta="column"
-                      class="nc-cell-icon"
-                    ></SmartsheetHeaderVirtualCellIcon>
-                    <SmartsheetHeaderCellIcon v-else :column-meta="column" class="nc-cell-icon"></SmartsheetHeaderCellIcon>
+                    <SmartsheetHeaderIcon :column="column" class="nc-cell-icon" />
                   </div>
                   <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sqlUi.isEqual(sourceColumn?.dt, column.dt)">
                     <template #title
@@ -547,12 +532,7 @@ onMounted(async () => {
             >
               <div class="flex w-full items-center gap-2">
                 <div class="flex items-center justify-center">
-                  <SmartsheetHeaderVirtualCellIcon
-                    v-if="isVirtualCol(column)"
-                    :column-meta="column"
-                    class="nc-cell-icon"
-                  ></SmartsheetHeaderVirtualCellIcon>
-                  <SmartsheetHeaderCellIcon v-else :column-meta="column" class="nc-cell-icon"></SmartsheetHeaderCellIcon>
+                  <SmartsheetHeaderIcon :column="column" class="nc-cell-icon" />
                 </div>
                 <NcTooltip class="flex-1 truncate" :show-on-truncate-only="sqlUi.isEqual(sourceColumn?.dt, column.dt)">
                   <template #title

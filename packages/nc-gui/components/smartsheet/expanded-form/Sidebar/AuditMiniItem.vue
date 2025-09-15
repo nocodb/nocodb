@@ -149,13 +149,13 @@ const isAiGeneratedText = (key: string) => {
 <template>
   <div v-for="columnKey of columnKeys" :key="columnKey" class="py-2 px-3">
     <div class="w-full flex items-center gap-1 !text-nc-content-gray-subtle2 text-xs font-weight-500 nc-audit-mini-item-header">
-      <SmartsheetHeaderCellIcon
-        :column-meta="{
+      <SmartsheetHeaderIcon
+        :column="{
           uidt: meta[columnKey]?.type,
           dt: meta[columnKey]?.type === 'Number' ? 'bigint' : undefined,
           meta: normalizeMeta(columnKey),
         }"
-        class="!m-0"
+        class="!w-4 !h-4 !mx-0"
       />
       <NcTooltip
         class="truncate"

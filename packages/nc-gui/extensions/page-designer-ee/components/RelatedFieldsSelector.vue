@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, type TableType, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import FieldElement from './FieldElement.vue'
 
@@ -80,8 +80,8 @@ const filteredFieldSet = computed(() => {
 })
 
 const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
+  h(resolveComponent('SmartsheetHeaderIcon'), {
+    column: c,
   })
 
 const selectedMap = computed(() => {

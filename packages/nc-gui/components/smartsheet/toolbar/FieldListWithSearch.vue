@@ -140,7 +140,7 @@ const fieldSearchBasisOptions = computed<NcListSearchBasisOptionType[]>(() => [
     @change="handleSelect"
   >
     <template #listItemExtraLeft="{ option }">
-      <SmartsheetHeaderIcon :column="option" class="!w-3.5 !h-3.5 !text-gray-500" />
+      <SmartsheetHeaderIcon :column="option" class="!w-3.5 !h-3.5" color="text-nc-content-gray-muted" />
     </template>
   </NcList>
 </template>

@@ -7,7 +7,6 @@ import {
   isAIPromptCol,
   isLinksOrLTAR,
   isSystemColumn,
-  isVirtualCol,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -1860,20 +1859,12 @@ onBeforeRouteUpdate((_to, from, next) => {
                       "
                       />
                       <NcCheckbox v-else :disabled="true" class="opacity-0" :checked="true" />
-                      <SmartsheetHeaderVirtualCellIcon
-                        v-if="field && isVirtualCol(fieldState(field) || field)"
-                        :column-meta="fieldState(field) || field"
-                        :class="{
-                          '!text-brand-500': compareCols(field, activeField),
-                        }"
+
+                      <SmartsheetHeaderIcon
+                        :column="fieldState(field) || field"
+                        :color="compareCols(field, activeField) ? 'text-brand-500' : 'text-nc-content-gray-subtle2'"
                       />
-                      <SmartsheetHeaderCellIcon
-                        v-else
-                        :column-meta="fieldState(field) || field"
-                        :class="{
-                          '!text-brand-500': compareCols(field, activeField),
-                        }"
-                      />
+
                       <NcTooltip
                         :class="{
                           'text-brand-500': compareCols(field, activeField),
@@ -2070,20 +2061,11 @@ onBeforeRouteUpdate((_to, from, next) => {
                       />
                       <NcCheckbox :disabled="true" :checked="true" data-testid="nc-field-visibility-checkbox" />
 
-                      <SmartsheetHeaderVirtualCellIcon
-                        v-if="displayColumn && isVirtualCol(fieldState(displayColumn) || displayColumn)"
-                        :column-meta="fieldState(displayColumn) || displayColumn"
-                        :class="{
-                          '!text-brand-500': compareCols(displayColumn, activeField),
-                        }"
+                      <SmartsheetHeaderIcon
+                        :column="fieldState(displayColumn) || displayColumn"
+                        :color="compareCols(displayColumn, activeField) ? 'text-brand-500' : 'text-nc-content-gray-subtle2'"
                       />
-                      <SmartsheetHeaderCellIcon
-                        v-else-if="displayColumn"
-                        :column-meta="fieldState(displayColumn) || displayColumn"
-                        :class="{
-                          '!text-brand-500': compareCols(displayColumn, activeField),
-                        }"
-                      />
+
                       <NcTooltip
                         class="truncate flex-1"
                         :class="{

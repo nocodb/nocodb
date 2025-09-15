@@ -113,7 +113,7 @@ const handlePermissionSave = () => {
         </div>
 
         <div class="flex items-center gap-3">
-          <component :is="getUIDTIcon(record.field_icon || '')" class="flex-none h-4 w-4 text-nc-content-gray-subtle" />
+          <SmartsheetHeaderIcon :column="record.col" class="flex-none h-4 w-4 !mx-0" color="text-nc-content-gray-subtle" />
           <span class="text-captionBold text-nc-content-gray truncate">
             {{ record.field_name }}
           </span>
@@ -134,6 +134,7 @@ const handlePermissionSave = () => {
             :current-value="getPermissionSummaryLabel('field', record.field_id!, PermissionKey.RECORD_FIELD_EDIT)"
             :border-on-hover="true"
             class="-ml-3"
+            :class="!showEditRestrictedColumnTooltip(record.col) ? 'opacity-70' : ''"
             :readonly="!showEditRestrictedColumnTooltip(record.col)"
             :remove-readonly-padding="false"
             @save="handlePermissionSave"

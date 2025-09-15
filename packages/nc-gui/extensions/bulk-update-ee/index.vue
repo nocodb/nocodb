@@ -1068,9 +1068,9 @@ provide(IsGalleryInj, ref(false))
                             <div class="flex items-center gap-1 w-[calc(100%_-_36px)]">
                               {{ fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE ? 'Clear' : 'Set' }}
                               <NcBadge color="grey" :border="false" class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium">
-                                <component
-                                  :is="getUIDTIcon(UITypes[meta?.columnsById?.[fieldConfig.columnId]?.uidt])"
-                                  class="h-3.5 w-3.5"
+                                <SmartsheetHeaderIcon
+                                  :column="meta?.columnsById?.[fieldConfig.columnId]"
+                                  class="flex-none h-3.5 w-3.5 !mx-0"
                                 />
 
                                 <NcTooltip class="truncate max-w-[100px]" show-on-truncate-only>
@@ -1161,7 +1161,7 @@ provide(IsGalleryInj, ref(false))
                                 {{ col.readonly ? col.permissions.tooltip : 'Already added' }}
                               </template>
                               <div class="flex items-center gap-2 w-full">
-                                <component :is="getUIDTIcon(UITypes[col.uidt])" class="h-3.5 w-3.5" />
+                                <SmartsheetHeaderIcon :column="col" class="flex-none h-3.5 w-3.5 !mx-0" />
 
                                 <NcTooltip
                                   class="truncate flex-1"

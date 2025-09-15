@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import { PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 import { PageDesignerWidgetFactory } from '../lib/widgets'
 import FieldElement from './FieldElement.vue'
@@ -77,8 +77,8 @@ const filteredFieldList = computed(() => {
 })
 
 const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
+  h(resolveComponent('SmartsheetHeaderIcon'), {
+    column: c,
   })
 
 function onFieldClick(field: ColumnType) {

@@ -343,6 +343,8 @@ onMounted(async () => {
             return {
               value: field.id,
               label: field.title,
+              uidt: field.uidt,
+              col: field,
             }
           })
 
@@ -369,6 +371,7 @@ onMounted(async () => {
                 value: field.id,
                 label: field.title,
                 uidt: field.uidt,
+                col: field,
               }
             }),
         ]
@@ -408,6 +411,7 @@ onMounted(async () => {
               value: c.id,
               label: c.title,
               uidt: c.uidt,
+              col: c,
             }
           })
 
@@ -431,6 +435,7 @@ onMounted(async () => {
               value: field.id,
               label: field.title,
               uidt: field.uidt,
+              col: field,
             }
           })
 
@@ -466,6 +471,7 @@ onMounted(async () => {
               value: field.id,
               label: field.title,
               uidt: field.uidt,
+              col: field,
             }
           })
           .sort((a, b) => {
@@ -882,7 +888,7 @@ watch(activeBaseId, () => {
               <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
                 <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                   <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_24px)]">
-                    <SmartsheetHeaderIcon v-if="option.value" :column="option" class="!ml-0" />
+                    <SmartsheetHeaderIcon v-if="option.col" :column="option.col" class="!ml-0" />
 
                     <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
                       <template #title>
@@ -920,7 +926,7 @@ watch(activeBaseId, () => {
               <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
                 <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                   <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_24px)]">
-                    <SmartsheetHeaderIcon :column="option" class="!ml-0" />
+                    <SmartsheetHeaderIcon v-if="option.col" :column="option.col" class="!ml-0" />
 
                     <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
                       <template #title>
@@ -993,7 +999,7 @@ watch(activeBaseId, () => {
                   >
                     <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                       <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                        <SmartsheetHeaderIcon :column="option" />
+                        <SmartsheetHeaderIcon v-if="option.col" :column="option.col" />
 
                         <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
                           <template #title>
@@ -1091,7 +1097,7 @@ watch(activeBaseId, () => {
                           >
                             <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                               <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                                <SmartsheetHeaderIcon :column="option" />
+                                <SmartsheetHeaderIcon v-if="option.col" :column="option.col" />
 
                                 <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
                                   <template #title>

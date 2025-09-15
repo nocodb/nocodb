@@ -188,6 +188,9 @@ test.describe('Erd', () => {
     await openErdOfATable('Country');
     const erd = dashboard.details.relations;
 
+    // By default all columns are hidden, enable back for the test
+    await erd.clickShowColumnNames();
+
     // Verify tables with default config
     await erd.verifyColumns({
       tableName: `country`,
@@ -230,6 +233,9 @@ test.describe('Erd', () => {
     // Verify
     await openErdOfATable('Country');
 
+    // By default all columns are hidden, enable back for the test
+    await erd.clickShowColumnNames();
+
     await erd.verifyNode({
       tableName: `country`,
       columnName: 'test_column',
@@ -248,6 +254,9 @@ test.describe('Erd', () => {
 
     // Verify
     await openErdOfATable('Country');
+
+    // By default all columns are hidden, enable back for the test
+    await erd.clickShowColumnNames();
 
     await erd.verifyNode({
       tableName: `country`,

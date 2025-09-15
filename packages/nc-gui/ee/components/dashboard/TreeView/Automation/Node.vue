@@ -265,6 +265,7 @@ const deleteScript = () => {
           <div>
             <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.scriptName') }}</div>
             <div class="text-small leading-[18px]">{{ vModel.title }}</div>
+            <div class="mt-1 text-xs whitespace-pre-wrap break-words">{{ vModel.description }}</div>
           </div>
           <div v-if="vModel?.created_by && idUserMap[vModel?.created_by]">
             <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.createdBy') }}</div>
@@ -357,7 +358,7 @@ const deleteScript = () => {
             @mouseleave="showAutomationNodeTooltip = true"
           >
             <template #title>
-              {{ vModel.description }}
+              <div class="whitespace-pre-wrap break-words">{{ vModel.description }}</div>
             </template>
             <NcButton class="!hover:bg-transparent" size="xsmall" type="text">
               <GeneralIcon

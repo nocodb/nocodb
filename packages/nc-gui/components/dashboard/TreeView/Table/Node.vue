@@ -535,7 +535,7 @@ async function onRename() {
         <div v-if="!isEditing" class="flex items-center">
           <NcTooltip v-if="table.description?.length" placement="bottom">
             <template #title>
-              {{ table.description }}
+              <div class="whitespace-pre-wrap break-words">{{ table.description }}</div>
             </template>
 
             <NcButton type="text" class="!hover:bg-transparent" size="xsmall">

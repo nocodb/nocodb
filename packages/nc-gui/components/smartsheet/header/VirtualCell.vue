@@ -58,6 +58,8 @@ const { metas } = useMetas()
 
 const { isUIAllowed, isMetaReadOnly } = useRoles()
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const meta = inject(MetaInj, ref())
 
 const isGrid = inject(IsGridInj, ref(false))
@@ -288,6 +290,16 @@ const onClick = (e: Event) => {
         }"
       />
     </div>
+
+    <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">
+      <template #title>
+        <div class="whitespace-pre-wrap break-words">{{ column.description }}</div>
+      </template>
+      <div>
+        <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
+      </div>
+    </NcTooltip>
+
     <template v-if="!hideMenu">
       <div v-if="!isExpandedForm" class="flex-1" />
 

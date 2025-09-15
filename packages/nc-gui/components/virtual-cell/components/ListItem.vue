@@ -6,6 +6,7 @@ const props = withDefaults(
     row: any
     fields: any[]
     attachment: any
+    displayValueColumn: any
     relatedTableDisplayValueProp: string
     displayValueTypeAndFormatProp: { type: string; format: string }
     isLoading: boolean
@@ -115,12 +116,14 @@ const displayValue = computed(() => {
             <GeneralIcon class="w-full h-full !text-6xl !leading-10 !text-transparent rounded-lg" icon="fileImage" />
           </div>
         </template>
-
         <div class="flex-1 flex flex-col gap-1 justify-center overflow-hidden">
           <div class="flex justify-start">
-            <span class="font-semibold text-brand-500 nc-display-value truncate leading-[20px]">
-              {{ displayValue }}
-            </span>
+            <SmartsheetPlainCell
+              v-if="displayValueColumn"
+              class="font-semibold text-brand-500 nc-display-value truncate leading-[20px]"
+              :column="displayValueColumn"
+              :model-value="row[displayValueColumn.title]"
+            />
           </div>
 
           <div
@@ -169,7 +172,7 @@ const displayValue = computed(() => {
             </div>
           </div>
         </div>
-        <div v-if="!isForm && !isPublic" @clcik.stop class="flex-none flex items-center w-7">
+        <div v-if="!isForm && !isPublic" class="flex-none flex items-center w-7" @clcik.stop>
           <NcTooltip class="flex" hide-on-click>
             <template #title>{{ $t('title.expand') }}</template>
 

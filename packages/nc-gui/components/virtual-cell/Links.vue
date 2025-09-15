@@ -215,11 +215,11 @@ onUnmounted(() => {
           v-if="hasEditPermission"
           :class="{ hidden: isUnderLookup }"
           :tabindex="readOnly ? -1 : 0"
-          class="!xs:hidden flex group justify-end group-hover:flex items-center nc-canvas-links-icon-plus"
+          class="flex group justify-end group-hover:flex items-center nc-canvas-links-icon-plus"
           @keydown.enter.stop="openListDlg"
         >
           <MdiPlus
-            class="select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
+            class="select-none !text-md text-gray-700 nc-action-icon nc-plus !xs:visible invisible group-hover:visible group-focus:visible"
             @click.stop="openListDlg"
           />
         </div>

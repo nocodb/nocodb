@@ -247,13 +247,16 @@ const onClick = (e: Event) => {
     </div>
     <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">
       <template #title>
-        {{ column.description }}
+        <div class="whitespace-pre-wrap break-words">{{ column.description }}</div>
       </template>
-      <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
+      <div>
+        <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
+      </div>
     </NcTooltip>
 
     <template v-if="!hideMenu || meta?.synced">
       <div v-if="!isExpandedForm" class="flex-1" />
+
       <div v-if="!isExpandedForm && meta?.synced && column.readonly">
         <NcTooltip class="flex items-center" placement="bottom">
           <template #title> This field is synced </template>

@@ -1,10 +1,10 @@
-import { UITypes, RelationTypes } from 'nocodb-sdk';
+import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { FormulaDataTypes } from 'nocodb-sdk';
 import type { Base, Column, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
+import type LookupColumn from '~/models/LookupColumn';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
-import LookupColumn from '~/models/LookupColumn';
 
 // Helper function to recursively get the field type for lookup columns
 async function getLookupFieldType(
@@ -28,7 +28,10 @@ async function getLookupFieldType(
     case UITypes.Lookup:
       {
         // Recursive lookup
-        const colOpt = await column.getColOptions<LookupColumn>(context, ncMeta);
+        const colOpt = await column.getColOptions<LookupColumn>(
+          context,
+          ncMeta,
+        );
         if (colOpt) {
           const lookupCol = await colOpt.getLookupColumn(context);
           return await getLookupFieldType(context, lookupCol, base, ncMeta);
@@ -188,13 +191,26 @@ export default async (
             if (colOpt) {
               const relationCol = await colOpt.getRelationColumn(context);
               const lookupCol = await colOpt.getLookupColumn(context);
-              const relationColOpt = await relationCol.getColOptions<LinkToAnotherRecordColumn>(context, ncMeta);
-              
+              const relationColOpt =
+                await relationCol.getColOptions<LinkToAnotherRecordColumn>(
+                  context,
+                  ncMeta,
+                );
+
               // Get the type of the lookup column by recursively processing it
-              const lookupField = await getLookupFieldType(context, lookupCol, base, ncMeta);
-              
+              const lookupField = await getLookupFieldType(
+                context,
+                lookupCol,
+                base,
+                ncMeta,
+              );
+
               // Determine if this is a single value or array based on relation type
-              if (relationColOpt && (relationColOpt.type === RelationTypes.BELONGS_TO || relationColOpt.type === RelationTypes.ONE_TO_ONE)) {
+              if (
+                relationColOpt &&
+                (relationColOpt.type === RelationTypes.BELONGS_TO ||
+                  relationColOpt.type === RelationTypes.ONE_TO_ONE)
+              ) {
                 // Single value lookup
                 field.type = lookupField.type;
                 field.format = lookupField.format;
@@ -208,7 +224,7 @@ export default async (
                 } else {
                   field.items = {
                     type: lookupField.type,
-                    format: lookupField.format
+                    format: lookupField.format,
                   };
                 }
               }

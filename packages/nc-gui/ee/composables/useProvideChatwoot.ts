@@ -1,4 +1,4 @@
-export const useProvideChatwoot = () => {
+export const useProvideChatwoot = createSharedComposable(() => {
   const { setUser, setConversationCustomAttributes, setCustomAttributes } = useChatWoot()
   const { user, appInfo } = useGlobal()
   const router = useRouter()
@@ -6,6 +6,8 @@ export const useProvideChatwoot = () => {
   const route = router.currentRoute
 
   const chatwootReady = ref(false)
+
+  const isChatWootEnabled = computed(() => !appInfo.value.disableSupportChat)
 
   const initUserCustomerAttributes = () => {
     if (!chatwootReady.value || ncIsPlaywright() || !user.value?.id || appInfo.value.disableSupportChat) {
@@ -68,5 +70,6 @@ export const useProvideChatwoot = () => {
 
   return {
     chatwootInit,
+    isChatWootEnabled,
   }
-}
+})

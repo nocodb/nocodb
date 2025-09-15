@@ -354,6 +354,11 @@ const hideOrShowField = async () => {
     })
   } catch (e: any) {
     console.log('error', e)
+    if (skipShowViewColumnsLoading.value) {
+      fieldsMap.value[column.value.id].show = true
+      updateDefaultViewColVisibility(column?.value.id, true)
+    }
+
     message.error(t('msg.error.columnVisibilityUpdateFailed'))
   } finally {
     skipShowViewColumnsLoading.value = false

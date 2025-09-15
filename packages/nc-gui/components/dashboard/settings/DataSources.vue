@@ -70,7 +70,7 @@ async function updateIfSourceOrderIsNullOrDuplicate() {
 
   let initialOrder = 1
 
-  if (sources.value.length && !(sources.value[0]!.is_local || sources.value[0]!.is_meta)) {
+  if (!(sources.value[0]!.is_local || sources.value[0]!.is_meta)) {
     // If default source not found, and only one source, return
     if (sources.value.length === 1) return
 

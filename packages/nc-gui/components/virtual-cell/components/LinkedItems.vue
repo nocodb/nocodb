@@ -299,6 +299,9 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
 }
 
 watch([filterQueryRef, isDataExist], () => {
+  // Don't focus input on open dropdown in mobile mode
+  if (isMobileMode.value) return
+
   if (readOnly.value || isPublic.value ? isDataExist.value : true) {
     filterQueryRef.value?.focus()
   }
@@ -327,6 +330,9 @@ const linkedShortcuts = (e: KeyboardEvent) => {
 onMounted(() => {
   loadRelatedTableMeta()
   window.addEventListener('keydown', linkedShortcuts)
+
+  // Don't focus input on open dropdown in mobile mode
+  if (isMobileMode.value) return
   setTimeout(() => {
     filterQueryRef.value?.focus()
   }, 100)

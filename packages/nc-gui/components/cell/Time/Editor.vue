@@ -13,7 +13,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useBase()
 
-const { showNull } = useGlobal()
+const { showNull, isMobileMode } = useGlobal()
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -368,7 +368,7 @@ onMounted(() => {
         :value="cellValue"
         :placeholder="placeholder"
         class="nc-time-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
-        :readonly="readOnly"
+        :readonly="readOnly || !!isMobileMode"
         @blur="onBlur"
         @focus="onFocus"
         @keydown="handleKeydown($event, isOpen)"

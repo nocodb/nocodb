@@ -17,6 +17,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { isUIAllowed } = useRoles()
 
+const { isMobileMode } = useGlobal()
+
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)
 
 const showCol = (col: ColumnType) => {
@@ -86,7 +88,7 @@ const revertLocalOnlyChanges = (col: string) => {
           'w-full !flex-none': props.forceVerticalMode,
           'lg:max-w-[calc(100%_-_188px)]': !props.forceVerticalMode,
         }"
-        placement="right"
+        :placement="isMobileMode ? 'top' : 'right'"
         :disabled="!showReadonlyColumnTooltip(col)"
         :arrow="false"
       >
@@ -98,7 +100,7 @@ const revertLocalOnlyChanges = (col: string) => {
           :entity="PermissionEntity.FIELD"
           :entity-id="col.id"
           :permission="PermissionKey.RECORD_FIELD_EDIT"
-          placement="right"
+          :placement="isMobileMode ? 'top' : 'right'"
           :show-pointer-event-none="false"
           hide-on-click
           :disabled="showReadonlyColumnTooltip(col) || !showEditRestrictedColumnTooltip(col)"

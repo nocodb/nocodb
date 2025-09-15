@@ -122,7 +122,7 @@ watch(selectedFieldId, () => {
     <div v-if="!readOnly">
       <NcButton
         type="text"
-        class="w-full !rounded-none !border-t-1 !rounded-t-lg !border-nc-border-gray-medium !h-16"
+        class="w-full !rounded-none !border-t-1 !rounded-t-lg !border-nc-border-gray-medium !h-16 !max-h-none"
         :disabled="readOnly"
         @click="emit('open:file-picker')"
       >

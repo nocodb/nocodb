@@ -233,6 +233,9 @@ test.describe('Erd', () => {
     // Verify
     await openErdOfATable('Country');
 
+    // By default all columns are hidden, enable back for the test
+    await erd.clickShowColumnNames();
+
     await erd.verifyNode({
       tableName: `country`,
       columnName: 'test_column',
@@ -251,6 +254,9 @@ test.describe('Erd', () => {
 
     // Verify
     await openErdOfATable('Country');
+
+    // By default all columns are hidden, enable back for the test
+    await erd.clickShowColumnNames();
 
     await erd.verifyNode({
       tableName: `country`,

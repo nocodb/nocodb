@@ -68,11 +68,22 @@ async function updateIfSourceOrderIsNullOrDuplicate() {
     return (a.order ?? 0) - (b.order ?? 0)
   })
 
+  let initialOrder = 1
+
+  if (!(sources.value[0]!.is_local || sources.value[0]!.is_meta)) {
+    // If default source not found, and only one source, return
+    if (sources.value.length === 1) return
+
+    // If default source not found and more than one source, set initial order to 2
+    // because order 1 is for default source
+    initialOrder = 2
+  }
+
   // update the local state
-  sources.value = sources.value.map((source, i) => {
+  sources.value = sources.value.map((source) => {
     return {
       ...source,
-      order: i + 1,
+      order: initialOrder++,
     }
   })
 

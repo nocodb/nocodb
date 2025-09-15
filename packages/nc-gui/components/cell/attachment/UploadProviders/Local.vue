@@ -184,7 +184,7 @@ onBeforeUnmount(() => {
 
 <style lang="scss">
 .hide-ui {
-  @apply h-0 w-0 overflow-hidden whitespace-nowrap;
+  @apply md:(h-0 w-0 overflow-hidden whitespace-nowrap);
   .group:hover & {
     @apply h-auto w-auto overflow-visible whitespace-normal;
   }

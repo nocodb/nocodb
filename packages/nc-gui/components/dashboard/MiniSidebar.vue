@@ -24,6 +24,8 @@ const { isUIAllowed } = useRoles()
 
 const { setActiveCmdView } = useCommand()
 
+const { isChatWootEnabled } = useProvideChatwoot()
+
 const isProjectListOrHomePageOpen = computed(() => {
   return (
     route.value.name?.startsWith('index-typeOrId-baseId-') ||
@@ -272,7 +274,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             <DashboardSidebarFeed />
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
-        <DashboardMiniSidebarItemWrapper v-if="!appInfo.disableSupportChat">
+        <DashboardMiniSidebarItemWrapper v-if="isChatWootEnabled">
           <NcTooltip :title="`${$t('labels.chatWithNocoDBSupport')}!`" placement="right" hide-on-click :arrow="false">
             <DashboardSidebarChatSupport />
           </NcTooltip>

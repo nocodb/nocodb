@@ -31,7 +31,7 @@ export default class Spaces extends GenericS3 implements IStorageAdapterV2 {
         '',
       )}`;
     }
-
+    key = decodeURI(key);
     return key;
   }
 

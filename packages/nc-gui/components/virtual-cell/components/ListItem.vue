@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PermissionEntity, PermissionKey, UITypes, isVirtualCol, parseStringDateTime } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, isVirtualCol } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -105,6 +105,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
           <div class="flex justify-start">
             <SmartsheetPlainCell
               v-if="displayValueColumn"
+              :meta="relatedTableMeta"
               class="font-semibold text-brand-500 nc-display-value truncate leading-[20px]"
               :column="displayValueColumn"
               :model-value="row[displayValueColumn.title]"

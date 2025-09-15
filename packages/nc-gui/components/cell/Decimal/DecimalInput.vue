@@ -210,6 +210,7 @@ onMounted(() => {
     :placeholder="placeholder"
     style="letter-spacing: 0.06rem; height: 24px !important"
     :style="inputStyle"
+    inputmode="decimal"
     :disabled="disabled"
     @keydown.enter.exact="onInputKeyUp($event, false)"
     @keydown.left.stop

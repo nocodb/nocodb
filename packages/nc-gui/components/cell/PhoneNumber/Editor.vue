@@ -82,6 +82,7 @@ const showClicableLink = computed(() => {
       'nc-text-transparent': showClicableLink,
     }"
     :disabled="readOnly"
+    inputmode="tel"
     @blur="onBlur"
     @focus="isFocused = true"
     @keydown.down.stop

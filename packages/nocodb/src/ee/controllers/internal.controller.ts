@@ -49,7 +49,11 @@ export class InternalController extends InternalControllerCE {
     super(mcpService, aclMiddleware, auditsService);
   }
 
-  protected async checkAcl(operation: string, req, scope?: string) {
+  protected async checkAcl(
+    operation: keyof typeof this.operationScopes,
+    req,
+    scope?: string,
+  ) {
     await this.aclMiddleware.aclFn(
       operation,
       {
@@ -102,7 +106,7 @@ export class InternalController extends InternalControllerCE {
       triggerAction: 'base',
       sendEmail: 'base',
       integrationRemoteFetch: 'base',
-    };
+    } as const;
   }
 
   @Get(['/api/v2/internal/:workspaceId/:baseId'])
@@ -110,7 +114,7 @@ export class InternalController extends InternalControllerCE {
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
-    @Query('operation') operation: string,
+    @Query('operation') operation: keyof typeof this.operationScopes,
     @Req() req: NcRequest,
   ): InternalGETResponseType {
     await this.checkAcl(operation, req, this.operationScopes[operation]);
@@ -201,7 +205,7 @@ export class InternalController extends InternalControllerCE {
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
-    @Query('operation') operation: string,
+    @Query('operation') operation: keyof typeof this.operationScopes,
     @Body() payload: any,
     @Req() req: NcRequest,
   ): InternalPOSTResponseType {

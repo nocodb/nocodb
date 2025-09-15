@@ -4,6 +4,7 @@ import type {
   DataReflection,
   Integration,
   MCPToken,
+  OAuthClient,
   Script,
   SyncConfig,
 } from '~/models';
@@ -23,6 +24,8 @@ export type InternalGETResponseType = Promise<
   | Dashboard
   | Dashboard[]
   | Widget
+  | OAuthClient
+  | OAuthClient[]
   | Widget[]
   | {
       data: any;
@@ -36,6 +39,7 @@ export type InternalPOSTResponseType = Promise<
   | DataReflection
   | Dashboard
   | Widget
+  | OAuthClient
   | { id: JobId; secret?: string }
   | {
       integration: Integration;

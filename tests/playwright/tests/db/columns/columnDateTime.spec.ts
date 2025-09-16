@@ -56,6 +56,24 @@ const dateTimeData = [
     second: 40,
     output: '26-12-2022 02:30:40',
   },
+  {
+    dateFormat: 'DD.MM.YYYY',
+    timeFormat: 'HH:mm:ss',
+    date: '2022.12.26',
+    hour: 2,
+    minute: 30,
+    second: 40,
+    output: '26.12.2022 02:30:40',
+  },
+  {
+    dateFormat: 'DD.MM.YY',
+    timeFormat: 'HH:mm:ss',
+    date: '2022.12.26',
+    hour: 2,
+    minute: 30,
+    second: 40,
+    output: '26.12.22 02:30:40',
+  },
 ];
 
 const dateData = [
@@ -78,6 +96,16 @@ const dateData = [
     dateFormat: 'YYYY-MM',
     date: '2022-12-26',
     output: '2022-12',
+  },
+  {
+    dateFormat: 'DD.MM.YYYY',
+    date: '2022-12-26',
+    output: '26.12.2022',
+  },
+  {
+    dateFormat: 'DD.MM.YY',
+    date: '2022-12-26',
+    output: '26.12.22',
   },
 ];
 

@@ -6,6 +6,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { isMobileMode } = useGlobal()
+
 const { question } = toRefs(props)
 
 const { formState, onSelectOption, stepper } = useOnboardingFlow()
@@ -62,8 +64,9 @@ const isOptionSelected = (option: OnboardingOptionType) => {
     <div
       class="flex flex-wrap gap-4"
       :class="{
-        'children:(w-[calc(50%-8px)] flex-none)': !question.config?.optionsInEachRow || question.config?.optionsInEachRow === 2,
-        'flex-col items-center children:(w-[60%] flex-none)': question.config?.optionsInEachRow === 1,
+        'children:(w-[calc(50%-8px)] flex-none)':
+          (!question.config?.optionsInEachRow || question.config?.optionsInEachRow === 2) && !isMobileMode,
+        'flex-col items-center children:(w-[90%] md:w-[60%] flex-none)': question.config?.optionsInEachRow === 1 || isMobileMode,
       }"
     >
       <template v-for="(option, index) of options" :key="option.value">

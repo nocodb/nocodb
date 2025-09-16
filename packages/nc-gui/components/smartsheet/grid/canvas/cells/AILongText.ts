@@ -102,7 +102,7 @@ const renderAIButton = (
 
   if (isHovered) setCursor('pointer')
 
-  ctx.font = '550 13px Inter'
+  ctx.font = '600 13px Inter'
 
   if (disabled) {
     ctx.globalAlpha = 0.5

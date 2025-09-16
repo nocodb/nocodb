@@ -521,5 +521,9 @@ const cellClassName = computed(() => {
   :deep(.nc-cell-field) {
     @apply px-0;
   }
+
+  &:has(.nc-currency-code) {
+    @apply !py-0 !pl-0 flex items-stretch h-full;
+  }
 }
 </style>

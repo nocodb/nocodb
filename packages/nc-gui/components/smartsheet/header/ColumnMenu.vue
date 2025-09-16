@@ -288,7 +288,7 @@ const hideOrShowField = async () => {
 
   const currentViewColumn = gridViewCols.value[column.value.id] ? clone(gridViewCols.value[column.value.id]) : null
 
-  if (currentViewColumn && currentViewColumn.show && fieldsMap.value[column.value.id] && !isExpandedForm.value) {
+  if (currentViewColumn && currentViewColumn.show && fieldsMap.value[column.value.id]) {
     skipShowViewColumnsLoading.value = true
 
     fieldsMap.value[column.value.id].show = false
@@ -301,10 +301,12 @@ const hideOrShowField = async () => {
 
     await $api.dbViewColumn.update(view.value!.id!, currentColumn!.id!, { show: !currentColumn.show })
 
-    if (isExpandedForm.value) {
-      await getMeta(meta?.value?.id as string, true)
-    } else if (!skipShowViewColumnsLoading.value) {
-      updateDefaultViewColVisibility(column?.value.id, !currentColumn.show)
+    if (!skipShowViewColumnsLoading.value) {
+      if (isExpandedForm.value) {
+        await getMeta(meta?.value?.id as string, true)
+      } else {
+        updateDefaultViewColVisibility(column?.value.id, !currentColumn.show)
+      }
     }
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)

@@ -3,6 +3,7 @@ import { FormulaDataTypes } from 'nocodb-sdk';
 import type { Base, Column, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
+import type { DriverClient } from '~/utils/nc-config';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
 
@@ -13,6 +14,7 @@ async function processColumnToSwaggerField(
   base: Base,
   ncMeta = Noco.ncMeta,
   isLookupHelper = false,
+  dbType: DriverClient,
 ): Promise<SwaggerColumn> {
   const field: SwaggerColumn = {
     title: column.title,
@@ -20,12 +22,6 @@ async function processColumnToSwaggerField(
     virtual: true,
     column,
   };
-
-  // Extract dbtype based on column source
-  const dbType = await base.getSources().then((sources) => {
-    const sourceId = column.source_id;
-    return sources.find((s) => s.id === sourceId)?.type || sources[0]?.type;
-  });
 
   switch (column.uidt) {
     case UITypes.LinkToAnotherRecord:
@@ -112,6 +108,7 @@ async function processColumnToSwaggerField(
             base,
             ncMeta,
             true,
+            dbType,
           );
 
           // Determine if this is a single value or array based on relation type
@@ -190,9 +187,22 @@ export default async (
   base: Base,
   ncMeta = Noco.ncMeta,
 ): Promise<SwaggerColumn[]> => {
+  // Extract dbtype based on column source
+  const dbType = await base.getSources().then((sources) => {
+    const sourceId = columns[0].source_id;
+    return sources.find((s) => s.id === sourceId)?.type || sources[0]?.type;
+  });
+
   return Promise.all(
     columns.map(async (c) => {
-      return await processColumnToSwaggerField(context, c, base, ncMeta, false);
+      return await processColumnToSwaggerField(
+        context,
+        c,
+        base,
+        ncMeta,
+        false,
+        dbType,
+      );
     }),
   );
 };

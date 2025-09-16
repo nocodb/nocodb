@@ -20,11 +20,6 @@ server.set('view engine', 'ejs');
 
 process.env[`DEBUG`] = 'xc*';
 
-server.use(
-  '/',
-  express.static('/Users/pranavc/xgene/nocohub/packages/nc-gui/ee/dist'),
-);
-
 // (async () => {
 //   await nocobuild(server);
 //   const httpServer = server.listen(process.env.PORT || 8080, async () => {

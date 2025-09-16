@@ -20,6 +20,8 @@ const { submitBtnLabel, saving } = toRefs(props)
 
 const meta = inject(MetaInj, ref())
 
+const { appInfo } = useGlobal()
+
 const workspaceStore = useWorkspace()
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
@@ -368,7 +370,12 @@ onBeforeUnmount(() => {
                   <div class="text-base text-nc-content-gray font-bold flex-1">
                     {{ $t('general.configure') }}
                   </div>
-                  <div class="-my-1.5">
+                  <div
+                    class="-my-1.5"
+                    :class="{
+                      hidden: appInfo.env !== 'development' && appInfo.ee,
+                    }"
+                  >
                     <AiSettings
                       v-model:fk-integration-id="vModel.fk_integration_id"
                       v-model:model="vModel.model"

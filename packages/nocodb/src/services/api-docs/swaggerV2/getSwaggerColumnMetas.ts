@@ -83,6 +83,7 @@ async function processColumnToSwaggerField(
             base,
             ncMeta,
             true,
+            dbType,
           );
         }
         field.type = 'object';

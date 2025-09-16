@@ -27,6 +27,7 @@ import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { ActionsService } from '~/services/actions.service';
 import { MailService } from '~/services/mail/mail.service';
 import { ViewSettingsOverrideService } from '~/services/view-settings-override.service';
+import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -45,15 +46,12 @@ export class InternalController extends InternalControllerCE {
     protected readonly actionsService: ActionsService,
     protected readonly mailService: MailService,
     protected readonly viewSettingsOverrideService: ViewSettingsOverrideService,
+    protected readonly oAuthClientService: OauthClientService,
   ) {
-    super(mcpService, aclMiddleware, auditsService);
+    super(mcpService, aclMiddleware, auditsService, oAuthClientService);
   }
 
-  protected async checkAcl(
-    operation: keyof typeof this.operationScopes,
-    req,
-    scope?: string,
-  ) {
+  protected async checkAcl(operation: string, req, scope?: string) {
     await this.aclMiddleware.aclFn(
       operation,
       {
@@ -114,7 +112,7 @@ export class InternalController extends InternalControllerCE {
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
-    @Query('operation') operation: keyof typeof this.operationScopes,
+    @Query('operation') operation: string,
     @Req() req: NcRequest,
   ): InternalGETResponseType {
     await this.checkAcl(operation, req, this.operationScopes[operation]);
@@ -194,7 +192,7 @@ export class InternalController extends InternalControllerCE {
           context,
           workspaceId,
           baseId,
-          operation,
+          operation as any,
           req,
         );
     }
@@ -205,7 +203,7 @@ export class InternalController extends InternalControllerCE {
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
-    @Query('operation') operation: keyof typeof this.operationScopes,
+    @Query('operation') operation: string,
     @Body() payload: any,
     @Req() req: NcRequest,
   ): InternalPOSTResponseType {
@@ -416,7 +414,7 @@ export class InternalController extends InternalControllerCE {
           context,
           workspaceId,
           baseId,
-          operation,
+          operation as any,
           payload,
           req,
         );

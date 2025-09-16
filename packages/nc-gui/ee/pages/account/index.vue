@@ -139,6 +139,20 @@ onMounted(() => {
                 </div>
               </NcMenuItem> -->
               <NcMenuItem
+                key="oauth"
+                :class="{
+                  active: $route.params.page === 'oauth-clients',
+                }"
+                class="item"
+                @click="navigateTo('/account/oauth-clients')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncLock" class="h-4 w-4 flex-none" />
+
+                  <div class="select-none">{{ $t('title.oauthClients') }}</div>
+                </div>
+              </NcMenuItem>
+              <NcMenuItem
                 v-if="isSetupPageAllowed"
                 key="profile"
                 class="item"

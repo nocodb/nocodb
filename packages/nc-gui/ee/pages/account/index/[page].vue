@@ -10,6 +10,7 @@ const { appInfo } = useGlobal()
     <AccountAppStore v-else-if="$route.params.page === 'apps' && !appInfo.isCloud" />
     <AccountLicense v-else-if="$route.params.page === 'license'" />
     <AccountAuthentication v-else-if="$route.params.page === 'authentication'" />
+    <AccountOAuthClients v-else-if="$route.params.page === 'oauth-clients'" />
     <span v-else></span>
   </div>
 </template>

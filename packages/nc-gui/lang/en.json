@@ -725,6 +725,7 @@
   },
   "title": {
     "mcpServer": "MCP Server",
+    "oauthClients": "OAuth Clients",
     "accessRestricted": "Access Restricted",
     "editTablePermissions": "Edit table permissions",
     "editFieldPermissions": "Edit field permissions",

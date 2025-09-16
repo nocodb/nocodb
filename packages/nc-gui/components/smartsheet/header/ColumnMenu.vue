@@ -51,11 +51,11 @@ const { t } = useI18n()
 
 const { getMeta } = useMetas()
 
-const { addUndo, defineModelScope, defineViewScope } = useUndoRedo()
+const { addUndo, defineModelScope, defineViewScope, clone } = useUndoRedo()
 
 const showDeleteColumnModal = ref(false)
 
-const { gridViewCols } = useViewColumnsOrThrow()
+const { gridViewCols, fieldsMap, skipShowViewColumnsLoading } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow()
 
@@ -286,16 +286,24 @@ const hideOrShowField = async () => {
 
   const viewId = getViewId() as string
 
-  try {
-    const gridViewColumnList = (await $api.dbViewColumn.list(viewId)).list
+  const currentViewColumn = gridViewCols.value[column.value.id] ? clone(gridViewCols.value[column.value.id]) : null
 
-    const currentColumn = gridViewColumnList.find((f) => f.fk_column_id === column!.value.id)
+  if (currentViewColumn && currentViewColumn.show && fieldsMap.value[column.value.id] && !isExpandedForm.value) {
+    skipShowViewColumnsLoading.value = true
+
+    fieldsMap.value[column.value.id].show = false
+    updateDefaultViewColVisibility(column?.value.id, false)
+  }
+
+  try {
+    const currentColumn =
+      currentViewColumn || (await $api.dbViewColumn.list(viewId)).list.find((f) => f.fk_column_id === column!.value.id)
 
     await $api.dbViewColumn.update(view.value!.id!, currentColumn!.id!, { show: !currentColumn.show })
 
     if (isExpandedForm.value) {
       await getMeta(meta?.value?.id as string, true)
-    } else {
+    } else if (!skipShowViewColumnsLoading.value) {
       updateDefaultViewColVisibility(column?.value.id, !currentColumn.show)
     }
 
@@ -332,8 +340,6 @@ const hideOrShowField = async () => {
             updateDefaultViewColVisibility(fk_column_id, show)
           }
 
-          await Promise.all(promises)
-
           eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
           reloadDataHook?.trigger()
           if (show) {
@@ -347,10 +353,11 @@ const hideOrShowField = async () => {
   } catch (e: any) {
     console.log('error', e)
     message.error(t('msg.error.columnVisibilityUpdateFailed'))
+  } finally {
+    skipShowViewColumnsLoading.value = false
+    isLoading.value = ''
+    isOpen.value = false
   }
-
-  isLoading.value = ''
-  isOpen.value = false
 }
 
 const handleDelete = () => {

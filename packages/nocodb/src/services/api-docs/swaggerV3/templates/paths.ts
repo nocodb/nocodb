@@ -287,16 +287,25 @@ export const getModelPaths = async (
               operationId: `${ctx.tableName.toLowerCase()}-nested-link`,
               responses: {
                 '200': {
-                  description: 'OK',
+                  description: 'Records successfully linked',
                   content: {
                     'application/json': {
                       schema: {
-                        type: 'boolean',
-                        description: 'Success status of the link operation',
+                        type: 'object',
+                        properties: {
+                          success: {
+                            type: 'boolean',
+                            description:
+                              'Indicates whether the linking operation was successful',
+                          },
+                        },
+                        required: ['success'],
                       },
                       examples: {
-                        'Example 1': {
-                          value: true,
+                        'Success Response': {
+                          value: {
+                            success: true,
+                          },
                         },
                       },
                     },
@@ -308,36 +317,55 @@ export const getModelPaths = async (
               },
               tags: [ctx.tableName],
               requestBody: {
+                required: true,
+                description:
+                  'Record objects to be linked, each containing an id field',
                 content: {
                   'application/json': {
                     schema: {
                       oneOf: [
                         {
                           type: 'object',
+                          properties: {
+                            id: {
+                              type: 'string',
+                              description: 'Unique identifier for the record',
+                            },
+                          },
+                          required: ['id'],
                         },
                         {
                           type: 'array',
                           items: {
                             type: 'object',
+                            properties: {
+                              id: {
+                                type: 'string',
+                                description: 'Unique identifier for the record',
+                              },
+                            },
+                            required: ['id'],
                           },
                         },
                       ],
                     },
                     examples: {
-                      'Example 1': {
+                      'Single Record': {
+                        summary: 'Link a single record',
+                        value: {
+                          id: '22',
+                        },
+                      },
+                      'Multiple Records': {
+                        summary: 'Link multiple records',
                         value: [
                           {
-                            Id: 4,
+                            id: '43',
                           },
                           {
-                            Id: 5,
+                            id: '44',
                           },
                         ],
-                      },
-                      'Example 2': {
-                        value: {
-                          Id: 4,
-                        },
                       },
                     },
                   },
@@ -352,16 +380,25 @@ export const getModelPaths = async (
               operationId: `${ctx.tableName.toLowerCase()}-nested-unlink`,
               responses: {
                 '200': {
-                  description: 'OK',
+                  description: 'Records successfully unlinked',
                   content: {
                     'application/json': {
                       schema: {
-                        type: 'boolean',
-                        description: 'Success status of the unlink operation',
+                        type: 'object',
+                        properties: {
+                          success: {
+                            type: 'boolean',
+                            description:
+                              'Indicates whether the unlink operation was successful',
+                          },
+                        },
+                        required: ['success'],
                       },
                       examples: {
-                        'Example 1': {
-                          value: true,
+                        'Success Response': {
+                          value: {
+                            success: true,
+                          },
                         },
                       },
                     },
@@ -373,26 +410,53 @@ export const getModelPaths = async (
               },
               tags: [ctx.tableName],
               requestBody: {
+                required: true,
+                description:
+                  'Record objects to be unlinked, each containing an id field',
                 content: {
                   'application/json': {
                     schema: {
                       oneOf: [
                         {
+                          type: 'object',
+                          properties: {
+                            id: {
+                              type: 'string',
+                              description: 'Unique identifier for the record',
+                            },
+                          },
+                          required: ['id'],
+                        },
+                        {
                           type: 'array',
                           items: {
                             type: 'object',
+                            properties: {
+                              id: {
+                                type: 'string',
+                                description: 'Unique identifier for the record',
+                              },
+                            },
+                            required: ['id'],
                           },
                         },
                       ],
                     },
                     examples: {
-                      'Example 1': {
+                      'Single Record': {
+                        summary: 'Unlink a single record',
+                        value: {
+                          id: '22',
+                        },
+                      },
+                      'Multiple Records': {
+                        summary: 'Unlink multiple records',
                         value: [
                           {
-                            Id: 1,
+                            id: '43',
                           },
                           {
-                            Id: 2,
+                            id: '44',
                           },
                         ],
                       },

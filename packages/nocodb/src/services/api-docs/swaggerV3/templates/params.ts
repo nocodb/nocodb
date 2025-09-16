@@ -1,4 +1,4 @@
-import { isLinksOrLTAR, isSelfLinkCol } from 'nocodb-sdk';
+import { isLinksOrLTAR, isSelfLinkCol, UITypes } from 'nocodb-sdk';
 import type { SwaggerColumn } from '../getSwaggerColumnMetasV3';
 import type { SwaggerView } from '~/services/api-docs/swaggerV3/getSwaggerJSONV3';
 
@@ -161,3 +161,32 @@ export const viewIdParam = (views: SwaggerView[]) => {
     required: false,
   };
 };
+
+export const attachmentFieldIdParam = (columns: SwaggerColumn[]) => {
+  const attachmentColumnIds = [];
+  const description = [
+    '**Attachment Field Identifier** corresponding to the attachment field where you want to upload the file.\n\nAttachment Fields:',
+  ];
+  for (const { column } of columns) {
+    // Only include attachment columns
+    if (column.uidt !== UITypes.Attachment) continue;
+
+    attachmentColumnIds.push(column.id);
+    description.push(`* ${column.id} - ${column.title}`);
+  }
+
+  return {
+    schema: {
+      type: 'string',
+      enum: attachmentColumnIds,
+    },
+    name: 'fieldId',
+    in: 'path',
+    required: true,
+    description: description.join('\n'),
+  };
+};
+
+export function hasAttachmentColumns(columns: SwaggerColumn[]): boolean {
+  return columns.some(({ column }) => column.uidt === UITypes.Attachment);
+}

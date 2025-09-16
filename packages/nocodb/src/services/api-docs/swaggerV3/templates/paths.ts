@@ -1,6 +1,8 @@
 import { ModelTypes } from 'nocodb-sdk';
 import {
+  attachmentFieldIdParam,
   fieldsParam,
+  hasAttachmentColumns,
   linkFieldNameParam,
   nestedPageParam,
   pageParam,
@@ -376,6 +378,102 @@ export const getModelPaths = async (
               description:
                 'This API endpoint allows you to unlink records from a specific `Link field` and `Record ID`. The request payload is an array of record-ids from the adjacent table for unlinking purposes. Note that, \n- duplicated record-ids will be ignored.\n- non-existent record-ids will be ignored.',
               parameters: [recordIdParam],
+            },
+          },
+      }
+    : {}),
+
+  ...(hasAttachmentColumns(ctx.columns)
+    ? {
+        [`/api/v3/data/${ctx.baseId}/${ctx.tableId}/records/{recordId}/fields/{fieldId}/upload`]:
+          {
+            parameters: [recordIdParam, attachmentFieldIdParam(ctx.columns)],
+            post: {
+              summary: 'Upload Attachment to Cell',
+              operationId: `${ctx.tableName.toLowerCase()}-attachment-upload`,
+              description:
+                'This API endpoint allows you to upload an attachment (base64 encoded) to a specific cell in a table. The attachment data includes content type, base64 encoded file, and filename.',
+              tags: [ctx.tableName],
+              requestBody: {
+                required: true,
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        contentType: {
+                          type: 'string',
+                          description:
+                            'Content type of the file (e.g., image/png, application/pdf).',
+                        },
+                        file: {
+                          type: 'string',
+                          description: 'Base64 encoded file content.',
+                        },
+                        filename: {
+                          type: 'string',
+                          description: 'Original filename of the attachment.',
+                        },
+                      },
+                      required: ['contentType', 'file', 'filename'],
+                    },
+                    examples: {
+                      'Example 1': {
+                        value: {
+                          contentType: 'image/png',
+                          file: 'iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==',
+                          filename: 'image.png',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              responses: {
+                '200': {
+                  description: 'OK',
+                  content: {
+                    'application/json': {
+                      schema: {
+                        type: 'object',
+                        properties: {
+                          id: {
+                            oneOf: [{ type: 'string' }, { type: 'number' }],
+                            description:
+                              'Record identifier (primary key value)',
+                          },
+                          fields: {
+                            type: 'object',
+                            description: 'Updated record fields data',
+                          },
+                        },
+                        required: ['id'],
+                      },
+                      examples: {
+                        'Example 1': {
+                          value: {
+                            id: 1,
+                            fields: {
+                              attachment_field: [
+                                {
+                                  title: 'image.png',
+                                  url: 'https://example.com/files/image.png',
+                                  mimetype: 'image/png',
+                                  size: 12345,
+                                  icon: 'mdi-file-image',
+                                },
+                              ],
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+                '400': {
+                  $ref: '#/components/responses/BadRequest',
+                },
+              },
             },
           },
       }

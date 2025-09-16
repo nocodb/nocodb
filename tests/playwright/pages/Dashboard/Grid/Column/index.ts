@@ -426,6 +426,7 @@ export class ColumnPageObject extends BasePage {
       case 'DateTime':
         // Date Format
         await this.get().locator('.nc-date-select').click();
+        await this.get().locator('.nc-date-select').pressSequentially(dateFormat);
         await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
 
         // allow UI to update

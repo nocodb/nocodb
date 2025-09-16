@@ -136,7 +136,10 @@ export default class Permission {
         .where(`${MetaTable.PERMISSIONS}.id`, permissionId)
         .where(`${MetaTable.PERMISSIONS}.fk_workspace_id`, context.workspace_id)
         .where(`${MetaTable.PERMISSIONS}.base_id`, context.base_id)
-        .groupBy(`${MetaTable.PERMISSIONS}.id`)
+        .groupBy([
+          `${MetaTable.PERMISSIONS}.base_id`,
+          `${MetaTable.PERMISSIONS}.id`,
+        ])
         .first();
 
       permission = await query;
@@ -213,7 +216,10 @@ export default class Permission {
         )
         .where(`${MetaTable.PERMISSIONS}.fk_workspace_id`, context.workspace_id)
         .where(`${MetaTable.PERMISSIONS}.base_id`, context.base_id)
-        .groupBy(`${MetaTable.PERMISSIONS}.id`)
+        .groupBy([
+          `${MetaTable.PERMISSIONS}.base_id`,
+          `${MetaTable.PERMISSIONS}.id`,
+        ])
         .orderBy(`${MetaTable.PERMISSIONS}.created_at`, 'asc');
 
       const permissionsWithSubjects = await query;

@@ -98,7 +98,7 @@ const { t } = useI18n()
 
 const { isMetaReadOnly } = useRoles()
 
-const { showUpgradeToUseAiPromptField, blockAiPromptField } = useEeConfig()
+const { showUpgradeToUseAiPromptField, blockAiPromptField, showUpgradeToUseAiButtonField, blockAiButtonField } = useEeConfig()
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -138,6 +138,10 @@ const columnUidt = computed({
   get: () => formState.value.uidt,
   set: (value: UITypes) => {
     if (value === AIPrompt && showUpgradeToUseAiPromptField()) {
+      return
+    }
+
+    if (value === AIButton && showUpgradeToUseAiButtonField()) {
       return
     }
 
@@ -306,7 +310,7 @@ const handleScrollDebounce = useDebounceFn(() => {
 const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSearchList = false) => {
   let preload
 
-  if (uidt === AIPrompt && blockAiPromptField.value) return
+  if ((uidt === AIPrompt && blockAiPromptField.value) || (uidt === AIButton && blockAiButtonField.value)) return
 
   if (fromSearchList && !isEdit.value && aiAutoSuggestMode.value) {
     onInit()

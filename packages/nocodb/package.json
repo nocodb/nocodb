@@ -279,6 +279,9 @@
         "musl",
         "glibc"
       ]
+    },
+    "overrides": {
+      "jsdom": "26.1.0"
     }
   }
 }

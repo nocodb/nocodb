@@ -27,17 +27,6 @@ export const getModelPaths = async (
   },
 ): Promise<{ [path: string]: any }> => ({
   [`/api/v3/data/{baseId}/${ctx.tableId}/records`]: {
-    parameters: [
-      {
-        name: 'baseId',
-        in: 'path',
-        required: true,
-        schema: {
-          type: 'string'
-        },
-        description: 'Base Identifier'
-      }
-    ],
     get: {
       summary: `${ctx.tableName} list`,
       operationId: `${ctx.tableName.toLowerCase()}-db-table-row-list`,
@@ -58,7 +47,9 @@ export const getModelPaths = async (
           description: 'OK',
           content: {
             'application/json': {
-              schema: getPaginatedResponseType(`${ctx.tableName}Response`),
+              schema: {
+                $ref: '#/components/schemas/DataListResponseV3'
+              },
             },
           },
         },
@@ -182,15 +173,6 @@ export const getModelPaths = async (
   },
   [`/api/v3/data/{baseId}/${ctx.tableId}/records/{recordId}`]: {
     parameters: [
-      {
-        name: 'baseId',
-        in: 'path',
-        required: true,
-        schema: {
-          type: 'string'
-        },
-        description: 'Base Identifier'
-      },
       recordIdParam, 
       fieldsParam
     ],
@@ -200,12 +182,12 @@ export const getModelPaths = async (
       operationId: `${ctx.tableName.toLowerCase()}-read`,
       tags: [ctx.tableName],
       responses: {
-        '201': {
-          description: 'Created',
+        '200': {
+          description: 'OK',
           content: {
             'application/json': {
               schema: {
-                $ref: `#/components/schemas/${ctx.tableName}Response`,
+                $ref: '#/components/schemas/DataRecordV3'
               },
             },
           },
@@ -215,15 +197,6 @@ export const getModelPaths = async (
   },
   [`/api/v3/data/{baseId}/${ctx.tableId}/records/count`]: {
     parameters: [
-      {
-        name: 'baseId',
-        in: 'path',
-        required: true,
-        schema: {
-          type: 'string'
-        },
-        description: 'Base Identifier'
-      },
       viewIdParams(ctx.views)
     ],
     get: {
@@ -268,15 +241,6 @@ export const getModelPaths = async (
         [`/api/v3/data/{baseId}/${ctx.tableId}/links/{linkFieldId}/records/{recordId}`]:
           {
             parameters: [
-              {
-                name: 'baseId',
-                in: 'path',
-                required: true,
-                schema: {
-                  type: 'string'
-                },
-                description: 'Base Identifier'
-              },
               linkFieldNameParam(ctx.columns), 
               recordIdParam
             ],
@@ -299,21 +263,7 @@ export const getModelPaths = async (
                   content: {
                     'application/json': {
                       schema: {
-                        type: 'object',
-                        properties: {
-                          list: {
-                            type: 'array',
-                            description: 'List of data objects',
-                            items: {
-                              type: 'object',
-                            },
-                          },
-                          pageInfo: {
-                            $ref: '#/components/schemas/Paginated',
-                            description: 'Paginated Info',
-                          },
-                        },
-                        required: ['list', 'pageInfo'],
+                        $ref: '#/components/schemas/DataListResponseV3'
                       },
                     },
                   },
@@ -444,19 +394,3 @@ export const getModelPaths = async (
     : {}),
 });
 
-function getPaginatedResponseType(type: string) {
-  return {
-    type: 'object',
-    properties: {
-      list: {
-        type: 'array',
-        items: {
-          $ref: `#/components/schemas/${type}`,
-        },
-      },
-      pageInfo: {
-        $ref: `#/components/schemas/Paginated`,
-      },
-    },
-  };
-}

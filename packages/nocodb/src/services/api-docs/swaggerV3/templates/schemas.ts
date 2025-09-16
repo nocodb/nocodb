@@ -7,16 +7,16 @@ export const getModelSchemas = (ctx: {
   baseName: string;
   columns: Array<SwaggerColumn>;
 }) => ({
-  [`${ctx.tableName}Response`]: {
-    title: `${ctx.tableName} Response`,
+  [`${ctx.tableName}Fields`]: {
+    title: `${ctx.tableName} Fields`,
     type: 'object',
-    description: '',
+    description: 'Fields data for the record (excluding primary key)',
     'x-internal': false,
     properties: {
       ...(ctx.columns?.reduce(
         (colsObj, { title, virtual, column, ...fieldProps }) => ({
           ...colsObj,
-          ...(column.system
+          ...(column.system || column.pk
             ? {}
             : {
                 [title]: fieldProps,

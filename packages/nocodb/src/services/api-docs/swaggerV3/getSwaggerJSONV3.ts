@@ -53,7 +53,11 @@ export default async function getSwaggerJSONV3(
 
     // skip mm tables
     if (!model.mm)
-      paths = await getPathsV3(context, { model, columns, views }, ncMeta);
+      paths = await getPathsV3(
+        context,
+        { base, model, columns, views },
+        ncMeta,
+      );
 
     const schemas = await getSchemasV3({ base, model, columns, views }, ncMeta);
 

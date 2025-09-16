@@ -17,6 +17,7 @@ import { isRelationExist } from '~/services/api-docs/swagger/templates/paths';
 export const getModelPaths = async (
   _context: any,
   ctx: {
+    baseId: string;
     tableName: string;
     type: ModelTypes;
     columns: SwaggerColumn[];
@@ -24,7 +25,7 @@ export const getModelPaths = async (
     views: SwaggerView[];
   },
 ): Promise<{ [path: string]: any }> => ({
-  [`/api/v3/data/{baseId}/${ctx.tableId}/records`]: {
+  [`/api/v3/data/${ctx.baseId}/${ctx.tableId}/records`]: {
     get: {
       summary: `${ctx.tableName} list`,
       operationId: `${ctx.tableName.toLowerCase()}-db-table-row-list`,
@@ -166,7 +167,7 @@ export const getModelPaths = async (
         }
       : {}),
   },
-  [`/api/v3/data/{baseId}/${ctx.tableId}/records/{recordId}`]: {
+  [`/api/v3/data/${ctx.baseId}/${ctx.tableId}/records/{recordId}`]: {
     parameters: [recordIdParam, fieldsParam],
     get: {
       summary: `${ctx.tableName} read`,
@@ -187,7 +188,7 @@ export const getModelPaths = async (
       },
     },
   },
-  [`/api/v3/data/{baseId}/${ctx.tableId}/records/count`]: {
+  [`/api/v3/data/${ctx.baseId}/${ctx.tableId}/records/count`]: {
     parameters: [viewIdParam(ctx.views)],
     get: {
       summary: `${ctx.tableName} count`,
@@ -228,7 +229,7 @@ export const getModelPaths = async (
 
   ...(isRelationExist(ctx.columns)
     ? {
-        [`/api/v3/data/{baseId}/${ctx.tableId}/links/{linkFieldId}/records/{recordId}`]:
+        [`/api/v3/data/${ctx.baseId}/${ctx.tableId}/links/{linkFieldId}/records/{recordId}`]:
           {
             parameters: [linkFieldNameParam(ctx.columns), recordIdParam],
             get: {

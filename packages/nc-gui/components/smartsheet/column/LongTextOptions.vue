@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes, UITypesName, isAIPromptCol, substituteColumnIdWithAliasInPrompt, type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, UITypes, UITypesName, isAIPromptCol, substituteColumnIdWithAliasInPrompt } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -16,6 +16,8 @@ const meta = inject(MetaInj)!
 const workspaceStore = useWorkspace()
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
+const vModel = useVModel(props, 'modelValue', emit)
+
 const availableFields = computed(() => {
   if (!meta.value?.columns) return []
   return meta.value.columns.filter(
@@ -26,8 +28,6 @@ const availableFields = computed(() => {
       ![UITypes.Button, UITypes.ID].includes(c.uidt as UITypes),
   )
 })
-
-const vModel = useVModel(props, 'modelValue', emit)
 
 const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn, updateFieldName } =
   useColumnCreateStoreOrThrow()

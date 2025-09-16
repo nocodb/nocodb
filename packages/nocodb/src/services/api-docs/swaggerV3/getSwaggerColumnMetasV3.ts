@@ -32,9 +32,19 @@ async function processColumnToSwaggerField(
           ncMeta,
         );
         if (colOpt) {
-          const relTable = await colOpt.getRelatedTable(context, ncMeta);
-          field.type = undefined;
-          field.$ref = `#/components/schemas/${relTable.title}Request`;
+          // LTAR fields in insert/update accept array of objects with id property
+          field.type = 'array';
+          field.items = {
+            type: 'object',
+            properties: {
+              id: {
+                oneOf: [{ type: 'string' }, { type: 'number' }],
+                description: 'Record identifier for linking',
+              },
+            },
+            required: ['id'],
+          };
+          field.virtual = false;
         }
       }
       break;

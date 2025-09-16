@@ -312,7 +312,7 @@ const cellClassName = computed(() => {
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"
   >
     <template v-if="column">
-      <div v-if="isGenerating" class="flex items-center gap-2 w-full">
+      <div v-if="isGenerating" class="nc-cell-field flex items-center gap-2 w-full">
         <GeneralLoader />
         <NcTooltip class="truncate max-w-[calc(100%_-_24px)]" show-on-truncate-only>
           <template #title> {{ $t('general.generating') }} </template>

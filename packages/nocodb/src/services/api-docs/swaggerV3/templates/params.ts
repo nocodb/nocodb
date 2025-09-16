@@ -1,13 +1,9 @@
 import {
   isLinksOrLTAR,
   isSelfLinkCol,
-  RelationTypes,
-  UITypes,
 } from 'nocodb-sdk';
-import type { LinkToAnotherRecordColumn } from '~/models';
 import type { SwaggerColumn } from '../getSwaggerColumnMetasV3';
 import type { SwaggerView } from '~/services/api-docs/swaggerV3/getSwaggerJSONV3';
-import type { NcContext } from '~/interface/config';
 
 export const recordIdParam = {
   schema: {
@@ -22,21 +18,59 @@ export const recordIdParam = {
 };
 export const fieldsParam = {
   schema: {
-    type: 'string',
+    oneOf: [
+      {
+        type: 'array',
+        items: {
+          type: 'string'
+        }
+      },
+      {
+        type: 'string'
+      }
+    ]
   },
   in: 'query',
   name: 'fields',
-  description:
-    'Array of field names or comma separated filed names to include in the response objects. In array syntax pass it like `fields[]=field1&fields[]=field2` or alternately `fields=field1,field2`.',
+  description: 'Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=["field1","field2"]` or `fields=field1,field2` will include only \'field1\' and \'field2\' in the API response.'
 };
 export const sortParam = {
   schema: {
-    type: 'string',
+    oneOf: [
+      {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            direction: {
+              type: 'string',
+              enum: ['asc', 'desc']
+            },
+            field: {
+              type: 'string'
+            }
+          },
+          required: ['field', 'direction']
+        }
+      },
+      {
+        type: 'object',
+        properties: {
+          direction: {
+            type: 'string',
+            enum: ['asc', 'desc']
+          },
+          field: {
+            type: 'string'
+          }
+        },
+        required: ['field', 'direction']
+      }
+    ]
   },
   in: 'query',
   name: 'sort',
-  description:
-    'Comma separated field names to sort rows, rows will sort in ascending order based on provided columns. To sort in descending order provide `-` prefix along with column name, like `-field`. Example : `sort=field1,-field2`',
+  description: 'Allows you to specify the fields by which you want to sort the records in your API response. Accepts either an array of sort objects or a single sort object.\n\nEach sort object must have a \'field\' property specifying the field name and a \'direction\' property with value \'asc\' or \'desc\'.\n\nExample: `sort=[{"direction":"asc","field":"field_name"},{"direction":"desc","field":"another_field"}]` or `sort={"direction":"asc","field":"field_name"}`\n\nIf `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view.'
 };
 export const whereParam = {
   schema: {
@@ -44,54 +78,36 @@ export const whereParam = {
   },
   in: 'query',
   name: 'where',
-  description:
-    'This can be used for filtering rows, which accepts complicated where conditions. For more info visit [here](https://docs.nocodb.com/developer-resources/rest-apis#comparison-operators). Example : `where=(field1,eq,value)`',
+  description: 'Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as \'and\' and \'or\'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where \'field1\' is equal to \'value1\' AND \'field2\' is equal to \'value2\'. \n\nYou can also use other comparison operators like \'neq\' (not equal), \'gt\' (greater than), \'lt\' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components'
 };
-export const limitParam = {
+export const pageParam = {
   schema: {
-    type: 'number',
+    type: 'integer',
     minimum: 1,
   },
   in: 'query',
-  name: 'limit',
-  description:
-    'The `limit` parameter used for pagination, the response collection size depends on limit value with default value `25` and maximum value `1000`, which can be overridden by environment variables `DB_QUERY_LIMIT_DEFAULT` and `DB_QUERY_LIMIT_MAX` respectively.',
-  example: 25,
+  name: 'page',
+  description: 'Enables you to control the pagination of your API response by specifying the page number you want to retrieve. By default, the first page is returned. If you want to retrieve the next page, you can increment the page number by one.\n\nExample: `page=2` will return the second page of records in the dataset.'
 };
-export const offsetParam = {
+export const pageSizeParam = {
   schema: {
-    type: 'number',
-    minimum: 0,
+    type: 'integer',
+    minimum: 1,
   },
   in: 'query',
-  name: 'offset',
-  description:
-    'The `offset` parameter used for pagination, the value helps to select collection from a certain index.',
-  example: 0,
+  name: 'pageSize',
+  description: 'Enables you to set a limit on the number of records you want to retrieve in your API response. By default, your response includes all the available records, but by using this parameter, you can control the quantity you receive.\n\nExample: `pageSize=100` will constrain your response to the first 100 records in the dataset.'
+};
+export const nestedPageParam = {
+  schema: {
+    type: 'integer',
+    minimum: 1,
+  },
+  in: 'query',
+  name: 'nestedPage',
+  description: 'Enables you to control the pagination of your nested data (linked records) in API response by specifying the page number you want to retrieve. By default, the first page is returned. If you want to retrieve the next page, you can increment the page number by one.\n\nExample: `page=2` will return the second page of nested data records in the dataset.'
 };
 
-export const shuffleParam = {
-  schema: {
-    type: 'number',
-    minimum: 0,
-    maximum: 1,
-  },
-  in: 'query',
-  name: 'shuffle',
-  description:
-    'The `shuffle` parameter used for pagination, the response will be shuffled if it is set to 1.',
-  example: 0,
-};
-
-export const columnNameQueryParam = {
-  schema: {
-    type: 'string',
-  },
-  in: 'query',
-  name: 'column_name',
-  description:
-    'Column name of the column you want to group by, eg. `column_name=column1`',
-};
 
 export const linkFieldNameParam = (columns: SwaggerColumn[]) => {
   const linkColumnIds = [];
@@ -119,10 +135,10 @@ export const linkFieldNameParam = (columns: SwaggerColumn[]) => {
     description: description.join('\n'),
   };
 };
-export const viewIdParams = (views: SwaggerView[]) => {
+export const viewIdParam = (views: SwaggerView[]) => {
   const viewIds = [];
   const description = [
-    'Allows you to fetch records that are currently visible within a specific view.\n\nViews:',
+    '***View Identifier***. Allows you to fetch records that are currently visible within a specific view. API retrieves records in the order they are displayed if the SORT option is enabled within that view.\n\nAdditionally, if you specify a `sort` query parameter, it will take precedence over any sorting configuration defined in the view. If you specify a `where` query parameter, it will be applied over the filtering configuration defined in the view. \n\nBy default, all fields, including those that are disabled within the view, are included in the response. To explicitly specify which fields to include or exclude, you can use the `fields` query parameter to customize the output according to your requirements.\n\nViews:',
   ];
 
   for (const { view } of views) {
@@ -144,106 +160,4 @@ export const viewIdParams = (views: SwaggerView[]) => {
   };
 };
 
-export const referencedRowIdParam = {
-  schema: {
-    type: 'string',
-  },
-  name: 'refRowId',
-  in: 'path',
-  required: true,
-};
 
-export const exportTypeParam = {
-  schema: {
-    type: 'string',
-    enum: ['csv', 'excel'],
-  },
-  name: 'type',
-  in: 'path',
-  required: true,
-};
-
-export const csvExportOffsetParam = {
-  schema: {
-    type: 'number',
-    minimum: 0,
-  },
-  in: 'query',
-  name: 'offset',
-  description:
-    'Helps to start export from a certain index. You can get the next set of data offset from previous response header named `nc-export-offset`.',
-  example: 0,
-};
-
-export const nestedWhereParam = (colName) => ({
-  schema: {
-    type: 'string',
-  },
-  in: 'query',
-  name: `nested[${colName}][where]`,
-  description: `This can be used for filtering rows in nested column \`${colName}\`, which accepts complicated where conditions. For more info visit [here](https://docs.nocodb.com/developer-resources/rest-apis#comparison-operators). Example : \`nested[${colName}][where]=(field1,eq,value)\``,
-});
-
-export const nestedFieldParam = (colName) => ({
-  schema: {
-    type: 'string',
-  },
-  in: 'query',
-  name: `nested[${colName}][fields]`,
-  description: `Array of field names or comma separated filed names to include in the in nested column \`${colName}\` result. In array syntax pass it like \`fields[]=field1&fields[]=field2.\`. Example : \`nested[${colName}][fields]=field1,field2\``,
-});
-export const nestedSortParam = (colName) => ({
-  schema: {
-    type: 'string',
-  },
-  in: 'query',
-  name: `nested[${colName}][sort]`,
-  description: `Comma separated field names to sort rows in nested column \`${colName}\` rows, it will sort in ascending order based on provided columns. To sort in descending order provide \`-\` prefix along with column name, like \`-field\`. Example : \`nested[${colName}][sort]=field1,-field2\``,
-});
-export const nestedLimitParam = (colName) => ({
-  schema: {
-    type: 'number',
-    minimum: 1,
-  },
-  in: 'query',
-  name: `nested[${colName}][limit]`,
-  description: `The \`limit\` parameter used for pagination of nested \`${colName}\` rows, the response collection size depends on limit value and default value is \`25\`.`,
-  example: '25',
-});
-export const nestedOffsetParam = (colName) => ({
-  schema: {
-    type: 'number',
-    minimum: 0,
-  },
-  in: 'query',
-  name: `nested[${colName}][offset]`,
-  description: `The \`offset\` parameter used for pagination  of nested \`${colName}\` rows, the value helps to select collection from a certain index.`,
-  example: 0,
-});
-
-export const getNestedParams = async (
-  context: NcContext,
-  columns: SwaggerColumn[],
-): Promise<any[]> => {
-  return await columns.reduce(async (paramsArr, { column }) => {
-    if (column.uidt === UITypes.LinkToAnotherRecord && !column.system) {
-      const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
-        context,
-      );
-      if (colOpt.type !== RelationTypes.BELONGS_TO) {
-        return [
-          ...(await paramsArr),
-          nestedWhereParam(column.title),
-          nestedOffsetParam(column.title),
-          nestedLimitParam(column.title),
-          nestedFieldParam(column.title),
-          nestedSortParam(column.title),
-        ];
-      } else {
-        return [...(await paramsArr), nestedFieldParam(column.title)];
-      }
-    }
-
-    return paramsArr;
-  }, Promise.resolve([]));
-};

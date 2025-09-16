@@ -29,6 +29,7 @@ export const fieldsParam = {
   },
   in: 'query',
   name: 'fields',
+  example: null,
   description:
     'Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=["field1","field2"]` or `fields=field1,field2` will include only \'field1\' and \'field2\' in the API response.',
 };
@@ -68,6 +69,7 @@ export const sortParam = {
   },
   in: 'query',
   name: 'sort',
+  example: null,
   description:
     'Allows you to specify the fields by which you want to sort the records in your API response. Accepts either an array of sort objects or a single sort object.\n\nEach sort object must have a \'field\' property specifying the field name and a \'direction\' property with value \'asc\' or \'desc\'.\n\nExample: `sort=[{"direction":"asc","field":"field_name"},{"direction":"desc","field":"another_field"}]` or `sort={"direction":"asc","field":"field_name"}`\n\nIf `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view.',
 };
@@ -77,6 +79,7 @@ export const whereParam = {
   },
   in: 'query',
   name: 'where',
+  example: null,
   description:
     "Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components",
 };

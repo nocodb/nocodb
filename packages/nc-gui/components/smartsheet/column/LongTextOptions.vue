@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes, UITypesName, isAIPromptCol } from 'nocodb-sdk'
+import { UITypes, UITypesName, isAIPromptCol, substituteColumnIdWithAliasInPrompt, type ColumnType } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -128,7 +128,12 @@ const isPromptEnabled = computed(() => {
 
 onMounted(() => {
   // set default value
-  vModel.value.prompt_raw = (column?.value?.colOptions as Record<string, any>)?.prompt_raw || ''
+  vModel.value.prompt_raw =
+    substituteColumnIdWithAliasInPrompt(
+      (column.value?.colOptions as Record<string, any>)?.prompt ?? '',
+      meta?.value?.columns as ColumnType[],
+      (column.value?.colOptions as Record<string, any>)?.prompt_raw,
+    ).substituted || ''
 })
 
 const validators = {

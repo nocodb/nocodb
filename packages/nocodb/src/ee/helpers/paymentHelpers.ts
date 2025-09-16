@@ -136,9 +136,12 @@ async function checkLimit(args: {
           gracePeriodStartAt = workspace.automation_grace_period_start_at;
 
         if (gracePeriodStartAt) {
+          // midday UTC time
           const gracePeriodEndAt = dayjs(gracePeriodStartAt)
+            .utc()
             .add(GRACE_PERIOD_DURATION, 'day')
-            .endOf('day')
+            .startOf('day')
+            .add(12, 'hour')
             .toDate();
 
           if (dayjs().isBefore(gracePeriodEndAt)) {

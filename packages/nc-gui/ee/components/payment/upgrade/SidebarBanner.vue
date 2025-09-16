@@ -12,7 +12,7 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 const {
   isRecordLimitReached,
   isStorageLimitReached,
-  gracePeriodDaysLeft,
+  gracePeriodActive,
   navigateToBilling,
   activePlanTitle,
   isLoyaltyDiscountAvailable,
@@ -84,7 +84,7 @@ const showBanner = computed(() => {
 
 const showTimer = computed(() => {
   if (isLimitReached.value) {
-    return gracePeriodDaysLeft.value > 0
+    return gracePeriodActive.value
   }
 
   if (isLoyaltyDiscountAvailable.value) return true

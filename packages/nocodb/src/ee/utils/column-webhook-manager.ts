@@ -1,5 +1,7 @@
 import {
   objRemoveEmptyStringProps,
+  RelationTypes,
+  UITypes,
   WebhookActions,
   WebhookEvents,
 } from 'nocodb-sdk';
@@ -7,12 +9,39 @@ import {
   ColumnWebhookManagerBuilder as ColumnWebhookManagerBuilderCE,
   ColumnWebhookManager as ColumnWebhookManagerCE,
 } from 'src/utils/column-webhook-manager';
+import type { NcContext } from 'nocodb-sdk';
 import type { IColumnsV3Service } from 'src/services/v3/columns-v3.types';
-import type { Model } from '~/models';
 import type { ModelWebhookManager } from '~/utils/model-webhook-manager';
+import type { LinkToAnotherRecordColumn } from '~/models';
+import { Column, type Model } from '~/models';
 import { NcError } from '~/helpers/ncError';
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
+
+const ignoreColumn = async (
+  context: NcContext,
+  { column }: { column: any },
+  ncMeta = Noco.ncMeta,
+) => {
+  if (
+    [UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.type) &&
+    column.system
+  ) {
+    const colObj = await Column.get(context, { colId: column.id }, ncMeta);
+    const colOptions = await colObj.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+      ncMeta,
+    );
+    if (colOptions.type === RelationTypes.HAS_MANY) {
+      return true;
+    }
+  } else if (column.type === UITypes.ForeignKey) {
+    return true;
+  } else if (column.system) {
+    return true;
+  }
+  return false;
+};
 
 export class ColumnWebhookManagerBuilder extends ColumnWebhookManagerBuilderCE {
   modelWebhookManager?: ModelWebhookManager;
@@ -203,7 +232,7 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
     if (this.params.oldColumns.find((col) => col.id === column.id)) {
       return this;
     }
-    if (column.system) {
+    if (await ignoreColumn(this.context, { column }, this.ncMeta)) {
       return this;
     }
 
@@ -215,7 +244,7 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
     ) {
       const relatedColumnWebhookManager =
         this.getOrCreateRelatedColumnWebhookManager(column.table_id, action);
-      relatedColumnWebhookManager.addOldColumn(column, action);
+      await relatedColumnWebhookManager.addOldColumn(column, action);
     } else {
       this.params.oldColumns.push(column);
     }
@@ -240,6 +269,7 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
       { columnId },
       this.ncMeta,
     );
+
     await this.addNewColumn(newColumn, action);
     return this;
   }
@@ -248,7 +278,13 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
     if ((action ?? this.params.action) !== WebhookActions.INSERT) {
       return;
     }
-    if (column.system) {
+
+    console.log(
+      column.table_id,
+      this.params.modelId,
+      await ignoreColumn(this.context, { column }, this.ncMeta),
+    );
+    if (await ignoreColumn(this.context, { column }, this.ncMeta)) {
       return this;
     }
 
@@ -265,7 +301,7 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
     ) {
       const relatedColumnWebhookManager =
         this.getOrCreateRelatedColumnWebhookManager(column.table_id, action);
-      relatedColumnWebhookManager.addNewColumn(column, action);
+      await relatedColumnWebhookManager.addNewColumn(column, action);
     } else {
       this.params.newColumns.push(column);
     }
@@ -348,6 +384,7 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
         modelId: this.params.modelId,
       });
       this.emitted = true;
+      this.emitRelated();
     }
   }
 }

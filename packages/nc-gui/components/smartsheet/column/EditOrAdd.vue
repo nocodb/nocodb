@@ -38,6 +38,7 @@ const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
 const {
   formState,
   isWebhookCreateModalOpen,
+  isAiButtonConfigModalOpen,
   generateNewColumnMeta,
   addOrUpdate,
   onAlter,
@@ -382,6 +383,11 @@ const saveSubmitted = async () => {
   setTimeout(() => {
     advancedOptions.value = false
   }, 500)
+
+  if (isAiButtonConfigModalOpen.value) {
+    isAiButtonConfigModalOpen.value = false
+  }
+
   emit('submit', savedColumn)
 
   if (isForm.value) {
@@ -507,7 +513,7 @@ onMounted(() => {
 })
 
 const handleEscape = (event: KeyboardEvent): void => {
-  if (isColumnTypeOpen.value || isWebhookCreateModalOpen.value) return
+  if (isColumnTypeOpen.value || isWebhookCreateModalOpen.value || isAiButtonConfigModalOpen.value) return
 
   if (event.key === 'Escape') emit('cancel')
 }

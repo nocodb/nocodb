@@ -1,4 +1,4 @@
-import { ModelTypes } from 'nocodb-sdk';
+import { ModelTypes, UITypes } from 'nocodb-sdk';
 import {
   attachmentFieldIdParam,
   fieldsParam,
@@ -66,7 +66,16 @@ export const getModelPaths = async (
                 content: {
                   'application/json': {
                     schema: {
-                      $ref: `#/components/schemas/${ctx.tableName}Response`,
+                      type: 'object',
+                      properties: {
+                        records: {
+                          type: 'array',
+                          items: {
+                            $ref: `#/components/schemas/${ctx.tableName}Response`,
+                          },
+                        },
+                      },
+                      required: ['records'],
                     },
                   },
                 },
@@ -106,7 +115,18 @@ export const getModelPaths = async (
                 description: 'OK',
                 content: {
                   'application/json': {
-                    schema: {},
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        records: {
+                          type: 'array',
+                          items: {
+                            $ref: `#/components/schemas/${ctx.tableName}Response`,
+                          },
+                        },
+                      },
+                      required: ['records'],
+                    },
                   },
                 },
               },
@@ -121,12 +141,12 @@ export const getModelPaths = async (
                   schema: {
                     oneOf: [
                       {
-                        $ref: `#/components/schemas/${ctx.tableName}Request`,
+                        $ref: `#/components/schemas/${ctx.tableName}UpdateRequest`,
                       },
                       {
                         type: 'array',
                         items: {
-                          $ref: `#/components/schemas/${ctx.tableName}Request`,
+                          $ref: `#/components/schemas/${ctx.tableName}UpdateRequest`,
                         },
                       },
                     ],
@@ -190,7 +210,7 @@ export const getModelPaths = async (
       },
     },
   },
-  [`/api/v3/data/${ctx.baseId}/${ctx.tableId}/records/count`]: {
+  [`/api/v3/data/${ctx.baseId}/${ctx.tableId}/count`]: {
     parameters: [viewIdParam(ctx.views)],
     get: {
       summary: `${ctx.tableName} count`,
@@ -210,7 +230,6 @@ export const getModelPaths = async (
                     type: 'number',
                   },
                 },
-                required: ['count'],
               },
               examples: {
                 'Example 1': {
@@ -271,7 +290,10 @@ export const getModelPaths = async (
                   description: 'OK',
                   content: {
                     'application/json': {
-                      schema: {},
+                      schema: {
+                        type: 'boolean',
+                        description: 'Success status of the link operation',
+                      },
                       examples: {
                         'Example 1': {
                           value: true,
@@ -333,7 +355,10 @@ export const getModelPaths = async (
                   description: 'OK',
                   content: {
                     'application/json': {
-                      schema: {},
+                      schema: {
+                        type: 'boolean',
+                        description: 'Success status of the unlink operation',
+                      },
                       examples: {
                         'Example 1': {
                           value: true,
@@ -498,17 +523,13 @@ function getPaginatedResponseTypeV3(type: string) {
         type: ['string', 'null'],
         description: 'Pagination token for previous page',
       },
-      page: {
-        type: 'integer',
-        description: 'Current page number',
+      nestedNext: {
+        type: ['string', 'null'],
+        description: 'Nested pagination token for next page',
       },
-      pageSize: {
-        type: 'integer',
-        description: 'Number of records per page',
-      },
-      totalRows: {
-        type: 'integer',
-        description: 'Total number of records',
+      nestedPrev: {
+        type: ['string', 'null'],
+        description: 'Nested pagination token for previous page',
       },
     },
     required: ['records'],

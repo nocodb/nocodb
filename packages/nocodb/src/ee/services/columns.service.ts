@@ -74,6 +74,7 @@ export class ColumnsService extends ColumnsServiceCE {
       suppressFormulaError?: boolean;
       apiVersion?: T;
     },
+    _ncMeta = Noco.ncMeta,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
     // if column_name is defined and title is not defined, set title to column_name
     if (param.column.column_name && !param.column.title) {

@@ -10,8 +10,8 @@ export default ({
     <title>NocoDB : API Docs</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
     <link rel="shortcut icon" href="${ncSiteUrl}/favicon.ico" />
-    <link rel="stylesheet" href="${ncSiteUrl}/css/swagger-ui-bundle.4.5.2.min.css"/>
-    <script src="${ncSiteUrl}/js/swagger-ui-bundle.4.5.2.min.js"></script>
+    <link rel="stylesheet" href="${ncSiteUrl}/css/swagger-ui.css"/>
+    <script src="${ncSiteUrl}/js/swagger-ui-bundle.js"></script>
 </head>
 <body>
 <div id="app"></div>

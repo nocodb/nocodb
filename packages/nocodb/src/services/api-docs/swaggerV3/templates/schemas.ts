@@ -14,11 +14,8 @@ export const getModelSchemas = (ctx: {
     'x-internal': false,
     properties: {
       id: {
-        oneOf: [
-          { type: 'string' },
-          { type: 'number' }
-        ],
-        description: 'Record identifier (primary key value)'
+        oneOf: [{ type: 'string' }, { type: 'number' }],
+        description: 'Record identifier (primary key value)',
       },
       fields: {
         type: 'object',
@@ -35,10 +32,10 @@ export const getModelSchemas = (ctx: {
             }),
             {},
           ) || {}),
-        }
-      }
+        },
+      },
     },
-    required: ['id']
+    required: ['id'],
   },
   [`${ctx.tableName}Request`]: {
     title: `${ctx.tableName} Request`,

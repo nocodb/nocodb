@@ -1,10 +1,10 @@
 import { ModelTypes } from 'nocodb-sdk';
 import {
   fieldsParam,
+  linkFieldNameParam,
+  nestedPageParam,
   pageParam,
   pageSizeParam,
-  nestedPageParam,
-  linkFieldNameParam,
   recordIdParam,
   sortParam,
   viewIdParam,
@@ -167,10 +167,7 @@ export const getModelPaths = async (
       : {}),
   },
   [`/api/v3/data/{baseId}/${ctx.tableId}/records/{recordId}`]: {
-    parameters: [
-      recordIdParam, 
-      fieldsParam
-    ],
+    parameters: [recordIdParam, fieldsParam],
     get: {
       summary: `${ctx.tableName} read`,
       description: 'Read a row data by using the **primary key** column value.',
@@ -182,7 +179,7 @@ export const getModelPaths = async (
           content: {
             'application/json': {
               schema: {
-                $ref: `#/components/schemas/${ctx.tableName}Response`
+                $ref: `#/components/schemas/${ctx.tableName}Response`,
               },
             },
           },
@@ -191,9 +188,7 @@ export const getModelPaths = async (
     },
   },
   [`/api/v3/data/{baseId}/${ctx.tableId}/records/count`]: {
-    parameters: [
-      viewIdParam(ctx.views)
-    ],
+    parameters: [viewIdParam(ctx.views)],
     get: {
       summary: `${ctx.tableName} count`,
       operationId: `${ctx.tableName.toLowerCase()}-count`,
@@ -235,10 +230,7 @@ export const getModelPaths = async (
     ? {
         [`/api/v3/data/{baseId}/${ctx.tableId}/links/{linkFieldId}/records/{recordId}`]:
           {
-            parameters: [
-              linkFieldNameParam(ctx.columns), 
-              recordIdParam
-            ],
+            parameters: [linkFieldNameParam(ctx.columns), recordIdParam],
             get: {
               summary: 'Link Records list',
               operationId: `${ctx.tableName.toLowerCase()}-nested-list`,
@@ -257,7 +249,9 @@ export const getModelPaths = async (
                   description: 'OK',
                   content: {
                     'application/json': {
-                      schema: getPaginatedResponseTypeV3(`${ctx.tableName}Response`),
+                      schema: getPaginatedResponseTypeV3(
+                        `${ctx.tableName}Response`,
+                      ),
                     },
                   },
                 },
@@ -398,33 +392,26 @@ function getPaginatedResponseTypeV3(type: string) {
         },
       },
       next: {
-        type: [
-          'string',
-          'null'
-        ],
-        description: 'Pagination token for next page'
+        type: ['string', 'null'],
+        description: 'Pagination token for next page',
       },
       prev: {
-        type: [
-          'string',
-          'null'
-        ],
-        description: 'Pagination token for previous page'
+        type: ['string', 'null'],
+        description: 'Pagination token for previous page',
       },
       page: {
         type: 'integer',
-        description: 'Current page number'
+        description: 'Current page number',
       },
       pageSize: {
         type: 'integer',
-        description: 'Number of records per page'
+        description: 'Number of records per page',
       },
       totalRows: {
         type: 'integer',
-        description: 'Total number of records'
-      }
+        description: 'Total number of records',
+      },
     },
-    required: ['records']
+    required: ['records'],
   };
 }
-

@@ -94,16 +94,36 @@ const isOptionVisible = computed(() => {
     </NcMenuItem>
 
     <!-- Swagger: Rest APIs -->
-    <NcMenuItem
+    <NcSubMenu
       v-if="isUIAllowed('apiDocs')"
       key="api"
       v-e="['e:api-docs']"
       data-testid="nc-sidebar-base-rest-apis"
-      @click.stop="openLink(`/api/v2/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"
+      class="py-0"
+      variant="small"
+      @click.stop
     >
-      <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
-      {{ $t('activity.account.swagger') }}
-    </NcMenuItem>
+      <template #title>
+        <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
+        {{ $t('activity.account.swagger') }}
+      </template>
+
+      <NcMenuItem
+        data-testid="nc-sidebar-base-rest-apis-v2"
+        @click.stop="openLink(`/api/v2/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"
+      >
+        <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
+        API v2
+      </NcMenuItem>
+
+      <NcMenuItem
+        data-testid="nc-sidebar-base-rest-apis-v3"
+        @click.stop="openLink(`/api/v3/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"
+      >
+        <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
+        API v3
+      </NcMenuItem>
+    </NcSubMenu>
 
     <template v-if="isOptionVisible.baseOptions">
       <NcDivider />

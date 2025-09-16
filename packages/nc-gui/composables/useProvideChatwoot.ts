@@ -1,6 +1,4 @@
 export const useProvideChatwoot = () => {
-  const { setUser, setConversationCustomAttributes, setCustomAttributes } = useChatWoot()
-
   const { $api } = useNuxtApp()
 
   const { user, appInfo } = useGlobal()
@@ -11,30 +9,43 @@ export const useProvideChatwoot = () => {
 
   const chatwootReady = ref(false)
 
-  const isChatWootEnabled = computed(() => !appInfo.value.disableSupportChat && (metaInfo.value?.userCount || 0) > 2)
+  const isChatWootEnabled = computed(
+    () => !appInfo.value.disableSupportChat && (metaInfo.value?.userCount || 0) > 0 && !ncIsPlaywright(),
+  )
 
   const initUserCustomerAttributes = () => {
-    if (!chatwootReady.value || ncIsPlaywright() || !user.value?.id || appInfo.value.disableSupportChat) {
+    if (
+      !chatwootReady.value ||
+      ncIsPlaywright() ||
+      appInfo.value.disableSupportChat ||
+      !isChatWootEnabled.value ||
+      !window.$chatwoot
+    ) {
       return
     }
 
     const baseId = route.value?.params?.baseId as string
 
     const userId = user.value?.id as string
-    const identity_hash = (user.value as any)?.identity_hash as string
 
-    // userId has to be string for chatwoot sdk
-    setUser(userId, {
+    const email = user?.value?.email
+
+    if (!userId || !email) {
+      return
+    }
+
+    window.$chatwoot.setUser(userId, {
       email: user.value?.email,
       name: user.value?.display_name || '',
-      identifier_hash: identity_hash,
     })
 
-    setCustomAttributes({
+    window.$chatwoot.setCustomAttributes({
       is_oss: true as any,
+      user_count: metaInfo.value?.userCount || 0,
+      bases_count: metaInfo.value?.baseCount || 0,
     })
 
-    setConversationCustomAttributes({
+    window.$chatwoot.setConversationCustomAttributes({
       user_id: String(userId),
       email: user.value?.email || '',
       base_id: baseId || '',
@@ -60,7 +71,7 @@ export const useProvideChatwoot = () => {
     () => {
       initUserCustomerAttributes()
     },
-    { immediate: true },
+    { immediate: true, deep: true },
   )
 
   router.afterEach(() => {

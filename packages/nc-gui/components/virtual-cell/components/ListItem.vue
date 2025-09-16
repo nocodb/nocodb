@@ -1,11 +1,12 @@
 <script lang="ts" setup>
-import { PermissionEntity, PermissionKey, UITypes, isVirtualCol, parseStringDateTime } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, isVirtualCol } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
     row: any
     fields: any[]
     attachment: any
+    displayValueColumn: any
     relatedTableDisplayValueProp: string
     displayValueTypeAndFormatProp: { type: string; format: string }
     isLoading: boolean
@@ -20,6 +21,8 @@ const props = withDefaults(
 
 defineEmits(['expand', 'linkOrUnlink'])
 
+const { showExtraFields, relatedTableMeta } = useLTARStoreOrThrow()!
+
 provide(IsExpandedFormOpenInj, ref(true))
 
 provide(RowHeightInj, ref(1 as const))
@@ -32,6 +35,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 provide(IsFormInj, ref(false))
 
+provide(MetaInj, relatedTableMeta)
+
 const row = useVModel(props, 'row')
 
 const { isLinked, isLoading, isSelected } = toRefs(props)
@@ -41,8 +46,6 @@ const isPublic = inject(IsPublicInj, ref(false))
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const { getPossibleAttachmentSrc } = useAttachment()
-
-const { showExtraFields, relatedTableMeta } = useLTARStoreOrThrow()!
 
 interface Attachment {
   url: string
@@ -62,21 +65,6 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
   } catch (e) {
     return []
   }
-})
-
-const displayValue = computed(() => {
-  if (
-    row.value[props.relatedTableDisplayValueProp] &&
-    props.displayValueTypeAndFormatProp.type &&
-    props.displayValueTypeAndFormatProp.format
-  ) {
-    return parseStringDateTime(
-      row.value[props.relatedTableDisplayValueProp],
-      props.displayValueTypeAndFormatProp.format,
-      !(props.displayValueTypeAndFormatProp.format === UITypes.Time),
-    )
-  }
-  return row.value[props.relatedTableDisplayValueProp]
 })
 </script>
 
@@ -115,12 +103,14 @@ const displayValue = computed(() => {
             <GeneralIcon class="w-full h-full !text-6xl !leading-10 !text-transparent rounded-lg" icon="fileImage" />
           </div>
         </template>
-
         <div class="flex-1 flex flex-col gap-1 justify-center overflow-hidden">
           <div class="flex justify-start">
-            <span class="font-semibold text-brand-500 nc-display-value truncate leading-[20px]">
-              {{ displayValue }}
-            </span>
+            <SmartsheetPlainCell
+              v-if="displayValueColumn"
+              class="font-semibold text-brand-500 nc-display-value truncate leading-[20px]"
+              :column="displayValueColumn"
+              :model-value="row[displayValueColumn.title]"
+            />
           </div>
 
           <div
@@ -169,7 +159,7 @@ const displayValue = computed(() => {
             </div>
           </div>
         </div>
-        <div v-if="!isForm && !isPublic" @clcik.stop class="flex-none flex items-center w-7">
+        <div v-if="!isForm && !isPublic" class="flex-none flex items-center w-7" @clcik.stop>
           <NcTooltip class="flex" hide-on-click>
             <template #title>{{ $t('title.expand') }}</template>
 

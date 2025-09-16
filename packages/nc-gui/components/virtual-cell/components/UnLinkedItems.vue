@@ -439,6 +439,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
                 v-for="(refRow, id) in childrenExcludedList?.list ?? []"
                 :key="id"
                 :attachment="attachmentCol"
+                :display-value-column="relatedTableDisplayValueColumn"
                 :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
                 :fields="fields"
                 :is-linked="isChildrenExcludedListLinked[Number.parseInt(id)]"

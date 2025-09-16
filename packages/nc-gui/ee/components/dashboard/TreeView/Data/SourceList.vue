@@ -7,6 +7,8 @@ defineProps<{
 
 const { $e } = useNuxtApp()
 
+const route = useRoute()
+
 const { api } = useApi()
 
 const bases = useBases()
@@ -16,6 +18,8 @@ const { isUIAllowed } = useRoles()
 const { refreshCommandPalette } = useCommandPalette()
 
 const { blockExternalSourceRecordVisibility } = useEeConfig()
+
+const { baseTables } = storeToRefs(useTablesStore())
 
 const { refreshViewTabTitle } = useViewsStore()
 
@@ -40,6 +44,8 @@ const activeKey = ref<string[]>([])
 const keys = ref<Record<string, number>>({})
 
 const isBasesOptionsOpen = ref<Record<string, boolean>>({})
+
+const openedTableId = computed(() => route.params.viewId)
 
 const updateSourceTitle = async (sourceId: string) => {
   const source = base.value.sources?.find((s) => s.id === sourceId)
@@ -170,6 +176,17 @@ function openErdView(source: SourceType) {
     close(1000)
   }
 }
+
+// Expand external source if any table is opened
+onMounted(() => {
+  const openedTableSourceId = openedTableId.value
+    ? (baseTables.value.get(base.value.id!) ?? []).find((t) => t.id === openedTableId.value)?.source_id
+    : null
+
+  if (!openedTableSourceId || activeKey.value.includes(`collapse-${openedTableSourceId}`)) return
+
+  activeKey.value = [`collapse-${openedTableSourceId}`]
+})
 </script>
 
 <template>

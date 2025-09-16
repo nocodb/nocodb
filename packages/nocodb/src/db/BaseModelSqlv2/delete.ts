@@ -214,6 +214,9 @@ export class BaseModelDelete {
     });
     return {
       metaQueries,
+      // TODO: exec queries returned can be
+      // modified to just a single object and not array
+      // inside, it'll promise.all
       execQueries,
       source,
       qb,
@@ -235,7 +238,6 @@ export class BaseModelDelete {
     rows: any[];
     qb: any;
   }) {
-    const trx = await this.baseModel.dbDriver.transaction();
     const response: any[] = [];
 
     const oldRecords = await this.baseModel.list(
@@ -251,9 +253,10 @@ export class BaseModelDelete {
         ignoreViewFilterAndSort: true,
       },
     );
+    const trx = await this.baseModel.dbDriver.transaction();
     try {
       for (const execQuery of execQueries) {
-        await execQuery({ trx, qb: qb.clone(), ids, rows });
+        await Promise.all(execQuery({ trx, qb: qb.clone(), ids, rows }));
       }
       await trx.commit();
       response.push(...oldRecords);

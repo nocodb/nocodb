@@ -37,7 +37,7 @@ export function useTableNew(param: {
 
   const { loadTables, baseUrl, isXcdbBase } = useBase()
 
-  const { loadViews } = useViewsStore()
+  const { loadViews, getViewReadableUrlSlug } = useViewsStore()
 
   const { openedViewsTab, viewsByTable } = storeToRefs(useViewsStore())
 
@@ -93,9 +93,9 @@ export function useTableNew(param: {
           const defaultView = views.find((v) => v.is_default) || views[0]
 
           await navigateTo(
-            `${cmdOrCtrl ? '#' : ''}/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${defaultView.id}/${
-              openedViewsTab.value
-            }`,
+            `${cmdOrCtrl ? '#' : ''}/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${
+              defaultView.id
+            }/${getViewReadableUrlSlug({ tableTitle: table.title, viewOrViewTitle: defaultView })}}/${openedViewsTab.value}`,
             cmdOrCtrl
               ? {
                   open: navigateToBlankTargetOpenOption,

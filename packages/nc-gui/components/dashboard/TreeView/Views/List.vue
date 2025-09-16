@@ -208,6 +208,7 @@ async function changeView(view: ViewType) {
   await navigateToView({
     view,
     tableId: table.value.id!,
+    tableTitle: table.value.title,
     baseId: base.value.id!,
     hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
     doNotSwitchTab: true,
@@ -229,6 +230,7 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
     navigateToView({
       view,
       tableId: table.value.id!,
+      tableTitle: table.value.title,
       baseId: base.value.id!,
       hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
     })
@@ -358,6 +360,7 @@ function onOpenModal({
         navigateToView({
           view,
           tableId: table.value.id!,
+          tableTitle: table.value.title,
           baseId: base.value.id!,
           hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
         })

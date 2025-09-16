@@ -57,7 +57,7 @@ export function useViewData(
 
   const { base } = storeToRefs(useBase())
 
-  const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
+  const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 
   const { $api } = useNuxtApp()
 

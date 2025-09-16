@@ -20,6 +20,7 @@ export interface NcButtonProps {
   showAsDisabled?: boolean
   type?: ButtonType | 'danger' | 'secondary' | undefined
   size?: NcButtonSize
+  mobileSize?: NcButtonSize
   loaderSize?: GeneralLoaderProps['size']
   centered?: boolean
   fullWidth?: boolean
@@ -52,14 +53,22 @@ const emits = defineEmits(['update:loading'])
 
 const slots = useSlots()
 
+const { isMobileMode } = useGlobal()
+
 const NcButton = ref<HTMLElement | null>(null)
 
-const { size, loaderSize, type, theme, bordered } = toRefs(props)
+const { size: _size, mobileSize, loaderSize, type, theme, bordered } = toRefs(props)
 
 const loading = useVModel(props, 'loading', emits)
 
 const isFocused = ref(false)
 const isClicked = ref(false)
+
+const size = computed(() => {
+  if (isMobileMode.value && mobileSize.value) return mobileSize.value
+
+  return _size.value
+})
 
 const onFocus = (e: FocusEvent) => {
   // Only focus when coming from another element which is not a mouse click

@@ -55,7 +55,7 @@ const { addUndo, defineModelScope, defineViewScope, clone } = useUndoRedo()
 
 const showDeleteColumnModal = ref(false)
 
-const { gridViewCols, fieldsMap, skipShowViewColumnsLoading } = useViewColumnsOrThrow()
+const { gridViewCols, fieldsMap, hidingViewColumnsMap } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow()
 
@@ -286,13 +286,14 @@ const hideOrShowField = async () => {
 
   const viewId = getViewId() as string
 
-  const currentViewColumn = gridViewCols.value[column.value.id] ? clone(gridViewCols.value[column.value.id]) : null
+  const currentViewColumn = gridViewCols.value[column.value.id!] ? clone(gridViewCols.value[column.value.id!]) : null
 
-  if (currentViewColumn && currentViewColumn.show && fieldsMap.value[column.value.id]) {
-    skipShowViewColumnsLoading.value = true
+  if (currentViewColumn && currentViewColumn.show && fieldsMap.value[column.value.id!]) {
+    hidingViewColumnsMap.value[column.value.id!] = true
 
-    fieldsMap.value[column.value.id].show = false
+    fieldsMap.value[column.value.id!].show = false
     updateDefaultViewColVisibility(column?.value.id, false)
+    isOpen.value = false
   }
 
   try {
@@ -301,13 +302,16 @@ const hideOrShowField = async () => {
 
     await $api.dbViewColumn.update(view.value!.id!, currentColumn!.id!, { show: !currentColumn.show })
 
-    if (!skipShowViewColumnsLoading.value) {
+    if (!hidingViewColumnsMap.value[column.value.id!]) {
       if (isExpandedForm.value) {
         await getMeta(meta?.value?.id as string, true)
       } else {
         updateDefaultViewColVisibility(column?.value.id, !currentColumn.show)
       }
     }
+
+    // delete current columnId from hidingViewColumnsMap so that while loading view columns, we can use db stored value
+    delete hidingViewColumnsMap.value[column.value.id!]
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     if (!currentColumn.show) {
@@ -354,16 +358,24 @@ const hideOrShowField = async () => {
     })
   } catch (e: any) {
     console.log('error', e)
-    if (skipShowViewColumnsLoading.value) {
-      fieldsMap.value[column.value.id].show = true
+    if (hidingViewColumnsMap.value[column.value.id!]) {
+      fieldsMap.value[column.value.id!].show = true
       updateDefaultViewColVisibility(column?.value.id, true)
+
+      delete hidingViewColumnsMap.value[column.value.id!]
+
+      eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+      reloadDataHook?.trigger()
     }
 
     message.error(t('msg.error.columnVisibilityUpdateFailed'))
   } finally {
-    skipShowViewColumnsLoading.value = false
     isLoading.value = ''
-    isOpen.value = false
+    delete hidingViewColumnsMap.value[column.value.id!]
+
+    if (isOpen.value) {
+      isOpen.value = false
+    }
   }
 }
 

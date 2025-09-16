@@ -980,6 +980,10 @@ onBeforeUnmount(() => {
   @apply !rounded-lg;
   transition: all 0.3s;
 
+  &:has(.nc-cell-currency) {
+    @apply h-8;
+  }
+
   &.nc-readonly-div-data-cell,
   &.nc-system-field {
     @apply !border-gray-200;
@@ -1027,6 +1031,15 @@ onBeforeUnmount(() => {
     }
   }
 }
+
+:deep(.nc-data-cell > .nc-cell-longtext) {
+  .long-text-wrapper {
+    & > div {
+      @apply max-h-50 nc-scrollbar-thin;
+    }
+  }
+}
+
 .nc-data-cell:focus-within {
   @apply !border-1 !border-purple-500;
 }

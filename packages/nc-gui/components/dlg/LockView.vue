@@ -16,15 +16,19 @@ const dialogShow = useVModel(props, 'modelValue', emits, { defaultValue: false }
 
 const isForm = inject(IsFormInj, ref(false))
 
-const { $api, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
 
 const { user } = useGlobal()
 
+const viewStore = useViewsStore()
+
 const { idUserMap } = storeToRefs(useBase())
 
-const { activeView } = storeToRefs(useViewsStore())
+const { activeView } = storeToRefs(viewStore)
+
+const { updateView } = viewStore
 
 const view = computed(() => props.view || activeView.value)
 
@@ -49,7 +53,7 @@ const formRules = {
 const isLoading = ref(false)
 
 const changeLockType = async () => {
-  if (!view.value) return
+  if (!view.value?.id) return
 
   if (changeType.value === LockType.Locked) {
     const valid = await formValidator.value.validate()
@@ -65,20 +69,13 @@ const changeLockType = async () => {
   isLoading.value = true
 
   try {
-    await $api.dbView.update(view.value.id as string, {
+    await updateView(view.value.id, {
       lock_type: changeType.value,
       meta: {
         ...parseProp(view.value.meta),
         ...payload,
       },
     })
-
-    view.value.meta = {
-      ...parseProp(view.value.meta),
-      ...payload,
-    }
-
-    view.value.lock_type = changeType.value
 
     message.success(`Successfully Switched to ${view.value.lock_type} view`)
 

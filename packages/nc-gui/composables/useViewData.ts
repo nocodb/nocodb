@@ -74,7 +74,11 @@ export function useViewData(
 
   const routeQuery = computed(() => route.value.query as Record<string, string>)
 
-  const { isPaginationLoading } = storeToRefs(useViewsStore())
+  const viewStore = useViewsStore()
+
+  const { isPaginationLoading } = storeToRefs(viewStore)
+
+  const { updateViewMeta } = viewStore
 
   const paginationData = computed({
     get: () => (isPublic.value ? sharedPaginationData.value : _paginationData.value),
@@ -196,8 +200,8 @@ export function useViewData(
               ...params,
               offset: 0,
               limit: 1,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr(nestedFilters.value) }),
               where: whereQueryFromUrl.value as string,
               include_row_color: true,
             } as any,
@@ -250,8 +254,8 @@ export function useViewData(
             {
               ...queryParams.value,
               ...params,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr(nestedFilters.value) }),
               where: where?.value,
               ...(excludePageInfo.value ? { excludeCount: 'true' } : {}),
               include_row_color: true,
@@ -305,13 +309,6 @@ export function useViewData(
     if (viewMeta.value?.type === ViewTypes.GRID) {
       loadAggCommentsCount()
     }
-  }
-
-  async function loadGalleryData() {
-    if (!viewMeta?.value?.id) return
-    galleryData.value = isPublic.value
-      ? (sharedView.value?.view as GalleryType)
-      : await $api.dbView.galleryRead(viewMeta.value.id)
   }
 
   async function changePage(page: number) {
@@ -402,7 +399,7 @@ export function useViewData(
     if (!viewMeta?.value?.id || !view || !isUIAllowed('viewFieldEdit')) return
 
     try {
-      await $api.dbView.formUpdate(viewMeta.value.id, view)
+      await updateViewMeta(viewMeta.value.id, ViewTypes.FORM, view)
     } catch (e: any) {
       return message.error(`${t('msg.error.formViewUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
@@ -479,7 +476,6 @@ export function useViewData(
     syncCount,
     syncPagination,
     galleryData,
-    loadGalleryData,
     loadFormView,
     formColumnData,
     formViewData,

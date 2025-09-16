@@ -12,7 +12,7 @@ declare module '#app' {
       emit: (event: string, data: any) => void
     }
     /** {@link import('./plugins/tele') Telemetry} Emit telemetry event */
-    $e: (event: string, data?: any) => void
+    $e: (event: string, data?: any, rootProps?: Record<string, any>) => void
     /** {@link import('./plugins/report') Error reporting} Error reporting */
     $report: (event: Error) => void
     $state: UseGlobalReturn
@@ -36,13 +36,13 @@ declare module '#app' {
     }
     $ncSocket: {
       id: () => string | null
-      subscribe: (event: string) => void
-      onMessage: (evt: string, handler: (...args: any[]) => void) => void
-      offMessage: (evt: string) => void
+      onMessage: (evt: string, handler: (...args: any[]) => void) => string
+      offMessage: (listenerId: string) => void
     }
     $eventBus: {
       smartsheetStoreEventBus: UseEventBusReturn<string, any>
-      realtimeEventBus: UseEventBusReturn<string, any>
+      realtimeBaseUserEventBus: UseEventBusReturn<string, any>
+      realtimeViewMetaEventBus: UseEventBusReturn<string, any>
     }
   }
 }

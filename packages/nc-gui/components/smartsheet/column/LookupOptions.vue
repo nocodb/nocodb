@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
-import { PlanFeatureTypes, PlanTitles, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -57,18 +57,7 @@ const refTables = computed(() => {
   }
 
   const _refTables = meta.value.columns
-    .filter(
-      (column) =>
-        isLinksOrLTAR(column) &&
-        // exclude system columns
-        (!column.system ||
-          // include system columns if it's self-referencing, mm, oo and bt are self-referencing
-          // hm is only used for LTAR with junction table
-          [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
-            (column.colOptions as LinkToAnotherRecordType).type as RelationTypes,
-          )) &&
-        column.source_id === meta.value?.source_id,
-    )
+    .filter((column) => canUseForLookupLinkField(column, meta.value?.source_id))
     .map((column) => ({
       col: column.colOptions,
       column,
@@ -188,11 +177,6 @@ watchEffect(() => {
   }
 })
 
-const cellIcon = (column: ColumnType) =>
-  h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: column,
-  })
-
 watch(
   () => vModel.value.fk_relation_column_id,
   (newValue) => {
@@ -254,7 +238,7 @@ const handleScrollIntoView = () => {
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
             <div class="flex gap-2 w-full justify-between truncate items-center">
               <div class="min-w-1/2 flex items-center gap-2">
-                <component :is="cellIcon(table.column)" :column-meta="table.column" class="!mx-0" />
+                <SmartsheetHeaderIcon :column="table.column" class="!mx-0" color="text-nc-content-gray-subtle2" />
 
                 <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
                   <template #title>{{ table.column.title }}</template>
@@ -301,7 +285,8 @@ const handleScrollIntoView = () => {
           <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
             <div class="w-full flex gap-2 truncate items-center justify-between">
               <div class="inline-flex items-center gap-2 flex-1 truncate">
-                <component :is="cellIcon(column)" :column-meta="column" class="!mx-0" />
+                <SmartsheetHeaderIcon :column="column" class="!mx-0" />
+
                 <div class="truncate flex-1">{{ column.title }}</div>
               </div>
 

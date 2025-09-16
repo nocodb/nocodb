@@ -209,13 +209,17 @@
               "oneOf": [
                 {
                   "type": "string",
-                  "enum": ["members"]
+                  "enum": [
+                    "members"
+                  ]
                 },
                 {
                   "type": "array",
                   "items": {
                     "type": "string",
-                    "enum": ["members"]
+                    "enum": [
+                      "members"
+                    ]
                   }
                 }
               ]
@@ -1646,21 +1650,194 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "list": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/View"
-                      }
+                  "$ref": "#/components/schemas/ViewList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "vwpwk5v4urgbu85g",
+                          "title": "Grid View",
+                          "type": "grid",
+                          "is_default": true,
+                          "lock_type": "collaborative",
+                          "created_at": "2025-06-26 15:02:56+00:00",
+                          "updated_at": "2025-06-26 15:36:25+00:00"
+                        },
+                        {
+                          "id": "vwfqa5qnmcaxt9yp",
+                          "title": "Grid View 2",
+                          "type": "grid",
+                          "lock_type": "collaborative",
+                          "created_at": "2025-06-26 15:40:01+00:00",
+                          "updated_at": "2025-06-26 15:40:48+00:00",
+                          "description": "Grid view with some description",
+                          "created_by": "usq6o3vavwf0twzr"
+                        },
+                        {
+                          "id": "vwx2x5ietbis99xg",
+                          "title": "Grid Group By",
+                          "type": "grid",
+                          "lock_type": "collaborative",
+                          "created_at": "2025-06-26 15:40:41+00:00",
+                          "updated_at": "2025-06-26 15:40:41+00:00",
+                          "created_by": "usq6o3vavwf0twzr"
+                        },
+                        {
+                          "id": "vwjctk8vdhbhxtd4",
+                          "title": "Gallery View",
+                          "type": "gallery",
+                          "lock_type": "collaborative",
+                          "created_at": "2025-06-26 15:45:30+00:00",
+                          "updated_at": "2025-06-26 15:45:30+00:00",
+                          "created_by": "usq6o3vavwf0twzr"
+                        },
+                        {
+                          "id": "vwnyxj93jfswla29",
+                          "title": "Kanban View",
+                          "type": "kanban",
+                          "lock_type": "collaborative",
+                          "created_at": "2025-06-26 15:45:40+00:00",
+                          "updated_at": "2025-06-26 15:45:40+00:00",
+                          "created_by": "usq6o3vavwf0twzr"
+                        },
+                        {
+                          "id": "vw7hwhx551tbr44z",
+                          "title": "Calendar View",
+                          "type": "calendar",
+                          "lock_type": "collaborative",
+                          "created_at": "2025-06-26 15:45:47+00:00",
+                          "updated_at": "2025-06-26 15:45:47+00:00",
+                          "created_by": "usq6o3vavwf0twzr"
+                        }
+                      ]
                     }
-                  },
-                  "required": [
-                    "list"
-                  ]
+                  }
                 }
               }
             }
+          },
+          "404": {
+            "description": "Table not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create view",
+        "description": "Create a view for table.",
+        "operationId": "view-create",
+        "tags": [
+          "Views"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewCreate"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "Created View Title",
+                    "type": "grid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "View meta updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/View"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "vw5rakj00x28vdht",
+                      "title": "myFilterView2",
+                      "type": "grid",
+                      "lock_type": "collaborative",
+                      "created_at": "2025-08-13 07:36:03+00:00",
+                      "updated_at": "2025-08-13 07:36:03+00:00",
+                      "created_by": "uspf4n7qlp704qrj",
+                      "fields": [
+                        {
+                          "field_id": "csd3tnc2t8ccbw2",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cwy23c7tglso0zp",
+                          "show": true
+                        },
+                        {
+                          "field_id": "clljtnye0his0wv",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cmbwwvp0mhyw6uv",
+                          "show": true
+                        },
+                        {
+                          "field_id": "c1kzoujfb6on9ba",
+                          "show": true
+                        },
+                        {
+                          "field_id": "c711uewjhfevrjj",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cjgsfkb3307h4gj",
+                          "show": true
+                        },
+                        {
+                          "field_id": "ck6lswg0z3h6ase",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cxlnws1ojnocsr3",
+                          "show": true
+                        }
+                      ],
+                      "options": {
+                        "row_height": "short"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
           },
           "404": {
             "description": "Table not found."
@@ -1951,6 +2128,267 @@
           },
           "404": {
             "description": "Field not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/views/{viewId}": {
+      "get": {
+        "summary": "Get view schema",
+        "description": "Retrieve the details of a specific view.",
+        "operationId": "view-read",
+        "tags": [
+          "Views"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "View details are retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/View"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "vw5rakj00x28vdht",
+                      "title": "myFilterView2",
+                      "type": "grid",
+                      "lock_type": "collaborative",
+                      "created_at": "2025-08-13 07:36:03+00:00",
+                      "updated_at": "2025-08-13 07:36:03+00:00",
+                      "created_by": "uspf4n7qlp704qrj",
+                      "fields": [
+                        {
+                          "field_id": "csd3tnc2t8ccbw2",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cwy23c7tglso0zp",
+                          "show": true
+                        },
+                        {
+                          "field_id": "clljtnye0his0wv",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cmbwwvp0mhyw6uv",
+                          "show": true
+                        },
+                        {
+                          "field_id": "c1kzoujfb6on9ba",
+                          "show": true
+                        },
+                        {
+                          "field_id": "c711uewjhfevrjj",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cjgsfkb3307h4gj",
+                          "show": true
+                        },
+                        {
+                          "field_id": "ck6lswg0z3h6ase",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cxlnws1ojnocsr3",
+                          "show": true
+                        }
+                      ],
+                      "options": {
+                        "row_height": "short"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "View not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update view",
+        "description": "Update the details of a specific view. The request body should contain the fields to be updated. Fields not included in the request body will remain unchanged. Fields included will overwrite the existing values. There is no provision for partial updates of fields, sort or filter using this PATCH request.",
+        "operationId": "view-update",
+        "tags": [
+          "Views"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewUpdate"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "Updated View Title"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "View meta updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/View"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "vw5rakj00x28vdht",
+                      "title": "myFilterView2",
+                      "type": "grid",
+                      "lock_type": "collaborative",
+                      "created_at": "2025-08-13 07:36:03+00:00",
+                      "updated_at": "2025-08-13 07:36:03+00:00",
+                      "created_by": "uspf4n7qlp704qrj",
+                      "fields": [
+                        {
+                          "field_id": "csd3tnc2t8ccbw2",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cwy23c7tglso0zp",
+                          "show": true
+                        },
+                        {
+                          "field_id": "clljtnye0his0wv",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cmbwwvp0mhyw6uv",
+                          "show": true
+                        },
+                        {
+                          "field_id": "c1kzoujfb6on9ba",
+                          "show": true
+                        },
+                        {
+                          "field_id": "c711uewjhfevrjj",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cjgsfkb3307h4gj",
+                          "show": true
+                        },
+                        {
+                          "field_id": "ck6lswg0z3h6ase",
+                          "show": true
+                        },
+                        {
+                          "field_id": "cxlnws1ojnocsr3",
+                          "show": true
+                        }
+                      ],
+                      "options": {
+                        "row_height": "short"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Table not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete view",
+        "description": "Delete a specific view.",
+        "operationId": "view-delete",
+        "tags": [
+          "Views"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "View deleted successfully."
+          },
+          "404": {
+            "description": "View not found."
           },
           "500": {
             "description": "Server error."
@@ -2815,7 +3253,7 @@
             },
             "in": "query",
             "name": "where",
-            "description": "Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
+            "description": "Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
           },
           {
             "schema": {
@@ -3520,7 +3958,7 @@
             },
             "in": "query",
             "name": "where",
-            "description": "Enables you to define specific conditions for filtering record count in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
+            "description": "Enables you to define specific conditions for filtering record count in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
           },
           {
             "$ref": "#/components/parameters/xc-token"
@@ -3667,7 +4105,7 @@
             },
             "in": "query",
             "name": "where",
-            "description": "Enables you to define specific conditions for filtering linked records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter linked records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
+            "description": "Enables you to define specific conditions for filtering linked records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter linked records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
           },
           {
             "schema": {
@@ -4745,9 +5183,6 @@
       "CreateField": {
         "allOf": [
           {
-            "$ref": "#/components/schemas/FieldBase"
-          },
-          {
             "oneOf": [
               {
                 "$ref": "#/components/schemas/FieldOptions/SingleLineText"
@@ -4852,6 +5287,9 @@
                 "$ref": "#/components/schemas/FieldOptions/User"
               }
             ]
+          },
+          {
+            "$ref": "#/components/schemas/FieldBaseCreate"
           }
         ]
       },
@@ -4993,7 +5431,10 @@
           "oneOf": [
             {
               "title": "Invite User with ID",
-              "required": ["user_id", "base_role"],
+              "required": [
+                "user_id",
+                "base_role"
+              ],
               "properties": {
                 "user_id": {
                   "type": "string",
@@ -5010,7 +5451,10 @@
             },
             {
               "title": "Invite User with Email",
-              "required": ["email", "base_role"],
+              "required": [
+                "email",
+                "base_role"
+              ],
               "properties": {
                 "email": {
                   "type": "string",
@@ -5128,7 +5572,6 @@
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid",
             "description": "Unique identifier for the sort.",
             "readOnly": true
           },
@@ -5157,7 +5600,6 @@
         "properties": {
           "field_id": {
             "type": "string",
-            "format": "uuid",
             "description": "Identifier for the field being sorted."
           },
           "direction": {
@@ -5170,8 +5612,7 @@
           }
         },
         "required": [
-          "field_id",
-          "direction"
+          "field_id"
         ]
       },
       "SortUpdate": {
@@ -5214,392 +5655,916 @@
           "view_type": {
             "type": "string",
             "enum": [
-              "GRID",
-              "GALLERY",
-              "KANBAN",
-              "CALENDAR",
-              "FORM"
+              "grid",
+              "gallery",
+              "kanban",
+              "calendar",
+              "form"
             ],
             "description": "Type of the view."
           }
         }
       },
-      "View": {
+
+      "ViewAggregationEnum": {
+        "type": "string",
+        "enum": [
+          "sum",
+          "min",
+          "max",
+          "avg",
+          "median",
+          "std_dev",
+          "range",
+          "count",
+          "count_empty",
+          "count_filled",
+          "count_unique",
+          "percent_empty",
+          "percent_filled",
+          "percent_unique",
+          "none",
+          "attachment_size",
+          "checked",
+          "unchecked",
+          "percent_checked",
+          "percent_unchecked",
+          "earliest_date",
+          "latest_date",
+          "date_range",
+          "month_range"
+        ]
+      },
+      "ViewList": {
         "type": "object",
         "properties": {
-          "id": {
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the view."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the view."
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Description of the view."
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "grid",
+                    "gallery",
+                    "kanban",
+                    "calendar",
+                    "form"
+                  ],
+                  "description": "Type of the view."
+                },
+                "lock_type": {
+                  "type": "string",
+                  "enum": [
+                    "collaborative",
+                    "locked",
+                    "personal"
+                  ],
+                  "description": "View configuration edit state."
+                },
+                "is_default": {
+                  "type": "boolean",
+                  "description": "Indicates if this is the default view."
+                },
+                "created_by": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "User ID of the creator."
+                },
+                "owned_by": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "User ID of the owner. Applicable only for personal views."
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Timestamp of creation."
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Timestamp of last update."
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "type",
+                "lock_type",
+                "created_at",
+                "updated_at",
+                "created_by"
+              ]
+            }
+          }
+        },
+        "required": [
+          "list"
+        ]
+      },
+      "ViewBase": {
+        "type": "object",
+        "properties": {
+          "title": {
             "type": "string",
-            "format": "uuid",
-            "description": "Unique identifier for the view."
+            "description": "Title of the view."
           },
-          "view_name": {
-            "type": "string",
-            "description": "Name of the view."
-          },
-          "view_type": {
+          "type": {
             "type": "string",
             "enum": [
-              "GRID",
-              "GALLERY",
-              "KANBAN",
-              "CALENDAR",
-              "FORM"
+              "grid",
+              "gallery",
+              "kanban",
+              "calendar"
             ],
-            "description": "Type of the view."
+            "description": "Type of the view. \n\nNote: Form view via API is not supported currently"
           },
           "lock_type": {
             "type": "string",
             "enum": [
-              "COLLABARATIVE",
-              "LOCKED",
-              "PERSONAL"
+              "collaborative",
+              "locked",
+              "personal"
             ],
-            "description": "Lock type of the view."
+            "description": "Lock type of the view.\n\n Note: Assigning view as personal using API is not supported currently",
+            "default": "collaborative"
           },
           "description": {
             "type": "string",
             "description": "Description of the view."
-          },
-          "is_default": {
-            "type": "boolean",
-            "description": "Indicates if this is the default view."
-          },
-          "meta": {
-            "type": "object",
-            "properties": {
-              "locked_view_description": {
-                "type": "string",
-                "description": "Description for locked views."
-              },
-              "locked_by_user_id": {
-                "type": "string",
-                "format": "uuid",
-                "description": "User ID of the person who locked the view."
-              }
-            }
-          },
-          "created_by": {
-            "type": "string",
-            "format": "uuid",
-            "description": "User ID of the creator."
-          },
-          "owned_by": {
-            "type": "string",
-            "format": "uuid",
-            "description": "User ID of the owner."
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of creation."
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp of last update."
-          },
-          "filters": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Filter"
-            },
-            "description": "Filters applied to the view."
-          },
-          "sorts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Sort"
-            },
-            "description": "Sort options for the view."
           }
         },
-        "discriminator": {
-          "propertyName": "view_type"
+        "required": [
+          "title",
+          "type"
+        ]
+      },
+      "ViewBaseInUpdate": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the view."
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked"
+            ],
+            "description": "Lock type of the view.\n\n Note: Assigning view as personal using API is not supported currently",
+            "default": "collaborative"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the view."
+          }
+        }
+      },
+      "ViewFields": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "field_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Unique identifier for the field."
+            },
+            "show": {
+              "type": "boolean",
+              "description": "Indicates whether the field should be displayed in the view."
+            },
+            "width": {
+              "type": "integer",
+              "description": "Width of the field in pixels.\n\n **Applicable only for grid view.**"
+            },
+            "aggregation": {
+              "$ref": "#/components/schemas/ViewAggregationEnum",
+              "description": "Aggregation function to be applied to the field.\n\n **Applicable only for grid view.**"
+            }
+          },
+          "required": [
+            "field_id",
+            "show"
+          ]
         },
+        "description": "List of fields to be displayed in the view. \n\n- If not specified, all fields are displayed by default.\n- If an empty array is provided, only the display value field will be shown.\n- In case of partial list, fields not included in the list will be excluded from the view."
+      },
+      "ViewRowColour": {
+        "type": "object",
         "oneOf": [
           {
             "type": "object",
+            "title": "conditions",
             "properties": {
-              "fields": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID for GRID view."
-                    },
-                    "is_hidden": {
-                      "type": "boolean",
-                      "description": "Indicates if the field is hidden in GRID view."
-                    }
-                  }
-                }
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "filter"
+                ],
+                "description": "Mode of row coloring. In this mode, the color is selected based on conditions applied to the fields."
               },
-              "group": {
+              "conditions": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
-                    "field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID for grouping in GRID view."
+                    "apply_as_row_background": {
+                      "type": "boolean"
                     },
-                    "sort": {
-                      "type": "string",
-                      "enum": [
-                        "asc",
-                        "desc"
-                      ],
-                      "description": "Sorting order for the group."
+                    "color": {
+                      "type": "string"
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
                     }
                   }
                 }
               }
             },
             "required": [
-              "view_type",
-              "fields"
-            ],
-            "description": "GRID View"
+              "mode",
+              "conditions"
+            ]
           },
           {
             "type": "object",
+            "title": "select",
             "properties": {
-              "fields": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID displayed in GALLERY view."
-                    },
-                    "cover_image": {
-                      "type": "boolean",
-                      "description": "Indicates if the field is the cover image."
-                    }
-                  }
-                }
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "select"
+                ],
+                "description": "Mode of row coloring. In this mode, the color is selected based on a single select field."
               },
-              "cover_image_field_id": {
+              "field_id": {
                 "type": "string",
                 "format": "uuid",
-                "description": "Field ID for the cover image."
+                "description": "Single select field ID to be used for colouring rows in the view."
+              },
+              "apply_as_row_background": {
+                "type": "boolean",
+                "description": "Whether to additionally apply the color as row background."
               }
             },
             "required": [
-              "view_type",
-              "fields"
-            ],
-            "description": "GALLERY View"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "fields": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID used in KANBAN view."
-                    },
-                    "is_stack_by": {
-                      "type": "boolean",
-                      "description": "Indicates if the field is used for stacking in KANBAN."
-                    }
-                  }
-                }
-              },
-              "cover_image_field_id": {
-                "type": "string",
-                "format": "uuid",
-                "description": "Field ID for the cover image."
-              },
-              "kanban_stack_by_field_id": {
-                "type": "string",
-                "format": "uuid",
-                "description": "Field ID used for stacking in KANBAN view."
-              }
-            },
-            "required": [
-              "view_type",
-              "fields"
-            ],
-            "description": "KANBAN View"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "fields": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID displayed in CALENDAR view."
-                    },
-                    "is_date_field": {
-                      "type": "boolean",
-                      "description": "Indicates if the field is used for date ranges."
-                    }
-                  }
-                }
-              },
-              "calendar_range": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "start_field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID for the start date."
-                    },
-                    "end_field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID for the end date."
-                    }
-                  }
-                }
-              }
-            },
-            "required": [
-              "view_type",
-              "fields"
-            ],
-            "description": "CALENDAR View"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "fields": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "field_id": {
-                      "type": "string",
-                      "format": "uuid",
-                      "description": "Field ID used in FORM view."
-                    },
-                    "is_required": {
-                      "type": "boolean",
-                      "description": "Indicates if the field is required in the form."
-                    }
-                  }
-                }
-              },
-              "form_heading": {
-                "type": "string",
-                "description": "Heading for the form."
-              },
-              "form_sub_heading": {
-                "type": "string",
-                "description": "Subheading for the form."
-              },
-              "form_success_message": {
-                "type": "string",
-                "description": "Success message shown after form submission."
-              },
-              "form_redirect_url": {
-                "type": "string",
-                "format": "uri",
-                "description": "URL to redirect to after form submission."
-              },
-              "form_redirect_after_secs": {
-                "type": "integer",
-                "description": "Seconds to wait before redirecting."
-              },
-              "form_send_response_email": {
-                "type": "boolean",
-                "description": "Whether to send a response email."
-              },
-              "form_show_another": {
-                "type": "boolean",
-                "description": "Whether to show another form after submission."
-              },
-              "form_show_blank": {
-                "type": "boolean",
-                "description": "Whether to show a blank form after submission."
-              },
-              "form_hide_banner": {
-                "type": "boolean",
-                "description": "Whether to hide the banner on the form."
-              },
-              "form_hide_branding": {
-                "type": "boolean",
-                "description": "Whether to hide branding on the form."
-              },
-              "form_banner_image_url": {
-                "type": "string",
-                "format": "uri",
-                "description": "URL of the banner image for the form."
-              },
-              "form_logo_url": {
-                "type": "string",
-                "format": "uri",
-                "description": "URL of the logo for the form."
-              },
-              "form_background_color": {
-                "type": "string",
-                "description": "Background color for the form.",
-                "pattern": "^#[0-9A-Fa-f]{6}$"
-              }
-            },
-            "required": [
-              "view_type",
-              "fields"
-            ],
-            "description": "FORM View"
+              "mode",
+              "field_id"
+            ]
           }
+        ],
+        "discriminator": {
+          "propertyName": "mode"
+        }
+      },
+      "ViewOptionsGrid": {
+        "type": "object",
+        "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Identifier for the field being sorted."
+                },
+                "direction": {
+                  "type": "string",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "description": "Direction of the group, either 'asc' (ascending) or 'desc' (descending).",
+                  "default": "asc"
+                }
+              },
+              "required": [
+                "field_id"
+              ]
+            },
+            "description": "List of groups to be applied on the grid view."
+          },
+          "row_height": {
+            "type": "string",
+            "enum": [
+              "short",
+              "medium",
+              "tall",
+              "extra"
+            ],
+            "description": "Height of the rows in the grid view.",
+            "default": "short"
+          }
+        }
+      },
+      "ViewOptionsKanban": {
+        "type": "object",
+        "properties": {
+          "stack_by": {
+            "type": "object",
+            "properties": {
+              "field_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Single select field ID to be used for stacking cards in kanban view."
+              },
+              "stack_order": {
+                "type": "array",
+                "description": "Order of the stacks in kanban view. If not provided, the order will be determined by options listed in associated field.\n\nExample: ```stack_order: ['option1', 'option2', 'option3']```",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["field_id"]
+          },
+          "cover_field_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Attachment field ID to be used as cover image in kanban view. If not provided, cover field configuration is skipped."
+          }
+        },
+        "required": [
+          "stack_by"
         ]
+      },
+      "ViewOptionsCalendar": {
+        "type": "object",
+        "properties": {
+          "date_ranges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "start_date_field_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Date field ID to be used as start date in calendar view."
+                },
+                "end_date_field_id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "description": "Date field ID to be used as end date in calendar view."
+                }
+              },
+              "required": [
+                "start_date_field_id"
+              ]
+            }
+          }
+        },
+        "required": [
+          "date_ranges"
+        ]
+      },
+      "ViewOptionsGallery": {
+        "type": "object",
+        "properties": {
+          "cover_field_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Attachment field ID to be used as cover image in gallery view. Is optional, if not provided, the first attachment field will be used."
+          }
+        }
+      },
+      "ViewOptionsForm": {
+        "type": "object",
+        "properties": {
+          "form_title": {
+            "type": "string",
+            "description": "Heading for the form."
+          },
+          "form_description": {
+            "type": "string",
+            "description": "Subheading for the form."
+          },
+          "thank_you_message": {
+            "type": "string",
+            "description": "Success message shown after form submission."
+          },
+          "form_redirect_after_secs": {
+            "type": "integer",
+            "description": "Seconds to wait before redirecting."
+          },
+          "show_submit_another_button": {
+            "type": "boolean",
+            "description": "Whether to show another form after submission."
+          },
+          "reset_form_after_submit": {
+            "type": "boolean",
+            "description": "Whether to show a blank form after submission."
+          },
+          "form_hide_banner": {
+            "type": "boolean",
+            "description": "Whether to hide the banner on the form."
+          },
+          "form_hide_branding": {
+            "type": "boolean",
+            "description": "Whether to hide branding on the form."
+          },
+          "banner": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the banner image for the form."
+          },
+          "logo": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the logo for the form."
+          },
+          "form_background_color": {
+            "type": "string",
+            "description": "Background color for the form.",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "redirect_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to redirect to after form submission."
+          }
+        }
       },
       "ViewCreate": {
         "type": "object",
-        "properties": {
-          "view_name": {
-            "type": "string",
-            "description": "Name of the view."
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ViewBase"
           },
-          "view_type": {
-            "type": "string",
-            "enum": [
-              "GRID",
-              "GALLERY",
-              "KANBAN",
-              "CALENDAR",
-              "FORM"
+          {
+            "oneOf": [
+              {
+                "type": "object",
+                "title": "grid",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "grid"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGrid"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "gallery",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "gallery"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGallery"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "kanban",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "kanban"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsKanban"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                },
+                "required": [
+                  "options"
+                ]
+              },
+              {
+                "type": "object",
+                "title": "calendar",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "calendar"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsCalendar"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                },
+                "required": [
+                  "options"
+                ]
+
+              }
             ],
-            "description": "Type of the view."
-          },
-          "lock_type": {
-            "type": "string",
-            "enum": [
-              "COLLABARATIVE",
-              "LOCKED",
-              "PERSONAL"
-            ],
-            "description": "Lock type of the view."
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the view."
+            "discriminator": {
+              "propertyName": "type"
+            }
           }
-        },
-        "discriminator": {
-          "propertyName": "view_type"
-        }
+        ]
       },
+      "ViewUpdate": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ViewBaseInUpdate"
+          },
+          {
+            "oneOf": [
+              {
+                "type": "object",
+                "title": "grid",
+                "properties": {
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGrid"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "gallery",
+                "properties": {
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGallery"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "kanban",
+                "properties": {
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsKanban"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "calendar",
+                "properties": {
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsCalendar"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              }
+            ],
+            "discriminator": {
+              "propertyName": "type"
+            }
+          }
+        ]
+      },
+      "View": {
+        "type": "object",
+        "allOf": [
+          {
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Unique identifier for the view."
+              },
+              "is_default": {
+                "type": "boolean",
+                "description": "Indicates if this is the default view. Omitted if not the default view."
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/ViewBase"
+          },
+          {
+            "properties": {
+              "created_by": {
+                "type": "string",
+                "format": "uuid",
+                "description": "User ID of the creator."
+              },
+              "owned_by": {
+                "type": "string",
+                "format": "uuid",
+                "description": "User ID of the owner."
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Timestamp of creation."
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Timestamp of last update."
+              }
+            }
+          },
+          {
+            "oneOf": [
+              {
+                "type": "object",
+                "title": "grid",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "grid"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGrid"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "gallery",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "gallery"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsGallery"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "kanban",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "kanban"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsKanban"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                },
+                "required": [
+                  "options"
+                ]
+              },
+              {
+                "type": "object",
+                "title": "calendar",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "calendar"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsCalendar"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                },
+                "required": [
+                  "options"
+                ]
+
+              }
+            ],
+            "discriminator": {
+              "propertyName": "type"
+            }
+          }
+        ]
+      },
+
       "FieldBase": {
         "type": "object",
         "properties": {
@@ -5615,6 +6580,42 @@
           },
           "type": {
             "type": "string",
+            "enum": [
+              "SingleLineText",
+              "LongText",
+              "PhoneNumber",
+              "URL",
+              "Email",
+              "Number",
+              "Decimal",
+              "Currency",
+              "Percent",
+              "Duration",
+              "Date",
+              "DateTime",
+              "Time",
+              "SingleSelect",
+              "MultiSelect",
+              "Rating",
+              "Checkbox",
+              "Attachment",
+              "Geometry",
+              "Links",
+              "Lookup",
+              "Rollup",
+              "Button",
+              "Formula",
+              "Barcode",
+              "Year",
+              "QrCode",
+              "CreatedAt",
+              "LastModifiedAt",
+              "CreatedBy",
+              "LastModifiedBy",
+              "LinkToAnotherRecord",
+              "User",
+              "JSON"
+            ],
             "description": "Field data type."
           },
           "description": {
@@ -5634,12 +6635,25 @@
           }
         },
         "required": [
-          "title",
-          "type"
+          "title"
+        ]
+      },
+      "FieldBaseCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldBase"
+          },
+          {
+            "required": [
+              "title",
+              "type"
+            ]
+          }
         ]
       },
       "FieldOptions_LongText": {
         "type": "object",
+        "title": "LongText",
         "properties": {
           "rich_text": {
             "type": "boolean",
@@ -5654,6 +6668,7 @@
       },
       "FieldOptions_PhoneNumber": {
         "type": "object",
+        "title": "PhoneNumber",
         "properties": {
           "validation": {
             "type": "boolean",
@@ -5664,6 +6679,7 @@
       },
       "FieldOptions_URL": {
         "type": "object",
+        "title": "URL",
         "properties": {
           "validation": {
             "type": "boolean",
@@ -5674,6 +6690,7 @@
       },
       "FieldOptions_Email": {
         "type": "object",
+        "title": "Email",
         "properties": {
           "validation": {
             "type": "boolean",
@@ -5684,6 +6701,7 @@
       },
       "FieldOptions_Number": {
         "type": "object",
+        "title": "Number",
         "properties": {
           "locale_string": {
             "type": "boolean",
@@ -5694,6 +6712,7 @@
       },
       "FieldOptions_Decimal": {
         "type": "object",
+        "title": "Decimal",
         "properties": {
           "precision": {
             "type": "number",
@@ -5706,6 +6725,7 @@
       },
       "FieldOptions_Currency": {
         "type": "object",
+        "title": "Currency",
         "description": "Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD`",
         "properties": {
           "locale": {
@@ -5906,6 +6926,7 @@
       },
       "FieldOptions_Percent": {
         "type": "object",
+        "title": "Percent",
         "properties": {
           "show_as_progress": {
             "type": "boolean",
@@ -5916,6 +6937,7 @@
       },
       "FieldOptions_Duration": {
         "type": "object",
+        "title": "Duration",
         "properties": {
           "duration_format": {
             "type": "string",
@@ -5926,6 +6948,7 @@
       },
       "FieldOptions_DateTime": {
         "type": "object",
+        "title": "DateTime",
         "properties": {
           "date_format": {
             "type": "string",
@@ -5956,6 +6979,7 @@
       },
       "FieldOptions_Date": {
         "type": "object",
+        "title": "Date",
         "properties": {
           "date_format": {
             "type": "string",
@@ -5966,6 +6990,7 @@
       },
       "FieldOptions_Time": {
         "type": "object",
+        "title": "Time",
         "properties": {
           "12hr_format": {
             "type": "boolean",
@@ -5976,6 +7001,7 @@
       },
       "FieldOptions_Select": {
         "type": "object",
+        "title": "Single & MultiSelect",
         "properties": {
           "choices": {
             "type": "array",
@@ -6003,6 +7029,7 @@
       },
       "FieldOptions_Rating": {
         "type": "object",
+        "title": "Rating",
         "properties": {
           "icon": {
             "type": "string",
@@ -6031,6 +7058,7 @@
       },
       "FieldOptions_Checkbox": {
         "type": "object",
+        "title": "Checkbox",
         "properties": {
           "icon": {
             "type": "string",
@@ -6055,6 +7083,7 @@
       },
       "FieldOptions_Barcode": {
         "type": "object",
+        "title": "Barcode",
         "properties": {
           "format": {
             "type": "string",
@@ -6069,6 +7098,7 @@
       },
       "FieldOptions_QrCode": {
         "type": "object",
+        "title": "QrCode",
         "properties": {
           "qrcode_value_field_id": {
             "type": "string",
@@ -6079,6 +7109,7 @@
       },
       "FieldOptions_Formula": {
         "type": "object",
+        "title": "Formula",
         "properties": {
           "formula": {
             "type": "string",
@@ -6089,6 +7120,7 @@
       },
       "FieldOptions_User": {
         "type": "object",
+        "title": "User",
         "properties": {
           "allow_multiple_users": {
             "type": "boolean",
@@ -6099,6 +7131,7 @@
       },
       "FieldOptions_Lookup": {
         "type": "object",
+        "title": "Lookup",
         "properties": {
           "related_field_id": {
             "type": "string",
@@ -6117,6 +7150,7 @@
       },
       "FieldOptions_Rollup": {
         "type": "object",
+        "title": "Rollup",
         "properties": {
           "related_field_id": {
             "type": "string",
@@ -6150,6 +7184,7 @@
       },
       "FieldOptions_Button": {
         "type": "object",
+        "title": "Button",
         "oneOf": [
           {
             "type": "object",
@@ -6249,6 +7284,7 @@
       },
       "FieldOptions_Links": {
         "type": "object",
+        "title": "Links",
         "properties": {
           "relation_type": {
             "type": "string",
@@ -6267,6 +7303,7 @@
       },
       "FieldOptions_LinkToAnotherRecord": {
         "type": "object",
+        "title": "LinkToAnotherRecord",
         "properties": {
           "relation_type": {
             "type": "string",
@@ -6517,6 +7554,10 @@
           {
             "oneOf": [
               {
+                "$ref": "#/components/schemas/FieldOptions/SingleLineText"
+              },
+              {
+                "title": "LongText",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6529,6 +7570,7 @@
                 }
               },
               {
+                "title": "PhoneNumber",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6543,6 +7585,7 @@
                 }
               },
               {
+                "title": "Number / Decimal",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6556,6 +7599,7 @@
                 }
               },
               {
+                "title": "JSON",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6565,6 +7609,7 @@
                 }
               },
               {
+                "title": "Currency",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6577,6 +7622,7 @@
                 }
               },
               {
+                "title": "Percent",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6589,6 +7635,7 @@
                 }
               },
               {
+                "title": "Duration",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6601,6 +7648,7 @@
                 }
               },
               {
+                "title": "Date / DateTime",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6615,6 +7663,7 @@
                 }
               },
               {
+                "title": "Single / MultiSelect",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6628,11 +7677,24 @@
                 }
               },
               {
+                "title": "Checkbox",
                 "properties": {
                   "type": {
                     "enum": [
-                      "Rating",
                       "Checkbox"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/FieldOptions_Checkbox"
+                  }
+                }
+              },
+              {
+                "title": "Rating",
+                "properties": {
+                  "type": {
+                    "enum": [
+                      "Rating"
                     ]
                   },
                   "options": {
@@ -6641,6 +7703,7 @@
                 }
               },
               {
+                "title": "Barcode",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6653,6 +7716,7 @@
                 }
               },
               {
+                "title": "Formula",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6665,6 +7729,7 @@
                 }
               },
               {
+                "title": "User",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6677,6 +7742,7 @@
                 }
               },
               {
+                "title": "Lookup",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6689,6 +7755,7 @@
                 }
               },
               {
+                "title": "Links",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6701,6 +7768,7 @@
                 }
               },
               {
+                "title": "LinkToAnotherRecord",
                 "properties": {
                   "type": {
                     "enum": [
@@ -6718,6 +7786,7 @@
       },
       "Filter": {
         "type": "object",
+        "title": "Filter",
         "properties": {
           "id": {
             "type": "string",
@@ -6726,11 +7795,11 @@
           },
           "parent_id": {
             "type": "string",
-            "description": "Parent ID of the filter, specifying this filters group association."
+            "description": "Parent ID of the filter, specifying this filters group association. Defaults to **root**."
           },
           "field_id": {
             "type": "string",
-            "description": "Field ID to which this filter applies. Defaults to **root**."
+            "description": "Field ID to which this filter applies."
           },
           "operator": {
             "type": "string",
@@ -6754,7 +7823,6 @@
           }
         },
         "required": [
-          "id",
           "field_id",
           "operator",
           "value"
@@ -6863,6 +7931,7 @@
       },
       "FilterGroup": {
         "type": "object",
+        "title": "FilterGroup",
         "properties": {
           "id": {
             "type": "string",
@@ -7272,7 +8341,12 @@
             "description": "Timestamp when the workspace was last updated"
           }
         },
-        "required": ["id", "title", "created_at", "updated_at"]
+        "required": [
+          "id",
+          "title",
+          "created_at",
+          "updated_at"
+        ]
       },
       "WorkspaceWithMembers": {
         "type": "object",
@@ -7295,10 +8369,14 @@
                     "description": "List of workspace members"
                   }
                 },
-                "required": ["workspace_members"]
+                "required": [
+                  "workspace_members"
+                ]
               }
             },
-            "required": ["individual_members"]
+            "required": [
+              "individual_members"
+            ]
           }
         ]
       },
@@ -7330,7 +8408,13 @@
             "description": "Role assigned to the user in the workspace"
           }
         },
-        "required": ["email", "user_id", "created_at", "updated_at", "workspace_role"]
+        "required": [
+          "email",
+          "user_id",
+          "created_at",
+          "updated_at",
+          "workspace_role"
+        ]
       },
       "WorkspaceUser": {
         "type": "object",
@@ -7360,7 +8444,13 @@
             "description": "Role assigned to the user in the workspace"
           }
         },
-        "required": ["email", "user_id", "created_at", "updated_at", "workspace_role"]
+        "required": [
+          "email",
+          "user_id",
+          "created_at",
+          "updated_at",
+          "workspace_role"
+        ]
       },
       "WorkspaceUserCreate": {
         "type": "array",
@@ -7369,7 +8459,10 @@
           "oneOf": [
             {
               "title": "Invite User with ID",
-              "required": ["user_id", "workspace_role"],
+              "required": [
+                "user_id",
+                "workspace_role"
+              ],
               "properties": {
                 "user_id": {
                   "type": "string",
@@ -7383,7 +8476,10 @@
             },
             {
               "title": "Invite User with Email",
-              "required": ["email", "workspace_role"],
+              "required": [
+                "email",
+                "workspace_role"
+              ],
               "properties": {
                 "email": {
                   "type": "string",
@@ -7415,7 +8511,10 @@
               "description": "New workspace role to assign to the user"
             }
           },
-          "required": ["user_id", "workspace_role"],
+          "required": [
+            "user_id",
+            "workspace_role"
+          ],
           "description": "An object representing updates for an existing workspace user."
         },
         "description": "Array of workspace user updates."
@@ -7430,7 +8529,9 @@
               "description": "Unique identifier for the user"
             }
           },
-          "required": ["user_id"],
+          "required": [
+            "user_id"
+          ],
           "description": "An object representing a workspace user to be deleted."
         },
         "description": "Array of workspace users to be deleted."
@@ -7486,6 +8587,12 @@
         "type": "apiKey",
         "in": "header",
         "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable `NC_JWT_EXPIRES_IN`."
+      },
+      "bearerAuth": {
+        "name": "Authorization",
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Bearer token authentication. Use 'Authorization: Bearer <token>' header format. This is an alternative to the xc-token header."
       },
       "xc-shared-base-id": {
         "name": "Shared Base ID",

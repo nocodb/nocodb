@@ -20,13 +20,22 @@ import { SingleLineTextCellRenderer } from './SingleLineText'
 import { TimeCellRenderer } from './Time'
 import { UrlCellRenderer } from './Url'
 import { FloatCellRenderer } from './Number'
+import { LongTextCellRenderer } from './LongText'
+import { SingleSelectCellRenderer } from './SingleSelect'
+import { MultiSelectCellRenderer } from './MultiSelect'
+import { LookupCellRenderer } from './Lookup'
+import { UserFieldCellRenderer } from './User'
+import { BarcodeCellRenderer } from './Barcode'
+import { QRCodeCellRenderer } from './QRCode'
+import { AttachmentCellRenderer } from './Attachment'
 
 function getDisplayValueCellRenderer(column: ColumnType) {
-  const colMeta = parseProp(column.meta)
+  const colExtra = column.extra
   const modifiedColumn = {
-    uidt: colMeta?.display_type,
-    ...colMeta?.display_column_meta,
+    uidt: colExtra?.display_type,
+    ...colExtra?.display_column_meta,
   }
+
   if (isBoolean(modifiedColumn)) return CheckboxCellRenderer
   else if (isCurrency(modifiedColumn)) return CurrencyRenderer
   else if (isDecimal(modifiedColumn)) return DecimalCellRenderer
@@ -38,6 +47,18 @@ function getDisplayValueCellRenderer(column: ColumnType) {
   else if (isEmail(modifiedColumn)) return EmailCellRenderer
   else if (isURL(modifiedColumn)) return UrlCellRenderer
   else if (isPhoneNumber(modifiedColumn)) return PhoneNumberCellRenderer
+  else if (isTextArea(modifiedColumn)) return LongTextCellRenderer
+  else if (isSingleSelect(modifiedColumn)) return SingleSelectCellRenderer
+  else if (isMultiSelect(modifiedColumn)) return MultiSelectCellRenderer
+  else if (isBarcode(modifiedColumn)) return BarcodeCellRenderer
+  else if (isQrCode(modifiedColumn)) return QRCodeCellRenderer
+  else if (isAttachment(modifiedColumn)) return AttachmentCellRenderer
+  else if (isUser(modifiedColumn)) return UserFieldCellRenderer
+  else if (isLookup(modifiedColumn)) return LookupCellRenderer
+  // TODO: handle LTAR
+  // LtarCellModifier need array of key value object as data
+  // else if (isLTAR(modifiedColumn.uidt, modifiedColumn.colOptions)) return LtarCellRenderer
+  else if (isMultiSelect(modifiedColumn)) return MultiSelectCellRenderer
   else return SingleLineTextCellRenderer
 }
 
@@ -59,7 +80,7 @@ export const FormulaCellRenderer: CellRenderer = {
       spriteLoader,
       selected,
     } = props
-    const colMeta = parseProp(column.meta)
+    const colExtra = column.extra
 
     if (parseProp(column.colOptions)?.error) {
       renderSingleLineText(ctx, {
@@ -71,13 +92,13 @@ export const FormulaCellRenderer: CellRenderer = {
     }
 
     // If Custom Formatting is applied to the column, render the cell using the display type cell renderer
-    if (colMeta?.display_type) {
+    if (colExtra?.display_type) {
       getDisplayValueCellRenderer(column).render(ctx, {
         ...props,
         column: {
           ...column,
-          uidt: colMeta?.display_type || UITypes.LongText,
-          ...colMeta.display_column_meta,
+          uidt: colExtra?.display_type || UITypes.LongText,
+          ...colExtra.display_column_meta,
         },
         readonly: true,
         formula: true,

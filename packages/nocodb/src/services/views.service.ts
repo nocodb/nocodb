@@ -246,6 +246,8 @@ export class ViewsService {
       owner,
     });
 
+    await result.getView(context);
+
     NocoSocket.broadcastEvent(
       context,
       {
@@ -268,7 +270,7 @@ export class ViewsService {
     const view = await View.get(context, param.viewId);
 
     if (!view) {
-      NcError.viewNotFound(param.viewId);
+      NcError.get(context).viewNotFound(param.viewId);
     }
 
     await View.delete(context, param.viewId);
@@ -430,6 +432,21 @@ export class ViewsService {
     param: { viewId: string; ignoreIds?: string[] },
   ) {
     await View.showAllColumns(context, param.viewId, param.ignoreIds || []);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_column_refresh',
+          payload: {
+            fk_view_id: param.viewId,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
     return true;
   }
 
@@ -438,6 +455,21 @@ export class ViewsService {
     param: { viewId: string; ignoreIds?: string[] },
   ) {
     await View.hideAllColumns(context, param.viewId, param.ignoreIds || []);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_column_refresh',
+          payload: {
+            fk_view_id: param.viewId,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
     return true;
   }
 

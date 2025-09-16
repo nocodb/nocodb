@@ -278,7 +278,7 @@ export class DataV3Service {
   /**
    * Transform multiple records to v3 format
    */
-  private async transformRecordsToV3Format(param: {
+  public async transformRecordsToV3Format(param: {
     context: NcContext;
     records: any[];
     primaryKey: Column;
@@ -301,10 +301,11 @@ export class DataV3Service {
     );
   }
 
-  async dataList(
+  async dataList<T extends boolean>(
     context: NcContext,
     param: DataListParams,
-  ): Promise<DataListResponse> {
+    pagination: T = true as T,
+  ): Promise<T extends true ? DataListResponse : DataRecord[]> {
     const pagedData = await this.dataTableService.dataList(context, {
       ...(param as Omit<DataListParams, 'req'>),
       query: {
@@ -353,6 +354,12 @@ export class DataV3Service {
       depth: 0, // Start at depth 0 for main records
     });
 
+    if (!pagination) {
+      return transformedRecords as T extends true
+        ? DataListResponse
+        : DataRecord[];
+    }
+
     // Check if any LTAR fields were truncated
     const hasNextPage = transformedRecords.some((record) =>
       Object.values(record.fields).some(
@@ -366,7 +373,7 @@ export class DataV3Service {
       prev: pagedResponse.pageInfo.prev,
       nestedNext: hasNextPage ? pagedResponse.pageInfo.nestedNext : null,
       nestedPrev: pagedResponse.pageInfo.nestedPrev,
-    };
+    } as T extends true ? DataListResponse : DataRecord[];
   }
 
   /**
@@ -380,6 +387,9 @@ export class DataV3Service {
       skipSubstitutingColumnIds?: boolean;
     },
   ): Promise<any> {
+    if (!fields || typeof fields !== 'object' || Array.isArray(fields)) {
+      return fields ?? {};
+    }
     const transformedFields = { ...fields };
     const getPrimaryKey = (column: Column) => {
       return option?.skipSubstitutingColumnIds ? column.id : column.title;
@@ -624,6 +634,9 @@ export class DataV3Service {
       [primaryKey.title]: record.id,
     }));
 
+    if (recordIds.length > V3_INSERT_LIMIT) {
+      NcError.maxInsertLimitExceeded(V3_INSERT_LIMIT);
+    }
     await this.dataTableService.dataDelete(context, {
       ...param,
       body: recordIds,
@@ -673,6 +686,10 @@ export class DataV3Service {
             )),
           },
         ];
+
+    if (transformedBody.length > V3_INSERT_LIMIT) {
+      NcError.maxInsertLimitExceeded(V3_INSERT_LIMIT);
+    }
 
     await this.dataTableService.dataUpdate(context, {
       ...param,

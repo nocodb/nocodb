@@ -44,6 +44,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const upgradeWsDlg = ref(false)
   const upgradeWsJobId = ref<string | null>(null)
 
+  const removingCollaboratorMap = ref<Record<string, boolean>>({})
+
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'recent',
   )
@@ -207,7 +209,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    await ncNavigateTo({
+    ncNavigateTo({
       workspaceId,
     })
   }
@@ -304,6 +306,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isWorkspacesLoading,
     upgradeWsDlg,
     upgradeWsJobId,
+    removingCollaboratorMap,
   }
 })
 

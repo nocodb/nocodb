@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
 import { NcDebug } from 'nc-gui/utils/debug';
+import { definePDFJSModule } from 'unpdf';
 import type { INestApplication } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
@@ -58,6 +59,8 @@ export default class Noco {
   protected requestContext: any;
 
   public static sharp: typeof Sharp;
+  public static canvas: any;
+  public static isPdfjsInitialized: boolean;
 
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
@@ -140,9 +143,23 @@ export default class Noco {
 
     try {
       this.sharp = (await import('sharp')).default;
+
+      this.sharp.concurrency(1);
+      this.sharp.cache(false);
     } catch {
       console.error(
         'Sharp is not available for your platform, thumbnail generation will be skipped',
+      );
+    }
+
+    try {
+      this.canvas = await import('@napi-rs/canvas');
+      await definePDFJSModule(() => import('pdfjs-dist/legacy/build/pdf.mjs'));
+      this.isPdfjsInitialized = true;
+    } catch (e) {
+      console.error(e);
+      console.error(
+        'Canvas is not available for your platform, thumbnail generation will be skipped',
       );
     }
 

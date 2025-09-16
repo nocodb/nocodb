@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, EventType } from 'nocodb-sdk';
 import type { FilterReqType, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Filter, Hook, View } from '~/models';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class FiltersService {
@@ -67,6 +68,18 @@ export class FiltersService {
       ...parentData,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'filter_delete',
+          payload: filter,
+        },
+      },
+      context.socket_id,
+    );
+
     return true;
   }
 
@@ -94,6 +107,18 @@ export class FiltersService {
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'filter_create',
+          payload: filter,
+        },
+      },
+      context.socket_id,
+    );
 
     return filter;
   }
@@ -130,6 +155,18 @@ export class FiltersService {
       ...parentData,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'filter_update',
+          payload: filter,
+        },
+      },
+      context.socket_id,
+    );
 
     return res;
   }

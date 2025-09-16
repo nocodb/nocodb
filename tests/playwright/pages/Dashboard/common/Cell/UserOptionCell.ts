@@ -32,12 +32,12 @@ export class UserOptionCellPageObject extends BasePage {
       !(await selectCell.getAttribute('class')).includes('active') &&
       (await selectCell.locator('.nc-selected-option').count()) === 0
     ) {
-      await selectCell.hover();
-      await selectCell.click();
+      // Use force to avoid blocking element by truncated user tooltip
+      await selectCell.click({ force: true });
     }
 
-    await selectCell.hover();
-    await selectCell.click();
+    // Use force to avoid blocking element by truncated user tooltip
+    await selectCell.click({ force: true });
 
     await this.rootPage.locator('.nc-dropdown-user-select-cell.active').waitFor({ state: 'visible' });
 

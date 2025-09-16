@@ -22,6 +22,7 @@ import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { RootScopes } from '~/utils/globals';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
+import { supportsThumbnails } from '~/utils/attachmentUtils';
 import Noco from '~/Noco';
 import { UseWorker } from '~/decorators/use-worker.decorator';
 
@@ -35,8 +36,6 @@ interface AttachmentObject {
   signedPath?: string;
   signedUrl?: string;
 }
-
-const thumbnailMimes = ['image/'];
 
 // ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html - extended with some more characters
 const normalizeFilename = (filename: string) => {
@@ -194,7 +193,7 @@ export class AttachmentsService {
     }
 
     const generateThumbnail = attachments.filter((attachment) =>
-      thumbnailMimes.some((type) => attachment.mimetype.startsWith(type)),
+      supportsThumbnails(attachment),
     );
 
     if (generateThumbnail.length) {
@@ -423,7 +422,7 @@ export class AttachmentsService {
     }
 
     const generateThumbnail = attachments.filter((attachment) =>
-      thumbnailMimes.some((type) => attachment.mimetype.startsWith(type)),
+      supportsThumbnails(attachment),
     );
 
     if (generateThumbnail.length) {

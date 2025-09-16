@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import { ButtonActionsType, ColumnType } from '~/lib/Api';
 import { LongTextAiMetaProp } from '~/lib/globals';
 import { parseProp } from '~/lib/helperFunctions';
-import UITypes from '~/lib/UITypes';
+import UITypes, { isAIPromptCol } from '~/lib/UITypes';
 
 export const dataTypeLow = (column: ColumnType) => column.dt?.toLowerCase();
 
@@ -125,10 +125,10 @@ export const isAutoSaved = (column: ColumnType) =>
     UITypes.Geometry,
     UITypes.GeoData,
     UITypes.Duration,
-  ].includes(column.uidt as UITypes);
+  ].includes(column.uidt as UITypes) && !isAIPromptCol(column);
 
 export const isManualSaved = (column: ColumnType) =>
-  [UITypes.Currency].includes(column.uidt as UITypes);
+  [UITypes.Currency].includes(column.uidt as UITypes) || isAIPromptCol(column);
 
 export const isPrimary = (column: ColumnType) => !!column.pv;
 

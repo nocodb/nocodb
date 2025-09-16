@@ -58,7 +58,7 @@ export function useViewFilters(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { $api, $e } = useNuxtApp()
+  const { $api, $e, $eventBus } = useNuxtApp()
 
   const { isUIAllowed } = useRoles()
 
@@ -694,6 +694,46 @@ export function useViewFilters(
       console.error(e)
     }
   }
+
+  const evtListener = (evt: string, payload: any) => {
+    if (payload.fk_view_id !== view.value?.id) return
+
+    if (evt === 'filter_create') {
+      allFilters.value.push(payload)
+      if (!payload.fk_parent_id || payload.fk_parent_id === parentId.value) {
+        filters.value.push(payload)
+      }
+      reloadHook?.trigger()
+    } else if (evt === 'filter_update') {
+      const index = filters.value.findIndex((f) => f.id === payload.id)
+      if (index !== -1) {
+        filters.value[index] = payload
+      }
+
+      const allIndex = allFilters.value.findIndex((f) => f.id === payload.id)
+      if (allIndex !== -1) {
+        allFilters.value[allIndex] = payload
+      }
+
+      reloadHook?.trigger()
+    } else if (evt === 'filter_delete') {
+      filters.value = filters.value.filter((f) => f.id !== payload.id)
+      if (payload.is_group) {
+        deleteFilterGroupFromAllFilters(payload)
+      } else {
+        allFilters.value = allFilters.value.filter((f) => f.id !== payload.id)
+      }
+      reloadHook?.trigger()
+    }
+  }
+
+  onMounted(() => {
+    $eventBus.realtimeViewMetaEventBus.on(evtListener)
+  })
+
+  onBeforeUnmount(() => {
+    $eventBus.realtimeViewMetaEventBus.off(evtListener)
+  })
 
   return {
     filters,

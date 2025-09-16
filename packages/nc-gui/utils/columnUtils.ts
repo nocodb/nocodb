@@ -7,9 +7,11 @@ import {
   UITypes,
   LongTextAiMetaProp as _LongTextAiMetaProp,
   checkboxIconList,
+  isAIPromptCol,
   isLinksOrLTAR,
   isSystemColumn,
   isValidURL,
+  isVirtualCol,
   ratingIconList,
   validateEmail,
 } from 'nocodb-sdk'
@@ -385,7 +387,16 @@ const formViewHiddenColTypes = [
   UITypes.CreatedBy,
   UITypes.LastModifiedBy,
   AIButton,
+  AIPrompt,
 ]
+
+const isFormViewHiddenCol = (col: ColumnType | UITypes): boolean => {
+  if (typeof col === 'object') {
+    return formViewHiddenColTypes.includes(col.uidt as UITypes) || isAIPromptCol(col)
+  }
+
+  return formViewHiddenColTypes.includes(col as UITypes)
+}
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
@@ -457,6 +468,49 @@ const disableMakeCellEditable = (col: ColumnType) => {
   return showEditRestrictedColumnTooltip(col) && !isLinksOrLTAR(col)
 }
 
+const canUseForRollupLinkField = (c: ColumnType) => {
+  return (
+    c &&
+    isLinksOrLTAR(c) &&
+    (c.colOptions as LinkToAnotherRecordType)?.type &&
+    ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+      (c.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
+    ) &&
+    // exclude system columns
+    (!c.system ||
+      // include system columns if it's self-referencing, mm, oo and bt are self-referencing
+      // hm is only used for LTAR with junction table
+      [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
+        (c.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
+      ))
+  )
+}
+
+const canUseForLookupLinkField = (c: ColumnType, metaSourceId?: string) => {
+  return (
+    c &&
+    isLinksOrLTAR(c) &&
+    // exclude system columns
+    (!c.system ||
+      // include system columns if it's self-referencing, mm, oo and bt are self-referencing
+      // hm is only used for LTAR with junction table
+      [RelationTypes.MANY_TO_MANY, RelationTypes.ONE_TO_ONE, RelationTypes.BELONGS_TO].includes(
+        (c.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
+      )) &&
+    c.source_id === metaSourceId
+  )
+}
+
+const getValidRollupColumn = (c: ColumnType) => {
+  return (
+    (!isVirtualCol(c.uidt as UITypes) ||
+      [UITypes.CreatedTime, UITypes.CreatedBy, UITypes.LastModifiedTime, UITypes.LastModifiedBy, UITypes.Formula].includes(
+        c.uidt as UITypes,
+      )) &&
+    (!isSystemColumn(c) || c.pk)
+  )
+}
+
 export {
   uiTypes,
   isTypableInputColumn,
@@ -472,6 +526,7 @@ export {
   extractCheckboxIcon,
   extractRatingIcon,
   formViewHiddenColTypes,
+  isFormViewHiddenCol,
   columnToValidate,
   getColumnValidationError,
   getFormulaColDataType,
@@ -479,4 +534,7 @@ export {
   showReadonlyColumnTooltip,
   showEditRestrictedColumnTooltip,
   disableMakeCellEditable,
+  canUseForRollupLinkField,
+  canUseForLookupLinkField,
+  getValidRollupColumn,
 }

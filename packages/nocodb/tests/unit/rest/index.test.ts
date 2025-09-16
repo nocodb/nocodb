@@ -1,4 +1,5 @@
 import 'mocha';
+import { willRunOnSet } from '../utils/runOnSet';
 import authTests from './tests/auth.test';
 import orgTests from './tests/org.test';
 import baseTests from './tests/base.test';
@@ -14,8 +15,10 @@ import readOnlyTest from './tests/readOnlySource.test';
 import aggregationTest from './tests/aggregation.test';
 
 import dataAPIsV3Test from './tests/dataAPIsV3.test';
+import bulkV1Test from './tests/bulk-v1.test';
 import metaTestV3 from './tests/metaApiV3/index.test';
 import tableTests from './tests/meta-apis/table.test';
+import { paymentTest } from './tests/payment/payment.test';
 
 let workspaceTest = () => {};
 let ssoTest = () => {};
@@ -35,25 +38,29 @@ if (process.env.EE === 'true') {
 const testVersion = ['v1', 'v2', 'v3'];
 
 function restTests() {
-  authTests();
-  orgTests();
-  baseTests();
-  tableRowTests();
-  viewRowTests();
-  columnTypeSpecificTests();
-  attachmentTests();
-  filterTest();
-  groupByTest();
-  workspaceTest();
-  formulaTests();
-  ssoTest();
-  cloudOrgTest();
-  typeCastsTest();
-  readOnlyTest();
-  aggregationTest();
-  bulkAggregationTest();
-  columnTest();
-  integrationTest();
+  if (willRunOnSet(1)) {
+    authTests();
+    orgTests();
+    baseTests();
+    tableRowTests();
+    viewRowTests();
+    columnTypeSpecificTests();
+    attachmentTests();
+    filterTest();
+    groupByTest();
+    workspaceTest();
+    formulaTests();
+    ssoTest();
+    cloudOrgTest();
+    typeCastsTest();
+    readOnlyTest();
+    aggregationTest();
+    bulkAggregationTest();
+    columnTest();
+    integrationTest();
+    paymentTest();
+    bulkV1Test();
+  }
 
   if (testVersion.includes('v1')) tableTests('v1');
   if (testVersion.includes('v2')) dataAPIsV3Test('v2');

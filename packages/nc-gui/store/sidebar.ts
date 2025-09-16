@@ -12,6 +12,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     return MINI_SIDEBAR_WIDTH
   })
 
+  const isFullScreen = ref(false)
+
   const tablesStore = useTablesStore()
   const isLeftSidebarOpen = computed({
     get() {
@@ -82,6 +84,29 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
+  const ncIsIframeFullscreenSupported = ref(false)
+
+  const toggleFullScreenState = () => {
+    if (isFullScreen.value) {
+      isLeftSidebarOpen.value = true
+      if ((!ncIsIframe() || ncIsIframeFullscreenSupported.value) && document?.exitFullscreen && document?.fullscreenElement) {
+        document.exitFullscreen().catch((err) => {
+          console.warn('Exit fullscreen failed:', err)
+        })
+      }
+    } else {
+      isLeftSidebarOpen.value = false
+
+      if ((!ncIsIframe() || ncIsIframeFullscreenSupported.value) && document?.documentElement?.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch((err) => {
+          console.warn('Request fullscreen failed:', err)
+        })
+      }
+    }
+
+    isFullScreen.value = !isFullScreen.value
+  }
+
   onMounted(() => {
     if (!isViewPortMobile() || tablesStore.activeTableId) return
 
@@ -105,6 +130,9 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     hideSidebar,
     showTopbar,
     miniSidebarWidth,
+    isFullScreen,
+    toggleFullScreenState,
+    ncIsIframeFullscreenSupported,
   }
 })
 

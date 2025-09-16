@@ -14,6 +14,7 @@ import { AiWizardTabsType, type PredictedFieldType, type UiTypesType } from '#im
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
+import { isEeUI } from '#imports'
 
 const props = defineProps<{
   preload?: Partial<ColumnType>
@@ -97,6 +98,8 @@ const { t } = useI18n()
 
 const { isMetaReadOnly } = useRoles()
 
+const { showUpgradeToUseAiPromptField, blockAiPromptField } = useEeConfig()
+
 const { eventBus } = useSmartsheetStoreOrThrow()
 
 const columnLabel = computed(() => props.columnLabel || t('objects.field'))
@@ -130,6 +133,17 @@ const mounted = ref(false)
 const showDefaultValueInput = ref(false)
 
 const showHoverEffectOnSelectedType = ref(true)
+
+const columnUidt = computed({
+  get: () => formState.value.uidt,
+  set: (value: UITypes) => {
+    if (value === AIPrompt && showUpgradeToUseAiPromptField()) {
+      return
+    }
+
+    formState.value.uidt = value
+  },
+})
 
 const isVisibleDefaultValueInput = computed({
   get: () => {
@@ -185,8 +199,8 @@ const uiFilters = (t: UiTypesType) => {
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
-  const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isAiBetaFeaturesEnabled.value && !isEdit.value : true
-  const isAllowToAddInFormView = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
+  const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI : true
+  const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
   const showLTAR =
     t.name === UITypes.LinkToAnotherRecord ? isFeatureEnabled(FEATURE_FLAG.LINK_TO_ANOTHER_RECORD) && !isEdit.value : true
@@ -291,6 +305,8 @@ const handleScrollDebounce = useDebounceFn(() => {
 
 const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSearchList = false) => {
   let preload
+
+  if (uidt === AIPrompt && blockAiPromptField.value) return
 
   if (fromSearchList && !isEdit.value && aiAutoSuggestMode.value) {
     onInit()
@@ -570,6 +586,7 @@ const triggerDescriptionEnable = () => {
     enableDescription.value = true
     setTimeout(() => {
       descInputEl.value?.focus()
+      descInputEl.value?.$el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 100)
   }
   nextTick(() => {
@@ -690,6 +707,9 @@ const isLookupOrRollup = computed(() => {
 const lookupRollupFilterEnabled = computed(() => {
   return isLookupOrRollup.value && !!parseProp(formState.value?.meta)?.enableConditions
 })
+
+const easterEggCount = ref(0)
+const easterEgg = computed(() => easterEggCount.value >= 2)
 </script>
 
 <template>
@@ -712,6 +732,7 @@ const lookupRollupFilterEnabled = computed(() => {
     @keydown="handleEscape"
     @click.stop
     @scroll="handleScrollDebounce"
+    @dblclick="easterEggCount += 1"
   >
     <a-form
       v-model="formState"
@@ -1095,7 +1116,7 @@ const lookupRollupFilterEnabled = computed(() => {
             >
             <a-select
               v-model:open="isColumnTypeOpen"
-              v-model:value="formState.uidt"
+              v-model:value="columnUidt"
               show-search
               class="nc-column-type-input nc-select-shadow !rounded-lg"
               :class="{
@@ -1312,31 +1333,33 @@ const lookupRollupFilterEnabled = computed(() => {
               </NcSwitch>
             </div>
           </div>
-
-          <div
-            v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
-            class="text-xs text-gray-400 flex items-center justify-end"
-          >
+          <template v-if="easterEgg || (appInfo.ee && isAttachment(formState))">
+            <!-- TODO: Refactor the if condition and verify AttachmentOption -->
             <div
-              class="nc-more-options flex items-center gap-1 cursor-pointer select-none"
-              @click="advancedOptions = !advancedOptions"
+              v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
+              class="text-xs text-gray-400 flex items-center justify-end"
             >
-              {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
-              <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
+              <div
+                class="nc-more-options flex items-center gap-1 cursor-pointer select-none"
+                @click="advancedOptions = !advancedOptions"
+              >
+                {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
+                <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
+              </div>
             </div>
-          </div>
 
-          <Transition name="layout" mode="out-in">
-            <div v-if="advancedOptions" class="overflow-hidden">
-              <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
+            <Transition name="layout" mode="out-in">
+              <div v-if="advancedOptions" class="overflow-hidden">
+                <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
 
-              <LazySmartsheetColumnAdvancedOptions
-                v-if="formState.uidt !== UITypes.Attachment"
-                v-model:value="formState"
-                :advanced-db-options="advancedOptions || formState.uidt === UITypes.SpecificDBType"
-              />
-            </div>
-          </Transition>
+                <LazySmartsheetColumnAdvancedOptions
+                  v-if="formState.uidt !== UITypes.Attachment"
+                  v-model:value="formState"
+                  :advanced-db-options="advancedOptions || formState.uidt === UITypes.SpecificDBType"
+                />
+              </div>
+            </Transition>
+          </template>
         </template>
 
         <a-form-item

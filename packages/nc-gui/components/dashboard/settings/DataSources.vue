@@ -68,11 +68,22 @@ async function updateIfSourceOrderIsNullOrDuplicate() {
     return (a.order ?? 0) - (b.order ?? 0)
   })
 
+  let initialOrder = 1
+
+  if (!(sources.value[0]!.is_local || sources.value[0]!.is_meta)) {
+    // If default source not found, and only one source, return
+    if (sources.value.length === 1) return
+
+    // If default source not found and more than one source, set initial order to 2
+    // because order 1 is for default source
+    initialOrder = 2
+  }
+
   // update the local state
-  sources.value = sources.value.map((source, i) => {
+  sources.value = sources.value.map((source) => {
     return {
       ...source,
-      order: i + 1,
+      order: initialOrder++,
     }
   })
 
@@ -592,7 +603,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
             class="flex items-center justify-center absolute left-0 top-0 w-full h-[calc(100%_-_45px)] z-10 pb-10 pointer-events-none"
           >
             <div class="flex flex-col justify-center items-center gap-2">
-              <GeneralLoader size="xlarge" />
+              <a-spin size="large" />
               <span class="text-center">{{ $t('general.loading') }}</span>
             </div>
           </div>

@@ -7,12 +7,11 @@ import {
   IntegrationsType,
   LinkToAnotherRecordType,
 } from './Api';
-import { FormulaDataTypes } from './formulaHelpers';
+import { FormulaDataTypes } from './formula/enums';
 import { ncIsNull, ncIsUndefined } from '~/lib/is';
 
 // import {RelationTypes} from "./globals";
 
-// const systemCols = ['created_at', 'updated_at']
 const filterOutSystemColumns = (columns) => {
   return (columns && columns.filter((c) => !isSystemColumn(c))) || [];
 };
@@ -26,8 +25,6 @@ const isSystemColumn = (col): boolean =>
   !!(
     col &&
     (col.uidt === UITypes.ForeignKey ||
-      ((col.column_name === 'created_at' || col.column_name === 'updated_at') &&
-        col.uidt === UITypes.DateTime) ||
       (col.pk && (col.ai || col.cdf)) ||
       (col.pk && col.meta && col.meta.ag) ||
       col.system)

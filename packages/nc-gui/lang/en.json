@@ -121,8 +121,10 @@
     "upgradeToAdd": "Upgrade to add",
     "requestUpgradeToAdd": "Request upgrade to add",
     "upgradeToAddMoreExtensions": "You're currently on the Free plan, which allows only one extension. Upgrade to unlock unlimited extensions.",
-    "upgradeToAddMoreScripts": "You're currently on the Free plan, which allows only one script. Upgrade to unlock unlimited scripts.",
-    "upgradeToAddMoreDashboards": "You're currently on the Free plan, which allows only one dashboard. Upgrade to unlock unlimited dashboards.",
+    "upgradeToAddMoreScripts": "Upgrade to add more scripts",
+    "upgradeToAddMoreDashboards": "Upgrade to add more dashboards",
+    "upgradeToAddMoreScriptsSubtitle": "You're currently on the Free plan, which allows only one script per workspace. Upgrade to unlock unlimited scripts.",
+    "upgradeToAddMoreDashboardsSubtitle": "You're currently on the Free plan, which allows only one dashboard per workspace. Upgrade to unlock unlimited dashboards.",
     "upgradeToAccessWsAudit": "Upgrade to access workspace audit",
     "upgradeToAccessWsAuditSubtitle": "Upgrade to the {plan} plan to enable workspace audit logs and efficiently monitor key activities.",
     "upgradeToAddMoreAttachments": "Upgrade to add more attachments",
@@ -137,6 +139,8 @@
     "upgradeToAddWebhook": "Upgrade to add unlimited webhooks",
     "upgradeToAddWebhookSubtitle": "The {activePlan} plan allows up to {limit} webhooks. Upgrade to the {plan} plan and get access to unlimited webhooks.",
     "upgradeToAccessWebhookLogsSubtitle": "Access webhook logs by upgrading your workspace to the {plan} plan.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Form creator notified",
     "formOwnerNotifiedSubtitle": "We've notified the form creator about your submission request.",
     "WorkspaceOwnerNotified": "Workspace owner notified",
@@ -158,6 +162,8 @@
     "upgradeToUploadWsImage": "Upgrade to upload a workspace image",
     "upgradeToUploadWsImageSubtitle": "Your current {activePlan} plan allows only icons and emojis. Upgrade to the {plan} plan to upload a custom image as your workspace avatar.",
     "upgradeToUseCurrentUserFilter": "Upgrade to filter by current user",
+    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
+    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
     "upgradeToUseRowColoring": "Upgrade to use row colouring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -171,7 +177,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Private bases are available on the {plan} plan. Upgrade now to start using them.",
     "upgradeLicenseToUsePrivateBases": "Upgrade license to unlock private bases",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Script",
@@ -192,6 +200,8 @@
     "trigger": "Trigger",
     "addLookupField": "Add {count} lookup field",
     "addLookupFieldPlural": "Add {count} lookup fields",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "Style",
     "label": "Label",
     "role": "Role",
@@ -387,6 +397,7 @@
     "languages": "Languages",
     "extension": "Extension",
     "extensions": "Extensions",
+    "actions": "Actions",
     "enable": "Enable",
     "disable": "Disable",
     "poweredBy": "Powered by",
@@ -858,6 +869,7 @@
     "yourBaseRole": "Your base role",
     "lockedByUser": "Locked by {user}",
     "thisPageDoesNotExist": "This page doesn’t exist",
+    "thisPageDoesNotExistSubtile": "It looks like the link you followed is invalid or the page has been removed.",
     "customUrl": "Custom URL",
     "viewSettingsCantBeChangedWhenViewIs": "View settings can't be changed when the view is {type}",
     "youAreLeavingNocoDB": "You’re leaving NocoDB",
@@ -886,6 +898,7 @@
     "currentUser": "Current User",
     "filteredByLoggedInUser": "Filtered by logged-in user",
     "hideExtensions": "Hide Extensions",
+    "hideActions": "Hide Actions",
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
@@ -901,7 +914,11 @@
     "thisPrivateBaseHasBeenLockedSubtext": "To unlock, please upgrade to the {plan} plan or convert this Base to a Shared Base.",
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} fields have custom permissions",
     "cancelSubscriptionBeforeDeletingWorkspace": "Cancel subscription before deleting workspace",
-    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion."
+    "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "This workspace has an active subscription. Please review and cancel it before proceeding with deletion.",
+    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
     "configurationError": "Incomplete configuration",
@@ -945,6 +962,7 @@
     "duplicateBaseSuccessfull": "Base Duplication Successfull",
     "duplicateBaseFailed": "Base Duplication Failed",
     "duplicateBaseMessage": "You can only duplicate bases into workspaces where you have creator access or above.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "You can only restore into workspaces where you have creator access or above.",
     "currentWorkspace": "Current workspace",
     "currentBase": "Current base",
@@ -965,6 +983,7 @@
     "actionLogs": "Action Logs",
     "runScript": "Run Script",
     "scriptName": "Script name",
+    "dashboardName": "Dashboard name",
     "enableSnowFall": "Enable Snowfall",
     "disableSnowFall": "Disable Snowfall",
     "snapshotCreationFailed": "Snapshot creation failed",
@@ -1012,6 +1031,8 @@
     "clearAll": "Clear all",
     "addNewLookupHelperText1": "Lookup fields show data from linked records. Select specific fields from ",
     "addNewLookupHelperText2": " table to add them as Lookup fields in this table.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "Formatting",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Format type",
@@ -1400,6 +1421,8 @@
     "generateFieldDataUsingAi": "Generate field value using AI",
     "preview": "Preview",
     "autoSuggest": "Auto suggest",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Suggesting...",
     "autoSuggestFields": "Auto suggest fields",
     "autoSuggestFormulas": "Auto suggest formulas",
@@ -1460,13 +1483,16 @@
     "sharingRestricted": "Sharing restricted",
     "importOptions": "Import Options",
     "newScript": "New Script",
-    "emptyScript": "Empty Script"
+    "emptyScript": "Empty Script",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreen": "Exit fullscreen"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
     "resolvedBy": "Resolved by",
     "leaveWorkspace": "Leave workspace",
     "removeUser": "Remove user",
+    "removeMember": "Remove member",
     "filterByThisField": "Filter by this field",
     "groupByThisField": "Group by this field",
     "addToStarred": "Add to starred",
@@ -1756,7 +1782,8 @@
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
-    "navigateToBilling": "Navigate to billing"
+    "navigateToBilling": "Navigate to billing",
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
@@ -1834,7 +1861,11 @@
     "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
     "addLookupFields": "Add Lookup Fields",
     "sourceVisibilityIsHidden": "Data source visibility is hidden",
-    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field"
+    "youDontHavePermissionToEditThisField": "You don't have permission to edit this field",
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Search icons",
@@ -2468,7 +2499,8 @@
       "upgradeSuccessfulSubtitle": "Your payment for the upgrade has been processed. You can now use your new plan.",
       "mcpUrlCopied": "MCP URL copied to clipboard",
       "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

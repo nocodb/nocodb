@@ -58,6 +58,8 @@ const { metas } = useMetas()
 
 const { isUIAllowed, isMetaReadOnly } = useRoles()
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const meta = inject(MetaInj, ref())
 
 const isGrid = inject(IsGridInj, ref(false))
@@ -266,11 +268,17 @@ const onClick = (e: Event) => {
 
       <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-red-500">&nbsp;*</span>
 
-      <GeneralIcon
+      <PermissionsTooltip
         v-if="!isAllowedToEditField"
-        icon="ncLock"
-        class="nc-column-lock-icon flex-none !ml-1 w-3.5 h-3.5 opacity-90"
-      />
+        :entity="PermissionEntity.FIELD"
+        :entity-id="column.id"
+        :permission="PermissionKey.RECORD_FIELD_EDIT"
+        :show-pointer-event-none="false"
+        hide-on-click
+        class="!ml-1 flex children:flex"
+      >
+        <GeneralIcon icon="ncLock" class="nc-column-lock-icon flex-none w-3.5 h-3.5 opacity-90" />
+      </PermissionsTooltip>
 
       <GeneralIcon
         v-if="isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm && !hideMenu"
@@ -282,6 +290,16 @@ const onClick = (e: Event) => {
         }"
       />
     </div>
+
+    <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">
+      <template #title>
+        <div class="whitespace-pre-wrap break-words">{{ column.description }}</div>
+      </template>
+      <div>
+        <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
+      </div>
+    </NcTooltip>
+
     <template v-if="!hideMenu">
       <div v-if="!isExpandedForm" class="flex-1" />
 

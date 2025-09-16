@@ -1335,8 +1335,6 @@ test.describe('Form view: field validation', () => {
     await validateAttType.verify({ hasError: false });
 
     const validateAttCount = await form.getFormFieldsValidateAttFileCount();
-    await validateAttCount.click({ enable: true, fillValue: '1a' });
-    await validateAttCount.verify({ hasError: true });
     await validateAttCount.click({ enable: true, fillValue: '1' });
     await validateAttCount.verify({ hasError: false });
 

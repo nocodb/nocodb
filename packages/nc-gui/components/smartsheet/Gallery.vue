@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PermissionEntity, PermissionKey, UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, PermissionEntity, PermissionKey, UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Attachment } from '../../lib/types'
 import type { Row as RowType } from '#imports'
 
@@ -13,11 +13,11 @@ const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook()
 const isPublic = inject(IsPublicInj, ref(false))
 const fields = inject(FieldsInj, ref([]))
 
+const { user } = useGlobal()
 const { isViewDataLoading } = storeToRefs(useViewsStore())
-const { isSqlView, xWhere, isExternalSource, isSyncedTable } = useSmartsheetStoreOrThrow()
+const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
 const route = useRoute()
-const { getPossibleAttachmentSrc } = useAttachment()
 const router = useRouter()
 
 const { showRecordPlanLimitExceededModal, blockExternalSourceRecordVisibility, showAsBluredRecord } = useEeConfig()
@@ -35,7 +35,6 @@ provide(ReloadRowDataHookInj, reloadViewDataHook!)
 
 const {
   fetchChunk,
-  loadGalleryData,
   deleteRow,
   syncCount,
   navigateToSiblingRow,
@@ -154,8 +153,16 @@ const expandFormClick = async (e: MouseEvent, row: RowType) => {
 }
 
 const openNewRecordFormHookHandler = async () => {
+  const rowFilters = getPlaceholderNewRow(
+    [...allFilters.value, ...validFiltersFromUrlParams.value],
+    meta.value?.columns as ColumnType[],
+    {
+      currentUser: user.value ?? undefined,
+    },
+  )
+
   expandForm({
-    row: { ...rowDefaultData(meta.value?.columns) },
+    row: { ...rowDefaultData(meta.value?.columns), ...rowFilters },
     oldRow: {},
     rowMeta: { new: true },
   })
@@ -174,8 +181,6 @@ onBeforeUnmount(() => openNewRecordFormHook.off(openNewRecordFormHookHandler))
 const reloadAttachments = ref(false)
 
 reloadViewMetaHook?.on(async () => {
-  await loadGalleryData()
-
   reloadAttachments.value = true
 
   await nextTick(() => {
@@ -321,8 +326,6 @@ watch(
     isViewDataLoading.value = true
     try {
       if (nextView?.type === ViewTypes.GALLERY) {
-        await loadGalleryData()
-
         await syncCount()
         if (rowSlice.end === 0) {
           rowSlice.end = Math.min(100, totalRows.value)
@@ -353,7 +356,7 @@ const placeholderAboveHeight = computed(() => {
 const { width, height } = useWindowSize()
 
 watch(
-  [() => width.value, () => height.value, () => columnsPerRow.value, () => scrollContainerWidth.value],
+  [() => width.value, () => height.value, () => columnsPerRow.value, () => scrollContainerWidth.value, () => totalRows.value],
   () => {
     calculateSlices()
   },
@@ -381,7 +384,7 @@ const handleOpenNewRecordForm = () => {
   <div
     ref="scrollContainer"
     data-testid="nc-gallery-wrapper"
-    class="flex flex-col w-full nc-gallery select-none relative nc-scrollbar-md bg-nc-bg-gray-extralight h-[calc(100svh-93px)]"
+    class="flex flex-col w-full nc-gallery select-none relative nc-scrollbar-md bg-nc-bg-gray-extralight h-[calc(100svh-var(--toolbar-height)-var(--topbar-height))]"
   >
     <NcDropdown
       v-model:visible="contextMenu"
@@ -484,14 +487,16 @@ const handleOpenNewRecordForm = () => {
                           </NcButton>
                         </div>
                       </template>
-                      <template v-for="(attachment, index) in attachments(record)">
-                        <LazyCellAttachmentPreviewImage
-                          v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
-                          :key="`carousel-${record.rowMeta.rowIndex}-${index}`"
+                      <template
+                        v-for="(attachment, index) in attachments(record)"
+                        :key="`carousel-${record.rowMeta.rowIndex}-${index}`"
+                      >
+                        <LazyCellAttachmentPreviewThumbnail
+                          :attachment="attachment"
                           class="h-52"
+                          thumbnail="card_cover"
                           image-class="!w-full"
                           :object-fit="coverImageObjectFitStyle"
-                          :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
                           @click="expandFormClick($event, record)"
                         />
                       </template>

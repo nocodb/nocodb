@@ -11,6 +11,7 @@ interface Props {
   disableLabel?: boolean
   autoSelect?: boolean
   disabled?: boolean
+  allowClear?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -18,6 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
   disableLabel: false,
   autoSelect: false,
   disabled: false,
+  allowClear: false,
 })
 
 const emit = defineEmits<{
@@ -35,8 +37,7 @@ const modelValue = useVModel(props, 'value', emit)
 const isOpenColumnSelectDropdown = ref(false)
 
 const handleValueUpdate = (value: any) => {
-  const stringValue = String(value)
-  modelValue.value = stringValue
+  modelValue.value = value
 }
 
 const columnList = computedAsync(async () => {
@@ -68,7 +69,7 @@ const columnList = computedAsync(async () => {
       ...column,
     }
   })
-})
+}, [])
 
 const columnListMap = computed(() => {
   if (!columnList.value || columnList.value.length === 0) return new Map()
@@ -142,16 +143,11 @@ defineExpose({
     <NcListDropdown
       v-model:is-open="isOpenColumnSelectDropdown"
       :disabled="disabled"
-      :default-slot-wrapper-class="
-        disabled
-          ? 'text-nc-content-gray-muted cursor-not-allowed bg-nc-bg-gray-light children:opacity-60'
-          : 'text-nc-content-gray'
-      "
       :has-error="!!selectedColumn?.ncItemDisabled"
     >
-      <div class="flex-1 flex items-center gap-2 min-w-0">
+      <div class="flex-1 flex group items-center gap-2 min-w-0">
         <div v-if="selectedColumn" class="min-w-5 flex items-center justify-center">
-          <NcIconField :field="selectedColumn" class="text-gray-500" />
+          <SmartsheetHeaderIcon :column="selectedColumn" color="text-nc-content-gray-muted" />
         </div>
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
           <span v-if="selectedColumn" class="text-sm flex-1 truncate text-nc-content-gray-default">
@@ -163,6 +159,13 @@ defineExpose({
             {{ selectedColumn?.label || 'Select field' }}
           </template>
         </NcTooltip>
+
+        <GeneralIcon
+          v-if="selectedColumn && allowClear"
+          class="hidden text-nc-content-gray-muted transition group-hover:!block h-4 w-4 cursor-pointer"
+          icon="ncXCircle"
+          @click.stop="handleValueUpdate(null)"
+        />
 
         <GeneralIcon
           icon="ncChevronDown"
@@ -184,7 +187,7 @@ defineExpose({
           <template #item="{ item }">
             <div class="w-full flex items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
-                <NcIconField :field="item" class="text-gray-500" />
+                <SmartsheetHeaderIcon :column="item" color="text-nc-content-gray-muted" />
               </div>
               <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                 <template #title>{{ item.label }}</template>

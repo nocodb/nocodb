@@ -198,6 +198,16 @@ const isExpanded = useVModel(props, 'modelValue', emits, {
   defaultValue: false,
 })
 
+// check if the row is new and has some changes on LTAR/Links
+// this is to enable save if there are changes on LTAR/Links
+const isLTARChanged = computed(() => {
+  return isNew.value && row.value?.rowMeta?.ltarState && Object.keys(row.value?.rowMeta?.ltarState).length > 0
+})
+
+const isSaveRecordBtnDisabled = computed(() => {
+  return changedColumns.value.size === 0 && !isUnsavedFormExist.value && !isLTARChanged.value
+})
+
 const onClose = (force = false) => {
   if (force) {
     isExpanded.value = false
@@ -230,7 +240,7 @@ const onDuplicateRow = () => {
   setTimeout(async () => {
     _row.value = newRow
     duplicatingRowInProgress.value = false
-    message.success(t('msg.success.rowDuplicatedWithoutSavedYet'))
+    message.toast(t('msg.success.rowDuplicatedWithoutSavedYet'))
   }, 500)
 }
 
@@ -472,6 +482,10 @@ useActiveKeydownListener(
         return
       }
 
+      if (!isAllowedAddNewRecord.value || isSaveRecordBtnDisabled.value) {
+        return
+      }
+
       try {
         if (isNew.value) {
           await _save(rowState.value)
@@ -542,9 +556,6 @@ const onConfirmDeleteRowClick = async () => {
   await deleteRowById(primaryKey.value || undefined)
 
   emits('deletedRecord')
-
-  message.success(t('msg.rowDeleted'))
-
   showDeleteRowModal.value = false
   onClose(true)
 
@@ -568,7 +579,7 @@ const preventModalStatus = computed({
 const onIsExpandedUpdate = (v: boolean) => {
   let isDropdownOpen = false
   document.querySelectorAll('.ant-select-dropdown').forEach((el) => {
-    isDropdownOpen = isDropdownOpen || el.checkVisibility()
+    isDropdownOpen = isDropdownOpen || el?.checkVisibility?.()
   })
 
   if (isDropdownOpen) return
@@ -630,12 +641,6 @@ const modalProps = computed(() => {
     }
   }
   return {}
-})
-
-// check if the row is new and has some changes on LTAR/Links
-// this is to enable save if there are changes on LTAR/Links
-const isLTARChanged = computed(() => {
-  return isNew.value && row.value?.rowMeta?.ltarState && Object.keys(row.value?.rowMeta?.ltarState).length > 0
 })
 
 watch(
@@ -767,7 +772,7 @@ export default {
             <template #default="{ isAllowed }">
               <NcButton
                 v-e="['c:row-expand:save']"
-                :disabled="!isAllowed || (changedColumns.size === 0 && !isUnsavedFormExist && !isLTARChanged)"
+                :disabled="!isAllowed || isSaveRecordBtnDisabled"
                 :loading="isSaving"
                 class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
                 data-testid="nc-expanded-form-save"
@@ -979,7 +984,12 @@ export default {
   @apply xs:my-0;
 
   .ant-drawer-content-wrapper {
-    @apply !h-[90vh];
+    @apply !h-[90dvh];
+
+    @supports (height: 90dvh) {
+      @apply !h-[90dvh];
+    }
+
     .ant-drawer-content {
       @apply rounded-t-2xl;
     }

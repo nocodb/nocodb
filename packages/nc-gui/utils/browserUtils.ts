@@ -1,4 +1,5 @@
 import type { Editor } from '@tiptap/vue-3'
+import { ncIsArray } from 'nocodb-sdk'
 
 // refer - https://stackoverflow.com/a/11752084
 export const isMac = () => /Mac/i.test(navigator.platform)
@@ -20,6 +21,8 @@ export const isActiveElementInsideExtension = () =>
 export const isTiptapDropdownExistInsideEditor = () => {
   return document.querySelector('.tippy-box')
 }
+
+export const ncIsIframe = () => window.self !== window.top
 
 export const isSidebarNodeRenameActive = () => document.querySelector('input.animate-sidebar-node-input-padding')
 export function hasAncestorWithClass(element: HTMLElement, className: string | Array<string>): boolean {
@@ -188,3 +191,16 @@ export const estimateTagWidth = ({
 
   return totalWidth
 }
+
+/**
+ * Remove query params from the URL
+ * @param keysToRemove - The keys to remove from the URL
+ */
+export const removeQueryParamsFromURL = (keysToRemove: string[]) => {
+  const url = new URL(window.location.href)
+  keysToRemove.forEach((key) => url.searchParams.delete(key))
+  window.history.replaceState({}, '', url.toString())
+}
+
+// Feature detection.
+export const supportsKeyboardLock = 'keyboard' in navigator && navigator.keyboard && 'lock' in (navigator.keyboard as any)

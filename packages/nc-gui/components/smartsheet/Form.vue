@@ -431,12 +431,20 @@ async function onMove(event: any, isVisibleFormFields = false) {
 
   const fieldIndex = fields.value?.findIndex((f) => f?.fk_column_id === element.fk_column_id)
 
-  if (fieldIndex === -1 || fieldIndex === undefined || !fields.value?.[fieldIndex]) return
+  if (
+    fieldIndex === -1 ||
+    fieldIndex === undefined ||
+    !fields.value?.[fieldIndex] ||
+    (isVisibleFormFields && !visibleColumns.value[newIndex])
+  ) {
+    return
+  }
 
   if (isVisibleFormFields) {
     element = localColumns.value[localColumns.value?.findIndex((c) => c.fk_column_id === element.fk_column_id)]
-    newIndex = localColumns.value.findIndex((c) => c.fk_column_id === visibleColumns.value[newIndex].fk_column_id)
+    newIndex = localColumns.value.findIndex((c) => c.fk_column_id === visibleColumns.value[newIndex]!.fk_column_id)
   }
+
   if (!localColumns.value.length || localColumns.value.length === 1) {
     element.order = 1
   } else if (localColumns.value.length - 1 === newIndex) {
@@ -560,7 +568,7 @@ function setFormData() {
   emailMe.value = data[user.value?.email as string]
 
   localColumns.value = col
-    .filter((f) => !formViewHiddenColTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
+    .filter((f) => !isFormViewHiddenCol(f) && !systemFieldsIds.value.includes(f.fk_column_id))
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 
@@ -1352,18 +1360,48 @@ const { message: templatedMessage } = useTemplatedMessage(
                             data-testid="nc-form-fields"
                             @click.stop="onFormItemClick(element)"
                           >
-                            <div v-if="activeRow === element.id" class="absolute -left-3 top-6">
-                              <NcButton
-                                type="primary"
-                                size="small"
-                                class="nc-form-field-drag-handler !cursor-move !p-1 !min-w-6 !h-auto !rounded"
-                              >
-                                <component
-                                  :is="iconMap.drag"
-                                  class="nc-form-field-drag-handler flex-none !h-4 !w-4 text-white font-bold"
-                                />
-                              </NcButton>
-                            </div>
+                            <template v-if="activeRow === element.id">
+                              <div class="absolute -left-3 top-6">
+                                <NcButton
+                                  type="primary"
+                                  size="small"
+                                  class="nc-form-field-drag-handler !cursor-move !p-1 !min-w-6 !h-auto !rounded"
+                                >
+                                  <component
+                                    :is="iconMap.drag"
+                                    class="nc-form-field-drag-handler flex-none !h-4 !w-4 text-white font-bold"
+                                  />
+                                </NcButton>
+                              </div>
+                              <div class="absolute right-1 top-1">
+                                <NcTooltip
+                                  :title="
+                                    isRequired(element, element.required)
+                                      ? $t('tooltip.youCantRemoveARequiredField')
+                                      : $t('tooltip.removeFromForm')
+                                  "
+                                >
+                                  <NcButton
+                                    type="link"
+                                    size="xsmall"
+                                    class="nc-form-field-hide !bg-transparent !h-6 !w-6"
+                                    :class="{
+                                      '!text-nc-content-gray-muted !hover:text-nc-content-brand': !isRequired(
+                                        element,
+                                        element.required,
+                                      ),
+                                    }"
+                                    icon-only
+                                    :disabled="isRequired(element, element.required)"
+                                    @click="showOrHideColumn(element, false, false)"
+                                  >
+                                    <template #icon>
+                                      <GeneralIcon icon="close" class="!w-4 !h-4" />
+                                    </template>
+                                  </NcButton>
+                                </NcTooltip>
+                              </div>
+                            </template>
                             <div class="flex items-center gap-3">
                               <NcTooltip
                                 v-if="allViewFilters[element.fk_column_id]?.length && !isLocked"
@@ -1388,9 +1426,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 <span data-testid="nc-form-input-label">
                                   {{ element.label || element.title }}
                                 </span>
-                                <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]"
-                                  >&nbsp;*</span
-                                >
+                                <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]">
+                                  &nbsp;*
+                                </span>
                               </div>
                             </div>
 
@@ -1517,12 +1555,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                       <div class="px-1.75 text-gray-500 text-xl font-normal">/</div>
 
                       <div class="flex items-center pr-1 py-1.5 text-gray-800">
-                        <SmartsheetHeaderVirtualCellIcon
-                          v-if="isVirtualCol(activeField)"
-                          :column-meta="activeField"
-                          class="flex-none"
-                        />
-                        <SmartsheetHeaderCellIcon v-else :column-meta="activeField" class="flex-none" />
+                        <SmartsheetHeaderIcon :column="activeField" />
 
                         <NcTooltip class="truncate max-w-[120px] text-sm font-semibold" show-on-truncate-only>
                           <template #title>
@@ -1740,12 +1773,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     class="flex-1 flex items-center cursor-pointer max-w-[calc(100%_-_40px)]"
                                     @click.prevent="onFormItemClick(field, true)"
                                   >
-                                    <SmartsheetHeaderVirtualCellIcon
-                                      v-if="field && isVirtualCol(field)"
-                                      :column-meta="field"
-                                      class="!text-gray-600"
-                                    />
-                                    <SmartsheetHeaderCellIcon v-else :column-meta="field" class="!text-gray-600" />
+                                    <SmartsheetHeaderIcon :column="field" color="text-nc-content-gray-subtle" />
+
                                     <div class="flex-1 flex items-center justify-start max-w-[calc(100%_-_28px)]">
                                       <div class="w-full flex items-center">
                                         <div class="ml-1 inline-flex" :class="field.label?.trim() ? 'max-w-1/2' : 'max-w-[95%]'">
@@ -1789,7 +1818,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     class="flex"
                                     placement="topRight"
                                   >
-                                    <template #title> You can't hide a required field.</template>
+                                    <template #title> $t('tooltip.youCantHideARequiredField')</template>
                                     <a-switch
                                       :checked="!!field.show"
                                       :disabled="field.required || isLocked || !isEditable"

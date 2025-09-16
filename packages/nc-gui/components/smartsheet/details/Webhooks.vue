@@ -245,6 +245,10 @@ const getHookTypeText = (hook: HookType) => {
       return `${prefix}${operations[0]}`
     }
 
+    if (operations.length === 2) {
+      return `${prefix}${operations.join(` ${t('general.or').toLowerCase()} `)}`
+    }
+
     return t('labels.sendAllEvents')
   }
 

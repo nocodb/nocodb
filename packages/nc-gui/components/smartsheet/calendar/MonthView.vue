@@ -759,7 +759,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="text-center bg-gray-50 py-1 border-r-1 last:border-r-0 border-gray-100 font-semibold leading-4 uppercase text-[10px] text-gray-500"
+        class="text-center bg-nc-bg-gray-extra-light py-1 border-r-1 last:border-r-0 border-nc-border-gray-light font-semibold leading-4 uppercase text-[10px] text-nc-content-gray-muted"
       >
         {{ day }}
       </div>
@@ -787,12 +787,12 @@ const addRecord = (date: dayjs.Dayjs) => {
             :key="day.key"
             :class="{
               'selected-date': isDateSelected(day.date) || (focusedDate && day.date.isSame(focusedDate, 'day')),
-              '!text-gray-400': !day.isInPagedMonth,
-              '!bg-gray-50 !hover:bg-gray-100 !border-gray-200': day.isWeekend,
-              '!border-r-gray-200': week.days[i + 1]?.isWeekend,
+              '!text-nc-content-gray-disabled': !day.isInPagedMonth,
+              '!bg-nc-bg-gray-extra-light !hover:bg-nc-bg-gray-light !border-nc-border-gray-medium': day.isWeekend,
+              '!border-r-nc-border-gray-medium': week.days[i + 1]?.isWeekend,
               'border-t-1': week.weekIndex === 0,
             }"
-            class="text-right relative group last:border-r-0 transition text-sm h-full border-r-1 border-b-1 border-gray-100 font-medium hover:bg-gray-50 text-gray-800 bg-white"
+            class="text-right relative group last:border-r-0 bg-nc-bg-default transition text-sm h-full border-r-1 border-b-1 border-nc-border-gray-light font-medium hover:bg-nc-bg-gray-extra-light text-nc-content-gray-default bg-white"
             data-testid="nc-calendar-month-day"
             @click="selectDate(day.date)"
             @dblclick="addRecord(day.date)"
@@ -823,7 +823,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                     <NcMenuItem
                       v-for="(range, index) in calendarRange"
                       :key="index"
-                      class="text-gray-800 font-semibold text-sm"
+                      class="text-nc-content-gray-default font-semibold text-sm"
                       @click="
                       () => {
                         const record = {
@@ -841,7 +841,8 @@ const addRecord = (date: dayjs.Dayjs) => {
                     "
                     >
                       <div class="flex items-center gap-1">
-                        <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
+                        <LazySmartsheetHeaderIcon :column="range.fk_from_col" />
+
                         <span class="ml-1">{{ range.fk_from_col!.title }}</span>
                       </div>
                     </NcMenuItem>
@@ -887,7 +888,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               </PermissionsTooltip>
               <span
                 :class="{
-                  'bg-brand-50 text-brand-500 !font-bold': day.isToday,
+                  'bg-nc-bg-brand text-nc-content-brand !font-bold': day.isToday,
                 }"
                 class="px-1.3 py-1 text-[13px] text-sm leading-3 font-medium rounded-lg"
               >
@@ -905,7 +906,7 @@ const addRecord = (date: dayjs.Dayjs) => {
             >
               <NcButton
                 v-e="`['c:calendar:month-view-more']`"
-                class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-gray-500"
+                class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-nc-content-gray-muted"
                 size="xxsmall"
                 type="secondary"
                 @click="viewMore(day.date)"
@@ -931,7 +932,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                       <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
                     </template>
                     <template v-else>
-                      <span class="text-gray-500"> - </span>
+                      <span class="text-nc-content-gray-muted"> - </span>
                     </template>
                   </LazySmartsheetCalendarSideRecordCard>
                 </div>
@@ -977,7 +978,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               @resize-start="onResizeStart"
             >
               <template v-if="[UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime].includes(calDataType)" #time>
-                <span class="text-xs font-medium text-gray-400">
+                <span class="text-xs font-medium text-nc-content-gray-disabled">
                   {{
                     timezoneDayjs.timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mma').slice(0, -1)
                   }}

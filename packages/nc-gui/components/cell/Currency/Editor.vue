@@ -6,6 +6,7 @@ interface Props {
   modelValue: number | null | undefined
   placeholder?: string
   hidePrefix?: boolean
+  location?: 'cell' | 'filter'
 }
 
 const props = defineProps<Props>()
@@ -24,7 +25,9 @@ const _vModel = useVModel(props, 'modelValue', emit)
 const lastSaved = ref()
 const cellFocused = ref(false)
 
-const inputType = computed(() => (isExpandedFormOpen.value && !cellFocused.value ? 'text' : 'number'))
+const inputType = computed(() =>
+  isExpandedFormOpen.value && !cellFocused.value && props.location !== 'filter' ? 'text' : 'number',
+)
 
 const currencyMeta = computed(() => {
   return {

@@ -238,7 +238,8 @@ watch(
       class="nc-table-wrapper relative"
       :class="{
         'sticky-first-column': stickyFirstColumn,
-        'h-full': data.length && !disableTableScroll,
+        'h-full':
+          (data.length || (isDataLoading && !data.length && (slots.tableFooter || showPagination))) && !disableTableScroll,
         'nc-scrollbar-thin !overflow-auto max-h-full': !disableTableScroll,
       }"
       :style="{
@@ -270,7 +271,9 @@ watch(
               class="nc-table-header-cell"
               :class="[
                 `${headerCellClassName}`,
+                `${col.headerCellClassName ?? ''}`,
                 `nc-table-header-cell-${index}`,
+                `nc-table-header-cell-${col.key}`,
                 {
                   '!hover:bg-nc-bg-gray-light select-none cursor-pointer': col.showOrderBy,
                   'cursor-not-allowed': col.showOrderBy && !data?.length,
@@ -340,7 +343,9 @@ watch(
                 class="nc-table-cell"
                 :class="[
                   `${bodyCellClassName}`,
+                  `${col.bodyCellClassName ?? ''}`,
                   `nc-table-cell-${recordIndex}`,
+                  `nc-table-cell-${col.key}`,
                   {
                     'flex-1': !col.width && !col.basis,
                   },
@@ -381,7 +386,7 @@ watch(
       class="flex items-center justify-center absolute left-0 top-0 w-full h-full z-10 pointer-events-none"
     >
       <div class="flex flex-col justify-center items-center gap-2">
-        <GeneralLoader size="xlarge" />
+        <a-spin size="large" />
         <span class="text-center">{{ $t('general.loading') }}</span>
       </div>
     </div>

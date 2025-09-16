@@ -24,6 +24,8 @@ const { isUIAllowed } = useRoles()
 
 const { setActiveCmdView } = useCommand()
 
+const { isChatWootEnabled } = useProvideChatwoot()
+
 const isProjectListOrHomePageOpen = computed(() => {
   return (
     route.value.name?.startsWith('index-typeOrId-baseId-') ||
@@ -48,7 +50,13 @@ const navigateToProjectPage = () => {
     return
   }
 
-  navigateToProject({ workspaceId: isEeUI ? activeWorkspaceId.value : undefined, baseId: basesList.value?.[0]?.id })
+  const lastVisitedBase = ncLastVisitedBase().get()
+
+  const baseToNavigate = lastVisitedBase
+    ? basesList.value?.find((b) => b.id === lastVisitedBase) ?? basesList.value[0]
+    : basesList.value[0]
+
+  navigateToProject({ workspaceId: isEeUI ? activeWorkspaceId.value : undefined, baseId: baseToNavigate?.id })
 }
 
 const navigateToSettings = () => {
@@ -266,7 +274,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             <DashboardSidebarFeed />
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
-        <DashboardMiniSidebarItemWrapper>
+        <DashboardMiniSidebarItemWrapper v-if="isChatWootEnabled">
           <NcTooltip :title="`${$t('labels.chatWithNocoDBSupport')}!`" placement="right" hide-on-click :arrow="false">
             <DashboardSidebarChatSupport />
           </NcTooltip>

@@ -35,7 +35,7 @@ hooks.hook('page:finish', () => {
       <div v-show="hasSider" id="nc-sidebar-left" ref="sidebar" />
     </Transition>
 
-    <a-layout class="!flex-col h-screen">
+    <a-layout class="!flex-col nc-h-screen">
       <a-layout-header v-if="!route.meta.public && signedIn && !route.meta.hideHeader" class="nc-navbar">
         <div
           v-if="!route.params.baseType"
@@ -125,7 +125,11 @@ hooks.hook('page:finish', () => {
         </template>
       </a-layout-header>
 
-      <NcTooltip v-if="!signedIn && !route.params.baseId && !route.params.erdUuid" placement="left" class="nc-lang-btn-wrapper">
+      <NcTooltip
+        v-if="!signedIn && !route.params.baseId && !route.params.erdUuid && !ncIsIframe()"
+        placement="left"
+        class="nc-lang-btn-wrapper"
+      >
         <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
         <LazyGeneralLanguage class="nc-lang-btn" />

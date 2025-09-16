@@ -8,7 +8,7 @@ const rootMeta = ref({})
 const columns = computedAsync(async () => {
   if (!metas.value || Object.keys(metas.value).length === 0) return []
   return await composeColumnsForFilter({ rootMeta: rootMeta.value, getMeta: async (id) => metas.value[id] })
-})
+}, [])
 const filterMap = ref({})
 const filters = ref([])
 const options1 = ref({

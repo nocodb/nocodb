@@ -5,6 +5,11 @@ interface Props {
   dialogShow: boolean
   aiMode: boolean | null
   workspaceId?: string
+  isCreateNewActionMenu?: boolean
+  initialValue?: {
+    basePrompt: string
+    baseName: string
+  }
 }
 
 const props = withDefaults(defineProps<Props>(), {})
@@ -29,6 +34,8 @@ const { navigateToProject } = useGlobal()
 const { $e } = useNuxtApp()
 
 const { clone } = useUndoRedo()
+
+const { isWorkspaceLoading } = storeToRefs(useWorkspace())
 
 const { aiIntegrationAvailable, aiError, aiLoading, createSchema, predictSchema } = useNocoAi()
 
@@ -94,7 +101,7 @@ const defaultAiFormState = {
 
 const oldAiFormState = ref<typeof defaultAiFormState | null>(null)
 
-const aiFormState = ref(defaultAiFormState)
+const aiFormState = ref({ ...defaultAiFormState, prompt: props.initialValue?.basePrompt ?? '' })
 
 const isOldPromptChanged = computed(() => {
   return (
@@ -235,7 +242,7 @@ const onExcludeView = (view: any) => {
 
 const finalSchema = computed(() => {
   const schema = {
-    title: predictedSchema.value.title,
+    title: props.initialValue?.baseName || predictedSchema.value.title,
     tables: predictedSchema.value.tables.filter((table: any) => !table.excluded),
     relationships: predictedSchema.value.relationships.filter((relationship: { from: string; to: string }) => {
       const fromTable = predictedSchema.value.tables.find((table: { title: string }) => table.title === relationship.from)
@@ -331,6 +338,16 @@ onMounted(() => {
     aiPromptInputRef.value?.focus()
   }, 5)
 
+  if (props.initialValue?.basePrompt) {
+    until(() => !isWorkspaceLoading.value)
+      .toBeTruthy()
+      .then(() => {
+        if (!aiIntegrationAvailable.value) return
+
+        onPredictSchema()
+      })
+  }
+
   until(() => leftPaneContentRef.value)
     .toBeTruthy()
     .then(() => {
@@ -341,26 +358,26 @@ onMounted(() => {
 
 <template>
   <div class="h-full">
-    <div class="flex items-center gap-2.5 px-4 py-2 border-b-1 border-purple-100">
+    <div class="flex items-center gap-2.5 px-4 py-2 border-b-1 border-nc-border-purple-light">
       <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
         <GeneralIcon icon="ncAutoAwesome" class="flex-none h-5 w-5 !text-current" />
         <div class="text-base leading-8 font-bold">{{ $t('title.nocoAiBaseBuilder') }}</div>
       </div>
 
       <NcButton size="small" type="text" @click.stop="dialogShow = false">
-        <GeneralIcon icon="close" class="text-gray-600" />
+        <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
       </NcButton>
     </div>
 
     <div class="h-[calc(100%_-_49px)] flex">
       <div
         ref="leftPaneContentRef"
-        class="w-[480px] h-full relative flex flex-col nc-scrollbar-thin border-r-1 border-purple-100"
+        class="w-[480px] h-full relative flex flex-col nc-scrollbar-thin border-r-1 border-nc-border-purple-light"
       >
         <!-- create base config panel -->
         <div class="flex-1 p-6 flex flex-col gap-6">
           <div class="text-sm font-bold text-nc-content-purple-dark">Tell us more about your usecase</div>
-          <div class="flex flex-wrap gap-3 max-h-[188px] nc-scrollbar-thin">
+          <div class="flex flex-wrap gap-3 max-h-[188px] nc-scrollbar-thin pt-1">
             <!-- Predefined tags -->
 
             <template v-for="prompt of predefinedBasePrompts" :key="prompt.tag">
@@ -380,12 +397,12 @@ onMounted(() => {
                 </div>
                 <div
                   v-if="prompt.description === aiFormState.prompt.trim()"
-                  class="bg-nc-fill-purple-dark text-white rounded-full absolute -right-[3px] -top-[4px] h-3 w-3 grid place-items-center"
+                  class="bg-nc-fill-purple-dark text-nc-content-inverted-primary rounded-full absolute -right-[3px] -top-[4px] h-3 w-3 grid place-items-center"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8" fill="none">
                     <path
                       d="M6.66659 2L2.99992 5.66667L1.33325 4"
-                      stroke="white"
+                      stroke="currentColor"
                       stroke-width="1.33333"
                       stroke-linecap="round"
                       stroke-linejoin="round"
@@ -444,7 +461,7 @@ onMounted(() => {
 
               <div class="flex flex-col gap-6 pt-6">
                 <div v-for="field of additionalDetails" :key="field.title" class="flex items-center gap-2">
-                  <div class="min-w-[120px]">{{ field.title }}</div>
+                  <div class="min-w-[120px] text-nc-content-gray">{{ field.title }}</div>
                   <a-input
                     v-model:value="aiFormState[field.key]"
                     class="nc-input-sm nc-input-shadow nc-ai-input"
@@ -458,7 +475,7 @@ onMounted(() => {
           </a-collapse>
         </div>
         <div
-          class="sticky bottom-0 w-full bg-white px-6 pt-3 pb-6 border-t-1 flex flex-col gap-3"
+          class="sticky bottom-0 w-full bg-nc-bg-default px-6 pt-3 pb-6 border-t-1 flex flex-col gap-3"
           :class="{
             'border-nc-border-gray-medium': showBtnTopBorder,
             'border-transparent': !showBtnTopBorder,
@@ -542,11 +559,11 @@ onMounted(() => {
               <div v-if="loadingText.length === loadingMessages[idx]?.length" class="nc-animate-dots"></div>
             </div>
 
-            <div class="rounded-xl border-1 border-purple-100">
+            <div class="rounded-xl border-1 border-nc-border-purple-light">
               <div
                 v-for="idx in 7"
                 :key="idx"
-                class="px-3 py-2 flex items-center gap-2 border-b-1 border-purple-100 !last-of-type:border-b-0"
+                class="px-3 py-2 flex items-center gap-2 border-b-1 border-nc-border-purple-light !last-of-type:border-b-0"
               >
                 <div class="flex-1 flex items-center gap-2">
                   <a-skeleton-input
@@ -569,7 +586,7 @@ onMounted(() => {
             </div>
           </template>
           <div v-else class="flex-1 grid place-items-center">
-            <GeneralIcon icon="ncAutoAwesome" class="h-[188px] w-[188px] !text-purple-100" />
+            <GeneralIcon icon="ncAutoAwesome" class="h-[188px] w-[188px] !text-nc-purple-100" />
           </div>
         </template>
         <template v-if="aiStep === AI_STEP.MODIFY">
@@ -705,6 +722,6 @@ onMounted(() => {
 }
 
 .nc-show-more-tags-btn {
-  @apply !bg-gray-100 !hover:bg-gray-200;
+  @apply !bg-nc-bg-gray-light !hover:bg-nc-bg-gray-medium;
 }
 </style>

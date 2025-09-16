@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type TableType, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes } from 'nocodb-sdk'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
@@ -41,11 +41,6 @@ const filteredColumns = ref<
 >([])
 
 const selectedFields = ref<Record<string, boolean>>({})
-
-const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
-  })
 
 const fkRelatedModelId = computed(() => (column.value.colOptions as any)?.fk_related_model_id)
 
@@ -126,8 +121,7 @@ const createLookups = async () => {
     selectedFields.value = {}
     emit('created')
   } catch (e) {
-    console.error(e)
-    message.error(t('msg.error.failedToCreateLookupFields'))
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isLoading.value = false
   }
@@ -173,7 +167,7 @@ watch(isOpened, async (val) => {
     placement="right"
     overlay-class-name="!min-w-[256px]"
     :align="{
-      offset: [8, 15],
+      offset: [9, 15],
     }"
   >
     <slot :is-opened="isOpened" />
@@ -217,7 +211,7 @@ watch(isOpened, async (val) => {
                 @click.stop="selectedFields[field.id] = !selectedFields[field.id]"
               >
                 <div class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[2px] pr-2">
-                  <component :is="getIcon(field)" class="!w-3.5 !h-3.5 !text-gray-500" />
+                  <SmartsheetHeaderIcon :column="field" class="!w-3.5 !h-3.5" color="text-nc-content-gray-muted" />
                   <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only>
                     <template #title>
                       {{ field.title }}

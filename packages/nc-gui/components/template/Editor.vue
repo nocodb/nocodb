@@ -1083,7 +1083,11 @@ function getErrorByTableName(tableName: string) {
                         :disabled="col.readonly"
                       >
                         <div class="flex items-center gap-2 w-full">
-                          <component :is="getUIDTIcon(col.uidt)" class="flex-none w-3.5 h-3.5" />
+                          <SmartsheetHeaderIcon
+                            :column="col"
+                            class="flex-none w-3.5 h-3.5 !mx-0"
+                            color="text-nc-content-gray-muted"
+                          />
                           <NcTooltip class="truncate flex-1" :show-on-truncate-only="!col.readonly">
                             <template #title>
                               {{ col.readonly ? col.permissions?.tooltip || t('msg.info.fieldReadonly') : col.title }}

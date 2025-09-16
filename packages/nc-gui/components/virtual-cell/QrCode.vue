@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type QRCode from 'qrcode'
-import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
 import { IsCanvasInjectionInj } from '../../context'
 import { base64ToBlob, copyPNGToClipboard } from '~/utils/svgToPng'
 
 const { t } = useI18n()
+
+const { isMobileMode } = useGlobal()
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
@@ -70,10 +71,6 @@ const meta = inject(MetaInj)
 const valueFieldId = computed(() => column?.value.colOptions?.fk_qr_value_column_id)
 
 const { showClearNonEditableFieldWarning } = useShowNotEditableWarning({ onEnter: showQrModal })
-const cellIcon = (column: ColumnType) =>
-  h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: column,
-  })
 
 const { isCopied, performCopy } = useIsCopied()
 
@@ -112,13 +109,19 @@ onMounted(() => {
     wrap-class-name="nc-qr-code-large qrcode-modal"
     :body-style="{ padding: '0px', display: 'flex', justifyContent: 'center' }"
     :closable="false"
+    :centered="isMobileMode"
     @ok="handleModalOkClick"
   >
     <template #title>
       <div class="flex gap-2 items-center w-full">
         <h1 class="font-weight-700 m-0">{{ column?.title }}</h1>
         <div class="h-5 px-1 bg-nc-bg-gray-medium text-nc-content-gray-subtle2 rounded-md justify-center items-center flex">
-          <component :is="cellIcon(meta?.columnsById?.[valueFieldId])" class="h-4" />
+          <SmartsheetHeaderIcon
+            v-if="meta?.columnsById?.[valueFieldId]"
+            :column="meta?.columnsById?.[valueFieldId]"
+            class="h-4"
+          />
+
           <div class="text-sm font-medium">{{ meta?.columnsById?.[valueFieldId]?.title }}</div>
         </div>
         <div class="flex-1"></div>

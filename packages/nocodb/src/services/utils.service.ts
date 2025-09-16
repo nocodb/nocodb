@@ -27,7 +27,7 @@ import {
   defaultGroupByLimitConfig,
   defaultLimitConfig,
 } from '~/helpers/extractLimitAndOffset';
-import { DriverClient } from '~/utils/nc-config';
+import { DriverClient, NC_DISABLE_SUPPORT_CHAT } from '~/utils/nc-config';
 import NocoCache from '~/cache/NocoCache';
 import { getCircularReplacer } from '~/utils';
 
@@ -489,6 +489,16 @@ export class UtilsService {
       prodReady: Noco.getConfig()?.meta?.db?.client !== DriverClient.SQLITE,
       allowLocalUrl: process.env.NC_ALLOW_LOCAL_HOOKS === 'true',
       isOnPrem,
+      disableSupportChat: NC_DISABLE_SUPPORT_CHAT,
+      /**
+       * Allow disabling onboarding flow based on env variable or development mode
+       *
+       * TODO: @rameshmane7218 remove test env once we enable onboarding flow in playwright
+       */
+      disableOnboardingFlow:
+        process.env.NC_DISABLE_ONBOARDING_FLOW === 'true' ||
+        process.env.NODE_ENV === 'development' ||
+        process.env.NODE_ENV === 'test',
     };
 
     return result;

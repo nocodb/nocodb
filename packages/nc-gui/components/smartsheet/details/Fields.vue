@@ -7,7 +7,6 @@ import {
   isAIPromptCol,
   isLinksOrLTAR,
   isSystemColumn,
-  isVirtualCol,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -748,6 +747,7 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
       if (column.type === ButtonActionsType.Ai) {
         column.output_column_ids = colOptions?.output_column_ids || ''
         column.fk_integration_id = colOptions?.fk_integration_id
+        column.model = colOptions?.model
       }
     } else {
       column.type = column?.type || ButtonActionsType.Url
@@ -774,6 +774,8 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
       const colOptions = column.colOptions as Record<string, any>
 
       column.prompt_raw = colOptions?.prompt_raw
+      column.fk_integration_id = colOptions?.fk_integration_id
+      column.model = colOptions?.model
     } else {
       column.prompt_raw = column.prompt_raw || ''
     }
@@ -1018,6 +1020,8 @@ const saveChanges = async () => {
 }
 
 const toggleVisibility = async (checked: boolean, field: Field) => {
+  if (!field?.fk_column_id) return
+
   if (field.fk_column_id && fieldStatuses.value[field.fk_column_id]) {
     message.warning(t('msg.warning.multiField.fieldVisibility'))
     return
@@ -1433,8 +1437,8 @@ onBeforeRouteUpdate((_to, from, next) => {
                     :shadow="false"
                     @click="addField()"
                   >
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="plus" class="w-3" />
+                    <div class="flex items-center gap-1.5">
+                      <GeneralIcon icon="plus" class="w-4" />
                       {{ $t('labels.multiField.newField') }}
                     </div>
                   </NcButton>
@@ -1855,20 +1859,12 @@ onBeforeRouteUpdate((_to, from, next) => {
                       "
                       />
                       <NcCheckbox v-else :disabled="true" class="opacity-0" :checked="true" />
-                      <SmartsheetHeaderVirtualCellIcon
-                        v-if="field && isVirtualCol(fieldState(field) || field)"
-                        :column-meta="fieldState(field) || field"
-                        :class="{
-                          'text-brand-500': compareCols(field, activeField),
-                        }"
+
+                      <SmartsheetHeaderIcon
+                        :column="fieldState(field) || field"
+                        :color="compareCols(field, activeField) ? 'text-brand-500' : 'text-nc-content-gray-subtle2'"
                       />
-                      <SmartsheetHeaderCellIcon
-                        v-else
-                        :column-meta="fieldState(field) || field"
-                        :class="{
-                          'text-brand-500': compareCols(field, activeField),
-                        }"
-                      />
+
                       <NcTooltip
                         :class="{
                           'text-brand-500': compareCols(field, activeField),
@@ -2064,13 +2060,12 @@ onBeforeRouteUpdate((_to, from, next) => {
                         }"
                       />
                       <NcCheckbox :disabled="true" :checked="true" data-testid="nc-field-visibility-checkbox" />
-                      <SmartsheetHeaderCellIcon
-                        v-if="displayColumn"
-                        :column-meta="fieldState(displayColumn) || displayColumn"
-                        :class="{
-                          'text-brand-500': compareCols(displayColumn, activeField),
-                        }"
+
+                      <SmartsheetHeaderIcon
+                        :column="fieldState(displayColumn) || displayColumn"
+                        :color="compareCols(displayColumn, activeField) ? 'text-brand-500' : 'text-nc-content-gray-subtle2'"
                       />
+
                       <NcTooltip
                         class="truncate flex-1"
                         :class="{
@@ -2272,7 +2267,7 @@ onBeforeRouteUpdate((_to, from, next) => {
 }
 
 .nc-fields-add-new-field-btn-wrapper {
-  @apply flex items-center mr-1;
+  @apply flex items-center;
 
   .nc-field-add-new {
     &.focused {

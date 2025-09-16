@@ -25,6 +25,7 @@ const {
   hideSidebar,
   showTopbar,
   miniSidebarWidth,
+  isFullScreen,
 } = storeToRefs(useSidebarStore())
 
 const { isSharedBase } = storeToRefs(useBase())
@@ -108,6 +109,7 @@ watch(
 function handleMouseMove(e: MouseEvent) {
   if (isMobileMode.value) return
   if (!wrapperRef.value) return
+  if (isFullScreen.value) return
   if (sidebarState.value === 'openEnd') return
 
   if (e.clientX < 4 + miniSidebarWidth.value && ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)) {
@@ -215,7 +217,13 @@ function onResize(widthPercent: any) {
 }
 
 const isMiniSidebarVisible = computed(() => {
-  return !hideMiniSidebar.value && slots.sidebar && !isSharedBase.value && (!isMobileMode.value || isLeftSidebarOpen.value)
+  return (
+    !hideMiniSidebar.value &&
+    slots.sidebar &&
+    !isSharedBase.value &&
+    (!isMobileMode.value || isLeftSidebarOpen.value) &&
+    !isFullScreen.value
+  )
 })
 </script>
 

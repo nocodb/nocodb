@@ -6,7 +6,7 @@ interface Emits {
   (e: 'update:value', value: RawValueType): void
   (e: 'update:open', open: boolean): void
   (e: 'change', option: NcListItemType): void
-  (e: 'escape', e: KeyboardEvent): void
+  (e: 'escape', event: KeyboardEvent): void
 }
 
 const props = withDefaults(defineProps<NcListProps>(), {
@@ -73,7 +73,11 @@ const activeOptionIndex = ref(-1)
 const showHoverEffectOnSelectedOption = ref(true)
 
 const isSearchEnabled = computed(
-  () => props.showSearchAlways || slots.headerExtraLeft || slots.headerExtraRight || props.list.length > props.minItemsForSearch,
+  () =>
+    props.showSearchAlways ||
+    slots.headerExtraLeft ||
+    slots.headerExtraRight ||
+    (props.list?.length ?? 0) > props.minItemsForSearch,
 )
 
 const keyDown = ref(false)
@@ -103,9 +107,9 @@ const list = computed(() => {
   searchBasisInfoMap.value = {}
 
   // If no query, return all items
-  if (!query) return props.list
+  if (!query) return props.list ?? []
 
-  return props.list.filter((item, i, array) => {
+  return (props.list ?? []).filter((item, i, array) => {
     // Step 1: apply default filter
     if (defaultFilter(item, i, array, query)) return true
 
@@ -330,6 +334,10 @@ watch(searchQuery, () => {
 defineExpose({
   list,
 })
+
+const handleEscape = (event: KeyboardEvent) => {
+  emits('escape', event)
+}
 </script>
 
 <template>
@@ -339,8 +347,8 @@ defineExpose({
     class="flex flex-col nc-list-root pt-2 w-64 !focus:(shadow-none outline-none)"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
-    @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex])"
-    @keydown.esc="emits('escape', $event)"
+    @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex], undefined, $event)"
+    @keydown.esc="handleEscape($event)"
   >
     <template v-if="isSearchEnabled">
       <div

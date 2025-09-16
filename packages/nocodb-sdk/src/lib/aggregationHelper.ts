@@ -1,5 +1,5 @@
 import UITypes from './UITypes';
-import { FormulaDataTypes } from '~/lib/formulaHelpers';
+import { FormulaDataTypes } from '~/lib/formula/enums';
 import type { ColumnType } from '~/lib/Api';
 import { getDateTimeValue, getDateValue } from '~/lib/dateTimeHelper';
 import { formatBytes, parseProp } from '~/lib/helperFunctions';
@@ -129,7 +129,7 @@ const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
     returnAggregations = [...Object.values(CommonAggregations)];
   }
 
-  return returnAggregations.filter((item) => item !== CommonAggregations.Count);
+  return returnAggregations;
 };
 
 const formatAggregation = (

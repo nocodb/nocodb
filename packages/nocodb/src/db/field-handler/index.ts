@@ -2,12 +2,10 @@ import {
   isLinksOrLTAR,
   isLookup,
   isRollup,
-  NcApiVersion,
   ncIsUndefined,
   UITypes,
 } from 'nocodb-sdk';
 import { ClientType } from 'nocodb-sdk';
-import { FilterVerificationError } from './error/filter-verification.error';
 import { CurrencyGeneralHandler } from './handlers/currency/currency.general.handler';
 import { CurrencyPgHandler } from './handlers/currency/currency.pg.handler';
 import { CurrencyMysqlHandler } from './handlers/currency/currency.mysql.handler';
@@ -424,13 +422,9 @@ export class FieldHandler implements IFieldHandler {
   async verifyFilters(filters: Filter[], options: FilterOptions = {}) {
     const verificationResult = await this.verifyFiltersSafe(filters, options);
     if (!verificationResult.isValid) {
-      if (this.info.context.api_version === NcApiVersion.V3) {
-        NcError.get(this.info.context).invalidFilter(
-          verificationResult.errors.join(', '),
-        );
-      } else {
-        throw new FilterVerificationError(verificationResult.errors!);
-      }
+      NcError.get(this.info.context).filterVerificationFailed(
+        verificationResult.errors,
+      );
     }
     return true;
   }

@@ -63,3 +63,19 @@ export const defaultRowColorInfo: RowColoringInfo = {
   color: null,
   is_set_as_background: null,
 }
+
+export const getDefaultViewMetas = (viewType: ViewTypes) => {
+  switch (viewType) {
+    case ViewTypes.FORM:
+      return {
+        submit_another_form: false,
+        show_blank_form: false,
+        meta: {
+          hide_branding: false,
+          background_color: '#F9F9FA',
+          hide_banner: false,
+        },
+      }
+  }
+  return {}
+}

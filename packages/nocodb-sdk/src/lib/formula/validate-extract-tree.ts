@@ -17,22 +17,15 @@ import {
   IdentifierNode,
   ParsedFormulaNode,
 } from './operators';
-import { SqlUiFactory } from '../sqlUi';
 import { handleFormulaError } from './handle-formula-error';
 import { formulas } from './formulas';
 import { jsepCurlyHook, jsepIndexHook } from './hooks';
-
-type SqlUI = ReturnType<(typeof SqlUiFactory)['create']>;
-type ClientTypeOrSqlUI =
-  | 'mysql'
-  | 'pg'
-  | 'sqlite3'
-  | 'mysql2'
-  | 'oracledb'
-  | 'mariadb'
-  | 'sqlite'
-  | 'snowflake'
-  | SqlUI;
+import { ClientTypeOrSqlUI } from './types';
+import { SqlUiFactory } from '../sqlUi';
+import {
+  extractBinaryExpReferencedInfo,
+  extractCallExpressionReferencedInfo,
+} from './referenced-info-extractor';
 
 async function extractColumnIdentifierType({
   col,
@@ -48,6 +41,7 @@ async function extractColumnIdentifierType({
   const res: {
     dataType?: FormulaDataTypes;
     errors?: Set<string>;
+    referencedColumn?: { id: string; uidt: string };
     [p: string]: any;
   } = {};
   const sqlUI =
@@ -188,6 +182,7 @@ async function extractColumnIdentifierType({
       res.dataType = FormulaDataTypes.UNKNOWN;
       break;
   }
+  res.referencedColumn = { id: col.id, uidt: col.uidt };
 
   return res;
 }
@@ -776,6 +771,13 @@ export async function validateFormulaAndExtractTreeWithType({
       } else if (formulas[calleeName].returnType) {
         res.dataType = formulas[calleeName].returnType as FormulaDataTypes;
       }
+
+      Object.assign(
+        res,
+        extractCallExpressionReferencedInfo({
+          parsedTree: res as CallExpressionNode,
+        })
+      );
     } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
       const identifierName = (parsedTree as IdentifierNode).name;
       const col = (colIdToColMap[identifierName] ||
@@ -899,12 +901,10 @@ export async function validateFormulaAndExtractTreeWithType({
         );
       }
     } else if (parsedTree.type === JSEPNode.BINARY_EXP) {
-      (res as BinaryExpressionNode).left = await validateAndExtract(
-        parsedTree.left
-      );
-      (res as BinaryExpressionNode).right = await validateAndExtract(
-        parsedTree.right
-      );
+      const argsLeft = await validateAndExtract(parsedTree.left);
+      const argsRight = await validateAndExtract(parsedTree.right);
+      (res as BinaryExpressionNode).left = argsLeft;
+      (res as BinaryExpressionNode).right = argsRight;
 
       const dateAndTimeParsedNode = handleBinaryExpressionForDateAndTime({
         sourceBinaryNode: res as any,
@@ -948,6 +948,15 @@ export async function validateFormulaAndExtractTreeWithType({
       } else {
         res.dataType = FormulaDataTypes.NUMERIC;
       }
+
+      Object.assign(
+        res,
+        extractBinaryExpReferencedInfo({
+          parsedTree: res as BinaryExpressionNode,
+          left: argsLeft,
+          right: argsRight,
+        })
+      );
     } else if (parsedTree.type === JSEPNode.MEMBER_EXP) {
       throw new FormulaError(
         FormulaErrorType.NOT_SUPPORTED,

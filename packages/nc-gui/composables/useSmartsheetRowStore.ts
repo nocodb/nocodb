@@ -23,6 +23,14 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
   // getters
   const isNew = computed(() => unref(row).rowMeta?.new ?? false)
 
+  const displayValue = computed(() => {
+    const row = unref(currentRow)
+
+    const column = meta.value?.columns.find((col) => col.pv) || meta.value?.columns.find((col) => col.pk)
+
+    return row.row[column?.title]
+  })
+
   const { addLTARRef, removeLTARRef, syncLTARRefs, loadRow, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
 
   return {
@@ -30,6 +38,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     row,
     state,
     isNew,
+    displayValue,
     // todo: use better name
     addLTARRef: (...args: any) => addLTARRef(currentRow.value, ...args),
     removeLTARRef: (...args: any) => removeLTARRef(currentRow.value, ...args),

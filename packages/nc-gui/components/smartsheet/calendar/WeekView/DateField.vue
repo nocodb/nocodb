@@ -530,7 +530,7 @@ const addRecord = (date: dayjs.Dayjs) => {
           'w-1/5': maxVisibleDays === 5,
           'w-1/7': maxVisibleDays === 7,
         }"
-        class="cursor-pointer text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-gray-500 w-full py-1 border-gray-200 border-l-gray-50 border-t-gray-50 last:border-r-0 border-1 bg-gray-50"
+        class="cursor-pointer text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-nc-content-gray-muted w-full py-1 border-nc-border-gray-medium border-l-nc-border-gray-extra-light border-t-nc-border-gray-extra-light last:border-r-0 border-b-1 border-r-1 bg-nc-bg-gray-extra-light"
         @click="selectDate(date)"
         @dblclick="addRecord(date)"
       >
@@ -543,7 +543,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         :key="dateIndex"
         :class="{
           'selected-date': dayjs(date).isSame(selectedDate, 'day'),
-          '!bg-gray-50': date.get('day') === 0 || date.get('day') === 6,
+          '!bg-nc-bg-gray-extra-light': date.get('day') === 0 || date.get('day') === 6,
           'w-1/5': maxVisibleDays === 5,
           'w-1/7': maxVisibleDays === 7,
         }"

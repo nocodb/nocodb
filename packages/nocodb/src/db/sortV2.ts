@@ -162,6 +162,7 @@ export default async function sortV2(
         const base = await Base.get(context, model.base_id);
         const baseUsers = await BaseUser.getUsersList(context, {
           base_id: base.id,
+          include_internal_user: true,
         });
 
         // create nested replace statement for each user

@@ -1005,7 +1005,7 @@ const expandRecord = (record: Row) => {
           >
             {{ currTime.format('hh:mm A') }}
           </span>
-          <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-brand-500"></div>
+          <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-nc-border-brand"></div>
         </div>
       </div>
 
@@ -1013,12 +1013,12 @@ const expandRecord = (record: Row) => {
         <div
           v-for="(hour, index) in hours"
           :key="index"
-          class="flex h-13 relative border-1 group hover:bg-gray-50 border-white"
+          class="flex h-13 relative border-1 group hover:bg-nc-bg-gray-extralight border-nc-base-white"
           data-testid="nc-calendar-day-hour"
           @click="selectHour(hour)"
           @dblclick="newRecord(hour)"
         >
-          <div class="w-16 border-b-0 pr-2 pl-2 text-right text-xs text-gray-400 font-semibold h-13">
+          <div class="w-16 border-b-0 pr-2 pl-2 text-right text-xs text-nc-content-gray-disabled font-semibold h-13">
             {{ timezoneDayjs.dayjsTz(hour).format('hh a') }}
           </div>
         </div>
@@ -1030,7 +1030,7 @@ const expandRecord = (record: Row) => {
           :class="{
             'selected-hour': hour.isSame(selectedTime),
           }"
-          class="flex w-full border-l-gray-100 h-13 transition nc-calendar-day-hour relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
+          class="flex w-full border-l-nc-border-gray-light h-13 transition nc-calendar-day-hour relative border-1 group hover:bg-nc-bg-gray-extralight border-nc-base-white border-b-nc-border-gray-light"
           data-testid="nc-calendar-day-hour"
           @click="selectHour(hour)"
           @dblclick="newRecord(hour)"
@@ -1056,7 +1056,7 @@ const expandRecord = (record: Row) => {
                 <template v-for="(range, calIndex) in calendarRange" :key="calIndex">
                   <NcMenuItem
                     v-if="!range.is_readonly"
-                    class="text-gray-800 font-semibold text-sm"
+                    class="text-nc-content-gray font-semibold text-sm"
                     @click="
                 () => {
                   let record = {
@@ -1077,7 +1077,8 @@ const expandRecord = (record: Row) => {
               "
                   >
                     <div class="flex items-center gap-1">
-                      <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
+                      <LazySmartsheetHeaderIcon :column="range.fk_from_col" />
+
                       <span class="ml-1">{{ range.fk_from_col!.title! }}</span>
                     </div>
                   </NcMenuItem>
@@ -1135,7 +1136,7 @@ const expandRecord = (record: Row) => {
           <NcDropdown v-if="isOverflowAcrossHourRange(hour).isOverflow">
             <NcButton
               v-e="`['c:calendar:week-view-more']`"
-              class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
+              class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-nc-content-gray-muted"
               size="xxsmall"
               type="secondary"
               @click="viewMore(hour)"
@@ -1165,7 +1166,7 @@ const expandRecord = (record: Row) => {
                     <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
                   </template>
                   <template v-else>
-                    <span class="text-gray-500"> - </span>
+                    <span class="text-nc-content-gray-muted"> - </span>
                   </template>
                 </LazySmartsheetCalendarSideRecordCard>
               </div>
@@ -1218,7 +1219,7 @@ const expandRecord = (record: Row) => {
                     />
                   </template>
                   <template #time>
-                    <div class="text-xs font-medium text-gray-400">
+                    <div class="text-xs font-medium text-nc-content-gray-disabled">
                       {{ timezoneDayjs.timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm a') }}
                     </div>
                   </template>

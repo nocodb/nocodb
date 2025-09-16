@@ -1912,7 +1912,7 @@ onKeyStroke('ArrowDown', onDown)
         class="flex items-center justify-center bg-white/80 absolute l-0 t-0 w-full h-full z-10 pb-10 pointer-events-none"
       >
         <div class="flex flex-col items-center justify-center gap-2">
-          <GeneralLoader size="xlarge" />
+          <a-spin size="large" />
           <span class="text-center" v-html="loaderText"></span>
         </div>
       </div>

@@ -67,15 +67,6 @@ const FEATURES = [
     isOnPrem: false,
   },
   {
-    id: 'row_action',
-    title: 'Row Actions',
-    description: 'Allows user to execute script on a row.',
-    enabled: false,
-    version: 0,
-    isEngineering: true,
-    isEE: true,
-  },
-  {
     id: 'integrations',
     title: 'Integrations',
     description: 'Enable dynamic integrations.',
@@ -165,6 +156,25 @@ const FEATURES = [
     version: 2,
     isEE: true,
   },
+  {
+    id: 'view_actions',
+    title: 'View Actions',
+    description: 'Execute scripts and webhooks to all records in a view.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'row_actions',
+    title: 'Row Actions',
+    description: 'Execute scripts and webhooks to a record.',
+    enabled: true,
+    version: 2,
+    isEE: true,
+    isCloud: false,
+    isEngineering: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<
@@ -186,8 +196,9 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     return features.value.reduce((acc, feature) => {
       const isEeFeatureEnabled = feature.isEE && !isEeUI ? false : feature.enabled
       const isOnPremFeatureEnabled = !appInfo.value.isOnPrem || feature.isOnPrem !== false
+      const isCloudFeatureEnabled = !appInfo.value.isCloud || feature.isCloud !== false
 
-      acc[feature.id] = isEeFeatureEnabled && isOnPremFeatureEnabled
+      acc[feature.id] = isEeFeatureEnabled && isOnPremFeatureEnabled && isCloudFeatureEnabled
       return acc
     }, {} as Record<BetaFeatureId, boolean>)
   })

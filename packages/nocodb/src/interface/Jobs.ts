@@ -48,9 +48,12 @@ export enum JobTypes {
   ListenImport = 'listen-import',
   SyncModuleSyncData = 'sync-module-sync-data',
   SyncModuleMigrateSync = 'sync-module-migrate-sync',
+  SyncModuleRefreshData = 'sync-module-refresh-data',
+  SyncModuleSchedule = 'sync-module-schedule',
   UpdateUsageStats = 'update-usage-stats',
   CloudDbMigrate = 'cloud-db-migrate',
   AttachmentUrlUpload = 'attachment-url-upload',
+  ExecuteAction = 'execute-action',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -62,6 +65,8 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.UpdateModelStat,
   JobTypes.UpdateWsStat,
   JobTypes.UpdateSrcStat,
+  JobTypes.UpdateUsageStats,
+  JobTypes.SyncModuleSchedule,
 ];
 
 export enum JobStatus {
@@ -129,6 +134,7 @@ export interface AtImportJobData extends JobData {
     syncRollup?: boolean;
     syncUsers?: boolean;
     syncData?: boolean;
+    syncFormula?: boolean;
   };
   user: any;
 }
@@ -150,6 +156,7 @@ export interface DuplicateBaseJobData extends JobData {
 
 export interface DuplicateModelJobData extends JobData {
   sourceId: string;
+  targetSourceId: string;
   modelId: string;
   title: string;
   req: NcRequest;
@@ -158,6 +165,8 @@ export interface DuplicateModelJobData extends JobData {
     excludeViews?: boolean;
     excludeHooks?: boolean;
     excludeComments?: boolean;
+    targetBaseId?: string;
+    targetWorkspaceId?: string;
   };
 }
 
@@ -182,6 +191,7 @@ export interface HandleWebhookJobData extends JobData {
   modelId: string;
   viewId: string;
   hookName: string;
+  ncSiteUrl: string;
   prevData;
   newData;
 }
@@ -230,3 +240,11 @@ export interface SyncDataSyncModuleJobData extends JobData {
 }
 
 export type AttachmentUrlUploadJobData = AttachmentUrlUploadParam & JobData;
+
+export interface ExecuteActionJobData extends JobData {
+  req: NcRequest;
+  records?: any[];
+  modelId?: string;
+  viewId?: string;
+  scriptId: string;
+}

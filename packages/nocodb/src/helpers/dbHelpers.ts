@@ -17,6 +17,7 @@ import {
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import Validator from 'validator';
+import type { MetaService } from '~/meta/meta.service';
 import type { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -34,6 +35,7 @@ import {
   Model,
   Sort,
   Source,
+  View,
 } from '~/models';
 import { excludeAttachmentProps } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -467,6 +469,50 @@ export function shouldSkipField(
   }
 }
 
+export async function getQueriedColumns(
+  context: NcContext,
+  {
+    model,
+    fieldsSet,
+    view,
+    extractPkAndPv,
+    pkAndPvOnly,
+  }: {
+    model?: Model;
+    view?: View;
+    fieldsSet?: Set<string>;
+    extractPkAndPv?: boolean;
+    pkAndPvOnly?: boolean;
+  },
+  ncMeta?: MetaService,
+) {
+  let viewOrTableColumns: Column[] | { fk_column_id?: string }[];
+  const _columns = await model.getColumns(context, ncMeta);
+  if (fieldsSet?.size) {
+    viewOrTableColumns = _columns;
+  } else {
+    const viewColumns = view?.id && (await View.getColumns(context, view.id));
+
+    // const columns = _columns ?? (await baseModel.model.getColumns(baseModel.context));
+    // for (const column of columns) {
+    viewOrTableColumns =
+      viewColumns.map((viewColumn) =>
+        _columns.find((col) => col.id === viewColumn.fk_column_id),
+      ) || _columns;
+  }
+  return viewOrTableColumns.filter(
+    (viewOrTableColumn) =>
+      !shouldSkipField(
+        fieldsSet,
+        viewOrTableColumn,
+        view,
+        viewOrTableColumn,
+        extractPkAndPv || pkAndPvOnly,
+        pkAndPvOnly,
+      ),
+  );
+}
+
 export function getListArgs(
   args: XcFilterWithAlias,
   model: Model,
@@ -752,3 +798,18 @@ export const dataWrapper = (data: any) => {
     },
   };
 };
+
+// Helper method to transform object keys using the alias map
+export function transformObjectKeys(
+  obj: Record<string, any>,
+  aliasMap: Record<string, string>,
+): Record<string, any> {
+  if (!obj || typeof obj !== 'object') return obj;
+
+  const result = {};
+  Object.entries(obj).forEach(([key, value]) => {
+    const alias = aliasMap[key];
+    result[alias || key] = value;
+  });
+  return result;
+}

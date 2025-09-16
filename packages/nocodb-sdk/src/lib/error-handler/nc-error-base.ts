@@ -360,6 +360,30 @@ export class NcErrorBase {
     });
   }
 
+  duplicateAlias(
+    param: {
+      type: 'table' | 'column';
+      alias: string;
+      base: string;
+      label?: string;
+      additionalTrace?: Record<string, string>;
+    },
+    args?: NcErrorArgs
+  ): never {
+    const stackTrace = [
+      ...Object.keys(param.additionalTrace ?? {}).map(
+        (key) => `${key} '${param.additionalTrace[key]}'`
+      ),
+      `base '${param.base}'`,
+    ].join(', ');
+    throw this.errorCodex.generateError(NcErrorType.DUPLICATE_ALIAS, {
+      params: `Duplicate ${param.type} ${param.label ?? 'alias'} '${
+        param.alias
+      }' at ${stackTrace}`,
+      ...args,
+    });
+  }
+
   allowedOnlySSOAccess(ncWorkspaceId: string): never {
     throw this.errorCodex.generateError(NcErrorType.SSO_LOGIN_REQUIRED, {
       params: ncWorkspaceId,
@@ -488,5 +512,20 @@ export class NcErrorBase {
     validOptions: string[];
   }): never {
     throw new OptionsNotExistsError(props);
+  }
+
+  outOfSync(message: string): never {
+    throw this.errorCodex.generateError(NcErrorType.OUT_OF_SYNC, {
+      params: message,
+    });
+  }
+
+  filterVerificationFailed(errors: string[]): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.FILTER_VERIFICATION_FAILED,
+      {
+        params: errors.join(', '),
+      }
+    );
   }
 }

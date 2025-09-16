@@ -207,6 +207,9 @@ watch(expandedFormDlg, () => {
 })
 
 watch(filterQueryRef, () => {
+  // Don't focus input on open dropdown in mobile mode
+  if (isMobileMode.value) return
+
   filterQueryRef.value?.focus()
 })
 
@@ -313,6 +316,9 @@ watch(childrenExcludedListPagination, () => {
 onMounted(() => {
   window.addEventListener('keydown', linkedShortcuts)
   loadRelatedTableMeta()
+
+  // Don't focus input on open dropdown in mobile mode
+  if (isMobileMode.value) return
   setTimeout(() => {
     filterQueryRef.value?.focus()
   }, 100)

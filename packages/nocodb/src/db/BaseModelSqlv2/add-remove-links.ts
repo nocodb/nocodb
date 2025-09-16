@@ -56,7 +56,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     rowId,
   }: {
     cookie: any;
-    childIds: (string | number | Record<string, any>)[];
+    childIds: (string | number)[];
     colId: string;
     rowId: string;
   }) => {
@@ -278,7 +278,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             cookie,
           });
 
-          await parentBaseModel.broadcastLinkUpdates(childIds as string[]);
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await parentBaseModel.broadcastLinkUpdates(childIds as string[]);
+          });
 
           await childBaseModel.updateLastModified({
             model: childTable,
@@ -286,7 +288,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             cookie,
           });
 
-          await childBaseModel.broadcastLinkUpdates([rowId]);
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await childBaseModel.broadcastLinkUpdates([rowId]);
+          });
 
           auditConfig.parentModel =
             baseModel.model.id === parentTable.id ? parentTable : childTable;
@@ -375,7 +379,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             cookie,
           });
 
-          await parentBaseModel.broadcastLinkUpdates([rowId]);
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await parentBaseModel.broadcastLinkUpdates([rowId]);
+          });
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -430,7 +436,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: [rowId],
             cookie,
           });
-          await parentBaseModel.broadcastLinkUpdates([rowId]);
+
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await parentBaseModel.broadcastLinkUpdates([rowId]);
+          });
         }
         break;
     }
@@ -462,32 +471,34 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       }
     }
 
-    await baseModel.afterAddOrRemoveChild(
-      {
-        opType: AuditV1OperationTypes.DATA_LINK,
-        model: auditConfig.parentModel,
-        refModel: auditConfig.childModel,
-        columnTitle: auditConfig.parentColTitle,
-        columnId: auditConfig.parentColId,
-        refColumnTitle: auditConfig.childColTitle,
-        refColumnId: auditConfig.childColId,
-        req: cookie,
-      },
-      parentAuditObj,
-    );
-    await baseModel.afterAddOrRemoveChild(
-      {
-        opType: AuditV1OperationTypes.DATA_LINK,
-        model: auditConfig.childModel,
-        refModel: auditConfig.parentModel,
-        columnTitle: auditConfig.childColTitle,
-        columnId: auditConfig.childColId,
-        refColumnTitle: auditConfig.parentColTitle,
-        refColumnId: auditConfig.parentColId,
-        req: cookie,
-      },
-      childAuditObj,
-    );
+    baseModel.dbDriver.attachToTransaction(async () => {
+      await baseModel.afterAddOrRemoveChild(
+        {
+          opType: AuditV1OperationTypes.DATA_LINK,
+          model: auditConfig.parentModel,
+          refModel: auditConfig.childModel,
+          columnTitle: auditConfig.parentColTitle,
+          columnId: auditConfig.parentColId,
+          refColumnTitle: auditConfig.childColTitle,
+          refColumnId: auditConfig.childColId,
+          req: cookie,
+        },
+        parentAuditObj,
+      );
+      await baseModel.afterAddOrRemoveChild(
+        {
+          opType: AuditV1OperationTypes.DATA_LINK,
+          model: auditConfig.childModel,
+          refModel: auditConfig.parentModel,
+          columnTitle: auditConfig.childColTitle,
+          columnId: auditConfig.childColId,
+          refColumnTitle: auditConfig.parentColTitle,
+          refColumnId: auditConfig.parentColId,
+          req: cookie,
+        },
+        childAuditObj,
+      );
+    });
   };
 
   const removeLinks = async ({
@@ -497,7 +508,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     rowId,
   }: {
     cookie: any;
-    childIds: (string | number | Record<string, any>)[];
+    childIds: (string | number)[];
     colId: string;
     rowId: string;
   }) => {
@@ -689,7 +700,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             cookie,
           });
 
-          await parentBaseModel.broadcastLinkUpdates(childIds as string[]);
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await parentBaseModel.broadcastLinkUpdates(childIds as string[]);
+          });
 
           await childBaseModel.updateLastModified({
             model: childTable,
@@ -697,7 +710,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             cookie,
           });
 
-          await childBaseModel.broadcastLinkUpdates([rowId]);
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await childBaseModel.broadcastLinkUpdates([rowId]);
+          });
 
           auditConfig.parentModel =
             baseModel.model.id === parentTable.id ? parentTable : childTable;
@@ -792,7 +807,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             cookie,
           });
 
-          await parentBaseModel.broadcastLinkUpdates([rowId]);
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await parentBaseModel.broadcastLinkUpdates([rowId]);
+          });
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -851,7 +868,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             cookie,
           });
 
-          await parentBaseModel.broadcastLinkUpdates([childIds[0] as string]);
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await parentBaseModel.broadcastLinkUpdates([childIds[0] as string]);
+          });
         }
         break;
     }
@@ -883,32 +902,34 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       }
     }
 
-    await parentBaseModel.afterAddOrRemoveChild(
-      {
-        opType: AuditV1OperationTypes.DATA_UNLINK,
-        model: auditConfig.parentModel,
-        refModel: auditConfig.childModel,
-        columnTitle: auditConfig.parentColTitle,
-        columnId: auditConfig.parentColId,
-        refColumnTitle: auditConfig.childColTitle,
-        refColumnId: auditConfig.childColId,
-        req: cookie,
-      },
-      parentAuditObj,
-    );
-    await childBaseModel.afterAddOrRemoveChild(
-      {
-        opType: AuditV1OperationTypes.DATA_UNLINK,
-        model: auditConfig.childModel,
-        refModel: auditConfig.parentModel,
-        columnTitle: auditConfig.childColTitle,
-        columnId: auditConfig.childColId,
-        refColumnTitle: auditConfig.parentColTitle,
-        refColumnId: auditConfig.parentColId,
-        req: cookie,
-      },
-      childAuditObj,
-    );
+    baseModel.dbDriver.attachToTransaction(async () => {
+      await parentBaseModel.afterAddOrRemoveChild(
+        {
+          opType: AuditV1OperationTypes.DATA_UNLINK,
+          model: auditConfig.parentModel,
+          refModel: auditConfig.childModel,
+          columnTitle: auditConfig.parentColTitle,
+          columnId: auditConfig.parentColId,
+          refColumnTitle: auditConfig.childColTitle,
+          refColumnId: auditConfig.childColId,
+          req: cookie,
+        },
+        parentAuditObj,
+      );
+      await childBaseModel.afterAddOrRemoveChild(
+        {
+          opType: AuditV1OperationTypes.DATA_UNLINK,
+          model: auditConfig.childModel,
+          refModel: auditConfig.parentModel,
+          columnTitle: auditConfig.childColTitle,
+          columnId: auditConfig.childColId,
+          refColumnTitle: auditConfig.parentColTitle,
+          refColumnId: auditConfig.parentColId,
+          req: cookie,
+        },
+        childAuditObj,
+      );
+    });
   };
 
   return {

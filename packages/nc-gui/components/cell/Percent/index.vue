@@ -4,6 +4,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 interface Props {
   modelValue?: number | string | null
   placeholder?: string
+  location?: 'cell' | 'filter'
 }
 
 const props = defineProps<Props>()
@@ -61,7 +62,7 @@ const percentMeta = computed(() => {
   }
 })
 
-const inputType = computed(() => (isForm.value && !isEditColumn.value ? 'text' : 'number'))
+const inputType = computed(() => (isForm.value && !isEditColumn.value && props.location !== 'filter' ? 'text' : 'number'))
 
 const onBlur = () => {
   if (editEnabled) {

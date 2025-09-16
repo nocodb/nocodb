@@ -230,16 +230,30 @@ export function useGridCellHandler(params: {
         }
       }
     }
-    const cellType = cellTypesRegistry.get(column.uidt)
-    if (actionManager?.isLoading(pk, column.id) && !isAIPromptCol(column) && !isButton(column)) {
-      const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id)
+    const cellType = cellTypesRegistry.get(column.uidt!)
+
+    const cellRenderStore = getCellRenderStore(`${column.id}-${pk}`)
+
+    if (actionManager?.isCellUpdating(pk, column.id!) && !isAIPromptCol(column) && !isButton(column)) {
+      return renderSingleLineText(ctx, {
+        x: x + padding,
+        y,
+        text: 'Updating ...',
+        fontFamily: `500 13px Inter`,
+        fillStyle: '#374151',
+        height,
+        py: padding,
+        cellRenderStore,
+      })
+    }
+
+    if (actionManager?.isLoading(pk, column.id!) && !isAIPromptCol(column) && !isButton(column)) {
+      const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id!)
       if (loadingStartTime) {
         renderSpinner(ctx, x + width / 2, y + 8, 16, '#3366FF', loadingStartTime, 1.5)
         return
       }
     }
-
-    const cellRenderStore = getCellRenderStore(`${column.id}-${pk}`)
 
     // TODO: Reset all the styles here
     ctx.textAlign = 'left'

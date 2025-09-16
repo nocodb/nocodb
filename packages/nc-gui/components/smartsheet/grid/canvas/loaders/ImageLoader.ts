@@ -6,7 +6,10 @@ export class ImageWindowLoader {
   private qrCache = new Map<string, HTMLCanvasElement>()
   private loadingImages = new Map<string, Promise<HTMLImageElement | undefined>>()
   private loadingQRs = new Map<string, Promise<HTMLCanvasElement | undefined>>()
-  private failedUrls = new Set<string>()
+  private failedUrls = new Map<string, { retryCount: number; lastFailedAt: number }>() // Track retry info
+  private retryTimers = new Map<string, NodeJS.Timeout>() // Track scheduled retry callbacks
+  private readonly maxRetries = 3 // Allow up to 3 retries
+  private readonly backoffDelays = [2000, 5000, 8000] // 2s, 5s, 8s backoff
 
   private pendingSprites = 0
   constructor(private onSettled?: () => void) {}
@@ -15,44 +18,113 @@ export class ImageWindowLoader {
     return `qr-${value}-${size}-${dark}-${light}`
   }
 
+  private canRetryUrl(url: string): boolean {
+    const failureInfo = this.failedUrls.get(url)
+    if (!failureInfo) return true
+
+    if (failureInfo.retryCount >= this.maxRetries) return false
+
+    const backoffDelay = this.backoffDelays[Math.min(failureInfo.retryCount, this.backoffDelays.length - 1)]
+    const timeSinceLastFailure = Date.now() - failureInfo.lastFailedAt
+
+    return timeSinceLastFailure >= backoffDelay
+  }
+
+  private recordFailure(url: string): void {
+    const existing = this.failedUrls.get(url)
+    this.failedUrls.set(url, {
+      retryCount: (existing?.retryCount || 0) + 1,
+      lastFailedAt: Date.now(),
+    })
+
+    // Schedule a callback when this URL becomes retryable again
+    this.scheduleRetryCallback(url)
+  }
+
+  private scheduleRetryCallback(url: string): void {
+    // Clear any existing timer for this URL
+    const existingTimer = this.retryTimers.get(url)
+    if (existingTimer) {
+      clearTimeout(existingTimer)
+    }
+
+    const failureInfo = this.failedUrls.get(url)
+    if (!failureInfo || failureInfo.retryCount >= this.maxRetries) return
+
+    const backoffDelay = this.backoffDelays[Math.min(failureInfo.retryCount, this.backoffDelays.length - 1)]
+    const timeSinceLastFailure = Date.now() - failureInfo.lastFailedAt
+    const remainingDelay = Math.max(0, backoffDelay - timeSinceLastFailure)
+
+    const timer = setTimeout(() => {
+      this.retryTimers.delete(url)
+      this.onSettled?.()
+    }, remainingDelay)
+
+    this.retryTimers.set(url, timer)
+  }
+
+  private clearRetryTimer(url: string): void {
+    const timer = this.retryTimers.get(url)
+    if (timer) {
+      clearTimeout(timer)
+      this.retryTimers.delete(url)
+    }
+  }
+
   loadOrGetImage(urls: string[] | string): HTMLImageElement | undefined {
     urls = Array.isArray(urls) ? urls : [urls]
 
+    // Check if we have a cached image first
     for (const url of urls) {
       const cachedImage = this.cache.get(url)
       if (cachedImage) return cachedImage
     }
 
+    // Check if any URL is currently loading
     const isAnyLoading = urls.some((url) => this.loadingImages.has(url))
     if (isAnyLoading) {
       return undefined
     }
 
-    const urlToLoad = urls.find((url) => !this.failedUrls.has(url))
+    // Find a URL that can be retried (hasn't exceeded limit and backoff time has passed)
+    const urlToLoad = urls.find((url) => this.canRetryUrl(url))
     if (!urlToLoad) return undefined
 
     const loadPromise = (async () => {
       try {
         const image = await this.loadImage(urlToLoad)
-        if (image) return image
+        if (image) {
+          // Reset retry info on success
+          this.failedUrls.delete(urlToLoad)
+          this.clearRetryTimer(urlToLoad)
+          return image
+        }
 
-        this.failedUrls.add(urlToLoad)
+        // Record failure
+        this.recordFailure(urlToLoad)
       } catch {
-        this.failedUrls.add(urlToLoad)
+        this.recordFailure(urlToLoad)
       }
 
+      // Try remaining URLs
       for (const url of urls.slice(urls.indexOf(urlToLoad) + 1)) {
-        if (this.failedUrls.has(url)) continue
+        if (!this.canRetryUrl(url)) continue
 
         try {
           const nextImage = await this.loadImage(url)
-          if (nextImage) return nextImage
+          if (nextImage) {
+            this.failedUrls.delete(url)
+            this.clearRetryTimer(url)
+            return nextImage
+          }
+          this.recordFailure(url)
         } catch {
-          this.failedUrls.add(url)
+          this.recordFailure(url)
         }
       }
       return undefined
     })().finally(() => {
+      // Clean up loading promises
       for (const url of urls) {
         this.loadingImages.delete(url)
       }
@@ -242,6 +314,11 @@ export class ImageWindowLoader {
     this.loadingImages.clear()
     this.qrCache.clear()
     this.loadingQRs.clear()
+
+    // Clear all retry timers
+    this.retryTimers.forEach((timer) => clearTimeout(timer))
+    this.retryTimers.clear()
+    this.failedUrls.clear()
   }
 
   get isLoading(): boolean {

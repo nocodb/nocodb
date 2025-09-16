@@ -1,4 +1,11 @@
+import { SqlUiFactory } from '../sqlUi';
+import UITypes from '../UITypes';
 import { FormulaDataTypes } from './enums';
+export interface ReferencedInfo {
+  referencedColumn?: { id: string; uidt: string };
+  invalidForReferenceColumn?: boolean;
+  uidtCandidates?: UITypes[];
+}
 
 export interface FormulaMeta {
   validation?: {
@@ -19,3 +26,14 @@ export interface FormulaMeta {
   returnType?: ((args: any[]) => FormulaDataTypes) | FormulaDataTypes;
   docsUrl?: string;
 }
+export type SqlUI = ReturnType<(typeof SqlUiFactory)['create']>;
+export type ClientTypeOrSqlUI =
+  | 'mysql'
+  | 'pg'
+  | 'sqlite3'
+  | 'mysql2'
+  | 'oracledb'
+  | 'mariadb'
+  | 'sqlite'
+  | 'snowflake'
+  | SqlUI;

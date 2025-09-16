@@ -171,11 +171,6 @@ const removeFromOutputFieldOptions = (id: string) => {
   outputColumnIds.value = outputColumnIds.value.filter((op) => op !== id)
 }
 
-const cellIcon = (column: ColumnType) =>
-  h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: column,
-  })
-
 const generate = async () => {
   if (!selectedRecordPk.value || !outputColumnIds.value.length) return
 
@@ -195,7 +190,10 @@ const generate = async () => {
   )
 
   if (res?.length) {
-    previewOutputRow.value.row = res[0]
+    previewOutputRow.value = {
+      ...previewOutputRow.value,
+      row: res[0],
+    }
 
     isAlreadyGenerated.value = true
   }
@@ -223,6 +221,7 @@ const expansionOutputPanel = ref<ExpansionPanelKeys[]>([ExpansionPanelKeys.outpu
 // provide the following to override the default behavior and enable input fields like in form
 provide(ActiveCellInj, ref(true))
 provide(IsFormInj, ref(true))
+provide(IsCanvasInjectionInj, false)
 
 watch(isOpenConfigModal, (newValue) => {
   if (newValue) {
@@ -454,7 +453,12 @@ onBeforeUnmount(() => {
                             <NcCheckbox :checked="isSelected" />
 
                             <div class="inline-flex items-center gap-2 flex-1 truncate">
-                              <component :is="cellIcon(option)" class="!mx-0" />
+                              <SmartsheetHeaderIcon
+                                :column="option as ColumnType"
+                                class="!mx-0"
+                                color="text-nc-content-gray-subtle"
+                              />
+
                               <NcTooltip class="truncate flex-1" show-on-truncate-only>
                                 <template #title>
                                   {{ option?.title }}
@@ -477,7 +481,8 @@ onBeforeUnmount(() => {
                     <template v-for="op in outputFieldOptions">
                       <a-tag v-if="outputColumnIds.includes(op.id)" :key="op.id" class="nc-ai-button-output-field">
                         <div class="flex flex-row items-center gap-1 py-[2px] text-sm">
-                          <component :is="cellIcon(op)" class="!mx-0 !mr-1 opacity-80" />
+                          <SmartsheetHeaderIcon :column="op" class="!mx-0 !mr-1 opacity-80" />
+
                           <NcTooltip show-on-truncate-only class="truncate max-w-[150px]">
                             <template #title>{{ op.title }}</template>
                             {{ op.title }}
@@ -616,7 +621,7 @@ onBeforeUnmount(() => {
                                     :item-height="60"
                                     class="!w-auto min-w-[550px] max-w-[550px]"
                                     container-class-name="!px-0 !pb-0"
-                                    item-class-name="!rounded-none !p-0 !bg-none !hover:bg-none"
+                                    item-class-name="!rounded-none !p-0 group !my-0"
                                     @update:value="handleResetOutput"
                                   >
                                     <template #listItem="{ option, isSelected }">
@@ -648,7 +653,8 @@ onBeforeUnmount(() => {
                                 class="!my-0 nc-input-required-error"
                               >
                                 <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
-                                  <component :is="cellIcon(field)" class="!mx-0" />
+                                  <SmartsheetHeaderIcon :column="field" class="!mx-0" />
+
                                   <NcTooltip class="truncate flex-1" show-on-truncate-only>
                                     <template #title>
                                       {{ field?.title }}
@@ -813,12 +819,13 @@ onBeforeUnmount(() => {
                             <template v-for="field in outputFieldOptions">
                               <a-form-item
                                 v-if="field.title && outputColumnIds.includes(field.id)"
-                                :key="field.id"
+                                :key="`${field.id}-${generatingPreview}`"
                                 :name="field.title"
                                 class="!my-0 nc-input-required-error"
                               >
                                 <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
-                                  <component :is="cellIcon(field)" class="!mx-0" />
+                                  <SmartsheetHeaderIcon :column="field" class="!mx-0" />
+
                                   <NcTooltip class="truncate flex-1" show-on-truncate-only>
                                     <template #title>
                                       {{ field?.title }}

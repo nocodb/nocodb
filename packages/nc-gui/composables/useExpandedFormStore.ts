@@ -1,10 +1,19 @@
-import type { AuditType, ColumnType, DataPayload, MetaType, PlanLimitExceededDetailsType, TableType } from 'nocodb-sdk'
+import type {
+  AuditType,
+  ColumnType,
+  CommentPayload,
+  DataPayload,
+  MetaType,
+  PlanLimitExceededDetailsType,
+  TableType,
+} from 'nocodb-sdk'
 import {
   EventType,
   PermissionEntity,
   PermissionKey,
   PlanLimitTypes,
   ViewTypes,
+  isAIPromptCol,
   isReadOnlyColumn,
   isSystemColumn,
   isVirtualCol,
@@ -106,6 +115,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
+    const isHiddenColumnInNewRecord = (col: ColumnType) => {
+      return isReadOnlyColumn(col) || isAIPromptCol(col)
+    }
+
     /**
      * Injects the fields from the parent component if available.
      * Uses a ref to ensure reactivity.
@@ -131,7 +144,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                 !isSystemColumn(col) &&
                 !!col.meta?.defaultViewColVisibility &&
                 // if new record, then hide readonly fields
-                (!rowStore.isNew.value || !isReadOnlyColumn(col)),
+                (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
             )
             .sort((a, b) => {
               return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
@@ -141,7 +154,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         return (meta.value.columns ?? []).filter(
           (col) =>
             // if new record, then hide readonly fields
-            (!rowStore.isNew.value || !isReadOnlyColumn(col)) &&
+            (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)) &&
             // exclude system columns
             !isSystemColumn(col) &&
             // exclude hidden columns
@@ -152,7 +165,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       // If `props.useMetaFields` is not enabled, use fields from the parent component
       if (fieldsFromParent.value) {
         if (rowStore.isNew.value) {
-          return fieldsFromParent.value.filter((col) => !isReadOnlyColumn(col))
+          return fieldsFromParent.value.filter((col) => !isHiddenColumnInNewRecord(col))
         }
 
         return fieldsFromParent.value
@@ -169,7 +182,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           !fields.value?.includes(col) &&
           (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true) &&
           // exclude readonly fields from hidden fields if new record creation
-          (!rowStore.isNew.value || !isReadOnlyColumn(col)),
+          (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
       )
       if (useMetaFields) {
         return maintainDefaultViewOrder.value
@@ -767,7 +780,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     })
 
-    const activeChannel = ref<string | null>(null)
+    const activeDataListener = ref<string | null>(null)
+    const activeCommentListener = ref<string | null>(null)
 
     watch(
       meta,
@@ -775,53 +789,85 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
           if (oldMeta?.id && oldMeta.id === newMeta.id) return
 
-          if (activeChannel.value) {
-            $ncSocket.offMessage(activeChannel.value)
+          if (activeDataListener.value) {
+            $ncSocket.offMessage(activeDataListener.value)
           }
 
-          activeChannel.value = `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`
+          if (activeCommentListener.value) {
+            $ncSocket.offMessage(activeCommentListener.value)
+          }
 
-          $ncSocket.subscribe(activeChannel.value)
+          activeDataListener.value = $ncSocket.onMessage(
+            `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+            (data: DataPayload) => {
+              const { id, action, payload } = data
 
-          $ncSocket.onMessage(activeChannel.value, (data: DataPayload) => {
-            const { id, action, payload } = data
+              const activePk = extractPkFromRow(row.value.row, meta.value?.columns as ColumnType[])
 
-            const activePk = extractPkFromRow(row.value.row, meta.value?.columns as ColumnType[])
-
-            if (`${id}` === activePk) {
-              if (action === 'update') {
-                try {
-                  if (payload) {
-                    // Merge payload with local row, but preserve locally changed columns
-                    const mergedRow = { ...row.value.row, ...payload }
-                    for (const col of changedColumns.value) {
-                      if (Object.prototype.hasOwnProperty.call(row.value.row, col)) {
-                        mergedRow[col] = row.value.row[col]
-                        if (row.value.row[col] !== payload[col]) {
-                          // localOnlyChanges.value[col] = payload[col]
+              if (`${id}` === activePk) {
+                if (action === 'update') {
+                  try {
+                    if (payload) {
+                      // Merge payload with local row, but preserve locally changed columns
+                      const mergedRow = { ...row.value.row, ...payload }
+                      for (const col of changedColumns.value) {
+                        if (Object.prototype.hasOwnProperty.call(row.value.row, col)) {
+                          mergedRow[col] = row.value.row[col]
+                          if (row.value.row[col] !== payload[col]) {
+                            localOnlyChanges.value[col] = payload[col]
+                          }
                         }
                       }
+                      Object.assign(row.value, {
+                        row: mergedRow,
+                        oldRow: { ...mergedRow },
+                      })
+                      // Do NOT clear changedColumns here, as we want to preserve local changes
+                    } else {
+                      console.warn('No payload provided for update action')
                     }
-                    Object.assign(row.value, {
-                      row: mergedRow,
-                      oldRow: { ...mergedRow },
-                    })
-                    // Do NOT clear changedColumns here, as we want to preserve local changes
-                  } else {
-                    console.warn('No payload provided for update action')
+                  } catch (e) {
+                    console.error('Failed to update cached row on socket event', e)
                   }
-                } catch (e) {
-                  console.error('Failed to update cached row on socket event', e)
-                }
-              } else if (action === 'delete') {
-                try {
-                  //
-                } catch (e) {
-                  console.error('Failed to delete cached row on socket event', e)
+                } else if (action === 'delete') {
+                  try {
+                    //
+                  } catch (e) {
+                    console.error('Failed to delete cached row on socket event', e)
+                  }
                 }
               }
-            }
-          })
+            },
+          )
+
+          activeCommentListener.value = $ncSocket.onMessage(
+            `${EventType.COMMENT_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+            (data: CommentPayload) => {
+              const { action, id, payload } = data
+
+              if (primaryKey.value && `${id}` === `${primaryKey.value}`) {
+                const commentId = payload.id
+                const user = baseUsers.value.find((u) => u.id === payload.created_by)
+                const finalPayload = {
+                  ...payload,
+                  created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+                  created_by_email: user?.email,
+                  created_by_meta: user?.meta,
+                }
+
+                if (action === 'add') {
+                  comments.value.push(finalPayload)
+                } else if (action === 'update') {
+                  const index = comments.value.findIndex((comment) => comment.id === commentId)
+                  if (index !== -1) {
+                    comments.value[index] = finalPayload
+                  }
+                } else if (action === 'delete') {
+                  comments.value = comments.value.filter((comment) => comment.id !== commentId)
+                }
+              }
+            },
+          )
         }
       },
       { immediate: true },

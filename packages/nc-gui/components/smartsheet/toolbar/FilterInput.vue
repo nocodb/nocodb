@@ -66,13 +66,9 @@ const checkTypeFunctions: Record<string, (column: ColumnType, abstractType?: str
 
 type FilterType = keyof typeof checkTypeFunctions
 
-const { sqlUis } = storeToRefs(useBase())
+const baseStore = useBase()
 
-const sqlUi = ref(
-  column.value?.source_id && sqlUis.value[column.value?.source_id]
-    ? sqlUis.value[column.value?.source_id]
-    : Object.values(sqlUis.value)[0],
-)
+const sqlUi = computed(() => baseStore.getSqlUiBySourceId(column.value?.source_id))
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
@@ -216,7 +212,7 @@ const isSingleOrMultiSelect = computed(() => {
   />
   <div
     v-else
-    class="bg-white border-1 flex flex-grow min-h-4 h-full px-1 items-center nc-filter-input-wrapper !rounded-lg"
+    class="bg-white border-1 flex flex-grow min-w-0 min-h-4 h-full px-1 items-center nc-filter-input-wrapper !rounded-lg"
     :class="{ 'px-2': hasExtraPadding, 'border-brand-500': isInputBoxOnFocus, '!max-w-100': isSingleOrMultiSelect }"
     @mouseup.stop
   >

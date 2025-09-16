@@ -20,6 +20,8 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 const vModel = useVModel(props, 'modelValue', emits)
 
+const { isMobileMode } = useGlobal()
+
 const inputRef = templateRef('input-ref')
 
 const pasteText = (target: HTMLInputElement, value: string) => {
@@ -178,6 +180,15 @@ const registerEvents = (input: HTMLInputElement) => {
   input.addEventListener('blur', onInputBlur)
 }
 
+const onBeforeInput = (e: InputEvent) => {
+  if (!e.data || !isMobileMode.value) return // may be null for deletions etc.
+
+  // allow only digits, minus, dot
+  if (!/^[0-9.\-]$/.test(e.data)) {
+    e.preventDefault()
+  }
+}
+
 onMounted(() => {
   if (inputRef.value) {
     registerEvents(inputRef.value as HTMLInputElement)
@@ -199,6 +210,7 @@ onMounted(() => {
     :placeholder="placeholder"
     style="letter-spacing: 0.06rem; height: 24px !important"
     :style="inputStyle"
+    inputmode="decimal"
     :disabled="disabled"
     @keydown.enter.exact="onInputKeyUp($event, false)"
     @keydown.left.stop
@@ -207,6 +219,7 @@ onMounted(() => {
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
+    @beforeinput="onBeforeInput"
   />
 </template>
 

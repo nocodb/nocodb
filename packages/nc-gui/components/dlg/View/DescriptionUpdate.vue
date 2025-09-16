@@ -12,11 +12,11 @@ const { view, ...props } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'updated'])
 
-const { $e, $api } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { loadViews } = useViewsStore()
+const { updateView } = useViewsStore()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
 
@@ -63,7 +63,7 @@ watchEffect(
 )
 
 const updateDescription = async (undo = false) => {
-  if (!view) return
+  if (!view?.id) return
 
   if (formState.description) {
     formState.description = formState.description.trim()
@@ -71,7 +71,7 @@ const updateDescription = async (undo = false) => {
 
   loading.value = true
   try {
-    await $api.dbView.update(view.id as string, {
+    await updateView(view.id, {
       description: formState.description,
     })
 
@@ -96,8 +96,6 @@ const updateDescription = async (undo = false) => {
         scope: defineProjectScope({ view }),
       })
     }
-
-    await loadViews({ tableId: view.fk_model_id, ignoreLoading: true, force: true })
 
     $e('a:view:description:update')
 

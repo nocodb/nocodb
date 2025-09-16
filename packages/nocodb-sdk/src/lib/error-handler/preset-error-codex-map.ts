@@ -242,4 +242,17 @@ export const presetErrorCodexMap: Partial<
       message || `Upgrade to a higher plan to use this feature.`,
     code: 403,
   },
+  [NcErrorType.DUPLICATE_ALIAS]: {
+    message: (message: string) => message,
+    code: 422,
+  },
+  [NcErrorType.OUT_OF_SYNC]: {
+    message: (message: string) =>
+      message || `Please refresh the page and try again.`,
+    code: 409,
+  },
+  [NcErrorType.FILTER_VERIFICATION_FAILED]: {
+    message: (message: string) => `Filter verification failed: ${message}`,
+    code: 422,
+  },
 };

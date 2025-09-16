@@ -5,7 +5,7 @@ import {
   LinkToAnotherRecordType,
   TableType,
 } from './Api';
-import { FormulaDataTypes } from './formulaHelpers';
+import { FormulaDataTypes } from './formula/enums';
 import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
 import { parseProp } from './helperFunctions';
 
@@ -99,7 +99,7 @@ export const UITypesName = {
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
   AIButton: 'AI Button',
-  AIPrompt: 'AI Prompt',
+  AIPrompt: 'AI Text',
 };
 
 export const UITypesSearchTerms = {
@@ -230,7 +230,7 @@ export const UITypesSearchTerms = {
     'who changed',
   ],
   AIButton: ['AI Button', 'AI action', 'smart button'],
-  AIPrompt: ['AI Prompt', 'AI field', 'smart field'],
+  AIPrompt: ['AI Text', 'AI Prompt', 'AI field', 'smart field'],
 };
 
 export const columnTypeName = (column?: ColumnType) => {

@@ -5,6 +5,7 @@ import {
   isCrossBaseLink,
   isLinksOrLTAR,
   isSystemColumn,
+  isVirtualCol,
   LongTextAiMetaProp,
   NcApiVersion,
   PermissionEntity,
@@ -50,6 +51,7 @@ import { DatasService } from '~/services/datas.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { getWidgetHandler } from '~/db/widgets';
+import { getQueriedColumns } from '~/helpers/dbHelpers';
 
 @Injectable()
 export class ExportService {
@@ -619,7 +621,6 @@ export class ExportService {
             entity: permission.entity,
             entity_id: idMap.get(permission.entity_id),
             permission: permission.permission,
-            created_by: permission.created_by,
             enforce_for_form: permission.enforce_for_form,
             enforce_for_automation: permission.enforce_for_automation,
             granted_type: permission.granted_type,
@@ -800,14 +801,24 @@ export class ExportService {
       ? model.columns
           .filter((c) => param._fieldIds?.includes(c.id))
           .map((c) => c.title)
-      : model.columns.filter((c) => !isLinksOrLTAR(c)).map((c) => c.title);
+      : model.columns
+          .filter((c) => !isLinksOrLTAR(c) && !isVirtualCol(c))
+          .map((c) => c.title);
 
     const refView = view ?? (await View.getDefaultView(context, model.id));
 
     const viewCols = await refView.getColumns(context);
     if (dataExportMode) {
       const hideSystemFields = view.show_system_fields
-        ? []
+        ? // at minimum filter mm fields used in Links field
+          model.columns
+            .filter(
+              (c) =>
+                isSystemColumn(c) &&
+                c.uidt === UITypes.LinkToAnotherRecord &&
+                c.colOptions?.fk_related_model_id !== model.id,
+            )
+            .map((c) => c.id)
         : model.columns.filter((c) => isSystemColumn(c)).map((c) => c.id);
 
       fields = viewCols
@@ -848,7 +859,17 @@ export class ExportService {
                 break;
               case UITypes.Attachment:
                 try {
-                  row[colId] = JSON.stringify(v);
+                  if (typeof v === 'string') {
+                    try {
+                      JSON.parse(v);
+                      // use v if valid JSON
+                      row[colId] = v;
+                    } catch (ex) {
+                      row[colId] = null;
+                    }
+                  } else {
+                    row[colId] = JSON.stringify(v);
+                  }
                 } catch (e) {
                   row[colId] = v;
                 }
@@ -1106,8 +1127,22 @@ export class ExportService {
           baseModel,
           ignoreViewFilterAndSort: !dataExportMode,
           limitOverride: limit,
+          skipSortBasedOnOrderCol: true,
         })
         .then((result) => {
+          if (result.list.length === 0 && offset === 0) {
+            return getQueriedColumns(context, {
+              model,
+              view,
+              fieldsSet: new Set(fields),
+            }).then((columns) => {
+              stream.push(
+                unparse([columns.map((col) => col.title)], { header: true }),
+              );
+              stream.push(null);
+              resolve();
+            });
+          }
           try {
             if (!header) {
               stream.push('\r\n');
@@ -1194,6 +1229,7 @@ export class ExportService {
           ignoreViewFilterAndSort: true,
           limitOverride: limit,
           apiVersion: NcApiVersion.V1,
+          skipSortBasedOnOrderCol: true,
         })
         .then((result) => {
           try {

@@ -72,3 +72,14 @@ export class RollupHelper extends AbstractColumnHelper {
     return this.parseValue(value, params) ?? '';
   }
 }
+
+export const rollupAllFunctions = [
+  { text: 'datatype.Count', value: 'count' },
+  { text: 'general.min', value: 'min' },
+  { text: 'general.max', value: 'max' },
+  { text: 'general.avg', value: 'avg' },
+  { text: 'general.sum', value: 'sum' },
+  { text: 'general.countDistinct', value: 'countDistinct' },
+  { text: 'general.sumDistinct', value: 'sumDistinct' },
+  { text: 'general.avgDistinct', value: 'avgDistinct' },
+];

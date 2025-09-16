@@ -32,6 +32,7 @@ import { ImportService } from '~/modules/jobs/jobs/export-import/import.service'
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TablesService } from '~/services/tables.service';
 import { TelemetryService } from '~/services/telemetry.service';
+import { DuplicateModelUtils } from '~/utils/duplicate-model.utils';
 
 @Injectable()
 export class DuplicateProcessor {
@@ -325,7 +326,17 @@ export class DuplicateProcessor {
 
     const hrTime = initTime();
 
-    const { context, sourceId, modelId, title, req, options } = job.data;
+    const {
+      context,
+      sourceId,
+      targetSourceId: _targetSourceId,
+      modelId,
+      title,
+      req,
+      options,
+    } = job.data;
+    const { context: targetContext, isDifferent: _isTargetContextDifferent } =
+      await DuplicateModelUtils._.getTargetContext(context, options);
 
     const baseId = context.base_id;
 
@@ -344,7 +355,6 @@ export class DuplicateProcessor {
     );
 
     const sourceModel = models.find((m) => m.id === modelId);
-
     const createdModels: string[] = [];
 
     try {
@@ -384,6 +394,7 @@ export class DuplicateProcessor {
 
       const idMap = await this.importService.importModels(context, {
         baseId,
+        targetContext,
         sourceId,
         data: [exportedModel],
         user,
@@ -420,11 +431,11 @@ export class DuplicateProcessor {
           }
         }
 
-        await this.importModelsData(context, context, {
+        await this.importModelsData(targetContext, context, {
           idMap,
           sourceProject: base,
           sourceModels: [sourceModel],
-          destProject: base,
+          destProject: await Base.get(targetContext, targetContext.base_id),
           destBase: source,
           hrTime,
           modelFieldIds: fields,

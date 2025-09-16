@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, EventType } from 'nocodb-sdk';
 import type { SortReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Column, Sort, View } from '~/models';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class SortsService {
@@ -38,6 +40,19 @@ export class SortsService {
       column,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'sort_delete',
+          payload: sort,
+        },
+      },
+      context.socket_id,
+    );
+
     return true;
   }
 
@@ -71,27 +86,51 @@ export class SortsService {
       context,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'sort_update',
+          payload: {
+            ...sort,
+            ...param.sort,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
     return res;
   }
 
   async sortCreate(
     context: NcContext,
     param: { viewId: string; sort: SortReqType; req: NcRequest },
+    ncMeta?: MetaService,
   ) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
-    const sort = await Sort.insert(context, {
-      ...param.sort,
-      fk_view_id: param.viewId,
-    } as Sort);
+    const sort = await Sort.insert(
+      context,
+      {
+        ...param.sort,
+        fk_view_id: param.viewId,
+      } as Sort,
+      ncMeta,
+    );
 
-    const view = await View.get(context, param.viewId);
+    const view = await View.get(context, param.viewId, ncMeta);
 
     if (!view) {
       NcError.badRequest('View not found');
     }
 
-    const column = await Column.get(context, { colId: sort.fk_column_id });
+    const column = await Column.get(
+      context,
+      { colId: sort.fk_column_id },
+      ncMeta,
+    );
 
     this.appHooksService.emit(AppEvents.SORT_CREATE, {
       sort,
@@ -100,6 +139,18 @@ export class SortsService {
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'sort_create',
+          payload: sort,
+        },
+      },
+      context.socket_id,
+    );
 
     return sort;
   }

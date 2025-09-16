@@ -24,6 +24,8 @@ export enum PlanLimitTypes {
   LIMIT_FILTER_PER_VIEW = 'limit_filter_per_view',
   LIMIT_SORT_PER_VIEW = 'limit_sort_per_view',
   LIMIT_ATTACHMENTS_IN_CELL = 'limit_attachments_in_cell',
+  LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
+  LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
 }
 
 export enum PlanFeatureTypes {
@@ -46,8 +48,6 @@ export enum PlanFeatureTypes {
   FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER = 'feature_lookup_limit_records_by_filter',
   FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER = 'feature_rollup_limit_records_by_filter',
   FEATURE_PERSONAL_VIEWS = 'feature_personal_views',
-  FEATURE_SCRIPTS = 'feature_scripts',
-  FEATURE_DASHBOARD = 'feature_dashboard',
   FEATURE_SSO = 'feature_sso',
   FEATURE_WEBHOOK_CUSTOM_PAYLOAD = 'feature_webhook_custom_payload',
   FEATURE_WORKSPACE_CUSTOM_LOGO = 'feature_workspace_custom_logo',
@@ -56,6 +56,12 @@ export enum PlanFeatureTypes {
   FEATURE_TABLE_AND_FIELD_PERMISSIONS = 'feature_table_and_field_permissions',
   FEATURE_PRIVATE_BASES = 'feature_private_bases',
   FEATURE_API_MEMBER_MANAGEMENT = 'feature_api_member_management',
+  FEATURE_API_VIEW_V3 = 'feature_api_view_v3',
+  FEATURE_CALENDAR_RANGE = 'feature_calendar_range',
+  FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
+  FEATURE_AI_BUTTON_FIELD = 'feature_ai_button_field',
+  FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE = 'feature_duplicate_table_to_other_base',
+  FEATURE_DUPLICATE_TABLE_TO_OTHER_WS = 'feature_duplicate_table_to_other_ws',
 }
 
 // todo: separate as a new enum
@@ -160,7 +166,7 @@ export const HigherPlan = {
 
 export const GRACE_PERIOD_DURATION = 14;
 
-export const LOYALTY_GRACE_PERIOD_END_DATE = '2025-07-31';
+export const LOYALTY_GRACE_PERIOD_END_DATE = '2025-08-27';
 
 export const SEAT_PRICE_CAP = 9;
 
@@ -197,6 +203,10 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 'to add more sort rules in a view.',
   [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]:
     'to add more attachments in a cell.',
+  [PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE]:
+    'to add more scripts in a workspace.',
+  [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]:
+    'to add more dashboards in a workspace.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -226,8 +236,6 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER]:
     'to limit rollup records by filters.',
   [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: 'to use personal views.',
-  [PlanFeatureTypes.FEATURE_SCRIPTS]: 'to enable scripts.',
-  [PlanFeatureTypes.FEATURE_DASHBOARD]: 'to use dashboards.',
   [PlanFeatureTypes.FEATURE_SSO]: 'to enable SSO (Single Sign-On).',
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]:
     'to send custom webhook payloads.',
@@ -241,6 +249,15 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: 'to use private bases.',
   [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]:
     'to use member management api.',
+  [PlanFeatureTypes.FEATURE_API_VIEW_V3]: 'to use view api.',
+  [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]:
+    'to visualize records in a calendar range.',
+  [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: 'to use AI text fields.',
+  [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: 'to use AI button fields.',
+  [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE]:
+    'to target different base when duplicate table.',
+  [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS]:
+    'to target different workspace when duplicate table.',
 };
 
 export const getUpgradeMessage = (
@@ -258,3 +275,9 @@ export const getUpgradeMessage = (
 
   return limitOrFeature;
 };
+
+export enum ReturnToBillingPage {
+  ORG = 'org',
+  ACCOUNT = 'account',
+  WS = 'ws',
+}

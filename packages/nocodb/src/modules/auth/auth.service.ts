@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Noco from '~/Noco';
 import { genJwt } from '~/services/users/helpers';
 import { UsersService } from '~/services/users/users.service';
+import { NcError } from '~/helpers/ncError';
 
 export class CreateUserDto {
   readonly username: string;
@@ -22,6 +23,15 @@ export class AuthService {
     const user = await this.usersService.findOne(email);
     if (user) {
       const { password, salt, ...result } = user;
+
+      // `salt` will be null,
+      // 1. If the user is invited and yet to set password
+      // 2. If the user is created via non email-password auth (OAuth)
+      if (!user.salt) {
+        return NcError.badRequest(
+          'If invited, sign up via the email link; otherwise, use forgot password or contact the super admin.',
+        );
+      }
 
       const hashedPassword = await promisify(bcrypt.hash)(pass, user.salt);
       if (user.password === hashedPassword) {

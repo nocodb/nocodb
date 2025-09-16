@@ -1,17 +1,14 @@
 import type { ComputedRef, Ref } from 'vue'
-import {
-  type Api,
-  type CalendarRangeType,
-  type CalendarType,
-  type ColumnType,
-  FormulaDataTypes,
-  type PaginatedType,
-  type TableType,
-  UITypes,
-  type ViewType,
-  isSystemColumn,
-  isVirtualCol,
-  workerWithTimezone,
+import { EventType, FormulaDataTypes, UITypes, ViewTypes, isSystemColumn, isVirtualCol, workerWithTimezone } from 'nocodb-sdk'
+import type {
+  Api,
+  CalendarRangeType,
+  CalendarType,
+  ColumnType,
+  DataPayload,
+  PaginatedType,
+  TableType,
+  ViewType,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
@@ -54,19 +51,82 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { getValidSearchQueryForColumn } = useFieldQuery()
 
+    const { sharedView, fetchSharedViewData, fetchSharedViewActiveDate, fetchSharedCalendarViewData } = useSharedView()
+
     const displayField = computed(() => meta.value?.columns?.find((c) => c.pv))
 
-    const activeCalendarView = ref<'month' | 'year' | 'day' | 'week'>()
+    const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
+
+    const calendarMetaData = computed<CalendarType>(() => {
+      return isPublic.value ? (sharedView.value?.view as CalendarType) : (viewMeta.value?.view as CalendarType)
+    })
+
+    // The current view meta properties
+    const viewMetaProperties = computed<{
+      active_view: string
+      hide_weekend: boolean
+    }>(() => {
+      let meta = calendarMetaData.value?.meta ?? {}
+
+      if (typeof meta === 'string') {
+        meta = parseProp(meta)
+      }
+
+      return meta as {
+        active_view: string
+        hide_weekend: boolean
+      }
+    })
 
     // The range of columns that are used for the calendar view
-    const calendarRange = ref<
+    const calendarRange = computed<
       Array<{
         fk_from_col: ColumnType
         fk_to_col?: ColumnType | null
         id: string
         is_readonly: boolean
       }>
-    >([])
+    >(() => {
+      return calendarMetaData.value?.calendar_range
+        ?.map(
+          (
+            range: CalendarRangeType & {
+              id?: string
+            },
+          ) => {
+            const fromCol = meta.value?.columns?.find((col) => col.id === range.fk_from_column_id)
+            const toCol = range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null
+
+            if (fromCol?.uidt === UITypes.Formula || toCol?.uidt === UITypes.Formula) {
+              // Check if fromCol Formula return type is Date
+              const isFromColDate =
+                fromCol?.uidt === UITypes.Formula && (fromCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
+              // Check if toCol Formula return type is Date
+
+              const isToColDate =
+                toCol?.uidt === UITypes.Formula && (toCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
+
+              if (!isFromColDate) {
+                message.error(`Please update the Formula column ${fromCol?.title} to return a date`)
+                return null
+              }
+
+              if (toCol && !isToColDate) {
+                message.error(`Please update the Formula column ${toCol?.title} to return a date`)
+                return null
+              }
+            }
+
+            return {
+              id: range?.id,
+              fk_from_col: fromCol,
+              fk_to_col: toCol,
+              is_readonly: [fromCol, toCol].some((col) => isSystemColumn(col) || isVirtualCol(col)),
+            }
+          },
+        )
+        .filter(Boolean) as any
+    })
 
     const calDataType = computed(() => {
       if (!calendarRange.value || !calendarRange.value[0]) return null
@@ -117,8 +177,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isCalendarDataLoading = ref<boolean>(false)
 
-    const isCalendarMetaLoading = ref<boolean>(false)
-
     // show/hide side menu in calendar
     const showSideMenu = ref(!isMobileMode.value)
 
@@ -141,6 +199,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const activeDates = ref<dayjs.Dayjs[]>([])
 
+    const activeCalendarView = ref<'month' | 'year' | 'day' | 'week'>((viewMetaProperties.value?.active_view as any) ?? 'month')
+
     // The active filter in the sidebar
     const sideBarFilterOption = ref<string>(activeCalendarView.value ?? 'allRecords')
 
@@ -150,21 +210,19 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { base } = storeToRefs(useBase())
 
-    const { $api, $e } = useNuxtApp()
+    const { $api, $e, $ncSocket } = useNuxtApp()
 
     const { t } = useI18n()
 
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-    const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
-
     const { sorts, nestedFilters, isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
-
-    const { sharedView, fetchSharedViewData, fetchSharedViewActiveDate, fetchSharedCalendarViewData } = useSharedView()
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
-    const calendarMetaData = ref<CalendarType>({})
+    const viewStore = useViewsStore()
+
+    const { updateViewMeta } = viewStore
 
     const paginationData = ref<PaginatedType>({ page: 1, pageSize: defaultPageSize })
 
@@ -176,25 +234,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     // In timezone is removed from the date string for mysql for reverse compatibility upto mysql5
     const updateFormat = computed(() => {
       return isMysql(meta.value?.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
-    })
-
-    // The current view meta properties
-    const viewMetaProperties = computed<{
-      active_view: string
-      hide_weekend: boolean
-    }>(() => {
-      let meta = calendarMetaData.value?.meta ?? {}
-
-      if (typeof meta === 'string') {
-        try {
-          meta = JSON.parse(meta)
-        } catch (e) {}
-      }
-
-      return meta as {
-        active_view: string
-        hide_weekend: boolean
-      }
     })
 
     // sideBarFilter - The sideBar filter is automatically generated based on the current calendar view
@@ -503,11 +542,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         activeCalendarView.value = view
 
         if (isUIAllowed('calendarViewUpdate')) {
-          await updateCalendarMeta({
+          await updateViewMeta(viewMeta.value.id, ViewTypes.CALENDAR, {
             meta: {
-              ...(typeof calendarMetaData.value.meta === 'string'
-                ? JSON.parse(calendarMetaData.value.meta)
-                : calendarMetaData.value.meta),
+              ...viewMetaProperties.value,
               active_view: view,
             },
           })
@@ -530,68 +567,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         })
       )
     })
-
-    async function loadCalendarMeta() {
-      if (!viewMeta?.value?.id || !meta?.value?.columns) return
-      isCalendarMetaLoading.value = true
-      try {
-        const res = isPublic.value ? (sharedView.value?.view as CalendarType) : await $api.dbView.calendarRead(viewMeta.value.id)
-        calendarMetaData.value = res
-        const calMeta = typeof res.meta === 'string' ? JSON.parse(res.meta) : res.meta
-        activeCalendarView.value = calMeta?.active_view
-        if (!activeCalendarView.value) activeCalendarView.value = 'month'
-        calendarRange.value = res?.calendar_range
-          ?.map(
-            (
-              range: CalendarRangeType & {
-                id?: string
-              },
-            ) => {
-              const fromCol = meta.value?.columns?.find((col) => col.id === range.fk_from_column_id)
-              const toCol = range.fk_to_column_id ? meta.value?.columns?.find((col) => col.id === range.fk_to_column_id) : null
-
-              if (fromCol?.uidt === UITypes.Formula || toCol?.uidt === UITypes.Formula) {
-                // Check if fromCol Formula return type is Date
-                const isFromColDate =
-                  fromCol?.uidt === UITypes.Formula &&
-                  (fromCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
-                // Check if toCol Formula return type is Date
-
-                const isToColDate =
-                  toCol?.uidt === UITypes.Formula && (toCol?.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE
-
-                if (!isFromColDate) {
-                  message.error(`Please update the Formula column ${fromCol?.title} to return a date`)
-                  return null
-                }
-
-                if (toCol && !isToColDate) {
-                  message.error(`Please update the Formula column ${toCol?.title} to return a date`)
-                  return null
-                }
-              }
-
-              return {
-                id: range?.id,
-                fk_from_col: fromCol,
-                fk_to_col: toCol,
-                is_readonly: [fromCol, toCol].some((col) => isSystemColumn(col) || isVirtualCol(col)),
-              }
-            },
-          )
-          .filter(Boolean) as any
-      } catch (e: unknown) {
-        message.error(
-          `Error loading calendar meta ${await extractSdkResponseErrorMsg(
-            e as Error & {
-              response: { data: { message: string } }
-            },
-          )}`,
-        )
-      } finally {
-        isCalendarMetaLoading.value = false
-      }
-    }
 
     async function loadCalendarData(showLoading = true) {
       if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) || !calendarRange.value?.length)
@@ -686,32 +661,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         console.log(e)
       } finally {
         isCalendarDataLoading.value = false
-      }
-    }
-
-    async function updateCalendarMeta(updateObj: Partial<CalendarType>) {
-      if (!viewMeta?.value?.id || !isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true }) || isPublic.value) return
-
-      const updateValue = {
-        ...(typeof calendarMetaData.value.meta === 'string'
-          ? JSON.parse(calendarMetaData.value.meta)
-          : calendarMetaData.value.meta),
-        ...(typeof updateObj.meta === 'string' ? JSON.parse(updateObj.meta) : updateObj.meta),
-      }
-
-      try {
-        await $api.dbView.calendarUpdate(viewMeta.value.id, {
-          ...updateObj,
-          meta: JSON.stringify(updateValue),
-        })
-        calendarMetaData.value = {
-          ...calendarMetaData.value,
-          ...updateObj,
-          meta: updateValue,
-        }
-      } catch (e) {
-        message.error('Error updating changes')
-        console.log(e)
       }
     }
 
@@ -993,7 +942,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     })
 
     watch(
-      () => viewMetaProperties.value.hide_weekend,
+      () => viewMetaProperties.value?.hide_weekend,
       async () => {
         if (activeCalendarView.value === 'week') {
           await loadCalendarData()
@@ -1020,21 +969,261 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       })
     })
 
+    const updateActiveDatesForNewRecord = (rowData: Record<string, any>): void => {
+      if (!calendarRange.value?.length) return
+
+      for (const range of calendarRange.value) {
+        const fromCol = range.fk_from_col
+        const toCol = range.fk_to_col
+
+        const fromDate = fromCol ? rowData[fromCol.title!] : null
+        const toDate = toCol ? rowData[toCol.title!] : null
+
+        if (fromDate) {
+          const date = timezoneDayjs.timezonize(fromDate)
+          if (!activeDates.value.some((activeDate) => activeDate.isSame(date, 'day'))) {
+            activeDates.value.push(date)
+          }
+        }
+
+        if (toDate && toDate !== fromDate) {
+          const date = timezoneDayjs.timezonize(toDate)
+          if (!activeDates.value.some((activeDate) => activeDate.isSame(date, 'day'))) {
+            activeDates.value.push(date)
+          }
+        }
+      }
+
+      // Sort active dates
+      activeDates.value.sort((a, b) => a.valueOf() - b.valueOf())
+    }
+
+    const activeDataListener = ref<string | null>(null)
+
+    watch(
+      meta,
+      (newMeta: any, oldMeta: any) => {
+        if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
+          if (oldMeta?.id && oldMeta.id === newMeta.id) return
+
+          if (activeDataListener.value) {
+            $ncSocket.offMessage(activeDataListener.value)
+          }
+          activeDataListener.value = $ncSocket.onMessage(
+            `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+            (data: DataPayload) => {
+              const { id, action, payload } = data
+
+              if (action === 'add') {
+                try {
+                  // For 'add', the row definitely doesn't exist yet, so we only need to check if it should be added
+                  // Check if new row should be in calendar view
+                  const shouldBeInCalendar = isRowInCurrentDateRange(
+                    payload,
+                    calendarRange.value,
+                    activeCalendarView.value!,
+                    selectedDate.value,
+                    selectedDateRange.value,
+                    selectedMonth.value,
+                    timezoneDayjs,
+                  )
+
+                  // Check if new row should be in sidebar
+                  const shouldBeInSidebar = isRowMatchingSidebarFilter(
+                    payload,
+                    sideBarFilterOption.value,
+                    calendarRange.value,
+                    selectedDate.value,
+                    selectedDateRange.value,
+                    selectedMonth.value,
+                    selectedTime.value,
+                    timezoneDayjs,
+                  )
+
+                  const newRowData = {
+                    row: payload,
+                    oldRow: { ...payload },
+                    rowMeta: {
+                      new: false,
+                      ...getEvaluatedRowMetaRowColorInfo(payload),
+                    },
+                  }
+
+                  // Add to calendar if it should be there
+                  if (shouldBeInCalendar) {
+                    formattedData.value.push({ ...newRowData })
+                  }
+
+                  // Add to sidebar if it should be there
+                  if (shouldBeInSidebar) {
+                    formattedSideBarData.value.unshift({ ...newRowData })
+                  }
+
+                  // Update active dates if any row was added
+                  if (shouldBeInCalendar || shouldBeInSidebar) {
+                    updateActiveDatesForNewRecord(payload)
+                  }
+                } catch (e) {
+                  console.error('Failed to add calendar row on socket event', e)
+                }
+              } else if (action === 'update') {
+                try {
+                  // Check if row currently exists in calendar view
+                  const calendarRowIndex = formattedData.value.findIndex((row) => {
+                    const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                    return pk && `${pk}` === `${id}`
+                  })
+
+                  // Check if row currently exists in sidebar
+                  const sidebarRowIndex = formattedSideBarData.value.findIndex((row) => {
+                    const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                    return pk && `${pk}` === `${id}`
+                  })
+
+                  // Check if updated row should be in current calendar view
+                  const shouldBeInCalendar = isRowInCurrentDateRange(
+                    payload,
+                    calendarRange.value,
+                    activeCalendarView.value!,
+                    selectedDate.value,
+                    selectedDateRange.value,
+                    selectedMonth.value,
+                    timezoneDayjs,
+                  )
+
+                  // Check if updated row should be in sidebar
+                  const shouldBeInSidebar = isRowMatchingSidebarFilter(
+                    payload,
+                    sideBarFilterOption.value,
+                    calendarRange.value,
+                    selectedDate.value,
+                    selectedDateRange.value,
+                    selectedMonth.value,
+                    selectedTime.value,
+                    timezoneDayjs,
+                  )
+
+                  // Handle calendar view updates
+                  if (calendarRowIndex !== -1 && shouldBeInCalendar) {
+                    // Case 1: Row exists in calendar AND should stay → Update in place
+                    const existingRow = formattedData.value[calendarRowIndex]
+                    Object.assign(existingRow.row, payload)
+                    Object.assign(existingRow.oldRow, payload)
+                    Object.assign(existingRow.rowMeta, getEvaluatedRowMetaRowColorInfo(existingRow.row))
+                    existingRow.rowMeta.changed = false
+                  } else if (calendarRowIndex !== -1 && !shouldBeInCalendar) {
+                    // Case 2: Row exists in calendar BUT should be removed → Remove from calendar
+                    formattedData.value.splice(calendarRowIndex, 1)
+                  } else if (calendarRowIndex === -1 && shouldBeInCalendar) {
+                    // Case 3: Row doesn't exist in calendar BUT should be added → Add to calendar
+                    const newCalendarRow = {
+                      row: payload,
+                      oldRow: { ...payload },
+                      rowMeta: {
+                        new: false,
+                        changed: false,
+                        ...getEvaluatedRowMetaRowColorInfo(payload),
+                      },
+                    }
+                    formattedData.value.push(newCalendarRow)
+                  } else {
+                    // Case 4: Row doesn't exist in calendar AND shouldn't be added → No action
+                  }
+
+                  // Handle sidebar updates
+                  if (sidebarRowIndex !== -1 && shouldBeInSidebar) {
+                    // Case 5: Row exists in sidebar AND should stay → Update in place
+                    const existingSidebarRow = formattedSideBarData.value[sidebarRowIndex]
+                    Object.assign(existingSidebarRow.row, payload)
+                    Object.assign(existingSidebarRow.oldRow, payload)
+                    Object.assign(existingSidebarRow.rowMeta, getEvaluatedRowMetaRowColorInfo(existingSidebarRow.row))
+                    existingSidebarRow.rowMeta.changed = false
+                  } else if (sidebarRowIndex !== -1 && !shouldBeInSidebar) {
+                    // Case 6: Row exists in sidebar BUT should be removed → Remove from sidebar
+                    formattedSideBarData.value.splice(sidebarRowIndex, 1)
+                  } else if (sidebarRowIndex === -1 && shouldBeInSidebar) {
+                    // Case 7: Row doesn't exist in sidebar BUT should be added → Add to sidebar
+                    const newSidebarRow = {
+                      row: payload,
+                      oldRow: { ...payload },
+                      rowMeta: {
+                        new: false,
+                        changed: false,
+                        ...getEvaluatedRowMetaRowColorInfo(payload),
+                      },
+                    }
+                    formattedSideBarData.value.unshift(newSidebarRow)
+                  } else {
+                    // Case 8: Row doesn't exist in sidebar AND shouldn't be added → No action
+                  }
+
+                  // Update active dates after any changes
+                  fetchActiveDates()
+                } catch (e) {
+                  console.error('Failed to update calendar row on socket event', e)
+                }
+              } else if (action === 'delete') {
+                try {
+                  // For delete, we need to remove the row from wherever it exists
+                  // We don't need to check filters since we're removing it entirely
+
+                  let removedFromCalendar = false
+                  let removedFromSidebar = false
+
+                  // Remove from calendar view if it exists there
+                  const calendarRowIndex = formattedData.value.findIndex((row) => {
+                    const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                    return pk && `${pk}` === `${id}`
+                  })
+
+                  if (calendarRowIndex !== -1) {
+                    formattedData.value.splice(calendarRowIndex, 1)
+                    removedFromCalendar = true
+                  }
+
+                  // Remove from sidebar if it exists there
+                  const sidebarRowIndex = formattedSideBarData.value.findIndex((row) => {
+                    const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                    return pk && `${pk}` === `${id}`
+                  })
+
+                  if (sidebarRowIndex !== -1) {
+                    formattedSideBarData.value.splice(sidebarRowIndex, 1)
+                    removedFromSidebar = true
+                  }
+                  // Update active dates if anything was removed
+                  if (removedFromCalendar || removedFromSidebar) {
+                    fetchActiveDates()
+                  }
+                } catch (e) {
+                  console.error('Failed to delete calendar row on socket event', e)
+                }
+              }
+            },
+          )
+        }
+      },
+      { immediate: true },
+    )
+
+    onBeforeUnmount(() => {
+      if (activeDataListener.value) {
+        $ncSocket?.offMessage?.(activeDataListener.value)
+      }
+    })
+
     return {
       fetchActiveDates,
       formattedSideBarData,
       loadMoreSidebarData,
-      updateCalendarMeta,
       loadSidebarData,
       displayField,
       sideBarFilterOption,
       searchQuery,
       activeDates,
       isCalendarDataLoading,
-      isCalendarMetaLoading,
       changeCalendarView,
       calDataType,
-      loadCalendarMeta,
       calendarRange,
       loadCalendarData,
       formattedData,

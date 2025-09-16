@@ -13,6 +13,7 @@ export interface AppInfo {
     limitRecord: number
   }
   firstUser: boolean
+  env: string
   githubAuthEnabled: boolean
   googleAuthEnabled: boolean
   oidcAuthEnabled: boolean
@@ -44,6 +45,9 @@ export interface AppInfo {
   stripePublishableKey?: string
   marketingRootUrl?: string
   openReplayKey?: string | null
+  disableSupportChat: boolean
+  disableOnboardingFlow: boolean
+  iframeWhitelistDomains?: Array<string>
 }
 
 export interface StoredState {
@@ -112,6 +116,7 @@ export interface Actions {
     automationId?: string
     replace?: boolean
     dashboardId?: string
+    newTab?: boolean
   }) => void
   getBaseUrl: (workspaceId: string) => string | undefined
   getMainUrl: (workspaceId: string) => string | undefined

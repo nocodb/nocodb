@@ -14,6 +14,7 @@ import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
+import { isWorker } from '~/utils';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -26,13 +27,18 @@ export class MetaService {
   protected _knex: knex.Knex;
   protected _config: any;
 
-  constructor(config: NcConfig, @Optional() trx = null) {
+  constructor(
+    config: NcConfig,
+    @Optional() trx = null,
+    @Optional() nested = 0,
+  ) {
     this._config = config;
     this._knex = XKnex({
       ...this._config.meta.db,
       useNullAsDefault: true,
     });
     this.trx = trx;
+    this.nested = nested;
   }
 
   get knexInstance(): knex.Knex {
@@ -354,6 +360,7 @@ export class MetaService {
   // private connection: XKnex;
   // todo: need to fix
   protected trx: Knex.Transaction;
+  protected nested: number;
 
   /***
    * Delete meta data
@@ -488,15 +495,24 @@ export class MetaService {
    * Get order value for the next record
    * @param target - Table name
    * @param condition - Condition to be applied
+   * @param xcCondition - Additional nested or complex condition to be added to the query.
    * @returns {Promise<number>} - Order value
    * */
   public async metaGetNextOrder(
     target: string,
     condition: { [key: string]: any },
+    xcCondition?: Condition,
   ): Promise<number> {
     const query = this.knexConnection(target);
 
-    query.where(condition);
+    if (condition) {
+      query.where(condition);
+    }
+
+    if (xcCondition) {
+      (query as any).condition(xcCondition);
+    }
+
     query.max('order', { as: 'order' });
 
     return (+(await query.first())?.order || 0) + 1;
@@ -718,10 +734,10 @@ export class MetaService {
   }
 
   async commit() {
-    if (this.trx) {
+    if (this.trx && this.nested === 0) {
       await this.trx.commit();
+      this.trx = null;
     }
-    this.trx = null;
   }
 
   async rollback(e?) {
@@ -732,16 +748,17 @@ export class MetaService {
   }
 
   async startTransaction(): Promise<MetaService> {
-    const trx = await this.connection.transaction();
-
-    // todo: Extend transaction class to add our custom properties
-    Object.assign(trx, {
-      clientType: this.connection.clientType,
-      searchPath: (this.connection as any).searchPath,
-    });
+    const trx = this.connection.isTransaction
+      ? this.connection
+      : await this.connection.transaction();
 
     // todo: tobe done
-    return new MetaService(this.config, trx);
+    return new MetaService(
+      this.config,
+      trx,
+      // we need to keep track of the nested transaction level
+      this.connection.isTransaction ? this.nested + 1 : 0,
+    );
   }
 
   /***
@@ -820,6 +837,11 @@ export class MetaService {
   }
 
   public async init(): Promise<boolean> {
+    // skip migration in worker container
+    if (isWorker) {
+      return true;
+    }
+
     await this.connection.migrate.latest({
       migrationSource: new XcMigrationSource(),
       tableName: 'xc_knex_migrations',

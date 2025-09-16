@@ -78,7 +78,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
   const relations = computed(() =>
     erdTables.value.reduce((acc, table) => {
       const meta = metasWithIdAsKey.value[table.id!]
-      const columns = meta.columns?.filter((column: ColumnType) => isLinksOrLTAR(column) && column.system !== 1) || []
+      const columns = meta?.columns?.filter((column: ColumnType) => isLinksOrLTAR(column) && column.system !== 1) || []
 
       for (const column of columns) {
         const colOptions = column.colOptions as LinkToAnotherRecordType
@@ -144,7 +144,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     else if (type === RelationTypes.MANY_TO_MANY) typeLabel = 'many to many'
     else if (type === 'oo') typeLabel = 'one to one'
 
-    const parentCol = metasWithIdAsKey.value[source].columns?.find((col) => {
+    const parentCol = metasWithIdAsKey.value[source]?.columns?.find((col) => {
       const colOptions = col.colOptions as LinkToAnotherRecordType
       if (!colOptions) return false
 
@@ -155,7 +155,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
       )
     })
 
-    const childCol = metasWithIdAsKey.value[target].columns?.find((col) => {
+    const childCol = metasWithIdAsKey.value[target]?.columns?.find((col) => {
       const colOptions = col.colOptions as LinkToAnotherRecordType
       if (!colOptions) return false
 
@@ -193,7 +193,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
       if (!table.id) return acc
 
       const columns =
-        metasWithIdAsKey.value[table.id].columns?.filter((col) => {
+        metasWithIdAsKey.value[table.id]?.columns?.filter((col) => {
           if ([UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt as UITypes) && col.system) return false
           return config.value.showAllColumns || (!config.value.showAllColumns && isLinksOrLTAR(col))
         }) || []

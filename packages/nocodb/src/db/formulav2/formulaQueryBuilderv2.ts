@@ -231,6 +231,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               baseUsers ??
               (await BaseUser.getUsersList(context, {
                 base_id: model.base_id,
+                include_internal_user: true,
               }));
 
             let finalStatement = '';

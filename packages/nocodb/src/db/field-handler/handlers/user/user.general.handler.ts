@@ -67,6 +67,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
         // deleted user may still exists on some fields
         // it's still valid as a historical record
         include_ws_deleted: true,
+        include_internal_user: true,
       },
     );
 
@@ -222,6 +223,7 @@ export class UserGeneralHandler extends GenericFieldHandler {
 
     const baseUsers = await BaseUser.getUsersList(context, {
       base_id: column.base_id,
+      include_internal_user: true,
     });
     const users = baseUsers.filter((user) => {
       const filterVal = val.toLowerCase();

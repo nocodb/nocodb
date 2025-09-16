@@ -6,7 +6,7 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import tippy from 'tippy.js'
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import { suggestion } from '~/helpers/tiptap'
-import { FieldMentionList } from '~/helpers/tiptap-markdown/extensions'
+import { FieldMentionList, Paragraph } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -18,6 +18,7 @@ const props = withDefaults(
     placeholder?: string
     readOnly?: boolean
     markdown?: boolean
+    showPlusIconTooltip?: boolean
   }>(),
   {
     options: () => [],
@@ -31,6 +32,7 @@ const props = withDefaults(
     placeholder: 'Write your prompt here...',
     readOnly: false,
     markdown: true,
+    showPlusIconTooltip: true,
   },
 )
 
@@ -45,7 +47,7 @@ const vModel = computed({
 
 const { autoFocus, readOnly } = toRefs(props)
 
-const debouncedLoadMentionFieldTagTooltip = useDebounceFn(loadMentionFieldTagTooltip, 1000)
+const debouncedLoadMentionFieldTagTooltip = useDebounceFn(loadMentionFieldTagTooltip, 500)
 
 const editor = useEditor({
   content: vModel.value,
@@ -53,7 +55,9 @@ const editor = useEditor({
   extensions: [
     StarterKit.configure({
       heading: false,
+      paragraph: false,
     }) as any,
+    Paragraph,
     Placeholder.configure({
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,
@@ -167,7 +171,7 @@ function loadMentionFieldTagTooltip() {
     if (!tooltip || el.scrollWidth <= el.clientWidth) return
     // Show tooltip only on truncate
     const instance = tippy(el, {
-      content: `<div class="tooltip text-xs">${tooltip.value}</div>`,
+      content: `<div class="tooltip nc-ai-prompt-with-fields-tooltip">${tooltip.value}</div>`,
       placement: 'top',
       allowHTML: true,
       arrow: true,
@@ -215,26 +219,33 @@ useEventListener(el, 'focusPromptWithFields', () => {
       @keydown.esc="handleOnEscRichTextEditor"
     />
 
-    <NcButton
-      size="xs"
-      type="text"
-      class="nc-prompt-with-field-suggestion-btn !px-1"
-      :disabled="readOnly"
-      @click.stop="newFieldSuggestionNode"
+    <NcTooltip
+      hide-on-click
+      :disabled="!showPlusIconTooltip || readOnly"
+      title="Mention fields"
+      class="nc-prompt-with-field-suggestion-btn-wrapper flex"
     >
-      <slot name="triggerIcon">
-        <GeneralIcon
-          icon="ncPlusSquareSolid"
-          class="text-nc-content-brand"
-          :class="[
-            `${suggestionIconClassName}`,
-            {
-              'opacity-75': readOnly,
-            },
-          ]"
-        />
-      </slot>
-    </NcButton>
+      <NcButton
+        size="xs"
+        type="text"
+        class="nc-prompt-with-field-suggestion-btn !px-1 flex-none"
+        :disabled="readOnly"
+        @click.stop="newFieldSuggestionNode"
+      >
+        <slot name="triggerIcon">
+          <GeneralIcon
+            icon="ncPlusSquareSolid"
+            class="text-nc-content-brand flex-none"
+            :class="[
+              `${suggestionIconClassName}`,
+              {
+                'opacity-75': readOnly,
+              },
+            ]"
+          />
+        </slot>
+      </NcButton>
+    </NcTooltip>
   </div>
 </template>
 
@@ -242,7 +253,7 @@ useEventListener(el, 'focusPromptWithFields', () => {
 .nc-ai-prompt-with-fields {
   @apply relative;
 
-  .nc-prompt-with-field-suggestion-btn {
+  .nc-prompt-with-field-suggestion-btn-wrapper {
     @apply absolute top-[2px] right-[1px];
   }
 
@@ -277,5 +288,9 @@ useEventListener(el, 'focusPromptWithFields', () => {
   p {
     @apply !mb-1;
   }
+}
+
+.nc-ai-prompt-with-fields-tooltip {
+  @apply text-xs bg-nc-content-gray text-nc-content-inverted-primary px-2 py-1 rounded-lg;
 }
 </style>

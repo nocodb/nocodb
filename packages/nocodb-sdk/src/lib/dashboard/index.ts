@@ -35,7 +35,7 @@ export const WidgetChartLabelMap = {
   [WidgetTypes.TABLE]: 'Table',
   [WidgetTypes.METRIC]: 'Metric',
   [WidgetTypes.TEXT]: 'Text',
-  [WidgetTypes.IFRAME]: 'IFrame',
+  [WidgetTypes.IFRAME]: 'iFrame',
 };
 
 export enum WidgetDataSourceTypes {
@@ -111,9 +111,7 @@ export type TextWidgetConfig = TextWidgetConfigMarkdown | TextWidgetConfigText;
 
 export interface IframeWidgetConfig {
   url: string;
-  height?: number;
   allowFullscreen?: boolean;
-  sandbox?: string[];
 }
 
 export type WidgetConfig =

@@ -191,7 +191,7 @@ const isDuplicateAllowed = computed(() => {
 
         <NcMenuItem :disabled="isRequired" @click="hideField">
           <div class="nc-column-insert-before nc-form-header-menu-item">
-            <component :is="iconMap.eye" class="!w-3.75 !h-3.75" />
+            <component :is="iconMap.eyeSlash" class="!w-3.75 !h-3.75" />
             <!-- Hide Field -->
             {{ $t('general.hideField') }}
           </div>

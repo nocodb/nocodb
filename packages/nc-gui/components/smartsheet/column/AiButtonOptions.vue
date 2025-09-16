@@ -137,6 +137,7 @@ const outputFieldOptions = computed(() => {
     (c) =>
       !c.system &&
       !c.pk &&
+      c.readonly &&
       c.id !== column.value?.id &&
       ![UITypes.Attachment, UITypes.Button, UITypes.Links, UITypes.LinkToAnotherRecord].includes(c.uidt) &&
       !isReadOnlyVirtualCell(c),

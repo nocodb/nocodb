@@ -183,7 +183,13 @@ onMounted(() => {
     ? (baseTables.value.get(base.value.id!) ?? []).find((t) => t.id === openedTableId.value)?.source_id
     : null
 
-  if (!openedTableSourceId || activeKey.value.includes(`collapse-${openedTableSourceId}`)) return
+  if (
+    !openedTableSourceId ||
+    (base.value.sources?.[0]?.id && base.value.sources?.[0]?.id === openedTableSourceId) ||
+    activeKey.value.includes(`collapse-${openedTableSourceId}`)
+  ) {
+    return
+  }
 
   activeKey.value = [`collapse-${openedTableSourceId}`]
 })

@@ -8988,7 +8988,7 @@ export class Api<
  * @name FormUpdate
  * @summary Update Form View
  * @request PATCH:/api/v1/db/meta/forms/{formViewId}
- * @response `200` `number` OK
+ * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9001,7 +9001,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        number,
+        ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9084,7 +9084,7 @@ export class Api<
  * @name GridUpdate
  * @summary Update Grid View
  * @request PATCH:/api/v1/db/meta/grids/{viewId}
- * @response `200` `number` OK
+ * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9097,7 +9097,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        number,
+        ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9214,7 +9214,7 @@ export class Api<
  * @name GalleryUpdate
  * @summary Update Gallery View
  * @request PATCH:/api/v1/db/meta/galleries/{galleryViewId}
- * @response `200` `number` OK
+ * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9227,7 +9227,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        number,
+        ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -9310,7 +9310,7 @@ export class Api<
  * @name KanbanUpdate
  * @summary Update Kanban View
  * @request PATCH:/api/v1/db/meta/kanbans/{kanbanViewId}
- * @response `200` `number` OK
+ * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -9323,7 +9323,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        number,
+        ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;

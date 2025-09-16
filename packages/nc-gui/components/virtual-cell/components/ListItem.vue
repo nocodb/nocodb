@@ -169,7 +169,7 @@ const displayValue = computed(() => {
             </div>
           </div>
         </div>
-        <div v-if="!isForm && !isPublic" @clcik.stop class="flex-none flex items-center w-7">
+        <div v-if="!isForm && !isPublic" class="flex-none flex items-center w-7" @clcik.stop>
           <NcTooltip class="flex" hide-on-click>
             <template #title>{{ $t('title.expand') }}</template>
 

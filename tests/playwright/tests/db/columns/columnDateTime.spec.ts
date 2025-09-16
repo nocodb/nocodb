@@ -59,7 +59,7 @@ const dateTimeData = [
   {
     dateFormat: 'DD.MM.YYYY',
     timeFormat: 'HH:mm:ss',
-    date: '2022.12.26',
+    date: '2022-12-26',
     hour: 2,
     minute: 30,
     second: 40,
@@ -68,7 +68,7 @@ const dateTimeData = [
   {
     dateFormat: 'DD.MM.YY',
     timeFormat: 'HH:mm:ss',
-    date: '2022.12.26',
+    date: '2022-12-26',
     hour: 2,
     minute: 30,
     second: 40,

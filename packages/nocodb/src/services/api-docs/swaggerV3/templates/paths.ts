@@ -250,7 +250,7 @@ export const getModelPaths = async (
 
   ...(isRelationExist(ctx.columns)
     ? {
-        [`/api/v3/data/${ctx.baseId}/${ctx.tableId}/links/{linkFieldId}/records/{recordId}`]:
+        [`/api/v3/data/${ctx.baseId}/${ctx.tableId}/links/{linkFieldId}/{recordId}`]:
           {
             parameters: [linkFieldNameParam(ctx.columns), recordIdParam],
             get: {

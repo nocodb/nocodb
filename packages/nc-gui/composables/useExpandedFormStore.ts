@@ -45,7 +45,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const saveRowAndStay = ref(0)
 
-    const changedColumns = ref(new Set<string>())
+    const changedColumns = ref<Set<string>>(new Set<string>())
 
     const localOnlyChanges = ref<Record<string, any>>({})
 
@@ -71,7 +71,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     if (row.value?.rowMeta?.fromExpandedForm) {
       row.value.rowMeta.fromExpandedForm = true
     }
-    const rowStore = useProvideSmartsheetRowStore(row)
+    const rowStore = useProvideSmartsheetRowStore(row, changedColumns)
 
     const activeView = inject(ActiveViewInj, ref())
 

@@ -12,6 +12,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
+import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -73,6 +74,7 @@ export class ColumnsService extends ColumnsServiceCE {
       reuse?: any;
       suppressFormulaError?: boolean;
       apiVersion?: T;
+      columnWebhookManager?: ColumnWebhookManager;
     },
     _ncMeta = Noco.ncMeta,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {

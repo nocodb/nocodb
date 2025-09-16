@@ -31,7 +31,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isRecordLimitReached = computed(() => false)
 
-  const gracePeriodDaysLeft = computed(() => Infinity)
+  const gracePeriodActive = computed(() => true)
 
   const gracePeriodEndDate = computed(() => '')
 
@@ -152,7 +152,7 @@ export const useEeConfig = createSharedComposable(() => {
     isPaymentEnabled,
     showUserPlanLimitExceededModal,
     isRecordLimitReached,
-    gracePeriodDaysLeft,
+    gracePeriodActive,
     blockAddNewRecord,
     showRecordPlanLimitExceededModal,
     navigateToBilling,

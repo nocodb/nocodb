@@ -95,33 +95,37 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
-  const gracePeriodDaysLeft = computed(() => {
-    if (!activeWorkspace.value?.grace_period_start_at || activePlan.value?.title !== PlanTitles.FREE) return 0
+  const gracePeriodActive = computed(() => {
+    if (!activeWorkspace.value?.grace_period_start_at || activePlan.value?.title !== PlanTitles.FREE) return false
 
     const start = dayjs(activeWorkspace.value.grace_period_start_at)
-    const graceEnd = start.add(GRACE_PERIOD_DURATION, 'day')
+    // midday UK time (intentionally kept 1 hour less than backend)
+    const graceEnd = start.utc().add(GRACE_PERIOD_DURATION, 'day').startOf('day').add(11, 'hour')
 
-    const daysLeft = graceEnd.diff(dayjs(), 'day')
-
-    // Ensure it's never negative (e.g., if grace period is over)
-    return Math.max(daysLeft, 0)
+    return graceEnd.isAfter(dayjs())
   })
 
   const gracePeriodEndDate = computed(() => {
-    if (gracePeriodDaysLeft.value <= 0) return ''
+    if (!gracePeriodActive.value) return ''
 
-    return dayjs(activeWorkspace.value?.grace_period_start_at).add(GRACE_PERIOD_DURATION, 'day').format('YYYY-MM-DD')
+    // midday UK time (intentionally kept 1 hour less than backend)
+    return dayjs(activeWorkspace.value?.grace_period_start_at)
+      .utc()
+      .add(GRACE_PERIOD_DURATION, 'day')
+      .startOf('day')
+      .add(11, 'hour')
+      .toISOString()
   })
 
   /**
    * User has to upgrade plan in order to add new records
    */
   const blockAddNewRecord = computed(() => {
-    return isRecordLimitReached.value && gracePeriodDaysLeft.value === 0
+    return isRecordLimitReached.value && !gracePeriodActive.value
   })
 
   const blockAddNewAttachment = computed(() => {
-    return isStorageLimitReached.value && gracePeriodDaysLeft.value === 0
+    return isStorageLimitReached.value && !gracePeriodActive.value
   })
 
   const isAllowToAddExtension = computed(
@@ -1131,7 +1135,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUserPlanLimitExceededModal,
     isRecordLimitReached,
     isStorageLimitReached,
-    gracePeriodDaysLeft,
+    gracePeriodActive,
     blockAddNewRecord,
     showRecordPlanLimitExceededModal,
     navigateToBilling,

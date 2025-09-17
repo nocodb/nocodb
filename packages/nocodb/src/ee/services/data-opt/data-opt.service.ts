@@ -34,6 +34,7 @@ export class DataOptService {
       apiVersion?: NcApiVersion;
       includeSortAndFilterColumns?: boolean;
       skipSortBasedOnOrderCol?: boolean;
+      ignoreViewFilterAndSort?: boolean;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     const params = { ...(ctx.params || {}) };

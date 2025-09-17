@@ -1503,6 +1503,7 @@ export async function singleQueryList(
     includeSortAndFilterColumns?: boolean;
     skipPaginateWrapper?: boolean;
     skipSortBasedOnOrderCol?: boolean;
+    ignoreViewFilterAndSorts?: boolean;
   },
 ): Promise<
   PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
@@ -1643,7 +1644,7 @@ export async function singleQueryList(
 
   if (!sorts?.['length'] && ctx.params.sortArr?.length) {
     sorts = ctx.params.sortArr;
-  } else if (!sorts?.['length'] && ctx.view) {
+  } else if (!sorts?.['length'] && ctx.view && !ctx.ignoreViewFilterAndSort) {
     sorts = await Sort.list(context, { viewId: ctx.view.id });
   }
 
@@ -1658,7 +1659,7 @@ export async function singleQueryList(
   }
 
   const aggrConditionObj = [
-    ...(ctx.view
+    ...(ctx.view && !ctx.ignoreViewFilterAndSort
       ? [
           new Filter({
             children: viewFilters,

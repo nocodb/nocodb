@@ -33,6 +33,8 @@ export class DatasService {
       includeSortAndFilterColumns?: boolean;
       includeRowColorColumns?: boolean;
       apiVersion?: NcApiVersion;
+      ignoreViewFilterAndSort?: boolean;
+      baseModel?: BaseModelSqlv2;
     },
   ) {
     let { model, view } = param as { view?: View; model?: Model };
@@ -78,6 +80,8 @@ export class DatasService {
       apiVersion: param.apiVersion,
       includeSortAndFilterColumns: param.includeSortAndFilterColumns,
       includeRowColorColumns: param.includeRowColorColumns,
+      ignoreViewFilterAndSort: param.ignoreViewFilterAndSort,
+      baseModel: param.baseModel,
     });
   }
 

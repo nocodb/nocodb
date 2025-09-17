@@ -33,6 +33,8 @@ export class DatasService extends DatasServiceCE {
       includeSortAndFilterColumns?: boolean;
       includeRowColorColumns?: boolean;
       skipSortBasedOnOrderCol?: boolean;
+      ignoreViewFilterAndSort?: boolean;
+      baseModel?: BaseModelSqlv2;
     },
   ) {
     let { model, view: _view } = param as { view?: View; model?: Model };
@@ -51,16 +53,18 @@ export class DatasService extends DatasServiceCE {
 
     let view = _view;
     let customConditions = [];
-    let baseModel: BaseModelSqlv2 = null;
+    let baseModel: BaseModelSqlv2 = param.baseModel;
 
     // check for link list query params
     if (param.query?.linkColumnId) {
-      baseModel = await Model.getBaseModelSQL(context, {
-        id: model.id,
-        viewId: view?.id,
-        dbDriver: await NcConnectionMgrv2.get(source),
-        source,
-      });
+      baseModel =
+        baseModel ||
+        (await Model.getBaseModelSQL(context, {
+          id: model.id,
+          viewId: view?.id,
+          dbDriver: await NcConnectionMgrv2.get(source),
+          source,
+        }));
 
       const column = await Column.get<LinkToAnotherRecordColumn>(context, {
         colId: param.query.linkColumnId,
@@ -126,6 +130,7 @@ export class DatasService extends DatasServiceCE {
         apiVersion: param.apiVersion,
         includeSortAndFilterColumns: param.includeSortAndFilterColumns,
         skipSortBasedOnOrderCol: param.skipSortBasedOnOrderCol,
+        ignoreViewFilterAndSort: param.ignoreViewFilterAndSort,
       });
     } else {
       responseData = await this.getDataList(context, {
@@ -141,6 +146,7 @@ export class DatasService extends DatasServiceCE {
         apiVersion: param.apiVersion,
         includeSortAndFilterColumns: param.includeSortAndFilterColumns,
         skipSortBasedOnOrderCol: param.skipSortBasedOnOrderCol,
+        ignoreViewFilterAndSort: param.ignoreViewFilterAndSort,
       });
     }
 

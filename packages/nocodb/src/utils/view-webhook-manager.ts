@@ -148,6 +148,10 @@ export class ViewWebhookManager {
     return this;
   }
 
+  getViewId() {
+    return this.params.oldView?.id ?? this.params.newView?.id;
+  }
+
   emit() {
     // if modelWebhookManager exists, we do not emit
     if (!this.emitted && !this.params.modelWebhookManager) {

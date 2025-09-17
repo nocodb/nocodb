@@ -156,15 +156,6 @@ export class SortsService {
   ) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
-    const sort = await Sort.insert(
-      context,
-      {
-        ...param.sort,
-        fk_view_id: param.viewId,
-      } as Sort,
-      ncMeta,
-    );
-
     const view = await View.get(context, param.viewId, ncMeta);
 
     if (!view) {
@@ -179,6 +170,15 @@ export class SortsService {
           )
         ).withViewId(view.id)
       ).forUpdate();
+
+    const sort = await Sort.insert(
+      context,
+      {
+        ...param.sort,
+        fk_view_id: param.viewId,
+      } as Sort,
+      ncMeta,
+    );
 
     const column = await Column.get(
       context,

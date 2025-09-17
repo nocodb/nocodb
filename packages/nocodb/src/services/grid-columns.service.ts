@@ -120,7 +120,7 @@ export class GridColumnsService {
 
   async gridColumnClearGroupBy(
     context: NcContext,
-    param: { viewId: string },
+    param: { viewId: string; viewWebhookManager?: ViewWebhookManager },
     ncMeta = Noco.ncMeta,
   ) {
     const qb = ncMeta
@@ -137,10 +137,30 @@ export class GridColumnsService {
       qb.andWhere('fk_workspace_id', '=', context.workspace_id);
     }
 
+    let viewWebhookManager: ViewWebhookManager;
+    if (!param.viewWebhookManager) {
+      const view = await View.get(context, param.viewId, ncMeta);
+      viewWebhookManager =
+        param.viewWebhookManager ??
+        (
+          await (
+            await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+              view.fk_model_id,
+            )
+          ).withViewId(view.id)
+        ).forUpdate();
+    }
+
     await NocoCache.deepDel(
       `${CacheScope.GRID_VIEW_COLUMN}:${param.viewId}`,
       CacheDelDirection.PARENT_TO_CHILD,
     );
-    return await qb;
+    const result = await qb;
+    if (viewWebhookManager) {
+      (
+        await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
+      ).emit();
+    }
+    return result;
   }
 }

@@ -23,7 +23,7 @@ import { _wherePk, getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { JobTypes } from '~/interface/Jobs';
-import { Audit, FileReference, PresignedUrl } from '~/models';
+import { Audit, FileReference } from '~/models';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { extractColsMetaForAudit, generateAuditV1Payload } from '~/utils';
@@ -60,8 +60,8 @@ export class DataAttachmentV3Service {
       try {
         if (
           attachment.id &&
-          'status' in attachment &&
-          attachment.status !== 'uploading'
+          (!('status' in attachment) ||
+            ('status' in attachment && attachment.status !== 'uploading'))
         ) {
           processedAttachments.push(attachment);
         } else if (
@@ -81,10 +81,11 @@ export class DataAttachmentV3Service {
             },
           );
 
-          // update fileSize, url due to fileName, etc
+          // update fileSize, url due to fileName, fileSize etc
           await FileReference.updateById(context, attachment.id, {
             file_url: downloadedAttachment.url ?? downloadedAttachment.path,
             file_size: downloadedAttachment.fileSize,
+            deleted: false,
           });
           const processedAttachment = {
             id: attachment.id,

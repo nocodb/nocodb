@@ -179,7 +179,9 @@
     "upgradeLicenseToUsePrivateBasesSubtitle": "Bases privadas não estão disponíveis na licença Enterprise Starter. Faça upgrade da chave de licença para começar a usá-las.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Você pode carregar no máximo {limit} {filePlural} nesta célula. Faça upgrade para o plano {plan} para adicionar mais arquivos.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Script",
@@ -2425,7 +2427,8 @@
       "failedToCreateLookupFields": "Falha ao criar campos de busca",
       "invalidSearchQuery": "Consulta de pesquisa inválida",
       "invalidSearchQueryForVisibleFields": "Consulta de pesquisa inválida para campos visíveis",
-      "invalidSearchQueryForDisplayField": "Consulta de pesquisa inválida para campo de exibição"
+      "invalidSearchQueryForDisplayField": "Consulta de pesquisa inválida para campo de exibição",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Metadados do projeto exportado com sucesso",

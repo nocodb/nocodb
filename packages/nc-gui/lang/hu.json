@@ -179,7 +179,9 @@
     "upgradeLicenseToUsePrivateBasesSubtitle": "A privát bázisok nem érhetők el az Enterprise Starter licenccel. Frissítsen nagyobb licencre a használathoz.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Legfeljebb {limit} {filePlural} tölthet fel ebbe a cellába. További fájlok hozzáadásához frissítsen a(z) {plan} csomagra.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Szkript",
@@ -2425,7 +2427,8 @@
       "failedToCreateLookupFields": "Nem sikerült keresőmezőket létrehozni",
       "invalidSearchQuery": "Érvénytelen keresési kifejezés",
       "invalidSearchQueryForVisibleFields": "Érvénytelen keresési kifejezés a látható mezőknél",
-      "invalidSearchQueryForDisplayField": "Érvénytelen keresési kifejezés a megjelenítési mezőnél"
+      "invalidSearchQueryForDisplayField": "Érvénytelen keresési kifejezés a megjelenítési mezőnél",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Bázis metaadatai sikeresen exportálva",

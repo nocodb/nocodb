@@ -412,7 +412,7 @@ export const relationDataFetcher = (param: {
           await childTable.getColumns(childBaseModel.context),
         );
 
-        const proto = childBaseModel.getProto();
+        const proto = await childBaseModel.getProto();
 
         return children.map((c) => {
           c.__proto__ = proto;
@@ -620,7 +620,7 @@ export const relationDataFetcher = (param: {
         await childTable.getColumns(baseModel.context),
       );
 
-      const proto = refModel.getProto();
+      const proto = await refModel.getProto();
       const gs = groupBy(
         children.map((c) => {
           c.__proto__ = proto;

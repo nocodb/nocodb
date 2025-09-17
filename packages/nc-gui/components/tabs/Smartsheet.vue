@@ -233,7 +233,9 @@ const onReady = () => {
 
 const checkIfViewExists = async () => {
   await until(() => isViewsLoading.value).toBe(false)
-  const views = await viewStore.loadViews()
+  const views = await viewStore.loadViews({
+    ignoreLoading: true,
+  })
 
   // If no views exist or the current view is not found, navigate to workspace/base
   if (

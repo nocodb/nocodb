@@ -99,6 +99,13 @@ const permissionScopes = {
     'deleteAccount',
 
     'globalAuditList',
+
+    // oAuth
+    'oAuthClientList',
+    'oAuthClientCreate',
+    'oAuthClientUpdate',
+    'oAuthClientDelete',
+    'oAuthClientGet',
   ],
   workspace: [
     'workspaceBaseList',
@@ -319,6 +326,13 @@ const rolePermissions:
       testConnection: true,
       notification: true,
       deleteAccount: true,
+
+      // oauth allowed for all users
+      oAuthClientList: true,
+      oAuthClientCreate: true,
+      oAuthClientUpdate: true,
+      oAuthClientDelete: true,
+      oAuthClientGet: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {

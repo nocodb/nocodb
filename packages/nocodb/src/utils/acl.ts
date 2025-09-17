@@ -266,6 +266,12 @@ const rolePermissions:
       mcpCreate: true,
       mcpUpdate: true,
       mcpDelete: true,
+      // oAuth
+      oAuthClientList: true,
+      oAuthClientCreate: true,
+      oAuthClientUpdate: true,
+      oAuthClientDelete: true,
+      oAuthClientGet: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

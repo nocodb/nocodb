@@ -3,6 +3,10 @@ import { AppEvents, EventType } from 'nocodb-sdk';
 import type { GridColumnReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 import { MetaTable } from '~/cli';
 import NocoCache from '~/cache/NocoCache';
 import { CacheDelDirection, CacheScope } from '~/utils/globals';
@@ -31,6 +35,7 @@ export class GridColumnsService {
       gridViewColumnId: string;
       grid: GridColumnReqType;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
@@ -54,6 +59,17 @@ export class GridColumnsService {
     );
 
     const view = await View.get(context, oldGridViewColumn.fk_view_id, ncMeta);
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
+
     const res = await GridViewColumn.update(
       context,
       param.gridViewColumnId,
@@ -95,6 +111,9 @@ export class GridColumnsService {
       },
       context.socket_id,
     );
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
 
     return res;
   }

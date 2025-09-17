@@ -56,6 +56,69 @@ export interface SampleUser {
   roles?: string | Record<string, any>;
 }
 
+export async function populateSamplePayloadView(
+  context: NcContext,
+  param: {
+    viewOrModel: View | Model;
+    operation: string;
+    includeUser;
+    user?: SampleUser;
+    version;
+  },
+) {
+  const { viewOrModel, includeUser = false, user, version = 'v2' } = param;
+
+  const { operation = 'insert' } = param;
+
+  let columns: Column[] = [];
+  let model: Model;
+  if (viewOrModel instanceof View) {
+    const viewColumns = await viewOrModel.getColumns(context);
+    for (const col of viewColumns) {
+      if (col.show)
+        columns.push(await Column.get(context, { colId: col.fk_column_id }));
+    }
+    model = await viewOrModel.getModel(context);
+    await model.getColumns(context);
+  } else if (viewOrModel instanceof Model) {
+    columns = await viewOrModel.getColumns(context);
+    model = viewOrModel;
+  }
+
+  await model.getViews(context);
+
+  const sampleUser = includeUser
+    ? user || {
+        id: 'usr_sample_user_id',
+        email: 'user@example.com',
+        display_name: 'Sample User',
+        user_name: 'sample_user',
+        roles: 'user',
+      }
+    : null;
+
+  const samplePayload = {
+    type: `view.after.${operation}`,
+    id: uuidv4(),
+    ...(includeUser && isEE && sampleUser
+      ? { user: sanitizeUserForHook(sampleUser) }
+      : {}),
+    ...(version === 'v3' ? { version } : {}),
+    data: {
+      table_id: model.id,
+      table_name: model.title,
+    },
+  };
+
+  // TODO: generate sample payload for view
+
+  samplePayload.data = {
+    ...samplePayload.data,
+  };
+
+  return samplePayload;
+}
+
 export async function populateSamplePayloadV2(
   context: NcContext,
   viewOrModel: View | Model,

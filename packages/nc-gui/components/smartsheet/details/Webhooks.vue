@@ -176,6 +176,9 @@ const eventList = ref<Record<string, any>[]>([
     { text: [t('objects.view'), t('general.create').toLowerCase()], value: ['view', 'insert'] },
     { text: [t('objects.view'), t('general.update').toLowerCase()], value: ['view', 'update'] },
     { text: [t('objects.view'), t('general.delete').toLowerCase()], value: ['view', 'delete'] },
+    { text: [t('objects.field'), t('general.create').toLowerCase()], value: ['field', 'insert'] },
+    { text: [t('objects.field'), t('general.update').toLowerCase()], value: ['field', 'update'] },
+    { text: [t('objects.field'), t('general.delete').toLowerCase()], value: ['field', 'delete'] },
   ]) ??
     []),
 

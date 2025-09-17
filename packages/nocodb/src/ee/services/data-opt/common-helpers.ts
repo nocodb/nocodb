@@ -8,6 +8,7 @@ export function shouldSkipCache(
     params: any;
     validateFormula?: boolean;
     customConditions?: Filter[];
+    ignoreViewFilterAndSort?: boolean;
   },
   isList = true,
 ) {
@@ -27,6 +28,7 @@ export function shouldSkipCache(
     : ['filter', 'where', 'w', 'fields', 'f', 'nested'];
   const arrayParamsKey = isList ? ['sortArr', 'filterArr'] : ['filterArr'];
   return (
+    ctx.ignoreViewFilterAndSort ||
     process.env.NC_DISABLE_CACHE === 'true' ||
     ctx.validateFormula ||
     queryParamKeys.some(

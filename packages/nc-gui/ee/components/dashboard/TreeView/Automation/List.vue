@@ -136,6 +136,7 @@ async function changeScript(script: ScriptType) {
     workspaceId: activeWorkspaceId.value,
     baseId: baseId.value,
     automationId: script.id,
+    automationTitle: script.title,
   })
 }
 

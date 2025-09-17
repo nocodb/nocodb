@@ -219,26 +219,47 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     workspaceId: _workspaceId,
     baseId,
     tableId,
+    tableTitle,
     viewId,
+    viewTitle,
     query,
     automationId,
+    automationTitle,
     replace,
     dashboardId,
+    dashboardTitle,
     newTab,
   }: {
     workspaceId?: string
     baseId?: string
     tableId?: string
+    tableTitle?: string
     viewId?: string
+    viewTitle?: string
     automationId?: string
+    automationTitle?: string
     dashboardId?: string
+    dashboardTitle?: string
     query?: string
     replace?: boolean
     newTab?: boolean
   }) => {
-    const tablePath = tableId ? `/${tableId}${viewId ? `/${viewId}` : ''}` : ''
-    const automationPath = automationId ? `/automations/${automationId}` : ''
-    const dashboardPath = dashboardId ? `/dashboards/${dashboardId}` : ''
+    const tablePath = tableId
+      ? `/${tableId}${
+          viewId
+            ? `/${viewId}${toReadableUrlSlug([tableTitle, viewTitle]) ? `/${toReadableUrlSlug([tableTitle, viewTitle])}` : ''}`
+            : ''
+        }`
+      : ''
+
+    const automationPath = automationId
+      ? `/automations/${automationId}${toReadableUrlSlug([automationTitle]) ? `/${toReadableUrlSlug([automationTitle])}` : ''}`
+      : ''
+
+    const dashboardPath = dashboardId
+      ? `/dashboards/${dashboardId}${toReadableUrlSlug([dashboardTitle]) ? `/${toReadableUrlSlug([dashboardTitle])}` : ''}`
+      : ''
+
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
     const workspaceId = _workspaceId || 'app'
 

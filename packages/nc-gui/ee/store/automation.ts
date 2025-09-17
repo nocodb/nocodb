@@ -4,6 +4,7 @@ import { DlgAutomationCreate } from '#components'
 
 export const useAutomationStore = defineStore('automation', () => {
   const { $api, $e } = useNuxtApp()
+  const router = useRouter()
   const route = useRoute()
   const { ncNavigateTo } = useGlobal()
   const bases = useBases()
@@ -32,6 +33,16 @@ export const useAutomationStore = defineStore('automation', () => {
   const activeAutomation = computed(() => {
     if (!activeAutomationId.value) return null
     return activeBaseAutomations.value.find((a) => a.id === activeAutomationId.value) || null
+  })
+
+  const activeAutomationUrlSlug = computed(() => {
+    return route.params.slugs?.[0] || ''
+  })
+
+  const activeAutomationReadableUrlSlug = computed(() => {
+    if (!activeAutomation.value) return ''
+
+    return toReadableUrlSlug([activeAutomation.value.title])
   })
 
   const activeBaseSchema = ref(null)
@@ -125,6 +136,7 @@ export const useAutomationStore = defineStore('automation', () => {
         workspaceId: activeWorkspaceId.value,
         baseId: activeProjectId.value,
         automationId: created.id,
+        automationTitle: created.title,
       })
 
       await refreshCommandPalette()
@@ -159,6 +171,7 @@ export const useAutomationStore = defineStore('automation', () => {
         workspaceId: activeWorkspaceId.value,
         baseId: activeProjectId.value,
         automationId: created.id,
+        automationTitle: created.title,
       })
 
       await refreshCommandPalette()
@@ -251,6 +264,7 @@ export const useAutomationStore = defineStore('automation', () => {
             workspaceId: activeWorkspaceId.value,
             baseId: activeProjectId.value,
             automationId: nextAutomation.id,
+            automationTitle: nextAutomation.title,
           })
         }
       }
@@ -299,6 +313,7 @@ export const useAutomationStore = defineStore('automation', () => {
       workspaceId: workspaceIdOrType,
       baseId: baseIdOrBaseId,
       automationId: script.id,
+      automationTitle: script.title,
     })
   }
 
@@ -405,6 +420,35 @@ export const useAutomationStore = defineStore('automation', () => {
       close(1000)
     }
   }
+
+  watch(
+    [activeAutomationReadableUrlSlug, activeAutomationUrlSlug],
+    ([newActiveAutomationReadableUrlSlug, newActiveAutomationUrlSlug]) => {
+      if (!newActiveAutomationReadableUrlSlug || newActiveAutomationUrlSlug === newActiveAutomationReadableUrlSlug) return
+
+      const slugs = (route.params.slugs as string[]) || []
+
+      const newSlug = [newActiveAutomationReadableUrlSlug]
+
+      if (slugs.length > 1) {
+        newSlug.push(...slugs.slice(1))
+      }
+
+      router.replace({
+        name: 'index-typeOrId-baseId-index-automations-automationId-slugs',
+        params: {
+          ...route.params,
+          slugs: newSlug,
+        },
+        query: route.query,
+        force: true,
+      })
+    },
+    {
+      immediate: true,
+      flush: 'post',
+    },
+  )
 
   return {
     // State

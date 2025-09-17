@@ -5,9 +5,11 @@ import {
   ButtonActionsType,
   IntegrationsType,
   isAIPromptCol,
+  isJSON,
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
+  parseJsonValue,
   UITypes,
 } from 'nocodb-sdk';
 import mime from 'mime/lite';
@@ -474,6 +476,10 @@ export class AiDataService {
               return row[col.title]?.value ?? '';
             }
 
+            if (isJSON(col)) {
+              return `\"${parseJsonValue(row[col.title])}\"`;
+            }
+
             return row[col.title];
           }),
           ...pkObj,
@@ -663,7 +669,9 @@ export class AiDataService {
 
     const outputColumnIds = aiButton.output_column_ids?.split(',') || [];
 
-    const outputColumns = outputColumnIds.map((id) => model.columnsById[id]);
+    const outputColumns = outputColumnIds
+      .map((id) => model.columnsById[id])
+      .filter(Boolean);
 
     const integration = await Integration.get(
       context,
@@ -716,6 +724,10 @@ export class AiDataService {
 
             if (isAIPromptCol(col)) {
               return row[col.title]?.value ?? '';
+            }
+
+            if (isJSON(col)) {
+              return `\"${parseJsonValue(row[col.title])}\"`;
             }
 
             return row[col.title];
@@ -1181,6 +1193,10 @@ Please generate ${
               return row[col.title]?.value ?? '';
             }
 
+            if (isJSON(col)) {
+              return `\"${parseJsonValue(row[col.title])}\"`;
+            }
+
             return row[col.title];
           }),
           ...pkObj,
@@ -1190,7 +1206,9 @@ Please generate ${
 
     const outputColumnIds = aiButton.output_column_ids?.split(',') || [];
 
-    const outputColumns = outputColumnIds.map((id) => model.columnsById[id]);
+    const outputColumns = outputColumnIds
+      .map((id) => model.columnsById[id])
+      .filter(Boolean);
 
     const integration = await Integration.get(
       context,

@@ -229,7 +229,7 @@ export function useCanvasTable({
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
-  const { isAiFeaturesEnabled, aiIntegrations, generateRows: _generateRows } = useNocoAi()
+  const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows } = useNocoAi()
   const automationStore = useAutomationStore()
   const tooltipStore = useTooltipStore()
   const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
@@ -388,11 +388,13 @@ export function useCanvasTable({
           f.extra.display_column_meta = displayColumnConfig
         }
 
-        const isInvalid = isColumnInvalid(
-          f,
-          aiIntegrations.value,
-          isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
-        )
+        const isInvalid = isColumnInvalid({
+          col: f,
+          aiIntegrations: aiIntegrations.value,
+          isReadOnly: isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
+          isNocoAiAvailable: isNocoAiAvailable.value,
+          columns: meta.value?.columns as ColumnType[],
+        })
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
 
         const isCellEditable =

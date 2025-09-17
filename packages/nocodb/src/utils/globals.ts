@@ -75,6 +75,8 @@ export enum MetaTable {
   WIDGETS = 'nc_widgets_v2',
   MODEL_STAT = 'nc_model_stat',
   OAUTH_CLIENTS = 'nc_oauth_clients',
+  OAUTH_AUTHORIZATION_CODES = 'nc_oauth_authorization_codes',
+  OAUTH_TOKENS = 'nc_oauth_tokens',
 }
 
 export const BaseRelatedMetaTables = [
@@ -328,6 +330,8 @@ export const RootScopeTables = {
     MetaTable.CUSTOM_URLS,
     MetaTable.MCP_TOKENS,
     MetaTable.OAUTH_CLIENTS,
+    MetaTable.OAUTH_AUTHORIZATION_CODES,
+    MetaTable.OAUTH_TOKENS,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
   // It's a special case and Workspace is equivalent to org in oss

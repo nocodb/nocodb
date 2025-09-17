@@ -868,6 +868,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
           viewTitle: route.value.params.viewTitle || activeView.value?.id,
           slugs: newSlug,
         },
+        query: route.value.query,
         force: true,
       })
     },

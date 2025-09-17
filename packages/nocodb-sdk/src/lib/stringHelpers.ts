@@ -162,3 +162,29 @@ export const trimMatchingQuotes = (str?: string | null): string => {
 
   return str?.trim()?.replace(/^(['"])(.*)\1$/, '$2') ?? '';
 };
+
+/**
+ * Get all matches of a regex in a string
+ * @param str - The string to search
+ * @param regex - The regular expression to match against
+ * @returns An array of all matches of the regex in the string
+ *
+ * Note: Since we are using ES2017, `String.prototype.matchAll` is not available.
+ * This function acts as a fallback to achieve the same behavior.
+ */
+export function stringAllMatches(str: string, regex: RegExp): RegExpExecArray[] {
+  // Ensure regex has the global flag, because exec() needs it to iterate
+  const globalRegex = new RegExp(
+    regex.source,
+    regex.flags.includes('g') ? regex.flags : regex.flags + 'g'
+  );
+
+  const matches: RegExpExecArray[] = [];
+  let m: RegExpExecArray | null;
+
+  while ((m = globalRegex.exec(str)) !== null) {
+    matches.push(m);
+  }
+
+  return matches;
+}

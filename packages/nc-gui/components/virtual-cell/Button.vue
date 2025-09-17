@@ -10,7 +10,7 @@ const column = inject(ColumnInj) as Ref<
 
 const cellValue = inject(CellValueInj, ref())
 
-const { currentRow, displayValue } = useSmartsheetRowStoreOrThrow()
+const { currentRow, displayValue, changedColumns } = useSmartsheetRowStoreOrThrow()
 
 const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
@@ -75,7 +75,8 @@ const generate = async () => {
 
   generatingColumns.value.push(...(outputColumnIds ?? []))
 
-  const res = await generateRows(meta.value.id, column.value.id, [pk.value])
+  // In expanded form get preview data and update local state so that expanded form save btn works properly
+  const res = await generateRows(meta.value.id, column.value.id, [pk.value], false, isExpandedForm.value)
 
   if (res?.length) {
     const resRow = res[0]
@@ -83,6 +84,8 @@ const generate = async () => {
     if (outputColumnIds) {
       for (const col of outputColumns) {
         if (col && currentRow.value.row) {
+          changedColumns.value.add(col.title!)
+
           currentRow.value.row[col.title!] = resRow[col.title!]
         }
       }
@@ -288,7 +291,7 @@ const triggerAction = async () => {
         />
         <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
         <NcTooltip v-if="column.colOptions.label" class="!truncate" show-on-truncate-only>
-          <span class="truncate" :class="{ 'text-sm font-semibold': isExpandedForm, 'text-[13px] font-medium': !isExpandedForm }">
+          <span class="truncate font-medium" :class="{ 'text-sm': isExpandedForm, 'text-[13px]': !isExpandedForm }">
             {{ column.colOptions.label }}
           </span>
           <template #title>
@@ -309,6 +312,10 @@ const triggerAction = async () => {
     &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
       box-shadow: none !important;
     }
+  }
+
+  &:has(.nc-cell-button.is-expanded-form) {
+    @apply -mt-1 -ml-1;
   }
 
   .nc-cell-attachment {

@@ -1396,7 +1396,7 @@ watch(activeBaseId, () => {
             <GeneralIcon class="min-w-6 h-6 text-nc-content-orange-medium" icon="alertTriangle" />
             <div class="flex flex-col gap-1">
               <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">Suitable fields not present</h2>
-              <span class="text-gray-500 font-default text-sm"> {{ errorMessages[form.type] }}</span>
+              <span class="text-nc-content-gray-muted font-default text-sm"> {{ errorMessages[form.type] }}</span>
             </div>
           </div>
         </div>

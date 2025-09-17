@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes, UITypesName, isAIPromptCol } from 'nocodb-sdk'
+import { type ColumnType, UITypes, UITypesName, isAIPromptCol, substituteColumnIdWithAliasInPrompt } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -16,12 +16,18 @@ const meta = inject(MetaInj)!
 const workspaceStore = useWorkspace()
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
+const vModel = useVModel(props, 'modelValue', emit)
+
 const availableFields = computed(() => {
   if (!meta.value?.columns) return []
-  return meta.value.columns.filter((c) => c.title && !c.system && ![UITypes.Button, UITypes.ID].includes(c.uidt as UITypes))
+  return meta.value.columns.filter(
+    (c) =>
+      c.title &&
+      !c.system &&
+      (!vModel.value?.id || c.id !== vModel.value.id) &&
+      ![UITypes.Button, UITypes.ID].includes(c.uidt as UITypes),
+  )
 })
-
-const vModel = useVModel(props, 'modelValue', emit)
 
 const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn, updateFieldName } =
   useColumnCreateStoreOrThrow()
@@ -122,7 +128,12 @@ const isPromptEnabled = computed(() => {
 
 onMounted(() => {
   // set default value
-  vModel.value.prompt_raw = (column?.value?.colOptions as Record<string, any>)?.prompt_raw || ''
+  vModel.value.prompt_raw =
+    substituteColumnIdWithAliasInPrompt(
+      (column.value?.colOptions as Record<string, any>)?.prompt ?? '',
+      meta?.value?.columns as ColumnType[],
+      (column.value?.colOptions as Record<string, any>)?.prompt_raw,
+    ).substituted || ''
 })
 
 const validators = {

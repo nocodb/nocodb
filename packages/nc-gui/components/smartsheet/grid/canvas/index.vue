@@ -728,7 +728,7 @@ function onNewRecordToFormClick(path: Array<number> = []) {
   isDropdownVisible.value = false
 }
 
-const onVisibilityChange = (value) => {
+const onVisibilityChange = (value: boolean) => {
   if (value) {
     isDropdownVisible.value = true
   } else if (isCreateOrEditColumnDropdownOpen.value) {
@@ -1685,7 +1685,7 @@ const getHeaderTooltipRegions = (
 
   const ctx = defaultOffscreen2DContext
   ctx.save()
-  ctx.font = '550 12px Inter'
+  ctx.font = '600 12px Inter'
   columns.value.slice(startColIndex, endColIndex).forEach((column) => {
     const width = parseCellWidth(column.width)
 
@@ -2653,7 +2653,6 @@ watch(
               :bulk-delete-all="bulkDeleteAll"
               :call-add-new-row="callAddNewRow"
               :copy-value="copyValue"
-              :read-only="!hasEditPermission"
               :get-rows="getRows"
               :bulk-update-rows="bulkUpdateRows"
               :expand-form="expandForm"

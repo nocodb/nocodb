@@ -157,6 +157,10 @@ export class ViewWebhookManager {
   }
 
   isOldAndNewEqual(oldView, newView) {
+    oldView.created_at = null;
+    oldView.updated_at = null;
+    newView.created_at = null;
+    newView.updated_at = null;
     return (
       JSON.stringify(objRemoveEmptyStringProps(oldView)) ===
       JSON.stringify(objRemoveEmptyStringProps(newView))

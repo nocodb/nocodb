@@ -5827,7 +5827,8 @@
             "type": "string",
             "enum": [
               "collaborative",
-              "locked"
+              "locked",
+              "personal"
             ],
             "description": "Lock type of the view.\n\n Note: Assigning view as personal using API is not supported currently",
             "default": "collaborative"

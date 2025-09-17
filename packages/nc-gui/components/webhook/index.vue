@@ -243,6 +243,11 @@ const handleEventChange = (e: string) => {
     hookRef.operation = ['trigger']
     hookRef.trigger_field = false
     hookRef.trigger_fields = []
+    hookRef.notification.trigger_form = false
+    hookRef.notification.trigger_form_id = undefined
+  } else {
+    sendMeEverythingChecked.value = true
+    hookRef.operation = sendMeEverythingChecked.value ? [...operationsEnum.value.map((k) => k.value)] : []
   }
 
   // Automatically set active to true when event type is manual

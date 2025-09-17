@@ -6,6 +6,10 @@ import type {
   ViewUpdateReqType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -148,6 +152,7 @@ export class ViewsService {
       view: ViewUpdateReqType;
       user: UserType;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
   ) {
     validatePayload(
@@ -159,6 +164,16 @@ export class ViewsService {
     if (!oldView) {
       NcError.viewNotFound(param.viewId);
     }
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context).withModelId(
+            oldView.fk_model_id,
+          )
+        ).withViewId(param.viewId)
+      ).forUpdate();
 
     let ownedBy = oldView.owned_by;
     let createdBy = oldView.created_by;
@@ -259,6 +274,10 @@ export class ViewsService {
       },
       context.socket_id,
     );
+
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(oldView.id)).emit();
+    }
 
     return result;
   }

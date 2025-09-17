@@ -14,7 +14,10 @@ import type {
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import type { SelectOption } from '~/models';
-import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -71,6 +74,14 @@ export class KanbansService {
         fk_cover_image_col_id = attachmentField.id;
       }
     }
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+          param.tableId,
+        )
+      ).forCreate();
 
     const { id } = await View.insertMetaOnly(
       context,
@@ -132,6 +143,10 @@ export class KanbansService {
       context.socket_id,
     );
 
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
+
     return view;
   }
 
@@ -141,6 +156,7 @@ export class KanbansService {
       kanbanViewId: string;
       kanban: KanbanUpdateReqType;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
@@ -154,6 +170,16 @@ export class KanbansService {
     if (!view) {
       NcError.viewNotFound(param.kanbanViewId);
     }
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
 
     const oldKanbanView = await KanbanView.get(
       context,
@@ -210,6 +236,9 @@ export class KanbansService {
       context.socket_id,
     );
 
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
     return view;
   }
 
@@ -318,11 +347,23 @@ export class KanbansService {
       kanbanViewId: string;
       optionsOrder: string[];
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
     const kanbanView = await this.kanbanViewGet(context, param, ncMeta);
     const modelView = await View.get(context, kanbanView.fk_view_id, ncMeta);
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            modelView.fk_model_id,
+          )
+        ).withViewId(modelView.id)
+      ).forUpdate();
+
     const model = await Model.get(context, modelView.fk_model_id, ncMeta);
     const column = (await model.getColumns(context, ncMeta)).find(
       (col) => col.id === kanbanView.fk_grp_col_id,
@@ -384,8 +425,13 @@ export class KanbansService {
           },
         },
         req: param.req,
+        viewWebhookManager,
       },
       ncMeta,
     );
+
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(modelView.id)).emit();
+    }
   }
 }

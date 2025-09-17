@@ -39,6 +39,7 @@ export class ViewWebhookManagerBuilder {
   }
   async withView(view: any) {
     this.oldView = view;
+    return this;
   }
   async withViewId(viewId: string, req?: NcRequest) {
     // needed to prevent circular dependencies
@@ -51,6 +52,7 @@ export class ViewWebhookManagerBuilder {
       },
       this.ncMeta,
     );
+    return this;
   }
 
   forCreate() {

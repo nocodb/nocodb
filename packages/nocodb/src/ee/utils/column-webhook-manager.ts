@@ -154,22 +154,33 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
 
   protected emitted = false;
 
-  getOrCreateRelatedColumnWebhookManager(
-    tableId: string,
-    action: WebhookActions,
-  ) {
-    if (!this.relatedColumnWebhookManager.has(tableId)) {
-      this.relatedColumnWebhookManager.set(tableId, new Map());
+  getOrCreateRelatedColumnWebhookManager({
+    workspaceId,
+    baseId,
+    tableId,
+    action,
+  }: {
+    workspaceId: string;
+    baseId: string;
+    tableId: string;
+    action: WebhookActions;
+  }) {
+    const tableIdKey = `${baseId}_${tableId}`;
+    if (!this.relatedColumnWebhookManager.has(tableIdKey)) {
+      this.relatedColumnWebhookManager.set(tableIdKey, new Map());
     }
-    const tableActions = this.relatedColumnWebhookManager.get(tableId);
+    const tableActions = this.relatedColumnWebhookManager.get(tableIdKey);
     if (!tableActions.has(action)) {
       tableActions.set(
         action,
-        new ColumnWebhookManager(this.context, {
-          action: action,
-          modelId: tableId,
-          oldColumns: [],
-        }),
+        new ColumnWebhookManager(
+          { ...this.context, base_id: baseId, workspace_id: workspaceId },
+          {
+            action: action,
+            modelId: tableId,
+            oldColumns: [],
+          },
+        ),
       );
     }
     return tableActions.get(action);
@@ -210,9 +221,23 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
     await this.populateRelatedNewColumns();
     return this;
   }
-  async addOldColumnById(columnId: string, action?: WebhookActions) {
+  async addOldColumnById({
+    columnId,
+    action,
+    context,
+  }: {
+    columnId: string;
+    action?: WebhookActions;
+    context?: {
+      workspace_id: string;
+      base_id: string;
+    };
+  }) {
     // if column id exists, ignore
-    if (this.params.oldColumns.find((col) => col.id === columnId)) {
+    if (
+      this.params.oldColumns.find((col) => col.id === columnId) &&
+      (!context?.base_id || context.base_id === this.context.base_id)
+    ) {
       return this;
     }
 
@@ -224,17 +249,32 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
       { columnId },
       this.ncMeta,
     );
-    await this.addOldColumn(newColumn, action);
+    await this.addOldColumn({ column: newColumn, action, context });
     return this;
   }
-  async addOldColumn(column: any, action?: WebhookActions) {
+  async addOldColumn({
+    column,
+    action,
+    context,
+  }: {
+    column: any;
+    action?: WebhookActions;
+    context?: {
+      workspace_id: string;
+      base_id: string;
+    };
+  }) {
     // if column id exists, ignore
-    if (this.params.oldColumns.find((col) => col.id === column.id)) {
+    if (
+      this.params.oldColumns.find((col) => col.id === column.id) &&
+      (!context?.base_id || context.base_id === this.context.base_id)
+    ) {
       return this;
     }
     if (await ignoreColumn(this.context, { column }, this.ncMeta)) {
       return this;
     }
+    const useContext = context ?? this.context;
 
     if (
       // if table id is different
@@ -243,21 +283,40 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
       (action && action !== this.params.action)
     ) {
       const relatedColumnWebhookManager =
-        this.getOrCreateRelatedColumnWebhookManager(column.table_id, action);
-      await relatedColumnWebhookManager.addOldColumn(column, action);
+        this.getOrCreateRelatedColumnWebhookManager({
+          baseId: useContext.base_id,
+          workspaceId: useContext.workspace_id,
+          tableId: column.table_id,
+          action,
+        });
+      await relatedColumnWebhookManager.addOldColumn({ column, action });
     } else {
       this.params.oldColumns.push(column);
     }
     return this;
   }
-  async addNewColumnById(columnId: string, action?: WebhookActions) {
+  async addNewColumnById({
+    columnId,
+    action,
+    context,
+  }: {
+    columnId: string;
+    action?: WebhookActions;
+    context?: {
+      workspace_id: string;
+      base_id: string;
+    };
+  }) {
     // only valid on create column event
     if ((action ?? this.params.action) !== WebhookActions.INSERT) {
       return;
     }
 
     // if column id exists, ignore
-    if (this.params.newColumns.find((col) => col.id === columnId)) {
+    if (
+      this.params.newColumns.find((col) => col.id === columnId) &&
+      (!context?.base_id || context.base_id === this.context.base_id)
+    ) {
       return this;
     }
 
@@ -270,28 +329,38 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
       this.ncMeta,
     );
 
-    await this.addNewColumn(newColumn, action);
+    await this.addNewColumn({ column: newColumn, action, context });
     return this;
   }
-  async addNewColumn(column: any, action?: WebhookActions) {
+  async addNewColumn({
+    column,
+    action,
+    context,
+  }: {
+    column: any;
+    action?: WebhookActions;
+    context?: {
+      workspace_id: string;
+      base_id: string;
+    };
+  }) {
     // only valid on create column event
     if ((action ?? this.params.action) !== WebhookActions.INSERT) {
       return;
     }
 
-    console.log(
-      column.table_id,
-      this.params.modelId,
-      await ignoreColumn(this.context, { column }, this.ncMeta),
-    );
     if (await ignoreColumn(this.context, { column }, this.ncMeta)) {
       return this;
     }
 
     // if column id exists, ignore
-    if (this.params.newColumns.find((col) => col.id === column.id)) {
+    if (
+      this.params.newColumns.find((col) => col.id === column.id) &&
+      (!context?.base_id || context.base_id === this.context.base_id)
+    ) {
       return this;
     }
+    const useContext = context ?? this.context;
 
     if (
       // if table id is different
@@ -300,8 +369,13 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
       (action && action !== this.params.action)
     ) {
       const relatedColumnWebhookManager =
-        this.getOrCreateRelatedColumnWebhookManager(column.table_id, action);
-      await relatedColumnWebhookManager.addNewColumn(column, action);
+        this.getOrCreateRelatedColumnWebhookManager({
+          tableId: column.table_id,
+          action,
+          baseId: useContext.base_id,
+          workspaceId: useContext.workspace_id,
+        });
+      await relatedColumnWebhookManager.addNewColumn({ column, action });
     } else {
       this.params.newColumns.push(column);
     }

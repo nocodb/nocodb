@@ -179,7 +179,9 @@
     "upgradeLicenseToUsePrivateBasesSubtitle": "Enterprise Starter लाइसेन्समा प्राइवेट बेसहरू उपलब्ध छैनन्। तिनीहरू प्रयोग गर्न लाइसेन्स अपग्रेड गर्नुहोस्।",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "यस कक्षमा धेरैमा धेरै {limit} {filePlural} मात्र अपलोड गर्न सक्नुहुन्छ। थप फाइलहरू थप्न {plan} योजनामा अपग्रेड गर्नुहोस्।",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "स्क्रिप्ट",
@@ -2425,7 +2427,8 @@
       "failedToCreateLookupFields": "लुकअप फिल्डहरू सिर्जना गर्न असफल भयो",
       "invalidSearchQuery": "गलत खोज प्रश्न",
       "invalidSearchQueryForVisibleFields": "दृश्य हुने फिल्डहरूका लागि गलत खोज प्रश्न",
-      "invalidSearchQueryForDisplayField": "प्रदर्शन फिल्डका लागि गलत खोज प्रश्न"
+      "invalidSearchQueryForDisplayField": "प्रदर्शन फिल्डका लागि गलत खोज प्रश्न",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात गरिएको छ",

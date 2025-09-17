@@ -148,18 +148,16 @@ export class WebhookInvoker extends WebhookInvokerCE {
         table_id: model.id,
         table_name: model.title,
         // webhook are table specific, so no need to send view_id and view_name
-        // view_id: view?.id,
-        // view_name: view?.title,
-        ...(prevData &&
+        ...(prevData?.length &&
           (hook.operation as any) !== 'delete' && {
-            previous_fields: Array.isArray(prevData) ? prevData : [prevData],
+            previous_fields: prevData,
           }),
-        ...(prevData &&
+        ...(prevData?.length &&
           (hook.operation as any) === 'delete' && {
-            fields: Array.isArray(prevData) ? prevData : [prevData],
+            fields: prevData,
           }),
-        ...(newData && {
-          fields: Array.isArray(newData) ? newData : [newData],
+        ...(newData?.length && {
+          fields: newData,
         }),
       },
     };

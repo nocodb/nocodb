@@ -270,7 +270,7 @@ const getHookTypeText = (hook: HookType) => {
       return `${prefix}${operations.join(` ${t('general.or').toLowerCase()} `)}`
     }
 
-    return `${prefix} ${t('labels.sendAllEvents')}`
+    return `${prefix}${t('labels.sendAllEvents').toLowerCase()}`
   }
 
   const result = v2EventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text

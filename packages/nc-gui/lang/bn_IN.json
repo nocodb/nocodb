@@ -179,7 +179,9 @@
     "upgradeLicenseToUsePrivateBasesSubtitle": "Enterprise Starter লাইসেন্সে প্রাইভেট বেস উপলব্ধ নয়। ব্যবহার শুরু করতে লাইসেন্স আপগ্রেড করুন।",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "আপনি এই সেলে সর্বাধিক {limit}টি {filePlural} আপলোড করতে পারবেন। আরও ফাইল যোগ করতে {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "স্ক্রিপ্ট",
@@ -2425,7 +2427,8 @@
       "failedToCreateLookupFields": "লুকআপ ফিল্ড তৈরি করতে ব্যর্থ",
       "invalidSearchQuery": "অবৈধ সার্চ কোয়েরি",
       "invalidSearchQueryForVisibleFields": "দৃশ্যমান ফিল্ডের জন্য অবৈধ সার্চ কোয়েরি",
-      "invalidSearchQueryForDisplayField": "ডিসপ্লে ফিল্ডের জন্য অবৈধ সার্চ কোয়েরি"
+      "invalidSearchQueryForDisplayField": "ডিসপ্লে ফিল্ডের জন্য অবৈধ সার্চ কোয়েরি",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "প্রকল্প মেটাডেটা সফলভাবে রফতানি করেছে",

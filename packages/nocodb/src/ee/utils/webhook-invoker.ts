@@ -39,8 +39,8 @@ export class WebhookInvoker extends WebhookInvokerCE {
 
     if (hookName) {
       const [event, _operation] = hookName.split('.');
-      if (event === WebhookEvents.VIEW) {
-        return this.invokeViewEvent(context, param);
+      if ([WebhookEvents.VIEW, WebhookEvents.FIELD].includes(event)) {
+        return this.invokeMetaEvent(context, param);
       }
     }
     return super.invoke(context, param);
@@ -56,6 +56,15 @@ export class WebhookInvoker extends WebhookInvokerCE {
   ) {
     if ((hook.event as any) === WebhookEvents.VIEW) {
       return this.constructViewWebHookData(
+        hook,
+        model,
+        _view,
+        prevData,
+        newData,
+        user,
+      );
+    } else if ((hook.event as any) === WebhookEvents.FIELD) {
+      return this.constructColumnWebHookData(
         hook,
         model,
         _view,
@@ -115,7 +124,48 @@ export class WebhookInvoker extends WebhookInvokerCE {
     };
   }
 
-  async invokeViewEvent(
+  constructColumnWebHookData(
+    hook: HookPayloadType,
+    model: Model | TableType,
+    _view: View | ViewType,
+    prevData: any,
+    newData: any,
+    user = null,
+  ) {
+    // Check for include_user in notification object first, fall back to hook.include_user for backward compatibility
+    const includeUser = parseMetaProp(hook, 'notification')?.include_user;
+
+    return {
+      type: `${hook.event}.after.${
+        hook.operation === 'insert' ? 'create' : hook.operation
+      }`,
+      id: uuidv4(),
+      ...(includeUser && isEE && user
+        ? { user: sanitizeUserForHook(user) }
+        : {}),
+      version: hook.version,
+      data: {
+        table_id: model.id,
+        table_name: model.title,
+        // webhook are table specific, so no need to send view_id and view_name
+        // view_id: view?.id,
+        // view_name: view?.title,
+        ...(prevData &&
+          (hook.operation as any) !== 'delete' && {
+            previous_fields: Array.isArray(prevData) ? prevData : [prevData],
+          }),
+        ...(prevData &&
+          (hook.operation as any) === 'delete' && {
+            fields: Array.isArray(prevData) ? prevData : [prevData],
+          }),
+        ...(newData && {
+          fields: Array.isArray(newData) ? newData : [newData],
+        }),
+      },
+    };
+  }
+
+  async invokeMetaEvent(
     context: NcContext,
     param: {
       hook: Hook;

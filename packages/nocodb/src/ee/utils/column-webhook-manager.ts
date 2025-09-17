@@ -445,11 +445,6 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
         return;
       }
 
-      console.log({
-        hookName: `${WebhookEvents.FIELD}.${this.params.action}`,
-        ...emitData,
-        modelId: this.params.modelId,
-      });
       Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
         context: this.context,
         hookName: `${WebhookEvents.FIELD}.${this.params.action}`,

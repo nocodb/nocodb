@@ -114,6 +114,7 @@ watch(stepIndex, (newIndex, oldIndex, cleanup) => {
               <NcButton
                 type="text"
                 size="small"
+                mobile-size="medium"
                 :disabled="isDisabledSkipButton"
                 data-testid="nc-onboarding-flow-skip-button"
                 @click="onCompleteOnboardingFlow(true)"
@@ -127,6 +128,7 @@ watch(stepIndex, (newIndex, oldIndex, cleanup) => {
               v-else
               type="text"
               size="small"
+              mobile-size="medium"
               :disabled="isFirst"
               data-testid="nc-onboarding-flow-back-button"
               @click="goToPrevious()"
@@ -140,6 +142,7 @@ watch(stepIndex, (newIndex, oldIndex, cleanup) => {
               <NcButton
                 type="primary"
                 size="small"
+                mobile-size="medium"
                 :disabled="!isFilledVisibleOptions"
                 data-testid="nc-onboarding-flow-next-button"
                 @click="isLast ? onCompleteOnboardingFlow(false) : goToNext()"

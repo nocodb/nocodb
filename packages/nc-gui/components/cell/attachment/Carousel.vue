@@ -147,7 +147,7 @@ const initEmblaApi = (val: any) => {
       <div
         v-if="selectedFile"
         ref="container"
-        class="flex w-full overflow-hidden justify-center text-center relative h-screen items-center"
+        class="flex w-full overflow-hidden justify-center text-center relative nc-h-screen items-center"
       >
         <NcButton
           class="top-5 !absolute cursor-pointer !z-30 !hover:bg-transparent left-5"

@@ -248,7 +248,7 @@ onMounted(async () => {
   }
 })
 
-watch([() => isViewsLoading.value], ([isLoading, _]) => {
+watch([() => isViewsLoading.value], ([isLoading]) => {
   if (!isLoading && !activeView.value) {
     ncNavigateTo({
       workspaceId: activeWorkspaceId.value,

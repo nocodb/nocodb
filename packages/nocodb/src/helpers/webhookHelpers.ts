@@ -12,7 +12,6 @@ import {
   isDateMonthFormat,
   UITypes,
 } from 'nocodb-sdk';
-import { v4 as uuidv4 } from 'uuid';
 import type {
   ColumnType,
   FormColumnType,
@@ -24,10 +23,9 @@ import type {
 import type { AxiosResponse } from 'axios';
 import type { NcContext } from '~/interface/config';
 import type { Column, FormView, Hook, Model, Source, View } from '~/models';
-import { WebhookInvoker } from '~/utils/webhook-invoker';
 import { Filter } from '~/models';
-import { isEE, populateUpdatePayloadDiff } from '~/utils';
-import { parseMetaProp } from '~/utils/modelUtils';
+import { populateUpdatePayloadDiff } from '~/utils';
+import { WebhookInvoker } from '~/utils/webhook-invoker';
 
 handlebarsHelpers({ handlebars: Handlebars });
 
@@ -407,56 +405,15 @@ export function constructWebHookData(
   newData: Record<string, unknown>,
   user = null,
 ) {
-  // TODO: construct webhook view data
-  if (['v2', 'v3'].includes(hook.version)) {
-    // extend in the future - currently only support records
-    const scope = ['after', 'manual'].includes(hook.event) ? 'records.' : '';
-    const isBulkInsert =
-      hook.version === 'v2' && (hook.operation as any) === 'bulkInsert';
-
-    // Check for include_user in notification object first, fall back to hook.include_user for backward compatibility
-    const includeUser = parseMetaProp(hook, 'notification')?.include_user;
-
-    return {
-      type: `${scope}${hook.event}.${hook.operation}`,
-      id: uuidv4(),
-      ...(includeUser && isEE && user
-        ? { user: sanitizeUserForHook(user) }
-        : {}),
-      version: hook.version,
-      data: {
-        table_id: model.id,
-        table_name: model.title,
-        // webhook are table specific, so no need to send view_id and view_name
-        // view_id: view?.id,
-        // view_name: view?.title,
-        ...(prevData && {
-          previous_rows: Array.isArray(prevData)
-            ? prevData.map((prev) => ({ ...prev, nc_order: undefined }))
-            : [{ ...prevData, nc_order: undefined }],
-        }),
-        ...(!isBulkInsert &&
-          newData && {
-            rows: Array.isArray(newData)
-              ? newData.map((each) => ({
-                  ...each,
-                  nc_order: undefined,
-                }))
-              : [{ ...newData, nc_order: undefined }],
-          }),
-        ...(isBulkInsert && {
-          rows_inserted: Array.isArray(newData)
-            ? newData.length
-            : newData
-            ? 1
-            : 0,
-        }),
-      },
-    };
-  }
-
-  // for v1, keep it as it is
-  return newData;
+  // backward compatibility
+  return new WebhookInvoker().constructWebHookData(
+    hook,
+    model,
+    _view,
+    prevData,
+    newData,
+    user,
+  );
 }
 
 function extractReqPayloadForLog(reqPayload, response?: AxiosResponse<any>) {

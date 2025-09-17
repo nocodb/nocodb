@@ -33,13 +33,32 @@ export class ColumnWebhookManagerBuilder {
     this.modelId = modelId;
     return this;
   }
+  addColumn(column: any) {
+    if (this.oldColumns.find((col) => col.id === column.id)) {
+      return this;
+    }
+    if (column.system) {
+      return this;
+    }
+    this.oldColumns.push(column);
+    return this;
+  }
   async addColumnById(columnId: string) {
+    if (this.oldColumns.find((col) => col.id === columnId)) {
+      return this;
+    }
     // needed to prevent circular dependencies
     const columnsV3Service: IColumnsV3Service =
       Noco.nestApp.get('IColumnsV3Service');
-    this.oldColumns.push(
-      await columnsV3Service.columnGet(this.context, { columnId }, this.ncMeta),
+    const column = await columnsV3Service.columnGet(
+      this.context,
+      { columnId },
+      this.ncMeta,
     );
+    if (column.system) {
+      return this;
+    }
+    this.oldColumns.push(column);
     return this;
   }
 
@@ -200,6 +219,9 @@ export class ColumnWebhookManager {
     if (this.params.oldColumns.find((col) => col.id === column.id)) {
       return this;
     }
+    if (column.system) {
+      return this;
+    }
 
     if (
       // if table id is different
@@ -241,6 +263,9 @@ export class ColumnWebhookManager {
     // only valid on create column event
     if ((action ?? this.params.action) !== WebhookActions.INSERT) {
       return;
+    }
+    if (column.system) {
+      return this;
     }
 
     // if column id exists, ignore
@@ -322,6 +347,10 @@ export class ColumnWebhookManager {
         emitData.prevData = oldColumns;
         emitData.newData = newColumns;
       }
+      if (!emitData.prevData?.length && !emitData.newData?.length) {
+        return;
+      }
+
       Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
         context: this.context,
         hookName: `${WebhookEvents.FIELD}.${this.params.action}`,

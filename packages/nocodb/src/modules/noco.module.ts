@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 import { NotFoundHandlerModule } from './not-found-handler.module';
+import { ViewsV3Service } from '~/services/v3/views-v3.service';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
 
@@ -324,6 +325,12 @@ export const nocoModuleMetadata = {
     PublicDatasService,
     PublicDatasExportService,
     DataV3Service,
+    ViewsV3Service,
+
+    {
+      provide: 'IViewsV3Service',
+      useClass: ViewsV3Service,
+    },
     DataAttachmentV3Service,
 
     // use custom provider to avoid circular dependency
@@ -378,6 +385,7 @@ export const nocoModuleMetadata = {
     DataTableService,
     DataV3Service,
     DataAttachmentV3Service,
+    'IViewsV3Service',
 
     AttachmentUrlUploadHandler,
   ],

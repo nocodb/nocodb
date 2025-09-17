@@ -7,6 +7,7 @@ import type {
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -31,6 +32,7 @@ export class FormsService {
       user: UserType;
       req: NcRequest;
       ownedBy?: string;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {

@@ -5,6 +5,12 @@ const { loadOAuthClients } = authClientStore
 
 const { oauthClients, isOauthClientsLoading } = storeToRefs(authClientStore)
 
+const modalVisible = ref(false)
+
+const addNewClient = () => {
+  modalVisible.value = true
+}
+
 onMounted(async () => {
   await loadOAuthClients()
 })
@@ -43,6 +49,8 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+
+    <AccountOAuthModal v-model:visible="modalVisible" />
   </div>
 </template>
 

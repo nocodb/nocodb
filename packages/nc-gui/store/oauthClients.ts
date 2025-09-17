@@ -6,6 +6,8 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
 
   const oauthClients = ref<OAuthClient[]>([])
 
+  const isOauthClientsLoading = ref(false)
+
   const loadOAuthClients = async ({ force = false }: { force?: boolean } = {}) => {
     if (oauthClients.value.length > 0 && !force) {
       return oauthClients.value
@@ -146,6 +148,7 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
 
   return {
     oauthClients,
+    isOauthClientsLoading,
     loadOAuthClients,
     loadOAuthClient,
     createOAuthClient,

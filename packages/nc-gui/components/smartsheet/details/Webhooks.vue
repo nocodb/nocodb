@@ -250,7 +250,7 @@ const getHookTypeText = (hook: HookType) => {
     let prefix = ''
     switch (hook.event) {
       case 'after': {
-        prefix = `${t('general.record')} `
+        prefix = `${t('general.record')} : `
         break
       }
       case 'manual': {
@@ -258,7 +258,7 @@ const getHookTypeText = (hook: HookType) => {
         break
       }
       case 'view': {
-        prefix = `${t('objects.view')} `
+        prefix = `${t('objects.view')} : `
       }
     }
 

@@ -33,6 +33,10 @@ export const dateFormats = [
   ///added 2 new format#9652
   'DD MMM YYYY',
   'DD MMM YY',
+
+  // German date notations
+  'DD.MM.YYYY',
+  'DD.MM.YY',
 ];
 
 export const isDateMonthFormat = (format: string) =>

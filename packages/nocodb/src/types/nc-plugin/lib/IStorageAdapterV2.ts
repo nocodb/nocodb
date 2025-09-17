@@ -40,4 +40,8 @@ export default interface IStorageAdapterV2<
   ): Promise<Readable>;
   getDirectoryList(path: string): Promise<string[]>;
   scanFiles(_globPattern: string): Promise<Readable>;
+  getUploadedPath(path: string): {
+    path?: string;
+    url?: string;
+  };
 }

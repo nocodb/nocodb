@@ -41,4 +41,10 @@ export default class OvhCloud extends GenericS3 implements IStorageAdapterV2 {
 
     this.s3Client = new S3Client(s3Options);
   }
+
+  override getUploadedPath(path: string): { path?: string; url?: string } {
+    return {
+      url: `https://s3.${this.input.region}.cloud.ovh.net/${this.input.bucket}/${path}`,
+    };
+  }
 }

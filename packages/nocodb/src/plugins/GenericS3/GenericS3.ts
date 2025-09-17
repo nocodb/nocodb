@@ -272,4 +272,8 @@ export default class GenericS3 implements IStorageAdapterV2 {
 
     return stream;
   }
+
+  getUploadedPath(path: string): { path?: string; url?: string } {
+    return { path };
+  }
 }

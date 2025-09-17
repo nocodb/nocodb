@@ -4,7 +4,13 @@ import { type AttachmentUrlUploadJobData, JobTypes } from '~/interface/Jobs';
 import { EMIT_EVENT } from '~/constants';
 import Noco from '~/Noco';
 import { dataWrapper } from '~/helpers/dbHelpers';
-import { type Column } from '~/models';
+import { type Column, FileReference } from '~/models';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import {
+  constructFilePath,
+  getFileNameFromUrl,
+} from '~/helpers/attachmentHelpers';
+import { extractProps } from '~/helpers/extractProps';
 
 export class AttachmentUrlUploadPreparator {
   async prepareAttachmentUrlUpload(
@@ -46,6 +52,44 @@ export class AttachmentUrlUploadPreparator {
       }
       // only process when temp id exists
       if (attachmentData.some((attr) => attr.id?.startsWith('temp_'))) {
+        const storageAdapter = await NcPluginMgrv2.storageAdapter();
+        attachmentData = await Promise.all(
+          attachmentData.map(async (attr) => {
+            if (attr.id?.startsWith('temp_')) {
+              const filePaths = constructFilePath(baseModel.context, {
+                columnId: col.id,
+                modelId: baseModel.model.id,
+                scope: undefined,
+                fileName: getFileNameFromUrl({
+                  url: attr.url,
+                  scope: undefined,
+                }),
+              });
+              const uploadedPath = storageAdapter.getUploadedPath(
+                filePaths.storageDest,
+              );
+              const id = await FileReference.insert(baseModel.context, {
+                storage: storageAdapter.name,
+                file_url: uploadedPath.url ?? uploadedPath.path,
+                file_size: null,
+                fk_user_id: req?.user?.id ?? 'anonymous',
+                source_id: baseModel.model.source_id,
+                fk_model_id: baseModel.model.id,
+                fk_column_id: col.id,
+                is_external: !(await baseModel.getSource()).isMeta(),
+              });
+              return {
+                id,
+                url: attr.url,
+                status: 'uploading',
+                type: 'url_request',
+                ...filePaths,
+              };
+            } else {
+              return attr;
+            }
+          }),
+        );
         postInsertOps.push(async (recordId) => {
           Noco.eventEmitter.emit(EMIT_EVENT.HANDLE_ATTACHMENT_URL_UPLOAD, {
             jobName: JobTypes.AttachmentUrlUpload,
@@ -65,7 +109,12 @@ export class AttachmentUrlUploadPreparator {
         const columnKeyName = dataWrapper(data).getColumnKeyName(col);
         // remove temp_ ids so it doesn't get recorded in audit
         data[columnKeyName] = JSON.stringify(
-          attachmentData.filter((dt) => !dt.id?.startsWith('temp_')),
+          attachmentData.map((attr) => {
+            if (!('status' in attr)) {
+              return attr;
+            }
+            return extractProps(attr, ['id', 'url', 'status', 'type']);
+          }),
         );
       }
     }

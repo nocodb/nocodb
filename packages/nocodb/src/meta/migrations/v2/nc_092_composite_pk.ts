@@ -6,6 +6,9 @@ const up = async (knex: Knex) => {
     t.smallint('version').unsigned().defaultTo(BaseVersion.V2);
   });
 
+  // Make sure all existing projects are marked as V2
+  await knex(MetaTable.PROJECT).update({ version: BaseVersion.V2 });
+
   // List of tables and their new composite PKs
   const compositePkTables: Record<string, string[]> = {
     [MetaTable.CALENDAR_VIEW_COLUMNS]: ['base_id', 'id'],
@@ -66,6 +69,22 @@ const up = async (knex: Knex) => {
     [MetaTable.PERMISSION_SUBJECTS]: 'nc_permission_subjects_pkey',
   };
 
+  // first make sure to clear rows with null base_id values
+  for (const table of Object.keys(compositePkTables)) {
+    const count = await knex(table)
+      .whereNull('base_id')
+      .count('*', { as: 'count' })
+      .first();
+    if (count && parseInt(`${count.count}`, 10) > 0) {
+      console.log(
+        `There are ${count.count} rows in table ${table} with null base_id.`,
+      );
+
+      // delete those rows
+      await knex(table).whereNull('base_id').del();
+    }
+  }
+
   for (const [table, columns] of Object.entries(compositePkTables)) {
     // Drop old PK
     await knex.schema.alterTable(table, (t) => {
@@ -75,6 +94,13 @@ const up = async (knex: Knex) => {
     await knex.schema.alterTable(table, (t) => {
       t.primary(columns);
     });
+    // Add index excluding base_id for backward compatibility (optional)
+    const indexColumns = columns.filter((col) => col !== 'base_id');
+    if (indexColumns.length > 0) {
+      await knex.schema.alterTable(table, (t) => {
+        t.index(indexColumns, `${table}_oldpk_idx`);
+      });
+    }
   }
 };
 

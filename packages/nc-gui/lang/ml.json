@@ -179,7 +179,9 @@
     "upgradeLicenseToUsePrivateBasesSubtitle": "എന്റർപ്രൈസ് സ്റ്റാർട്ടർ ലൈസൻസിൽ സ്വകാര്യ ബേസുകൾ ലഭ്യമല്ല. ഇങ്ങനെ ഉപയോഗിക്കാൻ ലൈസൻസ് കീ അപ്‌ഡേറ്റ് ചെയ്യുക.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "ഈ സെല്ലിലേക്ക് പരമാവധി {limit} {filePlural} മാത്രമേ അപ്‌ലോഡ് ചെയ്യാൻ കഴിയൂ. കൂടുതൽ ഫയലുകൾ ചേർക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "സ്ക്രിപ്റ്റ്",
@@ -2425,7 +2427,8 @@
       "failedToCreateLookupFields": "ലുക്കപ്പ് ഫീൽഡുകൾ സൃഷ്ടിക്കാൻ പരാജയപ്പെട്ടു",
       "invalidSearchQuery": "അസാധുവായ തിരയൽ ക്വറി",
       "invalidSearchQueryForVisibleFields": "ദൃശ്യമാകുന്ന ഫീൽഡുകളിൽ അസാധുവായ തിരയൽ ക്വറി",
-      "invalidSearchQueryForDisplayField": "പ്രദർശന ഫീൽഡിൽ അസാധുവായ തിരയൽ ക്വറി"
+      "invalidSearchQueryForDisplayField": "പ്രദർശന ഫീൽഡിൽ അസാധുവായ തിരയൽ ക്വറി",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "അടിസ്ഥാന ഡാറ്റയുടെ മീറ്റാ വിവരങ്ങൾ വിജയകരമായി കയറ്റുമതി ചെയ്തു",

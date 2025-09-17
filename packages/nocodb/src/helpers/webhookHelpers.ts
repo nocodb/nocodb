@@ -397,25 +397,6 @@ export function sanitizeUserForHook(user: any) {
   };
 }
 
-export function constructWebHookData(
-  hook: Hook | HookType,
-  model: Model | TableType,
-  _view: View | ViewType,
-  prevData: Record<string, unknown>,
-  newData: Record<string, unknown>,
-  user = null,
-) {
-  // backward compatibility
-  return new WebhookInvoker().constructWebHookData(
-    hook,
-    model,
-    _view,
-    prevData,
-    newData,
-    user,
-  );
-}
-
 function extractReqPayloadForLog(reqPayload, response?: AxiosResponse<any>) {
   return {
     ...reqPayload,

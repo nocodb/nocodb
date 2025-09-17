@@ -8,7 +8,6 @@ overrides:
   tough-cookie@<4.1.3: '>=4.1.3'
   happy-dom@<15.10.2: '>=15.10.2'
   esbuild@<=0.24.2: '>=0.25.0'
-  jsdom: 26.1.0
 
 importers:
 
@@ -3275,7 +3274,7 @@ packages:
       '@vitest/browser': 3.1.3
       '@vitest/ui': 3.1.3
       happy-dom: '>=15.10.2'
-      jsdom: 26.1.0
+      jsdom: '*'
     peerDependenciesMeta:
       '@edge-runtime/vm':
         optional: true
@@ -3303,7 +3302,7 @@ packages:
       '@vitest/browser': 3.1.4
       '@vitest/ui': 3.1.4
       happy-dom: '>=15.10.2'
-      jsdom: 26.1.0
+      jsdom: '*'
     peerDependenciesMeta:
       '@edge-runtime/vm':
         optional: true

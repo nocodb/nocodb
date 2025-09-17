@@ -34,6 +34,12 @@ html {
 
 body {
   line-height: 1.3125rem;
+
+  @media (max-width: 767px) {
+    @supports (min-height: 100dvh) {
+      min-height: 100dvh !important;
+    }
+  }
 }
 
 :root {

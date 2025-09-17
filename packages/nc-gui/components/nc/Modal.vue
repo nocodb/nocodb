@@ -39,7 +39,7 @@ const { isMobileMode } = useGlobal()
 const ncModalRef = ref<HTMLDivElement | null>(null)
 
 const width = computed(() => {
-  if (isMobileMode.value) {
+  if (isMobileMode.value && !modalSizes[props.size]) {
     return '95vw'
   }
 
@@ -67,7 +67,7 @@ const width = computed(() => {
 })
 
 const height = computed(() => {
-  if (isMobileMode.value) {
+  if (isMobileMode.value && !modalSizes[props.size]) {
     return '95vh'
   }
 

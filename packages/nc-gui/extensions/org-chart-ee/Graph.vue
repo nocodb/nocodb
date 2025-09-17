@@ -63,7 +63,7 @@ onScopeDispose($destroy)
     <div
       class="w-full bg-white h-full"
       :class="{
-        '!z-1100 !h-screen !w-screen fixed top-0 left-0 right-0 bottom-0': isFullScreen,
+        '!z-1100 !nc-h-screen !nc-w-screen fixed top-0 left-0 right-0 bottom-0': isFullScreen,
       }"
       :style="!isFullScreen ? 'height: inherit' : ''"
     >

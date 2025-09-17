@@ -23738,6 +23738,8 @@
           },
           "event": {
             "enum": [
+              "view",
+              "field",
               "after",
               "before",
               "manual"
@@ -23871,6 +23873,8 @@
           },
           "event": {
             "enum": [
+              "view",
+              "field",
               "after",
               "before",
               "manual"
@@ -24096,6 +24100,8 @@
             "description": "Hook Event",
             "example": "after",
             "enum": [
+              "field",
+              "view",
               "after",
               "before",
               "manual"

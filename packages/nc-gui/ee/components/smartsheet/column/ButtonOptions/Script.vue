@@ -36,6 +36,7 @@ const editScript = () => {
       baseId: openedProject.value!.id,
       workspaceId: openedProject.value!.fk_workspace_id,
       automationId: selectedScript.value.id,
+      automationTitle: selectedScript.value.title,
       newTab: true,
     })
   }

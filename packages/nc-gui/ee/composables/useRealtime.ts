@@ -234,6 +234,7 @@ export const useRealtime = createSharedComposable(() => {
               workspaceId: activeWorkspaceId.value,
               baseId,
               automationId: nextAutomation.id,
+              automationTitle: nextAutomation.title,
             })
             showInfoModal({
               title: `Automation no longer available`,
@@ -287,6 +288,7 @@ export const useRealtime = createSharedComposable(() => {
               workspaceId: activeWorkspaceId.value,
               baseId,
               dashboardId: nextDashboard.id,
+              dashboardTitle: nextDashboard.title,
             })
             showInfoModal({
               title: `Dashboard no longer available`,

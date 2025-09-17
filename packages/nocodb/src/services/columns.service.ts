@@ -3271,10 +3271,6 @@ export class ColumnsService implements IColumnsService {
                     colOpt.fk_mm_child_column_id ===
                       relationColOpt.fk_mm_parent_column_id
                   ) {
-                    await columnWebhookManager?.addOldColumnById({
-                      columnId: c.id,
-                      action: WebhookActions.DELETE,
-                    });
                     await Column.delete2(
                       refContext,
                       {
@@ -3297,10 +3293,6 @@ export class ColumnsService implements IColumnsService {
                   }
                 }
 
-                await columnWebhookManager?.addOldColumnById({
-                  columnId: relationColOpt.fk_column_id,
-                  action: WebhookActions.DELETE,
-                });
                 await Column.delete2(
                   context,
                   {

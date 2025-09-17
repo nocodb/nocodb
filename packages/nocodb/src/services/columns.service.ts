@@ -317,7 +317,7 @@ export class ColumnsService implements IColumnsService {
       forceUpdateSystem?: boolean;
       columnWebhookManager?: ColumnWebhookManager;
     },
-    _ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncMeta,
   ): Promise<Model | Column<any>> {
     const reuse = param.reuse || {};
 
@@ -344,6 +344,15 @@ export class ColumnsService implements IColumnsService {
       Source.get(context, table.source_id),
     );
 
+    const columnWebhookManager =
+      param.columnWebhookManager ??
+      (
+        await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
+          column.fk_model_id,
+        )
+      )
+        .addColumn(column)
+        .forUpdate();
     // TODO: Refactor the columnUpdate function to handle metaOnly changes and
     // DB related changes, right now both are mixed up, making this fragile
     if (param.column.description !== column.description) {
@@ -1997,9 +2006,15 @@ export class ColumnsService implements IColumnsService {
 
     await applyRowColorInvolvement();
 
+    if (!param.columnWebhookManager) {
+      await columnWebhookManager.populateNewColumns();
+      columnWebhookManager.emit();
+    }
+
     if (param.apiVersion === NcApiVersion.V3) {
       return column;
     }
+
     return table;
   }
 
@@ -2866,6 +2881,7 @@ export class ColumnsService implements IColumnsService {
       user: UserType;
       forceDeleteSystem?: boolean;
       reuse?: ReusableParams;
+      columnWebhookManager?: ColumnWebhookManager;
     },
     ncMeta = this.metaService,
   ) {
@@ -2920,6 +2936,16 @@ export class ColumnsService implements IColumnsService {
         }' is a synced column and cannot be deleted.`,
       );
     }
+
+    const columnWebhookManager =
+      param.columnWebhookManager ??
+      (
+        await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
+          column.fk_model_id,
+        )
+      )
+        .addColumn(column)
+        .forDelete();
 
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
       ProjectMgrv2.getSqlMgr(context, { id: source.base_id }, ncMeta),
@@ -3432,6 +3458,10 @@ export class ColumnsService implements IColumnsService {
 
     await applyRowColorInvolvement();
 
+    if (!param.columnWebhookManager) {
+      await columnWebhookManager.populateNewColumns();
+      columnWebhookManager.emit();
+    }
     return table;
   }
 

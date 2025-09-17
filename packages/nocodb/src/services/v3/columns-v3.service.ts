@@ -210,7 +210,10 @@ export class ColumnsV3Service {
 
     // do tranformation
     const v3Response = columnBuilder().build(res);
-    await columnWebhookManager.addNewColumn(v3Response, WebhookActions.INSERT);
+    await columnWebhookManager.addNewColumn({
+      column: v3Response,
+      action: WebhookActions.INSERT,
+    });
     if (!param.columnWebhookManager) {
       columnWebhookManager.emit();
     }

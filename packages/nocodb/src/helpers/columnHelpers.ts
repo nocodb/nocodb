@@ -104,10 +104,10 @@ export async function createHmAndBtColumn(
         },
       },
     );
-    await columnWebhookManager?.addNewColumnById(
-      childRelCol.id,
-      WebhookActions.INSERT,
-    );
+    await columnWebhookManager?.addNewColumnById({
+      columnId: childRelCol.id,
+      action: WebhookActions.INSERT,
+    });
     if (!isSystemCol)
       Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
         table: child,
@@ -159,10 +159,10 @@ export async function createHmAndBtColumn(
         ...crossBaseProps,
       },
     );
-    await columnWebhookManager?.addNewColumnById(
-      savedColumn.id,
-      WebhookActions.INSERT,
-    );
+    await columnWebhookManager?.addNewColumnById({
+      columnId: savedColumn.id,
+      action: WebhookActions.INSERT,
+    });
     if (!isSystemCol)
       Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
         table: parent,
@@ -263,10 +263,10 @@ export async function createOOColumn(
       },
     );
 
-    await columnWebhookManager?.addNewColumnById(
-      childRelCol.id,
-      WebhookActions.INSERT,
-    );
+    await columnWebhookManager?.addNewColumnById({
+      columnId: childRelCol.id,
+      action: WebhookActions.INSERT,
+    });
     Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
       table: child,
       column: childRelCol,
@@ -321,10 +321,10 @@ export async function createOOColumn(
       ...crossBaseProps,
     });
 
-    await columnWebhookManager?.addNewColumnById(
-      savedColumn.id,
-      WebhookActions.INSERT,
-    );
+    await columnWebhookManager?.addNewColumnById({
+      columnId: savedColumn.id,
+      action: WebhookActions.INSERT,
+    });
     Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
       table: parent,
       column: savedColumn,

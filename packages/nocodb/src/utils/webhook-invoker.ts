@@ -12,12 +12,13 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 import type { Filter } from '~/models';
+import { parseMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/ncError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
-  constructWebHookData,
   handleHttpWebHook,
   parseBody,
+  sanitizeUserForHook,
   validateCondition,
 } from '~/helpers/webhookHelpers';
 import { JobTypes } from '~/interface/Jobs';
@@ -83,7 +84,7 @@ export class WebhookInvoker {
       });
     }
 
-    const webhookData = constructWebHookData(
+    const webhookData = this.constructWebHookData(
       hook,
       model,
       view,
@@ -185,7 +186,7 @@ export class WebhookInvoker {
     if (hook.version === 'v2' || hook.version === 'v1') {
       return newData;
     } else {
-      return constructWebHookData(hook, model, view, prevData, newData);
+      return this.constructWebHookData(hook, model, view, prevData, newData);
     }
   }
 
@@ -238,6 +239,66 @@ export class WebhookInvoker {
       }
     }
     return flattenedFilters;
+  }
+
+  constructWebHookData(
+    hook: Hook | HookType,
+    model: Model | TableType,
+    _view: View | ViewType,
+    prevData: Record<string, unknown>,
+    newData: Record<string, unknown>,
+    user = null,
+  ) {
+    // TODO: construct webhook view data
+    if (['v2', 'v3'].includes(hook.version)) {
+      // extend in the future - currently only support records
+      const scope = ['after', 'manual'].includes(hook.event) ? 'records.' : '';
+      const isBulkInsert =
+        hook.version === 'v2' && (hook.operation as any) === 'bulkInsert';
+
+      // Check for include_user in notification object first, fall back to hook.include_user for backward compatibility
+      const includeUser = parseMetaProp(hook, 'notification')?.include_user;
+
+      return {
+        type: `${scope}${hook.event}.${hook.operation}`,
+        id: uuidv4(),
+        ...(includeUser && isEE && user
+          ? { user: sanitizeUserForHook(user) }
+          : {}),
+        version: hook.version,
+        data: {
+          table_id: model.id,
+          table_name: model.title,
+          // webhook are table specific, so no need to send view_id and view_name
+          // view_id: view?.id,
+          // view_name: view?.title,
+          ...(prevData && {
+            previous_rows: Array.isArray(prevData)
+              ? prevData.map((prev) => ({ ...prev, nc_order: undefined }))
+              : [{ ...prevData, nc_order: undefined }],
+          }),
+          ...(!isBulkInsert &&
+            newData && {
+              rows: Array.isArray(newData)
+                ? newData.map((each) => ({
+                    ...each,
+                    nc_order: undefined,
+                  }))
+                : [{ ...newData, nc_order: undefined }],
+            }),
+          ...(isBulkInsert && {
+            rows_inserted: Array.isArray(newData)
+              ? newData.length
+              : newData
+              ? 1
+              : 0,
+          }),
+        },
+      };
+    }
+
+    // for v1, keep it as it is
+    return newData;
   }
 
   public async invoke(

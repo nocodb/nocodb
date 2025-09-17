@@ -231,11 +231,8 @@ const onReady = () => {
   }
 }
 
-onMounted(async () => {
+const checkIfViewExists = async () => {
   await until(() => isViewsLoading.value).toBe(false)
-
-  console.log('ONMOUNTED - BEFORE, loadViews', JSON.parse(JSON.stringify(activeView.value)))
-
   const views = await viewStore.loadViews()
 
   // If no views exist or the current view is not found, navigate to workspace/base
@@ -243,23 +240,19 @@ onMounted(async () => {
     !views?.length ||
     !views.find((view) => view.id === activeViewTitleOrId.value || view.title === activeViewTitleOrId.value)
   ) {
-    console.log('No views found During onMOUNTED', JSON.parse(JSON.stringify(views)))
-
     ncNavigateTo({
       workspaceId: activeWorkspaceId.value,
       baseId: activeProjectId.value,
     })
   }
+}
+
+onMounted(async () => {
+  await checkIfViewExists()
 })
 
-watch([() => isViewsLoading.value], ([isLoading]) => {
-  if (!isLoading && !activeView.value) {
-    console.log('No views found During WATCH', JSON.parse(JSON.stringify(activeView.value)))
-    ncNavigateTo({
-      workspaceId: activeWorkspaceId.value,
-      baseId: activeProjectId.value,
-    })
-  }
+watch(isViewsLoading, async () => {
+  await checkIfViewExists()
 })
 </script>
 

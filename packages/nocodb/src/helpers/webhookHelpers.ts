@@ -407,9 +407,10 @@ export function constructWebHookData(
   newData: Record<string, unknown>,
   user = null,
 ) {
+  // TODO: construct webhook view data
   if (['v2', 'v3'].includes(hook.version)) {
     // extend in the future - currently only support records
-    const scope = 'records';
+    const scope = ['after', 'manual'].includes(hook.event) ? 'records.' : '';
     const isBulkInsert =
       hook.version === 'v2' && (hook.operation as any) === 'bulkInsert';
 
@@ -417,7 +418,7 @@ export function constructWebHookData(
     const includeUser = parseMetaProp(hook, 'notification')?.include_user;
 
     return {
-      type: `${scope}.${hook.event}.${hook.operation}`,
+      type: `${scope}${hook.event}.${hook.operation}`,
       id: uuidv4(),
       ...(includeUser && isEE && user
         ? { user: sanitizeUserForHook(user) }

@@ -1,14 +1,18 @@
 import { WebhookActions, WebhookEvents } from 'nocodb-sdk';
-import type { ModelWebhookManager } from './model-webhook-manager';
+import type { ModelWebhookManager } from '~/utils/model-webhook-manager';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { IViewsV3Service } from '~/services/v3/views-v3.types';
+import type { MetaService } from '~/meta/meta.service';
 import Noco from '~/Noco';
 import { Model } from '~/models';
 import { NcError } from '~/helpers/ncError';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 
 export class ViewWebhookManagerBuilder {
-  constructor(protected readonly context: NcContext) {}
+  constructor(
+    protected readonly context: NcContext,
+    protected readonly ncMeta?: MetaService,
+  ) {}
   modelWebhookManager?: ModelWebhookManager;
   model?: Model;
   modelId?: string;
@@ -23,9 +27,13 @@ export class ViewWebhookManagerBuilder {
     return this;
   }
   async withModelId(modelId: string) {
-    this.model = await Model.getByIdOrName(this.context, {
-      id: modelId,
-    });
+    this.model = await Model.getByIdOrName(
+      this.context,
+      {
+        id: modelId,
+      },
+      this.ncMeta,
+    );
     this.modelId = modelId;
     return this;
   }
@@ -35,10 +43,14 @@ export class ViewWebhookManagerBuilder {
   async withViewId(viewId: string, req?: NcRequest) {
     // needed to prevent circular dependencies
     const viewsV3Service: IViewsV3Service = Noco.nestApp.get('IViewsV3Service');
-    this.oldView = await viewsV3Service.getView(this.context, {
-      viewId,
-      req,
-    });
+    this.oldView = await viewsV3Service.getView(
+      this.context,
+      {
+        viewId,
+        req,
+      },
+      this.ncMeta,
+    );
   }
 
   forCreate() {
@@ -86,13 +98,17 @@ export class ViewWebhookManagerBuilder {
         `Need to call 'withView' before running 'forDelete'`,
       );
     }
-    return new ViewWebhookManager(this.context, {
-      action: WebhookActions.DELETE,
-      model: this.model!,
-      modelId: this.modelId!,
-      oldView: this.oldView,
-      modelWebhookManager: this.modelWebhookManager,
-    });
+    return new ViewWebhookManager(
+      this.context,
+      {
+        action: WebhookActions.DELETE,
+        model: this.model!,
+        modelId: this.modelId!,
+        oldView: this.oldView,
+        modelWebhookManager: this.modelWebhookManager,
+      },
+      this.ncMeta,
+    );
   }
 }
 
@@ -107,6 +123,7 @@ export class ViewWebhookManager {
       newView?: any;
       modelWebhookManager?: ModelWebhookManager;
     },
+    protected readonly ncMeta?: MetaService,
   ) {}
 
   protected emitted = false;
@@ -118,10 +135,14 @@ export class ViewWebhookManager {
   async withNewViewId(viewId: string, req?: NcRequest) {
     // needed to prevent circular dependencies
     const viewsV3Service: IViewsV3Service = Noco.nestApp.get('IViewsV3Service');
-    this.params.newView = await viewsV3Service.getView(this.context, {
-      viewId,
-      req,
-    });
+    this.params.newView = await viewsV3Service.getView(
+      this.context,
+      {
+        viewId,
+        req,
+      },
+      this.ncMeta,
+    );
     return this;
   }
 

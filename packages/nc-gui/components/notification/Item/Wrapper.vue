@@ -19,7 +19,7 @@ const { toggleRead, deleteNotification } = notificationStore
   <div class="flex pl-6 pr-4 w-full overflow-x-hidden group py-4 hover:bg-gray-50 gap-3 relative cursor-pointer">
     <div class="w-9.625">
       <slot name="avatar">
-        <img src="~assets/img/brand/nocodb-logo.svg" alt="NocoDB" class="w-8" />
+        <GeneralIcon icon="nocodb1" class="w-8 h-8" />
       </slot>
     </div>
 

@@ -361,11 +361,13 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
       'description',
       'meta',
       'colOptions',
+      'fk_model_id',
     ],
     mappings: {
       uidt: 'type',
       cdf: 'default_value',
       meta: 'options',
+      fk_model_id: 'table_id',
     },
     excludeNullProps: true,
     meta: {

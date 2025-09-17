@@ -52,7 +52,9 @@ function openDashboardCreateDialog() {
         :list="activeBaseDashboards"
         option-value-key="id"
         option-label-key="title"
+        class="min-w-63.5 !w-auto"
         search-input-placeholder="Search dashboards"
+        variant="medium"
         @change="handleNavigateToDashboard"
       >
         <template #listItem="{ option }">

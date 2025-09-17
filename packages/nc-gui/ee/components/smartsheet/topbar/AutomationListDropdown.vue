@@ -54,6 +54,7 @@ function openAutomationCreateDialog() {
         option-label-key="title"
         class="min-w-64 !w-auto"
         search-input-placeholder="Search automations"
+        variant="medium"
         @change="handleNavigateToScript"
       >
         <template #listItem="{ option }">

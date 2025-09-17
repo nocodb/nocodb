@@ -23,19 +23,27 @@ export const HANDLE_WEBHOOK = '__nc_handleHooks';
 
 @Injectable()
 export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
-  private logger = new Logger(HookHandlerService.name);
-  private unsubscribe: () => void;
+  protected logger = new Logger(HookHandlerService.name);
+  protected unsubscribe: () => void;
 
   constructor(
-    @Inject('IEventEmitter') private readonly eventEmitter: IEventEmitter,
-    @Inject('JobsService') private readonly jobsService: IJobsService,
-    private readonly mailService: MailService,
+    @Inject('IEventEmitter') protected readonly eventEmitter: IEventEmitter,
+    @Inject('JobsService') protected readonly jobsService: IJobsService,
+    protected readonly mailService: MailService,
+  ) {}
+
+  public async handleViewHooks(
+    _context: NcContext,
+    _param: { hookName; prevData; newData; user; viewId; modelId },
   ) {}
 
   public async handleHooks(
     context: NcContext,
-    { hookName, prevData, newData, user, viewId, modelId },
+    param: { hookName; prevData; newData; user; viewId; modelId },
   ): Promise<void> {
+    const { hookName, prevData, newData, user, viewId, modelId } = param;
+    const [event, operation] = hookName.split('.');
+
     const view = await View.get(context, viewId);
     const model = await Model.get(context, modelId);
 
@@ -134,7 +142,6 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
-    const [event, operation] = hookName.split('.');
     const hooks = await Hook.list(context, {
       fk_model_id: modelId,
       event: event as HookType['event'],

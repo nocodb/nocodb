@@ -1,0 +1,142 @@
+import { WebhookActions, WebhookEvents } from 'nocodb-sdk';
+import type { ModelWebhookManager } from './model-webhook-manager';
+import type { NcContext, NcRequest } from 'nocodb-sdk';
+import type { IViewsV3Service } from '~/services/v3/views-v3.types';
+import Noco from '~/Noco';
+import { Model } from '~/models';
+import { NcError } from '~/helpers/ncError';
+import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
+
+export class ViewWebhookManagerBuilder {
+  constructor(protected readonly context: NcContext) {}
+  modelWebhookManager?: ModelWebhookManager;
+  model?: Model;
+  modelId?: string;
+  oldView?: any;
+  withModelManager(modelWebhookManager: ModelWebhookManager) {
+    this.modelWebhookManager = modelWebhookManager;
+    return this;
+  }
+  withModel(model: Model) {
+    this.model = model;
+    this.modelId = model.id;
+    return this;
+  }
+  async withModelId(modelId: string) {
+    this.model = await Model.getByIdOrName(this.context, {
+      id: modelId,
+    });
+    this.modelId = modelId;
+    return this;
+  }
+  async withView(view: any) {
+    this.oldView = view;
+  }
+  async withViewId(viewId: string, req?: NcRequest) {
+    // needed to prevent circular dependencies
+    const viewsV3Service: IViewsV3Service = Noco.nestApp.get('IViewsV3Service');
+    this.oldView = await viewsV3Service.getView(this.context, {
+      viewId,
+      req,
+    });
+  }
+
+  forCreate() {
+    if (!this.model) {
+      NcError.get(this.context).internalServerError(
+        `Need to call 'withModel' before running 'forCreate'`,
+      );
+    }
+    return new ViewWebhookManager(this.context, {
+      action: WebhookActions.CREATE,
+      model: this.model!,
+      modelId: this.modelId!,
+      modelWebhookManager: this.modelWebhookManager,
+    });
+  }
+
+  forUpdate() {
+    if (!this.model) {
+      NcError.get(this.context).internalServerError(
+        `Need to call 'withModel' before running 'forUpdate'`,
+      );
+    }
+    if (!this.oldView) {
+      NcError.get(this.context).internalServerError(
+        `Need to call 'withView' before running 'forUpdate'`,
+      );
+    }
+    return new ViewWebhookManager(this.context, {
+      action: WebhookActions.UPDATE,
+      model: this.model!,
+      modelId: this.modelId!,
+      oldView: this.oldView,
+      modelWebhookManager: this.modelWebhookManager,
+    });
+  }
+
+  forDelete() {
+    if (!this.model) {
+      NcError.get(this.context).internalServerError(
+        `Need to call 'withModel' before running 'forDelete'`,
+      );
+    }
+    if (!this.oldView) {
+      NcError.get(this.context).internalServerError(
+        `Need to call 'withView' before running 'forDelete'`,
+      );
+    }
+    return new ViewWebhookManager(this.context, {
+      action: WebhookActions.DELETE,
+      model: this.model!,
+      modelId: this.modelId!,
+      oldView: this.oldView,
+      modelWebhookManager: this.modelWebhookManager,
+    });
+  }
+}
+
+export class ViewWebhookManager {
+  constructor(
+    protected readonly context: NcContext,
+    protected readonly params: {
+      action: WebhookActions;
+      modelId: string;
+      model: Model;
+      oldView?: any;
+      newView?: any;
+      modelWebhookManager?: ModelWebhookManager;
+    },
+  ) {}
+
+  protected emitted = false;
+
+  withNewView(view: any) {
+    this.params.newView = view;
+    return this;
+  }
+  async withNewViewId(viewId: string, req?: NcRequest) {
+    // needed to prevent circular dependencies
+    const viewsV3Service: IViewsV3Service = Noco.nestApp.get('IViewsV3Service');
+    this.params.newView = await viewsV3Service.getView(this.context, {
+      viewId,
+      req,
+    });
+    return this;
+  }
+
+  emit() {
+    // if modelWebhookManager exists, we do not emit
+    if (!this.emitted && !this.params.modelWebhookManager) {
+      Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
+        context: this.context,
+        hookName: `${WebhookEvents.VIEW}.${this.params.action}`,
+        prevData: this.params.oldView,
+        newData: this.params.newView,
+        user: this.context.user,
+        modelId: this.params.modelId,
+      });
+      this.emitted = true;
+    }
+  }
+}

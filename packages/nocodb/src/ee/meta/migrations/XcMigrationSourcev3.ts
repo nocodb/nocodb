@@ -48,6 +48,7 @@ import * as nc_047_ws_segment_code from './v3/nc_047_ws_segment_code';
 import * as nc_048_org_connect from './v3/nc_048_org_connect';
 import * as nc_049_dashboard_share from './v3/nc_049_dashboard_share';
 import * as nc_050_migrate_dashboard_data from './v3/nc_050_migrate_dashboard_data';
+import * as nc_051_composite_pk from './v3/nc_051_composite_pk';
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
   // Must return a Promise containing a list of migrations.
@@ -106,6 +107,7 @@ export default class XcMigrationSourcev3 {
       'nc_048_org_connect',
       'nc_049_dashboard_share',
       'nc_050_migrate_dashboard_data',
+      'nc_051_composite_pk',
     ]);
   }
 
@@ -215,6 +217,8 @@ export default class XcMigrationSourcev3 {
         return nc_049_dashboard_share;
       case 'nc_050_migrate_dashboard_data':
         return nc_050_migrate_dashboard_data;
+      case 'nc_051_composite_pk':
+        return nc_051_composite_pk;
     }
   }
 }

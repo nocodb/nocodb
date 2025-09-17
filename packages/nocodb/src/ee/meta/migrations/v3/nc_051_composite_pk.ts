@@ -4,29 +4,29 @@ import { BaseVersion, MetaTable } from '~/utils/globals';
 const up = async (knex: Knex) => {
   const migrationStart = Date.now();
   console.log(
-    '[nc_092_composite_pk] Starting composite primary key migration...',
+    '[nc_051_composite_pk] Starting composite primary key migration...',
   );
 
   const versionStart = Date.now();
   console.log(
-    '[nc_092_composite_pk] Adding version column to PROJECT table...',
+    '[nc_051_composite_pk] Adding version column to PROJECT table...',
   );
   await knex.schema.alterTable(MetaTable.PROJECT, (t) => {
     t.smallint('version').unsigned().defaultTo(BaseVersion.V2);
   });
   console.log(
-    `[nc_092_composite_pk] Version column added in ${
+    `[nc_051_composite_pk] Version column added in ${
       Date.now() - versionStart
     }ms`,
   );
 
   const updateStart = Date.now();
-  console.log('[nc_092_composite_pk] Updating existing projects to V2...');
+  console.log('[nc_051_composite_pk] Updating existing projects to V2...');
   const updatedCount = await knex(MetaTable.PROJECT).update({
     version: BaseVersion.V2,
   });
   console.log(
-    `[nc_092_composite_pk] Updated ${updatedCount} projects to V2 in ${
+    `[nc_051_composite_pk] Updated ${updatedCount} projects to V2 in ${
       Date.now() - updateStart
     }ms`,
   );
@@ -93,7 +93,7 @@ const up = async (knex: Knex) => {
 
   const cleanupStart = Date.now();
   console.log(
-    '[nc_092_composite_pk] Cleaning up rows with null base_id values...',
+    '[nc_051_composite_pk] Cleaning up rows with null base_id values...',
   );
   let totalCleanedRows = 0;
 
@@ -105,41 +105,41 @@ const up = async (knex: Knex) => {
       .first();
     if (count && parseInt(`${count.count}`, 10) > 0) {
       console.log(
-        `[nc_092_composite_pk] Found ${count.count} rows in table ${table} with null base_id.`,
+        `[nc_051_composite_pk] Found ${count.count} rows in table ${table} with null base_id.`,
       );
 
       const deletedRows = await knex(table).whereNull('base_id').del();
       totalCleanedRows += deletedRows;
       console.log(
-        `[nc_092_composite_pk] Cleaned ${deletedRows} rows from ${table} in ${
+        `[nc_051_composite_pk] Cleaned ${deletedRows} rows from ${table} in ${
           Date.now() - tableCleanupStart
         }ms`,
       );
     }
   }
   console.log(
-    `[nc_092_composite_pk] Cleanup completed. Total rows cleaned: ${totalCleanedRows} in ${
+    `[nc_051_composite_pk] Cleanup completed. Total rows cleaned: ${totalCleanedRows} in ${
       Date.now() - cleanupStart
     }ms`,
   );
 
   const pkMigrationStart = Date.now();
   console.log(
-    `[nc_092_composite_pk] Starting primary key migration for ${
+    `[nc_051_composite_pk] Starting primary key migration for ${
       Object.keys(compositePkTables).length
     } tables...`,
   );
 
   for (const [table, columns] of Object.entries(compositePkTables)) {
     const tableStart = Date.now();
-    console.log(`[nc_092_composite_pk] Processing table: ${table}`);
+    console.log(`[nc_051_composite_pk] Processing table: ${table}`);
 
     const dropPkStart = Date.now();
     await knex.schema.alterTable(table, (t) => {
       t.dropPrimary(customPkTitles[table] ? customPkTitles[table] : undefined);
     });
     console.log(
-      `[nc_092_composite_pk] Dropped old PK for ${table} in ${
+      `[nc_051_composite_pk] Dropped old PK for ${table} in ${
         Date.now() - dropPkStart
       }ms`,
     );
@@ -149,7 +149,7 @@ const up = async (knex: Knex) => {
       t.primary(columns);
     });
     console.log(
-      `[nc_092_composite_pk] Added composite PK [${columns.join(
+      `[nc_051_composite_pk] Added composite PK [${columns.join(
         ', ',
       )}] for ${table} in ${Date.now() - addPkStart}ms`,
     );
@@ -161,26 +161,26 @@ const up = async (knex: Knex) => {
         t.index(indexColumns, `${table}_oldpk_idx`);
       });
       console.log(
-        `[nc_092_composite_pk] Added backward compatibility index [${indexColumns.join(
+        `[nc_051_composite_pk] Added backward compatibility index [${indexColumns.join(
           ', ',
         )}] for ${table} in ${Date.now() - indexStart}ms`,
       );
     }
 
     console.log(
-      `[nc_092_composite_pk] Completed ${table} in ${
+      `[nc_051_composite_pk] Completed ${table} in ${
         Date.now() - tableStart
       }ms`,
     );
   }
 
   console.log(
-    `[nc_092_composite_pk] Primary key migration completed for all tables in ${
+    `[nc_051_composite_pk] Primary key migration completed for all tables in ${
       Date.now() - pkMigrationStart
     }ms`,
   );
   console.log(
-    `[nc_092_composite_pk] Total migration time: ${
+    `[nc_051_composite_pk] Total migration time: ${
       Date.now() - migrationStart
     }ms`,
   );
@@ -188,17 +188,17 @@ const up = async (knex: Knex) => {
 
 const down = async (knex: Knex) => {
   const rollbackStart = Date.now();
-  console.log('[nc_092_composite_pk] Starting rollback migration...');
+  console.log('[nc_051_composite_pk] Starting rollback migration...');
 
   const versionDropStart = Date.now();
   console.log(
-    '[nc_092_composite_pk] Dropping version column from PROJECT table...',
+    '[nc_051_composite_pk] Dropping version column from PROJECT table...',
   );
   await knex.schema.alterTable(MetaTable.PROJECT, (t) => {
     t.dropColumn('version');
   });
   console.log(
-    `[nc_092_composite_pk] Version column dropped in ${
+    `[nc_051_composite_pk] Version column dropped in ${
       Date.now() - versionDropStart
     }ms`,
   );
@@ -264,21 +264,21 @@ const down = async (knex: Knex) => {
 
   const pkRollbackStart = Date.now();
   console.log(
-    `[nc_092_composite_pk] Starting rollback for ${
+    `[nc_051_composite_pk] Starting rollback for ${
       Object.keys(oldPkTables).length
     } tables...`,
   );
 
   for (const [table, columns] of Object.entries(oldPkTables)) {
     const tableStart = Date.now();
-    console.log(`[nc_092_composite_pk] Rolling back table: ${table}`);
+    console.log(`[nc_051_composite_pk] Rolling back table: ${table}`);
 
     const dropCompositePkStart = Date.now();
     await knex.schema.alterTable(table, (t) => {
       t.dropPrimary();
     });
     console.log(
-      `[nc_092_composite_pk] Dropped composite PK for ${table} in ${
+      `[nc_051_composite_pk] Dropped composite PK for ${table} in ${
         Date.now() - dropCompositePkStart
       }ms`,
     );
@@ -292,25 +292,25 @@ const down = async (knex: Knex) => {
       });
     });
     console.log(
-      `[nc_092_composite_pk] Restored old PK [${columns.join(
+      `[nc_051_composite_pk] Restored old PK [${columns.join(
         ', ',
       )}] for ${table} in ${Date.now() - restoreOldPkStart}ms`,
     );
 
     console.log(
-      `[nc_092_composite_pk] Completed rollback for ${table} in ${
+      `[nc_051_composite_pk] Completed rollback for ${table} in ${
         Date.now() - tableStart
       }ms`,
     );
   }
 
   console.log(
-    `[nc_092_composite_pk] Rollback completed for all tables in ${
+    `[nc_051_composite_pk] Rollback completed for all tables in ${
       Date.now() - pkRollbackStart
     }ms`,
   );
   console.log(
-    `[nc_092_composite_pk] Total rollback time: ${
+    `[nc_051_composite_pk] Total rollback time: ${
       Date.now() - rollbackStart
     }ms`,
   );

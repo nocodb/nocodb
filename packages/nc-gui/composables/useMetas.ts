@@ -104,6 +104,7 @@ export const useMetas = createSharedComposable(() => {
       }
 
       if (navigateOnNotFound) {
+        console.log('navigateOnNotFound - useMETA')
         ncNavigateTo({
           workspaceId: activeWorkspaceId.value,
           baseId: activeProjectId.value,

@@ -179,7 +179,9 @@
     "upgradeLicenseToUsePrivateBasesSubtitle": "ฐานข้อมูลส่วนตัวไม่รวมอยู่ในไลเซนส์ Enterprise Starter อัปเกรดไลเซนส์เพื่อเริ่มใช้งาน",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "คุณสามารถอัปโหลดได้สูงสุด {limit} {filePlural} ในเซลล์นี้ อัปเกรดเป็นแผน {plan} เพื่อเพิ่มไฟล์ได้มากขึ้น",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "สคริปต์",
@@ -2425,7 +2427,8 @@
       "failedToCreateLookupFields": "สร้างฟิลด์ lookup ไม่สำเร็จ",
       "invalidSearchQuery": "คิวรีค้นหาผิดพลาด",
       "invalidSearchQueryForVisibleFields": "คิวรีค้นหาสำหรับฟิลด์ที่แสดงไม่ถูกต้อง",
-      "invalidSearchQueryForDisplayField": "คิวรีค้นหาสำหรับฟิลด์แสดงผลไม่ถูกต้อง"
+      "invalidSearchQueryForDisplayField": "คิวรีค้นหาสำหรับฟิลด์แสดงผลไม่ถูกต้อง",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "ข้อมูลเมตาของโครงการส่งออกเรียบร้อยแล้ว",

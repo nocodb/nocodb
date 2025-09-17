@@ -546,26 +546,26 @@ export const relationDataFetcher = (param: {
         baseModel.context,
       );
 
-      const childTable = await (
+      const refTable = await (
         await relColOptions.getParentColumn(refContext)
       ).getModel(refContext);
-      const parentTable = await (
+      const table = await (
         await relColOptions.getChildColumn(baseModel.context)
       ).getModel(baseModel.context);
-      await parentTable.getColumns(baseModel.context);
+      await table.getColumns(baseModel.context);
       const refBaseModel = await Model.getBaseModelSQL(refContext, {
         dbDriver: baseModel.dbDriver,
-        model: childTable,
+        model: refTable,
       });
       const mmModel = await Model.getBaseModelSQL(mmContext, {
         dbDriver: baseModel.dbDriver,
         model: mmTable,
       });
 
-      const childTn = refBaseModel.getTnPath(childTable);
-      const parentTn = baseModel.getTnPath(parentTable);
+      const refTn = refBaseModel.getTnPath(refTable);
+      const tn = baseModel.getTnPath(table);
       const vtn = mmModel.getTnPath(mmTable);
-      const rtn = childTn;
+      const rtn = refTn;
 
       const qb = baseModel
         .dbDriver(rtn)
@@ -579,9 +579,9 @@ export const relationDataFetcher = (param: {
 
       const view = relColOptions.fk_target_view_id
         ? await View.get(refContext, relColOptions.fk_target_view_id)
-        : await View.getDefaultView(refContext, childTable.id);
+        : await View.getDefaultView(refContext, refTable.id);
       await refBaseModel.applySortAndFilter({
-        table: childTable,
+        table: refTable,
         where,
         qb,
         sort,
@@ -596,10 +596,10 @@ export const relationDataFetcher = (param: {
             .whereIn(
               `${vtn}.${vcn}`,
               baseModel
-                .dbDriver(parentTn)
+                .dbDriver(tn)
                 .select(cn)
                 // .where(parentTable.primaryKey.cn, id)
-                .where(_wherePk(parentTable.primaryKeys, id)),
+                .where(_wherePk(table.primaryKeys, id)),
             )
             .select(baseModel.dbDriver.raw('? as ??', [id, GROUP_COL]));
           // get one extra record to check if there are more records in case of v3 api and nested
@@ -617,7 +617,7 @@ export const relationDataFetcher = (param: {
 
       const children = await refBaseModel.execAndParse(
         finalQb,
-        await childTable.getColumns(baseModel.context),
+        await refTable.getColumns(baseModel.context),
       );
 
       const proto = await refBaseModel.getProto();

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { RoleLabels } from 'nocodb-sdk';
+import { ncIsArray, RoleLabels } from 'nocodb-sdk';
 import { render } from '@react-email/render';
 import type { NcRequest } from 'nocodb-sdk';
 import type { MailParams, RawMailParams } from '~/interface/Mail';
@@ -125,6 +125,9 @@ export class MailService {
         subject: params.subject,
         text: params.text,
         html: params.html,
+        cc: ncIsArray(params.cc) ? params?.cc?.join(',') : params?.cc,
+        bcc: ncIsArray(params.bcc) ? params?.bcc?.join(',') : params?.bcc,
+        attachments: params.attachments,
       });
     } catch (e) {
       this.logger.error(e);

@@ -1,18 +1,25 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
+import { isEE } from 'playwright/setup/db';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import init from '../../../init';
+import { overrideFeature } from '../../../utils/plan.utils';
 import { Base, Model } from '~/models';
 import { RootScopes } from '~/utils/globals';
 
 export default function () {
-  // FIXME: enable when we can modify workspace for plan
-  describe.skip(`View v3`, () => {
+  if (!isEE()) {
+    return true;
+  }
+
+  describe(`View v3`, () => {
     let context: Awaited<ReturnType<typeof init>>;
     let initBase: any;
     let API_PREFIX;
     let table;
     let ctx;
+    let featureMock: any;
 
     beforeEach(async () => {
       context = await init();
@@ -80,6 +87,15 @@ export default function () {
         aliasOrId: tableResult.body.id,
         base_id: initBase.id,
       });
+      featureMock = await overrideFeature({
+        workspace_id: context.fk_workspace_id!,
+        feature: `${PlanFeatureTypes.FEATURE_API_VIEW_V3}`,
+        allowed: true,
+      });
+    });
+
+    afterEach(async () => {
+      await featureMock?.restore?.();
     });
 
     describe('view create + update', () => {
@@ -321,7 +337,8 @@ export default function () {
         expect(response.body.type).to.eq('gallery');
       });
 
-      it(`will create form view`, async () => {
+      // FIXME: form view is not handled yet
+      it.skip(`will create form view`, async () => {
         const response = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
@@ -335,7 +352,8 @@ export default function () {
         expect(response.body.type).to.eq('form');
       });
 
-      it(`will create + update form view with fieldsById`, async () => {
+      // FIXME: form view is not handled yet
+      it.skip(`will create + update form view with fieldsById`, async () => {
         const singleSelectColumn = (await table.getColumns(ctx)).find(
           (col) => col.title === 'SingleSelect',
         );

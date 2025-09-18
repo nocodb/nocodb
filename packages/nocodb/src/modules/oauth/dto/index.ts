@@ -9,11 +9,14 @@ export const CreateOAuthClientSchema = z
       .max(255, 'Client name must be less than 255 characters')
       .trim(),
 
-    client_type: z.nativeEnum(OAuthClientType, {
-      errorMap: () => ({
-        message: 'Client type must be either "confidential" or "public"',
-      }),
-    }),
+    client_type: z
+      .nativeEnum(OAuthClientType, {
+        errorMap: () => ({
+          message: 'Client type must be either "confidential" or "public"',
+        }),
+      })
+      .optional(),
+
     fk_user_id: z.string().optional(),
 
     client_uri: z
@@ -22,11 +25,12 @@ export const CreateOAuthClientSchema = z
       .optional()
       .or(z.literal('')),
 
-    logo_uri: z
+    client_description: z
       .string()
-      .url('Invalid logo URI format')
-      .optional()
-      .or(z.literal('')),
+      .max(500, 'Description must be less than 500 characters')
+      .optional(),
+
+    logo_uri: z.record(z.string(), z.unknown()).optional(),
 
     redirect_uris: z
       .array(z.string().url('Each redirect URI must be a valid URL'))
@@ -66,10 +70,16 @@ export const CreateOAuthClientSchema = z
       })
       .optional(),
 
-    description: z
+    registration_client_uri: z
       .string()
-      .max(500, 'Description must be less than 500 characters')
+      .url('Invalid registration client URI format')
       .optional(),
+
+    registration_access_token: z.string().optional(),
+
+    client_id_issued_at: z.number().optional(),
+
+    client_secret_expires_at: z.number().optional(),
   })
   .refine(
     (data) => {
@@ -113,11 +123,12 @@ export const UpdateOAuthClientSchema = z.object({
     .optional()
     .or(z.literal('')),
 
-  logo_uri: z
+  client_description: z
     .string()
-    .url('Invalid logo URI format')
-    .optional()
-    .or(z.literal('')),
+    .max(500, 'Description must be less than 500 characters')
+    .optional(),
+
+  logo_uri: z.record(z.string(), z.unknown()).optional(), // Changed to match model (AttachmentResType)
 
   redirect_uris: z
     .array(z.string().url('Each redirect URI must be a valid URL'))
@@ -143,10 +154,12 @@ export const UpdateOAuthClientSchema = z.object({
     .nativeEnum(OAuthTokenEndpointAuthMethod)
     .optional(),
 
-  description: z
+  registration_client_uri: z
     .string()
-    .max(500, 'Description must be less than 500 characters')
+    .url('Invalid registration client URI format')
     .optional(),
+
+  client_secret_expires_at: z.number().optional(),
 });
 
 export type CreateOAuthClientDto = z.infer<typeof CreateOAuthClientSchema>;

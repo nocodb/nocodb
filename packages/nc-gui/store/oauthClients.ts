@@ -77,7 +77,7 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
-      return null
+      throw e
     }
   }
 

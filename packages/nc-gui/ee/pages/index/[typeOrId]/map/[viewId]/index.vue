@@ -5,6 +5,7 @@ definePageMeta({
   public: true,
   requiresAuth: false,
   layout: 'shared-view',
+  pageType: 'shared-view',
 })
 
 const route = useRoute()

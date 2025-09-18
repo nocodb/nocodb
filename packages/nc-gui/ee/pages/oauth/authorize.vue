@@ -6,7 +6,6 @@ definePageMeta({
 const route = useRoute()
 
 const { api } = useApi()
-const { $api } = useNuxtApp()
 const { user } = useGlobal()
 
 const { getPossibleAttachmentSrc } = useAttachment()
@@ -15,6 +14,8 @@ const clientId = computed(() => route.query.client_id as string)
 const redirect_uri = computed(() => route.query.redirect_uri as string)
 const responseType = computed(() => route.query.response_type as string)
 const state = computed(() => route.query.state as string)
+const codeChallenge = computed(() => route.query.code_challenge as string)
+const codeChallengeMethod = computed(() => route.query.code_challenge_method as string)
 
 const loading = ref(true)
 const error = ref('')
@@ -57,11 +58,13 @@ async function approveAuthorization() {
   authorizing.value = true
 
   try {
-    const response = await $api.oauth.authorize({
+    const response = await api.oAuth.authorize({
       client_id: clientId.value,
       redirect_uri: redirect_uri.value,
       state: state.value,
       approved: true,
+      code_challenge: codeChallenge.value,
+      code_challenge_method: codeChallengeMethod.value,
     })
 
     window.location.href = response.redirect_url

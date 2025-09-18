@@ -284,6 +284,7 @@ export enum CacheScope {
   DASHBOARD = 'dashboard',
   WIDGET = 'widget',
   OAUTH_CLIENT = 'oAuthClient',
+  OAUTH_AUTH_CODE = 'oAuthAuthCode',
 }
 
 export const RootScopeTables = {

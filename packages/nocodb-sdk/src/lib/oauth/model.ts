@@ -46,7 +46,6 @@ export interface OAuthClient {
 
 // Authorization Code
 export interface OAuthAuthorizationCode {
-  id: string;
   code: string;
   client_id: string;
   user_id: string;

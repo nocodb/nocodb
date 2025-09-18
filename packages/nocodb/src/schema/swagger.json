@@ -13453,6 +13453,134 @@
         }
       }
     },
+    "/api/v2/public/oauth/client/{clientId}": {
+      "parameters": [{
+        "schema": {
+          "type": "string",
+          "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+        },
+        "name": "clientId",
+        "in": "path",
+        "required": true,
+        "description": "Client Id"
+      }],
+      "get": {
+        "summary": "Get OAuth Client Information",
+        "description": "Retrieve public information about an OAuth client for authorization display",
+        "tags": ["OAuth"],
+        "responses": {
+          "200": {
+            "description": "OAuth client information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "client_id": {
+                      "type": "string",
+                      "description": "OAuth client identifier"
+                    },
+                    "client_name": {
+                      "type": "string",
+                      "description": "Application name"
+                    },
+                    "client_uri": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "Application homepage URL"
+                    },
+                    "logo_uri": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "mimetype": {
+                              "type": "string"
+                            },
+                            "size": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "Application logo URL or file metadata"
+                    },
+                    "client_description": {
+                      "type": "string",
+                      "description": "Application description"
+                    },
+                    "redirect_uris": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      "description": "Registered redirect URIs"
+                    },
+                    "client_type": {
+                      "type": "string",
+                      "enum": ["public", "confidential"],
+                      "description": "OAuth client type"
+                    }
+                  },
+                  "required": ["client_id", "client_name", "redirect_uris", "client_type"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "OAuth client not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "client_not_found"
+                    },
+                    "error_description": {
+                      "type": "string",
+                      "example": "The requested OAuth client does not exist"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid client ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "invalid_client_id"
+                    },
+                    "error_description": {
+                      "type": "string",
+                      "example": "The client ID format is invalid"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v2/public/shared-view/{sharedViewUuid}/bulk/dataList": {
       "parameters": [
         {

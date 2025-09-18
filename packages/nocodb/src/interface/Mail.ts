@@ -9,6 +9,7 @@ import type {
   UITypes,
   UserType,
 } from 'nocodb-sdk';
+import type { XcEmailAttachment } from '~/types/nc-plugin';
 
 enum MailEvent {
   COMMENT_CREATE = 'COMMENT_CREATE',
@@ -135,6 +136,9 @@ interface RawMailParams {
   subject: string;
   html: string;
   text?: string;
+  attachments?: XcEmailAttachment[];
+  cc?: string | string[];
+  bcc?: string | string[];
 }
 
 export { MailEvent, MailParams, FormSubmissionPayload, RawMailParams };

@@ -803,6 +803,18 @@ export async function invokeWebhook(
       }
     }
 
+    // check if form filter applied
+    if (
+      notification &&
+      notification.trigger_form &&
+      notification.trigger_form_id
+    ) {
+      const formId = notification.trigger_form_id;
+      if (view && formId !== view.id) {
+        return;
+      }
+    }
+
     switch (notification?.type) {
       case 'Email':
         {

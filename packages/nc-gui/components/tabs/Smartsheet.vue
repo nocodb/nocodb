@@ -231,10 +231,11 @@ const onReady = () => {
   }
 }
 
-onMounted(async () => {
+const checkIfViewExists = async () => {
   await until(() => isViewsLoading.value).toBe(false)
-
-  const views = await viewStore.loadViews()
+  const views = await viewStore.loadViews({
+    ignoreLoading: true,
+  })
 
   // If no views exist or the current view is not found, navigate to workspace/base
   if (
@@ -246,15 +247,14 @@ onMounted(async () => {
       baseId: activeProjectId.value,
     })
   }
+}
+
+onMounted(async () => {
+  await checkIfViewExists()
 })
 
-watch([() => isViewsLoading.value], ([isLoading, _]) => {
-  if (!isLoading && !activeView.value) {
-    ncNavigateTo({
-      workspaceId: activeWorkspaceId.value,
-      baseId: activeProjectId.value,
-    })
-  }
+watch(isViewsLoading, async () => {
+  await checkIfViewExists()
 })
 </script>
 

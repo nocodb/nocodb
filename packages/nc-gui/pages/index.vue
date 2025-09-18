@@ -56,9 +56,8 @@ async function handleRouteTypeIdChange() {
   if (showOnboardingFlow.value) {
     return
   }
-
-  // avoid loading bases for shared views
-  if (isSharedView.value) {
+  // avoid loading bases for shared views and shared form views
+  if (isSharedView.value || isSharedFormView.value) {
     return
   }
 

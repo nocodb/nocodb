@@ -55,7 +55,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       const meta: ViewMetaRowColoring = parseProp(view.meta);
 
       const selectColumn = model.columns.find(
-        (k) => k.id === meta.rowColoringInfo.fk_column_id,
+        (k) => k.id === meta?.rowColoringInfo?.fk_column_id,
       );
 
       // If select column is not found that means the column is deleted
@@ -78,8 +78,8 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       return {
         options: (selectOptions as any).options,
         mode: ROW_COLORING_MODE.SELECT,
-        is_set_as_background: meta.rowColoringInfo.is_set_as_background,
-        fk_column_id: meta.rowColoringInfo.fk_column_id,
+        is_set_as_background: meta?.rowColoringInfo?.is_set_as_background,
+        fk_column_id: meta?.rowColoringInfo?.fk_column_id,
         selectColumn,
         fk_model_id: model.id,
         fk_view_id: view.id,
@@ -551,7 +551,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           const metaRowColoring: ViewMetaRowColoring =
             parseProp(view.meta) ?? {};
           if (
-            metaRowColoring.rowColoringInfo.fk_column_id === existingColumn.id
+            metaRowColoring?.rowColoringInfo?.fk_column_id === existingColumn.id
           ) {
             commitHandlers.push(() =>
               this.removeRowColorInfo({
@@ -597,14 +597,6 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           },
         );
         for (const affectedRowColorConditionId of affectedRowColorConditionIds) {
-          console.log(
-            'affectedFilters.some',
-            affectedFilters.filter(
-              (flt) =>
-                flt.fk_column_id !== existingColumn.id &&
-                flt.fk_row_color_condition_id === affectedRowColorConditionId,
-            ),
-          );
           // if not has other filters, remove the row coloring condition
           if (
             !affectedFilters.some(

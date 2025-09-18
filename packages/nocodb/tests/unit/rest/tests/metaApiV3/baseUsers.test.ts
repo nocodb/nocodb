@@ -1,8 +1,10 @@
 import 'mocha';
 import { isEE } from 'playwright/setup/db';
 import request from 'supertest';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import init from '../../../init';
 import { createUser } from '../../../factory/user';
+import { overrideFeature } from '../../../utils/plan.utils';
 
 // routes
 // List : http://localhost:8080/api/v3/meta/bases/{base_id}/users
@@ -15,9 +17,10 @@ export default function () {
     return true;
   }
 
-  describe.skip(`Base Users v3`, () => {
+  describe(`Base Users v3`, () => {
     let context: any = {};
     let baseId: string;
+    let featureMock: any;
 
     beforeEach(async () => {
       context = await init();
@@ -31,6 +34,15 @@ export default function () {
 
       // Select the first base ID
       baseId = listBases.body.list[0].id;
+      featureMock = await overrideFeature({
+        workspace_id: context.fk_workspace_id,
+        feature: `${PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT}`,
+        allowed: true,
+      });
+    });
+
+    afterEach(async () => {
+      await featureMock?.restore?.();
     });
 
     const { expect } = require('chai');
@@ -89,6 +101,19 @@ export default function () {
       // Ensure base users list is an array
       expect(baseMembers).to.be.an('array').that.is.not.empty;
       await _validateBaseUser(baseMembers[0]);
+    });
+    it('Forbidden due to plan not sufficient', async () => {
+      featureMock = await overrideFeature({
+        workspace_id: context.fk_workspace_id,
+        feature: `${PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT}`,
+        allowed: false,
+      });
+
+      // Get base users
+      const getBaseUsers = await request(context.app)
+        .get(`/api/v3/meta/bases/${baseId}?include[]=members`)
+        .set('xc-token', context.xc_token)
+        .expect(403);
     });
     it('Invite Base User v3 - Email, Single', async () => {
       // Invite base user
@@ -164,6 +189,7 @@ export default function () {
         );
       }
     });
+
     it('Invite Base User v3 - Base role not specified', async () => {
       // Invite base user
       const inviteData = [
@@ -207,7 +233,10 @@ export default function () {
 
       // Validation
       const error = inviteBaseUser.body;
-      expect(error).to.have.property('msg', 'Either email or id is required');
+      expect(error).to.have.property(
+        'msg',
+        'Either email or user_id is required',
+      );
     });
     it('Invite Base User v3 - using ID', async () => {
       const { user } = await createUser(context, {

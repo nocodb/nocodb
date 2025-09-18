@@ -43,6 +43,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const isViewColumnsLoading = ref(true)
 
+    const hidingViewColumnsMap = ref<Record<string, boolean>>({})
+
     const { addUndo, defineViewScope } = useUndoRedo()
 
     const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
@@ -78,7 +80,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       const data = ((isPublic ? meta.value?.columns : (await $api.dbViewColumn.list(view.value.id)).list) as any[]) ?? []
 
       const fieldById = data.reduce<Record<string, any>>((acc, curr) => {
-        curr.show = !!curr.show
+        // If hide column api is in progress and we try to load columns before that then we need to assign local visibility state
+        curr.show = hidingViewColumnsMap.value[curr.fk_column_id] && !!curr.show ? false : !!curr.show
 
         return {
           ...acc,
@@ -489,7 +492,14 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     // or when columns changes(delete/add)
     watch(
       [() => view?.value?.id, () => meta.value?.columns],
-      async ([newViewId]) => {
+      async ([newViewId], [oldViewId]) => {
+        // If we change view, we need to reset the hidingViewColumnsMap
+        if (oldViewId && oldViewId !== newViewId) {
+          hidingViewColumnsMap.value = {}
+        }
+
+        if (!ncIsEmptyArray(hidingViewColumnsMap.value) && Object.values(hidingViewColumnsMap.value).some((v) => v)) return
+
         // reload only if view belongs to current table
         if (newViewId && view.value?.fk_model_id === meta.value?.id) {
           isViewColumnsLoading.value = true
@@ -625,6 +635,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       resizingColOldWith,
       isLocalMode,
       updateDefaultViewColumnMeta,
+      hidingViewColumnsMap,
     }
   },
   'useViewColumnsOrThrow',

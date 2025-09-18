@@ -5,7 +5,7 @@ export default {
 </script>
 
 <template>
-  <NuxtLayout class="h-screen">
+  <NuxtLayout class="nc-h-screen">
     <slot></slot>
   </NuxtLayout>
 </template>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type BoolType, type ColumnType } from 'nocodb-sdk'
+import type { BoolType, ColumnType, MetaType } from 'nocodb-sdk'
 
 interface Props {
   column: ColumnType
@@ -7,12 +7,15 @@ interface Props {
   bold?: BoolType
   italic?: BoolType
   underline?: BoolType
+  meta?: MetaType
   showTooltip?: boolean
 }
 
 const props = defineProps<Props>()
 
-const meta = inject(MetaInj)
+const _meta = inject(MetaInj, ref())
+
+const meta = computed(() => props.meta || _meta.value)
 
 const { t } = useI18n()
 

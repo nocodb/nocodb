@@ -31,7 +31,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isRecordLimitReached = computed(() => false)
 
-  const gracePeriodDaysLeft = computed(() => Infinity)
+  const gracePeriodActive = computed(() => true)
 
   const gracePeriodEndDate = computed(() => '')
 
@@ -73,6 +73,8 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockAiPromptField = computed(() => true)
+
+  const blockAiButtonField = computed(() => true)
 
   const calculatePrice = (..._args: any[]) => {}
 
@@ -136,6 +138,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseAiPromptField = (..._args: any[]) => {}
 
+  const showUpgradeToUseAiButtonField = (..._args: any[]) => {}
+
   return {
     calculatePrice,
     getLimit,
@@ -152,7 +156,7 @@ export const useEeConfig = createSharedComposable(() => {
     isPaymentEnabled,
     showUserPlanLimitExceededModal,
     isRecordLimitReached,
-    gracePeriodDaysLeft,
+    gracePeriodActive,
     blockAddNewRecord,
     showRecordPlanLimitExceededModal,
     navigateToBilling,
@@ -198,5 +202,7 @@ export const useEeConfig = createSharedComposable(() => {
     isOrgBilling,
     blockAiPromptField,
     showUpgradeToUseAiPromptField,
+    blockAiButtonField,
+    showUpgradeToUseAiButtonField,
   }
 })

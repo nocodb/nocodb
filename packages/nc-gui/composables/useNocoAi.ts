@@ -25,6 +25,8 @@ export const useNocoAi = createSharedComposable(() => {
 
   const aiIntegrationAvailable = computed(() => !!aiIntegrations.value.length)
 
+  const isNocoAiAvailable = computed(() => aiIntegrations.value.some((integration) => integration.id?.startsWith('global_')))
+
   const isAiIntegrationAvailableInList = (integrationId?: string) => {
     if (!aiIntegrationAvailable.value) return false
 
@@ -377,6 +379,7 @@ export const useNocoAi = createSharedComposable(() => {
 
   return {
     aiIntegrationAvailable,
+    isNocoAiAvailable,
     isAiIntegrationAvailableInList,
     aiLoading,
     aiError,

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { ColumnType } from 'nocodb-sdk'
 import { isColumnInvalid } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean }>()
@@ -15,9 +16,11 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
+const meta = inject(MetaInj, ref())
+
 const { isUIAllowed } = useRoles()
 
-const { aiIntegrations } = useNocoAi()
+const { aiIntegrations, isNocoAiAvailable } = useNocoAi()
 
 const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
   if (!column?.value) {
@@ -27,7 +30,13 @@ const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
     }
   }
 
-  return isColumnInvalid(column.value, aiIntegrations.value, isPublic.value || !isUIAllowed('dataEdit'))
+  return isColumnInvalid({
+    col: column.value,
+    aiIntegrations: aiIntegrations.value,
+    isReadOnly: isPublic.value || !isUIAllowed('dataEdit'),
+    isNocoAiAvailable: isNocoAiAvailable.value,
+    columns: meta.value?.columns as ColumnType[],
+  })
 })
 
 const openDropdown = () => {

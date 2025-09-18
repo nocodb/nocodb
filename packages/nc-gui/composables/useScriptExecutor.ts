@@ -22,6 +22,5 @@ export const useScriptExecutor = createSharedComposable(() => {
     activeExecutions,
     libCode,
     fieldIDRowMapping,
-    eventBus,
   }
 })

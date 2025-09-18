@@ -4,6 +4,7 @@ import { ViewTypes } from 'nocodb-sdk'
 definePageMeta({
   public: true,
   requiresAuth: false,
+  pageType: 'shared-view',
   layout: 'shared-view',
   hasSidebar: false,
 })

@@ -8,7 +8,7 @@ import { type RouteLocationNormalizedLoadedGeneric } from 'vue-router'
 export const isSharedViewRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
   if (!route) return false
 
-  return route.meta.layout === 'shared-view'
+  return route.meta.pageType === 'shared-view'
 }
 
 /**

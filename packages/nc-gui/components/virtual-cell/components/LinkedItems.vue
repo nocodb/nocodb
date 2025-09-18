@@ -450,6 +450,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
                 :attachment="attachmentCol"
                 :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
                 :fields="fields"
+                :display-value-column="relatedTableDisplayValueColumn"
                 :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
                 :is-loading="isChildrenListLoading[Number.parseInt(id)]"
                 :is-selected="!!(isSearchInputFocused && childrenListPagination.query && Number.parseInt(id) === 0)"

@@ -5428,12 +5428,20 @@
         "type": "array",
         "items": {
           "type": "object",
+          "properties": {
+            "base_role": {
+              "$ref": "#/components/schemas/BaseRoles"
+            }
+          },
+          "required": [
+            "base_role"
+          ],
           "oneOf": [
             {
               "title": "Invite User with ID",
               "required": [
-                "user_id",
-                "base_role"
+                "base_role",
+                "user_id"
               ],
               "properties": {
                 "user_id": {
@@ -5443,17 +5451,14 @@
                 "user_name": {
                   "type": "string",
                   "description": "Full name of the user."
-                },
-                "base_role": {
-                  "$ref": "#/components/schemas/BaseRoles"
                 }
               }
             },
             {
               "title": "Invite User with Email",
               "required": [
-                "email",
-                "base_role"
+                "base_role",
+                "email"
               ],
               "properties": {
                 "email": {
@@ -5464,9 +5469,6 @@
                 "user_name": {
                   "type": "string",
                   "description": "Full name of the user."
-                },
-                "base_role": {
-                  "$ref": "#/components/schemas/BaseRoles"
                 }
               }
             }
@@ -5744,12 +5746,10 @@
                 },
                 "created_by": {
                   "type": "string",
-                  "format": "uuid",
                   "description": "User ID of the creator."
                 },
                 "owned_by": {
                   "type": "string",
-                  "format": "uuid",
                   "description": "User ID of the owner. Applicable only for personal views."
                 },
                 "created_at": {
@@ -5845,7 +5845,6 @@
           "properties": {
             "field_id": {
               "type": "string",
-              "format": "uuid",
               "description": "Unique identifier for the field."
             },
             "show": {
@@ -5918,7 +5917,6 @@
               },
               "field_id": {
                 "type": "string",
-                "format": "uuid",
                 "description": "Single select field ID to be used for colouring rows in the view."
               },
               "apply_as_row_background": {
@@ -5946,7 +5944,6 @@
               "properties": {
                 "field_id": {
                   "type": "string",
-                  "format": "uuid",
                   "description": "Identifier for the field being sorted."
                 },
                 "direction": {
@@ -5986,7 +5983,6 @@
             "properties": {
               "field_id": {
                 "type": "string",
-                "format": "uuid",
                 "description": "Single select field ID to be used for stacking cards in kanban view."
               },
               "stack_order": {
@@ -6001,7 +5997,6 @@
           },
           "cover_field_id": {
             "type": "string",
-            "format": "uuid",
             "description": "Attachment field ID to be used as cover image in kanban view. If not provided, cover field configuration is skipped."
           }
         },
@@ -6019,12 +6014,10 @@
               "properties": {
                 "start_date_field_id": {
                   "type": "string",
-                  "format": "uuid",
                   "description": "Date field ID to be used as start date in calendar view."
                 },
                 "end_date_field_id": {
                   "type": "string",
-                  "format": "uuid",
                   "description": "Date field ID to be used as end date in calendar view."
                 }
               },
@@ -6043,7 +6036,6 @@
         "properties": {
           "cover_field_id": {
             "type": "string",
-            "format": "uuid",
             "description": "Attachment field ID to be used as cover image in gallery view. Is optional, if not provided, the first attachment field will be used."
           }
         }
@@ -6381,7 +6373,6 @@
             "properties": {
               "id": {
                 "type": "string",
-                "format": "uuid",
                 "description": "Unique identifier for the view."
               },
               "is_default": {
@@ -6400,12 +6391,10 @@
             "properties": {
               "created_by": {
                 "type": "string",
-                "format": "uuid",
                 "description": "User ID of the creator."
               },
               "owned_by": {
                 "type": "string",
-                "format": "uuid",
                 "description": "User ID of the owner."
               },
               "created_at": {

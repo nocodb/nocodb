@@ -53,6 +53,7 @@ export default class Source implements SourceType {
   integration_config?: string;
   integration_title?: string;
   is_encrypted?: boolean;
+  deleted?: boolean;
 
   // Ephemeral properties
   upgraderMode?: boolean;

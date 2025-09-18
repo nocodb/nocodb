@@ -872,6 +872,11 @@ interface NcListProps {
    * ```
    */
   searchBasisOptions?: NcListSearchBasisOptionType[]
+
+  /**
+   * @default default
+   */
+  theme?: 'default' | 'ai'
 }
 
 // NcList type ends here

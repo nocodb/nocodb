@@ -9,3 +9,4 @@ export * from './url';
 export * from './validation';
 export * from './get-lookup-column-type';
 export * from './recursive';
+export * from './clipboard-config';

@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, WebhookEvents } from 'nocodb-sdk';
 import View from '../models/View';
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -9,6 +9,7 @@ import { NcError } from '~/helpers/catchError';
 import {
   populateSamplePayload,
   populateSamplePayloadV2,
+  populateSamplePayloadView,
 } from '~/helpers/populateSamplePayload';
 import { invokeWebhook } from '~/helpers/webhookHelpers';
 import { ButtonColumn, Hook, HookLog, Model } from '~/models';
@@ -307,6 +308,7 @@ export class HooksService {
     context: NcContext,
     param: {
       tableId: string;
+      event: string;
       operation: string;
       version: string;
       includeUser?: boolean;
@@ -322,6 +324,15 @@ export class HooksService {
         false,
         param.operation,
       );
+    }
+    if (param.event === WebhookEvents.VIEW) {
+      return await populateSamplePayloadView(context, {
+        viewOrModel: model,
+        operation: param.operation,
+        includeUser: param.includeUser,
+        user: param.user,
+        version: param.version,
+      });
     }
 
     return await populateSamplePayloadV2(
@@ -339,6 +350,7 @@ export class HooksService {
     context: NcContext,
     param: {
       tableId: string;
+      event: HookType['event'][number];
       operation: HookType['operation'][number];
       version: any; // HookType['version'];
       includeUser?: boolean;
@@ -355,6 +367,15 @@ export class HooksService {
         false,
         param.operation,
       );
+    }
+    if (param.event === WebhookEvents.VIEW) {
+      return await populateSamplePayloadView(context, {
+        viewOrModel: model,
+        operation: param.operation,
+        includeUser: param.includeUser,
+        user: undefined,
+        version: param.version,
+      });
     }
 
     return await populateSamplePayloadV2(

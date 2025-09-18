@@ -27,6 +27,7 @@ export default class Sort {
     Object.assign(this, data);
   }
 
+  // skip viewWebhookManager for this, Sort.deleteAll is not a standalone operation, it's invoked by view service
   public static async deleteAll(
     context: NcContext,
     viewId: string,

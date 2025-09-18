@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, ProjectRoles, ViewTypes } from 'nocodb-sdk';
+import type { MetaService } from '~/meta/meta.service';
 import type {
   SharedViewReqType,
   UserType,
   ViewUpdateReqType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -148,6 +153,7 @@ export class ViewsService {
       view: ViewUpdateReqType;
       user: UserType;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
   ) {
     validatePayload(
@@ -159,6 +165,16 @@ export class ViewsService {
     if (!oldView) {
       NcError.viewNotFound(param.viewId);
     }
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context).withModelId(
+            oldView.fk_model_id,
+          )
+        ).withViewId(param.viewId)
+      ).forUpdate();
 
     let ownedBy = oldView.owned_by;
     let createdBy = oldView.created_by;
@@ -260,6 +276,10 @@ export class ViewsService {
       context.socket_id,
     );
 
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(oldView.id)).emit();
+    }
+
     return result;
   }
 
@@ -273,6 +293,13 @@ export class ViewsService {
       NcError.get(context).viewNotFound(param.viewId);
     }
 
+    const viewWebhookManager = (
+      await (
+        await new ViewWebhookManagerBuilder(context).withModelId(
+          view.fk_model_id,
+        )
+      ).withViewId(view.id)
+    ).forDelete();
     await View.delete(context, param.viewId);
 
     let deleteEvent = AppEvents.GRID_DELETE;
@@ -315,6 +342,7 @@ export class ViewsService {
       },
       context.socket_id,
     );
+    viewWebhookManager.emit();
 
     return true;
   }
@@ -429,8 +457,26 @@ export class ViewsService {
 
   async showAllColumns(
     context: NcContext,
-    param: { viewId: string; ignoreIds?: string[] },
+    param: {
+      viewId: string;
+      ignoreIds?: string[];
+      viewWebhookManager?: ViewWebhookManager;
+    },
+    ncMeta?: MetaService,
   ) {
+    let viewWebhookManager: ViewWebhookManager;
+    if (!param.viewWebhookManager) {
+      const view = await View.get(context, param.viewId, ncMeta);
+      viewWebhookManager =
+        param.viewWebhookManager ??
+        (
+          await (
+            await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+              view.fk_model_id,
+            )
+          ).withViewId(view.id)
+        ).forUpdate();
+    }
     await View.showAllColumns(context, param.viewId, param.ignoreIds || []);
 
     NocoSocket.broadcastEvent(
@@ -447,14 +493,44 @@ export class ViewsService {
       context.socket_id,
     );
 
+    if (viewWebhookManager) {
+      (
+        await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
+      ).emit();
+    }
+
     return true;
   }
 
   async hideAllColumns(
     context: NcContext,
-    param: { viewId: string; ignoreIds?: string[] },
+    param: {
+      viewId: string;
+      ignoreIds?: string[];
+      viewWebhookManager?: ViewWebhookManager;
+    },
+    ncMeta?: MetaService,
   ) {
-    await View.hideAllColumns(context, param.viewId, param.ignoreIds || []);
+    let viewWebhookManager: ViewWebhookManager;
+    if (!param.viewWebhookManager) {
+      const view = await View.get(context, param.viewId, ncMeta);
+      viewWebhookManager =
+        param.viewWebhookManager ??
+        (
+          await (
+            await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+              view.fk_model_id,
+            )
+          ).withViewId(view.id)
+        ).forUpdate();
+    }
+
+    await View.hideAllColumns(
+      context,
+      param.viewId,
+      param.ignoreIds || [],
+      ncMeta,
+    );
 
     NocoSocket.broadcastEvent(
       context,
@@ -469,6 +545,12 @@ export class ViewsService {
       },
       context.socket_id,
     );
+
+    if (viewWebhookManager) {
+      (
+        await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
+      ).emit();
+    }
 
     return true;
   }

@@ -7,6 +7,10 @@ import type {
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -31,6 +35,7 @@ export class GalleriesService {
       user: UserType;
       ownedBy?: string;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
@@ -41,6 +46,13 @@ export class GalleriesService {
 
     const model = await Model.get(context, param.tableId, ncMeta);
 
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+          param.tableId,
+        )
+      ).forCreate();
     const { id } = await View.insertMetaOnly(
       context,
       {
@@ -98,6 +110,10 @@ export class GalleriesService {
       context.socket_id,
     );
 
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
+
     return view;
   }
 
@@ -107,6 +123,7 @@ export class GalleriesService {
       galleryViewId: string;
       gallery: GalleryUpdateReqType;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
@@ -120,6 +137,16 @@ export class GalleriesService {
     if (!view) {
       NcError.viewNotFound(param.galleryViewId);
     }
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
 
     const oldGalleryView = await GalleryView.get(
       context,
@@ -163,6 +190,9 @@ export class GalleriesService {
       },
       context.socket_id,
     );
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
     return view;
   }
 }

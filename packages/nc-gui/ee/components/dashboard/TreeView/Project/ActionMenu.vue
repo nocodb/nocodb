@@ -122,7 +122,7 @@ const isOptionVisible = computed(() => {
         <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
         {{ $t('labels.restApis') }}
       </template>
-      
+
       <NcMenuItem
         data-testid="nc-sidebar-base-rest-apis-v2"
         @click.stop="openLink(`/api/v2/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"
@@ -130,7 +130,7 @@ const isOptionVisible = computed(() => {
         <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
         API v2
       </NcMenuItem>
-      
+
       <NcMenuItem
         data-testid="nc-sidebar-base-rest-apis-v3"
         @click.stop="openLink(`/api/v3/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"

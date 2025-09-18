@@ -273,13 +273,38 @@ async function handleSubmit() {
               <template #label>
                 <span class="text-gray-700 font-medium">Logo URL</span>
               </template>
-              <a-input
-                v-model:value="clientRef.logo_uri"
-                size="large"
-                placeholder="https://example.com/logo.png"
-                class="nc-input-shadow !rounded-lg"
-              />
-              <div class="text-xs text-gray-500 mt-1">URL to your application logo (optional)</div>
+              <NcUpload
+                :has-image="!!clientRef.logo_uri"
+                image-type="icon"
+                upload-path="clients/logos"
+                :max-file-size="5"
+                accepted-types="image/png,image/jpeg,image/webp,image/svg+xml"
+                container-class="border border-gray-200 rounded-lg min-h-[48px] flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors"
+                @upload-success="
+                  (data) => {
+                    clientRef.logo_uri = data.url || data.data
+                  }
+                "
+                @upload-error="
+                  (error) => {
+                    message.error(error)
+                  }
+                "
+                @delete="
+                  () => {
+                    clientRef.logo_uri = null
+                  }
+                "
+              >
+                <template #content>
+                  <div class="w-full p-3">
+                    <div v-if="clientRef.logo_uri" class="flex items-center space-x-3">
+                      <img :src="clientRef.logo_uri" alt="Logo preview" class="w-10 h-10 object-contain rounded" />
+                      <span class="text-sm text-gray-600 truncate flex-1">{{ clientRef.logo_uri }}</span>
+                    </div>
+                  </div>
+                </template>
+              </NcUpload>
             </a-form-item>
 
             <!-- Redirect URIs -->

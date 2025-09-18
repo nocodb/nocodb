@@ -44,34 +44,36 @@ export const relationDataFetcher = (param: {
         const relationColOpts = (await relColumn.getColOptions(
           baseModel.context,
         )) as LinkToAnotherRecordColumn;
-        const childCol = await relationColOpts.getChildColumn(
-          baseModel.context,
-        );
-        const childTable = await childCol.getModel(baseModel.context);
+
+        const { refContext } = relationColOpts.getRelContext(baseModel.context);
+
+        const childCol = await relationColOpts.getChildColumn(refContext);
+
+        const childTable = await childCol.getModel(refContext);
         const parentCol = await relationColOpts.getParentColumn(
           baseModel.context,
         );
         const parentTable = await parentCol.getModel(baseModel.context);
-        const childModel = await Model.getBaseModelSQL(baseModel.context, {
+        const childBaseModel = await Model.getBaseModelSQL(refContext, {
           model: childTable,
           dbDriver: baseModel.dbDriver,
         });
         await parentTable.getColumns(baseModel.context);
 
-        const childTn = baseModel.getTnPath(childTable);
+        const childTn = childBaseModel.getTnPath(childTable);
         const parentTn = baseModel.getTnPath(parentTable);
 
-        const qb = baseModel.dbDriver(childTn);
-        await childModel.selectObject({
+        const qb = childBaseModel.dbDriver(childTn);
+        await childBaseModel.selectObject({
           qb,
           extractPkAndPv: true,
           fieldsSet: args.fieldsSet,
           pkAndPvOnly: relationColOpts.isCrossBaseLink(),
         });
         const view = relationColOpts.fk_target_view_id
-          ? await View.get(baseModel.context, relationColOpts.fk_target_view_id)
-          : await View.getDefaultView(baseModel.context, childModel.model.id);
-        await baseModel.applySortAndFilter({
+          ? await View.get(refContext, relationColOpts.fk_target_view_id)
+          : await View.getDefaultView(refContext, childBaseModel.model.id);
+        await childBaseModel.applySortAndFilter({
           table: childTable,
           where,
           qb,
@@ -112,16 +114,11 @@ export const relationDataFetcher = (param: {
             .as('list'),
         );
 
-        const children = await baseModel.execAndParse(
+        const children = await childBaseModel.execAndParse(
           childQb,
-          await childTable.getColumns(baseModel.context),
+          await childTable.getColumns(refContext),
         );
-        const proto = await (
-          await Model.getBaseModelSQL(baseModel.context, {
-            id: childTable.id,
-            dbDriver: baseModel.dbDriver,
-          })
-        ).getProto();
+        const proto = await childBaseModel.getProto();
 
         return groupBy(
           children.map((c) => {
@@ -187,12 +184,12 @@ export const relationDataFetcher = (param: {
         await relColOptions.getChildColumn(baseModel.context)
       ).getModel(baseModel.context);
       await parentTable.getColumns(baseModel.context);
-      const childModel = await Model.getBaseModelSQL(refContext, {
+      const childBaseModel = await Model.getBaseModelSQL(refContext, {
         dbDriver: baseModel.dbDriver,
         model: childTable,
       });
 
-      const childTn = childModel.getTnPath(childTable);
+      const childTn = childBaseModel.getTnPath(childTable);
       const parentTn = baseModel.getTnPath(parentTable);
 
       const rtn = childTn;
@@ -210,18 +207,18 @@ export const relationDataFetcher = (param: {
             .where(_wherePk(parentTable.primaryKeys, parentId)),
         );
 
-      await childModel.selectObject({
+      await childBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
         pkAndPvOnly: relColOptions.isCrossBaseLink(),
       });
 
-      await childTable.getViews(childModel.context);
+      await childTable.getViews(childBaseModel.context);
       const viewId =
         relColumn.colOptions?.fk_target_view_id ?? childTable.views?.[0]?.id;
       let view: View | null = null;
-      if (viewId) view = await View.get(childModel.context, viewId);
-      await childModel.applySortAndFilter({
+      if (viewId) view = await View.get(childBaseModel.context, viewId);
+      await childBaseModel.applySortAndFilter({
         table: childTable,
         where,
         view,
@@ -234,8 +231,8 @@ export const relationDataFetcher = (param: {
         const view = relColOptions.fk_target_view_id
           ? await View.get(refContext, relColOptions.fk_target_view_id)
           : await View.getDefaultView(refContext, childTable.id);
-        const childSorts = await view.getSorts(childModel.context);
-        await sortV2(childModel, childSorts, qb);
+        const childSorts = await view.getSorts(childBaseModel.context);
+        await sortV2(childBaseModel, childSorts, qb);
       }
 
       // todo: sanitize
@@ -248,11 +245,11 @@ export const relationDataFetcher = (param: {
       }
       qb.offset(selectAllRecords ? 0 : +rest?.offset || 0);
 
-      const children = await childModel.execAndParse(
+      const children = await childBaseModel.execAndParse(
         qb,
-        await childTable.getColumns(childModel.context),
+        await childTable.getColumns(childBaseModel.context),
       );
-      const proto = await childModel.getProto();
+      const proto = await childBaseModel.getProto();
 
       return children.map((c) => {
         c.__proto__ = proto;
@@ -415,12 +412,7 @@ export const relationDataFetcher = (param: {
           await childTable.getColumns(childBaseModel.context),
         );
 
-        const proto = await (
-          await Model.getBaseModelSQL(childBaseModel.context, {
-            id: childTable.id,
-            dbDriver: childBaseModel.dbDriver,
-          })
-        ).getProto();
+        const proto = await childBaseModel.getProto();
 
         return children.map((c) => {
           c.__proto__ = proto;
@@ -541,7 +533,6 @@ export const relationDataFetcher = (param: {
         return;
       }
 
-      const vtn = baseModel.getTnPath(mmTable);
       const vcn = (await relColOptions.getMMChildColumn(baseModel.context))
         .column_name;
       const vrcn = (await relColOptions.getMMParentColumn(baseModel.context))
@@ -550,39 +541,47 @@ export const relationDataFetcher = (param: {
         .column_name;
       const cn = (await relColOptions.getChildColumn(baseModel.context))
         .column_name;
-      const childTable = await (
-        await relColOptions.getParentColumn(baseModel.context)
-      ).getModel(baseModel.context);
-      const parentTable = await (
+
+      const { refContext, mmContext } = relColOptions.getRelContext(
+        baseModel.context,
+      );
+
+      const refTable = await (
+        await relColOptions.getParentColumn(refContext)
+      ).getModel(refContext);
+      const table = await (
         await relColOptions.getChildColumn(baseModel.context)
       ).getModel(baseModel.context);
-      await parentTable.getColumns(baseModel.context);
-      const childModel = await Model.getBaseModelSQL(baseModel.context, {
+      await table.getColumns(baseModel.context);
+      const refBaseModel = await Model.getBaseModelSQL(refContext, {
         dbDriver: baseModel.dbDriver,
-        model: childTable,
+        model: refTable,
+      });
+      const mmModel = await Model.getBaseModelSQL(mmContext, {
+        dbDriver: baseModel.dbDriver,
+        model: mmTable,
       });
 
-      const childTn = baseModel.getTnPath(childTable);
-      const parentTn = baseModel.getTnPath(parentTable);
-
-      const rtn = childTn;
-      const rtnId = childTable.id;
+      const refTn = refBaseModel.getTnPath(refTable);
+      const tn = baseModel.getTnPath(table);
+      const vtn = mmModel.getTnPath(mmTable);
+      const rtn = refTn;
 
       const qb = baseModel
         .dbDriver(rtn)
         .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
-      await childModel.selectObject({
+      await refBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
         pkAndPvOnly: relColOptions.isCrossBaseLink(),
       });
 
       const view = relColOptions.fk_target_view_id
-        ? await View.get(baseModel.context, relColOptions.fk_target_view_id)
-        : await View.getDefaultView(baseModel.context, childTable.id);
-      await baseModel.applySortAndFilter({
-        table: childTable,
+        ? await View.get(refContext, relColOptions.fk_target_view_id)
+        : await View.getDefaultView(refContext, refTable.id);
+      await refBaseModel.applySortAndFilter({
+        table: refTable,
         where,
         qb,
         sort,
@@ -590,17 +589,17 @@ export const relationDataFetcher = (param: {
         skipViewFilter: true,
       });
 
-      const finalQb = baseModel.dbDriver.unionAll(
+      const finalQb = refBaseModel.dbDriver.unionAll(
         parentIds.map((id) => {
           const query = qb
             .clone()
             .whereIn(
               `${vtn}.${vcn}`,
               baseModel
-                .dbDriver(parentTn)
+                .dbDriver(tn)
                 .select(cn)
                 // .where(parentTable.primaryKey.cn, id)
-                .where(_wherePk(parentTable.primaryKeys, id)),
+                .where(_wherePk(table.primaryKeys, id)),
             )
             .select(baseModel.dbDriver.raw('? as ??', [id, GROUP_COL]));
           // get one extra record to check if there are more records in case of v3 api and nested
@@ -616,17 +615,12 @@ export const relationDataFetcher = (param: {
         !baseModel.isSqlite,
       );
 
-      const children = await baseModel.execAndParse(
+      const children = await refBaseModel.execAndParse(
         finalQb,
-        await childTable.getColumns(baseModel.context),
+        await refTable.getColumns(baseModel.context),
       );
 
-      const proto = await (
-        await Model.getBaseModelSQL(baseModel.context, {
-          id: rtnId,
-          dbDriver: baseModel.dbDriver,
-        })
-      ).getProto();
+      const proto = await refBaseModel.getProto();
       const gs = groupBy(
         children.map((c) => {
           c.__proto__ = proto;
@@ -676,7 +670,7 @@ export const relationDataFetcher = (param: {
         // })
         .count(`${vtn}.${vcn}`, { as: 'count' });
 
-      // await childModel.selectObject({ qb });
+      // await childBaseModel.selectObject({ qb });
       const children = await baseModel.execAndParse(
         baseModel.dbDriver.unionAll(
           parentIds.map((id) => {
@@ -1259,11 +1253,11 @@ export const relationDataFetcher = (param: {
       const cn = childCol.column_name;
       const childTable = await childCol.getModel(childContext);
 
-      const parentModel = await Model.getBaseModelSQL(parentContext, {
+      const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
         dbDriver: baseModel.dbDriver,
         model: parentTable,
       });
-      const childModel = await Model.getBaseModelSQL(childContext, {
+      const childBaseModel = await Model.getBaseModelSQL(childContext, {
         dbDriver: baseModel.dbDriver,
         model: childTable,
       });
@@ -1283,10 +1277,10 @@ export const relationDataFetcher = (param: {
         listArgs = dependencyFields;
       }
 
-      const rtn = parentModel.getTnPath(parentTable);
-      const tn = childModel.getTnPath(childTable);
+      const rtn = parentBaseModel.getTnPath(parentTable);
+      const tn = childBaseModel.getTnPath(childTable);
       await childTable.getColumns(baseModel.context);
-      const refModel = isBt ? parentModel : childModel;
+      const refModel = isBt ? parentBaseModel : childBaseModel;
 
       const qb = refModel.dbDriver(isBt ? rtn : tn).where((qb) => {
         qb.whereNotIn(
@@ -1304,8 +1298,8 @@ export const relationDataFetcher = (param: {
       }
 
       // pre-load columns for later user
-      await parentTable.getColumns(parentModel.context);
-      await childTable.getColumns(childModel.context);
+      await parentTable.getColumns(parentBaseModel.context);
+      await childTable.getColumns(childBaseModel.context);
 
       await refModel.selectObject({
         qb,

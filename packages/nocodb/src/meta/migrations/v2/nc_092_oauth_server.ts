@@ -8,6 +8,7 @@ const up = async (knex: Knex) => {
     table.string('client_secret', 64);
     table.string('client_type');
     table.string('client_name');
+    table.text('client_description');
     table.string('client_uri');
     table.string('logo_uri');
     table.text('redirect_uris'); // JSON stored as text

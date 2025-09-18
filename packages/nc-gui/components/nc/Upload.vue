@@ -2,12 +2,11 @@
 import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import 'vue-advanced-cropper/dist/theme.classic.css'
-import type { AttachmentReqType, AttachmentResType } from 'nocodb-sdk'
+import type { AttachmentReqType } from 'nocodb-sdk'
 import type { ImageCropperConfig } from '#imports'
 
 interface Props {
-  hasImage?: boolean
-  imageType: string
+  attachment?: AttachmentReqType | null
   containerClass?: string
   acceptedTypes?: string
   maxFileSize?: number // in MB
@@ -16,9 +15,7 @@ interface Props {
 }
 
 interface Emits {
-  (e: 'upload-success', data: AttachmentResType): void
-  (e: 'upload-error', error: string): void
-  (e: 'delete'): void
+  (e: 'update:attachment', url: AttachmentReqType): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -30,6 +27,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<Emits>()
+
+const attachment = useVModel(props, 'attachment', emit)
 
 const { api, isLoading } = useApi()
 
@@ -112,8 +111,9 @@ const handleFileSelect = (event: Event) => {
 
     // Validate file
     const validationError = validateFile(file)
+
     if (validationError) {
-      emit('upload-error', validationError)
+      message.error('Please upload a valid image')
       return
     }
 
@@ -124,31 +124,16 @@ const handleFileSelect = (event: Event) => {
       maxFileSize: props.maxFileSize * 1024 * 1024,
     }
 
-    const isBanner = props.imageType.toLowerCase() === 'banner'
-
-    if (isBanner) {
-      imageCropperData.value.cropperConfig = {
-        ...imageCropperData.value.cropperConfig,
-        stencilProps: {
-          aspectRatio: 4 / 1,
-        },
-        minHeight: 100,
-        minWidth: 0,
-      }
-      imageCropperData.value.cropFor = 'banner'
-    } else {
-      imageCropperData.value.cropperConfig = {
-        ...imageCropperData.value.cropperConfig,
-        stencilProps: {
-          aspectRatio: undefined,
-        },
-        minHeight: 150,
-        minWidth: 150,
-      }
-      imageCropperData.value.cropFor = 'logo'
+    imageCropperData.value.cropperConfig = {
+      ...imageCropperData.value.cropperConfig,
+      stencilProps: {
+        aspectRatio: 1,
+      },
+      minHeight: 150,
+      minWidth: 150,
     }
+    imageCropperData.value.cropFor = 'icon'
 
-    // Cleanup previous blob
     if (imageCropperData.value.imageConfig.src) {
       URL.revokeObjectURL(imageCropperData.value.imageConfig.src)
     }
@@ -181,29 +166,21 @@ const handleCropImage = () => {
 }
 
 const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
-  if (props.uploadPath) {
-    try {
-      const uploadResult = await api.storage.uploadByUrl(
-        {
-          path: props.uploadPath,
-          scope: props.uploadScope,
-        },
-        fileToUpload,
-      )
-      if (uploadResult?.[0]) {
-        emit('upload-success', {
-          ...uploadResult[0],
-          data: fileToUpload[0].data,
-        })
-      } else {
-        emit('upload-success', fileToUpload[0] as AttachmentResType)
-      }
-    } catch (error: any) {
-      console.error(error)
-      emit('upload-error', await extractSdkResponseErrorMsg(error))
-    }
-  } else {
-    emit('upload-success', fileToUpload[0] as AttachmentResType)
+  try {
+    const uploadResult = await api.storage.uploadByUrl(
+      {
+        path: props.uploadPath,
+        scope: props.uploadScope,
+      },
+      fileToUpload,
+    )
+
+    console.log(uploadResult)
+
+    attachment.value = uploadResult?.[0]
+  } catch (error: any) {
+    console.error(error)
+    message.error(await extractSdkResponseErrorMsg(error))
   }
 
   showCropper.value = false
@@ -232,7 +209,7 @@ const defaultSize = ({ imageSize, visibleArea }: { imageSize: Record<string, any
 }
 
 const handleDelete = () => {
-  emit('delete')
+  emit('update:attachment', null)
 }
 
 watch(
@@ -268,8 +245,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="group relative" :class="containerClass">
-    <NcModal v-model:visible="showCropper" :mask-closable="false" wrap-class-name="!z-1050">
+  <div class="relative" :class="containerClass">
+    <!-- Cropper Modal -->
+    <NcModal v-if="showCropper" v-model:visible="showCropper" :mask-closable="false" wrap-class-name="!z-1050">
       <div class="nc-image-cropper-wrapper relative">
         <Cropper
           ref="cropperRef"
@@ -297,7 +275,7 @@ onUnmounted(() => {
           <img :src="previewImage.src" alt="Preview Image" />
         </div>
       </div>
-      <div class="flex justify-between items-center space-x-4 mt-4">
+      <div class="flex justify-between items-center space-x-4">
         <div class="flex items-center space-x-4">
           <NcButton type="secondary" size="small" :disabled="isLoading" @click="showCropper = false"> Cancel </NcButton>
         </div>
@@ -325,28 +303,30 @@ onUnmounted(() => {
 
     <slot name="content" />
 
-    <div class="absolute bottom-0 right-0 hidden group-hover:block">
-      <div class="flex items-center space-x-1 m-2">
-        <NcButton type="secondary" size="small" @click="openFileDialog">
-          <div class="flex gap-2 items-center">
-            <component :is="iconMap.upload" class="w-4 h-4" />
-            <span>
-              {{ hasImage ? $t('general.replace') : $t('general.upload') }}
-              {{ imageType }}
-            </span>
-          </div>
-        </NcButton>
+    <div
+      :class="{
+        'mt-4': attachment,
+      }"
+      class="flex items-center justify-center gap-2"
+    >
+      <NcButton type="secondary" size="small" @click="openFileDialog">
+        <div class="flex gap-2 items-center">
+          <component :is="iconMap.upload" class="w-4 h-4" />
+          <span>
+            {{ attachment ? $t('general.replace') : $t('general.upload') }}
+            Icon
+          </span>
+        </div>
+      </NcButton>
 
-        <NcTooltip v-if="hasImage">
-          <template #title> {{ $t('general.delete') }} {{ imageType }} </template>
-          <NcButton type="secondary" size="small" @click="handleDelete">
-            <div class="flex gap-2 items-center">
-              <component :is="iconMap.delete" class="w-4 h-4" />
-            </div>
-          </NcButton>
-        </NcTooltip>
-      </div>
+      <NcButton v-if="attachment" type="secondary" size="small" @click="handleDelete">
+        <div class="flex gap-2 items-center">
+          <component :is="iconMap.delete" class="w-4 h-4" />
+          <span>{{ $t('general.delete') }}</span>
+        </div>
+      </NcButton>
     </div>
+
     <input ref="fileInput" type="file" :accept="acceptedTypes" class="!hidden" @change="handleFileSelect" />
   </div>
 </template>

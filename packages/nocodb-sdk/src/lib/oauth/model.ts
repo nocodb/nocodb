@@ -1,3 +1,5 @@
+import { AttachmentResType } from '~/lib';
+
 export enum OAuthClientType {
   CONFIDENTIAL = 'confidential',
   PUBLIC = 'public',
@@ -21,7 +23,7 @@ export interface OAuthClient {
 
   client_name: string;
   client_uri?: string;
-  logo_uri?: string;
+  logo_uri?: AttachmentResType;
 
   redirect_uris: string[];
   allowed_grant_types: string[];

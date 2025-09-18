@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { OAuthClientType, OAuthTokenEndpointAuthMethod } from 'nocodb-sdk'
+import { type OAuthClientType, type OAuthTokenEndpointAuthMethod } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -10,6 +10,8 @@ const emits = defineEmits(['update:visible'])
 const modalVisible = useVModel(props, 'visible', emits)
 
 const { t } = useI18n()
+
+const { getPossibleAttachmentSrc } = useAttachment()
 
 const supportedDocs = [
   {
@@ -28,51 +30,17 @@ const useForm = Form.useForm
 const clientRef = reactive({
   client_name: '',
   client_type: 'public' as OAuthClientType,
+  client_description: '',
   client_uri: '',
-  logo_uri: '',
+  logo_uri: null,
   redirect_uris: '',
   allowed_grant_types: ['authorization_code', 'refresh_token'],
   response_types: ['code'],
-  token_endpoint_auth_method: 'client_secret_basic' as OAuthTokenEndpointAuthMethod,
+  token_endpoint_auth_method: 'none' as OAuthTokenEndpointAuthMethod,
 })
 
 const loading = ref(false)
 const titleDomRef = ref<HTMLInputElement>()
-
-// Client type options
-const clientTypeOptions = [
-  {
-    value: 'public',
-    label: 'Public (SPA/Mobile)',
-    description: 'For single-page applications and mobile apps that cannot securely store secrets',
-  },
-  {
-    value: 'confidential',
-    label: 'Confidential (Server-side)',
-    description: 'For server-side applications that can securely store client secrets',
-  },
-]
-
-// Grant type options
-const grantTypeOptions = [
-  { value: 'authorization_code', label: 'Authorization Code', description: 'Standard OAuth flow for user authentication' },
-  { value: 'refresh_token', label: 'Refresh Token', description: 'Allows refreshing access tokens without re-authentication' },
-  {
-    value: 'client_credentials',
-    label: 'Client Credentials',
-    description: 'For app-to-app authentication (no user involvement)',
-  },
-]
-
-// Auth method options
-const authMethodOptions = [
-  {
-    value: 'client_secret_basic',
-    label: 'Client Secret Basic (Recommended)',
-    description: 'Send credentials in Authorization header',
-  },
-  { value: 'client_secret_post', label: 'Client Secret Post', description: 'Send credentials in request body' },
-]
 
 // Validation rules
 const validators = computed(() => ({
@@ -80,11 +48,10 @@ const validators = computed(() => ({
     { required: true, message: t('msg.error.fieldRequired') },
     { min: 2, max: 50, message: 'Application name must be between 2 and 50 characters' },
   ],
-  client_type: [{ required: true, message: t('msg.error.fieldRequired') }],
   client_uri: [
     {
       validator: (_: any, value: string) => {
-        if (value && !isValidUrl(value)) {
+        if (value && !isValidURL(value)) {
           return Promise.reject(new Error('Please enter a valid URL'))
         }
         return Promise.resolve()
@@ -94,8 +61,8 @@ const validators = computed(() => ({
   logo_uri: [
     {
       validator: (_: any, value: string) => {
-        if (value && !isValidUrl(value)) {
-          return Promise.reject(new Error('Please enter a valid URL'))
+        if (!value) {
+          return Promise.reject(new Error('Please select a valid File'))
         }
         return Promise.resolve()
       },
@@ -117,7 +84,7 @@ const validators = computed(() => ({
         }
 
         for (const uri of uris) {
-          if (!isValidUrl(uri)) {
+          if (!isValidURL(uri)) {
             return Promise.reject(new Error(`Invalid URL: ${uri}`))
           }
         }
@@ -126,29 +93,9 @@ const validators = computed(() => ({
       },
     },
   ],
-  allowed_grant_types: [
-    {
-      validator: (_: any, value: string[]) => {
-        if (!value || value.length === 0) {
-          return Promise.reject(new Error('At least one grant type must be selected'))
-        }
-        return Promise.resolve()
-      },
-    },
-  ],
 }))
 
 const { validate, validateInfos, clearValidate } = useForm(clientRef, validators)
-
-// Helper function to validate URLs
-function isValidUrl(string: string): boolean {
-  try {
-    new URL(string)
-    return true
-  } catch (_) {
-    return false
-  }
-}
 
 // Reset form
 function resetForm() {
@@ -160,7 +107,6 @@ function resetForm() {
     redirect_uris: '',
     allowed_grant_types: ['authorization_code', 'refresh_token'],
     response_types: ['code'],
-    token_endpoint_auth_method: 'client_secret_basic' as OAuthTokenEndpointAuthMethod,
   })
   clearValidate()
 }
@@ -221,7 +167,10 @@ async function handleSubmit() {
         </div>
 
         <div class="flex justify-end items-center gap-3 pr-0.5 flex-1">
-          <NcButton type="text" size="small" data-testid="nc-close-webhook-modal" @click.stop="modalVisible = false">
+          <NcButton type="primary" html-type="submit" size="small" :loading="loading">
+            {{ loading ? 'Creating...' : 'Create OAuth Client' }}
+          </NcButton>
+          <NcButton type="text" size="small" data-testid="nc-close-oauth-modal" @click.stop="modalVisible = false">
             <GeneralIcon icon="close" />
           </NcButton>
         </div>
@@ -234,74 +183,60 @@ async function handleSubmit() {
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-24 py-6 mx-auto"
       >
         <div class="flex flex-col max-w-[640px] w-full mx-auto gap-3">
-          <div class="text-nc-content-gray font-bold leading-6">
-            Register a new OAuth application to allow external services to access your NocoDB data.
-          </div>
           <a-form
             :model="clientRef"
             name="create-oauth-client"
             layout="vertical"
-            class="flex flex-col gap-3"
+            class="flex flex-col gap-6"
             @finish="handleSubmit"
           >
-            <div class="flex gap-2">
-              <a-form-item label="Application Name" v-bind="validateInfos.client_name" class="mb-0 flex-1">
-                <template #label>
-                  <span class="text-gray-700 font-medium">Application Name <span class="text-red-500">*</span></span>
-                </template>
-                <a-input
-                  ref="titleDomRef"
-                  v-model:value="clientRef.client_name"
-                  placeholder="Example App"
-                  class="nc-input-shadow !rounded-lg"
-                />
-              </a-form-item>
+            <a-form-item label="Application Name" v-bind="validateInfos.client_name" class="!mb-0 flex-1">
+              <template #label>
+                <span class="text-gray-700 font-medium">Application Name <span class="text-red-500">*</span></span>
+              </template>
+              <a-input
+                ref="titleDomRef"
+                v-model:value="clientRef.client_name"
+                placeholder="Example App"
+                class="nc-input-shadow !rounded-lg"
+              />
+            </a-form-item>
 
-              <a-form-item label="Homepage URL" v-bind="validateInfos.client_uri" class="mb-0 flex-1">
-                <template #label>
-                  <span class="text-gray-700 font-medium">Homepage URL</span>
-                </template>
-                <a-input
-                  v-model:value="clientRef.client_uri"
-                  placeholder="https://example.com"
-                  class="nc-input-shadow !rounded-lg"
-                />
-              </a-form-item>
-            </div>
+            <a-form-item label="Homepage URL" v-bind="validateInfos.client_uri" class="!mb-0 flex-1">
+              <template #label>
+                <span class="text-gray-700 font-medium">Homepage URL</span>
+              </template>
+              <a-input
+                v-model:value="clientRef.client_uri"
+                placeholder="https://example.com"
+                class="nc-input-shadow !rounded-lg"
+              />
+            </a-form-item>
 
-            <a-form-item label="Logo URL" v-bind="validateInfos.logo_uri" class="mb-0">
+            <a-form-item label="Application Description" v-bind="validateInfos.client_description" class="!mb-0 flex-1">
+              <template #label>
+                <span class="text-gray-700 font-medium">Application Description</span>
+              </template>
+              <a-input
+                ref="titleDomRef"
+                v-model:value="clientRef.client_name"
+                placeholder="Example App"
+                class="nc-input-shadow !rounded-lg"
+              />
+            </a-form-item>
+
+            <a-form-item label="Logo URL" class="items-start !mb-0" v-bind="validateInfos.logo_uri">
               <template #label>
                 <span class="text-gray-700 font-medium">Logo URL</span>
               </template>
-              <NcUpload
-                :has-image="!!clientRef.logo_uri"
-                image-type="icon"
-                upload-path="clients/logos"
-                :max-file-size="5"
-                accepted-types="image/png,image/jpeg,image/webp,image/svg+xml"
-                container-class="border border-gray-200 rounded-lg min-h-[48px] flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors"
-                @upload-success="
-                  (data) => {
-                    clientRef.logo_uri = data.url || data.data
-                  }
-                "
-                @upload-error="
-                  (error) => {
-                    message.error(error)
-                  }
-                "
-                @delete="
-                  () => {
-                    clientRef.logo_uri = null
-                  }
-                "
-              >
+              <NcUpload v-model:attachment="clientRef.logo_uri" upload-path="clients/logos" :max-file-size="5">
                 <template #content>
-                  <div class="w-full p-3">
-                    <div v-if="clientRef.logo_uri" class="flex items-center space-x-3">
-                      <img :src="clientRef.logo_uri" alt="Logo preview" class="w-10 h-10 object-contain rounded" />
-                      <span class="text-sm text-gray-600 truncate flex-1">{{ clientRef.logo_uri }}</span>
-                    </div>
+                  <div v-if="clientRef.logo_uri" class="flex items-center space-x-3">
+                    <CellAttachmentPreviewImage
+                      :srcs="getPossibleAttachmentSrc(clientRef.logo_uri)"
+                      class="flex-none !object-contain max-h-12 max-w-12 !rounded-lg !m-0"
+                      :is-cell-preview="false"
+                    />
                   </div>
                 </template>
               </NcUpload>
@@ -318,72 +253,7 @@ async function handleSubmit() {
                 placeholder="https://example.com/auth/callback&#10;https://localhost:3000/callback"
                 class="nc-input-shadow !rounded-lg"
               />
-              <div class="text-xs text-gray-500 mt-1">
-                Enter one URL per line. These are where users will be redirected after authorization.
-              </div>
             </a-form-item>
-
-            <!-- Grant Types -->
-            <a-form-item label="Grant Types" v-bind="validateInfos.allowed_grant_types" class="mb-0">
-              <template #label>
-                <span class="text-gray-700 font-medium">Grant Types <span class="text-red-500">*</span></span>
-              </template>
-              <div class="flex flex-col gap-2">
-                <a-checkbox
-                  v-for="option in grantTypeOptions"
-                  :key="option.value"
-                  :checked="clientRef.allowed_grant_types.includes(option.value)"
-                  class="!flex !items-start p-3 border rounded-lg hover:border-primary transition-colors"
-                  @change="
-                    (e) => {
-                      if (e.target.checked) {
-                        clientRef.allowed_grant_types.push(option.value)
-                      } else {
-                        const index = clientRef.allowed_grant_types.indexOf(option.value)
-                        if (index > -1) clientRef.allowed_grant_types.splice(index, 1)
-                      }
-                    }
-                  "
-                >
-                  <div class="ml-2 flex-1">
-                    <div class="font-medium">{{ option.label }}</div>
-                    <div class="text-sm text-gray-500 mt-1">{{ option.description }}</div>
-                  </div>
-                </a-checkbox>
-              </div>
-            </a-form-item>
-
-            <!-- Token Endpoint Auth Method -->
-            <a-form-item
-              label="Token Endpoint Authentication Method"
-              v-bind="validateInfos.token_endpoint_auth_method"
-              class="mb-0"
-            >
-              <template #label>
-                <span class="text-gray-700 font-medium">Token Endpoint Authentication Method</span>
-              </template>
-              <a-select
-                v-model:value="clientRef.token_endpoint_auth_method"
-                size="large"
-                class="nc-select-shadow !rounded-lg"
-                placeholder="Select authentication method"
-              >
-                <a-select-option v-for="option in authMethodOptions" :key="option.value" :value="option.value">
-                  <div class="flex flex-col">
-                    <div class="font-medium">{{ option.label }}</div>
-                    <div class="text-sm text-gray-500">{{ option.description }}</div>
-                  </div>
-                </a-select-option>
-              </a-select>
-            </a-form-item>
-
-            <!-- Submit Buttons -->
-            <div class="flex justify-end gap-2 pt-4 border-t">
-              <NcButton type="secondary" :disabled="loading" @click="closeModal"> Cancel </NcButton>
-              <NcButton type="primary" html-type="submit" :loading="loading">
-                {{ loading ? 'Creating...' : 'Create OAuth Client' }}
-              </NcButton>
-            </div>
           </a-form>
         </div>
       </div>

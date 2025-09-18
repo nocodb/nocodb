@@ -57,17 +57,17 @@ const { isMobileMode } = useGlobal()
 
 const NcButton = ref<HTMLElement | null>(null)
 
-const { size: _size, mobileSize, loaderSize, type, theme, bordered } = toRefs(props)
+const { size, mobileSize, loaderSize, type, theme, bordered } = toRefs(props)
 
 const loading = useVModel(props, 'loading', emits)
 
 const isFocused = ref(false)
 const isClicked = ref(false)
 
-const size = computed(() => {
+const buttonSize = computed(() => {
   if (isMobileMode.value && mobileSize.value) return mobileSize.value
 
-  return _size.value
+  return size.value
 })
 
 const onFocus = (e: FocusEvent) => {
@@ -99,11 +99,11 @@ useEventListener(NcButton, 'mousedown', () => {
   <a-button
     ref="NcButton"
     :class="{
-      'small': size === 'small',
-      'medium': size === 'medium',
-      'xsmall': size === 'xsmall',
-      'xxsmall': size === 'xxsmall',
-      'size-xs': size === 'xs',
+      'small': buttonSize === 'small',
+      'medium': buttonSize === 'medium',
+      'xsmall': buttonSize === 'xsmall',
+      'xxsmall': buttonSize === 'xxsmall',
+      'size-xs': buttonSize === 'xs',
       'focused': isFocused && !props.hideFocus,
       'theme-default': theme === 'default',
       'theme-ai': theme === 'ai',
@@ -137,7 +137,7 @@ useEventListener(NcButton, 'mousedown', () => {
         <slot v-else name="icon" />
       </template>
       <div
-        v-if="!(size === 'xxsmall' && loading) && !props.iconOnly"
+        v-if="!(buttonSize === 'xxsmall' && loading) && !props.iconOnly"
         :class="{
           'font-medium': type === 'primary' || type === 'danger',
           'w-full': props.fullWidth,

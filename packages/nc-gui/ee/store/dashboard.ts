@@ -81,7 +81,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
       if (!dashboard) {
         dashboard = (await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
           operation: 'dashboardGet',
-          id: dashboardId,
+          dashboardId,
         })) as unknown as DashboardType
 
         const baseDashboards = dashboards.value.get(activeProjectId.value) || []

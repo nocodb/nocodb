@@ -329,8 +329,8 @@ export function toReadableUrlSlug(parts: (string | undefined)[] = []): string {
         if (!part?.trim()) return ''
 
         return encodeURIComponent(
-          part.trim().replace(/\s+/g, '-'), // replace one or more spaces with a single dash
-        ).toLowerCase()
+          part.trim().toLowerCase().replace(/\s+/g, '-'), // replace one or more spaces with a single dash
+        )
       })
       .filter(Boolean) // remove empty parts
       .join('-') ?? ''

@@ -273,7 +273,7 @@ export default class DataReflection extends DataReflectionCE {
         ncMeta,
       );
 
-      const bases = await Base.listByWorkspace(fk_workspace_id, false, ncMeta);
+      const bases = await Base.listByWorkspace(fk_workspace_id, {}, ncMeta);
       for (const base of bases) {
         await grantAccessToSchema(knex, base.id, username);
       }
@@ -302,7 +302,7 @@ export default class DataReflection extends DataReflectionCE {
     const database = dataConfig.connection.database;
 
     try {
-      const bases = await Base.listByWorkspace(fk_workspace_id, false, ncMeta);
+      const bases = await Base.listByWorkspace(fk_workspace_id, {}, ncMeta);
       for (const base of bases) {
         await revokeAccessToSchema(knex, base.id, reflection.username);
       }

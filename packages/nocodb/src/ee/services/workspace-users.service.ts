@@ -15,7 +15,6 @@ import {
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
-import type { MetaService } from '~/meta/meta.service';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import type { WorkspaceUserDeleteEvent } from '~/services/app-hooks/interfaces';
@@ -339,7 +338,10 @@ export class WorkspaceUsersService {
       // get all bases workspaceUser is part of and delete them
       const workspaceBases = await Base.listByWorkspace(
         workspaceId,
-        true,
+        {
+          includeDeleted: true,
+          includeSnapshot: true,
+        },
         transaction,
       );
 

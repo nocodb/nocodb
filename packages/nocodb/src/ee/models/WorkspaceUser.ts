@@ -100,7 +100,7 @@ export default class WorkspaceUser {
       // clear base user list caches
       const bases = await Base.listByWorkspace(
         workspaceUser.fk_workspace_id,
-        false,
+        {},
         ncMetaTrans,
       );
       for (const base of bases) {
@@ -490,7 +490,10 @@ export default class WorkspaceUser {
       // get all bases user is part of and update cache
       const workspaceBases = await Base.listByWorkspace(
         workspaceId,
-        true,
+        {
+          includeDeleted: true,
+          includeSnapshot: true,
+        },
         ncMeta,
       );
 

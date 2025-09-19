@@ -235,6 +235,7 @@ export default class PresignedUrl {
         mimetype: string;
         signedPath?: string;
         signedUrl?: string;
+        status?: string;
       };
       preview?: boolean;
       mimetype?: string;
@@ -272,7 +273,7 @@ export default class PresignedUrl {
         },
         ncMeta,
       );
-    } else if (attachment?.url) {
+    } else if (attachment?.url && attachment.status !== 'uploading') {
       nestedObj.signedUrl = await PresignedUrl.getSignedUrl(
         {
           pathOrUrl: attachment.url,

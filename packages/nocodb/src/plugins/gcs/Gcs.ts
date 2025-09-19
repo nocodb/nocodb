@@ -229,4 +229,14 @@ export default class Gcs implements IStorageAdapterV2 {
 
     return stream;
   }
+
+  getUploadedPath(path: string): { path?: string; url?: string } {
+    // TODO: verify this
+    return {
+      url: this.storageClient
+        .bucket(this.bucketName)
+        .file(this.patchKey(path))
+        .publicUrl(),
+    };
+  }
 }

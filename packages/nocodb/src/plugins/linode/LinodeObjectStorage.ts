@@ -41,4 +41,10 @@ export default class LinodeObjectStorage
 
     this.s3Client = new S3Client(s3Options);
   }
+
+  getUploadedPath(path: string): { path?: string; url?: string } {
+    return {
+      url: `https://${this.input.bucket}.${this.input.region}.linodeobjects.com/${path}`,
+    };
+  }
 }

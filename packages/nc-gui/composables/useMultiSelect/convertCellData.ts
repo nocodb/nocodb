@@ -1,4 +1,4 @@
-import type { AttachmentType, ColumnType } from 'nocodb-sdk'
+import type { AttachmentType, ColumnType, SerializerOrParserFnProps } from 'nocodb-sdk'
 import { ColumnHelper, UITypes, populateUniqueFileName } from 'nocodb-sdk'
 
 import type { AppInfo } from '~/composables/useGlobal/types'
@@ -18,6 +18,7 @@ export default function convertCellData(
     }) => boolean | undefined
     isInfoShown?: boolean
     markInfoShown?: () => void
+    clipboardItem?: SerializerOrParserFnProps['params']['clipboardItem']
   },
   isMysql = false,
   isMultiple = false,
@@ -73,6 +74,7 @@ export default function convertCellData(
       col: column,
       isMysql: (_sourceId) => isMysql,
       isMultipleCellPaste: isMultiple,
+      clipboardItem: args.clipboardItem,
     })
 
     serializedValue = handlePostSerialize(serializedValue, value)

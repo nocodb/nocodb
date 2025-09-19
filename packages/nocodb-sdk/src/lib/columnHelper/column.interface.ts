@@ -97,17 +97,9 @@ export interface SerializerOrParserFnProps {
 export type NcClipboardDataType = Record<string, NcClipboardItemType>;
 
 export interface NcClipboardItemType {
-  /**
-   * Unique clipboard item id
-   */
-  id: string;
-  workspaceId: string;
-  tableId: string;
-  rowIds: string[];
-  copiedPlainText: string;
-  copiedHtml: string;
+  rowId: string;
   dbCellValue: any;
-  columns: Partial<ColumnType>[];
+  column: Partial<ColumnType>;
 }
 
 export interface NcClipboardItemForColumnType {}

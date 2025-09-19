@@ -241,7 +241,7 @@ export function useMultiSelect(
           await copy(plainTextValue)
 
           const clipboardItem: NcClipboardDataItemType = {
-            dbCellValue: [[cellValue]],
+            dbCellValueArr: [[cellValue]],
             columns: [clipboardColumn],
             copiedPlainText: plainTextValue,
             rowIds: [rowId],

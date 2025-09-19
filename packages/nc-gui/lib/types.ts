@@ -922,7 +922,7 @@ interface NcClipboardDataItemType {
   rowIds: string[]
   copiedPlainText: string
   copiedHtml?: string
-  dbCellValue: Array<any[]>
+  dbCellValueArr: Array<any[]>
   columns: Partial<ColumnType>[]
 }
 

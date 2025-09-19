@@ -64,6 +64,7 @@ const changeDashboard = (dashboard: DashboardType) => {
     workspaceId: dashboard.fk_workspace_id,
     baseId: dashboard.base_id,
     dashboardId: dashboard.id,
+    dashboardTitle: dashboard.title,
   })
 }
 

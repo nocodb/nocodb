@@ -143,6 +143,7 @@ async function onDuplicate() {
     navigateToView({
       view: duplicatedView,
       tableId: table.value!.id!,
+      tableTitle: table.value.title,
       baseId: base.value.id!,
       hardReload: duplicatedView.type === ViewTypes.FORM,
     })

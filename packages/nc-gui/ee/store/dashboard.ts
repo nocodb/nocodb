@@ -10,6 +10,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const { refreshCommandPalette } = useCommandPalette()
 
+  const router = useRouter()
+
   const route = useRoute()
 
   const baseStore = useBases()
@@ -44,6 +46,16 @@ export const useDashboardStore = defineStore('dashboard', () => {
     const id = activeProjectId.value || sharedDashboardState.activeProjectId
     if (!id) return null
     return dashboards.value.get(id)?.find((a) => a.id === activeDashboardId.value || a.uuid === activeDashboardId.value) || null
+  })
+
+  const activeDashboardUrlSlug = computed(() => {
+    return route.params.slugs?.[0] || ''
+  })
+
+  const activeDashboardReadableUrlSlug = computed(() => {
+    if (!activeDashboard.value) return ''
+
+    return toReadableUrlSlug([activeDashboard.value.title])
   })
 
   const loadDashboards = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
@@ -149,6 +161,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
         workspaceId: activeWorkspaceId.value,
         baseId: activeProjectId.value,
         dashboardId: created.id,
+        dashboardTitle: created.title,
       })
       isEditingDashboard.value = true
 
@@ -235,6 +248,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
             workspaceId: activeWorkspaceId.value,
             baseId: activeProjectId.value,
             dashboardId: nextDashboard.id,
+            dashboardTitle: nextDashboard.title,
           })
         }
       }
@@ -280,6 +294,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
       workspaceId: workspaceIdOrType,
       baseId: baseIdOrBaseId,
       dashboardId: dashboard.id,
+      dashboardTitle: dashboard.title,
     })
   }
 
@@ -320,6 +335,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
                     workspaceId: activeWorkspaceId.value,
                     baseId,
                     dashboardId: duplicatedDashboard.id,
+                    dashboardTitle: duplicatedDashboard.title,
                   })
                 }
                 await refreshCommandPalette()
@@ -389,6 +405,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
             workspaceId: activeWorkspaceId.value,
             baseId,
             dashboardId: dashboard.id,
+            dashboardTitle: dashboard.title,
           })
         }
       },
@@ -447,6 +464,41 @@ export const useDashboardStore = defineStore('dashboard', () => {
       await loadDashboard(dashboardId)
     }
   })
+
+  /**
+   * Keeps the browser URL slug in sync with the dashboard's readable slug.
+   * Triggers only when:
+   * - The current browser URL slug is missing, OR
+   * - The browser URL slug does not match the dashboard's readable slug.
+   */
+  watch(
+    [activeDashboardReadableUrlSlug, activeDashboardUrlSlug],
+    ([newActiveDashboardReadableUrlSlug, newActiveDashboardUrlSlug]) => {
+      if (!newActiveDashboardReadableUrlSlug || newActiveDashboardUrlSlug === newActiveDashboardReadableUrlSlug) return
+
+      const slugs = (route.params.slugs as string[]) || []
+
+      const newSlug = [newActiveDashboardReadableUrlSlug]
+
+      if (slugs.length > 1) {
+        newSlug.push(...slugs.slice(1))
+      }
+
+      router.replace({
+        name: 'index-typeOrId-baseId-index-dashboards-dashboardId-slugs',
+        params: {
+          ...route.params,
+          slugs: newSlug,
+        },
+        query: route.query,
+        force: true,
+      })
+    },
+    {
+      immediate: true,
+      flush: 'post',
+    },
+  )
 
   onMounted(async () => {
     if (!activeDashboardId.value || !activeProjectId.value || !isDashboardEnabled.value) {

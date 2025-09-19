@@ -30,14 +30,6 @@ i {
       scrollbar-width: none; /* Firefox */
     }
   }
-
-  .nc-h-screen {
-    height: 100vh;
-
-    @supports (height: 100dvh) {
-      height: 100dvh;
-    }
-  }
 }
 
 body {

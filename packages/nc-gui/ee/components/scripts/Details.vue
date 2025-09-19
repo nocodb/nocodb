@@ -57,6 +57,7 @@ const onAddScript = async (scr: any) => {
     workspaceId: activeWorkspaceId.value,
     baseId: openedProject.value?.id,
     automationId: script.id,
+    automationTitle: script.title,
   })
   vModel.value = false
 }

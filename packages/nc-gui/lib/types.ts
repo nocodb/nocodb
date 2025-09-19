@@ -267,6 +267,7 @@ type NcButtonSize = 'xxsmall' | 'xsmall' | 'small' | 'medium' | 'xs'
 interface SidebarTableNode extends TableType {
   isMetaLoading?: boolean
   isViewsLoading?: boolean
+  views: ViewType[]
 }
 
 interface UsersSortType {

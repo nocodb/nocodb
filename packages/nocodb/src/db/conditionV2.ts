@@ -1,4 +1,6 @@
 import dayjs from 'dayjs';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc.js';
 import {
   FormulaDataTypes,
   getEquivalentUIType,
@@ -26,6 +28,10 @@ import Filter from '~/models/Filter';
 import { getAliasGenerator } from '~/utils';
 import { validateAndStringifyJson } from '~/utils/tsUtils';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
+
+// Configure dayjs with timezone support
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // tod: tobe fixed
 // extend(customParseFormat);
@@ -417,7 +423,12 @@ const parseConditionV2 = async (
               UITypes.LastModifiedTime,
             ].includes(column.uidt)
           ) {
-            let now = dayjs(new Date()).utc();
+            // Get the column's timezone from metadata or fall back to system timezone
+            const columnTimezone = column?.meta?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            // For datetime comparisons, use the column's timezone instead of UTC
+            // This ensures that "today" filter works correctly for users in different timezones
+            let now = dayjs().tz(columnTimezone);
             const dateFormatFromMeta = column?.meta?.date_format;
             if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
               // reset to 1st
@@ -488,8 +499,16 @@ const parseConditionV2 = async (
             }
 
             if (dayjs.isDayjs(genVal)) {
-              // turn `val` in dayjs object format to string
-              genVal = genVal.format(dateFormat).toString();
+              // For datetime columns, convert the timezone-aware value back to UTC for database comparison
+              // since database stores all datetimes in UTC
+              if ([UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(column.uidt) ||
+                  (column.uidt === UITypes.Formula && getEquivalentUIType({ formulaColumn: column }) === UITypes.DateTime)) {
+                // Convert timezone-aware value to UTC for database storage comparison
+                genVal = genVal.utc().format(dateFormat).toString();
+              } else {
+                // For Date columns, keep the date part only
+                genVal = genVal.format(dateFormat).toString();
+              }
               // keep YYYY-MM-DD only for date
               genVal =
                 column.uidt === UITypes.Date ? genVal.substring(0, 10) : genVal;

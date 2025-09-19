@@ -123,6 +123,7 @@ export function useCopyPaste({
   const { isAllowed } = usePermissions()
   const { maxAttachmentsAllowedInCell, showUpgradeToAddMoreAttachmentsInCell } = useEeConfig()
   const { batchUploadFiles } = useAttachment()
+  const { setCellClipboardDataItem, getClipboardItemId } = useNcClipboardData()
 
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const isPublic = inject(IsPublicInj, ref(false))
@@ -822,7 +823,11 @@ export function useCopyPaste({
   }
 
   const copyTable = async (rows: Row[], cols: ColumnType[]) => {
-    const { html: copyHTML, text: copyPlainText } = serializeRange(rows, cols, {
+    const {
+      html: copyHTML,
+      text: copyPlainText,
+      clipboardItemConfig,
+    } = serializeRange(rows, cols, {
       meta: meta.value,
       isPg,
       isMysql,
@@ -831,10 +836,19 @@ export function useCopyPaste({
     const blobHTML = new Blob([copyHTML], { type: 'text/html' })
     const blobPlainText = new Blob([copyPlainText], { type: 'text/plain' })
 
-    return (
-      navigator.clipboard?.write([new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText })]) ??
-      copy(copyPlainText)
-    )
+    const clipboardItem: NcClipboardDataItemType = {
+      ...clipboardItemConfig,
+      tableId: meta.value?.id,
+      id: getClipboardItemId(),
+    }
+
+    const res = await (navigator.clipboard?.write([
+      new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText }),
+    ]) ?? copy(copyPlainText))
+
+    setCellClipboardDataItem(clipboardItem)
+
+    return res
   }
 
   async function clearCell(ctx: { row: number; col: number; path?: Array<number> } | null, skipUpdate = false) {
@@ -1024,14 +1038,28 @@ export function useCopyPaste({
           const columnObj = unref(fields)[cpCol]
           if (!rowObj || !columnObj) return
 
-          const textToCopy = valueToCopy(rowObj, columnObj, {
+          const { textToCopy, cellValue, clipboardColumn, rowId } = valueToCopy(rowObj, columnObj, {
             meta: meta.value,
             metas: metas.value,
             isPg,
             isMysql,
           })
 
-          await copy(isValidValue(textToCopy) ? textToCopy : '')
+          const plainTextValue = isValidValue(textToCopy) ? textToCopy : ''
+
+          await copy(plainTextValue)
+
+          const clipboardItem: NcClipboardDataItemType = {
+            dbCellValue: [[cellValue]],
+            columns: [clipboardColumn],
+            copiedPlainText: plainTextValue,
+            rowIds: [rowId],
+            tableId: meta.value?.id,
+            id: getClipboardItemId(),
+          }
+
+          setCellClipboardDataItem(clipboardItem)
+
           message.toast(
             t(`msg.toast.nCellCopied`, {
               n: 1,

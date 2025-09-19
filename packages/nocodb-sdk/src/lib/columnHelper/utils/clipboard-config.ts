@@ -4,15 +4,13 @@ import { parseProp } from '~/lib/helperFunctions';
 
 export const getClipboardConfigForColumn = ({
   col,
-  value,
+
   extractMetaProps = [],
 }: {
   col: ColumnType;
-  value: any;
   extractMetaProps?: string[];
 }): {
   column: Partial<ColumnType>;
-  value: any;
 } => {
   const columnMeta = extractMetaProps.length
     ? extractProps(parseProp(col.meta), extractMetaProps)
@@ -34,6 +32,5 @@ export const getClipboardConfigForColumn = ({
           system: col.system,
         }
       : {},
-    value,
   };
 };

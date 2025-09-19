@@ -454,6 +454,10 @@ export function useSharedView() {
   }
 
   const triggerNotFound = () => {
+    const isNcNotFoundQueryExists = router.currentRoute.value.query.ncNotFound === 'true'
+
+    if (isNcNotFoundQueryExists) return
+
     const currentQuery = { ...router.currentRoute.value.query, ncNotFound: 'true' }
 
     router.push({

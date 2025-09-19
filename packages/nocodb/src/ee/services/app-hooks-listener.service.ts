@@ -860,8 +860,6 @@ export class AppHooksListenerService
               AuditV1OperationTypes.COLUMN_UPDATE,
               {
                 details: {
-                  field_id: column.id,
-                  field_title: column.title,
                   // ...filterAndMapAliasToColProps(
                   //   extractNonSystemProps(
                   //     removeBlankPropsAndMask({
@@ -892,7 +890,11 @@ export class AppHooksListenerService
                   //     ],
                   //   ),
                   // ),
-                  ...(column as object),
+                  // ...(column as object),
+                  field_id: column.id,
+                  field_title: column.title,
+                  id: undefined,
+                  title: undefined,
                   // ...(await extractRefColumnIfFound({
                   //   column: param.column,
                   //   columns: param.columns,

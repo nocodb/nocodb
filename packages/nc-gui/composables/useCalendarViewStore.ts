@@ -134,11 +134,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     })
 
     const timezone = computed(() => {
-      if (!calendarRange.value || !calendarRange.value[0]) return getTimeZoneFromName()?.name
-
-      return calendarRange.value[0]?.fk_from_col?.meta?.timezone
-        ? getTimeZoneFromName(calendarRange.value[0]?.fk_from_col?.meta?.timezone)?.name
-        : getTimeZoneFromName()?.name
+      return getTimeZoneFromName(calendarRange.value?.[0]?.fk_from_col?.meta?.timezone)?.name
     })
 
     const timezoneDayjs = reactive(workerWithTimezone(isEeUI, timezone?.value))

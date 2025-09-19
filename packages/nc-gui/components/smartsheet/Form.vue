@@ -1040,7 +1040,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                   <div v-show="!isSidebarVisible" class="absolute top-4 right-4 z-550">
                     <NcTooltip placement="topRight">
                       <template #title> {{ $t('activity.toggleSidebar') }}</template>
-                      <NcButton icon-only @click.stop="isSidebarVisible = true" size="small" type="secondary">
+                      <NcButton icon-only size="small" type="secondary" @click.stop="isSidebarVisible = true">
                         <template #icon>
                           <GeneralIcon icon="sidebar" class="w-4 h-4" />
                         </template>
@@ -1721,7 +1721,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                           </a-dropdown>
                           <NcTooltip placement="topRight">
                             <template #title> {{ $t('activity.toggleSidebar') }}</template>
-                            <NcButton icon-only @click.stop="isSidebarVisible = !isSidebarVisible" size="small" type="secondary">
+                            <NcButton icon-only size="small" type="secondary" @click.stop="isSidebarVisible = !isSidebarVisible">
                               <template #icon>
                                 <GeneralIcon icon="sidebar" class="w-4 h-4" />
                               </template>

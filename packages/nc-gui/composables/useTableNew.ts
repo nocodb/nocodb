@@ -72,8 +72,16 @@ export function useTableNew(param: {
 
     const navigateToTable = async () => {
       if (navigate && openedViewsTab.value === 'view') {
+        const views = viewsByTable.value.get(table.id as string) ?? []
+
+        const defaultView = views.find((v) => v.is_default) || views[0]
+
+        const slug = defaultView ? getViewReadableUrlSlug({ tableTitle: table.title, viewOrViewTitle: defaultView }) : ''
+
         await navigateTo(
-          `${cmdOrCtrl ? '#' : ''}/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}`,
+          `${cmdOrCtrl ? '#' : ''}/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}${
+            slug ? `/${defaultView!.id}/${slug}` : ''
+          }`,
           cmdOrCtrl
             ? {
                 open: navigateToBlankTargetOpenOption,

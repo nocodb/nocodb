@@ -194,7 +194,7 @@ watch(
               :class="{
                 'extension-modal-content': fullscreen,
                 'h-full': !fullscreen,
-                '!h-screen !w-screen': fullscreen && currentExtensionModalSize === 'fullscreen',
+                '!nc-h-screen !nc-w-screen': fullscreen && currentExtensionModalSize === 'fullscreen',
               }"
               :style="
                 fullscreen

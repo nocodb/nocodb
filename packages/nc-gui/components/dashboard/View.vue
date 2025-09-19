@@ -234,7 +234,7 @@ const isMiniSidebarVisible = computed(() => {
     <div
       :class="{
         'w-[calc(100vw_-_var(--mini-sidebar-width))] flex-none': isMiniSidebarVisible,
-        'w-screen flex-none': !isMiniSidebarVisible,
+        'nc-w-screen flex-none': !isMiniSidebarVisible,
       }"
     >
       <DashboardTopbar v-if="showTopbar" :workspace-id="workspaceId" />
@@ -243,7 +243,7 @@ const isMiniSidebarVisible = computed(() => {
         :class="{
           'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart' || hideSidebar,
           '!w-[calc(100vw_-_var(--mini-sidebar-width))]': isMiniSidebarVisible && !isSharedBase,
-          '!w-screen': !isMiniSidebarVisible || isSharedBase,
+          '!nc-w-screen': !isMiniSidebarVisible || isSharedBase,
         }"
         @ready="() => onWindowResize()"
         @resize="(event: any) => onResize(event[0].size)"

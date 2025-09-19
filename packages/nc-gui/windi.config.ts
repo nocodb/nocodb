@@ -13,6 +13,8 @@ import questionMark from '@windicss/plugin-question-mark'
 
 import ncTypographyPlugin from './assets/nc-typography-plugin'
 
+import ncWindicssShortcutsPlugin from './assets/nc-windicss-shortcuts-plugin'
+
 import {
   theme as colors,
   themeColors,
@@ -73,6 +75,7 @@ export default defineConfig({
     }),
     aspectRatioPlugin,
     lineClampPlugin,
+    ncWindicssShortcutsPlugin,
   ],
 
   preflight: {

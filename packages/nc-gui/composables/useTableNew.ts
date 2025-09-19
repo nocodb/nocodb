@@ -72,9 +72,13 @@ export function useTableNew(param: {
 
     const navigateToTable = async () => {
       if (navigate && openedViewsTab.value === 'view') {
-        const views = viewsByTable.value.get(table.id as string) ?? []
+        let defaultView = table?.views?.[0]
 
-        const defaultView = views.find((v) => v.is_default) || views[0]
+        if (!defaultView) {
+          const views = viewsByTable.value.get(table.id as string) ?? []
+
+          defaultView = views.find((v) => v.is_default) || views[0]
+        }
 
         const slug = defaultView ? getViewReadableUrlSlug({ tableTitle: table.title, viewOrViewTitle: defaultView }) : ''
 

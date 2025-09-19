@@ -421,6 +421,12 @@ export const useAutomationStore = defineStore('automation', () => {
     }
   }
 
+  /**
+   * Keeps the browser URL slug in sync with the automation's readable slug.
+   * Triggers only when:
+   * - The current browser URL slug is missing, OR
+   * - The browser URL slug does not match the automation's readable slug.
+   */
   watch(
     [activeAutomationReadableUrlSlug, activeAutomationUrlSlug],
     ([newActiveAutomationReadableUrlSlug, newActiveAutomationUrlSlug]) => {

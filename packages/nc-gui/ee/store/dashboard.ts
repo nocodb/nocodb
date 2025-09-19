@@ -465,6 +465,12 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
   })
 
+  /**
+   * Keeps the browser URL slug in sync with the dashboard's readable slug.
+   * Triggers only when:
+   * - The current browser URL slug is missing, OR
+   * - The browser URL slug does not match the dashboard's readable slug.
+   */
   watch(
     [activeDashboardReadableUrlSlug, activeDashboardUrlSlug],
     ([newActiveDashboardReadableUrlSlug, newActiveDashboardUrlSlug]) => {

@@ -3508,67 +3508,6 @@
         }
       ]
     },
-    "/api/v2/workspaces/{workspaceId}/remote-fetch": {
-      "post": {
-        "summary": "Remote Fetch",
-        "operationId": "remote-fetch",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "Workspace"
-        ],
-        "description": "Remote Fetch",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "name": "workspaceId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "url": {
-                    "type": "string"
-                  },
-                  "method": {
-                    "type": "string",
-                    "enum": [
-                      "GET",
-                      "POST",
-                      "PUT",
-                      "DELETE"
-                    ]
-                  },
-                  "headers": {
-                    "schema": {
-                      "type": "object"
-                    }
-                  },
-                  "body": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v2/meta/user/delete": {
       "delete": {
         "summary": "Delete user",

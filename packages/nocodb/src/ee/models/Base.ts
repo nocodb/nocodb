@@ -613,17 +613,31 @@ export default class Base extends BaseCE {
 
   static async listByWorkspace(
     fk_workspace_id: string,
-    includeDeleted = false,
+    opts?: { includeDeleted?: boolean; includeSnapshot?: boolean },
     ncMeta = Noco.ncMeta,
   ) {
+    const { includeDeleted = false, includeSnapshot = false } = opts || {};
+
     const baseListQb = ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
-      .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
-      .whereNot(`${MetaTable.PROJECT}.is_snapshot`, true);
+      .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id);
+
+    if (!includeSnapshot) {
+      // exclude only if is_snapshot = true
+      baseListQb.where((qb) => {
+        qb.where(`${MetaTable.PROJECT}.is_snapshot`, false).orWhereNull(
+          `${MetaTable.PROJECT}.is_snapshot`,
+        );
+      });
+    }
 
     if (!includeDeleted) {
-      baseListQb.where(`${MetaTable.PROJECT}.deleted`, false);
+      baseListQb.where((qb) => {
+        qb.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
+          `${MetaTable.PROJECT}.deleted`,
+        );
+      });
     }
 
     const bases = await baseListQb;

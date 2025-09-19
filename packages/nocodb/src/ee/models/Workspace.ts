@@ -361,7 +361,14 @@ export default class Workspace implements WorkspaceType {
     // Delete data reflection configuration if exists
     await DataReflection.destroy(id, ncMeta);
 
-    const bases = await Base.listByWorkspace(id, true, ncMeta);
+    const bases = await Base.listByWorkspace(
+      id,
+      {
+        includeDeleted: true,
+        includeSnapshot: true,
+      },
+      ncMeta,
+    );
 
     for (const base of bases) {
       await Base.delete(

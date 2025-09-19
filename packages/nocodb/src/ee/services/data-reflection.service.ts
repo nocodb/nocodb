@@ -27,7 +27,14 @@ export class DataReflectionService {
   }
 
   async refreshAccess(fk_workspace_id: string, ncMeta = Noco.ncMeta) {
-    const basesList = await Base.listByWorkspace(fk_workspace_id, true, ncMeta);
+    const basesList = await Base.listByWorkspace(
+      fk_workspace_id,
+      {
+        includeDeleted: true,
+        includeSnapshot: true,
+      },
+      ncMeta,
+    );
 
     for (const base of basesList) {
       await DataReflection.revokeBase(fk_workspace_id, base.id, ncMeta);

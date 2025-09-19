@@ -601,7 +601,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         baseId: route.value.params.baseId,
         viewId: route.value.params.viewId,
         viewTitle: activeViewTitleOrId.value,
-        slugs: [activeViewReadableUrlSlug.value, page],
+        slugs: [activeViewReadableUrlSlug.value, ...(page !== 'view' ? [page] : [])],
       },
     })
   }

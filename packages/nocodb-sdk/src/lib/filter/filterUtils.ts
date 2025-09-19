@@ -1,6 +1,7 @@
 import { isNumericCol, numericUITypes, UITypes } from '~/lib';
 import type { Api, ColumnType, FilterType } from '~/lib/Api';
 import { isDateMonthFormat } from '~/lib';
+import { parseProp } from '~/lib';
 
 export interface ComparisonOpUiType {
   text: string;
@@ -842,18 +843,6 @@ export const deleteFilterWithSub = async (
   result.push(filter.id);
   return result;
 };
-
-// Helper function to parse meta properties
-function parseProp(meta: any) {
-  if (typeof meta === 'string') {
-    try {
-      return JSON.parse(meta);
-    } catch {
-      return {};
-    }
-  }
-  return meta || {};
-}
 
 // Type definitions for compatibility
 export type Filter = FilterType;

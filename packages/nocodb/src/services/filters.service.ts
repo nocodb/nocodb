@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, comparisonOpList, EventType, UITypes } from 'nocodb-sdk';
-import type { FilterReqType, FilterType, UserType, ViewType } from 'nocodb-sdk';
+import { AppEvents, comparisonOpList, EventType } from 'nocodb-sdk';
+import type { FilterReqType, FilterType, UITypes, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import NocoSocket from '~/socket/NocoSocket';
-import { Column, Filter, Hook, View } from '~/models';
+import { Filter, Hook, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 
@@ -236,7 +236,6 @@ export class FiltersService {
         oldColumnType,
         sqlUi,
       );
-      console.log(validation);
       if (validation.shouldRemove) {
         await this.deleteFilter(context, filter.id, ncMeta);
       }
@@ -255,16 +254,14 @@ export class FiltersService {
 
     try {
       // Query nc_filter table directly for all filters referencing this column
-      const filterResults = await ncMeta
-        .knex(MetaTable.FILTER_EXP)
-        .where({
-          base_id: context.base_id,
-          ...(context.workspace_id
-            ? { fk_workspace_id: context.workspace_id }
-            : {}),
-        })
-        .where('fk_column_id', columnId)
-        .select('*');
+      const filterResults = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          condition: { fk_column_id: columnId },
+        },
+      );
 
       // Convert to FilterType objects
       for (const row of filterResults) {
@@ -324,10 +321,9 @@ export class FiltersService {
     return operators.some(
       (op) =>
         op.value === operator &&
-        (isInOldOperators?.text === op.text) && (
-          (op.includedTypes && op.includedTypes?.includes(columnType)) ||
-            (op.excludedTypes && !op.excludedTypes?.includes(columnType)),
-        ),
+        isInOldOperators?.text === op.text &&
+        ((op.includedTypes && op.includedTypes?.includes(columnType)) ||
+          (op.excludedTypes && !op.excludedTypes?.includes(columnType))),
     );
   }
 
@@ -352,11 +348,6 @@ export class FiltersService {
     const oldAbstractType = sqlUI.getAbstractType({ uidt: oldColumnType });
     const newAbstractType = sqlUI.getAbstractType({ uidt: newColumnType });
 
-    console.log(
-      newColumnType,
-      oldColumnType,
-      `Validating filter ${filter.id}: ${oldAbstractType} -> ${newAbstractType}, operator: ${operator}`,
-    );
     if (oldAbstractType !== newAbstractType) {
       return {
         shouldRemove: true,

@@ -166,9 +166,15 @@ onMounted(() => {
   loadData()
 })
 
-watch([() => widgetRef.value?.config?.dataSource, () => widgetRef.value?.config?.data], () => {
-  loadData()
-})
+watch(
+  [() => widgetRef.value?.config?.dataSource, () => widgetRef.value?.config?.data, () => widgetRef.value?.filters],
+  () => {
+    loadData()
+  },
+  {
+    deep: true,
+  },
+)
 </script>
 
 <template>

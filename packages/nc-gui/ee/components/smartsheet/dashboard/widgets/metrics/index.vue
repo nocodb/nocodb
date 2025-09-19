@@ -44,11 +44,13 @@ onMounted(() => {
 })
 
 watch(
-  () => widgetRef.value?.config,
+  [() => widgetRef.value?.config],
   () => {
     loadData()
   },
-  { deep: true },
+  {
+    deep: true,
+  },
 )
 </script>
 

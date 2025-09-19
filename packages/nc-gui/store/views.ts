@@ -848,10 +848,16 @@ export const useViewsStore = defineStore('viewsStore', () => {
     },
   )
 
+  /**
+   * Keeps the browser URL slug in sync with the view's readable slug.
+   * Triggers only when:
+   * - The current browser URL slug is missing, OR
+   * - The browser URL slug does not match the view's readable slug.
+   */
   watch(
     [activeViewReadableUrlSlug, activeViewUrlSlug],
-    ([newactiveViewReadableUrlSlug]) => {
-      if (!newactiveViewReadableUrlSlug || activeViewUrlSlug.value === newactiveViewReadableUrlSlug) return
+    ([newactiveViewReadableUrlSlug, newActiveViewUrlSlug]) => {
+      if (!newactiveViewReadableUrlSlug || newActiveViewUrlSlug === newactiveViewReadableUrlSlug) return
 
       const slugs = (route.value.params.slugs as string[]) || []
 

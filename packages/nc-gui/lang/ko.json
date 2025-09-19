@@ -139,8 +139,8 @@
     "upgradeToAddWebhook": "무제한 웹훅을 추가하도록 업그레이드",
     "upgradeToAddWebhookSubtitle": "{activePlan} 플랜은 최대 {limit}개의 웹훅을 허용합니다. {plan} 플랜으로 업그레이드하고 무제한 웹훅에 액세스하세요.",
     "upgradeToAccessWebhookLogsSubtitle": "작업 영역을 {plan} 플랜으로 업그레이드하여 웹훅 로그에 액세스합니다.",
-    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
-    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
+    "upgradeToDuplicateTableToOtherWs": "여러 작업 공간에 걸쳐 테이블을 복제하도록 플랜을 업그레이드하세요.",
+    "upgradeToDuplicateTableToOtherBase": "다양한 베이스에 걸쳐 테이블을 복제하도록 계획을 업그레이드하세요.",
     "formOwnerNotified": "양식 작성자에게 알림",
     "formOwnerNotifiedSubtitle": "귀하의 제출 요청에 대해 양식 생성자에게 알렸습니다.",
     "WorkspaceOwnerNotified": "작업공간 소유자 알림",
@@ -178,10 +178,10 @@
     "upgradeLicenseToUsePrivateBases": "개인 베이스를 잠금 해제하려면 라이센스를 업그레이드하세요",
     "upgradeLicenseToUsePrivateBasesSubtitle": "비공개 베이스는 엔터프라이즈 스타터 라이선스에서 사용할 수 없습니다. 라이센스 키를 업그레이드하여 사용을 시작하십시오.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "이 셀에는 최대 {limit} {filePlural}까지만 업로드할 수 있습니다. 더 많은 파일을 추가하려면 {plan} 플랜으로 업그레이드합니다.",
-    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
-    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
-    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
+    "upgradeToUseAiTextField": "AI 텍스트 필드를 사용하려면 업그레이드하세요",
+    "upgradeToUseAiTextFieldSubtitle": "프롬프트에 따라 텍스트를 생성하기 위해 AI 텍스트 필드를 사용하려면 {plan} 플랜으로 업그레이드하세요.",
+    "upgradeToUseAiButtonField": "AI 버튼 필드를 사용하려면 업그레이드하세요",
+    "upgradeToUseAiButtonFieldSubtitle": "{plan} 플랜으로 업그레이드하면 AI Button이 NocoAI의 레코드 데이터를 사용하여 여러 필드를 자동으로 채울 수 있습니다."
   },
   "general": {
     "script": "스크립트",
@@ -202,8 +202,8 @@
     "trigger": "트리거",
     "addLookupField": "{count} 조회 필드 추가",
     "addLookupFieldPlural": "{count} 조회 필드 추가",
-    "addRollupField": "Add {count} rollup field",
-    "addRollupFieldPlural": "Add {count} rollup fields",
+    "addRollupField": "{count} 롤업 필드 추가",
+    "addRollupFieldPlural": "{count}개의 롤업 필드 추가",
     "style": "스타일",
     "label": "라벨",
     "role": "역할",
@@ -964,7 +964,7 @@
     "duplicateBaseSuccessfull": "기본 복제 성공",
     "duplicateBaseFailed": "기본 복제 실패",
     "duplicateBaseMessage": "작성자 액세스 권한이 있는 작업 공간 이상에만 베이스를 복제할 수 있습니다.",
-    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
+    "duplicateTableMessage": "생성자 액세스 권한이 있거나 그 이상의 권한이 있는 경우에만 테이블을 베이스로 복제할 수 있습니다.",
     "snapshotBaseRestoreMessage": "Creator 액세스 권한이 있는 작업 영역 이상으로만 복원할 수 있습니다.",
     "currentWorkspace": "현재 작업공간",
     "currentBase": "현재 베이스",
@@ -1033,8 +1033,8 @@
     "clearAll": "모두 지우기",
     "addNewLookupHelperText1": "조회 필드는 연결된 항목의 데이터를 표시합니다. 다음에서 특정 필드를 선택하세요 ",
     "addNewLookupHelperText2": "이 테이블에 조회 필드로 추가하려면 테이블을 클릭합니다",
-    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
-    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
+    "addNewRollupHelperText1": "롤업 필드는 관련 테이블의 필드에서 데이터를 집계하는 데 사용됩니다. 다음에서 특정 필드를 선택하세요 ",
+    "addNewRollupHelperText2": " 이 테이블에 롤업 필드로 추가하려면 테이블을 클릭합니다.",
     "formatting": "서식 설정",
     "selectAFormatType": "- -양식 유형을 선택하세요(선택 사항)- -",
     "formatType": "형식 유형",
@@ -1423,8 +1423,8 @@
     "generateFieldDataUsingAi": "AI를 사용하여 필드 값 생성",
     "preview": "미리보기",
     "autoSuggest": "자동 제안",
-    "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
+    "autoSuggested": "자동 제안",
+    "usePrompt": "프롬프트 사용",
     "suggesting": "제안...",
     "autoSuggestFields": "필드 자동 제안",
     "autoSuggestFormulas": "수식 자동 제안",
@@ -1865,9 +1865,9 @@
     "sourceVisibilityIsHidden": "데이터 원본 가시성이 숨겨짐",
     "youDontHavePermissionToEditThisField": "이 필드를 편집할 수 있는 권한이 없습니다.",
     "releasingPreviousFullscreenLock": "이전 전체 화면 잠금을 해제합니다...",
-    "youCantHideARequiredField": "You can't hide a required field.",
-    "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "youCantHideARequiredField": "필수 필드는 숨길 수 없습니다.",
+    "youCantRemoveARequiredField": "필수 필드는 제거할 수 없습니다.",
+    "removeFromForm": "양식에서 제거"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",
@@ -2428,7 +2428,7 @@
       "invalidSearchQuery": "잘못된 검색 쿼리",
       "invalidSearchQueryForVisibleFields": "표시되는 필드에 대한 잘못된 검색 쿼리",
       "invalidSearchQueryForDisplayField": "표시 필드에 대한 잘못된 검색 쿼리",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "프롬프트에서 열({columns})을 삭제했습니다"
     },
     "toast": {
       "exportMetadata": "베이스 메타 데이터를 성공적으로 내보냈습니다",
@@ -2503,7 +2503,7 @@
       "mcpUrlCopied": "MCP URL이 클립보드에 복사됨",
       "nlookupFieldsCreatedSuccessfully": "{n} 조회 필드가 성공적으로 생성되었습니다.",
       "nlookupFieldsCreatedSuccessfullyPlural": "{n} 조회 필드가 성공적으로 생성되었습니다.",
-      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
+      "tableDuplicatedInOtherBase": "테이블이 다른 베이스에 성공적으로 복제되었습니다. 지정된 베이스를 열어서 확인하세요."
     },
     "subText": {
       "startFromScratch": "처음부터 시작하세요.",

@@ -98,10 +98,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const openedViewsTab = computed<ViewPageType>(() => {
     // For types in ViewPageType type
-    if (!route.value.params?.slugs || route.value.params.slugs?.length === 0) return 'view'
+    if (!route.value.params?.slugs || route.value.params.slugs?.length <= 1) return 'view'
 
-    if (['field', 'permissions', 'relation', 'api', 'webhook'].includes(route.value.params.slugs[0] as ViewPageType)) {
-      return route.value.params.slugs[0] as ViewPageType
+    if (['field', 'permissions', 'relation', 'api', 'webhook'].includes(route.value.params.slugs[1] as ViewPageType)) {
+      return route.value.params.slugs[1] as ViewPageType
     }
 
     return 'view'
@@ -136,6 +136,16 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
       views.value[viewIndex] = _view
     },
+  })
+
+  const activeViewUrlSlug = computed(() => {
+    return route.value.params.slugs?.[0] || ''
+  })
+
+  const activeViewReadableUrlSlug = computed(() => {
+    if (sharedView.value || !activeView.value) return ''
+
+    return getViewReadableUrlSlug({ tableTitle: activeTable.value?.title, viewOrViewTitle: activeView.value })
   })
 
   const isActiveViewLocked = computed(() => activeView.value?.lock_type === 'locked')
@@ -180,12 +190,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
     view,
     baseId,
     tableId,
+    tableTitle,
     hardReload,
     doNotSwitchTab,
   }: {
     view: ViewType
     baseId: string
     tableId: string
+    tableTitle?: string
     hardReload?: boolean
     doNotSwitchTab?: boolean
   }) => {
@@ -199,7 +211,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
       baseIdOrBaseId = route.value.params.baseId as string
     }
 
-    const slugs = doNotSwitchTab ? router.currentRoute.value.params.slugs : undefined
+    const slugs = doNotSwitchTab ? router.currentRoute.value.params.slugs || [] : []
+
+    if (ncIsArray(slugs)) {
+      ;(slugs as string[])[0] = getViewReadableUrlSlug({ tableTitle, viewOrViewTitle: view })
+    }
 
     if (
       router.currentRoute.value.query &&
@@ -585,7 +601,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         baseId: route.value.params.baseId,
         viewId: route.value.params.viewId,
         viewTitle: activeViewTitleOrId.value,
-        slugs: [page],
+        slugs: [activeViewReadableUrlSlug.value, page],
       },
     })
   }
@@ -769,6 +785,12 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
+  function getViewReadableUrlSlug({ tableTitle, viewOrViewTitle }: { tableTitle?: string; viewOrViewTitle: ViewType | string }) {
+    const viewTitle = ncIsObject(viewOrViewTitle) ? (viewOrViewTitle.is_default ? '' : viewOrViewTitle.title) : viewOrViewTitle
+
+    return toReadableUrlSlug([tableTitle, viewTitle])
+  }
+
   watch(
     () => tablesStore.activeTableId,
     async (newId, oldId) => {
@@ -826,6 +848,35 @@ export const useViewsStore = defineStore('viewsStore', () => {
     },
   )
 
+  watch(
+    [activeViewReadableUrlSlug, activeViewUrlSlug],
+    ([newactiveViewReadableUrlSlug]) => {
+      if (!newactiveViewReadableUrlSlug || activeViewUrlSlug.value === newactiveViewReadableUrlSlug) return
+
+      const slugs = (route.value.params.slugs as string[]) || []
+
+      const newSlug = [newactiveViewReadableUrlSlug]
+
+      if (slugs.length > 1) {
+        newSlug.push(...slugs.slice(1))
+      }
+
+      router.replace({
+        name: 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs',
+        params: {
+          ...route.value.params,
+          viewTitle: route.value.params.viewTitle || activeView.value?.id,
+          slugs: newSlug,
+        },
+        force: true,
+      })
+    },
+    {
+      immediate: true,
+      flush: 'post',
+    },
+  )
+
   refreshViewTabTitle.on(() => {
     updateTabTitle()
   })
@@ -867,6 +918,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     setCurrentViewExpandedFormMode,
     setCurrentViewExpandedFormAttachmentColumn,
     onOpenViewCreateModal,
+    getViewReadableUrlSlug,
   }
 })
 

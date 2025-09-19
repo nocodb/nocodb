@@ -8,27 +8,11 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
 
   const { $api, $e } = useNuxtApp()
 
-  const router = useRouter()
-
-  const route = router.currentRoute
-
   const { getMeta } = useMetas()
   const { activeTable } = toRefs(useTablesStore())
 
   const hasV2Webhooks = computed(() => {
     return hooks.value.some((hook) => hook.version === 'v2')
-  })
-
-  const createWebhookUrl = computed(() => {
-    return navigateToWebhookRoute({
-      openCreatePage: true,
-    })
-  })
-
-  const webhookMainUrl = computed(() => {
-    return navigateToWebhookRoute({
-      openMainPage: true,
-    })
   })
 
   async function loadHooksList() {
@@ -178,64 +162,13 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     return hook
   }
 
-  function navigateToWebhookRoute({
-    hookId,
-    openCreatePage,
-    openMainPage,
-  }: {
-    hookId?: string
-    openCreatePage?: Boolean
-    openMainPage?: Boolean
-  }) {
-    const { activeView } = useViewsStore()
-    if (!activeView) throw new Error('activeView is not defined')
-
-    if (!openMainPage && !openCreatePage && !hookId) throw new Error('hook id is not defined')
-
-    return {
-      name: 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs',
-      params: {
-        typeOrId: route.value.params.typeOrId,
-        baseId: route.value.params.baseId,
-        viewId: route.value.params.viewId,
-        viewTitle: activeView.id,
-        slugs: openMainPage ? ['webhook'] : ['webhook', openCreatePage ? 'create' : hookId!],
-      },
-    }
-  }
-
-  const navigateToWebhook = async ({
-    hookId,
-    openCreatePage,
-    openMainPage,
-  }: {
-    hookId?: string
-    openCreatePage?: Boolean
-    openMainPage?: Boolean
-  }) => {
-    const { activeView } = useViewsStore()
-    if (!activeView) return
-
-    await router.push(
-      navigateToWebhookRoute({
-        hookId,
-        openCreatePage,
-        openMainPage,
-      }),
-    )
-  }
-
   return {
     hooks,
     loadHooksList,
     deleteHook,
     copyHook,
     saveHooks,
-    navigateToWebhook,
-    createWebhookUrl,
-    webhookMainUrl,
     isHooksLoading,
-    navigateToWebhookRoute,
     hasV2Webhooks,
   }
 })

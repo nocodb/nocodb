@@ -1312,7 +1312,7 @@ const rightPanelWidth = computed(() => {
 })
 
 const confirmUnsavedChangesBeforeLeaving = (from: RouteLocationNormalizedLoadedGeneric, next: NavigationGuardNext) => {
-  if (!hasUnsavedChanges.value || !(ncIsArray(from.params?.slugs) && from.params?.slugs?.includes('field'))) {
+  if (!hasUnsavedChanges.value || !(ncIsArray(from.params?.slugs) && from.params?.slugs?.[1] === 'field')) {
     next()
     return
   }

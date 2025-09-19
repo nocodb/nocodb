@@ -37,7 +37,7 @@ export const SyncTriggerMeta = {
     label: 'Webhook',
     description: 'Sync data via a webhook',
   },
-}
+};
 
 export const OnDeleteActionMeta = {
   [OnDeleteAction.Delete]: {
@@ -50,7 +50,7 @@ export const OnDeleteActionMeta = {
     label: 'Mark Deleted',
     description: 'Mark data as deleted in NocoDB',
   },
-}
+};
 
 export const SyncTypeMeta = {
   [SyncType.Full]: {
@@ -63,7 +63,7 @@ export const SyncTypeMeta = {
     label: 'Incremental',
     description: 'Sync only new and updated data',
   },
-}
+};
 
 export const SyncCategoryMeta = {
   [SyncCategory.TICKETING]: {
@@ -90,7 +90,7 @@ export const SyncCategoryMeta = {
     description: 'Sync data from a dynamic source',
     icon: 'ncDatabase',
   },
-}
+};
 
 export enum TARGET_TABLES {
   TICKETING_TICKET = 'ticketing_ticket',
@@ -132,4 +132,4 @@ export const TARGET_TABLES_META = {
     description: 'Sync all teams from the source',
     required: false,
   },
-}
+};

@@ -283,6 +283,7 @@ export enum CacheScope {
   WIDGET = 'widget',
   OAUTH_CLIENT = 'oAuthClient',
   OAUTH_AUTH_CODE = 'oAuthAuthCode',
+  OAUTH_TOKEN = 'oAuthToken',
 }
 
 export enum CacheGetType {

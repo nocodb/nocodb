@@ -58,3 +58,4 @@ export { default as Dashboard } from './Dashboard';
 export { default as Permission } from './Permission';
 export { default as OAuthClient } from './OAuthClient';
 export { default as OAuthAuthorizationCode } from './OAuthAuthorizationCode';
+export { default as OAuthToken } from './OAuthToken';

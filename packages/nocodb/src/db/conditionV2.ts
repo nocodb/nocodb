@@ -29,7 +29,7 @@ import { getAliasGenerator } from '~/utils';
 import { validateAndStringifyJson } from '~/utils/tsUtils';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
 
-// Configure dayjs with timezone support
+// extend dayjs with timezone support for proper datetime filtering
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -423,10 +423,10 @@ const parseConditionV2 = async (
               UITypes.LastModifiedTime,
             ].includes(column.uidt)
           ) {
-            // Get the column's timezone from metadata or fall back to system timezone
-            const columnTimezone = column?.meta?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+            // Get the column's timezone from metadata or fall back to UTC
+            const columnTimezone = column?.meta?.timezone || 'UTC';
             
-            // For datetime comparisons, use the column's timezone instead of UTC
+            // For datetime comparisons, use the column's timezone instead of always UTC
             // This ensures that "today" filter works correctly for users in different timezones
             let now = dayjs().tz(columnTimezone);
             const dateFormatFromMeta = column?.meta?.date_format;
@@ -506,7 +506,7 @@ const parseConditionV2 = async (
                 // Convert timezone-aware value to UTC for database storage comparison
                 genVal = genVal.utc().format(dateFormat).toString();
               } else {
-                // For Date columns, keep the date part only
+                // turn `val` in dayjs object format to string
                 genVal = genVal.format(dateFormat).toString();
               }
               // keep YYYY-MM-DD only for date

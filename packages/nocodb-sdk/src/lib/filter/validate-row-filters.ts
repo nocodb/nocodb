@@ -4,6 +4,8 @@ import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import relativeTime from 'dayjs/plugin/relativeTime.js';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc.js';
 import { ColumnType, FilterType, LinkToAnotherRecordType } from '~/lib/Api';
 import { isDateMonthFormat } from '~/lib/dateTimeHelper';
 import { buildFilterTree } from '~/lib/filterHelpers';
@@ -18,6 +20,8 @@ extend(customParseFormat);
 extend(isSameOrBefore);
 extend(isSameOrAfter);
 extend(isBetween);
+extend(utc);
+extend(timezone);
 
 export function validateRowFilters(params: {
   filters: FilterType[];
@@ -71,7 +75,9 @@ export function validateRowFilters(params: {
         const dateFormat =
           client === 'mysql2' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ';
 
-        let now = dayjs(new Date());
+        // Get the column's timezone from metadata or fall back to UTC (consistent with backend)
+        const columnTimezone = parseProp(column.meta)?.timezone || 'UTC';
+        let now = dayjs().tz(columnTimezone);
         const dateFormatFromMeta = parseProp(column.meta)?.date_format;
         const dataVal: any = val;
         let filterVal: any = filter.value;

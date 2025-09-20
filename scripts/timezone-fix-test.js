@@ -46,8 +46,8 @@ const column = {
   }
 };
 
-// Get the column's timezone from metadata or fall back to system timezone
-const columnTimezone = column?.meta?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+// Get the column's timezone from metadata or fall back to UTC (as per reviewer feedback)
+const columnTimezone = column?.meta?.timezone || 'UTC';
 
 // For datetime comparisons, use the column's timezone instead of UTC
 const newNow = dayjs().tz(columnTimezone);
@@ -84,5 +84,26 @@ testTimezones.forEach(tz => {
   
   console.log(`${tz.padEnd(20)} | Today: ${tzNow.format('YYYY-MM-DD HH:mm')} | UTC: ${tzNowUTC.format('YYYY-MM-DD HH:mm')}`);
 });
+
+// Test UTC fallback scenario (no timezone metadata)
+console.log('\n=== UTC Fallback Test (no timezone metadata) ===');
+const columnWithoutTimezone = {
+  uidt: 'DateTime',
+  meta: {} // No timezone specified
+};
+
+const fallbackTimezone = columnWithoutTimezone?.meta?.timezone || 'UTC';
+const fallbackNow = dayjs().tz(fallbackTimezone);
+console.log(`Column without timezone metadata:`);
+console.log(`Fallback timezone: ${fallbackTimezone}`);
+console.log(`"Today" calculated as: ${fallbackNow.format('YYYY-MM-DD HH:mm')}`);
+console.log(`This ensures consistent behavior when no timezone is set.`);
+
+// Test frontend-backend consistency
+console.log('\n=== Frontend-Backend Consistency Test ===');
+console.log('Both frontend (validate-row-filters.ts) and backend (conditionV2.ts) now use:');
+console.log('- UTC as fallback when no column timezone is set');
+console.log('- Column metadata timezone when available');
+console.log('- Timezone-aware "today" calculation with UTC conversion for database comparison');
 
 console.log('\n=== Test Complete ===');

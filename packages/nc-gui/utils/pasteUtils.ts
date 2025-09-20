@@ -81,7 +81,7 @@ export const serializeRange = (
   const json: string[][] = []
   const clipboardItemConfig: Pick<
     NcClipboardDataItemType,
-    'columns' | 'rowIds' | 'dbCellValue' | 'copiedPlainText' | 'copiedHtml'
+    'columns' | 'rowIds' | 'dbCellValueArr' | 'copiedPlainText' | 'copiedHtml'
   > = {
     columns: cols.map((col) => {
       return ColumnHelper.getClipboardConfig({
@@ -89,7 +89,7 @@ export const serializeRange = (
       }).column
     }),
     rowIds: [],
-    dbCellValue: [],
+    dbCellValueArr: [],
     copiedPlainText: '',
     copiedHtml: '',
   }
@@ -120,7 +120,7 @@ export const serializeRange = (
 
     json.push(jsonRow)
 
-    clipboardItemConfig.dbCellValue!.push(clipboardCellValue)
+    clipboardItemConfig.dbCellValueArr!.push(clipboardCellValue)
     clipboardItemConfig.rowIds!.push(recordId)
   })
   html += '</table>'

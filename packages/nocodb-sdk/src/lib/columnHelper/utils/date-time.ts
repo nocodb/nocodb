@@ -81,7 +81,7 @@ export const parseDateTimeValue = (
 
 export const serializeDateOrDateTimeValue = (
   value: string | null,
-  col: ColumnType
+  params: SerializerOrParserFnProps['params']
 ) => {
   if (!value) return null;
 
@@ -91,8 +91,8 @@ export const serializeDateOrDateTimeValue = (
     isDateOnly = true;
   }
   const formatting = isDateOnly
-    ? parseProp(col.meta).date_format ?? 'YYYY-MM-DD'
-    : constructDateTimeFormat(col);
+    ? parseProp(params.col.meta).date_format ?? 'YYYY-MM-DD'
+    : constructDateTimeFormat(params.col);
 
   let parsedDateOrDateTime = dayjs(value, formatting);
 
@@ -107,7 +107,7 @@ export const serializeDateOrDateTimeValue = (
     return null;
   }
 
-  return col.uidt === UITypes.Date
+  return params.col.uidt === UITypes.Date
     ? parsedDateOrDateTime.format('YYYY-MM-DD')
     : parsedDateOrDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ');
 };

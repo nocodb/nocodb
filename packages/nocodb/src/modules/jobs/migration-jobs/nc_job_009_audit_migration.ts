@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AuditOperationTypes } from 'nocodb-sdk';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
+import { DriverClient } from '~/utils/nc-config';
 
 @Injectable()
 export class AuditMigration {
@@ -13,7 +14,10 @@ export class AuditMigration {
       this.logger.log('Starting audit migration job');
 
       const ncMeta = Noco.ncMeta;
-      const batchSize = 1000;
+      // Use smaller batch size for SQLite due to "too many terms in compound SELECT" issue
+      // ref: https://www.sqlite.org/limits.html#max_compound_select
+      const batchSize =
+        ncMeta.knex.clientType() === DriverClient.SQLITE ? 100 : 1000;
       const fallbackTimestamp = new Date('2020-01-01T00:00:00.000Z').getTime();
 
       const haveColumn = await ncMeta.knexConnection.schema.hasColumn(

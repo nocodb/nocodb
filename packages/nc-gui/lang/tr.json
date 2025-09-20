@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() fonksiyonunun ikinci parametresi \"pazar\", \"pazartesi\", \"salı\", \"çarşamba\", \"perşembe\", \"cuma\" veya \"cumartesi\" olmalıdır",
       "firstParamDateAddHaveDate": "DATEADD() fonksiyonunun ilk parametresi tarih değeri içermelidir",
       "secondParamDateAddHaveNumber": "DATEADD() fonksiyonunun ikinci parametresi sayısal değer içermelidir",
-      "thirdParamDateAddHaveDate": "DATEADD() fonksiyonunun üçüncü parametresi \"gün\", \"hafta\", \"ay\" veya \"yıl\" değeri içermelidir",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() fonksiyonunun ilk parametresi tarih değeri içermelidir",
       "secondParamDateDiffHaveDate": "DATEDIFF() fonksiyonunun ikinci parametresi tarih değeri içermelidir",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() fonksiyonunun üçüncü parametresi \"milisaniye\", \"ms\", \"saniye\", \"s\", \"dakika\", \"m\", \"saat\", \"h\", \"gün\", \"d\", \"hafta\", \"w\", \"ay\", \"M\", \"çeyrek\", \"Q\", \"yıl\" veya \"y\" değerini içermelidir",

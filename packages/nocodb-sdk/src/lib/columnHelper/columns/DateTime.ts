@@ -33,7 +33,7 @@ export class DateTimeHelper extends AbstractColumnHelper {
   ): string | null {
     if (params.serializeSearchQuery) return null;
 
-    value = serializeDateOrDateTimeValue(value, params.col);
+    value = serializeDateOrDateTimeValue(value, params);
 
     if (value === null) {
       if (params.isMultipleCellPaste) {

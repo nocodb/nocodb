@@ -26,7 +26,7 @@ export class DateHelper extends AbstractColumnHelper {
     params: SerializerOrParserFnProps['params']
   ): string | null {
     if (params.serializeSearchQuery) return null;
-    value = serializeDateOrDateTimeValue(value, params.col);
+    value = serializeDateOrDateTimeValue(value, params);
 
     if (value === null) {
       if (params.isMultipleCellPaste) {

@@ -22,7 +22,7 @@ export class CurrencyHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): number | null {
-    value = serializeCurrencyValue(value, params.col);
+    value = serializeCurrencyValue(value, params);
 
     if (value === null) {
       if (params.isMultipleCellPaste || params.serializeSearchQuery) {

@@ -39,6 +39,7 @@ import {
   YearHelper,
 } from './columns';
 import { SingleSelectHelper } from './columns/SingleSelect';
+import { getClipboardConfigForColumn } from './utils/clipboard-config';
 
 export class ColumnHelperClass {
   defautlHelper = 'defautlHelper';
@@ -176,6 +177,15 @@ export class ColumnHelperClass {
       return columnInstance.populateFillHandle(params);
     }
     return undefined;
+  }
+
+  getClipboardConfig(params: SerializerOrParserFnProps['params']) {
+    const columnInstance = this.getColumn(params);
+    if (columnInstance) {
+      return columnInstance.getClipboardConfig(params);
+    }
+
+    return getClipboardConfigForColumn({ col: params.col });
   }
 }
 

@@ -34,8 +34,17 @@ export const serializeStringValue = (value: any) => {
 
 export const serializeDecimalValue = (
   value: string | null | number,
-  callback?: (val: any) => any
+  callback?: (val: any) => any,
+  params?: SerializerOrParserFnProps['params']
 ) => {
+  // If we have clipboard data, use it
+  if (
+    params?.clipboardItem?.dbCellValue &&
+    ncIsNumber(params.clipboardItem.dbCellValue)
+  ) {
+    return params.clipboardItem.dbCellValue;
+  }
+
   if (ncIsNumber(value)) {
     return Number(value);
   }
@@ -114,9 +123,20 @@ export const serializeJsonValue = (value: any) => {
   }
 };
 
-export const serializeCurrencyValue = (value: any, col: ColumnType) => {
+export const serializeCurrencyValue = (
+  value: any,
+  params: SerializerOrParserFnProps['params']
+) => {
+  // If we have clipboard data, use it
+  if (
+    params?.clipboardItem?.dbCellValue &&
+    ncIsNumber(params.clipboardItem.dbCellValue)
+  ) {
+    return params.clipboardItem.dbCellValue;
+  }
+
   return serializeDecimalValue(value, (value) => {
-    const columnMeta = parseProp(col.meta);
+    const columnMeta = parseProp(params.col.meta);
     // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
     const formatter = new Intl.NumberFormat(
       columnMeta?.currency_locale || 'en-US'

@@ -67,7 +67,10 @@ export const removeUndefinedFromObj = <T>(obj: T, deep = true): T => {
         return true;
       });
 
-    return Object.fromEntries(cleanedEntries) as T;
+    return Object.keys(cleanedEntries).reduce((obj, key) => {
+      (obj as any)[key] = (cleanedEntries as any)[key];
+      return obj;
+    }, {} as T);
   }
 
   return obj;

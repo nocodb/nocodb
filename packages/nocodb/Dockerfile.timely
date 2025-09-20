@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.5
+# syntax=docker/dockerfile:1.18
 # Use Buildx cross-compilation
 
 ####################
@@ -25,7 +25,7 @@ RUN git clone https://github.com/benbjohnson/litestream.git litestream \
 ################
 # NocoDB Builder
 ################
-FROM --platform=$BUILDPLATFORM node:22-slim AS builder
+FROM --platform=$BUILDPLATFORM node:22.19.0-slim AS builder
 WORKDIR /usr/src/app
 
 # Install node-gyp dependencies and other build tools
@@ -60,7 +60,7 @@ RUN pnpm install --prod --shamefully-hoist \
 #############################
 # Binary Dependencies Builder
 #############################
-FROM --platform=$TARGETPLATFORM node:22-slim AS bin-builder
+FROM --platform=$TARGETPLATFORM node:22.19.0-slim AS bin-builder
 WORKDIR /usr/src/app
 
 # Install node-gyp dependencies and other build tools
@@ -84,7 +84,7 @@ RUN SQLITE3_VERSION=$(jq -r '.dependencies["sqlite3"]' /usr/src/app/package-copy
 ########
 # Runner
 ########
-FROM --platform=$TARGETPLATFORM node:22-slim
+FROM --platform=$TARGETPLATFORM node:22.19.0-slim
 WORKDIR /usr/src/app
 
 ENV LITESTREAM_S3_SKIP_VERIFY=false \

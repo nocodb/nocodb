@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "הפרמטר השני של WEEKDAY() צריך להיות \"יום ראשון\", \"יום שני\", \"יום שלישי\", \"יום רביעי\", \"יום חמישי\", \"יום שישי\" או \"שבת\"",
       "firstParamDateAddHaveDate": "הפרמטר הראשון של DATEADD() צריך להיות בעל ערך תאריך",
       "secondParamDateAddHaveNumber": "הפרמטר השני של DATEADD() צריך להיות בעל ערך מספרי",
-      "thirdParamDateAddHaveDate": "הפרמטר השלישי של DATEADD() צריך להיות \"יום\", \"שבוע\", \"חודש\" או \"שנה\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "הפרמטר הראשון של DATEDIFF() צריך להיות בעל ערך תאריך",
       "secondParamDateDiffHaveDate": "הפרמטר השני של DATEDIFF() צריך להיות בעל ערך תאריך",
       "thirdParamDateDiffHaveDate": "הפרמטר השלישי של DATETIME_DIFF() צריך להיות \"מילישניות\", \"מילישני\", \"שניות\", \"ש\", \"דקות\", \"ד\", \"שעות\", \"ש\", \"ימים\", \"י\", \"שבועות\", \"ש\", \"חודשים\", \"ח\", \"רבעונים\", \"ר\", \"שנים\" או \"שנה\"",

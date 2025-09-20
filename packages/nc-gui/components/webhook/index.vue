@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
-import { type HookReqType, type HookTestReqType, type HookType, PlanLimitTypes, hasInputCalls } from 'nocodb-sdk'
+import { type HookReqType, type HookTestReqType, type HookType, PlanLimitTypes, hasInputCalls, removeUndefinedFromObj } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'

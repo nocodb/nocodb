@@ -68,14 +68,20 @@ export const formulas: Record<string, FormulaMeta> = {
         }
         if (parsedTree.arguments[2].type === JSEPNode.LITERAL) {
           if (
-            !['day', 'week', 'month', 'year'].includes(
-              parsedTree.arguments[2].value
-            )
+            ![
+              'day',
+              'week',
+              'month',
+              'year',
+              'hour',
+              'minute',
+              'second',
+            ].includes(parsedTree.arguments[2].value)
           ) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
               { key: 'msg.formula.thirdParamDateAddHaveDate' },
-              "Third parameter of DATEADD should be one of 'day', 'week', 'month', 'year'"
+              "Third parameter of DATEADD should be one of 'day', 'week', 'month', 'year', 'hour', 'minute', 'second'"
             );
           }
         }
@@ -83,7 +89,7 @@ export const formulas: Record<string, FormulaMeta> = {
     },
     description: 'Adds "count" units to Datetime.',
     syntax:
-      'DATEADD(date | datetime, count, ["day" | "week" | "month" | "year"])',
+      'DATEADD(date | datetime, count, ["day" | "week" | "month" | "year" | "hour" | "minute" | "second"])',
     examples: [
       'DATEADD({column1}, 2, "day")',
       'DATEADD({column1}, -2, "day")',

@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Den andra parametern i WEEKDAY() bör vara antingen \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" eller \"saturday\"",
       "firstParamDateAddHaveDate": "Den första parametern i DATEADD() bör ha ett datumvärde",
       "secondParamDateAddHaveNumber": "Den andra parametern i DATEADD() bör ha ett numeriskt värde",
-      "thirdParamDateAddHaveDate": "Den tredje parametern i DATEADD() bör vara antingen \"day\", \"week\", \"month\" eller \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Den första parametern i DATEDIFF() bör ha ett datumvärde",
       "secondParamDateDiffHaveDate": "Den andra parametern i DATEDIFF() bör ha ett datumvärde",
       "thirdParamDateDiffHaveDate": "Den tredje parametern i DATETIME_DIFF() bör vara antingen \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", eller \"y\"",

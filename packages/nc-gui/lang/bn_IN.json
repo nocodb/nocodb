@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() ফাংশনের দ্বিতীয় প্যারামিটারটি \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" অথবা \"saturday\" মান হতে হবে",
       "firstParamDateAddHaveDate": "DATEADD() ফাংশনের প্রথম প্যারামিটারটি তারিখের মান হতে হবে",
       "secondParamDateAddHaveNumber": "DATEADD() ফাংশনের দ্বিতীয় প্যারামিটারটি সংখ্যাগত মান হতে হবে",
-      "thirdParamDateAddHaveDate": "DATEADD() ফাংশনের তৃতীয় প্যারামিটারটি \"day\", \"week\", \"month\" অথবা \"year\" মান হতে হবে",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() ফাংশনের প্রথম প্যারামিটারটি তারিখের মান হতে হবে",
       "secondParamDateDiffHaveDate": "DATEDIFF() ফাংশনের দ্বিতীয় প্যারামিটারটি তারিখের মান হতে হবে",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() এর তৃতীয় প্যারামিটারের মান হওয়া উচিত হয় \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", অথবা \"y\"",

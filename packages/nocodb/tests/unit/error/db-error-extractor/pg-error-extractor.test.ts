@@ -47,7 +47,7 @@ function pgErrorExtractorTests() {
       return;
     }
     const knex = baseModelSql.dbDriver;
-    const columnTitle = (await _tables.table1.getColumns()).find(
+    const columnTitle = (await _tables.table1.getColumns(_ctx)).find(
       (col) => col.title === 'Title',
     );
     try {
@@ -72,7 +72,7 @@ function pgErrorExtractorTests() {
       return;
     }
     const knex = baseModelSql.dbDriver;
-    const columnTitle = (await _tables.table1.getColumns()).find(
+    const columnTitle = (await _tables.table1.getColumns(_ctx)).find(
       (col) => col.title === 'Title',
     );
     try {

@@ -125,7 +125,10 @@ export default class Base implements BaseType {
     return this.getWithInfo(context, baseId, true, ncMeta).then(
       async (base) => {
         await NocoCache.appendToList(
-          context,
+          {
+            workspace_id: base.fk_workspace_id,
+            base_id: null,
+          },
           CacheScope.PROJECT,
           [],
           `${CacheScope.PROJECT}:${baseId}`,
@@ -217,7 +220,7 @@ export default class Base implements BaseType {
     let baseData =
       baseId &&
       (await NocoCache.get(
-        context,
+        { workspace_id: context.workspace_id, base_id: null },
         `${CacheScope.PROJECT}:${baseId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -234,7 +237,7 @@ export default class Base implements BaseType {
       if (baseData) {
         baseData.meta = parseMetaProp(baseData);
         await NocoCache.set(
-          context,
+          { workspace_id: baseData.fk_workspace_id, base_id: null },
           `${CacheScope.PROJECT}:${baseId}`,
           baseData,
         );
@@ -276,7 +279,7 @@ export default class Base implements BaseType {
     let baseData =
       baseId &&
       (await NocoCache.get(
-        context,
+        { workspace_id: context.workspace_id, base_id: null },
         `${CacheScope.PROJECT}:${baseId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -294,14 +297,20 @@ export default class Base implements BaseType {
       if (baseData) {
         baseData.meta = parseMetaProp(baseData);
         await NocoCache.set(
-          context,
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
           `${CacheScope.PROJECT}:${baseId}`,
           baseData,
         );
       }
       if (baseData?.uuid) {
         await NocoCache.set(
-          context,
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
           `${CacheScope.PROJECT_ALIAS}:${baseData.uuid}`,
           baseId,
         );
@@ -335,19 +344,28 @@ export default class Base implements BaseType {
       // delete <scope>:<title>
       // delete <scope>:<uuid>
       // delete <scope>:ref:<titleOfId>
-      await NocoCache.del(context, [
-        `${CacheScope.PROJECT_ALIAS}:${base.title}`,
-        `${CacheScope.PROJECT_ALIAS}:${base.uuid}`,
-        `${CacheScope.PROJECT_ALIAS}:ref:${base.title}`,
-        `${CacheScope.PROJECT_ALIAS}:ref:${base.id}`,
-      ]);
+      await NocoCache.del(
+        {
+          workspace_id: base.fk_workspace_id,
+          base_id: null,
+        },
+        [
+          `${CacheScope.PROJECT_ALIAS}:${base.title}`,
+          `${CacheScope.PROJECT_ALIAS}:${base.uuid}`,
+          `${CacheScope.PROJECT_ALIAS}:ref:${base.title}`,
+          `${CacheScope.PROJECT_ALIAS}:ref:${base.id}`,
+        ],
+      );
     }
 
     await NocoCache.del('root', CacheScope.INSTANCE_META);
 
     // remove item in cache list
     await NocoCache.deepDel(
-      context,
+      {
+        workspace_id: context.workspace_id,
+        base_id: null,
+      },
       `${CacheScope.PROJECT}:${baseId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -409,26 +427,57 @@ export default class Base implements BaseType {
 
     // get existing cache
     const key = `${CacheScope.PROJECT}:${baseId}`;
-    let o = await NocoCache.get(context, key, CacheGetType.TYPE_OBJECT);
+    let o = await NocoCache.get(
+      {
+        workspace_id: context.workspace_id,
+        base_id: null,
+      },
+      key,
+      CacheGetType.TYPE_OBJECT,
+    );
     if (o) {
       // update data
       // new uuid is generated
       if (o.uuid && updateObj.uuid && o.uuid !== updateObj.uuid) {
-        await NocoCache.del(context, `${CacheScope.PROJECT_ALIAS}:${o.uuid}`);
+        await NocoCache.del(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:${o.uuid}`,
+        );
         await NocoCache.set(
-          context,
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
           `${CacheScope.PROJECT_ALIAS}:${updateObj.uuid}`,
           baseId,
         );
       }
       // disable shared base
       if (o.uuid && updateObj.uuid === null) {
-        await NocoCache.del(context, `${CacheScope.PROJECT_ALIAS}:${o.uuid}`);
+        await NocoCache.del(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:${o.uuid}`,
+        );
       }
       if (o.title && updateObj.title && o.title !== updateObj.title) {
-        await NocoCache.del(context, `${CacheScope.PROJECT_ALIAS}:${o.title}`);
+        await NocoCache.del(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:${o.title}`,
+        );
         await NocoCache.set(
-          context,
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
           `${CacheScope.PROJECT_ALIAS}:${updateObj.title}`,
           baseId,
         );
@@ -438,7 +487,14 @@ export default class Base implements BaseType {
       await NocoCache.del('root', CacheScope.INSTANCE_META);
 
       // set cache
-      await NocoCache.set(context, key, o);
+      await NocoCache.set(
+        {
+          workspace_id: context.workspace_id,
+          base_id: null,
+        },
+        key,
+        o,
+      );
     }
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
@@ -507,16 +563,25 @@ export default class Base implements BaseType {
       // delete <scope>:<uuid>
       // delete <scope>:<title>
       // delete <scope>:ref:<titleOfId>
-      await NocoCache.del(context, [
-        `${CacheScope.PROJECT_ALIAS}:${base.uuid}`,
-        `${CacheScope.PROJECT_ALIAS}:${base.title}`,
-        `${CacheScope.PROJECT_ALIAS}:ref:${base.title}`,
-        `${CacheScope.PROJECT_ALIAS}:ref:${base.id}`,
-      ]);
+      await NocoCache.del(
+        {
+          workspace_id: base.fk_workspace_id,
+          base_id: null,
+        },
+        [
+          `${CacheScope.PROJECT_ALIAS}:${base.uuid}`,
+          `${CacheScope.PROJECT_ALIAS}:${base.title}`,
+          `${CacheScope.PROJECT_ALIAS}:ref:${base.title}`,
+          `${CacheScope.PROJECT_ALIAS}:ref:${base.id}`,
+        ],
+      );
     }
 
     await NocoCache.deepDel(
-      context,
+      {
+        workspace_id: context.workspace_id,
+        base_id: null,
+      },
       `${CacheScope.PROJECT}:${baseId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -558,7 +623,10 @@ export default class Base implements BaseType {
     const baseId =
       uuid &&
       (await NocoCache.get(
-        context,
+        {
+          workspace_id: context.workspace_id,
+          base_id: null,
+        },
         `${CacheScope.PROJECT_ALIAS}:${uuid}`,
         CacheGetType.TYPE_STRING,
       ));
@@ -575,7 +643,10 @@ export default class Base implements BaseType {
       if (baseData) {
         baseData.meta = parseMetaProp(baseData);
         await NocoCache.set(
-          context,
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
           `${CacheScope.PROJECT_ALIAS}:${uuid}`,
           baseData?.id,
         );
@@ -607,7 +678,10 @@ export default class Base implements BaseType {
     const baseId =
       title &&
       (await NocoCache.get(
-        context,
+        {
+          workspace_id: context.workspace_id,
+          base_id: null,
+        },
         `${CacheScope.PROJECT_ALIAS}:${title}`,
         CacheGetType.TYPE_STRING,
       ));
@@ -625,7 +699,10 @@ export default class Base implements BaseType {
       if (baseData) {
         baseData.meta = parseMetaProp(baseData);
         await NocoCache.set(
-          context,
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
           `${CacheScope.PROJECT_ALIAS}:${title}`,
           baseData?.id,
         );
@@ -644,7 +721,10 @@ export default class Base implements BaseType {
     const baseId =
       titleOrId &&
       (await NocoCache.get(
-        context,
+        {
+          workspace_id: context.workspace_id,
+          base_id: null,
+        },
         `${CacheScope.PROJECT_ALIAS}:ref:${titleOrId}`,
         CacheGetType.TYPE_STRING,
       ));
@@ -679,7 +759,10 @@ export default class Base implements BaseType {
         baseData.meta = parseMetaProp(baseData);
 
         await NocoCache.set(
-          context,
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
           `${CacheScope.PROJECT_ALIAS}:ref:${titleOrId}`,
           baseData?.id,
         );

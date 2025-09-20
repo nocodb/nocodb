@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "De tweede parameter van WEEKDAY() moet de waarde \"zondag\", \"maandag\", \"dinsdag\", \"woensdag\", \"donderdag\", \"vrijdag\" of \"zaterdag\" hebben",
       "firstParamDateAddHaveDate": "De eerste parameter van DATEADD() moet een datumwaarde hebben",
       "secondParamDateAddHaveNumber": "De tweede parameter van DATEADD() moet een numerieke waarde hebben",
-      "thirdParamDateAddHaveDate": "De derde parameter van DATEADD() moet de waarde \"dag\", \"week\", \"maand\" of \"jaar\" hebben",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "De eerste parameter van DATEDIFF() moet een datumwaarde hebben",
       "secondParamDateDiffHaveDate": "De tweede parameter van DATEDIFF() moet een datumwaarde hebben",
       "thirdParamDateDiffHaveDate": "De derde parameter van DATETIME_DIFF() moet de waarde \"milliseconden\", \"ms\", \"seconden\", \"s\", \"minuten\", \"m\", \"uren\", \"h\", \"dagen\", \"d\", \"weken\", \"w\", \"maanden\", \"m\", \"kwartalen\", \"q\", \"jaren\" of \"j\" hebben",

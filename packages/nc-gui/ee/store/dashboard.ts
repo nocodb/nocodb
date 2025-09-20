@@ -53,7 +53,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   })
 
   const activeDashboardReadableUrlSlug = computed(() => {
-    if (!activeDashboard.value) return ''
+    if (!activeDashboard.value || sharedDashboardState.activeProjectId) return ''
 
     return toReadableUrlSlug([activeDashboard.value.title])
   })

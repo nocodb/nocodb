@@ -65,6 +65,7 @@ export default class BaseUser {
 
     for (const fk of uniqueFks) {
       await NocoCache.deepDel(
+        context,
         `${CacheScope.BASE_USER}:${fk}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
@@ -72,11 +73,13 @@ export default class BaseUser {
 
     for (const d of bulkData) {
       await NocoCache.set(
+        context,
         `${CacheScope.BASE_USER}:${d.base_id}:${d.fk_user_id}`,
         d,
       );
 
       await NocoCache.appendToList(
+        context,
         CacheScope.BASE_USER,
         [d.base_id],
         `${CacheScope.BASE_USER}:${d.base_id}:${d.fk_user_id}`,
@@ -114,6 +117,7 @@ export default class BaseUser {
     const res = await this.get(context, base_id, fk_user_id, ncMeta);
 
     await NocoCache.appendToList(
+      context,
       CacheScope.BASE_USER,
       [base_id],
       `${CacheScope.BASE_USER}:${base_id}:${fk_user_id}`,
@@ -139,6 +143,7 @@ export default class BaseUser {
       baseId &&
       userId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.BASE_USER}:${baseId}:${userId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -177,6 +182,7 @@ export default class BaseUser {
         baseUser.meta = parseMetaProp(baseUser);
 
         await NocoCache.set(
+          context,
           `${CacheScope.BASE_USER}:${baseId}:${userId}`,
           baseUser,
         );
@@ -213,7 +219,9 @@ export default class BaseUser {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<(Partial<User> & BaseUser & { deleted?: boolean })[]> {
-    const cachedList = await NocoCache.getList(CacheScope.BASE_USER, [base_id]);
+    const cachedList = await NocoCache.getList(context, CacheScope.BASE_USER, [
+      base_id,
+    ]);
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;
 
@@ -259,10 +267,13 @@ export default class BaseUser {
       });
 
       if (!strict_in_record) {
-        await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers, [
-          'base_id',
-          'id',
-        ]);
+        await NocoCache.setList(
+          context,
+          CacheScope.BASE_USER,
+          [base_id],
+          baseUsers,
+          ['base_id', 'id'],
+        );
       }
     }
 
@@ -337,9 +348,13 @@ export default class BaseUser {
       },
     );
 
-    await NocoCache.update(`${CacheScope.BASE_USER}:${baseId}:${userId}`, {
-      roles,
-    });
+    await NocoCache.update(
+      context,
+      `${CacheScope.BASE_USER}:${baseId}:${userId}`,
+      {
+        roles,
+      },
+    );
 
     cleanCommandPaletteCacheForUser(userId).catch(() => {
       logger.error('Error cleaning command palette cache');
@@ -370,6 +385,7 @@ export default class BaseUser {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.BASE_USER}:${baseId}:${userId}`,
       updateObj,
     );
@@ -396,6 +412,7 @@ export default class BaseUser {
 
     // delete list cache to refresh list
     await NocoCache.deepDel(
+      context,
       `${CacheScope.BASE_USER}:${baseId}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );

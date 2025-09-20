@@ -52,7 +52,11 @@ export default class SyncConfig {
     ncMeta = Noco.ncMeta,
   ) {
     const key = `${CacheScope.SYNC_CONFIGS}:${id}`;
-    let syncConfig = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let syncConfig = await NocoCache.get(
+      context,
+      key,
+      CacheGetType.TYPE_OBJECT,
+    );
 
     if (!syncConfig) {
       syncConfig = await ncMeta.metaGet2(
@@ -64,7 +68,7 @@ export default class SyncConfig {
 
       if (!syncConfig) return null;
 
-      await NocoCache.set(key, syncConfig);
+      await NocoCache.set(context, key, syncConfig);
     }
 
     if (!syncConfig.fk_parent_sync_config_id) {
@@ -133,6 +137,7 @@ export default class SyncConfig {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.SYNC_CONFIGS}:${id}`,
       prepareForResponse(updateObj, 'config'),
     );
@@ -179,7 +184,7 @@ export default class SyncConfig {
     );
 
     const key = `${CacheScope.SYNC_CONFIGS}:${id}`;
-    await NocoCache.del(key);
+    await NocoCache.del(context, key);
 
     return true;
   }

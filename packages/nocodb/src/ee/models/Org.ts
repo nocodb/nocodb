@@ -116,7 +116,7 @@ export default class Org implements OrganizationType {
 
   public static async get(orgId: string, ncMeta = Noco.ncMeta) {
     const key = `${CacheScope.ORG}:${orgId}`;
-    let org = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let org = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
     if (!org) {
       org = await ncMeta.metaGet2(
         RootScopes.ORG,
@@ -130,7 +130,7 @@ export default class Org implements OrganizationType {
       if (org) {
         org.meta = deserializeJSON(org.meta);
         org.config = deserializeJSON(org.config);
-        await NocoCache.set(key, org);
+        await NocoCache.set('root', key, org);
       }
       if (!org) return null;
     }
@@ -198,6 +198,7 @@ export default class Org implements OrganizationType {
     );
 
     await NocoCache.update(
+      'root',
       `${CacheScope.ORG}:${orgId}`,
       prepareForResponse(updateObj),
     );
@@ -216,7 +217,7 @@ export default class Org implements OrganizationType {
 
     const key = `${CacheScope.ORG}:${orgId}`;
 
-    await NocoCache.del(key);
+    await NocoCache.del('root', key);
 
     return true;
   }

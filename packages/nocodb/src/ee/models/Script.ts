@@ -45,6 +45,7 @@ export default class Script extends ScriptCE implements ScriptType {
     ncMeta = Noco.ncMeta,
   ) {
     let script = await NocoCache.get(
+      context,
       `${CacheScope.SCRIPTS}:${scriptId}`,
       CacheGetType.TYPE_OBJECT,
     );
@@ -59,7 +60,11 @@ export default class Script extends ScriptCE implements ScriptType {
 
       if (script) {
         script = prepareForResponse(script, ['meta', 'config']);
-        await NocoCache.set(`${CacheScope.SCRIPTS}:${scriptId}`, script);
+        await NocoCache.set(
+          context,
+          `${CacheScope.SCRIPTS}:${scriptId}`,
+          script,
+        );
       }
     }
 
@@ -71,7 +76,9 @@ export default class Script extends ScriptCE implements ScriptType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.SCRIPTS, [baseId]);
+    const cachedList = await NocoCache.getList(context, CacheScope.SCRIPTS, [
+      baseId,
+    ]);
 
     // eslint-disable-next-line prefer-const
     let { list: scriptsList, isNoneList } = cachedList;
@@ -95,7 +102,12 @@ export default class Script extends ScriptCE implements ScriptType {
         prepareForResponse(script, ['meta', 'config']),
       );
 
-      await NocoCache.setList(CacheScope.SCRIPTS, [baseId], scriptsList);
+      await NocoCache.setList(
+        context,
+        CacheScope.SCRIPTS,
+        [baseId],
+        scriptsList,
+      );
     }
 
     scriptsList.sort((a, b) => a.order - b.order);
@@ -112,11 +124,13 @@ export default class Script extends ScriptCE implements ScriptType {
     );
 
     await NocoCache.deepDel(
+      context,
       `${CacheScope.SCRIPTS}:${scriptId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
     await NocoCache.incrHashField(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE,
       -1,
@@ -153,6 +167,7 @@ export default class Script extends ScriptCE implements ScriptType {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.SCRIPTS}:${scriptId}`,
       prepareForResponse(updateObj, ['meta', 'config']),
     );
@@ -197,6 +212,7 @@ export default class Script extends ScriptCE implements ScriptType {
     );
 
     await NocoCache.incrHashField(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE,
       1,
@@ -208,6 +224,7 @@ export default class Script extends ScriptCE implements ScriptType {
 
     return this.get(context, id, ncMeta).then(async (res) => {
       await NocoCache.appendToList(
+        context,
         CacheScope.SCRIPTS,
         [context.base_id],
         `${CacheScope.SCRIPTS}:${id}`,

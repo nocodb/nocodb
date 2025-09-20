@@ -62,7 +62,11 @@ export default class Subscription {
 
   public static async get(subscriptionId: string, ncMeta = Noco.ncMeta) {
     const key = `${CacheScope.SUBSCRIPTIONS}:${subscriptionId}`;
-    let subscription = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let subscription = await NocoCache.get(
+      'root',
+      key,
+      CacheGetType.TYPE_OBJECT,
+    );
     if (!subscription) {
       subscription = await ncMeta.metaGet2(
         RootScopes.ROOT,
@@ -77,12 +81,14 @@ export default class Subscription {
 
       subscription = prepareForResponse(subscription);
 
-      await NocoCache.set(key, subscription);
+      await NocoCache.set('root', key, subscription);
       await NocoCache.set(
+        'root',
         `${CacheScope.SUBSCRIPTIONS_ALIAS}:${subscription.stripe_subscription_id}`,
         key,
       );
       await NocoCache.set(
+        'root',
         `${CacheScope.SUBSCRIPTIONS_ALIAS}:${
           // subscription.fk_org_id || subscription.fk_workspace_id
           subscription.fk_org_id || subscription.fk_workspace_id
@@ -173,6 +179,7 @@ export default class Subscription {
     );
 
     await NocoCache.update(
+      'root',
       `${CacheScope.SUBSCRIPTIONS}:${subscriptionId}`,
       updateObj,
     );
@@ -193,11 +200,13 @@ export default class Subscription {
     );
 
     const key = `${CacheScope.SUBSCRIPTIONS}:${subscriptionId}`;
-    await NocoCache.del(key);
+    await NocoCache.del('root', key);
     await NocoCache.del(
+      'root',
       `${CacheScope.SUBSCRIPTIONS_ALIAS}:${subscription.stripe_subscription_id}`,
     );
     await NocoCache.del(
+      'root',
       `${CacheScope.SUBSCRIPTIONS_ALIAS}:${
         subscription.fk_org_id || subscription.fk_workspace_id
       }`,
@@ -436,9 +445,17 @@ export default class Subscription {
     ncMeta = Noco.ncMeta,
   ) {
     const aliasKey = `${CacheScope.SUBSCRIPTIONS_ALIAS}:${workspaceOrOrgId}`;
-    const cacheKey = await NocoCache.get(aliasKey, CacheGetType.TYPE_STRING);
+    const cacheKey = await NocoCache.get(
+      'root',
+      aliasKey,
+      CacheGetType.TYPE_STRING,
+    );
 
-    let subscription = await NocoCache.get(cacheKey, CacheGetType.TYPE_OBJECT);
+    let subscription = await NocoCache.get(
+      'root',
+      cacheKey,
+      CacheGetType.TYPE_OBJECT,
+    );
     if (!subscription) {
       subscription = await ncMeta.metaGet2(
         RootScopes.ROOT,
@@ -492,8 +509,16 @@ export default class Subscription {
     ncMeta = Noco.ncMeta,
   ) {
     const aliasKey = `${CacheScope.SUBSCRIPTIONS_ALIAS}:${stripeSubscriptionId}`;
-    const cacheKey = await NocoCache.get(aliasKey, CacheGetType.TYPE_STRING);
-    let subscription = await NocoCache.get(cacheKey, CacheGetType.TYPE_OBJECT);
+    const cacheKey = await NocoCache.get(
+      'root',
+      aliasKey,
+      CacheGetType.TYPE_STRING,
+    );
+    let subscription = await NocoCache.get(
+      'root',
+      cacheKey,
+      CacheGetType.TYPE_OBJECT,
+    );
     if (!subscription) {
       subscription = await ncMeta.metaGet2(
         RootScopes.ROOT,

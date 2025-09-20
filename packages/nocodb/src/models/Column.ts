@@ -247,6 +247,7 @@ export default class Column<T = any> implements ColumnType {
     const col = await this.get(context, { colId: row.id }, ncMeta);
 
     await NocoCache.appendToList(
+      context,
       CacheScope.COLUMN,
       [column.fk_model_id],
       `${CacheScope.COLUMN}:${row.id}`,
@@ -642,7 +643,7 @@ export default class Column<T = any> implements ColumnType {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Column[]> {
-    const cachedList = await NocoCache.getList(CacheScope.COLUMN, [
+    const cachedList = await NocoCache.getList(context, CacheScope.COLUMN, [
       fk_model_id,
     ]);
     let { list: columnsList } = cachedList;
@@ -676,7 +677,12 @@ export default class Column<T = any> implements ColumnType {
         column.meta = parseMetaProp(column);
       });
 
-      await NocoCache.setList(CacheScope.COLUMN, [fk_model_id], columnsList);
+      await NocoCache.setList(
+        context,
+        CacheScope.COLUMN,
+        [fk_model_id],
+        columnsList,
+      );
     }
 
     columnsList.sort(
@@ -752,6 +758,7 @@ export default class Column<T = any> implements ColumnType {
     let colData =
       colId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.COLUMN}:${colId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -768,7 +775,7 @@ export default class Column<T = any> implements ColumnType {
         } catch {
           colData.meta = {};
         }
-        await NocoCache.set(`${CacheScope.COLUMN}:${colId}`, colData);
+        await NocoCache.set(context, `${CacheScope.COLUMN}:${colId}`, colData);
       }
     }
     if (colData) {
@@ -890,7 +897,11 @@ export default class Column<T = any> implements ColumnType {
 
     // get lookup columns and delete
     {
-      const cachedList = await NocoCache.getList(CacheScope.COL_LOOKUP, [id]);
+      const cachedList = await NocoCache.getList(
+        context,
+        CacheScope.COL_LOOKUP,
+        [id],
+      );
       let { list: lookups } = cachedList;
       const { isNoneList } = cachedList;
       if (!isNoneList && !lookups.length) {
@@ -912,7 +923,11 @@ export default class Column<T = any> implements ColumnType {
 
     // get rollup/links column and delete
     {
-      const cachedList = await NocoCache.getList(CacheScope.COL_ROLLUP, [id]);
+      const cachedList = await NocoCache.getList(
+        context,
+        CacheScope.COL_ROLLUP,
+        [id],
+      );
       let { list: rollups } = cachedList;
       const { isNoneList } = cachedList;
       if (!isNoneList && !rollups.length) {
@@ -1007,7 +1022,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     {
-      const cachedList = await NocoCache.getList(CacheScope.COLUMN, [
+      const cachedList = await NocoCache.getList(context, CacheScope.COLUMN, [
         col.fk_model_id,
       ]);
       let { list: buttonColumns } = cachedList;
@@ -1056,7 +1071,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     {
-      const cachedList = await NocoCache.getList(CacheScope.COLUMN, [
+      const cachedList = await NocoCache.getList(context, CacheScope.COLUMN, [
         col.fk_model_id,
       ]);
       let { list: aiColumns } = cachedList;
@@ -1100,7 +1115,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     {
-      const cachedList = await NocoCache.getList(CacheScope.COLUMN, [
+      const cachedList = await NocoCache.getList(context, CacheScope.COLUMN, [
         col.fk_model_id,
       ]);
       let { list: formulaColumns } = cachedList;
@@ -1148,7 +1163,11 @@ export default class Column<T = any> implements ColumnType {
     if (isLinksOrLTAR(col.uidt)) {
       {
         // get lookup columns using relation and delete
-        const cachedList = await NocoCache.getList(CacheScope.COL_LOOKUP, [id]);
+        const cachedList = await NocoCache.getList(
+          context,
+          CacheScope.COL_LOOKUP,
+          [id],
+        );
         let { list: lookups } = cachedList;
         const { isNoneList } = cachedList;
         if (!isNoneList && !lookups.length) {
@@ -1170,7 +1189,11 @@ export default class Column<T = any> implements ColumnType {
 
       {
         // get rollup columns using relation and delete
-        const cachedList = await NocoCache.getList(CacheScope.COL_ROLLUP, [id]);
+        const cachedList = await NocoCache.getList(
+          context,
+          CacheScope.COL_ROLLUP,
+          [id],
+        );
         let { list: rollups } = cachedList;
         const { isNoneList } = cachedList;
         if (!isNoneList && !rollups.length) {
@@ -1193,7 +1216,9 @@ export default class Column<T = any> implements ColumnType {
 
     // delete sorts
     {
-      const cachedList = await NocoCache.getList(CacheScope.SORT, [id]);
+      const cachedList = await NocoCache.getList(context, CacheScope.SORT, [
+        id,
+      ]);
       let { list: sorts } = cachedList;
       const { isNoneList } = cachedList;
       if (!isNoneList && !sorts.length) {
@@ -1214,10 +1239,11 @@ export default class Column<T = any> implements ColumnType {
     }
     // delete filters
     {
-      const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
-        FilterCacheScope.COLUMN,
-        id,
-      ]);
+      const cachedList = await NocoCache.getList(
+        context,
+        CacheScope.FILTER_EXP,
+        [FilterCacheScope.COLUMN, id],
+      );
       let { list: filters } = cachedList;
       const { isNoneList } = cachedList;
       if (!isNoneList && !filters.length) {
@@ -1302,6 +1328,7 @@ export default class Column<T = any> implements ColumnType {
       );
       await afterRelatedColumnDelete?.(context, col.id);
       await NocoCache.deepDel(
+        context,
         `${cacheScopeName}:${col.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -1339,6 +1366,7 @@ export default class Column<T = any> implements ColumnType {
       });
       for (const viewColumn of viewColumns) {
         await NocoCache.deepDel(
+          context,
           `${cacheScope}:${viewColumn.id}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -1380,6 +1408,7 @@ export default class Column<T = any> implements ColumnType {
       col.id,
     );
     await NocoCache.deepDel(
+      context,
       `${CacheScope.COLUMN}:${col.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -1420,6 +1449,7 @@ export default class Column<T = any> implements ColumnType {
             },
           );
           await NocoCache.deepDel(
+            context,
             `${CacheScope.COL_LOOKUP}:${colId}`,
             CacheDelDirection.CHILD_TO_PARENT,
           );
@@ -1435,6 +1465,7 @@ export default class Column<T = any> implements ColumnType {
             },
           );
           await NocoCache.deepDel(
+            context,
             `${CacheScope.COL_ROLLUP}:${colId}`,
             CacheDelDirection.CHILD_TO_PARENT,
           );
@@ -1452,6 +1483,7 @@ export default class Column<T = any> implements ColumnType {
             },
           );
           await NocoCache.deepDel(
+            context,
             `${CacheScope.COL_RELATION}:${colId}`,
             CacheDelDirection.CHILD_TO_PARENT,
           );
@@ -1468,6 +1500,7 @@ export default class Column<T = any> implements ColumnType {
           );
 
           await NocoCache.deepDel(
+            context,
             `${CacheScope.COL_FORMULA}:${colId}`,
             CacheDelDirection.CHILD_TO_PARENT,
           );
@@ -1485,6 +1518,7 @@ export default class Column<T = any> implements ColumnType {
           );
 
           await NocoCache.deepDel(
+            context,
             `${CacheScope.COL_BUTTON}:${colId}`,
             CacheDelDirection.CHILD_TO_PARENT,
           );
@@ -1502,6 +1536,7 @@ export default class Column<T = any> implements ColumnType {
           );
 
           await NocoCache.deepDel(
+            context,
             `${CacheScope.COL_QRCODE}:${colId}`,
             CacheDelDirection.CHILD_TO_PARENT,
           );
@@ -1519,6 +1554,7 @@ export default class Column<T = any> implements ColumnType {
           );
 
           await NocoCache.deepDel(
+            context,
             `${CacheScope.COL_BARCODE}:${colId}`,
             CacheDelDirection.CHILD_TO_PARENT,
           );
@@ -1537,6 +1573,7 @@ export default class Column<T = any> implements ColumnType {
           );
 
           await NocoCache.deepDel(
+            context,
             `${CacheScope.COL_SELECT_OPTION}:${colId}:list`,
             CacheDelDirection.PARENT_TO_CHILD,
           );
@@ -1554,6 +1591,7 @@ export default class Column<T = any> implements ColumnType {
           );
 
           await NocoCache.deepDel(
+            context,
             `${CacheScope.COL_LONG_TEXT}:${colId}`,
             CacheDelDirection.CHILD_TO_PARENT,
           );
@@ -1660,6 +1698,7 @@ export default class Column<T = any> implements ColumnType {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.COLUMN}:${colId}`,
       prepareForResponse(updateObj),
     );
@@ -1869,7 +1908,7 @@ export default class Column<T = any> implements ColumnType {
       colId,
     );
 
-    await NocoCache.update(`${CacheScope.COLUMN}:${colId}`, {
+    await NocoCache.update(context, `${CacheScope.COLUMN}:${colId}`, {
       custom_index_name: customIndexName,
     });
   }
@@ -1937,10 +1976,14 @@ export default class Column<T = any> implements ColumnType {
     );
     // update the caches to reflect new columns
     await NocoCache.update(
+      context,
       `${CacheScope.COLUMN}:${formulaColumn.id}`,
       prepareForResponse(updateObj),
     );
-    await NocoCache.del(`${CacheScope.COLUMN}:${destinationColumn.id}`);
+    await NocoCache.del(
+      context,
+      `${CacheScope.COLUMN}:${destinationColumn.id}`,
+    );
   }
 
   static async updateAlias(
@@ -1960,7 +2003,7 @@ export default class Column<T = any> implements ColumnType {
       colId,
     );
 
-    await NocoCache.update(`${CacheScope.COLUMN}:${colId}`, { title });
+    await NocoCache.update(context, `${CacheScope.COLUMN}:${colId}`, { title });
 
     const column = await Column.get(context, { colId }, ncMeta);
 
@@ -2036,7 +2079,9 @@ export default class Column<T = any> implements ColumnType {
       colId,
     );
 
-    await NocoCache.update(`${CacheScope.COLUMN}:${colId}`, { system });
+    await NocoCache.update(context, `${CacheScope.COLUMN}:${colId}`, {
+      system,
+    });
   }
 
   static getMaxColumnNameLength(sqlClientType: string) {
@@ -2065,6 +2110,7 @@ export default class Column<T = any> implements ColumnType {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.COLUMN}:${colId}`,
       prepareForResponse({ meta }),
     );
@@ -2084,7 +2130,9 @@ export default class Column<T = any> implements ColumnType {
       colId,
     );
 
-    await NocoCache.update(`${CacheScope.COLUMN}:${colId}`, { validate });
+    await NocoCache.update(context, `${CacheScope.COLUMN}:${colId}`, {
+      validate,
+    });
   }
 
   static async updateTargetView(
@@ -2104,7 +2152,7 @@ export default class Column<T = any> implements ColumnType {
       },
     );
 
-    await NocoCache.update(`${CacheScope.COL_RELATION}:${colId}`, {
+    await NocoCache.update(context, `${CacheScope.COL_RELATION}:${colId}`, {
       fk_target_view_id,
     });
   }

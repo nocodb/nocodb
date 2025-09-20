@@ -71,6 +71,7 @@ export default class Hook implements HookType {
     let hook =
       hookId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.HOOK}:${hookId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -92,7 +93,7 @@ export default class Hook implements HookType {
           (field) => field.fk_column_id,
         );
       }
-      await NocoCache.set(`${CacheScope.HOOK}:${hookId}`, hook);
+      await NocoCache.set(context, `${CacheScope.HOOK}:${hookId}`, hook);
     }
     return hook && new Hook(hook);
   }
@@ -115,7 +116,7 @@ export default class Hook implements HookType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.HOOK, [
+    const cachedList = await NocoCache.getList(context, CacheScope.HOOK, [
       param.fk_model_id,
     ]);
     let { list: hooks } = cachedList;
@@ -156,7 +157,12 @@ export default class Hook implements HookType {
           }
         }
       }
-      await NocoCache.setList(CacheScope.HOOK, [param.fk_model_id], hooks);
+      await NocoCache.setList(
+        context,
+        CacheScope.HOOK,
+        [param.fk_model_id],
+        hooks,
+      );
     }
     // filter event & operation
     if (param.event) {
@@ -261,6 +267,7 @@ export default class Hook implements HookType {
     }
 
     await NocoCache.incrHashField(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
       1,
@@ -268,6 +275,7 @@ export default class Hook implements HookType {
 
     return this.get(context, id, ncMeta).then(async (hook) => {
       await NocoCache.appendToList(
+        'root',
         CacheScope.HOOK,
         [hook.fk_model_id],
         `${CacheScope.HOOK}:${id}`,
@@ -343,6 +351,7 @@ export default class Hook implements HookType {
     }
 
     await NocoCache.incrHashField(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
       1,
@@ -350,6 +359,7 @@ export default class Hook implements HookType {
 
     return this.get(context, id, ncMeta).then(async (hook) => {
       await NocoCache.appendToList(
+        context,
         CacheScope.HOOK,
         [hook.fk_model_id],
         `${CacheScope.HOOK}:${id}`,
@@ -442,7 +452,7 @@ export default class Hook implements HookType {
       updateObj.trigger_fields = hook.trigger_fields;
     }
 
-    await NocoCache.update(`${CacheScope.HOOK}:${hookId}`, updateObj);
+    await NocoCache.update(context, `${CacheScope.HOOK}:${hookId}`, updateObj);
 
     return this.get(context, hookId, ncMeta);
   }
@@ -459,6 +469,7 @@ export default class Hook implements HookType {
     );
     for (const filter of filterList) {
       await NocoCache.deepDel(
+        context,
         `${CacheScope.FILTER_EXP}:${filter.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -466,11 +477,13 @@ export default class Hook implements HookType {
     }
     // Delete Hook
     await NocoCache.deepDel(
+      context,
       `${CacheScope.HOOK}:${hookId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
     await NocoCache.incrHashField(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
       -1,

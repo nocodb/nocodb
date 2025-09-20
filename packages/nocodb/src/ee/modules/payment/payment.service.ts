@@ -244,6 +244,7 @@ export class PaymentService {
       await transaction.rollback();
 
       await NocoCache.del(
+        'root',
         `${
           workspaceOrOrg.entity === 'workspace'
             ? CacheScope.WORKSPACE
@@ -1796,6 +1797,7 @@ export class PaymentService {
 
     if (!req.user?.id) {
       const requestedAt = await NocoCache.get(
+        'root',
         `requestUpgrade:${workspaceOrOrgId}`,
         CacheGetType.TYPE_STRING,
       );
@@ -1809,6 +1811,7 @@ export class PaymentService {
         }
       } else {
         await NocoCache.set(
+          'root',
           `requestUpgrade:${workspaceOrOrgId}`,
           dayjs().toISOString(),
         );

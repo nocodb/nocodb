@@ -46,6 +46,7 @@ export class AuthController extends AuthControllerCE {
       await Promise.all([
         (async () => {
           const allowedUsers = await NocoCache.get(
+            'root',
             IS_UPGRADE_ALLOWED_CACHE_KEY,
             CacheGetType.TYPE_STRING,
           );
@@ -65,6 +66,7 @@ export class AuthController extends AuthControllerCE {
 
     // TODO: remove this temporary check : if user owner of any org, then add upgradeOrg to featureFlags
     const orgOwners = await NocoCache.get(
+      'root',
       `orgOwners`,
       CacheGetType.TYPE_STRING,
     );
@@ -75,6 +77,7 @@ export class AuthController extends AuthControllerCE {
         .where('roles', CloudOrgUserRoles.OWNER);
 
       await NocoCache.set(
+        'root',
         `orgOwners`,
         orgOwners.map((o) => o.fk_user_id).join(','),
       );
@@ -132,7 +135,7 @@ export class AuthController extends AuthControllerCE {
   @UseGuards(PublicApiLimiterGuard)
   async redirect(@Req() req: NcRequest, @Res() res: Response) {
     const key = `oidc:${req.query.state}`;
-    const state = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    const state = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
     if (!state) {
       NcError.forbidden('Unable to verify authorization request state.');
     }

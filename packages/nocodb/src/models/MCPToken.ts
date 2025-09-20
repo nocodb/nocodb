@@ -48,7 +48,7 @@ export default class MCPToken implements MCPTokenType {
     ncMeta = Noco.ncMeta,
   ) {
     const key = `${CacheScope.MCP_TOKEN}:${mcpTokenId}`;
-    let mcpToken = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let mcpToken = await NocoCache.get(context, key, CacheGetType.TYPE_OBJECT);
 
     if (!mcpToken) {
       mcpToken = await ncMeta.metaGet2(
@@ -59,7 +59,7 @@ export default class MCPToken implements MCPTokenType {
       );
 
       if (mcpToken) {
-        await NocoCache.set(key, mcpToken);
+        await NocoCache.set(context, key, mcpToken);
       }
     }
 
@@ -71,7 +71,7 @@ export default class MCPToken implements MCPTokenType {
     userId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.MCP_TOKEN, [
+    const cachedList = await NocoCache.getList(context, CacheScope.MCP_TOKEN, [
       context.base_id,
       userId,
     ]);
@@ -92,6 +92,7 @@ export default class MCPToken implements MCPTokenType {
         },
       );
       await NocoCache.setList(
+        context,
         CacheScope.MCP_TOKEN,
         [context.base_id, userId],
         mcpTokenList,
@@ -133,6 +134,7 @@ export default class MCPToken implements MCPTokenType {
     return this.get(context, id, ncMeta).then(async (res) => {
       const key = `${CacheScope.MCP_TOKEN}:${id}`;
       await NocoCache.appendToList(
+        context,
         CacheScope.MCP_TOKEN,
         [context.base_id, mcpToken.fk_user_id],
         key,
@@ -158,7 +160,7 @@ export default class MCPToken implements MCPTokenType {
     );
 
     const key = `${CacheScope.MCP_TOKEN}:${mcpTokenId}`;
-    await NocoCache.update(key, updateObj);
+    await NocoCache.update(context, key, updateObj);
 
     return await this.get(context, mcpTokenId, ncMeta);
   }
@@ -179,7 +181,7 @@ export default class MCPToken implements MCPTokenType {
     );
 
     const key = `${CacheScope.MCP_TOKEN}:${mcpTokenId}`;
-    await NocoCache.del(key);
+    await NocoCache.del(context, key);
 
     return true;
   }
@@ -224,7 +226,13 @@ export default class MCPToken implements MCPTokenType {
       );
 
       const key = `${CacheScope.MCP_TOKEN}:${token.id}`;
-      await NocoCache.del(key);
+      await NocoCache.del(
+        {
+          workspace_id: token.fk_workspace_id,
+          base_id: token.base_id,
+        },
+        key,
+      );
     }
 
     return true;

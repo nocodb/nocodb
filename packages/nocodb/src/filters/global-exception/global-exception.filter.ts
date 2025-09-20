@@ -96,7 +96,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
       const cacheKey = `throttler:${key}`;
 
-      NocoCache.get(cacheKey, CacheGetType.TYPE_OBJECT)
+      NocoCache.get('root', cacheKey, CacheGetType.TYPE_OBJECT)
         .then((data) => {
           if (!data) {
             this.logger.warn(
@@ -108,6 +108,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             );
 
             NocoCache.setExpiring(
+              'root',
               cacheKey,
               { value: true, count: 1, timestamp: Date.now() },
               300,
@@ -122,7 +123,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             );
 
             if (ttlInSeconds > 0) {
-              NocoCache.setExpiring(cacheKey, data, ttlInSeconds).catch(
+              NocoCache.setExpiring('root', cacheKey, data, ttlInSeconds).catch(
                 (err) => {
                   this.logger.error(err);
                 },

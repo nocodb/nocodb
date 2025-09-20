@@ -181,13 +181,13 @@ export const OpenidStrategyProvider: FactoryProvider = {
             state[key] = meta[key];
           }
 
-          NocoCache.set(`oidc:${handle}`, state)
+          NocoCache.set('root', `oidc:${handle}`, state)
             .then(() => callback(null, handle))
             .catch((err) => callback(err));
         },
         verify: (req, providedState, callback) => {
           const key = `oidc:${providedState}`;
-          NocoCache.get(key, CacheGetType.TYPE_OBJECT)
+          NocoCache.get('root', key, CacheGetType.TYPE_OBJECT)
             .then(async (state) => {
               if (!state) {
                 return callback(null, false, {
@@ -200,7 +200,7 @@ export const OpenidStrategyProvider: FactoryProvider = {
               };
               req.ncRedirectHost = state.host;
 
-              await NocoCache.del(key);
+              await NocoCache.del('root', key);
               return callback(null, true, state);
             })
             .catch((err) => callback(err));

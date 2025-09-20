@@ -112,7 +112,7 @@ export default class Filter {
       );
     }
     const key = `${CacheScope.FILTER_EXP}:${id}`;
-    let value = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let value = await NocoCache.get(context, key, CacheGetType.TYPE_OBJECT);
     if (!value) {
       /* get from db */
       value = await ncMeta.metaGet2(
@@ -123,11 +123,12 @@ export default class Filter {
       );
 
       /* store in redis */
-      await NocoCache.set(key, value).then(async () => {
+      await NocoCache.set(context, key, value).then(async () => {
         /* append key to relevant lists */
         const p = [];
         p.push(
           NocoCache.appendToList(
+            context,
             CacheScope.FILTER_EXP,
             [FilterCacheScope.VIEW, filter.fk_view_id],
             key,
@@ -136,6 +137,7 @@ export default class Filter {
         if (filter.fk_parent_id) {
           p.push(
             NocoCache.appendToList(
+              context,
               CacheScope.FILTER_EXP,
               [FilterCacheScope.VIEW, filter.fk_view_id, filter.fk_parent_id],
               key,
@@ -143,6 +145,7 @@ export default class Filter {
           );
           p.push(
             NocoCache.appendToList(
+              context,
               CacheScope.FILTER_EXP,
               [FilterCacheScope.PARENT, filter.fk_parent_id],
               key,
@@ -152,6 +155,7 @@ export default class Filter {
         if (filter.fk_column_id) {
           p.push(
             NocoCache.appendToList(
+              context,
               CacheScope.FILTER_EXP,
               [FilterCacheScope.COLUMN, filter.fk_column_id],
               key,
@@ -189,7 +193,11 @@ export default class Filter {
     );
 
     // update cache
-    await NocoCache.update(`${CacheScope.FILTER_EXP}:${id}`, updateObj);
+    await NocoCache.update(
+      context,
+      `${CacheScope.FILTER_EXP}:${id}`,
+      updateObj,
+    );
   }
 
   static async delete(context: NcContext, id: string, ncMeta = Noco.ncMeta) {
@@ -206,6 +214,7 @@ export default class Filter {
         filter.id,
       );
       await NocoCache.deepDel(
+        context,
         `${CacheScope.FILTER_EXP}:${filter.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -249,6 +258,7 @@ export default class Filter {
     if (this.children) return this.children;
     if (!this.is_group) return null;
     const cachedList = await NocoCache.getList(
+      context,
       CacheScope.FILTER_EXP,
       [FilterCacheScope.PARENT, this.id],
       { key: 'order' },
@@ -267,6 +277,7 @@ export default class Filter {
         },
       );
       await NocoCache.setList(
+        context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.PARENT, this.id],
         childFilters,
@@ -301,6 +312,7 @@ export default class Filter {
     ncMeta = Noco.ncMeta,
   ): Promise<FilterType> {
     const cachedList = await NocoCache.getList(
+      context,
       CacheScope.FILTER_EXP,
       [FilterCacheScope.VIEW, viewId],
       { key: 'order' },
@@ -318,6 +330,7 @@ export default class Filter {
       );
 
       await NocoCache.setList(
+        context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.VIEW, viewId],
         filters,
@@ -386,6 +399,7 @@ export default class Filter {
     let filterObj =
       id &&
       (await NocoCache.get(
+        context,
         `${CacheScope.FILTER_EXP}:${id}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -398,7 +412,7 @@ export default class Filter {
           id,
         },
       );
-      await NocoCache.set(`${CacheScope.FILTER_EXP}:${id}`, filterObj);
+      await NocoCache.set(context, `${CacheScope.FILTER_EXP}:${id}`, filterObj);
     }
     return filterObj && new Filter(filterObj);
   }
@@ -409,6 +423,7 @@ export default class Filter {
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(
+      context,
       CacheScope.FILTER_EXP,
       [FilterCacheScope.VIEW, viewId],
       { key: 'order' },
@@ -425,6 +440,7 @@ export default class Filter {
         },
       );
       await NocoCache.setList(
+        context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.VIEW, viewId],
         filterObjs,

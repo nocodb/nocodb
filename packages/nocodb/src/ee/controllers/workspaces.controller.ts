@@ -252,6 +252,10 @@ export class WorkspacesController {
     );
 
     await NocoCache.update(
+      {
+        workspace_id: workspace.id,
+        base_id: null,
+      },
       `${CacheScope.WORKSPACE}:${workspace.id}`,
       updateWorkspacePayload,
     );

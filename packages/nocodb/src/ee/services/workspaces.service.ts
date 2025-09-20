@@ -369,6 +369,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
       );
 
       await NocoCache.update(
+        {
+          workspace_id: workspace.id,
+          base_id: null,
+        },
         `${CacheScope.WORKSPACE}:${workspace.id}`,
         updateObj,
       );
@@ -443,11 +447,19 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
       // Invalidate user related cache
       await NocoCache.deepDel(
+        {
+          workspace_id: workspace.id,
+          base_id: null,
+        },
         `${CacheScope.WORKSPACE_USER}:${workspace.id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
       for (const base of bases) {
         await NocoCache.deepDel(
+          {
+            workspace_id: workspace.id,
+            base_id: base.id,
+          },
           `${CacheScope.BASE_USER}:${base.id}:list`,
           CacheDelDirection.PARENT_TO_CHILD,
         );

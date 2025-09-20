@@ -162,11 +162,13 @@ export class PermissionsService {
       if (existingPermission || permission) {
         // Delete permission
         await NocoCache.del(
+          context,
           `${CacheScope.PERMISSION}:${existingPermission?.id || permission.id}`,
         );
 
         // Delete permission users
         await NocoCache.deepDel(
+          context,
           `${CacheScope.PERMISSION_USER}:${
             existingPermission?.id || permission.id
           }:list`,
@@ -230,14 +232,16 @@ export class PermissionsService {
 
       // Rollback cache
       // Delete permission
-      await NocoCache.del(`${CacheScope.PERMISSION}:${permission.id}`);
+      await NocoCache.del(context, `${CacheScope.PERMISSION}:${permission.id}`);
       // Delete permission users
       await NocoCache.deepDel(
+        context,
         `${CacheScope.PERMISSION_USER}:${permission.id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
       // Delete base permissions list
       await NocoCache.deepDel(
+        context,
         `${CacheScope.PERMISSION}:${context.base_id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
@@ -276,6 +280,7 @@ export class PermissionsService {
       // Rollback cache
       // Delete base permissions list
       await NocoCache.deepDel(
+        context,
         `${CacheScope.PERMISSION}:${context.base_id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );

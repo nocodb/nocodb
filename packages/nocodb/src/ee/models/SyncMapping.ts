@@ -28,7 +28,11 @@ export default class SyncMapping {
     ncMeta = Noco.ncMeta,
   ) {
     const key = `${CacheScope.SYNC_MAPPINGS}:${id}`;
-    let syncMapping = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let syncMapping = await NocoCache.get(
+      context,
+      key,
+      CacheGetType.TYPE_OBJECT,
+    );
 
     if (!syncMapping) {
       syncMapping = await ncMeta.metaGet2(
@@ -42,7 +46,7 @@ export default class SyncMapping {
 
       if (!syncMapping) return null;
 
-      await NocoCache.set(key, syncMapping);
+      await NocoCache.set(context, key, syncMapping);
     }
 
     return new SyncMapping(syncMapping);
@@ -89,6 +93,7 @@ export default class SyncMapping {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.SYNC_MAPPINGS}:${id}`,
       prepareForResponse(updateObj),
     );
@@ -109,7 +114,7 @@ export default class SyncMapping {
     );
 
     const key = `${CacheScope.SYNC_MAPPINGS}:${id}`;
-    await NocoCache.del(key);
+    await NocoCache.del(context, key);
 
     return true;
   }

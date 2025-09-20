@@ -12,16 +12,17 @@ export class UpdateUsageStatsProcessor {
 
   async job() {
     const keys = await NocoCache.get(
+      'root',
       `${CacheScope.USAGE_STATS}:workspaces`,
       CacheGetType.TYPE_ARRAY,
     );
 
-    await NocoCache.del(`${CacheScope.USAGE_STATS}:workspaces`);
+    await NocoCache.del('root', `${CacheScope.USAGE_STATS}:workspaces`);
 
     for (const key of keys) {
       const delimiter = `${CacheScope.USAGE_STATS}:`;
 
-      const hash = await NocoCache.getHash(key);
+      const hash = await NocoCache.getHash('root', key);
 
       const helpstr = key.slice(key.indexOf(delimiter) + delimiter.length);
 

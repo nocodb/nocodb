@@ -132,6 +132,10 @@ export default class Workspace implements WorkspaceType {
     withStats = true,
   ) {
     let workspaceData = await NocoCache.get(
+      {
+        workspace_id: workspaceId,
+        base_id: null,
+      },
       `${CacheScope.WORKSPACE}:${workspaceId}`,
       CacheGetType.TYPE_OBJECT,
     );
@@ -150,6 +154,10 @@ export default class Workspace implements WorkspaceType {
         workspaceData.infra_meta = parseMetaProp(workspaceData, 'infra_meta');
         if (!workspaceData.deleted) {
           await NocoCache.set(
+            {
+              workspace_id: workspaceId,
+              base_id: null,
+            },
             `${CacheScope.WORKSPACE}:${workspaceData.id}`,
             workspaceData,
           );
@@ -301,6 +309,10 @@ export default class Workspace implements WorkspaceType {
 
     // update cache after successful update
     await NocoCache.update(
+      {
+        workspace_id: id,
+        base_id: null,
+      },
       `${CacheScope.WORKSPACE}:${id}`,
       prepareForResponse(updateObject),
     );
@@ -330,6 +342,10 @@ export default class Workspace implements WorkspaceType {
 
     // update cache after successful update
     await NocoCache.update(
+      {
+        workspace_id: id,
+        base_id: null,
+      },
       `${CacheScope.WORKSPACE}:${id}`,
       prepareForResponse(updateObject, 'infra_meta'),
     );
@@ -354,6 +370,10 @@ export default class Workspace implements WorkspaceType {
     );
 
     await NocoCache.deepDel(
+      {
+        workspace_id: id,
+        base_id: null,
+      },
       `${CacheScope.WORKSPACE_USER}:${id}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );
@@ -411,7 +431,13 @@ export default class Workspace implements WorkspaceType {
       await integration.delete(ncMeta);
     }
 
-    await NocoCache.del(`${CacheScope.WORKSPACE}:${id}`);
+    await NocoCache.del(
+      {
+        workspace_id: id,
+        base_id: null,
+      },
+      `${CacheScope.WORKSPACE}:${id}`,
+    );
 
     CustomUrl.bulkDelete({ fk_workspace_id: id }, ncMeta).catch(() => {
       logger.error(`Failed to delete custom urls of workspaceId: ${id}`);
@@ -439,7 +465,13 @@ export default class Workspace implements WorkspaceType {
     // Delete data reflection configuration if exists
     await DataReflection.destroy(id, ncMeta);
 
-    await NocoCache.del(`${CacheScope.WORKSPACE}:${id}`);
+    await NocoCache.del(
+      {
+        workspace_id: id,
+        base_id: null,
+      },
+      `${CacheScope.WORKSPACE}:${id}`,
+    );
 
     CustomUrl.bulkDelete({ fk_workspace_id: id }, ncMeta).catch(() => {
       logger.error(`Failed to delete custom urls of workspaceId: ${id}`);
@@ -585,9 +617,16 @@ export default class Workspace implements WorkspaceType {
       param.id,
     );
 
-    await NocoCache.update(`${CacheScope.WORKSPACE}:${param.id}`, {
-      fk_org_id: param.orgId,
-    });
+    await NocoCache.update(
+      {
+        workspace_id: param.id,
+        base_id: null,
+      },
+      `${CacheScope.WORKSPACE}:${param.id}`,
+      {
+        fk_org_id: param.orgId,
+      },
+    );
 
     return res;
   }
@@ -608,6 +647,7 @@ export default class Workspace implements WorkspaceType {
 
   public static async getResourceStats(id: string, ncMeta = Noco.ncMeta) {
     let stats = await NocoCache.getHash(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${id}`,
     );
 
@@ -714,6 +754,7 @@ export default class Workspace implements WorkspaceType {
         );
 
         await NocoCache.setHash(
+          'root',
           `${CacheScope.RESOURCE_STATS}:workspace:${id}`,
           stats,
         );
@@ -734,6 +775,7 @@ export default class Workspace implements WorkspaceType {
     [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: number;
   }> {
     let storage = await NocoCache.getHash(
+      'root',
       `${CacheScope.STORAGE_STATS}:workspace:${id}`,
     );
     if (!storage) {
@@ -762,6 +804,7 @@ export default class Workspace implements WorkspaceType {
       }
 
       await NocoCache.setHash(
+        'root',
         `${CacheScope.STORAGE_STATS}:workspace:${id}`,
         storage,
       );
@@ -776,9 +819,9 @@ export default class Workspace implements WorkspaceType {
   }
 
   public static async clearWorkspaceStatsCache(id: string) {
-    await Promise.all([
-      NocoCache.del(`${CacheScope.RESOURCE_STATS}:workspace:${id}`),
-      NocoCache.del(`${CacheScope.STORAGE_STATS}:workspace:${id}`),
+    await NocoCache.del('root', [
+      `${CacheScope.RESOURCE_STATS}:workspace:${id}`,
+      `${CacheScope.STORAGE_STATS}:workspace:${id}`,
     ]);
   }
 }

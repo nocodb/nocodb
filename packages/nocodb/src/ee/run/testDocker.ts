@@ -45,7 +45,11 @@ process.env[`TEST`] = 'true';
     const httpServer = server.listen(process.env.PORT || 8080, async () => {
       server.use(await Noco.init({}, httpServer, server));
 
-      await NocoCache.set(IS_UPGRADE_ALLOWED_CACHE_KEY, 'user@nocodb.com');
+      await NocoCache.set(
+        'root',
+        IS_UPGRADE_ALLOWED_CACHE_KEY,
+        'user@nocodb.com',
+      );
 
       if (!(await User.getByEmail('user@nocodb.com'))) {
         const response = await axios.post(

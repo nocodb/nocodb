@@ -34,6 +34,7 @@ export default class Snapshot implements SnapshotType {
     ncMeta = Noco.ncMeta,
   ) {
     let snapshot = await NocoCache.get(
+      context,
       `${CacheScope.SNAPSHOT}:${snapshotId}`,
       CacheGetType.TYPE_OBJECT,
     );
@@ -47,7 +48,11 @@ export default class Snapshot implements SnapshotType {
       );
 
       if (snapshot) {
-        NocoCache.set(`${CacheScope.SNAPSHOT}:${snapshotId}`, snapshot);
+        NocoCache.set(
+          context,
+          `${CacheScope.SNAPSHOT}:${snapshotId}`,
+          snapshot,
+        );
       }
     }
 
@@ -59,7 +64,9 @@ export default class Snapshot implements SnapshotType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.SNAPSHOT, [baseId]);
+    const cachedList = await NocoCache.getList(context, CacheScope.SNAPSHOT, [
+      baseId,
+    ]);
 
     let { list: snapshotList } = cachedList;
 
@@ -77,7 +84,7 @@ export default class Snapshot implements SnapshotType {
           },
         },
       );
-      NocoCache.setList(CacheScope.SNAPSHOT, [baseId], snapshotList);
+      NocoCache.setList(context, CacheScope.SNAPSHOT, [baseId], snapshotList);
     }
 
     return snapshotList.map((snapshot) => new Snapshot(snapshot));
@@ -105,6 +112,7 @@ export default class Snapshot implements SnapshotType {
     );
 
     await NocoCache.incrHashField(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE,
       1,
@@ -112,6 +120,7 @@ export default class Snapshot implements SnapshotType {
 
     return this.get(context, id, ncMeta).then(async (res) => {
       await NocoCache.appendToList(
+        context,
         CacheScope.SNAPSHOT,
         [snapshot.base_id],
         `${CacheScope.SNAPSHOT}:${id}`,
@@ -136,7 +145,11 @@ export default class Snapshot implements SnapshotType {
       snapshotId,
     );
 
-    await NocoCache.update(`${CacheScope.SNAPSHOT}:${snapshotId}`, updateObj);
+    await NocoCache.update(
+      context,
+      `${CacheScope.SNAPSHOT}:${snapshotId}`,
+      updateObj,
+    );
 
     return this.get(context, snapshotId, ncMeta);
   }
@@ -154,11 +167,13 @@ export default class Snapshot implements SnapshotType {
     );
 
     await NocoCache.deepDel(
+      context,
       `${CacheScope.SNAPSHOT}:${snapshotId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
     await NocoCache.incrHashField(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE,
       -1,

@@ -44,15 +44,21 @@ export default class CalendarRange
 
     for (const fk of uniqueFks) {
       await NocoCache.deepDel(
+        context,
         `${CacheScope.CALENDAR_VIEW_RANGE}:${fk}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
     }
 
     for (const d of bulkData) {
-      await NocoCache.set(`${CacheScope.CALENDAR_VIEW_RANGE}:${d.id}`, d);
+      await NocoCache.set(
+        context,
+        `${CacheScope.CALENDAR_VIEW_RANGE}:${d.id}`,
+        d,
+      );
 
       await NocoCache.appendToList(
+        context,
         CacheScope.CALENDAR_VIEW_RANGE,
         [d.fk_view_id],
         `${CacheScope.CALENDAR_VIEW_RANGE}:${d.id}`,

@@ -94,6 +94,7 @@ export default class WorkspaceUser {
       await clearWorkspaceUserCountCache(workspaceUser.fk_workspace_id);
 
       await NocoCache.del(
+        'root',
         `${CacheScope.RESOURCE_STATS}:workspace:${workspaceUser.fk_workspace_id}`,
       );
 
@@ -104,13 +105,23 @@ export default class WorkspaceUser {
         ncMetaTrans,
       );
       for (const base of bases) {
-        await NocoCache.del(`${CacheScope.BASE_USER}:${base.id}:list`);
+        await NocoCache.del(
+          {
+            workspace_id: workspaceUser.fk_workspace_id,
+            base_id: base.id,
+          },
+          `${CacheScope.BASE_USER}:${base.id}:list`,
+        );
       }
 
       const res = await this.get(fk_workspace_id, fk_user_id, ncMetaTrans);
 
       // add to workspace user list cache
       await NocoCache.appendToList(
+        {
+          workspace_id: fk_workspace_id,
+          base_id: null,
+        },
         CacheScope.WORKSPACE_USER,
         [fk_workspace_id],
         `${CacheScope.WORKSPACE_USER}:${fk_workspace_id}:${fk_user_id}`,
@@ -130,6 +141,10 @@ export default class WorkspaceUser {
       workspaceId &&
       userId &&
       (await NocoCache.get(
+        {
+          workspace_id: workspaceId,
+          base_id: null,
+        },
         `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -159,6 +174,10 @@ export default class WorkspaceUser {
           };
 
           await NocoCache.set(
+            {
+              workspace_id: workspaceId,
+              base_id: null,
+            },
             `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
             workspaceUser,
           );
@@ -334,9 +353,14 @@ export default class WorkspaceUser {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.WORKSPACE_USER, [
-      fk_workspace_id,
-    ]);
+    const cachedList = await NocoCache.getList(
+      {
+        workspace_id: fk_workspace_id,
+        base_id: null,
+      },
+      CacheScope.WORKSPACE_USER,
+      [fk_workspace_id],
+    );
     let { list: workspaceUsers } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !workspaceUsers.length) {
@@ -370,6 +394,10 @@ export default class WorkspaceUser {
       });
 
       await NocoCache.setList(
+        {
+          workspace_id: fk_workspace_id,
+          base_id: null,
+        },
         CacheScope.WORKSPACE_USER,
         [fk_workspace_id],
         workspaceUsers,
@@ -405,7 +433,14 @@ export default class WorkspaceUser {
     ncMeta = Noco.ncMeta,
   ) {
     const key = `${CacheScope.WORKSPACE}:${workspaceId}:userCount:${include_deleted}:${onlyOwner}`;
-    let count = await NocoCache.get(key, CacheGetType.TYPE_STRING);
+    let count = await NocoCache.get(
+      {
+        workspace_id: workspaceId,
+        base_id: null,
+      },
+      key,
+      CacheGetType.TYPE_STRING,
+    );
 
     if (!count) {
       count = await ncMeta.metaCount(
@@ -447,7 +482,14 @@ export default class WorkspaceUser {
         },
       );
 
-      await NocoCache.set(key, count);
+      await NocoCache.set(
+        {
+          workspace_id: workspaceId,
+          base_id: null,
+        },
+        key,
+        count,
+      );
     } else {
       count = parseInt(count);
     }
@@ -482,6 +524,10 @@ export default class WorkspaceUser {
     );
 
     await NocoCache.update(
+      {
+        workspace_id: workspaceId,
+        base_id: null,
+      },
       `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
       updateObj,
     );
@@ -498,13 +544,21 @@ export default class WorkspaceUser {
       );
 
       for (const base of workspaceBases) {
-        await NocoCache.update(`${CacheScope.BASE_USER}:${base.id}:${userId}`, {
-          workspace_roles: updateObj.roles,
-        });
+        await NocoCache.update(
+          {
+            workspace_id: workspaceId,
+            base_id: base.id,
+          },
+          `${CacheScope.BASE_USER}:${base.id}:${userId}`,
+          {
+            workspace_roles: updateObj.roles,
+          },
+        );
       }
     }
 
     await NocoCache.del(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${workspaceId}`,
     );
 
@@ -531,6 +585,7 @@ export default class WorkspaceUser {
 
     await clearWorkspaceUserCountCache(workspaceId);
     await NocoCache.del(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${workspaceId}`,
     );
 
@@ -558,11 +613,16 @@ export default class WorkspaceUser {
 
     // delete cache
     await NocoCache.deepDel(
+      {
+        workspace_id: workspaceId,
+        base_id: null,
+      },
       `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
     await clearWorkspaceUserCountCache(workspaceId);
     await NocoCache.del(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${workspaceId}`,
     );
 
@@ -579,11 +639,13 @@ export default class WorkspaceUser {
     _ncMeta = Noco.ncMeta,
   ) {
     await NocoCache.deepDel(
+      { workspace_id: workspaceId, base_id: null },
       `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
     await clearWorkspaceUserCountCache(workspaceId);
     await NocoCache.del(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${workspaceId}`,
     );
   }

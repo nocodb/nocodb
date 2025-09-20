@@ -30,6 +30,7 @@ export default class GalleryViewColumn {
     let viewColumn =
       galleryViewColumnId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.GALLERY_VIEW_COLUMN}:${galleryViewColumnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -42,6 +43,7 @@ export default class GalleryViewColumn {
       );
       if (viewColumn) {
         await NocoCache.set(
+          context,
           `${CacheScope.GALLERY_VIEW_COLUMN}:${galleryViewColumnId}`,
           viewColumn,
         );
@@ -94,6 +96,7 @@ export default class GalleryViewColumn {
 
     return this.get(context, id, ncMeta).then(async (viewColumn) => {
       await NocoCache.appendToList(
+        context,
         CacheScope.GALLERY_VIEW_COLUMN,
         [column.fk_view_id],
         `${CacheScope.GALLERY_VIEW_COLUMN}:${id}`,
@@ -107,9 +110,11 @@ export default class GalleryViewColumn {
     viewId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<GalleryViewColumn[]> {
-    const cachedList = await NocoCache.getList(CacheScope.GALLERY_VIEW_COLUMN, [
-      viewId,
-    ]);
+    const cachedList = await NocoCache.getList(
+      context,
+      CacheScope.GALLERY_VIEW_COLUMN,
+      [viewId],
+    );
     let { list: views } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !views.length) {
@@ -126,7 +131,12 @@ export default class GalleryViewColumn {
           },
         },
       );
-      await NocoCache.setList(CacheScope.GALLERY_VIEW_COLUMN, [viewId], views);
+      await NocoCache.setList(
+        context,
+        CacheScope.GALLERY_VIEW_COLUMN,
+        [viewId],
+        views,
+      );
     }
     views.sort(
       (a, b) =>
@@ -155,7 +165,7 @@ export default class GalleryViewColumn {
 
     // get existing cache
     const key = `${CacheScope.GALLERY_VIEW_COLUMN}:${columnId}`;
-    await NocoCache.update(key, updateObj);
+    await NocoCache.update(context, key, updateObj);
 
     // on view column update, delete any optimised single query cache
     {

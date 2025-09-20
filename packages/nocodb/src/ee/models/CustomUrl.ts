@@ -40,6 +40,7 @@ export default class CustomUrl extends CustomUrlCE {
     let customUrl;
 
     customUrl = await NocoCache.get(
+      'root',
       `${CacheScope.CUSTOM_URLS}:${customPath}`,
       CacheGetType.TYPE_OBJECT,
     );
@@ -55,7 +56,11 @@ export default class CustomUrl extends CustomUrlCE {
       );
 
       if (customUrl) {
-        NocoCache.set(`${CacheScope.CUSTOM_URLS}:${customPath}`, customUrl);
+        NocoCache.set(
+          'root',
+          `${CacheScope.CUSTOM_URLS}:${customPath}`,
+          customUrl,
+        );
       }
     }
 
@@ -108,6 +113,7 @@ export default class CustomUrl extends CustomUrlCE {
     );
 
     await NocoCache.set(
+      'root',
       `${CacheScope.CUSTOM_URLS}:${insertedCustomUrl.custom_path}`,
       insertedCustomUrl,
     );
@@ -173,6 +179,7 @@ export default class CustomUrl extends CustomUrlCE {
     }
 
     await NocoCache.del(
+      'root',
       `${CacheScope.CUSTOM_URLS}:${customUrlData.custom_path}`,
     );
 
@@ -238,6 +245,7 @@ export default class CustomUrl extends CustomUrlCE {
     );
 
     await NocoCache.del(
+      'root',
       `${CacheScope.CUSTOM_URLS}:${customUrlData.custom_path}`,
     );
   }
@@ -283,6 +291,7 @@ export default class CustomUrl extends CustomUrlCE {
     );
 
     await NocoCache.del(
+      'root',
       customUrlList.map((c) => `${CacheScope.CUSTOM_URLS}:${c.custom_path}`),
     );
   }

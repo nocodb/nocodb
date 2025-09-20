@@ -46,6 +46,7 @@ export default class PresignedUrl {
       expiresInSeconds = DEFAULT_EXPIRE_SECONDS,
     } = param;
     await NocoCache.setExpiring(
+      'root',
       `${CacheScope.PRESIGNED_URL}:path:${slash(path)}`,
       {
         path,
@@ -55,6 +56,7 @@ export default class PresignedUrl {
       expiresInSeconds,
     );
     await NocoCache.setExpiring(
+      'root',
       `${CacheScope.PRESIGNED_URL}:url:${slash(decodeURIComponent(url))}`,
       {
         path,
@@ -67,14 +69,21 @@ export default class PresignedUrl {
 
   private static async delete(param: { path: string; url: string }) {
     const { path, url } = param;
-    await NocoCache.del(`${CacheScope.PRESIGNED_URL}:path:${slash(path)}`);
-    await NocoCache.del(`${CacheScope.PRESIGNED_URL}:url:${slash(url)}`);
+    await NocoCache.del(
+      'root',
+      `${CacheScope.PRESIGNED_URL}:path:${slash(path)}`,
+    );
+    await NocoCache.del(
+      'root',
+      `${CacheScope.PRESIGNED_URL}:url:${slash(url)}`,
+    );
   }
 
   public static async getPath(url: string, _ncMeta = Noco.ncMeta) {
     const urlData =
       url &&
       (await NocoCache.get(
+        'root',
         `${CacheScope.PRESIGNED_URL}:url:${slash(url)}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -178,6 +187,7 @@ export default class PresignedUrl {
     ).toString()}`;
 
     const url = await NocoCache.get(
+      'root',
       `${CacheScope.PRESIGNED_URL}:path:${slash(cachePath)}`,
       CacheGetType.TYPE_OBJECT,
     );

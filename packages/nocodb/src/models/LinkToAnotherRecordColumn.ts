@@ -207,6 +207,7 @@ export default class LinkToAnotherRecordColumn {
     let colData =
       columnId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.COL_RELATION}:${columnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -217,7 +218,11 @@ export default class LinkToAnotherRecordColumn {
         MetaTable.COL_RELATIONS,
         { fk_column_id: columnId },
       );
-      await NocoCache.set(`${CacheScope.COL_RELATION}:${columnId}`, colData);
+      await NocoCache.set(
+        context,
+        `${CacheScope.COL_RELATION}:${columnId}`,
+        colData,
+      );
     }
     return colData ? new LinkToAnotherRecordColumn(colData) : null;
   }

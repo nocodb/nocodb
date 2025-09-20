@@ -20,6 +20,7 @@ export async function acquireLock(
     try {
       // Check if lock exists
       const existingLock = await NocoCache.get(
+        'root',
         lockKey,
         CacheGetType.TYPE_OBJECT,
       );
@@ -27,6 +28,7 @@ export async function acquireLock(
       if (!existingLock) {
         // Try to acquire the lock with 1 minute expiration
         await NocoCache.setExpiring(
+          'root',
           lockKey,
           {
             lockId,
@@ -41,6 +43,7 @@ export async function acquireLock(
 
         // Verify we actually got the lock
         const verifyLock = await NocoCache.get(
+          'root',
           lockKey,
           CacheGetType.TYPE_OBJECT,
         );
@@ -71,11 +74,15 @@ export async function releaseLock(
   lockId: string,
 ): Promise<void> {
   try {
-    const existingLock = await NocoCache.get(lockKey, CacheGetType.TYPE_OBJECT);
+    const existingLock = await NocoCache.get(
+      'root',
+      lockKey,
+      CacheGetType.TYPE_OBJECT,
+    );
 
     // Only release if we own the lock
     if (existingLock && existingLock.lockId === lockId) {
-      await NocoCache.del(lockKey);
+      await NocoCache.del('root', lockKey);
     }
   } catch (error) {
     logger.warn(`Failed to release lock ${lockKey}: ${error.message}`);

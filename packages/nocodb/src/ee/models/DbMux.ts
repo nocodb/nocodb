@@ -31,7 +31,7 @@ export default class DbMux {
   }
 
   public static async list(ncMeta = Noco.ncMeta) {
-    const cachedList = await NocoCache.getList(CacheScope.DB_MUX, []);
+    const cachedList = await NocoCache.getList('root', CacheScope.DB_MUX, []);
     let { list: dbMuxList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !dbMuxList.length) {
@@ -45,7 +45,7 @@ export default class DbMux {
         dbMux.sourceCount = await this.sourceCount(dbMux.id, ncMeta);
       }
 
-      await NocoCache.setList(CacheScope.DB_MUX, [], dbMuxList);
+      await NocoCache.setList('root', CacheScope.DB_MUX, [], dbMuxList);
     }
 
     dbMuxList.sort(
@@ -57,6 +57,7 @@ export default class DbMux {
 
   public static async get(dbMuxId: string, ncMeta = Noco.ncMeta) {
     let dbMuxData = await NocoCache.get(
+      'root',
       `${CacheScope.DB_MUX}:${dbMuxId}`,
       CacheGetType.TYPE_OBJECT,
     );
@@ -74,7 +75,11 @@ export default class DbMux {
       if (dbMuxData) {
         dbMuxData.sourceCount = await this.sourceCount(dbMuxId, ncMeta);
 
-        await NocoCache.set(`${CacheScope.DB_MUX}:${dbMuxData.id}`, dbMuxData);
+        await NocoCache.set(
+          'root',
+          `${CacheScope.DB_MUX}:${dbMuxData.id}`,
+          dbMuxData,
+        );
       }
     }
 
@@ -119,6 +124,7 @@ export default class DbMux {
     const dbMux = await this.get(id);
 
     await NocoCache.appendToList(
+      'root',
       CacheScope.DB_MUX,
       [],
       `${CacheScope.DB_MUX}:${id}`,
@@ -143,6 +149,7 @@ export default class DbMux {
     );
 
     await NocoCache.deepDel(
+      'root',
       `${CacheScope.DB_MUX}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );
@@ -175,7 +182,11 @@ export default class DbMux {
       this.id,
     );
 
-    await NocoCache.update(`${CacheScope.DB_MUX}:${this.id}`, updateObj);
+    await NocoCache.update(
+      'root',
+      `${CacheScope.DB_MUX}:${this.id}`,
+      updateObj,
+    );
 
     let sources: Source[] = [];
 
@@ -232,6 +243,7 @@ export default class DbMux {
     }
 
     await NocoCache.deepDel(
+      'root',
       `${CacheScope.DB_MUX}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -266,7 +278,7 @@ export default class DbMux {
 
     this.sourceCount = await DbMux.sourceCount(this.id, ncMeta);
 
-    await NocoCache.update(`${CacheScope.DB_MUX}:${this.id}`, {
+    await NocoCache.update('root', `${CacheScope.DB_MUX}:${this.id}`, {
       sourceCount: this.sourceCount,
     });
 

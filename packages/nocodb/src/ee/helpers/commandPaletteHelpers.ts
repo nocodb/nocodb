@@ -15,7 +15,7 @@ export async function getCommandPaletteForUserWorkspace(
 ) {
   const key = `${CacheScope.CMD_PALETTE}:${userId}:${workspaceId}`;
 
-  let cmdData = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+  let cmdData = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
 
   if (!cmdData) {
     const rootQb = ncMeta
@@ -139,10 +139,14 @@ export async function getCommandPaletteForUserWorkspace(
       data: await qb,
     };
 
-    await NocoCache.set(key, cmdData);
+    await NocoCache.set('root', key, cmdData);
     // append to lists for later cleanup
-    await NocoCache.set(`${CacheScope.CMD_PALETTE}:ws:${workspaceId}`, [key]);
-    await NocoCache.set(`${CacheScope.CMD_PALETTE}:user:${userId}`, [key]);
+    await NocoCache.set('root', `${CacheScope.CMD_PALETTE}:ws:${workspaceId}`, [
+      key,
+    ]);
+    await NocoCache.set('root', `${CacheScope.CMD_PALETTE}:user:${userId}`, [
+      key,
+    ]);
   }
 
   // order by base_order, table_order, view_order
@@ -162,22 +166,30 @@ export async function getCommandPaletteForUserWorkspace(
 
 export async function cleanCommandPaletteCache(workspaceId: string) {
   const keys = await NocoCache.get(
+    'root',
     `${CacheScope.CMD_PALETTE}:ws:${workspaceId}`,
     CacheGetType.TYPE_ARRAY,
   );
 
   if (keys) {
-    await NocoCache.del([...keys, `${CacheScope.CMD_PALETTE}:${workspaceId}`]);
+    await NocoCache.del('root', [
+      ...keys,
+      `${CacheScope.CMD_PALETTE}:${workspaceId}`,
+    ]);
   }
 }
 
 export async function cleanCommandPaletteCacheForUser(userId: string) {
   const keys = await NocoCache.get(
+    'root',
     `${CacheScope.CMD_PALETTE}:user:${userId}`,
     CacheGetType.TYPE_ARRAY,
   );
 
   if (keys) {
-    await NocoCache.del([...keys, `${CacheScope.CMD_PALETTE}:${userId}`]);
+    await NocoCache.del('root', [
+      ...keys,
+      `${CacheScope.CMD_PALETTE}:${userId}`,
+    ]);
   }
 }

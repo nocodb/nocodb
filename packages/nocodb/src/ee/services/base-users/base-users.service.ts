@@ -175,19 +175,35 @@ export class BaseUsersService extends BaseUsersServiceCE {
       await transaction.rollback();
 
       // rollback cache
-      const cacheTransaction = [];
+      const cacheWorkspaceOps = [];
+      const cacheBaseOps = [];
 
       for (const email of emails) {
         const user = emailUserMap.get(email);
-        cacheTransaction.push(
-          `${CacheScope.BASE_USER}:${param.baseId}:${user.id}`,
+        cacheBaseOps.push(() =>
+          NocoCache.del(
+            {
+              workspace_id: workspace.id,
+              base_id: base.id,
+            },
+            `${CacheScope.BASE_USER}:${base.id}:${user.id}`,
+          ),
         );
-        cacheTransaction.push(
-          `${CacheScope.WORKSPACE_USER}:${context.workspace_id}:${user.id}`,
+        cacheWorkspaceOps.push(() =>
+          NocoCache.del(
+            {
+              workspace_id: workspace.id,
+              base_id: null,
+            },
+            `${CacheScope.WORKSPACE_USER}:${workspace.id}:${user.id}`,
+          ),
         );
       }
 
-      await NocoCache.del(cacheTransaction);
+      await Promise.all([
+        ...cacheBaseOps.map((fn) => fn()),
+        ...cacheWorkspaceOps.map((fn) => fn()),
+      ]);
 
       throw e;
     }
@@ -249,18 +265,34 @@ export class BaseUsersService extends BaseUsersServiceCE {
       },
       rollback: async () => {
         // rollback cache
-        const cacheTransaction = [];
+        const cacheBaseOps = [];
+        const cacheWorkspaceOps = [];
 
         const user = emailUserMap.get(email);
         if (user) {
-          cacheTransaction.push(
-            `${CacheScope.BASE_USER}:${base.id}:${user.id}`,
+          cacheBaseOps.push(() =>
+            NocoCache.del(
+              {
+                workspace_id: base.fk_workspace_id,
+                base_id: base.id,
+              },
+              `${CacheScope.BASE_USER}:${base.id}:${user.id}`,
+            ),
           );
-          cacheTransaction.push(
-            `${CacheScope.WORKSPACE_USER}:${context.workspace_id}:${user.id}`,
+          cacheWorkspaceOps.push(() =>
+            NocoCache.del(
+              {
+                workspace_id: base.fk_workspace_id,
+                base_id: null,
+              },
+              `${CacheScope.WORKSPACE_USER}:${base.fk_workspace_id}:${user.id}`,
+            ),
           );
 
-          await NocoCache.del(cacheTransaction);
+          await Promise.all([
+            ...cacheBaseOps.map((fn) => fn()),
+            ...cacheWorkspaceOps.map((fn) => fn()),
+          ]);
         }
       },
     };

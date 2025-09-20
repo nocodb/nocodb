@@ -81,7 +81,7 @@ export default class Plan {
     forcePrivate = false,
   ) {
     const key = `${CacheScope.PLANS}:${planId}`;
-    let plan = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let plan = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
     if (!plan) {
       plan = await ncMeta.metaGet2(
         RootScopes.ROOT,
@@ -94,7 +94,7 @@ export default class Plan {
 
       if (!plan) return null;
 
-      await NocoCache.set(key, plan);
+      await NocoCache.set('root', key, plan);
     }
 
     return this.prepare(plan, forcePrivate);
@@ -157,7 +157,7 @@ export default class Plan {
       planId,
     );
 
-    await NocoCache.del(`${CacheScope.PLANS}:${planId}`);
+    await NocoCache.del('root', `${CacheScope.PLANS}:${planId}`);
 
     return true;
   }
@@ -171,7 +171,7 @@ export default class Plan {
     );
 
     const key = `${CacheScope.PLANS}:${planId}`;
-    await NocoCache.del(key);
+    await NocoCache.del('root', key);
 
     return true;
   }

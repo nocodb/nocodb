@@ -52,7 +52,7 @@ export default class UsageStat {
     ncMeta = Noco.ncMeta,
   ) {
     const key = `${CacheScope.USAGE_STATS}:${fk_workspace_id}:${usage_type}:${period_start}`;
-    let usageStat = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let usageStat = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
     if (!usageStat) {
       usageStat = await ncMeta.metaGet2(
         fk_workspace_id,
@@ -64,7 +64,7 @@ export default class UsageStat {
           period_start,
         },
       );
-      await NocoCache.set(key, usageStat);
+      await NocoCache.set('root', key, usageStat);
     }
 
     return usageStat && new UsageStat(usageStat);
@@ -81,7 +81,7 @@ export default class UsageStat {
 
     const period_start = getPeriodStartFromAnchor(anchor);
     const key = `${CacheScope.USAGE_STATS}:${fk_workspace_id}:${period_start}`;
-    let usageStats = await NocoCache.getHash(key);
+    let usageStats = await NocoCache.getHash('root', key);
     if (!usageStats) {
       const usageStatsList = await ncMeta.metaList2(
         fk_workspace_id,
@@ -101,7 +101,7 @@ export default class UsageStat {
         usageStats[usageStat.usage_type] = +usageStat.count;
       }
 
-      await NocoCache.setHash(key, usageStats, {
+      await NocoCache.setHash('root', key, usageStats, {
         ttl: 40 * 24 * 60 * 60, // 40 days
       });
     }
@@ -151,9 +151,10 @@ export default class UsageStat {
         },
       );
 
-      await NocoCache.update(cacheKey, updateObj);
+      await NocoCache.update('root', cacheKey, updateObj);
 
       await NocoCache.setHashField(
+        'root',
         `${CacheScope.USAGE_STATS}:${fk_workspace_id}:${usageStat.period_start}`,
         usage_type,
         updateObj.count,
@@ -174,9 +175,10 @@ export default class UsageStat {
         true,
       );
 
-      await NocoCache.set(cacheKey, insertObj);
+      await NocoCache.set('root', cacheKey, insertObj);
 
       await NocoCache.setHashField(
+        'root',
         `${CacheScope.USAGE_STATS}:${fk_workspace_id}:${period_start}`,
         usage_type,
         insertObj.count,
@@ -202,8 +204,8 @@ export default class UsageStat {
     // make sure the key is set in cache
     await this.getPeriodStats(fk_workspace_id, anchor, ncMeta);
 
-    await NocoCache.incrHashField(key, usage_type, count);
+    await NocoCache.incrHashField('root', key, usage_type, count);
 
-    await NocoCache.set(`${CacheScope.USAGE_STATS}:workspaces`, [key]);
+    await NocoCache.set('root', `${CacheScope.USAGE_STATS}:workspaces`, [key]);
   }
 }

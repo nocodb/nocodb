@@ -1309,7 +1309,11 @@ export async function singleQueryRead(
     ctx.view?.id ?? 'default'
   }:read`;
   if (!skipCache) {
-    const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
+    const cachedQuery = await NocoCache.get(
+      context,
+      cacheKey,
+      CacheGetType.TYPE_STRING,
+    );
     if (cachedQuery) {
       const res = await baseModel.execAndParse(
         knex
@@ -1451,7 +1455,7 @@ export async function singleQueryRead(
 
   if (!skipCache) {
     // cache query for later use
-    await NocoCache.set(cacheKey, query);
+    await NocoCache.set(context, cacheKey, query);
   }
 
   // const res = await finalQb;
@@ -1531,13 +1535,18 @@ export async function singleQueryList(
   }:count`;
 
   if (!skipCache) {
-    const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
+    const cachedQuery = await NocoCache.get(
+      context,
+      cacheKey,
+      CacheGetType.TYPE_STRING,
+    );
     const cachedCountQuery = await NocoCache.get(
+      context,
       countCacheKey,
       CacheGetType.TYPE_STRING,
     );
     if (cachedQuery && cachedCountQuery) {
-      const [countRes, res] = await getDataWithCountCache({
+      const [countRes, res] = await getDataWithCountCache(context, {
         query: cachedQuery,
         countQuery: cachedCountQuery,
         limit: +listArgs.limit,
@@ -1562,7 +1571,7 @@ export async function singleQueryList(
         countRes !== null &&
         countRes < res.length
       ) {
-        await NocoCache.del(countCacheKey);
+        await NocoCache.del(context, countCacheKey);
         logger.warn(
           'Invalid count query cache deleted. Query: ' + cachedCountQuery,
         );
@@ -1806,10 +1815,10 @@ export async function singleQueryList(
       );
 
     // cache query for later use
-    await NocoCache.set(cacheKey, dataQuery);
+    await NocoCache.set(context, cacheKey, dataQuery);
   }
 
-  const [count, res] = await getDataWithCountCache({
+  const [count, res] = await getDataWithCountCache(context, {
     query: dataQuery,
     countQuery: countQb.toQuery(),
     limit: +listArgs.limit,
@@ -1848,27 +1857,30 @@ export async function singleQueryList(
     },
   );
 }
-const getDataWithCountCache = async (params: {
-  query: string;
-  countQuery: string;
-  baseModel: IBaseModelSqlV2;
-  apiVersion: NcApiVersion;
-  limit: number;
-  offset: number;
-  knex: CustomKnex;
-  recordQueryTime?: (queryTime: string) => void;
-  excludeCount?: boolean;
-  skipCache?: boolean;
-  countCacheKey?: string;
-  skipSubstitutingColumnIds?: boolean;
-}): Promise<[count: number | undefined, data: any[]]> => {
+const getDataWithCountCache = async (
+  context: NcContext,
+  params: {
+    query: string;
+    countQuery: string;
+    baseModel: IBaseModelSqlV2;
+    apiVersion: NcApiVersion;
+    limit: number;
+    offset: number;
+    knex: CustomKnex;
+    recordQueryTime?: (queryTime: string) => void;
+    excludeCount?: boolean;
+    skipCache?: boolean;
+    countCacheKey?: string;
+    skipSubstitutingColumnIds?: boolean;
+  },
+): Promise<[count: number | undefined, data: any[]]> => {
   const countHandler = async (): Promise<number | undefined> => {
     if (params.excludeCount) {
       return undefined;
     }
 
     if (!params.skipCache) {
-      await NocoCache.set(params.countCacheKey, params.countQuery);
+      await NocoCache.set(context, params.countCacheKey, params.countQuery);
     }
 
     const r = await params.baseModel.execAndParse(params.countQuery, null, {

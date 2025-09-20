@@ -15,11 +15,12 @@ export const overrideFeature = async ({
   if (isEE()) {
     const subscriptionAliasKey = `${CacheScope.SUBSCRIPTIONS_ALIAS}:${workspace_id}`;
     const subscriptionCacheKey =
-      (await NocoCache.get(subscriptionAliasKey)) ?? nanoid();
-    await NocoCache.set(subscriptionAliasKey, subscriptionCacheKey);
-    const planId = (await NocoCache.get(subscriptionCacheKey)) ?? nanoid();
-    const baseSubscription = await NocoCache.get(subscriptionCacheKey);
-    await NocoCache.set(subscriptionCacheKey, {
+      (await NocoCache.get('root', subscriptionAliasKey)) ?? nanoid();
+    await NocoCache.set('root', subscriptionAliasKey, subscriptionCacheKey);
+    const planId =
+      (await NocoCache.get('root', subscriptionCacheKey)) ?? nanoid();
+    const baseSubscription = await NocoCache.get('root', subscriptionCacheKey);
+    await NocoCache.set('root', subscriptionCacheKey, {
       ...baseSubscription,
       status: 'active',
       fk_plan_id: planId,
@@ -27,7 +28,7 @@ export const overrideFeature = async ({
 
     const { FreePlan } = await import('~/ee/models/Plan.ts');
     const planCacheKey = `${CacheScope.PLANS}:${planId}`;
-    const basePlan = (await NocoCache.get(planCacheKey)) ?? FreePlan;
+    const basePlan = (await NocoCache.get('root', planCacheKey)) ?? FreePlan;
     const overriddenPlan = {
       ...basePlan,
       meta: {
@@ -35,14 +36,14 @@ export const overrideFeature = async ({
         [feature]: allowed,
       },
     };
-    await NocoCache.set(planCacheKey, overriddenPlan);
+    await NocoCache.set('root', planCacheKey, overriddenPlan);
 
     // delete workspace cache
-    await NocoCache.del(`${CacheScope.WORKSPACE}:${workspace_id}`);
+    await NocoCache.del('root', `${CacheScope.WORKSPACE}:${workspace_id}`);
 
     return {
       restore: async () => {
-        await NocoCache.del([
+        await NocoCache.del('root', [
           subscriptionAliasKey,
           subscriptionCacheKey,
           planCacheKey,

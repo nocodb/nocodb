@@ -55,6 +55,7 @@ export default class FormView implements FormViewType {
     let view =
       viewId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.FORM_VIEW}:${viewId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -70,7 +71,7 @@ export default class FormView implements FormViewType {
 
       if (view) {
         view.meta = deserializeJSON(view.meta);
-        await NocoCache.set(`${CacheScope.FORM_VIEW}:${viewId}`, view);
+        await NocoCache.set(context, `${CacheScope.FORM_VIEW}:${viewId}`, view);
       } else {
         return null;
       }
@@ -183,6 +184,7 @@ export default class FormView implements FormViewType {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.FORM_VIEW}:${formId}`,
       prepareForResponse(updateObj),
     );

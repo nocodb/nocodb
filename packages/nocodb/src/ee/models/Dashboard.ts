@@ -56,6 +56,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     let dashboard =
       dashboardId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.DASHBOARD}:${dashboardId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -72,6 +73,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       if (dashboard) {
         dashboard = prepareForResponse(dashboard, ['meta']);
         await NocoCache.set(
+          context,
           `${CacheScope.DASHBOARD}:${dashboard.id}`,
           dashboard,
         );
@@ -86,7 +88,9 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.DASHBOARD, [baseId]);
+    const cachedList = await NocoCache.getList(context, CacheScope.DASHBOARD, [
+      baseId,
+    ]);
     let { list: dashboardsList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !dashboardsList.length) {
@@ -107,7 +111,12 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       for (let dashboard of dashboardsList) {
         dashboard = prepareForResponse(dashboard, ['meta']);
       }
-      await NocoCache.setList(CacheScope.DASHBOARD, [baseId], dashboardsList);
+      await NocoCache.setList(
+        context,
+        CacheScope.DASHBOARD,
+        [baseId],
+        dashboardsList,
+      );
     }
     dashboardsList.sort(
       (a, b) =>
@@ -165,6 +174,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     );
 
     await NocoCache.incrHashField(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE,
       1,
@@ -176,6 +186,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
 
     return Dashboard.get(context, id, ncMeta).then(async (dashboard) => {
       await NocoCache.appendToList(
+        context,
         CacheScope.DASHBOARD,
         [context.base_id],
         `${CacheScope.DASHBOARD}:${id}`,
@@ -216,6 +227,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.DASHBOARD}:${dashboardId}`,
       prepareForResponse(updateObj),
     );
@@ -252,6 +264,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     );
 
     await NocoCache.deepDel(
+      context,
       `${CacheScope.DASHBOARD}:${dashboardId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -261,6 +274,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     });
 
     await NocoCache.incrHashField(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE,
       -1,

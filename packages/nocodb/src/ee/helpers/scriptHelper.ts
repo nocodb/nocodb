@@ -197,7 +197,7 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
   // TODO: Optimize the Query
   const key = `${CacheScope.BASE_SCHEMA}:${context.base_id}`;
 
-  const baseSchema = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+  const baseSchema = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
 
   if (baseSchema) {
     return baseSchema;
@@ -354,9 +354,10 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
     return table;
   });
 
-  await NocoCache.set(key, result);
+  await NocoCache.set(context, key, result);
 
   await NocoCache.appendToList(
+    'root',
     CacheScope.BASE_SCHEMA,
     ['ws', context.workspace_id],
     key,
@@ -366,17 +367,18 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
 }
 
 export async function cleanBaseSchemaCacheForBase(baseId: string) {
-  await NocoCache.del(`${CacheScope.BASE_SCHEMA}:${baseId}`);
+  await NocoCache.del('root', `${CacheScope.BASE_SCHEMA}:${baseId}`);
 }
 
 export async function cleanBaseSchemaCacheForWorkspace(workspaceId: string) {
   const keys = await NocoCache.get(
+    'root',
     `${CacheScope.BASE_SCHEMA}:ws:${workspaceId}`,
     CacheGetType.TYPE_ARRAY,
   );
 
   if (keys) {
-    await NocoCache.del([
+    await NocoCache.del('root', [
       ...keys,
       `${CacheScope.BASE_SCHEMA}:ws:${workspaceId}`,
     ]);

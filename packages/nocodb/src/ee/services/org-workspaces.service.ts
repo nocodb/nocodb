@@ -250,6 +250,7 @@ export class OrgWorkspacesService {
     }
 
     const cacheVal = await NocoCache.get(
+      'root',
       IS_UPGRADE_ALLOWED_CACHE_KEY,
       CacheGetType.TYPE_STRING,
     );
@@ -261,6 +262,7 @@ export class OrgWorkspacesService {
 
     // TODO: remove this temporary check : if user owner of any org, then add upgradeOrg to featureFlags
     const orgOwners = await NocoCache.get(
+      'root',
       `orgOwners`,
       CacheGetType.TYPE_STRING,
     );
@@ -271,6 +273,7 @@ export class OrgWorkspacesService {
         .where('roles', CloudOrgUserRoles.OWNER);
 
       await NocoCache.set(
+        'root',
         `orgOwners`,
         orgOwners.map((o) => o.fk_user_id).join(','),
       );

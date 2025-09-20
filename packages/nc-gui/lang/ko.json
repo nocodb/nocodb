@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKUND()의 두 번째 매개 변수는 \"일요일\", \"월요일\", \"화요일\", \"수요일\", \"목요일\", \"금요일\" 또는 \"토요일\" 중 하나의 값을 가져야 합니다",
       "firstParamDateAddHaveDate": "DATEADD()의 첫 번째 매개변수는 날짜 값을 가져야 합니다",
       "secondParamDateAddHaveNumber": "DATEADD()의 두 번째 매개변수는 숫자 값을 가져야 합니다",
-      "thirdParamDateAddHaveDate": "DATEADD()의 세 번째 파라미터는 \"day\", \"week\", \"month\" 또는 \"year\" 값을 가져야 합니다.",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF()의 첫 번째 매개변수는 날짜 값을 가져야 합니다",
       "secondParamDateDiffHaveDate": "DATEDIFF()의 두 번째 매개변수는 날짜 값을 가져야 합니다",
       "thirdParamDateDiffHaveDate": "DATEDIFF()의 세 번째 매개변수는 \"밀리 초\", \"초\", \"분\", \"시간\", \"일\", \"주\", \"월\" 또는 \"년\" 값을 가져야 합니다.",

@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Parameter kedua WEEKDAY() harus memiliki nilai \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\", atau \"saturday\"",
       "firstParamDateAddHaveDate": "Parameter pertama DATEADD() harus memiliki nilai tanggal",
       "secondParamDateAddHaveNumber": "Parameter kedua DATEADD() harus memiliki nilai numerik",
-      "thirdParamDateAddHaveDate": "Parameter ketiga DATEADD() harus memiliki nilai \"day\", \"week\", \"month\", atau \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Parameter pertama DATEDIFF() harus memiliki nilai tanggal",
       "secondParamDateDiffHaveDate": "Parameter kedua DATEDIFF() harus memiliki nilai tanggal",
       "thirdParamDateDiffHaveDate": "Parameter ketiga DATETIME_DIFF() harus memiliki nilai \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", atau \"y\"",

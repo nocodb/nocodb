@@ -5097,8 +5097,8 @@
             }
           }
         },
-        "CreatedAt": {
-          "title": "CreatedAt",
+        "CreatedTime": {
+          "title": "CreatedTime",
           "properties": {
             "type": {
               "enum": [
@@ -5110,8 +5110,8 @@
             }
           }
         },
-        "LastModifiedAt": {
-          "title": "LastModifiedAt",
+        "LastModifiedTime": {
+          "title": "LastModifiedTime",
           "properties": {
             "type": {
               "enum": [
@@ -5269,10 +5269,10 @@
                 "$ref": "#/components/schemas/FieldOptions/QrCode"
               },
               {
-                "$ref": "#/components/schemas/FieldOptions/CreatedAt"
+                "$ref": "#/components/schemas/FieldOptions/CreatedTime"
               },
               {
-                "$ref": "#/components/schemas/FieldOptions/LastModifiedAt"
+                "$ref": "#/components/schemas/FieldOptions/LastModifiedTime"
               },
               {
                 "$ref": "#/components/schemas/FieldOptions/CreatedBy"
@@ -6597,8 +6597,8 @@
               "Barcode",
               "Year",
               "QrCode",
-              "CreatedAt",
-              "LastModifiedAt",
+              "CreatedTime",
+              "LastModifiedTime",
               "CreatedBy",
               "LastModifiedBy",
               "LinkToAnotherRecord",

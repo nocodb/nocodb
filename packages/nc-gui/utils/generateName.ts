@@ -52,3 +52,7 @@ export const generateUniqueTitle = <T extends Record<string, any> = Record<strin
 export const generateRandomNumber = () => {
   return window.crypto.getRandomValues(new Uint8Array(10)).join('')
 }
+
+export const generateRandomUUID = () => {
+  return window.crypto.randomUUID()
+}

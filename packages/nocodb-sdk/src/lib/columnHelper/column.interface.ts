@@ -68,11 +68,8 @@ export default abstract class AbstractColumnHelper {
     return populateFillHandleStrictCopy(params);
   }
 
-  public getClipboardConfig(
-    value: SerializerOrParserFnProps['value'],
-    params: SerializerOrParserFnProps['params']
-  ) {
-    return getClipboardConfigForColumn({ value, col: params.col });
+  public getClipboardConfig(params: SerializerOrParserFnProps['params']) {
+    return getClipboardConfigForColumn({ col: params.col });
   }
 }
 
@@ -93,5 +90,24 @@ export interface SerializerOrParserFnProps {
     serializeSearchQuery?: boolean;
     t?: (key: string, params?: Record<string, any>) => string;
     isAggregation?: boolean;
+    clipboardItem?: NcClipboardItemType;
   };
 }
+
+export type NcClipboardDataType = Record<string, NcClipboardItemType>;
+
+export interface NcClipboardItemType {
+  /**
+   * Unique clipboard item id
+   */
+  id: string;
+  workspaceId: string;
+  tableId: string;
+  rowIds: string[];
+  copiedPlainText: string;
+  copiedHtml: string;
+  dbCellValue: any;
+  columns: Partial<ColumnType>[];
+}
+
+export interface NcClipboardItemForColumnType {}

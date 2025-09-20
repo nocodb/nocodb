@@ -179,13 +179,13 @@ export class ColumnHelperClass {
     return undefined;
   }
 
-  getClipboardConfig(value: any, params: SerializerOrParserFnProps['params']) {
+  getClipboardConfig(params: SerializerOrParserFnProps['params']) {
     const columnInstance = this.getColumn(params);
     if (columnInstance) {
-      return columnInstance.getClipboardConfig(value, params);
+      return columnInstance.getClipboardConfig(params);
     }
 
-    return getClipboardConfigForColumn({ value, col: params.col });
+    return getClipboardConfigForColumn({ col: params.col });
   }
 }
 

@@ -125,7 +125,7 @@ const { blockAddNewRecord, navigateToPricing, getPlanTitle, activePlan, isWsOwne
 
 const columns = computed(() => meta?.value?.columns || [])
 
-const isSidebarVisible = ref(false)
+const isSidebarVisible = ref(!ncIsPlaywright())
 
 const draggableRef = ref()
 

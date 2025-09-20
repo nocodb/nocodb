@@ -408,7 +408,7 @@ function getPaginatedResponseType(type: string) {
           $ref: `#/components/schemas/${type}`,
         },
       },
-      PageInfo: {
+      pageInfo: {
         $ref: `#/components/schemas/Paginated`,
       },
     },

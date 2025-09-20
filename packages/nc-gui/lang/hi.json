@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() का दूसरा पैरामीटर \"रविवार\", \"सोमवार\", \"मंगलवार\", \"बुधवार\", \"गुरूवार\", \"शुक्रवार\" या \"शनिवार\" में से होना चाहिए",
       "firstParamDateAddHaveDate": "DATEADD() का पहला पैरामीटर तारीख मूल्य होना चाहिए",
       "secondParamDateAddHaveNumber": "DATEADD() का दूसरा पैरामीटर सांख्यिक मूल्य होना चाहिए",
-      "thirdParamDateAddHaveDate": "DATEADD() का तीसरा पैरामीटर \"दिन\", \"सप्ताह\", \"माह\" या \"वर्ष\" होना चाहिए",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() का पहला पैरामीटर तारीख मूल्य होना चाहिए",
       "secondParamDateDiffHaveDate": "DATEDIFF() का दूसरा पैरामीटर तारीख मूल्य होना चाहिए",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() का तीसरा पैरामीटर \"मिलीसेकंड\", \"मिलीसेकंड\", \"सेकंड\", \"सेकंड\", \"मिनट\", \"मिनट\", \"घंटे\", \"घंटे\", \"दिन\", \"दिन\", \"सप्ताह\", \"सप्ताह\", \"माह\", \"माह\", \"त्रैमास\", \"त्रैमास\", \"वर्ष\", या \"वर्ष\" होना चाहिए",

@@ -85,7 +85,7 @@ export const serializeRange = (
   > = {
     columns: cols.map((col) => {
       return ColumnHelper.getClipboardConfig({
-        col: col,
+        col,
       }).column
     }),
     rowIds: [],

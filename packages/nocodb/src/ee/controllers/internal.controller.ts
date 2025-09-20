@@ -99,6 +99,7 @@ export class InternalController extends InternalControllerCE {
       dashboardShare: 'base',
       triggerAction: 'base',
       sendEmail: 'base',
+      integrationRemoteFetch: 'base',
     };
   }
 
@@ -391,6 +392,9 @@ export class InternalController extends InternalControllerCE {
           NcError.notFound('Operation');
         }
         return await this.mailService.sendMailRaw(payload);
+      case 'integrationRemoteFetch': {
+        return await this.integrationsService.remoteFetch(context, payload);
+      }
       default:
         return await super.internalAPIPost(
           context,

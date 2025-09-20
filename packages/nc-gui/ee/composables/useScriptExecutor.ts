@@ -347,13 +347,18 @@ export const useScriptExecutor = createSharedComposable(() => {
         break
       }
       case ScriptActionType.REMOTE_FETCH: {
-        api.workspace
-          .remoteFetch(activeWorkspace.value?.id, {
-            method: message.payload?.options?.method || 'GET',
-            headers: message.payload?.options?.headers || {},
-            body: message.payload?.options?.body || null,
-            url: message.payload.url,
-          })
+        api.internal
+          .postOperation(
+            activeWorkspace.value?.id,
+            activeProjectId.value,
+            { operation: 'integrationRemoteFetch' },
+            {
+              method: message.payload?.options?.method || 'GET',
+              headers: message.payload?.options?.headers || {},
+              body: message.payload?.options?.body || null,
+              url: message.payload.url,
+            },
+          )
           .then((response: any) => {
             const isError = response.error || (response.status >= 400 && response.status < 600)
 

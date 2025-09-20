@@ -11,7 +11,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
-import axios from 'axios';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { IntegrationsService } from '~/services/integrations.service';
@@ -19,7 +18,6 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { Integration } from '~/models';
-import { NcError } from '~/helpers/catchError';
 import { maskKnexConfig } from '~/helpers/responseHelpers';
 
 @Controller()
@@ -251,130 +249,5 @@ export class IntegrationsController {
       endpoint,
       payload: body,
     });
-  }
-
-  @Post(['/api/v2/workspaces/:workspaceId/remote-fetch'])
-  @Acl('integrationList', {
-    scope: 'workspace',
-    extendedScope: 'base',
-  })
-  async remoteFetch(
-    @Param('workspaceId') workspaceId: string,
-    @Body()
-    body: {
-      url: string;
-      method: string;
-      headers: Record<string, string>;
-      body: string;
-    },
-  ) {
-    const integrationConfigMap = new Map();
-
-    const getIntegrationConfig = async (integrationId, path) => {
-      let config;
-
-      if (!integrationConfigMap.has(integrationId)) {
-        const integration = await Integration.get(
-          {
-            workspace_id: workspaceId,
-          },
-          integrationId,
-        );
-
-        config = integration.getConfig();
-
-        if (!config) {
-          NcError.integrationNotFound(integrationId);
-        }
-
-        integrationConfigMap.set(integrationId, config);
-      } else {
-        config = integrationConfigMap.get(integrationId);
-      }
-
-      // get nested value
-      return path.split('.').reduce((o, i) => o[i], config);
-    };
-
-    const replaceWithConfig = async (str) => {
-      if (typeof str !== 'string') return str;
-      const matches = str.match(/{{(.*?)}}/g);
-      if (!matches) return str;
-
-      for (const match of matches) {
-        const fullPath = match.replace(/{{|}}/g, '');
-        const pathHelper = fullPath.split('.');
-        const integrationId = pathHelper.shift();
-        const path = pathHelper.join('.');
-        const config = await getIntegrationConfig(integrationId, path);
-
-        if (!config) {
-          NcError.badRequest('Requested config not found');
-        }
-
-        str = str.replace(match, config);
-      }
-
-      return str;
-    };
-
-    try {
-      const url = await replaceWithConfig(body.url);
-      const method = await replaceWithConfig(body.method);
-      // replace every value in headers
-      const headers = {};
-
-      for (const key in body.headers) {
-        headers[key] = await replaceWithConfig(body.headers[key]);
-      }
-
-      const reqBody = await replaceWithConfig(body.body);
-
-      const response = await axios({
-        url,
-        method,
-        headers,
-        data: reqBody,
-        validateStatus: () => true,
-      });
-
-      return {
-        data: response.data,
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-        config: {
-          url: response.config.url,
-          method: response.config.method,
-          headers: response.config.headers,
-          data: response.config.data,
-        },
-      };
-    } catch (e) {
-      const errorResponse = {
-        data: null,
-        status: e.response?.status || 0,
-        statusText: e.response?.statusText || 'Network Error',
-        headers: e.response?.headers || {},
-        config: {
-          url: e.config?.url || body.url,
-          method: e.config?.method || body.method,
-          headers: e.config?.headers || body.headers,
-          data: e.config?.data || body.body,
-        },
-        error: {
-          message: e.message,
-          code: e.code,
-          name: e.name,
-          stack: e.stack,
-        },
-      };
-
-      if (e.response?.data) {
-        errorResponse.data = e.response.data;
-      }
-
-      return errorResponse;
-    }
   }
 }

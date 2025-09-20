@@ -237,6 +237,8 @@ const permissionScopes = {
     // Actions
     'triggerAction',
 
+    'integrationRemoteFetch',
+
     // AI
     'aiUtils',
     'aiData',
@@ -524,6 +526,8 @@ const rolePermissions:
 
       hookTrigger: true,
       triggerAction: true,
+
+      integrationRemoteFetch: true,
 
       // Sync
       triggerSync: true,

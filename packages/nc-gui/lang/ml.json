@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() യുടെ രണ്ടാം പാരാമീറ്റർ \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" അല്ലെങ്കിൽ \"saturday\" തരത്തിൽ മൂല്യം ഉണ്ടായിരിക്കണം",
       "firstParamDateAddHaveDate": "DATEADD() യുടെ ആദ്യ പാരാമീറ്റർ തീയതി മൂല്യം ഉണ്ടായിരിക്കണം",
       "secondParamDateAddHaveNumber": "DATEADD() യുടെ രണ്ടാം പാരാമീറ്റർ സംഖ്യാത്മകമായ മൂല്യം ഉണ്ടായിരിക്കണം",
-      "thirdParamDateAddHaveDate": "DATEADD() യുടെ മൂന്നാം പാരാമീറ്റർ \"day\", \"week\", \"month\" അല്ലെങ്കിൽ \"year\" തരത്തിൽ മൂല്യം ഉണ്ടായിരിക്കണം",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() യുടെ ആദ്യ പാരാമീറ്റർ തീയതി മൂല്യം ഉണ്ടായിരിക്കണം",
       "secondParamDateDiffHaveDate": "DATEDIFF() യുടെ രണ്ടാം പാരാമീറ്റർ തീയതി മൂല്യം ഉണ്ടായിരിക്കണം",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() യുടെ മൂന്നാം പാരാമീറ്റർ \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", അല്ലെങ്കിൽ \"y\" തരത്തിൽ മൂല്യം ഉണ്ടായിരിക്കണം",

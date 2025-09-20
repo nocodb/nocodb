@@ -161,7 +161,7 @@ export default class NocoCache {
   ): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
     return this.client.appendToList(
-      scope,
+      `${this.prefix}:${cacheContext(context)}:${scope}`,
       subListKeys,
       `${this.prefix}:${cacheContext(context)}:${key}`,
     );

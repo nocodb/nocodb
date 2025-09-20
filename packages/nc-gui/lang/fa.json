@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "پارامتر دوم WEEKDAY() باید دارای یکی از مقادیر \"یکشنبه\"، \"دوشنبه\"، \"سه‌شنبه\"، \"چهارشنبه\"، \"پنج‌شنبه\"، \"جمعه\" یا \"شنبه\" باشد",
       "firstParamDateAddHaveDate": "اولین پارامتر DATEADD() باید یک مقدار تاریخ داشته باشد",
       "secondParamDateAddHaveNumber": "دومین پارامتر DATEADD() باید یک مقدار عددی داشته باشد",
-      "thirdParamDateAddHaveDate": "سومین پارامتر DATEADD() باید 'روز'، 'هفته'، 'ماه' یا 'سال' باشد",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "اولین پارامتر DATEDIFF() باید یک مقدار تاریخ داشته باشد",
       "secondParamDateDiffHaveDate": "دومین پارامتر DATEDIFF() باید یک مقدار تاریخ داشته باشد",
       "thirdParamDateDiffHaveDate": "سومین پارامتر DATETIME_DIFF() باید 'میلی‌ثانیه'، 'ثانیه'، 'دقیقه'، 'ساعت'، 'روز'، 'هفته'، 'ماه'، 'ربع'، 'سال' باشد",

@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "ប៉ារ៉ាម៉ែត្រ​ទីពីរនៃ WEEKDAY() គួរតែមានតម្លៃជា \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" ឬ \"saturday\"",
       "firstParamDateAddHaveDate": "ប៉ារ៉ាម៉ែត្រដំបូងនៃ DATEADD() គួរតែមានតម្លៃកាលបរិច្ឆេទ",
       "secondParamDateAddHaveNumber": "ប៉ារ៉ាម៉ែត្រទីពីរនៃ DATEADD() គួរតែមានតម្លៃចំនួនសំរាប់គណនា",
-      "thirdParamDateAddHaveDate": "ប៉ារ៉ាម៉ែត្រទីបីនៃ DATEADD() គួរតែមានតម្លៃជា \"day\", \"week\", \"month\" ឬ \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "ប៉ារ៉ាម៉ែត្រដំបូងនៃ DATEDIFF() គួរតែមានតម្លៃកាលបរិច្ឆេទ",
       "secondParamDateDiffHaveDate": "ប៉ារ៉ាម៉ែត្រទីពីរ​នៃ DATEDIFF() គួរតែមានតម្លៃ​កាលបរិច្ឆេទ",
       "thirdParamDateDiffHaveDate": "ប៉ារ៉ាម៉ែត្រទីបីនៃ DATETIME_DIFF() គួរតែមានតម្លៃ​ជា \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", ឬ \"y\"",

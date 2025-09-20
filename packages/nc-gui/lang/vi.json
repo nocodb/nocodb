@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Tham số thứ hai của WEEKDAY() nên có giá trị là \"chủ nhật\", \"thứ hai\", \"thứ ba\", \"thứ tư\", \"thứ năm\", \"thứ sáu\" hoặc \"thứ bảy\"",
       "firstParamDateAddHaveDate": "Tham số đầu tiên của DATEADD() nên có giá trị ngày tháng",
       "secondParamDateAddHaveNumber": "Tham số thứ hai của DATEADD() nên có giá trị số",
-      "thirdParamDateAddHaveDate": "Tham số thứ ba của DATEADD() nên có giá trị là \"ngày\", \"tuần\", \"tháng\" hoặc \"năm\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Tham số đầu tiên của DATEDIFF() nên có giá trị ngày tháng",
       "secondParamDateDiffHaveDate": "Tham số thứ hai của DATEDIFF() nên có giá trị ngày tháng",
       "thirdParamDateDiffHaveDate": "Tham số thứ ba của DATETIME_DIFF() nên có giá trị là \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", hoặc \"y\"",

@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "القواعد الخاصة متوفرة في خطة {plan}. قم بالترقية الآن للبدء في استخدامها.",
     "upgradeLicenseToUsePrivateBases": "الترقية لفتح القواعد الخاصة",
     "upgradeLicenseToUsePrivateBasesSubtitle": "القواعد الخاصة غير متوفرة في ترخيص Enterprise Starter. قم بترقية مفتاح الترخيص للبدء باستخدامها.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "يمكنك رفع {limit} {filePlural} بحد أقصى إلى هذه الخلية. قم بالترقية إلى خطة {plan} لإضافة المزيد من الملفات."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "يمكنك رفع {limit} {filePlural} بحد أقصى إلى هذه الخلية. قم بالترقية إلى خطة {plan} لإضافة المزيد من الملفات.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "سكريبت",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "توليد قيمة الحقل باستخدام الذكاء الاصطناعي",
     "preview": "معاينة",
     "autoSuggest": "اقتراح تلقائي",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "جارٍ الاقتراح...",
     "autoSuggestFields": "اقتراح الحقول تلقائيًا",
     "autoSuggestFormulas": "اقتراح الصيغ تلقائيًا",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "إضافة حقول البحث",
     "sourceVisibilityIsHidden": "رؤية مصدر البيانات مخفية",
     "youDontHavePermissionToEditThisField": "ليس لديك إذن لتعديل هذا الحقل",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "البحث عن الأيقونات",

@@ -442,7 +442,8 @@
     "record": "سابقه",
     "overview": "نمای کلی",
     "baseType": "نوع پایگاه",
-    "beta": "بتا"
+    "beta": "بتا",
+    "selected": "selected"
   },
   "objects": {
     "script": "اسکریپت",

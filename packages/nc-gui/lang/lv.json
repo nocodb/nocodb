@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Jauniniet, lai pievienotu neierobežotus tīmekļa āķus",
     "upgradeToAddWebhookSubtitle": "Plāns {activePlan} atļauj līdz {limit} tīmekļa āķiem. Jauniniet uz plānu {plan}, lai iegūtu piekļuvi neierobežotiem tīmekļa āķiem.",
     "upgradeToAccessWebhookLogsSubtitle": "Piekļūstiet tīmekļa āķu žurnāliem, jauninot savu darba telpu uz plānu {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Veidlapas īpašnieks informēts",
     "formOwnerNotifiedSubtitle": "Mēs esam informējuši veidlapas īpašnieku par Jūsu iesnieguma pieprasījumu.",
     "WorkspaceOwnerNotified": "Darba telpas īpašnieks informēts",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Bāzes dublēšana veiksmīga",
     "duplicateBaseFailed": "Neizdevās dublēt bāzi",
     "duplicateBaseMessage": "Bāzes varat dublēt tikai darbvietās, kurās jums ir vismaz veidotāja piekļuve.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Varat atjaunot tikai darbvietās, kurās jums ir vismaz veidotāja piekļuve.",
     "currentWorkspace": "Pašreizējā darbvieta",
     "currentBase": "Pašreizējā bāze",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Maksājums par jauninājumu ir apstrādāts. Tagad varat izmantot savu jauno plānu.",
       "mcpUrlCopied": "MCP URL nokopēts starpliktuvē",
       "nlookupFieldsCreatedSuccessfully": "{n} meklēšanas lauks veiksmīgi izveidots",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} meklēšanas lauki veiksmīgi izveidoti"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} meklēšanas lauki veiksmīgi izveidoti",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Sāciet no sākuma.",

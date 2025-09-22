@@ -442,7 +442,8 @@
     "record": "记录",
     "overview": "总览",
     "baseType": "基座类型",
-    "beta": "测试版"
+    "beta": "测试版",
+    "selected": "selected"
   },
   "objects": {
     "script": "脚本",

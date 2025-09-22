@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Nadogradite kako biste dodali neograničene web-hookove",
     "upgradeToAddWebhookSubtitle": "Plan {activePlan} omogućuje do {limit} web-hookova. Nadogradite na plan {plan} za pristup neograničenom broju web-hookova.",
     "upgradeToAccessWebhookLogsSubtitle": "Pristupite zapisima web-hookova nadogradnjom svog radnog prostora na plan {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Vlasnik obrasca obaviješten",
     "formOwnerNotifiedSubtitle": "Obavijestili smo vlasnika obrasca o vašem zahtjevu za predaju.",
     "WorkspaceOwnerNotified": "Vlasnik radnog prostora obaviješten",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Dupliciranje baze uspješno",
     "duplicateBaseFailed": "Dupliciranje baze nije uspjelo",
     "duplicateBaseMessage": "Baze možete duplicirati samo u radne prostore u kojima imate pristup razine kreatora ili viši.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Možete vratiti samo u radne prostore u kojima imate pristup razine kreatora ili viši.",
     "currentWorkspace": "Trenutni radni prostor",
     "currentBase": "Trenutna baza",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Plaćanje nadogradnje je obrađeno. Sada možete koristiti svoj novi plan.",
       "mcpUrlCopied": "MCP URL je kopiran u međuspremnik",
       "nlookupFieldsCreatedSuccessfully": "{n} lookup polje uspješno stvoreno",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} lookup polja uspješno stvorena"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} lookup polja uspješno stvorena",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Počni od nule.",

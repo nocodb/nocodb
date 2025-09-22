@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Оновіть тариф, щоб додати необмежену кількість вебхуків",
     "upgradeToAddWebhookSubtitle": "Тариф {activePlan} дозволяє до {limit} вебхуків. Перейдіть на тариф {plan}, щоб отримати необмежену кількість вебхуків.",
     "upgradeToAccessWebhookLogsSubtitle": "Отримайте доступ до журналів вебхуків, оновивши робочий простір до тарифу {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Оновіть свій план, щоб дублювати таблиці між різними робочими просторами.",
+    "upgradeToDuplicateTableToOtherBase": "Оновіть свій план, щоб дублювати таблиці між різними базами.",
     "formOwnerNotified": "Власника форми повідомлено",
     "formOwnerNotifiedSubtitle": "Ми повідомили власника форми про ваш запит на надсилання.",
     "WorkspaceOwnerNotified": "Власника робочого простору повідомлено",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Базу успішно продубльовано",
     "duplicateBaseFailed": "Не вдалося дублювати базу",
     "duplicateBaseMessage": "Ви можете дублювати бази лише у робочі простори, де маєте права творця або вище.",
+    "duplicateTableMessage": "Ви можете дублювати таблиці лише в ті бази, у яких маєте права власника або вище.",
     "snapshotBaseRestoreMessage": "Ви можете відновлювати бази лише у робочі простори, де маєте права творця або вище.",
     "currentWorkspace": "Поточний робочий простір",
     "currentBase": "Поточна база",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Ваш платіж за оновлення оброблено. Тепер ви можете користуватися новим тарифом.",
       "mcpUrlCopied": "URL MCP скопійовано в буфер обміну",
       "nlookupFieldsCreatedSuccessfully": "{n} поле для пошуку успішно створено",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} поля для пошуку успішно створено"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} поля для пошуку успішно створено",
+      "tableDuplicatedInOtherBase": "Таблицю успішно продубльовано в іншій базі. Відкрийте вказану базу, щоб переглянути її."
     },
     "subText": {
       "startFromScratch": "Почати з нуля.",

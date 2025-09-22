@@ -179,7 +179,9 @@
     "upgradeLicenseToUsePrivateBasesSubtitle": "Privatne baze nisu dostupne uz Enterprise Starter licencu. Nadogradite ključ licence kako biste ih mogli koristiti.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Možete prenijeti najviše {limit} {filePlural} u ovu ćeliju. Nadogradite na plan {plan} kako biste dodali više datoteka.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Skripta",
@@ -2425,7 +2427,8 @@
       "failedToCreateLookupFields": "Neuspjelo stvaranje lookup polja",
       "invalidSearchQuery": "Nevažeći upit za pretragu",
       "invalidSearchQueryForVisibleFields": "Nevažeći upit za pretragu vidljivih polja",
-      "invalidSearchQueryForDisplayField": "Nevažeći upit za pretragu prikaznog polja"
+      "invalidSearchQueryForDisplayField": "Nevažeći upit za pretragu prikaznog polja",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Projektni metapodaci su uspješno izvozili",

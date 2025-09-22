@@ -2428,7 +2428,7 @@
       "invalidSearchQuery": "Consulta de pesquisa inválida",
       "invalidSearchQueryForVisibleFields": "Consulta de pesquisa inválida para campos visíveis",
       "invalidSearchQueryForDisplayField": "Consulta de pesquisa inválida para campo de exibição",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "O prompt excluiu a(s) coluna(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Metadados do projeto exportado com sucesso",
@@ -2503,7 +2503,7 @@
       "mcpUrlCopied": "URL MCP copiada para a área de transferência",
       "nlookupFieldsCreatedSuccessfully": "{n} Campo de busca criado com sucesso",
       "nlookupFieldsCreatedSuccessfullyPlural": "{n} Campos de busca criados com sucesso",
-      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
+      "tableDuplicatedInOtherBase": "A tabela foi duplicada com sucesso em outra base. Abra a base especificada para visualizá-la."
     },
     "subText": {
       "startFromScratch": "Começar do zero.",

@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Faça upgrade para adicionar webhooks ilimitados",
     "upgradeToAddWebhookSubtitle": "O plano {activePlan} permite até {limit} webhooks. Faça upgrade para o plano {plan} e tenha acesso a webhooks ilimitados.",
     "upgradeToAccessWebhookLogsSubtitle": "Acesse logs de webhooks fazendo upgrade do seu espaço de trabalho para o plano {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Proprietário do formulário notificado",
     "formOwnerNotifiedSubtitle": "Notificamos o proprietário do formulário sobre sua solicitação de envio.",
     "WorkspaceOwnerNotified": "Proprietário do espaço de trabalho notificado",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Duplicação da Base Concluída com Sucesso",
     "duplicateBaseFailed": "Falha na duplicação da base",
     "duplicateBaseMessage": "Você só pode duplicar bases em espaços de trabalho onde você tem acesso de criador ou superior.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Você só pode restaurar em espaços de trabalho onde você tem acesso de criador ou superior.",
     "currentWorkspace": "Espaço de trabalho atual",
     "currentBase": "Base atual",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Seu pagamento pelo upgrade foi processado. Você já pode usar seu novo plano.",
       "mcpUrlCopied": "URL MCP copiada para a área de transferência",
       "nlookupFieldsCreatedSuccessfully": "{n} Campo de busca criado com sucesso",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Campos de busca criados com sucesso"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Campos de busca criados com sucesso",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Começar do zero.",

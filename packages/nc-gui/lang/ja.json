@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "プライベートベースは{plan}プランで利用可能です。今すぐアップグレードしてご利用ください。",
     "upgradeLicenseToUsePrivateBases": "プライベートベースを利用するにはライセンスをアップグレードしてください",
     "upgradeLicenseToUsePrivateBasesSubtitle": "プライベートベースはエンタープライズスターターライセンスでは利用できません。利用を開始するにはライセンスキーをアップグレードしてください。",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "このセルには最大で{limit}件の{filePlural}のみアップロードできます。さらにファイルを追加するには{plan}プランにアップグレードしてください。"
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "このセルには最大で{limit}件の{filePlural}のみアップロードできます。さらにファイルを追加するには{plan}プランにアップグレードしてください。",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "スクリプト",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "AIを使用してフィールド値を生成",
     "preview": "プレビュー",
     "autoSuggest": "オートサジェスト",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "提案中…",
     "autoSuggestFields": "自動提案フィールド",
     "autoSuggestFormulas": "自動提案式の数式",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "ルックアップフィールドを追加",
     "sourceVisibilityIsHidden": "データソースの表示は非表示です",
     "youDontHavePermissionToEditThisField": "このフィールドを編集する権限がありません",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "アイコンを検索",

@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Le second paramètre de WEEKDAY() doit avoir la valeur \"dimanche\", \"lundi\", \"mardi\", \"mercredi\", \"jeudi\", \"vendredi\" ou \"samedi\"",
       "firstParamDateAddHaveDate": "Le premier paramètre de la fonction WEEKDAY() doit avoir une valeur de type date",
       "secondParamDateAddHaveNumber": "Le deuxième paramètre de la fonction DATEADD() doit avoir une valeur numérique",
-      "thirdParamDateAddHaveDate": "Le troisième paramètre de DATEADD() doit avoir la valeur \"day\", \"week\", \"month\" ou \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Le premier paramètre de la fonction DATEDIFF() doit avoir une valeur de type date",
       "secondParamDateDiffHaveDate": "Le second paramètre de la fonction DATEDIFF() doit avoir une valeur de type date",
       "thirdParamDateDiffHaveDate": "Le troisième paramètre de la fonction DATETIME_DIFF() doit avoir la valeur \"millisecondes\", \"ms\", \"secondes\", \"s\", \"s\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", ou \"y\"",

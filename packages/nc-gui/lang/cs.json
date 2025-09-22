@@ -442,7 +442,8 @@
     "record": "Záznam",
     "overview": "Přehled",
     "baseType": "Typ databáze",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Skript",

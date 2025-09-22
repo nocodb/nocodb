@@ -1037,7 +1037,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                   leave-from-class="opacity-0"
                   leave-to-class="opacity-0"
                 >
-                  <div v-show="!isSidebarVisible" class="absolute top-4 right-4 z-550">
+                  <div v-show="!isSidebarVisible" class="absolute top-4 right-4 z-499">
                     <NcTooltip placement="topRight" class="nc-sidebar-toggle-btn">
                       <template #title> {{ $t('activity.toggleSidebar') }}</template>
                       <NcButton icon-only size="small" type="secondary" @click.stop="isSidebarVisible = true">

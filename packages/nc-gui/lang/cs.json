@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Upgradujte pro neomezený počet webhooků",
     "upgradeToAddWebhookSubtitle": "Tarif {activePlan} umožňuje maximálně {limit} webhooků. Přejděte na tarif {plan} a získejte neomezený počet webhooků.",
     "upgradeToAccessWebhookLogsSubtitle": "Přístup k protokolům webhooků získáte upgradem pracovního prostoru na tarif {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Vlastník formuláře byl upozorněn",
     "formOwnerNotifiedSubtitle": "O vašem požadavku na odeslání jsme informovali vlastníka formuláře.",
     "WorkspaceOwnerNotified": "Vlastník pracovního prostoru byl upozorněn",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Duplikace databáze byla úspěšná",
     "duplicateBaseFailed": "Duplikace databáze se nezdařila",
     "duplicateBaseMessage": "Databáze můžete duplikovat pouze do pracovních prostorů, kde máte oprávnění tvůrce nebo vyšší.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Obnovovat lze pouze do pracovních prostorů, kde máte oprávnění tvůrce nebo vyšší.",
     "currentWorkspace": "Aktuální pracovní prostor",
     "currentBase": "Aktuální databáze",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Platba za upgrade byla zpracována. Nyní můžete využívat svůj nový tarif.",
       "mcpUrlCopied": "URL Adresa MCP zkopírovaná do schránky",
       "nlookupFieldsCreatedSuccessfully": "{n} pole pro vyhledávání bylo úspěšně vytvořeno",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} pole pro vyhledávání byla úspěšně vytvořena"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} pole pro vyhledávání byla úspěšně vytvořena",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Začněte od začátku.",

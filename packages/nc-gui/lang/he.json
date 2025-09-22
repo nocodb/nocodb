@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "שדרג כדי להוסיף Webhooks ללא הגבלה",
     "upgradeToAddWebhookSubtitle": "תוכנית {activePlan} מאפשרת עד ‎{limit}‎ Webhooks. שדרג לתוכנית {plan} כדי לקבל Webhooks ללא הגבלה.",
     "upgradeToAccessWebhookLogsSubtitle": "קבל גישה ליומני Webhook על-ידי שדרוג סביבת העבודה לתוכנית {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "בעל הטופס קיבל הודעה",
     "formOwnerNotifiedSubtitle": "הודענו לבעל הטופס על בקשת ההגשה שלך.",
     "WorkspaceOwnerNotified": "בעל סביבת העבודה קיבל הודעה",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "שכפול הבסיס הצליח",
     "duplicateBaseFailed": "שכפול הבסיס נכשל",
     "duplicateBaseMessage": "ניתן לשכפל בסיסים רק לסביבות עבודה שבהן יש לך גישת יוצר ומעלה.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "ניתן לשחזר רק לסביבות עבודה שבהן יש לך גישת יוצר ומעלה.",
     "currentWorkspace": "סביבת עבודה נוכחית",
     "currentBase": "בסיס נוכחי",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "התשלום עבור השדרוג עבר עיבוד. כעת באפשרותך להשתמש בתוכנית החדשה.",
       "mcpUrlCopied": "כתובת MCP הועתקה ללוח",
       "nlookupFieldsCreatedSuccessfully": "{n} שדה חיפוש נוצר בהצלחה",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} שדות חיפוש נוצרו בהצלחה"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} שדות חיפוש נוצרו בהצלחה",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "התחל מאפס.",

@@ -102,5 +102,6 @@ export function useColumnReorder(
     isDragging,
     dragStart,
     startDrag,
+    findColumnAtPosition,
   }
 }

@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Drugi parameter WEEKDAY() mora imeti vrednost \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" ali \"saturday\"",
       "firstParamDateAddHaveDate": "Prvi parameter DATEADD() mora imeti datumsko vrednost",
       "secondParamDateAddHaveNumber": "Drugi parameter DATEADD() mora imeti numerično vrednost",
-      "thirdParamDateAddHaveDate": "Tretji parameter DATEADD() mora imeti vrednost \"day\", \"week\", \"month\" ali \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Prvi parameter DATEDIFF() mora imeti datumsko vrednost",
       "secondParamDateDiffHaveDate": "Drugi parameter DATEDIFF() mora imeti datumsko vrednost",
       "thirdParamDateDiffHaveDate": "Tretji parameter DATETIME_DIFF() mora imeti vrednost bodisi \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", ali \"y\"",

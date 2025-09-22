@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() 的第二個參數應該是 \"sunday\"、\"monday\"、\"tuesday\"、\"wednesday\"、\"thursday\"、\"friday\" 或 \"saturday\"",
       "firstParamDateAddHaveDate": "DATEADD() 的第一個參數應該是日期值",
       "secondParamDateAddHaveNumber": "DATEADD() 的第二個參數應該是數值",
-      "thirdParamDateAddHaveDate": "DATEADD() 的第三個參數應該是 \"day\"、\"week\"、\"month\" 或 \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() 的第一個參數應該是日期值",
       "secondParamDateDiffHaveDate": "DATEDIFF() 的第二個參數應該是日期值",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() 的第三個參數應該是 \"milliseconds\"、\"ms\"、\"seconds\"、\"s\"、\"minutes\"、\"m\"、\"hours\"、\"h\"、\"days\"、\"d\"、\"weeks\"、\"w\"、\"months\"、\"M\"、\"quarters\"、\"Q\"、\"years\"、\"y\" 中的一個值",

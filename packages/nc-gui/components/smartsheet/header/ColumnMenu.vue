@@ -524,7 +524,7 @@ const onDeleteColumn = () => {
     }"
   >
     <NcMenuItemCopyId
-      v-if="column"
+      v-show="column"
       :id="column.id!"
       data-testid="nc-field-item-action-copy-id"
       :tooltip="$t('msg.clickToCopyFieldId')"
@@ -537,7 +537,7 @@ const onDeleteColumn = () => {
 
     <NcDivider />
     <GeneralSourceRestrictionTooltip
-      v-if="isUIAllowed('fieldAlter')"
+      v-show="isUIAllowed('fieldAlter')"
       message="Field properties cannot be edited."
       :enabled="!isColumnEditAllowed"
       :is-sql-view="isSqlView"
@@ -556,7 +556,7 @@ const onDeleteColumn = () => {
     </GeneralSourceRestrictionTooltip>
     <template v-if="!isExpandedForm">
       <GeneralSourceRestrictionTooltip
-        v-if="!column?.pk"
+        v-show="!column?.pk"
         message="Field cannot be duplicated."
         :enabled="!isDuplicateAllowed && isMetaReadOnly"
         :is-sql-view="isSqlView"
@@ -570,7 +570,7 @@ const onDeleteColumn = () => {
         </NcMenuItem>
       </GeneralSourceRestrictionTooltip>
       <GeneralSourceRestrictionTooltip
-        v-if="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
+        v-show="isUIAllowed('duplicateColumn') && isExpandedForm && !column?.pk"
         message="Field cannot be duplicated."
         :enabled="!isDuplicateAllowed"
       >
@@ -585,7 +585,7 @@ const onDeleteColumn = () => {
     </template>
 
     <NcMenuItem
-      v-if="isUIAllowed('fieldAlter') && !!column?.pv"
+      v-show="isUIAllowed('fieldAlter') && !!column?.pv"
       title="Select a new field as display value"
       @click="changeTitleField"
     >
@@ -595,7 +595,7 @@ const onDeleteColumn = () => {
       </div>
     </NcMenuItem>
     <NcMenuItem
-      v-if="isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
+      v-show="isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
       title="Add field description"
       @click="onEditPress($event, true)"
     >
@@ -606,7 +606,7 @@ const onDeleteColumn = () => {
     </NcMenuItem>
 
     <NcTooltip
-      v-if="
+      v-show="
         isTableAndFieldPermissionsEnabled &&
         isEeUI &&
         isUIAllowed('fieldAlter') &&
@@ -659,7 +659,7 @@ const onDeleteColumn = () => {
     </NcTooltip>
 
     <NcMenuItem
-      v-if="canUseForLookupLinkField(column, meta?.source_id)"
+      v-show="canUseForLookupLinkField(column, meta?.source_id)"
       :disabled="isSqlView"
       @click="openLookupOrRollupMenuDialog(UITypes.Lookup)"
     >
@@ -678,7 +678,7 @@ const onDeleteColumn = () => {
       </div>
     </NcMenuItem>
     <NcMenuItem
-      v-if="canUseForRollupLinkField(column)"
+      v-show="canUseForRollupLinkField(column)"
       :disabled="isSqlView"
       @click="openLookupOrRollupMenuDialog(UITypes.Rollup)"
     >
@@ -697,8 +697,8 @@ const onDeleteColumn = () => {
       </div>
     </NcMenuItem>
     <NcDivider v-if="isUIAllowed('fieldAlter') && !column?.pv" />
-    <NcMenuItem v-if="!column?.pv" :disabled="isLocked" @click="hideOrShowField">
-      <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
+    <NcMenuItem v-show="!column?.pv" :disabled="isLocked" @click="hideOrShowField">
+      <div v-e="['a:field:hide']" class="nc-column-hide-or-show nc-header-menu-item">
         <GeneralLoader v-if="isLoading === 'hideOrShow'" size="regular" />
         <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" v-else class="!w-4 !h-4 opacity-80" />
         <!-- Hide Field -->
@@ -706,7 +706,7 @@ const onDeleteColumn = () => {
       </div>
     </NcMenuItem>
     <NcTooltip
-      v-if="column && !column?.pv && !isHiddenCol && (!virtual || column.uidt === UITypes.Formula)"
+      v-show="column && !column?.pv && !isHiddenCol && (!virtual || column.uidt === UITypes.Formula)"
       :disabled="isSupportedDisplayValueColumn(column)"
       placement="right"
     >
@@ -749,7 +749,7 @@ const onDeleteColumn = () => {
             {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
           </template>
           <NcMenuItem :disabled="isLocked || !isSortSupported" @click="sortByColumn('desc')">
-            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
+            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-header-menu-item">
               <!-- Sort Descending -->
               <component :is="iconMap.sortDesc" class="opacity-80 !w-4.25 !h-4.25" />
               {{ $t('general.sortDesc').trim() }}
@@ -818,7 +818,7 @@ const onDeleteColumn = () => {
             {{ t('general.insertAfter') }}
           </div>
         </NcMenuItem>
-        <NcMenuItem v-if="!column?.pv" @click="onInsertBefore">
+        <NcMenuItem v-show="!column?.pv" @click="onInsertBefore">
           <div v-e="['a:field:insert:before']" class="nc-column-insert-before nc-header-menu-item">
             <component :is="iconMap.colInsertBefore" class="opacity-80 w-4 h-4" />
             <!-- Insert Before -->
@@ -829,7 +829,7 @@ const onDeleteColumn = () => {
     </template>
     <NcDivider v-if="!column?.pv" />
     <GeneralSourceRestrictionTooltip
-      v-if="!column?.pv && isUIAllowed('fieldDelete')"
+      v-show="!column?.pv && isUIAllowed('fieldDelete')"
       message="Field cannot be deleted."
       :enabled="!isColumnUpdateAllowed"
       :is-sql-view="isSqlView"

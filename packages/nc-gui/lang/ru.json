@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Второй параметр WEEKDAY() должен иметь значение \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" или \"saturday\"",
       "firstParamDateAddHaveDate": "Первый параметр DATEADD() должен иметь значение типа \"дата\"",
       "secondParamDateAddHaveNumber": "Второй параметр DATEADD() должен быть числовым",
-      "thirdParamDateAddHaveDate": "Третий параметр DATEADD() должен иметь значение \"day\", \"week\", \"month\" или \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Первый параметр DATEDIFF() должен иметь значение типа \"дата\"",
       "secondParamDateDiffHaveDate": "Второй параметр DATEDIFF() должен иметь значение типа \"дата\"",
       "thirdParamDateDiffHaveDate": "Третий параметр DATETIME_DIFF() должен иметь значение \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\" или \"y\"",

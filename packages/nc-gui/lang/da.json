@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Opgrader for at tilføje ubegrænsede webhooks",
     "upgradeToAddWebhookSubtitle": "{activePlan}-planen giver op til {limit} webhooks. Opgrader til {plan}-planen for at få ubegrænsede webhooks.",
     "upgradeToAccessWebhookLogsSubtitle": "Få adgang til webhook-logfiler ved at opgradere dit arbejdsområde til {plan}-planen.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Formularejer underrettet",
     "formOwnerNotifiedSubtitle": "Vi har underrettet formularejeren om din anmodning om indsendelse.",
     "WorkspaceOwnerNotified": "Arbejdsområdeejer underrettet",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Base duplikeret",
     "duplicateBaseFailed": "Dupletering af base mislykkedes",
     "duplicateBaseMessage": "Du kan kun duplikere baser til arbejdsområder, hvor du har skaberrettigheder eller højere.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Du kan kun gendanne til arbejdsområder, hvor du har skaberrettigheder eller højere.",
     "currentWorkspace": "Nuværende arbejdsområde",
     "currentBase": "Nuværende base",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Din betaling for opgraderingen er blevet behandlet. Du kan nu bruge din nye plan.",
       "mcpUrlCopied": "MCP-URL kopieret til udklipsholder",
       "nlookupFieldsCreatedSuccessfully": "{n} opslagfelt oprettet succesfuldt",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} opslagfelter oprettet succesfuldt"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} opslagfelter oprettet succesfuldt",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Start fra bunden.",

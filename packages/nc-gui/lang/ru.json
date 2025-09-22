@@ -442,7 +442,8 @@
     "record": "Запись",
     "overview": "Обзор",
     "baseType": "Тип базы",
-    "beta": "Бета"
+    "beta": "Бета",
+    "selected": "selected"
   },
   "objects": {
     "script": "Скрипт",
@@ -2447,7 +2448,9 @@
       "collabView": "Выполнен переход в режим совместного просмотра",
       "lockedView": "Выполнен переход в заблокированный режим просмотра",
       "futureRelease": "Скоро!",
-      "notAllowedToChangeDefaultView": "Изменение представления по умолчанию запрещено."
+      "notAllowedToChangeDefaultView": "Изменение представления по умолчанию запрещено.",
+      "nCellCopied": "{n} Ячейка скопирована",
+      "nCellsCopied": "{n} Ячейки скопирована"
     },
     "success": {
       "mcpTokenDeleted": "Токен MCP удалён",

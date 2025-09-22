@@ -84,6 +84,7 @@ const up = async (knex: Knex) => {
     [MetaTable.SYNC_SOURCE]: ['base_id', 'id'],
     [MetaTable.VIEWS]: ['base_id', 'id'],
     [MetaTable.WIDGETS]: ['base_id', 'id'],
+    [MetaTable.MODEL_STAT]: ['fk_workspace_id', 'base_id', 'fk_model_id'],
   };
 
   const customPkTitles = {
@@ -255,6 +256,7 @@ const down = async (knex: Knex) => {
     [MetaTable.SYNC_SOURCE]: ['id'],
     [MetaTable.VIEWS]: ['id'],
     [MetaTable.WIDGETS]: ['id'],
+    [MetaTable.MODEL_STAT]: ['fk_workspace_id', 'fk_model_id'],
   };
 
   const customPkTitles = {

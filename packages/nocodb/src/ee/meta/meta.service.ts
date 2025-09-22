@@ -5,7 +5,13 @@ import { v7 as uuidv7 } from 'uuid';
 import type { Condition, Knex } from '~/db/CustomKnex';
 import XcMigrationSourcev3 from '~/meta/migrations/XcMigrationSourcev3';
 import { NcConfig } from '~/utils/nc-config';
-import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
+import {
+  BaseRelatedMetaTables,
+  BaseVersion,
+  MetaTable,
+  RootScopes,
+  RootScopeTables,
+} from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import { isWorker } from '~/utils';
 
@@ -485,7 +491,15 @@ export class MetaService extends MetaServiceCE {
     }
 
     if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
-      // bypass
+      // bypass is only allowed for v2 bases, so lets join the base table to ensure the base is v2
+      if (BaseRelatedMetaTables.includes(target as MetaTable)) {
+        query.whereExists(function () {
+          this.select(1)
+            .from(`${MetaTable.PROJECT} as p`)
+            .whereRaw('p.id = base_id')
+            .andWhere('p.version', BaseVersion.V2);
+        });
+      }
     } else if (workspace_id === base_id) {
       if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
         NcError.metaError({

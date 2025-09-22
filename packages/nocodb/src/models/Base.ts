@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import type { BaseType, BoolType, MetaType } from 'nocodb-sdk';
-import type { DB_TYPES } from '~/utils/globals';
+import type { BaseVersion, DB_TYPES } from '~/utils/globals';
 import type { NcContext } from '~/interface/config';
 import {
   BaseUser,
@@ -45,6 +45,7 @@ export default class Base implements BaseType {
   public linked_db_projects?: Base[];
   public default_role?: 'no-access';
   public is_snapshot?: boolean;
+  public version?: BaseVersion;
 
   // shared base props
   uuid?: string;

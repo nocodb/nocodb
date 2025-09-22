@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Upgrade om onbeperkte webhooks toe te voegen",
     "upgradeToAddWebhookSubtitle": "Het {activePlan}-abonnement ondersteunt maximaal {limit} webhooks. Upgrade naar het {plan}-abonnement voor onbeperkte webhooks.",
     "upgradeToAccessWebhookLogsSubtitle": "Krijg toegang tot webhooklogboeken door uw werkruimte te upgraden naar het {plan}-abonnement.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Formuliereigenaar geïnformeerd",
     "formOwnerNotifiedSubtitle": "We hebben de formuliereigenaar op de hoogte gebracht van uw verzoek om in te dienen.",
     "WorkspaceOwnerNotified": "Werkruimte-eigenaar geïnformeerd",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Base succesvol gedupliceerd",
     "duplicateBaseFailed": "Base dupliceren mislukt",
     "duplicateBaseMessage": "U kunt bases alleen dupliceren naar werkruimtes waarin u makerstoegang of hoger heeft.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "U kunt alleen herstellen naar werkruimtes waarin u makerstoegang of hoger heeft.",
     "currentWorkspace": "Huidige werkruimte",
     "currentBase": "Huidige basis",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Uw betaling voor de upgrade is verwerkt. U kunt nu uw nieuwe abonnement gebruiken.",
       "mcpUrlCopied": "MCP-URL gekopieerd naar klembord",
       "nlookupFieldsCreatedSuccessfully": "{n} Lookup-veld succesvol aangemaakt",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup-velden succesvol aangemaakt"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup-velden succesvol aangemaakt",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Begin helemaal opnieuw.",

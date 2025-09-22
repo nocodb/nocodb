@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() funtzioaren bigarren parametroak \"igandea\", \"astelehena\", \"asteartea\", \"asteazkena\", \"osteguna\", \"ostirala\" edo \"larunbata\" balioa izan behar du",
       "firstParamDateAddHaveDate": "DATEADD() funtzioaren lehen parametroak data balioa izan behar du",
       "secondParamDateAddHaveNumber": "DATEADD() funtzioaren bigarren parametroak balio zenbakia izan behar du",
-      "thirdParamDateAddHaveDate": "DATEADD() funtzioaren hirugarren parametroak \"eguna\", \"astea\", \"hilabetea\" edo \"urtea\" balioa izan behar du",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() funtzioaren lehen parametroak data balioa izan behar du",
       "secondParamDateDiffHaveDate": "DATEDIFF() funtzioaren bigarren parametroak data balioa izan behar du",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() funtzioaren hirugarren parametroak balio izan behar du: \"milisegundoak\", \"ms\", \"segundoak\", \"s\", \"minutuak\", \"m\", \"orduak\", \"h\", \"egunak\", \"d\", \"asteak\", \"w\", \"hilabeteak\", \"M\", \"hiruhilekoak\", \"Q\", \"urteak\", edo \"y\"",

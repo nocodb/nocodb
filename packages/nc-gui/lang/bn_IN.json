@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "আনলিমিটেড ওয়েবহুক যোগ করতে আপগ্রেড করুন",
     "upgradeToAddWebhookSubtitle": "{activePlan} প্ল্যানে সর্বোচ্চ {limit}টি ওয়েবহুক অনুমোদিত। আনলিমিটেড ওয়েবহুকের জন্য {plan} প্ল্যানে আপগ্রেড করুন।",
     "upgradeToAccessWebhookLogsSubtitle": "আপনার ওয়ার্কস্পেসকে {plan} প্ল্যানে আপগ্রেড করে ওয়েবহুক লগ অ্যাক্সেস করুন।",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "ফর্মের মালিককে জানানো হয়েছে",
     "formOwnerNotifiedSubtitle": "আপনার জমা অনুরোধ সম্পর্কে ফর্মের মালিককে জানানো হয়েছে।",
     "WorkspaceOwnerNotified": "ওয়ার্কস্পেস মালিককে জানানো হয়েছে",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "{plan} প্ল্যানে প্রাইভেট বেস উপলব্ধ। এখনই আপগ্রেড করুন এবং ব্যবহার শুরু করুন।",
     "upgradeLicenseToUsePrivateBases": "লাইসেন্স আপগ্রেড করুন এবং প্রাইভেট বেস আনলক করুন",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Enterprise Starter লাইসেন্সে প্রাইভেট বেস উপলব্ধ নয়। ব্যবহার শুরু করতে লাইসেন্স আপগ্রেড করুন।",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "আপনি এই সেলে সর্বাধিক {limit}টি {filePlural} আপলোড করতে পারবেন। আরও ফাইল যোগ করতে {plan} প্ল্যানে আপগ্রেড করুন।"
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "আপনি এই সেলে সর্বাধিক {limit}টি {filePlural} আপলোড করতে পারবেন। আরও ফাইল যোগ করতে {plan} প্ল্যানে আপগ্রেড করুন।",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "স্ক্রিপ্ট",
@@ -196,6 +202,8 @@
     "trigger": "ট্রিগার",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "{count} লুকআপ ফিল্ড যোগ করুন",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "স্টাইল",
     "label": "লেবেল",
     "role": "ভূমিকা",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "বেস ডুপ্লিকেশন সফল",
     "duplicateBaseFailed": "বেস ডুপ্লিকেশন ব্যর্থ",
     "duplicateBaseMessage": "আপনি শুধু সেই ওয়ার্কস্পেসে বেস ডুপ্লিকেট করতে পারেন যেখানে আপনার ক্রিয়েটর অথবা তার উপরের অনুমতি রয়েছে।",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "আপনি শুধুমাত্র সেই ওয়ার্কস্পেসে রিস্টোর করতে পারেন যেখানে আপনার ক্রিয়েটর অথবা তার উপরের অনুমতি রয়েছে।",
     "currentWorkspace": "বর্তমান ওয়ার্কস্পেস",
     "currentBase": "বর্তমান বেস",
@@ -1024,6 +1033,8 @@
     "clearAll": "সব স্পষ্ট",
     "addNewLookupHelperText1": "লুকআপ ক্ষেত্রগুলি লিঙ্ক করা রেকর্ড থেকে ডেটা দেখায়। থেকে নির্দিষ্ট ক্ষেত্রগুলি নির্বাচন করুন ",
     "addNewLookupHelperText2": " এই টেবিলে তাদের লুকআপ ক্ষেত্র হিসেবে যোগ করার জন্য টেবিল।",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "ফরম্যাটিং",
     "selectAFormatType": "- -একটি ফরম্যাট টাইপ নির্বাচন করুন (ঐচ্ছিক)- -",
     "formatType": "ফরম্যাট প্রকার",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "AI ব্যবহার করে ফিল্ড ভ্যালু জেনারেট করুন",
     "preview": "পূর্বরূপ",
     "autoSuggest": "স্বয়ংক্রিয় পরামর্শ",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "পরামর্শ দিচ্ছে...",
     "autoSuggestFields": "স্বয়ংক্রিয়ভাবে ফিল্ড সাজেস্ট করুন",
     "autoSuggestFormulas": "স্বয়ংক্রিয়ভাবে সূত্র সাজেস্ট করুন",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "লুকআপ ফিল্ডগুলি যোগ করুন",
     "sourceVisibilityIsHidden": "ডেটা সোর্স ভিজিবিলিটি হিডেন",
     "youDontHavePermissionToEditThisField": "এই ফিল্ড সম্পাদনা করার অনুমতি আপনার নেই",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "আইকন অনুসন্ধান করুন",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() ফাংশনের দ্বিতীয় প্যারামিটারটি \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" অথবা \"saturday\" মান হতে হবে",
       "firstParamDateAddHaveDate": "DATEADD() ফাংশনের প্রথম প্যারামিটারটি তারিখের মান হতে হবে",
       "secondParamDateAddHaveNumber": "DATEADD() ফাংশনের দ্বিতীয় প্যারামিটারটি সংখ্যাগত মান হতে হবে",
-      "thirdParamDateAddHaveDate": "DATEADD() ফাংশনের তৃতীয় প্যারামিটারটি \"day\", \"week\", \"month\" অথবা \"year\" মান হতে হবে",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() ফাংশনের প্রথম প্যারামিটারটি তারিখের মান হতে হবে",
       "secondParamDateDiffHaveDate": "DATEDIFF() ফাংশনের দ্বিতীয় প্যারামিটারটি তারিখের মান হতে হবে",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() এর তৃতীয় প্যারামিটারের মান হওয়া উচিত হয় \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", অথবা \"y\"",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "লুকআপ ফিল্ড তৈরি করতে ব্যর্থ",
       "invalidSearchQuery": "অবৈধ সার্চ কোয়েরি",
       "invalidSearchQueryForVisibleFields": "দৃশ্যমান ফিল্ডের জন্য অবৈধ সার্চ কোয়েরি",
-      "invalidSearchQueryForDisplayField": "ডিসপ্লে ফিল্ডের জন্য অবৈধ সার্চ কোয়েরি"
+      "invalidSearchQueryForDisplayField": "ডিসপ্লে ফিল্ডের জন্য অবৈধ সার্চ কোয়েরি",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "প্রকল্প মেটাডেটা সফলভাবে রফতানি করেছে",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "আপগ্রেডের জন্য আপনার পেমেন্ট প্রক্রিয়াকরণ সম্পন্ন হয়েছে। এখন আপনি আপনার নতুন প্ল্যান ব্যবহার করতে পারেন।",
       "mcpUrlCopied": "MCP URL ক্লিপবোর্ডে অনুলিপি করা হয়েছে",
       "nlookupFieldsCreatedSuccessfully": "{n}টি লুকআপ ফিল্ড সফলভাবে তৈরি হয়েছে",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n}টি লুকআপ ফিল্ড সফলভাবে তৈরি হয়েছে"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n}টি লুকআপ ফিল্ড সফলভাবে তৈরি হয়েছে",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "শূন্য থেকে শুরু করুন।",

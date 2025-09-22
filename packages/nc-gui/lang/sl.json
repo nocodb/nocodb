@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Nadgradite za dodajanje neomejenih webhookov",
     "upgradeToAddWebhookSubtitle": "Načrt {activePlan} omogoča do {limit} webhookov. Nadgradite na načrt {plan} za neomejene webhooke.",
     "upgradeToAccessWebhookLogsSubtitle": "Dostopajte do dnevnikov webhookov tako, da delovni prostor nadgradite na načrt {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Lastnik obrazca obveščen",
     "formOwnerNotifiedSubtitle": "Lastnika obrazca smo obvestili o vaši zahtevi za oddajo.",
     "WorkspaceOwnerNotified": "Lastnik delovnega prostora obveščen",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "Zasebne baze so na voljo v paketu {plan}. Nadgradi zdaj in jih začni uporabljati.",
     "upgradeLicenseToUsePrivateBases": "Nadgradi licenco za odklenitev zasebnih baz",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Zasebne baze niso na voljo v Enterprise Starter licenci. Nadgradi licenčni ključ, da jih začneš uporabljati.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "V to celico lahko naložiš največ {limit} {filePlural}. Nadgradi na paket {plan}, da dodaš več datotek."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "V to celico lahko naložiš največ {limit} {filePlural}. Nadgradi na paket {plan}, da dodaš več datotek.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Skripta",
@@ -196,6 +202,8 @@
     "trigger": "Sprožilec",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "Dodaj {count} polja za iskanje",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "Slog",
     "label": "Oznaka",
     "role": "Vloga",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "Podvajanje baze uspešno",
     "duplicateBaseFailed": "Podvajanje baze ni uspelo",
     "duplicateBaseMessage": "Baze lahko podvojite le v delovne prostore, kjer imate dovoljenja ustvarjalca ali višja.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Obnovitev je možna samo v delovnih prostorih, kjer imate dovoljenja ustvarjalca ali višja.",
     "currentWorkspace": "Trenutni delovni prostor",
     "currentBase": "Trenutna baza",
@@ -1024,6 +1033,8 @@
     "clearAll": "Počisti vse",
     "addNewLookupHelperText1": "Polja za iskanje prikazujejo podatke iz povezanih zapisov. Izberite določena polja iz ",
     "addNewLookupHelperText2": " tabele, da jih dodate kot polja za iskanje v tej tabeli.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "Oblikovanje",
     "selectAFormatType": "- -Izberite vrsto formata (neobvezno)- -",
     "formatType": "Vrsta oblike",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "Generiraj vrednost polja z AI",
     "preview": "Predogled",
     "autoSuggest": "Samodejni predlog",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Predlaganje...",
     "autoSuggestFields": "Samodejno predlagaj polja",
     "autoSuggestFormulas": "Samodejno predlagaj formule",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "Dodaj polja za iskanje",
     "sourceVisibilityIsHidden": "Vidnost vira podatkov je skrita",
     "youDontHavePermissionToEditThisField": "Nimaš dovoljenja za urejanje tega polja",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Iskanje ikon",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Drugi parameter WEEKDAY() mora imeti vrednost \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" ali \"saturday\"",
       "firstParamDateAddHaveDate": "Prvi parameter DATEADD() mora imeti datumsko vrednost",
       "secondParamDateAddHaveNumber": "Drugi parameter DATEADD() mora imeti numerično vrednost",
-      "thirdParamDateAddHaveDate": "Tretji parameter DATEADD() mora imeti vrednost \"day\", \"week\", \"month\" ali \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Prvi parameter DATEDIFF() mora imeti datumsko vrednost",
       "secondParamDateDiffHaveDate": "Drugi parameter DATEDIFF() mora imeti datumsko vrednost",
       "thirdParamDateDiffHaveDate": "Tretji parameter DATETIME_DIFF() mora imeti vrednost bodisi \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", ali \"y\"",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "Ni uspelo ustvariti polj za iskanje",
       "invalidSearchQuery": "Neveljaven iskalni niz",
       "invalidSearchQueryForVisibleFields": "Neveljaven iskalni niz za vidna polja",
-      "invalidSearchQueryForDisplayField": "Neveljaven iskalni niz za prikazno polje"
+      "invalidSearchQueryForDisplayField": "Neveljaven iskalni niz za prikazno polje",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Projekt Metapodatki se je uspešno izvozil",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "Vaše plačilo za nadgradnjo je bilo obdelano. Zdaj lahko uporabljate svoj novi načrt.",
       "mcpUrlCopied": "MCP URL je bil kopiran v odložišče",
       "nlookupFieldsCreatedSuccessfully": "{n} polje za iskanje je bilo uspešno ustvarjeno",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} polji za iskanje sta bili uspešno ustvarjeni"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} polji za iskanje sta bili uspešno ustvarjeni",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Začni iz nič.",

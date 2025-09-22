@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "アップグレードして無制限のWebhookを追加",
     "upgradeToAddWebhookSubtitle": "{activePlan}プランではWebhookは{limit}件までです。{plan}プランへアップグレードして無制限に利用しましょう。",
     "upgradeToAccessWebhookLogsSubtitle": "ワークスペースを{plan}プランへアップグレードしてWebhookログにアクセスしましょう。",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "フォーム所有者に通知しました",
     "formOwnerNotifiedSubtitle": "送信リクエストについてフォーム所有者へ通知しました。",
     "WorkspaceOwnerNotified": "ワークスペース所有者に通知しました",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "プライベートベースは{plan}プランで利用可能です。今すぐアップグレードしてご利用ください。",
     "upgradeLicenseToUsePrivateBases": "プライベートベースを利用するにはライセンスをアップグレードしてください",
     "upgradeLicenseToUsePrivateBasesSubtitle": "プライベートベースはエンタープライズスターターライセンスでは利用できません。利用を開始するにはライセンスキーをアップグレードしてください。",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "このセルには最大で{limit}件の{filePlural}のみアップロードできます。さらにファイルを追加するには{plan}プランにアップグレードしてください。"
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "このセルには最大で{limit}件の{filePlural}のみアップロードできます。さらにファイルを追加するには{plan}プランにアップグレードしてください。",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "スクリプト",
@@ -196,6 +202,8 @@
     "trigger": "トリガー",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "{count}件のルックアップフィールドを追加",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "スタイル",
     "label": "ラベル",
     "role": "役割",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "ベースの複製に成功しました",
     "duplicateBaseFailed": "ベースの複製に失敗しました",
     "duplicateBaseMessage": "ベースを複製できるのは、あなたが作成者権限以上を持つワークスペースのみです。",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "復元できるのは、あなたが作成者権限以上を持つワークスペースのみです。",
     "currentWorkspace": "現在のワークスペース",
     "currentBase": "現在のベース",
@@ -1024,6 +1033,8 @@
     "clearAll": "すべてクリア",
     "addNewLookupHelperText1": "ルックアップフィールドはリンクされたレコードからデータを表示します。特定のフィールドを選択してください",
     "addNewLookupHelperText2": "これらをこのテーブルのルックアップフィールドとして追加します。",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "書式設定",
     "selectAFormatType": "- -形式タイプを選択（任意）- -",
     "formatType": "フォーマット タイプ",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "AIを使用してフィールド値を生成",
     "preview": "プレビュー",
     "autoSuggest": "オートサジェスト",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "提案中…",
     "autoSuggestFields": "自動提案フィールド",
     "autoSuggestFormulas": "自動提案式の数式",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "ルックアップフィールドを追加",
     "sourceVisibilityIsHidden": "データソースの表示は非表示です",
     "youDontHavePermissionToEditThisField": "このフィールドを編集する権限がありません",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "アイコンを検索",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() の2番目のパラメータは \"sunday\"、\"monday\"、\"tuesday\"、\"wednesday\"、\"thursday\"、\"friday\"、または \"saturday\" のいずれかの値でなければなりません",
       "firstParamDateAddHaveDate": "DATEADD() の最初のパラメータには日付の値が必要です",
       "secondParamDateAddHaveNumber": "DATEADD() の2番目のパラメータには数値の値が必要です",
-      "thirdParamDateAddHaveDate": "DATEADD() の3番目のパラメータは \"day\"、\"week\"、\"month\"、または \"year\" のいずれかの値でなければなりません",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() の最初のパラメータには日付の値が必要です",
       "secondParamDateDiffHaveDate": "DATEDIFF() の2番目のパラメータには日付の値が必要です",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() の3番目のパラメータは \"milliseconds\"、\"ms\"、\"seconds\"、\"s\"、\"minutes\"、\"m\"、\"hours\"、\"h\"、\"days\"、\"d\"、\"weeks\"、\"w\"、\"months\"、\"M\"、\"quarters\"、\"Q\"、\"years\"、または \"y\" のいずれかの値でなければなりません",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "ルックアップフィールドの作成に失敗しました",
       "invalidSearchQuery": "検索クエリが無効です",
       "invalidSearchQueryForVisibleFields": "表示されているフィールドの検索クエリが無効です",
-      "invalidSearchQueryForDisplayField": "表示フィールドの検索クエリが無効です"
+      "invalidSearchQueryForDisplayField": "表示フィールドの検索クエリが無効です",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "アップグレードのお支払いが処理されました。新しいプランをご利用いただけます。",
       "mcpUrlCopied": "MCP URL をクリップボードにコピーしました",
       "nlookupFieldsCreatedSuccessfully": "{n}件のルックアップフィールドが正常に作成されました",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n}件のルックアップフィールドが正常に作成されました"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n}件のルックアップフィールドが正常に作成されました",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "ゼロから作成。",

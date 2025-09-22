@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "ارتقاء برای افزودن وبهوک‌های نامحدود",
     "upgradeToAddWebhookSubtitle": "پلن {activePlan} حداکثر {limit} وبهوک را پشتیبانی می‌کند. با ارتقاء به پلن {plan} به وبهوک‌های نامحدود دسترسی پیدا کنید.",
     "upgradeToAccessWebhookLogsSubtitle": "با ارتقاء ورک‌اسپیس به پلن {plan}، به لاگ‌های وبهوک دسترسی پیدا کنید.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "به مالک فرم اطلاع داده شد",
     "formOwnerNotifiedSubtitle": "ما مالک فرم را دربارهٔ درخواست ارسال شما مطلع کردیم.",
     "WorkspaceOwnerNotified": "به مالک ورک‌اسپیس اطلاع داده شد",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "پایگاه‌های خصوصی فقط در پلن {plan} موجود هستند. اکنون ارتقاء دهید تا از آن‌ها استفاده کنید.",
     "upgradeLicenseToUsePrivateBases": "ارتقاء مجوز برای باز کردن پایگاه‌های خصوصی",
     "upgradeLicenseToUsePrivateBasesSubtitle": "پایگاه‌های خصوصی در مجوز Enterprise Starter در دسترس نیستند. کلید مجوز خود را برای استفاده ارتقاء دهید.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "شما فقط می‌توانید حداکثر {limit} {filePlural} در این سلول بارگذاری کنید. برای افزودن فایل بیشتر به پلن {plan} ارتقاء دهید."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "شما فقط می‌توانید حداکثر {limit} {filePlural} در این سلول بارگذاری کنید. برای افزودن فایل بیشتر به پلن {plan} ارتقاء دهید.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "اسکریپت",
@@ -196,6 +202,8 @@
     "trigger": "راه‌انداز",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "افزودن {count} فیلد جستجو",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "سبک",
     "label": "برچسب",
     "role": "نقش",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "تکثیر پایگاه موفق بود",
     "duplicateBaseFailed": "تکثیر پایگاه ناموفق بود",
     "duplicateBaseMessage": "فقط می‌توانید پایگاه‌ها را به فضاهای کاری که دسترسی سازنده یا بالاتر دارید تکثیر کنید.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "فقط می‌توانید به فضاهای کاری که دسترسی سازنده یا بالاتر دارید بازیابی کنید.",
     "currentWorkspace": "فضای کار فعلی",
     "currentBase": "پایگاه فعلی",
@@ -1024,6 +1033,8 @@
     "clearAll": "پاک کردن همه",
     "addNewLookupHelperText1": "فیلدهای جستجو داده‌ها را از رکوردهای مرتبط نشان می‌دهند. فیلدهای خاصی را از ",
     "addNewLookupHelperText2": " جدول انتخاب کنید تا آنها را به عنوان فیلدهای جستجو به این جدول اضافه کنید.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "قالب‌بندی",
     "selectAFormatType": "- -یک نوع قالب انتخاب کنید (اختیاری)- -",
     "formatType": "قالب تایپ",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "تولید مقدار فیلد با استفاده از هوش مصنوعی",
     "preview": "پیش‌نمایش",
     "autoSuggest": "پیشنهاد خودکار",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "در حال پیشنهاد...",
     "autoSuggestFields": "پیشنهاد خودکار فیلدها",
     "autoSuggestFormulas": "پیشنهاد خودکار فرمول‌ها",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "افزودن فیلدهای جستجو",
     "sourceVisibilityIsHidden": "نمایان بودن منبع داده مخفی است",
     "youDontHavePermissionToEditThisField": "شما اجازه ویرایش این فیلد را ندارید",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "جستجو آیکون",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "پارامتر دوم WEEKDAY() باید دارای یکی از مقادیر \"یکشنبه\"، \"دوشنبه\"، \"سه‌شنبه\"، \"چهارشنبه\"، \"پنج‌شنبه\"، \"جمعه\" یا \"شنبه\" باشد",
       "firstParamDateAddHaveDate": "اولین پارامتر DATEADD() باید یک مقدار تاریخ داشته باشد",
       "secondParamDateAddHaveNumber": "دومین پارامتر DATEADD() باید یک مقدار عددی داشته باشد",
-      "thirdParamDateAddHaveDate": "سومین پارامتر DATEADD() باید 'روز'، 'هفته'، 'ماه' یا 'سال' باشد",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "اولین پارامتر DATEDIFF() باید یک مقدار تاریخ داشته باشد",
       "secondParamDateDiffHaveDate": "دومین پارامتر DATEDIFF() باید یک مقدار تاریخ داشته باشد",
       "thirdParamDateDiffHaveDate": "سومین پارامتر DATETIME_DIFF() باید 'میلی‌ثانیه'، 'ثانیه'، 'دقیقه'، 'ساعت'، 'روز'، 'هفته'، 'ماه'، 'ربع'، 'سال' باشد",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "ایجاد فیلدهای جستجو ناموفق بود",
       "invalidSearchQuery": "پرس و جوی جستجوی نامعتبر",
       "invalidSearchQueryForVisibleFields": "پرس و جوی جستجوی نامعتبر برای فیلدهای قابل مشاهده",
-      "invalidSearchQueryForDisplayField": "پرس و جوی جستجوی نامعتبر برای فیلد نمایشی"
+      "invalidSearchQueryForDisplayField": "پرس و جوی جستجوی نامعتبر برای فیلد نمایشی",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "فراداده پروژه با موفقیت خارج شد",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "پرداخت شما برای ارتقاء با موفقیت انجام شد. اکنون می‌توانید از پلن جدید خود استفاده کنید.",
       "mcpUrlCopied": "آدرس MCP در کلیپ‌بورد کپی شد",
       "nlookupFieldsCreatedSuccessfully": "{n} فیلد جستجو با موفقیت ایجاد شد",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} فیلد جستجو با موفقیت ایجاد شدند"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} فیلد جستجو با موفقیت ایجاد شدند",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "شروع از ابتدا.",

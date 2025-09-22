@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Tingkatkan untuk menambahkan webhook tak terbatas",
     "upgradeToAddWebhookSubtitle": "Paket {activePlan} memungkinkan hingga {limit} webhook. Tingkatkan ke paket {plan} untuk mendapatkan akses ke webhook tak terbatas.",
     "upgradeToAccessWebhookLogsSubtitle": "Akses log webhook dengan meningkatkan ruang kerja Anda ke paket {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Pemilik formulir telah diberitahu",
     "formOwnerNotifiedSubtitle": "Kami telah memberi tahu pemilik formulir tentang permintaan pengiriman Anda.",
     "WorkspaceOwnerNotified": "Pemilik ruang kerja telah diberitahu",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "Base privat tersedia di paket {plan}. Tingkatkan sekarang untuk mulai menggunakannya.",
     "upgradeLicenseToUsePrivateBases": "Tingkatkan lisensi untuk membuka base privat",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Base privat tidak tersedia di lisensi Enterprise Starter. Tingkatkan kunci lisensi untuk mulai menggunakannya.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Anda hanya dapat mengunggah maksimal {limit} {filePlural} ke sel ini. Tingkatkan ke paket {plan} untuk menambah lebih banyak file."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Anda hanya dapat mengunggah maksimal {limit} {filePlural} ke sel ini. Tingkatkan ke paket {plan} untuk menambah lebih banyak file.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Skrip",
@@ -196,6 +202,8 @@
     "trigger": "Pemicu",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "Tambahkan {count} field lookup",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "Gaya",
     "label": "Label",
     "role": "Peran",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "Duplikasi Basis Berhasil",
     "duplicateBaseFailed": "Duplikasi Basis Gagal",
     "duplicateBaseMessage": "Anda hanya dapat menduplikasi basis ke workspace di mana Anda memiliki akses kreator atau lebih tinggi.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Anda hanya dapat memulihkan ke workspace di mana Anda memiliki akses kreator atau lebih tinggi.",
     "currentWorkspace": "Workspace saat ini",
     "currentBase": "Basis saat ini",
@@ -1024,6 +1033,8 @@
     "clearAll": "Bersihkan semua",
     "addNewLookupHelperText1": "Bidang lookup menampilkan data dari catatan terkait. Pilih kolom spesifik dari ",
     "addNewLookupHelperText2": " tabel untuk menambahkannya sebagai bidang lookup dalam tabel ini.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "Pemformatan",
     "selectAFormatType": "- -Pilih jenis format (opsional)- -",
     "formatType": "Jenis format",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "Hasilkan nilai kolom menggunakan AI",
     "preview": "Pratinjau",
     "autoSuggest": "Saran otomatis",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Menyarankan...",
     "autoSuggestFields": "Saran otomatis kolom",
     "autoSuggestFormulas": "Saran otomatis rumus",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "Tambahkan Field Lookup",
     "sourceVisibilityIsHidden": "Visibilitas sumber data disembunyikan",
     "youDontHavePermissionToEditThisField": "Anda tidak memiliki izin untuk mengedit field ini",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Cari ikon",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Parameter kedua WEEKDAY() harus memiliki nilai \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\", atau \"saturday\"",
       "firstParamDateAddHaveDate": "Parameter pertama DATEADD() harus memiliki nilai tanggal",
       "secondParamDateAddHaveNumber": "Parameter kedua DATEADD() harus memiliki nilai numerik",
-      "thirdParamDateAddHaveDate": "Parameter ketiga DATEADD() harus memiliki nilai \"day\", \"week\", \"month\", atau \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Parameter pertama DATEDIFF() harus memiliki nilai tanggal",
       "secondParamDateDiffHaveDate": "Parameter kedua DATEDIFF() harus memiliki nilai tanggal",
       "thirdParamDateDiffHaveDate": "Parameter ketiga DATETIME_DIFF() harus memiliki nilai \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", atau \"y\"",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "Gagal membuat field lookup",
       "invalidSearchQuery": "Kueri pencarian tidak valid",
       "invalidSearchQueryForVisibleFields": "Kueri pencarian tidak valid untuk field yang terlihat",
-      "invalidSearchQueryForDisplayField": "Kueri pencarian tidak valid untuk field tampilan"
+      "invalidSearchQueryForDisplayField": "Kueri pencarian tidak valid untuk field tampilan",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Metadata proyek berhasil diekspor",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "Pembayaran Anda untuk peningkatan telah diproses. Anda sekarang dapat menggunakan paket baru Anda.",
       "mcpUrlCopied": "URL MCP disalin ke papan klip",
       "nlookupFieldsCreatedSuccessfully": "{n} field Lookup berhasil dibuat",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} field Lookup berhasil dibuat"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} field Lookup berhasil dibuat",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Mulai dari awal.",

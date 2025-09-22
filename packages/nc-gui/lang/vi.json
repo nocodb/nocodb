@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Nâng cấp để thêm webhooks không giới hạn",
     "upgradeToAddWebhookSubtitle": "Gói {activePlan} chỉ cho phép tối đa {limit} webhook. Nâng cấp lên gói {plan} để sử dụng không giới hạn.",
     "upgradeToAccessWebhookLogsSubtitle": "Truy cập nhật ký webhook bằng cách nâng cấp workspace của bạn lên gói {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Chủ biểu mẫu đã được thông báo",
     "formOwnerNotifiedSubtitle": "Chúng tôi đã thông báo cho chủ biểu mẫu về yêu cầu gửi của bạn.",
     "WorkspaceOwnerNotified": "Chủ workspace đã được thông báo",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "Cơ sở riêng tư có sẵn trên gói {plan}. Nâng cấp ngay để sử dụng.",
     "upgradeLicenseToUsePrivateBases": "Nâng cấp giấy phép để mở khóa cơ sở riêng tư",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Cơ sở riêng tư không có sẵn trên giấy phép Enterprise Starter. Nâng cấp khóa giấy phép để bắt đầu sử dụng.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Bạn chỉ có thể tải lên tối đa {limit} {filePlural} vào ô này. Nâng cấp lên gói {plan} để thêm nhiều tệp hơn."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Bạn chỉ có thể tải lên tối đa {limit} {filePlural} vào ô này. Nâng cấp lên gói {plan} để thêm nhiều tệp hơn.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Kịch bản",
@@ -196,6 +202,8 @@
     "trigger": "Kích hoạt",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "Thêm {count} trường tra cứu",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "Phong cách",
     "label": "Nhãn",
     "role": "Vai diễn",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "Nhân bản Cơ sở thành công",
     "duplicateBaseFailed": "Nhân bản Cơ sở thất bại",
     "duplicateBaseMessage": "Bạn chỉ có thể nhân bản cơ sở vào những không gian làm việc mà bạn có quyền tạo trở lên.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Bạn chỉ có thể khôi phục vào những không gian làm việc mà bạn có quyền tạo trở lên.",
     "currentWorkspace": "Không gian làm việc hiện tại",
     "currentBase": "Cơ sở hiện tại",
@@ -1024,6 +1033,8 @@
     "clearAll": "Xóa tất cả",
     "addNewLookupHelperText1": "Trường tra cứu hiển thị dữ liệu từ các bản ghi liên kết. Chọn các trường cụ thể từ ",
     "addNewLookupHelperText2": " bảng để thêm chúng làm các trường tra cứu trong bảng này.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "Định dạng",
     "selectAFormatType": "- -Chọn kiểu định dạng (tuỳ chọn)- -",
     "formatType": "Loại định dạng",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "Tạo giá trị trường bằng AI",
     "preview": "Xem trước",
     "autoSuggest": "Tự động gợi ý",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Đang gợi ý...",
     "autoSuggestFields": "Tự động gợi ý trường",
     "autoSuggestFormulas": "Tự động gợi ý công thức",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "Thêm trường tra cứu",
     "sourceVisibilityIsHidden": "Khả năng hiển thị nguồn dữ liệu đang bị ẩn",
     "youDontHavePermissionToEditThisField": "Bạn không có quyền chỉnh sửa trường này",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Tìm kiếm biểu tượng",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Tham số thứ hai của WEEKDAY() nên có giá trị là \"chủ nhật\", \"thứ hai\", \"thứ ba\", \"thứ tư\", \"thứ năm\", \"thứ sáu\" hoặc \"thứ bảy\"",
       "firstParamDateAddHaveDate": "Tham số đầu tiên của DATEADD() nên có giá trị ngày tháng",
       "secondParamDateAddHaveNumber": "Tham số thứ hai của DATEADD() nên có giá trị số",
-      "thirdParamDateAddHaveDate": "Tham số thứ ba của DATEADD() nên có giá trị là \"ngày\", \"tuần\", \"tháng\" hoặc \"năm\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Tham số đầu tiên của DATEDIFF() nên có giá trị ngày tháng",
       "secondParamDateDiffHaveDate": "Tham số thứ hai của DATEDIFF() nên có giá trị ngày tháng",
       "thirdParamDateDiffHaveDate": "Tham số thứ ba của DATETIME_DIFF() nên có giá trị là \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", hoặc \"y\"",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "Tạo trường tra cứu thất bại",
       "invalidSearchQuery": "Truy vấn tìm kiếm không hợp lệ",
       "invalidSearchQueryForVisibleFields": "Truy vấn tìm kiếm không hợp lệ cho các trường hiển thị",
-      "invalidSearchQueryForDisplayField": "Truy vấn tìm kiếm không hợp lệ cho trường hiển thị"
+      "invalidSearchQueryForDisplayField": "Truy vấn tìm kiếm không hợp lệ cho trường hiển thị",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Metadata dự án xuất khẩu thành công",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "Thanh toán nâng cấp của bạn đã được xử lý. Bạn có thể sử dụng gói mới ngay bây giờ.",
       "mcpUrlCopied": "Đã sao chép URL MCP vào clipboard",
       "nlookupFieldsCreatedSuccessfully": "{n} trường tra cứu được tạo thành công",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} trường tra cứu được tạo thành công"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} trường tra cứu được tạo thành công",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Bắt đầu từ đầu.",

@@ -442,7 +442,8 @@
     "record": "កំណត់ត្រា",
     "overview": "ទិដ្ឋភាពសង្ខេប",
     "baseType": "ប្រភេទ Base",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "ស្គ្រីប",

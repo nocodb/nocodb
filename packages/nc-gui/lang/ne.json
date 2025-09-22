@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() को दोस्रो प्यारामिटरको मान \"आइतवार\", \"सोमबार\", \"मङ्गलवार\", \"बुधवार\", \"बिहीवार\", \"शुक्रवार\" वा \"शनिवार\" मध्ये कुनै एक हुनुपर्दछ",
       "firstParamDateAddHaveDate": "DATEADD() को पहिलो प्यारामिटरमा मिति मान हुनुपर्दछ",
       "secondParamDateAddHaveNumber": "DATEADD() को दोस्रो प्यारामिटरमा संख्यात्मक मान हुनुपर्दछ",
-      "thirdParamDateAddHaveDate": "DATEADD() को तेस्रो प्यारामिटरको मान \"दिन\", \"हप्ता\", \"महिना\" वा \"वर्ष\" मध्ये कुनै एक हुनुपर्दछ",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() को पहिलो प्यारामिटरमा मिति मान हुनुपर्दछ",
       "secondParamDateDiffHaveDate": "DATEDIFF() को दोस्रो प्यारामिटरमा मिति मान हुनुपर्दछ",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() को तेस्रो प्यारामिटरको मान \"मिलिसेकेन्ड\", \"ms\", \"सेकेन्ड\", \"s\", \"मिनेट\", \"m\", \"घण्टा\", \"h\", \"दिन\", \"d\", \"हप्ताहरू\", \"w\", \"महिना\", \"M\", \"क्वाटरहरू\", \"Q\", \"बर्ष\" वा \"y\" मध्ये कुनै एक हुनुपर्छ",

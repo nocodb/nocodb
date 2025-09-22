@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "{plan} 플랜에서 개인 베이스를 이용할 수 있습니다. 지금 업그레이드하여 사용을 시작하세요.",
     "upgradeLicenseToUsePrivateBases": "개인 베이스를 잠금 해제하려면 라이센스를 업그레이드하세요",
     "upgradeLicenseToUsePrivateBasesSubtitle": "비공개 베이스는 엔터프라이즈 스타터 라이선스에서 사용할 수 없습니다. 라이센스 키를 업그레이드하여 사용을 시작하십시오.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "이 셀에는 최대 {limit} {filePlural}까지만 업로드할 수 있습니다. 더 많은 파일을 추가하려면 {plan} 플랜으로 업그레이드합니다."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "이 셀에는 최대 {limit} {filePlural}까지만 업로드할 수 있습니다. 더 많은 파일을 추가하려면 {plan} 플랜으로 업그레이드합니다.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "스크립트",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "AI를 사용하여 필드 값 생성",
     "preview": "미리보기",
     "autoSuggest": "자동 제안",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "제안...",
     "autoSuggestFields": "필드 자동 제안",
     "autoSuggestFormulas": "수식 자동 제안",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "조회 필드 추가",
     "sourceVisibilityIsHidden": "데이터 원본 가시성이 숨겨짐",
     "youDontHavePermissionToEditThisField": "이 필드를 편집할 수 있는 권한이 없습니다.",
-    "releasingPreviousFullscreenLock": "이전 전체 화면 잠금을 해제합니다..."
+    "releasingPreviousFullscreenLock": "이전 전체 화면 잠금을 해제합니다...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",

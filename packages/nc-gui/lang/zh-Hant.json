@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "升級以加入無限 Webhook",
     "upgradeToAddWebhookSubtitle": "{activePlan} 方案僅支援 {limit} 個 Webhook。升級至 {plan} 方案可使用無限 Webhook。",
     "upgradeToAccessWebhookLogsSubtitle": "將工作區升級至 {plan} 方案即可存取 Webhook 日誌。",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "已通知表單擁有者",
     "formOwnerNotifiedSubtitle": "我們已就您的提交請求通知表單擁有者。",
     "WorkspaceOwnerNotified": "已通知工作區擁有者",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Base 複製成功",
     "duplicateBaseFailed": "Base 複製失敗",
     "duplicateBaseMessage": "您只能在擁有建立者權限以上的工作區中複製 Base。",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "您只能在擁有建立者權限以上的工作區中還原。",
     "currentWorkspace": "目前工作區",
     "currentBase": "當前 Base",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "您的升級付款已完成，現在可以使用新的方案。",
       "mcpUrlCopied": "MCP URL 已複製到剪貼簿",
       "nlookupFieldsCreatedSuccessfully": "{n} 個查找欄位建立成功",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} 個查找欄位建立成功"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} 個查找欄位建立成功",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "從頭開始。",

@@ -442,7 +442,8 @@
     "record": "रेकर्ड",
     "overview": "अवलोकन",
     "baseType": "बेस प्रकार",
-    "beta": "बीटा"
+    "beta": "बीटा",
+    "selected": "selected"
   },
   "objects": {
     "script": "स्क्रिप्ट",

@@ -442,7 +442,8 @@
     "record": "Запис",
     "overview": "Огляд",
     "baseType": "Тип бази",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Скрипт",

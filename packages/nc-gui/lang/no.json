@@ -442,7 +442,8 @@
     "record": "Post",
     "overview": "Oversikt",
     "baseType": "Basetype",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Skript",

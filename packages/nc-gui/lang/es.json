@@ -442,7 +442,8 @@
     "record": "Registro",
     "overview": "Resumen",
     "baseType": "Tipo de base",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Script",

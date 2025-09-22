@@ -442,7 +442,8 @@
     "record": "Înregistrare",
     "overview": "Prezentare generală",
     "baseType": "Tip bază",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Script",

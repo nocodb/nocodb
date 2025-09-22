@@ -442,7 +442,8 @@
     "record": "Eintrag",
     "overview": "Übersicht",
     "baseType": "Datenbanktyp",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Skript",

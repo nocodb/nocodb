@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Druhým parametrom WEEKDAY() by mala byť hodnota buď \"nedeľa\", \"pondelok\", \"utorok\", \"streda\", \"štvrtok\", \"piatok\" alebo \"sobota\"",
       "firstParamDateAddHaveDate": "Prvým parametrom DATEADD() by mala byť hodnota dátumu",
       "secondParamDateAddHaveNumber": "Druhým parametrom DATEADD() by mala byť číselná hodnota",
-      "thirdParamDateAddHaveDate": "Tretím parametrom DATEADD() by mala byť hodnota buď \"deň\", \"týždeň\", \"mesiac\" alebo \"rok\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Prvým parametrom DATEDIFF() by mala byť hodnota dátumu",
       "secondParamDateDiffHaveDate": "Druhým parametrom DATEDIFF() by mala byť hodnota dátumu",
       "thirdParamDateDiffHaveDate": "Tretí parameter DATETIME_DIFF() by mal mať hodnotu buď \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", alebo \"y\"",

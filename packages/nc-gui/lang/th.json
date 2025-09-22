@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "พารามิเตอร์ที่สองของ WEEKDAY() ควรมีค่าเป็น \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" หรือ \"saturday\"",
       "firstParamDateAddHaveDate": "พารามิเตอร์แรกของ DATEADD() ควรมีค่าวันที่",
       "secondParamDateAddHaveNumber": "พารามิเตอร์ที่สองของ DATEADD() ควรมีค่าเป็นตัวเลข",
-      "thirdParamDateAddHaveDate": "พารามิเตอร์ที่สามของ DATEADD() ควรมีค่าเป็น \"day\", \"week\", \"month\" หรือ \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "พารามิเตอร์แรกของ DATEDIFF() ควรมีค่าวันที่",
       "secondParamDateDiffHaveDate": "พารามิเตอร์ที่สองของ DATEDIFF() ควรมีค่าเป็นวันที่",
       "thirdParamDateDiffHaveDate": "พารามิเตอร์ที่สามของ DATETIME_DIFF() ควรมีค่าเป็น \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", หรือ \"y\"",

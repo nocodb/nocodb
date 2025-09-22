@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Esegui l'upgrade per aggiungere webhook illimitati",
     "upgradeToAddWebhookSubtitle": "Il piano {activePlan} consente fino a {limit} webhook. Passa al piano {plan} per ottenere webhook illimitati.",
     "upgradeToAccessWebhookLogsSubtitle": "Accedi ai log dei webhook eseguendo l'upgrade del workspace al piano {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Proprietario del modulo avvisato",
     "formOwnerNotifiedSubtitle": "Abbiamo informato il proprietario del modulo della tua richiesta di invio.",
     "WorkspaceOwnerNotified": "Proprietario del workspace avvisato",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Duplicazione base riuscita",
     "duplicateBaseFailed": "Duplicazione base non riuscita",
     "duplicateBaseMessage": "Puoi duplicare le basi solo in spazi di lavoro in cui hai accesso di tipo creatore o superiore.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Puoi ripristinare solo in spazi di lavoro in cui hai accesso di tipo creatore o superiore.",
     "currentWorkspace": "Spazio di lavoro attuale",
     "currentBase": "Base corrente",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Il pagamento per l'upgrade è stato elaborato. Ora puoi utilizzare il tuo nuovo piano.",
       "mcpUrlCopied": "URL MCP copiato negli appunti",
       "nlookupFieldsCreatedSuccessfully": "{n} campo Lookup creato con successo",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} campi Lookup creati con successo"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} campi Lookup creati con successo",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Partire da zero.",

@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() の2番目のパラメータは \"sunday\"、\"monday\"、\"tuesday\"、\"wednesday\"、\"thursday\"、\"friday\"、または \"saturday\" のいずれかの値でなければなりません",
       "firstParamDateAddHaveDate": "DATEADD() の最初のパラメータには日付の値が必要です",
       "secondParamDateAddHaveNumber": "DATEADD() の2番目のパラメータには数値の値が必要です",
-      "thirdParamDateAddHaveDate": "DATEADD() の3番目のパラメータは \"day\"、\"week\"、\"month\"、または \"year\" のいずれかの値でなければなりません",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() の最初のパラメータには日付の値が必要です",
       "secondParamDateDiffHaveDate": "DATEDIFF() の2番目のパラメータには日付の値が必要です",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() の3番目のパラメータは \"milliseconds\"、\"ms\"、\"seconds\"、\"s\"、\"minutes\"、\"m\"、\"hours\"、\"h\"、\"days\"、\"d\"、\"weeks\"、\"w\"、\"months\"、\"M\"、\"quarters\"、\"Q\"、\"years\"、または \"y\" のいずれかの値でなければなりません",

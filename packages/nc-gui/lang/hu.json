@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Frissítés korlátlan webhook hozzáadásához",
     "upgradeToAddWebhookSubtitle": "A(z) {activePlan} csomag legfeljebb {limit} webhookot támogat. Frissítsen a(z) {plan} csomagra a korlátlan webhookokért.",
     "upgradeToAccessWebhookLogsSubtitle": "A webhook naplók eléréséhez frissítse a munkateret a(z) {plan} csomagra.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Űrlaptulajdonos értesítve",
     "formOwnerNotifiedSubtitle": "Értesítettük az űrlap tulajdonosát a beküldési kéréséről.",
     "WorkspaceOwnerNotified": "Munkatér tulajdonos értesítve",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Bázis duplikálása sikeres",
     "duplicateBaseFailed": "Bázis duplikálása sikertelen",
     "duplicateBaseMessage": "Bázisokat csak olyan munkaterületre duplikálhat, ahol legalább létrehozói jogosultsága van.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Csak olyan munkaterületre állíthat vissza, ahol legalább létrehozói jogosultsága van.",
     "currentWorkspace": "Aktuális munkaterület",
     "currentBase": "Aktuális bázis",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "A frissítésért fizetett összeget feldolgoztuk. Mostantól használhatja az új csomagot.",
       "mcpUrlCopied": "MCP URL vágólapra másolva",
       "nlookupFieldsCreatedSuccessfully": "{n} keresőmező sikeresen létrehozva",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} keresőmező sikeresen létrehozva"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} keresőmező sikeresen létrehozva",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Kezdje el a semmiből.",

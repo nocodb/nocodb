@@ -5,12 +5,6 @@ export enum OAuthClientType {
   PUBLIC = 'public',
 }
 
-export enum OAuthTokenEndpointAuthMethod {
-  CLIENT_SECRET_BASIC = 'client_secret_basic',
-  CLIENT_SECRET_POST = 'client_secret_post',
-  NONE = 'none',
-}
-
 export enum OAuthConsentStatus {
   ACTIVE = 'active',
   REVOKED = 'revoked',
@@ -29,8 +23,6 @@ export interface OAuthClient {
   allowed_grant_types: string[];
   response_types: string[];
   allowed_scopes: string; // comma separated
-
-  token_endpoint_auth_method: OAuthTokenEndpointAuthMethod;
 
   // DCR metadata
   registration_access_token?: string;

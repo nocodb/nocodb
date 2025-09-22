@@ -1,113 +1,79 @@
 import z from 'zod';
-import { OAuthClientType, OAuthTokenEndpointAuthMethod } from 'nocodb-sdk';
+import { OAuthClientType } from 'nocodb-sdk';
 
-export const CreateOAuthClientSchema = z
-  .object({
-    client_name: z
-      .string()
-      .min(1, 'Client name is required')
-      .max(255, 'Client name must be less than 255 characters')
-      .trim(),
+export const CreateOAuthClientSchema = z.object({
+  client_name: z
+    .string()
+    .min(1, 'Client name is required')
+    .max(255, 'Client name must be less than 255 characters')
+    .trim(),
 
-    client_type: z
-      .nativeEnum(OAuthClientType, {
-        errorMap: () => ({
-          message: 'Client type must be either "confidential" or "public"',
-        }),
-      })
-      .optional(),
+  client_type: z
+    .nativeEnum(OAuthClientType, {
+      errorMap: () => ({
+        message: 'Client type must be either "confidential" or "public"',
+      }),
+    })
+    .optional(),
 
-    fk_user_id: z.string().optional(),
+  fk_user_id: z.string().optional(),
 
-    client_uri: z
-      .string()
-      .url('Invalid client URI format')
-      .optional()
-      .or(z.literal('')),
+  client_uri: z
+    .string()
+    .url('Invalid client URI format')
+    .optional()
+    .or(z.literal('')),
 
-    client_description: z
-      .string()
-      .max(500, 'Description must be less than 500 characters')
-      .optional(),
+  client_description: z
+    .string()
+    .max(500, 'Description must be less than 500 characters')
+    .optional(),
 
-    logo_uri: z.record(z.string(), z.unknown()).optional(),
+  logo_uri: z.record(z.string(), z.unknown()).optional(),
 
-    redirect_uris: z
-      .array(z.string().url('Each redirect URI must be a valid URL'))
-      .min(1, 'At least one redirect URI is required'),
+  redirect_uris: z
+    .array(z.string().url('Each redirect URI must be a valid URL'))
+    .min(1, 'At least one redirect URI is required'),
 
-    allowed_grant_types: z
-      .array(
-        z.enum(
-          [
-            'authorization_code',
-            'refresh_token',
-            'client_credentials',
-            'password',
-          ],
-          {
-            errorMap: () => ({ message: 'Invalid grant type' }),
-          },
-        ),
-      )
-      .optional(),
+  allowed_grant_types: z
+    .array(
+      z.enum(
+        [
+          'authorization_code',
+          'refresh_token',
+          'client_credentials',
+          'password',
+        ],
+        {
+          errorMap: () => ({ message: 'Invalid grant type' }),
+        },
+      ),
+    )
+    .optional(),
 
-    response_types: z
-      .array(
-        z.enum(['code', 'token', 'id_token'], {
-          errorMap: () => ({ message: 'Invalid response type' }),
-        }),
-      )
-      .optional(),
+  response_types: z
+    .array(
+      z.enum(['code', 'token', 'id_token'], {
+        errorMap: () => ({ message: 'Invalid response type' }),
+      }),
+    )
+    .optional(),
 
-    allowed_scopes: z.string().max(1000, 'Scopes string too long').optional(),
+  allowed_scopes: z.string().max(1000, 'Scopes string too long').optional(),
 
-    token_endpoint_auth_method: z
-      .nativeEnum(OAuthTokenEndpointAuthMethod, {
-        errorMap: () => ({
-          message: 'Invalid token endpoint authentication method',
-        }),
-      })
-      .optional(),
+  // Removed token_endpoint_auth_method - simplified to POST only per Airtable spec
 
-    registration_client_uri: z
-      .string()
-      .url('Invalid registration client URI format')
-      .optional(),
+  registration_client_uri: z
+    .string()
+    .url('Invalid registration client URI format')
+    .optional(),
 
-    registration_access_token: z.string().optional(),
+  registration_access_token: z.string().optional(),
 
-    client_id_issued_at: z.number().optional(),
+  client_id_issued_at: z.number().optional(),
 
-    client_secret_expires_at: z.number().optional(),
-  })
-  .refine(
-    (data) => {
-      // Custom validation: Public clients must use 'none' auth method
-      return !(
-        data.client_type === OAuthClientType.PUBLIC &&
-        data.token_endpoint_auth_method &&
-        data.token_endpoint_auth_method !== OAuthTokenEndpointAuthMethod.NONE
-      );
-    },
-    {
-      message: 'Public clients must use "none" authentication method',
-      path: ['token_endpoint_auth_method'],
-    },
-  )
-  .refine(
-    (data) => {
-      // Custom validation: Confidential clients cannot use 'none' auth method
-      return !(
-        data.client_type === OAuthClientType.CONFIDENTIAL &&
-        data.token_endpoint_auth_method === OAuthTokenEndpointAuthMethod.NONE
-      );
-    },
-    {
-      message: 'Confidential clients cannot use "none" authentication method',
-      path: ['token_endpoint_auth_method'],
-    },
-  );
+  client_secret_expires_at: z.number().optional(),
+});
 
 export const UpdateOAuthClientSchema = z.object({
   client_name: z
@@ -149,10 +115,6 @@ export const UpdateOAuthClientSchema = z.object({
   response_types: z.array(z.enum(['code', 'token', 'id_token'])).optional(),
 
   allowed_scopes: z.string().max(1000, 'Scopes string too long').optional(),
-
-  token_endpoint_auth_method: z
-    .nativeEnum(OAuthTokenEndpointAuthMethod)
-    .optional(),
 
   registration_client_uri: z
     .string()

@@ -15,6 +15,7 @@ export class OauthAuthorizationService {
 
     return url.toString();
   }
+
   async createAuthorizationCode(params: {
     clientId: string;
     userId: string;
@@ -36,12 +37,57 @@ export class OauthAuthorizationService {
 
     const client = await OAuthClient.getByClientId(clientId);
     if (!client) {
-      NcError.notFound('Invalid client_id');
+      NcError.badRequest('invalid_client');
     }
 
-    if (!client.redirect_uris.includes(redirectUri)) {
-      NcError.notFound('Invalid redirect_uri');
+    // Validate redirect URI inline
+    if (!redirectUri) {
+      NcError.badRequest('invalid_redirect_uri');
     }
+
+    try {
+      const url = new URL(redirectUri);
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+        NcError.badRequest('invalid_redirect_uri');
+      }
+      // Exact match required for security
+      if (!client.redirect_uris.includes(redirectUri)) {
+        NcError.badRequest('invalid_redirect_uri');
+      }
+    } catch {
+      NcError.badRequest('invalid_redirect_uri');
+    }
+
+    // Validate state inline
+    if (state) {
+      if (state.length < 16 || state.length > 1024) {
+        NcError.badRequest('invalid_state');
+      }
+      const allowedChars = /^[a-zA-Z0-9._-]+$/;
+      if (!allowedChars.test(state)) {
+        NcError.badRequest('invalid_state');
+      }
+    }
+
+    // Validate code challenge inline
+    if (!codeChallenge) {
+      NcError.badRequest('code_challenge_required');
+    }
+
+    if (codeChallengeMethod !== 'S256') {
+      NcError.badRequest('invalid_code_challenge');
+    }
+
+    if (codeChallenge.length !== 43) {
+      NcError.badRequest('invalid_code_challenge');
+    }
+
+    const base64urlPattern = /^[A-Za-z0-9_-]+$/;
+    if (!base64urlPattern.test(codeChallenge)) {
+      NcError.badRequest('invalid_code_challenge');
+    }
+
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     return await OAuthAuthorizationCode.insert({
       client_id: clientId,
@@ -51,6 +97,7 @@ export class OauthAuthorizationService {
       code_challenge: codeChallenge,
       code_challenge_method: codeChallengeMethod,
       scope,
+      expires_at: expiresAt.toISOString(),
     });
   }
 }

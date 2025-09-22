@@ -1,5 +1,6 @@
+import { randomBytes } from 'crypto';
 import { nanoid } from 'nanoid';
-import { OAuthClientType, OAuthTokenEndpointAuthMethod } from 'nocodb-sdk';
+import { OAuthClientType } from 'nocodb-sdk';
 import type { AttachmentResType } from 'nocodb-sdk/build/main/lib';
 import type { OAuthClient as IOAuthClient } from 'nocodb-sdk';
 import {
@@ -28,7 +29,6 @@ export default class OAuthClient implements IOAuthClient {
   allowed_grant_types: string[]; // 'refresh token, authorization'
   response_types: string[]; //
   allowed_scopes: string; //
-  token_endpoint_auth_method: OAuthTokenEndpointAuthMethod;
   registration_access_token?: string;
   registration_client_uri?: string;
   client_id_issued_at?: number;
@@ -55,24 +55,29 @@ export default class OAuthClient implements IOAuthClient {
       'allowed_grant_types',
       'response_types',
       // 'allowed_scopes', TODO: Implement Scopes
-      'token_endpoint_auth_method',
       'registration_client_uri',
       'registration_access_token',
       'client_id_issued_at',
       'client_secret_expires_at',
       'fk_user_id',
+      'client_secret',
     ]);
 
     insertData.client_id = nanoid(32);
 
+    const clientType = insertData.client_type || OAuthClientType.PUBLIC;
+
     insertData = {
       ...insertData,
-      client_type: OAuthClientType.PUBLIC,
+      client_type: clientType,
       allowed_grant_types: ['authorization_code', 'refresh_token'],
       response_types: ['code'],
-      token_endpoint_auth_method: OAuthTokenEndpointAuthMethod.NONE,
       client_id_issued_at: Date.now(),
     };
+
+    if (clientType === OAuthClientType.CONFIDENTIAL) {
+      insertData.client_secret = randomBytes(32).toString('base64url');
+    }
 
     if (insertData.logo_uri) {
       insertData.logo_uri = this.serializeAttachmentJSON(insertData.logo_uri);

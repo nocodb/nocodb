@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Otrajam parametrs WEEKDAY() ir jābūt vērtība vai nu \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" vai \"saturday\"",
       "firstParamDateAddHaveDate": "Pirmajam parametrs DATEADD() ir jābūt datuma vērtība",
       "secondParamDateAddHaveNumber": "DATEADD() otrajam parametram jābūt skaitliskai vērtībai",
-      "thirdParamDateAddHaveDate": "DATEADD() trešajam parametram jābūt vai nu \"diena\", \"nedēļa\", \"mēnesis\" vai \"gads\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() pirmajam parametram jābūt datuma vērtībai",
       "secondParamDateDiffHaveDate": "DATEDIFF() otrajam parametram jābūt datuma vērtībai",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() trešajam parametram jābūt vērtībai vai nu \"milisekundes\", \"ms\", \"sekundes\", \"s\", \"minūtes\", \"m\", \"stundas\", \"h\", \"dienas\", \"d\", \"nedēļas\", \"w\", \"mēneši\", \"M\", \"ceturkšņi\", \"Q\", \"gads\" vai \"y\"",

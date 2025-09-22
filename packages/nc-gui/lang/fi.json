@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Päivitä lisätäksesi rajattomasti webhookkeja",
     "upgradeToAddWebhookSubtitle": "{activePlan}-paketti sallii enintään {limit} webhookia. Päivitä {plan}-pakettiin saadaksesi rajattomasti webhookkeja.",
     "upgradeToAccessWebhookLogsSubtitle": "Saat webhook-lokit käyttöön päivittämällä työtilasi {plan}-pakettiin.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Lomakkeen omistajalle ilmoitettu",
     "formOwnerNotifiedSubtitle": "Ilmoitimme lomakkeen omistajalle lähetyspyynnöstäsi.",
     "WorkspaceOwnerNotified": "Työtilan omistajalle ilmoitettu",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Pohjan kopiointi onnistui",
     "duplicateBaseFailed": "Pohjan kopiointi epäonnistui",
     "duplicateBaseMessage": "Voit kopioida pohjia vain työtiloihin, joissa sinulla on luojan oikeudet tai korkeammat.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Voit palauttaa vain työtiloihin, joissa sinulla on luojan oikeudet tai korkeammat.",
     "currentWorkspace": "Nykyinen työtila",
     "currentBase": "Nykyinen pohja",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Päivityksen maksu on käsitelty. Voit nyt käyttää uutta pakettiasi.",
       "mcpUrlCopied": "MCP-URL kopioitu leikepöydälle",
       "nlookupFieldsCreatedSuccessfully": "{n} hakukenttä luotu onnistuneesti",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} hakukenttää luotu onnistuneesti"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} hakukenttää luotu onnistuneesti",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Aloita alusta.",

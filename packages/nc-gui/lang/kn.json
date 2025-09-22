@@ -442,7 +442,8 @@
     "record": "ದಾಖಲೆ",
     "overview": "ಅವಲೋಕನ",
     "baseType": "ಬೇಸ್ ಪ್ರಕಾರ",
-    "beta": "ಬೇಟಾ"
+    "beta": "ಬೇಟಾ",
+    "selected": "selected"
   },
   "objects": {
     "script": "ಸ್ಕ್ರಿಪ್ಟ್",

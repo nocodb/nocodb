@@ -442,7 +442,8 @@
     "record": "บันทึก",
     "overview": "ภาพรวม",
     "baseType": "ประเภทฐานข้อมูล",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "สคริปต์",

@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "يجب أن تحتوي المعلمة الثانية في WEEKDAY() على القيمة \"الأحد\" أو \"الاثنين\" أو \"الثلاثاء\" أو \"الأربعاء\" أو \"الخميس\" أو \"الجمعة\" أو \"السبت\"",
       "firstParamDateAddHaveDate": "يجب أن تحتوي المعلمة الأولى في DATEADD() على قيمة التاريخ",
       "secondParamDateAddHaveNumber": "يجب أن تحتوي المعلمة الثانية في DATEADD() على قيمة رقمية",
-      "thirdParamDateAddHaveDate": "يجب أن تحتوي المعلمة الثالثة في DATEADD() على القيمة \"يوم\" أو \"أسبوع\" أو \"شهر\" أو \"سنة\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "يجب أن تحتوي المعلمة الأولى في DATEDIFF() على قيمة التاريخ",
       "secondParamDateDiffHaveDate": "يجب أن تحتوي المعلمة الثانية في DATEDIFF() على قيمة التاريخ",
       "thirdParamDateDiffHaveDate": "يجب أن تحتوي المعلمة الثالثة في DATETIME_DIFF() على القيمة \"ميلليثانية\" أو \"ms\" أو \"ثانية\" أو \"s\" أو \"دقيقة\" أو \"m\" أو \"ساعة\" أو \"h\" أو \"يوم\" أو \"d\" أو \"أسبوع\" أو \"w\" أو \"شهر\" أو \"M\" أو \"ربع سنة\" أو \"Q\" أو \"سنة\" أو \"y\"",

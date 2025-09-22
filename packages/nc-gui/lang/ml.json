@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "പരിമിതിയില്ലാതെ വെബ്‌ഹുക്കുകൾ ചേർക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "upgradeToAddWebhookSubtitle": "{activePlan} പ്ലാന്‍ പരമാവധി {limit} വെബ്‌ഹുക്കുകൾ മാത്രമേ അനുവദിക്കൂ. പരിമിതിയില്ലാത്ത വെബ്‌ഹുക്കുകൾക്കായി {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToAccessWebhookLogsSubtitle": "വർക്ക്സ്പേസ് {plan} പ്ലാൻ അപ്‌ഗ്രേഡ് ചെയ്ത് വെബ്‌ഹുക്ക് ലോഗുകൾ ആക്സസ് ചെയ്യുക.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "ഫോം ഉടമയെ അറിയിച്ചു",
     "formOwnerNotifiedSubtitle": "നിങ്ങളുടെ സമർപ്പണ അഭ്യർത്ഥനയെക്കുറിച്ച് ഫോം ഉടമയെ ഞങ്ങൾ അറിയിച്ചു.",
     "WorkspaceOwnerNotified": "വർക്ക്സ്പേസ് ഉടമയെ അറിയിച്ചു",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "ബസ് ഡ്യൂപ്ലിക്കേഷൻ വിജയകരം",
     "duplicateBaseFailed": "ബസ് ഡ്യൂപ്ലിക്കേഷൻ പരാജയപ്പെട്ടു",
     "duplicateBaseMessage": "നിങ്ങളുടെ ക്രിയേറ്റർ അല്ലെങ്കിൽ അതിന് മുകളിലുള്ള ആക്‌സസ് ഉള്ള വര്‍ക്ക്‌സ്‌പേസുകളിലേക്കു മാത്രമേ ബേസുകൾ ഡ്യൂപ്ലിക്കേറ്റ് ചെയ്യാന്‍ കഴിയൂ.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "ക്രിയേറ്റർ അല്ലെങ്കിൽ അതിന് മുകളിലുള്ള ആക്‌സസ് ഉള്ള വര്‍ക്ക്‌സ്‌പേസുകളിലേക്കു മാത്രമേ റസ്റ്റോർ ചെയ്യാന്‍ കഴിയൂ.",
     "currentWorkspace": "നിലവിലുള്ള വർക്ക്സ്പേസ്",
     "currentBase": "ഇപ്പോഴത്തെ ബേസ്",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "അപ്‌ഗ്രേഡിനുള്ള നിങ്ങളുടെ പേയ്മെന്റ് പ്രോസസ്സ് ചെയ്തു. ഇനി പുതിയ പ്ലാൻ ഉപയോഗിക്കാം.",
       "mcpUrlCopied": "MCP URL ക്ലിപ്പ്ബോർഡിലേക്ക് കോപ്പി ചെയ്തു",
       "nlookupFieldsCreatedSuccessfully": "{n} ലുക്കപ്പ് ഫീൽഡ് വിജയകരമായി സൃഷ്ടിച്ചു",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} ലുക്കപ്പ് ഫീൽഡുകൾ വിജയകരമായി സൃഷ്ടിച്ചു"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} ലുക്കപ്പ് ഫീൽഡുകൾ വിജയകരമായി സൃഷ്ടിച്ചു",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "പുതിയത് തുടങ്ങുക.",

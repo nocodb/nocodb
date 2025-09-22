@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Frissítés korlátlan webhook hozzáadásához",
     "upgradeToAddWebhookSubtitle": "A(z) {activePlan} csomag legfeljebb {limit} webhookot támogat. Frissítsen a(z) {plan} csomagra a korlátlan webhookokért.",
     "upgradeToAccessWebhookLogsSubtitle": "A webhook naplók eléréséhez frissítse a munkateret a(z) {plan} csomagra.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Űrlaptulajdonos értesítve",
     "formOwnerNotifiedSubtitle": "Értesítettük az űrlap tulajdonosát a beküldési kéréséről.",
     "WorkspaceOwnerNotified": "Munkatér tulajdonos értesítve",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "A privát bázisok a(z) {plan} csomagban érhetők el. Frissítsen most a használatukhoz.",
     "upgradeLicenseToUsePrivateBases": "Frissítés a privát bázisok használatához szükséges licenchez",
     "upgradeLicenseToUsePrivateBasesSubtitle": "A privát bázisok nem érhetők el az Enterprise Starter licenccel. Frissítsen nagyobb licencre a használathoz.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Legfeljebb {limit} {filePlural} tölthet fel ebbe a cellába. További fájlok hozzáadásához frissítsen a(z) {plan} csomagra."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Legfeljebb {limit} {filePlural} tölthet fel ebbe a cellába. További fájlok hozzáadásához frissítsen a(z) {plan} csomagra.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Szkript",
@@ -196,6 +202,8 @@
     "trigger": "Trigger",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "{count} keresőmező hozzáadása",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "Stílus",
     "label": "Címke",
     "role": "Szerep",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "Bázis duplikálása sikeres",
     "duplicateBaseFailed": "Bázis duplikálása sikertelen",
     "duplicateBaseMessage": "Bázisokat csak olyan munkaterületre duplikálhat, ahol legalább létrehozói jogosultsága van.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Csak olyan munkaterületre állíthat vissza, ahol legalább létrehozói jogosultsága van.",
     "currentWorkspace": "Aktuális munkaterület",
     "currentBase": "Aktuális bázis",
@@ -1024,6 +1033,8 @@
     "clearAll": "Összes törlése",
     "addNewLookupHelperText1": "Keresőmezők kapcsolt rekordok adatait mutatják. Válasszon ki konkrét mezőket a ",
     "addNewLookupHelperText2": " táblázatba, hogy hozzáadja azokat keresési mezőként ebben a táblázatban.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "Formázás",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Formátum típus",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "Mezőérték generálása MI segítségével",
     "preview": "Előnézet",
     "autoSuggest": "Automatikus javaslat",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Javaslat...",
     "autoSuggestFields": "Mezők automatikus javaslata",
     "autoSuggestFormulas": "Képletek automatikus javaslata",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "Keresőmezők hozzáadása",
     "sourceVisibilityIsHidden": "Az adatforrás láthatósága elrejtve",
     "youDontHavePermissionToEditThisField": "Nincs jogosultsága ennek a mezőnek a szerkesztésére",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Ikonok keresése",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "A WEEKDAY() második paraméterének az értéke \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" vagy \"saturday\" kell legyen",
       "firstParamDateAddHaveDate": "A DATEADD() első paraméterének dátumértékkel kell rendelkeznie",
       "secondParamDateAddHaveNumber": "A DATEADD() második paraméterének numerikus értékkel kell rendelkeznie",
-      "thirdParamDateAddHaveDate": "A DATEADD() harmadik paraméterének az értéke \"day\", \"week\", \"month\" vagy \"year\" lehet",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "A DATEDIFF() első paraméterének dátumértékkel kell rendelkeznie",
       "secondParamDateDiffHaveDate": "A DATEDIFF() második paraméterének dátumértékkel kell rendelkeznie",
       "thirdParamDateDiffHaveDate": "A DATETIME_DIFF() harmadik paraméterének az értéke \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", vagy \"y\" lehet",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "Nem sikerült keresőmezőket létrehozni",
       "invalidSearchQuery": "Érvénytelen keresési kifejezés",
       "invalidSearchQueryForVisibleFields": "Érvénytelen keresési kifejezés a látható mezőknél",
-      "invalidSearchQueryForDisplayField": "Érvénytelen keresési kifejezés a megjelenítési mezőnél"
+      "invalidSearchQueryForDisplayField": "Érvénytelen keresési kifejezés a megjelenítési mezőnél",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Bázis metaadatai sikeresen exportálva",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "A frissítésért fizetett összeget feldolgoztuk. Mostantól használhatja az új csomagot.",
       "mcpUrlCopied": "MCP URL vágólapra másolva",
       "nlookupFieldsCreatedSuccessfully": "{n} keresőmező sikeresen létrehozva",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} keresőmező sikeresen létrehozva"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} keresőmező sikeresen létrehozva",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Kezdje el a semmiből.",

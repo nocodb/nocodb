@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Обновите тарифный план, чтобы добавить неограниченное количество вебхуков",
     "upgradeToAddWebhookSubtitle": "План {activePlan} позволяет использовать до {limit} вебхуков. Перейдите на тариф {plan}, чтобы получить неограниченное количество вебхуков.",
     "upgradeToAccessWebhookLogsSubtitle": "Получите доступ к журналам вебхуков, обновив рабочее пространство до тарифа {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Обновите свой тарифный план, чтобы копировать таблицы между разными рабочими пространствами.",
+    "upgradeToDuplicateTableToOtherBase": "Обновите свой тариф, чтобы дублировать таблицы между разными базами.",
     "formOwnerNotified": "Владелец формы уведомлён",
     "formOwnerNotifiedSubtitle": "Мы уведомили владельца формы о вашем запросе на отправку.",
     "WorkspaceOwnerNotified": "Владелец рабочего пространства уведомлён",
@@ -160,8 +162,8 @@
     "upgradeToUploadWsImage": "Обновите тарифный план, чтобы загрузить изображение рабочего пространства",
     "upgradeToUploadWsImageSubtitle": "Ваш текущий тариф {activePlan} позволяет использовать только иконки и эмодзи. Перейдите на тариф {plan}, чтобы загрузить собственное изображение в качестве аватара рабочего пространства.",
     "upgradeToUseCurrentUserFilter": "Обновите тариф, чтобы фильтровать по текущему пользователю",
-    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
-    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
+    "upgradeToUseCalendarRange": "Обновите тариф, чтобы просматривать записи в виде календарного диапазона.",
+    "upgradeToUseCalendarRangeSubtitle": "Обновите тариф до {plan}, чтобы просматривать записи в виде календаря.",
     "upgradeToUseCurrentUserFilterSubtitle": "Обновитесь до тарифа {plan}, чтобы использовать фильтры, которые показывают данные по текущему пользователю.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "Приватные базы доступны на тарифе {plan}. Обновите тариф сейчас, чтобы начать использовать их.",
     "upgradeLicenseToUsePrivateBases": "Обновите лицензию, чтобы разблокировать приватные базы",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Приватные базы недоступны в лицензии Enterprise Starter. Обновите лицензию, чтобы начать использовать их.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Вы можете загрузить не более {limit} {filePlural} в эту ячейку. Обновите тариф {plan}, чтобы добавить больше файлов."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Вы можете загрузить не более {limit} {filePlural} в эту ячейку. Обновите тариф {plan}, чтобы добавить больше файлов.",
+    "upgradeToUseAiTextField": "Обновите тариф, чтобы использовать текстовые поля ИИ.",
+    "upgradeToUseAiTextFieldSubtitle": "Обновите тариф до {plan}, чтобы использовать AI-текстовые поля для генерации текста по вашему запросу.",
+    "upgradeToUseAiButtonField": "Обновите тариф, чтобы использовать кнопочные поля ИИ",
+    "upgradeToUseAiButtonFieldSubtitle": "Обновите тариф до {plan}, чтобы ИИ мог использовать данные записей с NocoAI для автоматического заполненных полей."
   },
   "general": {
     "script": "Скрипт",
@@ -196,6 +202,8 @@
     "trigger": "Триггер",
     "addLookupField": "Добавить {count} подстановочных полей",
     "addLookupFieldPlural": "Добавить {count} подстановочных полей",
+    "addRollupField": "Добавить {count} rollup поле",
+    "addRollupFieldPlural": "Добавить {count} rollup поля",
     "style": "Стиль",
     "label": "Метка",
     "role": "Роль",
@@ -909,7 +917,7 @@
     "mOfNFieldsHaveCustomPermissions": "{m} из {n} полей имеют индивидуальные разрешения",
     "cancelSubscriptionBeforeDeletingWorkspace": "Отмените подписку перед удалением рабочего пространства",
     "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "У этого рабочего пространства есть активная подписка. Пожалуйста, отмените её перед продолжением удаления.",
-    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
+    "confirmLeaveWorkspaceTitle": "Вы уверены, что хотите покинуть это рабочее пространство?",
     "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
     "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "База успешно дублирована",
     "duplicateBaseFailed": "Ошибка дублирования базы",
     "duplicateBaseMessage": "Дублировать базы можно только в рабочие пространства, где у вас есть права создателя или выше.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Восстанавливать снимки можно только в рабочие пространства, где у вас есть права создателя или выше.",
     "currentWorkspace": "Текущее рабочее пространство",
     "currentBase": "Текущая база",
@@ -1024,6 +1033,8 @@
     "clearAll": "Очистить всё",
     "addNewLookupHelperText1": "Поля подстановки показывают данные из связанных записей. Выберите конкретные поля из ",
     "addNewLookupHelperText2": " таблицы, чтобы добавить их как поля подстановки в эту таблицу.",
+    "addNewRollupHelperText1": "Rollup поля используются для сбора данных из полей связанной таблицы. Выберите определённые поля из ",
+    "addNewRollupHelperText2": " таблиц, чтобы добавить их как Rollup поля в этой таблице.",
     "formatting": "Форматирование",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Тип формата",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "Сгенерировать значение поля с помощью ИИ",
     "preview": "Предпросмотр",
     "autoSuggest": "Автопредложение",
+    "autoSuggested": "Автоматически предложено",
+    "usePrompt": "Use Prompt",
     "suggesting": "Предлагаем...",
     "autoSuggestFields": "Автопредложение полей",
     "autoSuggestFormulas": "Автопредложение формул",
@@ -1473,15 +1486,15 @@
     "importOptions": "Параметры импорта",
     "newScript": "Новый скрипт",
     "emptyScript": "Пустой скрипт",
-    "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "enterFullscreen": "Перейти в полноэкранный режим",
+    "exitFullscreen": "Выйти из полноэкранного режима"
   },
   "activity": {
     "clickToResolve": "Нажмите, чтобы разрешить",
     "resolvedBy": "Разрешено пользователем",
     "leaveWorkspace": "Покинуть рабочее пространство",
     "removeUser": "Удалить пользователя",
-    "removeMember": "Remove member",
+    "removeMember": "Удалить участника",
     "filterByThisField": "Фильтровать по этому полю",
     "groupByThisField": "Группировать по этому полю",
     "addToStarred": "Добавить в избранное",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "Добавить подстановочные поля",
     "sourceVisibilityIsHidden": "Видимость источника данных скрыта",
     "youDontHavePermissionToEditThisField": "У вас нет разрешения редактировать это поле",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Поиск значков",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Второй параметр WEEKDAY() должен иметь значение \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" или \"saturday\"",
       "firstParamDateAddHaveDate": "Первый параметр DATEADD() должен иметь значение типа \"дата\"",
       "secondParamDateAddHaveNumber": "Второй параметр DATEADD() должен быть числовым",
-      "thirdParamDateAddHaveDate": "Третий параметр DATEADD() должен иметь значение \"day\", \"week\", \"month\" или \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Первый параметр DATEDIFF() должен иметь значение типа \"дата\"",
       "secondParamDateDiffHaveDate": "Второй параметр DATEDIFF() должен иметь значение типа \"дата\"",
       "thirdParamDateDiffHaveDate": "Третий параметр DATETIME_DIFF() должен иметь значение \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\" или \"y\"",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "Не удалось создать подстановочные поля",
       "invalidSearchQuery": "Некорректный поисковый запрос",
       "invalidSearchQueryForVisibleFields": "Некорректный поисковый запрос для видимых полей",
-      "invalidSearchQueryForDisplayField": "Некорректный поисковый запрос для отображаемого поля"
+      "invalidSearchQueryForDisplayField": "Некорректный поисковый запрос для отображаемого поля",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Метаданные проекта успешно экспортированы",
@@ -2483,7 +2500,8 @@
       "upgradeSuccessfulSubtitle": "Платёж за обновление успешно обработан. Теперь вы можете использовать новый тарифный план.",
       "mcpUrlCopied": "URL MCP скопирован в буфер обмена",
       "nlookupFieldsCreatedSuccessfully": "{n} подстановочное поле успешно создано",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} подстановочных полей успешно создано"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} подстановочных полей успешно создано",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Начните с нуля.",

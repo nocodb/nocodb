@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Uppgradera för att lägga till obegränsade webhooks",
     "upgradeToAddWebhookSubtitle": "Planen {activePlan} tillåter upp till {limit} webhooks. Uppgradera till {plan}-planen för att få tillgång till obegränsade webhooks.",
     "upgradeToAccessWebhookLogsSubtitle": "Få åtkomst till webhook-loggar genom att uppgradera ditt arbetsutrymme till {plan}-planen.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Formulärägaren har meddelats",
     "formOwnerNotifiedSubtitle": "Vi har meddelat formulärägaren om din begäran om inlämning.",
     "WorkspaceOwnerNotified": "Arbetsutrymmesägaren har meddelats",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "Privata baser är tillgängliga på {plan}-nivån. Uppgradera nu för att börja använda dem.",
     "upgradeLicenseToUsePrivateBases": "Uppgradera licens för att låsa upp privata baser",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Privata baser är inte tillgängliga i Enterprise Starter-licensen. Uppgradera licensnyckeln för att börja använda dem.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Du kan bara ladda upp högst {limit} {filePlural} till denna cell. Uppgradera till {plan}-nivån för att lägga till fler filer."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Du kan bara ladda upp högst {limit} {filePlural} till denna cell. Uppgradera till {plan}-nivån för att lägga till fler filer.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Script",
@@ -196,6 +202,8 @@
     "trigger": "Triggers",
     "addLookupField": "Lägg till {count} uppslagsfält",
     "addLookupFieldPlural": "Lägg till {count} uppslagsfält",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "Stil",
     "label": "Etikett",
     "role": "Roll",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "Bas duplicerades",
     "duplicateBaseFailed": "Basduplicering misslyckades",
     "duplicateBaseMessage": "Du kan bara duplicera baser till arbetsutrymmen där du har skaparbehörighet eller högre.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Du kan bara återställa till arbetsutrymmen där du har skaparbehörighet eller högre.",
     "currentWorkspace": "Aktuellt arbetsutrymme",
     "currentBase": "Aktuell bas",
@@ -1024,6 +1033,8 @@
     "clearAll": "Rensa alla",
     "addNewLookupHelperText1": "Uppslagsfält visar data från länkade poster. Välj specifika fält från ",
     "addNewLookupHelperText2": " tabell för att lägga till dem som uppslagsfält i denna tabell.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "Formatering",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Formateringstyp",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "Generera fältvärde med AI",
     "preview": "Förhandsgranska",
     "autoSuggest": "Föreslå automatiskt",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Använd prompt",
     "suggesting": "Föreslår...",
     "autoSuggestFields": "Föreslå fält automatiskt",
     "autoSuggestFormulas": "Föreslå formler automatiskt",
@@ -1473,15 +1486,15 @@
     "importOptions": "Importalternativ",
     "newScript": "Nytt skript",
     "emptyScript": "Tomt skript",
-    "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "enterFullscreen": "Gå till helskärm",
+    "exitFullscreen": "Avsluta helskärm"
   },
   "activity": {
     "clickToResolve": "Klicka för att lösa",
     "resolvedBy": "Löst av",
     "leaveWorkspace": "Lämna arbetsutrymme",
     "removeUser": "Ta bort användare",
-    "removeMember": "Remove member",
+    "removeMember": "Ta bort medlem",
     "filterByThisField": "Filtrera efter detta fält",
     "groupByThisField": "Gruppera efter detta fält",
     "addToStarred": "Lägg till i favoriter",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "Lägg till uppslagsfält",
     "sourceVisibilityIsHidden": "Datakällans synlighet är dold",
     "youDontHavePermissionToEditThisField": "Du har inte behörighet att redigera detta fält",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "Du kan inte dölja ett obligatoriskt fält.",
+    "youCantRemoveARequiredField": "Du kan inte ta bort ett obligatoriskt fält.",
+    "removeFromForm": "Ta bort från formulär"
   },
   "placeholder": {
     "searchIcons": "Sök ikoner",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Den andra parametern i WEEKDAY() bör vara antingen \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" eller \"saturday\"",
       "firstParamDateAddHaveDate": "Den första parametern i DATEADD() bör ha ett datumvärde",
       "secondParamDateAddHaveNumber": "Den andra parametern i DATEADD() bör ha ett numeriskt värde",
-      "thirdParamDateAddHaveDate": "Den tredje parametern i DATEADD() bör vara antingen \"day\", \"week\", \"month\" eller \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Den första parametern i DATEDIFF() bör ha ett datumvärde",
       "secondParamDateDiffHaveDate": "Den andra parametern i DATEDIFF() bör ha ett datumvärde",
       "thirdParamDateDiffHaveDate": "Den tredje parametern i DATETIME_DIFF() bör vara antingen \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", eller \"y\"",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "Misslyckades att skapa uppslagsfält",
       "invalidSearchQuery": "Ogiltig sökfråga",
       "invalidSearchQueryForVisibleFields": "Ogiltig sökfråga för synliga fält",
-      "invalidSearchQueryForDisplayField": "Ogiltig sökfråga för visningsfält"
+      "invalidSearchQueryForDisplayField": "Ogiltig sökfråga för visningsfält",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Projektmetadata exporterades framgångsrikt",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "Din betalning för uppgraderingen har bearbetats. Du kan nu använda din nya plan.",
       "mcpUrlCopied": "MCP-URL har kopierats till urklipp",
       "nlookupFieldsCreatedSuccessfully": "{n} uppslagsfält skapades",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} uppslagsfält skapades"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} uppslagsfält skapades",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Börja från början.",

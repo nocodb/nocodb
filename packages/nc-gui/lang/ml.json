@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "പരിമിതിയില്ലാതെ വെബ്‌ഹുക്കുകൾ ചേർക്കാൻ അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "upgradeToAddWebhookSubtitle": "{activePlan} പ്ലാന്‍ പരമാവധി {limit} വെബ്‌ഹുക്കുകൾ മാത്രമേ അനുവദിക്കൂ. പരിമിതിയില്ലാത്ത വെബ്‌ഹുക്കുകൾക്കായി {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
     "upgradeToAccessWebhookLogsSubtitle": "വർക്ക്സ്പേസ് {plan} പ്ലാൻ അപ്‌ഗ്രേഡ് ചെയ്ത് വെബ്‌ഹുക്ക് ലോഗുകൾ ആക്സസ് ചെയ്യുക.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "ഫോം ഉടമയെ അറിയിച്ചു",
     "formOwnerNotifiedSubtitle": "നിങ്ങളുടെ സമർപ്പണ അഭ്യർത്ഥനയെക്കുറിച്ച് ഫോം ഉടമയെ ഞങ്ങൾ അറിയിച്ചു.",
     "WorkspaceOwnerNotified": "വർക്ക്സ്പേസ് ഉടമയെ അറിയിച്ചു",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "സ്വകാര്യ ബേസുകൾ {plan} പ്ലാനിൽ ലഭ്യമാണ്. ഇപ്പോൾ അപ്‌ഗ്രേഡ് ചെയ്ത് ഉപയോഗിച്ചു തുടങ്ങൂ.",
     "upgradeLicenseToUsePrivateBases": "സ്വകാര്യ ബേസുകൾ ഉപയോഗിക്കാൻ ലൈസൻസ് അപ്‌ഗ്രേഡ് ചെയ്യുക",
     "upgradeLicenseToUsePrivateBasesSubtitle": "എന്റർപ്രൈസ് സ്റ്റാർട്ടർ ലൈസൻസിൽ സ്വകാര്യ ബേസുകൾ ലഭ്യമല്ല. ഇങ്ങനെ ഉപയോഗിക്കാൻ ലൈസൻസ് കീ അപ്‌ഡേറ്റ് ചെയ്യുക.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "ഈ സെല്ലിലേക്ക് പരമാവധി {limit} {filePlural} മാത്രമേ അപ്‌ലോഡ് ചെയ്യാൻ കഴിയൂ. കൂടുതൽ ഫയലുകൾ ചേർക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "ഈ സെല്ലിലേക്ക് പരമാവധി {limit} {filePlural} മാത്രമേ അപ്‌ലോഡ് ചെയ്യാൻ കഴിയൂ. കൂടുതൽ ഫയലുകൾ ചേർക്കാൻ {plan} പ്ലാനിലേക്ക് അപ്‌ഗ്രേഡ് ചെയ്യുക.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "സ്ക്രിപ്റ്റ്",
@@ -196,6 +202,8 @@
     "trigger": "ട്രിഗർ",
     "addLookupField": "{count} ലുക്കപ്പ് ഫീൽഡ് ചേർക്കുക",
     "addLookupFieldPlural": "{count} ലുക്കപ്പ് ഫീൽഡുകൾ ചേർക്കുക",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "ഷൈൽ",
     "label": "ലേബൽ",
     "role": "പങ്ക്",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "ബസ് ഡ്യൂപ്ലിക്കേഷൻ വിജയകരം",
     "duplicateBaseFailed": "ബസ് ഡ്യൂപ്ലിക്കേഷൻ പരാജയപ്പെട്ടു",
     "duplicateBaseMessage": "നിങ്ങളുടെ ക്രിയേറ്റർ അല്ലെങ്കിൽ അതിന് മുകളിലുള്ള ആക്‌സസ് ഉള്ള വര്‍ക്ക്‌സ്‌പേസുകളിലേക്കു മാത്രമേ ബേസുകൾ ഡ്യൂപ്ലിക്കേറ്റ് ചെയ്യാന്‍ കഴിയൂ.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "ക്രിയേറ്റർ അല്ലെങ്കിൽ അതിന് മുകളിലുള്ള ആക്‌സസ് ഉള്ള വര്‍ക്ക്‌സ്‌പേസുകളിലേക്കു മാത്രമേ റസ്റ്റോർ ചെയ്യാന്‍ കഴിയൂ.",
     "currentWorkspace": "നിലവിലുള്ള വർക്ക്സ്പേസ്",
     "currentBase": "ഇപ്പോഴത്തെ ബേസ്",
@@ -1024,6 +1033,8 @@
     "clearAll": "എല്ലാം ശുദ്ധമാക്കൂ",
     "addNewLookupHelperText1": "ലിങ്കുചെയ്ത റെക്കോർഡുകളിൽ നിന്ന് ഡാറ്റ കാണിക്കാൻ ലുക്കപ്പ് ഫീൽഡുകൾ ഉപയോഗിക്കുന്നു. പകുതിയിലായി നിൽക്കുന്ന ഫീൽഡുകൾ തിരഞ്ഞെടുക്കുക ",
     "addNewLookupHelperText2": " ടേബിളില്‍ ഇവയെ ലുക്ക്അപ്പ് ഫീല്‍ഡുകള്‍ ആയി കൂട്ടിച്ചേര്‍ക്കാൻ പ്രത്യേക ഫീല്‍ഡുകള്‍ തിരഞ്ഞെടുക്കുക.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "ഫോർമാറ്റിംഗ്",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "ഫോർമാറ്റ് തരം",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "AI ഉപയോഗിച്ച് ഫീല്‍ഡ് മൂല്യം സൃഷ്ടിക്കുക",
     "preview": "പ്രിവ്യൂ",
     "autoSuggest": "സ്വയം നിര്‍ദേശിക്കുക",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "നിര്‍ദേശിക്കുന്നു...",
     "autoSuggestFields": "ഫീൽഡുകള്‍ സ്വയം നിര്‍ദേശിക്കുക",
     "autoSuggestFormulas": "ഫോർമുലകള്‍ സ്വയം നിര്‍ദേശിക്കുക",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "ലുക്കപ്പ് ഫീൽഡുകൾ ചേർക്കുക",
     "sourceVisibilityIsHidden": "ഡാറ്റ സ്രോതസ്സിന്റെ ദൃശ്യവിധാനം മറച്ചിരിക്കുന്നു",
     "youDontHavePermissionToEditThisField": "ഈ ഫീൽഡ് എഡിറ്റ് ചെയ്യാൻ നിങ്ങൾക്ക് അനുമതിയില്ല",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "ചിഹ്നങ്ങൾ തിരയുക",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() യുടെ രണ്ടാം പാരാമീറ്റർ \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" അല്ലെങ്കിൽ \"saturday\" തരത്തിൽ മൂല്യം ഉണ്ടായിരിക്കണം",
       "firstParamDateAddHaveDate": "DATEADD() യുടെ ആദ്യ പാരാമീറ്റർ തീയതി മൂല്യം ഉണ്ടായിരിക്കണം",
       "secondParamDateAddHaveNumber": "DATEADD() യുടെ രണ്ടാം പാരാമീറ്റർ സംഖ്യാത്മകമായ മൂല്യം ഉണ്ടായിരിക്കണം",
-      "thirdParamDateAddHaveDate": "DATEADD() യുടെ മൂന്നാം പാരാമീറ്റർ \"day\", \"week\", \"month\" അല്ലെങ്കിൽ \"year\" തരത്തിൽ മൂല്യം ഉണ്ടായിരിക്കണം",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() യുടെ ആദ്യ പാരാമീറ്റർ തീയതി മൂല്യം ഉണ്ടായിരിക്കണം",
       "secondParamDateDiffHaveDate": "DATEDIFF() യുടെ രണ്ടാം പാരാമീറ്റർ തീയതി മൂല്യം ഉണ്ടായിരിക്കണം",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() യുടെ മൂന്നാം പാരാമീറ്റർ \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", അല്ലെങ്കിൽ \"y\" തരത്തിൽ മൂല്യം ഉണ്ടായിരിക്കണം",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "ലുക്കപ്പ് ഫീൽഡുകൾ സൃഷ്ടിക്കാൻ പരാജയപ്പെട്ടു",
       "invalidSearchQuery": "അസാധുവായ തിരയൽ ക്വറി",
       "invalidSearchQueryForVisibleFields": "ദൃശ്യമാകുന്ന ഫീൽഡുകളിൽ അസാധുവായ തിരയൽ ക്വറി",
-      "invalidSearchQueryForDisplayField": "പ്രദർശന ഫീൽഡിൽ അസാധുവായ തിരയൽ ക്വറി"
+      "invalidSearchQueryForDisplayField": "പ്രദർശന ഫീൽഡിൽ അസാധുവായ തിരയൽ ക്വറി",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "അടിസ്ഥാന ഡാറ്റയുടെ മീറ്റാ വിവരങ്ങൾ വിജയകരമായി കയറ്റുമതി ചെയ്തു",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "അപ്‌ഗ്രേഡിനുള്ള നിങ്ങളുടെ പേയ്മെന്റ് പ്രോസസ്സ് ചെയ്തു. ഇനി പുതിയ പ്ലാൻ ഉപയോഗിക്കാം.",
       "mcpUrlCopied": "MCP URL ക്ലിപ്പ്ബോർഡിലേക്ക് കോപ്പി ചെയ്തു",
       "nlookupFieldsCreatedSuccessfully": "{n} ലുക്കപ്പ് ഫീൽഡ് വിജയകരമായി സൃഷ്ടിച്ചു",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} ലുക്കപ്പ് ഫീൽഡുകൾ വിജയകരമായി സൃഷ്ടിച്ചു"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} ലുക്കപ്പ് ഫീൽഡുകൾ വിജയകരമായി സൃഷ്ടിച്ചു",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "പുതിയത് തുടങ്ങുക.",

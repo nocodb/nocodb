@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Uaktualnij, aby dodać nieograniczoną liczbę webhooków",
     "upgradeToAddWebhookSubtitle": "Plan {activePlan} pozwala na maksymalnie {limit} webhooków. Uaktualnij do planu {plan}, aby uzyskać dostęp do nieograniczonej liczby webhooków.",
     "upgradeToAccessWebhookLogsSubtitle": "Uzyskaj dostęp do logów webhooków, uaktualniając przestrzeń roboczą do planu {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Właściciel formularza powiadomiony",
     "formOwnerNotifiedSubtitle": "Powiadomiliśmy właściciela formularza o Twojej prośbie o przesłanie.",
     "WorkspaceOwnerNotified": "Właściciel przestrzeni roboczej powiadomiony",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "Prywatne bazy są dostępne w ramach planu {plan}. Uaktualnij, aby zacząć z nich korzystać.",
     "upgradeLicenseToUsePrivateBases": "Uaktualnij licencję, aby odblokować prywatne bazy",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Prywatne bazy nie są dostępne w licencji Enterprise Starter. Uaktualnij klucz licencyjny, aby zacząć ich używać.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Możesz przesłać maksymalnie {limit} {filePlural} do tej komórki. Uaktualnij do planu {plan}, aby dodać więcej plików."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Możesz przesłać maksymalnie {limit} {filePlural} do tej komórki. Uaktualnij do planu {plan}, aby dodać więcej plików.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Skrypt",
@@ -196,6 +202,8 @@
     "trigger": "Wyzwalacz",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "Dodaj {count} pola wyszukiwania",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "Styl",
     "label": "Etykieta",
     "role": "Rola",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "Pomyślnie zduplikowano bazę",
     "duplicateBaseFailed": "Duplikowanie bazy nie powiodło się",
     "duplicateBaseMessage": "Możesz duplikować bazy tylko do przestrzeni roboczych, w których masz uprawnienia tworzącego lub wyższe.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Możesz przywracać tylko do przestrzeni roboczych, w których masz uprawnienia tworzącego lub wyższe.",
     "currentWorkspace": "Bieżąca przestrzeń robocza",
     "currentBase": "Bieżąca baza",
@@ -1024,6 +1033,8 @@
     "clearAll": "Wyczyść wszystko",
     "addNewLookupHelperText1": "Pola Lookup pokazują dane z powiązanych rekordów. Wybierz konkretne pola z ",
     "addNewLookupHelperText2": " tabeli, aby dodać je jako pola Lookup w tej tabeli.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "Formatowanie",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Typ formatu",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "Generuj wartość pola za pomocą AI",
     "preview": "Podgląd",
     "autoSuggest": "Auto sugestie",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Sugestowanie...",
     "autoSuggestFields": "Automatyczne sugerowanie pól",
     "autoSuggestFormulas": "Automatyczne sugerowanie formuł",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "Dodaj pola wyszukiwania",
     "sourceVisibilityIsHidden": "Widoczność źródła danych jest ukryta",
     "youDontHavePermissionToEditThisField": "Nie masz uprawnień do edycji tego pola",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Wyszukaj ikony",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Drugi parametr WEEKDAY() powinien mieć wartość 'niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek' lub 'sobota'",
       "firstParamDateAddHaveDate": "Pierwszy parametr DATEADD() powinien mieć wartość daty",
       "secondParamDateAddHaveNumber": "Drugi parametr DATEADD() powinien mieć wartość numeryczną",
-      "thirdParamDateAddHaveDate": "Trzeci parametr DATEADD() powinien mieć wartość 'dzień', 'tydzień', 'miesiąc' lub 'rok'",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Pierwszy parametr DATEDIFF() powinien mieć wartość daty",
       "secondParamDateDiffHaveDate": "Drugi parametr DATEDIFF() powinien mieć wartość daty",
       "thirdParamDateDiffHaveDate": "Trzeci parametr DATETIME_DIFF() powinien mieć wartość 'milisekundy', 'ms', 'sekundy', 's', 'minuty', 'm', 'godziny', 'h', 'dni', 'd', 'tygodnie', 'w', 'miesiące', 'M', 'kwartały', 'Q', 'lata' lub 'y'",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "Nie udało się utworzyć pól wyszukiwania",
       "invalidSearchQuery": "Nieprawidłowe zapytanie wyszukiwania",
       "invalidSearchQueryForVisibleFields": "Nieprawidłowe zapytanie wyszukiwania dla widocznych pól",
-      "invalidSearchQueryForDisplayField": "Nieprawidłowe zapytanie wyszukiwania dla pola wyświetlania"
+      "invalidSearchQueryForDisplayField": "Nieprawidłowe zapytanie wyszukiwania dla pola wyświetlania",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Pomyślnie wyeksportowano metadane projektu",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "Twoja płatność za uaktualnienie została przetworzona. Możesz teraz korzystać z nowego planu.",
       "mcpUrlCopied": "Adres URL MCP skopiowany do schowka",
       "nlookupFieldsCreatedSuccessfully": "{n} pole wyszukiwania utworzone pomyślnie",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} pola wyszukiwania utworzone pomyślnie"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} pola wyszukiwania utworzone pomyślnie",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Zacznij od zera.",

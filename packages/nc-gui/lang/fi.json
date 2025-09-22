@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Päivitä lisätäksesi rajattomasti webhookkeja",
     "upgradeToAddWebhookSubtitle": "{activePlan}-paketti sallii enintään {limit} webhookia. Päivitä {plan}-pakettiin saadaksesi rajattomasti webhookkeja.",
     "upgradeToAccessWebhookLogsSubtitle": "Saat webhook-lokit käyttöön päivittämällä työtilasi {plan}-pakettiin.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Lomakkeen omistajalle ilmoitettu",
     "formOwnerNotifiedSubtitle": "Ilmoitimme lomakkeen omistajalle lähetyspyynnöstäsi.",
     "WorkspaceOwnerNotified": "Työtilan omistajalle ilmoitettu",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "Yksityiset pohjat ovat käytettävissä {plan}-paketissa. Päivitä nyt päästäksesi käyttämään niitä.",
     "upgradeLicenseToUsePrivateBases": "Päivitä lisenssi avataksesi yksityiset pohjat",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Yksityisiä pohjia ei ole saatavilla Enterprise Starter -lisenssissä. Päivitä lisenssiavaimesi päästäksesi käyttämään niitä.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Voit ladata enintään {limit} {filePlural} tähän soluun. Päivitä {plan}-pakettiin lisätäksesi enemmän tiedostoja."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Voit ladata enintään {limit} {filePlural} tähän soluun. Päivitä {plan}-pakettiin lisätäksesi enemmän tiedostoja.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Skripti",
@@ -196,6 +202,8 @@
     "trigger": "Laukaisin",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "Lisää {count} hakukenttää",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "Tyyli",
     "label": "Tunniste",
     "role": "Rooli",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "Pohjan kopiointi onnistui",
     "duplicateBaseFailed": "Pohjan kopiointi epäonnistui",
     "duplicateBaseMessage": "Voit kopioida pohjia vain työtiloihin, joissa sinulla on luojan oikeudet tai korkeammat.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Voit palauttaa vain työtiloihin, joissa sinulla on luojan oikeudet tai korkeammat.",
     "currentWorkspace": "Nykyinen työtila",
     "currentBase": "Nykyinen pohja",
@@ -1024,6 +1033,8 @@
     "clearAll": "Tyhjennä kaikki",
     "addNewLookupHelperText1": "Linkityskentät näyttävät tietoja linkitetyistä tietueista. Valitse tietyt kentät ",
     "addNewLookupHelperText2": " taulukosta lisätäksesi ne hakukentiksi tähän taulukkoon.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "Muotoilu",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Muototyyppi",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "Luo kentän arvo AI:n avulla",
     "preview": "Esikatselu",
     "autoSuggest": "Automaattinen ehdotus",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Ehdotetaan...",
     "autoSuggestFields": "Ehdota kenttiä automaattisesti",
     "autoSuggestFormulas": "Ehdota kaavoja automaattisesti",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "Lisää hakukentät",
     "sourceVisibilityIsHidden": "Tietolähteen näkyvyys on piilotettu",
     "youDontHavePermissionToEditThisField": "Sinulla ei ole oikeuksia muokata tätä kenttää",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Etsi kuvakkeita",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY()-funktion toisella parametrilla tulisi olla arvo joko \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" tai \"saturday\"",
       "firstParamDateAddHaveDate": "DATEADD()-funktion ensimmäisellä parametrilla tulisi olla päivämääräarvo",
       "secondParamDateAddHaveNumber": "DATEADD()-funktion toisella parametrilla tulisi olla numeerinen arvo",
-      "thirdParamDateAddHaveDate": "DATEADD()-funktion kolmannella parametrilla tulisi olla arvo joko \"day\", \"week\", \"month\" tai \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF()-funktion ensimmäisellä parametrilla tulisi olla päivämääräarvo",
       "secondParamDateDiffHaveDate": "DATEDIFF()-funktion toisella parametrilla tulisi olla päivämääräarvo",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF()-funktion kolmannella parametrilla tulisi olla arvo joko \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\" tai \"y\"",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "Hakukenttien luonti epäonnistui",
       "invalidSearchQuery": "Virheellinen hakulauseke",
       "invalidSearchQueryForVisibleFields": "Virheellinen hakulauseke näkyville kentille",
-      "invalidSearchQueryForDisplayField": "Virheellinen hakulauseke näyttökentälle"
+      "invalidSearchQueryForDisplayField": "Virheellinen hakulauseke näyttökentälle",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Project Metadata viedään onnistuneesti",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "Päivityksen maksu on käsitelty. Voit nyt käyttää uutta pakettiasi.",
       "mcpUrlCopied": "MCP-URL kopioitu leikepöydälle",
       "nlookupFieldsCreatedSuccessfully": "{n} hakukenttä luotu onnistuneesti",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} hakukenttää luotu onnistuneesti"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} hakukenttää luotu onnistuneesti",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Aloita alusta.",

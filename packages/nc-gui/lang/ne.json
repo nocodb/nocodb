@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "असीमित वेबहुकहरू थप्न अपग्रेड गर्नुहोस्",
     "upgradeToAddWebhookSubtitle": "{activePlan} योजनाले अधिकतम {limit} वेबहुकहरू अनुमति दिन्छ। असीमित वेबहुक पहुँचका लागि {plan} योजना मा अपग्रेड गर्नुहोस्।",
     "upgradeToAccessWebhookLogsSubtitle": "तपाईंको कार्यस्थानलाई {plan} योजना मा अपग्रेड गरेर वेबहुक लगहरू पहुँच गर्नुहोस्।",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "फारम मालिकलाई सूचना पठाइयो",
     "formOwnerNotifiedSubtitle": "हामीले तपाईंको पेशा अनुरोधबारे फारम मालिकलाई सूचना दिएका छौँ।",
     "WorkspaceOwnerNotified": "वर्कस्पेस मालिकलाई सूचना पठाइयो",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "प्राइवेट बेसहरू {plan} योजनामा उपलब्ध छन्। तिनीहरू प्रयोग गर्न आजै अपग्रेड गर्नुहोस्।",
     "upgradeLicenseToUsePrivateBases": "प्राइवेट बेस अनलक गर्न लाइसेन्स अपग्रेड गर्नुहोस्",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Enterprise Starter लाइसेन्समा प्राइवेट बेसहरू उपलब्ध छैनन्। तिनीहरू प्रयोग गर्न लाइसेन्स अपग्रेड गर्नुहोस्।",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "यस कक्षमा धेरैमा धेरै {limit} {filePlural} मात्र अपलोड गर्न सक्नुहुन्छ। थप फाइलहरू थप्न {plan} योजनामा अपग्रेड गर्नुहोस्।"
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "यस कक्षमा धेरैमा धेरै {limit} {filePlural} मात्र अपलोड गर्न सक्नुहुन्छ। थप फाइलहरू थप्न {plan} योजनामा अपग्रेड गर्नुहोस्।",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "स्क्रिप्ट",
@@ -196,6 +202,8 @@
     "trigger": "ट्रिगर",
     "addLookupField": "{count} खोज्या फिल्ड थप्नुहोस्",
     "addLookupFieldPlural": "{count} लुकअप फिल्डहरू थप्नुहोस्",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "शैली",
     "label": "लेबल",
     "role": "भूमिका",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "बेस नक्कल सफल",
     "duplicateBaseFailed": "बेस नक्कल असफल",
     "duplicateBaseMessage": "तपाईंले सिर्जनाकर्ता पहुँच वा सो भन्दा माथि भएको कार्यक्षेत्रमा मात्र बेसहरू नक्कल गर्न सक्नुहुन्छ।",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "तपाईंले सिर्जनाकर्ता पहुँच वा सो भन्दा माथि भएको कार्यक्षेत्रमा मात्र पुनर्स्थापना गर्न सक्नुहुन्छ।",
     "currentWorkspace": "हालको कार्यक्षेत्र",
     "currentBase": "हालको बेस",
@@ -1024,6 +1033,8 @@
     "clearAll": "सबै खाली गर्नुहोस्",
     "addNewLookupHelperText1": "लुकअप फिल्डहरूले लिङ्क गरिएका रेकर्डहरूबाट डाटा देखाउँछन्। विशिष्ट फिल्डहरू चयन गर्नुहोस् ",
     "addNewLookupHelperText2": " तालिकामा तिनीहरूलाई Lookup क्षेत्रहरू रूपमा थप्न।",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "फारम्याटिंग",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "फारम प्रकार",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "AI प्रयोग गरी फील्ड मान उत्पन्न गर्नुहोस्",
     "preview": "पूर्वावलोकन",
     "autoSuggest": "स्वतः सुझाव",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "सुझाव दिइँदै...",
     "autoSuggestFields": "क्षेत्रहरू स्वतः सुझाव",
     "autoSuggestFormulas": "सूत्रहरू स्वतः सुझाव",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "लुकअप फिल्डहरू थप्नुहोस्",
     "sourceVisibilityIsHidden": "डेटा स्रोत दृश्यता लुकेको छ",
     "youDontHavePermissionToEditThisField": "यो फिल्ड सम्पादन गर्न तपाईंलाई अनुमति छैन",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "आइकनहरू खोज्नुहोस्",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() को दोस्रो प्यारामिटरको मान \"आइतवार\", \"सोमबार\", \"मङ्गलवार\", \"बुधवार\", \"बिहीवार\", \"शुक्रवार\" वा \"शनिवार\" मध्ये कुनै एक हुनुपर्दछ",
       "firstParamDateAddHaveDate": "DATEADD() को पहिलो प्यारामिटरमा मिति मान हुनुपर्दछ",
       "secondParamDateAddHaveNumber": "DATEADD() को दोस्रो प्यारामिटरमा संख्यात्मक मान हुनुपर्दछ",
-      "thirdParamDateAddHaveDate": "DATEADD() को तेस्रो प्यारामिटरको मान \"दिन\", \"हप्ता\", \"महिना\" वा \"वर्ष\" मध्ये कुनै एक हुनुपर्दछ",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() को पहिलो प्यारामिटरमा मिति मान हुनुपर्दछ",
       "secondParamDateDiffHaveDate": "DATEDIFF() को दोस्रो प्यारामिटरमा मिति मान हुनुपर्दछ",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() को तेस्रो प्यारामिटरको मान \"मिलिसेकेन्ड\", \"ms\", \"सेकेन्ड\", \"s\", \"मिनेट\", \"m\", \"घण्टा\", \"h\", \"दिन\", \"d\", \"हप्ताहरू\", \"w\", \"महिना\", \"M\", \"क्वाटरहरू\", \"Q\", \"बर्ष\" वा \"y\" मध्ये कुनै एक हुनुपर्छ",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "लुकअप फिल्डहरू सिर्जना गर्न असफल भयो",
       "invalidSearchQuery": "गलत खोज प्रश्न",
       "invalidSearchQueryForVisibleFields": "दृश्य हुने फिल्डहरूका लागि गलत खोज प्रश्न",
-      "invalidSearchQueryForDisplayField": "प्रदर्शन फिल्डका लागि गलत खोज प्रश्न"
+      "invalidSearchQueryForDisplayField": "प्रदर्शन फिल्डका लागि गलत खोज प्रश्न",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात गरिएको छ",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "अपग्रेडका लागि तपाईंको भुक्तानी प्रशोधन भयो। अब तपाईं नयाँ योजना प्रयोग गर्न सक्नुहुन्छ।",
       "mcpUrlCopied": "MCP URL क्लिपबोर्डमा कपी गरियो",
       "nlookupFieldsCreatedSuccessfully": "{n} लुकअप फिल्ड सफलतापूर्वक सिर्जना भयो",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} लुकअप फिल्डहरू सफलतापूर्वक सिर्जना भए"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} लुकअप फिल्डहरू सफलतापूर्वक सिर्जना भए",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "शून्यबाट सुरु गर्नुहोस्।",

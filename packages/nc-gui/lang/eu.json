@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Igoera egin webhook mugagabeak gehitzeko",
     "upgradeToAddWebhookSubtitle": "{activePlan} planak gehienez {limit} webhook baimentzen ditu. {plan} planera igota, webhook mugagabeak izango dituzu.",
     "upgradeToAccessWebhookLogsSubtitle": "Webhook erregistroetara sartzeko, igo zure lan-espazioa {plan} planeraino.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Inprimakiaren jabea jakinarazita",
     "formOwnerNotifiedSubtitle": "Zure bidalketa-eskaeraren berri eman diogu inprimakiaren jabeari.",
     "WorkspaceOwnerNotified": "Lan-espazioko jabea jakinarazita",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "Oinarri pribatuak {plan} planean eskuragarri daude. Igo zaitez eta hasi erabiltzen.",
     "upgradeLicenseToUsePrivateBases": "Igo lizentzia oinarri pribatuak desblokeatzeko",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Oinarri pribatuak ez daude eskuragarri Enterprise Starter lizentzian. Igo lizentzia gakoa erabiltzeko.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Gehienez {limit} {filePlural} fitxategi igo ditzakezu gelaxka honetara. Igo zaitez {plan} planera fitxategi gehiago gehitzeko."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Gehienez {limit} {filePlural} fitxategi igo ditzakezu gelaxka honetara. Igo zaitez {plan} planera fitxategi gehiago gehitzeko.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Script",
@@ -196,6 +202,8 @@
     "trigger": "Eraldagailua",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "Gehitu {count} lookup eremu",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "Estiloa",
     "label": "Etiketa",
     "role": "Rola",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "Basea arrakastaz bikoiztuta",
     "duplicateBaseFailed": "Basea bikoizteak huts egin du",
     "duplicateBaseMessage": "Baseak soilik sortzaile baimena edo handiagoa duzun workspace-etan bikoiztu ditzakezu.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Soilik sortzaile baimena edo handiagoa duzun workspace-etan berreskuratu dezakezu.",
     "currentWorkspace": "Uneko workspace-a",
     "currentBase": "Uneko oinarria",
@@ -1024,6 +1033,8 @@
     "clearAll": "Garbitu dena",
     "addNewLookupHelperText1": "Bilatu eremuetan lotutako grabazioetatik datuak erakutsi. Aukeratu zehazki ",
     "addNewLookupHelperText2": " taula bertan Lookup eremu bezala gehitzeko.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "Formatua",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Formatu mota",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "Sortu eremuaren balioa AI erabiliz",
     "preview": "Aurrebista",
     "autoSuggest": "Iradokizun automatikoa",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Iradokitzen...",
     "autoSuggestFields": "Eremuen iradokizun automatikoa",
     "autoSuggestFormulas": "Formulen iradokizun automatikoa",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "Gehitu lookup eremuak",
     "sourceVisibilityIsHidden": "Datu iturriaren ikusgaitasuna ezkutatuta dago",
     "youDontHavePermissionToEditThisField": "Ez duzu eremu hau editatzeko baimenik",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Bilatu ikonoak",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() funtzioaren bigarren parametroak \"igandea\", \"astelehena\", \"asteartea\", \"asteazkena\", \"osteguna\", \"ostirala\" edo \"larunbata\" balioa izan behar du",
       "firstParamDateAddHaveDate": "DATEADD() funtzioaren lehen parametroak data balioa izan behar du",
       "secondParamDateAddHaveNumber": "DATEADD() funtzioaren bigarren parametroak balio zenbakia izan behar du",
-      "thirdParamDateAddHaveDate": "DATEADD() funtzioaren hirugarren parametroak \"eguna\", \"astea\", \"hilabetea\" edo \"urtea\" balioa izan behar du",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() funtzioaren lehen parametroak data balioa izan behar du",
       "secondParamDateDiffHaveDate": "DATEDIFF() funtzioaren bigarren parametroak data balioa izan behar du",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() funtzioaren hirugarren parametroak balio izan behar du: \"milisegundoak\", \"ms\", \"segundoak\", \"s\", \"minutuak\", \"m\", \"orduak\", \"h\", \"egunak\", \"d\", \"asteak\", \"w\", \"hilabeteak\", \"M\", \"hiruhilekoak\", \"Q\", \"urteak\", edo \"y\"",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "Huts egin du lookup eremuak sortzean",
       "invalidSearchQuery": "Bilaketa-kontsulta baliogabea",
       "invalidSearchQueryForVisibleFields": "Bilaketa-kontsulta baliogabea ikusarazten diren eremuetarako",
-      "invalidSearchQueryForDisplayField": "Bilaketa-kontsulta baliogabea bistaratzen den eremuarentzat"
+      "invalidSearchQueryForDisplayField": "Bilaketa-kontsulta baliogabea bistaratzen den eremuarentzat",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Project metadata exported successfully",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "Igoerarako zure ordainketa prozesatu da. Orain zure plan berria erabil dezakezu.",
       "mcpUrlCopied": "MCP URLa arbelean kopiatu da",
       "nlookupFieldsCreatedSuccessfully": "{n} lookup eremu ongi sortu da",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} lookup eremuak ongi sortu dira"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} lookup eremuak ongi sortu dira",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Hasi hutsetik.",

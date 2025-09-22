@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "升級以加入無限 Webhook",
     "upgradeToAddWebhookSubtitle": "{activePlan} 方案僅支援 {limit} 個 Webhook。升級至 {plan} 方案可使用無限 Webhook。",
     "upgradeToAccessWebhookLogsSubtitle": "將工作區升級至 {plan} 方案即可存取 Webhook 日誌。",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "已通知表單擁有者",
     "formOwnerNotifiedSubtitle": "我們已就您的提交請求通知表單擁有者。",
     "WorkspaceOwnerNotified": "已通知工作區擁有者",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "私人 Base 可在 {plan} 方案中使用。立即升級即可開始使用。",
     "upgradeLicenseToUsePrivateBases": "升級授權以解鎖私人 Base",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Enterprise Starter 授權無法使用私人 Base。請升級授權金鑰以開始使用。",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "您最多只能在此欄格上傳 {limit} 個{filePlural}。升級到 {plan} 方案即可新增更多檔案。"
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "您最多只能在此欄格上傳 {limit} 個{filePlural}。升級到 {plan} 方案即可新增更多檔案。",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Script",
@@ -196,6 +202,8 @@
     "trigger": "觸發",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "新增 {count} 個查找欄位",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "風格",
     "label": "標籤",
     "role": "角色",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "Base 複製成功",
     "duplicateBaseFailed": "Base 複製失敗",
     "duplicateBaseMessage": "您只能在擁有建立者權限以上的工作區中複製 Base。",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "您只能在擁有建立者權限以上的工作區中還原。",
     "currentWorkspace": "目前工作區",
     "currentBase": "當前 Base",
@@ -1024,6 +1033,8 @@
     "clearAll": "清除所有",
     "addNewLookupHelperText1": "查詢欄位顯示來自連結記錄的數據。從中選擇特定欄位",
     "addNewLookupHelperText2": " 表以添加它們作為此表中的查閱欄位。",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "格式化",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "格式類型",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "透過 AI 生成欄位值",
     "preview": "預覽",
     "autoSuggest": "自動建議",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "建議中...",
     "autoSuggestFields": "自動建議欄位",
     "autoSuggestFormulas": "自動建議公式",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "新增查找欄位",
     "sourceVisibilityIsHidden": "資料來源可見性已隱藏",
     "youDontHavePermissionToEditThisField": "您無權編輯該欄位",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "搜索圖標",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() 的第二個參數應該是 \"sunday\"、\"monday\"、\"tuesday\"、\"wednesday\"、\"thursday\"、\"friday\" 或 \"saturday\"",
       "firstParamDateAddHaveDate": "DATEADD() 的第一個參數應該是日期值",
       "secondParamDateAddHaveNumber": "DATEADD() 的第二個參數應該是數值",
-      "thirdParamDateAddHaveDate": "DATEADD() 的第三個參數應該是 \"day\"、\"week\"、\"month\" 或 \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() 的第一個參數應該是日期值",
       "secondParamDateDiffHaveDate": "DATEDIFF() 的第二個參數應該是日期值",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() 的第三個參數應該是 \"milliseconds\"、\"ms\"、\"seconds\"、\"s\"、\"minutes\"、\"m\"、\"hours\"、\"h\"、\"days\"、\"d\"、\"weeks\"、\"w\"、\"months\"、\"M\"、\"quarters\"、\"Q\"、\"years\"、\"y\" 中的一個值",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "建立查找欄位失敗",
       "invalidSearchQuery": "搜尋查詢無效",
       "invalidSearchQueryForVisibleFields": "針對可見欄位的搜尋查詢無效",
-      "invalidSearchQueryForDisplayField": "針對顯示欄位的搜尋查詢無效"
+      "invalidSearchQueryForDisplayField": "針對顯示欄位的搜尋查詢無效",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "專案中繼資料已成功匯出",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "您的升級付款已完成，現在可以使用新的方案。",
       "mcpUrlCopied": "MCP URL 已複製到剪貼簿",
       "nlookupFieldsCreatedSuccessfully": "{n} 個查找欄位建立成功",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} 個查找欄位建立成功"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} 個查找欄位建立成功",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "從頭開始。",

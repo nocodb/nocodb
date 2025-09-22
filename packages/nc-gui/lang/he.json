@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "שדרג כדי להוסיף Webhooks ללא הגבלה",
     "upgradeToAddWebhookSubtitle": "תוכנית {activePlan} מאפשרת עד ‎{limit}‎ Webhooks. שדרג לתוכנית {plan} כדי לקבל Webhooks ללא הגבלה.",
     "upgradeToAccessWebhookLogsSubtitle": "קבל גישה ליומני Webhook על-ידי שדרוג סביבת העבודה לתוכנית {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "בעל הטופס קיבל הודעה",
     "formOwnerNotifiedSubtitle": "הודענו לבעל הטופס על בקשת ההגשה שלך.",
     "WorkspaceOwnerNotified": "בעל סביבת העבודה קיבל הודעה",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "בסיסים פרטיים זמינים בתוכנית {plan}. שדרג כעת כדי להתחיל להשתמש.",
     "upgradeLicenseToUsePrivateBases": "שדרג רישיון כדי לפתוח בסיסים פרטיים",
     "upgradeLicenseToUsePrivateBasesSubtitle": "בסיסים פרטיים אינם זמינים ברישיון Enterprise Starter. שדרג את רישיון המפתח כדי להתחיל להשתמש בהם.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "תוכל להעלות עד {limit} {filePlural} לתא זה. שדרג לתוכנית {plan} כדי להוסיף עוד קבצים."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "תוכל להעלות עד {limit} {filePlural} לתא זה. שדרג לתוכנית {plan} כדי להוסיף עוד קבצים.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "סקריפט",
@@ -196,6 +202,8 @@
     "trigger": "הפעל",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "הוסף {count} שדות חיפוש",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "סגנון",
     "label": "תווית",
     "role": "תפקיד",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "שכפול הבסיס הצליח",
     "duplicateBaseFailed": "שכפול הבסיס נכשל",
     "duplicateBaseMessage": "ניתן לשכפל בסיסים רק לסביבות עבודה שבהן יש לך גישת יוצר ומעלה.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "ניתן לשחזר רק לסביבות עבודה שבהן יש לך גישת יוצר ומעלה.",
     "currentWorkspace": "סביבת עבודה נוכחית",
     "currentBase": "בסיס נוכחי",
@@ -1024,6 +1033,8 @@
     "clearAll": "נקה הכל",
     "addNewLookupHelperText1": "שדות החיפוש מציגים נתונים מרשומות מקושרות. בחר שדות ספציפיים מ",
     "addNewLookupHelperText2": " הטבלה כדי להוסיף אותם כשדות חיפוש בטבלה זו.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "עיצוב",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "סוג תצוגה",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "צור ערך שדה באמצעות AI",
     "preview": "תצוגה מקדימה",
     "autoSuggest": "השלמה אוטומטית",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "מציע...",
     "autoSuggestFields": "השלמה אוטומטית לשדות",
     "autoSuggestFormulas": "הצעת נוסחאות אוטומטית",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "הוסף שדות חיפוש",
     "sourceVisibilityIsHidden": "הנראות של מקור הנתונים מוסתרת",
     "youDontHavePermissionToEditThisField": "אין לך הרשאה לערוך שדה זה",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "חפש אייקונים",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "הפרמטר השני של WEEKDAY() צריך להיות \"יום ראשון\", \"יום שני\", \"יום שלישי\", \"יום רביעי\", \"יום חמישי\", \"יום שישי\" או \"שבת\"",
       "firstParamDateAddHaveDate": "הפרמטר הראשון של DATEADD() צריך להיות בעל ערך תאריך",
       "secondParamDateAddHaveNumber": "הפרמטר השני של DATEADD() צריך להיות בעל ערך מספרי",
-      "thirdParamDateAddHaveDate": "הפרמטר השלישי של DATEADD() צריך להיות \"יום\", \"שבוע\", \"חודש\" או \"שנה\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "הפרמטר הראשון של DATEDIFF() צריך להיות בעל ערך תאריך",
       "secondParamDateDiffHaveDate": "הפרמטר השני של DATEDIFF() צריך להיות בעל ערך תאריך",
       "thirdParamDateDiffHaveDate": "הפרמטר השלישי של DATETIME_DIFF() צריך להיות \"מילישניות\", \"מילישני\", \"שניות\", \"ש\", \"דקות\", \"ד\", \"שעות\", \"ש\", \"ימים\", \"י\", \"שבועות\", \"ש\", \"חודשים\", \"ח\", \"רבעונים\", \"ר\", \"שנים\" או \"שנה\"",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "נכשל ביצירת שדות חיפוש",
       "invalidSearchQuery": "שאילתת חיפוש לא תקינה",
       "invalidSearchQueryForVisibleFields": "שאילתת חיפוש לא תקינה לשדות גלויים",
-      "invalidSearchQueryForDisplayField": "שאילתת חיפוש לא תקינה לשדה תצוגה"
+      "invalidSearchQueryForDisplayField": "שאילתת חיפוש לא תקינה לשדה תצוגה",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "פרויקט Metadata מיוצא בהצלחה",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "התשלום עבור השדרוג עבר עיבוד. כעת באפשרותך להשתמש בתוכנית החדשה.",
       "mcpUrlCopied": "כתובת MCP הועתקה ללוח",
       "nlookupFieldsCreatedSuccessfully": "{n} שדה חיפוש נוצר בהצלחה",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} שדות חיפוש נוצרו בהצלחה"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} שדות חיפוש נוצרו בהצלחה",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "התחל מאפס.",

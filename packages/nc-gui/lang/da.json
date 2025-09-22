@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Opgrader for at tilføje ubegrænsede webhooks",
     "upgradeToAddWebhookSubtitle": "{activePlan}-planen giver op til {limit} webhooks. Opgrader til {plan}-planen for at få ubegrænsede webhooks.",
     "upgradeToAccessWebhookLogsSubtitle": "Få adgang til webhook-logfiler ved at opgradere dit arbejdsområde til {plan}-planen.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Formularejer underrettet",
     "formOwnerNotifiedSubtitle": "Vi har underrettet formularejeren om din anmodning om indsendelse.",
     "WorkspaceOwnerNotified": "Arbejdsområdeejer underrettet",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "Private baser er tilgængelige på {plan}-planen. Opgrader nu for at bruge dem.",
     "upgradeLicenseToUsePrivateBases": "Opgrader licens for at låse op for private baser",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Private baser er ikke tilgængelige i Enterprise Starter-licens. Opgrader licensnøgle for at bruge dem.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Du kan maksimalt uploade {limit} {filePlural} til denne celle. Opgrader til {plan}-planen for at tilføje flere filer."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Du kan maksimalt uploade {limit} {filePlural} til denne celle. Opgrader til {plan}-planen for at tilføje flere filer.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Script",
@@ -196,6 +202,8 @@
     "trigger": "Udløs",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "Tilføj {count} opslagfelter",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "Stil",
     "label": "Label",
     "role": "Rolle",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "Base duplikeret",
     "duplicateBaseFailed": "Dupletering af base mislykkedes",
     "duplicateBaseMessage": "Du kan kun duplikere baser til arbejdsområder, hvor du har skaberrettigheder eller højere.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Du kan kun gendanne til arbejdsområder, hvor du har skaberrettigheder eller højere.",
     "currentWorkspace": "Nuværende arbejdsområde",
     "currentBase": "Nuværende base",
@@ -1024,6 +1033,8 @@
     "clearAll": "Ryd alt",
     "addNewLookupHelperText1": "Opslagsfelter viser data fra tilknyttede poster. Vælg specifikke felter fra ",
     "addNewLookupHelperText2": " tabellen for at tilføje dem som opslagsfelter i denne tabel.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "Formatering",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Format type",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "Generer feltværdi med AI",
     "preview": "Forhåndsvisning",
     "autoSuggest": "Foreslå automatisk",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Foreslår...",
     "autoSuggestFields": "Foreslå felter automatisk",
     "autoSuggestFormulas": "Foreslå formler automatisk",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "Tilføj opslagfelter",
     "sourceVisibilityIsHidden": "Datakilde synlighed er skjult",
     "youDontHavePermissionToEditThisField": "Du har ikke tilladelse til at redigere dette felt",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Søg ikoner",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Den anden parameter i WEEKDAY() skal have værdien enten \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" eller \"saturday\"",
       "firstParamDateAddHaveDate": "Den første parameter i DATEADD() skal have datoværdi",
       "secondParamDateAddHaveNumber": "Den anden parameter i DATEADD() skal have numerisk værdi",
-      "thirdParamDateAddHaveDate": "Den tredje parameter i DATEADD() skal have værdien enten \"day\", \"week\", \"month\" eller \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Den første parameter i DATEDIFF() skal have datoværdi",
       "secondParamDateDiffHaveDate": "Den anden parameter i DATEDIFF() skal have datoværdi",
       "thirdParamDateDiffHaveDate": "Den tredje parameter i DATETIME_DIFF() skal have værdien enten \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", eller \"y\"",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "Kunne ikke oprette opslagfelter",
       "invalidSearchQuery": "Ugyldig søgeforespørgsel",
       "invalidSearchQueryForVisibleFields": "Ugyldig søgeforespørgsel for synlige felter",
-      "invalidSearchQueryForDisplayField": "Ugyldig søgeforespørgsel for visningsfelt"
+      "invalidSearchQueryForDisplayField": "Ugyldig søgeforespørgsel for visningsfelt",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Project Metadata eksporteres med succes",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "Din betaling for opgraderingen er blevet behandlet. Du kan nu bruge din nye plan.",
       "mcpUrlCopied": "MCP-URL kopieret til udklipsholder",
       "nlookupFieldsCreatedSuccessfully": "{n} opslagfelt oprettet succesfuldt",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} opslagfelter oprettet succesfuldt"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} opslagfelter oprettet succesfuldt",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Start fra bunden.",

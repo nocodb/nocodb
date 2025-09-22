@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Sınırsız webhook eklemek için yükseltin",
     "upgradeToAddWebhookSubtitle": "{activePlan} planı en fazla {limit} webhook'a izin verir. Sınırsız webhook erişimi için {plan} planına yükseltin.",
     "upgradeToAccessWebhookLogsSubtitle": "Çalışma alanınızı {plan} planına yükselterek webhook günlüklerine erişin.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Form sahibi bilgilendirildi",
     "formOwnerNotifiedSubtitle": "Gönderim talebiniz hakkında form sahibini bilgilendirdik.",
     "WorkspaceOwnerNotified": "Çalışma alanı sahibi bilgilendirildi",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "Özel tabanlar {plan} planında mevcuttur. Onları kullanmak için şimdi yükseltin.",
     "upgradeLicenseToUsePrivateBases": "Lisansı yükselterek özel tabanların kilidini açın",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Özel tabanlar Enterprise Starter lisansında mevcut değildir. Kullanmak için lisans anahtarınızı yükseltin.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Bu hücreye en fazla {limit} {filePlural} yükleyebilirsiniz. Daha fazla dosya eklemek için {plan} planına yükseltin."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Bu hücreye en fazla {limit} {filePlural} yükleyebilirsiniz. Daha fazla dosya eklemek için {plan} planına yükseltin.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Script",
@@ -196,6 +202,8 @@
     "trigger": "Tetik",
     "addLookupField": "{count} arama alanı ekle",
     "addLookupFieldPlural": "{count} arama alanı ekle",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "Stil",
     "label": "Etiket",
     "role": "Rol",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "Taban Çoğaltma Başarılı",
     "duplicateBaseFailed": "Taban Çoğaltma Başarısız",
     "duplicateBaseMessage": "Tabanları yalnızca oluşturucu veya üzeri erişiminiz olan çalışma alanlarına çoğaltabilirsiniz.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Yalnızca oluşturucu veya üzeri erişiminiz olan çalışma alanlarına geri yükleyebilirsiniz.",
     "currentWorkspace": "Geçerli çalışma alanı",
     "currentBase": "Mevcut taban",
@@ -1024,6 +1033,8 @@
     "clearAll": "Tümünü temizle",
     "addNewLookupHelperText1": "Bakış alanları bağlı kayıtların verilerini gösterir. Belirli alanları seçin ",
     "addNewLookupHelperText2": " bu tabloya Bakış alanları olarak eklemek için tabloyu seçin.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "Biçimlendirme",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Biçim türü",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "Alan değerini AI ile oluştur",
     "preview": "Önizleme",
     "autoSuggest": "Otomatik öner",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Öneriliyor...",
     "autoSuggestFields": "Alanları otomatik öner",
     "autoSuggestFormulas": "Formülleri otomatik öner",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "Arama Alanlarını Ekle",
     "sourceVisibilityIsHidden": "Veri kaynağı görünürlüğü gizli",
     "youDontHavePermissionToEditThisField": "Bu alanı düzenleme izniniz yok",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "İkonları ara",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() fonksiyonunun ikinci parametresi \"pazar\", \"pazartesi\", \"salı\", \"çarşamba\", \"perşembe\", \"cuma\" veya \"cumartesi\" olmalıdır",
       "firstParamDateAddHaveDate": "DATEADD() fonksiyonunun ilk parametresi tarih değeri içermelidir",
       "secondParamDateAddHaveNumber": "DATEADD() fonksiyonunun ikinci parametresi sayısal değer içermelidir",
-      "thirdParamDateAddHaveDate": "DATEADD() fonksiyonunun üçüncü parametresi \"gün\", \"hafta\", \"ay\" veya \"yıl\" değeri içermelidir",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() fonksiyonunun ilk parametresi tarih değeri içermelidir",
       "secondParamDateDiffHaveDate": "DATEDIFF() fonksiyonunun ikinci parametresi tarih değeri içermelidir",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() fonksiyonunun üçüncü parametresi \"milisaniye\", \"ms\", \"saniye\", \"s\", \"dakika\", \"m\", \"saat\", \"h\", \"gün\", \"d\", \"hafta\", \"w\", \"ay\", \"M\", \"çeyrek\", \"Q\", \"yıl\" veya \"y\" değerini içermelidir",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "Arama alanları oluşturulamadı",
       "invalidSearchQuery": "Geçersiz arama sorgusu",
       "invalidSearchQueryForVisibleFields": "Görünen alanlar için geçersiz arama sorgusu",
-      "invalidSearchQueryForDisplayField": "Görüntüleme alanı için geçersiz arama sorgusu"
+      "invalidSearchQueryForDisplayField": "Görüntüleme alanı için geçersiz arama sorgusu",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Proje metaverileri başarıyla dışa aktarıldı",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "Yükseltme ödemeniz işlendi. Artık yeni planınızı kullanabilirsiniz.",
       "mcpUrlCopied": "MCP URL panoya kopyalandı",
       "nlookupFieldsCreatedSuccessfully": "{n} Arama alanı başarıyla oluşturuldu",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Arama alanı başarıyla oluşturuldu"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Arama alanı başarıyla oluşturuldu",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Sıfırdan başlayın.",

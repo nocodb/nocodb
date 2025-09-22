@@ -5,7 +5,7 @@
     "connect_data_sources": "Підключення джерел даних",
     "alert": "Оповіщення",
     "alert-message": "Не підключено жодної бази даних. З’єднайте бази даних для створення інтерфейсів. Пропустіть цей крок і додайте бази даних з основної домашньої сторінки пізніше.",
-    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "Виберіть базу даних, які Ви хочете прив'язати до цього інтерфейсу.",
+    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "Виберіть базу даних, які Ви хочете привʼязати до цього інтерфейсу.",
     "create_interface": "Створення інтерфейсу",
     "project_name": "Назва бази",
     "connect": "Підключитися",
@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Оновіть тариф, щоб додати необмежену кількість вебхуків",
     "upgradeToAddWebhookSubtitle": "Тариф {activePlan} дозволяє до {limit} вебхуків. Перейдіть на тариф {plan}, щоб отримати необмежену кількість вебхуків.",
     "upgradeToAccessWebhookLogsSubtitle": "Отримайте доступ до журналів вебхуків, оновивши робочий простір до тарифу {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Оновіть свій план, щоб дублювати таблиці між різними робочими просторами.",
+    "upgradeToDuplicateTableToOtherBase": "Оновіть свій план, щоб дублювати таблиці між різними базами.",
     "formOwnerNotified": "Власника форми повідомлено",
     "formOwnerNotifiedSubtitle": "Ми повідомили власника форми про ваш запит на надсилання.",
     "WorkspaceOwnerNotified": "Власника робочого простору повідомлено",
@@ -160,8 +162,8 @@
     "upgradeToUploadWsImage": "Оновіть тариф, щоб завантажити зображення робочого простору",
     "upgradeToUploadWsImageSubtitle": "Ваш поточний тариф {activePlan} дозволяє лише іконки та емодзі. Перейдіть на тариф {plan}, щоб завантажити власне зображення як аватар робочого простору.",
     "upgradeToUseCurrentUserFilter": "Оновіть тариф, щоб фільтрувати за поточним користувачем",
-    "upgradeToUseCalendarRange": "Upgrade to visualize records in a calendar range",
-    "upgradeToUseCalendarRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a calendar range.",
+    "upgradeToUseCalendarRange": "Оновіться, щоб переглядати записи у вигляді діапазону календаря",
+    "upgradeToUseCalendarRangeSubtitle": "Оновіться до плану {plan}, щоб переглядати записи у вигляді діапазону календаря.",
     "upgradeToUseCurrentUserFilterSubtitle": "Оновіть до тарифного плану {plan}, щоб використовувати фільтри, які відображають дані на основі поточного користувача.",
     "upgradeToUseRowColoring": "Upgrade to use row coloring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to color rows based on field values or conditions, making it easier to scan and prioritize your data.",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "Приватні бази доступні у плані {plan}. Оновіть тариф, щоб почати користуватись ними.",
     "upgradeLicenseToUsePrivateBases": "Оновіть ліцензію для розблокування приватних баз",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Приватні бази недоступні в Enterprise Starter license. Оновіть ліцензію, щоб почати користуватись ними.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Ви можете завантажити не більше {limit} {filePlural} у цю клітинку. Оновіть до тарифу {plan}, щоб додавати більше файлів."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Ви можете завантажити не більше {limit} {filePlural} у цю клітинку. Оновіть до тарифу {plan}, щоб додавати більше файлів.",
+    "upgradeToUseAiTextField": "Оновіться, щоб використовувати ШІ текстові поля",
+    "upgradeToUseAiTextFieldSubtitle": "Оновіться до {plan} плану аби використовувати ШІ текстові поля для генерації текст на основі вашого запиту.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Скрипт",
@@ -196,6 +202,8 @@
     "trigger": "Тригер",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "Додати {count} поле для пошуку",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "Стиль",
     "label": "Мітка",
     "role": "Роль",
@@ -909,10 +917,10 @@
     "mOfNFieldsHaveCustomPermissions": "{m}/{n} полів мають власні дозволи",
     "cancelSubscriptionBeforeDeletingWorkspace": "Скасувати підписку перед видаленням робочого простору",
     "cancelSubscriptionBeforeDeletingWorkspaceSubtext": "У цьому робочому просторі є активна підписка. Перевірте та скасуйте її перед видаленням.",
-    "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
-    "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
-    "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
+    "confirmLeaveWorkspaceTitle": "Ви впевнені, що хочете покинути цей робочий простір?",
+    "confirmLeaveWorkspaceSubtile": "Якщо ви покинете цей робочий простір, ви втратите доступ до всіх баз і даних у цьому просторі. Щоб повернутися, вам знадобиться запрошення.",
+    "confirmRemoveMemberFromWorkspaceTitle": "Ви впевнені, що хочете видалити користувача з робочого простору?",
+    "confirmRemoveMemberFromWorkspaceSubtitle": "Якщо ви видалите, вони втратять доступ до всіх баз та даних у цьому робочому просторі. Для повторного приєднання їм знадобиться запрошення."
   },
   "labels": {
     "configurationError": "Configuration Error",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "Базу успішно продубльовано",
     "duplicateBaseFailed": "Не вдалося дублювати базу",
     "duplicateBaseMessage": "Ви можете дублювати бази лише у робочі простори, де маєте права творця або вище.",
+    "duplicateTableMessage": "Ви можете дублювати таблиці лише в ті бази, у яких маєте права власника або вище.",
     "snapshotBaseRestoreMessage": "Ви можете відновлювати бази лише у робочі простори, де маєте права творця або вище.",
     "currentWorkspace": "Поточний робочий простір",
     "currentBase": "Поточна база",
@@ -1024,6 +1033,8 @@
     "clearAll": "Очистити все",
     "addNewLookupHelperText1": "Поля перегляду відображають дані з пов'язаних записів. Виберіть конкретні поля з ",
     "addNewLookupHelperText2": " таблиці, щоб додати їх як поля перегляду в цю таблицю.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "Форматування",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Тип формату",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "Згенеруйте значення поля за допомогою ШІ",
     "preview": "Попередній перегляд",
     "autoSuggest": "Автоматична підказка",
+    "autoSuggested": "Автоматично запропоновано",
+    "usePrompt": "Використати запит",
     "suggesting": "Запропонувати...",
     "autoSuggestFields": "Автоматична підказка полів",
     "autoSuggestFormulas": "Автоматичні підказки формул",
@@ -1473,15 +1486,15 @@
     "importOptions": "Параметри імпорту",
     "newScript": "Новий скрипт",
     "emptyScript": "Порожній скрипт",
-    "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "enterFullscreen": "Повноекранний режим",
+    "exitFullscreen": "Вийти з повноекранного режиму"
   },
   "activity": {
     "clickToResolve": "Натисніть для вирішення",
     "resolvedBy": "Вирішив",
     "leaveWorkspace": "Покинути робочий простір",
     "removeUser": "Видалити користувача",
-    "removeMember": "Remove member",
+    "removeMember": "Видалити учасника",
     "filterByThisField": "Фільтр за цим полем",
     "groupByThisField": "Групувати за цим полем",
     "addToStarred": "Додати до обраного",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "Додати Lookup-поля",
     "sourceVisibilityIsHidden": "Видимість джерела даних прихована",
     "youDontHavePermissionToEditThisField": "У вас немає дозволу редагувати це поле",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Зняття попереднього повноекранного блокування...",
+    "youCantHideARequiredField": "Ви не можете приховати обов'язкове поле.",
+    "youCantRemoveARequiredField": "Ви не можете видалити обов'язкове поле.",
+    "removeFromForm": "Видалити з форми"
   },
   "placeholder": {
     "searchIcons": "Пошук іконок",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Другий параметр WEEKDAY() має бути значенням або \"неділя\", \"понеділок\", \"вівторок\", \"середа\", \"четвер\", \"п'ятниця\" чи \"субота\"",
       "firstParamDateAddHaveDate": "Перший параметр DATEADD() має мати значення дати",
       "secondParamDateAddHaveNumber": "Другий параметр DATEADD() має мати числове значення",
-      "thirdParamDateAddHaveDate": "Третій параметр DATEADD() має бути значенням або \"день\", \"тиждень\", \"місяць\" чи \"рік\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Перший параметр DATEDIFF() має мати значення дати",
       "secondParamDateDiffHaveDate": "Другий параметр DATEDIFF() має мати значення дати",
       "thirdParamDateDiffHaveDate": "Третій параметр DATETIME_DIFF() має бути значенням або \"мілісекунди\", \"мс\", \"секунди\", \"с\", \"хвилини\", \"м\", \"години\", \"г\", \"дні\", \"д\", \"тижні\", \"т\", \"місяці\", \"М\", \"квартали\", \"К\", \"роки\" або \"р\"",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "Не вдалося створити lookup-поля",
       "invalidSearchQuery": "Некоректний пошуковий запит",
       "invalidSearchQueryForVisibleFields": "Некоректний пошуковий запит для видимих полів",
-      "invalidSearchQueryForDisplayField": "Некоректний пошуковий запит для поля відображення"
+      "invalidSearchQueryForDisplayField": "Некоректний пошуковий запит для поля відображення",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Метадані проєкту експортовано",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "Ваш платіж за оновлення оброблено. Тепер ви можете користуватися новим тарифом.",
       "mcpUrlCopied": "URL MCP скопійовано в буфер обміну",
       "nlookupFieldsCreatedSuccessfully": "{n} поле для пошуку успішно створено",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} поля для пошуку успішно створено"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} поля для пошуку успішно створено",
+      "tableDuplicatedInOtherBase": "Таблицю успішно продубльовано в іншій базі. Відкрийте вказану базу, щоб переглянути її."
     },
     "subText": {
       "startFromScratch": "Почати з нуля.",

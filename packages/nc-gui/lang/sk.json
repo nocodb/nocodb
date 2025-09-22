@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Upgradujte na pridanie neobmedzeného počtu webhookov",
     "upgradeToAddWebhookSubtitle": "Plán {activePlan} umožňuje až {limit} webhookov. Upgradujte na plán {plan} a získajte neobmedzený počet webhookov.",
     "upgradeToAccessWebhookLogsSubtitle": "Získajte prístup k záznamom webhookov upgradovaním pracovného priestoru na plán {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Majiteľ formulára bol informovaný",
     "formOwnerNotifiedSubtitle": "Majiteľa formulára sme informovali o vašej žiadosti o odoslanie.",
     "WorkspaceOwnerNotified": "Majiteľ pracovného priestoru bol informovaný",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "Súkromné databázy sú dostupné v pláne {plan}. Upgradujte hneď, aby ste ich mohli používať.",
     "upgradeLicenseToUsePrivateBases": "Upgradujte licenciu pre odomknutie súkromných databáz",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Súkromné databázy nie sú dostupné v licencii Enterprise Starter. Upgradujte kľúč licencie, aby ste ich mohli využívať.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Do tejto bunky je možné nahrať maximálne {limit} {filePlural}. Upgradujte na plán {plan}, aby ste mohli pridať viac súborov."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Do tejto bunky je možné nahrať maximálne {limit} {filePlural}. Upgradujte na plán {plan}, aby ste mohli pridať viac súborov.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Skript",
@@ -196,6 +202,8 @@
     "trigger": "Spustiť",
     "addLookupField": "Add {count} lookup fields",
     "addLookupFieldPlural": "Pridať {count} vyhľadávacie polia",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "Štýl",
     "label": "Označenie",
     "role": "Rola",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "Duplikácia databázy bola úspešná",
     "duplicateBaseFailed": "Duplikácia databázy zlyhala",
     "duplicateBaseMessage": "Databázy môžete duplikovať len do pracovných priestorov, v ktorých máte oprávnenie tvorcu alebo vyššie.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Obnovovať môžete len do pracovných priestorov, v ktorých máte oprávnenie tvorcu alebo vyššie.",
     "currentWorkspace": "Aktuálny pracovný priestor",
     "currentBase": "Aktuálna databáza",
@@ -1024,6 +1033,8 @@
     "clearAll": "Vyčistiť všetko",
     "addNewLookupHelperText1": "Vyhľadávacie polia zobrazujú údaje z prepojených záznamov. Vyberte konkrétne polia z ",
     "addNewLookupHelperText2": " tabuľky na pridanie ako vyhľadávacie polia v tejto tabuľke.",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "Formátovanie",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "Typ formátu",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "Generovať hodnotu poľa pomocou AI",
     "preview": "Náhľad",
     "autoSuggest": "Automatický návrh",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Navrhuje sa...",
     "autoSuggestFields": "Automaticky navrhnúť polia",
     "autoSuggestFormulas": "Automaticky navrhnúť vzorce",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "Pridať vyhľadávacie polia",
     "sourceVisibilityIsHidden": "Viditeľnosť zdroja dát je skrytá",
     "youDontHavePermissionToEditThisField": "Nemáte povolenie na úpravu tohto poľa",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Vyhľadať ikony",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Druhým parametrom WEEKDAY() by mala byť hodnota buď \"nedeľa\", \"pondelok\", \"utorok\", \"streda\", \"štvrtok\", \"piatok\" alebo \"sobota\"",
       "firstParamDateAddHaveDate": "Prvým parametrom DATEADD() by mala byť hodnota dátumu",
       "secondParamDateAddHaveNumber": "Druhým parametrom DATEADD() by mala byť číselná hodnota",
-      "thirdParamDateAddHaveDate": "Tretím parametrom DATEADD() by mala byť hodnota buď \"deň\", \"týždeň\", \"mesiac\" alebo \"rok\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Prvým parametrom DATEDIFF() by mala byť hodnota dátumu",
       "secondParamDateDiffHaveDate": "Druhým parametrom DATEDIFF() by mala byť hodnota dátumu",
       "thirdParamDateDiffHaveDate": "Tretí parameter DATETIME_DIFF() by mal mať hodnotu buď \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", alebo \"y\"",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "Nepodarilo sa vytvoriť vyhľadávacie polia",
       "invalidSearchQuery": "Neplatný vyhľadávací dotaz",
       "invalidSearchQueryForVisibleFields": "Neplatný vyhľadávací dotaz pre viditeľné polia",
-      "invalidSearchQueryForDisplayField": "Neplatný vyhľadávací dotaz pre zobrazované pole"
+      "invalidSearchQueryForDisplayField": "Neplatný vyhľadávací dotaz pre zobrazované pole",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Úspešný export metadát projektu",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "Vaša platba za upgrade bola spracovaná. Teraz môžete používať svoj nový plán.",
       "mcpUrlCopied": "MCP URL bolo skopírované do schránky",
       "nlookupFieldsCreatedSuccessfully": "{n} vyhľadávacie pole bolo úspešne vytvorené",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} vyhľadávacích polí bolo úspešne vytvorených"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} vyhľadávacích polí bolo úspešne vytvorených",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Začnite od začiatku.",

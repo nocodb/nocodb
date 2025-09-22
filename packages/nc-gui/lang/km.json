@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "ធ្វើបច្ចុប្បន្នភាពដើម្បីបន្ថែម Webhook បានដោយគ្មានកំណត់",
     "upgradeToAddWebhookSubtitle": "គម្រោង {activePlan} អនុញ្ញាតបានត្រឹម {limit} Webhook ប៉ុណ្ណោះ។ សូមធ្វើបច្ចុប្បន្នភាពទៅគម្រោង {plan} ដើម្បីចូលប្រើ Webhook ដោយគ្មានកំណត់។",
     "upgradeToAccessWebhookLogsSubtitle": "ចូលប្រើកំណត់ត្រា Webhook ដោយធ្វើបច្ចុប្បន្នភាព Workspace របស់អ្នកទៅគម្រោង {plan}។",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "បានជូនដំណឹងដល់ម្ចាស់សំណុំបែបបទ",
     "formOwnerNotifiedSubtitle": "យើងបានជួយដំណឹងដល់ម្ចាស់សំណុំបែបបទអំពីសំណើដាក់ស្នើរបស់អ្នក។",
     "WorkspaceOwnerNotified": "បានជូនដំណឹងដល់ម្ចាស់ Workspace",
@@ -175,7 +177,11 @@
     "upgradeToUsePrivateBasesSubtitle": "base ឯកជនមានសម្រាប់ផែនការ {plan}។ ធ្វើបច្ចុប្បន្នភាពឥឡូវនេះដើម្បីចាប់ផ្តើមប្រើ។",
     "upgradeLicenseToUsePrivateBases": "ធ្វើបច្ចុប្បន្នភាពអាជ្ញាប័ណ្ណដើម្បីដោះសោ base ឯកជន",
     "upgradeLicenseToUsePrivateBasesSubtitle": "base ឯកជនមិនមាននៅក្នុងអាជ្ញាប័ណ្ណ Enterprise Starter ទេ។ ធ្វើបច្ចុប្បន្នភាពកូនសោអាជ្ញាប័ណ្ណដើម្បីចាប់ផ្តើមប្រើ។",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "អ្នកអាចផ្ទុក {limit} {filePlural} ច្រើនបំផុតទៅក្នុងក្រឡាចត្រង្គនេះ។ ធ្វើបច្ចុប្បន្នភាពទៅផែនការ {plan} ដើម្បីបន្ថែមឯកសារច្រើន។"
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "អ្នកអាចផ្ទុក {limit} {filePlural} ច្រើនបំផុតទៅក្នុងក្រឡាចត្រង្គនេះ។ ធ្វើបច្ចុប្បន្នភាពទៅផែនការ {plan} ដើម្បីបន្ថែមឯកសារច្រើន។",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "ស្គ្រីប",
@@ -196,6 +202,8 @@
     "trigger": "ចាប់ផ្តើម",
     "addLookupField": "បន្ថែម {count} វាលស្វែងរក",
     "addLookupFieldPlural": "បន្ថែមវាល lookup {count}",
+    "addRollupField": "Add {count} rollup field",
+    "addRollupFieldPlural": "Add {count} rollup fields",
     "style": "ស្ទីល",
     "label": "ស្លាកយោង",
     "role": "តួនាទី",
@@ -956,6 +964,7 @@
     "duplicateBaseSuccessfull": "ការចម្លង Base ជោគជ័យ",
     "duplicateBaseFailed": "ការចម្លង Base បរាជ័យ",
     "duplicateBaseMessage": "អ្នកអាចចម្លង Base ទៅ workspace ដែលអ្នកមានសិទ្ធិ Creator ឬខ្ពស់ជាងនេះប៉ុណ្ណោះ។",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "អ្នកអាចស្ដារឡើងវិញបានតែទៅ workspace ដែលអ្នកមានសិទ្ធិ Creator ឬខ្ពស់ជាងនេះប៉ុណ្ណោះ។",
     "currentWorkspace": "workspace បច្ចុប្បន្ន",
     "currentBase": "base បច្ចុប្បន្ន",
@@ -1024,6 +1033,8 @@
     "clearAll": "លុបអស់គ្រប់គ្នា",
     "addNewLookupHelperText1": "វាលស្វែងរកបង្ហាញទិន្នន័យពីកំណត់ត្រាដែលភ្ជាប់។ ជ្រើសវាលជាក់លាក់ទៅពី ",
     "addNewLookupHelperText2": " តារាងដើម្បីបន្ថែមវាលស្វែងរកនៅក្នុងតារាងនេះ។",
+    "addNewRollupHelperText1": "Rollup fields are used to aggregate data from fields in the related table. Select specific fields from ",
+    "addNewRollupHelperText2": " table to add them as Rollup fields in this table.",
     "formatting": "រៀបចំ",
     "selectAFormatType": "- -Select a format type (optional)- -",
     "formatType": "ប្រភេទទំរង់",
@@ -1412,6 +1423,8 @@
     "generateFieldDataUsingAi": "បង្កើតតម្លៃវាលដោយប្រើ AI",
     "preview": "មើលមុន",
     "autoSuggest": "ណែនាំដោយស្វ័យប្រវត្តិ",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "កំពុងណែនាំ...",
     "autoSuggestFields": "ណែនាំវាលដោយស្វ័យប្រវត្តិ",
     "autoSuggestFormulas": "ណែនាំរូបមន្តដោយស្វ័យប្រវត្តិ",
@@ -1851,7 +1864,10 @@
     "addLookupFields": "បន្ថែមវាល Lookup",
     "sourceVisibilityIsHidden": "មានការលាក់មើលប្រភពទិន្នន័យ",
     "youDontHavePermissionToEditThisField": "អ្នកមិនមានសិទ្ធិកែសម្រួលវាលនេះទេ",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "ស្វែងរកនិមិត្តសញ្ញា",
@@ -1994,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "ប៉ារ៉ាម៉ែត្រ​ទីពីរនៃ WEEKDAY() គួរតែមានតម្លៃជា \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" ឬ \"saturday\"",
       "firstParamDateAddHaveDate": "ប៉ារ៉ាម៉ែត្រដំបូងនៃ DATEADD() គួរតែមានតម្លៃកាលបរិច្ឆេទ",
       "secondParamDateAddHaveNumber": "ប៉ារ៉ាម៉ែត្រទីពីរនៃ DATEADD() គួរតែមានតម្លៃចំនួនសំរាប់គណនា",
-      "thirdParamDateAddHaveDate": "ប៉ារ៉ាម៉ែត្រទីបីនៃ DATEADD() គួរតែមានតម្លៃជា \"day\", \"week\", \"month\" ឬ \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "ប៉ារ៉ាម៉ែត្រដំបូងនៃ DATEDIFF() គួរតែមានតម្លៃកាលបរិច្ឆេទ",
       "secondParamDateDiffHaveDate": "ប៉ារ៉ាម៉ែត្រទីពីរ​នៃ DATEDIFF() គួរតែមានតម្លៃ​កាលបរិច្ឆេទ",
       "thirdParamDateDiffHaveDate": "ប៉ារ៉ាម៉ែត្រទីបីនៃ DATETIME_DIFF() គួរតែមានតម្លៃ​ជា \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", ឬ \"y\"",
@@ -2411,7 +2427,8 @@
       "failedToCreateLookupFields": "បរាជ័យក្នុងការបង្កើតវាល lookup",
       "invalidSearchQuery": "សំណួរស្វែងរកមិនត្រឹមត្រូវ",
       "invalidSearchQueryForVisibleFields": "សំណួរស្វែងរកមិនត្រឹមត្រូវសម្រាប់វាលអាចមើលឃើញ",
-      "invalidSearchQueryForDisplayField": "សំណួរស្វែងរកមិនត្រឹមត្រូវសម្រាប់វាលបង្ហាញ"
+      "invalidSearchQueryForDisplayField": "សំណួរស្វែងរកមិនត្រឹមត្រូវសម្រាប់វាលបង្ហាញ",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "ធាតុមូលដ្ឋានត្រូវបាននាំចេញដោយជោគជ័យ",
@@ -2485,7 +2502,8 @@
       "upgradeSuccessfulSubtitle": "ការទូទាត់សម្រាប់ការធ្វើបច្ចុប្បន្នភាពរបស់អ្នកបានដំណើរការរួច។ អ្នកអាចប្រើគម្រោងថ្មីរបស់អ្នកបានហើយ។",
       "mcpUrlCopied": "បានចម្លង URL MCP ទៅកាន់ក្ដារតម្កល់",
       "nlookupFieldsCreatedSuccessfully": "{n} វាល Lookup បានបង្កើតដោយជោគជ័យ",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} វាល Lookup បានបង្កើតដោយជោគជ័យ"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} វាល Lookup បានបង្កើតដោយជោគជ័យ",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "ចាប់ផ្តើមតាំងដើម។",

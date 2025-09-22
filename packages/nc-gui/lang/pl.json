@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Uaktualnij, aby dodać nieograniczoną liczbę webhooków",
     "upgradeToAddWebhookSubtitle": "Plan {activePlan} pozwala na maksymalnie {limit} webhooków. Uaktualnij do planu {plan}, aby uzyskać dostęp do nieograniczonej liczby webhooków.",
     "upgradeToAccessWebhookLogsSubtitle": "Uzyskaj dostęp do logów webhooków, uaktualniając przestrzeń roboczą do planu {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Właściciel formularza powiadomiony",
     "formOwnerNotifiedSubtitle": "Powiadomiliśmy właściciela formularza o Twojej prośbie o przesłanie.",
     "WorkspaceOwnerNotified": "Właściciel przestrzeni roboczej powiadomiony",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Pomyślnie zduplikowano bazę",
     "duplicateBaseFailed": "Duplikowanie bazy nie powiodło się",
     "duplicateBaseMessage": "Możesz duplikować bazy tylko do przestrzeni roboczych, w których masz uprawnienia tworzącego lub wyższe.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Możesz przywracać tylko do przestrzeni roboczych, w których masz uprawnienia tworzącego lub wyższe.",
     "currentWorkspace": "Bieżąca przestrzeń robocza",
     "currentBase": "Bieżąca baza",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Twoja płatność za uaktualnienie została przetworzona. Możesz teraz korzystać z nowego planu.",
       "mcpUrlCopied": "Adres URL MCP skopiowany do schowka",
       "nlookupFieldsCreatedSuccessfully": "{n} pole wyszukiwania utworzone pomyślnie",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} pola wyszukiwania utworzone pomyślnie"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} pola wyszukiwania utworzone pomyślnie",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Zacznij od zera.",

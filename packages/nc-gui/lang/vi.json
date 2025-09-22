@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Nâng cấp để thêm webhooks không giới hạn",
     "upgradeToAddWebhookSubtitle": "Gói {activePlan} chỉ cho phép tối đa {limit} webhook. Nâng cấp lên gói {plan} để sử dụng không giới hạn.",
     "upgradeToAccessWebhookLogsSubtitle": "Truy cập nhật ký webhook bằng cách nâng cấp workspace của bạn lên gói {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Chủ biểu mẫu đã được thông báo",
     "formOwnerNotifiedSubtitle": "Chúng tôi đã thông báo cho chủ biểu mẫu về yêu cầu gửi của bạn.",
     "WorkspaceOwnerNotified": "Chủ workspace đã được thông báo",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Nhân bản Cơ sở thành công",
     "duplicateBaseFailed": "Nhân bản Cơ sở thất bại",
     "duplicateBaseMessage": "Bạn chỉ có thể nhân bản cơ sở vào những không gian làm việc mà bạn có quyền tạo trở lên.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Bạn chỉ có thể khôi phục vào những không gian làm việc mà bạn có quyền tạo trở lên.",
     "currentWorkspace": "Không gian làm việc hiện tại",
     "currentBase": "Cơ sở hiện tại",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Thanh toán nâng cấp của bạn đã được xử lý. Bạn có thể sử dụng gói mới ngay bây giờ.",
       "mcpUrlCopied": "Đã sao chép URL MCP vào clipboard",
       "nlookupFieldsCreatedSuccessfully": "{n} trường tra cứu được tạo thành công",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} trường tra cứu được tạo thành công"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} trường tra cứu được tạo thành công",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Bắt đầu từ đầu.",

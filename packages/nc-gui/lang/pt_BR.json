@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Bases privadas estão disponíveis no plano {plan}. Faça upgrade agora para começar a usá-las.",
     "upgradeLicenseToUsePrivateBases": "Atualize a licença para desbloquear bases privadas",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Bases privadas não estão disponíveis na licença Enterprise Starter. Faça upgrade da chave de licença para começar a utilizá-las.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Você só pode fazer upload de no máximo {limit} {filePlural} nesta célula. Atualize para o plano {plan} para adicionar mais arquivos."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Você só pode fazer upload de no máximo {limit} {filePlural} nesta célula. Atualize para o plano {plan} para adicionar mais arquivos.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Script",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "Gerar valor de campo usando IA",
     "preview": "Pré-visualização",
     "autoSuggest": "Sugestão automática",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Sugerindo...",
     "autoSuggestFields": "Sugestão automática de campos",
     "autoSuggestFormulas": "Sugestão automática de fórmulas",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "Adicionar campos de busca",
     "sourceVisibilityIsHidden": "A visibilidade da fonte de dados está oculta",
     "youDontHavePermissionToEditThisField": "Você não tem permissão para editar este campo",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Pesquisar ícones",

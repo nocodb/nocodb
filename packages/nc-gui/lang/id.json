@@ -442,7 +442,8 @@
     "record": "Catatan",
     "overview": "Ikhtisar",
     "baseType": "Jenis Basis",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Skrip",

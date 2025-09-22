@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "Al doilea parametru al WEEKDAY() ar trebui să aibă valoarea fie \"duminică\", \"luni\", \"marți\", \"miercuri\", \"joi\", \"vineri\" sau \"sâmbătă\"",
       "firstParamDateAddHaveDate": "Primul parametru al DATEADD() ar trebui să aibă valoare de tip dată",
       "secondParamDateAddHaveNumber": "Al doilea parametru al DATEADD() ar trebui să aibă valoare numerică",
-      "thirdParamDateAddHaveDate": "Al treilea parametru al DATEADD() ar trebui să aibă valoarea fie \"zi\", \"săptămână\", \"lună\" sau \"an\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "Primul parametru al DATEDIFF() ar trebui să aibă valoare de tip dată",
       "secondParamDateDiffHaveDate": "Al doilea parametru al DATEDIFF() ar trebui să aibă valoare de tip dată",
       "thirdParamDateDiffHaveDate": "Al treilea parametru al DATETIME_DIFF() ar trebui să aibă valoarea fie \"milisecunde\", \"ms\", \"secunde\", \"s\", \"minute\", \"m\", \"ore\", \"h\", \"zile\", \"d\", \"săptămâni\", \"w\", \"luni\", \"M\", \"trimestre\", \"Q\", \"ani\", sau \"y\"",

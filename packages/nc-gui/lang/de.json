@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Upgrade, um unbegrenzt Webhooks hinzuzufügen",
     "upgradeToAddWebhookSubtitle": "Der {activePlan}-Tarif erlaubt bis zu {limit} Webhooks. Aktualisieren Sie auf den {plan}-Tarif, um unbegrenzte Webhooks zu erhalten.",
     "upgradeToAccessWebhookLogsSubtitle": "Greifen Sie auf Webhook-Protokolle zu, indem Sie Ihren Workspace auf den {plan}-Tarif hochstufen.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Formularbesitzer benachrichtigt",
     "formOwnerNotifiedSubtitle": "Wir haben den Formularbesitzer über Ihre Einreichungsanfrage informiert.",
     "WorkspaceOwnerNotified": "Workspace-Besitzer benachrichtigt",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Basis erfolgreich dupliziert",
     "duplicateBaseFailed": "Duplizieren der Basis fehlgeschlagen",
     "duplicateBaseMessage": "Sie können Basen nur in Arbeitsbereiche duplizieren, in denen Sie mindestens Erstellerrechte haben.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Sie können nur in Arbeitsbereichen wiederherstellen, in denen Sie mindestens Erstellerrechte haben.",
     "currentWorkspace": "Aktueller Arbeitsbereich",
     "currentBase": "Aktuelle Base",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Ihre Zahlung für das Upgrade wurde verarbeitet. Sie können nun Ihren neuen Tarif nutzen.",
       "mcpUrlCopied": "MCP-URL wurde in die Zwischenablage kopiert",
       "nlookupFieldsCreatedSuccessfully": "{n} Lookup-Feld erfolgreich erstellt",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup-Felder erfolgreich erstellt"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup-Felder erfolgreich erstellt",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Von vorn beginnen.",

@@ -1415,7 +1415,7 @@
     "preview": "Förhandsgranska",
     "autoSuggest": "Föreslå automatiskt",
     "autoSuggested": "Auto Suggested",
-    "usePrompt": "Use Prompt",
+    "usePrompt": "Använd prompt",
     "suggesting": "Föreslår...",
     "autoSuggestFields": "Föreslå fält automatiskt",
     "autoSuggestFormulas": "Föreslå formler automatiskt",
@@ -1477,15 +1477,15 @@
     "importOptions": "Importalternativ",
     "newScript": "Nytt skript",
     "emptyScript": "Tomt skript",
-    "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "enterFullscreen": "Gå till helskärm",
+    "exitFullscreen": "Avsluta helskärm"
   },
   "activity": {
     "clickToResolve": "Klicka för att lösa",
     "resolvedBy": "Löst av",
     "leaveWorkspace": "Lämna arbetsutrymme",
     "removeUser": "Ta bort användare",
-    "removeMember": "Remove member",
+    "removeMember": "Ta bort medlem",
     "filterByThisField": "Filtrera efter detta fält",
     "groupByThisField": "Gruppera efter detta fält",
     "addToStarred": "Lägg till i favoriter",
@@ -1856,9 +1856,9 @@
     "sourceVisibilityIsHidden": "Datakällans synlighet är dold",
     "youDontHavePermissionToEditThisField": "Du har inte behörighet att redigera detta fält",
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
-    "youCantHideARequiredField": "You can't hide a required field.",
-    "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "youCantHideARequiredField": "Du kan inte dölja ett obligatoriskt fält.",
+    "youCantRemoveARequiredField": "Du kan inte ta bort ett obligatoriskt fält.",
+    "removeFromForm": "Ta bort från formulär"
   },
   "placeholder": {
     "searchIcons": "Sök ikoner",

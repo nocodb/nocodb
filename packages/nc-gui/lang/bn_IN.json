@@ -442,7 +442,8 @@
     "record": "রেকর্ড",
     "overview": "ওভারভিউ",
     "baseType": "বেস টাইপ",
-    "beta": "বেটা"
+    "beta": "বেটা",
+    "selected": "selected"
   },
   "objects": {
     "script": "স্ক্রিপ্ট",

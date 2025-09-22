@@ -442,7 +442,8 @@
     "record": "レコード",
     "overview": "概要",
     "baseType": "ベース種別",
-    "beta": "ベータ版"
+    "beta": "ベータ版",
+    "selected": "selected"
   },
   "objects": {
     "script": "スクリプト",
@@ -1331,7 +1332,7 @@
     "sharedBaseUrl": "共有ベースのURL",
     "sharedPublicly": "公開共有",
     "importData": "インポートデータ",
-    "importDataFrom": "データをインポート元から",
+    "importDataFrom": "データのインポート元を選択",
     "importSecondaryViews": "副ビューをインポート",
     "importRollupColumns": "Import rollup fields",
     "importLookupColumns": "Import lookup fields",

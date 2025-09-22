@@ -442,7 +442,8 @@
     "record": "Rekord",
     "overview": "Áttekintés",
     "baseType": "Bázis típusa",
-    "beta": "Béta"
+    "beta": "Béta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Szkript",

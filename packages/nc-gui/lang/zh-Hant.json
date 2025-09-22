@@ -442,7 +442,8 @@
     "record": "記錄",
     "overview": "總覽",
     "baseType": "Base 類型",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "指令碼",

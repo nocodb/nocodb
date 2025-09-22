@@ -442,7 +442,8 @@
     "record": "Zapis",
     "overview": "Pregled",
     "baseType": "Tip baze",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Skripta",

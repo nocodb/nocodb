@@ -442,7 +442,8 @@
     "record": "റെക്കോർഡ്",
     "overview": "അവലോകനം",
     "baseType": "ബേസ് തരം",
-    "beta": "ബീറ്റ"
+    "beta": "ബീറ്റ",
+    "selected": "selected"
   },
   "objects": {
     "script": "സ്‌ക്രിപ്റ്റ്",

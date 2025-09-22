@@ -442,7 +442,8 @@
     "record": "Enregistrement",
     "overview": "Aper\u0000e7u",
     "baseType": "Type de base",
-    "beta": "B\u0000eata"
+    "beta": "B\u0000eata",
+    "selected": "selected"
   },
   "objects": {
     "script": "Script",

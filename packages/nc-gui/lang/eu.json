@@ -442,7 +442,8 @@
     "record": "Erregistroa",
     "overview": "Gainbegiratzea",
     "baseType": "Oinarrizko mota",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Script",

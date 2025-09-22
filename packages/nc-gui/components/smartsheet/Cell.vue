@@ -523,7 +523,7 @@ const cellClassName = computed(() => {
   }
 
   &:has(.nc-currency-code) {
-    @apply !py-0 !pl-0 flex items-stretch h-full;
+    @apply !py-0 !pl-0 flex items-stretch;
   }
 }
 </style>

@@ -442,7 +442,8 @@
     "record": "Record",
     "overview": "Overview",
     "baseType": "Base Type",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Script",

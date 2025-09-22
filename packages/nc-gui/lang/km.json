@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "ធ្វើបច្ចុប្បន្នភាពដើម្បីបន្ថែម Webhook បានដោយគ្មានកំណត់",
     "upgradeToAddWebhookSubtitle": "គម្រោង {activePlan} អនុញ្ញាតបានត្រឹម {limit} Webhook ប៉ុណ្ណោះ។ សូមធ្វើបច្ចុប្បន្នភាពទៅគម្រោង {plan} ដើម្បីចូលប្រើ Webhook ដោយគ្មានកំណត់។",
     "upgradeToAccessWebhookLogsSubtitle": "ចូលប្រើកំណត់ត្រា Webhook ដោយធ្វើបច្ចុប្បន្នភាព Workspace របស់អ្នកទៅគម្រោង {plan}។",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "បានជូនដំណឹងដល់ម្ចាស់សំណុំបែបបទ",
     "formOwnerNotifiedSubtitle": "យើងបានជួយដំណឹងដល់ម្ចាស់សំណុំបែបបទអំពីសំណើដាក់ស្នើរបស់អ្នក។",
     "WorkspaceOwnerNotified": "បានជូនដំណឹងដល់ម្ចាស់ Workspace",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "ការចម្លង Base ជោគជ័យ",
     "duplicateBaseFailed": "ការចម្លង Base បរាជ័យ",
     "duplicateBaseMessage": "អ្នកអាចចម្លង Base ទៅ workspace ដែលអ្នកមានសិទ្ធិ Creator ឬខ្ពស់ជាងនេះប៉ុណ្ណោះ។",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "អ្នកអាចស្ដារឡើងវិញបានតែទៅ workspace ដែលអ្នកមានសិទ្ធិ Creator ឬខ្ពស់ជាងនេះប៉ុណ្ណោះ។",
     "currentWorkspace": "workspace បច្ចុប្បន្ន",
     "currentBase": "base បច្ចុប្បន្ន",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "ការទូទាត់សម្រាប់ការធ្វើបច្ចុប្បន្នភាពរបស់អ្នកបានដំណើរការរួច។ អ្នកអាចប្រើគម្រោងថ្មីរបស់អ្នកបានហើយ។",
       "mcpUrlCopied": "បានចម្លង URL MCP ទៅកាន់ក្ដារតម្កល់",
       "nlookupFieldsCreatedSuccessfully": "{n} វាល Lookup បានបង្កើតដោយជោគជ័យ",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} វាល Lookup បានបង្កើតដោយជោគជ័យ"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} វាល Lookup បានបង្កើតដោយជោគជ័យ",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "ចាប់ផ្តើមតាំងដើម។",

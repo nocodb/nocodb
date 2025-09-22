@@ -2,6 +2,14 @@
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 
+interface Props {
+  isSidebarVisible: boolean
+}
+
+const props = defineProps<Props>()
+
+const { isSidebarVisible } = toRefs(props)
+
 const { leftSidebarWidth, windowSize, formRightSidebarState, formRightSidebarWidthPercent } = storeToRefs(useSidebarStore())
 
 const formPreviewSize = computed(() => 100 - formRightSidebarWidthPercent.value)
@@ -37,17 +45,20 @@ const normalizeSidebarWidth = computed(() => {
     <Pane :size="formPreviewSize" class="flex-1 h-full">
       <slot name="preview" />
     </Pane>
-    <Pane
-      min-size="15%"
-      class="nc-sidebar-splitpane relative"
-      :size="formRightSidebarWidthPercent"
-      :style="{
-        minWidth: `${formRightSidebarState.minWidth}px !important`,
-        maxWidth: `${normalizeSidebarWidth}px !important`,
-      }"
-    >
-      <slot name="sidebar" />
-    </Pane>
+    <Transition>
+      <Pane
+        v-show="isSidebarVisible"
+        min-size="15%"
+        class="nc-sidebar-splitpane relative"
+        :size="formRightSidebarWidthPercent"
+        :style="{
+          minWidth: `${formRightSidebarState.minWidth}px !important`,
+          maxWidth: `${normalizeSidebarWidth}px !important`,
+        }"
+      >
+        <slot name="sidebar" />
+      </Pane>
+    </Transition>
   </Splitpanes>
 </template>
 

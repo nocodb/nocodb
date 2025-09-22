@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Actualiza para añadir webhooks ilimitados",
     "upgradeToAddWebhookSubtitle": "El plan {activePlan} permite hasta {limit} webhooks. Actualiza al plan {plan} para obtener webhooks ilimitados.",
     "upgradeToAccessWebhookLogsSubtitle": "Accede a los registros de webhooks actualizando tu espacio de trabajo al plan {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Propietario del formulario notificado",
     "formOwnerNotifiedSubtitle": "Hemos notificado al propietario del formulario sobre tu solicitud de envío.",
     "WorkspaceOwnerNotified": "Propietario del espacio de trabajo notificado",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Duplicación de base exitosa",
     "duplicateBaseFailed": "Falló la duplicación de la base",
     "duplicateBaseMessage": "Solo puedes duplicar bases en espacios de trabajo donde tengas acceso de creador o superior.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Solo puedes restaurar en espacios de trabajo donde tengas acceso de creador o superior.",
     "currentWorkspace": "Espacio de trabajo actual",
     "currentBase": "Base actual",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Tu pago para la actualización ha sido procesado. Ahora puedes usar tu nuevo plan.",
       "mcpUrlCopied": "URL MCP copiada al portapapeles",
       "nlookupFieldsCreatedSuccessfully": "{n} campo de búsqueda creado exitosamente",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} campos de búsqueda creados exitosamente"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} campos de búsqueda creados exitosamente",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Comienza desde cero.",

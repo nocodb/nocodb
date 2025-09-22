@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Private Datenbanken sind im {plan}-Tarif verfügbar. Jetzt upgraden, um sie zu nutzen.",
     "upgradeLicenseToUsePrivateBases": "Lizenz upgraden, um private Datenbanken freizuschalten",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Private Datenbanken sind in der Enterprise Starter Lizenz nicht verfügbar. Lizenzschlüssel upgraden, um sie zu nutzen.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Sie können maximal {limit} {filePlural} in diese Zelle hochladen. Upgraden Sie auf den {plan}-Tarif, um weitere Dateien hinzuzufügen."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Sie können maximal {limit} {filePlural} in diese Zelle hochladen. Upgraden Sie auf den {plan}-Tarif, um weitere Dateien hinzuzufügen.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Skript",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "Generiere Wert mit KI",
     "preview": "Vorschau",
     "autoSuggest": "Automatisch vorschlagen",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Schlage vor ...",
     "autoSuggestFields": "Felder automatisch vorschlagen",
     "autoSuggestFormulas": "Formeln automatisch vorschlagen",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "Lookup-Felder hinzufügen",
     "sourceVisibilityIsHidden": "Datenquellen-Sichtbarkeit ist verborgen",
     "youDontHavePermissionToEditThisField": "Sie haben keine Berechtigung, dieses Feld zu bearbeiten",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Icons suchen",

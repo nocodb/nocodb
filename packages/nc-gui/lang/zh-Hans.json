@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() 的第二个参数值应为 \"sunday\"、\"sunday\"、\"tuesday\"、\"wednesday\"、\"thursday\"、\"friday \"或 \"saturday\"。",
       "firstParamDateAddHaveDate": "DATEADD() 的第一个参数应为日期值",
       "secondParamDateAddHaveNumber": "DATEADD() 的第二个参数应为数值",
-      "thirdParamDateAddHaveDate": "DATEADD() 的第三个参数的值应该是 \"日\"、\"周\"、\"月 \"或 \"年\"。",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() 的第一个参数应该是日期值",
       "secondParamDateDiffHaveDate": "DATEDIFF() 的第二个参数应该是日期值",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() 的第三个参数值应为 \"毫秒\"（\"ms\"）、\"秒\"（\"s\"）、\"分\"（\"minutes\"）、\"m\"、\"小时\"（\"h\"）、\"天\"（\"d\"）、\"周\"（\"w\"）、\"月\"（\"m\"）、\"季度\"（\"Q\"）、\"年\"（\"y\"）或 \"y\"。",

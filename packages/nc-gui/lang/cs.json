@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Soukromé databáze jsou dostupné na tarifu {plan}. Upgradujte nyní a začněte je používat.",
     "upgradeLicenseToUsePrivateBases": "Upgradujte licenci pro odemknutí soukromých databází",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Soukromé databáze nejsou dostupné v licenci Enterprise Starter. Upgradujte klíč licence a začněte je používat.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Do této buňky můžete nahrát maximálně {limit} {filePlural}. Pro nahrání více souborů upgradujte na tarif {plan}."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Do této buňky můžete nahrát maximálně {limit} {filePlural}. Pro nahrání více souborů upgradujte na tarif {plan}.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Skript",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "Generovat hodnotu pole pomocí AI",
     "preview": "Náhled",
     "autoSuggest": "Automatický návrh",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Navrhuji...",
     "autoSuggestFields": "Automaticky navrhnout pole",
     "autoSuggestFormulas": "Automaticky navrhnout vzorce",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "Přidat pole pro vyhledávání",
     "sourceVisibilityIsHidden": "Viditelnost zdroje dat je skryta",
     "youDontHavePermissionToEditThisField": "Nemáte oprávnění upravovat toto pole",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Hledat ikony",

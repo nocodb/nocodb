@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "WEEKDAY() ಅವರ ದ್ವೀತಿ ಯ பராமேಟರ್ ಮೌಲ್ಯವು \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" ಅಥವಾ \"saturday\" ಇವೆಯಾಗಿ ಇರಬೇಕು",
       "firstParamDateAddHaveDate": "DATEADD() ಅವರ ಪ್ರಥಮ பராமேಟರ್ ದಿನಾಂಕ ಮೌಲ್ಯವನ್ನು ಹೊಂದಿರಬೇಕು",
       "secondParamDateAddHaveNumber": "DATEADD() ಅವರ ದ್ವಿತಿ ய பராமேಟರ್ ಸಂಖ್ಯಾತ್ಮಕ ಮೌಲ್ಯವನ್ನು ಹೊಂದಿರಬೇಕು",
-      "thirdParamDateAddHaveDate": "DATEADD() ಅವರ ತೃತೀಯ பராமேடರ್ ಮೌಲ್ಯವು \"day\", \"week\", \"month\" ಅಥವಾ \"year\" ಇದೆಯಾಗಿ ಇರಬೇಕು",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "DATEDIFF() ಅವರ ಪ್ರಥಮ பரಾಮேಟರ್ ದಿನಾಂಕ ಮೌಲ್ಯವನ್ನು ಹೊಂದಿರಬೇಕು",
       "secondParamDateDiffHaveDate": "DATEDIFF() ಅವರ ದ್ವಿತಿ ய பரಾಮேಟರ್ ದಿನಾಂಕ ಮೌಲ್ಯವನ್ನು ಹೊಂದಿರಬೇಕು",
       "thirdParamDateDiffHaveDate": "DATETIME_DIFF() அவர ತೃತೀಯ பரಾಮேಟರ್ ಮೌಲ್ಯವು \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", ಅಥವಾ \"y\" ಇದೆಯಾಗಿ ಇರಬೇಕು",

@@ -179,7 +179,9 @@
     "upgradeLicenseToUsePrivateBasesSubtitle": "Приватні бази недоступні в Enterprise Starter license. Оновіть ліцензію, щоб почати користуватись ними.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "Ви можете завантажити не більше {limit} {filePlural} у цю клітинку. Оновіть до тарифу {plan}, щоб додавати більше файлів.",
     "upgradeToUseAiTextField": "Оновіться, щоб використовувати ШІ текстові поля",
-    "upgradeToUseAiTextFieldSubtitle": "Оновіться до {plan} плану аби використовувати ШІ текстові поля для генерації текст на основі вашого запиту."
+    "upgradeToUseAiTextFieldSubtitle": "Оновіться до {plan} плану аби використовувати ШІ текстові поля для генерації текст на основі вашого запиту.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Скрипт",
@@ -2425,7 +2427,8 @@
       "failedToCreateLookupFields": "Не вдалося створити lookup-поля",
       "invalidSearchQuery": "Некоректний пошуковий запит",
       "invalidSearchQueryForVisibleFields": "Некоректний пошуковий запит для видимих полів",
-      "invalidSearchQueryForDisplayField": "Некоректний пошуковий запит для поля відображення"
+      "invalidSearchQueryForDisplayField": "Некоректний пошуковий запит для поля відображення",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Метадані проєкту експортовано",

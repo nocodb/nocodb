@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "Passez à une version supérieure pour ajouter des webhooks illimités",
     "upgradeToAddWebhookSubtitle": "Le plan {activePlan} permet jusqu'à {limit} webhooks. Passez au plan {plan} pour bénéficier de webhooks illimités.",
     "upgradeToAccessWebhookLogsSubtitle": "Accédez aux journaux de webhooks en passant votre espace de travail au plan {plan}.",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "Propriétaire du formulaire averti",
     "formOwnerNotifiedSubtitle": "Nous avons informé le propriétaire du formulaire de votre demande de soumission.",
     "WorkspaceOwnerNotified": "Propriétaire de l'espace de travail averti",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "Duplication de base réussie",
     "duplicateBaseFailed": "Échec de la duplication de la base",
     "duplicateBaseMessage": "Vous ne pouvez dupliquer les bases que dans des espaces de travail où vous avez un accès créateur ou supérieur.",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "Vous pouvez uniquement restaurer dans des espaces de travail où vous avez un accès créateur ou supérieur.",
     "currentWorkspace": "Espace de travail courant",
     "currentBase": "Base actuelle",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "Votre paiement pour la mise à niveau a été traité. Vous pouvez maintenant utiliser votre nouveau plan.",
       "mcpUrlCopied": "URL MCP copi\u0000e9e dans le presse-papiers",
       "nlookupFieldsCreatedSuccessfully": "{n} champ de recherche cr\u0000e9\u0000e9 avec succ\u0000e8s",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n} champs de recherche cr\u0000e9\u0000e9s avec succ\u0000e8s"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n} champs de recherche cr\u0000e9\u0000e9s avec succ\u0000e8s",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "Commencer \u0000e0 partir de z\u0000e9ro.",

@@ -296,3 +296,43 @@ export const extractYoutubeVideoId = (url: string) => {
 
   return ''
 }
+
+/**
+ * Converts an array of strings into a URL-safe slug.
+ *
+ * - Each part is trimmed and internal spaces are replaced with a single dash (`-`).
+ * - Existing dashes are preserved as-is.
+ * - Special characters are URL-encoded using `encodeURIComponent`.
+ * - Parts that are empty or only whitespace are ignored.
+ * - All output is lowercased.
+ * - The final slug is created by joining all parts with a dash (`-`).
+ *
+ * @example
+ * ```ts
+ * toReadableUrlSlug(['Feature   Table', 'Default View']);
+ * // "feature-table-default-view"
+ *
+ * toReadableUrlSlug(['Orders-Invoices', 'Grid   View']);
+ * // "orders-invoices-grid-view"
+ *
+ * toReadableUrlSlug(['User   Activity', 'Calendar  - View']);
+ * // "user-activity-calendar--view"
+ * ```
+ *
+ * @param parts - Array of strings (e.g., tableName, viewName) to be combined into a slug.
+ * @returns A URL-safe slug string, or an empty string if no valid parts are provided.
+ */
+export function toReadableUrlSlug(parts: (string | undefined)[] = []): string {
+  return (
+    parts
+      .map((part) => {
+        if (!part?.trim()) return ''
+
+        return encodeURIComponent(
+          part.trim().toLowerCase().replace(/\s+/g, '-'), // replace one or more spaces with a single dash
+        )
+      })
+      .filter(Boolean) // remove empty parts
+      .join('-') ?? ''
+  )
+}

@@ -126,7 +126,7 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, 
       query: {
         ...routeQuery.value,
         rowId,
-        path: path.join('-'),
+        path: ncIsEmptyArray(path) ? undefined : path.join('-'),
         // Remove expand from query to avoid triggering the expanded form on closing the dialog
         expand: undefined,
       },

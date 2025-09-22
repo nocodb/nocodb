@@ -1102,6 +1102,12 @@ function CustomKnex(
     transaction: {
       enumerable: true,
       value: async (...args: any[]) => {
+        // if transaction using callback, return directly without decorating
+        // TODO: handle nested callback transactions
+        if (typeof args[0] === 'function') {
+          return knexTransaction(...args);
+        }
+
         const trx: CustomTransaction = await knexTransaction(...args);
 
         const trxRaw = trx.raw.bind(trx);

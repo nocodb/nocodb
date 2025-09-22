@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Приватные базы доступны на тарифе {plan}. Обновите тариф сейчас, чтобы начать использовать их.",
     "upgradeLicenseToUsePrivateBases": "Обновите лицензию, чтобы разблокировать приватные базы",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Приватные базы недоступны в лицензии Enterprise Starter. Обновите лицензию, чтобы начать использовать их.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Вы можете загрузить не более {limit} {filePlural} в эту ячейку. Обновите тариф {plan}, чтобы добавить больше файлов."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Вы можете загрузить не более {limit} {filePlural} в эту ячейку. Обновите тариф {plan}, чтобы добавить больше файлов.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Скрипт",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "Сгенерировать значение поля с помощью ИИ",
     "preview": "Предпросмотр",
     "autoSuggest": "Автопредложение",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Предлагаем...",
     "autoSuggestFields": "Автопредложение полей",
     "autoSuggestFormulas": "Автопредложение формул",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "Добавить подстановочные поля",
     "sourceVisibilityIsHidden": "Видимость источника данных скрыта",
     "youDontHavePermissionToEditThisField": "У вас нет разрешения редактировать это поле",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Поиск значков",

@@ -891,7 +891,7 @@ useEventListener(
     if (
       (draggableRef.value?.targetDomElement && draggableRef.value?.targetDomElement.contains(e.target)) ||
       (e.target as HTMLElement)?.closest(
-        '.nc-form-right-panel, [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button, .nc-form-right-sidebar-content-resizable-wrapper .splitpanes__splitter',
+        '.nc-form-right-panel, [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button, .nc-form-right-sidebar-content-resizable-wrapper .splitpanes__splitter, .nc-sidebar-toggle-btn',
       )
     ) {
       return
@@ -1038,7 +1038,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                   leave-to-class="opacity-0"
                 >
                   <div v-show="!isSidebarVisible" class="absolute top-4 right-4 z-550">
-                    <NcTooltip placement="topRight">
+                    <NcTooltip placement="topRight" class="nc-sidebar-toggle-btn">
                       <template #title> {{ $t('activity.toggleSidebar') }}</template>
                       <NcButton icon-only size="small" type="secondary" @click.stop="isSidebarVisible = true">
                         <template #icon>
@@ -1583,29 +1583,28 @@ const { message: templatedMessage } = useTemplatedMessage(
                 <!-- Form Field settings -->
                 <div v-if="activeField && activeColumn" :key="activeField?.id" class="nc-form-field-right-panel">
                   <!-- Field header -->
-                  <div class="px-4 pt-4 pb-2 flex items-center justify-between border-b border-gray-200 font-medium">
-                    <div class="flex items-center">
-                      <div class="text-gray-600 font-medium cursor-pointer select-none hover:underline" @click="activeRow = ''">
-                        {{ $t('objects.viewType.form') }}
-                      </div>
-                      <div class="px-1.75 text-gray-500 text-xl font-normal">/</div>
-
-                      <div class="flex items-center pr-1 py-1.5 text-gray-800">
-                        <SmartsheetHeaderIcon :column="activeField" />
-
-                        <NcTooltip class="truncate max-w-[120px] text-sm font-semibold" show-on-truncate-only>
-                          <template #title>
-                            <div class="text-center">
-                              {{ activeField.title }}
-                            </div>
-                          </template>
-
-                          <span data-testid="nc-form-input-label">
-                            {{ activeField.title }}
-                          </span>
-                        </NcTooltip>
-                      </div>
+                  <div class="px-4 pt-4 pb-2 flex items-center border-b border-gray-200 font-medium">
+                    <div class="text-gray-600 font-medium cursor-pointer select-none hover:underline" @click="activeRow = ''">
+                      {{ $t('objects.viewType.form') }}
                     </div>
+                    <div class="px-1.75 text-gray-500 text-xl font-normal">/</div>
+
+                    <div class="flex items-center py-1.5">
+                      <SmartsheetHeaderIcon :column="activeField" class="text-nc-content-gray" />
+                    </div>
+
+                    <NcTooltip class="truncate flex-1 text-sm font-semibold pr-1" show-on-truncate-only>
+                      <template #title>
+                        <div class="text-center">
+                          {{ activeField.title }}
+                        </div>
+                      </template>
+
+                      <span data-testid="nc-form-input-label text-nc-content-gray">
+                        {{ activeField.title }}
+                      </span>
+                    </NcTooltip>
+
                     <div class="flex items-center space-x-2">
                       <a-dropdown
                         v-model:visible="dropdownStates.showEditColumn"
@@ -1643,6 +1642,14 @@ const { message: templatedMessage } = useTemplatedMessage(
                         "
                         @hide-field="showOrHideColumn(activeField, false, false)"
                       />
+                      <NcTooltip placement="topRight" class="nc-sidebar-toggle-btn">
+                        <template #title> {{ $t('activity.toggleSidebar') }}</template>
+                        <NcButton icon-only size="small" type="secondary" @click.stop="isSidebarVisible = !isSidebarVisible">
+                          <template #icon>
+                            <GeneralIcon icon="sidebar" class="w-4 h-4" />
+                          </template>
+                        </NcButton>
+                      </NcTooltip>
                     </div>
                   </div>
                   <!-- Field text -->
@@ -1719,7 +1726,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               </div>
                             </template>
                           </a-dropdown>
-                          <NcTooltip placement="topRight">
+                          <NcTooltip placement="topRight" class="nc-sidebar-toggle-btn">
                             <template #title> {{ $t('activity.toggleSidebar') }}</template>
                             <NcButton icon-only size="small" type="secondary" @click.stop="isSidebarVisible = !isSidebarVisible">
                               <template #icon>

@@ -139,6 +139,8 @@
     "upgradeToAddWebhook": "アップグレードして無制限のWebhookを追加",
     "upgradeToAddWebhookSubtitle": "{activePlan}プランではWebhookは{limit}件までです。{plan}プランへアップグレードして無制限に利用しましょう。",
     "upgradeToAccessWebhookLogsSubtitle": "ワークスペースを{plan}プランへアップグレードしてWebhookログにアクセスしましょう。",
+    "upgradeToDuplicateTableToOtherWs": "Upgrade your plan to duplicate tables across different workspaces.",
+    "upgradeToDuplicateTableToOtherBase": "Upgrade your plan to duplicate tables across different bases.",
     "formOwnerNotified": "フォーム所有者に通知しました",
     "formOwnerNotifiedSubtitle": "送信リクエストについてフォーム所有者へ通知しました。",
     "WorkspaceOwnerNotified": "ワークスペース所有者に通知しました",
@@ -958,6 +960,7 @@
     "duplicateBaseSuccessfull": "ベースの複製に成功しました",
     "duplicateBaseFailed": "ベースの複製に失敗しました",
     "duplicateBaseMessage": "ベースを複製できるのは、あなたが作成者権限以上を持つワークスペースのみです。",
+    "duplicateTableMessage": "You can only duplicate tables into bases where you have creator access or above.",
     "snapshotBaseRestoreMessage": "復元できるのは、あなたが作成者権限以上を持つワークスペースのみです。",
     "currentWorkspace": "現在のワークスペース",
     "currentBase": "現在のベース",
@@ -2492,7 +2495,8 @@
       "upgradeSuccessfulSubtitle": "アップグレードのお支払いが処理されました。新しいプランをご利用いただけます。",
       "mcpUrlCopied": "MCP URL をクリップボードにコピーしました",
       "nlookupFieldsCreatedSuccessfully": "{n}件のルックアップフィールドが正常に作成されました",
-      "nlookupFieldsCreatedSuccessfullyPlural": "{n}件のルックアップフィールドが正常に作成されました"
+      "nlookupFieldsCreatedSuccessfullyPlural": "{n}件のルックアップフィールドが正常に作成されました",
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
     },
     "subText": {
       "startFromScratch": "ゼロから作成。",

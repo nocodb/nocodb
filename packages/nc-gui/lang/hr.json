@@ -175,7 +175,9 @@
     "upgradeToUsePrivateBasesSubtitle": "Privatne baze dostupne su u planu {plan}. Nadogradite sada kako biste ih mogli koristiti.",
     "upgradeLicenseToUsePrivateBases": "Nadogradite licencu za otključavanje privatnih baza",
     "upgradeLicenseToUsePrivateBasesSubtitle": "Privatne baze nisu dostupne uz Enterprise Starter licencu. Nadogradite ključ licence kako biste ih mogli koristiti.",
-    "upgradeToAddMoreAttachmentsInCellSubtitle": "Možete prenijeti najviše {limit} {filePlural} u ovu ćeliju. Nadogradite na plan {plan} kako biste dodali više datoteka."
+    "upgradeToAddMoreAttachmentsInCellSubtitle": "Možete prenijeti najviše {limit} {filePlural} u ovu ćeliju. Nadogradite na plan {plan} kako biste dodali više datoteka.",
+    "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
   },
   "general": {
     "script": "Skripta",
@@ -1412,6 +1414,8 @@
     "generateFieldDataUsingAi": "Generiraj vrijednost polja uz pomoć AI",
     "preview": "Pregled",
     "autoSuggest": "Automatski prijedlog",
+    "autoSuggested": "Auto Suggested",
+    "usePrompt": "Use Prompt",
     "suggesting": "Predlažem...",
     "autoSuggestFields": "Automatski predloži polja",
     "autoSuggestFormulas": "Automatski predloži formule",
@@ -1851,7 +1855,10 @@
     "addLookupFields": "Dodaj lookup polja",
     "sourceVisibilityIsHidden": "Vidljivost izvora podataka je skrivena",
     "youDontHavePermissionToEditThisField": "Nemate dozvolu za uređivanje ovog polja",
-    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock..."
+    "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
+    "youCantHideARequiredField": "You can't hide a required field.",
+    "youCantRemoveARequiredField": "You can't remove a required field.",
+    "removeFromForm": "Remove from form"
   },
   "placeholder": {
     "searchIcons": "Pretraži ikone",

@@ -2010,7 +2010,7 @@
       "secondParamWeekDayHaveDate": "A WEEKDAY() második paraméterének az értéke \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" vagy \"saturday\" kell legyen",
       "firstParamDateAddHaveDate": "A DATEADD() első paraméterének dátumértékkel kell rendelkeznie",
       "secondParamDateAddHaveNumber": "A DATEADD() második paraméterének numerikus értékkel kell rendelkeznie",
-      "thirdParamDateAddHaveDate": "A DATEADD() harmadik paraméterének az értéke \"day\", \"week\", \"month\" vagy \"year\" lehet",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "A DATEDIFF() első paraméterének dátumértékkel kell rendelkeznie",
       "secondParamDateDiffHaveDate": "A DATEDIFF() második paraméterének dátumértékkel kell rendelkeznie",
       "thirdParamDateDiffHaveDate": "A DATETIME_DIFF() harmadik paraméterének az értéke \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", vagy \"y\" lehet",

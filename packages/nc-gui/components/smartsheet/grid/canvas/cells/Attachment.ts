@@ -112,6 +112,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       setCursor,
       isUnderLookup,
       textAlign,
+      column,
     },
   ) => {
     let attachments: Attachment[] = []
@@ -125,7 +126,10 @@ export const AttachmentCellRenderer: CellRenderer = {
       attachments = []
     }
 
-    if (readonly && !attachments.length) {
+    if (readonly && (!ncIsArray(attachments) || !attachments.length)) {
+      if (!ncIsArray(attachments)) {
+        console.warn('Attachment cell value is not an array', column.title, attachments)
+      }
       return
     }
 

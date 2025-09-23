@@ -248,12 +248,13 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 })
 
 const columns = [
-  {
-    key: 'select',
-    title: '',
-    width: 70,
-    minWidth: 70,
-  },
+  // // Enable this select row column once we introduce bulk action
+  // {
+  //   key: 'select',
+  //   title: '',
+  //   width: 70,
+  //   minWidth: 70,
+  // },
   {
     key: 'email',
     title: t('labels.members'),

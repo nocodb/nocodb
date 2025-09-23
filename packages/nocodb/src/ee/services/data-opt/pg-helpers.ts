@@ -1503,7 +1503,7 @@ export async function singleQueryList(
     includeSortAndFilterColumns?: boolean;
     skipPaginateWrapper?: boolean;
     skipSortBasedOnOrderCol?: boolean;
-    ignoreViewFilterAndSorts?: boolean;
+    ignoreViewFilterAndSort?: boolean;
   },
 ): Promise<
   PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
@@ -1648,11 +1648,13 @@ export async function singleQueryList(
     sorts = await Sort.list(context, { viewId: ctx.view.id });
   }
 
-  const viewFilters = ctx.view?.id
-    ? await Filter.rootFilterList(context, {
-        viewId: ctx.view?.id,
-      })
-    : [];
+  let viewFilters: Filter[] = [];
+
+  if (ctx.view && !ctx.ignoreViewFilterAndSort) {
+    viewFilters = await Filter.rootFilterList(context, {
+      viewId: ctx.view?.id,
+    });
+  }
 
   if (viewFilters?.length && checkForStaticDateValFilters(viewFilters)) {
     skipCache = true;

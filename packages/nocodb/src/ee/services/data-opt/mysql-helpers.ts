@@ -1577,11 +1577,12 @@ export async function singleQueryList(
     sorts = await Sort.list(context, { viewId: ctx.view.id });
   }
 
-  const viewFilters = ctx.view?.id
-    ? await Filter.rootFilterList(context, {
-        viewId: ctx.view?.id,
-      })
-    : [];
+  let viewFilters: Filter[] = [];
+
+  if (ctx.view?.id && !ctx.ignoreViewFilterAndSort)
+    viewFilters = await Filter.rootFilterList(context, {
+      viewId: ctx.view?.id,
+    });
 
   if (viewFilters?.length && checkForStaticDateValFilters(viewFilters)) {
     skipCache = true;

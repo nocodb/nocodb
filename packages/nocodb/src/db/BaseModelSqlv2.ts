@@ -34,7 +34,6 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import type { Transaction } from 'knex';
 import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
@@ -161,7 +160,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   /** The base database driver (always non-transactional) */
   protected _dbDriver: XKnex;
   /** Optional transaction instance - when set, operations use this instead of _dbDriver */
-  protected _activeTransaction?: XKnex | Transaction;
+  protected _activeTransaction?: XKnex | Knex.Transaction;
   protected _viewId: string;
   public get viewId() {
     return this._viewId;

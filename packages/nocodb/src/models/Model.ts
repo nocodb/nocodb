@@ -9,8 +9,8 @@ import {
 import dayjs from 'dayjs';
 import { Logger } from '@nestjs/common';
 import hash from 'object-hash';
-import type { Transaction } from 'knex';
 import type { NcRequest } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models/index';
@@ -570,7 +570,7 @@ export default class Model implements TableType {
       id?: string;
       viewId?: string;
       dbDriver: XKnex;
-      transaction?: XKnex | Transaction;
+      transaction?: XKnex | Knex.Transaction;
       model?: Model;
       extractDefaultView?: boolean;
       source?: Source;

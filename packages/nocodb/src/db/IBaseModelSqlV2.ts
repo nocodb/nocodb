@@ -1,5 +1,5 @@
-import type { Transaction } from 'knex';
 import type BigNumber from 'bignumber.js';
+import type { Knex } from 'knex';
 import type {
   XcFilter,
   XcFilterWithAlias,
@@ -362,7 +362,7 @@ export interface IBaseModelSqlV2 {
 
   get viewId(): string;
   /** Returns the active database driver (transaction if active, otherwise base driver) */
-  get dbDriver(): CustomKnex | Transaction;
+  get dbDriver(): CustomKnex | Knex.Transaction;
   /** Returns the base (non-transactional) database driver */
   get knex(): CustomKnex;
   get isSqlite(): boolean;

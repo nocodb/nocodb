@@ -13,12 +13,10 @@ export const isExtensionPaneActive = () => document.querySelector('.nc-extension
 export const isGeneralOverlayActive = () => document.querySelector('.nc-general-overlay')
 export const isSelectActive = () => {
   const els = document.querySelectorAll<HTMLElement>('.ant-select-dropdown')
-  return (
-    Array.from(els).filter((el) => {
-      const style = window.getComputedStyle(el)
-      return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0'
-    }).length > 0
-  )
+  return Array.from(els).some((el) => {
+    const style = window.getComputedStyle(el)
+    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0'
+  })
 }
 
 export const isViewSearchActive = () => document.querySelector('.nc-view-search-data') === document.activeElement

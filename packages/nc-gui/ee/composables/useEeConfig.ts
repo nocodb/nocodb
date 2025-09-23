@@ -25,7 +25,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const baseURL = $api.instance.defaults.baseURL
 
-  const { user, appInfo } = useGlobal()
+  const { user, appInfo, isMobileMode } = useGlobal()
 
   const { isUIAllowed } = useRoles()
 
@@ -171,7 +171,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const isTopBannerVisible = computed(() => {
-    return isPaymentEnabled.value && !isPaidPlan.value
+    return isPaymentEnabled.value && !isPaidPlan.value && !isMobileMode.value
   })
 
   const blockWsImageLogoUpload = computed(() => {

@@ -17,6 +17,22 @@ import {
 } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
 
+/**
+ * Transaction Handling Strategy for Link Operations:
+ *
+ * This module handles adding and removing links between records. To prevent transaction
+ * conflicts and ensure reliable broadcasting of link updates, we use a specific pattern:
+ *
+ * 1. Core link operations (insert/delete) run within the main transaction
+ * 2. Broadcasting operations use non-transactional clones to avoid conflicts
+ * 3. This separation ensures that broadcasting doesn't interfere with the main
+ *    transaction's commit/rollback behavior
+ *
+ * The getNonTransactionalClone() method creates a new BaseModelSqlv2 instance
+ * that uses the base database driver instead of any active transaction, allowing
+ * broadcasting operations to run independently.
+ */
+
 export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
   const validateRefIds = (
     refIds: (string | number | Record<string, any>)[],

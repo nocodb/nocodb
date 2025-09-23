@@ -4,6 +4,8 @@ import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 
 const { metas, getMeta } = useMetas()
 
+const { isMobileMode } = useGlobal()
+
 const column = inject(ColumnInj, ref())
 
 const row = inject(RowInj)!
@@ -241,7 +243,9 @@ onUnmounted(() => {
 watch(dropdownVisible, (val) => {
   setTimeout(() => {
     if (val && dropdownOverlayRef.value) {
-      dropdownOverlayRef.value?.querySelector<HTMLInputElement>('.lookup-search-input input')?.focus()
+      if (!isMobileMode.value) {
+        dropdownOverlayRef.value?.querySelector<HTMLInputElement>('.lookup-search-input input')?.focus()
+      }
 
       if (dropdownOverlayRef.value.clientHeight) {
         dropdownInitialHeight.value = dropdownOverlayRef.value.clientHeight

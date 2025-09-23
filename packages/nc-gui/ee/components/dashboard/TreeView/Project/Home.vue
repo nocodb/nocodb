@@ -22,6 +22,8 @@ const { meta: metaKey, control } = useMagicKeys()
 
 const { isUIAllowed } = useRoles()
 
+const { isMobileMode } = useGlobal()
+
 const projectNodeRef = ref()
 
 // If only base is open, i.e in case of docs, base view is open and not the page view
@@ -155,7 +157,8 @@ const hasTableCreatePermission = computed(() => {
     </div>
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
       <Data :base-id="base.id" />
-      <Automation v-if="!isSharedBase && isUIAllowed('scriptList')" :base-id="base.id" />
+      <!-- Hide automation in mobile mode as we don't support to edit it -->
+      <Automation v-if="!isSharedBase && isUIAllowed('scriptList') && !isMobileMode" :base-id="base.id" />
     </div>
 
     <slot name="footer"> </slot>

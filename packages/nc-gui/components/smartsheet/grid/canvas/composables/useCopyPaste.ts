@@ -751,6 +751,7 @@ export function useCopyPaste({
                       markInfoShown: () => {
                         isColInfoShown[col.title!] = true
                       },
+                      clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
                     },
                     isMysql(meta.value?.source_id),
                     true,

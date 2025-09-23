@@ -107,8 +107,13 @@ export function useMultiSelect(
 
   const { batchUploadFiles } = useAttachment()
 
-  const { setCellClipboardDataItem, getClipboardItemId } = useNcClipboardData()
-
+  const {
+    setCellClipboardDataItem,
+    getClipboardItemId,
+    getCurrentCopiedCellClipboardData,
+    extractCellClipboardData,
+    waitingCellClipboardDataIds,
+  } = useNcClipboardData()
   const aiMode = ref(false)
 
   const isArrayStructure = typeof unref(data) === 'object' && Array.isArray(unref(data))
@@ -1062,6 +1067,13 @@ export function useMultiSelect(
     // Replace \" with " in clipboard data
     let clipboardData = e.clipboardData?.getData('text/plain') || ''
 
+    const storedCopiedData = getCurrentCopiedCellClipboardData(clipboardData)
+
+    // Add the waiting clipboard data id so that if setClipboardData fn is called during this operation, it will not remove the currentCopiedCellClipboardDataItem from the clipboard data
+    if (storedCopiedData && !waitingCellClipboardDataIds.value.includes(storedCopiedData.id)) {
+      waitingCellClipboardDataIds.value.push(storedCopiedData.id)
+    }
+
     if (clipboardData?.endsWith('\n')) {
       // Remove '\n' from the end of the clipboardData
       // When copying from XLS/XLSX files, there is an extra '\n' appended to the end
@@ -1253,6 +1265,7 @@ export function useMultiSelect(
                     markInfoShown: () => {
                       isColInfoShown[column.title!] = true
                     },
+                    clipboardItem: extractCellClipboardData(storedCopiedData, clipboardRowIndex, j),
                   },
                   isMysql(meta.value?.source_id),
                   true,
@@ -1313,6 +1326,7 @@ export function useMultiSelect(
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
+                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
               },
               isMysql(meta.value?.source_id),
             )
@@ -1349,6 +1363,7 @@ export function useMultiSelect(
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
+                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
               },
               isMysql(meta.value?.source_id),
             )
@@ -1630,6 +1645,7 @@ export function useMultiSelect(
                 oldValue: rowObj.row[columnObj.title!],
                 maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
                 showUpgradeToAddMoreAttachmentsInCell,
+                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
               },
               isMysql(meta.value?.source_id),
             )
@@ -1724,6 +1740,7 @@ export function useMultiSelect(
                       markInfoShown: () => {
                         isColInfoShown[col.title!] = true
                       },
+                      clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -1750,6 +1767,7 @@ export function useMultiSelect(
                       markInfoShown: () => {
                         isColInfoShown[col.title!] = true
                       },
+                      clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -1788,6 +1806,11 @@ export function useMultiSelect(
       if (error instanceof TypeConversionError !== true || !(error as SuppressedError).isErrorSuppressed) {
         console.error(error, (error as SuppressedError).isErrorSuppressed)
         message.error(await extractSdkResponseErrorMsg(error))
+      }
+    } finally {
+      // After paste operation is completed, remove the waiting clipboard data id so that on setClipboardDateItem can remove the item from the clipboard data
+      if (storedCopiedData && waitingCellClipboardDataIds.value.includes(storedCopiedData.id)) {
+        waitingCellClipboardDataIds.value = waitingCellClipboardDataIds.value.filter((id) => id !== storedCopiedData.id)
       }
     }
   }

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { NOCO_SERVICE_USERS, ProjectRoles } from 'nocodb-sdk';
-import { User } from '~/models';
+import { OAuthToken, User } from '~/models';
 import { UsersService } from '~/services/users/users.service';
 import { NcError } from '~/helpers/catchError';
 
@@ -17,6 +17,45 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(req, jwtPayload) {
     if (!jwtPayload?.email || jwtPayload?.is_api_token) return jwtPayload;
+
+    // Handle OAuth tokens
+    if (jwtPayload?.client_id) {
+      // This is an OAuth access token (JWT)
+      const oAuthToken = await OAuthToken.getByAccessToken(
+        req.headers.authorization?.replace('Bearer ', ''),
+      );
+
+      if (oAuthToken && oAuthToken.granted_resources) {
+        const grantedResources = oAuthToken.granted_resources;
+
+        // Check workspace access limitation
+        if (grantedResources.workspace_id) {
+          if (
+            !req.context.workspace_id ||
+            req.context.workspace_id !== grantedResources.workspace_id
+          ) {
+            NcError.forbidden(
+              'OAuth token access limited to specific workspace',
+            );
+          }
+        }
+
+        // Check base access limitation
+        if (grantedResources.base_id) {
+          if (
+            !req.context.base_id ||
+            req.context.base_id !== grantedResources.base_id
+          ) {
+            NcError.forbidden('OAuth token access limited to specific base');
+          }
+        }
+
+        // Add OAuth context to the payload
+        jwtPayload.oauth_granted_resources = grantedResources;
+        jwtPayload.oauth_client_id = oAuthToken.client_id;
+        jwtPayload.is_oauth_token = true;
+      }
+    }
 
     if (jwtPayload?.email === NOCO_SERVICE_USERS.AUTOMATION_USER.email) {
       // Avoid service user to get access to other workspaces and bases

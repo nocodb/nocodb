@@ -19,7 +19,7 @@ const up = async (knex: Knex) => {
     table.string('registration_client_uri');
     table.bigInteger('client_id_issued_at');
     table.bigInteger('client_secret_expires_at');
-    table.string('fk_user_id');
+    table.string('fk_user_id', 20);
     table.timestamps(true, true);
 
     table.index('fk_user_id');
@@ -29,62 +29,69 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(
     MetaTable.OAUTH_AUTHORIZATION_CODES,
     (table) => {
-      table.string('code').primary();
-      table.string('client_id');
-      table.string('user_id');
+      table.string('code', 32).primary();
+      table.string('client_id', 32);
+      table.string('user_id', 20);
 
       // PKCE
       table.string('code_challenge');
-      table.string('code_challenge_method'); // Default: 'S256'
+      table.string('code_challenge_method', 10).defaultTo('S256'); // Only S256 supported
 
       table.string('redirect_uri');
       table.string('scope');
-      table.string('state');
+      table.string('state', 1024);
 
-      table.string('resource');
-      table.text('granted_resources');
+      table.string('resource').nullable(); // For MCP requirements
+      table.text('granted_resources').nullable(); // JSON stored as text
 
-      table.timestamp('expires_at');
-      table.boolean('is_used');
+      table.timestamp('expires_at').notNullable();
+      table.boolean('is_used').defaultTo(false).notNullable();
       table.timestamps(true, true);
 
-      // Add indexes for performance
+      // Indexes for performance
       table.index('client_id');
       table.index('user_id');
       table.index('code');
       table.index('expires_at');
+      table.index('is_used');
+      table.index(['client_id', 'user_id']);
     },
   );
 
   // OAuth Tokens Table
   await knex.schema.createTable(MetaTable.OAUTH_TOKENS, (table) => {
-    table.string('id').primary();
-    table.string('client_id');
+    table.string('id', 20).primary();
+    table.string('client_id', 32);
     table.string('fk_user_id');
 
-    table.string('access_token');
+    table.text('access_token');
     table.timestamp('access_token_expires_at');
 
-    table.string('refresh_token');
-    table.timestamp('refresh_token_expires_at');
+    table.string('refresh_token', 128);
+    table.timestamp('refresh_token_expires_at'); // 60 days
 
     // MCP Requirements
     table.string('resource');
     table.string('audience');
 
-    table.text('granted_resources');
+    table.text('granted_resources'); // JSON stored as text
     table.string('scope');
-    table.boolean('is_revoked');
+    table.boolean('is_revoked').defaultTo(false).notNullable();
 
     table.timestamps(true, true);
-    table.timestamp('last_used_at');
+    table.timestamp('last_used_at').nullable();
 
+    // Indexes for performance
     table.index('client_id');
     table.index('fk_user_id');
     table.index('access_token');
     table.index('refresh_token');
     table.index('access_token_expires_at');
+    table.index('refresh_token_expires_at');
     table.index('is_revoked');
+    table.index('last_used_at');
+    table.index(['client_id', 'fk_user_id']);
+    table.index(['is_revoked', 'access_token_expires_at']);
   });
 };
 

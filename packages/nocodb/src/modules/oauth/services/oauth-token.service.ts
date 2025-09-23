@@ -1,7 +1,12 @@
 import { createHash, randomBytes } from 'crypto';
 import { Injectable } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
-import { OAuthAuthorizationCode, OAuthClient, OAuthToken } from '~/models';
+import {
+  OAuthAuthorizationCode,
+  OAuthClient,
+  OAuthToken,
+  User,
+} from '~/models';
 import { NcError } from '~/helpers/ncError';
 import Noco from '~/Noco';
 
@@ -55,11 +60,13 @@ export class OauthTokenService {
     return randomBytes(length).toString('base64url');
   }
 
-  private generateAccessToken(payload: {
+  private async generateAccessToken(payload: {
     userId: string;
     clientId: string;
     scope?: string;
-  }): string {
+  }): Promise<string> {
+    const user = await User.get(payload.userId);
+
     return jwt.sign(
       {
         sub: payload.userId,
@@ -67,6 +74,11 @@ export class OauthTokenService {
         scope: payload.scope,
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + this.ACCESS_TOKEN_EXPIRES_IN,
+        // User information like normal JWTs
+        email: user.email,
+        id: user.id,
+        roles: user.roles,
+        token_version: user.token_version,
       },
       Noco.config.auth.jwt.secret,
       {
@@ -162,7 +174,7 @@ export class OauthTokenService {
     });
 
     // Generate tokens
-    const accessToken = this.generateAccessToken({
+    const accessToken = await this.generateAccessToken({
       userId: authCode.user_id,
       clientId: authCode.client_id,
       scope: authCode.scope,
@@ -241,7 +253,7 @@ export class OauthTokenService {
     }
 
     // Generate new access token
-    const newAccessToken = this.generateAccessToken({
+    const newAccessToken = await this.generateAccessToken({
       userId: tokenRecord.fk_user_id,
       clientId: tokenRecord.client_id,
       scope: tokenRecord.scope,

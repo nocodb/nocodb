@@ -48,6 +48,8 @@ export class OAuthController {
       code_challenge,
       code_challenge_method,
       scope,
+      workspace_id,
+      base_id,
     } = body;
 
     if (!client_id || !redirect_uri) {
@@ -76,6 +78,8 @@ export class OAuthController {
           codeChallenge: code_challenge,
           codeChallengeMethod: code_challenge_method,
           scope,
+          workspaceId: workspace_id,
+          baseId: base_id,
         });
 
       const successRedirectUrl =

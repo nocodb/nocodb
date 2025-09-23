@@ -24,6 +24,8 @@ export class OauthAuthorizationService {
     codeChallenge?: string;
     codeChallengeMethod?: string;
     scope?: string;
+    workspaceId?: string;
+    baseId?: string;
   }): Promise<OAuthAuthorizationCode> {
     const {
       clientId,
@@ -33,6 +35,8 @@ export class OauthAuthorizationService {
       codeChallenge,
       codeChallengeMethod = 'S256',
       scope,
+      workspaceId,
+      baseId,
     } = params;
 
     const client = await OAuthClient.getByClientId(clientId);
@@ -89,6 +93,14 @@ export class OauthAuthorizationService {
 
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
+    const grantedResources: Record<string, any> = {};
+    if (workspaceId) {
+      grantedResources.workspace_id = workspaceId;
+    }
+    if (baseId) {
+      grantedResources.base_id = baseId;
+    }
+
     return await OAuthAuthorizationCode.insert({
       client_id: clientId,
       user_id: userId,
@@ -97,6 +109,8 @@ export class OauthAuthorizationService {
       code_challenge: codeChallenge,
       code_challenge_method: codeChallengeMethod,
       scope,
+      granted_resources:
+        Object.keys(grantedResources).length > 0 ? grantedResources : null,
       expires_at: expiresAt.toISOString(),
     });
   }

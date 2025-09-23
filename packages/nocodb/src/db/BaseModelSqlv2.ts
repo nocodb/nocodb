@@ -34,6 +34,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
+import type { Transaction } from 'knex';
 import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
@@ -158,6 +159,7 @@ const INSERT_REGEX = /^(\(|)insert/i;
  */
 class BaseModelSqlv2 implements IBaseModelSqlV2 {
   protected _dbDriver: XKnex;
+  protected _transaction?: XKnex | Transaction;
   protected _viewId: string;
   public get viewId() {
     return this._viewId;
@@ -172,6 +174,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public static config: any = defaultLimitConfig;
 
   public get dbDriver() {
+    return this._transaction || this._dbDriver;
+  }
+
+  // get non-transactional clone of this instance
+  public getNonTransactionalClone() {
+    return new BaseModelSqlv2({
+      dbDriver: this._dbDriver,
+      model: this.model,
+      viewId: this.viewId,
+      context: this.context,
+      schema: this.schema,
+    });
+  }
+
+  public get knex() {
     return this._dbDriver;
   }
 
@@ -181,12 +198,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     viewId,
     context,
     schema,
+    transaction,
   }: {
     [key: string]: any;
     model: Model;
     schema?: string;
   }) {
     this._dbDriver = dbDriver;
+    this._transaction = transaction;
     this.model = model;
     this._viewId = viewId;
     this.context = context;

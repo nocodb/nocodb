@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { extractBaseRoleFromWorkspaceRole, ProjectRoles, ViewLockType } from 'nocodb-sdk'
+import { ProjectRoles, ViewLockType, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 import UserItem from './UserItem.vue'
 const props = defineProps<Props>()
 

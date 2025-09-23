@@ -1,3 +1,4 @@
+import type { Transaction } from 'knex';
 import type BigNumber from 'bignumber.js';
 import type {
   XcFilter,
@@ -353,9 +354,11 @@ export interface IBaseModelSqlV2 {
 
   broadcastLinkUpdates(ids: Array<string>): Promise<void>;
   getSource(): Promise<Source>;
+  getNonTransactionalClone(): IBaseModelSqlV2;
 
   get viewId(): string;
-  get dbDriver(): CustomKnex;
+  get dbDriver(): CustomKnex | Transaction;
+  get knex(): CustomKnex;
   get isSqlite(): boolean;
   get isPg(): boolean;
   get isMySQL(): boolean;

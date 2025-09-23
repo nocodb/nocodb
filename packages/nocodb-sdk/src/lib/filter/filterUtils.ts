@@ -9,6 +9,8 @@ export interface ComparisonOpUiType {
   ignoreVal: boolean;
   includedTypes?: UITypes[];
   excludedTypes?: UITypes[];
+  semanticType?: string; // Semantic category for compatibility checking
+  typeSpecificSemantic?: (fieldUiType: UITypes) => string; // Type-specific semantic function
 }
 
 export interface FilterGroupChangeEvent {
@@ -161,6 +163,47 @@ const getLteText = (fieldUiType: UITypes) => {
   return '<=';
 };
 
+// Helper functions for type-specific semantic types
+const getTypeSpecificSemantic = (
+  baseSemantic: string,
+  fieldUiType: UITypes
+): string => {
+  if (isNumericCol(fieldUiType)) {
+    return `${baseSemantic}_numeric`;
+  } else if (isDateType(fieldUiType)) {
+    return `${baseSemantic}_date`;
+  } else if (
+    [
+      UITypes.SingleLineText,
+      UITypes.LongText,
+      UITypes.Email,
+      UITypes.PhoneNumber,
+      UITypes.URL,
+    ].includes(fieldUiType)
+  ) {
+    return `${baseSemantic}_text`;
+  } else if (
+    [UITypes.SingleSelect, UITypes.MultiSelect].includes(fieldUiType)
+  ) {
+    return `${baseSemantic}_select`;
+  } else if ([UITypes.Checkbox].includes(fieldUiType)) {
+    return `${baseSemantic}_boolean`;
+  } else if (
+    [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+      fieldUiType
+    )
+  ) {
+    return `${baseSemantic}_user`;
+  } else if ([UITypes.Attachment].includes(fieldUiType)) {
+    return `${baseSemantic}_attachment`;
+  } else if (
+    [UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(fieldUiType)
+  ) {
+    return `${baseSemantic}_link`;
+  }
+  return baseSemantic; // fallback to base semantic
+};
+
 export const comparisonOpList = (
   fieldUiType: UITypes,
 
@@ -171,12 +214,18 @@ export const comparisonOpList = (
     value: 'checked',
     ignoreVal: true,
     includedTypes: [UITypes.Checkbox],
+    semanticType: 'boolean_equality',
+    typeSpecificSemantic: (fieldUiType) =>
+      getTypeSpecificSemantic('equality', fieldUiType),
   },
   {
     text: 'is not checked',
     value: 'notchecked',
     ignoreVal: true,
     includedTypes: [UITypes.Checkbox],
+    semanticType: 'boolean_inequality',
+    typeSpecificSemantic: (fieldUiType) =>
+      getTypeSpecificSemantic('inequality', fieldUiType),
   },
   {
     text: getEqText(fieldUiType),
@@ -190,6 +239,9 @@ export const comparisonOpList = (
       UITypes.CreatedBy,
       UITypes.LastModifiedBy,
     ],
+    semanticType: 'equality',
+    typeSpecificSemantic: (fieldUiType) =>
+      getTypeSpecificSemantic('equality', fieldUiType),
   },
   {
     text: getNeqText(fieldUiType),
@@ -203,6 +255,9 @@ export const comparisonOpList = (
       UITypes.CreatedBy,
       UITypes.LastModifiedBy,
     ],
+    semanticType: 'inequality',
+    typeSpecificSemantic: (fieldUiType) =>
+      getTypeSpecificSemantic('inequality', fieldUiType),
   },
   {
     text: getLikeText(fieldUiType),
@@ -223,6 +278,9 @@ export const comparisonOpList = (
       UITypes.Time,
       ...numericUITypes,
     ],
+    semanticType: 'pattern_match',
+    typeSpecificSemantic: (fieldUiType) =>
+      getTypeSpecificSemantic('pattern_match', fieldUiType),
   },
   {
     text: getNotLikeText(fieldUiType),
@@ -243,6 +301,9 @@ export const comparisonOpList = (
       UITypes.Time,
       ...numericUITypes,
     ],
+    semanticType: 'pattern_not_match',
+    typeSpecificSemantic: (fieldUiType) =>
+      getTypeSpecificSemantic('pattern_not_match', fieldUiType),
   },
   {
     text: 'is empty',
@@ -266,6 +327,7 @@ export const comparisonOpList = (
       UITypes.Time,
       ...numericUITypes,
     ],
+    semanticType: 'empty_check',
   },
   {
     text: 'is not empty',
@@ -289,6 +351,7 @@ export const comparisonOpList = (
       UITypes.Time,
       ...numericUITypes,
     ],
+    semanticType: 'not_empty_check',
   },
   {
     text: 'is null',
@@ -312,6 +375,7 @@ export const comparisonOpList = (
       UITypes.LastModifiedTime,
       UITypes.Time,
     ],
+    semanticType: 'null_check',
   },
   {
     text: 'is not null',
@@ -335,6 +399,7 @@ export const comparisonOpList = (
       UITypes.LastModifiedTime,
       UITypes.Time,
     ],
+    semanticType: 'not_null_check',
   },
   {
     text: 'contains all of',
@@ -346,6 +411,7 @@ export const comparisonOpList = (
       UITypes.CreatedBy,
       UITypes.LastModifiedBy,
     ],
+    semanticType: 'contains_all',
   },
   {
     text: 'contains any of',
@@ -358,6 +424,7 @@ export const comparisonOpList = (
       UITypes.CreatedBy,
       UITypes.LastModifiedBy,
     ],
+    semanticType: 'contains_any',
   },
   {
     text: 'does not contain all of',
@@ -369,6 +436,7 @@ export const comparisonOpList = (
       UITypes.CreatedBy,
       UITypes.LastModifiedBy,
     ],
+    semanticType: 'not_contains_all',
   },
   {
     text: 'does not contain any of',
@@ -381,6 +449,7 @@ export const comparisonOpList = (
       UITypes.CreatedBy,
       UITypes.LastModifiedBy,
     ],
+    semanticType: 'not_contains_any',
   },
   {
     text: getGtText(fieldUiType),
@@ -394,6 +463,9 @@ export const comparisonOpList = (
       UITypes.CreatedTime,
       UITypes.Time,
     ],
+    semanticType: 'greater_than',
+    typeSpecificSemantic: (fieldUiType) =>
+      getTypeSpecificSemantic('greater_than', fieldUiType),
   },
   {
     text: getLtText(fieldUiType),
@@ -407,6 +479,9 @@ export const comparisonOpList = (
       UITypes.CreatedTime,
       UITypes.Time,
     ],
+    semanticType: 'less_than',
+    typeSpecificSemantic: (fieldUiType) =>
+      getTypeSpecificSemantic('less_than', fieldUiType),
   },
   {
     text: getGteText(fieldUiType),
@@ -420,6 +495,9 @@ export const comparisonOpList = (
       UITypes.CreatedTime,
       UITypes.Time,
     ],
+    semanticType: 'greater_than_or_equal',
+    typeSpecificSemantic: (fieldUiType) =>
+      getTypeSpecificSemantic('greater_than_or_equal', fieldUiType),
   },
   {
     text: getLteText(fieldUiType),
@@ -433,6 +511,9 @@ export const comparisonOpList = (
       UITypes.CreatedTime,
       UITypes.LastModifiedTime,
     ],
+    semanticType: 'less_than_or_equal',
+    typeSpecificSemantic: (fieldUiType) =>
+      getTypeSpecificSemantic('less_than_or_equal', fieldUiType),
   },
   {
     text: 'is within',
@@ -444,18 +525,21 @@ export const comparisonOpList = (
       UITypes.LastModifiedTime,
       UITypes.CreatedTime,
     ],
+    semanticType: 'date_range',
   },
   {
     text: 'is blank',
     value: 'blank',
     ignoreVal: true,
     excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
+    semanticType: 'blank_check',
   },
   {
     text: 'is not blank',
     value: 'notblank',
     ignoreVal: true,
     excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
+    semanticType: 'not_blank_check',
   },
 ];
 

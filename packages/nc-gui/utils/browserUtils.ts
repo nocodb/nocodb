@@ -11,7 +11,16 @@ export const isNestedExpandedFormOpenExist = () => document.querySelectorAll('.n
 export const isExpandedCellInputExist = () => document.querySelector('.expanded-cell-input')
 export const isExtensionPaneActive = () => document.querySelector('.nc-extension-pane')
 export const isGeneralOverlayActive = () => document.querySelector('.nc-general-overlay')
-export const isSelectActive = () => document.querySelector('.ant-select-dropdown')
+export const isSelectActive = () => {
+  const els = document.querySelectorAll<HTMLElement>('.ant-select-dropdown')
+  return (
+    Array.from(els).filter((el) => {
+      const style = window.getComputedStyle(el)
+      return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0'
+    }).length > 0
+  )
+}
+
 export const isViewSearchActive = () => document.querySelector('.nc-view-search-data') === document.activeElement
 export const isCreateViewActive = () => document.querySelector('.nc-view-create-modal')
 export const isActiveElementInsideExtension = () =>

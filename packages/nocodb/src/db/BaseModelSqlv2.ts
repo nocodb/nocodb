@@ -3201,7 +3201,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const trxBaseModel = await Model.getBaseModelSQL(this.context, {
       model: this.model,
-      dbDriver: trx,
+      transaction: trx,
+      dbDriver: this.dbDriver,
     });
 
     try {

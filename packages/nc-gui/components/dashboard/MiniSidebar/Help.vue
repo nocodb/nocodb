@@ -174,7 +174,7 @@ const openUrl = (item: ItemType) => {
                       </NcMenuItem>
                     </template>
                   </NcSubMenu>
-                  <NcTooltip v-else :title="item.tooltip" :disabled="!item.tooltip" placement="top" hide-on-click>
+                  <NcTooltip v-else :title="item.tooltip" :disabled="!item.tooltip || isMobileMode" placement="top" hide-on-click>
                     <NcMenuItem @click="openUrl(item)">
                       <GeneralIcon v-if="item.icon" :icon="item.icon" class="h-4 w-4" />
                       {{ item.title }}

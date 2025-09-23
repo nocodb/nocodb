@@ -101,7 +101,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 <template>
   <div class="nc-mini-sidebar" data-testid="nc-mini-sidebar">
     <div class="flex flex-col items-center">
-      <DashboardMiniSidebarItemWrapper size="small">
+      <DashboardMiniSidebarItemWrapper size="small" show-in-mobile>
         <div
           class="min-h-9 sticky top-0 bg-[var(--mini-sidebar-bg-color)]"
           :class="{
@@ -113,7 +113,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </div>
       </DashboardMiniSidebarItemWrapper>
 
-      <DashboardMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper show-in-mobile>
         <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
             <div class="flex gap-1.5">
@@ -134,123 +134,124 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </div>
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
-      <div class="px-2 w-full">
+      <div v-if="!isMobileMode" class="px-2 w-full">
         <NcDivider class="!border-nc-border-gray-dark !my-1" />
       </div>
 
-      <template v-if="!isMobileMode">
-        <DashboardMiniSidebarItemWrapper>
-          <NcTooltip placement="right" hide-on-click :arrow="false">
-            <template #title>
-              <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
-            </template>
-            <div
-              v-e="['c:quick-actions']"
-              class="nc-mini-sidebar-btn-full-width"
-              data-testid="nc-sidebar-cmd-k-btn"
-              @click="setActiveCmdView('cmd-k')"
-            >
-              <div class="nc-mini-sidebar-btn">
-                <GeneralIcon icon="search" class="h-4 w-4" />
-              </div>
+      <DashboardMiniSidebarItemWrapper>
+        <NcTooltip placement="right" hide-on-click :arrow="false">
+          <template #title>
+            <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
+          </template>
+          <div
+            v-e="['c:quick-actions']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-cmd-k-btn"
+            @click="setActiveCmdView('cmd-k')"
+          >
+            <div class="nc-mini-sidebar-btn">
+              <GeneralIcon icon="search" class="h-4 w-4" />
             </div>
-          </NcTooltip>
-        </DashboardMiniSidebarItemWrapper>
-        <DashboardMiniSidebarItemWrapper>
-          <NcTooltip placement="right" hide-on-click :arrow="false">
-            <template #title>
-              <div class="flex items-center gap-1">{{ $t('labels.recentViews') }} {{ renderCmdOrCtrlKey(true) }} L</div>
-            </template>
-            <div
-              v-e="['c:quick-actions']"
-              class="nc-mini-sidebar-btn-full-width"
-              data-testid="nc-sidebar-cmd-l-btn"
-              @click="setActiveCmdView('cmd-l')"
-            >
-              <div class="nc-mini-sidebar-btn">
-                <MdiClockOutline class="h-4 w-4" />
-              </div>
+          </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper>
+        <NcTooltip placement="right" hide-on-click :arrow="false">
+          <template #title>
+            <div class="flex items-center gap-1">{{ $t('labels.recentViews') }} {{ renderCmdOrCtrlKey(true) }} L</div>
+          </template>
+          <div
+            v-e="['c:quick-actions']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-cmd-l-btn"
+            @click="setActiveCmdView('cmd-l')"
+          >
+            <div class="nc-mini-sidebar-btn">
+              <MdiClockOutline class="h-4 w-4" />
             </div>
-          </NcTooltip>
-        </DashboardMiniSidebarItemWrapper>
-        <DashboardMiniSidebarItemWrapper>
-          <NcTooltip placement="right" hide-on-click :arrow="false">
-            <template #title>
-              <div class="flex items-center gap-1">{{ $t('labels.searchDocumentation') }} {{ renderCmdOrCtrlKey(true) }} J</div>
-            </template>
-            <div
-              v-e="['c:quick-actions']"
-              class="nc-mini-sidebar-btn-full-width"
-              data-testid="nc-sidebar-cmd-j-btn"
-              @click="setActiveCmdView('cmd-j')"
-            >
-              <div class="nc-mini-sidebar-btn">
-                <GeneralIcon icon="ncFile" class="h-4 w-4" />
-              </div>
+          </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper>
+        <NcTooltip placement="right" hide-on-click :arrow="false">
+          <template #title>
+            <div class="flex items-center gap-1">{{ $t('labels.searchDocumentation') }} {{ renderCmdOrCtrlKey(true) }} J</div>
+          </template>
+          <div
+            v-e="['c:quick-actions']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-cmd-j-btn"
+            @click="setActiveCmdView('cmd-j')"
+          >
+            <div class="nc-mini-sidebar-btn">
+              <GeneralIcon icon="ncFile" class="h-4 w-4" />
             </div>
-          </NcTooltip>
-        </DashboardMiniSidebarItemWrapper>
-        <div v-if="isUIAllowed('workspaceSettings')" class="px-2 my-2 w-full">
-          <NcDivider class="!my-0 !border-nc-border-gray-dark" />
-        </div>
-        <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')">
-          <NcTooltip
-            :title="isEeUI ? `${$t('objects.workspace')} ${$t('labels.settings')}` : $t('title.teamAndSettings')"
-            placement="right"
-            hide-on-click
-            :arrow="false"
+          </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+      <div v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')" class="px-2 my-2 w-full">
+        <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+      </div>
+      <DashboardMiniSidebarItemWrapper
+        v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
+        show-in-mobile
+      >
+        <NcTooltip
+          :title="isEeUI ? `${$t('objects.workspace')} ${$t('labels.settings')}` : $t('title.teamAndSettings')"
+          placement="right"
+          hide-on-click
+          :arrow="false"
+        >
+          <div
+            v-e="['c:team:settings']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-team-settings-btn"
+            @click="navigateToSettings"
           >
             <div
-              v-e="['c:team:settings']"
-              class="nc-mini-sidebar-btn-full-width"
-              data-testid="nc-sidebar-team-settings-btn"
-              @click="navigateToSettings"
+              class="nc-mini-sidebar-btn"
+              :class="{
+                active: isWorkspaceSettingsPageOpened,
+              }"
             >
-              <div
-                class="nc-mini-sidebar-btn"
-                :class="{
-                  active: isWorkspaceSettingsPageOpened,
-                }"
-              >
-                <GeneralIcon icon="ncSettings" class="h-4 w-4" />
-              </div>
+              <GeneralIcon icon="ncSettings" class="h-4 w-4" />
             </div>
-          </NcTooltip>
-        </DashboardMiniSidebarItemWrapper>
-        <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceIntegrations')">
-          <NcTooltip
-            :title="isEeUI ? `${$t('objects.workspace')} ${$t('general.integrations')}` : $t('general.integrations')"
-            placement="right"
-            hide-on-click
-            :arrow="false"
+          </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceIntegrations')">
+        <NcTooltip
+          :title="isEeUI ? `${$t('objects.workspace')} ${$t('general.integrations')}` : $t('general.integrations')"
+          placement="right"
+          hide-on-click
+          :arrow="false"
+        >
+          <div
+            v-e="['c:integrations']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-integrations-btn"
+            @click="navigateToIntegrations"
           >
             <div
-              v-e="['c:integrations']"
-              class="nc-mini-sidebar-btn-full-width"
-              data-testid="nc-sidebar-integrations-btn"
-              @click="navigateToIntegrations"
+              class="nc-mini-sidebar-btn"
+              :class="{
+                active: isIntegrationsPageOpened,
+              }"
             >
-              <div
-                class="nc-mini-sidebar-btn"
-                :class="{
-                  active: isIntegrationsPageOpened,
-                }"
-              >
-                <GeneralIcon icon="integration" class="h-4 w-4" />
-              </div>
+              <GeneralIcon icon="integration" class="h-4 w-4" />
             </div>
-          </NcTooltip>
-        </DashboardMiniSidebarItemWrapper>
+          </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
 
-        <div class="px-2 w-full">
-          <NcDivider class="!my-0 !border-nc-border-gray-dark !my-2" />
-        </div>
-        <DashboardMiniSidebarItemWrapper>
-          <NcTooltip :title="$t('labels.myNotifications')" placement="right" hide-on-click :arrow="false">
-            <NotificationMenu />
-          </NcTooltip>
-        </DashboardMiniSidebarItemWrapper>
-      </template>
+      <div v-if="!isMobileMode" class="px-2 w-full">
+        <NcDivider class="!my-0 !border-nc-border-gray-dark !my-2" />
+      </div>
+      <DashboardMiniSidebarItemWrapper>
+        <NcTooltip :title="$t('labels.myNotifications')" placement="right" hide-on-click :arrow="false">
+          <NotificationMenu />
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
     </div>
     <div class="flex flex-col items-center">
       <DashboardMiniSidebarItemWrapper>

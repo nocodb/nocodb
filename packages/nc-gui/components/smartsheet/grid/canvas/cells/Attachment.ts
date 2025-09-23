@@ -297,7 +297,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     } catch {
       attachments = []
     }
-    if (selected && attachments.length === 0) {
+    if (selected && (!ncIsArray(attachments) || !attachments.length)) {
       /* const buttonWidth = 84
       const buttonHeight = 24
       const buttonX = x + (width - buttonWidth) / 2
@@ -448,7 +448,11 @@ export const AttachmentCellRenderer: CellRenderer = {
     } catch {
       attachments = []
     }
-    if (selected && attachments.length === 0) {
+    if (selected && (!ncIsArray(attachments) || !attachments.length)) {
+      if (!ncIsArray(attachments)) {
+        return true
+      }
+
       const buttonWidth = 84
       const buttonHeight = 24
       const buttonX = x + (width - buttonWidth) / 2

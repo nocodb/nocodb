@@ -693,7 +693,7 @@ export default {
   >
     <div class="h-[85vh] xs:(max-h-full h-full) max-h-215 flex flex-col">
       <div v-if="isMobileMode" class="flex-none h-4 flex items-center justify-center">
-        <div class="flex-none h-full flex items-center justify-center cursor-pointer" @click="onClose">
+        <div class="flex-none h-full flex items-center justify-center cursor-pointer" @click="onClose()">
           <div class="w-[72px] h-[2px] rounded-full bg-nc-bg-gray-dark"></div>
         </div>
       </div>
@@ -894,7 +894,7 @@ export default {
             data-testid="nc-expanded-form-close"
             type="text"
             size="xsmall"
-            @click="onClose"
+            @click="onClose()"
           >
             <GeneralIcon class="text-md text-nc-content-inverted-secondary h-4 w-4" icon="close" />
           </NcButton>

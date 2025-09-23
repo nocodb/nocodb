@@ -160,7 +160,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   /** The base database driver (always non-transactional) */
   protected _dbDriver: XKnex;
   /** Optional transaction instance - when set, operations use this instead of _dbDriver */
-  protected _activeTransaction?: XKnex | Knex.Transaction;
+  protected _activeTransaction?: XKnex;
   protected _viewId: string;
   public get viewId() {
     return this._viewId;

@@ -2,10 +2,14 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { INITIAL_LEFT_SIDEBAR_WIDTH, MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib/constants'
 
 export const useSidebarStore = defineStore('sidebarStore', () => {
+  const route = useRoute()
+
   const { width } = useWindowSize()
+
   const isViewPortMobile = () => {
     return width.value < MAX_WIDTH_FOR_MOBILE_MODE
   }
+
   const { isMobileMode, leftSidebarSize: _leftSidebarSize, isLeftSidebarOpen: _isLeftSidebarOpen } = useGlobal()
 
   const miniSidebarWidth = computed(() => {
@@ -17,6 +21,10 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const tablesStore = useTablesStore()
   const isLeftSidebarOpen = computed({
     get() {
+      if (isMobileMode.value && route.name === 'index-typeOrId-settings') {
+        return _isLeftSidebarOpen.value
+      }
+
       return (isMobileMode.value && !tablesStore.activeTableId) || _isLeftSidebarOpen.value
     },
     set(value) {

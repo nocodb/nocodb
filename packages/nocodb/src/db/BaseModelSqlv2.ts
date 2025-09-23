@@ -157,7 +157,10 @@ const INSERT_REGEX = /^(\(|)insert/i;
  * @classdesc Base class for models
  */
 class BaseModelSqlv2 implements IBaseModelSqlV2 {
+  /** The base database driver (always non-transactional) */
   protected _dbDriver: XKnex;
+  /** Optional transaction instance - when set, operations use this instead of _dbDriver */
+  protected _activeTransaction?: XKnex;
   protected _viewId: string;
   public get viewId() {
     return this._viewId;
@@ -171,7 +174,38 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public static config: any = defaultLimitConfig;
 
+  /**
+   * Returns the active database driver for operations.
+   * If a transaction is active, returns the transaction; otherwise returns the base driver.
+   * This ensures all operations within a transaction use the same transaction context.
+   */
   public get dbDriver() {
+    return this._activeTransaction || this._dbDriver;
+  }
+
+  /**
+   * Creates a new BaseModelSqlv2 instance that uses the base database driver
+   * instead of any active transaction. This is useful for operations that need
+   * to run outside of the current transaction context, such as broadcasting
+   * link updates to avoid transaction conflicts.
+   *
+   * @returns A new BaseModelSqlv2 instance with non-transactional database access
+   */
+  public getNonTransactionalClone() {
+    return new BaseModelSqlv2({
+      dbDriver: this._dbDriver,
+      model: this.model,
+      viewId: this.viewId,
+      context: this.context,
+      schema: this.schema,
+    });
+  }
+
+  /**
+   * Returns the base (non-transactional) database driver.
+   * This is always the original database connection, regardless of transaction state.
+   */
+  public get knex() {
     return this._dbDriver;
   }
 
@@ -181,12 +215,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     viewId,
     context,
     schema,
+    transaction,
   }: {
     [key: string]: any;
     model: Model;
     schema?: string;
   }) {
     this._dbDriver = dbDriver;
+    this._activeTransaction = transaction;
     this.model = model;
     this._viewId = viewId;
     this.context = context;
@@ -3180,9 +3216,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   async updateLTARCols({ datas, cookie }: { datas: any[]; cookie: NcRequest }) {
     const trx = await this.dbDriver.transaction();
 
+    // Create a BaseModelSqlv2 instance that uses the transaction for operations
+    // while preserving the original dbDriver reference for non-transactional operations
     const trxBaseModel = await Model.getBaseModelSQL(this.context, {
       model: this.model,
-      dbDriver: trx,
+      transaction: trx,
+      dbDriver: this.dbDriver,
     });
 
     try {

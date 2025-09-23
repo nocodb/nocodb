@@ -353,9 +353,17 @@ export interface IBaseModelSqlV2 {
 
   broadcastLinkUpdates(ids: Array<string>): Promise<void>;
   getSource(): Promise<Source>;
+  /**
+   * Creates a non-transactional clone of this instance for operations
+   * that need to run outside the current transaction context.
+   */
+  getNonTransactionalClone(): IBaseModelSqlV2;
 
   get viewId(): string;
+  /** Returns the active database driver (transaction if active, otherwise base driver) */
   get dbDriver(): CustomKnex;
+  /** Returns the base (non-transactional) database driver */
+  get knex(): CustomKnex;
   get isSqlite(): boolean;
   get isPg(): boolean;
   get isMySQL(): boolean;

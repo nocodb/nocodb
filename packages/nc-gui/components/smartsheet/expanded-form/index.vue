@@ -475,6 +475,13 @@ useActiveKeydownListener(
       // remove focus from the active input if any
       ;(document.activeElement as HTMLElement)?.blur()
 
+      const modalFocusEl = wrapper.value?.closest('.ant-modal-wrap.nc-modal-wrapper, .ant-drawer.nc-drawer-expanded-form')
+
+      // Focus on the modal or drawer if it exists so that onEsc key can close the modal or drawer
+      if (modalFocusEl) {
+        modalFocusEl.focus?.()
+      }
+
       e.stopPropagation()
 
       if (!isAllowedAddNewRecord.value && isNew.value) {

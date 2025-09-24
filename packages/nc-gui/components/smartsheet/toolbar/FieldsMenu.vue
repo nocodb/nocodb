@@ -715,6 +715,9 @@ const onAddColumnDropdownVisibilityChange = () => {
               item-key="id"
               ghost-class="nc-fields-menu-items-ghost"
               :disabled="isLocked"
+              scroll
+              :scroll-sensitivity="120"
+              bubble-scroll
               @change="onMove($event)"
               @start="isDragging = true"
               @end="isDragging = false"

@@ -265,6 +265,8 @@ let selectedRowInfo: { index: number | null | undefined; isSelectionStarted: boo
   path: [],
 }
 
+let colAutoScrollTimerId: any = null
+
 const {
   isGroupBy,
 
@@ -290,6 +292,9 @@ const {
   makeCellEditable,
   findClickedColumn,
   findColumnPosition,
+  findColumnAtPosition,
+  dragOver,
+  dragStart,
   elementMap,
   // MouseSelectionHandler
   onMouseMoveSelectionHandler,
@@ -1195,8 +1200,18 @@ function scrollToCell(row?: number, column?: number, path?: Array<number>, horiz
   }
 }
 
+function clearColAutoScrollTimer() {
+  if (colAutoScrollTimerId) {
+    clearInterval(colAutoScrollTimerId)
+    colAutoScrollTimerId = null
+  }
+}
+
 async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   e.preventDefault()
+
+  clearColAutoScrollTimer()
+
   if (mouseUpListener) {
     document.removeEventListener('mouseup', mouseUpListener)
     mouseUpListener = null
@@ -1793,6 +1808,8 @@ const getHeaderTooltipRegions = (
 }
 
 const handleMouseMove = (e: MouseEvent) => {
+  clearColAutoScrollTimer()
+
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
@@ -1803,10 +1820,9 @@ const handleMouseMove = (e: MouseEvent) => {
 
   let cursor = colResizeHoveredColIds.value.size ? 'col-resize' : 'auto'
   hideTooltip()
+  const fixedCols = columns.value.filter((col) => col.fixed)
 
   if (mousePosition.y < 32) {
-    const fixedCols = columns.value.filter((col) => col.fixed)
-
     // check if it's hovering add new column
     const plusColumnX = totalColumnsWidth.value - scrollLeft.value + groupByColumns.value?.length * 13
     const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
@@ -1874,14 +1890,66 @@ const handleMouseMove = (e: MouseEvent) => {
   if (isFillHandlerActive.value) {
     onMouseMoveFillHandlerMove(e)
   } else if (isDragging.value || resizeableColumn.value) {
+    const fixedWidth = fixedCols.reduce((sum, col) => sum + parseCellWidth(col.width), 0)
+
     if (mousePosition.x >= width.value - 200) {
       scroller.value?.scrollTo({
         left: scrollLeft.value + 10,
       })
-    } else if (mousePosition.x <= 200) {
+
+      if (isDragging.value) {
+        colAutoScrollTimerId = setInterval(() => {
+          if (scrollLeft.value + 200 >= scroller.value?.scrollBounds.right) {
+            clearColAutoScrollTimer()
+            return
+          }
+
+          scroller.value?.scrollTo({
+            left: scrollLeft.value + 10,
+          })
+
+          const rect = canvasRef.value?.getBoundingClientRect()
+          if (!rect) return
+
+          const col = findColumnAtPosition(e.clientX - rect.left)
+
+          if (col && col.id !== dragStart.value?.id) {
+            dragOver.value = {
+              id: col.id,
+              index: columns.value.findIndex((c) => c.id === col.id),
+            }
+          }
+        }, 0)
+      }
+    } else if (mousePosition.x <= fixedWidth) {
       scroller.value?.scrollTo({
         left: scrollLeft.value - 10,
       })
+
+      if (isDragging.value) {
+        colAutoScrollTimerId = setInterval(() => {
+          if (scrollLeft.value <= 0) {
+            clearColAutoScrollTimer()
+            return
+          }
+
+          scroller.value?.scrollTo({
+            left: scrollLeft.value - 10 <= 0 ? 0 : scrollLeft.value - 10,
+          })
+
+          const rect = canvasRef.value?.getBoundingClientRect()
+          if (!rect) return
+
+          const col = findColumnAtPosition(Math.max(fixedWidth, e.clientX - rect.left))
+
+          if (col && col.id !== dragStart.value?.id) {
+            dragOver.value = {
+              id: col.id,
+              index: columns.value.findIndex((c) => c.id === col.id),
+            }
+          }
+        }, 0)
+      }
     }
   } else {
     const y = e.clientY - rect.top

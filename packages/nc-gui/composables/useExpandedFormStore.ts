@@ -142,7 +142,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             .filter(
               (col) =>
                 !isSystemColumn(col) &&
-                !!col.meta?.defaultViewColVisibility &&
+                !!(col.meta?.defaultViewColVisibility ?? true) &&
                 // if new record, then hide readonly fields
                 (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
             )
@@ -158,7 +158,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             // exclude system columns
             !isSystemColumn(col) &&
             // exclude hidden columns
-            !!col.meta?.defaultViewColVisibility,
+            !!(col.meta?.defaultViewColVisibility ?? true),
         )
       }
 

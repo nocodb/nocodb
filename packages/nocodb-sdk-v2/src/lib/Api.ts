@@ -2679,7 +2679,7 @@ export class InternalApi<
          *
          * If `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view.
          *
-         * Please remember to maintain the specified format, and do not include spaces between the different condition components
+         * Please remember to maintain the specified format, for further information on this please see [the documentation](https://nocodb.com/docs/product-docs/developer-resources/rest-apis#v3-where-query-parameter)
          */
         where?: string;
         /**
@@ -2912,7 +2912,7 @@ export class InternalApi<
          *
          * If `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view.
          *
-         * Please remember to maintain the specified format, and do not include spaces between the different condition components
+         * Please remember to maintain the specified format, for further information on this please see [the documentation](https://nocodb.com/docs/product-docs/developer-resources/rest-apis#v3-where-query-parameter)
          */
         where?: string;
       },
@@ -2979,7 +2979,7 @@ export class InternalApi<
          *
          * You can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.
          *
-         * Please remember to maintain the specified format, and do not include spaces between the different condition components
+         * Please remember to maintain the specified format, for further information on this please see [the documentation](https://nocodb.com/docs/product-docs/developer-resources/rest-apis#v3-where-query-parameter)
          */
         where?: string;
         /**

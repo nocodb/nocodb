@@ -243,7 +243,7 @@ watch(
             </template>
           </NcDropdown>
 
-          <form class="p-0" @submit.prevent>
+          <form class="p-0 flex-1 flex" @submit.prevent>
             <a-input
               v-if="search.query || showSearchBox"
               ref="globalSearchRef"
@@ -251,7 +251,7 @@ watch(
               :inputmode="searchInputMode"
               name="globalSearchQuery"
               size="small"
-              class="!text-bodyDefaultSm !w-40 h-full nc-view-search-data !pl-0"
+              class="!text-bodyDefaultSm flex-1 md:!w-40 h-full nc-view-search-data !pl-0"
               :class="{
                 '!pr-7': !isValidSearchQuery,
               }"

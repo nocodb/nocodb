@@ -3,6 +3,10 @@ import { AppEvents, EventType } from 'nocodb-sdk';
 import type { SortReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -106,7 +110,12 @@ export class SortsService {
 
   async sortCreate(
     context: NcContext,
-    param: { viewId: string; sort: SortReqType; req: NcRequest },
+    param: {
+      viewId: string;
+      sort: SortReqType;
+      req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
     ncMeta?: MetaService,
   ) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
@@ -125,6 +134,15 @@ export class SortsService {
     if (!view) {
       NcError.badRequest('View not found');
     }
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
 
     const column = await Column.get(
       context,
@@ -151,6 +169,9 @@ export class SortsService {
       },
       context.socket_id,
     );
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
 
     return sort;
   }

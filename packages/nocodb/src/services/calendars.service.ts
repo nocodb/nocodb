@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
+import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import type {
   CalendarUpdateReqType,
   UserType,
@@ -31,6 +32,7 @@ export class CalendarsService {
       user: UserType;
       req: NcRequest;
       ownedBy?: string;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {

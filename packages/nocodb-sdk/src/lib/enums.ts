@@ -513,3 +513,17 @@ export enum HookOperationCode {
   delete = 1 << 2, // 4
   trigger = 1 << 3, // 8
 }
+
+export enum WebhookActions {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+}
+
+export enum WebhookEvents {
+  AFTER = 'after',
+  BEFORE = 'before',
+  MANUAL = 'manual',
+  VIEW = 'view',
+  FIELD = 'field',
+}

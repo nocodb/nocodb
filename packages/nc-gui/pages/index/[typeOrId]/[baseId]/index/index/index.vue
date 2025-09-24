@@ -123,7 +123,7 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
 }
 
 const hideProjectViewPage = computed(() => {
-  return isSharedBase.value || isMobileMode.value
+  return isSharedBase.value
 })
 
 const showEmptySkeleton = ref(true)

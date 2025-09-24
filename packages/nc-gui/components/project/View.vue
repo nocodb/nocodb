@@ -94,6 +94,12 @@ watch(
      */
     if (route.value.params.viewId) return
 
+    // In mobile mode we only show collaborator tab
+    if (isMobileMode.value && newVal !== 'collaborator') {
+      projectPageTab.value = 'collaborator'
+      return
+    }
+
     if (newVal && newVal !== oldVal) {
       if (newVal === 'syncs') {
         projectPageTab.value = 'syncs'
@@ -200,7 +206,7 @@ onMounted(() => {
           </NcBadge>
         </div>
       </div>
-      <LazyGeneralShareProject v-if="!showEmptySkeleton" />
+      <LazyGeneralShareProject v-if="!showEmptySkeleton && !isMobileMode" />
     </div>
     <div
       v-if="!showEmptySkeleton"
@@ -213,7 +219,11 @@ onMounted(() => {
         <template #leftExtra>
           <div class="w-3"></div>
         </template>
-        <a-tab-pane v-if="!isAdminPanel && isOverviewTabVisible" key="overview" class="nc-project-overview-tab-content">
+        <a-tab-pane
+          v-if="!isAdminPanel && isOverviewTabVisible && !isMobileMode"
+          key="overview"
+          class="nc-project-overview-tab-content"
+        >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__overview">
               <GeneralIcon icon="ncMultiCircle" />
@@ -245,7 +255,7 @@ onMounted(() => {
           <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
         <a-tab-pane
-          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && isTableAndFieldPermissionsEnabled"
+          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && isTableAndFieldPermissionsEnabled && !isMobileMode"
           key="permissions"
         >
           <template #tab>
@@ -256,7 +266,7 @@ onMounted(() => {
           </template>
           <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id" key="data-source">
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="data-source">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
               <GeneralIcon icon="ncDatabase" />
@@ -275,7 +285,10 @@ onMounted(() => {
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
-        <a-tab-pane v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('sourceCreate') && base.id" key="syncs">
+        <a-tab-pane
+          v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('sourceCreate') && base.id && !isMobileMode"
+          key="syncs"
+        >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__syncs">
               <GeneralIcon icon="ncZap" />
@@ -285,7 +298,11 @@ onMounted(() => {
           <DashboardSettingsSyncs v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
         <a-tab-pane
-          v-if="!isSharedBase && (isUIAllowed('baseMiscSettings') || isFeatureEnabled(FEATURE_FLAG.MODEL_CONTEXT_PROTOCOL))"
+          v-if="
+            !isSharedBase &&
+            (isUIAllowed('baseMiscSettings') || isFeatureEnabled(FEATURE_FLAG.MODEL_CONTEXT_PROTOCOL)) &&
+            !isMobileMode
+          "
           key="base-settings"
         >
           <template #tab>

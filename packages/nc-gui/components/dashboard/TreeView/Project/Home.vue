@@ -4,6 +4,8 @@ import Table from '~/components/dashboard/TreeView/Table/index.vue'
 const router = useRouter()
 const route = router.currentRoute
 
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
@@ -14,6 +16,8 @@ const basesStore = useBases()
 const { activeProjectId } = storeToRefs(basesStore)
 
 const { isUIAllowed } = useRoles()
+
+const { isMobileMode } = useGlobal()
 
 const { meta: metaKey, control } = useMagicKeys()
 
@@ -35,6 +39,11 @@ async function addNewProjectChildEntity(showSourceSelector = true) {
 }
 
 const openBaseHomePage = async () => {
+  if (isMobileMode.value && isLeftSidebarOpen.value && route.value.name === 'index-typeOrId-baseId-index-index') {
+    isLeftSidebarOpen.value = false
+
+    return
+  }
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   await navigateTo(
@@ -42,7 +51,7 @@ const openBaseHomePage = async () => {
       id: base.value.id!,
       type: 'database',
       isSharedBase: isSharedBase.value,
-      projectPage: !isUIAllowed('projectOverviewTab') ? 'collaborator' : undefined,
+      projectPage: !isUIAllowed('projectOverviewTab') || isMobileMode.value ? 'collaborator' : undefined,
     })}`,
     cmdOrCtrl
       ? {

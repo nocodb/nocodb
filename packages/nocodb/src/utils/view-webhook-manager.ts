@@ -1,4 +1,8 @@
-import { WebhookActions, WebhookEvents } from 'nocodb-sdk';
+import {
+  objRemoveEmptyStringProps,
+  WebhookActions,
+  WebhookEvents,
+} from 'nocodb-sdk';
 import type { ModelWebhookManager } from '~/utils/model-webhook-manager';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { IViewsV3Service } from '~/services/v3/views-v3.types';
@@ -152,9 +156,23 @@ export class ViewWebhookManager {
     return (this.params.oldView?.id ?? this.params.newView?.id) as string;
   }
 
+  isOldAndNewEqual(oldView, newView) {
+    return (
+      JSON.stringify(objRemoveEmptyStringProps(oldView)) ===
+      JSON.stringify(objRemoveEmptyStringProps(newView))
+    );
+  }
+
   emit() {
     // if modelWebhookManager exists, we do not emit
     if (!this.emitted && !this.params.modelWebhookManager) {
+      // if no changes on the view, do not emit
+      if (
+        this.params.action === WebhookActions.UPDATE &&
+        this.isOldAndNewEqual(this.params.oldView, this.params.newView)
+      ) {
+        return;
+      }
       Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
         context: this.context,
         hookName: `${WebhookEvents.VIEW}.${this.params.action}`,

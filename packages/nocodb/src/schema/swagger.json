@@ -15557,7 +15557,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}": {
+    "/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{event}/{operation}/{version}": {
       "parameters": [
         {
           "schema": {
@@ -15569,6 +15569,22 @@
           "in": "path",
           "required": true,
           "description": "Unique Table ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "field",
+              "view",
+              "after",
+              "before",
+              "manual"
+            ]
+          },
+          "name": "event",
+          "in": "path",
+          "required": true,
+          "description": "Hook Event"
         },
         {
           "schema": {

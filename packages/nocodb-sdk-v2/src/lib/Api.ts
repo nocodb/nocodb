@@ -412,7 +412,7 @@ export interface ViewBaseInUpdate {
    *  Note: Assigning view as personal using API is not supported currently
    * @default "collaborative"
    */
-  lock_type?: 'collaborative' | 'locked';
+  lock_type?: 'collaborative' | 'locked' | 'personal';
   /** Description of the view. */
   description?: string;
 }

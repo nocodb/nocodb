@@ -67,7 +67,7 @@ const up = async (knex: Knex) => {
     table.text('access_token');
     table.timestamp('access_token_expires_at');
 
-    table.string('refresh_token', 128);
+    table.text('refresh_token');
     table.timestamp('refresh_token_expires_at'); // 60 days
 
     // MCP Requirements

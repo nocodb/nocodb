@@ -90,9 +90,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     if (
-      !user.token_version ||
-      !jwtPayload.token_version ||
-      user.token_version !== jwtPayload.token_version
+      (!user.token_version ||
+        !jwtPayload.token_version ||
+        user.token_version !== jwtPayload.token_version) &&
+      !jwtPayload.is_oauth_token
     ) {
       NcError.unauthorized('Token Expired. Please login again.');
     }

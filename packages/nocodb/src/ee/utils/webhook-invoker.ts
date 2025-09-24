@@ -39,7 +39,11 @@ export class WebhookInvoker extends WebhookInvokerCE {
 
     if (hookName) {
       const [event, _operation] = hookName.split('.');
-      if ([WebhookEvents.VIEW, WebhookEvents.FIELD].includes(event)) {
+      if (
+        [WebhookEvents.VIEW, WebhookEvents.FIELD].includes(
+          event as WebhookEvents,
+        )
+      ) {
         return this.invokeMetaEvent(context, param);
       }
     }

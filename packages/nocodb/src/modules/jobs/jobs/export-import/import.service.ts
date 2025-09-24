@@ -14,6 +14,7 @@ import hash from 'object-hash';
 import papaparse from 'papaparse';
 import { MetaTable } from 'src/cli';
 import { elapsedTime, initTime } from '../../helpers';
+import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { Readable } from 'stream';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -170,6 +171,7 @@ export class ImportService {
       externalModels?: Model[];
       existingModel?: Model;
       importColumnIds?: string[];
+      columnWebhookManager?: ColumnWebhookManager;
     },
   ) {
     const targetContext = param.targetContext ?? context;
@@ -286,6 +288,7 @@ export class ImportService {
 
       idMap.set(modelData.id, table.id);
       if (param.existingModel) {
+        // if we have existingModel param, it means duplicate column
         if (reducedColumnSet.length) {
           for (const col of reducedColumnSet) {
             col.dt = col.dt ?? sqlUi.getDataTypeForUiType(col).dt;
@@ -298,6 +301,7 @@ export class ImportService {
                 }) as any,
                 req: param.req,
                 user: param.user,
+                columnWebhookManager: param.columnWebhookManager,
               },
             )) as Model;
 
@@ -473,6 +477,7 @@ export class ImportService {
                     }),
                     req: param.req,
                     user: param.user,
+                    columnWebhookManager: param.columnWebhookManager,
                   },
                 )) as Model;
 
@@ -544,6 +549,7 @@ export class ImportService {
                         },
                         user: param.user,
                         req: param.req,
+                        columnWebhookManager: param.columnWebhookManager,
                       });
                     }
                     break;
@@ -581,6 +587,7 @@ export class ImportService {
                   }),
                   req: param.req,
                   user: param.user,
+                  columnWebhookManager: param.columnWebhookManager,
                 },
               )) as Model;
 
@@ -654,6 +661,7 @@ export class ImportService {
                       },
                       user: param.user,
                       req: param.req,
+                      columnWebhookManager: param.columnWebhookManager,
                     });
                   }
                 }
@@ -692,6 +700,7 @@ export class ImportService {
                         },
                         user: param.user,
                         req: param.req,
+                        columnWebhookManager: param.columnWebhookManager,
                       });
                     }
                   }
@@ -728,6 +737,7 @@ export class ImportService {
                     }) as any,
                     req: param.req,
                     user: param.user,
+                    columnWebhookManager: param.columnWebhookManager,
                   },
                 )) as Model;
 
@@ -817,6 +827,7 @@ export class ImportService {
                         },
                         user: param.user,
                         req: param.req,
+                        columnWebhookManager: param.columnWebhookManager,
                       });
                     }
                     break;
@@ -860,6 +871,7 @@ export class ImportService {
                     req: param.req,
                     user: param.user,
                     apiVersion: NcApiVersion.V2,
+                    columnWebhookManager: param.columnWebhookManager,
                   },
                 )) as Model;
 
@@ -957,6 +969,7 @@ export class ImportService {
                         },
                         user: param.user,
                         req: param.req,
+                        columnWebhookManager: param.columnWebhookManager,
                       });
                     }
 
@@ -998,6 +1011,7 @@ export class ImportService {
                               },
                               user: param.user,
                               req: param.req,
+                              columnWebhookManager: param.columnWebhookManager,
                             },
                           );
                         }
@@ -1042,6 +1056,7 @@ export class ImportService {
                     }) as any,
                     req: param.req,
                     user: param.user,
+                    columnWebhookManager: param.columnWebhookManager,
                   },
                 )) as Model;
 
@@ -1139,6 +1154,7 @@ export class ImportService {
                         },
                         user: param.user,
                         req: param.req,
+                        columnWebhookManager: param.columnWebhookManager,
                       });
                     }
                   }
@@ -1179,6 +1195,7 @@ export class ImportService {
                           },
                           user: param.user,
                           req: param.req,
+                          columnWebhookManager: param.columnWebhookManager,
                         });
                       }
                     }
@@ -1311,6 +1328,7 @@ export class ImportService {
             }) as any,
             req: param.req,
             user: param.user,
+            columnWebhookManager: param.columnWebhookManager,
           },
         )) as Model;
 
@@ -1338,6 +1356,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
+          columnWebhookManager: param.columnWebhookManager,
         })) as Model;
 
         for (const nColumn of freshModelData.columns) {
@@ -1362,6 +1381,7 @@ export class ImportService {
             req: param.req,
             user: param.user,
             suppressFormulaError: true,
+            columnWebhookManager: param.columnWebhookManager,
           },
         )) as Model;
 
@@ -1406,6 +1426,7 @@ export class ImportService {
             req: param.req,
             user: param.user,
             suppressFormulaError: true,
+            columnWebhookManager: param.columnWebhookManager,
           },
         )) as Model;
 
@@ -1436,6 +1457,7 @@ export class ImportService {
             }) as any,
             req: param.req,
             user: param.user,
+            columnWebhookManager: param.columnWebhookManager,
           },
         )) as Model;
 
@@ -1463,6 +1485,7 @@ export class ImportService {
           }) as any,
           req: param.req,
           user: param.user,
+          columnWebhookManager: param.columnWebhookManager,
         })) as Model;
 
         for (const nColumn of freshModelData.columns) {
@@ -1486,6 +1509,7 @@ export class ImportService {
             }) as any,
             req: param.req,
             user: param.user,
+            columnWebhookManager: param.columnWebhookManager,
           },
         )) as Model;
 
@@ -1511,6 +1535,7 @@ export class ImportService {
             }) as any,
             req: param.req,
             user: param.user,
+            columnWebhookManager: param.columnWebhookManager,
           },
         )) as Model;
 

@@ -109,11 +109,8 @@ export class ColumnWebhookManagerBuilder extends ColumnWebhookManagerBuilderCE {
         `Need to call 'withModel' before running 'forUpdate'`,
       );
     }
-    if (!this.oldColumns.length) {
-      NcError.get(this.context).internalServerError(
-        `Need to call 'withView' before running 'forUpdate'`,
-      );
-    }
+    // don't need to check for this.oldColumns.length
+    // sometimes this is used to prevent emit during table update / delete
     return new ColumnWebhookManager(this.context, {
       action: WebhookActions.UPDATE,
       modelId: this.modelId!,
@@ -128,11 +125,8 @@ export class ColumnWebhookManagerBuilder extends ColumnWebhookManagerBuilderCE {
         `Need to call 'withModel' before running 'forDelete'`,
       );
     }
-    if (!this.oldColumns.length) {
-      NcError.get(this.context).internalServerError(
-        `Need to call 'withView' before running 'forDelete'`,
-      );
-    }
+    // don't need to check for this.oldColumns.length
+    // sometimes this is used to prevent emit during table update / delete
     return new ColumnWebhookManager(
       this.context,
       {
@@ -197,6 +191,29 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
   }
 
   async populateNewColumns() {
+    // needed to prevent circular dependencies
+    const columnsV3Service: IColumnsV3Service =
+      Noco.nestApp.get('IColumnsV3Service');
+    // if this is triggered and there's created column
+    // we refresh it because there's highly probable that
+    // an update action is performed after the column has
+    // been created
+    if (
+      this.params.action === WebhookActions.INSERT &&
+      this.params.newColumns.length
+    ) {
+      const refreshedNewColumns = [];
+      for (const column of this.params.newColumns) {
+        refreshedNewColumns.push(
+          await columnsV3Service.columnGet(
+            this.context,
+            { columnId: column.id },
+            this.ncMeta,
+          ),
+        );
+      }
+      this.params.newColumns = refreshedNewColumns;
+    }
     if (
       this.params.action !== WebhookActions.UPDATE ||
       !this.params.oldColumns.length
@@ -204,9 +221,7 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
       await this.populateRelatedNewColumns();
       return;
     }
-    // needed to prevent circular dependencies
-    const columnsV3Service: IColumnsV3Service =
-      Noco.nestApp.get('IColumnsV3Service');
+
     const result = [];
     for (const column of this.params.oldColumns) {
       result.push(
@@ -274,6 +289,14 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
     if (await ignoreColumn(this.context, { column }, this.ncMeta)) {
       return this;
     }
+    if (
+      this.params.action === WebhookActions.INSERT &&
+      this.params.newColumns.find((col) => col.id === column.id) &&
+      (!context?.base_id || context.base_id === this.context.base_id)
+    ) {
+      return this;
+    }
+
     const useContext = context ?? this.context;
 
     if (
@@ -445,6 +468,10 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
         return;
       }
 
+      console.log('emit', {
+        hookName: `${WebhookEvents.FIELD}.${this.params.action}`,
+        ...emitData,
+      });
       Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
         context: this.context,
         hookName: `${WebhookEvents.FIELD}.${this.params.action}`,

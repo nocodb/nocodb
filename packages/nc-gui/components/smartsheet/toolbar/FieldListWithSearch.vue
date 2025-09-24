@@ -135,7 +135,7 @@ const fieldSearchBasisOptions = computed<NcListSearchBasisOptionType[]>(() => [
     :item-class-name="configByToolbarMenu.optionClassName"
     :list="options"
     :value="selectedOptionId"
-    :item-height="32"
+    variant="medium"
     :search-basis-options="fieldSearchBasisOptions"
     @change="handleSelect"
   >

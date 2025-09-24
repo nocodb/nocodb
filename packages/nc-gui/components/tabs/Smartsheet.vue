@@ -280,10 +280,7 @@ watch(isViewsLoading, async () => {
         >
           <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
             <SmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
-            <div
-              :style="{ height: isForm || isMobileMode ? '100%' : 'calc(100% - var(--toolbar-height))' }"
-              class="flex flex-row w-full"
-            >
+            <div :style="{ height: isForm ? '100%' : 'calc(100% - var(--toolbar-height))' }" class="flex flex-row w-full">
               <Transition name="layout" mode="out-in">
                 <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
                   <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">

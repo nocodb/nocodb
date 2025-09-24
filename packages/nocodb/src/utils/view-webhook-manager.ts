@@ -60,7 +60,7 @@ export class ViewWebhookManagerBuilder {
       );
     }
     return new ViewWebhookManager(this.context, {
-      action: WebhookActions.CREATE,
+      action: WebhookActions.INSERT,
       model: this.model!,
       modelId: this.modelId!,
       modelWebhookManager: this.modelWebhookManager,

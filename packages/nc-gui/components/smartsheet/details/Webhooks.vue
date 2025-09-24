@@ -168,9 +168,9 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 })
 
 const eventList = ref<Record<string, any>[]>([
-  { text: [t('general.view'), t('general.insert').toLowerCase()], value: ['view', 'insert'] },
-  { text: [t('general.view'), t('general.update').toLowerCase()], value: ['view', 'update'] },
-  { text: [t('general.view'), t('general.delete').toLowerCase()], value: ['view', 'delete'] },
+  { text: [t('objects.view'), t('general.insert').toLowerCase()], value: ['view', 'insert'] },
+  { text: [t('objects.view'), t('general.update').toLowerCase()], value: ['view', 'update'] },
+  { text: [t('objects.view'), t('general.delete').toLowerCase()], value: ['view', 'delete'] },
   { text: [t('general.record'), t('general.insert').toLowerCase()], value: ['after', 'insert'] },
   { text: [t('general.record'), t('general.update').toLowerCase()], value: ['after', 'update'] },
   { text: [t('general.record'), t('general.delete').toLowerCase()], value: ['after', 'delete'] },
@@ -242,7 +242,20 @@ const getHookTypeText = (hook: HookType) => {
       })
       .filter(Boolean)
 
-    const prefix = hook.event === 'after' ? `${t('general.after')} ` : hook.event === 'manual' ? `${t('general.manual')} ` : ''
+    let prefix = ''
+    switch (hook.event) {
+      case 'after': {
+        prefix = `${t('general.after')} `
+        break
+      }
+      case 'manual': {
+        prefix = `${t('general.manual')} `
+        break
+      }
+      case 'view': {
+        prefix = `${t('objects.view')} `
+      }
+    }
 
     if (operations.length === 1) {
       return `${prefix}${operations[0]}`

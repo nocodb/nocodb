@@ -189,7 +189,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </div>
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
-      <div v-if="(!isMobileMode || isEeUI) && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators'))" class="px-2 my-2 w-full">
+      <div
+        v-if="(!isMobileMode || isEeUI) && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators'))"
+        class="px-2 my-2 w-full"
+      >
         <NcDivider class="!my-0 !border-nc-border-gray-dark" />
       </div>
       <DashboardMiniSidebarItemWrapper

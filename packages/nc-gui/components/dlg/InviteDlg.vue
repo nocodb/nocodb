@@ -429,8 +429,8 @@ const removeEmail = (index: number) => {
             <input
               id="email"
               ref="focusRef"
-              inputmode="email"
               v-model="inviteData.email"
+              inputmode="email"
               :disabled="isLoading"
               :placeholder="$t('activity.enterEmail')"
               class="flex-1 md:min-w-36 outline-none px-2"

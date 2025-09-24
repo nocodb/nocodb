@@ -13,8 +13,6 @@ const { openTable } = tablesStore
 
 const { activeTables } = storeToRefs(tablesStore)
 
-const { isMobileMode } = useGlobal()
-
 const { files, reset } = useFileDialog()
 
 const { $e } = useNuxtApp()

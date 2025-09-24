@@ -177,7 +177,11 @@ export class FiltersV3Service {
         (param as any).rowColorConditionId,
         ncMeta,
       );
-      const view = await View.get(context, (param as any).viewId, ncMeta);
+      const view = await View.get(
+        context,
+        rowColorCondition.fk_view_id,
+        ncMeta,
+      );
       innerViewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -327,7 +331,9 @@ export class FiltersV3Service {
 
     if (innerViewWebhookManager) {
       (
-        await innerViewWebhookManager.withNewViewId((param as any).viewId)
+        await innerViewWebhookManager.withNewViewId(
+          innerViewWebhookManager.getViewId(),
+        )
       ).emit();
     }
   }

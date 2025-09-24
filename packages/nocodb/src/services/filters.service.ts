@@ -66,7 +66,7 @@ export class FiltersService {
 
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
-      const view = await View.get(context, (param as any).viewId, ncMeta);
+      const view = await View.get(context, filter.fk_view_id, ncMeta);
       viewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -80,7 +80,11 @@ export class FiltersService {
         filter.fk_row_color_condition_id,
         ncMeta,
       );
-      const view = await View.get(context, (param as any).viewId, ncMeta);
+      const view = await View.get(
+        context,
+        rowColorCondition.fk_view_id,
+        ncMeta,
+      );
       viewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -110,7 +114,7 @@ export class FiltersService {
       context.socket_id,
     );
 
-    if (!viewWebhookManager) {
+    if (viewWebhookManager) {
       (
         await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
       ).emit();
@@ -163,7 +167,7 @@ export class FiltersService {
       context.socket_id,
     );
 
-    if (!viewWebhookManager) {
+    if (viewWebhookManager) {
       (
         await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
       ).emit();
@@ -187,7 +191,7 @@ export class FiltersService {
 
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
-      const view = await View.get(context, (param as any).viewId, ncMeta);
+      const view = await View.get(context, filter.fk_view_id, ncMeta);
       viewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -201,7 +205,11 @@ export class FiltersService {
         filter.fk_row_color_condition_id,
         ncMeta,
       );
-      const view = await View.get(context, (param as any).viewId, ncMeta);
+      const view = await View.get(
+        context,
+        rowColorCondition.fk_view_id,
+        ncMeta,
+      );
       viewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -244,7 +252,7 @@ export class FiltersService {
       context.socket_id,
     );
 
-    if (!viewWebhookManager) {
+    if (viewWebhookManager) {
       (
         await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
       ).emit();

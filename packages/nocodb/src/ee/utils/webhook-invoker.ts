@@ -89,6 +89,7 @@ export class WebhookInvoker extends WebhookInvokerCE {
         hook.operation === 'insert' ? 'create' : hook.operation
       }`,
       id: uuidv4(),
+      base_id: model.base_id,
       ...(includeUser && isEE && user
         ? { user: sanitizeUserForHook(user) }
         : {}),

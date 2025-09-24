@@ -37,7 +37,12 @@ export class SortsV3Service {
 
   async sortDelete(
     context: NcContext,
-    param: { viewId: string; sortId: string; req: NcRequest },
+    param: {
+      viewId: string;
+      sortId: string;
+      req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
   ) {
     const sort = await Sort.get(context, param.sortId ?? '');
 
@@ -83,6 +88,7 @@ export class SortsV3Service {
       ...param,
       sortId: sort.id,
       sort: updateObj as SortReqType,
+      viewWebhookManager: param.viewWebhookManager,
     });
     return this.sortGet(context, param);
   }

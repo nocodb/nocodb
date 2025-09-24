@@ -13,14 +13,15 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       -
-        name: Login to Docker Hub
-        uses: docker/login-action@v2.1.0
+        name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       -
         name: Docker retag and push
         run: |
-          docker pull nocodb/nocodb:${{ github.event.inputs.tag }}
-          docker image tag nocodb/nocodb:${{ github.event.inputs.tag }} nocodb/nocodb:latest
-          docker push nocodb/nocodb:latest
+          docker pull ghcr.io/${{ github.repository }}/revodb:${{ github.event.inputs.tag }}
+          docker image tag ghcr.io/${{ github.repository }}/revodb:${{ github.event.inputs.tag }} ghcr.io/${{ github.repository }}/revodb:latest
+          docker push ghcr.io/${{ github.repository }}/revodb:latest

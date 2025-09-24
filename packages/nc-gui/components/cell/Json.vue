@@ -295,6 +295,10 @@ onUnmounted(() => {
         :disable-deep-compare="true"
         :auto-focus="true"
         :read-only="readOnly"
+        :monaco-config="{
+          wordWrap: 'on',
+          wrappingStrategy: 'advanced',
+        }"
         @update:model-value="localValue = $event"
         @keydown.enter.stop
         @keydown.alt.stop

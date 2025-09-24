@@ -759,10 +759,10 @@ export class ColumnsService implements IColumnsService {
             }
 
             if (
-              (colBody as Column<LinkToAnotherRecordColumn>).colOptions?
-                .fk_target_view_id ||
-              (colBody as Column<LinkToAnotherRecordColumn>).colOptions?
-                .fk_target_view_id === null
+              (colBody as Column<LinkToAnotherRecordColumn>).colOptions
+                ?.fk_target_view_id ||
+              (colBody as Column<LinkToAnotherRecordColumn>).colOptions
+                ?.fk_target_view_id === null
             ) {
               await Column.updateTargetView(context, {
                 colId: param.columnId,
@@ -1958,8 +1958,11 @@ export class ColumnsService implements IColumnsService {
       );
     }
 
+    const defaultViewId = table.views?.find((v) => v.is_default)?.id;
+
+    // Pass defaultViewId so that default view column order and visibility get added to the column meta
     // Get all the columns in the table and return
-    await table.getColumns(context);
+    await table.getColumns(context, undefined, defaultViewId);
 
     const updatedColumn = await Column.get(context, { colId: param.columnId });
 
@@ -2019,10 +2022,8 @@ export class ColumnsService implements IColumnsService {
 
     const column = await Column.get(context, { colId: param.columnId });
 
-    const table = await Model.get(context, column.fk_model_id);
-
-    // to reflect properly on realtime
-    await table.getColumns(context);
+    // to reflect column properly on realtime and getWithInfo we will get default view column order and visibility in col meta
+    const table = await Model.getWithInfo(context, { id: column.fk_model_id });
 
     if (oldPrimaryColumn) {
       this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
@@ -2782,7 +2783,10 @@ export class ColumnsService implements IColumnsService {
         break;
     }
 
-    await table.getColumns(context);
+    const defaultViewId = table.views?.find((v) => v.is_default)?.id;
+
+    // Pass defaultViewId so that default view column order and visibility get added to the column meta
+    await table.getColumns(context, undefined, defaultViewId);
 
     const newColumn = table.columns.find((c) => c.title === param.column.title);
 
@@ -3361,7 +3365,11 @@ export class ColumnsService implements IColumnsService {
         await Column.delete(context, param.columnId, ncMeta);
       }
     }
-    await table.getColumns(context, ncMeta);
+
+    const defaultViewId = table.views?.find((v) => v.is_default)?.id;
+
+    // Pass defaultViewId so that default view column order and visibility get added to the column meta
+    await table.getColumns(context, ncMeta, defaultViewId);
 
     const displayValueColumn = mapDefaultDisplayValue(table.columns);
     if (displayValueColumn) {

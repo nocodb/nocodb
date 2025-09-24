@@ -1820,6 +1820,9 @@ onBeforeRouteUpdate((_to, from, next) => {
                 :disabled="isLocked"
                 item-key="id"
                 data-testid="nc-field-list-wrapper"
+                scroll
+                :scroll-sensitivity="120"
+                bubble-scroll
                 @change="onMove($event)"
               >
                 <template #item="{ element: field }">

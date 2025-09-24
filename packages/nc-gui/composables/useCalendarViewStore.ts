@@ -10,7 +10,7 @@ import type {
   TableType,
   ViewType,
 } from 'nocodb-sdk'
-import dayjs from 'dayjs'
+import type dayjs from 'dayjs'
 
 const formatData = (
   list: Record<string, any>[],

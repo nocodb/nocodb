@@ -23,7 +23,11 @@ export class SortsService {
 
   async sortDelete(
     context: NcContext,
-    param: { sortId: string; req: NcRequest },
+    param: {
+      sortId: string;
+      req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
   ) {
     const sort = await Sort.get(context, param.sortId);
 
@@ -34,6 +38,16 @@ export class SortsService {
     const column = await Column.get(context, { colId: sort.fk_column_id });
 
     const view = await View.get(context, sort.fk_view_id);
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
 
     await Sort.delete(context, param.sortId);
 
@@ -57,12 +71,21 @@ export class SortsService {
       context.socket_id,
     );
 
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
+
     return true;
   }
 
   async sortUpdate(
     context: NcContext,
-    param: { sortId: any; sort: SortReqType; req: NcRequest },
+    param: {
+      sortId: any;
+      sort: SortReqType;
+      req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
   ) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
@@ -75,6 +98,16 @@ export class SortsService {
     const column = await Column.get(context, { colId: sort.fk_column_id });
 
     const view = await View.get(context, sort.fk_view_id);
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
 
     const res = await Sort.update(context, param.sortId, param.sort);
 
@@ -105,6 +138,9 @@ export class SortsService {
       context.socket_id,
     );
 
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
     return res;
   }
 

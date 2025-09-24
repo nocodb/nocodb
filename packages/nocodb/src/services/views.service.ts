@@ -292,6 +292,13 @@ export class ViewsService {
       NcError.get(context).viewNotFound(param.viewId);
     }
 
+    const viewWebhookManager = (
+      await (
+        await new ViewWebhookManagerBuilder(context).withModelId(
+          view.fk_model_id,
+        )
+      ).withViewId(view.id)
+    ).forDelete();
     await View.delete(context, param.viewId);
 
     let deleteEvent = AppEvents.GRID_DELETE;
@@ -334,6 +341,7 @@ export class ViewsService {
       },
       context.socket_id,
     );
+    viewWebhookManager.emit();
 
     return true;
   }

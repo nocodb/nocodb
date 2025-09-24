@@ -171,6 +171,20 @@ export class FiltersV3Service {
             ).withViewId(view.id)
           ).forUpdate()
         : null;
+    } else if ((param as any).rowColorConditionId) {
+      const rowColorCondition = await RowColorCondition.getById(
+        context,
+        (param as any).rowColorConditionId,
+        ncMeta,
+      );
+      const view = await View.get(context, (param as any).viewId, ncMeta);
+      innerViewWebhookManager = (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(rowColorCondition.fk_view_id)
+      ).forUpdate();
     }
 
     // if logicalOp is not provided, extract based on the parent group

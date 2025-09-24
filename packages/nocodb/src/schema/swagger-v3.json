@@ -1658,6 +1658,7 @@
                       "list": [
                         {
                           "id": "vwpwk5v4urgbu85g",
+                          "table_id": "mrc5unwjdov67vr",
                           "title": "Grid View",
                           "type": "grid",
                           "is_default": true,
@@ -1667,6 +1668,7 @@
                         },
                         {
                           "id": "vwfqa5qnmcaxt9yp",
+                          "table_id": "mrc5unwjdov67vr",
                           "title": "Grid View 2",
                           "type": "grid",
                           "lock_type": "collaborative",
@@ -1677,6 +1679,7 @@
                         },
                         {
                           "id": "vwx2x5ietbis99xg",
+                          "table_id": "mrc5unwjdov67vr",
                           "title": "Grid Group By",
                           "type": "grid",
                           "lock_type": "collaborative",
@@ -1686,6 +1689,7 @@
                         },
                         {
                           "id": "vwjctk8vdhbhxtd4",
+                          "table_id": "mrc5unwjdov67vr",
                           "title": "Gallery View",
                           "type": "gallery",
                           "lock_type": "collaborative",
@@ -1695,6 +1699,7 @@
                         },
                         {
                           "id": "vwnyxj93jfswla29",
+                          "table_id": "mrc5unwjdov67vr",
                           "title": "Kanban View",
                           "type": "kanban",
                           "lock_type": "collaborative",
@@ -1704,6 +1709,7 @@
                         },
                         {
                           "id": "vw7hwhx551tbr44z",
+                          "table_id": "mrc5unwjdov67vr",
                           "title": "Calendar View",
                           "type": "calendar",
                           "lock_type": "collaborative",
@@ -1783,6 +1789,7 @@
                   "Example 1": {
                     "value": {
                       "id": "vw5rakj00x28vdht",
+                      "table_id": "mrc5unwjdov67vr",
                       "title": "myFilterView2",
                       "type": "grid",
                       "lock_type": "collaborative",
@@ -2175,6 +2182,7 @@
                   "Example 1": {
                     "value": {
                       "id": "vw5rakj00x28vdht",
+                      "table_id": "mrc5unwjdov67vr",
                       "title": "myFilterView2",
                       "type": "grid",
                       "lock_type": "collaborative",
@@ -2292,6 +2300,7 @@
                   "Example 1": {
                     "value": {
                       "id": "vw5rakj00x28vdht",
+                      "table_id": "mrc5unwjdov67vr",
                       "title": "myFilterView2",
                       "type": "grid",
                       "lock_type": "collaborative",
@@ -5709,6 +5718,10 @@
                   "type": "string",
                   "description": "Unique identifier for the view."
                 },
+                "table_id": {
+                  "type": "string",
+                  "description": "Id of table associated with the view."
+                },
                 "title": {
                   "type": "string",
                   "description": "Title of the view."
@@ -6375,6 +6388,10 @@
               "id": {
                 "type": "string",
                 "description": "Unique identifier for the view."
+              },
+              "table_id": {
+                "type": "string",
+                "description": "Id of table associated with the view."
               },
               "is_default": {
                 "type": "boolean",

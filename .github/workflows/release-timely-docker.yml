@@ -33,11 +33,6 @@ on:
         description: "The current NocoDB version"
         required: false
         type: string
-    secrets:
-      DOCKERHUB_USERNAME:
-        required: true
-      DOCKERHUB_TOKEN:
-        required: true
 
 jobs:
   buildx:
@@ -81,7 +76,7 @@ jobs:
           fetch-depth: 1
           ref: ${{ github.ref }}
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 22.12.0
         uses: actions/setup-node@v3
         with:
           node-version: 22.12.0
@@ -132,11 +127,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v2.1.0
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
         uses: docker/build-push-action@v3.2.0
@@ -149,8 +145,8 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           push: true
           tags: |
-            revodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
-            revodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_LATEST_TAG }}
+            ghcr.io/${{ github.repository }}/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
+            ghcr.io/${{ github.repository }}/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_LATEST_TAG }}
 
         # Temp fix
         # https://github.com/docker/build-push-action/issues/252

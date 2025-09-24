@@ -18,7 +18,7 @@ const { isUIAllowed } = useRoles()
 
 const { metas, getMeta } = useMetas()
 
-const { isMobileMode, ncNavigateTo } = useGlobal()
+const { ncNavigateTo } = useGlobal()
 
 const route = useRoute()
 

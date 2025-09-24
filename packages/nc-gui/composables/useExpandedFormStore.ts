@@ -14,6 +14,7 @@ import {
   PlanLimitTypes,
   ViewTypes,
   isAIPromptCol,
+  isHiddenCol,
   isReadOnlyColumn,
   isSystemColumn,
   isVirtualCol,
@@ -113,7 +114,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     })
 
-    const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
+    const { fieldsMap, isLocalMode, showSystemFields } = useViewColumnsOrThrow()
 
     const isHiddenColumnInNewRecord = (col: ColumnType) => {
       return isReadOnlyColumn(col) || isAIPromptCol(col)
@@ -141,6 +142,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           return (meta.value.columns ?? [])
             .filter(
               (col) =>
+                !isHiddenCol(col, meta.value ?? {}) &&
                 !isSystemColumn(col) &&
                 !!(col.meta?.defaultViewColVisibility ?? true) &&
                 // if new record, then hide readonly fields
@@ -153,6 +155,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
         return (meta.value.columns ?? []).filter(
           (col) =>
+            !isHiddenCol(col, meta.value ?? {}) &&
             // if new record, then hide readonly fields
             (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)) &&
             // exclude system columns
@@ -176,9 +179,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const hiddenFields = computed(() => {
       // todo: figure out when meta.value is undefined
-      const hiddenFields = (meta.value?.columns ?? []).filter(
+      const _hiddenFields = (meta.value?.columns ?? []).filter(
         (col) =>
-          !isSystemColumn(col) &&
+          !isHiddenCol(col, meta.value ?? {}) &&
+          (!useMetaFields || !isSystemColumn(col)) &&
           !fields.value?.includes(col) &&
           (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true) &&
           // exclude readonly fields from hidden fields if new record creation
@@ -186,16 +190,24 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       )
       if (useMetaFields) {
         return maintainDefaultViewOrder.value
-          ? hiddenFields.sort((a, b) => {
+          ? _hiddenFields.sort((a, b) => {
               return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
             })
-          : hiddenFields
+          : _hiddenFields
       }
       // record from same view and same table (not linked)
       else {
-        return hiddenFields.sort((a, b) => {
-          return (fieldsMap.value[a.id]?.order ?? Infinity) - (fieldsMap.value[b.id]?.order ?? Infinity)
-        })
+        return _hiddenFields
+          .filter((col) => {
+            if (rowStore.isNew.value || !showSystemFields.value) {
+              return !isSystemColumn(col)
+            }
+
+            return true
+          })
+          .sort((a, b) => {
+            return (fieldsMap.value[a.id]?.order ?? Infinity) - (fieldsMap.value[b.id]?.order ?? Infinity)
+          })
       }
     })
 

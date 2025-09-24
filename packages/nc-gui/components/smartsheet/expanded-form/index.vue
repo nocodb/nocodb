@@ -673,6 +673,29 @@ const stopLoading = () => {
   })
 }
 
+const startY = ref(0)
+const translateY = ref(0)
+
+function onTouchStart(e: TouchEvent) {
+  startY.value = e.touches[0].clientY
+  translateY.value = 0
+}
+
+function onTouchMove(e: TouchEvent) {
+  const delta = e.touches[0].clientY - startY.value
+
+  // only drag downward
+  translateY.value = Math.max(0, delta)
+}
+
+function onTouchEnd() {
+  if (translateY.value > 50) {
+    // dragged down enough -> close
+    onClose()
+  }
+  translateY.value = 0
+}
+
 defineExpose({
   stopLoading,
 })
@@ -700,7 +723,13 @@ export default {
   >
     <div class="h-[85vh] xs:(max-h-full h-full) max-h-215 flex flex-col">
       <div v-if="isMobileMode" class="flex-none h-4 flex items-center justify-center">
-        <div class="flex-none h-full flex items-center justify-center cursor-pointer" @click="onClose()">
+        <div
+          class="flex-none h-full flex items-center justify-center cursor-pointer"
+          @touchstart="onTouchStart"
+          @touchmove="onTouchMove"
+          @touchend="onTouchEnd"
+          @click="onClose()"
+        >
           <div class="w-[72px] h-[2px] rounded-full bg-nc-bg-gray-dark"></div>
         </div>
       </div>
@@ -995,6 +1024,10 @@ export default {
 
     @supports (height: 90dvh) {
       @apply !h-[90dvh];
+    }
+
+    @supports (height: 90svh) {
+      @apply !h-[90svh];
     }
 
     .ant-drawer-content {

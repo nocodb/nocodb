@@ -91,6 +91,7 @@ const showClicableLink = computed(() => {
     <input
       :ref="focus"
       v-model="vModel"
+      inputmode="url"
       class="nc-cell-field outline-none w-full py-1 bg-transparent h-full"
       :class="{
         'nc-text-transparent': showClicableLink,

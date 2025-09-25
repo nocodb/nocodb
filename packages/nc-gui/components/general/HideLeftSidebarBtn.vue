@@ -3,8 +3,6 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isMobileMode } = useGlobal()
 
-const route = useRoute()
-
 const onClick = () => {
   if (!isLeftSidebarOpen.value) return
 

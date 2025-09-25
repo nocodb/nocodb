@@ -15,6 +15,8 @@ const props = defineProps<{
 
 const modelValue = defineModel<string>()
 
+const { isMobileMode } = useGlobal()
+
 const { isUIAllowed } = useRoles()
 
 const isPublic = inject(IsPublicInj, ref(false))
@@ -26,7 +28,14 @@ const { isNew, commentsDrawer, baseRoles } = useExpandedFormStoreOrThrow()
 const viewsStore = useViewsStore()
 
 const isViewModeEnabled = computed(() => {
-  return isEeUI && !isNew.value && commentsDrawer.value && isUIAllowed('commentList', baseRoles.value) && !isPublic.value
+  return (
+    isEeUI &&
+    !isNew.value &&
+    commentsDrawer.value &&
+    isUIAllowed('commentList', baseRoles.value) &&
+    !isPublic.value &&
+    !isMobileMode.value
+  )
 })
 
 const items = computed(() => {

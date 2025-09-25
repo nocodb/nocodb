@@ -130,7 +130,9 @@ const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | '
 const tableTitle = computed(() => meta.value?.title)
 
 const activeViewMode = ref(
-  !isPublic.value && isEeUI && !isNew.value ? props.view?.expanded_record_mode ?? ExpandedFormMode.FIELD : ExpandedFormMode.FIELD,
+  !isPublic.value && isEeUI && !isNew.value && !isMobileMode.value
+    ? props.view?.expanded_record_mode ?? ExpandedFormMode.FIELD
+    : ExpandedFormMode.FIELD,
 )
 
 watch(activeViewMode, async (v) => {
@@ -673,6 +675,52 @@ const stopLoading = () => {
   })
 }
 
+const startY = ref(0)
+const translateY = ref(0)
+
+function onTouchStart(e: TouchEvent) {
+  startY.value = e.touches[0].clientY
+  translateY.value = 0
+}
+
+function onTouchMove(e: TouchEvent) {
+  const delta = e.touches[0].clientY - startY.value
+
+  // only drag downward
+  translateY.value = Math.max(0, delta)
+
+  const drawerContentEl = wrapper.value?.closest('.ant-drawer-content-wrapper')
+
+  // Focus on the modal or drawer if it exists so that onEsc key can close the modal or drawer
+  if (drawerContentEl) {
+    drawerContentEl.style.transform = `translateY(${translateY.value}px)`
+  }
+}
+
+const resetDrawerTransform = () => {
+  const drawerContentEl = wrapper.value?.closest('.ant-drawer-content-wrapper')
+  if (drawerContentEl) {
+    drawerContentEl.style.transform = 'none'
+  }
+}
+
+function onTouchEnd() {
+  if (translateY.value > 50) {
+    // dragged down enough -> close
+    onClose()
+
+    translateY.value = 0
+
+    // wait for the drawer close transition to complete
+    setTimeout(() => {
+      resetDrawerTransform()
+    }, 500)
+  } else {
+    translateY.value = 0
+    resetDrawerTransform()
+  }
+}
+
 defineExpose({
   stopLoading,
 })
@@ -700,7 +748,13 @@ export default {
   >
     <div class="h-[85vh] xs:(max-h-full h-full) max-h-215 flex flex-col">
       <div v-if="isMobileMode" class="flex-none h-4 flex items-center justify-center">
-        <div class="flex-none h-full flex items-center justify-center cursor-pointer" @click="onClose()">
+        <div
+          class="flex-none h-full flex items-center justify-center cursor-pointer"
+          @touchstart="onTouchStart"
+          @touchmove="onTouchMove"
+          @touchend="onTouchEnd"
+          @click="onClose()"
+        >
           <div class="w-[72px] h-[2px] rounded-full bg-nc-bg-gray-dark"></div>
         </div>
       </div>
@@ -768,20 +822,20 @@ export default {
         </div>
         <div class="flex gap-2">
           <PermissionsTooltip
-            v-if="!isMobileMode && isUIAllowed('dataEdit', baseRoles) && !isSqlView"
+            v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
             :entity="PermissionEntity.TABLE"
             :entity-id="meta?.id"
             :permission="PermissionKey.TABLE_RECORD_ADD"
             :disabled="!isNew"
             arrow
-            :default-tooltip="`${renderAltOrOptlKey()} + S`"
+            :default-tooltip="isMobileMode ? '' : `${renderAltOrOptlKey()} + S`"
           >
             <template #default="{ isAllowed }">
               <NcButton
                 v-e="['c:row-expand:save']"
                 :disabled="!isAllowed || isSaveRecordBtnDisabled"
                 :loading="isSaving"
-                class="nc-expand-form-save-btn !xs:(text-base) !h-7 !px-2"
+                class="nc-expand-form-save-btn !h-7 !px-2"
                 data-testid="nc-expanded-form-save"
                 type="primary"
                 size="xsmall"
@@ -813,8 +867,13 @@ export default {
               </div>
             </NcButton>
           </NcTooltip>
-          <NcDropdown v-if="!isNew && rowId && !isMobileMode" placement="bottomRight">
-            <NcButton type="text" size="xsmall" class="nc-expand-form-more-actions !w-7 !h-7" :disabled="isLoading">
+          <NcDropdown v-if="!isNew && rowId" placement="bottomRight">
+            <NcButton
+              :type="isMobileMode ? 'secondary' : 'text'"
+              size="xsmall"
+              class="nc-expand-form-more-actions !w-7 !h-7"
+              :disabled="isLoading"
+            >
               <GeneralIcon
                 icon="threeDotVertical"
                 class="text-md"
@@ -842,7 +901,7 @@ export default {
                   </div>
                 </NcMenuItem>
                 <PermissionsTooltip
-                  v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
+                  v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView && !isMobileMode"
                   :entity="PermissionEntity.TABLE"
                   :entity-id="meta?.id"
                   :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -897,6 +956,7 @@ export default {
           </NcDropdown>
 
           <NcButton
+            v-if="!isMobileMode"
             class="nc-expand-form-close-btn !w-7 !h-7"
             data-testid="nc-expanded-form-close"
             type="text"
@@ -918,9 +978,6 @@ export default {
             :is-loading="isLoading"
             :is-saving="isSaving"
             :new-record-submit-btn-text="newRecordSubmitBtnText"
-            @copy-record-url="copyRecordUrl()"
-            @delete-row="onDeleteRowClick()"
-            @save="save()"
             @update:model-value="emits('update:modelValue', $event)"
             @created-record="emits('createdRecord', $event)"
             @update-row-comment-count="emits('updateRowCommentCount', $event)"
@@ -995,6 +1052,10 @@ export default {
 
     @supports (height: 90dvh) {
       @apply !h-[90dvh];
+    }
+
+    @supports (height: 90svh) {
+      @apply !h-[90svh];
     }
 
     .ant-drawer-content {

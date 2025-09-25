@@ -248,12 +248,13 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 })
 
 const columns = [
-  {
-    key: 'select',
-    title: '',
-    width: 70,
-    minWidth: 70,
-  },
+  // // Enable this select row column once we introduce bulk action
+  // {
+  //   key: 'select',
+  //   title: '',
+  //   width: 70,
+  //   minWidth: 70,
+  // },
   {
     key: 'email',
     title: t('labels.members'),
@@ -328,7 +329,7 @@ onBeforeUnmount(() => {
   <div
     class="nc-collaborator-table-container nc-access-settings-view flex flex-col relative"
     :class="{
-      'h-[calc(100vh_-_100px)]': !isAdminPanel,
+      'nc-admin-panel': isAdminPanel,
     }"
   >
     <ProjectPrivateOverlay v-if="showOverlay" />
@@ -366,7 +367,7 @@ onBeforeUnmount(() => {
         </NcPageHeader>
       </div>
 
-      <div class="nc-content-max-w h-full flex flex-col items-center gap-6 px-6 pt-6">
+      <div class="nc-content-max-w h-full flex flex-col items-center gap-6 px-4 md:px-6 pt-6">
         <NcAlert v-if="isEeUI && isPrivateBase" type="info" :message="$t('title.privateBase')" class="bg-nc-bg-gray-extralight">
           <template #icon>
             <GeneralIcon icon="ncUser" class="w-6 h-6 text-nc-content-gray-subtle" />
@@ -404,7 +405,7 @@ onBeforeUnmount(() => {
             </template>
           </a-input>
 
-          <NcButton :disabled="isLoading" size="small" @click="isInviteModalVisible = true">
+          <NcButton :disabled="isLoading" size="small" class="flex-none" @click="isInviteModalVisible = true">
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" class="w-4 h-4" />
               {{ $t('activity.addMembers') }}
@@ -516,6 +517,16 @@ onBeforeUnmount(() => {
 .nc-page-header-icon {
   :deep(svg) {
     @apply h-4.5 w-4.5;
+  }
+}
+
+.nc-collaborator-table-container {
+  &:not(.nc-admin-panel) {
+    @apply h-[calc(100vh-var(--topbar-height)-44px)];
+
+    @supports (height: 100dvh) {
+      @apply h-[calc(100dvh-var(--topbar-height)-44px)];
+    }
   }
 }
 </style>

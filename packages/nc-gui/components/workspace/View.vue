@@ -11,16 +11,16 @@ const route = router.currentRoute
 
 const { t } = useI18n()
 
-const { hideSidebar } = storeToRefs(useSidebarStore())
+const { hideSidebar, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { isUIAllowed, isBaseRolesLoaded } = useRoles()
+const { isUIAllowed, isBaseRolesLoaded, loadRoles } = useRoles()
+
+const { appInfo, isMobileMode } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { loadRoles } = useRoles()
 const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
-const { appInfo } = useGlobal()
 
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
@@ -128,16 +128,23 @@ onBeforeUnmount(() => {
       v-if="!props.workspaceId"
       class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2"
     >
-      <div class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1 nc-workspace-title">
-        <div class="nc-breadcrumb-item capitalize">
+      <GeneralOpenLeftSidebarBtn v-if="isMobileMode && !isLeftSidebarOpen" />
+      <div
+        class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1 nc-workspace-title"
+        :class="{
+          'max-w-[calc(100%_-_52px)]': isMobileMode,
+        }"
+      >
+        <div class="nc-breadcrumb-item capitalize truncate">
           {{ currentWorkspace?.title }}
         </div>
         <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
 
-        <h1 class="nc-breadcrumb-item active">
+        <h1 class="nc-breadcrumb-item active truncate">
           {{ $t('title.teamAndSettings') }}
         </h1>
       </div>
+      <GeneralHideLeftSidebarBtn v-if="isMobileMode && isLeftSidebarOpen" />
     </div>
     <template v-else>
       <div class="nc-breadcrumb px-2">
@@ -190,45 +197,49 @@ onBeforeUnmount(() => {
           <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
-      <template
-        v-if="isEeUI && !props.workspaceId && !currentWorkspace?.fk_org_id && isPaymentEnabled && isUIAllowed('workspaceBilling')"
-      >
-        <a-tab-pane key="billing" class="w-full">
-          <template #tab>
-            <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
-              <GeneralIcon icon="ncDollarSign" class="flex-none h-4 w-4" />
-              {{ $t('general.billing') }}
-            </div>
-          </template>
+      <template v-if="!isMobileMode">
+        <template
+          v-if="
+            isEeUI && !props.workspaceId && !currentWorkspace?.fk_org_id && isPaymentEnabled && isUIAllowed('workspaceBilling')
+          "
+        >
+          <a-tab-pane key="billing" class="w-full">
+            <template #tab>
+              <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+                <GeneralIcon icon="ncDollarSign" class="flex-none h-4 w-4" />
+                {{ $t('general.billing') }}
+              </div>
+            </template>
 
-          <PaymentBillingPage />
-        </a-tab-pane>
-      </template>
+            <PaymentBillingPage />
+          </a-tab-pane>
+        </template>
 
-      <template v-if="isEeUI && !props.workspaceId && isWsAuditEnabled && isUIAllowed('workspaceAuditList')">
-        <a-tab-pane key="audits" class="w-full">
-          <template #tab>
-            <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
-              <GeneralIcon icon="audit" class="h-4 w-4" />
-              {{ $t('title.audits') }}
-            </div>
-          </template>
-          <WorkspaceAudits v-if="isWsAuditEnabled" />
-          <div v-else>&nbsp;</div>
-        </a-tab-pane>
-      </template>
+        <template v-if="isEeUI && !props.workspaceId && isWsAuditEnabled && isUIAllowed('workspaceAuditList')">
+          <a-tab-pane key="audits" class="w-full">
+            <template #tab>
+              <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
+                <GeneralIcon icon="audit" class="h-4 w-4" />
+                {{ $t('title.audits') }}
+              </div>
+            </template>
+            <WorkspaceAudits v-if="isWsAuditEnabled" />
+            <div v-else>&nbsp;</div>
+          </a-tab-pane>
+        </template>
 
-      <template v-if="isWorkspaceSsoAvail && !currentWorkspace?.fk_org_id && isUIAllowed('workspaceSSO')">
-        <a-tab-pane key="sso" class="w-full">
-          <template #tab>
-            <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
-              <GeneralIcon icon="sso" class="flex-none h-4 w-4" />
-              {{ $t('title.sso') }}
-            </div>
-          </template>
+        <template v-if="isWorkspaceSsoAvail && !currentWorkspace?.fk_org_id && isUIAllowed('workspaceSSO')">
+          <a-tab-pane key="sso" class="w-full">
+            <template #tab>
+              <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
+                <GeneralIcon icon="sso" class="flex-none h-4 w-4" />
+                {{ $t('title.sso') }}
+              </div>
+            </template>
 
-          <WorkspaceSso class="!h-[calc(100vh_-_92px)]" />
-        </a-tab-pane>
+            <WorkspaceSso class="!h-[calc(100vh_-_92px)]" />
+          </a-tab-pane>
+        </template>
       </template>
 
       <a-tab-pane key="settings" class="w-full">

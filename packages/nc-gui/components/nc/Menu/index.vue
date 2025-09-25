@@ -9,11 +9,21 @@ const props = withDefaults(
   },
 )
 
+const { isMobileMode } = useGlobal()
+
 const selectable = computed(() => props.selectable ?? false)
+
+const responsiveVariant = computed(() => {
+  if (isMobileMode.value && ['small', 'medium'].includes(props.variant)) {
+    return 'large'
+  }
+
+  return props.variant
+})
 </script>
 
 <template>
-  <a-menu class="nc-menu" :class="`nc-variant-${variant}`" :selectable="selectable">
+  <a-menu class="nc-menu" :class="`nc-variant-${responsiveVariant}`" :selectable="selectable">
     <slot />
   </a-menu>
 </template>

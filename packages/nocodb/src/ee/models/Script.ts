@@ -215,37 +215,4 @@ export default class Script extends ScriptCE implements ScriptType {
       return res;
     });
   }
-
-  static async countScriptsInBase(
-    context: NcContext,
-    baseId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    return await ncMeta.metaCount(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.SCRIPTS,
-      {
-        condition: {
-          base_id: baseId,
-        },
-      },
-    );
-  }
-
-  static async clearFromStats(
-    context: NcContext,
-    baseId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const countsInBase = await this.countScriptsInBase(context, baseId, ncMeta);
-
-    await NocoCache.incrHashField(
-      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
-      PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE,
-      -countsInBase,
-    );
-
-    return true;
-  }
 }

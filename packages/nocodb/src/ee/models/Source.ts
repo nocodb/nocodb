@@ -221,68 +221,6 @@ export default class Source extends SourceCE implements SourceType {
     return res;
   }
 
-  static async countSourcesInBase(
-    context: NcContext,
-    baseId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    return await ncMeta.metaCount(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.SOURCES,
-      {
-        xcCondition: {
-          _and: [
-            {
-              _or: [
-                {
-                  is_meta: {
-                    eq: false,
-                  },
-                },
-                {
-                  is_meta: {
-                    eq: null,
-                  },
-                },
-              ],
-            },
-            {
-              _or: [
-                {
-                  is_local: {
-                    eq: false,
-                  },
-                },
-                {
-                  is_local: {
-                    eq: null,
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      },
-    );
-  }
-
-  static async clearFromStats(
-    context: NcContext,
-    baseId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const countsInBase = await this.countSourcesInBase(context, baseId, ncMeta);
-
-    await NocoCache.incrHashField(
-      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
-      PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
-      -countsInBase,
-    );
-
-    return true;
-  }
-
   protected static extendQb(qb: any, context: NcContext) {
     qb.where(`${MetaTable.SOURCES}.fk_workspace_id`, context.workspace_id);
     return super.extendQb(qb, context);

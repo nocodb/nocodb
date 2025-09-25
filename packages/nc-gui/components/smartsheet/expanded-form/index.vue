@@ -100,7 +100,13 @@ const isLoading = ref(true)
 
 const isSaving = ref(false)
 
-const expandedFormStore = useProvideExpandedFormStore(meta, row, maintainDefaultViewOrder, !!props.useMetaFields, props.allowNullFieldIds)
+const expandedFormStore = useProvideExpandedFormStore(
+  meta,
+  row,
+  maintainDefaultViewOrder,
+  !!props.useMetaFields,
+  props.allowNullFieldIds,
+)
 
 const {
   commentsDrawer,

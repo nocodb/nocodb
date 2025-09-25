@@ -34,6 +34,16 @@ i {
 
 body {
   line-height: 1.3125rem;
+
+  @media (max-width: 767px) {
+    @supports (min-height: 100dvh) {
+      min-height: 100dvh !important;
+    }
+    
+    @supports (min-height: 100svh) {
+      min-height: 100svh !important;
+    }
+  }
 }
 
 :root {
@@ -817,7 +827,7 @@ a {
 }
 
 .ant-message {
-  @apply !bottom-16 !md:bottom-4 !top-auto px-2 md:px-4;
+  @apply !bottom-12 !md:bottom-4 !top-auto px-2 md:px-4;
 }
 
 .ant-message-notice {
@@ -1388,7 +1398,7 @@ svg.nc-virtual-cell-icon {
 }
 
 .nc-settings-item-card-wrapper {
-  @apply max-w-[600px] min-w-100 w-full flex flex-col gap-4;
+  @apply max-w-[600px] md:(min-w-100) w-full flex flex-col gap-4;
 
   .nc-settings-item-heading {
     @apply text-bodyLgBold font-700;
@@ -1399,7 +1409,7 @@ svg.nc-virtual-cell-icon {
   }
 
   .nc-settings-item {
-    @apply p-6 flex items-start gap-4 border-b border-b-nc-border-gray-medium;
+    @apply p-4 md:p-6 flex flex-col md:(flex-row items-start) gap-4 border-b border-b-nc-border-gray-medium;
 
     &:last-of-type {
       @apply border-b-0;
@@ -1408,6 +1418,10 @@ svg.nc-virtual-cell-icon {
 
   .nc-settings-item-content {
     @apply flex flex-col gap-1.5;
+  }
+
+  .nc-settings-item-action{
+    @apply self-end md:self-start;
   }
 
   .nc-settings-item-title {

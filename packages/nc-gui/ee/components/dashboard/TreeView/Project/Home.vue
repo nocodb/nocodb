@@ -5,6 +5,8 @@ import Data from '../Data/index.vue'
 const router = useRouter()
 const route = router.currentRoute
 
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
@@ -21,6 +23,8 @@ const { activeProjectId } = storeToRefs(basesStore)
 const { meta: metaKey, control } = useMagicKeys()
 
 const { isUIAllowed } = useRoles()
+
+const { isMobileMode } = useGlobal()
 
 const projectNodeRef = ref()
 
@@ -42,6 +46,12 @@ const addNewProjectChildEntity = async (showSourceSelector = true) => {
 const openBaseHomePage = async () => {
   const isSharedBase = route.value.params.typeOrId === 'base'
 
+  if (isMobileMode.value && isLeftSidebarOpen.value && route.value.name === 'index-typeOrId-baseId-index-index') {
+    isLeftSidebarOpen.value = false
+
+    return
+  }
+
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   await navigateTo(
@@ -49,7 +59,7 @@ const openBaseHomePage = async () => {
       id: base.value.id!,
       type: 'database',
       isSharedBase,
-      projectPage: !isUIAllowed('projectOverviewTab') ? 'collaborator' : undefined,
+      projectPage: !isUIAllowed('projectOverviewTab') || isMobileMode.value ? 'collaborator' : undefined,
     })}`,
     cmdOrCtrl
       ? {
@@ -96,8 +106,8 @@ const hasTableCreatePermission = computed(() => {
 
       <DashboardTreeViewProjectHomeSearchInput placeholder="Search table, view, script" />
 
-      <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 xs:hidden flex flex-col gap-2">
-        <div v-if="hasTableCreatePermission" class="flex items-center w-full">
+      <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
+        <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
           <NcDropdown v-model:visible="isVisibleCreateNew">
             <NcButton
               type="text"
@@ -155,7 +165,8 @@ const hasTableCreatePermission = computed(() => {
     </div>
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
       <Data :base-id="base.id" />
-      <Automation v-if="!isSharedBase && isUIAllowed('scriptList')" :base-id="base.id" />
+      <!-- Hide automation in mobile mode as we don't support to edit it -->
+      <Automation v-if="!isSharedBase && isUIAllowed('scriptList') && !isMobileMode" :base-id="base.id" />
     </div>
 
     <slot name="footer"> </slot>

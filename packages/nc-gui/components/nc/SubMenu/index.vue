@@ -10,14 +10,24 @@ const props = withDefaults(
     titleClass: '',
   },
 )
+
+const { isMobileMode } = useGlobal()
+
+const responsiveVariant = computed(() => {
+  if (isMobileMode.value && ['small', 'medium'].includes(props.variant)) {
+    return 'large'
+  }
+
+  return props.variant
+})
 </script>
 
 <template>
   <a-sub-menu
     :popup-offset="props.popupOffset"
     class="nc-sub-menu"
-    :class="`nc-variant-${variant}`"
-    :popup-class-name="`nc-variant-${variant} nc-submenu-popup`"
+    :class="`nc-variant-${responsiveVariant}`"
+    :popup-class-name="`nc-variant-${responsiveVariant} nc-submenu-popup`"
   >
     <template #title>
       <div class="nc-submenu-title flex flex-row items-center gap-x-1.5 py-1.75 justify-between group" :class="titleClass">

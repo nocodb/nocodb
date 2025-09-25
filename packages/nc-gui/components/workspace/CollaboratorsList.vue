@@ -15,7 +15,7 @@ const props = defineProps<{
 
 const { workspaceRoles } = useRoles()
 
-const { user } = useGlobal()
+const { user, isMobileMode } = useGlobal()
 
 const { showInfoModal } = useNcConfirmModal()
 
@@ -184,12 +184,13 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 })
 
 const columns = [
-  {
-    key: 'select',
-    title: '',
-    width: 70,
-    minWidth: 70,
-  },
+  // // Enable this select row column once we introduce bulk action
+  // {
+  //   key: 'select',
+  //   title: '',
+  //   width: 70,
+  //   minWidth: 70,
+  // },
   {
     key: 'email',
     title: t('labels.members'),
@@ -264,8 +265,8 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
   <div
     class="nc-collaborator-table-container overflow-auto nc-scrollbar-thin relative"
     :class="{
-      'h-[calc(100vh-144px)]': !height && isAdminPanel,
-      'h-[calc(100vh-92px)]': !height && !isAdminPanel,
+      'nc-is-admin-panel': !height && isAdminPanel,
+      'nc-is-ws-members-list': !height && !isAdminPanel,
     }"
     :style="`${height ? `height: ${height}` : ''}`"
     @scroll.passive="handleScroll"
@@ -274,7 +275,7 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
       <PaymentBanner />
     </div>
 
-    <div class="nc-collaborator-table-wrapper h-full max-w-[1200px] mx-auto py-6 px-6 flex flex-col gap-6 sticky top-0">
+    <div class="nc-collaborator-table-wrapper h-full max-w-[1200px] mx-auto py-6 px-4 md:px-6 flex flex-col gap-6 sticky top-0">
       <div class="w-full flex items-center justify-between gap-3">
         <a-input
           v-model:value="userSearchText"
@@ -288,7 +289,7 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
           </template>
         </a-input>
         <div class="flex items-center gap-4">
-          <template v-if="isPaymentEnabled && paidUsersCount">
+          <template v-if="!isMobileMode && isPaymentEnabled && paidUsersCount">
             <NcTooltip
               v-if="activePlanTitle === PlanTitles.FREE"
               :tooltip-style="{ width: '230px' }"
@@ -516,5 +517,23 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
 <style scoped lang="scss">
 .badge-text {
   @apply text-[14px] pt-1 text-center;
+}
+
+.nc-collaborator-table-container {
+  &.nc-is-admin-panel {
+    @apply h-[calc(100vh-144px)];
+
+    @supports (height: 100dvh) {
+      @apply h-[calc(100dvh-144px)];
+    }
+  }
+
+  &.nc-is-ws-members-list {
+    @apply h-[calc(100vh-var(--topbar-height)-44px)];
+
+    @supports (height: 100dvh) {
+      @apply h-[calc(100dvh-var(--topbar-height)-44px)];
+    }
+  }
 }
 </style>

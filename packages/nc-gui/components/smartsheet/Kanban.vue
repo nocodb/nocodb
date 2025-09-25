@@ -499,11 +499,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
   >
     <div
       ref="kanbanContainerRef"
-      class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-scrollbar-x-lg"
-      :style="{
-        minHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 0.4rem)',
-        maxHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 0.4rem)',
-      }"
+      class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-scrollbar-x-lg min-h-[calc(100%_-_0.4rem)] max-h-[calc(100%_-_0.4rem)]"
     >
       <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">
         <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-80 !min-h-full !rounded-xl overflow-hidden" />
@@ -782,6 +778,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                           draggable=".nc-kanban-item"
                           group="kanban-card"
                           class="flex flex-col h-full"
+                          :disabled="isMobileMode"
                           :filter="draggableCardFilter"
                           @start="(e) => e.target.classList.add('grabbing')"
                           @end="(e) => e.target.classList.remove('grabbing')"

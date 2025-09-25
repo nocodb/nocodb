@@ -13,8 +13,6 @@ const { openTable } = tablesStore
 
 const { activeTables } = storeToRefs(tablesStore)
 
-const { isMobileMode } = useGlobal()
-
 const { files, reset } = useFileDialog()
 
 const { $e } = useNuxtApp()
@@ -158,7 +156,7 @@ function onDropZoneClick(e: MouseEvent) {
 */
 
 const hideProjectViewPage = computed(() => {
-  return isSharedBase.value || isMobileMode.value
+  return isSharedBase.value
 })
 
 const showEmptySkeleton = ref(true)

@@ -40,7 +40,8 @@ const hasTableCreatePermission = computed(() => {
 const allEntities = computed<Array<(DashboardType & { type: 'dashboard' }) | (TableType & { type: 'table' })>>(() => {
   const entities = []
 
-  if (!isSharedBase.value) {
+  // Hide dashboard item in mobile mode as we don't support currently
+  if (!isSharedBase.value && !isMobileMode.value) {
     // Add dashboards with type identifier
     for (const dashboard of activeBaseDashboards.value) {
       entities.push({ ...dashboard, type: 'dashboard' as const })

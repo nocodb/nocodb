@@ -1,4 +1,5 @@
 import { ColumnType, TableType, UserType } from '../Api';
+import { getClipboardConfigForColumn } from './utils/clipboard-config';
 import { populateFillHandleStrictCopy } from './utils/fill-handler';
 
 export default abstract class AbstractColumnHelper {
@@ -65,6 +66,13 @@ export default abstract class AbstractColumnHelper {
     numberOfRows: number;
   }) {
     return populateFillHandleStrictCopy(params);
+  }
+
+  public getClipboardConfig(
+    value: SerializerOrParserFnProps['value'],
+    params: SerializerOrParserFnProps['params']
+  ) {
+    return getClipboardConfigForColumn({ value, col: params.col });
   }
 }
 

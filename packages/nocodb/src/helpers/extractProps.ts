@@ -1,15 +1,6 @@
 import DOMPurify from 'isomorphic-dompurify';
 
-export function extractProps<T extends Record<string, any>>(
-  body: T,
-  props: string[],
-): Partial<T> {
-  // todo: throw error if no props found
-  return props.reduce((o, key) => {
-    if (key in body && body[key] !== undefined) o[key] = body[key];
-    return o;
-  }, {});
-}
+export { extractProps } from 'nocodb-sdk';
 
 export function extractPropsAndSanitize<T extends Record<string, any>>(
   body: T,

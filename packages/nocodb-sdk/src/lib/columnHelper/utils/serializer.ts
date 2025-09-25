@@ -32,33 +32,19 @@ export const serializeStringValue = (value: any) => {
   return value;
 };
 
-export const serializeIntValue = (value: string | null | number) => {
-  if (ncIsNumber(value)) {
-    return parseInt(value.toString(), 10);
-  }
-
-  // If it's a string, remove commas and check if it's a valid number
-  if (ncIsString(value)) {
-    const cleanedValue = value.replace(/,/g, '').trim(); // Remove commas
-
-    if (!cleanedValue) return null;
-
-    // Try converting the cleaned value to a number
-    const numberValue = Number(cleanedValue);
-
-    // If it's a valid number, return it
-    if (!isNaN(numberValue)) {
-      return parseInt(numberValue.toString(), 10);
-    }
-  }
-
-  return null; // Return null if it's not a valid number
-};
-
 export const serializeDecimalValue = (
   value: string | null | number,
-  callback?: (val: any) => any
+  callback?: (val: any) => any,
+  params?: SerializerOrParserFnProps['params']
 ) => {
+  // If we have clipboard data, use it
+  if (
+    params?.clipboardItem?.dbCellValue &&
+    ncIsNumber(params.clipboardItem.dbCellValue)
+  ) {
+    return params.clipboardItem.dbCellValue;
+  }
+
   if (ncIsNumber(value)) {
     return Number(value);
   }
@@ -67,7 +53,9 @@ export const serializeDecimalValue = (
   if (ncIsString(value)) {
     const cleanedValue = ncIsFunction(callback)
       ? callback(value)
-      : value.replace(/,/g, '').trim(); // Remove commas
+      : value
+          .replace(/[\s\u00A0]/g, '') // remove spaces/non-breaking spaces
+          .replace(/(?!^-)[^\d.-]/g, ''); // keep only digits, dot, one leading minus
 
     if (!cleanedValue) return null;
 
@@ -83,26 +71,14 @@ export const serializeDecimalValue = (
   return null;
 };
 
-export const serializePercentValue = (value: string | null) => {
+export const serializeIntValue = (value: string | null | number) => {
+  value = serializeDecimalValue(value);
+
   if (ncIsNumber(value)) {
-    return value;
-  }
-  // If it's a string, remove % and check if it's a valid number
-  if (ncIsString(value)) {
-    const cleanedValue = value.replace('%', ''); // Remove %
-
-    if (!cleanedValue) return null;
-
-    // Try converting the cleaned value to a number
-    const numberValue = Number(cleanedValue);
-
-    // If it's a valid number, return it
-    if (!isNaN(numberValue)) {
-      return numberValue;
-    }
+    return parseInt(value.toString(), 10);
   }
 
-  return null;
+  return null; // Return null if it's not a valid number
 };
 
 export const serializeDurationValue = (
@@ -147,9 +123,20 @@ export const serializeJsonValue = (value: any) => {
   }
 };
 
-export const serializeCurrencyValue = (value: any, col: ColumnType) => {
+export const serializeCurrencyValue = (
+  value: any,
+  params: SerializerOrParserFnProps['params']
+) => {
+  // If we have clipboard data, use it
+  if (
+    params?.clipboardItem?.dbCellValue &&
+    ncIsNumber(params.clipboardItem.dbCellValue)
+  ) {
+    return params.clipboardItem.dbCellValue;
+  }
+
   return serializeDecimalValue(value, (value) => {
-    const columnMeta = parseProp(col.meta);
+    const columnMeta = parseProp(params.col.meta);
     // Create a number formatter for the target locale (e.g., 'de-DE', 'en-US')
     const formatter = new Intl.NumberFormat(
       columnMeta?.currency_locale || 'en-US'
@@ -209,6 +196,8 @@ export const serializeYearValue = (value: any) => {
   value = value?.toString().trim();
 
   if (!value) return null;
+
+  value = serializeIntValue(value);
 
   const parsedDate = dayjs(value?.toString());
 

@@ -18,7 +18,8 @@ const { $e } = useNuxtApp()
 
 const { eventBus, getExtensionAssetsUrl, duplicateExtension, showExtensionDetails, extensionAccess } = useExtensions()
 
-const { fullscreen, collapsed, extension, extensionManifest, activeError, showExpandBtn } = useExtensionHelperOrThrow()
+const { fullscreen, collapsed, extension, extensionManifest, activeError, showExpandBtn, disableToggleFullscreenBtn } =
+  useExtensionHelperOrThrow()
 const EXTENSION_ID = extension.value.extensionId
 
 const titleInput = ref<HTMLInputElement | null>(null)
@@ -172,6 +173,7 @@ const toggleFullScreen = () => {
         v-if="showExpandButton"
         size="xs"
         type="text"
+        :disabled="disableToggleFullscreenBtn"
         class="nc-extension-expand-btn !px-1"
         @click.stop="toggleFullScreen"
       >

@@ -1,6 +1,7 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
+import type { HTMLAttributes } from 'vue'
 
 export {
   dataTypeLow,
@@ -105,4 +106,26 @@ export const getSelectTypeOptionTextColor = (color?: string | null): string => {
   return tinycolor.isReadable(color, '#fff', { level: 'AA', size: 'large' })
     ? '#fff'
     : tinycolor.mostReadable(color, ['#0b1d05', '#fff']).toHex8String()
+}
+
+export const getInputModeFromUITypes = (uidt: UITypes): HTMLAttributes['inputmode'] => {
+  if ([UITypes.Number, UITypes.Year, UITypes.Rating].includes(uidt)) {
+    return 'numeric'
+  }
+
+  if ([UITypes.Decimal, UITypes.Percent, UITypes.Currency].includes(uidt)) {
+    return 'decimal'
+  }
+
+  if (uidt === UITypes.Email) {
+    return 'email'
+  }
+
+  if (uidt === UITypes.PhoneNumber) {
+    return 'tel'
+  }
+
+  if (uidt === UITypes.URL) {
+    return 'url'
+  }
 }

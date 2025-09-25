@@ -2000,11 +2000,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           responses = [];
           for (const q of queries) {
             const result = await this.execAndGetRows(q, trx);
-            if (typeof result === 'object') {
-              responses.push(...result);
-            } else {
-              // this is the case of returnedId from mySql
+            if (this.isMySQL) {
+              // this is the case of returnedId from mySql, which is number
               responses.push(result);
+            } else {
+              responses.push(...result);
             }
           }
           if (!raw) await postSingleRecordInsertionCbk(responses, trx);

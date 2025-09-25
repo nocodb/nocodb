@@ -329,7 +329,7 @@ const onCancel = () => {
         <div class="nc-settings-item-heading text-nc-content-gray-emphasis">
           {{ $t('objects.workspace') }} {{ $t('general.appearance') }}
         </div>
-        <div class="nc-settings-item-card flex flex-col w-full p-6">
+        <div class="nc-settings-item-card flex flex-col w-full p-4 md:p-6">
           <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="() => saveChanges()">
             <div class="flex gap-4">
               <div>
@@ -417,23 +417,25 @@ const onCancel = () => {
               <div class="nc-settings-item-subtitle">You will no longer have access to this workspace unless re-invited.</div>
             </div>
 
-            <NcTooltip :disabled="allowLeaveWs">
-              <template #title>
-                {{ $t('tooltip.leaveWorkspace') }}
-              </template>
-              <NcButton
-                v-e="['c:workspace:settings:leave']"
-                type="secondary"
-                danger
-                class="nc-custom-daner-btn capitalize"
-                size="small"
-                :disabled="!allowLeaveWs"
-                :loading="removingCollaboratorMap[user?.id]"
-                @click="handleLeaveWorkspace"
-              >
-                {{ $t('activity.leaveWorkspace') }}
-              </NcButton>
-            </NcTooltip>
+            <div class="nc-settings-item-action">
+              <NcTooltip :disabled="allowLeaveWs">
+                <template #title>
+                  {{ $t('tooltip.leaveWorkspace') }}
+                </template>
+                <NcButton
+                  v-e="['c:workspace:settings:leave']"
+                  type="secondary"
+                  danger
+                  class="nc-custom-daner-btn capitalize"
+                  size="small"
+                  :disabled="!allowLeaveWs"
+                  :loading="removingCollaboratorMap[user?.id]"
+                  @click="handleLeaveWorkspace"
+                >
+                  {{ $t('activity.leaveWorkspace') }}
+                </NcButton>
+              </NcTooltip>
+            </div>
           </div>
           <div v-if="hasWorkspaceManagePermission && !isMobileMode" class="nc-settings-item">
             <div class="nc-settings-item-content">
@@ -442,7 +444,7 @@ const onCancel = () => {
                 This will permanently remove the workspace and all its contents. This action cannot be undone.
               </div>
             </div>
-            <div class="flex-none">
+            <div class="nc-settings-item-action flex-none">
               <NcButton
                 v-e="['c:workspace:settings:delete']"
                 type="secondary"

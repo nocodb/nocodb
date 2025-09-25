@@ -147,7 +147,7 @@ const onDeleteConfirm = async () => {
           <div class="nc-settings-item-subtitle">{{ $t('msg.info.deleteAccount') }}</div>
         </div>
 
-        <div>
+        <div class="nc-settings-item-action">
           <NcButton
             type="secondary"
             class="nc-custom-daner-btn"

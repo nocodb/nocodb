@@ -1409,7 +1409,7 @@ svg.nc-virtual-cell-icon {
   }
 
   .nc-settings-item {
-    @apply p-6 flex items-start gap-4 border-b border-b-nc-border-gray-medium;
+    @apply p-4 md:p-6 flex flex-col md:(flex-row items-start) gap-4 border-b border-b-nc-border-gray-medium;
 
     &:last-of-type {
       @apply border-b-0;
@@ -1418,6 +1418,10 @@ svg.nc-virtual-cell-icon {
 
   .nc-settings-item-content {
     @apply flex flex-col gap-1.5;
+  }
+
+  .nc-settings-item-action{
+    @apply self-end md:self-start;
   }
 
   .nc-settings-item-title {

@@ -20667,6 +20667,231 @@
           "schema": {
             "type": "string"
           },
+          "name": "tableId",
+          "in": "query",
+          "description": "Table Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "mcpTokenId",
+          "in": "query",
+          "description": "MCP Token Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "query",
+          "description": "View Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "formViewId",
+          "in": "query",
+          "description": "Form View Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "gridViewId",
+          "in": "query",
+          "description": "Grid View Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "kanbanViewId",
+          "in": "query",
+          "description": "Kanban View Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "galleryViewId",
+          "in": "query",
+          "description": "Gallery View Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "calendarViewId",
+          "in": "query",
+          "description": "Calendar View Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "publicDataUuid",
+          "in": "query",
+          "description": "Public Data UUID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedViewUuid",
+          "in": "query",
+          "description": "Shared View UUID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedBaseUuid",
+          "in": "query",
+          "description": "Shared Base UUID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedDashboardUuid",
+          "in": "query",
+          "description": "Shared Dashboard UUID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "hookId",
+          "in": "query",
+          "description": "Hook Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowColorConditionId",
+          "in": "query",
+          "description": "Row Color Condition Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "gridViewColumnId",
+          "in": "query",
+          "description": "Grid View Column Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "formViewColumnId",
+          "in": "query",
+          "description": "Form View Column Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "galleryViewColumnId",
+          "in": "query",
+          "description": "Gallery View Column Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "query",
+          "description": "Column Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "filterId",
+          "in": "query",
+          "description": "Filter Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "filterParentId",
+          "in": "query",
+          "description": "Filter Parent Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "widgetId",
+          "in": "query",
+          "description": "Widget Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sortId",
+          "in": "query",
+          "description": "Sort Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "syncId",
+          "in": "query",
+          "description": "Sync Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "extensionId",
+          "in": "query",
+          "description": "Extension Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "teamId",
+          "in": "query",
+          "description": "Team ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
           "name": "clientId",
           "in": "query",
           "description": "Client ID",
@@ -20688,24 +20913,6 @@
           "name": "dashboardId",
           "in": "query",
           "description": "Dashboard ID",
-          "required": false
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "widgetId",
-          "in": "query",
-          "description": "Widget ID",
-          "required": false
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "teamId",
-          "in": "query",
-          "description": "Team ID",
           "required": false
         }
       ]

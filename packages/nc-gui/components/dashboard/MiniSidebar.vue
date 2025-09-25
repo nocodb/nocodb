@@ -105,7 +105,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <div
           class="min-h-9 sticky top-0 bg-[var(--mini-sidebar-bg-color)]"
           :class="{
-            'pt-1.5 pb-2.5': isMobileMode,
+            'pt-1.5 pb-1': isMobileMode,
           }"
         >
           <GeneralLoader v-if="isWorkspacesLoading" size="large" />

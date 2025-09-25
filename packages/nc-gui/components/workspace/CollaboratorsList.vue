@@ -15,7 +15,7 @@ const props = defineProps<{
 
 const { workspaceRoles } = useRoles()
 
-const { user } = useGlobal()
+const { user, isMobileMode } = useGlobal()
 
 const { showInfoModal } = useNcConfirmModal()
 
@@ -289,7 +289,7 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
           </template>
         </a-input>
         <div class="flex items-center gap-4">
-          <template v-if="isPaymentEnabled && paidUsersCount">
+          <template v-if="!isMobileMode && isPaymentEnabled && paidUsersCount">
             <NcTooltip
               v-if="activePlanTitle === PlanTitles.FREE"
               :tooltip-style="{ width: '230px' }"

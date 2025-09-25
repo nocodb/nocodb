@@ -1,4 +1,5 @@
 import { useStorage } from '@vueuse/core'
+import type { SerializerOrParserFnProps } from 'nocodb-sdk'
 import { extractProps } from 'nocodb-sdk'
 
 /**
@@ -18,17 +19,16 @@ const useNcClipboardData = () => {
 
   const waitingCellClipboardDataIds = useStorage<string[]>(NcClipboardDataKey.ncWaitingClipboardDataIds, [])
 
-  const getCurrentCopiedCellClipboardData = (): NcClipboardDataItemType | null => {
-    if (
-      !cellClipboardData.value ||
-      !currentCellClipboardDataId.value ||
-      ncIsObject(cellClipboardData.value) ||
-      !cellClipboardData.value[currentCellClipboardDataId.value]
-    ) {
+  const getCurrentCopiedCellClipboardData = (clipboardData: string): NcClipboardDataItemType | null => {
+    if (!currentCellClipboardDataId.value || !cellClipboardData.value?.[currentCellClipboardDataId.value]) {
       return null
     }
 
-    return cellClipboardData.value[currentCellClipboardDataId.value]
+    const currentClipboardDataItem = cellClipboardData.value?.[currentCellClipboardDataId.value] as NcClipboardDataItemType
+
+    return currentClipboardDataItem?.copiedPlainText === clipboardData && currentClipboardDataItem.dbCellValueArr.length
+      ? currentClipboardDataItem
+      : null
   }
 
   const getClipboardItemId = (): string => {
@@ -55,6 +55,20 @@ const useNcClipboardData = () => {
     return item
   }
 
+  const extractCellClipboardData = (
+    storedClipboardData: NcClipboardDataItemType | null,
+    rowIndex: number,
+    columnIndex: number,
+  ): SerializerOrParserFnProps['params']['clipboardItem'] | undefined => {
+    if (!storedClipboardData || !storedClipboardData.columns?.[columnIndex]) return
+
+    return {
+      dbCellValue: storedClipboardData.dbCellValueArr?.[rowIndex]?.[columnIndex],
+      column: storedClipboardData.columns?.[columnIndex],
+      rowId: storedClipboardData.rowIds?.[rowIndex],
+    }
+  }
+
   const resetCellClipboard = () => {
     cellClipboardData.value = {}
     currentCellClipboardDataId.value = ''
@@ -69,6 +83,7 @@ const useNcClipboardData = () => {
     setCellClipboardDataItem,
     resetCellClipboard,
     getClipboardItemId,
+    extractCellClipboardData,
   }
 }
 

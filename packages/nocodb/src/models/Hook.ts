@@ -275,7 +275,7 @@ export default class Hook implements HookType {
 
     return this.get(context, id, ncMeta).then(async (hook) => {
       await NocoCache.appendToList(
-        'root',
+        context,
         CacheScope.HOOK,
         [hook.fk_model_id],
         `${CacheScope.HOOK}:${id}`,

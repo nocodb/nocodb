@@ -16,14 +16,14 @@ import Noco from '~/Noco';
 import {
   BaseUser,
   CustomUrl,
-  Dashboard,
   DataReflection,
+  Extension,
   FileReference,
   MCPToken,
   ModelStat,
   Permission,
-  Script,
   Source,
+  Workspace,
 } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
@@ -32,7 +32,6 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { NcError } from '~/helpers/catchError';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
-import Snapshot from '~/models/Snapshot';
 
 const logger = new Logger('Base');
 
@@ -398,13 +397,7 @@ export default class Base extends BaseCE {
 
     await FileReference.bulkDelete(context, { base_id: baseId }, ncMeta);
 
-    await Snapshot.clearFromStats(context, baseId, ncMeta);
-
-    await Script.clearFromStats(context, baseId, ncMeta);
-
-    await Dashboard.clearFromStats(context, baseId, ncMeta);
-
-    await Source.clearFromStats(context, baseId, ncMeta);
+    await Extension.deleteByBaseId(context, baseId, ncMeta);
 
     return res;
   }
@@ -466,13 +459,8 @@ export default class Base extends BaseCE {
 
     await ModelStat.deleteByBaseId(context, baseId, ncMeta);
 
-    await Snapshot.clearFromStats(context, baseId, ncMeta);
-
-    await Script.clearFromStats(context, baseId, ncMeta);
-
-    await Dashboard.clearFromStats(context, baseId, ncMeta);
-
-    await Source.clearFromStats(context, baseId, ncMeta);
+    // clear workspace stats cache to recalculate on next access
+    await Workspace.clearWorkspaceStatsCache(base.fk_workspace_id);
 
     // set meta
     return await ncMeta.metaUpdate(

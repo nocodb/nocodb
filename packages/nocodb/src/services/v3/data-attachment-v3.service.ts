@@ -3,7 +3,7 @@ import { PassThrough } from 'stream';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
-import { AuditV1OperationTypes, ncIsNull } from 'nocodb-sdk';
+import { AuditV1OperationTypes, EventType, ncIsNull } from 'nocodb-sdk';
 import slash from 'slash';
 import type { DataUpdatePayload, NcContext } from 'nocodb-sdk';
 import type { AttachmentFilePathConstructed } from '~/helpers/attachmentHelpers';
@@ -29,6 +29,7 @@ import { DataV3Service } from '~/services/v3/data-v3.service';
 import { extractColsMetaForAudit, generateAuditV1Payload } from '~/utils';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { RootScopes } from '~/utils/globals';
+import NocoSocket from '~/socket/NocoSocket';
 
 // ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html - extended with some more characters
 const normalizeFilename = (filename: string) => {
@@ -165,21 +166,19 @@ export class DataAttachmentV3Service {
       ),
     );
 
-    /* TODO: broadcast to socket
     NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.DATA_EVENT,
         payload: {
-          id,
+          id: recordId,
           action: 'update',
-          payload: processedAttachments,
+          payload: await baseModel.readByPk(recordId, false),
         },
         scopes: [modelId],
       },
       context.socket_id,
     );
-    */
   }
 
   async appendBase64AttachmentToCellData(param: AttachmentBase64UploadParam) {

@@ -1488,7 +1488,8 @@
     "newScript": "Nový skript",
     "emptyScript": "Prázdny skript",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Kliknite na vyriešenie",

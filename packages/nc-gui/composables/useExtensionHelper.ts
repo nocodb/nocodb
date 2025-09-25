@@ -1,8 +1,13 @@
-import type { ViewType } from 'nocodb-sdk'
+import { hasMinimumRoleAccess, type ViewType } from 'nocodb-sdk'
 import type { ExtensionManifest, ExtensionType } from '#imports'
 
 const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
-  (extension: Ref<ExtensionType>, extensionManifest: ComputedRef<ExtensionManifest | undefined>, activeError: Ref<any>) => {
+  (
+    extension: Ref<ExtensionType>,
+    extensionManifest: ComputedRef<ExtensionManifest | undefined>,
+    activeError: Ref<any>,
+    hasAccessToExtension: ComputedRef<boolean>,
+  ) => {
     const { $api } = useNuxtApp()
     const route = useRoute()
 
@@ -200,6 +205,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       reloadData,
       reloadMeta,
       eventBus,
+      hasAccessToExtension,
     }
   },
   'extension-helper',

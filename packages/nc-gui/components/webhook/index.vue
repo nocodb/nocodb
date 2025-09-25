@@ -143,7 +143,7 @@ let hookRef = reactive<
 })
 
 const hasUnsavedChanges = computed(() => {
-  if (!props.hook || !hookRef.id || !oldHookRef.value || !hookRef) return true
+  if (!props.hook || !hookRef.id || !oldHookRef.value || !hookRef || showUpgradeModal.value) return true
 
   return !ncIsEmptyObject(diff(removeUndefinedFromObj(oldHookRef.value), removeUndefinedFromObj(hookRef)))
 })

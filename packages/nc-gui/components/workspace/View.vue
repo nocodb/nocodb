@@ -129,8 +129,6 @@ onBeforeUnmount(() => {
       class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2"
     >
       <GeneralOpenLeftSidebarBtn v-if="isMobileMode && !isLeftSidebarOpen" />
-      <GeneralHideLeftSidebarBtn v-if="isMobileMode && isLeftSidebarOpen" />
-
       <div
         class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1 nc-workspace-title"
         :class="{
@@ -146,6 +144,7 @@ onBeforeUnmount(() => {
           {{ $t('title.teamAndSettings') }}
         </h1>
       </div>
+      <GeneralHideLeftSidebarBtn v-if="isMobileMode && isLeftSidebarOpen" />
     </div>
     <template v-else>
       <div class="nc-breadcrumb px-2">

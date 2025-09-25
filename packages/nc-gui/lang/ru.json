@@ -1488,7 +1488,8 @@
     "newScript": "Новый скрипт",
     "emptyScript": "Пустой скрипт",
     "enterFullscreen": "Перейти в полноэкранный режим",
-    "exitFullscreen": "Выйти из полноэкранного режима"
+    "exitFullscreen": "Выйти из полноэкранного режима",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Нажмите, чтобы разрешить",

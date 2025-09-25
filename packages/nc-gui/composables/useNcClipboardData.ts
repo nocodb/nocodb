@@ -19,6 +19,12 @@ const useNcClipboardData = () => {
 
   const waitingCellClipboardDataIds = useStorage<string[]>(NcClipboardDataKey.ncWaitingClipboardDataIds, [])
 
+  const resetCellClipboard = () => {
+    cellClipboardData.value = {}
+    currentCellClipboardDataId.value = ''
+    waitingCellClipboardDataIds.value = []
+  }
+
   const getCurrentCopiedCellClipboardData = (clipboardData: string): NcClipboardDataItemType | null => {
     if (!currentCellClipboardDataId.value || !cellClipboardData.value?.[currentCellClipboardDataId.value]) {
       return null
@@ -26,9 +32,21 @@ const useNcClipboardData = () => {
 
     const currentClipboardDataItem = cellClipboardData.value?.[currentCellClipboardDataId.value] as NcClipboardDataItemType
 
-    return currentClipboardDataItem?.copiedPlainText === clipboardData && currentClipboardDataItem.dbCellValueArr.length
-      ? currentClipboardDataItem
-      : null
+    if (currentClipboardDataItem?.copiedPlainText === clipboardData && currentClipboardDataItem.dbCellValueArr.length) {
+      return currentClipboardDataItem
+    } else {
+      // If pasted data is different from the copied data, then clear current clipboard data item
+      waitingCellClipboardDataIds.value = waitingCellClipboardDataIds.value.filter(
+        (id) => id !== currentCellClipboardDataId.value,
+      )
+      cellClipboardData.value = {
+        ...extractProps(cellClipboardData.value, waitingCellClipboardDataIds.value),
+      } as NcClipboardDataType
+
+      currentCellClipboardDataId.value = ''
+
+      return null
+    }
   }
 
   const getClipboardItemId = (): string => {
@@ -67,12 +85,6 @@ const useNcClipboardData = () => {
       column: storedClipboardData.columns?.[columnIndex],
       rowId: storedClipboardData.rowIds?.[rowIndex],
     }
-  }
-
-  const resetCellClipboard = () => {
-    cellClipboardData.value = {}
-    currentCellClipboardDataId.value = ''
-    waitingCellClipboardDataIds.value = []
   }
 
   return {

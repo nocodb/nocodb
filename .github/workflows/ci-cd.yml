@@ -40,6 +40,12 @@ jobs:
     with:
       test_set: 2
 
+  unit-tests-pg-no-prefix:
+    if: ${{ inputs.force == true || (contains(github.event.pull_request.labels.*.name, 'backend') && (github.event_name == 'push' || !github.event.pull_request.draft)) }}
+    uses: ./.github/workflows/unit-test-pg.yml
+    with:
+      no_prefix: true
+
   pre-build-for-playwright:
     if: ${{ github.event_name == 'push' || (github.event.pull_request.base.ref == 'develop' && !github.event.pull_request.draft) || contains(github.event.pull_request.labels.*.name, 'trigger-ci') || inputs.force == true }}
     uses: ./.github/workflows/pre-build-for-playwright.yml

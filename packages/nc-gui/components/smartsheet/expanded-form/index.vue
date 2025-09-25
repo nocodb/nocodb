@@ -686,6 +686,13 @@ function onTouchMove(e: TouchEvent) {
 
   // only drag downward
   translateY.value = Math.max(0, delta)
+
+  const drawerContentEl = wrapper.value?.closest('.ant-drawer-content-wrapper')
+
+  // Focus on the modal or drawer if it exists so that onEsc key can close the modal or drawer
+  if (drawerContentEl) {
+    drawerContentEl.style.transform = `translateY(${translateY.value}px)`
+  }
 }
 
 function onTouchEnd() {
@@ -693,7 +700,17 @@ function onTouchEnd() {
     // dragged down enough -> close
     onClose()
   }
+
   translateY.value = 0
+
+  // wait for the drawer close transition to complete
+  setTimeout(() => {
+    const drawerContentEl = wrapper.value?.closest('.ant-drawer-content-wrapper')
+
+    if (drawerContentEl) {
+      drawerContentEl.style.transform = 'none'
+    }
+  }, 500)
 }
 
 defineExpose({

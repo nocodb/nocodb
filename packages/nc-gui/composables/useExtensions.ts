@@ -1,5 +1,5 @@
 import { useStorage } from '@vueuse/core'
-import { hasMinimumRoleAccess, PlanLimitTypes, ProjectRoles } from 'nocodb-sdk'
+import { hasMinimumRoleAccess, PlanLimitTypes, ProjectRoles, getProjectRole } from 'nocodb-sdk'
 import { usePlugin } from './usePlugin'
 import { ExtensionsEvents } from '#imports'
 
@@ -120,9 +120,25 @@ export const useExtensions = createSharedComposable(() => {
       })
   })
 
+  const userCurrentBaseRole = computed(() => {
+    return getProjectRole(user.value, true)
+  })
+
+  /**
+   * @param extensionId - The id of the extension which is defined in manifest.json to get the minimum access role for
+   * @returns The minimum access role for the extension
+   */
   const getExtensionMinAccessRole = (extensionId: string): ExtensionManifest['minAccessRole'] => {
     const extension = availableExtensionMapById.value[extensionId]
     return extension?.minAccessRole || 'creator'
+  }
+
+  /**
+   * @param extensionId - The id of the extension which is defined in manifest.json to check if the user has access to
+   * @returns True if the user has access to the extension, false otherwise
+   */
+  const hasAccessToExtension = (extensionId: string) => {
+    return hasMinimumRoleAccess(user.value, getExtensionMinAccessRole(extensionId) as ProjectRoles)
   }
 
   const addExtension = async (extension: any) => {
@@ -199,7 +215,7 @@ export const useExtensions = createSharedComposable(() => {
     })
   }
 
-  const deleteExtension = async (extensionId: string, extension: ExtensionType) => {
+  const deleteExtension = async (extensionId: string) => {
     if (!base.value || !base.value.id || !baseExtensions.value[base.value.id]) {
       return
     }
@@ -495,5 +511,8 @@ export const useExtensions = createSharedComposable(() => {
     isMarketVisible,
     extensionPanelSize,
     eventBus,
+    getExtensionMinAccessRole,
+    hasAccessToExtension,
+    userCurrentBaseRole,
   }
 })

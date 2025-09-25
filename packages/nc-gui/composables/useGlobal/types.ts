@@ -48,6 +48,8 @@ export interface AppInfo {
   disableSupportChat: boolean
   disableOnboardingFlow: boolean
   iframeWhitelistDomains?: Array<string>
+  eeFeatureFlags?: Record<string, boolean>
+  companyIconUrl?: string | null
 }
 
 export interface StoredState {

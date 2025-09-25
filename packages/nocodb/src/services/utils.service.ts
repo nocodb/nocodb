@@ -438,6 +438,24 @@ export class UtilsService {
       ? process.env.NC_SSO_SAML_PROVIDER_NAME ?? 'SAML'
       : null;
 
+    // Build EE feature flags from environment variables
+    const eeFeatureFlags: Record<string, boolean> = Object.keys(process.env)
+      .filter((k) => k.startsWith('NC_EE_'))
+      .reduce((acc, key) => {
+        const raw = key.replace(/^NC_EE_/, '')
+        // convert CONSTANT_CASE to camelCase to match frontend computed names
+        const camel = raw
+          .toLowerCase()
+          .split('_')
+          .map((part, idx) => (idx === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1)))
+          .join('')
+
+        const val = process.env[key]
+        const boolVal = ['true', '1', 'yes', 'on'].includes((val || '').toLowerCase())
+        acc[camel] = boolVal
+        return acc
+      }, {} as Record<string, boolean>)
+
     const result = {
       authType: 'jwt',
       baseHasAdmin,
@@ -499,6 +517,8 @@ export class UtilsService {
         process.env.NC_DISABLE_ONBOARDING_FLOW === 'true' ||
         process.env.NODE_ENV === 'development' ||
         process.env.NODE_ENV === 'test',
+      eeFeatureFlags,
+      companyIconUrl: process.env.NC_COMPANY_ICON_URL,
     };
 
     return result;

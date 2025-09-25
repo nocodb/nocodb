@@ -5,22 +5,22 @@ on:
     inputs:
       test_set:
         description: 'Test set number'
-        required: true
+        required: false
         type: string
       no_prefix:
         description: 'Do not use prefix (use schema) during test'
-        required: true
+        required: false
         type: boolean
   # Triggered manually
   workflow_dispatch:
     inputs:
       test_set:
         description: 'Test set number'
-        required: true
+        required: false
         type: string
       no_prefix:
         description: 'Do not use prefix (use schema) during test'
-        required: true
+        required: false
         type: boolean
 
 jobs:

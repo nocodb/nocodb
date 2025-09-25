@@ -19080,20 +19080,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
-          },
-          {
-            "schema": {
-              "enum": [
-                "owner",
-                "creator",
-                "editor",
-                "commenter",
-                "viewer"
-              ],
-              "type": "string"
-            },
-            "name": "minAccessRole",
-            "in": "query"
           }
         ]
       }
@@ -19166,20 +19152,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
-          },
-          {
-            "schema": {
-              "enum": [
-                "owner",
-                "creator",
-                "editor",
-                "commenter",
-                "viewer"
-              ],
-              "type": "string"
-            },
-            "name": "minAccessRole",
-            "in": "query"
           }
         ]
       },
@@ -19203,20 +19175,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
-          },
-          {
-            "schema": {
-              "enum": [
-                "owner",
-                "creator",
-                "editor",
-                "commenter",
-                "viewer"
-              ],
-              "type": "string"
-            },
-            "name": "minAccessRole",
-            "in": "query"
           }
         ]
       }

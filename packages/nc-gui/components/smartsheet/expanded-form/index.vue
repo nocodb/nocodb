@@ -23,6 +23,7 @@ interface Props {
   newRecordSubmitBtnText?: string
   expandForm?: (row: Row) => void
   maintainDefaultViewOrder?: boolean
+  allowNullFieldIds?: string[]
 }
 
 const props = defineProps<Props>()
@@ -99,7 +100,7 @@ const isLoading = ref(true)
 
 const isSaving = ref(false)
 
-const expandedFormStore = useProvideExpandedFormStore(meta, row, maintainDefaultViewOrder, !!props.useMetaFields)
+const expandedFormStore = useProvideExpandedFormStore(meta, row, maintainDefaultViewOrder, !!props.useMetaFields, props.allowNullFieldIds)
 
 const {
   commentsDrawer,

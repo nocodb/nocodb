@@ -23,7 +23,13 @@ import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
-  (meta: Ref<TableType>, _row: Ref<Row>, maintainDefaultViewOrder: Ref<boolean>, useMetaFields: boolean) => {
+  (
+    meta: Ref<TableType>,
+    _row: Ref<Row>,
+    maintainDefaultViewOrder: Ref<boolean>,
+    useMetaFields: boolean,
+    allowNullFieldIds?: string[],
+  ) => {
     const { $e, $state, $api, $ncSocket } = useNuxtApp()
 
     const { t } = useI18n()
@@ -362,6 +368,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           getMeta,
           row: row.value.row,
           throwError: true,
+          allowNullFieldIds,
         })
 
         if (missingRequiredColumns.size) return

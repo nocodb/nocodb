@@ -20,6 +20,7 @@ const onClick = () => {
         'opacity-0 w-0 pointer-events-none': !isMobileMode && !isLeftSidebarOpen,
         'opacity-100 max-w-10': isMobileMode || isLeftSidebarOpen,
       }"
+      :disabled="!!isMobileMode"
     >
       <template #title>
         {{ isLeftSidebarOpen ? `${$t('title.hideSidebar')}` : `${$t('title.showSidebar')}` }}

@@ -48,6 +48,7 @@ const showSidebarBtn = computed(() => {
         }"
         placement="bottom"
         hide-on-click
+        :disabled="!!isMobileMode"
       >
         <template #title>
           {{ isLeftSidebarOpen ? `${$t('title.hideSidebar')}` : `${$t('title.showSidebar')}` }}

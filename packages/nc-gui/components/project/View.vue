@@ -184,11 +184,18 @@ onMounted(() => {
       class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-nc-border-gray-medium"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >
-      <div class="flex-1 flex flex-row items-center gap-x-3">
+      <div class="flex-1 max-w-full md:max-w-[calc(100%_-_100px)] flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
-        <div v-if="!showEmptySkeleton" class="flex flex-row items-center h-full gap-x-2 px-2">
-          <GeneralProjectIcon :color="parseProp(currentBase?.meta).iconColor" :type="currentBase?.type" />
-          <NcTooltip class="flex font-bold text-sm capitalize truncate max-w-150 text-nc-content-gray" show-on-truncate-only>
+        <div v-if="!showEmptySkeleton" class="flex flex-row items-center h-full gap-x-2 px-2 min-w-0">
+          <GeneralProjectIcon
+            :color="parseProp(currentBase?.meta).iconColor"
+            :type="currentBase?.type"
+            class="h-5 w-5 md:(h-4 w-4) flex-none"
+          />
+          <NcTooltip
+            class="flex font-bold text-base md:text-sm capitalize truncate max-w-150 text-nc-content-gray"
+            show-on-truncate-only
+          >
             <template #title> {{ currentBase?.title }}</template>
             <span class="truncate">
               {{ currentBase?.title }}

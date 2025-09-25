@@ -14,12 +14,14 @@ const props = withDefaults(
     inherit?: string
     size?: 'sm' | 'md' | 'lg'
     showInherit?: boolean
+    placement?: 'bottomRight' | 'bottomLeft'
   }>(),
   {
     border: true,
     description: true,
     size: 'sm',
     showInherit: false,
+    placement: 'bottomLeft',
   },
 )
 
@@ -90,7 +92,12 @@ const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
       :open="isDropdownOpen"
       :dropdown-match-select-width="false"
       dropdown-class-name="!rounded-lg !h-fit max-w-[350px] nc-role-selector-dropdown"
-      class="py-1 !absolute top-0 left-0 w-20 h-full z-10 text-xs opacity-0"
+      class="py-1 !absolute top-0 w-20 h-full z-10 text-xs opacity-0"
+      :class="{
+        'right-0': placement === 'bottomRight',
+        'left-0': placement !== 'bottomRight',
+      }"
+      :placement="placement"
       @change="onChangeRole"
     >
       <a-select-option v-for="rl in props.disabledRoles || []" :key="rl" :value="rl" disabled>
@@ -121,7 +128,7 @@ const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
             'w-full': descriptionRef,
             'w-[200px]': !descriptionRef,
           }"
-          class="flex flex-col nc-role-select-dropdown gap-1"
+          class="h-full flex flex-col justify-center nc-role-select-dropdown gap-1"
         >
           <div class="flex items-center justify-between">
             <RolesBadge :border="false" :class="`nc-role-select-${rl}`" :inherit="inheritRef === rl" :role="rl" />

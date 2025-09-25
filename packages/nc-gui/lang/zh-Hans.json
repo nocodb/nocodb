@@ -1488,7 +1488,8 @@
     "newScript": "新建脚本",
     "emptyScript": "空脚本",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "点击解决",

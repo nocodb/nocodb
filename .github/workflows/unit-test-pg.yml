@@ -67,4 +67,4 @@ jobs:
       - name: run unit tests
         working-directory: ./packages/nocodb
         run: |
-          pnpm run test:unit:pg:ee${{ inputs.no_prefix && '-no-prefix' }} --forbid-only ${{ inputs.test_set && ('--test-set-') }}${{ inputs.test_set }}
+          pnpm run test:unit:pg:ee${{ inputs.no_prefix && '-no-prefix' || '' }} --forbid-only ${{ inputs.test_set && '--test-set-' || '' }}${{ inputs.test_set }}

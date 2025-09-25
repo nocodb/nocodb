@@ -909,24 +909,24 @@ interface CreateViewForm {
   fk_cover_image_col_id: string | null | undefined
 }
 
-// NcCellClipboardDataType type starts here
-type NcCellClipboardDataType = Record<string, NcCellClipboardDataItemType>
+// NcClipboardDataType type starts here
+type NcClipboardDataType = Record<string, NcClipboardDataItemType>
 
-interface NcCellClipboardDataItemType {
+interface NcClipboardDataItemType {
   /**
    * Unique clipboard item id
    */
   id: string
-  workspaceId: string
-  tableId: string
+  workspaceId?: string
+  tableId?: string
   rowIds: string[]
   copiedPlainText: string
-  copiedHtml: string
+  copiedHtml?: string
   dbCellValue: Array<any[]>
   columns: Partial<ColumnType>[]
 }
 
-// NcCellClipboardDataType type ends here
+// NcClipboardDataType type ends here
 
 export type {
   User,
@@ -993,6 +993,6 @@ export type {
   NcDropdownPlacement,
   MakeCellEditableFn,
   CreateViewForm,
-  NcCellClipboardDataType,
-  NcCellClipboardDataItemType,
+  NcClipboardDataType,
+  NcClipboardDataItemType,
 }

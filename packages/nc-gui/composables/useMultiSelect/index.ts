@@ -107,6 +107,8 @@ export function useMultiSelect(
 
   const { batchUploadFiles } = useAttachment()
 
+  const { setCellClipboardDataItem, getClipboardItemId } = useNcClipboardData()
+
   const aiMode = ref(false)
 
   const isArrayStructure = typeof unref(data) === 'object' && Array.isArray(unref(data))
@@ -159,69 +161,34 @@ export function useMultiSelect(
     activeCell.col = col
   }
 
-  const valueToCopy = (
-    rowObj: Row,
-    columnObj: ColumnType,
-    option?: {
-      skipUidt?: UITypes[]
-    },
-  ) => {
-    const textToCopy = (columnObj.title && rowObj.row[columnObj.title]) ?? ''
-
-    if (option?.skipUidt?.includes(columnObj.uidt as UITypes)) {
-      return textToCopy
-    }
-    return ColumnHelper.parseValue(textToCopy, {
-      col: columnObj,
-      isMysql,
+  const copyTable = async (rows: Row[], cols: ColumnType[]) => {
+    const {
+      html: copyHTML,
+      text: copyPlainText,
+      clipboardItemConfig,
+    } = serializeRange(rows, cols, {
       isPg,
+      isMysql,
       meta: meta.value,
       metas: metas.value,
-      rowId: isMm(columnObj) ? extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) : null,
     })
-  }
-
-  const serializeRange = (
-    rows: Row[],
-    cols: ColumnType[],
-    option?: {
-      skipUidt?: UITypes[]
-    },
-  ) => {
-    let html = '<table>'
-    let text = ''
-    const json: string[][] = []
-
-    rows.forEach((row, i) => {
-      let copyRow = '<tr>'
-      const jsonRow: string[] = []
-      cols.forEach((col, i) => {
-        const value = valueToCopy(row, col, option)
-        copyRow += `<td>${value}</td>`
-        text = `${text}${value}${cols.length - 1 !== i ? '\t' : ''}`
-        jsonRow.push(value)
-      })
-      html += `${copyRow}</tr>`
-      if (rows.length - 1 !== i) {
-        text = `${text}\n`
-      }
-      json.push(jsonRow)
-    })
-    html += '</table>'
-
-    return { html, text, json }
-  }
-
-  const copyTable = async (rows: Row[], cols: ColumnType[]) => {
-    const { html: copyHTML, text: copyPlainText } = serializeRange(rows, cols)
 
     const blobHTML = new Blob([copyHTML], { type: 'text/html' })
     const blobPlainText = new Blob([copyPlainText], { type: 'text/plain' })
 
-    return (
-      navigator.clipboard?.write([new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText })]) ??
-      copy(copyPlainText)
-    )
+    const clipboardItem: NcClipboardDataItemType = {
+      ...clipboardItemConfig,
+      tableId: meta.value?.id,
+      id: getClipboardItemId(),
+    }
+
+    const res = await (navigator.clipboard?.write([
+      new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText }),
+    ]) ?? copy(copyPlainText))
+
+    setCellClipboardDataItem(clipboardItem)
+
+    return res
   }
 
   async function copyValue(ctx?: Cell) {
@@ -262,9 +229,27 @@ export function useMultiSelect(
           if (!rowObj) return
           const columnObj = unref(fields)[cpCol]
 
-          const textToCopy = valueToCopy(rowObj, columnObj)
+          const { textToCopy, cellValue, clipboardColumn, rowId } = valueToCopy(rowObj, columnObj, {
+            meta: meta.value,
+            metas: metas.value,
+            isPg,
+            isMysql,
+          })
 
-          await copy(isValidValue(textToCopy) ? textToCopy : '')
+          const plainTextValue = isValidValue(textToCopy) ? textToCopy : ''
+
+          await copy(plainTextValue)
+
+          const clipboardItem: NcClipboardDataItemType = {
+            dbCellValue: [[cellValue]],
+            columns: [clipboardColumn],
+            copiedPlainText: plainTextValue,
+            rowIds: [rowId],
+            tableId: meta.value?.id,
+            id: getClipboardItemId(),
+          }
+
+          setCellClipboardDataItem(clipboardItem)
           message.toast(
             t(`msg.toast.nCellCopied`, {
               n: 1,
@@ -545,7 +530,12 @@ export function useMultiSelect(
 
           const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
 
-          const rawMatrix = serializeRange(cprows, cpcols).json
+          const rawMatrix = serializeRange(cprows, cpcols, {
+            isPg,
+            isMysql,
+            meta: meta.value,
+            metas: metas.value,
+          }).json
 
           const fillDirection = fillRange._start.row <= fillRange._end.row ? 1 : -1
           const startRangeBottomMost = Math.max(

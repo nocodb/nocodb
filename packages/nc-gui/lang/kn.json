@@ -1488,7 +1488,8 @@
     "newScript": "ಹೊಸ ಸ್ಕ್ರಿಪ್ಟ್",
     "emptyScript": "ಖಾಲಿ ಸ್ಕ್ರಿಪ್ಟ್",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "ಪರಿಹರಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",

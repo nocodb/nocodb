@@ -22,7 +22,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isSideBannerExpanded = ref(false)
 
-  const isPaidPlan = computed(() => false)
+  const isPaidPlan = flagOr('isPaidPlan', false)
 
   const activePlan = computed(() => undefined)
 
@@ -32,29 +32,29 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isLoyaltyDiscountAvailable = computed(() => false)
 
-  const isPaymentEnabled = computed(() => false)
+  const isPaymentEnabled = flagOr('isPaymentEnabled', false)
 
-  const blockAddNewRecord = computed(() => false)
+  const blockAddNewRecord = flagOr('blockAddNewRecord', false)
 
-  const isRecordLimitReached = computed(() => false)
+  const isRecordLimitReached = flagOr('isRecordLimitReached', false)
 
-  const gracePeriodActive = computed(() => true)
+  const gracePeriodActive = flagOr('gracePeriodActive', true)
 
   const gracePeriodEndDate = computed(() => '')
 
-  const isWsAuditEnabled = computed(() => false)
+  const isWsAuditEnabled = flagOr('isWsAuditEnabled', false)
 
-  const isAllowToAddExtension = computed(() => true)
+  const isAllowToAddExtension = flagOr('isAllowToAddExtension', true)
 
-  const blockAddNewExtension = computed(() => false)
+  const blockAddNewExtension = flagOr('blockAddNewExtension', false)
 
-  const blockAddNewAttachment = computed(() => false)
+  const blockAddNewAttachment = flagOr('blockAddNewAttachment', false)
 
-  const blockAddNewExternalSource = computed(() => false)
+  const blockAddNewExternalSource = flagOr('blockAddNewExternalSource', false)
 
-  const blockAddNewWebhook = computed(() => false)
+  const blockAddNewWebhook = flagOr('blockAddNewWebhook', false)
 
-  const isTopBannerVisible = computed(() => false)
+  const isTopBannerVisible = flagOr('isTopBannerVisible', false)
 
   const blockWsImageLogoUpload = flagOr('blockWsImageLogoUpload', true)
 
@@ -72,7 +72,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAddNewScript = flagOr('blockAddNewScript', true)
 
-  const showUserMayChargeAlert = computed(() => false)
+  const showUserMayChargeAlert = flagOr('showUserMayChargeAlert', false)
 
   const maxAttachmentsAllowedInCell = computed(() => {
     // Keeping 50 to keep backward fallback compatibility

@@ -1872,7 +1872,11 @@
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
     "removeFromForm": "Remove from form",
-    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\"."
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToDeleteExtension": "You do not have sufficient permission to delete extension",
+    "youDoNotHaveSufficientPermissionToAccessThisExtension": "You do not have sufficient permission to access this extension"
   },
   "placeholder": {
     "searchIcons": "Search icons",

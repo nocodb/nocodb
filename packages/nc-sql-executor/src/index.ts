@@ -80,6 +80,10 @@ const connectionStats: Record<
 // Cache max connection results per unique config signature to avoid re-querying.
 const maxConnectionsCache = new Map<string, number>();
 
+const isMysql = (client: string) => {
+  return client === 'mysql' || client === 'mysql2';
+}
+
 function getKnexClient(client: string) {
   if (client === 'snowflake') return SnowflakeClient;
   if (client === 'databricks') return DatabricksClient;
@@ -122,7 +126,7 @@ async function execAndGetRows(kn: Knex, config: any, query: string) {
   } else if (isSelect) {
     // Wrap select queries (some dialects require this)
     return await kn.from(kn.raw(query).wrap('(', ') __nc_alias'));
-  } else if (isInsert && (client === 'mysql' || client === 'mysql2')) {
+  } else if (isInsert && isMysql(client)) {
     const res = await kn.raw(query);
     if (res && res[0] && res[0].insertId) return res[0].insertId;
     return res;
@@ -227,6 +231,7 @@ async function handleQuery(
 ) {
   if (Array.isArray(query)) {
     // Execute all queries in a single transaction for consistency
+    const client = config.client;
     const trx = await kn.transaction();
     const responses = [];
     try {
@@ -234,7 +239,13 @@ async function handleQuery(
         if (raw) {
           responses.push(await trx.raw(q));
         } else {
-          responses.push(...(await execAndGetRows(trx, config, q)));
+          const execRowsResult = await execAndGetRows(trx, config, q);
+          if(isMysql(client)) {
+            // this is the case of returnedId from mySql, which is number
+            responses.push(execRowsResult);
+          } else {
+            responses.push(...execRowsResult);
+          }
         }
       }
       await trx.commit();

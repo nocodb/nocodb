@@ -49,7 +49,8 @@ export default class R2 extends GenericS3 implements IStorageAdapterV2 {
 
   override getUploadedPath(path: string): { path?: string; url?: string } {
     return {
-      url: `${this.input.hostname}/${this.input.bucket}/${path}`,
+      // bucket in path should already be included in hostname
+      url: `${this.input.hostname}/${path}`,
     };
   }
 }

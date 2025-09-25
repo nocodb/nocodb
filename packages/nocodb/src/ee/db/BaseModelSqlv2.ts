@@ -1999,7 +1999,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         try {
           responses = [];
           for (const q of queries) {
-            responses.push(...(await this.execAndGetRows(q, trx)));
+            const result = await this.execAndGetRows(q, trx);
+            if (this.isMySQL) {
+              // this is the case of returnedId from mySql, which is number
+              responses.push(result);
+            } else {
+              responses.push(...result);
+            }
           }
           if (!raw) await postSingleRecordInsertionCbk(responses, trx);
           await trx.commit();

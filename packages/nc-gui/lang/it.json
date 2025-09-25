@@ -1488,7 +1488,8 @@
     "newScript": "Nuovo Script",
     "emptyScript": "Script vuoto",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Fai clic per risolvere",

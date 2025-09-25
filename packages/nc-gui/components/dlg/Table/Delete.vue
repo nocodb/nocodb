@@ -59,7 +59,15 @@ const onDelete = async () => {
       return
     }
 
-    await $api.dbTable.delete(toBeDeletedTable.id as string)
+    await $api.internal.postOperation(
+      toBeDeletedTable.fk_workspace_id!,
+      toBeDeletedTable.base_id!,
+      {
+        operation: 'tableDelete',
+        tableId: toBeDeletedTable.id as string,
+      },
+      {},
+    )
 
     await loadTables()
 

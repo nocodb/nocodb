@@ -115,11 +115,19 @@ async function handleTableRename(
   updateTitle(title)
 
   try {
-    await $api.dbTable.update(table.id as string, {
-      base_id: table.base_id,
-      table_name: title,
-      title,
-    })
+    await $api.internal.postOperation(
+      table.fk_workspace_id!,
+      table.base_id!,
+      {
+        operation: 'tableUpdate',
+        tableId: table.id as string,
+      },
+      {
+        base_id: table.base_id,
+        table_name: title,
+        title,
+      },
+    )
 
     await loadProjectTables(table.base_id!, true)
 

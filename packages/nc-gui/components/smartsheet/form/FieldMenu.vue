@@ -69,15 +69,23 @@ const duplicateVirtualColumn = async () => {
       newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
     }
 
-    await $api.dbTableColumn.create(meta!.value!.id!, {
-      ...columnCreatePayload,
-      pv: false,
-      view_id: view.value!.id as string,
-      column_order: {
-        order: newColumnOrder,
-        view_id: view.value!.id as string,
+    await $api.internal.postOperation(
+      meta.value!.fk_workspace_id!,
+      meta.value!.base_id!,
+      {
+        operation: 'columnCreate',
+        tableId: meta!.value!.id!,
       },
-    } as ColumnReqType)
+      {
+        ...columnCreatePayload,
+        pv: false,
+        view_id: view.value!.id as string,
+        column_order: {
+          order: newColumnOrder,
+          view_id: view.value!.id as string,
+        },
+      } as ColumnReqType,
+    )
     await getMeta(meta!.value!.id!, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)

@@ -269,11 +269,29 @@ const toggleViewShare = async () => {
   if (!activeView.value?.id) return
 
   if (activeView.value?.uuid) {
-    await $api.dbViewShare.delete(activeView.value.id)
+    const meta = metas.value[activeView.value.fk_model_id]
+    await $api.internal.postOperation(
+      meta!.fk_workspace_id!,
+      meta!.base_id!,
+      {
+        operation: 'viewShareDelete',
+        viewId: activeView.value.id,
+      },
+      {},
+    )
 
     activeView.value = { ...activeView.value, uuid: undefined, password: undefined }
   } else {
-    const response = await $api.dbViewShare.create(activeView.value.id)
+    const meta = metas.value[activeView.value.fk_model_id]
+    const response = await $api.internal.postOperation(
+      meta!.fk_workspace_id!,
+      meta!.base_id!,
+      {
+        operation: 'viewShare',
+        viewId: activeView.value.id,
+      },
+      {},
+    )
     activeView.value = { ...activeView.value, ...(response as any) }
 
     if (activeView.value!.type === ViewTypes.KANBAN) {
@@ -328,11 +346,20 @@ async function updateSharedView(custUrl = undefined) {
     if (!activeView.value?.meta) return
     const meta = activeView.value.meta
 
-    const res = await $api.dbViewShare.update(activeView.value.id!, {
-      meta,
-      password: activeView.value.password,
-      ...(custUrl !== undefined ? { custom_url_path: custUrl ?? null } : {}),
-    })
+    const metaInfo = metas.value[activeView.value.fk_model_id]
+    const res = await $api.internal.postOperation(
+      metaInfo!.fk_workspace_id!,
+      metaInfo!.base_id!,
+      {
+        operation: 'viewShareUpdate',
+        viewId: activeView.value.id!,
+      },
+      {
+        meta,
+        password: activeView.value.password,
+        ...(custUrl !== undefined ? { custom_url_path: custUrl ?? null } : {}),
+      },
+    )
 
     if (custUrl !== undefined) {
       activeView.value.fk_custom_url_id = res.fk_custom_url_id

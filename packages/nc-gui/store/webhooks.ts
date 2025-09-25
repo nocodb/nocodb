@@ -18,7 +18,12 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
   async function loadHooksList() {
     isHooksLoading.value = true
     try {
-      const hookList = (await $api.dbTableWebhook.list(activeTable.value?.id as string)).list
+      const hookList = (
+        await $api.internal.getOperation(activeTable.value!.fk_workspace_id!, activeTable.value!.base_id!, {
+          operation: 'hookList',
+          tableId: activeTable.value?.id as string,
+        })
+      ).list
 
       hooks.value = hookList.map((hook) => {
         hook.notification = parseProp(hook.notification)
@@ -36,7 +41,15 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
 
     try {
       if (id) {
-        await $api.dbTableWebhook.delete(id)
+        await $api.internal.postOperation(
+          activeTable.value!.fk_workspace_id!,
+          activeTable.value!.base_id!,
+          {
+            operation: 'hookDelete',
+            hookId: id,
+          },
+          {},
+        )
         hooks.value.splice(index, 1)
       } else {
         hooks.value.splice(index, 1)
@@ -54,12 +67,20 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
 
   async function copyHook(hook: HookType) {
     try {
-      const newHook = await $api.dbTableWebhook.create(hook.fk_model_id!, {
-        ...hook,
-        trigger_field: !!hook.trigger_field,
-        title: generateUniqueTitle(`${hook.title} copy`, hooks.value, 'title', '_', true),
-        active: hook.event === 'manual',
-      } as HookReqType)
+      const newHook = await $api.internal.postOperation(
+        activeTable.value!.fk_workspace_id!,
+        activeTable.value!.base_id!,
+        {
+          operation: 'hookCreate',
+          tableId: hook.fk_model_id!,
+        },
+        {
+          ...hook,
+          trigger_field: !!hook.trigger_field,
+          title: generateUniqueTitle(`${hook.title} copy`, hooks.value, 'title', '_', true),
+          active: hook.event === 'manual',
+        } as HookReqType,
+      )
 
       if (newHook) {
         $e('a:webhook:copy')
@@ -103,21 +124,37 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     try {
       let res
       if (hook.id) {
-        res = await $api.dbTableWebhook.update(hook.id, {
-          ...hook,
-          notification: {
-            ...hook.notification,
-            payload: hook.notification.payload,
+        res = await $api.internal.postOperation(
+          activeTable.value!.fk_workspace_id!,
+          activeTable.value!.base_id!,
+          {
+            operation: 'hookUpdate',
+            hookId: hook.id,
           },
-        })
+          {
+            ...hook,
+            notification: {
+              ...hook.notification,
+              payload: hook.notification.payload,
+            },
+          },
+        )
       } else {
-        res = await $api.dbTableWebhook.create(activeTable.value!.id!, {
-          ...hook,
-          notification: {
-            ...hook.notification,
-            payload: hook.notification.payload,
+        res = await $api.internal.postOperation(
+          activeTable.value!.fk_workspace_id!,
+          activeTable.value!.base_id!,
+          {
+            operation: 'hookCreate',
+            tableId: activeTable.value!.id!,
           },
-        } as HookReqType)
+          {
+            ...hook,
+            notification: {
+              ...hook.notification,
+              payload: hook.notification.payload,
+            },
+          } as HookReqType,
+        )
 
         hooks.value.push(res)
       }

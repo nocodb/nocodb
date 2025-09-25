@@ -26,6 +26,7 @@ import { ScriptsService } from '~/services/scripts.service';
 import { getBaseSchema } from '~/helpers/scriptHelper';
 import { NcError } from '~/helpers/catchError';
 import { IntegrationsService } from '~/services/integrations.service';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import {
   InternalGETResponseType,
   InternalPOSTResponseType,
@@ -37,6 +38,16 @@ import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { ActionsService } from '~/services/actions.service';
 import { MailService } from '~/services/mail/mail.service';
 import { TablesService } from '~/services/tables.service';
+import { ViewsService } from '~/services/views.service';
+import { FiltersService } from '~/services/filters.service';
+import { SortsService } from '~/services/sorts.service';
+import { HooksService } from '~/services/hooks.service';
+import { GridsService } from '~/services/grids.service';
+import { FormsService } from '~/services/forms.service';
+import { GalleriesService } from '~/services/galleries.service';
+import { KanbansService } from '~/services/kanbans.service';
+import { MapsService } from '~/services/maps.service';
+import { CalendarsService } from '~/services/calendars.service';
 import { ViewSettingsOverrideService } from '~/services/view-settings-override.service';
 import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
@@ -56,6 +67,16 @@ export class InternalController extends InternalControllerCE {
     protected readonly mcpService: McpTokenService,
     protected readonly auditsService: AuditsService,
     protected readonly tablesService: TablesService,
+    protected readonly viewsService: ViewsService,
+    protected readonly filtersService: FiltersService,
+    protected readonly sortsService: SortsService,
+    protected readonly hooksService: HooksService,
+    protected readonly gridsService: GridsService,
+    protected readonly formsService: FormsService,
+    protected readonly galleriesService: GalleriesService,
+    protected readonly kanbansService: KanbansService,
+    protected readonly mapsService: MapsService,
+    protected readonly calendarsService: CalendarsService,
 
     private readonly dataReflectionService: DataReflectionService,
     private readonly remoteImportService: RemoteImportService,
@@ -173,6 +194,56 @@ export class InternalController extends InternalControllerCE {
         return await this.tablesService.getTableWithAccessibleViews(context, {
           tableId: req.query.tableId,
           user: req.user,
+        });
+      case 'columnsHash':
+        return await this.columnsService.columnsHash(
+          context,
+          req.query.tableId as string,
+        );
+      case 'viewList':
+        return new PagedResponseImpl(
+          await this.viewsService.viewList(context, {
+            tableId: req.query.tableId as string,
+            user: req.user,
+          }),
+        );
+      case 'filterList':
+        return new PagedResponseImpl(
+          await this.filtersService.filterList(context, {
+            viewId: req.query.viewId as string,
+          }),
+        );
+      case 'filterChildrenList':
+        return new PagedResponseImpl(
+          await this.filtersService.filterChildrenList(context, {
+            filterId: req.query.filterId as string,
+          }),
+        );
+      case 'sortList':
+        return new PagedResponseImpl(
+          await this.sortsService.sortList(context, {
+            viewId: req.query.viewId as string,
+          }),
+        );
+      case 'hookList':
+        return new PagedResponseImpl(
+          await this.hooksService.hookList(context, {
+            tableId: req.query.tableId as string,
+          }),
+        );
+      case 'hookLogList':
+        return new PagedResponseImpl(
+          await this.hooksService.hookLogList(context, {
+            hookId: req.query.hookId as string,
+            query: req.query,
+          }),
+        );
+      case 'hookSamplePayload':
+        return await this.hooksService.hookSamplePayload(context, {
+          event: req.query.event as string,
+          tableId: req.query.tableId as string,
+          operation: req.query.operation as string,
+          version: req.query.version as string,
         });
       case 'teamList':
         return await this.teamsV3Service.teamList(context, {
@@ -417,6 +488,242 @@ export class InternalController extends InternalControllerCE {
       case 'integrationRemoteFetch': {
         return await this.integrationsService.remoteFetch(context, payload);
       }
+      case 'tableUpdate':
+        return await this.tablesService.tableUpdate(context, {
+          tableId: req.query.tableId,
+          table: payload,
+          user: req.user,
+          req,
+        });
+      case 'tableDelete':
+        return await this.tablesService.tableDelete(context, {
+          tableId: req.query.tableId,
+          user: req.user,
+          forceDeleteRelations: payload?.forceDeleteRelations,
+          req,
+        });
+      case 'tableReorder':
+        return await this.tablesService.reorderTable(context, {
+          tableId: req.query.tableId,
+          order: payload.order,
+          req,
+        });
+      case 'columnCreate':
+        return await this.columnsService.columnAdd(context, {
+          tableId: req.query.tableId,
+          column: payload,
+          user: req.user,
+          req,
+        });
+      case 'columnUpdate':
+        return await this.columnsService.columnUpdate(context, {
+          columnId: req.query.columnId,
+          column: payload,
+          user: req.user,
+          req,
+        });
+      case 'columnDelete':
+        return await this.columnsService.columnDelete(context, {
+          columnId: req.query.columnId,
+          user: req.user,
+          req,
+        });
+      case 'columnPrimarySet':
+        return await this.columnsService.columnSetAsPrimary(context, {
+          columnId: req.query.columnId,
+          req,
+        });
+      case 'columnsBulk':
+        return await this.columnsService.columnBulk(
+          context,
+          req.query.tableId,
+          payload,
+          req,
+        );
+      case 'viewUpdate':
+        return await this.viewsService.viewUpdate(context, {
+          viewId: req.query.viewId,
+          view: payload,
+          user: req.user,
+          req,
+        });
+      case 'viewDelete':
+        return await this.viewsService.viewDelete(context, {
+          viewId: req.query.viewId,
+          user: req.user,
+          req,
+        });
+      case 'viewShare':
+        return await this.viewsService.shareView(context, {
+          viewId: req.query.viewId,
+          user: req.user,
+          req,
+        });
+      case 'viewShareUpdate':
+        return await this.viewsService.shareViewUpdate(context, {
+          viewId: req.query.viewId,
+          sharedView: payload,
+          user: req.user,
+          req,
+        });
+      case 'viewShareDelete':
+        return await this.viewsService.shareViewDelete(context, {
+          viewId: req.query.viewId,
+          user: req.user,
+          req,
+        });
+      case 'viewShowAll':
+        return await this.viewsService.showAllColumns(context, {
+          viewId: req.query.viewId,
+          ignoreIds: req.query.ignoreIds,
+        });
+      case 'viewHideAll':
+        return await this.viewsService.hideAllColumns(context, {
+          viewId: req.query.viewId,
+          ignoreIds: req.query.ignoreIds,
+        });
+      case 'filterCreate':
+        return await this.filtersService.filterCreate(context, {
+          viewId: req.query.viewId,
+          filter: payload,
+          user: req.user,
+          req,
+        });
+      case 'filterUpdate':
+        return await this.filtersService.filterUpdate(context, {
+          filterId: req.query.filterId,
+          filter: payload,
+          user: req.user,
+          req,
+        });
+      case 'filterDelete':
+        return await this.filtersService.filterDelete(context, {
+          filterId: req.query.filterId,
+          req,
+        });
+      case 'sortCreate':
+        return await this.sortsService.sortCreate(context, {
+          viewId: req.query.viewId,
+          sort: payload,
+          req,
+        });
+      case 'sortUpdate':
+        return await this.sortsService.sortUpdate(context, {
+          sortId: req.query.sortId,
+          sort: payload,
+          req,
+        });
+      case 'sortDelete':
+        return await this.sortsService.sortDelete(context, {
+          sortId: req.query.sortId,
+          req,
+        });
+      case 'hookCreate':
+        return await this.hooksService.hookCreate(context, {
+          tableId: req.query.tableId,
+          hook: payload,
+          req,
+        });
+      case 'hookUpdate':
+        return await this.hooksService.hookUpdate(context, {
+          hookId: req.query.hookId,
+          hook: payload,
+          req,
+        });
+      case 'hookDelete':
+        return await this.hooksService.hookDelete(context, {
+          hookId: req.query.hookId,
+          req,
+        });
+      case 'hookTest':
+        return await this.hooksService.hookTest(context, {
+          hookTest: {
+            ...payload,
+            payload: {
+              ...payload.payload,
+              user: req.user,
+            },
+          },
+          tableId: req.query.tableId,
+          req,
+        });
+      case 'gridViewCreate':
+        return await this.gridsService.gridViewCreate(context, {
+          grid: payload,
+          tableId: req.query.tableId,
+          req,
+        });
+      case 'formViewCreate':
+        return await this.formsService.formViewCreate(context, {
+          body: payload,
+          tableId: req.query.tableId,
+          user: req.user,
+          req,
+        });
+      case 'galleryViewCreate':
+        return await this.galleriesService.galleryViewCreate(context, {
+          gallery: payload,
+          tableId: req.query.tableId,
+          user: req.user,
+          req,
+        });
+      case 'kanbanViewCreate':
+        return await this.kanbansService.kanbanViewCreate(context, {
+          kanban: payload,
+          tableId: req.query.tableId,
+          user: req.user,
+          req,
+        });
+      case 'mapViewCreate':
+        return await this.mapsService.mapViewCreate(context, {
+          map: payload,
+          tableId: req.query.tableId,
+          user: req.user,
+          req,
+        });
+      case 'calendarViewCreate':
+        return await this.calendarsService.calendarViewCreate(context, {
+          calendar: payload,
+          tableId: req.query.tableId,
+          user: req.user,
+          req,
+        });
+      case 'gridViewUpdate':
+        return await this.gridsService.gridViewUpdate(context, {
+          viewId: req.query.viewId,
+          grid: payload,
+          req,
+        });
+      case 'formViewUpdate':
+        return await this.formsService.formViewUpdate(context, {
+          formViewId: req.query.viewId,
+          form: payload,
+          req,
+        });
+      case 'galleryViewUpdate':
+        return await this.galleriesService.galleryViewUpdate(context, {
+          galleryViewId: req.query.viewId,
+          gallery: payload,
+          req,
+        });
+      case 'kanbanViewUpdate':
+        return await this.kanbansService.kanbanViewUpdate(context, {
+          kanbanViewId: req.query.viewId,
+          kanban: payload,
+          req,
+        });
+      case 'mapViewUpdate':
+        return await this.mapsService.mapViewUpdate(context, {
+          mapViewId: req.query.viewId,
+          map: payload,
+          req,
+        });
+      case 'calendarViewUpdate':
+        return await this.calendarsService.calendarViewUpdate(context, {
+          calendarViewId: req.query.viewId,
+          calendar: payload,
+          req,
+        });
       case 'viewSettingOverride':
         return await this.viewSettingsOverrideService.overrideViewSetting(
           context,

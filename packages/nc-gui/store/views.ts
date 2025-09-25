@@ -45,7 +45,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const { sharedView } = useSharedView()
 
-  const { openedProject } = storeToRefs(bases)
+  const { openedProject, activeProjectId } = storeToRefs(bases)
 
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
@@ -200,7 +200,12 @@ export const useViewsStore = defineStore('viewsStore', () => {
       }
       if (!ignoreLoading) isViewsLoading.value = true
 
-      response = (await $api.dbView.list(tableId)).list as ViewType[]
+      response = (
+        await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value!, {
+          operation: 'viewList',
+          tableId,
+        })
+      ).list as ViewType[]
       if (response) {
         viewsByTable.value.set(
           tableId,
@@ -342,31 +347,79 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
       switch (form.type) {
         case ViewTypes.GRID:
-          data = await $api.dbView.gridCreate(tableId, form)
+          data = await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            openedProject.value!.id!,
+            {
+              operation: 'gridViewCreate',
+              tableId,
+            },
+            form,
+          )
           break
         case ViewTypes.GALLERY:
-          data = await $api.dbView.galleryCreate(tableId, form)
+          data = await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            openedProject.value!.id!,
+            {
+              operation: 'galleryViewCreate',
+              tableId,
+            },
+            form,
+          )
           break
         case ViewTypes.FORM:
-          data = await $api.dbView.formCreate(tableId, {
-            ...form,
-            ...getDefaultViewMetas(ViewTypes.FORM),
-          })
+          data = await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            openedProject.value!.id!,
+            {
+              operation: 'formViewCreate',
+              tableId,
+            },
+            {
+              ...form,
+              ...getDefaultViewMetas(ViewTypes.FORM),
+            },
+          )
           break
         case ViewTypes.KANBAN:
-          data = await $api.dbView.kanbanCreate(tableId, form)
+          data = await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            openedProject.value!.id!,
+            {
+              operation: 'kanbanViewCreate',
+              tableId,
+            },
+            form,
+          )
           break
         case ViewTypes.MAP:
-          data = await $api.dbView.mapCreate(tableId, form)
+          data = await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            openedProject.value!.id!,
+            {
+              operation: 'mapViewCreate',
+              tableId,
+            },
+            form,
+          )
           break
         case ViewTypes.CALENDAR:
-          data = await $api.dbView.calendarCreate(tableId, {
-            ...form,
-            calendar_range: form.calendar_range.map((range) => ({
-              fk_from_column_id: range.fk_from_column_id,
-              fk_to_column_id: range.fk_to_column_id,
-            })),
-          })
+          data = await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            openedProject.value!.id!,
+            {
+              operation: 'calendarViewCreate',
+              tableId,
+            },
+            {
+              ...form,
+              calendar_range: form.calendar_range.map((range) => ({
+                fk_from_column_id: range.fk_from_column_id,
+                fk_to_column_id: range.fk_to_column_id,
+              })),
+            },
+          )
           break
       }
 
@@ -461,7 +514,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
     const activeViewId = activeView.value?.id
 
     try {
-      await $api.dbView.delete(view.id)
+      await $api.internal.postOperation(
+        activeWorkspaceId.value!,
+        openedProject.value!.id!,
+        {
+          operation: 'viewDelete',
+          viewId: view.id,
+        },
+        {},
+      )
 
       // Remove view from the viewsByTable map
       const tableViews = viewsByTable.value.get(view.fk_model_id) || []
@@ -510,7 +571,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const updateView = async (viewId: string, updates: Partial<ViewType>): Promise<ViewType | null> => {
     try {
-      const updatedView = await $api.dbView.update(viewId, updates)
+      const updatedView = await $api.internal.postOperation(
+        activeWorkspaceId.value!,
+        openedProject.value!.id!,
+        {
+          operation: 'viewUpdate',
+          viewId,
+        },
+        updates,
+      )
 
       // Find the table and update the view in the store
       const tableId = activeView.value?.fk_model_id

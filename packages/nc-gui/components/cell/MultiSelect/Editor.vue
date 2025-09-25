@@ -20,6 +20,8 @@ const { isMobileMode } = useGlobal()
 
 const column = inject(ColumnInj)!
 
+const meta = inject(MetaInj)!
+
 const readOnly = inject(ReadonlyInj)!
 
 const isEditable = inject(EditModeInj, ref(false))
@@ -228,8 +230,13 @@ async function addIfMissingAndSave() {
         }
       }
 
-      const data = await $api.dbTableColumn.update(
-        (column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string),
+      const data = await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'columnUpdate',
+          columnId: (column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string),
+        },
         updatedColMeta,
       )
 

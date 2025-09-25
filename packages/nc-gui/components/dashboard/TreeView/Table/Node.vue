@@ -137,9 +137,17 @@ const setIcon = async (icon: string, table: TableType) => {
       tables.value[index] = { ...table }
     }
 
-    await $api.dbTable.update(table.id as string, {
-      meta: table.meta,
-    })
+    await $api.internal.postOperation(
+      table.fk_workspace_id!,
+      table.base_id!,
+      {
+        operation: 'tableUpdate',
+        tableId: table.id as string,
+      },
+      {
+        meta: table.meta,
+      },
+    )
 
     $e('a:table:icon:navdraw', { icon })
   } catch (e) {

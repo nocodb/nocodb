@@ -66,7 +66,15 @@ const onDelete = async () => {
   isLoading.value = true
 
   try {
-    await $api.dbTableColumn.delete(column.value.id as string)
+    await $api.internal.postOperation(
+      meta!.value!.fk_workspace_id!,
+      meta!.value!.base_id!,
+      {
+        operation: 'columnDelete',
+        columnId: column.value.id as string,
+      },
+      {},
+    )
 
     await getMeta(meta?.value?.id as string, true)
 

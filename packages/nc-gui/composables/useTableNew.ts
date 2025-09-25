@@ -243,7 +243,15 @@ export function useTableNew(param: {
             return
           }
 
-          await $api.dbTable.delete(table?.id as string)
+          await $api.internal.postOperation(
+            table.fk_workspace_id!,
+            table.base_id!,
+            {
+              operation: 'tableDelete',
+              tableId: table.id as string,
+            },
+            {},
+          )
 
           await loadTables()
 

@@ -76,10 +76,18 @@ const updateDescription = async (undo = false) => {
 
   loading.value = true
   try {
-    await $api.dbTable.update(tableMeta.id as string, {
-      base_id: tableMeta.base_id,
-      description: formState.description,
-    })
+    await $api.internal.postOperation(
+      tableMeta.fk_workspace_id!,
+      tableMeta.base_id!,
+      {
+        operation: 'tableUpdate',
+        tableId: tableMeta.id as string,
+      },
+      {
+        base_id: tableMeta.base_id,
+        description: formState.description,
+      },
+    )
 
     dialogShow.value = false
 

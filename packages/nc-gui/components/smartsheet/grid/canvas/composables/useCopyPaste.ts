@@ -305,7 +305,12 @@ export function useCopyPaste({
         if (options.expand) {
           colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
           if (newColsNeeded > 0) {
-            const columnsHash = (await $api.dbTableColumn.hash(meta.value?.id)).hash
+            const columnsHash = (
+              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                operation: 'columnsHash',
+                tableId: meta.value?.id!,
+              })
+            ).hash
             const columnsLength = meta.value?.columns?.length || 0
 
             // Create new columns as needed
@@ -335,10 +340,15 @@ export function useCopyPaste({
               })
             }
 
-            await $api.dbTableColumn.bulk(meta.value?.id, {
-              hash: columnsHash,
-              ops: bulkOpsCols,
-            })
+            await $api.internal.postOperation(
+              meta.value!.fk_workspace_id!,
+              meta.value!.base_id!,
+              { operation: 'columnsBulk', tableId: meta.value?.id! },
+              {
+                hash: columnsHash,
+                ops: bulkOpsCols,
+              },
+            )
 
             await getMeta(meta?.value?.id as string, true)
             colsToPaste = [...colsToPaste, ...bulkOpsCols.map(({ column }) => column)]

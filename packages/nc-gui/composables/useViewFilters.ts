@@ -286,11 +286,16 @@ export function useViewFilters(
       // Check if the filter is a group
       if (filter.id && filter.is_group) {
         // Load children filters from the backend
-        const childFilterPromise = $api.dbTableFilter.childrenRead(filter.id).then((response) => {
-          const childFilters = (response.list as ColumnFilterType[]).sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
-          allChildFilters.push(...childFilters)
-          return loadAllChildFilters(childFilters)
-        })
+        const childFilterPromise = $api.internal
+          .getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+            operation: 'filterChildrenList',
+            filterId: filter.id,
+          })
+          .then((response) => {
+            const childFilters = (response.list as ColumnFilterType[]).sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
+            allChildFilters.push(...childFilters)
+            return loadAllChildFilters(childFilters)
+          })
         promises.push(childFilterPromise)
       }
     }
@@ -325,28 +330,53 @@ export function useViewFilters(
     try {
       if (isWebhook || hookId) {
         if (parentId.value) {
-          filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as ColumnFilterType[]
+          filters.value = (
+            await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              operation: 'filterChildrenList',
+              filterId: parentId.value,
+            })
+          ).list as ColumnFilterType[]
         } else if (hookId && !isNestedRoot) {
           filters.value = (await $api.dbTableWebhookFilter.read(hookId)).list as ColumnFilterType[]
         }
       } else {
         if (isLink || linkColId?.value) {
           if (parentId.value) {
-            filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as ColumnFilterType[]
+            filters.value = (
+              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                operation: 'filterChildrenList',
+                filterId: parentId.value,
+              })
+            ).list as ColumnFilterType[]
           } else if (linkColId?.value && !isNestedRoot) {
             filters.value = (await $api.dbTableLinkFilter.read(linkColId?.value)).list as ColumnFilterType[]
           }
         } else if (isWidget || widgetId) {
           if (parentId.value) {
-            filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as ColumnFilterType[]
+            filters.value = (
+              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                operation: 'filterChildrenList',
+                filterId: parentId.value,
+              })
+            ).list as ColumnFilterType[]
           } else if (widgetId && !isNestedRoot) {
             filters.value = (await $api.dbWidgetFilter.read(widgetId)).list as ColumnFilterType[]
           }
         } else {
           if (parentId.value) {
-            filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as ColumnFilterType[]
+            filters.value = (
+              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                operation: 'filterChildrenList',
+                filterId: parentId.value,
+              })
+            ).list as ColumnFilterType[]
           } else {
-            filters.value = (await $api.dbTableFilter.read(view.value!.id!)).list as ColumnFilterType[]
+            filters.value = (
+              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                operation: 'filterList',
+                viewId: view.value!.id!,
+              })
+            ).list as ColumnFilterType[]
             if (loadAllFilters) {
               allFilters.value = [...filters.value] as FilterType[]
               await loadAllChildFilters(allFilters.value as ColumnFilterType[])
@@ -373,17 +403,33 @@ export function useViewFilters(
     try {
       for (const [i, filter] of Object.entries(filters.value)) {
         if (filter.status === 'delete') {
-          await $api.dbTableFilter.delete(filter.id as string)
+          await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'filterDelete',
+              filterId: filter.id as string,
+            },
+            {},
+          )
           if (filter.is_group) {
             deleteFilterGroupFromAllFilters(filter)
           } else {
             if (!isLink && !isWebhook && !isWidget) allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
           }
         } else if (filter.status === 'update') {
-          await $api.dbTableFilter.update(filter.id as string, {
-            ...filter,
-            fk_parent_id: parentId.value,
-          })
+          await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'filterUpdate',
+              filterId: filter.id as string,
+            },
+            {
+              ...filter,
+              fk_parent_id: parentId.value,
+            },
+          )
         } else if (filter.status === 'create') {
           // extract children value if found to restore
           const children = filters.value[+i]?.children
@@ -406,8 +452,13 @@ export function useViewFilters(
               fk_parent_id: parentId.value,
             } as FilterType)) as ColumnFilterType
           } else {
-            filters.value[+i] = (await $api.dbTableFilter.create(
-              view?.value?.id as string,
+            filters.value[+i] = (await $api.internal.postOperation(
+              meta.value!.fk_workspace_id!,
+              meta.value!.base_id!,
+              {
+                operation: 'filterCreate',
+                viewId: view?.value?.id as string,
+              },
               {
                 ...filter,
                 fk_parent_id: parentId.value,
@@ -513,10 +564,18 @@ export function useViewFilters(
       } else if (!autoApply?.value && !force) {
         filter.status = filter.id ? 'update' : 'create'
       } else if (filters.value[i]?.id && filters.value[i]?.status !== 'create') {
-        await $api.dbTableFilter.update(filters.value[i].id!, {
-          ...filter,
-          fk_parent_id: parentId.value,
-        })
+        await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'filterUpdate',
+            filterId: filters.value[i].id!,
+          },
+          {
+            ...filter,
+            fk_parent_id: parentId.value,
+          },
+        )
         $e('a:filter:update', {
           logical: filter.logical_op,
           comparison: filter.comparison_op,
@@ -557,10 +616,18 @@ export function useViewFilters(
             status: undefined,
           }
         } else {
-          const savedFilter = await $api.dbTableFilter.create(view.value!.id!, {
-            ...filter,
-            fk_parent_id: parentId.value,
-          })
+          const savedFilter = await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'filterCreate',
+              viewId: view.value!.id!,
+            },
+            {
+              ...filter,
+              fk_parent_id: parentId.value,
+            },
+          )
           // extract id from saved filter and update the filter object
           // avoiding whole object update to prevent overwriting of current filter object changes
           filters.value[i] = {
@@ -639,7 +706,15 @@ export function useViewFilters(
           // no splice is required here
         } else {
           try {
-            await $api.dbTableFilter.delete(filter.id)
+            await $api.internal.postOperation(
+              meta.value!.fk_workspace_id!,
+              meta.value!.base_id!,
+              {
+                operation: 'filterDelete',
+                filterId: filter.id,
+              },
+              {},
+            )
             if (!isWebhook && !isLink && !isWidget) reloadData?.()
 
             // find item index by using id and remove it from array since item index may change

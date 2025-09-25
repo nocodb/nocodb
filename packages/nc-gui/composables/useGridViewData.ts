@@ -694,15 +694,25 @@ export function useGridViewData(
                 )
                 isBulkOperationInProgress.value = true
 
-                const columnsHash = (await $api.dbTableColumn.hash(meta.value?.id)).hash
+                const columnsHash = (
+                  await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                    operation: 'columnsHash',
+                    tableId: meta.value?.id!,
+                  })
+                ).hash
 
-                await $api.dbTableColumn.bulk(meta.value?.id, {
-                  hash: columnsHash,
-                  ops: newCols.map((col: ColumnType) => ({
-                    op: 'delete',
-                    column: col,
-                  })),
-                })
+                await $api.internal.postOperation(
+                  meta.value!.fk_workspace_id!,
+                  meta.value!.base_id!,
+                  { operation: 'columnsBulk', tableId: meta.value?.id! },
+                  {
+                    hash: columnsHash,
+                    ops: newCols.map((col: ColumnType) => ({
+                      op: 'delete',
+                      column: col,
+                    })),
+                  },
+                )
 
                 insertedRows.forEach((row) => {
                   dataCache.cachedRows.value.delete(row.rowMeta.rowIndex!)
@@ -724,15 +734,25 @@ export function useGridViewData(
             fn: async (insertRows: Row[], updateRows: Row[], path: Array<number>) => {
               try {
                 isBulkOperationInProgress.value = true
-                const columnsHash = (await $api.dbTableColumn.hash(meta.value?.id)).hash
+                const columnsHash = (
+                  await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                    operation: 'columnsHash',
+                    tableId: meta.value?.id!,
+                  })
+                ).hash
 
-                await $api.dbTableColumn.bulk(meta.value?.id, {
-                  hash: columnsHash,
-                  ops: newCols.map((col: ColumnType) => ({
-                    op: 'add',
-                    column: col,
-                  })),
-                })
+                await $api.internal.postOperation(
+                  meta.value!.fk_workspace_id!,
+                  meta.value!.base_id!,
+                  { operation: 'columnsBulk', tableId: meta.value?.id! },
+                  {
+                    hash: columnsHash,
+                    ops: newCols.map((col: ColumnType) => ({
+                      op: 'add',
+                      column: col,
+                    })),
+                  },
+                )
 
                 await bulkUpsertRows(insertRows, updateRows, props, { metaValue, viewMetaValue }, columns, true, path)
                 isBulkOperationInProgress.value = true

@@ -162,9 +162,17 @@ const initSortable = (el: Element) => {
           tables[tableIndex].order = item.order
         }
 
-        await $api.dbTable.reorder(item.id as string, {
-          order: item.order,
-        })
+        await $api.internal.postOperation(
+          item.fk_workspace_id!,
+          item.base_id!,
+          {
+            operation: 'tableReorder',
+            tableId: item.id as string,
+          },
+          {
+            order: item.order,
+          },
+        )
       }
 
       markItem(item.id)

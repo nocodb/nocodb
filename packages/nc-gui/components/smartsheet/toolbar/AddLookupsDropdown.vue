@@ -100,10 +100,15 @@ const createLookups = async () => {
       })
     }
 
-    await $api.dbTableColumn.bulk(meta.value?.id, {
-      hash: meta.value?.columnsHash,
-      ops: bulkOpsCols,
-    })
+    await $api.internal.postOperation(
+      meta.value!.fk_workspace_id!,
+      meta.value!.base_id!,
+      { operation: 'columnsBulk', tableId: meta.value?.id! },
+      {
+        hash: meta.value?.columnsHash,
+        ops: bulkOpsCols,
+      },
+    )
 
     await getMeta(meta?.value?.id as string, true)
 

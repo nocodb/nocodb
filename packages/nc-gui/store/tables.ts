@@ -165,11 +165,19 @@ export const useTablesStore = defineStore('tablesStore', () => {
     if (!table) return
 
     try {
-      await $api.dbTable.update(table.id as string, {
-        base_id: table.base_id,
-        table_name: table.table_name,
-        title: table.title,
-      })
+      await $api.internal.postOperation(
+        table.fk_workspace_id!,
+        table.base_id!,
+        {
+          operation: 'tableUpdate',
+          tableId: table.id as string,
+        },
+        {
+          base_id: table.base_id,
+          table_name: table.table_name,
+          title: table.title,
+        },
+      )
 
       await loadProjectTables(table.base_id!, true)
 

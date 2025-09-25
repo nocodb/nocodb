@@ -19,9 +19,14 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const isFullScreen = ref(false)
 
   const tablesStore = useTablesStore()
+
+  const allowHideLeftSidebarForCurrentRoute = computed(() => {
+    return ['index-typeOrId-baseId-index-index', 'index-typeOrId-settings'].includes(route.name as string)
+  })
+
   const isLeftSidebarOpen = computed({
     get() {
-      if (isMobileMode.value && route.name === 'index-typeOrId-settings') {
+      if (isMobileMode.value && allowHideLeftSidebarForCurrentRoute.value) {
         return _isLeftSidebarOpen.value
       }
 
@@ -141,6 +146,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     isFullScreen,
     toggleFullScreenState,
     ncIsIframeFullscreenSupported,
+    allowHideLeftSidebarForCurrentRoute,
   }
 })
 

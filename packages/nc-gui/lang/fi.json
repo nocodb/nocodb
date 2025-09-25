@@ -442,7 +442,8 @@
     "record": "Tietue",
     "overview": "Yhteenveto",
     "baseType": "Pohjan tyyppi",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Skripti",

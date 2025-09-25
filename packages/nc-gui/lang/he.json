@@ -442,7 +442,8 @@
     "record": "רשומה",
     "overview": "סקירה כללית",
     "baseType": "סוג בסיס",
-    "beta": "בטא"
+    "beta": "בטא",
+    "selected": "selected"
   },
   "objects": {
     "script": "סקריפט",

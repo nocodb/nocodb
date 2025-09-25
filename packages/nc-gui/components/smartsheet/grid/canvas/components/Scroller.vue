@@ -370,6 +370,15 @@ const animateScroll = () => {
   }
 }
 
+const scrollBounds = computed(() => {
+  return {
+    left: 0,
+    top: 0,
+    right: (contentWrapper.value?.scrollWidth ?? 0) - (wrapperRef.value?.clientWidth ?? 0),
+    bottom: (contentWrapper.value?.scrollHeight ?? 0) - (wrapperRef.value?.clientHeight ?? 0),
+  }
+})
+
 const handleTouchEnd = () => {
   scrollState.value.velocity = calculateVelocity()
   scrollState.value.animation = requestAnimationFrame(animateScroll)
@@ -377,12 +386,12 @@ const handleTouchEnd = () => {
 
 const scrollTo = ({ left, top }: { left?: number; top?: number }) => {
   if (left !== undefined) {
-    const maxScrollLeft = contentWrapper.value.scrollWidth - wrapperRef.value.clientWidth
+    const maxScrollLeft = scrollBounds.value.right
     scrollLeft.value = Math.max(0, Math.min(left, maxScrollLeft))
   }
 
   if (top !== undefined) {
-    const maxScrollTop = contentWrapper.value.scrollHeight - wrapperRef.value.clientHeight
+    const maxScrollTop = scrollBounds.value.bottom
     scrollTop.value = Math.max(0, Math.min(top, maxScrollTop))
   }
 
@@ -418,6 +427,7 @@ defineExpose({
     top: scrollTop.value,
   }),
   wrapperRef,
+  scrollBounds,
 })
 </script>
 

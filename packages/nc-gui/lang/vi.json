@@ -442,7 +442,8 @@
     "record": "Ghi lại",
     "overview": "Tổng quan",
     "baseType": "Loại cơ sở",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Script",

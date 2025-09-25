@@ -23,6 +23,9 @@
       "node18-win-x64"
     ]
   },
+  "engines": {
+    "node": "18.19.1"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -38,6 +41,6 @@
     "sqlite3": "5.1.6"
   },
   "devDependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.11"
+    "@mapbox/node-pre-gyp": "1.0.11"
   }
 }

@@ -442,7 +442,8 @@
     "record": "Ieraksts",
     "overview": "Pārskats",
     "baseType": "Bāzes tips",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Skripts",

@@ -442,7 +442,8 @@
     "record": "अभिलेख",
     "overview": "सारांश",
     "baseType": "बेस प्रकार",
-    "beta": "बीटा"
+    "beta": "बीटा",
+    "selected": "selected"
   },
   "objects": {
     "script": "स्क्रिप्ट",

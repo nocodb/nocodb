@@ -442,7 +442,8 @@
     "record": "سجل",
     "overview": "نظرة عامة",
     "baseType": "نوع القاعدة",
-    "beta": "بيتا"
+    "beta": "بيتا",
+    "selected": "selected"
   },
   "objects": {
     "script": "سكربت",

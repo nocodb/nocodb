@@ -442,7 +442,8 @@
     "record": "Kayıt",
     "overview": "Genel Bakış",
     "baseType": "Taban Türü",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Script",

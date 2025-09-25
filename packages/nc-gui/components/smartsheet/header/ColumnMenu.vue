@@ -698,7 +698,7 @@ const onDeleteColumn = () => {
     </NcMenuItem>
     <NcDivider v-if="isUIAllowed('fieldAlter') && !column?.pv" />
     <NcMenuItem v-if="!column?.pv" :disabled="isLocked" @click="hideOrShowField">
-      <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
+      <div v-e="['a:field:hide']" class="nc-column-hide-or-show nc-header-menu-item">
         <GeneralLoader v-if="isLoading === 'hideOrShow'" size="regular" />
         <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" v-else class="!w-4 !h-4 opacity-80" />
         <!-- Hide Field -->
@@ -735,7 +735,7 @@ const onDeleteColumn = () => {
             {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
           </template>
           <NcMenuItem :disabled="isLocked || !isSortSupported" @click="sortByColumn('asc')">
-            <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
+            <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-header-menu-item">
               <component :is="iconMap.sortDesc" class="opacity-80 transform !rotate-180 !w-4.25 !h-4.25" />
 
               <!-- Sort Ascending -->
@@ -749,7 +749,7 @@ const onDeleteColumn = () => {
             {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
           </template>
           <NcMenuItem :disabled="isLocked || !isSortSupported" @click="sortByColumn('desc')">
-            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
+            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-header-menu-item">
               <!-- Sort Descending -->
               <component :is="iconMap.sortDesc" class="opacity-80 !w-4.25 !h-4.25" />
               {{ $t('general.sortDesc').trim() }}

@@ -13,6 +13,9 @@ const { size, animate } = toRefs(props)
 
 const ping = autoResetRef(false, 1000)
 
+const { appInfo } = useGlobal()
+const iconSrc = computed(() => appInfo.value?.companyIconUrl)
+
 const onClick = useThrottleFn(() => {
   ping.value = true
 }, 1000)
@@ -26,7 +29,8 @@ const onClick = useThrottleFn(() => {
   >
     <div class="relative">
       <!-- <img class="hidden dark:block" :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/256x256-trans.png" /> -->
-      <img :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+      <img v-if="!iconSrc" :width="size" :height="size" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+      <img v-else :width="size" :height="size" alt="Logo" :src="iconSrc" />
 
       <TransitionGroup name="layout" :duration="500">
         <template v-if="animate || ping">

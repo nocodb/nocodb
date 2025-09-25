@@ -11,6 +11,13 @@ export const useEeConfig = createSharedComposable(() => {
 
   const { appInfo } = useGlobal()
 
+  // Helper to read boolean overrides from appInfo.eeFeatureFlags
+  const ee = computed(() => appInfo.value?.eeFeatureFlags || {})
+  const flagOr = (key: string, fallback: boolean) => computed(() => {
+    const v = ee.value?.[key]
+    return typeof v === 'boolean' ? v : fallback
+  })
+
   const isOrgBilling = ref(false)
 
   const isSideBannerExpanded = ref(false)
@@ -49,21 +56,21 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isTopBannerVisible = computed(() => false)
 
-  const blockWsImageLogoUpload = computed(() => true)
+  const blockWsImageLogoUpload = flagOr('blockWsImageLogoUpload', true)
 
-  const blockCurrentUserFilter = computed(() => false)
+  const blockCurrentUserFilter = flagOr('blockCurrentUserFilter', false)
 
-  const blockRowColoring = computed(() => true)
+  const blockRowColoring = flagOr('blockRowColoring', true)
 
-  const blockTableAndFieldPermissions = computed(() => true)
+  const blockTableAndFieldPermissions = flagOr('blockTableAndFieldPermissions', true)
 
-  const blockPrivateBases = computed(() => true)
+  const blockPrivateBases = flagOr('blockPrivateBases', true)
 
-  const blockAddNewDashboard = computed(() => true)
+  const blockAddNewDashboard = flagOr('blockAddNewDashboard', true)
 
-  const blockCalendarRange = computed(() => true)
+  const blockCalendarRange = flagOr('blockCalendarRange', true)
 
-  const blockAddNewScript = computed(() => true)
+  const blockAddNewScript = flagOr('blockAddNewScript', true)
 
   const showUserMayChargeAlert = computed(() => false)
 
@@ -72,9 +79,9 @@ export const useEeConfig = createSharedComposable(() => {
     return Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50)
   })
 
-  const blockAiPromptField = computed(() => true)
+  const blockAiPromptField = flagOr('blockAiPromptField', true)
 
-  const blockAiButtonField = computed(() => true)
+  const blockAiButtonField = flagOr('blockAiButtonField', true)
 
   const calculatePrice = (..._args: any[]) => {}
 

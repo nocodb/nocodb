@@ -759,9 +759,9 @@ export class ColumnsService implements IColumnsService {
             }
 
             if (
-              (colBody as Column<LinkToAnotherRecordColumn>).colOptions
+              (colBody as Column<LinkToAnotherRecordColumn>).colOptions?
                 .fk_target_view_id ||
-              (colBody as Column<LinkToAnotherRecordColumn>).colOptions
+              (colBody as Column<LinkToAnotherRecordColumn>).colOptions?
                 .fk_target_view_id === null
             ) {
               await Column.updateTargetView(context, {

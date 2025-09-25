@@ -319,6 +319,7 @@ async function onDuplicate() {
       navigateToView({
         view,
         tableId: table.value!.id!,
+        tableTitle: table.value.title,
         baseId: base.value.id!,
         hardReload: view.type === ViewTypes.FORM,
       })

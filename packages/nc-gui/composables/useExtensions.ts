@@ -1,5 +1,5 @@
 import { useStorage } from '@vueuse/core'
-import { PlanLimitTypes } from 'nocodb-sdk'
+import { hasMinimumRoleAccess, PlanLimitTypes, ProjectRoles } from 'nocodb-sdk'
 import { usePlugin } from './usePlugin'
 import { ExtensionsEvents } from '#imports'
 
@@ -34,7 +34,6 @@ abstract class ExtensionType {
   abstract kvStore: IKvStore<any>
   abstract meta: any
   abstract order: number
-  abstract minAccessRole: ExtensionManifest['minAccessRole']
   abstract setTitle(title: string): Promise<any>
   abstract setMeta(key: string, value: any): Promise<any>
   abstract clear(): Promise<any>
@@ -51,6 +50,7 @@ export const useExtensions = createSharedComposable(() => {
     getPluginAssetUrl,
     availableExtensions,
     availableExtensionIds,
+    availableExtensionMapById,
     pluginTypes,
     pluginDescriptionContent,
     isPluginsEnabled,
@@ -59,6 +59,8 @@ export const useExtensions = createSharedComposable(() => {
   const { baseExtensions } = extensionsState()
 
   const { $api, $e } = useNuxtApp()
+
+  const { user } = useGlobal()
 
   const { isUIAllowed } = useRoles()
 
@@ -108,11 +110,20 @@ export const useExtensions = createSharedComposable(() => {
 
   const extensionList = computed<ExtensionType[]>(() => {
     return (activeBaseExtensions.value ? activeBaseExtensions.value.extensions : [])
-      .filter((e: ExtensionType) => availableExtensionIds.value.includes(e.extensionId))
+      .filter(
+        (e: ExtensionType) =>
+          availableExtensionIds.value.includes(e.extensionId) &&
+          hasMinimumRoleAccess(user.value, getExtensionMinAccessRole(e.extensionId) as ProjectRoles),
+      )
       .sort((a: ExtensionType, b: ExtensionType) => {
         return (a?.order ?? Infinity) - (b?.order ?? Infinity)
       })
   })
+
+  const getExtensionMinAccessRole = (extensionId: string): ExtensionManifest['minAccessRole'] => {
+    const extension = availableExtensionMapById.value[extensionId]
+    return extension?.minAccessRole || 'creator'
+  }
 
   const addExtension = async (extension: any) => {
     if (!base.value || !base.value.id || !baseExtensions.value[base.value.id]) {
@@ -257,7 +268,11 @@ export const useExtensions = createSharedComposable(() => {
     try {
       const { list } = await $api.extensions.list(baseId)
 
-      const extensions = list?.map((ext: any) => new Extension(ext))
+      const extensions = list
+        ?.map((ext: any) => new Extension(ext))
+        .filter((ext: any) => {
+          return hasMinimumRoleAccess(user.value, getExtensionMinAccessRole(ext.extensionId) as ProjectRoles)
+        })
 
       if (baseExtensions.value[baseId]) {
         baseExtensions.value[baseId].extensions = extensions || baseExtensions.value[baseId].extensions
@@ -312,7 +327,6 @@ export const useExtensions = createSharedComposable(() => {
     private _kvStore: KvStore
     private _meta: any
     private _order: number
-    private _minAccessRole: ExtensionManifest['minAccessRole']
     public uiKey = 0
 
     constructor(data: any) {
@@ -324,7 +338,6 @@ export const useExtensions = createSharedComposable(() => {
       this._kvStore = new KvStore(this._id, data.kv_store)
       this._meta = data.meta
       this._order = data.order
-      this._minAccessRole = data.minAccessRole
     }
 
     get id() {
@@ -359,10 +372,6 @@ export const useExtensions = createSharedComposable(() => {
       return this._order
     }
 
-    get minAccessRole() {
-      return this._minAccessRole
-    }
-
     serialize() {
       return {
         id: this._id,
@@ -373,7 +382,6 @@ export const useExtensions = createSharedComposable(() => {
         kv_store: this._kvStore.serialize(),
         meta: this._meta,
         order: this._order,
-        minAccessRole: this._minAccessRole,
       }
     }
 
@@ -386,7 +394,6 @@ export const useExtensions = createSharedComposable(() => {
       this._kvStore = new KvStore(this._id, data.kv_store)
       this._meta = data.meta
       this._order = data.order
-      this._minAccessRole = data.minAccessRole
     }
 
     setTitle(title: string): Promise<any> {
@@ -414,9 +421,9 @@ export const useExtensions = createSharedComposable(() => {
   }
 
   watch(
-    [() => base.value?.id, isPluginsEnabled, () => isUIAllowed('extensionList')],
-    ([baseId, newPluginsEnabled, isAllowed]) => {
-      if (!newPluginsEnabled || !baseId || !isAllowed) {
+    [() => base.value?.id, isPluginsEnabled, () => isUIAllowed('extensionList'), () => pluginsLoaded.value],
+    ([baseId, newPluginsEnabled, isAllowed, isPluginsLoaded]) => {
+      if (!newPluginsEnabled || !baseId || !isAllowed || !isPluginsLoaded) {
         return
       }
 

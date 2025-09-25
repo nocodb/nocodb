@@ -473,6 +473,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
 
   return !!(
     eventTarget &&
+    target &&
     target.contains(eventTarget) &&
     closestNotDraggable &&
     (target.contains(closestNotDraggable) || closestNotDraggable === target)
@@ -1258,6 +1259,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
       :meta="meta"
       :load-row="!isPublic"
       :view="view"
+      :allow-null-field-ids="groupingFieldColumn?.id ? [groupingFieldColumn.id] : []"
       @cancel="removeRowFromUncategorizedStack"
     />
   </Suspense>
@@ -1272,6 +1274,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
       :expand-form="expandForm"
       :row-id="route.query.rowId"
       :view="view"
+      :allow-null-field-ids="groupingFieldColumn?.id ? [groupingFieldColumn.id] : []"
     />
   </Suspense>
 

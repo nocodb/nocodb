@@ -11,16 +11,16 @@ const route = router.currentRoute
 
 const { t } = useI18n()
 
-const { hideSidebar } = storeToRefs(useSidebarStore())
+const { hideSidebar, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { isUIAllowed, isBaseRolesLoaded } = useRoles()
+const { isUIAllowed, isBaseRolesLoaded, loadRoles } = useRoles()
+
+const { appInfo, isMobileMode } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { loadRoles } = useRoles()
 const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
-const { appInfo } = useGlobal()
 
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
@@ -128,16 +128,24 @@ onBeforeUnmount(() => {
       v-if="!props.workspaceId"
       class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2"
     >
-      <div class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1 nc-workspace-title">
-        <div class="nc-breadcrumb-item capitalize">
+      <GeneralOpenLeftSidebarBtn v-if="isMobileMode && !isLeftSidebarOpen" />
+      <div
+        class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1 nc-workspace-title"
+        :class="{
+          'max-w-[calc(100%_-_52px)]': isMobileMode,
+        }"
+      >
+        <div class="nc-breadcrumb-item capitalize truncate">
           {{ currentWorkspace?.title }}
         </div>
         <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
 
-        <h1 class="nc-breadcrumb-item active">
+        <h1 class="nc-breadcrumb-item active truncate">
           {{ $t('title.teamAndSettings') }}
         </h1>
       </div>
+
+      <GeneralHideLeftSidebarBtn v-if="isMobileMode && isLeftSidebarOpen" />
     </div>
     <template v-else>
       <div class="nc-breadcrumb px-2">

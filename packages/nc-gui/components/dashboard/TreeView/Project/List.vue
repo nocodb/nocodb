@@ -209,7 +209,10 @@ async function handleTableRename(
     })
 
     // update metas
-    const newMeta = await $api.dbTable.read(table.id as string)
+    const newMeta = await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value!, {
+      operation: 'tableGet',
+      tableId: table.id as string,
+    })
     await setMeta(newMeta)
     refreshCommandPalette()
 

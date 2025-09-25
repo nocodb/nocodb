@@ -96,7 +96,10 @@ export const useMetas = createSharedComposable(() => {
       const modelId =
         (tables.find((t) => t.id === tableIdOrTitle) || tables.find((t) => t.title === tableIdOrTitle))?.id || tableIdOrTitle
 
-      const model = await $api.dbTable.read(modelId)
+      const model = await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value!, {
+        operation: 'tableGet',
+        tableId: modelId,
+      })
       metas.value = {
         ...metas.value,
         [model.id!]: model,

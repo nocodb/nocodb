@@ -11,7 +11,7 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { isWorkspaceLoading } = storeToRefs(useWorkspace())
+const { activeWorkspaceId, isWorkspaceLoading } = storeToRefs(useWorkspace())
 
 const basesStore = useBases()
 
@@ -159,7 +159,10 @@ async function handleTableRename(
     })
 
     // update metas
-    const newMeta = await $api.dbTable.read(table.id as string)
+    const newMeta = await $api.internal.getOperation(activeWorkspaceId.value!, base.value.id!, {
+      operation: 'tableGet',
+      tableId: table.id as string,
+    })
     await setMeta(newMeta)
 
     refreshCommandPalette()

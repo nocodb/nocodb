@@ -36,6 +36,7 @@ import { PermissionsService } from '~/services/permissions.service';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { ActionsService } from '~/services/actions.service';
 import { MailService } from '~/services/mail/mail.service';
+import { TablesService } from '~/services/tables.service';
 import { ViewSettingsOverrideService } from '~/services/view-settings-override.service';
 import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
@@ -54,6 +55,8 @@ export class InternalController extends InternalControllerCE {
     protected readonly internalApiModules: InternalApiModule<any>[],
     protected readonly mcpService: McpTokenService,
     protected readonly auditsService: AuditsService,
+    protected readonly tablesService: TablesService,
+
     private readonly dataReflectionService: DataReflectionService,
     private readonly remoteImportService: RemoteImportService,
     private readonly syncService: SyncModuleService,
@@ -166,6 +169,11 @@ export class InternalController extends InternalControllerCE {
           req.query.widgetId as string,
           req,
         );
+      case 'tableGet':
+        return await this.tablesService.getTableWithAccessibleViews(context, {
+          tableId: req.query.tableId,
+          user: req.user,
+        });
       case 'teamList':
         return await this.teamsV3Service.teamList(context, {
           workspaceOrOrgId: workspaceId,

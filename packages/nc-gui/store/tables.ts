@@ -194,7 +194,10 @@ export const useTablesStore = defineStore('tablesStore', () => {
       }
 
       // update metas
-      const newMeta = await $api.dbTable.read(table.id as string)
+      const newMeta = await $api.internal.getOperation(table.fk_workspace_id!, table.base_id!, {
+        operation: 'tableGet',
+        tableId: table.id as string,
+      })
       baseTables.value.set(
         table.base_id!,
         baseTables.value.get(table.base_id!)!.map((t) => (t.id === table.id ? { ...t, ...newMeta } : t)),
@@ -212,7 +215,10 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
   const loadTableMeta = async (tableId: string) => {
     try {
-      const meta = await $api.dbTable.read(tableId as string)
+      const meta = await $api.internal.getOperation(workspaceStore.activeWorkspaceId!, basesStore.activeProjectId!, {
+        operation: 'tableGet',
+        tableId,
+      })
       baseTables.value.set(
         meta.base_id!,
         baseTables.value.get(meta.base_id!)!.map((t) => (t.id === tableId ? { ...t, ...meta } : t)),

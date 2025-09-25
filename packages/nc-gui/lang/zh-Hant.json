@@ -1488,7 +1488,8 @@
     "newScript": "新腳本",
     "emptyScript": "空白腳本",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "點擊解決",

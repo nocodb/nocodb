@@ -1488,7 +1488,8 @@
     "newScript": "Script nou",
     "emptyScript": "Script gol",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Fă clic pentru a rezolva",

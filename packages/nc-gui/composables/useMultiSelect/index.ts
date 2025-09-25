@@ -107,6 +107,13 @@ export function useMultiSelect(
 
   const { batchUploadFiles } = useAttachment()
 
+  const {
+    setCellClipboardDataItem,
+    getClipboardItemId,
+    getCurrentCopiedCellClipboardData,
+    extractCellClipboardData,
+    waitingCellClipboardDataIds,
+  } = useNcClipboardData()
   const aiMode = ref(false)
 
   const isArrayStructure = typeof unref(data) === 'object' && Array.isArray(unref(data))
@@ -159,69 +166,34 @@ export function useMultiSelect(
     activeCell.col = col
   }
 
-  const valueToCopy = (
-    rowObj: Row,
-    columnObj: ColumnType,
-    option?: {
-      skipUidt?: UITypes[]
-    },
-  ) => {
-    const textToCopy = (columnObj.title && rowObj.row[columnObj.title]) ?? ''
-
-    if (option?.skipUidt?.includes(columnObj.uidt as UITypes)) {
-      return textToCopy
-    }
-    return ColumnHelper.parseValue(textToCopy, {
-      col: columnObj,
-      isMysql,
+  const copyTable = async (rows: Row[], cols: ColumnType[]) => {
+    const {
+      html: copyHTML,
+      text: copyPlainText,
+      clipboardItemConfig,
+    } = serializeRange(rows, cols, {
       isPg,
+      isMysql,
       meta: meta.value,
       metas: metas.value,
-      rowId: isMm(columnObj) ? extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) : null,
     })
-  }
-
-  const serializeRange = (
-    rows: Row[],
-    cols: ColumnType[],
-    option?: {
-      skipUidt?: UITypes[]
-    },
-  ) => {
-    let html = '<table>'
-    let text = ''
-    const json: string[][] = []
-
-    rows.forEach((row, i) => {
-      let copyRow = '<tr>'
-      const jsonRow: string[] = []
-      cols.forEach((col, i) => {
-        const value = valueToCopy(row, col, option)
-        copyRow += `<td>${value}</td>`
-        text = `${text}${value}${cols.length - 1 !== i ? '\t' : ''}`
-        jsonRow.push(value)
-      })
-      html += `${copyRow}</tr>`
-      if (rows.length - 1 !== i) {
-        text = `${text}\n`
-      }
-      json.push(jsonRow)
-    })
-    html += '</table>'
-
-    return { html, text, json }
-  }
-
-  const copyTable = async (rows: Row[], cols: ColumnType[]) => {
-    const { html: copyHTML, text: copyPlainText } = serializeRange(rows, cols)
 
     const blobHTML = new Blob([copyHTML], { type: 'text/html' })
     const blobPlainText = new Blob([copyPlainText], { type: 'text/plain' })
 
-    return (
-      navigator.clipboard?.write([new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText })]) ??
-      copy(copyPlainText)
-    )
+    const clipboardItem: NcClipboardDataItemType = {
+      ...clipboardItemConfig,
+      tableId: meta.value?.id,
+      id: getClipboardItemId(),
+    }
+
+    const res = await (navigator.clipboard?.write([
+      new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText }),
+    ]) ?? copy(copyPlainText))
+
+    setCellClipboardDataItem(clipboardItem)
+
+    return res
   }
 
   async function copyValue(ctx?: Cell) {
@@ -262,9 +234,27 @@ export function useMultiSelect(
           if (!rowObj) return
           const columnObj = unref(fields)[cpCol]
 
-          const textToCopy = valueToCopy(rowObj, columnObj)
+          const { textToCopy, cellValue, clipboardColumn, rowId } = valueToCopy(rowObj, columnObj, {
+            meta: meta.value,
+            metas: metas.value,
+            isPg,
+            isMysql,
+          })
 
-          await copy(isValidValue(textToCopy) ? textToCopy : '')
+          const plainTextValue = isValidValue(textToCopy) ? textToCopy : ''
+
+          await copy(plainTextValue)
+
+          const clipboardItem: NcClipboardDataItemType = {
+            dbCellValueArr: [[cellValue]],
+            columns: [clipboardColumn],
+            copiedPlainText: plainTextValue,
+            rowIds: [rowId],
+            tableId: meta.value?.id,
+            id: getClipboardItemId(),
+          }
+
+          setCellClipboardDataItem(clipboardItem)
           message.toast(
             t(`msg.toast.nCellCopied`, {
               n: 1,
@@ -545,7 +535,12 @@ export function useMultiSelect(
 
           const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
 
-          const rawMatrix = serializeRange(cprows, cpcols).json
+          const rawMatrix = serializeRange(cprows, cpcols, {
+            isPg,
+            isMysql,
+            meta: meta.value,
+            metas: metas.value,
+          }).json
 
           const fillDirection = fillRange._start.row <= fillRange._end.row ? 1 : -1
           const startRangeBottomMost = Math.max(
@@ -1072,6 +1067,13 @@ export function useMultiSelect(
     // Replace \" with " in clipboard data
     let clipboardData = e.clipboardData?.getData('text/plain') || ''
 
+    const storedCopiedData = getCurrentCopiedCellClipboardData(clipboardData)
+
+    // Add the waiting clipboard data id so that if setClipboardData fn is called during this operation, it will not remove the currentCopiedCellClipboardDataItem from the clipboard data
+    if (storedCopiedData && !waitingCellClipboardDataIds.value.includes(storedCopiedData.id)) {
+      waitingCellClipboardDataIds.value.push(storedCopiedData.id)
+    }
+
     if (clipboardData?.endsWith('\n')) {
       // Remove '\n' from the end of the clipboardData
       // When copying from XLS/XLSX files, there is an extra '\n' appended to the end
@@ -1263,6 +1265,7 @@ export function useMultiSelect(
                     markInfoShown: () => {
                       isColInfoShown[column.title!] = true
                     },
+                    clipboardItem: extractCellClipboardData(storedCopiedData, clipboardRowIndex, j),
                   },
                   isMysql(meta.value?.source_id),
                   true,
@@ -1323,6 +1326,7 @@ export function useMultiSelect(
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
+                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
               },
               isMysql(meta.value?.source_id),
             )
@@ -1359,6 +1363,7 @@ export function useMultiSelect(
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
+                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
               },
               isMysql(meta.value?.source_id),
             )
@@ -1640,6 +1645,7 @@ export function useMultiSelect(
                 oldValue: rowObj.row[columnObj.title!],
                 maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
                 showUpgradeToAddMoreAttachmentsInCell,
+                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
               },
               isMysql(meta.value?.source_id),
             )
@@ -1734,6 +1740,7 @@ export function useMultiSelect(
                       markInfoShown: () => {
                         isColInfoShown[col.title!] = true
                       },
+                      clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -1760,6 +1767,7 @@ export function useMultiSelect(
                       markInfoShown: () => {
                         isColInfoShown[col.title!] = true
                       },
+                      clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -1798,6 +1806,11 @@ export function useMultiSelect(
       if (error instanceof TypeConversionError !== true || !(error as SuppressedError).isErrorSuppressed) {
         console.error(error, (error as SuppressedError).isErrorSuppressed)
         message.error(await extractSdkResponseErrorMsg(error))
+      }
+    } finally {
+      // After paste operation is completed, remove the waiting clipboard data id so that on setClipboardDateItem can remove the item from the clipboard data
+      if (storedCopiedData && waitingCellClipboardDataIds.value.includes(storedCopiedData.id)) {
+        waitingCellClipboardDataIds.value = waitingCellClipboardDataIds.value.filter((id) => id !== storedCopiedData.id)
       }
     }
   }

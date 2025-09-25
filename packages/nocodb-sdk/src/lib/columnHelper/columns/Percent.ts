@@ -1,5 +1,5 @@
 import { SilentTypeConversionError } from '~/lib/error';
-import { parsePercentValue, serializePercentValue } from '..';
+import { parsePercentValue, serializeDecimalValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
@@ -16,7 +16,7 @@ export class PercentHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): number | null {
-    value = serializePercentValue(value);
+    value = serializeDecimalValue(value, undefined, params);
 
     if (value === null) {
       if (params.isMultipleCellPaste || params.serializeSearchQuery) {

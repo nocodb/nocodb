@@ -94,8 +94,8 @@ const hasTableCreatePermission = computed(() => {
 
       <DashboardTreeViewProjectHomeSearchInput placeholder="Search table, view" />
 
-      <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 xs:hidden flex flex-col gap-2">
-        <div v-if="hasTableCreatePermission" class="flex items-center w-full">
+      <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
+        <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
           <NcDropdown v-model:visible="isVisibleCreateNew">
             <NcButton
               type="text"

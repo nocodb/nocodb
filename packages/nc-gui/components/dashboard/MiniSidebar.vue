@@ -301,7 +301,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 .nc-mini-sidebar {
   --mini-sidebar-bg-color: var(--nc-bg-gray-light);
 
-  @apply w-[var(--mini-sidebar-width)] flex-none bg-[var(--mini-sidebar-bg-color)] flex flex-col justify-between items-center border-r-1 border-nc-border-gray-medium z-502 nc-scrollbar-thin relative;
+  @apply w-[var(--mini-sidebar-width)] flex-none bg-[var(--mini-sidebar-bg-color)] flex flex-col justify-between items-center border-r-1 border-nc-border-gray-medium z-502 nc-scrollbar-thin overflow-x-hidden relative;
 
   .nc-mini-sidebar-ws-item {
     @apply cursor-pointer h-9 w-8 rounded py-1 flex items-center justify-center children:flex-none text-nc-content-gray-muted transition-all duration-200;

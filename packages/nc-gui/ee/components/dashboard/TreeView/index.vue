@@ -352,6 +352,7 @@ const onMove = async (
         </div>
         <div>
           <Draggable
+            v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 50 })"
             :model-value="starredProjectList"
             :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
             item-key="starred-project"
@@ -378,6 +379,7 @@ const onMove = async (
       </div>
       <div v-if="nonStarredProjectList?.length">
         <Draggable
+          v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 50 })"
           v-model="nonStarredProjectList"
           :disabled="isMobileMode || !isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
           item-key="non-starred-project"

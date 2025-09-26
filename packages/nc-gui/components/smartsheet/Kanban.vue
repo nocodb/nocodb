@@ -515,6 +515,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
           <!-- Draggable Stack -->
           <Draggable
             v-model="groupingFieldColOptions"
+            v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
             class="flex gap-3"
             item-key="id"
             group="kanban-stack"
@@ -774,6 +775,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                       >
                         <!-- Draggable Record Card -->
                         <Draggable
+                          v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 150 })"
                           :list="formattedData.get(stack.title)"
                           item-key="row.Id"
                           draggable=".nc-kanban-item"

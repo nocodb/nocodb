@@ -932,7 +932,6 @@ interface AttachmentCellDropOverType {
   rowIndex?: number
   columnId: string
   path: Array<number>
-  uploadingCells: Array<Omit<AttachmentCellDropOverType, 'uploadingCells'>>
 }
 
 export type {

@@ -2630,7 +2630,9 @@ const resetAttachmentCellDropOver = () => {
 }
 
 const onDrop = (files: File[] | null, event: DragEvent) => {
-  if (!attachmentCellDropOver.value || attachmentCellDropOver.value.rowIndex === -1) return
+  if (!attachmentCellDropOver.value || attachmentCellDropOver.value.rowIndex === -1 || !attachmentCellDropOver.value.columnId) {
+    return
+  }
 
   const dataCache = getDataCache(attachmentCellDropOver.value.path)
 
@@ -2649,20 +2651,25 @@ const onDrop = (files: File[] | null, event: DragEvent) => {
   const column = columns.value[columnIndex]!
 
   selection.value.clear()
+  editEnabled.value = null
   activeCell.value = {
     row: attachmentCellDropOver.value.rowIndex,
     column: columnIndex,
     path: attachmentCellDropOver.value.path,
   }
+  resetRowSelection()
+  onActiveCellChanged()
 
-  handleCellDrop({
-    files,
-    e: event,
-    row,
-    column,
-  })
-
-  resetAttachmentCellDropOver()
+  try {
+    handleCellDrop({
+      files,
+      e: event,
+      row,
+      column,
+    })
+  } finally {
+    resetAttachmentCellDropOver()
+  }
 }
 
 const onOver = (files: File[] | null, e: DragEvent) => {

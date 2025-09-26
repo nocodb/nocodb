@@ -335,6 +335,17 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     // group by using the column aliases
     qb.groupBy(...groupBySelectors);
 
+    // Wrap in a CTE to allow referencing grouped/aliased columns in subqueries (esp. for Postgres)
+    // We'll use: WITH grouped AS (<qb>) SELECT ... FROM grouped g
+    const outerQb = baseModel.dbDriver
+      .with('grouped', qb.clone())
+      .select('*')
+      .from({ g: 'grouped' });
+
+    if (!isOnPrem) {
+      applyPaginate(outerQb, rest);
+    }
+
     // Apply order by on the outer query, referencing g.<alias>
     for (const sort of sorts || []) {
       if (!groupByColumns[sort.fk_column_id]) {
@@ -385,18 +396,18 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           }, groupedColQb.toQuery());
         }
         if (!['asc', 'desc'].includes(sort.direction)) {
-          qb.orderBy(
+          outerQb.orderBy(
             'g.count',
             sort.direction === 'count-desc' ? 'desc' : 'asc',
             sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
           );
-          qb.orderBy(
+          outerQb.orderBy(
             sanitize(baseModel.dbDriver.raw(finalStatement)),
             sort.direction,
-            sort.direction === 'desc' ? 'LAST' : 'FIRST',
+            'FIRST',
           );
         } else {
-          qb.orderBy(
+          outerQb.orderBy(
             sanitize(baseModel.dbDriver.raw(finalStatement)),
             sort.direction,
             sort.direction === 'desc' ? 'LAST' : 'FIRST',
@@ -404,35 +415,24 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         }
       } else {
         if (!['asc', 'desc'].includes(sort.direction)) {
-          qb.orderBy(
-            'count',
+          outerQb.orderBy(
+            'g.count',
             sort.direction === 'count-desc' ? 'desc' : 'asc',
             sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
           );
-          qb.orderBy(
-            baseModel.dbDriver.raw('??', [getAs(column)]) as any,
+          outerQb.orderBy(
+            baseModel.dbDriver.raw('??.??', ['g', getAs(column)]) as any,
             sort.direction,
-            sort.direction === 'desc' ? 'LAST' : 'FIRST',
+            'FIRST',
           );
         } else {
-          qb.orderBy(
-            baseModel.dbDriver.raw('??', [getAs(column)]) as any,
+          outerQb.orderBy(
+            baseModel.dbDriver.raw('??.??', ['g', getAs(column)]) as any,
             sort.direction,
             sort.direction === 'desc' ? 'LAST' : 'FIRST',
           );
         }
       }
-    }
-
-    // Wrap in a CTE to allow referencing grouped/aliased columns in subqueries (esp. for Postgres)
-    // We'll use: WITH grouped AS (<qb>) SELECT ... FROM grouped g
-    const outerQb = baseModel.dbDriver
-      .with('grouped', qb.clone())
-      .select('*')
-      .from({ g: 'grouped' });
-
-    if (!isOnPrem) {
-      applyPaginate(outerQb, rest);
     }
 
     return await baseModel.execAndParse(outerQb);

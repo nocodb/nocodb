@@ -469,8 +469,9 @@ export default async function formulaQueryBuilderv2({
 
   let qb;
   try {
+    parentColumns = parentColumns ?? CircularRefContext.make();
     if (column) {
-      parentColumns = (parentColumns ?? CircularRefContext.make()).cloneAndAdd({
+      parentColumns = parentColumns.cloneAndAdd({
         id: column.id,
         title: column.title,
         table: model?.title,

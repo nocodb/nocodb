@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { CircularRefContext, RelationTypes, UITypes } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
@@ -503,7 +503,9 @@ export const lookupOrLtarBuilder =
             const formulaOption =
               await lookupColumn.getColOptions<FormulaColumn>(context);
             const lookupModel = await lookupColumn.getModel(context);
-            parentColumns = parentColumns.cloneAndAdd({
+            parentColumns = (
+              parentColumns ?? CircularRefContext.make()
+            ).cloneAndAdd({
               id: lookupColumn.id,
               title: lookupColumn.title,
               table: lookupModel?.title,

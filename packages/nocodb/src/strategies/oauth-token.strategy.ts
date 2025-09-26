@@ -61,7 +61,7 @@ export class OAuthTokenStrategy extends PassportStrategy(
         // Check workspace access limitation (EE only)
         if (grantedResources.workspace_id) {
           if (
-            !req.context?.workspace_id ||
+            req.context?.workspace_id &&
             req.context.workspace_id !== grantedResources.workspace_id
           ) {
             return callback({
@@ -73,7 +73,7 @@ export class OAuthTokenStrategy extends PassportStrategy(
         // Check base access limitation
         if (grantedResources.base_id) {
           if (
-            !req.context?.base_id ||
+            req.context?.base_id &&
             req.context.base_id !== grantedResources.base_id
           ) {
             return callback({

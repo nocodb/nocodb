@@ -138,7 +138,7 @@ onMounted(() => {
                   <div class="select-none">{{ $t('labels.modelContextProtocol') }}</div>
                 </div>
               </NcMenuItem> -->
-              <NcMenuItem
+              <!--              <NcMenuItem
                 key="oauth"
                 :class="{
                   active: $route.params.page === 'oauth-clients',
@@ -151,7 +151,7 @@ onMounted(() => {
 
                   <div class="select-none">{{ $t('title.oauthClients') }}</div>
                 </div>
-              </NcMenuItem>
+              </NcMenuItem> -->
               <NcMenuItem
                 v-if="isSetupPageAllowed"
                 key="profile"

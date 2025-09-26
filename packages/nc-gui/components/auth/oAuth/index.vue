@@ -81,12 +81,12 @@ async function approveAuthorization() {
       approved: true,
       code_challenge: codeChallenge.value,
       code_challenge_method: codeChallengeMethod.value,
-      base_id: selectedBase.value?.id,
+      base_id: selectedBase.value,
       resource: resource.value,
     }
 
-    if (isEeUI && selectedWorkspace.value?.id) {
-      authParams.workspace_id = selectedWorkspace.value.id
+    if (isEeUI && selectedWorkspace.value) {
+      authParams.workspace_id = selectedWorkspace.value
     }
 
     const response = await api.oAuth.authorize(authParams)

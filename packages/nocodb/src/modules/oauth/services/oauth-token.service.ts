@@ -178,6 +178,8 @@ export class OauthTokenService {
       if (!isValidPKCE) {
         NcError.badRequest('Invalid code_verifier');
       }
+    } else {
+      NcError.badRequest('code_verifier is required for PKCE');
     }
 
     // Authenticate the client

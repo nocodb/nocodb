@@ -75,7 +75,7 @@ export function useCopyPaste({
   }>
   view: ComputedRef<ViewType | undefined>
   meta: Ref<TableType>
-  syncCellData: (ctx: { row: number; col?: number; updatedColumnTitle?: string }, path?: Array<number>) => Promise<void>
+  syncCellData: (ctx: { row: number; column?: number; updatedColumnTitle?: string }, path?: Array<number>) => Promise<void>
   bulkUpsertRows: (
     insertRows: Row[],
     updateRows: Row[],
@@ -636,7 +636,7 @@ export function useCopyPaste({
 
                       rowObj.row[columnObj.title!] = value
 
-                      await syncCellData?.(activeCell.activeCell?.value?.path)
+                      await syncCellData?.(activeCell, activeCell?.path)
                     }
                   },
                   args: [clone(activeCell.value), clone(columnObj), clone(rowObj), clone(oldCellValue), result],
@@ -1140,10 +1140,11 @@ export function useCopyPaste({
 
       rowObj.row[columnObj.title!] =
         newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+
       await syncCellData?.(
         {
           row: attachmentCellDropOver.rowIndex,
-          col: attachmentCellDropOver.colIndex,
+          column: attachmentCellDropOver.colIndex,
         },
         attachmentCellDropOver.path,
       )

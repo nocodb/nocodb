@@ -19,6 +19,7 @@ export type BaseFormulaNode = {
   isDataArray?: boolean;
   cast?: FormulaDataTypes;
   errors?: Set<string>;
+  rootNode?: boolean;
 } & ReferencedInfo;
 
 export interface BinaryExpressionNode extends BaseFormulaNode {

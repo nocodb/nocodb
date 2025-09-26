@@ -1,9 +1,20 @@
 import { ColumnType, LinkToAnotherRecordType } from '~/lib/Api';
 import { NcContext } from '~/lib/ncTypes';
+import { ParsedFormulaNode } from '../formulaHelpers';
 
 export type IColumnMeta = ColumnType & {
   base_id: string;
   fk_workspace_id?: string;
+  getColOptions: <
+    T extends
+      | ILookupColumn
+      | ILinkToAnotherRecordColumn
+      | IRollupColumn
+      | IFormulaColumn
+  >(
+    context: NcContext,
+    ncMeta?: any
+  ) => Promise<T>;
 };
 
 export interface IGetMetaResult {
@@ -11,15 +22,7 @@ export interface IGetMetaResult {
   fk_workspace_id?: string;
   id: string;
   title: string;
-  columns: (IColumnMeta & {
-    getColOptions: <
-      T extends
-        | ILookupColumn
-        | ILinkToAnotherRecordColumn
-        | IRollupColumn
-        | IFormulaColumn
-    >() => Promise<T>;
-  })[];
+  columns: IColumnMeta[];
 }
 
 export interface IGetMeta {
@@ -54,7 +57,7 @@ export interface ILinkToAnotherRecordColumn extends LinkToAnotherRecordType {
 
   type: 'hm' | 'bt' | 'mm' | 'oo';
 
-  getRelatedTable(context: NcContext, ncMeta: any): Promise<IGetMetaResult>;
+  getRelatedTable(context: NcContext, ncMeta?: any): Promise<IGetMetaResult>;
 }
 
 export interface ILookupColumn {
@@ -62,8 +65,8 @@ export interface ILookupColumn {
   fk_lookup_column_id: string;
   fk_column_id: string;
 
-  getRelationColumn(context: NcContext): Promise<IColumnMeta>;
-  getLookupColumn(context: NcContext): Promise<IColumnMeta>;
+  getRelationColumn(context: NcContext, ncMeta?: any): Promise<IColumnMeta>;
+  getLookupColumn(context: NcContext, ncMeta?: any): Promise<IColumnMeta>;
 }
 
 export interface IRollupColumn {
@@ -75,8 +78,8 @@ export interface IRollupColumn {
   fk_rollup_column_id;
   rollup_function: string;
 
-  getRelationColumn(context: NcContext): Promise<IColumnMeta>;
-  getRollupColumn(context: NcContext): Promise<IColumnMeta>;
+  getRelationColumn(context: NcContext, ncMeta?: any): Promise<IColumnMeta>;
+  getRollupColumn(context: NcContext, ncMeta?: any): Promise<IColumnMeta>;
 }
 
 export interface IFormulaColumn {
@@ -86,7 +89,7 @@ export interface IFormulaColumn {
   base_id?: string;
   fk_column_id: string;
   error: string;
-  parsed_tree: string;
+  parsed_tree?: ParsedFormulaNode;
 
-  getParsedTree(): any;
+  getParsedTree(): ParsedFormulaNode;
 }

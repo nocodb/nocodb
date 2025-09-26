@@ -221,6 +221,7 @@ export default class Extension {
 
     // clear cache
     await NocoCache.deepDel(
+      context,
       `${CacheScope.EXTENSION}:${baseId}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );

@@ -80,9 +80,7 @@ function formulaErrorTests() {
     expect(resp.status).to.eq(400);
     expect(resp.body.error).to.eq('FORMULA_CIRCULAR_REF_ERROR');
     expect(resp.body.message).to.satisfy((msg) =>
-      msg.startsWith(
-        `Detected circular ref for column '${formulaTitleColumn.id}'`,
-      ),
+      msg.startsWith(`Detected circular ref for column `),
     );
   });
 

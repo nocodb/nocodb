@@ -503,7 +503,11 @@ export const lookupOrLtarBuilder =
             const formulaOption =
               await lookupColumn.getColOptions<FormulaColumn>(context);
             const lookupModel = await lookupColumn.getModel(context);
-            parentColumns = parentColumns.cloneAndAdd(lookupColumn.id);
+            parentColumns = parentColumns.cloneAndAdd({
+              id: lookupColumn.id,
+              title: lookupColumn.title,
+              table: lookupModel?.title,
+            });
             const { builder } = await _formulaQueryBuilder({
               ...params,
               _tree: formulaOption.formula,

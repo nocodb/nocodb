@@ -123,7 +123,13 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             tableAlias,
             parentColumns,
           }: TAliasToColumnParam) => {
-            parentColumns = parentColumns.cloneAndAdd(col.id);
+            parentColumns = (
+              parentColumns ?? CircularRefContext.make()
+            ).cloneAndAdd({
+              id: col.id,
+              title: col.title,
+              table: model.title,
+            });
 
             const formulOption = await col.getColOptions<
               FormulaColumn | ButtonColumn
@@ -463,9 +469,13 @@ export default async function formulaQueryBuilderv2({
 
   let qb;
   try {
-    parentColumns = (parentColumns ?? CircularRefContext.make()).cloneAndAdd(
-      column?.id,
-    );
+    if (column) {
+      parentColumns = (parentColumns ?? CircularRefContext.make()).cloneAndAdd({
+        id: column.id,
+        title: column.title,
+        table: model?.title,
+      });
+    }
     // generate qb
     qb = await _formulaQueryBuilder({
       baseModelSqlv2,

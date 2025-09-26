@@ -32,12 +32,20 @@ export default async function genRollupSelectv2({
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
   const context = baseModelSqlv2.context;
   parentColumns = parentColumns ?? CircularRefContext.make();
-  if (columnOptions.fk_column_id) {
-    parentColumns = parentColumns.cloneAndAdd(columnOptions.fk_column_id);
-  }
   const column = await Column.get(context, {
     colId: columnOptions.fk_column_id,
   });
+  if (column) {
+    const model = await Model.getByAliasOrId(context, {
+      base_id: context.base_id,
+      aliasOrId: column.fk_model_id,
+    });
+    parentColumns = parentColumns.cloneAndAdd({
+      id: column.id,
+      title: column.title,
+      table: model?.title,
+    });
+  }
   let relationColumn: Column;
   if (!columnOptions.getRelationColumn) {
     relationColumn = await Column.get(context, {

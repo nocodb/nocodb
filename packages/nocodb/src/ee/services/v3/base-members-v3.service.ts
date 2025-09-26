@@ -81,6 +81,7 @@ export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
               {
                 roles: baseUser.workspace_role,
                 email: baseUser.email,
+                displayName: baseUser.user_name,
                 siteUrl: param.req.ncSiteUrl,
                 req: param.req,
                 workspaceId: param.req.ncWorkspaceId,
@@ -99,6 +100,7 @@ export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
               email: baseUser.email,
               roles: baseUser.base_role as ProjectRoles,
               baseId: param.baseId,
+              displayName: baseUser.user_name,
               req: param.req,
             },
             ncMeta,

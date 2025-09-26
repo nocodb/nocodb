@@ -712,6 +712,7 @@ export class WorkspaceUsersService {
     param: {
       roles: WorkspaceUserRoles;
       email: string;
+      displayName?: string;
       siteUrl: string;
       workspaceId: string;
       req: NcRequest;
@@ -748,6 +749,7 @@ export class WorkspaceUsersService {
         const result = await this.unhandledUserInviteByEmail(
           {
             email,
+            displayName: param.displayName,
             req: param.req,
             roles,
             workspace,
@@ -779,6 +781,7 @@ export class WorkspaceUsersService {
     param: {
       workspace: Workspace;
       email: string;
+      displayName?: string;
       roles: WorkspaceUserRoles;
       req: NcRequest;
       // to keep refactor at minimum, we pass error array
@@ -794,6 +797,7 @@ export class WorkspaceUsersService {
     const {
       workspace,
       email,
+      displayName,
       invite_token = uuidv4(),
       emailUserMap,
       roles,
@@ -813,7 +817,7 @@ export class WorkspaceUsersService {
           email_verification_token: null,
           avatar: null,
           user_name: null,
-          display_name: '',
+          display_name: displayName,
           salt,
           invite_token,
           req: param.req,

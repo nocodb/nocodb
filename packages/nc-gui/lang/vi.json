@@ -1488,7 +1488,8 @@
     "newScript": "Kịch bản mới",
     "emptyScript": "Kịch bản trống",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Nhấp để đánh dấu đã giải quyết",

@@ -2000,7 +2000,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           responses = [];
           for (const q of queries) {
             const result = await this.execAndGetRows(q, trx);
-            if (this.isMySQL) {
+            if (this.isMySQL && !Array.isArray(result)) {
               // this is the case of returnedId from mySql, which is number
               responses.push(result);
             } else {
@@ -2333,10 +2333,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       let insertResponses = [];
 
       if ((this.dbDriver as any).isExternal) {
-        insertResponses = await runExternal(
+        const runExternalResponse = await runExternal(
           this.sanitizeQuery(insertQueries),
           (this.dbDriver as any).extDb,
         );
+        insertResponses = Array.isArray(runExternalResponse)
+          ? runExternalResponse
+          : [runExternalResponse];
 
         await runExternal(
           this.sanitizeQuery(updateQueries),

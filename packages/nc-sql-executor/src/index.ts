@@ -240,7 +240,7 @@ async function handleQuery(
           responses.push(await trx.raw(q));
         } else {
           const execRowsResult = await execAndGetRows(trx, config, q);
-          if(isMysql(client)) {
+          if(isMysql(client) && !Array.isArray(execRowsResult)) {
             // this is the case of returnedId from mySql, which is number
             responses.push(execRowsResult);
           } else {

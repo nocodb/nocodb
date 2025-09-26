@@ -1488,7 +1488,8 @@
     "newScript": "สคริปต์ใหม่",
     "emptyScript": "สคริปต์เปล่า",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "คลิกเพื่อแก้ไข",

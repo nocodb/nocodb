@@ -32,6 +32,9 @@ export class CircularRefContext {
   }
 
   add(ref: string) {
+    if (!ref) {
+      return;
+    }
     if (this.refs.has(ref)) {
       const [root] = this.refs;
       new NcErrorBase().formulaCircularRefError(

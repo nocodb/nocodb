@@ -1241,6 +1241,20 @@ const updateColumn = async (
   return updatedColumn;
 };
 
+const updateColumn2 = async (
+  context,
+  { columnId, attr, baseId }: { columnId: string; baseId: string; attr: any },
+) => {
+  const res = await request(context.app)
+    .patch(`/api/v3/meta/bases/${baseId}/fields/${columnId}`)
+    .set('xc-auth', context.token)
+    .send({
+      ...attr,
+    });
+
+  return res;
+};
+
 const deleteColumn = async (
   context,
   { table, column }: { column: Column; table: Model },
@@ -1266,4 +1280,5 @@ export {
   updateViewColumn,
   updateColumn,
   deleteColumn,
+  updateColumn2,
 };

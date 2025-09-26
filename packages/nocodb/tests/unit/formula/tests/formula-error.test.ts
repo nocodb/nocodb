@@ -1,9 +1,9 @@
+import { expect } from 'chai';
 import 'mocha';
 import { ClientType, UITypes } from 'nocodb-sdk';
-import { expect } from 'chai';
-import { initInitialModel } from '../initModel';
-import { createColumn } from '../../factory/column';
 import { Source } from '../../../../src/models';
+import { createColumn, updateColumn2 } from '../../factory/column';
+import { initInitialModel } from '../initModel';
 
 function formulaErrorTests() {
   let _setup;
@@ -30,7 +30,7 @@ function formulaErrorTests() {
   });
 
   // issue #6075
-  it('will create a formula referencing formula at table1', async () => {
+  it('will create a formula with invalid substring parameter', async () => {
     // skip if not pg
     if (_source.type !== ClientType.PG) {
       return;
@@ -47,6 +47,39 @@ function formulaErrorTests() {
         msg.startsWith('Negative substring length not allowed'),
       );
     }
+  });
+
+  it('will create a circular referenced formula', async () => {
+    const formulaTitleColumn = await createColumn(_context, _tables.table1, {
+      title: 'formulaTitle',
+      uidt: UITypes.Formula,
+      formula: `{Title}`,
+      formula_raw: `{Title}`,
+    });
+    await createColumn(_context, _tables.table1, {
+      title: 'formulaTitle2',
+      uidt: UITypes.Formula,
+      formula: `{formulaTitle}`,
+      formula_raw: `{formulaTitle}`,
+    });
+
+    const resp = await updateColumn2(_context, {
+      columnId: formulaTitleColumn.id,
+      baseId: _ctx.base_id,
+      attr: {
+        title: 'formulaTitle',
+        options: {
+          formula: `{formulaTitle2}`,
+        },
+      },
+    });
+    expect(resp.status).to.eq(400);
+    expect(resp.body.error).to.eq('FORMULA_CIRCULAR_REF_ERROR');
+    expect(resp.body.message).to.satisfy((msg) =>
+      msg.startsWith(
+        `Detected circular ref for column '${formulaTitleColumn.id}'`,
+      ),
+    );
   });
 }
 

@@ -60,7 +60,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
   const context = baseModelSqlv2.context;
 
   const columns = await model.getColumns(context);
-
   let tree = parsedTree;
   if (!tree) {
     // formula may include double curly brackets in previous version

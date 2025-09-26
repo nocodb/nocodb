@@ -1140,6 +1140,7 @@
     "scriptIdColon": "SCRIPT ID: {scriptId}",
     "dashboardIdColon": "DASHBOARD ID: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "To Address",
     "subject": "Subject",
     "body": "Body",
@@ -1182,6 +1183,7 @@
     "clickToCopyScriptID": "Click to copy Script ID",
     "clickToCopyDashboardID": "Click to copy Dashboard ID",
     "clickToCopyViewID": "Click to copy View ID",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "View mode",
     "assignAsPersonalView": "Assign as personal view",
     "reAssignView": "Re-assign personal view",
@@ -1869,7 +1871,11 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "Search icons",

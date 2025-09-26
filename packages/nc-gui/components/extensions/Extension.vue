@@ -7,7 +7,7 @@ interface Prop {
 
 const props = defineProps<Prop>()
 
-const { extensionList, extensionsLoaded, availableExtensions } = useExtensions()
+const { extensionList, extensionsLoaded, availableExtensions, userHasAccessToExtension, extensionAccess } = useExtensions()
 
 const activeError = toRef(props, 'error')
 
@@ -33,13 +33,17 @@ const extensionManifest = computed<ExtensionManifest | undefined>(() => {
 
 const activeExtensionId = computed(() => extensionManifest.value?.id ?? '')
 
+const hasAccessToExtension = computed(() => {
+  return userHasAccessToExtension(activeExtensionId.value)
+})
+
 provide(ExtensionConfigInj, ref({ activeExtensionId }))
 
 const {
   fullscreen,
   fullscreenModalSize: currentExtensionModalSize,
   collapsed,
-} = useProvideExtensionHelper(extension, extensionManifest, activeError)
+} = useProvideExtensionHelper(extension, extensionManifest, activeError, hasAccessToExtension)
 
 const { height } = useElementSize(extensionRef)
 
@@ -65,7 +69,10 @@ const closeFullscreen = (e: MouseEvent) => {
 }
 
 const onClearData = () => {
-  extension.value.clear()
+  if (extensionAccess.value.update) {
+    extension.value.clear()
+  }
+
   props.clearError?.()
 }
 
@@ -167,10 +174,10 @@ watch(
               <NcButton size="small" @click="onClearData">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="reload" />
-                  Clear Data
+                  {{ extensionAccess.update ? 'Clear Data' : 'Reload Extension' }}
                 </div>
               </NcButton>
-              <NcButton size="small" type="danger" @click="extension.delete()">
+              <NcButton v-if="extensionAccess.delete" size="small" type="danger" @click="extension.delete()">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="delete" />
                   Delete

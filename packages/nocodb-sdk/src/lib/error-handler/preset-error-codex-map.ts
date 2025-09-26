@@ -178,7 +178,9 @@ export const presetErrorCodexMap: Partial<
     code: 400,
   },
   [NcErrorType.FORMULA_CIRCULAR_REF_ERROR]: {
-    message: 'Circular reference detected in formula',
+    message: (message: string) => {
+      return message;
+    },
     code: 400,
   },
   [NcErrorType.PERMISSION_DENIED]: {

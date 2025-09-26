@@ -542,9 +542,14 @@ const canUseForLookupLinkField = (c: ColumnType, metaSourceId?: string) => {
 const getValidRollupColumn = (c: ColumnType) => {
   return (
     (!isVirtualCol(c.uidt as UITypes) ||
-      [UITypes.CreatedTime, UITypes.CreatedBy, UITypes.LastModifiedTime, UITypes.LastModifiedBy, UITypes.Formula].includes(
-        c.uidt as UITypes,
-      )) &&
+      [
+        UITypes.CreatedTime,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedTime,
+        UITypes.LastModifiedBy,
+        UITypes.Formula,
+        UITypes.Rollup,
+      ].includes(c.uidt as UITypes)) &&
     (!isSystemColumn(c) || c.pk)
   )
 }

@@ -117,12 +117,26 @@ watch(emailVerifyDlg, (val) => {
           <img class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/nocodb.png" />
         </div>
       </template>
-      <template #sign-up-footer>
+      <template v-slot:sign-in-header>
         <!-- Sigin using SSO button -->
-        <div class="w-full p-6 pt-0 -mt-6">
+        <div class="w-full px-6 -mt-6">
+          <a-divider />
+          <div class="w-full" type="secondary" @click="navigateTo('/sso')">Sign in with Single Sign On </div>
+        </div>
+      </template>
+      <template v-slot:sign-up-header>
+        <!-- Sigin using SSO button -->
+        <div class="w-full px-6 -mt-6">
           <a-divider />
           <NcButton class="w-full" type="secondary" @click="navigateTo('/sso')"> Sign in with Single Sign On </NcButton>
         </div>
+      </template>
+      <template #sign-up-footer>
+<!--        &lt;!&ndash; Sigin using SSO button &ndash;&gt;-->
+<!--        <div class="w-full p-6 pt-0 -mt-6">-->
+<!--          <a-divider />-->
+<!--          <NcButton class="w-full" type="secondary" @click="navigateTo('/sso')"> Sign in with Single Sign On </NcButton>-->
+<!--        </div>-->
 
         <div class="pb-4 text-center text-xs tos mx-2">
           By signing up, you agree to our
@@ -143,13 +157,13 @@ watch(emailVerifyDlg, (val) => {
           </a>
         </div>
       </template>
-      <template #sign-in-footer>
-        <!-- Sigin using SSO button -->
-        <div class="w-full p-6 pt-0 -mt-6">
-          <a-divider />
-          <NcButton class="w-full" type="secondary" @click="navigateTo('/sso')"> Sign in with Single Sign On </NcButton>
-        </div>
-      </template>
+<!--      <template #sign-in-footer>-->
+<!--        &lt;!&ndash; Sigin using SSO button &ndash;&gt;-->
+<!--        <div class="w-full p-6 pt-0 -mt-6">-->
+<!--          <a-divider />-->
+<!--          <NcButton class="w-full" type="secondary" @click="navigateTo('/sso')"> Sign in with Single Sign On </NcButton>-->
+<!--        </div>-->
+<!--      </template>-->
 
       <template #reset-password-footer>
         <div class="text-center flex gap-1 justify-center">

@@ -972,6 +972,7 @@ const createRollupColumn = async (
     table,
     relatedTableName,
     relatedTableColumnTitle,
+    ltarColumnId,
   }: {
     base: Base;
     title: string;
@@ -979,6 +980,7 @@ const createRollupColumn = async (
     table: Model;
     relatedTableName: string;
     relatedTableColumnTitle: string;
+    ltarColumnId?: string;
   },
   option?: {
     throwError?: boolean;
@@ -1000,11 +1002,12 @@ const createRollupColumn = async (
     (column) => column.title === relatedTableColumnTitle,
   );
 
-  const ltarColumn = (await table.getColumns(ctx)).find(
-    (column) =>
-      (column.uidt === UITypes.Links ||
-        column.uidt === UITypes.LinkToAnotherRecord) &&
-      column.colOptions?.fk_related_model_id === childTable.id,
+  const ltarColumn = (await table.getColumns(ctx)).find((column) =>
+    ltarColumnId
+      ? column.id === ltarColumnId
+      : (column.uidt === UITypes.Links ||
+          column.uidt === UITypes.LinkToAnotherRecord) &&
+        column.colOptions?.fk_related_model_id === childTable.id,
   );
 
   const rollupColumn = await createColumn(

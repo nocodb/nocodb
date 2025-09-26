@@ -42,6 +42,8 @@ import type {
   IColumnsService,
   ReusableParams,
 } from '~/services/columns.service.type';
+import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
@@ -4466,7 +4468,16 @@ export class ColumnsService implements IColumnsService {
     ) {
       // Perform additional validation for rollup payload
       await validateRollupPayload(context, colBody);
+      const baseModel = await getBaseModelSqlFromModelId({
+        modelId: column.fk_model_id,
+        context,
+      });
       await Column.update(context, column.id, colBody);
+      await genRollupSelectv2({
+        baseModelSqlv2: baseModel,
+        knex: baseModel.dbDriver,
+        columnOptions: colBody,
+      });
     }
   }
 

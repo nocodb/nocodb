@@ -14,7 +14,6 @@ import { RelationManager } from '~/db/relation-manager';
 import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
-import { NcError } from '~/helpers/ncError';
 
 export default async function genRollupSelectv2({
   baseModelSqlv2,
@@ -34,21 +33,29 @@ export default async function genRollupSelectv2({
   visitedNodes?: Set<string>;
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
   const context = baseModelSqlv2.context;
-  parentColumns = (parentColumns ?? CircularRefContext.make()).cloneAndAdd(
-    columnOptions.fk_column_id,
-  );
-
+  parentColumns = parentColumns ?? CircularRefContext.make();
+  if (columnOptions.fk_column_id) {
+    parentColumns = parentColumns.cloneAndAdd(columnOptions.fk_column_id);
+  }
   const column = await Column.get(context, {
     colId: columnOptions.fk_column_id,
   });
-  const relationColumn = await columnOptions.getRelationColumn(context);
+  let relationColumn: Column;
+  if (!columnOptions.getRelationColumn) {
+    relationColumn = await Column.get(context, {
+      colId: columnOptions.fk_relation_column_id,
+    });
+  } else {
+    relationColumn = await columnOptions.getRelationColumn(context);
+  }
   const relationColumnOption: LinkToAnotherRecordColumn =
     (await relationColumn.getColOptions(context)) as LinkToAnotherRecordColumn;
-
   const { parentContext, childContext, mmContext, refContext } =
     await relationColumnOption.getParentChildContext(context);
 
-  const rollupColumn = await columnOptions.getRollupColumn(refContext);
+  const rollupColumn = columnOptions.getRollupColumn
+    ? await columnOptions.getRollupColumn(refContext)
+    : await Column.get(context, { colId: columnOptions.fk_rollup_column_id });
   const childCol = await relationColumnOption.getChildColumn(childContext);
   const childModel = await childCol?.getModel(childContext);
   const parentCol = await relationColumnOption.getParentColumn(parentContext);
@@ -210,14 +217,16 @@ export default async function genRollupSelectv2({
       );
       await applyFunction(queryBuilder);
 
-      await extractLinkRelFiltersAndApply({
-        qb: queryBuilder,
-        column,
-        alias: refTableAlias,
-        table: childBaseModel.model,
-        baseModel: childBaseModel,
-        context: childBaseModel.context,
-      });
+      if (column) {
+        await extractLinkRelFiltersAndApply({
+          qb: queryBuilder,
+          column,
+          alias: refTableAlias,
+          table: childBaseModel.model,
+          baseModel: childBaseModel,
+          context: childBaseModel.context,
+        });
+      }
 
       return {
         builder: queryBuilder,

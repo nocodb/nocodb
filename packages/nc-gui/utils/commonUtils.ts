@@ -1,4 +1,6 @@
 import type { DefaultOptionType } from 'ant-design-vue/lib/select'
+import type { SortableOptions } from 'sortablejs'
+import type { AutoScrollOptions } from 'sortablejs/plugins'
 
 export const modalSizes = {
   xs: {
@@ -204,4 +206,26 @@ export const pollUntil = <T>(conditionFn: () => T | null | undefined | false, in
 
     check()
   })
+}
+
+export const getDraggableAutoScrollOptions = (
+  params: Partial<AutoScrollOptions & { direction: SortableOptions['direction'] }> = {},
+): Partial<AutoScrollOptions & { direction: SortableOptions['direction'] }> => {
+  return {
+    /**
+     * scroll property is used to enable auto scroll plugin
+     */
+    scroll: true,
+    /**
+     * forceAutoScrollFallback property is used to force auto scroll fallback
+     * if this value is false then it will not work
+     */
+    forceAutoScrollFallback: true,
+    /**
+     * px, how near the mouse must be to an edge to start scrolling.
+     */
+    scrollSensitivity: 50,
+    direction: 'vertical',
+    ...params,
+  }
 }

@@ -219,6 +219,7 @@ export class OAuthController {
           };
       }
     } catch (error) {
+      console.log(error);
       if (error.message === 'invalid_client') {
         console.log('invalid_client');
         return {

@@ -76,7 +76,6 @@ const getDuplicatedRows = (tableName: string) => {
  * Used by: tests/unit/formula/tests/formula-lookup-ltar.test.ts
  */
 export async function initInitialModel() {
-  console.time('#### formulaLookupLtarTests');
   const context = await init();
   const base = await createProject(context);
 

@@ -1563,7 +1563,7 @@ export async function singleQueryList(
 
   if (!sorts?.['length'] && ctx.params.sortArr?.length) {
     sorts = ctx.params.sortArr;
-  } else if (ctx.view) {
+  } else if (!sorts?.['length'] && ctx.view) {
     sorts = await Sort.list(context, { viewId: ctx.view.id });
   }
 

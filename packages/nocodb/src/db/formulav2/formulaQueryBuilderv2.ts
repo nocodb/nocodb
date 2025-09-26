@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import jsep from 'jsep';
 import {
+  CircularRefContext,
   FormulaDataTypes,
   jsepCurlyHook,
   JSEPNode,
@@ -123,15 +124,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             tableAlias,
             parentColumns,
           }: TAliasToColumnParam) => {
-            if (parentColumns?.has(col.id)) {
-              NcError.get(context).formulaError('Circular reference detected', {
-                details: {
-                  columnId: col.id,
-                  modelId: model.id,
-                  parentColumnIds: Array.from(parentColumns),
-                },
-              });
-            }
+            parentColumns = parentColumns.cloneAndAdd(col.id);
 
             const formulOption = await col.getColOptions<
               FormulaColumn | ButtonColumn
@@ -144,7 +137,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               tableAlias,
               parsedTree: formulOption.getParsedTree(),
               baseUsers,
-              parentColumns: new Set([col.id, ...(parentColumns ?? [])]),
+              parentColumns,
               getAliasCount,
               column: col,
             });
@@ -168,13 +161,14 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.Links:
         aliasToColumn[col.id] = async ({
           tableAlias,
-          parentColumns: _parentColumns,
+          parentColumns: parentColumns,
         }: TAliasToColumnParam): Promise<any> => {
           const qb = await genRollupSelectv2({
             baseModelSqlv2,
             knex,
             columnOptions: (await col.getColOptions(context)) as RollupColumn,
             alias: tableAlias,
+            parentColumns,
           });
           return { builder: knex.raw(qb.builder).wrap('(', ')') };
         };
@@ -441,6 +435,7 @@ export default async function formulaQueryBuilderv2({
   validateFormula = false,
   parsedTree,
   baseUsers,
+  parentColumns,
 }: {
   baseModel: IBaseModelSqlV2;
   tree;
@@ -451,6 +446,7 @@ export default async function formulaQueryBuilderv2({
   validateFormula?: boolean;
   parsedTree?: any;
   baseUsers?: (Partial<User> & BaseUser)[];
+  parentColumns?: CircularRefContext;
 }) {
   const knex = baseModelSqlv2.dbDriver;
 
@@ -468,6 +464,9 @@ export default async function formulaQueryBuilderv2({
 
   let qb;
   try {
+    parentColumns = (parentColumns ?? CircularRefContext.make()).cloneAndAdd(
+      column?.id,
+    );
     // generate qb
     qb = await _formulaQueryBuilder({
       baseModelSqlv2,
@@ -482,7 +481,7 @@ export default async function formulaQueryBuilderv2({
           ?.getColOptions<FormulaColumn | ButtonColumn>(context)
           .then((formula) => formula?.getParsedTree())),
       baseUsers,
-      parentColumns: new Set(column?.id ? [column?.id] : []),
+      parentColumns,
       getAliasCount,
     });
 

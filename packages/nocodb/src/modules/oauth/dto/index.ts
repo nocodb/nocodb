@@ -14,6 +14,7 @@ export const CreateOAuthClientSchema = z.object({
         message: 'Client type must be either "confidential" or "public"',
       }),
     })
+    .default(OAuthClientType.PUBLIC)
     .optional(),
 
   fk_user_id: z.string().optional(),
@@ -37,18 +38,11 @@ export const CreateOAuthClientSchema = z.object({
 
   allowed_grant_types: z
     .array(
-      z.enum(
-        [
-          'authorization_code',
-          'refresh_token',
-          'client_credentials',
-          'password',
-        ],
-        {
-          errorMap: () => ({ message: 'Invalid grant type' }),
-        },
-      ),
+      z.enum(['authorization_code', 'refresh_token'], {
+        errorMap: () => ({ message: 'Invalid grant type' }),
+      }),
     )
+    .default(['authorization_code', 'refresh_token'])
     .optional(),
 
   response_types: z

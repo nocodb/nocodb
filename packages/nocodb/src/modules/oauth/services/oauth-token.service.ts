@@ -122,6 +122,7 @@ export class OauthTokenService {
     redirectUri: string;
     codeVerifier?: string;
     clientSecret?: string;
+    resource?: string;
   }): Promise<TokenResponse> {
     const { code, clientId, redirectUri, codeVerifier, clientSecret } = params;
 
@@ -129,6 +130,16 @@ export class OauthTokenService {
     const authCode = await OAuthAuthorizationCode.getByCode(code);
     if (!authCode) {
       NcError.badRequest('Invalid or expired authorization code');
+    }
+
+    if (
+      params.resource &&
+      authCode.resource &&
+      params.resource !== authCode.resource
+    ) {
+      NcError.badRequest(
+        'resource parameter does not match authorized resource',
+      );
     }
 
     // Check if code is already used
@@ -215,6 +226,7 @@ export class OauthTokenService {
       refresh_token: refreshToken,
       refresh_expires_in: this.REFRESH_TOKEN_EXPIRES_IN,
       scope: authCode.scope,
+      resource: authCode.resource,
     };
   }
 

@@ -118,6 +118,12 @@ watch(emailVerifyDlg, (val) => {
         </div>
       </template>
       <template #sign-up-footer>
+        <!-- Sigin using SSO button -->
+        <div class="w-full p-6 pt-0 -mt-6">
+          <a-divider />
+          <NcButton class="w-full" type="secondary" @click="navigateTo('/sso')"> Sign in with Single Sign On </NcButton>
+        </div>
+
         <div class="pb-4 text-center text-xs tos mx-2">
           By signing up, you agree to our
           <a
@@ -136,18 +142,12 @@ watch(emailVerifyDlg, (val) => {
             Privacy Policy
           </a>
         </div>
-
-        <!-- Sigin using SSO button -->
-        <div class="w-full p-6 pt-0 -mt-6">
-          <a-divider />
-          <NcButton class="w-full !text-base" type="primary" @click="navigateTo('/sso')"> Sign in with Single Sign On </NcButton>
-        </div>
       </template>
       <template #sign-in-footer>
         <!-- Sigin using SSO button -->
         <div class="w-full p-6 pt-0 -mt-6">
           <a-divider />
-          <NcButton class="w-full" type="primary" @click="navigateTo('/sso')"> Sign in with Single Sign On </NcButton>
+          <NcButton class="w-full" type="secondary" @click="navigateTo('/sso')"> Sign in with Single Sign On </NcButton>
         </div>
       </template>
 

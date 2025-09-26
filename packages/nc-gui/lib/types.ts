@@ -929,7 +929,8 @@ interface NcClipboardDataItemType {
 // NcClipboardDataType type ends here
 
 interface AttachmentCellDropOverType {
-  rowIndex?: number
+  rowIndex: number
+  colIndex: number
   columnId: string
   path: Array<number>
 }

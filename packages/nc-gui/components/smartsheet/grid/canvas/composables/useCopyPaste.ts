@@ -1098,6 +1098,61 @@ export function useCopyPaste({
     }
   }
 
+  const handleAttachmentCellDrop = async (files: File[], attachmentCellDropOver: AttachmentCellDropOverType) => {
+    if (!meta.value?.id) return
+
+    const dataCache = getDataCache(attachmentCellDropOver.path)
+
+    const { cachedRows } = dataCache
+
+    const rowObj = (unref(cachedRows) as Map<number, Row>).get(attachmentCellDropOver.rowIndex!)
+    const columnObj = unref(fields)[attachmentCellDropOver.colIndex]
+
+    if (!rowObj || !columnObj) return
+
+    let dropValue: any
+
+    try {
+      try {
+        dropValue = convertCellData(
+          {
+            value: '',
+            to: columnObj.uidt as UITypes,
+            column: columnObj,
+            appInfo: unref(appInfo),
+            files,
+            oldValue: rowObj.row[columnObj.title!],
+            maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+            showUpgradeToAddMoreAttachmentsInCell,
+          },
+          isMysql(meta.value?.source_id),
+        )
+        validateColumnValue(columnObj, dropValue)
+      } catch (ex) {
+        dropValue = null
+      }
+
+      if (!dropValue?.length) return
+
+      const newAttachments = (await handleFileUploadAndGetCellValue(dropValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
+
+      const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
+
+      rowObj.row[columnObj.title!] =
+        newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+      await syncCellData?.(
+        {
+          row: attachmentCellDropOver.rowIndex,
+          col: attachmentCellDropOver.colIndex,
+        },
+        attachmentCellDropOver.path,
+      )
+    } catch (ex) {
+      console.log(ex)
+      message.error(t('msg.error.errorOccuredWhileDroppingAttachments'))
+    }
+  }
+
   function handleParseAttachmentCellData<T>(value: T): T {
     const parsedVal = parseProp(value)
 
@@ -1108,5 +1163,5 @@ export function useCopyPaste({
     }
   }
   useEventListener(document, 'paste', handlePaste)
-  return { copyValue, clearCell, isPasteable }
+  return { copyValue, clearCell, isPasteable, handleAttachmentCellDrop }
 }

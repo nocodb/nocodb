@@ -131,8 +131,7 @@ export const ClientMousePositionInj: InjectionKey<Reactive<{ clientX: number; cl
 export const CanvasCellEventDataInj: InjectionKey<
   Reactive<{
     keyboardKey?: string
-    files?: File[] | null
-    event?: KeyboardEvent | MouseEvent | PointerEvent | DragEvent
+    event?: KeyboardEvent | MouseEvent | PointerEvent
   }>
 > = Symbol('canvas-cell-event-data-injection')
 

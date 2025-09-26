@@ -792,7 +792,7 @@ export function useCanvasTable({
     }
   }
 
-  const { handleCellClick, renderCell, handleCellHover, handleCellKeyDown, handleCellDrop } = useGridCellHandler({
+  const { handleCellClick, renderCell, handleCellHover, handleCellKeyDown } = useGridCellHandler({
     getCellPosition,
     actionManager,
     updateOrSaveRow,
@@ -894,7 +894,7 @@ export function useCanvasTable({
     isExternalSource,
   })
 
-  const { clearCell, copyValue, isPasteable } = useCopyPaste({
+  const { clearCell, copyValue, isPasteable, handleAttachmentCellDrop } = useCopyPaste({
     activeCell,
     selection,
     columns,
@@ -1445,13 +1445,15 @@ export function useCanvasTable({
     copyValue,
     clearSelectedRangeOfCells,
 
+    // attachment cell drop handler
+    handleAttachmentCellDrop,
+
     // Action Manager
     actionManager,
     imageLoader,
     baseRoleLoader,
     handleCellClick,
     handleCellHover,
-    handleCellDrop,
     renderCell,
 
     totalColumnsWidth,

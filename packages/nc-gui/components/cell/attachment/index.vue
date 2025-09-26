@@ -297,10 +297,6 @@ onMounted(() => {
     forcedNextTick(() => {
       if (onCellEvent(canvasCellEventData.event)) return
 
-      if (canvasCellEventData.event && canvasCellEventData.files) {
-        return onDrop(canvasCellEventData.files, canvasCellEventData.event)
-      }
-
       const clickableSelectors = ['.view-attachments', '.add-files', '.nc-attachment', '.empty-add-files']
         .map((selector) => `.nc-canvas-table-editable-cell-wrapper ${selector}`)
         .join(', ')

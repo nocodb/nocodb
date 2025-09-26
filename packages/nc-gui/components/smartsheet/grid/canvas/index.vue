@@ -334,14 +334,14 @@ const {
   clearCell,
   clearSelectedRangeOfCells,
 
+  // Attachment Cell Drop
+  handleAttachmentCellDrop,
+
   // Cell Click
   handleCellClick,
 
   // Cell Hover
   handleCellHover,
-
-  // Cell Drop
-  handleCellDrop,
 
   actionManager,
   imageLoader,
@@ -2624,8 +2624,8 @@ const resetAttachmentCellDropOver = () => {
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
-const onDrop = (files: File[] | null, event: DragEvent) => {
-  if (!attachmentCellDropOver.value) {
+const onDrop = (files: File[] | null) => {
+  if (!attachmentCellDropOver.value || !files?.length) {
     return
   }
 
@@ -2633,35 +2633,18 @@ const onDrop = (files: File[] | null, event: DragEvent) => {
 
   const row =
     attachmentCellDropOver.value.rowIndex !== null
-      ? dataCache.cachedRows.value.get(attachmentCellDropOver.value.rowIndex!)
+      ? dataCache.cachedRows.value.get(attachmentCellDropOver.value.rowIndex)
       : undefined
 
-  const columnIndex = columns.value.findIndex((col) => col.id === attachmentCellDropOver.value.columnId)
+  const column = columns.value[attachmentCellDropOver.value.colIndex]!
 
-  if (!row || columnIndex === -1) {
+  if (!row || !column) {
     resetAttachmentCellDropOver()
     return
   }
 
-  const column = columns.value[columnIndex]!
-
-  selection.value.clear()
-  editEnabled.value = null
-  activeCell.value = {
-    row: attachmentCellDropOver.value.rowIndex,
-    column: columnIndex,
-    path: attachmentCellDropOver.value.path,
-  }
-  resetRowSelection()
-  onActiveCellChanged()
-
   try {
-    handleCellDrop({
-      files,
-      e: event,
-      row,
-      column,
-    })
+    handleAttachmentCellDrop(files, attachmentCellDropOver.value)
   } finally {
     resetAttachmentCellDropOver()
   }
@@ -2698,8 +2681,10 @@ const onOver = (_files: File[] | null, e: DragEvent) => {
 
   const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
 
+  const colIndex = column ? columns.value.findIndex((col) => col.id === column.id) : -1
+
   // If hover column is not attachment, skip
-  if (!column || column.uidt !== UITypes.Attachment) {
+  if (ncIsUndefined(rowIndex) || !column || colIndex === -1 || column.uidt !== UITypes.Attachment) {
     return resetAttachmentCellDropOver()
   }
 
@@ -2711,7 +2696,7 @@ const onOver = (_files: File[] | null, e: DragEvent) => {
     return
   }
 
-  attachmentCellDropOver.value = { rowIndex, columnId: column.id, path: groupPath }
+  attachmentCellDropOver.value = { rowIndex, colIndex, columnId: column.id, path: groupPath }
 
   requestAnimationFrame(triggerRefreshCanvas)
 }

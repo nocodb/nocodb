@@ -174,6 +174,7 @@ const initSortable = (el: Element) => {
     animation: 150,
     revertOnSpill: true,
     filter: isTouchEvent,
+    ...getDraggableAutoScrollOptions({ scrollSensitivity: 50 }),
   })
 }
 

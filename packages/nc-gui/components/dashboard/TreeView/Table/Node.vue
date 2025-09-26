@@ -578,6 +578,7 @@ async function onRename() {
                       tableId: table.id,
                     })
                   "
+                  :data-testid="`sidebar-table-copy-id-${table.title}`"
                 />
 
                 <NcMenuItem

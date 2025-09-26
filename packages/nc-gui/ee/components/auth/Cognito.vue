@@ -117,27 +117,37 @@ watch(emailVerifyDlg, (val) => {
           <img class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/nocodb.png" />
         </div>
       </template>
-      <template v-slot:sign-in-header>
+      <template #sign-in-header>
         <!-- Sigin using SSO button -->
-        <div class="w-full px-6 -mt-6">
-          <a-divider />
-          <div class="w-full" type="secondary" @click="navigateTo('/sso')">Sign in with Single Sign On </div>
+        <div class="w-full px-6 pt-6">
+          <NcButton
+            :shadow="false"
+            :bordered="true"
+            class="!cursor-pointer !outline !outline-gray-200/70 !w-full !text-base !font-weight-normal !text-[var(--amplify-components-text-color)]"
+            type="secondary"
+            @click="navigateTo('/sso')"
+          >
+            <GeneralIcon icon="sso" class="flex-none text-gray-500 h-4.5 w-4.5 mr-2" />
+            Sign in with Single Sign On
+          </NcButton>
         </div>
       </template>
-      <template v-slot:sign-up-header>
+      <template #sign-up-header>
         <!-- Sigin using SSO button -->
-        <div class="w-full px-6 -mt-6">
-          <a-divider />
-          <NcButton class="w-full" type="secondary" @click="navigateTo('/sso')"> Sign in with Single Sign On </NcButton>
+        <div class="w-full px-6 pt-6">
+          <NcButton
+            :shadow="false"
+            :bordered="true"
+            class="!cursor-pointer !outline !outline-gray-200/70 !w-full !text-base !font-weight-normal !text-[var(--amplify-components-text-color)]"
+            type="secondary"
+            @click="navigateTo('/sso')"
+          >
+            <GeneralIcon icon="sso" class="flex-none text-gray-500 h-4.5 w-4.5 mr-2" />
+            Sign up with Single Sign On
+          </NcButton>
         </div>
       </template>
       <template #sign-up-footer>
-<!--        &lt;!&ndash; Sigin using SSO button &ndash;&gt;-->
-<!--        <div class="w-full p-6 pt-0 -mt-6">-->
-<!--          <a-divider />-->
-<!--          <NcButton class="w-full" type="secondary" @click="navigateTo('/sso')"> Sign in with Single Sign On </NcButton>-->
-<!--        </div>-->
-
         <div class="pb-4 text-center text-xs tos mx-2">
           By signing up, you agree to our
           <a
@@ -157,13 +167,6 @@ watch(emailVerifyDlg, (val) => {
           </a>
         </div>
       </template>
-<!--      <template #sign-in-footer>-->
-<!--        &lt;!&ndash; Sigin using SSO button &ndash;&gt;-->
-<!--        <div class="w-full p-6 pt-0 -mt-6">-->
-<!--          <a-divider />-->
-<!--          <NcButton class="w-full" type="secondary" @click="navigateTo('/sso')"> Sign in with Single Sign On </NcButton>-->
-<!--        </div>-->
-<!--      </template>-->
 
       <template #reset-password-footer>
         <div class="text-center flex gap-1 justify-center">

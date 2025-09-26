@@ -869,7 +869,7 @@
     "thisViewIsLockType": "이 뷰는 {type}",
     "thisFormIsLocked": "이 양식은 현재 잠겨 있습니다",
     "unlockThisVieToMakeChanges": "변경하려면 이 뷰를 잠금 해제하세요",
-    "yourBaseRole": "당신의 베이스 규칙",
+    "yourBaseRole": "귀하의 작업 권한",
     "lockedByUser": "{user}에 의해 잠김",
     "thisPageDoesNotExist": "이 페이지는 존재하지 않습니다",
     "thisPageDoesNotExistSubtile": "지금 클릭한 링크가 잘못되었거나, 해당 페이지가 삭제되었습니다.",

@@ -86,7 +86,6 @@ export class ColumnsV3Service {
 
     // in payload id is required in existing implementation
     column.id = param.columnId;
-    console.log(processedColumnReq);
 
     await this.columnsService.columnUpdate(context, {
       ...param,

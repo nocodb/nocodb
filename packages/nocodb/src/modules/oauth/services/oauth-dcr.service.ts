@@ -66,7 +66,6 @@ export class OauthDcrService {
       );
     }
 
-    const clientId = nanoid(32);
     const clientSecret =
       clientType === 'confidential'
         ? randomBytes(32).toString('base64url')
@@ -74,7 +73,6 @@ export class OauthDcrService {
     const issuedAt = Math.floor(Date.now() / 1000);
 
     const clientData = {
-      client_id: clientId,
       client_secret: clientSecret,
       client_name: request.client_name || 'Dynamically Registered Client',
       client_uri: request.client_uri,
@@ -86,10 +84,10 @@ export class OauthDcrService {
       client_secret_expires_at: clientSecret ? 0 : undefined, // 0 means never expires
     };
 
-    await OAuthClient.insert(clientData);
+    const res = await OAuthClient.insert(clientData);
 
     return {
-      client_id: clientId,
+      client_id: res.client_id,
       client_secret: clientSecret,
       client_id_issued_at: issuedAt,
       client_secret_expires_at: clientSecret ? 0 : undefined,

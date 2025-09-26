@@ -10,7 +10,7 @@ export class OauthMetadataService {
 
     return {
       issuer: baseUrl,
-      authorization_endpoint: `${baseUrl}/#/oauth/authorize`,
+      authorization_endpoint: `${baseUrl}/api/v2/oauth/authorize`,
       token_endpoint: `${baseUrl}/api/v2/oauth/token`,
       revocation_endpoint: `${baseUrl}/api/v2/oauth/revoke`,
       registration_endpoint: `${baseUrl}/api/v2/oauth/register`,

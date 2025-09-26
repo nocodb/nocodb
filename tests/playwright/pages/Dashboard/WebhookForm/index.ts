@@ -163,7 +163,7 @@ export class WebhookFormPage extends BasePage {
 
     await this.waitForResponse({
       uiAction: saveAction,
-      requestUrlPathToMatch: '/hooks',
+      requestUrlPathToMatch: 'operation=hook',
       httpMethodsToMatch: ['POST', 'PATCH'],
     });
 

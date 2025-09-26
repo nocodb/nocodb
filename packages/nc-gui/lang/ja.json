@@ -1488,7 +1488,8 @@
     "newScript": "新しいスクリプト",
     "emptyScript": "空のスクリプト",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "クリックして解決",

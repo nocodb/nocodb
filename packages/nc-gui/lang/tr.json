@@ -1488,7 +1488,8 @@
     "newScript": "Yeni Script",
     "emptyScript": "Boş Script",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Çözmek için tıklayın",

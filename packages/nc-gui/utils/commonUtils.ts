@@ -217,8 +217,8 @@ export const getDraggableAutoScrollOptions = (
      */
     scroll: true,
     /**
-     * forceAutoScrollFallback property is used to force auto scroll fallback
-     * if this value is false then it will not work
+     * force the autoscroll fallback to kick in
+     * if this value is false then updated `scrollSensitivity` will not work
      */
     forceAutoScrollFallback: true,
     /**

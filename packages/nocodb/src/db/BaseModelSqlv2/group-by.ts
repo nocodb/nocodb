@@ -25,6 +25,33 @@ import { BaseUser, Column, Filter, Sort } from '~/models';
 import { getAliasGenerator, isOnPrem } from '~/utils';
 import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 
+// Returns a SQL expression that converts blank (null or '') values to NULL
+const sqlNullIfBlank = ({
+  baseModel,
+  columnName,
+  useNullIf = false,
+}: {
+  baseModel: IBaseModelSqlV2;
+  columnName: any;
+  useNullIf?: boolean;
+}) => {
+  if (baseModel.isPg) {
+    return baseModel.dbDriver.raw(
+      `CASE 
+        WHEN (pg_typeof(:column:) = 'text'::regtype 
+          OR pg_typeof(:column:) = 'varchar'::regtype 
+          OR pg_typeof(:column:) = 'char'::regtype) 
+          AND :column:::text = '' 
+        THEN NULL
+        ELSE :column:
+      END`,
+      { column: columnName },
+    );
+  }
+
+  return baseModel.dbDriver.raw(`NULLIF(??, '')`, [columnName]);
+};
+
 export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
   const list = async (args: {
     where?: string;
@@ -113,7 +140,13 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               (column.colOptions as FormulaColumn).getParsedTree().dataType ===
                 FormulaDataTypes.STRING
             ) {
-              columnQuery = baseModel.dbDriver.raw(`??::text`, [columnQuery]);
+              columnQuery = baseModel.dbDriver.raw(`??::text`, [
+                sqlNullIfBlank({
+                  columnName: columnQuery,
+                  baseModel,
+                  useNullIf: true,
+                }),
+              ]);
             }
           } catch (e) {
             logger.log(e);
@@ -197,11 +230,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           break;
         }
         default: {
-          const defaultColumnName = await getColumnName(
-            baseModel.context,
-            column,
-            columns,
-          );
+          const defaultColumnName = sqlNullIfBlank({
+            columnName: await getColumnName(baseModel.context, column, columns),
+            baseModel,
+          });
           columnQuery = baseModel.dbDriver.raw('??', [defaultColumnName]);
           if (!isSubGroup) {
             selectors.push(
@@ -227,9 +259,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       const subGroupQuery = await processColumn(subGroupColumnName, true);
       qb.select(
         baseModel.dbDriver.raw(
-          `COUNT(DISTINCT COALESCE(${
-            baseModel.isPg ? '(??)::text' : '??'
-          }, '__null__')) as ??`,
+          `COUNT(DISTINCT COALESCE(${sqlNullIfBlank({
+            columnName: baseModel.isPg ? '(??)::text' : '??',
+            baseModel,
+          })}, '__null__')) as ??`,
           [baseModel.dbDriver.raw(subGroupQuery), '__sub_group_count__'],
         ),
       );
@@ -470,7 +503,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               );
 
               selectQb = baseModel.dbDriver.raw(`?? as ??`, [
-                _selectQb.builder,
+                sqlNullIfBlank({
+                  columnName: _selectQb.builder,
+                  baseModel,
+                }),
                 getAs(column),
               ]);
             } catch (e) {
@@ -588,7 +624,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 columns,
               );
               selectors.push(
-                baseModel.dbDriver.raw('?? as ??', [columnName, getAs(column)]),
+                baseModel.dbDriver.raw('?? as ??', [
+                  sqlNullIfBlank({ columnName, baseModel }),
+                  getAs(column),
+                ]),
               );
               groupBySelectors.push(getAs(column));
             }

@@ -1600,6 +1600,7 @@ export async function singleQueryList(
   // handle shuffle if query param preset
   if (+listArgs?.shuffle) {
     await baseModel.shuffle({ qb: rootQb });
+    ctx.skipSortBasedOnOrderCol = true;
   }
 
   if (listArgs.pks) {
@@ -1759,22 +1760,25 @@ export async function singleQueryList(
       qb.orderBy(orderColumn.column_name);
     }
   }
-  // Ensure stable ordering:
-  // - Use auto-increment PK if available
-  // - Otherwise, fallback to system CreatedTime
-  // This avoids issues when order column has duplicates
-  if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
-    qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
-  } else {
-    const createdAtColumn = ctx.model.columns.find(
-      (c) => c.uidt === UITypes.CreatedTime && c.system,
-    );
-    if (createdAtColumn) {
-      qb.orderBy(`${ROOT_ALIAS}.${createdAtColumn.column_name}`);
+  // ignore stable sorting / sort by created time when shuffle
+  if (!+listArgs?.shuffle) {
+    // Ensure stable ordering:
+    // - Use auto-increment PK if available
+    // - Otherwise, fallback to system CreatedTime
+    // This avoids issues when order column has duplicates
+    if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
+      qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
+    } else {
+      const createdAtColumn = ctx.model.columns.find(
+        (c) => c.uidt === UITypes.CreatedTime && c.system,
+      );
+      if (createdAtColumn) {
+        qb.orderBy(`${ROOT_ALIAS}.${createdAtColumn.column_name}`);
+      }
+      /*else if (ctx.model.primaryKey) {
+        rootQb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
+      }*/
     }
-    /*else if (ctx.model.primaryKey) {
-      rootQb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
-    }*/
   }
 
   // const finalQb = qb.select(countQb.as('__nc_count'));

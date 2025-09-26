@@ -241,10 +241,19 @@ export class InternalController extends InternalControllerCE {
         );
       case 'hookSamplePayload':
         return await this.hooksService.hookSamplePayload(context, {
-          event: req.query.event as string,
           tableId: req.query.tableId as string,
-          operation: req.query.operation as string,
+          operation: req.query.hookOperation as string,
           version: req.query.version as string,
+          includeUser: req.query.includeUser === 'true',
+          event: req.query.event as string,
+        });
+      case 'tableSampleData':
+        return await this.hooksService.tableSampleData(context, {
+          tableId: req.query.tableId as string,
+          operation: req.query.hookOperation as any,
+          version: req.query.version as any,
+          includeUser: req.query.includeUser === 'true',
+          event: req.query.event as any,
         });
       case 'teamList':
         return await this.teamsV3Service.teamList(context, {
@@ -647,6 +656,12 @@ export class InternalController extends InternalControllerCE {
             },
           },
           tableId: req.query.tableId,
+          req,
+        });
+      case 'hookTrigger':
+        return await this.hooksService.hookTrigger(context, {
+          hookId: req.query.hookId as string,
+          rowId: req.query.rowId as string,
           req,
         });
       case 'gridViewCreate':

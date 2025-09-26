@@ -281,6 +281,11 @@ export function useCanvasTable({
     currentUser,
   )
 
+  // Set base information for internal API calls
+  if (baseStore.base?.id && baseStore.base?.fk_workspace_id) {
+    actionManager.setBaseInfo(baseStore.base.id, baseStore.base.fk_workspace_id)
+  }
+
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 
   const removeInlineAddRecord = computed(() => {

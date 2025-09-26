@@ -656,25 +656,41 @@ async function saveHooks() {
   try {
     let res
     if (hookRef.id) {
-      res = await api.dbTableWebhook.update(hookRef.id, {
-        ...hookRef,
-        title: hookRef.title?.trim(),
-        operation: operations,
-        notification: {
-          ...hookRef.notification,
-          payload: hookRef.notification.payload,
+      res = await $api.internal.postOperation(
+        base.value!.fk_workspace_id!,
+        base.value!.id!,
+        {
+          operation: 'hookUpdate',
+          hookId: hookRef.id,
         },
-      })
+        {
+          ...hookRef,
+          title: hookRef.title?.trim(),
+          operation: operations,
+          notification: {
+            ...hookRef.notification,
+            payload: hookRef.notification.payload,
+          },
+        },
+      )
     } else {
-      res = await api.dbTableWebhook.create(meta.value!.id!, {
-        ...hookRef,
-        title: hookRef.title?.trim(),
-        operation: operations,
-        notification: {
-          ...hookRef.notification,
-          payload: hookRef.notification.payload,
+      res = await $api.internal.postOperation(
+        base.value!.fk_workspace_id!,
+        base.value!.id!,
+        {
+          operation: 'hookCreate',
+          tableId: meta.value!.id!,
         },
-      } as HookReqType)
+        {
+          ...hookRef,
+          title: hookRef.title?.trim(),
+          operation: operations,
+          notification: {
+            ...hookRef.notification,
+            payload: hookRef.notification.payload,
+          },
+        } as HookReqType,
+      )
 
       hooks.value.push(res)
       updateStatLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE, 1)
@@ -747,8 +763,13 @@ async function testWebhook() {
     testConnectionError.value = ''
     testSuccess.value = false
     isTestLoading.value = true
-    await $api.dbTableWebhook.test(
-      meta.value?.id as string,
+    await $api.internal.postOperation(
+      base.value!.fk_workspace_id!,
+      base.value!.id!,
+      {
+        operation: 'hookTest',
+        tableId: meta.value?.id as string,
+      },
       {
         hook: hookRef,
         payload: sampleData.value,
@@ -798,17 +819,14 @@ watch(
 )
 
 async function loadSampleData() {
-  const samplePayload = await $api.dbTableWebhook.samplePayloadGet(
-    meta?.value?.id as string,
-    hookRef?.event ?? 'after',
-    ((hookRef?.operation && hookRef?.operation[0]) as any) || 'insert',
-    hookRef.version!,
-    {
-      query: {
-        includeUser: (!!hookRef.notification?.include_user).toString(),
-      },
-    },
-  )
+  const samplePayload = await $api.internal.getOperation(base.value!.fk_workspace_id!, base.value!.id!, {
+    operation: 'tableSampleData',
+    tableId: meta?.value?.id as string,
+    hookOperation: ((hookRef?.operation && hookRef?.operation[0]) as any) || 'insert',
+    version: hookRef.version!,
+    includeUser: (!!hookRef.notification?.include_user).toString(),
+    event: hookRef?.event ?? 'after',
+  })
   // if non-URL based hook and version is v2, then return the newRowData as payload
   // this is for backward compatibility
   if (hookRef.notification.type !== 'URL' && ['v2', 'v3'].includes(hookRef.version)) {

@@ -477,16 +477,13 @@ watch(
 )
 
 async function loadSampleData() {
-  sampleData.value = await $api.dbTableWebhook.samplePayloadGet(
-    meta?.value?.id as string,
-    hookRef?.operation || 'insert',
-    hookRef.version!,
-    {
-      query: {
-        includeUser: (!!hookRef.notification?.include_user).toString(),
-      },
-    },
-  )
+  sampleData.value = await $api.internal.getOperation(base.value!.fk_workspace_id!, base.value!.id!, {
+    operation: 'hookSamplePayload',
+    tableId: meta?.value?.id as string,
+    hookOperation: hookRef?.operation || 'insert',
+    version: hookRef.version!,
+    includeUser: (!!hookRef.notification?.include_user).toString(),
+  })
 }
 
 const getDefaultHookName = (hooks: HookType[]) => {

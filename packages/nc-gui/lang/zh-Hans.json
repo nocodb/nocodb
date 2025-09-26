@@ -1499,6 +1499,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "根据此字段过滤",
     "groupByThisField": "按此字段分组",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "添加到已加星标",
     "removeFromStarred": "从收藏中移除",
     "runActions": "运行操作",
@@ -1869,7 +1870,13 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "搜索图标",

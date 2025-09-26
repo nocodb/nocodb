@@ -52,9 +52,9 @@
     "percent_empty": "빈 비율",
     "percent_filled": "찬 비율",
     "percent_unique": "고유 비율",
-    "count_unique": "고유 값",
-    "count_empty": "빈 값",
-    "count_filled": "찬 값",
+    "count_unique": "고유 개수",
+    "count_empty": "없는 개수",
+    "count_filled": "있는 개수",
     "earliest_date": "최소 날짜",
     "latest_date": "최대 날짜",
     "date_range": "범위",
@@ -79,9 +79,9 @@
     "percent_empty": "빈 비율",
     "percent_filled": "찬 비율",
     "percent_unique": "고유 비율",
-    "count_unique": "고유 값",
-    "count_empty": "빈 값",
-    "count_filled": "찬 값",
+    "count_unique": "고유 개수",
+    "count_empty": "없는 개수",
+    "count_filled": "있는 개수",
     "earliest_date": "가장 빠른 날짜",
     "latest_date": "가장 최근 날짜",
     "date_range": "날짜 범위",
@@ -1489,7 +1489,7 @@
     "emptyScript": "빈 스크립트",
     "enterFullscreen": "전체 화면으로 전환",
     "exitFullscreen": "전체 화면 종료",
-    "selectRole": "Select Role"
+    "selectRole": "권한 선택"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",
@@ -1499,6 +1499,7 @@
     "removeMember": "사용자 제거",
     "filterByThisField": "이 필드로 필터링",
     "groupByThisField": "이 필드로 그룹화",
+    "dontGroupByThisField": "이 필드를 기준으로 그룹화하지 마십시오",
     "addToStarred": "별표 표시에 추가",
     "removeFromStarred": "별표 표시에서 제거",
     "runActions": "작업 실행",
@@ -1869,7 +1870,13 @@
     "releasingPreviousFullscreenLock": "이전 전체 화면 잠금을 해제합니다...",
     "youCantHideARequiredField": "필수 필드는 숨길 수 없습니다.",
     "youCantRemoveARequiredField": "필수 필드는 제거할 수 없습니다.",
-    "removeFromForm": "양식에서 제거"
+    "removeFromForm": "양식에서 제거",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} 필드를 표시 값 필드로 사용할 수 없습니다",
+    "thisFieldTypeDoesNotSupportSorting": "이 필드 유형은 정렬을 지원하지 않습니다",
+    "thisFieldTypeDoesNotSupportFiltering": "이 필드 유형은 필터링을 지원하지 않습니다",
+    "thisFieldTypeDoesNotSupportGrouping": "이 필드 유형은 그룹화를 지원하지 않습니다",
+    "filterByLimitExceeded": "한도 초과 기준 필터링",
+    "groupByLimitExceeded": "그룹별 제한 초과"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",

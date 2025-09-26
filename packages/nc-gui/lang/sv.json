@@ -1499,6 +1499,7 @@
     "removeMember": "Ta bort medlem",
     "filterByThisField": "Filtrera efter detta fält",
     "groupByThisField": "Gruppera efter detta fält",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Lägg till i favoriter",
     "removeFromStarred": "Ta bort från favoriter",
     "runActions": "Kör åtgärder",
@@ -1869,7 +1870,13 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "Du kan inte dölja ett obligatoriskt fält.",
     "youCantRemoveARequiredField": "Du kan inte ta bort ett obligatoriskt fält.",
-    "removeFromForm": "Ta bort från formulär"
+    "removeFromForm": "Ta bort från formulär",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "Sök ikoner",

@@ -1488,7 +1488,8 @@
     "newScript": "새 스크립트",
     "emptyScript": "빈 스크립트",
     "enterFullscreen": "전체 화면으로 전환",
-    "exitFullscreen": "전체 화면 종료"
+    "exitFullscreen": "전체 화면 종료",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "해결하려면 클릭하십시오",

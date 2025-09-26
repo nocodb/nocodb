@@ -164,7 +164,7 @@ export class ViewSidebarPage extends BasePage {
 
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: '/api/v1/db/meta/tables/',
+      requestUrlPathToMatch: 'ViewCreate',
       uiAction: copyViewAction,
     });
 

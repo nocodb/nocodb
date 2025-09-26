@@ -14,6 +14,7 @@ import { RelationManager } from '~/db/relation-manager';
 import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
+import { NcError } from '~/helpers/ncError';
 
 export default async function genRollupSelectv2({
   baseModelSqlv2,
@@ -22,6 +23,7 @@ export default async function genRollupSelectv2({
   columnOptions,
   parentColumns,
   nestedLevel = 0,
+  visitedNodes = new Set<string>(),
 }: {
   baseModelSqlv2: IBaseModelSqlV2;
   knex: XKnex;
@@ -29,6 +31,7 @@ export default async function genRollupSelectv2({
   columnOptions: RollupColumn | LinksColumn;
   parentColumns?: CircularRefContext;
   nestedLevel?: number;
+  visitedNodes?: Set<string>;
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
   const context = baseModelSqlv2.context;
   parentColumns = (parentColumns ?? CircularRefContext.make()).cloneAndAdd(
@@ -109,8 +112,11 @@ export default async function genRollupSelectv2({
         baseModelSqlv2: refBaseModel,
         knex,
         alias: refTableAlias,
-        columnOptions: await rollupColumn.getColOptions<RollupColumn>(refContext),
+        columnOptions: await rollupColumn.getColOptions<RollupColumn>(
+          refContext,
+        ),
         nestedLevel: nestedLevel + 1,
+        visitedNodes,
       });
 
       // Use the inner builder directly as a subquery

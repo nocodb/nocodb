@@ -1488,7 +1488,8 @@
     "newScript": "নতুন স্ক্রিপ্ট",
     "emptyScript": "ফাঁকা স্ক্রিপ্ট",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "সমাধান করতে ক্লিক করুন",

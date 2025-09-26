@@ -1488,7 +1488,8 @@
     "newScript": "Nova skripta",
     "emptyScript": "Prazna skripta",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Kliknite za rješavanje",

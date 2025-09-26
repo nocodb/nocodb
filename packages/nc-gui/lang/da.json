@@ -1488,7 +1488,8 @@
     "newScript": "Nyt script",
     "emptyScript": "Tomt script",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Klik for at løse",

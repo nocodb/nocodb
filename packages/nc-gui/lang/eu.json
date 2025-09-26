@@ -1488,7 +1488,8 @@
     "newScript": "Script berria",
     "emptyScript": "Script hutsik",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Egin klik ebazteko",

@@ -1488,7 +1488,8 @@
     "newScript": "Nytt skript",
     "emptyScript": "Tomt skript",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Klikk for å løse",

@@ -1488,7 +1488,8 @@
     "newScript": "Nytt skript",
     "emptyScript": "Tomt skript",
     "enterFullscreen": "Gå till helskärm",
-    "exitFullscreen": "Avsluta helskärm"
+    "exitFullscreen": "Avsluta helskärm",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Klicka för att lösa",

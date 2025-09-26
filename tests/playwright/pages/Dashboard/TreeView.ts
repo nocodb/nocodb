@@ -329,8 +329,8 @@ export class TreeViewPage extends BasePage {
         await delay(100);
         return await this.dashboard.get().locator('button:has-text("Delete Table")').click();
       },
-      httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `tableDelete`,
     });
 
     await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');

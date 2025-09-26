@@ -159,6 +159,13 @@ export async function initInitialModel() {
     type: 'hm',
   });
 
+  const t1_HM_t1_Ltar = await createLtarColumn2(context, {
+    title: 'Table1SelfList',
+    parentTable: table1,
+    childTable: table1,
+    type: 'hm',
+  });
+
   const source = (await Base.getByTitleOrId(ctx, base.id)).getSources();
   await createLookupColumn(context, {
     base,
@@ -195,6 +202,18 @@ export async function initInitialModel() {
     relatedTableName: table2.table_name,
     relatedTableColumnTitle: 'T1s',
     relationColumnId: t3_HM_t2_Ltar.id,
+  });
+  await createLookupColumn(context, {
+    base,
+    title: 'Table1SelfList_Titles',
+    table: await Model.getByIdOrName(ctx, {
+      base_id: base.id,
+      source_id: source.id!,
+      id: table1.id,
+    }),
+    relatedTableName: table1.table_name,
+    relatedTableColumnTitle: 'Title',
+    relationColumnId: t1_HM_t1_Ltar.id,
   });
 
   const linkTo_t2_HM_t1_Ltar = (rowId: string, body: any[]) => {

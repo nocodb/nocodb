@@ -15,18 +15,20 @@ import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 
-export default async function ({
+export default async function genRollupSelectv2({
   baseModelSqlv2,
   knex,
   alias,
   columnOptions,
   parentColumns,
+  nestedLevel = 0,
 }: {
   baseModelSqlv2: IBaseModelSqlV2;
   knex: XKnex;
   alias?: string;
   columnOptions: RollupColumn | LinksColumn;
   parentColumns?: CircularRefContext;
+  nestedLevel?: number;
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
   const context = baseModelSqlv2.context;
   parentColumns = (parentColumns ?? CircularRefContext.make()).cloneAndAdd(
@@ -48,7 +50,8 @@ export default async function ({
   const childModel = await childCol?.getModel(childContext);
   const parentCol = await relationColumnOption.getParentColumn(parentContext);
   const parentModel = await parentCol?.getModel(parentContext);
-  const refTableAlias = `__nc_rollup`;
+  const refTableAlias =
+    `__nc_rollup` + (nestedLevel > 0 ? `_${nestedLevel}` : ``);
 
   const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
     model: parentModel,
@@ -58,6 +61,11 @@ export default async function ({
     model: childModel,
     dbDriver: knex,
   });
+
+  const refBaseModel =
+    rollupColumn.fk_model_id === childModel.id
+      ? childBaseModel
+      : parentBaseModel;
 
   const applyFunction = async (qb: any) => {
     let selectColumnName = knex.raw('??.??', [
@@ -93,6 +101,34 @@ export default async function ({
       });
 
       selectColumnName = knex.raw(formulaQb.builder).wrap('(', ')');
+    } else if ([UITypes.Rollup].includes(rollupColumn.uidt)) {
+      const knex = refBaseModel.dbDriver;
+
+      // if it's rollup of rollup, then we need to call recursively
+      selectColumnName = knex
+        .raw('??', [
+          knex(refBaseModel.getTnPath(refBaseModel.model.table_name))
+            // .where(
+            //   `${refBaseModel.getTnPath(refBaseModel.model.table_name)}.id`,
+            //   '=',
+            //   knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
+            // )
+            .select({
+              rollup: (
+                await genRollupSelectv2({
+                  baseModelSqlv2: refBaseModel,
+                  knex,
+                  columnOptions: await rollupColumn.getColOptions<RollupColumn>(
+                    refContext,
+                  ),
+                  nestedLevel: nestedLevel + 1,
+                })
+              ).builder,
+            }),
+        ])
+        .wrap('(', ')');
+
+      console.log(selectColumnName + '');
     } else if (
       [
         UITypes.CreatedTime,

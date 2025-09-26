@@ -103,7 +103,7 @@ const arrValue = computed(() => {
     lookupColumn.value?.uidt === UITypes.Checkbox &&
     [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type)
   ) {
-    const hasLink = !!(row && row.value?.row[relationColumn.value?.title])
+    const hasLink = !!row?.value?.row?.[relationColumn.value?.title]
 
     if (!cellValue.value && !hasLink) return []
 

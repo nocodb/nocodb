@@ -711,7 +711,7 @@ const onDeleteColumn = () => {
       placement="right"
     >
       <template #title>
-        {{ `${columnTypeName(column)} field cannot be used as display value field` }}
+        {{ $t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: columnTypeName(column) }) }}
       </template>
 
       <NcMenuItem :disabled="isLocked || !isSupportedDisplayValueColumn(column)" @click="setAsDisplayValue">
@@ -732,7 +732,7 @@ const onDeleteColumn = () => {
       <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
         <NcTooltip :disabled="isSortSupported">
           <template #title>
-            {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
+            {{ !isSortSupported ? $t('tooltip.thisFieldTypeDoesNotSupportSorting') : '' }}
           </template>
           <NcMenuItem :disabled="isLocked || !isSortSupported" @click="sortByColumn('asc')">
             <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-header-menu-item">
@@ -746,7 +746,7 @@ const onDeleteColumn = () => {
 
         <NcTooltip :disabled="isSortSupported">
           <template #title>
-            {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
+            {{ !isSortSupported ? $t('tooltip.thisFieldTypeDoesNotSupportSorting') : '' }}
           </template>
           <NcMenuItem :disabled="isLocked || !isSortSupported" @click="sortByColumn('desc')">
             <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-header-menu-item">
@@ -764,9 +764,9 @@ const onDeleteColumn = () => {
         <template #title>
           {{
             !isFilterSupported
-              ? "This field type doesn't support filtering"
+              ? $t('tooltip.thisFieldTypeDoesNotSupportFiltering')
               : isFilterLimitExceeded
-              ? 'Filter by limit exceeded'
+              ? $t('tooltip.filterByLimitExceeded')
               : ''
           }}
         </template>
@@ -786,9 +786,9 @@ const onDeleteColumn = () => {
         <template #title
           >{{
             !isGroupBySupported
-              ? "This field type doesn't support grouping"
+              ? $t('tooltip.thisFieldTypeDoesNotSupportGrouping')
               : isGroupByLimitExceeded
-              ? 'Group by limit exceeded'
+              ? $t('tooltip.groupByLimitExceeded')
               : ''
           }}
         </template>
@@ -805,7 +805,7 @@ const onDeleteColumn = () => {
           <div v-e="['a:field:add:groupby']" class="nc-column-groupby nc-header-menu-item">
             <component :is="iconMap.group" class="opacity-80" />
             <!-- Group by this field -->
-            {{ isGroupedByThisField ? "Don't group by this field" : $t('activity.groupByThisField') }}
+            {{ isGroupedByThisField ? $t('activity.dontGroupByThisField') : $t('activity.groupByThisField') }}
           </div>
         </NcMenuItem>
       </NcTooltip>

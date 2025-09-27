@@ -74,7 +74,8 @@ export class OauthDcrService {
       grant_types: grantTypes,
       response_types: responseTypes,
       client_id_issued_at: issuedAt,
-      client_secret_expires_at: clientSecret ? 0 : undefined, // 0 means never expires
+      client_secret_expires_at:
+        request.client_name === OAuthClientType.CONFIDENTIAL ? 0 : undefined, // 0 means never expires
     };
 
     const res = await OAuthClient.insert(clientData);
@@ -89,7 +90,7 @@ export class OauthDcrService {
       client_uri: res.client_uri,
       logo_uri: res.logo_uri,
       client_type: res.client_type,
-      grant_types: res.grant_types,
+      grant_types: res.allowed_grant_types,
       response_types: res.response_types,
     };
   }

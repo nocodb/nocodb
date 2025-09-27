@@ -475,17 +475,6 @@ export function useGridCellHandler(params: {
     }
   }
 
-  const handleCellDrop = async (ctx: { e: DragEvent; row: Row; column: CanvasGridColumn; files: File[] | null }) => {
-    if (ctx.column?.readonly) return
-
-    canvasCellEvents.files = ctx.files
-    canvasCellEvents.event = ctx.e
-
-    makeCellEditable(ctx.row, ctx.column, true)
-
-    return true
-  }
-
   let cleanUpInterval: ReturnType<typeof setInterval> | null = null
 
   onMounted(() => {
@@ -512,6 +501,5 @@ export function useGridCellHandler(params: {
     handleCellClick,
     handleCellKeyDown,
     handleCellHover,
-    handleCellDrop,
   }
 }

@@ -2,7 +2,11 @@ import {
   FormulaDataTypes,
   validateFormulaAndExtractTreeWithType,
 } from './formulaHelpers';
-import { IGetMeta } from './types/meta.type';
+import {
+  IGetMeta,
+  ILinkToAnotherRecordColumn,
+  ILookupColumn,
+} from './types/meta.type';
 import UITypes from './UITypes';
 const base_id = 'pIJkwfxdDwd';
 
@@ -478,12 +482,33 @@ describe('Formula parsing and type validation', () => {
             id: 'id1',
             title: 'column1',
             uidt: UITypes.LinkToAnotherRecord,
+            colOptions: <ILinkToAnotherRecordColumn>{
+              fk_column_id: '',
+              id: '',
+              type: 'hm',
+              getRelatedTable: async () => {
+                return {
+                  base_id,
+                  columns: [
+                    {
+                      base_id,
+                      id: 'col_lok1',
+                      uidt: UITypes.SingleLineText,
+                      title: 'LOK1',
+                      pv: true,
+                    },
+                  ],
+                  id: 'tbl1',
+                  title: 'tbl1',
+                };
+              },
+            },
           },
         ],
         clientOrSqlUi: 'mysql2',
         getMeta,
       });
-      expect(result.referencedColumn.id).toEqual('id1');
+      expect(result.referencedColumn.id).toEqual('col_lok1');
       expect(result.referencedColumn.uidt).toEqual(UITypes.LinkToAnotherRecord);
 
       const result1 = await validateFormulaAndExtractTreeWithType({
@@ -494,12 +519,55 @@ describe('Formula parsing and type validation', () => {
             id: 'id1',
             title: 'column1',
             uidt: UITypes.Lookup,
+            colOptions: <ILookupColumn>{
+              fk_column_id: '',
+              fk_relation_column_id: 'col_rel1',
+              fk_lookup_column_id: 'col_lok1',
+              getRelationColumn: async () => {
+                return {
+                  base_id,
+                  fk_model_id: 'tbl1',
+                  id: 'col_rel1',
+                  uidt: UITypes.SingleLineText,
+                  title: 'LOK1',
+                  colOptions: <ILinkToAnotherRecordColumn>{
+                    fk_column_id: '',
+                    id: '',
+                    type: 'hm',
+                    getRelatedTable: async () => {
+                      return {
+                        base_id,
+                        columns: [
+                          {
+                            base_id,
+                            id: 'col_lok1',
+                            uidt: UITypes.SingleLineText,
+                            title: 'LOK1',
+                            pv: true,
+                          },
+                        ],
+                        id: 'tbl1',
+                        title: 'tbl1',
+                      };
+                    },
+                  },
+                };
+              },
+              getLookupColumn: async () => {
+                return {
+                  base_id,
+                  id: 'col_lok1',
+                  uidt: UITypes.SingleLineText,
+                  title: 'LOK1',
+                };
+              },
+            },
           },
         ],
         clientOrSqlUi: 'mysql2',
         getMeta,
       });
-      expect(result1.referencedColumn.id).toEqual('id1');
+      expect(result1.referencedColumn.id).toEqual('col_lok1');
       expect(result1.referencedColumn.uidt).toEqual(UITypes.Lookup);
     });
 

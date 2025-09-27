@@ -3,6 +3,10 @@ import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
 import type { GridUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -22,6 +26,7 @@ export class GridsService {
       grid: ViewCreateReqType;
       req: NcRequest;
       ownedBy?: string;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
@@ -29,6 +34,14 @@ export class GridsService {
       'swagger.json#/components/schemas/ViewCreateReq',
       param.grid,
     );
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+          param.tableId,
+        )
+      ).forCreate();
 
     const model = await Model.get(context, param.tableId, ncMeta);
 
@@ -85,6 +98,10 @@ export class GridsService {
       context.socket_id,
     );
 
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
+
     return view;
   }
 
@@ -94,6 +111,7 @@ export class GridsService {
       viewId: string;
       grid: GridUpdateReqType;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
@@ -109,6 +127,16 @@ export class GridsService {
     }
 
     const oldGridView = await GridView.get(context, param.viewId, ncMeta);
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(param.viewId)
+      ).forUpdate();
+
     await GridView.update(context, param.viewId, param.grid, ncMeta);
 
     let owner = param.req.user;
@@ -139,6 +167,10 @@ export class GridsService {
       },
       context.socket_id,
     );
+
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
     return view;
   }
 }

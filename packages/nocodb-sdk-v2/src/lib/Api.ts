@@ -356,6 +356,8 @@ export interface ViewList {
   list: {
     /** Unique identifier for the view. */
     id: string;
+    /** Id of table associated with the view. */
+    table_id?: string;
     /** Title of the view. */
     title: string;
     /** Description of the view. */
@@ -412,7 +414,7 @@ export interface ViewBaseInUpdate {
    *  Note: Assigning view as personal using API is not supported currently
    * @default "collaborative"
    */
-  lock_type?: 'collaborative' | 'locked';
+  lock_type?: 'collaborative' | 'locked' | 'personal';
   /** Description of the view. */
   description?: string;
 }
@@ -691,6 +693,8 @@ export type ViewUpdate = ViewBaseInUpdate &
 export type View = {
   /** Unique identifier for the view. */
   id: string;
+  /** Id of table associated with the view. */
+  table_id?: string;
   /** Indicates if this is the default view. Omitted if not the default view. */
   is_default?: boolean;
 } & ViewBase & {

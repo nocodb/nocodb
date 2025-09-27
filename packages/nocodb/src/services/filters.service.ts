@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType } from 'nocodb-sdk';
+import RowColorCondition from 'src/models/RowColorCondition';
 import type { FilterReqType, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import type { MetaService } from 'src/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Filter, Hook, View } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';
+import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 
 @Injectable()
 export class FiltersService {
@@ -50,6 +54,7 @@ export class FiltersService {
   async filterDelete(
     context: NcContext,
     param: { filterId: string; req: NcRequest },
+    ncMeta?: MetaService,
   ) {
     const filter = await Filter.get(context, param.filterId);
 
@@ -59,6 +64,35 @@ export class FiltersService {
 
     const parentData = await filter.extractRelatedParentMetas(context);
 
+    let viewWebhookManager: ViewWebhookManager;
+    if (filter.fk_view_id) {
+      const view = await View.get(context, filter.fk_view_id, ncMeta);
+      viewWebhookManager = (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(filter.fk_view_id)
+      ).forUpdate();
+    } else if (filter.fk_row_color_condition_id) {
+      const rowColorCondition = await RowColorCondition.getById(
+        context,
+        filter.fk_row_color_condition_id,
+        ncMeta,
+      );
+      const view = await View.get(
+        context,
+        rowColorCondition.fk_view_id,
+        ncMeta,
+      );
+      viewWebhookManager = (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(rowColorCondition.fk_view_id)
+      ).forUpdate();
+    }
     await Filter.delete(context, param.filterId);
 
     this.appHooksService.emit(AppEvents.FILTER_DELETE, {
@@ -80,6 +114,11 @@ export class FiltersService {
       context.socket_id,
     );
 
+    if (viewWebhookManager) {
+      (
+        await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
+      ).emit();
+    }
     return true;
   }
 
@@ -95,6 +134,14 @@ export class FiltersService {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
     const view = await View.get(context, param.viewId);
+
+    const viewWebhookManager: ViewWebhookManager = (
+      await (
+        await new ViewWebhookManagerBuilder(context).withModelId(
+          view.fk_model_id,
+        )
+      ).withViewId(param.viewId)
+    ).forUpdate();
 
     const filter = await Filter.insert(context, {
       ...param.filter,
@@ -120,6 +167,11 @@ export class FiltersService {
       context.socket_id,
     );
 
+    if (viewWebhookManager) {
+      (
+        await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
+      ).emit();
+    }
     return filter;
   }
 
@@ -131,10 +183,41 @@ export class FiltersService {
       user: UserType;
       req: NcRequest;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
-    const filter = await Filter.get(context, param.filterId);
+    const filter = await Filter.get(context, param.filterId, ncMeta);
+
+    let viewWebhookManager: ViewWebhookManager;
+    if (filter.fk_view_id) {
+      const view = await View.get(context, filter.fk_view_id, ncMeta);
+      viewWebhookManager = (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(filter.fk_view_id)
+      ).forUpdate();
+    } else if (filter.fk_row_color_condition_id) {
+      const rowColorCondition = await RowColorCondition.getById(
+        context,
+        filter.fk_row_color_condition_id,
+        ncMeta,
+      );
+      const view = await View.get(
+        context,
+        rowColorCondition.fk_view_id,
+        ncMeta,
+      );
+      viewWebhookManager = (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(rowColorCondition.fk_view_id)
+      ).forUpdate();
+    }
 
     if (!filter) {
       NcError.badRequest('Filter not found');
@@ -144,9 +227,10 @@ export class FiltersService {
       context,
       param.filterId,
       param.filter as Filter,
+      ncMeta,
     );
 
-    const parentData = await filter.extractRelatedParentMetas(context);
+    const parentData = await filter.extractRelatedParentMetas(context, ncMeta);
 
     this.appHooksService.emit(AppEvents.FILTER_UPDATE, {
       filter: { ...filter, ...param.filter },
@@ -168,6 +252,11 @@ export class FiltersService {
       context.socket_id,
     );
 
+    if (viewWebhookManager) {
+      (
+        await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
+      ).emit();
+    }
     return res;
   }
 

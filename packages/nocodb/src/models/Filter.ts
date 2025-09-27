@@ -605,6 +605,7 @@ export default class Filter implements FilterType {
     return result;
   }
 
+  // skip viewWebhookManager for this, deleteAll is not a standalone operation, it's invoked by view service
   static async deleteAll(
     context: NcContext,
     viewId: string,

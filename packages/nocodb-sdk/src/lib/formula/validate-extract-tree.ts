@@ -30,11 +30,14 @@ import {
   IFormulaColumn,
   IGetMeta,
   ILinkToAnotherRecordColumn,
+  ILookupColumn,
   IRollupColumn,
 } from '~/lib/types/meta.type';
 import { getColOptions } from '~/lib/meta/getColOptions';
 import { getContextFromObject } from '~/lib/meta/getContextFromObject';
 import { getColumns } from '~/lib/meta/getColumns';
+import { getLTARRelatedTable } from '../meta/getLTARRelatedTable';
+import { getLookupRelatedInfo } from '../meta/getLookupRelatedInfo';
 
 async function extractColumnIdentifierType({
   col,
@@ -184,14 +187,93 @@ async function extractColumnIdentifierType({
       break;
     // not supported
     case UITypes.Lookup: {
-      res.isDataArray = true;
+      const colContext = getContextFromObject(col);
+
+      const lookupColOption = await getColOptions<ILookupColumn>(colContext, {
+        column: col,
+      });
+      const lookupInfo = await getLookupRelatedInfo(colContext, {
+        colOptions: lookupColOption,
+        columns,
+        getMeta,
+      });
+
+      const relationColumn = lookupInfo.relationColumn;
+      const lookupColumn = lookupInfo.lookupColumn;
+
+      const lookupColumnIdentifierType = await extractColumnIdentifierType({
+        col: lookupColumn,
+        clientOrSqlUi,
+        columns: await getColumns(
+          getContextFromObject(lookupInfo.relatedTable),
+          { model: lookupInfo.relatedTable }
+        ),
+        getMeta,
+      });
+      res.dataType = lookupColumnIdentifierType.dataType;
+      res.isDataArray = lookupColumnIdentifierType.isDataArray;
+      if (!res.isDataArray) {
+        const relationColOptions =
+          await getColOptions<ILinkToAnotherRecordColumn>(colContext, {
+            column: relationColumn,
+          });
+        res.isDataArray = ['hm', 'mm'].includes(relationColOptions.type);
+      }
+      res.referencedColumn = {
+        id: lookupColumnIdentifierType?.referencedColumn?.id,
+        uidt: lookupColumnIdentifierType?.referencedColumn?.uidt,
+      };
+
       break;
     }
     case UITypes.LinkToAnotherRecord: {
-      res.dataType = FormulaDataTypes.ARRAY;
-      if (col.colOptions) {
-      }
-      res.isDataArray = true;
+      const colOptions = await getColOptions<ILinkToAnotherRecordColumn>(
+        getContextFromObject(col),
+        {
+          column: col,
+        }
+      );
+      const relatedTable = await getLTARRelatedTable(
+        getContextFromObject(col),
+        {
+          colOptions,
+          getMeta,
+        }
+      );
+      const relatedTableColumns = await getColumns(
+        getContextFromObject(relatedTable),
+        {
+          model: relatedTable,
+        }
+      );
+      const relatedTableDisplayColumn = relatedTableColumns.find(
+        (col) => col.pv
+      );
+      const relatedColumnIdentifierType = await extractColumnIdentifierType({
+        col: relatedTableDisplayColumn,
+        clientOrSqlUi,
+        columns: relatedTableColumns,
+        getMeta,
+      });
+      res.dataType = relatedColumnIdentifierType.dataType;
+      res.isDataArray =
+        relatedColumnIdentifierType.isDataArray ||
+        ['hm', 'mm'].includes(colOptions.type);
+      res.referencedColumn = {
+        id: relatedColumnIdentifierType?.referencedColumn?.id,
+        uidt: relatedColumnIdentifierType?.referencedColumn?.uidt,
+      };
+      break;
+    }
+    case UITypes.Formula: {
+      const colOptions = await getColOptions<IFormulaColumn>(
+        getContextFromObject(col),
+        {
+          column: col,
+        }
+      );
+      res.isDataArray = colOptions.parsed_tree.isDataArray;
+      res.referencedColumn = colOptions.parsed_tree.referencedColumn;
       break;
     }
     case UITypes.Barcode:
@@ -202,7 +284,11 @@ async function extractColumnIdentifierType({
       res.dataType = FormulaDataTypes.UNKNOWN;
       break;
   }
-  res.referencedColumn = { id: col.id, uidt: col.uidt };
+  res.referencedColumn = {
+    id: col.id,
+    uidt: col.uidt,
+    ...(res.referencedColumn ?? {}),
+  };
 
   return res;
 }

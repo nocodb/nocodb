@@ -1,5 +1,6 @@
 import type { Api } from 'nocodb-sdk'
 import { NcErrorType } from 'nocodb-sdk'
+import type { UseGlobalReturn } from '../composables/useGlobal/types'
 import type { Actions } from '~/composables/useGlobal/types'
 
 /**
@@ -53,7 +54,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   }
 
   /** Try token population based on short-lived-token */
-  await tryShortTokenAuth(api, state.signIn)
+  await tryShortTokenAuth(api, state.signIn, state)
 
   /** if public allow all visitors */
   if (to.meta.public) return
@@ -167,7 +168,7 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
 /**
  * If short-token present, try using it to generate long-living token before navigating to the next page
  */
-async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
+async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state: UseGlobalReturn) {
   const { setError } = useSsoError()
 
   if (window.location.search && /\bshort-token=/.test(window.location.search)) {
@@ -189,7 +190,7 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
       // if extra prop is null/undefined set it as an empty object as fallback
       extraProps = extra || {}
 
-      state.lastUsedAuthMethod = 'sso'
+      if (state.lastUsedAuthMethod) state.lastUsedAuthMethod.value = 'sso'
 
       signIn(token)
     } catch (e: any) {

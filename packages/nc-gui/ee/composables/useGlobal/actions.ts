@@ -90,16 +90,17 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
   async function detectLoginMethod() {
     try {
       const session = await Auth.currentSession()
-      const idToken = session.getIdToken().decodePayload()
+      const decodedidToken = session.getIdToken().decodePayload()
 
-      if (idToken.identities && idToken.identities.length > 0) {
+      if (decodedidToken?.identities?.length) {
         // Federated provider (Google, Facebook, etc.)
-        return idToken.identities[0].providerName?.toLowerCase?.() // e.g. "Google"
+        return decodedidToken.identities[0].providerName?.toLowerCase?.() // e.g. "Google"
       }
 
       // If no identities, usually means Cognito native (email/password)
       return 'email'
     } catch (err) {
+      console.log(err)
       return null
     }
   }
@@ -120,8 +121,8 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       const jwt = idToken.getJwtToken()
 
       // extract auth method
-      detectLoginMethod().then((method) => {
-        if (method) state.lastUsedAuthMethod = method
+      detectLoginMethod(idToken).then((method) => {
+        if (method) state.lastUsedAuthMethod.value = method
       })
 
       const nuxtApp = useNuxtApp()

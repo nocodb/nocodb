@@ -125,36 +125,6 @@ watch(emailVerifyDlg, (val) => {
           <img class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/nocodb.png" />
         </div>
       </template>
-      <!--      <template #sign-in-header>
-        &lt;!&ndash; Sigin using SSO button &ndash;&gt;
-        <div class="w-full px-6 pt-6">
-          <NcButton
-            :shadow="false"
-            :bordered="true"
-            class="!cursor-pointer !outline !outline-gray-200/70 !w-full !text-base !font-weight-normal !text-[var(&#45;&#45;amplify-components-text-color)]"
-            type="secondary"
-            @click="navigateTo('/sso')"
-          >
-            <GeneralIcon icon="sso" class="flex-none text-gray-500 h-4.5 w-4.5 mr-2" />
-            Sign in with Single Sign On
-          </NcButton>
-        </div>
-      </template> -->
-      <!--      <template #sign-up-header>
-        &lt;!&ndash; Sigin using SSO button &ndash;&gt;
-        <div class="w-full px-6 pt-6">
-          <NcButton
-            :shadow="false"
-            :bordered="true"
-            class="!cursor-pointer !outline !outline-gray-200/70 !w-full !text-base !font-weight-normal !text-[var(&#45;&#45;amplify-components-text-color)]"
-            type="secondary"
-            @click="navigateTo('/sso')"
-          >
-            <GeneralIcon icon="sso" class="flex-none text-gray-500 h-4.5 w-4.5 mr-2" />
-            Sign up with Single Sign On
-          </NcButton>
-        </div>
-      </template> -->
       <template #sign-in-footer>
         <div class="w-full px-6 pb-4 flex flex-col gap-1">
           <!-- SSO Sign in button -->
@@ -196,19 +166,6 @@ watch(emailVerifyDlg, (val) => {
             Sign in with Single Sign On
           </AmplifyButton>
         </div>
-        <!-- Sigin using SSO button -->
-        <!--        <div class="w-full px-6 pb-6">
-                  <NcButton
-                    :shadow="false"
-                    :bordered="true"
-                    class="!cursor-pointer !outline !outline-gray-200/70 !w-full !text-base !font-weight-normal !text-[var(&#45;&#45;amplify-components-text-color)]"
-                    type="secondary"
-                    @click="navigateTo('/sso')"
-                  >
-                    <GeneralIcon icon="sso" class="flex-none text-gray-500 h-4.5 w-4.5 mr-2" />
-                    Sign in with Single Sign On
-                  </NcButton>
-                </div> -->
         <div class="pb-4 text-center text-xs tos mx-2">
           By signing up, you agree to our
           <a
@@ -408,11 +365,13 @@ form > .federated-sign-in-container {
   gap: 24px;
 }
 
-// apply above 498px width
+// apply above 498px width since UI looks cramped below that
 @media (min-width: 498px) {
   .nc-last-used-auth-sso .federated-sign-in-button.nc-sso,
   .nc-last-used-auth-google .amplify-authenticator__column > button.federated-sign-in-button:not([data-variation='primary']),
-  .nc-last-used-auth-email .amplify-authenticator__column > button.amplify-button[data-variation='primary'] {
+  .nc-last-used-auth-email
+    form:not([data-np-autofill-form-type='register']) .amplify-authenticator__column
+    > button.amplify-button[data-variation='primary'] {
     position: relative;
 
     &::after {

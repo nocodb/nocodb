@@ -2625,7 +2625,7 @@ const resetAttachmentCellDropOver = () => {
 }
 
 const onDrop = (files: File[] | null) => {
-  if (!attachmentCellDropOver.value || !files?.length) {
+  if (!attachmentCellDropOver.value || !files?.length || !isDataEditAllowed.value) {
     return
   }
 
@@ -2661,6 +2661,8 @@ const onDrop = (files: File[] | null) => {
 }
 
 const onOver = (_files: File[] | null, e: DragEvent) => {
+  if (!isDataEditAllowed.value) return
+
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 

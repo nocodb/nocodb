@@ -332,6 +332,7 @@ export function useGridCellHandler(params: {
         isRootCell &&
         column.uidt === UITypes.Attachment &&
         !column.readonly &&
+        params.hasEditPermission.value &&
         params.attachmentCellDropOver.value &&
         comparePath(path, params.attachmentCellDropOver.value.path ?? []) &&
         params.attachmentCellDropOver.value.columnId === column.id &&

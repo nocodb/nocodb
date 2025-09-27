@@ -1132,6 +1132,8 @@ export function useCopyPaste({
   }
 
   const handleAttachmentCellDrop = async (files: File[], attachmentCellDropOver: AttachmentCellDropOverType) => {
+    if (isSqlView.value || isPublic.value || !hasEditPermission.value) return false
+
     if (!meta.value?.id) return
 
     const dataCache = getDataCache(attachmentCellDropOver.path)

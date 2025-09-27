@@ -335,20 +335,21 @@ export function useGridCellHandler(params: {
         params.attachmentCellDropOver.value?.rowIndex === rowMeta.rowIndex
       ) {
         roundedRect(ctx, x, y, width, height, 0, {
-          backgroundColor: themeV3Colors.gray['200'],
+          backgroundColor: '#4A5268BF', // gray-600/75
           borderColor: themeV3Colors.gray['200'],
           borderWidth: 0.4,
         })
 
         renderSingleLineText(ctx, {
-          x: x + width / 2 - 10,
+          x: x + width / 2,
           y,
           textAlign: 'center',
-          text: 'Drap Here',
+          text: t('labels.dropHere'),
           maxWidth: width - 10 * 2,
-          fontFamily: `${pv ? 600 : 500} 13px Inter`,
-          fillStyle: '#3366FF',
+          fontFamily: `${pv ? 600 : 500} 18px Inter`,
+          fillStyle: '#FFFFFF',
           height,
+          isTagLabel: true, // to render label center of cell
         })
       }
 

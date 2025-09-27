@@ -1,17 +1,32 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  isCreatedOrLastModifiedByCol,
+  isOrderCol,
+  isSystemColumn,
   ncIsNullOrUndefined,
   parseProp,
+  RelationTypes,
   RowHeight,
   RowHeightMap,
+  UITypes,
   viewTypeAlias,
   ViewTypes,
 } from 'nocodb-sdk';
+import { ViewsV3Service as ViewsV3ServiceCE } from 'src/services/v3/views-v3.service';
 import type { RowColoringInfo, ViewCreateV3Type } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { ApiV3DataTransformationBuilder } from '~/utils/data-transformation.builder';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { Column, GridViewColumn } from '~/models';
+import type {
+  CalendarViewColumn,
+  Column,
+  FormViewColumn,
+  GalleryViewColumn,
+  GridViewColumn,
+  KanbanViewColumn,
+  LinksColumn,
+  MapViewColumn,
+} from '~/models';
 import { handleFieldsRequestBody } from '~/services/v3/view-v3/fields.helper';
 import { ViewRowColorV3Service } from '~/services/v3/view-row-color-v3.service';
 import { GridsService } from '~/services/grids.service';
@@ -39,6 +54,7 @@ import { validatePayload } from '~/helpers';
 import { FormColumnsService } from '~/services/form-columns.service';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 import { withoutId } from '~/helpers/exportImportHelpers';
+import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 
 const viewTypeMap = {
   grid: ViewTypes.GRID,
@@ -49,8 +65,74 @@ const viewTypeMap = {
   ...viewTypeAlias,
 };
 
+const filterResponseFields = async (
+  context: NcContext,
+  param: {
+    view: View;
+    viewColumns: (
+      | GridViewColumn
+      | FormViewColumn
+      | GalleryViewColumn
+      | KanbanViewColumn
+      | MapViewColumn
+      | CalendarViewColumn
+    )[];
+  },
+  ncMeta?: MetaService,
+) => {
+  const model = await Model.getByAliasOrId(
+    context,
+    {
+      base_id: param.view.base_id,
+      aliasOrId: param.view.fk_model_id,
+    },
+    ncMeta,
+  );
+  const modelColumns = await Promise.all(
+    (
+      await model.getColumns(context, ncMeta)
+    ).map(async (col) => {
+      if (col.uidt === UITypes.LinkToAnotherRecord) {
+        await col.getColOptions(context, ncMeta);
+      }
+      return col;
+    }),
+  );
+  const modelColumnMap: Record<string, Column> = modelColumns.reduce(
+    (acc, cur) => {
+      acc[cur.id] = cur;
+      return acc;
+    },
+    {},
+  );
+  return param.viewColumns.filter((vCol) => {
+    if (!modelColumnMap[vCol.fk_column_id]) {
+      return false;
+    }
+    const col = modelColumnMap[vCol.fk_column_id];
+    // remove _nc_mm_ field
+    if (
+      col.uidt === UITypes.LinkToAnotherRecord &&
+      col.system &&
+      (col.colOptions as LinksColumn).type === RelationTypes.HAS_MANY
+    ) {
+      return false;
+    }
+    if (isOrderCol(col) && col.system) {
+      return false;
+    }
+    if (isCreatedOrLastModifiedByCol(col) && col.system) {
+      return false;
+    }
+    if (!param.view.show_system_fields && isSystemColumn(col)) {
+      return false;
+    }
+    return true;
+  });
+};
+
 @Injectable()
-export class ViewsV3Service {
+export class ViewsV3Service extends ViewsV3ServiceCE {
   protected logger = new Logger(ViewsV3Service.name);
   private builder;
   private viewBuilder;
@@ -63,6 +145,7 @@ export class ViewsV3Service {
   private v2Tov3ViewBuilders: {
     formFieldByIds?: () => ApiV3DataTransformationBuilder<any, any>;
     rowColors?: () => ApiV3DataTransformationBuilder<RowColoringInfo, any>;
+    viewMeta?: () => ApiV3DataTransformationBuilder<RowColoringInfo, any>;
   } = {};
 
   constructor(
@@ -80,12 +163,14 @@ export class ViewsV3Service {
     protected kanbansService: KanbansService,
     protected galleriesService: GalleriesService,
   ) {
+    super();
     this.builder = builderGenerator({
       allowed: [
         'id',
         'title',
         'lock_type',
         'description',
+        'fk_model_id',
         'is_default',
         'locked_view_description',
         'locked_by_user_id',
@@ -96,7 +181,9 @@ export class ViewsV3Service {
         'view',
         'type',
       ],
-      mappings: {},
+      mappings: {
+        fk_model_id: 'table_id',
+      },
       excludeEmptyObjectProps: true,
       transformFn: (viewData) => {
         const { view, ...formattedData } = viewData;
@@ -135,6 +222,7 @@ export class ViewsV3Service {
       allowed: [
         'id',
         'title',
+        'fk_model_id',
         'view_type',
         'lock_type',
         'description',
@@ -149,7 +237,9 @@ export class ViewsV3Service {
         'view',
         'type',
       ],
-      mappings: {},
+      mappings: {
+        fk_model_id: 'table_id',
+      },
       excludeEmptyObjectProps: true,
       transformFn: (viewData) => {
         const { view, meta, ...formattedData } = viewData;
@@ -164,9 +254,9 @@ export class ViewsV3Service {
 
         const { rowColoringInfo: _rowColoringInfo, ...optionMeta } = meta ?? {};
         if (Object.keys(optionMeta ?? {}).length > 0) {
-          formattedData.options = {
+          formattedData.options = this.v2Tov3ViewBuilders.viewMeta().build({
             ...optionMeta,
-          };
+          });
         }
         if (Object.keys(options).length > 0) {
           formattedData.options = options;
@@ -446,6 +536,13 @@ export class ViewsV3Service {
         return Object.keys(field).length > 0 ? field : undefined;
       },
     }) as any;
+
+    this.v2Tov3ViewBuilders.viewMeta = builderGenerator<any, any>({
+      mappings: {
+        lockedViewDescription: 'locked_view_description',
+        lockedByUserId: 'locked_by_user_id',
+      },
+    }) as any;
   }
 
   async getViews(
@@ -463,15 +560,19 @@ export class ViewsV3Service {
     return newViews;
   }
 
-  async getView(context: NcContext, param: { viewId: string; req: NcRequest }) {
-    const view = await View.get(context, param.viewId);
+  async getView(
+    context: NcContext,
+    param: { viewId: string; req: NcRequest },
+    ncMeta?: MetaService,
+  ) {
+    const view = await View.get(context, param.viewId, ncMeta);
     // todo: check for GUI permissions, since we are handling at ui level we can ignore for now
 
     if (!view) {
       NcError.viewNotFound(param.viewId);
     }
 
-    await view.getViewWithInfo(context);
+    await view.getViewWithInfo(context, ncMeta);
 
     const formattedView = this.viewBuilder().build(view);
 
@@ -501,8 +602,12 @@ export class ViewsV3Service {
       }
     }
 
-    const viewColumnList = await View.getColumns(context, view.id);
-
+    let viewColumnList = await View.getColumns(context, view.id, ncMeta);
+    viewColumnList = await filterResponseFields(
+      context,
+      { view, viewColumns: viewColumnList },
+      ncMeta,
+    );
     formattedView.fields = viewColumnBuilder().build(
       viewColumnList.sort((a, b) => a.order - b.order),
     );
@@ -645,7 +750,12 @@ export class ViewsV3Service {
       },
       ncMeta,
     );
+    const viewWebhookManager = (
+      await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(tableId)
+    ).forCreate();
+
     const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
+
     try {
       let insertedV2View: View;
       switch (requestBody.type) {
@@ -671,6 +781,7 @@ export class ViewsV3Service {
               tableId,
               grid: requestBody,
               req: req,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -694,6 +805,7 @@ export class ViewsV3Service {
                     (col) => col.fk_column_id === group.field_id,
                   ).id,
                   req,
+                  viewWebhookManager,
                 },
                 trxNcMeta,
               );
@@ -709,6 +821,7 @@ export class ViewsV3Service {
               calendar: requestBody,
               req: req,
               user: context.user,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -722,6 +835,7 @@ export class ViewsV3Service {
               kanban: requestBody,
               req: req,
               user: context.user,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -747,6 +861,7 @@ export class ViewsV3Service {
               gallery: requestBody,
               req: req,
               user: context.user,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -760,6 +875,7 @@ export class ViewsV3Service {
               body: requestBody,
               req: req,
               user: context.user,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -792,6 +908,7 @@ export class ViewsV3Service {
             viewId: insertedV2View.id,
             body: body.row_coloring,
             req,
+            viewWebhookManager,
           },
           trxNcMeta,
         );
@@ -804,6 +921,7 @@ export class ViewsV3Service {
           },
           groupOrFilter: requestBody.filters,
           viewId: insertedV2View.id,
+          viewWebhookManager,
         });
       }
       if (
@@ -817,6 +935,7 @@ export class ViewsV3Service {
               viewId: insertedV2View.id,
               req,
               sort: withoutId(sort),
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -826,7 +945,13 @@ export class ViewsV3Service {
       if (!ncMeta) {
         await trxNcMeta.commit();
       }
-      return this.getView(context, { viewId: insertedV2View.id, req });
+      const result = await this.getView(context, {
+        viewId: insertedV2View.id,
+        req,
+      });
+      viewWebhookManager.withNewView(result);
+      viewWebhookManager.emit();
+      return result;
     } catch (ex) {
       await trxNcMeta.rollback();
       throw ex;
@@ -1107,6 +1232,13 @@ export class ViewsV3Service {
       ncMeta,
     );
 
+    const viewWebhookManager = (
+      await (
+        await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+          existingView.fk_model_id,
+        )
+      ).withViewId(existingView.id)
+    ).forUpdate();
     const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
     try {
       await this.viewsService.viewUpdate(context, {
@@ -1114,6 +1246,7 @@ export class ViewsV3Service {
         view: requestBody,
         user: context.user,
         req,
+        viewWebhookManager,
       });
 
       switch (existingView.type) {
@@ -1139,13 +1272,14 @@ export class ViewsV3Service {
               grid: requestBody,
               req: req,
               viewId,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
           if (groups && Array.isArray(groups)) {
             await this.gridColumnsService.gridColumnClearGroupBy(
               context,
-              { viewId },
+              { viewId, viewWebhookManager },
               trxNcMeta,
             );
             if (groups.length > 0) {
@@ -1167,6 +1301,7 @@ export class ViewsV3Service {
                     gridViewColumnId: gridColumns.find(
                       (col) => col.fk_column_id === group.field_id,
                     ).id,
+                    viewWebhookManager,
                     req,
                   },
                   trxNcMeta,
@@ -1183,6 +1318,7 @@ export class ViewsV3Service {
               calendar: requestBody,
               req: req,
               calendarViewId: viewId,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -1195,6 +1331,7 @@ export class ViewsV3Service {
               kanbanViewId: viewId,
               kanban: requestBody,
               req: req,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -1205,6 +1342,7 @@ export class ViewsV3Service {
               kanbanViewId: existingView.id,
               optionsOrder: requestBody.options.stack_by.stack_order ?? [],
               req,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -1218,6 +1356,7 @@ export class ViewsV3Service {
               galleryViewId: viewId,
               gallery: requestBody,
               req: req,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -1230,6 +1369,7 @@ export class ViewsV3Service {
               formViewId: viewId,
               form: requestBody,
               req: req,
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -1257,6 +1397,7 @@ export class ViewsV3Service {
       }
 
       if ('filters' in requestBody) {
+        // skip viewWebhookManager for this, deleteAll is not a standalone operation, it's invoked by view service
         await this.filtersV3Service.filterDeleteAll(
           context,
           { viewId: existingView.id },
@@ -1269,6 +1410,7 @@ export class ViewsV3Service {
           },
           groupOrFilter: requestBody.filters,
           viewId: existingView.id,
+          viewWebhookManager,
         });
       }
       if ('row_coloring' in body) {
@@ -1278,6 +1420,7 @@ export class ViewsV3Service {
             viewId: existingView.id,
             body: body.row_coloring,
             req,
+            viewWebhookManager,
           },
           trxNcMeta,
         );
@@ -1287,6 +1430,7 @@ export class ViewsV3Service {
         ![ViewTypes.FORM].includes(existingView.type) &&
         Array.isArray(requestBody.sorts)
       ) {
+        // skip viewWebhookManager for this, Sort.deleteAll is not a standalone operation, it's invoked by view service
         await Sort.deleteAll(context, viewId, trxNcMeta);
         for (const sort of requestBody.sorts) {
           await this.sortsV3Service.sortCreate(
@@ -1295,6 +1439,7 @@ export class ViewsV3Service {
               viewId,
               req,
               sort: withoutId(sort),
+              viewWebhookManager,
             },
             trxNcMeta,
           );
@@ -1304,7 +1449,9 @@ export class ViewsV3Service {
       if (!ncMeta) {
         await trxNcMeta.commit();
       }
-      return this.getView(context, { viewId, req });
+      const result = await this.getView(context, { viewId, req });
+      viewWebhookManager.withNewView(result).emit();
+      return result;
     } catch (ex) {
       await trxNcMeta.rollback();
       throw ex;

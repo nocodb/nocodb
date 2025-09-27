@@ -6,6 +6,11 @@ import {
   type ViewRowColourV3Type,
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
+import { View } from '~/models';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 import { checkForFeature } from '~/ee/helpers/paymentHelpers';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/ncError';
@@ -25,17 +30,30 @@ export class ViewRowColorV3Service {
       viewId: string;
       body?: ViewRowColourV3Type | null;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
     const { viewId, body } = params;
 
     await checkForFeature(context, PlanFeatureTypes.FEATURE_ROW_COLOUR, ncMeta);
+    const view = await View.get(context, params.viewId, ncMeta);
+
+    const viewWebhookManager =
+      params.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
 
     await this.viewRowColorService.removeRowColorInfo({
       context,
       fk_view_id: viewId,
       ncMeta,
+      viewWebhookManager,
     });
     if (!body) {
       return;
@@ -56,6 +74,7 @@ export class ViewRowColorV3Service {
         fk_column_id: body.field_id,
         is_set_as_background: body.apply_as_row_background,
         fk_view_id: viewId,
+        viewWebhookManager,
         ncMeta,
       });
     } else if (body?.mode === 'filter') {
@@ -64,9 +83,14 @@ export class ViewRowColorV3Service {
         {
           ...params,
           body: params.body!,
+          viewWebhookManager,
         },
         ncMeta,
       );
+    }
+
+    if (!params.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
     }
   }
 
@@ -76,6 +100,7 @@ export class ViewRowColorV3Service {
       viewId: string;
       body: ViewRowColourV3Type | null;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta: MetaService = Noco.ncMeta,
   ) {
@@ -92,15 +117,19 @@ export class ViewRowColorV3Service {
             is_set_as_background: condition.apply_as_row_background ?? false,
             nc_order: i++,
             fk_view_id: params.viewId,
+            viewWebhookManager: params.viewWebhookManager,
             ncMeta,
           });
         await this.filtersV3Service.insertFilterGroup({
           context,
-          param: { rowColorConditionId: rowColorCondition.id },
+          param: {
+            rowColorConditionId: rowColorCondition.id,
+          },
           groupOrFilter: condition.filters,
           viewId: params.viewId,
           ncMeta,
           isRoot: true,
+          viewWebhookManager: params.viewWebhookManager,
         });
       }
     }

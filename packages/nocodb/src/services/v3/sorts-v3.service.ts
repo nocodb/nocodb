@@ -7,6 +7,7 @@ import type {
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import { type ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { Column, Sort } from '~/models';
 import { SortsService } from '~/services/sorts.service';
 import {
@@ -36,7 +37,12 @@ export class SortsV3Service {
 
   async sortDelete(
     context: NcContext,
-    param: { viewId: string; sortId: string; req: NcRequest },
+    param: {
+      viewId: string;
+      sortId: string;
+      req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
   ) {
     const sort = await Sort.get(context, param.sortId ?? '');
 
@@ -55,6 +61,7 @@ export class SortsV3Service {
       sort: SortUpdateV3Type;
       req: NcRequest;
       viewId: string;
+      viewWebhookManager?: ViewWebhookManager;
     },
   ) {
     validatePayload(
@@ -81,13 +88,19 @@ export class SortsV3Service {
       ...param,
       sortId: sort.id,
       sort: updateObj as SortReqType,
+      viewWebhookManager: param.viewWebhookManager,
     });
     return this.sortGet(context, param);
   }
 
   async sortCreate(
     context: NcContext,
-    param: { viewId: string; sort: SortCreateV3Type; req: NcRequest },
+    param: {
+      viewId: string;
+      sort: SortCreateV3Type;
+      req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
     ncMeta?: MetaService,
   ) {
     validatePayload(
@@ -124,6 +137,7 @@ export class SortsV3Service {
       {
         ...param,
         sort: this.revBuilder().build(param.sort) as SortReqType,
+        viewWebhookManager: param.viewWebhookManager,
       },
       ncMeta,
     );

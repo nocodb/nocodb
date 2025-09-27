@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { Column, FormViewColumn, View } from '~/models';
@@ -18,6 +22,7 @@ export class FormColumnsService {
       // todo: replace with FormColumnReq
       formViewColumn: FormViewColumn;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
@@ -40,6 +45,16 @@ export class FormColumnsService {
       },
       ncMeta,
     );
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
 
     const res = await FormViewColumn.update(
       context,
@@ -66,6 +81,9 @@ export class FormColumnsService {
       context,
     });
 
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
     return res;
   }
 }

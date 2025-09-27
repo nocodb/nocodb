@@ -1,56 +1,6 @@
 import { Injectable } from '@nestjs/common';
-
-// Define essential types locally since SDK has import issues
-export enum UITypes {
-  SingleLineText = 'SingleLineText',
-  LongText = 'LongText',
-  Number = 'Number',
-  Decimal = 'Decimal',
-  Currency = 'Currency',
-  Percent = 'Percent',
-  Date = 'Date',
-  DateTime = 'DateTime',
-  SingleSelect = 'SingleSelect',
-  MultiSelect = 'MultiSelect',
-  User = 'User',
-  CreatedBy = 'CreatedBy',
-  LastModifiedBy = 'LastModifiedBy',
-  Collaborator = 'Collaborator',
-  Email = 'Email',
-  PhoneNumber = 'PhoneNumber',
-  URL = 'URL',
-  GeoData = 'GeoData',
-  JSON = 'JSON',
-  Rating = 'Rating',
-  Duration = 'Duration',
-  Year = 'Year',
-  Time = 'Time',
-  CreatedTime = 'CreatedTime',
-  LastModifiedTime = 'LastModifiedTime',
-  Checkbox = 'Checkbox',
-  Attachment = 'Attachment',
-  LinkToAnotherRecord = 'LinkToAnotherRecord',
-  Links = 'Links',
-  Lookup = 'Lookup',
-  Rollup = 'Rollup',
-  QrCode = 'QrCode',
-  Barcode = 'Barcode',
-  Button = 'Button',
-  Formula = 'Formula',
-  Geometry = 'Geometry',
-}
-
-// Define FilterType interface locally
-export interface FilterType {
-  id?: string;
-  fk_column_id?: string;
-  comparison_op?: string;
-  comparison_sub_op?: string;
-  value?: any;
-  logical_op?: string;
-  is_group?: boolean;
-  children?: FilterType[];
-}
+import { UITypes } from 'nocodb-sdk';
+import type { FilterType } from 'nocodb-sdk';
 
 export interface FilterTransformationResult {
   shouldRemove: boolean;
@@ -62,83 +12,59 @@ export interface FilterTransformationResult {
 export class FilterOperatorRegistryService {
   /**
    * Check if an operator is compatible with a column type
-   * This method uses a simplified compatibility matrix focused on filter transformation needs
+   * This uses the exact same logic as filterUtils.ts from the SDK
    */
-  isOperatorCompatible(operator: string, columnType: UITypes): boolean {
-    // Define a focused compatibility matrix for filter transformation
-    const compatibilityMatrix: Record<string, UITypes[]> = {
-      // Equality operators - work with most types
-      eq: [UITypes.SingleLineText, UITypes.LongText, UITypes.Number, UITypes.Decimal, UITypes.Currency, UITypes.Percent, UITypes.Date, UITypes.DateTime, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy, UITypes.Collaborator, UITypes.Email, UITypes.PhoneNumber, UITypes.URL, UITypes.GeoData, UITypes.JSON, UITypes.Rating, UITypes.Duration, UITypes.Year, UITypes.Time, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.Checkbox, UITypes.Attachment, UITypes.LinkToAnotherRecord, UITypes.Links, UITypes.Lookup, UITypes.Rollup],
-      neq: [UITypes.SingleLineText, UITypes.LongText, UITypes.Number, UITypes.Decimal, UITypes.Currency, UITypes.Percent, UITypes.Date, UITypes.DateTime, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy, UITypes.Collaborator, UITypes.Email, UITypes.PhoneNumber, UITypes.URL, UITypes.GeoData, UITypes.JSON, UITypes.Rating, UITypes.Duration, UITypes.Year, UITypes.Time, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.Checkbox, UITypes.Attachment, UITypes.LinkToAnotherRecord, UITypes.Links, UITypes.Lookup, UITypes.Rollup],
-      
-      // Text search operators - only for text-like types
-      like: [UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.PhoneNumber, UITypes.URL, UITypes.GeoData, UITypes.JSON],
-      nlike: [UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.PhoneNumber, UITypes.URL, UITypes.GeoData, UITypes.JSON],
-      
-      // Numeric comparison operators - only for numeric and date types
-      gt: [UITypes.Number, UITypes.Decimal, UITypes.Currency, UITypes.Percent, UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Year, UITypes.Duration, UITypes.Rating, UITypes.CreatedTime, UITypes.LastModifiedTime],
-      gte: [UITypes.Number, UITypes.Decimal, UITypes.Currency, UITypes.Percent, UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Year, UITypes.Duration, UITypes.Rating, UITypes.CreatedTime, UITypes.LastModifiedTime],
-      lt: [UITypes.Number, UITypes.Decimal, UITypes.Currency, UITypes.Percent, UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Year, UITypes.Duration, UITypes.Rating, UITypes.CreatedTime, UITypes.LastModifiedTime],
-      lte: [UITypes.Number, UITypes.Decimal, UITypes.Currency, UITypes.Percent, UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Year, UITypes.Duration, UITypes.Rating, UITypes.CreatedTime, UITypes.LastModifiedTime],
-      
-      // Multi-select operators
-      anyof: [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy],
-      nanyof: [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy],
-      allof: [UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy],
-      nallof: [UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy],
-      
-      // Checkbox operators
-      checked: [UITypes.Checkbox],
-      notchecked: [UITypes.Checkbox],
-      
-      // Null/empty operators - work with most types
-      empty: [UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.PhoneNumber, UITypes.URL, UITypes.GeoData, UITypes.JSON],
-      notempty: [UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.PhoneNumber, UITypes.URL, UITypes.GeoData, UITypes.JSON],
-      null: [UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.PhoneNumber, UITypes.URL, UITypes.GeoData, UITypes.JSON, UITypes.Attachment, UITypes.LinkToAnotherRecord, UITypes.Links, UITypes.Lookup, UITypes.Rollup, UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Collaborator],
-      notnull: [UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.PhoneNumber, UITypes.URL, UITypes.GeoData, UITypes.JSON, UITypes.Attachment, UITypes.LinkToAnotherRecord, UITypes.Links, UITypes.Lookup, UITypes.Rollup, UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Collaborator],
-      
-      // Blank operators - work with most types
-      blank: [UITypes.SingleLineText, UITypes.LongText, UITypes.Number, UITypes.Decimal, UITypes.Currency, UITypes.Percent, UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Year, UITypes.PhoneNumber, UITypes.Email, UITypes.URL, UITypes.GeoData, UITypes.JSON, UITypes.Rating, UITypes.Duration, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy, UITypes.Collaborator, UITypes.Attachment, UITypes.LinkToAnotherRecord, UITypes.Links, UITypes.Lookup, UITypes.Rollup, UITypes.QrCode, UITypes.Barcode, UITypes.Button, UITypes.Formula, UITypes.Geometry],
-      notblank: [UITypes.SingleLineText, UITypes.LongText, UITypes.Number, UITypes.Decimal, UITypes.Currency, UITypes.Percent, UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.Year, UITypes.PhoneNumber, UITypes.Email, UITypes.URL, UITypes.GeoData, UITypes.JSON, UITypes.Rating, UITypes.Duration, UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy, UITypes.Collaborator, UITypes.Attachment, UITypes.LinkToAnotherRecord, UITypes.Links, UITypes.Lookup, UITypes.Rollup, UITypes.QrCode, UITypes.Barcode, UITypes.Button, UITypes.Formula, UITypes.Geometry],
-      
-      // Date-specific operators
-      isWithin: [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime]
-    };
-
-    const allowedTypes = compatibilityMatrix[operator];
-    return allowedTypes ? allowedTypes.includes(columnType) : false;
+  isOperatorCompatible(operator: string, columnType: string): boolean {
+    const { comparisonOpList } = require('nocodb-sdk');
+    const operators = comparisonOpList(columnType);
+    return operators.some((op) => op.value === operator);
   }
 
   /**
    * Get operator compatibility between two column types
    */
-  getOperatorCompatibilityBetweenTypes(fromType: UITypes, toType: UITypes) {
-    // Get all operators that are compatible with both types
-    const allOperators = ['eq', 'neq', 'like', 'nlike', 'gt', 'gte', 'lt', 'lte', 'anyof', 'nanyof', 'allof', 'nallof', 'checked', 'notchecked', 'empty', 'notempty', 'null', 'notnull', 'blank', 'notblank', 'isWithin'];
-    
-    return allOperators.filter(operator => 
-      this.isOperatorCompatible(operator, fromType) && this.isOperatorCompatible(operator, toType)
-    ).map(operator => ({
-      value: operator,
-      text: this.getOperatorDescription(operator)
-    }));
+  getOperatorCompatibilityBetweenTypes(fromType: string, toType: string) {
+    const { comparisonOpList } = require('nocodb-sdk');
+
+    const fromOperators = comparisonOpList(fromType);
+    const toOperators = comparisonOpList(toType);
+
+    // Return operators that are compatible with both types
+    return fromOperators.filter((fromOp) =>
+      toOperators.some((toOp) => toOp.value === fromOp.value),
+    );
   }
 
   /**
    * Get all operators that are compatible with a specific column type
    */
-  getCompatibleOperators(columnType: UITypes): string[] {
-    const allOperators = ['eq', 'neq', 'like', 'nlike', 'gt', 'gte', 'lt', 'lte', 'anyof', 'nanyof', 'allof', 'nallof', 'checked', 'notchecked', 'empty', 'notempty', 'null', 'notnull', 'blank', 'notblank', 'isWithin'];
-    
-    return allOperators.filter(operator => this.isOperatorCompatible(operator, columnType));
+  getCompatibleOperators(columnType: string): string[] {
+    const { comparisonOpList } = require('nocodb-sdk');
+
+    const operators = comparisonOpList(columnType);
+    return operators.map((op) => op.value);
   }
 
   /**
    * Get operator compatibility information for a specific operator
    */
   getOperatorCompatibility(operator: string) {
-    const description = this.getOperatorDescription(operator);
-    return { value: operator, text: description };
+    const { comparisonOpList } = require('nocodb-sdk');
+
+    const allOperators = comparisonOpList(UITypes.SingleLineText);
+    const foundOp = allOperators.find((op) => op.value === operator);
+
+    if (foundOp) {
+      return {
+        value: foundOp.value,
+        text: foundOp.text,
+        ignoreVal: foundOp.ignoreVal,
+        includedTypes: foundOp.includedTypes,
+        excludedTypes: foundOp.excludedTypes,
+      };
+    }
+
+    return { value: operator, text: operator };
   }
 
   /**
@@ -146,8 +72,8 @@ export class FilterOperatorRegistryService {
    */
   validateFilterCompatibility(
     filter: FilterType,
-    fromType: UITypes,
-    toType: UITypes,
+    fromType: string,
+    toType: string,
   ): FilterTransformationResult {
     const operator = filter.comparison_op;
     if (!operator) {
@@ -173,50 +99,25 @@ export class FilterOperatorRegistryService {
    * Get all available operators
    */
   getAllOperators(): string[] {
-    return ['eq', 'neq', 'like', 'nlike', 'gt', 'gte', 'lt', 'lte', 'anyof', 'nanyof', 'allof', 'nallof', 'checked', 'notchecked', 'empty', 'notempty', 'null', 'notnull', 'blank', 'notblank', 'isWithin'];
+    const { comparisonOpList } = require('nocodb-sdk');
+
+    const allOperators = comparisonOpList(UITypes.SingleLineText);
+    return allOperators.map((op) => op.value);
   }
 
   /**
    * Get operator descriptions
    */
   getOperatorDescriptions(): Record<string, string> {
-    const descriptions: Record<string, string> = {};
-    const allOperators = this.getAllOperators();
-    
-    for (const operator of allOperators) {
-      descriptions[operator] = this.getOperatorDescription(operator);
-    }
-    
-    return descriptions;
-  }
+    const { comparisonOpList } = require('nocodb-sdk');
 
-  /**
-   * Get operator description
-   */
-  private getOperatorDescription(operator: string): string {
-    const descriptions: Record<string, string> = {
-      eq: 'Equals',
-      neq: 'Not equals',
-      like: 'Contains',
-      nlike: 'Does not contain',
-      gt: 'Greater than',
-      gte: 'Greater than or equal',
-      lt: 'Less than',
-      lte: 'Less than or equal',
-      anyof: 'Contains any of',
-      nanyof: 'Does not contain any of',
-      allof: 'Contains all of',
-      nallof: 'Does not contain all of',
-      checked: 'Is checked',
-      notchecked: 'Is not checked',
-      empty: 'Is empty',
-      notempty: 'Is not empty',
-      null: 'Is null',
-      notnull: 'Is not null',
-      blank: 'Is blank',
-      notblank: 'Is not blank',
-      isWithin: 'Is within time period',
-    };
-    return descriptions[operator] || operator;
+    const allOperators = comparisonOpList(UITypes.SingleLineText);
+    const descriptions: Record<string, string> = {};
+
+    for (const op of allOperators) {
+      descriptions[op.value] = op.text;
+    }
+
+    return descriptions;
   }
 }

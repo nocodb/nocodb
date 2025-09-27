@@ -20,7 +20,7 @@ overrides:
   xml2js@<0.5.0: '>=0.5.0'
   '**>ent': npm:ent-replace@latest
   image-size@<1.2.1: '>=1.2.1'
-  tar-fs@<2.1.2: '>=3.0.7'
+  tar-fs@<2.1.2: '>=3.0.10'
   highlight.js@<9.18.5: '>=11.11.1'
   multer@1.4.4-lts.1: '>=2.0.1'
   knex@<3.1.0: '>=3.1.0'
@@ -596,7 +596,7 @@ importers:
         version: 5.0.8(eslint@8.57.1)(typescript@5.8.3)
       eslint-plugin-import:
         specifier: ^2.29.1
-        version: 2.31.0(@typescript-eslint/parser@5.62.0(eslint@8.57.1)(typescript@5.8.3))(eslint@8.57.1)
+        version: 2.31.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.8.3))(eslint@8.57.1)
       eslint-plugin-prettier:
         specifier: ^4.2.1
         version: 4.2.1(eslint-config-prettier@8.10.0(eslint@8.57.1))(eslint@8.57.1)(prettier@2.8.8)
@@ -13566,6 +13566,9 @@ packages:
   tar-fs@3.0.9:
     resolution: {integrity: sha512-XF4w9Xp+ZQgifKakjZYmFdkLoSWd34VGKcsTCwlNWM7QG3ZbaxnTsaBwnjFZqHRf/rROxaR8rXnbtwdvaDI+lA==}
 
+  tar-fs@3.1.1:
+    resolution: {integrity: sha512-LZA0oaPOc2fVo82Txf3gw+AkEd38szODlptMYejQUhndHMLQ9M059uXR+AfS7DNo0NpINvSqDsvyaCrBVkptWg==}
+
   tar-stream@2.2.0:
     resolution: {integrity: sha512-ujeqbceABgwMZxEJnk2HDY2DlnUZ+9oEcb1KzTVfYHio0UE6dG71n60d8D2I4qNvleWrrXpmjpt7vZeF1LnMZQ==}
     engines: {node: '>=6'}
@@ -21273,7 +21276,7 @@ snapshots:
       picocolors: 1.1.1
       progress: 2.0.3
       semver: 7.7.2
-      tar-fs: 3.0.9
+      tar-fs: 3.1.1
       yargs: 16.2.0
     transitivePeerDependencies:
       - bare-buffer
@@ -28793,7 +28796,7 @@ snapshots:
       pump: 3.0.2
       rc: 1.2.8
       simple-get: 4.0.1
-      tar-fs: 3.0.9
+      tar-fs: 3.1.1
       tunnel-agent: 0.6.0
     transitivePeerDependencies:
       - bare-buffer
@@ -30449,6 +30452,17 @@ snapshots:
   tapable@2.2.2: {}
 
   tar-fs@3.0.9:
+    dependencies:
+      pump: 3.0.2
+      tar-stream: 3.1.7
+    optionalDependencies:
+      bare-fs: 4.1.5
+      bare-path: 3.0.0
+    transitivePeerDependencies:
+      - bare-buffer
+    optional: true
+
+  tar-fs@3.1.1:
     dependencies:
       pump: 3.0.2
       tar-stream: 3.1.7

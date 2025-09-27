@@ -2617,20 +2617,15 @@ useActiveKeydownListener(
 )
 
 const resetAttachmentCellDropOver = () => {
-  if (!attachmentCellDropOver.value || attachmentCellDropOver.value.rowIndex === -1) return
+  if (!attachmentCellDropOver.value) return
 
-  attachmentCellDropOver.value = {
-    rowIndex: -1,
-    columnId: '',
-    path: [],
-    uploadingCells: attachmentCellDropOver.value?.uploadingCells ?? [],
-  }
+  attachmentCellDropOver.value = null
 
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
 const onDrop = (files: File[] | null, event: DragEvent) => {
-  if (!attachmentCellDropOver.value || attachmentCellDropOver.value.rowIndex === -1 || !attachmentCellDropOver.value.columnId) {
+  if (!attachmentCellDropOver.value) {
     return
   }
 
@@ -2672,7 +2667,7 @@ const onDrop = (files: File[] | null, event: DragEvent) => {
   }
 }
 
-const onOver = (files: File[] | null, e: DragEvent) => {
+const onOver = (_files: File[] | null, e: DragEvent) => {
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
@@ -2698,7 +2693,6 @@ const onOver = (files: File[] | null, e: DragEvent) => {
   const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ROW])
   if (!element?.row) return
 
-  const row = element?.row
   const rowIndex = element?.rowIndex
   const groupPath = generateGroupPath(element?.group)
 
@@ -2717,12 +2711,21 @@ const onOver = (files: File[] | null, e: DragEvent) => {
     return
   }
 
-  attachmentCellDropOver.value = { rowIndex, columnId: column.id, path: groupPath, uploadingCells: [] }
+  attachmentCellDropOver.value = { rowIndex, columnId: column.id, path: groupPath }
 
   requestAnimationFrame(triggerRefreshCanvas)
 }
 
-useDropZone(canvasRef, { onDrop, onOver })
+useDropZone(canvasRef, {
+  onDrop,
+  onEnter: () => {
+    resetAttachmentCellDropOver()
+  },
+  onOver,
+  onLeave: () => {
+    resetAttachmentCellDropOver()
+  },
+})
 
 watch(
   removeInlineAddRecord,

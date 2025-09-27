@@ -1,6 +1,6 @@
 import RowColorCondition from 'src/models/RowColorCondition';
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, comparisonOpList, EventType } from 'nocodb-sdk';
+import { AppEvents, EventType, comparisonOpList } from 'nocodb-sdk';
 import type { FilterReqType, FilterType, UITypes, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
@@ -405,15 +405,30 @@ export class FiltersService {
     const operators = comparisonOpList(columnType);
     const oldOperators = comparisonOpList(oldColumnType);
 
-    const isInOldOperators = oldOperators.find((op) => op.value === operator);
+    const oldOperator = oldOperators.find((op) => op.value === operator);
+    const newOperator = operators.find((op) => op.value === operator);
 
-    return operators.some(
-      (op) =>
-        op.value === operator &&
-        isInOldOperators?.text === op.text &&
-        ((op.includedTypes && op.includedTypes?.includes(columnType)) ||
-          (op.excludedTypes && !op.excludedTypes?.includes(columnType))),
-    );
+    // If operator doesn't exist in either type, it's not compatible
+    if (!oldOperator || !newOperator) {
+      return false;
+    }
+
+    // Check if type-specific semantic types match - this is the most reliable method
+    if (oldOperator.typeSpecificSemantic && newOperator.typeSpecificSemantic) {
+      const oldTypeSpecificSemantic =
+        oldOperator.typeSpecificSemantic(oldColumnType);
+      const newTypeSpecificSemantic =
+        newOperator.typeSpecificSemantic(columnType);
+      return oldTypeSpecificSemantic === newTypeSpecificSemantic;
+    }
+
+    // Fallback to basic semantic type comparison
+    if (oldOperator.semanticType && newOperator.semanticType) {
+      return oldOperator.semanticType === newOperator.semanticType;
+    }
+
+    // Final fallback to text comparison
+    return oldOperator.text === newOperator.text;
   }
 
   /**

@@ -16,6 +16,19 @@ enum Altered {
   UPDATE_COLUMN = 8,
 }
 
+const isPhysicalCol = (col: Column) => {
+  return (
+    !isVirtualCol(col) ||
+    ([
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+      UITypes.CreatedBy,
+      UITypes.LastModifiedBy,
+    ].includes(col.uidt) &&
+      col.system)
+  );
+};
+
 const serializableMetaTables = BaseRelatedMetaTables.filter(
   (t) =>
     ![
@@ -327,7 +340,7 @@ async function handleTableDeletions(
     // Get columns for this table from the diff delete data
     const tableColumns = (metaDiff.delete[MetaTable.COLUMNS] || [])
       .filter((c) => c.fk_model_id === tableRecord.id)
-      .filter((c) => !isVirtualCol(c));
+      .filter((c) => isPhysicalCol(c));
 
     // Prepare table for SQL operation
     const tableForSQL = {
@@ -378,7 +391,7 @@ async function handleStandaloneColumnDeletions(
       ncMeta,
     );
 
-    if (parentTable && !isVirtualCol(columnRecord)) {
+    if (parentTable && isPhysicalCol(columnRecord)) {
       await parentTable.getColumns(targetContext, ncMeta);
 
       const source = await Source.get(
@@ -470,7 +483,7 @@ async function handleTableCreations(
 
       // Filter out virtual columns for SQL operation
       const physicalColumns = tableColumns
-        .filter((c) => !isVirtualCol(c))
+        .filter((c) => isPhysicalCol(c))
         .map((c) => ({
           ...c,
           cn: c.column_name,
@@ -531,7 +544,7 @@ async function handleStandaloneColumnAdditions(
       await ncMeta.knex(MetaTable.COLUMNS).insert(columnToInsert);
 
       // Perform SQL operation for non-virtual columns
-      if (!isVirtualCol(columnRecord)) {
+      if (isPhysicalCol(columnRecord)) {
         const parentTable = await Model.get(
           targetContext,
           columnRecord.fk_model_id,
@@ -688,7 +701,7 @@ async function handleColumnUpdates(
       }
 
       // Check if this is a physical column that needs DDL operations
-      if (!isVirtualCol(columnRecord) && !isVirtualCol(existingColumn)) {
+      if (isPhysicalCol(columnRecord) && isPhysicalCol(existingColumn)) {
         // Get the parent table
         const parentTable = await Model.get(
           targetContext,

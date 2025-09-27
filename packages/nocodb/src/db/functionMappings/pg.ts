@@ -416,9 +416,20 @@ END`,
   JSON_EXTRACT: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
     const needle = (await fn(pt.arguments[1])).builder;
+
+    const removeNullUnicode = (source: string) => {
+      // use four backspace so it will translate into two backspace in sql query
+      return `regexp_replace(${source}, '\\\\u0000', 'u0000')`;
+    };
     return {
       builder: knex.raw(
-        `CASE WHEN (?)::jsonb IS NOT NULL THEN jsonb_path_query_first((?)::jsonb, CONCAT('$', ?)::jsonpath) ELSE NULL END`,
+        [
+          `CASE WHEN ( ${removeNullUnicode('?')} )::jsonb IS NOT NULL`,
+          `THEN jsonb_path_query_first(( ${removeNullUnicode(
+            '?',
+          )} )::jsonb, CONCAT('$', ?)::jsonpath)`,
+          `ELSE NULL END`,
+        ].join(' '),
         [source, source, needle],
       ),
     };

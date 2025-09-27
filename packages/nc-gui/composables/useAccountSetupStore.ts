@@ -56,6 +56,21 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
     loadingAction.value = Action.Save
 
     try {
+      if (activePlugin.value) {
+        if (!import.meta.env.VITE_SKIP_PLUGIN_TEST_ON_SAVE) {
+          const testRes = await $api.plugin.test({
+            input: JSON.stringify(activePluginFormData.value),
+            title: activePlugin.value.title,
+            category: activePlugin.value.category,
+          } as PluginTestReqType)
+
+          if (!testRes) {
+            message.error(t('msg.info.invalidCredentials'))
+            return
+          }
+        }
+      }
+
       await $api.plugin.update(activePlugin.value?.id, {
         input: JSON.stringify(activePluginFormData.value),
         active: true,
@@ -64,7 +79,7 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
       // Plugin settings saved successfully
       message.success(activePlugin.value?.formDetails.msgOnInstall || t('msg.success.pluginSettingsSaved'))
       // load all apps again to update the pending status
-      loadSetupApps().catch(console.error)
+      await loadSetupApps()
       navigateTo('/account/setup')
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))

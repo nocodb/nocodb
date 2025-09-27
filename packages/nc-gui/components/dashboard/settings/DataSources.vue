@@ -450,7 +450,13 @@ const handleClickRow = (source: SourceType, tab?: string) => {
             </div>
           </div>
           <div class="ds-table-body relative">
-            <Draggable :list="sources" item-key="id" handle=".ds-table-handle" @end="moveBase">
+            <Draggable
+              v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 56 })"
+              :list="sources"
+              item-key="id"
+              handle=".ds-table-handle"
+              @end="moveBase"
+            >
               <template v-if="'default'.includes(searchQuery.toLowerCase())" #header>
                 <div
                   v-if="sources[0]"

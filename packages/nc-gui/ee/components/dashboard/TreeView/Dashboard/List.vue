@@ -147,6 +147,7 @@ const initSortable = (el: HTMLElement) => {
     ghostClass: 'ghost',
     onStart: onSortStart,
     onEnd: onSortEnd,
+    ...getDraggableAutoScrollOptions({ scrollSensitivity: 50 }),
   })
 }
 

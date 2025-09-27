@@ -592,6 +592,7 @@ onBeforeUnmount(() => {
               <div v-if="!isSharedBase" class="nc-project-home-section-header">Starred</div>
               <div>
                 <Draggable
+                  v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 50 })"
                   :model-value="starredProjectList"
                   :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
                   item-key="starred-project"
@@ -622,6 +623,7 @@ onBeforeUnmount(() => {
               <div v-if="!isSharedBase" class="nc-project-home-section-header">Private</div>
               <div>
                 <Draggable
+                  v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 50 })"
                   :model-value="privateProjectList"
                   :disabled="isMobileMode || !isUIAllowed('baseReorder') || privateProjectList?.length < 2"
                   item-key="private-project"
@@ -654,6 +656,7 @@ onBeforeUnmount(() => {
               </div>
               <div v-if="nonStarredProjectList?.length">
                 <Draggable
+                  v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 50 })"
                   v-model="nonStarredProjectList"
                   :disabled="isMobileMode || !isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
                   item-key="non-starred-project"

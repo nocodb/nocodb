@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import '@aws-amplify/ui-vue/styles.css'
-import { Authenticator } from '@aws-amplify/ui-vue'
+import { AmplifyButton, Authenticator, FederatedSignIn } from '@aws-amplify/ui-vue'
 import isEmail from 'validator/es/lib/isEmail'
 import { Auth } from 'aws-amplify'
 
 const initialState = isFirstTimeUser() ? 'signUp' : 'signIn'
+const { lastUsedAuthMethod } = useGlobal()
 
 const services = {
   async validateCustomSignUp(formData) {
@@ -110,20 +111,27 @@ watch(emailVerifyDlg, (val) => {
 </script>
 
 <template>
-  <div class="py-10 flex justify-center">
+  <div
+    class="py-10 flex justify-center min-h-screen overflow-auto"
+    :class="{
+      'nc-last-used-auth-email': lastUsedAuthMethod === 'email',
+      'nc-last-used-auth-sso': lastUsedAuthMethod === 'sso',
+      'nc-last-used-auth-google': lastUsedAuthMethod === 'google',
+    }"
+  >
     <Authenticator :initial-state="initialState" :form-fields="formFields" :social-providers="['google']" :services="services">
       <template #header>
         <div style="padding: var(--amplify-space-large); text-align: center">
           <img class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/nocodb.png" />
         </div>
       </template>
-      <template #sign-in-header>
-        <!-- Sigin using SSO button -->
+      <!--      <template #sign-in-header>
+        &lt;!&ndash; Sigin using SSO button &ndash;&gt;
         <div class="w-full px-6 pt-6">
           <NcButton
             :shadow="false"
             :bordered="true"
-            class="!cursor-pointer !outline !outline-gray-200/70 !w-full !text-base !font-weight-normal !text-[var(--amplify-components-text-color)]"
+            class="!cursor-pointer !outline !outline-gray-200/70 !w-full !text-base !font-weight-normal !text-[var(&#45;&#45;amplify-components-text-color)]"
             type="secondary"
             @click="navigateTo('/sso')"
           >
@@ -131,14 +139,14 @@ watch(emailVerifyDlg, (val) => {
             Sign in with Single Sign On
           </NcButton>
         </div>
-      </template>
-      <template #sign-up-header>
-        <!-- Sigin using SSO button -->
+      </template> -->
+      <!--      <template #sign-up-header>
+        &lt;!&ndash; Sigin using SSO button &ndash;&gt;
         <div class="w-full px-6 pt-6">
           <NcButton
             :shadow="false"
             :bordered="true"
-            class="!cursor-pointer !outline !outline-gray-200/70 !w-full !text-base !font-weight-normal !text-[var(--amplify-components-text-color)]"
+            class="!cursor-pointer !outline !outline-gray-200/70 !w-full !text-base !font-weight-normal !text-[var(&#45;&#45;amplify-components-text-color)]"
             type="secondary"
             @click="navigateTo('/sso')"
           >
@@ -146,8 +154,61 @@ watch(emailVerifyDlg, (val) => {
             Sign up with Single Sign On
           </NcButton>
         </div>
+      </template> -->
+      <template #sign-in-footer>
+        <div class="w-full px-6 pb-4 flex flex-col gap-1">
+          <!-- SSO Sign in button -->
+          <FederatedSignIn />
+
+          <AmplifyButton
+            class="nc-sso amplify-authenticator__federated-button -mt-2 amplify-button amplify-field-group__control federated-sign-in-button amplify-authenticator__font"
+            type="button"
+            @click="navigateTo('/sso')"
+          >
+            <GeneralIcon icon="sso" class="flex-none text-gray-500 h-4.5 w-4.5 mr-2" />
+            Sign in with Single Sign On
+          </AmplifyButton>
+
+          <AmplifyButton
+            class="amplify-field-group__control amplify-authenticator__font !mt-2"
+            variation="link"
+            :fullwidth="true"
+            size="small"
+            style="font-weight: normal"
+            type="button"
+            @click="onForgotPasswordClicked"
+          >
+            Forgot Password?
+          </AmplifyButton>
+        </div>
       </template>
       <template #sign-up-footer>
+        <div class="w-full px-6 pb-4 flex flex-col gap-1">
+          <!-- SSO Sign in button -->
+          <FederatedSignIn />
+
+          <AmplifyButton
+            class="amplify-authenticator__federated-button -mt-2 amplify-button amplify-field-group__control federated-sign-in-button amplify-authenticator__font"
+            type="button"
+            @click="navigateTo('/sso')"
+          >
+            <GeneralIcon icon="sso" class="flex-none text-gray-500 h-4.5 w-4.5 mr-2" />
+            Sign in with Single Sign On
+          </AmplifyButton>
+        </div>
+        <!-- Sigin using SSO button -->
+        <!--        <div class="w-full px-6 pb-6">
+                  <NcButton
+                    :shadow="false"
+                    :bordered="true"
+                    class="!cursor-pointer !outline !outline-gray-200/70 !w-full !text-base !font-weight-normal !text-[var(&#45;&#45;amplify-components-text-color)]"
+                    type="secondary"
+                    @click="navigateTo('/sso')"
+                  >
+                    <GeneralIcon icon="sso" class="flex-none text-gray-500 h-4.5 w-4.5 mr-2" />
+                    Sign in with Single Sign On
+                  </NcButton>
+                </div> -->
         <div class="pb-4 text-center text-xs tos mx-2">
           By signing up, you agree to our
           <a
@@ -232,7 +293,7 @@ watch(emailVerifyDlg, (val) => {
       </div>
 
       <div class="flex justify-end gap-4 mt-4">
-        <NcButton type="secondary" @click="emailVerifyDlg = false"> Close </NcButton>
+        <NcButton type="secondary" @click="emailVerifyDlg = false"> Close</NcButton>
         <NcButton type="primary" :loading="loading" @click="emailVerify">
           {{ confirmCodeForm ? 'Verify' : 'Get Verification Code' }}
         </NcButton>
@@ -337,4 +398,48 @@ watch(emailVerifyDlg, (val) => {
   --amplify-components-button-link-focus-background-color: transparent;
   --amplify-components-button-link-hover-background-color: transparent;
 }
+
+form > .federated-sign-in-container {
+  display: none;
+}
+
+.federated-sign-in-container {
+  flex-direction: column-reverse;
+  gap: 24px;
+}
+
+//.nc-last-used-auth-email{
+.amplify-authenticator__column > button.amplify-button {
+  position: relative;
+  &::after {
+    position: absolute;
+    content: ' Last Used';
+    font-weight: normal;
+    font-size: 0.775rem;
+    margin-left: 0.25rem;
+    color: #ffffff80;
+    right: 10px;
+    border: 1px solid #ffffff80;
+    padding: 2px 10px;
+    border-radius: 10px;
+  }
+}
+//.nc-last-used-auth-email{
+.federated-sign-in-button.nc-sso,
+.amplify-authenticator__column > button.federated-sign-in-button {
+  position: relative;
+  &::after {
+    position: absolute;
+    content: ' Last Used';
+    font-weight: normal;
+    font-size: 0.775rem;
+    margin-left: 0.25rem;
+    color: #aaaaaa80;
+    right: 5px;
+    border: 1px solid #aaaaaa80;
+    padding: 2px 10px;
+    border-radius: 10px;
+  }
+}
+//}
 </style>

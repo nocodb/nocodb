@@ -87,6 +87,35 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     }
   }
 
+  async function detectLoginMethod() {
+    try {
+      const user = await Auth.currentAuthenticatedUser()
+      console.log('attributes', user.attributes)
+
+      const session = await Auth.currentSession()
+      const idToken = session.getIdToken().decodePayload()
+      console.log('id token payload', idToken)
+
+      // 👇 Typical places to check
+      // 1. idToken.identities (array with provider info for federated logins)
+      // 2. user.attributes.identities (stringified JSON in some setups)
+      // 3. idToken['cognito:username'] (may start with "Google_" etc.)
+      // 4. idToken.amr (auth methods reference, sometimes includes "pwd" or "federated")
+
+      if (idToken.identities) {
+        // Federated login (Google, etc.)
+        const provider = idToken.identities[0]?.providerName
+        return provider
+      }
+
+      // If no identities, usually means Cognito native (email/password)
+      return 'email'
+    } catch (err) {
+      console.error('No user/session', err)
+      return null
+    }
+  }
+
   const checkForCognitoToken = async ({
     axiosInstance,
   }: {
@@ -101,6 +130,11 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       const cognitoUserSession = await Auth.currentSession()
       const idToken = cognitoUserSession.getIdToken()
       const jwt = idToken.getJwtToken()
+
+      // extract auth method
+      detectLoginMethod().then((method) => {
+        if (method) state.lastUsedAuthMethod = method
+      })
 
       const nuxtApp = useNuxtApp()
 

@@ -189,6 +189,8 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
       // if extra prop is null/undefined set it as an empty object as fallback
       extraProps = extra || {}
 
+      state.lastUsedAuthMethod = 'sso'
+
       signIn(token)
     } catch (e: any) {
       if (e?.response?.data?.error === NcErrorType.MAX_WORKSPACE_LIMIT_REACHED) {

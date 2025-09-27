@@ -231,7 +231,7 @@ export class OauthTokenService {
       expires_in: this.ACCESS_TOKEN_EXPIRES_IN,
       refresh_token: refreshToken,
       refresh_expires_in: this.REFRESH_TOKEN_EXPIRES_IN,
-      scope: '',
+      scope: 'mcp',
       resource: authCode.resource,
     };
   }

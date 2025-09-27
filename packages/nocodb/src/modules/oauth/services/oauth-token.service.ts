@@ -92,8 +92,9 @@ export class OauthTokenService {
   private async authenticateClient(params: {
     clientId: string;
     clientSecret?: string;
+    isPKCEFlow?: boolean;
   }): Promise<OAuthClient> {
-    const { clientId, clientSecret } = params;
+    const { clientId, clientSecret, isPKCEFlow } = params;
 
     const client = await OAuthClient.getByClientId(clientId);
     if (!client) {
@@ -101,6 +102,13 @@ export class OauthTokenService {
       NcError.badRequest('invalid_client');
     }
 
+    // If this is a PKCE flow, skip client_secret validation
+    if (isPKCEFlow) {
+      console.log('PKCE flow detected - skipping client_secret validation');
+      return client;
+    }
+
+    // Non-PKCE flow - validate client_secret as before
     if (client.client_secret) {
       console.log('Client Secret Exists in DB');
       if (!clientSecret) {
@@ -172,12 +180,15 @@ export class OauthTokenService {
       NcError.badRequest('Invalid redirect_uri');
     }
 
+    // Determine if this is a PKCE flow
+    const isPKCEFlow = !!authCode.code_challenge;
+
     // Validate PKCE if code challenge was provided during authorization
-    if (authCode.code_challenge) {
-      console.log('code_challenge is required for PKCE');
+    if (isPKCEFlow) {
+      console.log('PKCE flow - validating code_verifier');
       if (!codeVerifier) {
-        console.log('code_verifier is required for PKCE');
-        NcError.badRequest('code_verifier is required for PKCE');
+        console.log('code_verifier is required for PKCE flow');
+        NcError.badRequest('code_verifier is required for PKCE flow');
       }
 
       const isValidPKCE = this.validatePKCE({
@@ -191,14 +202,13 @@ export class OauthTokenService {
         NcError.badRequest('Invalid code_verifier');
       }
     } else {
-      console.log('code_verifier is required for PKCE');
-      NcError.badRequest('code_verifier is required for PKCE');
+      console.log('Non-PKCE flow - client_secret authentication required');
     }
 
-    // Authenticate the client
     await this.authenticateClient({
       clientId: authCode.client_id,
       clientSecret,
+      isPKCEFlow,
     });
 
     console.log('Authenticated the client');
@@ -282,9 +292,11 @@ export class OauthTokenService {
       NcError.badRequest('Refresh token has expired');
     }
 
+    // For refresh token flow, always require client authentication
     await this.authenticateClient({
       clientId,
       clientSecret,
+      isPKCEFlow: false,
     });
 
     // Validate client ID
@@ -345,10 +357,11 @@ export class OauthTokenService {
   }): Promise<boolean> {
     const { token, clientId, clientSecret, tokenTypeHint } = params;
 
-    // Authenticate the client
+    // For token revocation, always require client authentication
     await this.authenticateClient({
       clientId,
       clientSecret,
+      isPKCEFlow: false,
     });
 
     let tokenRecord: OAuthToken | null = null;

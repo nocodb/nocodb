@@ -71,7 +71,11 @@ describe('Attachment V3', () => {
     });
 
     expect(rsp.body.records.length).to.eq(1);
-    expect(rsp.body.records[0].fields.Attachment.length).to.eq(0);
+    expect(
+      rsp.body.records[0].fields.Attachment.filter(
+        (attr) => attr.status === 'uploading',
+      ).length,
+    ).to.eq(2);
 
     // FIXME: if 100 ms is not enough
     // wait 100 ms for background to kick off
@@ -105,7 +109,12 @@ describe('Attachment V3', () => {
     });
 
     expect(patchRsp.body.records.length).to.eq(1);
-    expect(patchRsp.body.records[0].fields.Attachment.length).to.eq(1);
+    expect(patchRsp.body.records[0].fields.Attachment.length).to.eq(2);
+    expect(
+      patchRsp.body.records[0].fields.Attachment.filter(
+        (attr) => attr.status === 'uploading',
+      ).length,
+    ).to.eq(1);
 
     // FIXME: if 100 ms is not enough
     // wait 100 ms for background to kick off
@@ -215,7 +224,7 @@ describe('Attachment V3', () => {
       getRsp1 = await ncAxiosGet({
         url: `${urlPrefix}/${table.id}/records/${rsp.body.records[0].id}`,
       });
-      retry++
+      retry++;
     } while (getRsp1.body.fields.Attachment.length === 0 && retry < 50);
 
     const recordId = rsp.body.records[0].id;

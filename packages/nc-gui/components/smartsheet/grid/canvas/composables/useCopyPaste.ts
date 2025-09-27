@@ -193,7 +193,7 @@ export function useCopyPaste({
     // Keep this check at the end so that readonly or other field restrictions get priority over permission check
     if (restrictEditCell) {
       if (showInfo) {
-        message.toast('You do not have permission to paste into this field')
+        message.toast(t('tooltip.youDoNotHavePermissionToPasteIntoThisField'))
       }
       return false
     }
@@ -454,7 +454,7 @@ export function useCopyPaste({
         }
 
         if (isTruncated) {
-          message.warning(`Paste operation limited to ${MAX_ROWS} rows. Additional rows were truncated.`)
+          message.warning(t('tooltip.pasteOperationLimitedToMaxRows', { max: MAX_ROWS }))
         }
       } else {
         if (selection.value.isSingleCell()) {
@@ -1141,9 +1141,11 @@ export function useCopyPaste({
     const { cachedRows } = dataCache
 
     const rowObj = (unref(cachedRows) as Map<number, Row>).get(attachmentCellDropOver.rowIndex!)
-    const columnObj = unref(fields)[attachmentCellDropOver.colIndex]
+    const canvasGridColumn = (unref(columns) ?? [])[attachmentCellDropOver.colIndex]
 
-    if (!rowObj || !columnObj) return
+    if (!rowObj || !canvasGridColumn || canvasGridColumn.readonly || !canvasGridColumn.columnObj) return
+
+    const columnObj = canvasGridColumn.columnObj
 
     let dropValue: any
 

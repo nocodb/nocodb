@@ -2638,7 +2638,7 @@ const onDrop = (files: File[] | null) => {
 
   const column = columns.value[attachmentCellDropOver.value.colIndex]!
 
-  if (!row || !column) {
+  if (!row || !column || column.readonly) {
     resetAttachmentCellDropOver()
     return
   }
@@ -2695,8 +2695,8 @@ const onOver = (_files: File[] | null, e: DragEvent) => {
 
   const colIndex = column ? columns.value.findIndex((col) => col.id === column.id) : -1
 
-  // If hover column is not attachment, skip
-  if (ncIsUndefined(rowIndex) || !column || colIndex === -1 || column.uidt !== UITypes.Attachment) {
+  // If hover column is not attachment or is readonly, skip
+  if (ncIsUndefined(rowIndex) || !column || colIndex === -1 || column.uidt !== UITypes.Attachment || column.readonly) {
     return resetAttachmentCellDropOver()
   }
 

@@ -47,7 +47,6 @@ overrides:
   vite@>=6.1.0 <6.1.4: '>=6.1.4'
   '@75lb/deep-merge@<=1.1.1': '>=1.1.2'
   '@babel/runtime@<7.26.10': '>=7.26.10'
-  '@swc/core': 1.13.19
 
 patchedDependencies:
   splitpanes@3.1.5:
@@ -7598,13 +7597,13 @@ packages:
     resolution: {integrity: sha512-OGsvXIid2Go21kiNqeTIn79jcaX4l0G93X2rAnas4LFoDyA9wAwVK7xZdm+QsKoMn5Mus2yFLCc4OtX2dD/PWA==}
     engines: {node: '>= 10'}
     peerDependencies:
-      '@swc/core': 1.13.19
+      '@swc/core': '>= 1.4.13'
       '@swc/types': '>= 0.1'
 
   '@swc-node/register@1.10.10':
     resolution: {integrity: sha512-jYWaI2WNEKz8KZL3sExd2KVL1JMma1/J7z+9iTpv0+fRN7LGMF8VTGGuHI2bug/ztpdZU1G44FG/Kk6ElXL9CQ==}
     peerDependencies:
-      '@swc/core': 1.13.19
+      '@swc/core': '>= 1.4.13'
       typescript: 5.8.3
 
   '@swc-node/sourcemap-support@0.5.1':
@@ -15277,7 +15276,7 @@ packages:
     hasBin: true
     peerDependencies:
       '@swc-node/register': ^1.8.0
-      '@swc/core': 1.13.19
+      '@swc/core': ^1.3.85
     peerDependenciesMeta:
       '@swc-node/register':
         optional: true

@@ -294,6 +294,7 @@ const {
   findColumnPosition,
   findColumnAtPosition,
   dragOver,
+  attachmentCellDropOver,
   dragStart,
   elementMap,
   // MouseSelectionHandler
@@ -338,6 +339,9 @@ const {
 
   // Cell Hover
   handleCellHover,
+
+  // Cell Drop
+  handleCellDrop,
 
   actionManager,
   imageLoader,
@@ -2611,6 +2615,107 @@ useActiveKeydownListener(
     immediate: true,
   },
 )
+
+const resetAttachmentCellDropOver = () => {
+  if (!attachmentCellDropOver.value || attachmentCellDropOver.value.rowIndex === -1) return
+
+  attachmentCellDropOver.value = {
+    rowIndex: -1,
+    columnId: '',
+    path: [],
+    uploadingCells: attachmentCellDropOver.value?.uploadingCells ?? [],
+  }
+
+  requestAnimationFrame(triggerRefreshCanvas)
+}
+
+const onDrop = (files: File[] | null, event: DragEvent) => {
+  if (!attachmentCellDropOver.value || attachmentCellDropOver.value.rowIndex === -1) return
+
+  const dataCache = getDataCache(attachmentCellDropOver.value.path)
+
+  const row =
+    attachmentCellDropOver.value.rowIndex !== null
+      ? dataCache.cachedRows.value.get(attachmentCellDropOver.value.rowIndex!)
+      : undefined
+
+  const columnIndex = columns.value.findIndex((col) => col.id === attachmentCellDropOver.value.columnId)
+
+  if (!row || columnIndex === -1) {
+    resetAttachmentCellDropOver()
+    return
+  }
+
+  const column = columns.value[columnIndex]!
+
+  selection.value.clear()
+  activeCell.value = {
+    row: attachmentCellDropOver.value.rowIndex,
+    column: columnIndex,
+    path: attachmentCellDropOver.value.path,
+  }
+
+  handleCellDrop({
+    files,
+    e: event,
+    row,
+    column,
+  })
+
+  resetAttachmentCellDropOver()
+}
+
+const onOver = (files: File[] | null, e: DragEvent) => {
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return
+
+  if (
+    clientMousePosition.clientX === e.clientX &&
+    clientMousePosition.clientY === e.clientY &&
+    mousePosition.x === e.clientX - rect.left &&
+    mousePosition.y === e.clientY - rect.top
+  ) {
+    return
+  }
+
+  clientMousePosition.clientX = e.clientX
+  clientMousePosition.clientY = e.clientY
+  mousePosition.x = e.clientX - rect.left
+  mousePosition.y = e.clientY - rect.top
+
+  // Skip on hover on header
+  if (mousePosition.y <= 32) {
+    return resetAttachmentCellDropOver()
+  }
+
+  const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ROW])
+  if (!element?.row) return
+
+  const row = element?.row
+  const rowIndex = element?.rowIndex
+  const groupPath = generateGroupPath(element?.group)
+
+  const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
+
+  // If hover column is not attachment, skip
+  if (!column || column.uidt !== UITypes.Attachment) {
+    return resetAttachmentCellDropOver()
+  }
+
+  if (
+    attachmentCellDropOver.value &&
+    attachmentCellDropOver.value.rowIndex === rowIndex &&
+    attachmentCellDropOver.value.columnId === column.id
+  ) {
+    return
+  }
+
+  attachmentCellDropOver.value = { rowIndex, columnId: column.id, path: groupPath, uploadingCells: [] }
+
+  requestAnimationFrame(triggerRefreshCanvas)
+}
+
+useDropZone(canvasRef, { onDrop, onOver })
 
 watch(
   removeInlineAddRecord,

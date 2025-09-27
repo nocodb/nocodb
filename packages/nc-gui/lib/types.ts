@@ -928,6 +928,13 @@ interface NcClipboardDataItemType {
 
 // NcClipboardDataType type ends here
 
+interface AttachmentCellDropOverType {
+  rowIndex?: number
+  columnId: string
+  path: Array<number>
+  uploadingCells: Array<Omit<AttachmentCellDropOverType, 'uploadingCells'>>
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -995,4 +1002,5 @@ export type {
   CreateViewForm,
   NcClipboardDataType,
   NcClipboardDataItemType,
+  AttachmentCellDropOverType,
 }

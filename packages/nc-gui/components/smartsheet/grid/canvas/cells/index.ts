@@ -58,6 +58,7 @@ export function useGridCellHandler(params: {
   meta?: Ref<TableType>
   hasEditPermission: ComputedRef<boolean>
   setCursor: SetCursorType
+  attachmentCellDropOver: Ref<AttachmentCellDropOverType | null>
 }) {
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -278,7 +279,7 @@ export function useGridCellHandler(params: {
     }
 
     if (cellRenderer!) {
-      return cellRenderer(ctx, {
+      const cellRendered = cellRenderer(ctx, {
         value,
         row,
         column,
@@ -324,6 +325,34 @@ export function useGridCellHandler(params: {
         rowMeta,
         allowLocalUrl: appInfo.value?.allowLocalUrl,
       })
+
+      if (
+        !isGroupHeader &&
+        isRootCell &&
+        column.uidt === UITypes.Attachment &&
+        !column.readonly &&
+        params.attachmentCellDropOver.value?.columnId === column.id &&
+        params.attachmentCellDropOver.value?.rowIndex === rowMeta.rowIndex
+      ) {
+        roundedRect(ctx, x, y, width, height, 0, {
+          backgroundColor: themeV3Colors.gray['200'],
+          borderColor: themeV3Colors.gray['200'],
+          borderWidth: 0.4,
+        })
+
+        renderSingleLineText(ctx, {
+          x: x + width / 2 - 10,
+          y,
+          textAlign: 'center',
+          text: 'Drap Here',
+          maxWidth: width - 10 * 2,
+          fontFamily: `${pv ? 600 : 500} 13px Inter`,
+          fillStyle: '#3366FF',
+          height,
+        })
+      }
+
+      return cellRendered
     } else {
       return renderSingleLineText(ctx, {
         x: x + padding,
@@ -445,6 +474,17 @@ export function useGridCellHandler(params: {
     }
   }
 
+  const handleCellDrop = async (ctx: { e: DragEvent; row: Row; column: CanvasGridColumn; files: File[] | null }) => {
+    if (ctx.column?.readonly) return
+
+    canvasCellEvents.files = ctx.files
+    canvasCellEvents.event = ctx.e
+
+    makeCellEditable(ctx.row, ctx.column, true)
+
+    return true
+  }
+
   let cleanUpInterval: ReturnType<typeof setInterval> | null = null
 
   onMounted(() => {
@@ -471,5 +511,6 @@ export function useGridCellHandler(params: {
     handleCellClick,
     handleCellKeyDown,
     handleCellHover,
+    handleCellDrop,
   }
 }

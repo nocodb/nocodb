@@ -43,4 +43,10 @@ export default class ScalewayObjectStorage
 
     this.s3Client = new S3Client(s3Options);
   }
+
+  override getUploadedPath(path: string): { path?: string; url?: string } {
+    return {
+      url: `https://s3.${this.input.region}.scw.cloud/${this.input.bucket}/${path}`,
+    };
+  }
 }

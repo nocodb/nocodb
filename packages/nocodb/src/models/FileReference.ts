@@ -60,6 +60,40 @@ export default class FileReference {
     return id;
   }
 
+  // used when url downloaded
+  public static async updateById(
+    context: NcContext,
+    id: string,
+    fileRefObj: Partial<FileReference>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(fileRefObj, [
+      'storage',
+      'file_url',
+      'file_size',
+      'fk_user_id',
+      'source_id',
+      'fk_model_id',
+      'fk_column_id',
+      'is_external',
+      'deleted',
+    ]);
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.FILE_REFERENCES,
+      updateObj,
+      id,
+    );
+
+    if (context.workspace_id && !updateObj.deleted) {
+      await this.updateWorkspaceCache(context, updateObj.file_size);
+    }
+
+    return id;
+  }
+
   public static async delete(
     context: NcContext,
     fileReferenceId: string | string[],

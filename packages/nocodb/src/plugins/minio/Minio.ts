@@ -297,4 +297,20 @@ export default class Minio implements IStorageAdapterV2 {
 
     return stream;
   }
+
+  getUploadedPath(path: string): { path?: string; url?: string } {
+    const protocol = this.input.useSSL ? 'https' : 'http';
+    const defaultPort = this.input.useSSL ? 443 : 80;
+
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+
+    let url: string;
+    if (this.input.port === defaultPort) {
+      url = `${protocol}://${this.input.endPoint}/${cleanPath}`;
+    } else {
+      url = `${protocol}://${this.input.endPoint}:${this.input.port}/${cleanPath}`;
+    }
+
+    return { path, url };
+  }
 }

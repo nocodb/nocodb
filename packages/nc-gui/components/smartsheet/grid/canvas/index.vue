@@ -2643,6 +2643,16 @@ const onDrop = (files: File[] | null) => {
     return
   }
 
+  selection.value.clear()
+  editEnabled.value = null
+  activeCell.value = {
+    row: attachmentCellDropOver.value.rowIndex,
+    column: attachmentCellDropOver.value.colIndex,
+    path: attachmentCellDropOver.value.path,
+  }
+  resetRowSelection()
+  onActiveCellChanged()
+
   try {
     handleAttachmentCellDrop(files, attachmentCellDropOver.value)
   } finally {

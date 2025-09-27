@@ -22,6 +22,7 @@ import { SelectTypeConversionError } from '../../../../../error/select-type-conv
 import { TypeConversionError } from '../../../../../error/type-conversion.error'
 import type { SuppressedError } from '../../../../../error/suppressed.error'
 import { EDIT_INTERACTABLE } from '../utils/constants'
+import type { ActionManager } from '../loaders/ActionManager'
 
 const MAX_ROWS = 5000
 
@@ -40,6 +41,8 @@ export function useCopyPaste({
   updateOrSaveRow,
   getRows,
   getDataCache,
+
+  actionManager,
 }: {
   activeCell: Ref<{
     row?: number
@@ -108,6 +111,7 @@ export function useCopyPaste({
     selectedRows: ComputedRef<Array<Row>>
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
+  actionManager: ActionManager
 }) {
   const { $api } = useNuxtApp()
   const { isDataReadOnly } = useRoles()
@@ -687,13 +691,23 @@ export function useCopyPaste({
           }
 
           if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
-            const newAttachments =
-              (await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
+            const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
 
-            const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
+            const uploadAction = async () => {
+              const newAttachments =
+                (await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
 
-            rowObj.row[columnObj.title!] =
-              newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+              const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
+
+              rowObj.row[columnObj.title!] =
+                newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+            }
+
+            if (pasteRowPk) {
+              await actionManager.executeUploadAction(pasteRowPk, columnObj.id!, [], uploadAction)
+            } else {
+              await uploadAction()
+            }
           } else if (pasteValue !== undefined) {
             rowObj.row[columnObj.title!] = pasteValue
           }
@@ -758,9 +772,28 @@ export function useCopyPaste({
                   )
 
                   if (fileUploadPayload?.length) {
-                    const newAttachments = await handleFileUploadAndGetCellValue(fileUploadPayload, col.id!, row.row[col.title!])
+                    const uploadAction = async () => {
+                      const newAttachments = await handleFileUploadAndGetCellValue(
+                        fileUploadPayload,
+                        col.id!,
+                        row.row[col.title!],
+                      )
 
-                    pasteValue = newAttachments ? JSON.stringify(newAttachments) : null
+                      pasteValue = newAttachments ? JSON.stringify(newAttachments) : null
+                    }
+
+                    const pasteRowsPk = rows
+                      .map((row) => {
+                        return extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                      })
+                      .filter(Boolean) as string[]
+
+                    if (pasteRowsPk.length) {
+                      // We do upload action for first row only and use uploaded url in other rows
+                      await actionManager.executeUploadAction(pasteRowsPk, col.id!, [], uploadAction)
+                    } else {
+                      await uploadAction()
+                    }
                   }
                 }
               } else {
@@ -1134,20 +1167,26 @@ export function useCopyPaste({
 
       if (!dropValue?.length) return
 
-      const newAttachments = (await handleFileUploadAndGetCellValue(dropValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
+      const dropRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+      if (!dropRowPk) return
 
-      const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
+      await actionManager.executeUploadAction(dropRowPk, columnObj.id!, [], async () => {
+        const newAttachments =
+          (await handleFileUploadAndGetCellValue(dropValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
 
-      rowObj.row[columnObj.title!] =
-        newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+        const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
 
-      await syncCellData?.(
-        {
-          row: attachmentCellDropOver.rowIndex,
-          column: attachmentCellDropOver.colIndex,
-        },
-        attachmentCellDropOver.path,
-      )
+        rowObj.row[columnObj.title!] =
+          newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+
+        await syncCellData?.(
+          {
+            row: attachmentCellDropOver.rowIndex,
+            column: attachmentCellDropOver.colIndex,
+          },
+          attachmentCellDropOver.path,
+        )
+      })
     } catch (ex) {
       console.log(ex)
       message.error(t('msg.error.errorOccuredWhileDroppingAttachments'))

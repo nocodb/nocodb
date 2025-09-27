@@ -720,6 +720,129 @@ export class DuplicateProcessor {
     }
   }
 
+  async importModelsDataWithSameId(
+    targetContext: NcContext,
+    sourceContext: NcContext,
+    param: {
+      sourceProject: Base;
+      sourceModels: Model[];
+      destProject: Base;
+      destBase: Source;
+      hrTime: { hrTime: [number, number] };
+      options?: {
+        excludeData?: boolean;
+        excludeViews?: boolean;
+        excludeHooks?: boolean;
+        excludeComments?: boolean;
+        excludeUsers?: boolean;
+      };
+      req: any;
+    },
+  ) {
+    const {
+      sourceProject,
+      sourceModels,
+      destProject,
+      destBase,
+      hrTime,
+      options,
+      req,
+    } = param;
+
+    let handledLinks = [];
+    let error = null;
+
+    // For same-ID duplication, we need to handle the :: notation properly
+    // CSV headers use format: ${base_id}::${source_id}::${model_id}::${column_id}
+    // We need to map these hierarchical IDs to the target column IDs (which are the same)
+    const identityIdMap = new Map<string, string>();
+
+    // Get the source from the source project to build correct hierarchical IDs
+    const sourceBase = await sourceProject.getSources();
+    const sourceSource = sourceBase?.[0];
+
+    if (!sourceSource) {
+      throw new Error('Source not found in source project');
+    }
+
+    // Build identity map for all models and columns with hierarchical notation
+    for (const sourceModel of sourceModels) {
+      await sourceModel.getColumns(sourceContext);
+
+      // Map model ID with hierarchical notation
+      const sourceModelHierarchicalId = `${sourceProject.id}::${sourceSource.id}::${sourceModel.id}`;
+      identityIdMap.set(sourceModelHierarchicalId, sourceModel.id);
+      identityIdMap.set(sourceModel.id, sourceModel.id);
+
+      for (const col of sourceModel.columns) {
+        // Map column ID with hierarchical notation from source to target
+        const sourceColHierarchicalId = `${sourceProject.id}::${sourceSource.id}::${sourceModel.id}::${col.id}`;
+        identityIdMap.set(sourceColHierarchicalId, col.id);
+        identityIdMap.set(col.id, col.id);
+      }
+    }
+
+    // Import data for each source model
+    for (const sourceModel of sourceModels) {
+      if (error) break;
+
+      const dataStream = new Readable({
+        read() {},
+      });
+
+      const linkStream = new Readable({
+        read() {},
+      });
+
+      this.exportService
+        .streamModelDataAsCsv(sourceContext, {
+          dataStream,
+          linkStream,
+          baseId: sourceProject.id,
+          modelId: sourceModel.id,
+          handledMmList: handledLinks,
+          excludeUsers: options?.excludeUsers,
+        })
+        .catch((e) => {
+          this.debugLog(e);
+          dataStream.push(null);
+          linkStream.push(null);
+          error = e;
+        });
+
+      // For same-ID duplication, the target model has the same ID as source model
+      const model = await Model.get(targetContext, sourceModel.id);
+
+      await this.importService.importDataFromCsvStream(targetContext, {
+        idMap: identityIdMap,
+        dataStream,
+        destProject,
+        destBase,
+        destModel: model,
+        req,
+      });
+
+      handledLinks = await this.importService.importLinkFromCsvStream(
+        targetContext,
+        {
+          idMap: identityIdMap,
+          linkStream,
+          destProject,
+          destBase,
+          handledLinks,
+        },
+      );
+
+      elapsedTime(
+        hrTime,
+        `import data and links for ${model.title}`,
+        'importModelsDataWithSameId',
+      );
+    }
+
+    if (error) throw error;
+  }
+
   async importModelsData(
     targetContext: NcContext,
     sourceContext: NcContext,

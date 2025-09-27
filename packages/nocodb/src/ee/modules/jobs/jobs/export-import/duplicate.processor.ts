@@ -4,8 +4,9 @@ import { DuplicateProcessor as DuplicateProcessorCE } from 'src/modules/jobs/job
 import { AppEvents, generateUniqueCopyName } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { Base, Source } from '~/models';
+import type { Source } from '~/models';
 import type { DuplicateDashboardJobData } from '~/interface/Jobs';
+import { Base, Model } from '~/models';
 import { Dashboard } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
@@ -22,7 +23,12 @@ import { DashboardsService } from '~/services/dashboards.service';
 import { withoutId } from '~/helpers/exportImportHelpers';
 import { FiltersService } from '~/services/filters.service';
 import { applyMeta, diffMeta, serializeMeta } from '~/helpers/baseMetaHelpers';
-import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  BaseVersion,
+  CacheDelDirection,
+  CacheScope,
+  MetaTable,
+} from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 
@@ -306,6 +312,16 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
           },
         });
 
+        // Update target base version to latest
+        await Base.update(
+          targetContext,
+          targetBase.id,
+          {
+            version: BaseVersion.V3,
+          },
+          trx,
+        );
+
         // Step 5: Commit transaction
         await trx.commit();
         this.debugLog('Transaction committed successfully');
@@ -319,6 +335,26 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
         this.debugLog('Error during duplication, rolling back transaction:', e);
         await trx.rollback();
         throw e;
+      }
+
+      if (!options?.excludeData) {
+        const models = (
+          await Model.list(context, { base_id: sourceBase.id })
+        ).filter((m) => !m.mm);
+
+        const source = (await targetBase.getSources())?.[0];
+
+        if (source) {
+          await this.importModelsDataWithSameId(targetContext, context, {
+            sourceProject: sourceBase,
+            sourceModels: models,
+            destProject: targetBase,
+            destBase: source,
+            options,
+            hrTime,
+            req,
+          });
+        }
       }
 
       // Step 6: Update base status to active

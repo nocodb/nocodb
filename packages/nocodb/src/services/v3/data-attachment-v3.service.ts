@@ -401,7 +401,11 @@ export class DataAttachmentV3Service {
     return {
       storageName: storageAdapter.name,
       url: resultAttachmentUrl,
-      path: path.join('download', filePathConstructed.filePath, filename),
+      path: path.join(
+        'download',
+        filePathConstructed.filePath,
+        filePathConstructed.fileName,
+      ),
       filename,
       mimeType,
       fileSize,

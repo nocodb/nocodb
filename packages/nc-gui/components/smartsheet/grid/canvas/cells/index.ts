@@ -36,6 +36,7 @@ import { FormulaCellRenderer } from './Formula'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 import { NullCellRenderer } from './Null'
 import { PlainCellRenderer } from './Plain'
+import { comparePath } from '../utils/groupby'
 
 const CLEANUP_INTERVAL = 1000
 
@@ -331,8 +332,10 @@ export function useGridCellHandler(params: {
         isRootCell &&
         column.uidt === UITypes.Attachment &&
         !column.readonly &&
-        params.attachmentCellDropOver.value?.columnId === column.id &&
-        params.attachmentCellDropOver.value?.rowIndex === rowMeta.rowIndex
+        params.attachmentCellDropOver.value &&
+        comparePath(path, params.attachmentCellDropOver.value.path ?? []) &&
+        params.attachmentCellDropOver.value.columnId === column.id &&
+        params.attachmentCellDropOver.value.rowIndex === rowMeta.rowIndex
       ) {
         roundedRect(ctx, x, y, width, height, 0, {
           backgroundColor: '#4A5268BF', // gray-600/75

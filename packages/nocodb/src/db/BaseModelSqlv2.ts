@@ -3608,7 +3608,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async bulkDeleteAll(
-    args: { where?: string; filterArr?: Filter[]; viewId?: string } = {},
+    args: {
+      where?: string;
+      filterArr?: Filter[];
+      viewId?: string;
+      skipPks?: string;
+    } = {},
     { cookie, skip_hooks = false }: { cookie: NcRequest; skip_hooks?: boolean },
   ) {
     return await new BaseModelDelete(this).bulkAll({

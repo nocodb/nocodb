@@ -12821,6 +12821,14 @@
           },
           "in": "query",
           "name": "viewId"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "skipPks",
+          "description": "Comma separated list of pks"
         }
       ],
       "patch": {

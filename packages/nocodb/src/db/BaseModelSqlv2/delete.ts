@@ -41,7 +41,12 @@ export class BaseModelDelete {
   }: {
     cookie: NcRequest;
     skip_hooks?: boolean;
-    args: { where?: string; filterArr?: Filter[]; viewId?: string };
+    args: {
+      where?: string;
+      filterArr?: Filter[];
+      viewId?: string;
+      skipPks?: string;
+    };
   }) {
     const columns = await this.baseModel.model.getColumns(
       this.baseModel.context,
@@ -52,6 +57,17 @@ export class BaseModelDelete {
       this.baseModel.context,
       columns,
     );
+
+    // If skipPks provided then add it in qb
+    if (args.skipPks) {
+      qb.where((qb) => {
+        args.skipPks.split(',').forEach((pk) => {
+          qb.andWhereNot(_wherePk(this.baseModel.model.primaryKeys, pk));
+        });
+        return qb;
+      });
+    }
+
     const { filters: filterObj } = extractFilterFromXwhere(
       this.baseModel.context,
       where,
@@ -274,7 +290,12 @@ export class BaseModelDelete {
   async bulkAll(params: {
     cookie: NcRequest;
     skip_hooks?: boolean;
-    args: { where?: string; filterArr?: Filter[]; viewId?: string };
+    args: {
+      where?: string;
+      filterArr?: Filter[];
+      viewId?: string;
+      skipPks?: string;
+    };
   }) {
     const { skip_hooks = false, cookie } = params;
     const { metaQueries, execQueries, qb, filterObj, attachmentColumns } =

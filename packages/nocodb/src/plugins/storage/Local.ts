@@ -157,7 +157,7 @@ export default class Local implements IStorageAdapterV2 {
   }
   getUploadedPath(filePath: string): { path?: string; url?: string } {
     const usePath = filePath.startsWith('/')
-      ? filePath.replace(/$\/+/, '')
+      ? filePath.replace(/^\/+/, '')
       : filePath;
 
     return {

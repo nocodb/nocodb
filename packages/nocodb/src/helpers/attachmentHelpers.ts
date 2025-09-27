@@ -4,8 +4,11 @@ import mime from 'mime/lite';
 import slash from 'slash';
 import { PublicAttachmentScope } from 'nocodb-sdk';
 import { nanoid } from 'nanoid';
+import moment from 'dayjs';
+import hash from 'object-hash';
 import type { NcContext } from 'nocodb-sdk';
 import type { Column } from '~/models';
+import { isSecureAttachmentEnabled } from '~/utils';
 import { getToolDir } from '~/utils/nc-config';
 import { NcError } from '~/helpers/catchError';
 
@@ -132,15 +135,22 @@ export const constructFilePath = (
     scope?: string;
   },
 ) => {
-  const filePath = path.join(
+  let filePath = path.join(
     ...[
-      context.workspace_id,
+      // somehow, even in production gui upload doesn't use workspace id
+      'noco', // context.workspace_id,
       context.base_id,
       param.modelId,
       param.columnId,
       param.scope ? nanoid(5) : undefined,
     ].filter((k) => k),
   );
+
+  if (param.scope) {
+    filePath = hash(context.user.id);
+  } else if (isSecureAttachmentEnabled) {
+    filePath = `${moment().format('YYYY/MM/DD')}/${hash(context.user.id)}`;
+  }
 
   const destPath = path.join(...['nc', param.scope ?? 'uploads', filePath]);
 

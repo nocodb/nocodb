@@ -3,6 +3,7 @@ import { renderSingleLineText, renderSpinner, roundedRect } from '../utils/canva
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import { useDetachedLongText } from '../composables/useDetachedLongText'
+import { comparePath } from '../utils/groupby'
 import { EmailCellRenderer } from './Email'
 import { SingleLineTextCellRenderer } from './SingleLineText'
 import { LongTextCellRenderer } from './LongText'
@@ -58,6 +59,7 @@ export function useGridCellHandler(params: {
   meta?: Ref<TableType>
   hasEditPermission: ComputedRef<boolean>
   setCursor: SetCursorType
+  attachmentCellDropOver: Ref<AttachmentCellDropOverType | null>
 }) {
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -278,7 +280,7 @@ export function useGridCellHandler(params: {
     }
 
     if (cellRenderer!) {
-      return cellRenderer(ctx, {
+      const cellRendered = cellRenderer(ctx, {
         value,
         row,
         column,
@@ -324,6 +326,37 @@ export function useGridCellHandler(params: {
         rowMeta,
         allowLocalUrl: appInfo.value?.allowLocalUrl,
       })
+
+      if (
+        !isGroupHeader &&
+        isRootCell &&
+        column.uidt === UITypes.Attachment &&
+        !readonly &&
+        params.attachmentCellDropOver.value &&
+        comparePath(path, params.attachmentCellDropOver.value.path ?? []) &&
+        params.attachmentCellDropOver.value.columnId === column.id &&
+        params.attachmentCellDropOver.value.rowIndex === rowMeta.rowIndex
+      ) {
+        roundedRect(ctx, x, y, width, height, 0, {
+          backgroundColor: '#4A5268BF', // gray-600/75
+          borderColor: themeV3Colors.gray['200'],
+          borderWidth: 0.4,
+        })
+
+        renderSingleLineText(ctx, {
+          x: x + width / 2,
+          y,
+          textAlign: 'center',
+          text: t('labels.dropHere'),
+          maxWidth: width - 10 * 2,
+          fontFamily: `${pv ? 600 : 500} 18px Inter`,
+          fillStyle: '#FFFFFF',
+          height,
+          isTagLabel: true, // to render label center of cell
+        })
+      }
+
+      return cellRendered
     } else {
       return renderSingleLineText(ctx, {
         x: x + padding,

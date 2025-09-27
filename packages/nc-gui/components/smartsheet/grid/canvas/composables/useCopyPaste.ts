@@ -22,6 +22,7 @@ import { SelectTypeConversionError } from '../../../../../error/select-type-conv
 import { TypeConversionError } from '../../../../../error/type-conversion.error'
 import type { SuppressedError } from '../../../../../error/suppressed.error'
 import { EDIT_INTERACTABLE } from '../utils/constants'
+import type { ActionManager } from '../loaders/ActionManager'
 
 const MAX_ROWS = 5000
 
@@ -40,6 +41,8 @@ export function useCopyPaste({
   updateOrSaveRow,
   getRows,
   getDataCache,
+
+  actionManager,
 }: {
   activeCell: Ref<{
     row?: number
@@ -75,7 +78,7 @@ export function useCopyPaste({
   }>
   view: ComputedRef<ViewType | undefined>
   meta: Ref<TableType>
-  syncCellData: (ctx: { row: number; col?: number; updatedColumnTitle?: string }, path?: Array<number>) => Promise<void>
+  syncCellData: (ctx: { row: number; column?: number; updatedColumnTitle?: string }, path?: Array<number>) => Promise<void>
   bulkUpsertRows: (
     insertRows: Row[],
     updateRows: Row[],
@@ -108,6 +111,7 @@ export function useCopyPaste({
     selectedRows: ComputedRef<Array<Row>>
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
+  actionManager: ActionManager
 }) {
   const { $api } = useNuxtApp()
   const { isDataReadOnly } = useRoles()
@@ -189,7 +193,7 @@ export function useCopyPaste({
     // Keep this check at the end so that readonly or other field restrictions get priority over permission check
     if (restrictEditCell) {
       if (showInfo) {
-        message.toast('You do not have permission to paste into this field')
+        message.toast(t('tooltip.youDoNotHavePermissionToPasteIntoThisField'))
       }
       return false
     }
@@ -450,7 +454,7 @@ export function useCopyPaste({
         }
 
         if (isTruncated) {
-          message.warning(`Paste operation limited to ${MAX_ROWS} rows. Additional rows were truncated.`)
+          message.warning(t('tooltip.pasteOperationLimitedToMaxRows', { max: MAX_ROWS }))
         }
       } else {
         if (selection.value.isSingleCell()) {
@@ -636,7 +640,7 @@ export function useCopyPaste({
 
                       rowObj.row[columnObj.title!] = value
 
-                      await syncCellData?.(activeCell.activeCell?.value?.path)
+                      await syncCellData?.(activeCell, activeCell?.path)
                     }
                   },
                   args: [clone(activeCell.value), clone(columnObj), clone(rowObj), clone(oldCellValue), result],
@@ -687,13 +691,23 @@ export function useCopyPaste({
           }
 
           if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
-            const newAttachments =
-              (await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
+            const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
 
-            const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
+            const uploadAction = async () => {
+              const newAttachments =
+                (await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
 
-            rowObj.row[columnObj.title!] =
-              newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+              const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
+
+              rowObj.row[columnObj.title!] =
+                newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+            }
+
+            if (pasteRowPk) {
+              await actionManager.executeUploadAction(pasteRowPk, columnObj.id!, [], uploadAction)
+            } else {
+              await uploadAction()
+            }
           } else if (pasteValue !== undefined) {
             rowObj.row[columnObj.title!] = pasteValue
           }
@@ -758,9 +772,28 @@ export function useCopyPaste({
                   )
 
                   if (fileUploadPayload?.length) {
-                    const newAttachments = await handleFileUploadAndGetCellValue(fileUploadPayload, col.id!, row.row[col.title!])
+                    const uploadAction = async () => {
+                      const newAttachments = await handleFileUploadAndGetCellValue(
+                        fileUploadPayload,
+                        col.id!,
+                        row.row[col.title!],
+                      )
 
-                    pasteValue = newAttachments ? JSON.stringify(newAttachments) : null
+                      pasteValue = newAttachments ? JSON.stringify(newAttachments) : null
+                    }
+
+                    const pasteRowsPk = rows
+                      .map((row) => {
+                        return extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                      })
+                      .filter(Boolean) as string[]
+
+                    if (pasteRowsPk.length) {
+                      // We do upload action for first row only and use uploaded url in other rows
+                      await actionManager.executeUploadAction(pasteRowsPk, col.id!, [], uploadAction)
+                    } else {
+                      await uploadAction()
+                    }
                   }
                 }
               } else {
@@ -1098,6 +1131,72 @@ export function useCopyPaste({
     }
   }
 
+  const handleAttachmentCellDrop = async (files: File[], attachmentCellDropOver: AttachmentCellDropOverType) => {
+    if (isSqlView.value || isPublic.value || !hasEditPermission.value) return false
+
+    if (!meta.value?.id) return
+
+    const dataCache = getDataCache(attachmentCellDropOver.path)
+
+    const { cachedRows } = dataCache
+
+    const rowObj = (unref(cachedRows) as Map<number, Row>).get(attachmentCellDropOver.rowIndex!)
+    const canvasGridColumn = (unref(columns) ?? [])[attachmentCellDropOver.colIndex]
+
+    if (!rowObj || !canvasGridColumn || canvasGridColumn.readonly || !canvasGridColumn.columnObj) return
+
+    const columnObj = canvasGridColumn.columnObj
+
+    let dropValue: any
+
+    try {
+      try {
+        dropValue = convertCellData(
+          {
+            value: '',
+            to: columnObj.uidt as UITypes,
+            column: columnObj,
+            appInfo: unref(appInfo),
+            files,
+            oldValue: rowObj.row[columnObj.title!],
+            maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+            showUpgradeToAddMoreAttachmentsInCell,
+          },
+          isMysql(meta.value?.source_id),
+        )
+        validateColumnValue(columnObj, dropValue)
+      } catch (ex) {
+        dropValue = null
+      }
+
+      if (!dropValue?.length) return
+
+      const dropRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+      if (!dropRowPk) return
+
+      await actionManager.executeUploadAction(dropRowPk, columnObj.id!, [], async () => {
+        const newAttachments =
+          (await handleFileUploadAndGetCellValue(dropValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
+
+        const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
+
+        rowObj.row[columnObj.title!] =
+          newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+
+        await syncCellData?.(
+          {
+            row: attachmentCellDropOver.rowIndex,
+            column: attachmentCellDropOver.colIndex,
+          },
+          attachmentCellDropOver.path,
+        )
+      })
+    } catch (ex) {
+      console.log(ex)
+      message.error(t('msg.error.errorOccuredWhileDroppingAttachments'))
+    }
+  }
+
   function handleParseAttachmentCellData<T>(value: T): T {
     const parsedVal = parseProp(value)
 
@@ -1108,5 +1207,5 @@ export function useCopyPaste({
     }
   }
   useEventListener(document, 'paste', handlePaste)
-  return { copyValue, clearCell, isPasteable }
+  return { copyValue, clearCell, isPasteable, handleAttachmentCellDrop }
 }

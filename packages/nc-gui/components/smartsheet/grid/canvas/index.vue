@@ -294,6 +294,7 @@ const {
   findColumnPosition,
   findColumnAtPosition,
   dragOver,
+  attachmentCellDropOver,
   dragStart,
   elementMap,
   // MouseSelectionHandler
@@ -332,6 +333,9 @@ const {
   copyValue,
   clearCell,
   clearSelectedRangeOfCells,
+
+  // Attachment Cell Drop
+  handleAttachmentCellDrop,
 
   // Cell Click
   handleCellClick,
@@ -2611,6 +2615,114 @@ useActiveKeydownListener(
     immediate: true,
   },
 )
+
+const resetAttachmentCellDropOver = () => {
+  if (!attachmentCellDropOver.value) return
+
+  attachmentCellDropOver.value = null
+
+  requestAnimationFrame(triggerRefreshCanvas)
+}
+
+const onDrop = (files: File[] | null) => {
+  if (!attachmentCellDropOver.value || !files?.length || !isDataEditAllowed.value) {
+    return
+  }
+
+  const dataCache = getDataCache(attachmentCellDropOver.value.path)
+
+  const row =
+    attachmentCellDropOver.value.rowIndex !== null
+      ? dataCache.cachedRows.value.get(attachmentCellDropOver.value.rowIndex)
+      : undefined
+
+  const column = columns.value[attachmentCellDropOver.value.colIndex]!
+
+  if (!row || !column || column.readonly) {
+    resetAttachmentCellDropOver()
+    return
+  }
+
+  selection.value.clear()
+  editEnabled.value = null
+  activeCell.value = {
+    row: attachmentCellDropOver.value.rowIndex,
+    column: attachmentCellDropOver.value.colIndex,
+    path: attachmentCellDropOver.value.path,
+  }
+  resetRowSelection()
+  onActiveCellChanged()
+
+  try {
+    handleAttachmentCellDrop(files, attachmentCellDropOver.value)
+  } finally {
+    resetAttachmentCellDropOver()
+  }
+}
+
+const onOver = (_files: File[] | null, e: DragEvent) => {
+  if (!isDataEditAllowed.value) return
+
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return
+
+  if (
+    clientMousePosition.clientX === e.clientX &&
+    clientMousePosition.clientY === e.clientY &&
+    mousePosition.x === e.clientX - rect.left &&
+    mousePosition.y === e.clientY - rect.top
+  ) {
+    return
+  }
+
+  clientMousePosition.clientX = e.clientX
+  clientMousePosition.clientY = e.clientY
+  mousePosition.x = e.clientX - rect.left
+  mousePosition.y = e.clientY - rect.top
+
+  // Skip on hover on header
+  if (mousePosition.y <= 32) {
+    return resetAttachmentCellDropOver()
+  }
+
+  const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ROW])
+  if (!element?.row) return
+
+  const rowIndex = element?.rowIndex
+  const groupPath = generateGroupPath(element?.group)
+
+  const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
+
+  const colIndex = column ? columns.value.findIndex((col) => col.id === column.id) : -1
+
+  // If hover column is not attachment or is readonly, skip
+  if (ncIsUndefined(rowIndex) || !column || colIndex === -1 || column.uidt !== UITypes.Attachment || column.readonly) {
+    return resetAttachmentCellDropOver()
+  }
+
+  if (
+    attachmentCellDropOver.value &&
+    attachmentCellDropOver.value.rowIndex === rowIndex &&
+    attachmentCellDropOver.value.columnId === column.id
+  ) {
+    return
+  }
+
+  attachmentCellDropOver.value = { rowIndex, colIndex, columnId: column.id, path: groupPath }
+
+  requestAnimationFrame(triggerRefreshCanvas)
+}
+
+useDropZone(canvasRef, {
+  onDrop,
+  onEnter: () => {
+    resetAttachmentCellDropOver()
+  },
+  onOver,
+  onLeave: () => {
+    resetAttachmentCellDropOver()
+  },
+})
 
 watch(
   removeInlineAddRecord,

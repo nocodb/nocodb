@@ -189,6 +189,7 @@ export function useCanvasTable({
   const editEnabled = ref<CanvasEditEnabledType>(null)
   const isFillMode = ref(false)
   const dragOver = ref<{ id: string; index: number } | null>(null)
+  const attachmentCellDropOver = ref<AttachmentCellDropOverType | null>(null)
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas)
@@ -799,6 +800,7 @@ export function useCanvasTable({
     meta,
     hasEditPermission: isDataEditAllowed,
     setCursor,
+    attachmentCellDropOver,
   })
 
   const { canvasRef, renderCanvas, colResizeHoveredColIds } = useCanvasRender({
@@ -892,7 +894,7 @@ export function useCanvasTable({
     isExternalSource,
   })
 
-  const { clearCell, copyValue, isPasteable } = useCopyPaste({
+  const { clearCell, copyValue, isPasteable, handleAttachmentCellDrop } = useCopyPaste({
     activeCell,
     selection,
     columns,
@@ -947,6 +949,7 @@ export function useCanvasTable({
     updateOrSaveRow,
     getRows,
     getDataCache,
+    actionManager,
   })
 
   const { handleFillEnd, handleFillMove, handleFillStart } = useFillHandler({
@@ -1373,6 +1376,7 @@ export function useCanvasTable({
     partialRowHeight,
     readOnly,
     dragOver,
+    attachmentCellDropOver,
 
     // columnresize related refs
     colResizeHoveredColIds,
@@ -1441,6 +1445,9 @@ export function useCanvasTable({
     clearCell,
     copyValue,
     clearSelectedRangeOfCells,
+
+    // attachment cell drop handler
+    handleAttachmentCellDrop,
 
     // Action Manager
     actionManager,

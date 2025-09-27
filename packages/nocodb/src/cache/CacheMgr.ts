@@ -723,8 +723,16 @@ export default abstract class CacheMgr {
 
   async processPattern(
     pattern: string,
-    callback: (key: string) => Promise<void>,
-    options: { count?: number; type?: string } = {},
+    callback: (key: string | string[]) => Promise<void>,
+    options: {
+      count?: number;
+      type?: string;
+      batch?: boolean;
+      raw?: boolean;
+    } = {
+      batch: false,
+      raw: false,
+    },
   ): Promise<void> {
     log(`${this.context}::processPattern: processing pattern ${pattern}`);
     const stream = this.client.scanStream({
@@ -735,9 +743,19 @@ export default abstract class CacheMgr {
 
     return new Promise((resolve, reject) => {
       stream.on('data', async (keys: string[]) => {
-        for (const key of keys) {
-          logger.log(`Processing key: ${key}`);
-          await callback(key.replace(`${this.prefix}:`, ''));
+        if (options.batch) {
+          await callback(
+            options.raw
+              ? keys
+              : keys.map((k) => k.replace(`${this.prefix}:`, '')),
+          );
+        } else {
+          for (const key of keys) {
+            logger.log(`Processing key: ${key}`);
+            await callback(
+              options.raw ? key : key.replace(`${this.prefix}:`, ''),
+            );
+          }
         }
       });
 

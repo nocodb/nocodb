@@ -391,7 +391,7 @@ export class BasesService extends BasesServiceCE {
     const transaction = await ncMeta.startTransaction();
 
     try {
-      await Base.softDelete(context, param.baseId, ncMeta);
+      await Base.delete(context, param.baseId, ncMeta);
 
       await transaction.commit();
     } catch (e) {

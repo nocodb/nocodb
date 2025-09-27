@@ -3,6 +3,7 @@ import { renderSingleLineText, renderSpinner, roundedRect } from '../utils/canva
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import { useDetachedLongText } from '../composables/useDetachedLongText'
+import { comparePath } from '../utils/groupby'
 import { EmailCellRenderer } from './Email'
 import { SingleLineTextCellRenderer } from './SingleLineText'
 import { LongTextCellRenderer } from './LongText'
@@ -36,7 +37,6 @@ import { FormulaCellRenderer } from './Formula'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 import { NullCellRenderer } from './Null'
 import { PlainCellRenderer } from './Plain'
-import { comparePath } from '../utils/groupby'
 
 const CLEANUP_INTERVAL = 1000
 

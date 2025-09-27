@@ -2,16 +2,17 @@ import { ColumnType, LinkToAnotherRecordType } from '~/lib/Api';
 import { NcContext } from '~/lib/ncTypes';
 import { ParsedFormulaNode } from '../formulaHelpers';
 
+export type IColumnMetaOptions =
+  | ILookupColumn
+  | ILinkToAnotherRecordColumn
+  | IRollupColumn
+  | IFormulaColumn;
+
 export type IColumnMeta = ColumnType & {
   base_id: string;
   fk_workspace_id?: string;
-  getColOptions: <
-    T extends
-      | ILookupColumn
-      | ILinkToAnotherRecordColumn
-      | IRollupColumn
-      | IFormulaColumn
-  >(
+  meta?: any;
+  getColOptions?: <T extends IColumnMetaOptions>(
     context: NcContext,
     ncMeta?: any
   ) => Promise<T>;
@@ -23,10 +24,11 @@ export interface IGetMetaResult {
   id: string;
   title: string;
   columns: IColumnMeta[];
+  getColumns?: (context: NcContext) => Promise<IColumnMeta[]>;
 }
 
 export interface IGetMeta {
-  (context: NcContext, tableId: string): Promise<IGetMetaResult>;
+  (context: NcContext, param: { id: string }): Promise<IGetMetaResult>;
 }
 
 export interface ILinkToAnotherRecordColumn extends LinkToAnotherRecordType {
@@ -57,7 +59,7 @@ export interface ILinkToAnotherRecordColumn extends LinkToAnotherRecordType {
 
   type: 'hm' | 'bt' | 'mm' | 'oo';
 
-  getRelatedTable(context: NcContext, ncMeta?: any): Promise<IGetMetaResult>;
+  getRelatedTable?(context: NcContext, ncMeta?: any): Promise<IGetMetaResult>;
 }
 
 export interface ILookupColumn {
@@ -65,8 +67,8 @@ export interface ILookupColumn {
   fk_lookup_column_id: string;
   fk_column_id: string;
 
-  getRelationColumn(context: NcContext, ncMeta?: any): Promise<IColumnMeta>;
-  getLookupColumn(context: NcContext, ncMeta?: any): Promise<IColumnMeta>;
+  getRelationColumn?(context: NcContext, ncMeta?: any): Promise<IColumnMeta>;
+  getLookupColumn?(context: NcContext, ncMeta?: any): Promise<IColumnMeta>;
 }
 
 export interface IRollupColumn {

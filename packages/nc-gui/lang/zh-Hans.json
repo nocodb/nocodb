@@ -680,6 +680,15 @@
     "Barcode": "条形码",
     "Button": "按钮",
     "Password": "密码",
+    "Links": "链接",
+    "Geometry": "几何",
+    "JSON": "JSON",
+    "User": "用户",
+    "CreatedBy": "创建者",
+    "LastModifiedBy": "最后修改者",
+    "QrCode": "二维码",
+    "SpecificDBType": "特定数据库类型",
+    "LinkToAnotherRecord": "链接到另一条记录",
     "relationProperties": {
       "noAction": "无操作",
       "cascade": "级联",
@@ -699,6 +708,10 @@
     "isNotNull": "不为空（Not Null）"
   },
   "title": {
+    "fieldText": "文本字段",
+    "newField": "新字段",
+    "noAiIntegrationAvailableField": "AI集成不可用字段",
+    "submitForm": "提交表单",
     "accessRestricted": "访问受限",
     "editTablePermissions": "编辑表格权限",
     "editFieldPermissions": "编辑列权限",

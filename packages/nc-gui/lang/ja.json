@@ -686,7 +686,16 @@
       "restrict": "制約",
       "setNull": "NULLとする",
       "setDefault": "デフォルトとする"
-    }
+    },
+    "Links": "リンク",
+    "Geometry": "ジオメトリ",
+    "JSON": "JSON",
+    "User": "ユーザー",
+    "CreatedBy": "作成者",
+    "LastModifiedBy": "最終更新者",
+    "QrCode": "QRコード",
+    "SpecificDBType": "特定のDBタイプ",
+    "LinkToAnotherRecord": "他のレコードへのリンク"
   },
   "filterOperation": {
     "isEqual": "完全一致",
@@ -921,7 +930,11 @@
     "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
     "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
     "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin.",
+    "fieldText": "テキストフィールド",
+    "newField": "新しいフィールド",
+    "noAiIntegrationAvailableField": "AI統合フィールドが利用できません",
+    "submitForm": "フォームを送信"
   },
   "labels": {
     "configurationError": "Configuration Error",

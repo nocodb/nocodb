@@ -686,7 +686,16 @@
       "restrict": "Restringir",
       "setNull": "Definir nulo",
       "setDefault": "Conjunto padrão"
-    }
+    },
+    "Links": "Links",
+    "Geometry": "Geometria",
+    "JSON": "JSON",
+    "User": "Usuário",
+    "CreatedBy": "Criado por",
+    "LastModifiedBy": "Última modificação por",
+    "QrCode": "Código QR",
+    "SpecificDBType": "Tipo específico de banco de dados",
+    "LinkToAnotherRecord": "Link para outro registro"
   },
   "filterOperation": {
     "isEqual": "é igual",
@@ -921,7 +930,11 @@
     "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
     "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
     "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin.",
+    "fieldText": "Campo de texto",
+    "newField": "Novo campo",
+    "noAiIntegrationAvailableField": "Campo de integração de IA não disponível",
+    "submitForm": "Enviar formulário"
   },
   "labels": {
     "configurationError": "Configuration Error",

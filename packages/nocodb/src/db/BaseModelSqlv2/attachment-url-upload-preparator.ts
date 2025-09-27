@@ -60,7 +60,7 @@ export class AttachmentUrlUploadPreparator {
                 columnId: col.id,
                 modelId: baseModel.model.id,
                 scope: undefined,
-                fileName: getFileNameFromUrl({
+                ...getFileNameFromUrl({
                   url: attr.url,
                   scope: undefined,
                 }),

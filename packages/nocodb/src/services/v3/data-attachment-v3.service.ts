@@ -3,33 +3,32 @@ import { PassThrough } from 'stream';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
-import slash from 'slash';
 import { AuditV1OperationTypes, ncIsNull } from 'nocodb-sdk';
+import slash from 'slash';
 import type { DataUpdatePayload, NcContext } from 'nocodb-sdk';
+import type { AttachmentFilePathConstructed } from '~/helpers/attachmentHelpers';
 import type {
   AttachmentBase64UploadParam,
   AttachmentUrlUploadParam,
 } from '~/types/data-columns/attachment';
-import type { AttachmentFilePathConstructed } from '~/helpers/attachmentHelpers';
-import { extractProps } from '~/helpers/extractProps';
-import {
-  constructFilePath,
-  validateNumberOfFilesInCell,
-} from '~/helpers/attachmentHelpers';
-import { extractColsMetaForAudit, generateAuditV1Payload } from '~/utils';
-import { NcError } from '~/helpers/ncError';
-import { DataV3Service } from '~/services/v3/data-v3.service';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
   NC_ATTACHMENT_URL_MAX_REDIRECT,
 } from '~/constants';
+import {
+  constructFilePath,
+  validateNumberOfFilesInCell,
+} from '~/helpers/attachmentHelpers';
 import { _wherePk, getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
+import { NcError } from '~/helpers/ncError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { JobTypes } from '~/interface/Jobs';
-import { Audit, FileReference } from '~/models';
+import { Audit, FileReference, PresignedUrl } from '~/models';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
-import { RootScopes } from '~/utils/globals';
+import { DataV3Service } from '~/services/v3/data-v3.service';
+import { extractColsMetaForAudit, generateAuditV1Payload } from '~/utils';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
+import { RootScopes } from '~/utils/globals';
 
 // ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html - extended with some more characters
 const normalizeFilename = (filename: string) => {
@@ -102,6 +101,18 @@ export class DataAttachmentV3Service {
           processedAttachments.push(processedAttachment);
           if (supportsThumbnails({ mimetype: downloadedAttachment.mimeType })) {
             generateThumbnailAttachments.push(processedAttachment);
+            // TODO: generate signed url
+            // if (processedAttachment.url) {
+            //   processedAttachment.signedUrl = await PresignedUrl.getSignedUrl(
+            //     {
+            //       pathOrUrl: attachment.url,
+            //       preview,
+            //       mimetype: mimetype || attachment.mimetype,
+            //       ...(extra ? { ...extra } : {}),
+            //     },
+            //     ncMeta,
+            //   );
+            // }
           }
         }
       } catch (error) {
@@ -144,18 +155,31 @@ export class DataAttachmentV3Service {
             }),
             data: { [column.title]: processedAttachments },
             old_data: {
-              [column.title]: attachments.map((attr) => {
-                if (!('status' in attr)) {
-                  return attr;
-                }
-                return extractProps(attr, ['id', 'url', 'status', 'type']);
-              }),
+              [column.title]: attachments.filter(
+                (attr) => !('status' in attr) || attr.status !== 'uploading',
+              ),
             },
           },
           req: req ?? ({ user: context.user } as any),
         },
       ),
     );
+
+    /* TODO: broadcast to socket
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.DATA_EVENT,
+        payload: {
+          id,
+          action: 'update',
+          payload: processedAttachments,
+        },
+        scopes: [modelId],
+      },
+      context.socket_id,
+    );
+    */
   }
 
   async appendBase64AttachmentToCellData(param: AttachmentBase64UploadParam) {
@@ -374,23 +398,28 @@ export class DataAttachmentV3Service {
 
     // Extract filename from URL or content-disposition header
     let filename;
+    let originalFileName;
     if (contentDisposition) {
       const filenameMatch = contentDisposition.match(
         /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/,
       );
       if (filenameMatch && filenameMatch[1]) {
-        filename = filenameMatch[1].replace(/['"]/g, '');
+        originalFileName = filenameMatch[1].replace(/['"]/g, '');
         filename = scope
-          ? `${normalizeFilename(path.parse(filename).name)}${path.extname(
-              filename,
-            )}`
-          : `${normalizeFilename(path.parse(filename).name)}_${nanoid(
+          ? `${normalizeFilename(
+              path.parse(originalFileName).name,
+            )}${path.extname(originalFileName)}`
+          : `${normalizeFilename(path.parse(originalFileName).name)}_${nanoid(
               5,
-            )}${path.extname(filename)}`;
+            )}${path.extname(originalFileName)}`;
       }
     }
     const filePathConstructed = filename
-      ? constructFilePath(context, { ...filePath, fileName: filename })
+      ? constructFilePath(context, {
+          ...filePath,
+          fileName: filename,
+          originalFileName,
+        })
       : filePath;
     const resultAttachmentUrl = await storageAdapter.fileCreateByStream(
       filePathConstructed.storageDest,
@@ -406,7 +435,7 @@ export class DataAttachmentV3Service {
         filePathConstructed.filePath,
         filePathConstructed.fileName,
       ),
-      filename,
+      filename: filePathConstructed.originalFileName,
       mimeType,
       fileSize,
     };

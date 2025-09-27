@@ -1,4 +1,3 @@
-import { randomBytes } from 'crypto';
 import { Injectable } from '@nestjs/common';
 import { OAuthClientType } from 'nocodb-sdk';
 import { OAuthClient } from '~/models';
@@ -65,14 +64,9 @@ export class OauthDcrService {
       );
     }
 
-    const clientSecret =
-      clientType === OAuthClientType.CONFIDENTIAL
-        ? randomBytes(32).toString('base64url')
-        : undefined;
     const issuedAt = Math.floor(Date.now() / 1000);
 
     const clientData = {
-      client_secret: clientSecret,
       client_name: request.client_name || 'Dynamically Registered Client',
       client_uri: request.client_uri,
       redirect_uris: request.redirect_uris,
@@ -87,16 +81,16 @@ export class OauthDcrService {
 
     return {
       client_id: res.client_id,
-      client_secret: clientSecret,
-      client_id_issued_at: issuedAt,
-      client_secret_expires_at: clientSecret ? 0 : undefined,
-      redirect_uris: request.redirect_uris,
-      client_name: request.client_name,
-      client_uri: request.client_uri,
-      logo_uri: request.logo_uri,
-      client_type: clientType,
-      grant_types: grantTypes,
-      response_types: responseTypes,
+      client_secret: res.client_secret,
+      client_id_issued_at: res.client_id_issued_at,
+      client_secret_expires_at: res.client_secret_expires_at,
+      redirect_uris: res.redirect_uris,
+      client_name: res.client_name,
+      client_uri: res.client_uri,
+      logo_uri: res.logo_uri,
+      client_type: res.client_type,
+      grant_types: res.grant_types,
+      response_types: res.response_types,
     };
   }
 

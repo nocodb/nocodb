@@ -81,7 +81,7 @@
     "@google-cloud/storage": "^7.15.0",
     "@govtechsg/passport-openidconnect": "^1.0.3",
     "@linear/sdk": "^40.0.0",
-    "@modelcontextprotocol/sdk": "^1.13.2",
+    "@modelcontextprotocol/sdk": "^1.18.2",
     "@napi-rs/canvas": "^0.1.76",
     "@nest-lab/throttler-storage-redis": "^1.1.0",
     "@nestjs/bull": "^10.2.3",

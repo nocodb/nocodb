@@ -188,7 +188,7 @@ watch(emailVerifyDlg, (val) => {
           <FederatedSignIn />
 
           <AmplifyButton
-            class="amplify-authenticator__federated-button -mt-2 amplify-button amplify-field-group__control federated-sign-in-button amplify-authenticator__font"
+            class="nc-sso amplify-authenticator__federated-button -mt-2 amplify-button amplify-field-group__control federated-sign-in-button amplify-authenticator__font"
             type="button"
             @click="navigateTo('/sso')"
           >
@@ -408,38 +408,31 @@ form > .federated-sign-in-container {
   gap: 24px;
 }
 
-//.nc-last-used-auth-email{
-.amplify-authenticator__column > button.amplify-button {
-  position: relative;
-  &::after {
-    position: absolute;
-    content: ' Last Used';
-    font-weight: normal;
-    font-size: 0.775rem;
-    margin-left: 0.25rem;
+// apply above 498px width
+@media (min-width: 498px) {
+  .nc-last-used-auth-sso .federated-sign-in-button.nc-sso,
+  .nc-last-used-auth-google .amplify-authenticator__column > button.federated-sign-in-button:not([data-variation='primary']),
+  .nc-last-used-auth-email .amplify-authenticator__column > button.amplify-button[data-variation='primary'] {
+    position: relative;
+
+    &::after {
+      position: absolute;
+      content: ' Last Used';
+      font-weight: normal;
+      font-size: 0.775rem;
+      margin-left: 0.25rem;
+      color: #aaaaaa80;
+      right: 7px;
+      border: 1px solid #aaaaaa80;
+      padding: 3px 10px;
+      border-radius: 7px;
+    }
+  }
+
+  // signin button
+  .nc-last-used-auth-email .amplify-authenticator__column > button.amplify-button[data-variation='primary']::after {
     color: #ffffff80;
-    right: 10px;
     border: 1px solid #ffffff80;
-    padding: 2px 10px;
-    border-radius: 10px;
   }
 }
-//.nc-last-used-auth-email{
-.federated-sign-in-button.nc-sso,
-.amplify-authenticator__column > button.federated-sign-in-button {
-  position: relative;
-  &::after {
-    position: absolute;
-    content: ' Last Used';
-    font-weight: normal;
-    font-size: 0.775rem;
-    margin-left: 0.25rem;
-    color: #aaaaaa80;
-    right: 5px;
-    border: 1px solid #aaaaaa80;
-    padding: 2px 10px;
-    border-radius: 10px;
-  }
-}
-//}
 </style>

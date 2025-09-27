@@ -949,6 +949,7 @@ export function useCanvasTable({
     updateOrSaveRow,
     getRows,
     getDataCache,
+    actionManager,
   })
 
   const { handleFillEnd, handleFillMove, handleFillStart } = useFillHandler({

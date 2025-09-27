@@ -27,7 +27,7 @@
     "format": "biome format --write"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "^2.2.4",
     "swagger-typescript-api": "13.1.3",
     "@rslib/core": "^0.7.1",
     "@types/node": "^22.8.1",

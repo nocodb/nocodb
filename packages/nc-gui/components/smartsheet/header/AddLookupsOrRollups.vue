@@ -34,6 +34,8 @@ const isLoading = ref(false)
 
 const searchField = ref('')
 
+const isDragging = ref<boolean>(false)
+
 const filteredColumns = ref<
   {
     column: ColumnType
@@ -243,12 +245,23 @@ onMounted(async () => {
         }"
         class="border-1 rounded-md h-[300px] nc-scrollbar-md border-gray-200"
       >
-        <Draggable v-if="!isLoadingModel" v-model="filteredColumns" item-key="id" ghost-class="nc-lookup-menu-items-ghost">
+        <Draggable
+          v-if="!isLoadingModel"
+          v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 50 })"
+          v-model="filteredColumns"
+          item-key="id"
+          ghost-class="nc-lookup-menu-items-ghost"
+          @start="isDragging = true"
+          @end="isDragging = false"
+        >
           <template #item="{ element: field }">
             <div
               :key="field.id"
               :data-testid="`nc-lookup-add-menu-${field.title}`"
-              class="px-3 py-1 flex flex-row items-center rounded-md hover:bg-gray-100"
+              class="px-3 py-1 flex flex-row items-center rounded-md"
+              :class="{
+                'hover:bg-gray-100': !isDragging,
+              }"
               @click.stop="selectedFields[field.id] = !selectedFields[field.id]"
             >
               <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />

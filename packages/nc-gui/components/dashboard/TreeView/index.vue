@@ -343,6 +343,7 @@ watch(
     <div mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
       <div v-if="basesList?.length">
         <Draggable
+          v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 50 })"
           :model-value="basesList"
           :disabled="isMobileMode || !isUIAllowed('baseReorder') || basesList?.length < 2"
           item-key="id"

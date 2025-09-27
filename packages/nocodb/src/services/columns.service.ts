@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { pluralize, singularize } from 'inflection';
 import {
   AppEvents,
@@ -203,6 +203,8 @@ export interface CustomLinkProps {
 
 @Injectable()
 export class ColumnsService implements IColumnsService {
+  protected logger = new Logger(ColumnsService.name);
+
   constructor(
     protected readonly metaService: MetaService,
     protected readonly appHooksService: AppHooksService,
@@ -1972,12 +1974,16 @@ export class ColumnsService implements IColumnsService {
         await this.filtersService.transformFiltersForColumnTypeChange(
           context,
           column.id,
-          column.uidt as UITypes,
           colBody.uidt as UITypes,
+            column.uidt as UITypes,
+            sqlUi
         );
       } catch (error) {
         // Log error but don't fail the column update
-        console.error('Failed to transform filters for column type change:', error);
+        console.error(
+          'Failed to transform filters for column type change:',
+          error.message,
+        );
       }
     }
 

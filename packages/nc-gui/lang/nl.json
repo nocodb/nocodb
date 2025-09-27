@@ -686,7 +686,16 @@
       "restrict": "Beperken",
       "setNull": "Maak NULL",
       "setDefault": "Standaard instellen"
-    }
+    },
+    "Links": "Links",
+    "Geometry": "Geometrie",
+    "JSON": "JSON",
+    "User": "Gebruiker",
+    "CreatedBy": "Gemaakt door",
+    "LastModifiedBy": "Laatst gewijzigd door",
+    "QrCode": "QR-code",
+    "SpecificDBType": "Specifiek databasetype",
+    "LinkToAnotherRecord": "Link naar een ander record"
   },
   "filterOperation": {
     "isEqual": "is gelijk",
@@ -921,7 +930,11 @@
     "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
     "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
     "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin.",
+    "fieldText": "Tekstveld",
+    "newField": "Nieuw veld",
+    "noAiIntegrationAvailableField": "AI-integratieveld niet beschikbaar",
+    "submitForm": "Formulier verzenden"
   },
   "labels": {
     "configurationError": "Configuration Error",

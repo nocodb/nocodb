@@ -686,7 +686,16 @@
       "restrict": "تقييد",
       "setNull": "تعيين فارغ",
       "setDefault": "تعيين افتراضي"
-    }
+    },
+    "Links": "الروابط",
+    "Geometry": "الهندسة",
+    "JSON": "JSON",
+    "User": "المستخدم",
+    "CreatedBy": "أنشأ بواسطة",
+    "LastModifiedBy": "آخر تعديل بواسطة",
+    "QrCode": "رمز الاستجابة السريعة",
+    "SpecificDBType": "نوع قاعدة البيانات المحدد",
+    "LinkToAnotherRecord": "رابط إلى سجل آخر"
   },
   "filterOperation": {
     "isEqual": "يساوي",
@@ -921,7 +930,11 @@
     "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
     "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
     "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin.",
+    "fieldText": "حقل النص",
+    "newField": "حقل جديد",
+    "noAiIntegrationAvailableField": "حقل تكامل الذكاء الاصطناعي غير متاح",
+    "submitForm": "إرسال النموذج"
   },
   "labels": {
     "configurationError": "Configuration Error",

@@ -680,6 +680,15 @@
     "Barcode": "Barcode",
     "Button": "Schaltfläche",
     "Password": "Passwort",
+    "Links": "Links",
+    "Geometry": "Geometrie",
+    "JSON": "JSON",
+    "User": "Benutzer",
+    "CreatedBy": "Erstellt von",
+    "LastModifiedBy": "Zuletzt geändert von",
+    "QrCode": "QR-Code",
+    "SpecificDBType": "Spezifischer Datenbanktyp",
+    "LinkToAnotherRecord": "Link zu einem anderen Datensatz",
     "relationProperties": {
       "noAction": "Keine Aktion",
       "cascade": "Verketten",
@@ -921,7 +930,11 @@
     "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
     "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
     "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin.",
+    "fieldText": "Textfeld",
+    "newField": "Neues Feld",
+    "noAiIntegrationAvailableField": "KI-Integrationsfeld nicht verfügbar",
+    "submitForm": "Formular absenden"
   },
   "labels": {
     "configurationError": "Konfigurationsfehler",

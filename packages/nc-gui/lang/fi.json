@@ -686,7 +686,16 @@
       "restrict": "Rajoittaa",
       "setNull": "Asettaa nolla",
       "setDefault": "Aseta oletus"
-    }
+    },
+    "Links": "Links",
+    "Geometry": "Geometry",
+    "JSON": "JSON",
+    "User": "User",
+    "CreatedBy": "Created By",
+    "LastModifiedBy": "Last Modified By",
+    "QrCode": "QR Code",
+    "SpecificDBType": "Specific DB Type",
+    "LinkToAnotherRecord": "Link to Another Record"
   },
   "filterOperation": {
     "isEqual": "on yhtä kuin",
@@ -921,7 +930,11 @@
     "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
     "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
     "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin.",
+    "fieldText": "Field text",
+    "newField": "New field",
+    "noAiIntegrationAvailableField": "No AI integration available field",
+    "submitForm": "Submit form"
   },
   "labels": {
     "configurationError": "Configuration Error",

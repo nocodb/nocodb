@@ -680,6 +680,15 @@
     "Barcode": "Barcode",
     "Button": "Button",
     "Password": "Password",
+    "Links": "Links",
+    "Geometry": "Geometry", 
+    "JSON": "JSON",
+    "User": "User",
+    "CreatedBy": "Created By",
+    "LastModifiedBy": "Last Modified By",
+    "QrCode": "QR Code",
+    "SpecificDBType": "Specific DB Type",
+    "LinkToAnotherRecord": "Link to Another Record",
     "relationProperties": {
       "noAction": "No Action",
       "cascade": "Cascade",
@@ -699,6 +708,10 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "fieldText": "Field text",
+    "newField": "New field", 
+    "noAiIntegrationAvailableField": "No AI integration available field",
+    "submitForm": "Submit form",
     "accessRestricted": "Access Restricted",
     "editTablePermissions": "Edit table permissions",
     "editFieldPermissions": "Edit field permissions",

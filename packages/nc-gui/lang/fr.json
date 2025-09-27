@@ -680,6 +680,15 @@
     "Barcode": "Code-barres",
     "Button": "Bouton",
     "Password": "Mot de passe",
+    "Links": "Liens",
+    "Geometry": "Géométrie",
+    "JSON": "JSON",
+    "User": "Utilisateur",
+    "CreatedBy": "Créé par",
+    "LastModifiedBy": "Dernière modification par",
+    "QrCode": "Code QR",
+    "SpecificDBType": "Type de base de données spécifique",
+    "LinkToAnotherRecord": "Lien vers un autre enregistrement",
     "relationProperties": {
       "noAction": "Pas d'action",
       "cascade": "Cascade",
@@ -921,7 +930,11 @@
     "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
     "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
     "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin.",
+    "fieldText": "Champ de texte",
+    "newField": "Nouveau champ",
+    "noAiIntegrationAvailableField": "Champ d'intégration AI non disponible",
+    "submitForm": "Soumettre le formulaire"
   },
   "labels": {
     "configurationError": "Configuration Error",

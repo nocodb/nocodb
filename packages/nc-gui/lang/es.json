@@ -680,6 +680,15 @@
     "Barcode": "Código de barras",
     "Button": "Botón",
     "Password": "Contraseña",
+    "Links": "Enlaces",
+    "Geometry": "Geometría",
+    "JSON": "JSON",
+    "User": "Usuario",
+    "CreatedBy": "Creado por",
+    "LastModifiedBy": "Última modificación por",
+    "QrCode": "Código QR",
+    "SpecificDBType": "Tipo de base de datos específico",
+    "LinkToAnotherRecord": "Enlace a otro registro",
     "relationProperties": {
       "noAction": "No hay acción",
       "cascade": "Cascada",
@@ -699,6 +708,10 @@
     "isNotNull": "no es nulo"
   },
   "title": {
+    "fieldText": "Campo de texto",
+    "newField": "Nuevo campo",
+    "noAiIntegrationAvailableField": "Campo de integración AI no disponible",
+    "submitForm": "Enviar formulario",
     "accessRestricted": "Acceso Restringido",
     "editTablePermissions": "Editar permisos de tabla",
     "editFieldPermissions": "Editar permisos del campo",

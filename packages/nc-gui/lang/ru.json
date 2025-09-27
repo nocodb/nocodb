@@ -686,7 +686,16 @@
       "restrict": "Ограничить",
       "setNull": "Установить NULL",
       "setDefault": "Установить значение по умолчанию"
-    }
+    },
+    "Links": "Ссылки",
+    "Geometry": "Геометрия",
+    "JSON": "JSON",
+    "User": "Пользователь",
+    "CreatedBy": "Создан",
+    "LastModifiedBy": "Последнее изменение",
+    "QrCode": "QR-код",
+    "SpecificDBType": "Специфический тип БД",
+    "LinkToAnotherRecord": "Ссылка на другую запись"
   },
   "filterOperation": {
     "isEqual": "равен",
@@ -921,7 +930,11 @@
     "confirmLeaveWorkspaceTitle": "Вы уверены, что хотите покинуть это рабочее пространство?",
     "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
     "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin.",
+    "fieldText": "Текстовое поле",
+    "newField": "Новое поле",
+    "noAiIntegrationAvailableField": "Поле интеграции ИИ недоступно",
+    "submitForm": "Отправить форму"
   },
   "labels": {
     "configurationError": "Configuration Error",

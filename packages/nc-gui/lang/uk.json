@@ -686,7 +686,16 @@
       "restrict": "Обмежити",
       "setNull": "Встановити NULL",
       "setDefault": "Встановити за замовчуванням"
-    }
+    },
+    "Links": "Links",
+    "Geometry": "Geometry",
+    "JSON": "JSON",
+    "User": "User",
+    "CreatedBy": "Created By",
+    "LastModifiedBy": "Last Modified By",
+    "QrCode": "QR Code",
+    "SpecificDBType": "Specific DB Type",
+    "LinkToAnotherRecord": "Link to Another Record"
   },
   "filterOperation": {
     "isEqual": "дорівнює",
@@ -921,7 +930,11 @@
     "confirmLeaveWorkspaceTitle": "Ви впевнені, що хочете покинути цей робочий простір?",
     "confirmLeaveWorkspaceSubtile": "Якщо ви покинете цей робочий простір, ви втратите доступ до всіх баз і даних у цьому просторі. Щоб повернутися, вам знадобиться запрошення.",
     "confirmRemoveMemberFromWorkspaceTitle": "Ви впевнені, що хочете видалити користувача з робочого простору?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "Якщо ви видалите, вони втратять доступ до всіх баз та даних у цьому робочому просторі. Для повторного приєднання їм знадобиться запрошення."
+    "confirmRemoveMemberFromWorkspaceSubtitle": "Якщо ви видалите, вони втратять доступ до всіх баз та даних у цьому робочому просторі. Для повторного приєднання їм знадобиться запрошення.",
+    "fieldText": "Field text",
+    "newField": "New field",
+    "noAiIntegrationAvailableField": "No AI integration available field",
+    "submitForm": "Submit form"
   },
   "labels": {
     "configurationError": "Configuration Error",

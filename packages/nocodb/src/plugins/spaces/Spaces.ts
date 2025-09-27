@@ -64,4 +64,12 @@ export default class Spaces extends GenericS3 implements IStorageAdapterV2 {
 
     this.s3Client = new S3Client(s3Options);
   }
+
+  override getUploadedPath(path: string): { path?: string; url?: string } {
+    return {
+      url: `https://${this.input.bucket}.${
+        this.input.region || 'nyc3'
+      }.digitaloceanspaces.com/${path}`,
+    };
+  }
 }

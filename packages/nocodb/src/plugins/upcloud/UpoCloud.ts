@@ -44,4 +44,13 @@ export default class UpoCloud extends GenericS3 implements IStorageAdapterV2 {
 
     this.s3Client = new S3Client(s3Options);
   }
+
+  override getUploadedPath(path: string): { path?: string; url?: string } {
+    const updatedEndpoint = this.input.endpoint.startsWith('https://')
+      ? this.input.endpoint
+      : `https://${this.input.endpoint}`;
+    return {
+      url: `${updatedEndpoint}/${this.input.bucket}/${path}`,
+    };
+  }
 }

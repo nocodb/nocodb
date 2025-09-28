@@ -61,6 +61,8 @@ import SSOClient from '~/models/SSOClient';
 import {
   checkForFeature,
   checkIfEmailAllowedNonSSO,
+  checkIfEmailAllowedNonSSOForOrg,
+  checkIfOrgSSOAvail,
   checkIfWorkspaceSSOAvail,
 } from '~/helpers/paymentHelpers';
 import MCPToken from '~/models/MCPToken';
@@ -753,6 +755,34 @@ export class AclMiddleware implements NestInterceptor {
         }
 
         NcError.allowedOnlySSOAccess(req.ncWorkspaceId);
+      }
+    }
+
+    // if org associated to SSO, then only allow the org owner
+    // to access the org without sso login
+    if (
+      req.ncOrgId &&
+      !req.user?.org_roles?.[CloudOrgUserRoles.OWNER] &&
+      !req.user?.extra?.org_id &&
+      (await checkIfOrgSSOAvail(req.ncOrgId, false))
+    ) {
+      const ssoClient = (
+        await SSOClient.list({
+          orgId: req.ncOrgId,
+        })
+      )
+        // filter out disabled SSO clients
+        .filter((ssoClient) => ssoClient.enabled && !ssoClient.deleted);
+
+      if (
+        ssoClient.length > 0 &&
+        (await checkIfEmailAllowedNonSSOForOrg(req.ncOrgId, req.user?.email))
+      ) {
+        if (req.user?.is_api_token) {
+          NcError.allowedOnlySSOGeneratedToken(req.ncOrgId);
+        }
+
+        NcError.allowedOnlySSOAccess(req.ncOrgId);
       }
     }
 

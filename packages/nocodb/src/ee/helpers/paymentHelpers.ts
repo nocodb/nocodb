@@ -386,6 +386,25 @@ export async function checkIfWorkspaceSSOAvail(
   return true;
 }
 
+// if Cloud, then check if sso is available for the org
+export async function checkIfOrgSSOAvail(orgId: string, throwError = true) {
+  if (!isCloud) {
+    if (throwError)
+      NcError.forbidden('This feature is not available in self-hosted version');
+    else return false;
+  }
+
+  const isSSOEnabled = await getFeature(PlanFeatureTypes.FEATURE_SSO, orgId);
+
+  if (!isSSOEnabled) {
+    if (throwError)
+      NcError.forbidden('SSO is not available for this organization');
+    else return false;
+  }
+
+  return true;
+}
+
 export function calculateUnitPrice(
   price: Stripe.Price,
   workspaceOrOrgSeatCount: number,
@@ -443,6 +462,20 @@ export const checkIfEmailAllowedNonSSO = async (
     !!email && domains?.some((d: Domain) => d.domain === email?.split('@')[1])
   );
 };
+
+// check if email only allowed through sso LOGIN for org
+export const checkIfEmailAllowedNonSSOForOrg = async (
+  orgId: string,
+  email: string,
+) => {
+  const domains = await Domain.list({
+    orgId,
+  });
+
+  return (
+    !!email && domains?.some((d: Domain) => d.domain === email?.split('@')[1])
+  );
+};
 export {
   PlanLimitTypes,
   PlanFeatureTypes,
@@ -453,4 +486,8 @@ export {
   getActivePlanAndSubscription,
   checkSeatLimit,
   checkForFeature,
+  checkIfWorkspaceSSOAvail,
+  checkIfOrgSSOAvail,
+  checkIfEmailAllowedNonSSO,
+  checkIfEmailAllowedNonSSOForOrg,
 };

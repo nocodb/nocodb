@@ -322,7 +322,7 @@ const customColumns = function (
               type: UITypes.Percent,
               description: `Percent ${UITypes.Percent}`,
               options: {
-                precision: 4,
+                precision: 1,
                 show_as_progress: true,
                 ...optionsOverride['Percent'],
               },
@@ -333,6 +333,7 @@ const customColumns = function (
               uidt: UITypes.Percent,
               meta: {
                 is_progress: true,
+                precision: 1,
                 ...optionsOverride['Percent'],
               },
             },

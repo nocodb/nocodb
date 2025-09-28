@@ -69,12 +69,11 @@ export const parseDecimalValue = (
   return roundUpToPrecision(Number(value), columnMeta.precision ?? 1);
 };
 
-export const parsePercentValue = (value: string | null) => {
+export const parsePercentValue = (value: string | null, precision: number = 1) => {
   if (ncIsNaN(value)) {
     return null;
   }
-
-  return `${Number(value)}%`;
+  return `${Number(value).toFixed(precision)}%`;
 };
 
 export const parseDurationValue = (value: string | null, col: ColumnType) => {
@@ -226,4 +225,5 @@ export const parseLinksValue = (
       columnMeta.plural || (t('general.links') ?? 'Links')
     }`;
   }
+};
 };

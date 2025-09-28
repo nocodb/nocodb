@@ -6,6 +6,7 @@ import AbstractColumnHelper, {
 import { ColumnType } from '~/lib/Api';
 import { populateFillHandleStringNumber } from '../utils/fill-handler';
 import { ncIsNaN } from '~/lib/is';
+import { parseProp } from '~/lib/helperFunctions';
 
 export class PercentHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -29,8 +30,11 @@ export class PercentHelper extends AbstractColumnHelper {
     return value;
   }
 
-  parseValue(value: any): string | number | null {
-    return parsePercentValue(value);
+  parseValue(value: any, col?: ColumnType): string | number | null {
+    // Use precision from meta if available, parsing meta if it's a string
+    const meta = parseProp(col?.meta);
+    const precision = meta?.precision ?? 1;
+    return parsePercentValue(value, precision);
   }
 
   parsePlainCellValue(
@@ -40,8 +44,9 @@ export class PercentHelper extends AbstractColumnHelper {
     if (params.isAggregation && ncIsNaN(value)) {
       value = 0;
     }
-
-    return `${parsePercentValue(value) ?? ''}`;
+    const meta = parseProp(params.col?.meta);
+    const precision = meta?.precision ?? 1;
+    return `${parsePercentValue(value, precision) ?? ''}`;
   }
 
   // using string number fill handler

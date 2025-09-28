@@ -826,6 +826,7 @@ export class SnowflakeUi implements SqlUi {
         break;
       case 'Percent':
         colProp.dt = 'DOUBLE PRECISION';
+        colProp.meta = { precision: 1 };
         break;
       case 'Duration':
         colProp.dt = 'DECIMAL';

@@ -419,7 +419,7 @@ END`,
 
     const removeNullUnicode = (source: string) => {
       // use four backspace so it will translate into two backspace in sql query
-      return `regexp_replace(${source}, '\\\\u0000', 'u0000')`;
+      return `regexp_replace(${source}, '\\\\u0000', 'u0000', 'g')`;
     };
     return {
       builder: knex.raw(

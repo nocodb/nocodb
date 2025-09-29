@@ -331,6 +331,10 @@ export const nocoModuleMetadata = {
       provide: 'IViewsV3Service',
       useClass: ViewsV3Service,
     },
+    {
+      provide: 'IColumnsV3Service',
+      useClass: ColumnsV3Service,
+    },
     DataAttachmentV3Service,
 
     // use custom provider to avoid circular dependency

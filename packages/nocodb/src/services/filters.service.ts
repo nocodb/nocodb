@@ -304,12 +304,16 @@ export class FiltersService {
    */
   async transformFiltersForColumnTypeChange(
     context: NcContext,
-    columnId: string,
-    newColumnType: UITypes,
-    oldColumnType: UITypes,
-    sqlUi: any,
+    params: {
+      columnId: string;
+      newColumnType: UITypes;
+      oldColumnType: UITypes;
+      sqlUi: any;
+    },
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
+    const { columnId, newColumnType, oldColumnType, sqlUi } = params;
+
     // Get all filters that reference this column from all tables
     const filtersToCheck = await this.getAllFiltersForColumn(
       context,
@@ -459,16 +463,16 @@ export class FiltersService {
       };
     }
 
-    // Check if operator is compatible with new type
-    if (this.isOperatorCompatible(operator, newColumnType, oldColumnType)) {
-      return { shouldRemove: false };
+    // Operator is not compatible, filter must be removed
+    if (!this.isOperatorCompatible(operator, newColumnType, oldColumnType)) {
+      return {
+        shouldRemove: true,
+        reason: `Operator ${operator} is not compatible with column type ${newColumnType}`,
+      };
     }
 
-    // Operator is not compatible, filter must be removed
-    return {
-      shouldRemove: true,
-      reason: `Operator ${operator} is not compatible with column type ${newColumnType}`,
-    };
+    // Operator is compatible, no removal needed
+    return { shouldRemove: false };
   }
 
   /**

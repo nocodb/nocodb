@@ -5489,11 +5489,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           const attachment = d[col.id][i];
 
-          if (attachment.id?.startsWith('temp_')) {
-            // Skip temporary attachments
-            continue;
-          }
-
           // Handle array of arrays (lookup case)
           for (const lookedUpAttachment of Array.isArray(attachment)
             ? attachment
@@ -5560,6 +5555,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // Skip data URLs
     if (attachment.url?.startsWith('data:')) {
+      return thumbnails;
+    }
+
+    if ('status' in attachment && attachment.status === 'uploading') {
       return thumbnails;
     }
 

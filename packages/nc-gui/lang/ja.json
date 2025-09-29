@@ -699,6 +699,7 @@
     "isNotNull": "がNULLでない"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "アクセス制限あり",
     "editTablePermissions": "テーブル権限の編集",
     "editFieldPermissions": "フィールド権限の編集",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "各ユーザーに1つのトークンのみ許可されます",
     "duplicateAttachment": "名前 {filename} のファイルはすでに添付されています",
     "tableIdColon": "テーブルID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "スクリプトID: {scriptId}",
     "dashboardIdColon": "ダッシュボードID: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "役割のため",
     "clickToCopy": "クリックしてコピー",
     "clickToCopyTableID": "テーブルIDをコピーするにはクリック",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "クリックしてスクリプトIDをコピー",
     "clickToCopyDashboardID": "クリックしてダッシュボードIDをコピー",
     "clickToCopyViewID": "クリックしてView IDをコピー",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "「Shift + Space」を展開",
     "selectAllMappedFields": "マッピングされたすべてのフィールドを選択",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "エラーコードをコピー",
     "paidUserBadgeTooltip": "ユーザーは少なくとも1つのベースでエディター以上の権限を持っています。",
     "approachingLimit": "上限に近づいています",
@@ -1876,9 +1880,7 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded",
-    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "アイコンを検索",
@@ -2439,8 +2441,7 @@
       "invalidSearchQuery": "検索クエリが無効です",
       "invalidSearchQueryForVisibleFields": "表示されているフィールドの検索クエリが無効です",
       "invalidSearchQueryForDisplayField": "表示フィールドの検索クエリが無効です",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",

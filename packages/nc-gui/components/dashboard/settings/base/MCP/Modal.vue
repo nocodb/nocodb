@@ -97,7 +97,15 @@ const code = computed(
           <div class="text-nc-content-gray font-bold leading-6">
             {{ $t('labels.mcpSetup') }}
           </div>
-
+          <NcAlert type="info" class="mt-3 max-w-[640px] w-full mx-auto">
+            <template #message>
+              {{ $t('labels.mcpTokenVisibilityInfo') }}
+            </template>
+            <template #description>
+              {{ $t('labels.mcpTokenVisibilityInfoDescription') }} <br />
+              {{ $t('labels.mcpTokenVisibilityInfoDescription2') }}
+            </template>
+          </NcAlert>
           <NcTabs v-model:active-key="activeTab">
             <a-tab-pane key="claude" class="!h-full">
               <template #tab>
@@ -185,16 +193,6 @@ const code = computed(
             </a-tab-pane>
           </NcTabs>
         </div>
-
-        <NcAlert type="info" class="mt-3 max-w-[640px] w-full mx-auto">
-          <template #message>
-            {{ $t('labels.mcpTokenVisibilityInfo') }}
-          </template>
-          <template #description>
-            {{ $t('labels.mcpTokenVisibilityInfoDescription') }} <br />
-            {{ $t('labels.mcpTokenVisibilityInfoDescription2') }}
-          </template>
-        </NcAlert>
       </div>
       <div class="h-full bg-gray-50 border-l-1 w-80 p-5 rounded-br-2xl border-gray-200">
         <div class="w-full flex flex-col gap-3">

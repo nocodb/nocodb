@@ -169,5 +169,3 @@ onMounted(async () => {
     <AccountOAuthModal v-model:visible="modalVisible" />
   </div>
 </template>
-
-<style scoped lang="scss"></style>

@@ -24,8 +24,6 @@ const { t } = useI18n()
 
 const workspaceStore = useWorkspace()
 
-const { workspaces } = storeToRefs(workspaceStore)
-
 const modelValue = useVModel(props, 'value', emit)
 
 const isOpenWorkspaceSelectDropdown = ref(false)
@@ -70,10 +68,10 @@ watch(
   workspaceList,
   (newWorkspaceList) => {
     if (newWorkspaceList && newWorkspaceList.length > 0) {
-      const newWorkspaceListMap = new Map(newWorkspaceList.map((workspace) => [workspace.value, workspace]))
+      const workspaceValueSet = new Set(newWorkspaceList.map((workspace) => workspace.value))
 
       // Check if current value exists in the new workspace list
-      if (modelValue.value && !newWorkspaceListMap.has(modelValue.value)) {
+      if (modelValue.value && !workspaceValueSet.has(modelValue.value)) {
         // Current value is not in the list, set null to clear it
         modelValue.value = null
         return
@@ -81,14 +79,12 @@ watch(
 
       // Auto-select logic (only if autoSelect is enabled and no current value)
       if (!modelValue.value && props.autoSelect) {
-        const newWorkspaceId = newWorkspaceList[0]?.value
+        const firstWorkspace = newWorkspaceList[0]
 
-        const workspaceObj = newWorkspaceListMap.get(newWorkspaceId)
-
-        if (workspaceObj && workspaceObj.ncItemDisabled && workspaceObj.value === newWorkspaceList[0]?.value) {
-          modelValue.value = newWorkspaceList.find((workspace) => !workspace.ncItemDisabled)?.value || newWorkspaceList[0]?.value
+        if (firstWorkspace.ncItemDisabled) {
+          modelValue.value = newWorkspaceList.find((workspace) => !workspace.ncItemDisabled)?.value || firstWorkspace.value
         } else {
-          modelValue.value = newWorkspaceId
+          modelValue.value = firstWorkspace.value
         }
       }
     }

@@ -66,10 +66,7 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
         clientData,
       )
 
-      oauthClients.value.push({
-        ...created,
-        ___is_new: true,
-      } as any)
+      oauthClients.value.push(created)
 
       $e('a:oauth-client:create')
 

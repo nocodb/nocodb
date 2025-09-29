@@ -42,8 +42,14 @@ export const useInfiniteGroups = (
   const isPublic = inject(IsPublicInj, ref(false))
   const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
-  const activeGroupKeys = useStorage<Array<string>>(`active-group-keys-${view.value?.id}`, [])
+  const activeGroupKeys = useStorage<Record<string, Array<string>>>('active-group-keys', {})
+
   const routeQuery = computed(() => router.currentRoute.value.query as Record<string, string>)
+
+  const currentViewGroupKeys = computed(() => {
+    if (!view.value?.id) return []
+    return activeGroupKeys.value[view.value.id] || []
+  })
 
   const columnsById = computed(() => {
     if (!meta.value?.columns?.length) return {}
@@ -250,7 +256,8 @@ export const useInfiniteGroups = (
         const isExpanded = groupPath.join('-') === routePath.join('-')
 
         const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
-        group.isExpanded = activeGroupKeys.value.includes(nestedKey) || isExpanded
+
+        group.isExpanded = currentViewGroupKeys.value.includes(nestedKey) || isExpanded
 
         // Create useInfiniteData for leaf groups
         if (level === groupByColumns.value.length - 1) {
@@ -641,13 +648,21 @@ export const useInfiniteGroups = (
     const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
 
     if (group.isExpanded) {
-      if (!activeGroupKeys.value.includes(nestedKey)) {
-        activeGroupKeys.value.push(nestedKey)
+      if (!view.value?.id) return
+      if (!activeGroupKeys.value[view.value.id]) {
+        activeGroupKeys.value[view.value.id] = []
+      }
+      if (!activeGroupKeys.value[view.value.id].includes(nestedKey)) {
+        activeGroupKeys.value[view.value.id].push(nestedKey)
       }
     } else {
-      const index = activeGroupKeys.value.indexOf(nestedKey)
-      if (index !== -1) {
-        activeGroupKeys.value.splice(index, 1)
+      if (!view.value?.id) return
+      const viewKeys = activeGroupKeys.value[view.value.id]
+      if (viewKeys) {
+        const index = viewKeys.indexOf(nestedKey)
+        if (index !== -1) {
+          viewKeys.splice(index, 1)
+        }
       }
     }
   }
@@ -678,14 +693,22 @@ export const useInfiniteGroups = (
 
       group.isExpanded = expand
 
+      if (!view.value?.id) return
+
       if (expand) {
-        if (!activeGroupKeys.value.includes(nestedKey)) {
-          activeGroupKeys.value.push(nestedKey)
+        if (!activeGroupKeys.value[view.value.id]) {
+          activeGroupKeys.value[view.value.id] = []
+        }
+        if (!activeGroupKeys.value[view.value.id].includes(nestedKey)) {
+          activeGroupKeys.value[view.value.id].push(nestedKey)
         }
       } else {
-        const keyIndex = activeGroupKeys.value.indexOf(nestedKey)
-        if (keyIndex !== -1) {
-          activeGroupKeys.value.splice(keyIndex, 1)
+        const viewKeys = activeGroupKeys.value[view.value.id]
+        if (viewKeys) {
+          const keyIndex = viewKeys.indexOf(nestedKey)
+          if (keyIndex !== -1) {
+            viewKeys.splice(keyIndex, 1)
+          }
         }
       }
     })

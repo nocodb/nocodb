@@ -11,8 +11,6 @@ export type MCPTokenExtendedType = MCPTokenType & {
 export const useMcpSettings = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
-  const { user } = useGlobal()
-
   const { t } = useI18n()
 
   const basesStore = useBases()

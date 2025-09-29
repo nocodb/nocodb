@@ -699,6 +699,7 @@
     "isNotNull": "bukan null."
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Akses Dibatasi",
     "editTablePermissions": "Edit izin tabel",
     "editFieldPermissions": "Edit izin field",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Hanya satu token per pengguna yang diizinkan",
     "duplicateAttachment": "File dengan nama {filename} sudah terlampir",
     "tableIdColon": "ID TABEL: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID SKRIP: {scriptId}",
     "dashboardIdColon": "ID DASHBOARD: {dashboardId}",
     "viewIdColon": "ID TAMPILAN: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "untuk peran",
     "clickToCopy": "Klik untuk menyalin",
     "clickToCopyTableID": "Klik untuk menyalin ID Tabel",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Klik untuk menyalin ID Skrip",
     "clickToCopyDashboardID": "Klik untuk menyalin ID Dasbor",
     "clickToCopyViewID": "Klik untuk menyalin View ID",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Spasi",
     "expandShiftSpace": "Perbesar 'Shift + Spasi'",
     "selectAllMappedFields": "Pilih semua kolom yang dipetakan",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Salin kode kesalahan",
     "paidUserBadgeTooltip": "Pengguna memiliki peran Editor atau lebih tinggi di setidaknya satu basis.",
     "approachingLimit": "Mendekati batas",
@@ -1876,9 +1880,7 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded",
-    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "Cari ikon",
@@ -2439,8 +2441,7 @@
       "invalidSearchQuery": "Kueri pencarian tidak valid",
       "invalidSearchQueryForVisibleFields": "Kueri pencarian tidak valid untuk field yang terlihat",
       "invalidSearchQueryForDisplayField": "Kueri pencarian tidak valid untuk field tampilan",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Metadata proyek berhasil diekspor",

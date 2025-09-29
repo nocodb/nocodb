@@ -699,6 +699,7 @@
     "isNotNull": "nav null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Piekļuve ierobežota",
     "editTablePermissions": "Rediģēt tabulas atļaujas",
     "editFieldPermissions": "Rediģēt lauka atļaujas",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Katram lietotājam atļauta tikai viena atslēga",
     "duplicateAttachment": "Fails ar nosaukumu {filename} jau ir pievienots",
     "tableIdColon": "TABULAS ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SKRIPTA ID: {scriptId}",
     "dashboardIdColon": "PANEĻA ID: {dashboardId}",
     "viewIdColon": "SKATA ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "par lomu",
     "clickToCopy": "Noklikšķiniet, lai kopētu",
     "clickToCopyTableID": "Noklikšķiniet, lai kopētu Tabulas ID",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Noklikšķiniet, lai kopētu skripta ID",
     "clickToCopyDashboardID": "Klikšķiniet, lai nokopētu paneļa ID",
     "clickToCopyViewID": "Noklikšķiniet, lai kopētu Skata ID",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "Izvērsiet 'Shift + Space'",
     "selectAllMappedFields": "Atlasīt visus sasaistītos laukus",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopēt kļūdas kodu",
     "paidUserBadgeTooltip": "Lietotājam ir redaktora vai augstāka loma vismaz vienā bāzē.",
     "approachingLimit": "Tuvoties limitam",
@@ -1876,9 +1880,7 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded",
-    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "Meklēt ikonas",
@@ -2439,8 +2441,7 @@
       "invalidSearchQuery": "Nederīga meklēšanas vaicājuma sintakse",
       "invalidSearchQueryForVisibleFields": "Nederīga meklēšanas vaicājuma sintakse redzamajiem laukiem",
       "invalidSearchQueryForDisplayField": "Nederīga meklēšanas vaicājuma sintakse attēlotajam laukam",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Projekta metadati eksportēti veiksmīgi",

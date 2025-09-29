@@ -347,12 +347,13 @@ export class ColumnsService implements IColumnsService {
     const columnWebhookManager =
       param.columnWebhookManager ??
       (
-        await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
-          column.fk_model_id,
-        )
-      )
-        .addColumn(column)
-        .forUpdate();
+        await (
+          await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
+            column.fk_model_id,
+          )
+        ).addColumnById(column.id)
+      ).forUpdate();
+
     // TODO: Refactor the columnUpdate function to handle metaOnly changes and
     // DB related changes, right now both are mixed up, making this fragile
     if (param.column.description !== column.description) {
@@ -2944,12 +2945,12 @@ export class ColumnsService implements IColumnsService {
     const columnWebhookManager =
       param.columnWebhookManager ??
       (
-        await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
-          column.fk_model_id,
-        )
-      )
-        .addColumn(column)
-        .forDelete();
+        await (
+          await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
+            column.fk_model_id,
+          )
+        ).addColumnById(column.id)
+      ).forDelete();
 
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
       ProjectMgrv2.getSqlMgr(context, { id: source.base_id }, ncMeta),

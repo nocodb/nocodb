@@ -699,6 +699,7 @@
     "isNotNull": "nem null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Hozzáférés korlátozva",
     "editTablePermissions": "",
     "editFieldPermissions": "Mező-engedélyek szerkesztése",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Felhasználónként csak egy token engedélyezett",
     "duplicateAttachment": "A fájl {filename} névvel már csatolva van",
     "tableIdColon": "TÁBLA ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SZKRIPT AZONOSÍTÓ: {scriptId}",
     "dashboardIdColon": "IRÁNYÍTÓPULT AZONOSÍTÓ: {dashboardId}",
     "viewIdColon": "NÉZET AZONOSÍTÓ: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "szerepkörhöz",
     "clickToCopy": "Másoláshoz kattintson",
     "clickToCopyTableID": "Kattintson a Tábla ID másolásához",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Kattintson a szkriptazonosító másolásához",
     "clickToCopyDashboardID": "Kattintson az irányítópult azonosítójának másolásához",
     "clickToCopyViewID": "Kattintással View ID másolása",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Szóköz",
     "expandShiftSpace": "„Shift + Szóköz” kibontása",
     "selectAllMappedFields": "Összes leképezett mező kijelölése",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Hibakód másolása",
     "paidUserBadgeTooltip": "A felhasználó legalább egy adatbázisban szerkesztői vagy magasabb jogosultsággal rendelkezik.",
     "approachingLimit": "Közel a határhoz",

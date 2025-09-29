@@ -699,6 +699,7 @@
     "isNotNull": "không phải là null."
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Quyền truy cập bị hạn chế",
     "editTablePermissions": "Chỉnh sửa quyền bảng",
     "editFieldPermissions": "Chỉnh sửa quyền trường",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Chỉ cho phép một mã thông báo mỗi người dùng",
     "duplicateAttachment": "Tập tin có tên {filename} đã được đính kèm",
     "tableIdColon": "ID BẢNG: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID SCRIPT: {scriptId}",
     "dashboardIdColon": "MÃ BẢNG ĐIỀU KHIỂN: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "cho vai trò",
     "clickToCopy": "Nhấp để sao chép",
     "clickToCopyTableID": "Nhấn để sao chép ID Bảng",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Nhấp để sao chép ID Script",
     "clickToCopyDashboardID": "Nhấn để sao chép mã Bảng điều khiển",
     "clickToCopyViewID": "Nhấp để sao chép ID xem",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "Mở rộng 'Shift + Space'",
     "selectAllMappedFields": "Chọn tất cả trường đã ánh xạ",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Sao chép mã lỗi",
     "paidUserBadgeTooltip": "Người dùng có vai trò Biên tập viên hoặc cao hơn ở ít nhất một cơ sở dữ liệu.",
     "approachingLimit": "Sắp đạt giới hạn",
@@ -1876,9 +1880,7 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded",
-    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "Tìm kiếm biểu tượng",
@@ -2439,8 +2441,7 @@
       "invalidSearchQuery": "Truy vấn tìm kiếm không hợp lệ",
       "invalidSearchQueryForVisibleFields": "Truy vấn tìm kiếm không hợp lệ cho các trường hiển thị",
       "invalidSearchQueryForDisplayField": "Truy vấn tìm kiếm không hợp lệ cho trường hiển thị",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Metadata dự án xuất khẩu thành công",

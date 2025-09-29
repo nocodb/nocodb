@@ -135,7 +135,7 @@ watch(
         >
           <GeneralIcon icon="mcp" />
           <span>
-            {{ $t('labels.modelContextProtocol') }}
+            {{ $t('title.mcpServer') }}
           </span>
         </div>
 

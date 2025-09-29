@@ -440,7 +440,10 @@
     "record": "Record",
     "overview": "Overview",
     "baseType": "Base Type",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selectAll": "Select All",
+    "clearAll": "Clear All",
+    "records": "Records"
   },
   "objects": {
     "script": "Script",

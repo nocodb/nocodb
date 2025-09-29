@@ -112,6 +112,60 @@ const unlinkRow = async (row: Record<string, any>, id: number) => {
   }
 }
 
+const selectAll = async () => {
+  if (isSharedBase.value || isDataReadOnly.value) return
+  
+  const { list } = childrenExcludedList.value || {}
+  if (!list || list.length === 0) return
+
+  if (isNew.value) {
+    // For new rows, add all records to LTAR refs
+    for (let i = 0; i < list.length; i++) {
+      if (!isChildrenExcludedListLinked.value[i]) {
+        await addLTARRef(list[i], injectedColumn?.value as ColumnType)
+        isChildrenExcludedListLinked.value[i] = true
+      }
+    }
+    saveRow!()
+  } else {
+    // For existing rows, link all records
+    for (let i = 0; i < list.length; i++) {
+      if (!isChildrenExcludedListLinked.value[i]) {
+        await link(list[i], {}, false, i)
+      }
+    }
+  }
+  
+  $e('a:links:select-all')
+}
+
+const clearAll = async () => {
+  if (isSharedBase.value || isDataReadOnly.value) return
+  
+  const { list } = childrenExcludedList.value || {}
+  if (!list || list.length === 0) return
+
+  if (isNew.value) {
+    // For new rows, remove all records from LTAR refs
+    for (let i = 0; i < list.length; i++) {
+      if (isChildrenExcludedListLinked.value[i]) {
+        await removeLTARRef(list[i], injectedColumn?.value as ColumnType)
+        isChildrenExcludedListLinked.value[i] = false
+      }
+    }
+    saveRow!()
+  } else {
+    // For existing rows, unlink all records
+    for (let i = 0; i < list.length; i++) {
+      if (isChildrenExcludedListLinked.value[i]) {
+        await unlink(list[i], {}, false, i)
+      }
+    }
+  }
+  
+  $e('a:links:clear-all')
+}
+
 /** reload list on modal open */
 watch(
   vModel,
@@ -192,6 +246,20 @@ const totalItemsToShow = computed(() => {
   }
 
   return childrenListCount.value ?? 0
+})
+
+const allSelected = computed(() => {
+  const { list } = childrenExcludedList.value || {}
+  if (!list || list.length === 0) return false
+  
+  return list.every((_, index) => isChildrenExcludedListLinked.value[index])
+})
+
+const anySelected = computed(() => {
+  const { list } = childrenExcludedList.value || {}
+  if (!list || list.length === 0) return false
+  
+  return list.some((_, index) => isChildrenExcludedListLinked.value[index])
 })
 
 watch(expandedFormDlg, () => {
@@ -407,6 +475,32 @@ const handleKeyDown = (e: KeyboardEvent) => {
           :relation="relation"
           :table-title="meta?.title"
         />
+      </div>
+      <div v-if="childrenExcludedList?.list?.length > 0" class="bg-gray-50 px-3 py-1 border-b border-gray-200 flex justify-between items-center">
+        <div class="text-xs text-gray-600">
+          {{ childrenExcludedList.list.length }} {{ $t('general.records') }}
+        </div>
+        <div class="flex gap-2">
+          <NcButton
+            v-if="anySelected"
+            size="xsmall"
+            type="secondary"
+            class="!h-6 !text-xs"
+            :disabled="isSharedBase || isDataReadOnly"
+            @click="clearAll"
+          >
+            {{ $t('general.clearAll') }}
+          </NcButton>
+          <NcButton
+            size="xsmall"
+            type="secondary"
+            class="!h-6 !text-xs"
+            :disabled="isSharedBase || isDataReadOnly || allSelected"
+            @click="selectAll"
+          >
+            {{ $t('general.selectAll') }}
+          </NcButton>
+        </div>
       </div>
       <div class="flex-1 overflow-auto nc-scrollbar-thin">
         <template v-if="childrenExcludedList?.pageInfo?.totalRows">

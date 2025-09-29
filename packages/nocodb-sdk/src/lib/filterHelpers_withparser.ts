@@ -88,7 +88,7 @@ function innerExtractFilterFromXwhere(
         },
       ],
     };
-  } else if (typeof str !== 'string' && throwErrorIfInvalid) {
+  } else if (typeof str !== 'string') {
     const message =
       'Invalid filter format. Expected string or array of strings';
     if (throwErrorIfInvalid) {
@@ -99,10 +99,7 @@ function innerExtractFilterFromXwhere(
     }
   }
   const parseResult = QueryFilterParser.parse(str);
-  if (
-    (parseResult.lexErrors.length > 0 || parseResult.parseErrors.length > 0) &&
-    throwErrorIfInvalid
-  ) {
+  if (parseResult.lexErrors.length > 0 || parseResult.parseErrors.length > 0) {
     if (throwErrorIfInvalid)
       throw new InvalidFilterError({
         lexingError: parseResult.lexErrors,
@@ -115,6 +112,7 @@ function innerExtractFilterFromXwhere(
       return { errors };
     }
   }
+
   const filterSubType = parseResult.parsedCst;
 
   const { filter, errors: parseErrors } = mapFilterGroupSubType(
@@ -146,6 +144,7 @@ function mapFilterGroupSubType(
           )
     )
     .filter((k) => k);
+
   if (children.length === 1) {
     return children[0];
   } else {
@@ -155,6 +154,10 @@ function mapFilterGroupSubType(
         logical_op: filter.logical_op,
         children: children.map((k) => k.filter),
       } as FilterType,
+      errors: children
+        .map((k) => k.errors)
+        .flat()
+        .filter((k) => k),
     };
   }
 }
@@ -177,7 +180,6 @@ function mapFilterClauseSubType(
       });
       return { errors };
     }
-    return {};
   }
   const result: FilterType = {
     fk_column_id: aliasCol.id,

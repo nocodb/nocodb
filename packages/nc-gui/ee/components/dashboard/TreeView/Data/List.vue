@@ -301,10 +301,6 @@ watchEffect(() => {
     @apply !w-full;
   }
 
-  .sortable-chosen {
-    @apply !bg-nc-bg-gray-medium;
-  }
-
   .active {
     @apply !bg-primary-selected font-medium;
   }

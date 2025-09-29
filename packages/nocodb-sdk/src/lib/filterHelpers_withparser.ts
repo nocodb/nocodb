@@ -12,6 +12,10 @@ import {
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from './filterHelpers';
 import { arrFlatMap } from './arrayHelpers';
+import {
+  parseLexingError,
+  parseParsingError,
+} from './parser/queryFilter/error-message-parser';
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
@@ -107,9 +111,20 @@ function innerExtractFilterFromXwhere(
         parsingError: parseResult.parseErrors,
       });
     else {
-      errors.push({
-        message: 'Invalid filter format',
-      });
+      if (parseResult.lexErrors.length > 0) {
+        errors.push({
+          message: parseResult.lexErrors
+            .map((k) => parseLexingError(k))
+            .join(', '),
+        });
+      } else if (parseResult.parseErrors.length > 0) {
+        errors.push({
+          message: parseResult.parseErrors
+            .map((k) => parseParsingError(k))
+            .join(', '),
+        });
+      }
+      
       return { errors };
     }
   }

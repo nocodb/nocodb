@@ -1087,7 +1087,7 @@ export class ColumnsService implements IColumnsService {
           for (const option of column.colOptions.options.filter(
             (oldOp) =>
               !colBody.colOptions.options.find(
-                (newOp) => newOp.id === oldOp.id,
+                (newOp) => newOp.id === oldOp.id || newOp.title === oldOp.title,
               ),
           )) {
             if (

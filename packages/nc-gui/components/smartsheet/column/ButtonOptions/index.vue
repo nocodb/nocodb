@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ButtonType, ColumnType, HookType, ScriptType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, HookType, MetaType, ScriptType } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   FormulaError,
@@ -135,11 +135,11 @@ const validators = {
 
             try {
               await validateFormulaAndExtractTreeWithType({
-                column: column.value,
+                column: column.value as MetaType.IColumnMeta,
                 formula,
-                columns: supportedColumns.value,
+                columns: supportedColumns.value as MetaType.IColumnMeta[],
                 clientOrSqlUi: sqlUi.value,
-                getMeta,
+                getMeta: validateFormulaGetMeta(getMeta),
                 trackPosition: true,
               })
               editorError.value = { ...defaultEditorError }

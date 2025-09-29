@@ -2,33 +2,38 @@ import { ColumnType, LinkToAnotherRecordType } from '~/lib/Api';
 import { NcContext } from '~/lib/ncTypes';
 import { ParsedFormulaNode } from '../formulaHelpers';
 
-export type IColumnMetaOptions =
+/**
+ * These types are definitions of meta if it's passed from gui (result from API),
+ * or passed from backend (model classes)
+ */
+
+export type IColumnOptions =
   | ILookupColumn
   | ILinkToAnotherRecordColumn
   | IRollupColumn
   | IFormulaColumn;
 
-export type IColumnMeta = ColumnType & {
+export type IColumn = ColumnType & {
   base_id: string;
   fk_workspace_id?: string;
   meta?: any;
-  getColOptions?: <T extends IColumnMetaOptions>(
+  getColOptions?: <T extends IColumnOptions>(
     context: NcContext,
     ncMeta?: any
   ) => Promise<T>;
 };
 
-export interface IGetMetaResult {
+export interface IModel {
   base_id: string;
   fk_workspace_id?: string;
   id: string;
   title: string;
-  columns: IColumnMeta[];
-  getColumns?: (context: NcContext) => Promise<IColumnMeta[]>;
+  columns?: IColumn[];
+  getColumns?: (context: NcContext) => Promise<IColumn[]>;
 }
 
-export interface IGetMeta {
-  (context: NcContext, param: { id: string }): Promise<IGetMetaResult>;
+export interface IGetModel {
+  (context: NcContext, param: { id: string }): Promise<IModel>;
 }
 
 export interface ILinkToAnotherRecordColumn extends LinkToAnotherRecordType {
@@ -59,7 +64,7 @@ export interface ILinkToAnotherRecordColumn extends LinkToAnotherRecordType {
 
   type: 'hm' | 'bt' | 'mm' | 'oo';
 
-  getRelatedTable?(context: NcContext, ncMeta?: any): Promise<IGetMetaResult>;
+  getRelatedTable?(context: NcContext, ncMeta?: any): Promise<IModel>;
 }
 
 export interface ILookupColumn {
@@ -67,8 +72,8 @@ export interface ILookupColumn {
   fk_lookup_column_id: string;
   fk_column_id: string;
 
-  getRelationColumn?(context: NcContext, ncMeta?: any): Promise<IColumnMeta>;
-  getLookupColumn?(context: NcContext, ncMeta?: any): Promise<IColumnMeta>;
+  getRelationColumn?(context: NcContext, ncMeta?: any): Promise<IColumn>;
+  getLookupColumn?(context: NcContext, ncMeta?: any): Promise<IColumn>;
 }
 
 export interface IRollupColumn {
@@ -80,8 +85,8 @@ export interface IRollupColumn {
   fk_rollup_column_id;
   rollup_function: string;
 
-  getRelationColumn(context: NcContext, ncMeta?: any): Promise<IColumnMeta>;
-  getRollupColumn(context: NcContext, ncMeta?: any): Promise<IColumnMeta>;
+  getRelationColumn(context: NcContext, ncMeta?: any): Promise<IColumn>;
+  getRollupColumn(context: NcContext, ncMeta?: any): Promise<IColumn>;
 }
 
 export interface IFormulaColumn {

@@ -25,19 +25,8 @@ import {
   extractBinaryExpReferencedInfo,
   extractCallExpressionReferencedInfo,
 } from '~/lib/formula/referenced-info-extractor';
-import {
-  IColumnMeta,
-  IFormulaColumn,
-  IGetMeta,
-  ILinkToAnotherRecordColumn,
-  ILookupColumn,
-  IRollupColumn,
-} from '~/lib/types/meta.type';
-import { getColOptions } from '~/lib/meta/getColOptions';
-import { getContextFromObject } from '~/lib/meta/getContextFromObject';
-import { getColumns } from '~/lib/meta/getColumns';
-import { getLTARRelatedTable } from '../meta/getLTARRelatedTable';
-import { getLookupRelatedInfo } from '../meta/getLookupRelatedInfo';
+import { UnifiedMetaType } from '~/lib/types';
+import { unifiedMeta } from '~/lib/unifiedMeta';
 
 async function extractColumnIdentifierType({
   col,
@@ -45,9 +34,9 @@ async function extractColumnIdentifierType({
   getMeta,
   clientOrSqlUi,
 }: {
-  col: IColumnMeta;
-  columns: IColumnMeta[];
-  getMeta: IGetMeta;
+  col: UnifiedMetaType.IColumn;
+  columns: UnifiedMetaType.IColumn[];
+  getMeta: UnifiedMetaType.IGetModel;
   clientOrSqlUi: ClientTypeOrSqlUI;
 }) {
   const res: Omit<BaseFormulaNode, 'type'> & {
@@ -99,9 +88,12 @@ async function extractColumnIdentifierType({
     case UITypes.Rollup:
       {
         const rollupFunction = (
-          await getColOptions<IRollupColumn>(getContextFromObject(col), {
-            column: col,
-          })
+          await unifiedMeta.getColOptions<UnifiedMetaType.IRollupColumn>(
+            unifiedMeta.getContextFromObject(col),
+            {
+              column: col,
+            }
+          )
         ).rollup_function;
         if (
           [
@@ -119,17 +111,22 @@ async function extractColumnIdentifierType({
           const relationColumnOpt = columns.find(
             (column) =>
               column.id ===
-              (<IRollupColumn>col.colOptions).fk_relation_column_id
+              (<UnifiedMetaType.IRollupColumn>col.colOptions)
+                .fk_relation_column_id
           );
 
           // the value is based on the foreign rollup column type
-          const refTableMeta = await getMeta(getContextFromObject(col), {
-            id: (<ILinkToAnotherRecordColumn>relationColumnOpt.colOptions)
-              .fk_related_model_id,
-          });
+          const refTableMeta = await getMeta(
+            unifiedMeta.getContextFromObject(col),
+            {
+              id: (<UnifiedMetaType.ILinkToAnotherRecordColumn>(
+                relationColumnOpt.colOptions
+              )).fk_related_model_id,
+            }
+          );
 
           const refTableColumns = refTableMeta.columns;
-          const childFieldColumn = await (<IRollupColumn>(
+          const childFieldColumn = await (<UnifiedMetaType.IRollupColumn>(
             col.colOptions
           )).getRollupColumn({
             base_id: col.base_id,
@@ -187,13 +184,17 @@ async function extractColumnIdentifierType({
       break;
     // not supported
     case UITypes.Lookup: {
-      const colContext = getContextFromObject(col);
+      const colContext = unifiedMeta.getContextFromObject(col);
 
-      const lookupColOption = await getColOptions<ILookupColumn>(colContext, {
-        column: col,
-      });
+      const lookupColOption =
+        await unifiedMeta.getColOptions<UnifiedMetaType.ILookupColumn>(
+          colContext,
+          {
+            column: col,
+          }
+        );
 
-      const lookupInfo = await getLookupRelatedInfo(colContext, {
+      const lookupInfo = await unifiedMeta.getLookupRelatedInfo(colContext, {
         colOptions: lookupColOption,
         columns,
         getMeta,
@@ -205,8 +206,8 @@ async function extractColumnIdentifierType({
       const lookupColumnIdentifierType = await extractColumnIdentifierType({
         col: lookupColumn,
         clientOrSqlUi,
-        columns: await getColumns(
-          getContextFromObject(lookupInfo.relatedTable),
+        columns: await unifiedMeta.getColumns(
+          unifiedMeta.getContextFromObject(lookupInfo.relatedTable),
           { model: lookupInfo.relatedTable }
         ),
         getMeta,
@@ -215,9 +216,12 @@ async function extractColumnIdentifierType({
       res.isDataArray = lookupColumnIdentifierType.isDataArray;
       if (!res.isDataArray) {
         const relationColOptions =
-          await getColOptions<ILinkToAnotherRecordColumn>(colContext, {
-            column: relationColumn,
-          });
+          await unifiedMeta.getColOptions<UnifiedMetaType.ILinkToAnotherRecordColumn>(
+            colContext,
+            {
+              column: relationColumn,
+            }
+          );
         res.isDataArray = ['hm', 'mm'].includes(relationColOptions.type);
       }
       res.referencedColumn = {
@@ -231,21 +235,22 @@ async function extractColumnIdentifierType({
       break;
     }
     case UITypes.LinkToAnotherRecord: {
-      const colOptions = await getColOptions<ILinkToAnotherRecordColumn>(
-        getContextFromObject(col),
-        {
-          column: col,
-        }
-      );
-      const relatedTable = await getLTARRelatedTable(
-        getContextFromObject(col),
+      const colOptions =
+        await unifiedMeta.getColOptions<UnifiedMetaType.ILinkToAnotherRecordColumn>(
+          unifiedMeta.getContextFromObject(col),
+          {
+            column: col,
+          }
+        );
+      const relatedTable = await unifiedMeta.getLTARRelatedTable(
+        unifiedMeta.getContextFromObject(col),
         {
           colOptions,
           getMeta,
         }
       );
-      const relatedTableColumns = await getColumns(
-        getContextFromObject(relatedTable),
+      const relatedTableColumns = await unifiedMeta.getColumns(
+        unifiedMeta.getContextFromObject(relatedTable),
         {
           model: relatedTable,
         }
@@ -272,12 +277,13 @@ async function extractColumnIdentifierType({
       break;
     }
     case UITypes.Formula: {
-      const colOptions = await getColOptions<IFormulaColumn>(
-        getContextFromObject(col),
-        {
-          column: col,
-        }
-      );
+      const colOptions =
+        await unifiedMeta.getColOptions<UnifiedMetaType.IFormulaColumn>(
+          unifiedMeta.getContextFromObject(col),
+          {
+            column: col,
+          }
+        );
       res.isDataArray = colOptions.parsed_tree.isDataArray;
       res.referencedColumn = colOptions.parsed_tree.referencedColumn;
       break;
@@ -474,10 +480,10 @@ function handleBinaryExpressionForDateAndTime(params: {
   return res;
 }
 async function checkForCircularFormulaRef(
-  formulaCol: IColumnMeta,
+  formulaCol: UnifiedMetaType.IColumn,
   parsedTree: ParsedFormulaNode,
-  columns: IColumnMeta[],
-  getMeta: IGetMeta
+  columns: UnifiedMetaType.IColumn[],
+  getMeta: UnifiedMetaType.IGetModel
 ) {
   // Extract formula references
   const formulaPaths = await columns.reduce(async (promiseRes, c) => {
@@ -506,8 +512,8 @@ async function checkForCircularFormulaRef(
   }, Promise.resolve([]));
 
   async function processLookupFormula(
-    col: IColumnMeta,
-    columns: IColumnMeta[]
+    col: UnifiedMetaType.IColumn,
+    columns: UnifiedMetaType.IColumn[]
   ) {
     const neighbours = [];
 
@@ -535,13 +541,13 @@ async function checkForCircularFormulaRef(
 
   // Function to process lookup columns recursively
   async function processLookupOrLTARColumn(
-    lookupOrLTARCol: IColumnMeta & {
+    lookupOrLTARCol: UnifiedMetaType.IColumn & {
       colOptions?: LookupType | LinkToAnotherRecordType;
     }
   ) {
     const neighbours = [];
 
-    let ltarColumn: IColumnMeta;
+    let ltarColumn: UnifiedMetaType.IColumn;
     let lookupFilterFn: (column: ColumnType) => boolean;
 
     if (lookupOrLTARCol.uidt === UITypes.Lookup) {
@@ -557,14 +563,20 @@ async function checkForCircularFormulaRef(
     }
 
     if (ltarColumn) {
-      const relatedTableMeta = await getMeta(getContextFromObject(ltarColumn), {
-        id: (ltarColumn.colOptions as LinkToAnotherRecordType)
-          .fk_related_model_id,
-      });
+      const relatedTableMeta = await getMeta(
+        unifiedMeta.getContextFromObject(ltarColumn),
+        {
+          id: (ltarColumn.colOptions as LinkToAnotherRecordType)
+            .fk_related_model_id,
+        }
+      );
       const lookupTarget = (
-        await getColumns(getContextFromObject(relatedTableMeta), {
-          model: relatedTableMeta,
-        })
+        await unifiedMeta.getColumns(
+          unifiedMeta.getContextFromObject(relatedTableMeta),
+          {
+            model: relatedTableMeta,
+          }
+        )
       ).find(lookupFilterFn);
 
       if (lookupTarget) {
@@ -668,10 +680,10 @@ export async function validateFormulaAndExtractTreeWithType({
   trackPosition,
 }: {
   formula: string;
-  columns: IColumnMeta[];
+  columns: UnifiedMetaType.IColumn[];
   clientOrSqlUi: ClientTypeOrSqlUI;
-  column?: IColumnMeta;
-  getMeta: IGetMeta;
+  column?: UnifiedMetaType.IColumn;
+  getMeta: UnifiedMetaType.IGetModel;
   trackPosition?: boolean;
 }): Promise<ParsedFormulaNode> {
   const sqlUI =
@@ -679,8 +691,8 @@ export async function validateFormulaAndExtractTreeWithType({
       ? SqlUiFactory.create({ client: clientOrSqlUi })
       : clientOrSqlUi;
 
-  const colAliasToColMap: Record<string, IColumnMeta> = {};
-  const colIdToColMap: Record<string, IColumnMeta> = {};
+  const colAliasToColMap: Record<string, UnifiedMetaType.IColumn> = {};
+  const colIdToColMap: Record<string, UnifiedMetaType.IColumn> = {};
 
   for (const col of columns) {
     colAliasToColMap[col.title] = col;
@@ -901,7 +913,7 @@ export async function validateFormulaAndExtractTreeWithType({
     } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
       const identifierName = (parsedTree as IdentifierNode).name;
       const col = (colIdToColMap[identifierName] ||
-        colAliasToColMap[identifierName]) as IColumnMeta;
+        colAliasToColMap[identifierName]) as UnifiedMetaType.IColumn;
 
       if (!col) {
         if (formulas[identifierName]) {
@@ -953,12 +965,12 @@ export async function validateFormulaAndExtractTreeWithType({
           );
         }
         const formulaRes =
-          (<IFormulaColumn>col.colOptions).parsed_tree ||
+          (<UnifiedMetaType.IFormulaColumn>col.colOptions).parsed_tree ||
           (await validateFormulaAndExtractTreeWithType(
             // formula may include double curly brackets in previous version
             // convert to single curly bracket here for compatibility
             {
-              formula: (<IFormulaColumn>col.colOptions).formula
+              formula: (<UnifiedMetaType.IFormulaColumn>col.colOptions).formula
                 .replaceAll('{{', '{')
                 .replaceAll('}}', '}'),
               columns,

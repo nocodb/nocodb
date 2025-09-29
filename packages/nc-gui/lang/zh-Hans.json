@@ -699,6 +699,7 @@
     "isNotNull": "不为空（Not Null）"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "访问受限",
     "editTablePermissions": "编辑表格权限",
     "editFieldPermissions": "编辑列权限",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "每个用户只能使用一个令牌",
     "duplicateAttachment": "文件{filename} 已附加",
     "tableIdColon": "表格编号： {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "脚本ID: {scriptId}",
     "dashboardIdColon": "仪表板 ID: {dashboardId}",
     "viewIdColon": "查看 ID:{viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "为角色",
     "clickToCopy": "点击复制",
     "clickToCopyTableID": "点击复制表格ID",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "点击复制脚本ID",
     "clickToCopyDashboardID": "点击复制仪表板 ID",
     "clickToCopyViewID": "点击复制视图ID",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + 空格",
     "expandShiftSpace": "展开 Shift + 空格",
     "selectAllMappedFields": "选择所有已映射字段",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "复制错误代码",
     "paidUserBadgeTooltip": "用户在至少一个 Base 中拥有编辑者或更高角色。",
     "approachingLimit": "接近限制",
@@ -1876,9 +1880,7 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded",
-    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "搜索图标",
@@ -2439,8 +2441,7 @@
       "invalidSearchQuery": "无效的搜索查询",
       "invalidSearchQueryForVisibleFields": "可见字段的搜索查询无效",
       "invalidSearchQueryForDisplayField": "展示字段的搜索查询无效",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",

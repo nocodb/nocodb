@@ -2,34 +2,27 @@ import {
   ClientType,
   SqlUiFactory,
   UITypes,
-  getEquivalentUIType,
-  isDateMonthFormat,
-  isNumericCol,
-  isSystemColumn,
-  isVirtualCol,
-  numericUITypes,
-  parseProp,
-  // Import shared filter utilities from nocodb-sdk
   comparisonOpList,
   comparisonSubOpList,
+  deleteFilterWithSub,
+  getEquivalentUIType,
+  getFilterCount,
   getPlaceholderNewRow,
   isComparisonOpAllowed,
-  getFilterCount,
-  deleteFilterWithSub,
   isDateType,
+  isSystemColumn,
+  isVirtualCol,
+  parseProp,
 } from 'nocodb-sdk'
 import type {
-  Api,
-  type ColumnType,
-  type FilterType,
-  type LinkToAnotherRecordType,
-  type LookupType,
-  type TableType,
-  // Import shared types from nocodb-sdk
+  ColumnType,
+  ColumnTypeForFilter,
   ComparisonOpUiType,
   FilterGroupChangeEvent,
   FilterRowChangeEvent,
-  ColumnTypeForFilter,
+  LinkToAnotherRecordType,
+  LookupType,
+  TableType,
 } from 'nocodb-sdk'
 
 export const MAX_NESTED_LEVEL = 5
@@ -39,7 +32,15 @@ export const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode, UITypes.B
 export type { ComparisonOpUiType, FilterGroupChangeEvent, FilterRowChangeEvent, ColumnTypeForFilter }
 
 // Re-export functions from nocodb-sdk for backward compatibility
-export { isDateType, comparisonOpList, comparisonSubOpList, getPlaceholderNewRow, isComparisonOpAllowed, getFilterCount, deleteFilterWithSub }
+export {
+  isDateType,
+  comparisonOpList,
+  comparisonSubOpList,
+  getPlaceholderNewRow,
+  isComparisonOpAllowed,
+  getFilterCount,
+  deleteFilterWithSub,
+}
 
 export const isComparisonSubOpAllowed = (
   filter: ColumnFilterType,
@@ -209,7 +210,6 @@ export const composeColumnsForFilter = async ({
   }
   return result
 }
-
 
 export const adjustFilterWhenColumnChange = ({
   filter,

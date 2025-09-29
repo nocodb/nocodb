@@ -699,6 +699,7 @@
     "isNotNull": "est non null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Acc\u0000e8s restreint",
     "editTablePermissions": "Modifier les permissions de la table",
     "editFieldPermissions": "Modifier les permissions du champ",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Un seul jeton par utilisateur est autorisé",
     "duplicateAttachment": "Un fichier avec le nom {filename} est déjà attaché",
     "tableIdColon": "TABLE ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID DE SCRIPT : {scriptId}",
     "dashboardIdColon": "ID TABLEAU DE BORD\u0000a0: {dashboardId}",
     "viewIdColon": "ID DE VUE : {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "pour le rôle",
     "clickToCopy": "Cliquer pour copier",
     "clickToCopyTableID": "Cliquer pour copier l'ID de la table",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Cliquer pour copier l'ID du script",
     "clickToCopyDashboardID": "Cliquer pour copier l'ID du tableau de bord",
     "clickToCopyViewID": "Cliquer pour copier l'ID de la vue",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Maj + Espace",
     "expandShiftSpace": "\"Maj + Espace\" pour développer",
     "selectAllMappedFields": "Sélectionner tous les champs mappés",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Copier le code d'erreur",
     "paidUserBadgeTooltip": "L'utilisateur possède un rôle Éditeur ou supérieur dans au moins une base.",
     "approachingLimit": "Limite approchée",

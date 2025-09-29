@@ -699,6 +699,7 @@
     "isNotNull": "není null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Přístup omezen",
     "editTablePermissions": "Upravit oprávnění tabulky",
     "editFieldPermissions": "Upravit oprávnění pole",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Je povolen pouze jeden token na uživatele",
     "duplicateAttachment": "Soubor s názvem {filename} je již připojen",
     "tableIdColon": "ID TABULKY: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID SKRIPTU: {scriptId}",
     "dashboardIdColon": "ID PŘEHLEDU: {dashboardId}",
     "viewIdColon": "ID Pohledu: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "pro roli",
     "clickToCopy": "Kliknutím zkopírujete",
     "clickToCopyTableID": "Kliknutím zkopírujete ID tabulky",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Kliknutím zkopírujete ID skriptu",
     "clickToCopyDashboardID": "Kliknutím zkopírujete ID přehledu",
     "clickToCopyViewID": "Kliknutím zkopírujete ID pohledu",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Mezerník",
     "expandShiftSpace": "Rozbalit 'Shift + Mezerník'",
     "selectAllMappedFields": "Vybrat všechna namapovaná pole",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Zkopírovat chybový kód",
     "paidUserBadgeTooltip": "Uživatel má roli Editor nebo vyšší alespoň v jedné bázi.",
     "approachingLimit": "Blíží se limit",

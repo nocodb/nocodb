@@ -95,6 +95,8 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
 
   override getUploadedPath(path: string): { path?: string; url?: string } {
     const usePath = path.startsWith('/') ? path.replace(/$\/+/, '') : path;
+    // TODO: more configurable urls, like using path-styles and CNAME
+    // https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html
     return {
       url: `https://${this.input.bucket}.s3.${this.input.region}.amazonaws.com/${usePath}`,
     };

@@ -68,9 +68,10 @@ export class AttachmentUrlUploadPreparator {
               const uploadedPath = storageAdapter.getUploadedPath(
                 filePaths.storageDest,
               );
-              // TODO: insert a fileReference, or simply generate the id? (id collision risk)
               const id = await FileReference.insert(baseModel.context, {
                 storage: storageAdapter.name,
+                // currently a placeholder
+                // it will be replaced after upload success
                 file_url: uploadedPath.url ?? uploadedPath.path,
                 file_size: null,
                 fk_user_id: req?.user?.id ?? 'anonymous',
@@ -84,7 +85,6 @@ export class AttachmentUrlUploadPreparator {
                 id,
                 url: attr.url,
                 status: 'uploading',
-                uploaded: uploadedPath,
                 ...filePaths,
               };
             } else {

@@ -699,6 +699,7 @@
     "isNotNull": "не рівне null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Доступ обмежено",
     "editTablePermissions": "Редагувати дозволи таблиці",
     "editFieldPermissions": "Редагувати дозволи поля",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Дозволено лише один жетон на користувача",
     "duplicateAttachment": "Файл з назвою {filename} вже додано",
     "tableIdColon": "ІДЕНТИФІКАТОР ТАБЛИЦІ: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID СКРИПТУ: {scriptId}",
     "dashboardIdColon": "ID ПАНЕЛІ: {dashboardId}",
     "viewIdColon": "Ідентифікатор перегляду: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "для ролі",
     "clickToCopy": "Натисніть, щоб скопіювати",
     "clickToCopyTableID": "Натисніть, щоб скопіювати ідентифікатор таблиці",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Натисніть, щоб скопіювати ID скрипту",
     "clickToCopyDashboardID": "Натисніть, щоб скопіювати ID панелі",
     "clickToCopyViewID": "Натисніть, щоб скопіювати ідентифікатор перегляду",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Пробіл",
     "expandShiftSpace": "Розгорнути «Shift + Пробіл»",
     "selectAllMappedFields": "Вибрати всі зіставлені поля",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Скопіювати код помилки",
     "paidUserBadgeTooltip": "Користувач має роль редактора або вище принаймні в одній базі.",
     "approachingLimit": "Наближається до ліміту",

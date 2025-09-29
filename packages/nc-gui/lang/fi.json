@@ -699,6 +699,7 @@
     "isNotNull": "ei ole nolla"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Käyttöoikeus rajoitettu",
     "editTablePermissions": "Muokkaa taulun oikeuksia",
     "editFieldPermissions": "Muokkaa kentän oikeuksia",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Vain yksi merkki käyttäjää kohden sallittu",
     "duplicateAttachment": "Tiedosto nimeltä {filename} on jo liitetty",
     "tableIdColon": "TAULUKOID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SKRIPTIN ID: {scriptId}",
     "dashboardIdColon": "KOONTINÄYTÖN ID: {dashboardId}",
     "viewIdColon": "NÄKYMÄ ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "roolille",
     "clickToCopy": "Klikkaa kopioidaksesi",
     "clickToCopyTableID": "Napsauta kopioidaksesi taulukon ID",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Klikkaa kopioidaksesi skriptin ID",
     "clickToCopyDashboardID": "Klikkaa kopioidaksesi koontinäytön ID",
     "clickToCopyViewID": "Klikkaa kopioidaksesi näkymän ID",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Välilyönti",
     "expandShiftSpace": "Laajenna 'Shift + Välilyönti'",
     "selectAllMappedFields": "Valitse kaikki mapatut kentät",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopioi virhekoodi",
     "paidUserBadgeTooltip": "Käyttäjällä on vähintään Editor-rooli yhdessäkin kannassa.",
     "approachingLimit": "Lähellä rajaa",

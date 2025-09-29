@@ -699,6 +699,7 @@
     "isNotNull": "לא NULL"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "גישה מוגבלת",
     "editTablePermissions": "עריכת הרשאות טבלה",
     "editFieldPermissions": "עריכת הרשאות שדה",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "מותר רק אסימון אחד למשתמש",
     "duplicateAttachment": "קובץ עם שם {filename} כבר מצורף",
     "tableIdColon": "מזהה טבלה: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "מזהה סקריפט: {scriptId}",
     "dashboardIdColon": "מזהה לוח בקרה: {dashboardId}",
     "viewIdColon": "מזהה תצוגה: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "עבור תפקיד",
     "clickToCopy": "לחץ כדי להעתיק",
     "clickToCopyTableID": "לחץ כדי להעתיק את מזהה הטבלה",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "לחץ כדי להעתיק את מזהה הסקריפט",
     "clickToCopyDashboardID": "לחץ להעתקת מזהה לוח בקרה",
     "clickToCopyViewID": "לחץ כדי להעתיק את מזהה התצוגה",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "הרחב 'Shift + Space'",
     "selectAllMappedFields": "בחר את כל השדות הממופים",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "העתק קוד שגיאה",
     "paidUserBadgeTooltip": "למשתמש יש תפקיד עורך או גבוה יותר לפחות בבסיס אחד.",
     "approachingLimit": "מתקרב למגבלה",

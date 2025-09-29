@@ -699,6 +699,7 @@
     "isNotNull": "не является Null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Доступ ограничен",
     "editTablePermissions": "Редактировать разрешения для таблицы",
     "editFieldPermissions": "Редактировать разрешения для поля",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Разрешен только один токен на пользователя",
     "duplicateAttachment": "Файл с именем {filename} уже прикреплен",
     "tableIdColon": "ID ТАБЛИЦЫ: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID СКРИПТА: {scriptId}",
     "dashboardIdColon": "ID панели управления: {dashboardId}",
     "viewIdColon": "ID ПРЕДСТАВЛЕНИЯ: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "для роли",
     "clickToCopy": "Нажмите, чтобы скопировать",
     "clickToCopyTableID": "Нажмите, чтобы скопировать ID таблицы",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Нажмите, чтобы скопировать ID скрипта",
     "clickToCopyDashboardID": "Нажмите, чтобы скопировать ID панели управления",
     "clickToCopyViewID": "Нажмите, чтобы скопировать ID представления",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Пробел",
     "expandShiftSpace": "Развернуть 'Shift + Пробел'",
     "selectAllMappedFields": "Выбрать все сопоставленные поля",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Скопировать код ошибки",
     "paidUserBadgeTooltip": "У пользователя есть роль редактора или выше хотя бы в одной базе.",
     "approachingLimit": "Предел почти достигнут",

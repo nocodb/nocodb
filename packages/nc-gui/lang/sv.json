@@ -699,6 +699,7 @@
     "isNotNull": "är inte noll"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Åtkomst begränsad",
     "editTablePermissions": "Redigera tabellbehörigheter",
     "editFieldPermissions": "Redigera fältbehörigheter",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Endast en token per användare är tillåten",
     "duplicateAttachment": "Fil med namn {filename} redan bifogad",
     "tableIdColon": "BORD ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SKRIPT-ID: {scriptId}",
     "dashboardIdColon": "DASHBOARD-ID: {dashboardId}",
     "viewIdColon": "VY-ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "för roll",
     "clickToCopy": "Klicka för att kopiera",
     "clickToCopyTableID": "Klicka för att kopiera bord ID",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Klicka för att kopiera skript-ID",
     "clickToCopyDashboardID": "Klicka för att kopiera dashboard-ID",
     "clickToCopyViewID": "Klicka för att kopiera vy-ID",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Skift + Mellanslag",
     "expandShiftSpace": "Expandera 'Skift + Mellanslag'",
     "selectAllMappedFields": "Markera alla mappade fält",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopiera felkod",
     "paidUserBadgeTooltip": "Användaren har redaktörsbehörighet eller högre i minst en bas.",
     "approachingLimit": "Närmar sig gränsen",

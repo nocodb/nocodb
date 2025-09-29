@@ -898,6 +898,13 @@ interface AttachmentCellDropOverType {
   path: Array<number>
 }
 
+interface GroupKeysStorage {
+  [viewId: string]: {
+    keys: Array<string>
+    lastAccessed: number // timestamp
+  }
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -966,4 +973,5 @@ export type {
   NcClipboardDataType,
   NcClipboardDataItemType,
   AttachmentCellDropOverType,
+  GroupKeysStorage,
 }

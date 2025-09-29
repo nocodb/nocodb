@@ -31,6 +31,13 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
       })
       break
     }
+    case 'mcp': {
+      payload.push({
+        title: t('title.oauthClients'),
+        active: true,
+      })
+      break
+    }
     case 'audit': {
       payload.push({
         title: t('title.auditLogs'),

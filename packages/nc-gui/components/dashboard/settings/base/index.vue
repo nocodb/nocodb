@@ -3,6 +3,8 @@ const { isUIAllowed } = useRoles()
 
 const hasPermissionForBaseAccess = computed(() => isEeUI && isUIAllowed('manageBaseType'))
 
+const hasPermissionForMCP = computed(() => isUIAllowed('manageMCP'))
+
 const hasPermissionForSnapshots = computed(() => isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot'))
 
 const hasPermissionForMigrate = computed(() => !isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
@@ -15,10 +17,6 @@ const activeMenu = ref(
   hasPermissionForBaseAccess.value ? 'baseType' : hasPermissionForSnapshots.value ? 'snapshots' : 'visibility',
 )
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const isMCPEnabled = computed(() => isUIAllowed('baseMiscSettings') && isFeatureEnabled(FEATURE_FLAG.MODEL_CONTEXT_PROTOCOL))
-
 const selectMenu = (option: string, updateQuery = true) => {
   if (!hasPermissionForSnapshots.value && option === 'snapshots') {
     return
@@ -29,6 +27,10 @@ const selectMenu = (option: string, updateQuery = true) => {
   }
 
   if (!hasPermissionForMigrate.value && option === 'migrate') {
+    return
+  }
+
+  if (!hasPermissionForMCP.value && option === 'mcp') {
     return
   }
 
@@ -112,7 +114,7 @@ watch(
           </span>
         </div>
         <div
-          v-if="isMCPEnabled"
+          v-if="hasPermissionForMCP"
           :class="{
             'active-menu': activeMenu === 'mcp',
           }"

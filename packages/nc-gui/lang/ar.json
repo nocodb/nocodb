@@ -699,6 +699,7 @@
     "isNotNull": "ليس فارغاً"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "الوصول مقيد",
     "editTablePermissions": "تعديل أذونات الجدول",
     "editFieldPermissions": "تعديل أذونات الحقل",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "يُسمح برمز واحد فقط لكل مستخدم",
     "duplicateAttachment": "الملف باسم {filename} مرفق بالفعل",
     "tableIdColon": "معرف الجدول: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "معرّف السكربت: {scriptId}",
     "dashboardIdColon": "معرف لوحة التحكم: {dashboardId}",
     "viewIdColon": "معرف العرض: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "للدور",
     "clickToCopy": "انقر للنسخ",
     "clickToCopyTableID": "انقر لنسخ معرف الجدول",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "انقر لنسخ معرّف السكربت",
     "clickToCopyDashboardID": "انقر لنسخ معرف لوحة التحكم",
     "clickToCopyViewID": "انقر لنسخ معرف العرض",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "توسيع 'Shift + Space'",
     "selectAllMappedFields": "تحديد جميع الحقول المطابَقة",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "نسخ رمز الخطأ",
     "paidUserBadgeTooltip": "لدى المستخدم دور محرر أو أعلى في قاعدة واحدة على الأقل.",
     "approachingLimit": "يقترب من الحد",
@@ -1876,9 +1880,7 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded",
-    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "البحث عن الأيقونات",
@@ -2439,8 +2441,7 @@
       "invalidSearchQuery": "استعلام البحث غير صالح",
       "invalidSearchQueryForVisibleFields": "استعلام البحث غير صالح للحقول الظاهرة",
       "invalidSearchQueryForDisplayField": "استعلام البحث غير صالح لحقل العرض",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "تصدير البيانات الوصفية للمشروع بنجاح",

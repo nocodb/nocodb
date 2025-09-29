@@ -11,6 +11,7 @@ import {
   FilterParseError,
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from './filterHelpers';
+import { arrFlatMap } from './arrayHelpers';
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
@@ -154,10 +155,7 @@ function mapFilterGroupSubType(
         logical_op: filter.logical_op,
         children: children.map((k) => k.filter),
       } as FilterType,
-      errors: children
-        .map((k) => k.errors)
-        .flat()
-        .filter((k) => k),
+      errors: arrFlatMap(children.map((k) => k.errors || [])).filter((k) => k),
     };
   }
 }

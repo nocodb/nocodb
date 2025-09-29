@@ -94,7 +94,7 @@ const getIcon = (c: ColumnType) =>
   })
 
 const suggestionsList = computed(() => {
-  const unsupportedFnList = sqlUi.value.getUnsupportedFnList()
+  const unsupportedFnList = sqlUi.value?.getUnsupportedFnList() || []
   return (
     [
       ...availableFunctions.map((fn: string) => ({

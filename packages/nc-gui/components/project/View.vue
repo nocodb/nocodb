@@ -304,14 +304,7 @@ onMounted(() => {
           </template>
           <DashboardSettingsSyncs v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
-        <a-tab-pane
-          v-if="
-            !isSharedBase &&
-            (isUIAllowed('baseMiscSettings') || isFeatureEnabled(FEATURE_FLAG.MODEL_CONTEXT_PROTOCOL)) &&
-            !isMobileMode
-          "
-          key="base-settings"
-        >
+        <a-tab-pane v-if="!isSharedBase && !isMobileMode" key="base-settings">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__base-settings">
               <GeneralIcon icon="ncSettings" />

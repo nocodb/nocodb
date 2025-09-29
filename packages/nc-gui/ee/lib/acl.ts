@@ -213,7 +213,7 @@ const rolePermissions = {
       commentCount: true,
       recordAuditList: true,
       newUser: true,
-
+      manageMCP: true,
       dashboardList: true,
     },
   },

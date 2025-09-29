@@ -436,7 +436,7 @@ async function onRename() {
 
 <template>
   <div
-    class="nc-tree-item nc-table-node-wrapper text-sm select-none w-full"
+    class="nc-tree-item nc-table-node-wrapper text-sm select-none w-full bg-inherit"
     :data-order="table.order"
     :data-id="table.id"
     :data-table-id="table.id"
@@ -446,7 +446,7 @@ async function onRename() {
     <div class="flex items-center py-0.5">
       <div
         v-e="['a:table:open']"
-        class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer"
+        class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-nc-bg-gray-medium"
         :class="{
           'hover:bg-nc-bg-gray-medium': openedTableId !== table.id,
           'pl-8 !xs:(pl-7)': sourceIndex !== 0,

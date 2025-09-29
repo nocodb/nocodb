@@ -49,10 +49,10 @@ test.describe('GroupBy CRUD Operations', () => {
 
     await toolbar.groupBy.add({ title: 'Category', ascending: false, locallySaved: false });
 
-    await dashboard.grid.groupPage.openGroup({ indexMap: [3] });
+    await dashboard.grid.groupPage.openGroup({ indexMap: [2] });
 
     await dashboard.grid.groupPage.addNewRow({
-      indexMap: [3],
+      indexMap: [2],
       index: 10,
       columnHeader: 'Sub_Group',
       value: 'Aaaaaaaaaaaaaaaaaaaa',
@@ -65,13 +65,13 @@ test.describe('GroupBy CRUD Operations', () => {
     //await toolbar.sort.add({title: 'Sub_Group', ascending: true, locallySaved: true});
 
     await dashboard.grid.groupPage.validateFirstRow({
-      indexMap: [3],
+      indexMap: [2],
       rowIndex: 0,
       columnHeader: 'Sub_Group',
       value: 'Aaaaaaaaaaaaaaaaaaaa',
     });
     await dashboard.grid.groupPage.editRow({
-      indexMap: [3],
+      indexMap: [2],
       rowIndex: 0,
       columnHeader: 'Sub_Group',
       value: 'Zzzzzzzzzzzzzzzzzzz',
@@ -80,7 +80,7 @@ test.describe('GroupBy CRUD Operations', () => {
     await toolbar.sort.update({ index: 1, title: 'Sub_Group', ascending: false, locallySaved: false });
 
     await dashboard.grid.groupPage.validateFirstRow({
-      indexMap: [3],
+      indexMap: [2],
       rowIndex: 0,
       columnHeader: 'Sub_Group',
       value: 'Zzzzzzzzzzzzzzzzzzz',
@@ -88,12 +88,12 @@ test.describe('GroupBy CRUD Operations', () => {
 
     await dashboard.grid.groupPage.deleteRow({
       title: 'Sub_Group',
-      indexMap: [3],
+      indexMap: [2],
       rowIndex: 0,
     });
 
     await dashboard.grid.groupPage.validateFirstRow({
-      indexMap: [3],
+      indexMap: [2],
       rowIndex: 0,
       columnHeader: 'Sub_Group',
       value: 'Angola',
@@ -102,7 +102,7 @@ test.describe('GroupBy CRUD Operations', () => {
     await undo({ page, dashboard });
 
     await dashboard.grid.groupPage.validateFirstRow({
-      indexMap: [3],
+      indexMap: [2],
       rowIndex: 0,
       columnHeader: 'Sub_Group',
       value: 'Zzzzzzzzzzzzzzzzzzz',
@@ -117,10 +117,10 @@ test.describe('GroupBy CRUD Operations', () => {
     await toolbar.groupBy.add({ title: 'Category', ascending: false, locallySaved: false });
     await toolbar.groupBy.add({ title: 'Sub_Group', ascending: false, locallySaved: false });
 
-    await dashboard.grid.groupPage.openGroup({ indexMap: [3, 0] });
+    await dashboard.grid.groupPage.openGroup({ indexMap: [2, 0] });
 
     await dashboard.grid.groupPage.addNewRow({
-      indexMap: [3, 0],
+      indexMap: [2, 0],
       index: 10,
       columnHeader: 'Sub_Category',
       value: 'Aaaaaaaaaaaaaaaaaaaa',
@@ -133,13 +133,13 @@ test.describe('GroupBy CRUD Operations', () => {
     //await toolbar.sort.add({title: 'Sub_Group', ascending: true, locallySaved: true});
 
     await dashboard.grid.groupPage.validateFirstRow({
-      indexMap: [3, 0],
+      indexMap: [2, 0],
       rowIndex: 0,
       columnHeader: 'Sub_Category',
       value: 'Aaaaaaaaaaaaaaaaaaaa',
     });
     await dashboard.grid.groupPage.editRow({
-      indexMap: [3, 0],
+      indexMap: [2, 0],
       rowIndex: 0,
       columnHeader: 'Sub_Category',
       value: 'Zzzzzzzzzzzzzzzzzzz',
@@ -148,7 +148,7 @@ test.describe('GroupBy CRUD Operations', () => {
     await toolbar.sort.update({ index: 1, title: 'Sub_Category', ascending: false, locallySaved: false });
 
     await dashboard.grid.groupPage.validateFirstRow({
-      indexMap: [3, 0],
+      indexMap: [2, 0],
       rowIndex: 0,
       columnHeader: 'Sub_Category',
       value: 'Zzzzzzzzzzzzzzzzzzz',
@@ -156,12 +156,12 @@ test.describe('GroupBy CRUD Operations', () => {
 
     await dashboard.grid.groupPage.deleteRow({
       title: 'Sub_Category',
-      indexMap: [3, 0],
+      indexMap: [2, 0],
       rowIndex: 0,
     });
 
     await dashboard.grid.groupPage.validateFirstRow({
-      indexMap: [3, 0],
+      indexMap: [2, 0],
       rowIndex: 0,
       columnHeader: 'Sub_Category',
       value: 'Afghanistan',
@@ -170,7 +170,7 @@ test.describe('GroupBy CRUD Operations', () => {
     await undo({ page, dashboard });
 
     await dashboard.grid.groupPage.validateFirstRow({
-      indexMap: [3, 0],
+      indexMap: [2, 0],
       rowIndex: 0,
       columnHeader: 'Sub_Category',
       value: 'Zzzzzzzzzzzzzzzzzzz',
@@ -186,10 +186,10 @@ test.describe('GroupBy CRUD Operations', () => {
     await toolbar.groupBy.add({ title: 'Sub_Group', ascending: false, locallySaved: false });
     await toolbar.groupBy.add({ title: 'Sub_Category', ascending: false, locallySaved: false });
 
-    await dashboard.grid.groupPage.openGroup({ indexMap: [3, 0, 0] });
+    await dashboard.grid.groupPage.openGroup({ indexMap: [2, 0, 0] });
 
     await dashboard.grid.groupPage.addNewRow({
-      indexMap: [3, 0, 0],
+      indexMap: [2, 0, 0],
       index: 10,
       columnHeader: 'Item',
       value: 'Aaaaaaaaaaaaaaaaaaaa',
@@ -202,13 +202,13 @@ test.describe('GroupBy CRUD Operations', () => {
     //await toolbar.sort.add({title: 'Sub_Group', ascending: true, locallySaved: true});
 
     await dashboard.grid.groupPage.validateFirstRow({
-      indexMap: [3, 0, 0],
+      indexMap: [2, 0, 0],
       rowIndex: 0,
       columnHeader: 'Item',
       value: 'Aaaaaaaaaaaaaaaaaaaa',
     });
     await dashboard.grid.groupPage.editRow({
-      indexMap: [3, 0, 0],
+      indexMap: [2, 0, 0],
       rowIndex: 0,
       columnHeader: 'Item',
       value: 'Zzzzzzzzzzzzzzzzzzz',
@@ -217,7 +217,7 @@ test.describe('GroupBy CRUD Operations', () => {
     await toolbar.sort.update({ index: 1, title: 'Item', ascending: false, locallySaved: false });
 
     await dashboard.grid.groupPage.validateFirstRow({
-      indexMap: [3, 0, 0],
+      indexMap: [2, 0, 0],
       rowIndex: 0,
       columnHeader: 'Item',
       value: 'Zzzzzzzzzzzzzzzzzzz',
@@ -225,12 +225,12 @@ test.describe('GroupBy CRUD Operations', () => {
 
     await dashboard.grid.groupPage.deleteRow({
       title: 'Item',
-      indexMap: [3, 0, 0],
+      indexMap: [2, 0, 0],
       rowIndex: 0,
     });
 
     await dashboard.grid.groupPage.validateFirstRow({
-      indexMap: [3, 0, 0],
+      indexMap: [2, 0, 0],
       rowIndex: 0,
       columnHeader: 'Item',
       value: 'Argentina',
@@ -239,7 +239,7 @@ test.describe('GroupBy CRUD Operations', () => {
     await undo({ page, dashboard });
 
     await dashboard.grid.groupPage.validateFirstRow({
-      indexMap: [3, 0, 0],
+      indexMap: [2, 0, 0],
       rowIndex: 0,
       columnHeader: 'Item',
       value: 'Zzzzzzzzzzzzzzzzzzz',

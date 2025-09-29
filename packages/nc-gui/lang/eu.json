@@ -1876,7 +1876,9 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded"
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Bilatu ikonoak",
@@ -2437,7 +2439,8 @@
       "invalidSearchQuery": "Bilaketa-kontsulta baliogabea",
       "invalidSearchQueryForVisibleFields": "Bilaketa-kontsulta baliogabea ikusarazten diren eremuetarako",
       "invalidSearchQueryForDisplayField": "Bilaketa-kontsulta baliogabea bistaratzen den eremuarentzat",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Project metadata exported successfully",

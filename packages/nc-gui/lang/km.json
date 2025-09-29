@@ -1876,7 +1876,9 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded"
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "ស្វែងរកនិមិត្តសញ្ញា",
@@ -2437,7 +2439,8 @@
       "invalidSearchQuery": "សំណួរស្វែងរកមិនត្រឹមត្រូវ",
       "invalidSearchQueryForVisibleFields": "សំណួរស្វែងរកមិនត្រឹមត្រូវសម្រាប់វាលអាចមើលឃើញ",
       "invalidSearchQueryForDisplayField": "សំណួរស្វែងរកមិនត្រឹមត្រូវសម្រាប់វាលបង្ហាញ",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "ធាតុមូលដ្ឋានត្រូវបាននាំចេញដោយជោគជ័យ",

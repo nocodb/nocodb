@@ -1876,7 +1876,9 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded"
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Pretraži ikone",
@@ -2437,7 +2439,8 @@
       "invalidSearchQuery": "Nevažeći upit za pretragu",
       "invalidSearchQueryForVisibleFields": "Nevažeći upit za pretragu vidljivih polja",
       "invalidSearchQueryForDisplayField": "Nevažeći upit za pretragu prikaznog polja",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Projektni metapodaci su uspješno izvozili",

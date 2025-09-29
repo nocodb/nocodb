@@ -1876,7 +1876,9 @@
     "thisFieldTypeDoesNotSupportFiltering": "이 필드 유형은 필터링을 지원하지 않습니다",
     "thisFieldTypeDoesNotSupportGrouping": "이 필드 유형은 그룹화를 지원하지 않습니다",
     "filterByLimitExceeded": "한도 초과 기준 필터링",
-    "groupByLimitExceeded": "그룹별 제한 초과"
+    "groupByLimitExceeded": "그룹별 제한 초과",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",
@@ -2437,7 +2439,8 @@
       "invalidSearchQuery": "잘못된 검색 쿼리",
       "invalidSearchQueryForVisibleFields": "표시되는 필드에 대한 잘못된 검색 쿼리",
       "invalidSearchQueryForDisplayField": "표시 필드에 대한 잘못된 검색 쿼리",
-      "promptHasDeletedColumn": "프롬프트에서 열({columns})을 삭제했습니다"
+      "promptHasDeletedColumn": "프롬프트에서 열({columns})을 삭제했습니다",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "베이스 메타 데이터를 성공적으로 내보냈습니다",

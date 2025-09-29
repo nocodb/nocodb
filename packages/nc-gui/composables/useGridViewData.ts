@@ -90,6 +90,7 @@ export function useGridViewData(
     loadData,
     updateRecordOrder,
     selectedAllRecords,
+    selectedAllRecordsSkipPks,
     loadAggCommentsCount,
     navigateToSiblingRow,
     getRows,
@@ -944,6 +945,7 @@ export function useGridViewData(
       await $api.dbTableRow.bulkDeleteAll('noco', base.value.id!, meta.value.id!, {
         where: where?.value,
         viewId: viewMeta.value?.id,
+        skipPks: Object.values(selectedAllRecordsSkipPks.value).join(','),
       })
     } catch (error) {
     } finally {
@@ -989,6 +991,7 @@ export function useGridViewData(
     isBulkOperationInProgress,
     updateRecordOrder,
     selectedAllRecords,
+    selectedAllRecordsSkipPks,
     getRows,
     getDataCache,
     groupDataCache,

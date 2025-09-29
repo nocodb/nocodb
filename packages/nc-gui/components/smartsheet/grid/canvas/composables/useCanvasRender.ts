@@ -63,6 +63,7 @@ export function useCanvasRender({
   tableMetaLoader,
   partialRowHeight,
   vSelectedAllRecords,
+  vSelectedAllRecordsSkipPks,
   isRowDraggingEnabled,
   isAddingColumnAllowed,
   isAddingEmptyRowAllowed,
@@ -130,6 +131,7 @@ export function useCanvasRender({
   tableMetaLoader: TableMetaLoader
   partialRowHeight: Ref<number>
   vSelectedAllRecords: WritableComputedRef<boolean>
+  vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
   selectedRows: Ref<Row[]>
   isDragging: Ref<boolean>
   draggedRowIndex: Ref<number | null>
@@ -189,6 +191,11 @@ export function useCanvasRender({
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
 
   const fixedColsWidth = computed(() => fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1))
+
+  const isSelectedAllRecords = computed(() => vSelectedAllRecords.value && ncIsEmptyObject(vSelectedAllRecordsSkipPks.value))
+
+  const isRecordSelectedInSelectedAllRecords = (rowIdx?: number) =>
+    vSelectedAllRecords.value && (!ncIsNumber(rowIdx) || !!vSelectedAllRecordsSkipPks.value[rowIdx])
 
   const drawShimmerEffect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, rowIdx: number) => {
     ctx.save()
@@ -575,7 +582,7 @@ export function useCanvasRender({
         if (column.id === 'row_number') {
           if (
             !readOnly.value &&
-            (vSelectedAllRecords.value || isBoxHovered({ x: 0, y: 0, width: canvasWidth, height: 32 }, mousePosition)) &&
+            (isSelectedAllRecords.value || isBoxHovered({ x: 0, y: 0, width: canvasWidth, height: 32 }, mousePosition)) &&
             !isGroupBy.value
           ) {
             const checkSize = 16
@@ -585,7 +592,7 @@ export function useCanvasRender({
               ctx,
               checkboxX,
               y - 8,
-              vSelectedAllRecords.value,
+              isSelectedAllRecords.value,
               false,
               spriteLoader,
               isCheckboxHovered ? '#3366FF' : '#D9D9D9',
@@ -879,10 +886,10 @@ export function useCanvasRender({
     rowColor?: string,
   ) => {
     const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
-    const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
+    const isChecked = row.rowMeta?.selected || isRecordSelectedInSelectedAllRecords(row.rowMeta?.rowIndex)
     const isRowCellSelected =
       activeCell.value.row === row.rowMeta.rowIndex && comparePath(activeCell.value.path, row?.rowMeta?.path)
-    const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
+    const isDisabled = !row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS
 
     if (rowColor) {
       ctx.fillStyle = rowColor

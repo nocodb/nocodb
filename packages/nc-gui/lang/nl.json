@@ -699,6 +699,7 @@
     "isNotNull": "is niet NULL"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Toegang beperkt",
     "editTablePermissions": "Tabelmachtigingen bewerken",
     "editFieldPermissions": "Veldmachtigingen bewerken",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Slechts één token per gebruiker toegestaan",
     "duplicateAttachment": "Bestand met naam {filename} al bijgevoegd",
     "tableIdColon": "TABEL ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SCRIPT-ID: {scriptId}",
     "dashboardIdColon": "DASHBOARD-ID: {dashboardId}",
     "viewIdColon": "WEERGAVE-ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "voor rol",
     "clickToCopy": "Klik om te kopiëren",
     "clickToCopyTableID": "Klik om Tabel ID te kopiëren",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Klik om script-ID te kopiëren",
     "clickToCopyDashboardID": "Klik om Dashboard-ID te kopiëren",
     "clickToCopyViewID": "Klik om View ID te kopiëren",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Spatie",
     "expandShiftSpace": "Uitvouwen 'Shift + Spatie'",
     "selectAllMappedFields": "Alle gekoppelde velden selecteren",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Foutcode kopiëren",
     "paidUserBadgeTooltip": "Gebruiker heeft een Editor- of hogere rol in ten minste één base.",
     "approachingLimit": "Nadert limiet",

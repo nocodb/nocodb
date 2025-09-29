@@ -35,7 +35,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="nc-sidebar flex flex-col bg-nc-bg-gray-extralight outline-r-1 outline-nc-border-gray-light select-none w-full h-full font-medium z-2"
+    class="nc-sidebar flex flex-col bg-nc-bg-gray-sidebar outline-r-1 outline-nc-border-gray-light select-none w-full h-full font-medium z-2"
     :style="{
       outlineWidth: '1px',
     }"

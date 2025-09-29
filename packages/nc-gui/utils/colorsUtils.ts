@@ -652,6 +652,7 @@ export const themeVariables = {
     'nc-bg-brand': themeV4Colors.brand[50],
     'nc-bg-gray': {
       extralight: themeV4Colors.gray[50],
+      sidebar: themeV4Colors.gray[50],
       light: themeV4Colors.gray[100],
       medium: themeV4Colors.gray[200],
       dark: themeV4Colors.gray[300],

@@ -436,7 +436,7 @@ async function onRename() {
 
 <template>
   <div
-    class="nc-tree-item nc-table-node-wrapper text-sm select-none w-full"
+    class="nc-tree-item nc-table-node-wrapper text-sm select-none w-full bg-inherit"
     :data-order="table.order"
     :data-id="table.id"
     :data-table-id="table.id"

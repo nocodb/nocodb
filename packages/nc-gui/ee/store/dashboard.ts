@@ -71,8 +71,12 @@ export const useDashboardStore = defineStore('dashboard', () => {
         operation: 'dashboardList',
       })) as DashboardType[]
 
-      dashboards.value.set(baseId, response)
-      return response
+      if (ncIsArray(response)) {
+        dashboards.value.set(baseId, response)
+        return response
+      } else {
+        return []
+      }
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))

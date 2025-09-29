@@ -294,8 +294,18 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
         const sourceMeta = await serializeMeta(
           context,
           {
-            fk_workspace_id: targetContext.workspace_id,
-            base_id: targetContext.base_id,
+            override: {
+              fk_workspace_id: targetContext.workspace_id,
+              base_id: targetContext.base_id,
+            },
+            ...(sourceBase.prefix
+              ? {
+                  prefix: {
+                    old: sourceBase.prefix,
+                    new: targetBase.prefix || '',
+                  },
+                }
+              : {}),
           },
           trx,
         );

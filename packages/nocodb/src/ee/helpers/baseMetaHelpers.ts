@@ -118,9 +118,17 @@ export type BaseMetaDiff = {
 
 export async function serializeMeta(
   sourceContext: NcContext,
-  override?: { base_id?: string; fk_workspace_id?: string },
+  options?: {
+    override?: { base_id?: string; fk_workspace_id?: string };
+    prefix?: {
+      old: string;
+      new: string;
+    };
+  },
   ncMeta = Noco.ncMeta,
 ): Promise<BaseMetaSchema> {
+  const { override, prefix } = options || {};
+
   const base_id = sourceContext.base_id;
 
   if (!base_id) {
@@ -148,6 +156,19 @@ export async function serializeMeta(
             }
             if (override.fk_workspace_id !== undefined) {
               record.fk_workspace_id = override.fk_workspace_id;
+            }
+          }
+        }
+
+        // override prefix on model table_name
+        if (prefix && records.length > 0) {
+          if (metaTable === MetaTable.MODELS) {
+            for (const record of records) {
+              const oldRegexp = new RegExp(`^${prefix.old}`);
+              record.table_name = record.table_name.replace(
+                oldRegexp,
+                prefix.new,
+              );
             }
           }
         }
@@ -228,7 +249,7 @@ async function createColumnIndex(
     nonUnique = true,
     tableName,
   }: {
-    column: any;
+    column: Column;
     sqlMgr: SqlMgrv2;
     source: Source;
     indexName: string;
@@ -323,8 +344,8 @@ export async function applyMeta(
 async function handleTableDeletions(
   targetContext: NcContext,
   metaDiff: BaseMetaDiff,
-  base: any,
-  ncMeta: any,
+  base: Base,
+  ncMeta = Noco.ncMeta,
 ) {
   const tablesToDelete = metaDiff.delete[MetaTable.MODELS] || [];
 
@@ -370,8 +391,8 @@ async function handleTableDeletions(
 async function handleStandaloneColumnDeletions(
   targetContext: NcContext,
   metaDiff: BaseMetaDiff,
-  base: any,
-  ncMeta: any,
+  base: Base,
+  ncMeta = Noco.ncMeta,
 ) {
   const columnsToDelete = metaDiff.delete[MetaTable.COLUMNS] || [];
   const deletedTableIds = new Set(
@@ -433,8 +454,8 @@ async function handleStandaloneColumnDeletions(
 async function handleTableCreations(
   targetContext: NcContext,
   metaDiff: BaseMetaDiff,
-  base: any,
-  ncMeta: any,
+  base: Base,
+  ncMeta = Noco.ncMeta,
 ) {
   const tablesToAdd = metaDiff.add[MetaTable.MODELS] || [];
 
@@ -519,8 +540,8 @@ async function handleTableCreations(
 async function handleStandaloneColumnAdditions(
   targetContext: NcContext,
   metaDiff: BaseMetaDiff,
-  base: any,
-  ncMeta: any,
+  base: Base,
+  ncMeta = Noco.ncMeta,
 ) {
   const columnsToAdd = metaDiff.add[MetaTable.COLUMNS] || [];
   const newTableIds = new Set(
@@ -617,7 +638,7 @@ async function handleTableUpdates(
   targetContext: NcContext,
   metaDiff: BaseMetaDiff,
   base_id: string,
-  ncMeta: any,
+  ncMeta = Noco.ncMeta,
 ) {
   const tablesToUpdate = metaDiff.update[MetaTable.MODELS] || [];
 
@@ -682,7 +703,7 @@ async function handleColumnUpdates(
   targetContext: NcContext,
   metaDiff: BaseMetaDiff,
   base_id: string,
-  ncMeta: any,
+  ncMeta = Noco.ncMeta,
 ) {
   const columnsToUpdate = metaDiff.update[MetaTable.COLUMNS] || [];
 
@@ -796,7 +817,7 @@ async function handleNonDDLChanges(
   targetContext: NcContext,
   metaDiff: BaseMetaDiff,
   base_id: string,
-  ncMeta: any,
+  ncMeta = Noco.ncMeta,
 ) {
   const ddlTables = [MetaTable.MODELS, MetaTable.COLUMNS];
 
@@ -860,9 +881,10 @@ async function handleNonDDLChanges(
 
 async function createOrderIndexForTable(
   targetContext: NcContext,
-  tableRecord: any,
-  tableColumns: any[],
-  source: any,
+  tableRecord: Model,
+  tableColumns: Column[],
+  base: Base,
+  source: Source,
   ncMeta = Noco.ncMeta,
 ) {
   try {
@@ -880,27 +902,16 @@ async function createOrderIndexForTable(
       return;
     }
 
-    // Get database connection
-    const dbDriver = await NcConnectionMgrv2.get(source);
-    const baseModel = await Model.getBaseModelSQL(
-      targetContext,
-      {
-        model,
-        source,
-        dbDriver,
-      },
-      ncMeta,
-    );
+    const sqlMgr = await ProjectMgrv2.getSqlMgr(targetContext, base, ncMeta);
 
     const indexName = `${tableRecord.table_name}_order_idx`;
 
-    // Use raw SQL like the original TableService does
-    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-    await sqlClient.raw(`CREATE INDEX ?? ON ?? (??)`, [
+    await sqlMgr.sqlOpPlus(source, 'indexCreate', {
+      columns: [metaOrderColumn.column_name],
+      tn: model.table_name,
+      non_unique: true,
       indexName,
-      baseModel.getTnPath(tableRecord.table_name),
-      metaOrderColumn.column_name,
-    ]);
+    });
   } catch (e) {
     // Log the error but don't fail the entire operation
     console.error(
@@ -912,11 +923,11 @@ async function createOrderIndexForTable(
 
 async function createForeignKeyIndexesForTable(
   targetContext: NcContext,
-  tableRecord: any,
-  tableColumns: any[],
-  source: any,
-  base: any,
-  ncMeta: any,
+  tableRecord: Model,
+  tableColumns: Column[],
+  source: Source,
+  base: Base,
+  ncMeta = Noco.ncMeta,
 ) {
   try {
     // Find foreign key columns that need indexes
@@ -992,11 +1003,11 @@ async function createForeignKeyIndexesForTable(
 
 async function createForeignKeyConstraint(
   targetContext: NcContext,
-  columnRecord: any,
-  parentTable: any,
-  source: any,
-  base: any,
-  ncMeta: any,
+  columnRecord: Column,
+  parentTable: Model,
+  source: Source,
+  base: Base,
+  ncMeta = Noco.ncMeta,
 ) {
   try {
     // Only create foreign key constraint for UITypes.ForeignKey that are not virtual
@@ -1042,8 +1053,8 @@ async function createForeignKeyConstraint(
 async function createMissingIndexes(
   targetContext: NcContext,
   metaDiff: BaseMetaDiff,
-  base: any,
-  ncMeta: any,
+  base: Base,
+  ncMeta = Noco.ncMeta,
 ): Promise<void> {
   try {
     const tablesToAdd = metaDiff.add[MetaTable.MODELS] || [];
@@ -1072,6 +1083,7 @@ async function createMissingIndexes(
           targetContext,
           tableRecord,
           tableColumns,
+          base,
           source,
           ncMeta,
         );

@@ -238,8 +238,9 @@ const toggleOperation = (operation: string) => {
     hookRef.notification.trigger_form_id = undefined
   }
   hookRef.operation = ops // this will trigger hookRef.operation watch
-  // event other than 'after' has no 'send me everything'
-  sendMeEverythingChecked.value = hookRef.event === 'after' && ops?.length === operationsEnum.value?.length
+  // event other than 'field', 'view', 'after' has no 'send me everything'
+  sendMeEverythingChecked.value =
+    ['field', 'view', 'after'].includes(hookRef.event) && ops?.length === operationsEnum.value?.length
 }
 
 const toggleSendMeEverythingChecked = (_evt: Event) => {
@@ -256,7 +257,7 @@ const handleEventChange = (e: string) => {
   sendMeEverythingChecked.value = false
   hookRef.operation = []
   hookRef.event = e as any
-  if (!['view', 'after'].includes(e)) {
+  if (!['field', 'view', 'after'].includes(e)) {
     hookRef.operation = ['trigger']
     hookRef.trigger_field = false
     hookRef.trigger_fields = []
@@ -528,7 +529,7 @@ function setHook(newHook: HookType) {
     },
   })
   if (
-    ['view', 'after'].includes(toAssign.event) &&
+    ['field', 'view', 'after'].includes(toAssign.event) &&
     toAssign.operation &&
     toAssign.operation.length === eventList.value.filter((k) => k.value[0] === toAssign.event).length
   ) {
@@ -620,7 +621,7 @@ async function loadPluginList() {
 }
 
 const isConditionSupport = computed(() => {
-  return hookRef.event && !['view', 'manual'].includes(hookRef.event)
+  return hookRef.event && !['field', 'view', 'manual'].includes(hookRef.event)
 })
 
 async function saveHooks() {
@@ -1140,7 +1141,7 @@ const webhookV2AndV3Diff = computed(() => {
                         <a-select-option v-for="event of eventsEnum" :key="event.value"> {{ event.text }}</a-select-option>
                       </NcSelect>
                     </a-form-item>
-                    <NcDropdown v-if="['view', 'after'].includes(hookRef.event)" v-model:visible="isDropdownOpen">
+                    <NcDropdown v-if="['field', 'view', 'after'].includes(hookRef.event)" v-model:visible="isDropdownOpen">
                       <div
                         class="rounded-lg border-1 w-full transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-4 py-2 h-[36px] shadow-default"
                         data-testid="nc-dropdown-hook-operation"
@@ -1170,7 +1171,7 @@ const webhookV2AndV3Diff = computed(() => {
                           data-testid="nc-dropdown-hook-operation-modal"
                           data-testvalue="send_everything"
                         >
-                          <template v-if="['view', 'after'].includes(hookRef.event)">
+                          <template v-if="['field', 'view', 'after'].includes(hookRef.event)">
                             <NcMenuItem
                               data-testid="nc-dropdown-hook-operation-option"
                               data-testvalue="sendMeEverything"
@@ -1193,7 +1194,7 @@ const webhookV2AndV3Diff = computed(() => {
                             @click.prevent="toggleOperation(operation.value)"
                           >
                             <div class="flex-1 w-full text-sm">
-                              <template v-if="['view', 'after'].includes(hookRef.event)">
+                              <template v-if="['field', 'view', 'after'].includes(hookRef.event)">
                                 {{ $t('general.after') }}
                               </template>
                               {{ operation.text }}

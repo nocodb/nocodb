@@ -699,6 +699,7 @@
     "isNotNull": "er ikke null."
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Adgang begrænset",
     "editTablePermissions": "Rediger tabelrettigheder",
     "editFieldPermissions": "Rediger feltrettigheder",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Kun én token pr. bruger er tilladt",
     "duplicateAttachment": "Fil med navn {filename} allerede vedhæftet",
     "tableIdColon": "TABEL ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SCRIPT-ID: {scriptId}",
     "dashboardIdColon": "DASHBOARD-ID: {dashboardId}",
     "viewIdColon": "VIS ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "for rolle",
     "clickToCopy": "Klik for at kopiere",
     "clickToCopyTableID": "Klik for at kopiere tabel-ID",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Klik for at kopiere script-ID",
     "clickToCopyDashboardID": "Klik for at kopiere dashboard-ID",
     "clickToCopyViewID": "Klik for at kopiere View ID",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Mellemrum",
     "expandShiftSpace": "Udvid 'Shift + Mellemrum'",
     "selectAllMappedFields": "Vælg alle kortlagte felter",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopiér fejlkode",
     "paidUserBadgeTooltip": "Brugeren har rollen editor eller højere i mindst én base.",
     "approachingLimit": "Nærmer sig grænsen",

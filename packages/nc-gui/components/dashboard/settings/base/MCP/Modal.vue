@@ -18,20 +18,20 @@ const token = useVModel(props, 'token')
 
 const supportedDocs = [
   {
-    title: 'Getting with MCP Server',
-    href: 'https://docs.nocodb.com/automation/webhook/create-webhook/',
+    title: 'Getting Started with MCP Server',
+    href: 'https://docs.nocodb.com/product-docs/mcp/',
   },
   {
-    title: 'Setting up MCP Server with Claude',
-    href: 'https://docs.nocodb.com/automation/webhook/webhook-overview',
+    title: 'Claude Setup',
+    href: 'https://docs.nocodb.com/product-docs/mcp#claude',
   },
   {
-    title: 'Setting up MCP Server with Cursor',
-    href: 'https://docs.nocodb.com/automation/webhook/create-webhook#webhook-with-custom-payload-',
+    title: 'Cursor Setup',
+    href: 'https://docs.nocodb.com/product-docs/mcp#cursor',
   },
   {
-    title: 'Setting up MCP Server with Windsurf',
-    href: 'https://docs.nocodb.com/automation/webhook/create-webhook#webhook-with-conditions',
+    title: 'Windsurf Setup',
+    href: 'https://docs.nocodb.com/product-docs/mcp#windsurf',
   },
 ]
 

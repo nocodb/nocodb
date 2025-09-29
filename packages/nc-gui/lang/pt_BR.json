@@ -1876,7 +1876,9 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded"
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Pesquisar ícones",
@@ -2437,7 +2439,8 @@
       "invalidSearchQuery": "Consulta de pesquisa inválida",
       "invalidSearchQueryForVisibleFields": "Consulta de pesquisa inválida para campos visíveis",
       "invalidSearchQueryForDisplayField": "Consulta de pesquisa inválida para campo de exibição",
-      "promptHasDeletedColumn": "O prompt excluiu a(s) coluna(s): {columns}"
+      "promptHasDeletedColumn": "O prompt excluiu a(s) coluna(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Metadados do projeto exportado com sucesso",

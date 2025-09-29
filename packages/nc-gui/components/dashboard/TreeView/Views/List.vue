@@ -388,7 +388,7 @@ const filteredViews = computed(() => {
     ref="menuRef"
     :class="{ dragging }"
     :selected-keys="selected"
-    class="nc-views-menu flex flex-col w-full !border-r-0 !bg-nc-bg-gray-extralight"
+    class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
     <template v-if="!isSharedBase">
       <DashboardTreeViewCreateViewBtn

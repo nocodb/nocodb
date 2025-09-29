@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Sortable from 'sortablejs'
+import Sortable, { type SortableEvent } from 'sortablejs'
 import { type DashboardType, ModelTypes, type TableType } from 'nocodb-sdk'
 const props = defineProps<{
   baseId: string
@@ -30,6 +30,8 @@ const menuRef = useTemplateRef('menuRef')
 const isMarked = ref<string | false>(false)
 
 const keys = ref<Record<string, number>>({})
+
+const dragging = ref(false)
 
 let sortable: Sortable
 
@@ -82,8 +84,19 @@ const initSortable = (el: Element) => {
   if (sortable) sortable.destroy()
 
   sortable = Sortable.create(el as HTMLElement, {
+    ghostClass: 'ghost',
+    onStart: (evt: SortableEvent) => {
+      evt.stopImmediatePropagation()
+      evt.preventDefault()
+      dragging.value = true
+    },
     onEnd: async (evt) => {
       const { newIndex = 0, oldIndex = 0 } = evt
+
+      evt.stopImmediatePropagation()
+      evt.preventDefault()
+
+      dragging.value = false
 
       if (newIndex === oldIndex) return
 
@@ -247,7 +260,13 @@ watchEffect(() => {
       {{ $t('placeholder.noTables') }}
     </div>
 
-    <div v-else ref="menuRef" :key="`data-${keys.data || 0}`" class="nc-data-menu flex flex-col w-full !border-r-0 !bg-inherit">
+    <div
+      v-else
+      ref="menuRef"
+      :key="`data-${keys.data || 0}`"
+      :class="{ dragging }"
+      class="nc-data-menu flex flex-col w-full !border-r-0 bg-nc-bg-gray-sidebar"
+    >
       <template v-for="entity of allEntities" :key="entity.id">
         <DashboardTreeViewDashboardNode
           v-if="entity.type === ModelTypes.DASHBOARD"
@@ -285,6 +304,10 @@ watchEffect(() => {
   .ghost,
   .ghost > * {
     @apply !pointer-events-none;
+  }
+
+  .ghost {
+    @apply !bg-nc-bg-gray-medium;
   }
 
   &.dragging {

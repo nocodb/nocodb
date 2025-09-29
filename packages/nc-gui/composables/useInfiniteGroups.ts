@@ -8,9 +8,9 @@ import {
   UITypes,
   type ViewType,
 } from 'nocodb-sdk'
+import { useStorage } from '@vueuse/core'
 import { createGroupUniqueIdentifier, generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
 import type { CanvasGroup } from '#imports'
-
 const GROUP_CHUNK_SIZE = 100
 const MAX_GROUP_CACHE_SIZE = 100
 
@@ -42,7 +42,7 @@ export const useInfiniteGroups = (
   const isPublic = inject(IsPublicInj, ref(false))
   const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
-  const activeGroupKeys = ref<Array<string>>([])
+  const activeGroupKeys = useStorage<Array<string>>(`active-group-keys-${view.value?.id}`, [])
   const routeQuery = computed(() => router.currentRoute.value.query as Record<string, string>)
 
   const columnsById = computed(() => {

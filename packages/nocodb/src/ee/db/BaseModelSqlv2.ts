@@ -3274,6 +3274,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
     const auditUpdateObj = [];
     for (const rowId of rowIds) {
+      const prevData = typeof rowId === 'object' ? rowId : {};
+      const updateDiff = populateUpdatePayloadDiff({
+        keepUnderModified: true,
+        prev: prevData,
+        next: data,
+        exclude: extractExcludedColumnNames(this.model.columns),
+        excludeNull: false,
+        excludeBlanks: false,
+        keepNested: true,
+      }) as UpdatePayload;
+
       auditUpdateObj.push(
         await generateAuditV1Payload<DataBulkUpdateAllPayload>(
           AuditV1OperationTypes.DATA_BULK_ALL_UPDATE,
@@ -3285,13 +3296,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               row_id: this.extractPksValues(rowId, true),
             },
             details: {
-              data: removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
-              old_data: removeBlankPropsAndMask(rowId, [
-                'CreatedAt',
-                'UpdatedAt',
-              ]),
+              old_data: updateDiff.previous_state,
+              data: updateDiff.modifications,
               conditions: conditions,
-              column_meta: extractColsMetaForAudit(this.model.columns, data),
+              column_meta: extractColsMetaForAudit(
+                this.model.columns,
+                data,
+                prevData,
+              ),
             },
             req,
           },

@@ -19,19 +19,19 @@ const token = useVModel(props, 'token')
 const supportedDocs = [
   {
     title: 'Getting Started with MCP Server',
-    href: 'https://docs.nocodb.com/product-docs/mcp/',
+    href: 'https://nocodb.com/docs/product-docs/mcp',
   },
   {
     title: 'Claude Setup',
-    href: 'https://docs.nocodb.com/product-docs/mcp#claude',
+    href: 'https://nocodb.com/docs/product-docs/mcp#claude',
   },
   {
     title: 'Cursor Setup',
-    href: 'https://docs.nocodb.com/product-docs/mcp#cursor',
+    href: 'https://nocodb.com/docs/product-docs/mcp#cursor',
   },
   {
     title: 'Windsurf Setup',
-    href: 'https://docs.nocodb.com/product-docs/mcp#windsurf',
+    href: 'https://nocodb.com/docs/product-docs/mcp#windsurf',
   },
 ]
 

@@ -144,7 +144,7 @@ const code = computed(
 
                 <ol class="list-decimal pl-5">
                   <li>Open Cursor Settings (press Shift+Cmd+J)</li>
-                  <li>Select the "MCP" tab and click "Add MCP Server" .</li>
+                  <li>Select the "MCP" tab and click "Add Custom MCP" .</li>
                   <li>Add the JSON configuration that’s provided after creating a token.</li>
                 </ol>
 
@@ -171,8 +171,8 @@ const code = computed(
 
                 <ol class="list-decimal pl-5">
                   <li>Access Windsurf settings and Select Cascade Tab in the left sidebar</li>
-                  <li>Click on Add Server.</li>
-                  <li>Now click on Add Custom Server in the modal.</li>
+                  <li>Click on Manage MCP.</li>
+                  <li>Now click on View raw config.</li>
                   <li>Paste the JSON configuration that’s provided after creating a token in the opened file</li>
                 </ol>
 

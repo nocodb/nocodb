@@ -699,6 +699,7 @@
     "isNotNull": "ni null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Dostop omejen",
     "editTablePermissions": "Uredi dovoljenja tabele",
     "editFieldPermissions": "Uredi dovoljenja polja",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Dovoljen je le en žeton na uporabnika",
     "duplicateAttachment": "Datoteka z imenom {filename} je že priložena",
     "tableIdColon": "ID Tabele: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID SKRIPTE: {scriptId}",
     "dashboardIdColon": "ID NADZORNE PLOŠČE: {dashboardId}",
     "viewIdColon": "OGLED ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "za vlogo",
     "clickToCopy": "Kliknite za kopiranje",
     "clickToCopyTableID": "Kliknite za kopiranje ID-ja tabele",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Kliknite za kopiranje ID skripte",
     "clickToCopyDashboardID": "Kliknite za kopiranje ID-ja nadzorne plošče",
     "clickToCopyViewID": "Klikni za kopiranje ogleda ID",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Preslednica",
     "expandShiftSpace": "Razširi 'Shift + Preslednica'",
     "selectAllMappedFields": "Izberi vsa preslikana polja",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopiraj kodo napake",
     "paidUserBadgeTooltip": "Uporabnik ima v najmanj eni bazi vlogo urednika ali višjo.",
     "approachingLimit": "Blizu omejitve",
@@ -1876,9 +1880,7 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded",
-    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "Iskanje ikon",
@@ -2439,8 +2441,7 @@
       "invalidSearchQuery": "Neveljaven iskalni niz",
       "invalidSearchQueryForVisibleFields": "Neveljaven iskalni niz za vidna polja",
       "invalidSearchQueryForDisplayField": "Neveljaven iskalni niz za prikazno polje",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Projekt Metapodatki se je uspešno izvozil",

@@ -699,6 +699,7 @@
     "isNotNull": "تهی نیست"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "دسترسی محدود است",
     "editTablePermissions": "ویرایش دسترسی‌های جدول",
     "editFieldPermissions": "ویرایش دسترسی‌های فیلد",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "فقط یک توکن در هر کاربر مجاز است",
     "duplicateAttachment": "فایلی با نام {filename} قبلاً پیوست شده است",
     "tableIdColon": "TABLE ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "شناسه اسکریپت: {scriptId}",
     "dashboardIdColon": "شناسه داشبورد: {dashboardId}",
     "viewIdColon": "نمایش ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "برای نقش",
     "clickToCopy": "کلیک برای کپی",
     "clickToCopyTableID": "برای کپی کردن Table ID کلیک کنید",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "کلیک برای کپی شناسه اسکریپت",
     "clickToCopyDashboardID": "کلیک برای کپی کردن شناسه داشبورد",
     "clickToCopyViewID": "برای کپی کردن ID نمایش کلیک کنید",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "شیفت + فاصله",
     "expandShiftSpace": "باز کردن «شیفت + فاصله»",
     "selectAllMappedFields": "انتخاب همه فیلدهای نگاشت‌شده",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "کپی کد خطا",
     "paidUserBadgeTooltip": "کاربر در حداقل یک پایگاه دارای نقش ویرایشگر یا بالاتر است.",
     "approachingLimit": "نزدیک به حد مجاز",
@@ -1876,9 +1880,7 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded",
-    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "جستجو آیکون",
@@ -2439,8 +2441,7 @@
       "invalidSearchQuery": "پرس و جوی جستجوی نامعتبر",
       "invalidSearchQueryForVisibleFields": "پرس و جوی جستجوی نامعتبر برای فیلدهای قابل مشاهده",
       "invalidSearchQueryForDisplayField": "پرس و جوی جستجوی نامعتبر برای فیلد نمایشی",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "فراداده پروژه با موفقیت خارج شد",

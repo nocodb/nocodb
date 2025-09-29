@@ -1,11 +1,3 @@
-<script setup lang="ts">
-
-</script>
-
 <template>
-
+  <NcSpanHidden />
 </template>
-
-<style scoped lang="scss">
-
-</style>

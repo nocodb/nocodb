@@ -33,7 +33,7 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
     }
     case 'mcp': {
       payload.push({
-        title: t('title.oauthClients'),
+        title: t('title.mcpServer'),
         active: true,
       })
       break

@@ -124,7 +124,7 @@ onMounted(() => {
                   <div class="select-none">{{ $t('title.apiTokens') }}</div>
                 </div>
               </NcMenuItem>
-              <NcMenuItem
+              <!--              <NcMenuItem
                 key="tokens"
                 :class="{
                   active: $route.params.page === 'mcp',
@@ -137,7 +137,7 @@ onMounted(() => {
 
                   <div class="select-none">{{ $t('labels.modelContextProtocol') }}</div>
                 </div>
-              </NcMenuItem>
+              </NcMenuItem> -->
               <NcMenuItem
                 v-if="isSetupPageAllowed"
                 key="profile"

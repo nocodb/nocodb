@@ -699,6 +699,7 @@
     "isNotNull": "non è nullo"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Accesso ristretto",
     "editTablePermissions": "Modifica permessi tabella",
     "editFieldPermissions": "Modifica permessi campo",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "È consentito un solo token per utente",
     "duplicateAttachment": "Il file con il nome {filename} è già allegato",
     "tableIdColon": "ID TABELLA: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID SCRIPT: {scriptId}",
     "dashboardIdColon": "ID DASHBOARD: {dashboardId}",
     "viewIdColon": "ID VISTA: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "per il ruolo",
     "clickToCopy": "Clicca per copiare",
     "clickToCopyTableID": "Clicca per copiare l'ID della Tabella",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Clicca per copiare l'ID dello script",
     "clickToCopyDashboardID": "Clicca per copiare l'ID Dashboard",
     "clickToCopyViewID": "Clicca per copiare l'ID della vista",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Spazio",
     "expandShiftSpace": "Espandi 'Shift + Spazio'",
     "selectAllMappedFields": "Seleziona tutti i campi mappati",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Copia codice errore",
     "paidUserBadgeTooltip": "L'utente ha un ruolo di editor o superiore in almeno una base.",
     "approachingLimit": "Limite in avvicinamento",

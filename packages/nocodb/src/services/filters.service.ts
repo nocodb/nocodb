@@ -352,7 +352,20 @@ export class FiltersService {
         context.base_id,
         MetaTable.FILTER_EXP,
         {
-          condition: { fk_column_id: columnId },
+          xcCondition: {
+            _or: [
+              {
+                fk_column_id: {
+                  eq: columnId,
+                },
+              },
+              {
+                fk_value_col_id: {
+                  eq: columnId,
+                },
+              },
+            ],
+          },
         },
       );
 

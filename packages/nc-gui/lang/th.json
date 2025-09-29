@@ -699,6 +699,7 @@
     "isNotNull": "ไม่เป็นโมฆะ"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "จำกัดสิทธิ์เข้าถึง",
     "editTablePermissions": "แก้ไขสิทธิ์ตาราง",
     "editFieldPermissions": "แก้ไขสิทธิ์ฟิลด์",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "อนุญาตโทเค็นเพียงหนึ่งรายการต่อผู้ใช้เท่านั้น",
     "duplicateAttachment": "ไฟล์ชื่อ {filename} ได้แนบแล้ว",
     "tableIdColon": "TABLE ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "รหัสสคริปต์: {scriptId}",
     "dashboardIdColon": "DASHBOARD ID: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "สำหรับบทบาท",
     "clickToCopy": "คลิกเพื่อคัดลอก",
     "clickToCopyTableID": "คลิกเพื่อคัดลอก TABLE ID",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "คลิกเพื่อคัดลอกรหัสสคริปต์",
     "clickToCopyDashboardID": "คลิกเพื่อคัดลอก DASHBOARD ID",
     "clickToCopyViewID": "คลิกเพื่อคัดลอก VIEW ID",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "ขยาย 'Shift + Space'",
     "selectAllMappedFields": "เลือกทุกฟิลด์ที่จับคู่แล้ว",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "คัดลอกรหัสข้อผิดพลาด",
     "paidUserBadgeTooltip": "ผู้ใช้มีสิทธิ์ระดับ Editor หรือสูงกว่าอย่างน้อยหนึ่งฐาน",
     "approachingLimit": "ใกล้ถึงขีดจำกัด",

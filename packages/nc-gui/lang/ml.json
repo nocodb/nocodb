@@ -699,6 +699,7 @@
     "isNotNull": "നാള്‍"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "പ്രവേശനം നിയന്ത്രിച്ചിരിക്കുന്നു",
     "editTablePermissions": "ടേബിള്‍ അനുമതികൾ എഡിറ്റ് ചെയ്യുക",
     "editFieldPermissions": "ഫീൽഡ് അനുമതികൾ എഡിറ്റ് ചെയ്യുക",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "ഓരോ ഉപയോക്താവിനും ഒരു ടോക്കൺ മാത്രം അനുവദനീയമാണ്",
     "duplicateAttachment": "{filename} എന്ന പേരിലുള്ള ഫയൽ ഇതിനകം ചേർത്തിരിക്കുന്നു",
     "tableIdColon": "ടേബിൾ ഐഡി: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "സ്‌ക്രിപ്റ്റ് ഐഡി: {scriptId}",
     "dashboardIdColon": "ഡാഷ്ബോർഡ് ഐഡി: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "വേഷത്തിന്",
     "clickToCopy": "പകർത്താൻ ക്ലിക്ക് ചെയ്യുക",
     "clickToCopyTableID": "ടേബിൾ ഐഡി പകർപ്പെടുക്കുവാൻ ക്ലിക്ക് ചെയ്യുക",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "സ്‌ക്രിപ്റ്റ് ഐഡി പകർത്താൻ ക്ലിക്ക് ചെയ്യുക",
     "clickToCopyDashboardID": "ഡാഷ്ബോർഡ് ഐഡി കമാൻഡ് ചെയ്യാൻ ക്ലിക്ക് ചെയ്യുക",
     "clickToCopyViewID": "കാഴ്ച്ച ID പകർത്താൻ ക്ലിക്കൽ ചെയ്യുക",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "'Shift + Space' വിപുലപ്പെടുത്തുക",
     "selectAllMappedFields": "മാപ്പ് ചെയ്ത എല്ലാ ഫീല്‍ഡുകളും തിരഞ്ഞെടുക്കുക",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "പിശക് കോഡ് പകർത്തുക",
     "paidUserBadgeTooltip": "ഉപയോക്താവിന് കുറഞ്ഞത് ഒരു ബേസിലും എഡിറ്റർ അല്ലെങ്കിൽ അതിനു മുകളിലുള്ള റോളുണ്ട്.",
     "approachingLimit": "പരിധിയിലേക്ക് അടുത്തു",
@@ -1876,9 +1880,7 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded",
-    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "ചിഹ്നങ്ങൾ തിരയുക",
@@ -2439,8 +2441,7 @@
       "invalidSearchQuery": "അസാധുവായ തിരയൽ ക്വറി",
       "invalidSearchQueryForVisibleFields": "ദൃശ്യമാകുന്ന ഫീൽഡുകളിൽ അസാധുവായ തിരയൽ ക്വറി",
       "invalidSearchQueryForDisplayField": "പ്രദർശന ഫീൽഡിൽ അസാധുവായ തിരയൽ ക്വറി",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "അടിസ്ഥാന ഡാറ്റയുടെ മീറ്റാ വിവരങ്ങൾ വിജയകരമായി കയറ്റുമതി ചെയ്തു",

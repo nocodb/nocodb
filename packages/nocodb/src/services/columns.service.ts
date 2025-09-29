@@ -1971,16 +1971,15 @@ export class ColumnsService implements IColumnsService {
     // Handle filter transformation if this is a column type change
     if (column.uidt !== colBody.uidt) {
       try {
-        await this.filtersService.transformFiltersForColumnTypeChange(
-          context,
-          column.id,
-          colBody.uidt as UITypes,
-          column.uidt as UITypes,
+        await this.filtersService.transformFiltersForColumnTypeChange(context, {
+          columnId: column.id,
+          newColumnType: colBody.uidt as UITypes,
+          oldColumnType: column.uidt as UITypes,
           sqlUi,
-        );
+        });
       } catch (error) {
         // Log error but don't fail the column update
-        console.error(
+        this.logger.error(
           'Failed to transform filters for column type change:',
           error.message,
         );

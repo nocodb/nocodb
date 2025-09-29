@@ -155,4 +155,13 @@ export default class Local implements IStorageAdapterV2 {
   test(): Promise<boolean> {
     return Promise.resolve(false);
   }
+  getUploadedPath(filePath: string): { path?: string; url?: string } {
+    const usePath = filePath.startsWith('/')
+      ? filePath.replace(/$\/+/, '')
+      : filePath;
+
+    return {
+      path: path.join('download', usePath),
+    };
+  }
 }

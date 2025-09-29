@@ -92,4 +92,11 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
       throw error;
     }
   }
+
+  override getUploadedPath(path: string): { path?: string; url?: string } {
+    const usePath = path.startsWith('/') ? path.replace(/$\/+/, '') : path;
+    return {
+      url: `https://${this.input.bucket}.s3.${this.input.region}.amazonaws.com/${usePath}`,
+    };
+  }
 }

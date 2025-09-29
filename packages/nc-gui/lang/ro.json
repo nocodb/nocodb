@@ -699,6 +699,7 @@
     "isNotNull": "nu este nul"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Acces restricționat",
     "editTablePermissions": "Editează permisiunile tabelului",
     "editFieldPermissions": "Editează permisiunile câmpului",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Este permis un singur token per utilizator",
     "duplicateAttachment": "Fișierul cu numele {filename} este deja atașat",
     "tableIdColon": "ID TABEL: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID SCRIPT: {scriptId}",
     "dashboardIdColon": "ID TABLOU DE BORD: {dashboardId}",
     "viewIdColon": "VIZUALIZARE ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "pentru rol",
     "clickToCopy": "Fă clic pentru a copia",
     "clickToCopyTableID": "Dă clic pentru a copia ID-ul tabelului",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Fă clic pentru a copia ID-ul scriptului",
     "clickToCopyDashboardID": "Click pentru a copia ID-ul tabloului de bord",
     "clickToCopyViewID": "Click pentru a copia ID-ul Vederii",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Spațiu",
     "expandShiftSpace": "Extinde 'Shift + Spațiu'",
     "selectAllMappedFields": "Selectează toate câmpurile mapate",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Copiază codul de eroare",
     "paidUserBadgeTooltip": "Utilizatorul are rol de Editor sau superior în cel puțin o bază.",
     "approachingLimit": "Aproape de limită",
@@ -1876,9 +1880,7 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded",
-    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "Caută icoane",
@@ -2439,8 +2441,7 @@
       "invalidSearchQuery": "Interogare de căutare nevalidă",
       "invalidSearchQueryForVisibleFields": "Interogare de căutare nevalidă pentru câmpurile vizibile",
       "invalidSearchQueryForDisplayField": "Interogare de căutare nevalidă pentru câmpul de afișare",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Metadatele bazei au fost exportate cu succes",

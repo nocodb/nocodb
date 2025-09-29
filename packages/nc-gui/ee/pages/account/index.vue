@@ -125,6 +125,20 @@ onMounted(() => {
                 </div>
               </NcMenuItem>
               <NcMenuItem
+                key="tokens"
+                :class="{
+                  active: $route.params.page === 'mcp',
+                }"
+                class="item"
+                @click="navigateTo('/account/mcp')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="mcp" class="h-4 w-4 flex-none" />
+
+                  <div class="select-none">{{ $t('labels.modelContextProtocol') }}</div>
+                </div>
+              </NcMenuItem>
+              <NcMenuItem
                 v-if="isSetupPageAllowed"
                 key="profile"
                 class="item"

@@ -2,15 +2,11 @@ import {
   FormulaDataTypes,
   validateFormulaAndExtractTreeWithType,
 } from './formulaHelpers';
-import {
-  IGetMeta,
-  ILinkToAnotherRecordColumn,
-  ILookupColumn,
-} from './types/meta.type';
+import { UnifiedMetaType } from './types';
 import UITypes from './UITypes';
 const base_id = 'pIJkwfxdDwd';
 
-const getMeta: IGetMeta = async (_context, _param) => ({
+const getMeta: UnifiedMetaType.IGetModel = async (_context, _param) => ({
   base_id,
   columns: [],
   id: 'mWhcgaGWdKE',
@@ -482,7 +478,7 @@ describe('Formula parsing and type validation', () => {
             id: 'id1',
             title: 'column1',
             uidt: UITypes.LinkToAnotherRecord,
-            colOptions: <ILinkToAnotherRecordColumn>{
+            colOptions: <UnifiedMetaType.ILinkToAnotherRecordColumn>{
               fk_column_id: '',
               id: '',
               type: 'hm',
@@ -519,7 +515,7 @@ describe('Formula parsing and type validation', () => {
             id: 'id1',
             title: 'column1',
             uidt: UITypes.Lookup,
-            colOptions: <ILookupColumn>{
+            colOptions: <UnifiedMetaType.ILookupColumn>{
               fk_column_id: '',
               fk_relation_column_id: 'col_rel1',
               fk_lookup_column_id: 'col_lok1',
@@ -530,7 +526,7 @@ describe('Formula parsing and type validation', () => {
                   id: 'col_rel1',
                   uidt: UITypes.SingleLineText,
                   title: 'LOK1',
-                  colOptions: <ILinkToAnotherRecordColumn>{
+                  colOptions: <UnifiedMetaType.ILinkToAnotherRecordColumn>{
                     fk_column_id: '',
                     id: '',
                     type: 'hm',

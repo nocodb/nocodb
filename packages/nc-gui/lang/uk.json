@@ -1499,6 +1499,7 @@
     "removeMember": "Видалити учасника",
     "filterByThisField": "Фільтр за цим полем",
     "groupByThisField": "Групувати за цим полем",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Додати до обраного",
     "removeFromStarred": "Видалити з обраного",
     "runActions": "Запустити дії",
@@ -1869,7 +1870,13 @@
     "releasingPreviousFullscreenLock": "Зняття попереднього повноекранного блокування...",
     "youCantHideARequiredField": "Ви не можете приховати обов'язкове поле.",
     "youCantRemoveARequiredField": "Ви не можете видалити обов'язкове поле.",
-    "removeFromForm": "Видалити з форми"
+    "removeFromForm": "Видалити з форми",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "Пошук іконок",

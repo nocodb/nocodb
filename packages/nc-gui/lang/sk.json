@@ -1499,6 +1499,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "Filtrovať podľa tohto poľa",
     "groupByThisField": "Zoskupiť podľa tohto poľa",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Pridať k obľúbeným",
     "removeFromStarred": "Odstrániť z obľúbených",
     "runActions": "Spustiť akcie",
@@ -1869,7 +1870,13 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "Vyhľadať ikony",

@@ -1499,6 +1499,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "Filtrer par ce champ",
     "groupByThisField": "Grouper par ce champ",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Ajouter aux favoris",
     "removeFromStarred": "Retirer des favoris",
     "runActions": "Exécuter les actions",
@@ -1869,7 +1870,13 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "Rechercher des icônes",

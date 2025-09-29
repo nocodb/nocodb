@@ -9,7 +9,7 @@ import {
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
-import type { ColumnType, FormulaType, MetaType } from 'nocodb-sdk'
+import type { ColumnType, FormulaType, UnifiedMetaType } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -70,9 +70,9 @@ const validators = {
           if (!formula?.trim()) throw new Error('Required')
           try {
             await validateFormulaAndExtractTreeWithType({
-              column: column.value as MetaType.IColumnMeta,
+              column: column.value as UnifiedMetaType.IColumn,
               formula,
-              columns: supportedColumns.value as MetaType.IColumnMeta[],
+              columns: supportedColumns.value as UnifiedMetaType.IColumn[],
               clientOrSqlUi: sqlUi.value,
               getMeta: validateFormulaGetMeta(getMeta),
               trackPosition: true,
@@ -131,8 +131,8 @@ const debouncedValidate = useDebounceFn(async () => {
   try {
     const parsed = await validateFormulaAndExtractTreeWithType({
       formula: vModel.value.formula || vModel.value.formula_raw,
-      columns: (meta.value?.columns || []) as MetaType.IColumnMeta[],
-      column: (column.value ?? undefined) as MetaType.IColumnMeta,
+      columns: (meta.value?.columns || []) as UnifiedMetaType.IColumn[],
+      column: (column.value ?? undefined) as UnifiedMetaType.IColumn,
       clientOrSqlUi: source.value?.type as any,
       getMeta: validateFormulaGetMeta(getMeta),
       trackPosition: true,

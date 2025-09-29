@@ -1876,7 +1876,9 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded"
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "আইকন অনুসন্ধান করুন",
@@ -2437,7 +2439,8 @@
       "invalidSearchQuery": "অবৈধ সার্চ কোয়েরি",
       "invalidSearchQueryForVisibleFields": "দৃশ্যমান ফিল্ডের জন্য অবৈধ সার্চ কোয়েরি",
       "invalidSearchQueryForDisplayField": "ডিসপ্লে ফিল্ডের জন্য অবৈধ সার্চ কোয়েরি",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "প্রকল্প মেটাডেটা সফলভাবে রফতানি করেছে",

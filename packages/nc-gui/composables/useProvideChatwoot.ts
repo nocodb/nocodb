@@ -11,7 +11,7 @@ export const useProvideChatwoot = () => {
 
   const chatwootReady = ref(false)
 
-  const isChatWootEnabled = computed(() => !appInfo.value.disableSupportChat && (metaInfo.value?.userCount || 0) > 2)
+  const isChatWootEnabled = computed(() => !appInfo.value.disableSupportChat)
 
   const initUserCustomerAttributes = () => {
     if (!chatwootReady.value || ncIsPlaywright() || !user.value?.id || appInfo.value.disableSupportChat) {

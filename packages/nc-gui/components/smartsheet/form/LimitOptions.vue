@@ -208,6 +208,7 @@ const showOrHideAll = (showAll: boolean) => {
 
     <Draggable
       v-if="vModel.length"
+      v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 45 })"
       :model-value="vModel"
       item-key="id"
       handle=".nc-child-draggable-icon"

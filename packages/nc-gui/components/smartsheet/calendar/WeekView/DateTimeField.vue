@@ -916,7 +916,10 @@ const dropEvent = (event: DragEvent) => {
       record,
     }: {
       record: Row
-    } = JSON.parse(data)
+    } = parseProp(data)
+
+    // Not a valid record
+    if (!record?.rowMeta) return
 
     if (record.rowMeta.range?.is_readonly) return
 

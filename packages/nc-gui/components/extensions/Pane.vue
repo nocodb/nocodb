@@ -246,6 +246,7 @@ onMounted(() => {
         <template v-else>
           <Draggable
             :model-value="filteredExtensionList"
+            v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
             draggable=".nc-extension-item"
             item-key="id"
             handle=".nc-extension-drag-handler"

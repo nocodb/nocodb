@@ -49,13 +49,13 @@
     "std_dev": "Станд. откл.",
     "histogram": "Гистограмма",
     "range": "Диапазон",
-    "percent_empty": "Пустые (%)",
-    "percent_filled": "Заполненные (%)",
+    "percent_empty": "Пусто",
+    "percent_filled": "Заполнено",
     "percent_unique": "Уникальные (%)",
     "count_unique": "Уникальные (кол-во)",
     "count_empty": "Пустые (кол-во)",
     "count_filled": "Заполненные (кол-во)",
-    "earliest_date": "Мин. дата",
+    "earliest_date": "Минимальная дата",
     "latest_date": "Макс. дата",
     "date_range": "Диапазон дат",
     "month_range": "Диапазон месяцев",
@@ -443,7 +443,7 @@
     "overview": "Обзор",
     "baseType": "Тип базы",
     "beta": "Бета",
-    "selected": "selected"
+    "selected": "выбрано"
   },
   "objects": {
     "script": "Скрипт",
@@ -1488,7 +1488,8 @@
     "newScript": "Новый скрипт",
     "emptyScript": "Пустой скрипт",
     "enterFullscreen": "Перейти в полноэкранный режим",
-    "exitFullscreen": "Выйти из полноэкранного режима"
+    "exitFullscreen": "Выйти из полноэкранного режима",
+    "selectRole": "Выберите роль"
   },
   "activity": {
     "clickToResolve": "Нажмите, чтобы разрешить",
@@ -1498,6 +1499,7 @@
     "removeMember": "Удалить участника",
     "filterByThisField": "Фильтровать по этому полю",
     "groupByThisField": "Группировать по этому полю",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Добавить в избранное",
     "removeFromStarred": "Удалить из избранного",
     "runActions": "Запустить действия",
@@ -1868,7 +1870,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Поиск значков",
@@ -2429,7 +2439,8 @@
       "invalidSearchQuery": "Некорректный поисковый запрос",
       "invalidSearchQueryForVisibleFields": "Некорректный поисковый запрос для видимых полей",
       "invalidSearchQueryForDisplayField": "Некорректный поисковый запрос для отображаемого поля",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Метаданные проекта успешно экспортированы",

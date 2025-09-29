@@ -1488,7 +1488,8 @@
     "newScript": "Nova skripta",
     "emptyScript": "Prazna skripta",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Kliknite za rješavanje",
@@ -1498,6 +1499,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "Filtriraj prema ovom polju",
     "groupByThisField": "Grupiraj prema ovom polju",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Dodaj u označene",
     "removeFromStarred": "Ukloni iz označenih",
     "runActions": "Pokreni akcije",
@@ -1868,7 +1870,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Pretraži ikone",
@@ -2429,7 +2439,8 @@
       "invalidSearchQuery": "Nevažeći upit za pretragu",
       "invalidSearchQueryForVisibleFields": "Nevažeći upit za pretragu vidljivih polja",
       "invalidSearchQueryForDisplayField": "Nevažeći upit za pretragu prikaznog polja",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Projektni metapodaci su uspješno izvozili",

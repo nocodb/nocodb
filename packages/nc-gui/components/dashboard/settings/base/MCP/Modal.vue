@@ -18,20 +18,20 @@ const token = useVModel(props, 'token')
 
 const supportedDocs = [
   {
-    title: 'Getting with MCP Server',
-    href: 'https://docs.nocodb.com/automation/webhook/create-webhook/',
+    title: 'Getting Started with MCP Server',
+    href: 'https://nocodb.com/docs/product-docs/mcp',
   },
   {
-    title: 'Setting up MCP Server with Claude',
-    href: 'https://docs.nocodb.com/automation/webhook/webhook-overview',
+    title: 'Claude Setup',
+    href: 'https://nocodb.com/docs/product-docs/mcp#claude',
   },
   {
-    title: 'Setting up MCP Server with Cursor',
-    href: 'https://docs.nocodb.com/automation/webhook/create-webhook#webhook-with-custom-payload-',
+    title: 'Cursor Setup',
+    href: 'https://nocodb.com/docs/product-docs/mcp#cursor',
   },
   {
-    title: 'Setting up MCP Server with Windsurf',
-    href: 'https://docs.nocodb.com/automation/webhook/create-webhook#webhook-with-conditions',
+    title: 'Windsurf Setup',
+    href: 'https://nocodb.com/docs/product-docs/mcp#windsurf',
   },
 ]
 
@@ -97,7 +97,15 @@ const code = computed(
           <div class="text-nc-content-gray font-bold leading-6">
             {{ $t('labels.mcpSetup') }}
           </div>
-
+          <NcAlert type="info" class="mt-3 max-w-[640px] w-full mx-auto">
+            <template #message>
+              {{ $t('labels.mcpTokenVisibilityInfo') }}
+            </template>
+            <template #description>
+              {{ $t('labels.mcpTokenVisibilityInfoDescription') }} <br />
+              {{ $t('labels.mcpTokenVisibilityInfoDescription2') }}
+            </template>
+          </NcAlert>
           <NcTabs v-model:active-key="activeTab">
             <a-tab-pane key="claude" class="!h-full">
               <template #tab>
@@ -144,7 +152,7 @@ const code = computed(
 
                 <ol class="list-decimal pl-5">
                   <li>Open Cursor Settings (press Shift+Cmd+J)</li>
-                  <li>Select the "MCP" tab and click "Add MCP Server" .</li>
+                  <li>Select the "MCP" tab and click "Add Custom MCP" .</li>
                   <li>Add the JSON configuration that’s provided after creating a token.</li>
                 </ol>
 
@@ -171,8 +179,8 @@ const code = computed(
 
                 <ol class="list-decimal pl-5">
                   <li>Access Windsurf settings and Select Cascade Tab in the left sidebar</li>
-                  <li>Click on Add Server.</li>
-                  <li>Now click on Add Custom Server in the modal.</li>
+                  <li>Click on Manage MCP.</li>
+                  <li>Now click on View raw config.</li>
                   <li>Paste the JSON configuration that’s provided after creating a token in the opened file</li>
                 </ol>
 
@@ -185,16 +193,6 @@ const code = computed(
             </a-tab-pane>
           </NcTabs>
         </div>
-
-        <NcAlert type="info" class="mt-3 max-w-[640px] w-full mx-auto">
-          <template #message>
-            {{ $t('labels.mcpTokenVisibilityInfo') }}
-          </template>
-          <template #description>
-            {{ $t('labels.mcpTokenVisibilityInfoDescription') }} <br />
-            {{ $t('labels.mcpTokenVisibilityInfoDescription2') }}
-          </template>
-        </NcAlert>
       </div>
       <div class="h-full bg-gray-50 border-l-1 w-80 p-5 rounded-br-2xl border-gray-200">
         <div class="w-full flex flex-col gap-3">

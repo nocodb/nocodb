@@ -1488,7 +1488,8 @@
     "newScript": "新しいスクリプト",
     "emptyScript": "空のスクリプト",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "クリックして解決",
@@ -1498,6 +1499,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "このフィールドでフィルター",
     "groupByThisField": "このフィールドでグループ化",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "お気に入りに追加",
     "removeFromStarred": "スターから削除",
     "runActions": "アクションを実行",
@@ -1868,7 +1870,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "アイコンを検索",
@@ -2429,7 +2439,8 @@
       "invalidSearchQuery": "検索クエリが無効です",
       "invalidSearchQueryForVisibleFields": "表示されているフィールドの検索クエリが無効です",
       "invalidSearchQueryForDisplayField": "表示フィールドの検索クエリが無効です",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",

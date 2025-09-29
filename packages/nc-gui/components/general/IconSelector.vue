@@ -37,6 +37,8 @@ const imageCropperData = useVModel(props, 'imageCropperData', emits)
 
 const { t } = useI18n()
 
+const { isMobileMode } = useGlobal()
+
 const { getPossibleAttachmentSrc } = useAttachment()
 
 const isOpen = ref<boolean>(false)
@@ -47,7 +49,9 @@ const inputRef = ref<HTMLInputElement>()
 
 const searchQuery = ref<string>('')
 
-const activeTabLocal = ref<IconType>(props.defaultActiveTab)
+const activeTabLocal = ref<IconType>(
+  isMobileMode.value && props.defaultActiveTab === IconType.IMAGE ? IconType.ICON : props.defaultActiveTab,
+)
 
 const activeTab = computed({
   get: () => activeTabLocal.value,
@@ -230,11 +234,15 @@ const tabs = computed(() => {
       value: IconType.ICON,
       icon: 'ncPlaceholderIcon',
     },
-    {
-      title: 'Upload',
-      value: IconType.IMAGE,
-      icon: 'ncUpload',
-    },
+    ...(!isMobileMode.value
+      ? [
+          {
+            title: 'Upload',
+            value: IconType.IMAGE,
+            icon: 'ncUpload',
+          },
+        ]
+      : []),
     {
       title: 'Emoji',
       value: IconType.EMOJI,
@@ -267,7 +275,7 @@ watch(isOpen, (newValue) => {
     <NcDropdown
       v-bind="$attrs"
       v-model:visible="isOpen"
-      overlay-class-name="w-[432px]"
+      overlay-class-name="w-[calc(100%_-_16px)] md:w-[432px]"
       class="nc-icon-selector"
       @visible-change="onVisibilityChange"
     >
@@ -469,7 +477,7 @@ watch(isOpen, (newValue) => {
 }
 
 .nc-icon-selector-emoji-picker.emoji-mart {
-  @apply !w-107.5 !h-full !border-none bg-transparent rounded-t-none rounded-b-lg;
+  @apply !w-full md:!w-107.5 !h-full !border-none bg-transparent rounded-t-none rounded-b-lg;
 
   span.emoji-type-native {
     @apply cursor-pointer;

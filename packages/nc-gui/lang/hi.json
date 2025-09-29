@@ -1488,7 +1488,8 @@
     "newScript": "नई स्क्रिप्ट",
     "emptyScript": "खाली स्क्रिप्ट",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "समाधान के लिए क्लिक करें",
@@ -1498,6 +1499,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "इस फ़ील्ड द्वारा फ़िल्टर करें",
     "groupByThisField": "इस फ़ील्ड द्वारा समूहित करें",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "स्टारred में जोड़ें",
     "removeFromStarred": "स्टारred से हटाएँ",
     "runActions": "क्रियाएँ चलाएँ",
@@ -1868,7 +1870,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "आइकन खोजें",
@@ -2429,7 +2439,8 @@
       "invalidSearchQuery": "अमान्य खोज क्वेरी",
       "invalidSearchQueryForVisibleFields": "दृश्य फ़ील्ड्स के लिए अमान्य खोज क्वेरी",
       "invalidSearchQueryForDisplayField": "डिस्प्ले फ़ील्ड के लिए अमान्य खोज क्वेरी",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात किया गया",

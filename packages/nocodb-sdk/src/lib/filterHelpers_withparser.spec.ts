@@ -60,6 +60,25 @@ describe('filterHelpers_withparser_specific', () => {
         expect(result.filters.length).toBe(1);
         expect(result.filters[0].children?.[1].logical_op).toBe('or');
       });
+
+      it('will parse multiselect with ~or connection', () => {
+        const query = '(fMultiSelect,allof,jun)~or(fMultiSelect,allof,may)';
+
+        const columnAlias: Record<string, ColumnType> = {
+          fMultiSelect: {
+            id: 'field1',
+            column_name: 'fMultiSelect',
+            title: 'fMultiSelect',
+            uidt: UITypes.MultiSelect,
+          },
+        };
+
+        const result = extractFilterFromXwhere(query, columnAlias);
+        expect(result).toBeDefined();
+        expect(result.filters).toBeDefined();
+        expect(result.filters.length).toBe(1);
+        expect(result.filters[0].children?.[1].logical_op).toBe('or');
+      });
     });
   });
 });

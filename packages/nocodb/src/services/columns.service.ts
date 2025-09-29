@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { pluralize, singularize } from 'inflection';
 import {
   AppEvents,
@@ -83,6 +83,7 @@ import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
 import { ViewRowColorService } from '~/services/view-row-color.service';
+import { FiltersService } from '~/services/filters.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   convertAIRecordTypeToValue,
@@ -202,12 +203,15 @@ export interface CustomLinkProps {
 
 @Injectable()
 export class ColumnsService implements IColumnsService {
+  protected logger = new Logger(ColumnsService.name);
+
   constructor(
     protected readonly metaService: MetaService,
     protected readonly appHooksService: AppHooksService,
     @Inject(forwardRef(() => 'FormulaColumnTypeChanger'))
     protected readonly formulaColumnTypeChanger: IFormulaColumnTypeChanger,
     protected readonly viewRowColorService: ViewRowColorService,
+    protected readonly filtersService: FiltersService,
   ) {}
 
   async updateFormulas(
@@ -759,10 +763,10 @@ export class ColumnsService implements IColumnsService {
             }
 
             if (
-              (colBody as Column<LinkToAnotherRecordColumn>).colOptions?
-                .fk_target_view_id ||
-              (colBody as Column<LinkToAnotherRecordColumn>).colOptions?
-                .fk_target_view_id === null
+              (colBody as Column<LinkToAnotherRecordColumn>).colOptions
+                ?.fk_target_view_id ||
+              (colBody as Column<LinkToAnotherRecordColumn>).colOptions
+                ?.fk_target_view_id === null
             ) {
               await Column.updateTargetView(context, {
                 colId: param.columnId,
@@ -1087,7 +1091,7 @@ export class ColumnsService implements IColumnsService {
           for (const option of column.colOptions.options.filter(
             (oldOp) =>
               !colBody.colOptions.options.find(
-                (newOp) => newOp.id === oldOp.id,
+                (newOp) => newOp.id === oldOp.id || newOp.title === oldOp.title,
               ),
           )) {
             if (
@@ -1958,8 +1962,29 @@ export class ColumnsService implements IColumnsService {
       );
     }
 
+    const defaultViewId = table.views?.find((v) => v.is_default)?.id;
+
+    // Pass defaultViewId so that default view column order and visibility get added to the column meta
     // Get all the columns in the table and return
-    await table.getColumns(context);
+    await table.getColumns(context, undefined, defaultViewId);
+
+    // Handle filter transformation if this is a column type change
+    if (column.uidt !== colBody.uidt) {
+      try {
+        await this.filtersService.transformFiltersForColumnTypeChange(context, {
+          columnId: column.id,
+          newColumnType: colBody.uidt as UITypes,
+          oldColumnType: column.uidt as UITypes,
+          sqlUi,
+        });
+      } catch (error) {
+        // Log error but don't fail the column update
+        this.logger.error(
+          'Failed to transform filters for column type change:',
+          error.message,
+        );
+      }
+    }
 
     const updatedColumn = await Column.get(context, { colId: param.columnId });
 
@@ -2019,10 +2044,8 @@ export class ColumnsService implements IColumnsService {
 
     const column = await Column.get(context, { colId: param.columnId });
 
-    const table = await Model.get(context, column.fk_model_id);
-
-    // to reflect properly on realtime
-    await table.getColumns(context);
+    // to reflect column properly on realtime and getWithInfo we will get default view column order and visibility in col meta
+    const table = await Model.getWithInfo(context, { id: column.fk_model_id });
 
     if (oldPrimaryColumn) {
       this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
@@ -2782,7 +2805,10 @@ export class ColumnsService implements IColumnsService {
         break;
     }
 
-    await table.getColumns(context);
+    const defaultViewId = table.views?.find((v) => v.is_default)?.id;
+
+    // Pass defaultViewId so that default view column order and visibility get added to the column meta
+    await table.getColumns(context, undefined, defaultViewId);
 
     const newColumn = table.columns.find((c) => c.title === param.column.title);
 
@@ -3361,7 +3387,11 @@ export class ColumnsService implements IColumnsService {
         await Column.delete(context, param.columnId, ncMeta);
       }
     }
-    await table.getColumns(context, ncMeta);
+
+    const defaultViewId = table.views?.find((v) => v.is_default)?.id;
+
+    // Pass defaultViewId so that default view column order and visibility get added to the column meta
+    await table.getColumns(context, ncMeta, defaultViewId);
 
     const displayValueColumn = mapDefaultDisplayValue(table.columns);
     if (displayValueColumn) {

@@ -1488,7 +1488,8 @@
     "newScript": "Kịch bản mới",
     "emptyScript": "Kịch bản trống",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Nhấp để đánh dấu đã giải quyết",
@@ -1498,6 +1499,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "Lọc theo trường này",
     "groupByThisField": "Nhóm theo trường này",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Thêm vào mục ưa thích",
     "removeFromStarred": "Bỏ khỏi mục ưa thích",
     "runActions": "Chạy hành động",
@@ -1868,7 +1870,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Tìm kiếm biểu tượng",
@@ -2429,7 +2439,8 @@
       "invalidSearchQuery": "Truy vấn tìm kiếm không hợp lệ",
       "invalidSearchQueryForVisibleFields": "Truy vấn tìm kiếm không hợp lệ cho các trường hiển thị",
       "invalidSearchQueryForDisplayField": "Truy vấn tìm kiếm không hợp lệ cho trường hiển thị",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Metadata dự án xuất khẩu thành công",

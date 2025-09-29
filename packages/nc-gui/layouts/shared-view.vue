@@ -138,6 +138,8 @@ export default {
 
   .nc-shared-view-container {
     &:not(.disable-topbar) {
+      --topbar-height: 2.875rem; // 46px
+
       height: calc(100vh - (var(--topbar-height) - 3.6px));
 
       @supports (height: 100dvh) {

@@ -122,7 +122,10 @@ const dropEvent = (event: DragEvent) => {
       record: Row
       initialClickOffsetY: number
       initialClickOffsetX: number
-    } = JSON.parse(data)
+    } = parseProp(data)
+
+    // Not a valid record
+    if (!record?.rowMeta) return
 
     const fromCol = record.rowMeta.range?.fk_from_col
     const toCol = record.rowMeta.range?.fk_to_col

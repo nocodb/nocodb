@@ -402,14 +402,14 @@ const removeEmail = (index: number) => {
     </template>
     <div class="flex items-center justify-between gap-3 mt-2">
       <div class="flex w-full gap-4 flex-col">
-        <div class="flex justify-between gap-3 w-full">
+        <div class="flex flex-col gap-6 md:(flex-row gap-3 justify-between) w-full">
           <div
             ref="divRef"
             :class="{
-              'border-primary/100': isDivFocused,
+              'border-primary/100 shadow-selected': isDivFocused,
               'p-1': emailBadges?.length > 0,
             }"
-            class="flex items-center flex-wrap border-1 gap-1 w-full overflow-x-scroll nc-scrollbar-x-md min-h-10 rounded-lg !min-w-96"
+            class="flex items-center flex-wrap border-1 gap-1 w-full overflow-x-scroll nc-scrollbar-x-md min-h-10 rounded-lg md:!min-w-96"
             tabindex="0"
             @blur="isDivFocused = false"
             @click="focusOnDiv"
@@ -430,9 +430,10 @@ const removeEmail = (index: number) => {
               id="email"
               ref="focusRef"
               v-model="inviteData.email"
+              inputmode="email"
               :disabled="isLoading"
               :placeholder="$t('activity.enterEmail')"
-              class="flex-1 min-w-36 outline-none px-2"
+              class="flex-1 md:min-w-36 outline-none px-2"
               data-testid="email-input"
               @blur="isDivFocused = false"
               @keyup.enter="handleEnter"
@@ -440,16 +441,20 @@ const removeEmail = (index: number) => {
               @input="warningMsg = null"
             />
           </div>
-          <div class="flex items-center">
-            <RolesSelector
-              :description="false"
-              :on-role-change="onRoleChange"
-              :role="inviteData.roles"
-              :disabled-roles="disabledRoles"
-              :roles="allowedRoles"
-              class="!min-w-[152px] nc-invite-role-selector"
-              size="lg"
-            />
+          <div class="flex items-center justify-between gap-4">
+            <div class="md:hidden text-nc-content-gray text-bodyLg">{{ $t('labels.selectRole') }}:</div>
+            <div class="flex items-center">
+              <RolesSelector
+                :description="false"
+                :on-role-change="onRoleChange"
+                :role="inviteData.roles"
+                :disabled-roles="disabledRoles"
+                :roles="allowedRoles"
+                class="!min-w-[152px] nc-invite-role-selector"
+                size="lg"
+                placement="bottomRight"
+              />
+            </div>
           </div>
         </div>
         <!-- show warning if validation fails and warningMsg defined -->

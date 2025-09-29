@@ -1658,6 +1658,7 @@
                       "list": [
                         {
                           "id": "vwpwk5v4urgbu85g",
+                          "table_id": "mrc5unwjdov67vr",
                           "title": "Grid View",
                           "type": "grid",
                           "is_default": true,
@@ -1667,6 +1668,7 @@
                         },
                         {
                           "id": "vwfqa5qnmcaxt9yp",
+                          "table_id": "mrc5unwjdov67vr",
                           "title": "Grid View 2",
                           "type": "grid",
                           "lock_type": "collaborative",
@@ -1677,6 +1679,7 @@
                         },
                         {
                           "id": "vwx2x5ietbis99xg",
+                          "table_id": "mrc5unwjdov67vr",
                           "title": "Grid Group By",
                           "type": "grid",
                           "lock_type": "collaborative",
@@ -1686,6 +1689,7 @@
                         },
                         {
                           "id": "vwjctk8vdhbhxtd4",
+                          "table_id": "mrc5unwjdov67vr",
                           "title": "Gallery View",
                           "type": "gallery",
                           "lock_type": "collaborative",
@@ -1695,6 +1699,7 @@
                         },
                         {
                           "id": "vwnyxj93jfswla29",
+                          "table_id": "mrc5unwjdov67vr",
                           "title": "Kanban View",
                           "type": "kanban",
                           "lock_type": "collaborative",
@@ -1704,6 +1709,7 @@
                         },
                         {
                           "id": "vw7hwhx551tbr44z",
+                          "table_id": "mrc5unwjdov67vr",
                           "title": "Calendar View",
                           "type": "calendar",
                           "lock_type": "collaborative",
@@ -1783,6 +1789,7 @@
                   "Example 1": {
                     "value": {
                       "id": "vw5rakj00x28vdht",
+                      "table_id": "mrc5unwjdov67vr",
                       "title": "myFilterView2",
                       "type": "grid",
                       "lock_type": "collaborative",
@@ -2175,6 +2182,7 @@
                   "Example 1": {
                     "value": {
                       "id": "vw5rakj00x28vdht",
+                      "table_id": "mrc5unwjdov67vr",
                       "title": "myFilterView2",
                       "type": "grid",
                       "lock_type": "collaborative",
@@ -2292,6 +2300,7 @@
                   "Example 1": {
                     "value": {
                       "id": "vw5rakj00x28vdht",
+                      "table_id": "mrc5unwjdov67vr",
                       "title": "myFilterView2",
                       "type": "grid",
                       "lock_type": "collaborative",
@@ -3253,7 +3262,7 @@
             },
             "in": "query",
             "name": "where",
-            "description": "Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
+            "description": "Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, for further information on this please see [the documentation](https://nocodb.com/docs/product-docs/developer-resources/rest-apis#v3-where-query-parameter)"
           },
           {
             "schema": {
@@ -3958,7 +3967,7 @@
             },
             "in": "query",
             "name": "where",
-            "description": "Enables you to define specific conditions for filtering record count in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
+            "description": "Enables you to define specific conditions for filtering record count in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, for further information on this please see [the documentation](https://nocodb.com/docs/product-docs/developer-resources/rest-apis#v3-where-query-parameter)"
           },
           {
             "$ref": "#/components/parameters/xc-token"
@@ -4105,7 +4114,7 @@
             },
             "in": "query",
             "name": "where",
-            "description": "Enables you to define specific conditions for filtering linked records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter linked records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
+            "description": "Enables you to define specific conditions for filtering linked records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter linked records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nPlease remember to maintain the specified format, for further information on this please see [the documentation](https://nocodb.com/docs/product-docs/developer-resources/rest-apis#v3-where-query-parameter)"
           },
           {
             "schema": {
@@ -5709,6 +5718,10 @@
                   "type": "string",
                   "description": "Unique identifier for the view."
                 },
+                "table_id": {
+                  "type": "string",
+                  "description": "Id of table associated with the view."
+                },
                 "title": {
                   "type": "string",
                   "description": "Title of the view."
@@ -5827,7 +5840,8 @@
             "type": "string",
             "enum": [
               "collaborative",
-              "locked"
+              "locked",
+              "personal"
             ],
             "description": "Lock type of the view.\n\n Note: Assigning view as personal using API is not supported currently",
             "default": "collaborative"
@@ -6374,6 +6388,10 @@
               "id": {
                 "type": "string",
                 "description": "Unique identifier for the view."
+              },
+              "table_id": {
+                "type": "string",
+                "description": "Id of table associated with the view."
               },
               "is_default": {
                 "type": "boolean",

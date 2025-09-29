@@ -6,6 +6,7 @@ import {
   BaseUser,
   CustomUrl,
   DataReflection,
+  Extension,
   FileReference,
   MCPToken,
   Source,
@@ -511,6 +512,8 @@ export default class Base implements BaseType {
     });
 
     await FileReference.bulkDelete(context, { base_id: baseId }, ncMeta);
+
+    await Extension.deleteByBaseId(context, baseId, ncMeta);
 
     return await ncMeta.metaDelete(
       context.workspace_id,

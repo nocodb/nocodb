@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { ColumnType, TableType, UITypes } from 'nocodb-sdk'
 
 const reloadData = inject(ReloadViewDataHookInj)!
 
@@ -80,6 +80,12 @@ const displayColumn = computed(() => {
   const pvColumn = columns.value?.find((column) => column.pv)
   search.value.field = pvColumn?.id as string
   return pvColumn
+})
+
+const searchInputMode = computed(() => {
+  if (!displayColumn.value?.uidt) return
+
+  return getInputModeFromUITypes(displayColumn.value?.uidt as UITypes)
 })
 
 const displayColumnLabel = computed(() => {
@@ -237,14 +243,15 @@ watch(
             </template>
           </NcDropdown>
 
-          <form class="p-0" @submit.prevent>
+          <form class="p-0 flex-1 flex" @submit.prevent>
             <a-input
               v-if="search.query || showSearchBox"
               ref="globalSearchRef"
               v-model:value="search.query"
+              :inputmode="searchInputMode"
               name="globalSearchQuery"
               size="small"
-              class="!text-bodyDefaultSm !w-40 h-full nc-view-search-data !pl-0"
+              class="!text-bodyDefaultSm flex-1 md:!w-40 h-full nc-view-search-data !pl-0"
               :class="{
                 '!pr-7': !isValidSearchQuery,
               }"

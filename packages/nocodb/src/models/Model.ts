@@ -10,6 +10,7 @@ import dayjs from 'dayjs';
 import { Logger } from '@nestjs/common';
 import hash from 'object-hash';
 import type { NcRequest } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models/index';
@@ -549,12 +550,27 @@ export default class Model implements TableType {
     return null;
   }
 
+  /**
+   * Creates a BaseModelSqlv2 instance with optional transaction support.
+   *
+   * @param context - The NocoDB context
+   * @param args - Configuration arguments
+   * @param args.dbDriver - The base database driver
+   * @param args.transaction - Optional transaction instance to use for operations
+   * @param args.model - The model instance (optional, will be fetched if not provided)
+   * @param args.viewId - The view ID (optional)
+   * @param args.extractDefaultView - Whether to extract the default view if viewId not provided
+   * @param args.source - The data source (optional, will be fetched if not provided)
+   * @param ncMeta - The NocoDB metadata instance
+   * @returns A configured BaseModelSqlv2 instance
+   */
   public static async getBaseModelSQL(
     context: NcContext,
     args: {
       id?: string;
       viewId?: string;
       dbDriver: XKnex;
+      transaction?: XKnex | Knex.Transaction;
       model?: Model;
       extractDefaultView?: boolean;
       source?: Source;
@@ -581,6 +597,7 @@ export default class Model implements TableType {
     return new BaseModelSqlv2({
       context,
       dbDriver: args.dbDriver,
+      transaction: args.transaction,
       viewId: args.viewId,
       model,
       schema,

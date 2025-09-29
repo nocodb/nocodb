@@ -1488,7 +1488,8 @@
     "newScript": "Новий скрипт",
     "emptyScript": "Порожній скрипт",
     "enterFullscreen": "Повноекранний режим",
-    "exitFullscreen": "Вийти з повноекранного режиму"
+    "exitFullscreen": "Вийти з повноекранного режиму",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Натисніть для вирішення",
@@ -1498,6 +1499,7 @@
     "removeMember": "Видалити учасника",
     "filterByThisField": "Фільтр за цим полем",
     "groupByThisField": "Групувати за цим полем",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Додати до обраного",
     "removeFromStarred": "Видалити з обраного",
     "runActions": "Запустити дії",
@@ -1868,7 +1870,15 @@
     "releasingPreviousFullscreenLock": "Зняття попереднього повноекранного блокування...",
     "youCantHideARequiredField": "Ви не можете приховати обов'язкове поле.",
     "youCantRemoveARequiredField": "Ви не можете видалити обов'язкове поле.",
-    "removeFromForm": "Видалити з форми"
+    "removeFromForm": "Видалити з форми",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Пошук іконок",
@@ -2429,7 +2439,8 @@
       "invalidSearchQuery": "Некоректний пошуковий запит",
       "invalidSearchQueryForVisibleFields": "Некоректний пошуковий запит для видимих полів",
       "invalidSearchQueryForDisplayField": "Некоректний пошуковий запит для поля відображення",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Метадані проєкту експортовано",

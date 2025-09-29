@@ -94,6 +94,12 @@ watch(
      */
     if (route.value.params.viewId) return
 
+    // In mobile mode we only show collaborator tab
+    if (isMobileMode.value && newVal !== 'collaborator') {
+      projectPageTab.value = 'collaborator'
+      return
+    }
+
     if (newVal && newVal !== oldVal) {
       if (newVal === 'syncs') {
         projectPageTab.value = 'syncs'
@@ -178,11 +184,18 @@ onMounted(() => {
       class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-nc-border-gray-medium"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >
-      <div class="flex-1 flex flex-row items-center gap-x-3">
+      <div class="flex-1 max-w-full md:max-w-[calc(100%_-_100px)] flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
-        <div v-if="!showEmptySkeleton" class="flex flex-row items-center h-full gap-x-2 px-2">
-          <GeneralProjectIcon :color="parseProp(currentBase?.meta).iconColor" :type="currentBase?.type" />
-          <NcTooltip class="flex font-bold text-sm capitalize truncate max-w-150 text-nc-content-gray" show-on-truncate-only>
+        <div v-if="!showEmptySkeleton" class="flex flex-row items-center h-full gap-x-2 px-2 min-w-0">
+          <GeneralProjectIcon
+            :color="parseProp(currentBase?.meta).iconColor"
+            :type="currentBase?.type"
+            class="h-5 w-5 md:(h-4 w-4) flex-none"
+          />
+          <NcTooltip
+            class="flex font-bold text-base md:text-sm capitalize truncate max-w-150 text-nc-content-gray"
+            show-on-truncate-only
+          >
             <template #title> {{ currentBase?.title }}</template>
             <span class="truncate">
               {{ currentBase?.title }}
@@ -200,7 +213,7 @@ onMounted(() => {
           </NcBadge>
         </div>
       </div>
-      <LazyGeneralShareProject v-if="!showEmptySkeleton" />
+      <LazyGeneralShareProject v-if="!showEmptySkeleton && !isMobileMode" />
     </div>
     <div
       v-if="!showEmptySkeleton"
@@ -213,7 +226,11 @@ onMounted(() => {
         <template #leftExtra>
           <div class="w-3"></div>
         </template>
-        <a-tab-pane v-if="!isAdminPanel && isOverviewTabVisible" key="overview" class="nc-project-overview-tab-content">
+        <a-tab-pane
+          v-if="!isAdminPanel && isOverviewTabVisible && !isMobileMode"
+          key="overview"
+          class="nc-project-overview-tab-content"
+        >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__overview">
               <GeneralIcon icon="ncMultiCircle" />
@@ -245,7 +262,7 @@ onMounted(() => {
           <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
         <a-tab-pane
-          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && isTableAndFieldPermissionsEnabled"
+          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && isTableAndFieldPermissionsEnabled && !isMobileMode"
           key="permissions"
         >
           <template #tab>
@@ -256,7 +273,7 @@ onMounted(() => {
           </template>
           <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id" key="data-source">
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="data-source">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
               <GeneralIcon icon="ncDatabase" />
@@ -275,7 +292,10 @@ onMounted(() => {
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
-        <a-tab-pane v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('sourceCreate') && base.id" key="syncs">
+        <a-tab-pane
+          v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('sourceCreate') && base.id && !isMobileMode"
+          key="syncs"
+        >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__syncs">
               <GeneralIcon icon="ncZap" />
@@ -284,10 +304,7 @@ onMounted(() => {
           </template>
           <DashboardSettingsSyncs v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
-        <a-tab-pane
-          v-if="!isSharedBase && (isUIAllowed('baseMiscSettings') || isFeatureEnabled(FEATURE_FLAG.MODEL_CONTEXT_PROTOCOL))"
-          key="base-settings"
-        >
+        <a-tab-pane v-if="!isSharedBase && !isMobileMode" key="base-settings">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__base-settings">
               <GeneralIcon icon="ncSettings" />

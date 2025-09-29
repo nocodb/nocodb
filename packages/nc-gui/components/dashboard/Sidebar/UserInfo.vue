@@ -19,6 +19,8 @@ const isAuthTokenCopied = ref(false)
 
 const isLoggingOut = ref(false)
 
+const copyBtnRef = ref()
+
 const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
@@ -66,6 +68,12 @@ const openExperimentationMenu = () => {
 const accountUrl = computed(() => {
   return isUIAllowed('superAdminSetup') && !isEeUI ? '/account/setup' : '/account/profile'
 })
+
+const copyEmail = () => {
+  if (!user?.value?.email) return
+
+  copyBtnRef.value?.copyContent?.(user.value?.email)
+}
 </script>
 
 <template>
@@ -88,7 +96,7 @@ const accountUrl = computed(() => {
         placement="topLeft"
         :overlay-class-name="`!min-w-44 md:!min-w-64 ${isMiniSidebar ? '!left-1' : ''}`"
       >
-        <NcTooltip :disabled="!isMiniSidebar" placement="right" hide-on-click :arrow="false">
+        <NcTooltip :disabled="!isMiniSidebar || isMobileMode" placement="right" hide-on-click :arrow="false">
           <template #title>
             <div>
               <div v-if="name">{{ name }}</div>
@@ -264,6 +272,30 @@ const accountUrl = computed(() => {
                   </div>
                 </NcMenuItem>
               </nuxt-link>
+            </template>
+            <template v-else-if="isMiniSidebar">
+              <NcDivider />
+
+              <NcMenuItemLabel>
+                <span class="normal-case"> {{ $t('labels.accountEmailID') }} </span>
+              </NcMenuItemLabel>
+              <NcMenuItem inner-class="w-full" @click="copyEmail">
+                <GeneralIcon icon="ncMail" class="h-4 w-4" />
+                <NcTooltip show-on-truncate-only class="flex-1 truncate max-w-68">
+                  <template #title>
+                    {{ user?.email }}
+                  </template>
+                  {{ user?.email }}
+                </NcTooltip>
+
+                <GeneralCopyButton
+                  v-if="user?.email"
+                  ref="copyBtnRef"
+                  type="secondary"
+                  :content="user?.email"
+                  :show-toast="false"
+                />
+              </NcMenuItem>
             </template>
           </NcMenu>
         </template>

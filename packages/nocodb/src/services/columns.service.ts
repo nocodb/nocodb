@@ -1975,8 +1975,8 @@ export class ColumnsService implements IColumnsService {
           context,
           column.id,
           colBody.uidt as UITypes,
-            column.uidt as UITypes,
-            sqlUi
+          column.uidt as UITypes,
+          sqlUi,
         );
       } catch (error) {
         // Log error but don't fail the column update

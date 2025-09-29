@@ -1,6 +1,6 @@
 import RowColorCondition from 'src/models/RowColorCondition';
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, EventType, comparisonOpList } from 'nocodb-sdk';
+import { AppEvents, comparisonOpList, EventType } from 'nocodb-sdk';
 import type { FilterReqType, FilterType, UITypes, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
@@ -10,7 +10,7 @@ import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import NocoSocket from '~/socket/NocoSocket';
 import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
-import { Column, Filter, Hook, View } from '~/models';
+import { Filter, Hook, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 

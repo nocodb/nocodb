@@ -26,7 +26,6 @@ import {
   NcApiVersion,
   NcErrorType,
   ncIsNull,
-  ncIsNullOrUndefined,
   ncIsObject,
   ncIsUndefined,
   PermissionEntity,
@@ -6612,7 +6611,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           column.uidt,
         )
       ) {
-        if (!ncIsNullOrUndefined(data[column.column_name])) {
+        if (data[column.column_name]) {
           const userIds = [];
 
           if (

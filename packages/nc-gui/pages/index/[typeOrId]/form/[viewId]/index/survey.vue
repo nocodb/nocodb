@@ -474,7 +474,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                         data-testid="nc-survey-form__btn-submit-confirm"
                         @click="showSubmitConfirmModal"
                       >
-                        {{ $t('general.submit') }} {{ $t('objects.viewType.form') }}
+                        {{ $t('title.submitForm') }}
                       </NcButton>
                     </div>
 
@@ -551,7 +551,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
     <NcModal v-model:visible="dialogShow" size="small" class="nc-survery-form__confirmation_modal">
       <div>
-        <div class="text-lg font-bold">{{ $t('general.submit') }} {{ $t('objects.viewType.form') }}</div>
+        <div class="text-lg font-bold">{{ $t('title.submitForm') }}</div>
         <div class="mt-1 text-sm">{{ $t('title.surveyFormSubmitConfirmMsg') }}</div>
         <div class="flex justify-end mt-7 gap-x-2">
           <NcButton type="secondary" :size="isMobileMode ? 'medium' : 'small'" @click="dialogShow = false">{{

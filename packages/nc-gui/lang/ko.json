@@ -686,7 +686,16 @@
       "restrict": "제한",
       "setNull": "null 설정",
       "setDefault": "기본값 설정"
-    }
+    },
+    "Links": "링크",
+    "Geometry": "지오메트리",
+    "JSON": "JSON",
+    "User": "사용자",
+    "CreatedBy": "생성자",
+    "LastModifiedBy": "최종 수정자",
+    "QrCode": "QR 코드",
+    "SpecificDBType": "특정 DB 타입",
+    "LinkToAnotherRecord": "다른 레코드에 링크"
   },
   "filterOperation": {
     "isEqual": "같음",
@@ -699,6 +708,10 @@
     "isNotNull": "null 값이 아님"
   },
   "title": {
+    "fieldText": "텍스트 필드",
+    "newField": "새 필드",
+    "noAiIntegrationAvailableField": "AI 통합 사용 불가 필드", 
+    "submitForm": "양식 제출",
     "accessRestricted": "접근 제한됨",
     "editTablePermissions": "테이블 권한 편집",
     "editFieldPermissions": "필드 권한 편집",

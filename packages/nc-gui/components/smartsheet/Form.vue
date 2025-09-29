@@ -1656,7 +1656,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                   <!-- Field text -->
                   <div class="nc-form-field-text p-4 flex flex-col gap-4 border-b border-gray-200">
                     <div class="text-sm font-bold text-gray-800">
-                      {{ $t('objects.field') }} {{ $t('general.text').toLowerCase() }}
+                      {{ $t('title.fieldText') }}
                     </div>
 
                     <a-textarea

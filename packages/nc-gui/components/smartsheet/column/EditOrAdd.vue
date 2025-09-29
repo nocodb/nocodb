@@ -760,7 +760,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
           }"
         >
           <div class="flex items-center gap-3">
-            <div class="flex-1 text-base font-bold text-nc-content-gray">{{ $t('general.new') }} {{ $t('objects.field') }}</div>
+            <div class="flex-1 text-base font-bold text-nc-content-gray">{{ $t('title.newField') }}</div>
 
             <AiToggleButton
               v-if="isAiFeaturesEnabled"
@@ -774,7 +774,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
             <div v-if="!aiIntegrationAvailable" class="flex items-center gap-3 py-2">
               <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
               <div class="text-sm text-nc-content-gray-subtle flex-1">
-                {{ $t('title.noAiIntegrationAvailable') }} {{ $t('objects.field') }}
+                {{ $t('title.noAiIntegrationAvailableField') }}
               </div>
             </div>
 
@@ -1187,7 +1187,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                         'flex-1': !searchBasisInfoMap[opt.name],
                       }"
                     >
-                      {{ UITypesName[opt.name] }}
+                      {{ $t(`datatype.${opt.name}`) || UITypesName[opt.name as keyof typeof UITypesName] || opt.name }}
                     </div>
 
                     <div v-if="searchBasisInfoMap[opt.name]" class="flex-1 flex">

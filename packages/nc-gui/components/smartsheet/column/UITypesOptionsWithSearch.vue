@@ -155,7 +155,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
                 'flex-1': !searchBasisInfoMap[option.name],
               }"
             >
-              {{ UITypesName[option.name] }}
+              {{ $t(`datatype.${option.name}`) || UITypesName[option.name as keyof typeof UITypesName] || option.name }}
             </div>
             <div v-if="searchBasisInfoMap[option.name]" class="flex-1 flex">
               <NcTooltip :title="searchBasisInfoMap[option.name]" class="flex cursor-help">

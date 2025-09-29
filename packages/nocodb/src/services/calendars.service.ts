@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
+import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import type {
   CalendarUpdateReqType,
   UserType,

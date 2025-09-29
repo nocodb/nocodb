@@ -699,6 +699,7 @@
     "isNotNull": "មិនទទេ"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "ចូលដំណើរការត្រូវបានកំណត់",
     "editTablePermissions": "កែសម្រួលសិទ្ធិតារាង",
     "editFieldPermissions": "កែសម្រួលសិទ្ធិវាល",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "មានតែមួយtokenសម្រាប់អ្នកប្រើមួយដែលអនុញ្ញាត",
     "duplicateAttachment": "ឯកសារជាមួយឈ្មោះ {filename} បានភ្ជាប់រួចហើយ",
     "tableIdColon": "អត្តលេខតារាង: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "លេខសម្គាល់ស្គ្រីប: {scriptId}",
     "dashboardIdColon": "ID ផ្ទាំងគ្រប់គ្រង៖ {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "សម្រាប់តួការងារ",
     "clickToCopy": "ចុចដើម្បីចម្លង",
     "clickToCopyTableID": "ចុចដើម្បីចម្លងអត្តលេខតារាង",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "ចុចដើម្បីចម្លងលេខសម្គាល់ស្គ្រីប",
     "clickToCopyDashboardID": "ចុចដើម្បីចម្លង ID ផ្ទាំងគ្រប់គ្រង",
     "clickToCopyViewID": "ចុចដើម្បីចម្លងទិដ្ឋភាព ID",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "ពង្រីក 'Shift + Space'",
     "selectAllMappedFields": "ជ្រើសវាលបានផ្គូផ្គងទាំងអស់",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "ចម្លងកូដកំហុស",
     "paidUserBadgeTooltip": "អ្នកប្រើមានតួនាទី Editor ឬខ្ពស់ជាងនេះក្នុងយ៉ាងហោចណាស់មួយ Base។",
     "approachingLimit": "កំពុងជិតដល់កំណត់",

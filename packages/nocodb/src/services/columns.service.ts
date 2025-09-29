@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { pluralize, singularize } from 'inflection';
 import {
   AppEvents,
@@ -83,6 +83,7 @@ import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
 import { ViewRowColorService } from '~/services/view-row-color.service';
+import { FiltersService } from '~/services/filters.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   convertAIRecordTypeToValue,
@@ -202,12 +203,15 @@ export interface CustomLinkProps {
 
 @Injectable()
 export class ColumnsService implements IColumnsService {
+  protected logger = new Logger(ColumnsService.name);
+
   constructor(
     protected readonly metaService: MetaService,
     protected readonly appHooksService: AppHooksService,
     @Inject(forwardRef(() => 'FormulaColumnTypeChanger'))
     protected readonly formulaColumnTypeChanger: IFormulaColumnTypeChanger,
     protected readonly viewRowColorService: ViewRowColorService,
+    protected readonly filtersService: FiltersService,
   ) {}
 
   async updateFormulas(
@@ -1963,6 +1967,24 @@ export class ColumnsService implements IColumnsService {
     // Pass defaultViewId so that default view column order and visibility get added to the column meta
     // Get all the columns in the table and return
     await table.getColumns(context, undefined, defaultViewId);
+
+    // Handle filter transformation if this is a column type change
+    if (column.uidt !== colBody.uidt) {
+      try {
+        await this.filtersService.transformFiltersForColumnTypeChange(context, {
+          columnId: column.id,
+          newColumnType: colBody.uidt as UITypes,
+          oldColumnType: column.uidt as UITypes,
+          sqlUi,
+        });
+      } catch (error) {
+        // Log error but don't fail the column update
+        this.logger.error(
+          'Failed to transform filters for column type change:',
+          error.message,
+        );
+      }
+    }
 
     const updatedColumn = await Column.get(context, { colId: param.columnId });
 

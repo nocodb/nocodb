@@ -9,13 +9,21 @@ const hasPermissionForSnapshots = computed(() => isEeUI && isUIAllowed('baseMisc
 
 const hasPermissionForMigrate = computed(() => !isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
 
+const hasPermissionForVisibility = computed(() => isUIAllowed('baseMiscSettings'))
+
 const router = useRouter()
 
 const allTabs = ['baseType', 'snapshots', 'visibility', 'mcp', 'migrate']
 
-const activeMenu = ref(
-  hasPermissionForBaseAccess.value ? 'baseType' : hasPermissionForSnapshots.value ? 'snapshots' : 'visibility',
-)
+const getDefaultTab = () => {
+  if (hasPermissionForBaseAccess.value) return 'baseType'
+  if (hasPermissionForSnapshots.value) return 'snapshots'
+  if (hasPermissionForVisibility.value) return 'visibility'
+  if (hasPermissionForMigrate.value) return 'migrate'
+  return 'mcp'
+}
+
+const activeMenu = ref('')
 
 const selectMenu = (option: string, updateQuery = true) => {
   if (!hasPermissionForSnapshots.value && option === 'snapshots') {
@@ -30,7 +38,7 @@ const selectMenu = (option: string, updateQuery = true) => {
     return
   }
 
-  if (!hasPermissionForMCP.value && option === 'mcp') {
+  if (!hasPermissionForVisibility.value && option === 'visibility') {
     return
   }
 
@@ -47,9 +55,12 @@ const selectMenu = (option: string, updateQuery = true) => {
 
 onMounted(() => {
   const query = router.currentRoute.value.query
+  const defaultTab = getDefaultTab()
 
   if (query && query.tab && allTabs.includes(query.tab as string)) {
     selectMenu(query.tab as string)
+  } else {
+    selectMenu(defaultTab, true)
   }
 })
 

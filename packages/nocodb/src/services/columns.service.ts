@@ -83,6 +83,7 @@ import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
 import { ViewRowColorService } from '~/services/view-row-color.service';
+import { FiltersService } from '~/services/filters.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   convertAIRecordTypeToValue,
@@ -208,6 +209,7 @@ export class ColumnsService implements IColumnsService {
     @Inject(forwardRef(() => 'FormulaColumnTypeChanger'))
     protected readonly formulaColumnTypeChanger: IFormulaColumnTypeChanger,
     protected readonly viewRowColorService: ViewRowColorService,
+    protected readonly filtersService: FiltersService,
   ) {}
 
   async updateFormulas(
@@ -1963,6 +1965,21 @@ export class ColumnsService implements IColumnsService {
     // Pass defaultViewId so that default view column order and visibility get added to the column meta
     // Get all the columns in the table and return
     await table.getColumns(context, undefined, defaultViewId);
+
+    // Handle filter transformation if this is a column type change
+    if (column.uidt !== colBody.uidt) {
+      try {
+        await this.filtersService.transformFiltersForColumnTypeChange(
+          context,
+          column.id,
+          column.uidt as UITypes,
+          colBody.uidt as UITypes,
+        );
+      } catch (error) {
+        // Log error but don't fail the column update
+        console.error('Failed to transform filters for column type change:', error);
+      }
+    }
 
     const updatedColumn = await Column.get(context, { colId: param.columnId });
 

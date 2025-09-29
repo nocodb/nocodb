@@ -699,6 +699,7 @@
     "isNotNull": "null ಅಲ್ಲ"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "ಪ್ರವೇಶ ನಿರ್ಭಂಧಿಸಲಾಗಿದೆ",
     "editTablePermissions": "ಟೇಬಲ್ ಅನುಮತಿಗಳನ್ನು ಸಂಪಾದಿಸಿ",
     "editFieldPermissions": "ಕ್ಷೇತ್ರ ಅನುಮತಿಗಳನ್ನು ಸಂಪಾದಿಸಿ",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "ಪ್ರತಿ ಬಳಕೆದಾರನಿಗೆ ಒಂದೇ ಒಂದು ಟೋಕನ್ ಅನುಮತಿಸಲಾಗಿದೆ",
     "duplicateAttachment": "ಹೆಸರಿನ {filename} ಒಟ್ಟಿ ಫೈಲ್ ಈಗಾಗಲೇ ಲಗತ್ತಿಸಲಾಗಿದೆ",
     "tableIdColon": "ಕೋಷ್ಟಕ ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ಸ್ಕ್ರಿಪ್ಟ್ ID: {scriptId}",
     "dashboardIdColon": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಐಡಿ: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "ಭೂಮಿಕೆಯವರಿಗೆ",
     "clickToCopy": "ಪ್ರತಿಕರಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "clickToCopyTableID": "ಕೋಷ್ಟಕ ID ನಕಲಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "ಸ್ಕ್ರಿಪ್ಟ್ ID ಅನ್ನು ಪ್ರತಿಕರಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "clickToCopyDashboardID": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಐಡಿಯನ್ನು ನಕಲಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "clickToCopyViewID": "ವೀಕ್ಷಣೆ ID ನಕಲು ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "'Shift + Space' ವಿಸ್ತರಿಸಿ",
     "selectAllMappedFields": "ನಕ್ಷೆ ಮಾಡಿದ ಎಲ್ಲಾ ಫೀಲ್ಡ್‌ಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "ದೋಷ ಕೋಡ್ ಅನ್ನು ಪ್ರತಿಕರಿಸಿ",
     "paidUserBadgeTooltip": "ಬಳಕೆದಾರ ಕನಿಷ್ಠ ಒಂದು ಬೇಸ್\r\u000bನಲ್ಲಿ ಎಡಿಟರ್ ಅಥವಾ ಅದಕ್ಕಿಂತ ಮೇಲಿನ ಪಾತ್ರ ಹೊಂದಿದ್ದಾರೆ.",
     "approachingLimit": "ಮಿತಿ ಸಮೀಪಿಸುತ್ತಿದೆ",

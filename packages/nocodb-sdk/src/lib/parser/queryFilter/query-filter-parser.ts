@@ -9,11 +9,8 @@ import { CommonCstParser } from '../common-cst-parser';
 import { parseCst } from './query-filter-cst-parser';
 
 export class QueryFilterParser extends CommonCstParser {
-  parenDepth: number = 0;
-
   constructor() {
     super(QUERY_FILTER_TOKENS);
-    this.parenDepth = 0;
     this.initializeRule();
 
     // very important to call this after all the rules have been defined.
@@ -46,17 +43,11 @@ export class QueryFilterParser extends CommonCstParser {
     });
     $.RULE('paren_clause', () => {
       $.CONSUME(COMMON_TOKEN.PAREN_START);
-      $.ACTION(() => {
-        $.parenDepth++;
-      });
       $.OR([
         { ALT: () => $.SUBRULE($['multi_clause'], { LABEL: 'clause' }) },
         { ALT: () => $.SUBRULE($['call_expression'], { LABEL: 'clause' }) },
       ]);
       $.CONSUME(COMMON_TOKEN.PAREN_END);
-      $.ACTION(() => {
-        $.parenDepth--;
-      });
     });
     $.RULE('call_expression', () => {
       $.SUBRULE($['VARIABLE']);
@@ -93,22 +84,6 @@ export class QueryFilterParser extends CommonCstParser {
     const cst = parser.parse();
 
     const parseErrors = [...parser.errors];
-
-    if (parser.parenDepth !== 0) {
-      parseErrors.push({
-        name:
-          parser.parenDepth > 0
-            ? 'Unexpected opening parenthesis'
-            : 'Unexpected closing parenthesis',
-        message:
-          parser.parenDepth > 0
-            ? 'Unexpected opening parenthesis'
-            : 'Unexpected closing parenthesis',
-        token: null,
-        resyncedTokens: [],
-        context: null,
-      });
-    }
 
     let parsedCst = undefined;
 

@@ -699,6 +699,7 @@
     "isNotNull": "शून्य छैन"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "पहुँच प्रतिबन्धित",
     "editTablePermissions": "तालिका अनुमति सम्पादन गर्नुहोस्",
     "editFieldPermissions": "फिल्ड अनुमति सम्पादन गर्नुहोस्",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "प्रति प्रयोगकर्ता केवल एक टोकन अनुमति छ",
     "duplicateAttachment": "नाम {filename} भएको फाइल पहिले नै संलग्न छ",
     "tableIdColon": "TABLE ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "स्क्रिप्ट ID: {scriptId}",
     "dashboardIdColon": "ड्यासबोर्ड ID: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "भूमिकाको लागि",
     "clickToCopy": "कॉपी गर्न क्लिक गर्नुहोस्",
     "clickToCopyTableID": "टेबल ID कपी गर्न क्लिक गर्नुहोस्",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "स्क्रिप्ट ID कॉपी गर्न क्लिक गर्नुहोस्",
     "clickToCopyDashboardID": "ड्यासबोर्ड ID कपी गर्न थिच्नुहोस्",
     "clickToCopyViewID": "View ID प्रतिलिपि गर्न क्लिक गर्नुहोस्",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "'Shift + Space' विस्तार गर्नुहोस्",
     "selectAllMappedFields": "सिक्म गरिएको सबै फील्ड चयन गर्नुहोस्",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "त्रुटि कोड प्रतिलिपि गर्नुहोस्",
     "paidUserBadgeTooltip": "प्रयोगकर्ताको कम्तिमा एउटा बेसमा एडिटर वा उच्च भूमिका छ।",
     "approachingLimit": "सीमिततामा नजिकिँदै",

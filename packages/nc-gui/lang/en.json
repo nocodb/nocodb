@@ -699,6 +699,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Access Restricted",
     "editTablePermissions": "Edit table permissions",
     "editFieldPermissions": "Edit field permissions",

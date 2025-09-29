@@ -227,9 +227,8 @@ async function extractColumnIdentifierType({
       res.referencedColumn = {
         id: lookupColumnIdentifierType?.referencedColumn?.id,
         // if array, we present it as lookup column
-        uidt: res.isDataArray
-          ? UITypes.Lookup
-          : lookupColumnIdentifierType?.referencedColumn?.uidt,
+        uidt: lookupColumnIdentifierType?.referencedColumn?.uidt,
+        // TODO: add referencedUidt = lookup
       };
 
       break;
@@ -270,9 +269,8 @@ async function extractColumnIdentifierType({
         ['hm', 'mm'].includes(colOptions.type);
       res.referencedColumn = {
         id: relatedColumnIdentifierType?.referencedColumn?.id,
-        uidt: res.isDataArray
-          ? UITypes.LinkToAnotherRecord
-          : relatedColumnIdentifierType?.referencedColumn?.uidt,
+        uidt: relatedColumnIdentifierType?.referencedColumn?.uidt,
+        // TODO: add referencedUidt = ltar
       };
       break;
     }

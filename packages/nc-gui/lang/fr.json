@@ -699,6 +699,7 @@
     "isNotNull": "est non null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Acc\u0000e8s restreint",
     "editTablePermissions": "Modifier les permissions de la table",
     "editFieldPermissions": "Modifier les permissions du champ",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Un seul jeton par utilisateur est autorisé",
     "duplicateAttachment": "Un fichier avec le nom {filename} est déjà attaché",
     "tableIdColon": "TABLE ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID DE SCRIPT : {scriptId}",
     "dashboardIdColon": "ID TABLEAU DE BORD\u0000a0: {dashboardId}",
     "viewIdColon": "ID DE VUE : {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "pour le rôle",
     "clickToCopy": "Cliquer pour copier",
     "clickToCopyTableID": "Cliquer pour copier l'ID de la table",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Cliquer pour copier l'ID du script",
     "clickToCopyDashboardID": "Cliquer pour copier l'ID du tableau de bord",
     "clickToCopyViewID": "Cliquer pour copier l'ID de la vue",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Maj + Espace",
     "expandShiftSpace": "\"Maj + Espace\" pour développer",
     "selectAllMappedFields": "Sélectionner tous les champs mappés",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Copier le code d'erreur",
     "paidUserBadgeTooltip": "L'utilisateur possède un rôle Éditeur ou supérieur dans au moins une base.",
     "approachingLimit": "Limite approchée",
@@ -1876,9 +1880,7 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded",
-    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "Rechercher des icônes",
@@ -2439,8 +2441,7 @@
       "invalidSearchQuery": "Requ\u0000eate de recherche invalide",
       "invalidSearchQueryForVisibleFields": "Requ\u0000eate de recherche invalide pour les champs visibles",
       "invalidSearchQueryForDisplayField": "Requ\u0000eate de recherche invalide pour le champ d'affichage",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Les métadonnées de projet sont exportées avec succès",

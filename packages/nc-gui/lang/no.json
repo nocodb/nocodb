@@ -699,6 +699,7 @@
     "isNotNull": "er ikke null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Tilgang begrenset",
     "editTablePermissions": "Rediger tabellrettigheter",
     "editFieldPermissions": "Rediger feltrettigheter",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Bare én token per bruker er tillatt",
     "duplicateAttachment": "Fil med navn {filename} allerede vedlagt",
     "tableIdColon": "TABELL ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SCRIPT-ID: {scriptId}",
     "dashboardIdColon": "DASHBORD-ID: {dashboardId}",
     "viewIdColon": "VISNINGS-ID: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "for rolle",
     "clickToCopy": "Klikk for å kopiere",
     "clickToCopyTableID": "Klikk for å kopiere tabell ID",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Klikk for å kopiere Skript-ID",
     "clickToCopyDashboardID": "Klikk for å kopiere dashbord-ID",
     "clickToCopyViewID": "Klikk for å kopiere visnings-ID",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Mellomrom",
     "expandShiftSpace": "Utvid 'Shift + Space'",
     "selectAllMappedFields": "Velg alle tilordnede felt",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopier feilkode",
     "paidUserBadgeTooltip": "Brukeren har redaktør- eller høyere rolle i minst én base.",
     "approachingLimit": "Nærmer seg grensen",
@@ -1876,9 +1880,7 @@
     "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
-    "groupByLimitExceeded": "Group by limit exceeded",
-    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
+    "groupByLimitExceeded": "Group by limit exceeded"
   },
   "placeholder": {
     "searchIcons": "Søk ikoner",
@@ -2439,8 +2441,7 @@
       "invalidSearchQuery": "Ugyldig søkeforespørsel",
       "invalidSearchQueryForVisibleFields": "Ugyldig søkeforespørsel for synlige felt",
       "invalidSearchQueryForDisplayField": "Ugyldig søkeforespørsel for visningsfelt",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
     },
     "toast": {
       "exportMetadata": "Prosjektmetadata eksporteres vellykket",

@@ -57,17 +57,15 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
 
     try {
       if (activePlugin.value) {
-        if (!import.meta.env.VITE_SKIP_PLUGIN_TEST_ON_SAVE) {
-          const testRes = await $api.plugin.test({
-            input: JSON.stringify(activePluginFormData.value),
-            title: activePlugin.value.title,
-            category: activePlugin.value.category,
-          } as PluginTestReqType)
+        const testRes = await $api.plugin.test({
+          input: JSON.stringify(activePluginFormData.value),
+          title: activePlugin.value.title,
+          category: activePlugin.value.category,
+        } as PluginTestReqType)
 
-          if (!testRes) {
-            message.error(t('msg.info.invalidCredentials'))
-            return
-          }
+        if (!testRes) {
+          message.error(t('msg.info.invalidCredentials'))
+          return
         }
       }
 

@@ -23,6 +23,7 @@ const {
   eventBus,
   filtersFromUrlParams,
   whereQueryFromUrl,
+  filtersFromUrlParamsReadableErrors,
 } = useSmartsheetStoreOrThrow()
 
 const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds } = useColumnFilteredOrSorted()
@@ -259,7 +260,13 @@ watch(
                 class="px-2 transition-margin duration-500"
                 :class="{ 'mb-2': queryFilterOpen }"
               >
-                <NcAlert type="error" message="Error" :description="$t('msg.urlFilterError')" />
+                <NcAlert
+                  type="error"
+                  message="Error"
+                  :description="$t('msg.urlFilterError')"
+                  :copy-text="filtersFromUrlParamsReadableErrors"
+                  :copy-btn-tooltip="$t('tooltip.copyErrorMessage')"
+                />
               </div>
             </div>
           </div>

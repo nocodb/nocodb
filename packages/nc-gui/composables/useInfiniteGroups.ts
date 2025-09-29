@@ -8,9 +8,10 @@ import {
   UITypes,
   type ViewType,
 } from 'nocodb-sdk'
-import { useStorage } from '@vueuse/core'
 import { createGroupUniqueIdentifier, generateGroupPath } from '../components/smartsheet/grid/canvas/utils/groupby'
 import type { CanvasGroup } from '#imports'
+import { groupKeysManager } from '#imports'
+
 const GROUP_CHUNK_SIZE = 100
 const MAX_GROUP_CACHE_SIZE = 100
 
@@ -42,14 +43,7 @@ export const useInfiniteGroups = (
   const isPublic = inject(IsPublicInj, ref(false))
   const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
-  const activeGroupKeys = useStorage<Record<string, Array<string>>>('active-group-keys', {})
-
   const routeQuery = computed(() => router.currentRoute.value.query as Record<string, string>)
-
-  const currentViewGroupKeys = computed(() => {
-    if (!view.value?.id) return []
-    return activeGroupKeys.value[view.value.id] || []
-  })
 
   const columnsById = computed(() => {
     if (!meta.value?.columns?.length) return {}
@@ -257,7 +251,7 @@ export const useInfiniteGroups = (
 
         const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
 
-        group.isExpanded = currentViewGroupKeys.value.includes(nestedKey) || isExpanded
+        group.isExpanded = groupKeysManager.hasKey(view.value.id!, nestedKey) || isExpanded
 
         // Create useInfiniteData for leaf groups
         if (level === groupByColumns.value.length - 1) {
@@ -647,24 +641,8 @@ export const useInfiniteGroups = (
     group.isExpanded = !group.isExpanded
     const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
 
-    if (group.isExpanded) {
-      if (!view.value?.id) return
-      if (!activeGroupKeys.value[view.value.id]) {
-        activeGroupKeys.value[view.value.id] = []
-      }
-      if (!activeGroupKeys.value[view.value.id].includes(nestedKey)) {
-        activeGroupKeys.value[view.value.id].push(nestedKey)
-      }
-    } else {
-      if (!view.value?.id) return
-      const viewKeys = activeGroupKeys.value[view.value.id]
-      if (viewKeys) {
-        const index = viewKeys.indexOf(nestedKey)
-        if (index !== -1) {
-          viewKeys.splice(index, 1)
-        }
-      }
-    }
+    if (!view.value?.id) return
+    groupKeysManager.toggleKey(view.value.id, nestedKey, group.isExpanded)
   }
 
   const toggleExpandAll = async (path: number[], expand: boolean) => {
@@ -678,7 +656,6 @@ export const useInfiniteGroups = (
     } else {
       let currentGroups = cachedGroups.value
 
-      // Navigate to the parent level (all path elements except the last one)
       for (let i = 0; i < path.length - 1; i++) {
         const group = currentGroups.get(path[i])
         if (!group || !group.groups) return
@@ -688,29 +665,12 @@ export const useInfiniteGroups = (
       targetGroups = currentGroups
     }
 
+    if (!view.value?.id) return
+
     targetGroups.forEach((group) => {
       const nestedKey = group.nestedIn.map((n) => `${n.key}-${n.column_name}`).join('_') || 'default'
-
       group.isExpanded = expand
-
-      if (!view.value?.id) return
-
-      if (expand) {
-        if (!activeGroupKeys.value[view.value.id]) {
-          activeGroupKeys.value[view.value.id] = []
-        }
-        if (!activeGroupKeys.value[view.value.id].includes(nestedKey)) {
-          activeGroupKeys.value[view.value.id].push(nestedKey)
-        }
-      } else {
-        const viewKeys = activeGroupKeys.value[view.value.id]
-        if (viewKeys) {
-          const keyIndex = viewKeys.indexOf(nestedKey)
-          if (keyIndex !== -1) {
-            viewKeys.splice(keyIndex, 1)
-          }
-        }
-      }
+      groupKeysManager.toggleKey(view.value.id!, nestedKey, expand)
     })
 
     callbacks?.syncVisibleData()

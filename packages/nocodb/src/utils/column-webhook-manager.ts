@@ -134,16 +134,44 @@ export class ColumnWebhookManager {
   async populateNewColumns() {
     return this;
   }
-  async addOldColumnById(_columnId: string, _action?: WebhookActions) {
+  async addOldColumnById(_param: {
+    columnId: string;
+    action?: WebhookActions;
+    context?: {
+      workspace_id: string;
+      base_id: string;
+    };
+  }) {
     return this;
   }
-  async addOldColumn(_column: any, _action?: WebhookActions) {
+  async addOldColumn(_param: {
+    column: any;
+    action?: WebhookActions;
+    context?: {
+      workspace_id: string;
+      base_id: string;
+    };
+  }) {
     return this;
   }
-  async addNewColumnById(_columnId: string, _action?: WebhookActions) {
+  async addNewColumnById(_param: {
+    columnId: string;
+    action?: WebhookActions;
+    context?: {
+      workspace_id: string;
+      base_id: string;
+    };
+  }) {
     return this;
   }
-  async addNewColumn(_column: any, _action?: WebhookActions) {
+  async addNewColumn(_param: {
+    column: any;
+    action?: WebhookActions;
+    context?: {
+      workspace_id: string;
+      base_id: string;
+    };
+  }) {
     return this;
   }
 

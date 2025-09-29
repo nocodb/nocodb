@@ -699,6 +699,7 @@
     "isNotNull": "nije ništavan"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Pristup ograničen",
     "editTablePermissions": "Uredi dozvole tablice",
     "editFieldPermissions": "Uredi dozvole polja",
@@ -1137,6 +1138,7 @@
     "tokenLimit": "Dopušten je samo jedan token po korisniku",
     "duplicateAttachment": "Datoteka s imenom {filename} već je priložena",
     "tableIdColon": "ID TABLICE: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID SKRIPTE: {scriptId}",
     "dashboardIdColon": "ID NADZORNE PLOČE: {dashboardId}",
     "viewIdColon": "ID PREGLEDA: {viewId}",
@@ -1179,6 +1181,7 @@
     "forRole": "za ulogu",
     "clickToCopy": "Kliknite za kopiranje",
     "clickToCopyTableID": "Kliknite za kopiranje ID-a Tabllice",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Kliknite za kopiranje ID-a skripte",
     "clickToCopyDashboardID": "Kliknite za kopiranje ID-a nadzorne ploče",
     "clickToCopyViewID": "Kliknite za kopiranje ID pogleda",
@@ -1847,6 +1850,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "Proširi 'Shift + Space'",
     "selectAllMappedFields": "Odaberi sva mapirana polja",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopiraj kod pogreške",
     "paidUserBadgeTooltip": "Korisnik ima ulogu urednika ili višu u najmanje jednoj bazi.",
     "approachingLimit": "Približavanje ograničenju",

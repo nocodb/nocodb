@@ -162,9 +162,7 @@ export const useExtensions = createSharedComposable(() => {
     }
 
     try {
-      const newExtension = await $api.extensions.create(base.value.id, extensionReq, {
-        minAccessRole: getExtensionMinAccessRole(extension.id),
-      })
+      const newExtension = await $api.extensions.create(base.value.id, extensionReq)
 
       if (newExtension) {
         updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
@@ -192,9 +190,7 @@ export const useExtensions = createSharedComposable(() => {
     if (!extensionToUpdate) return
 
     try {
-      const updatedExtension = await $api.extensions.update(extensionId, extension, {
-        minAccessRole: getExtensionMinAccessRole(extensionToUpdate.extensionId),
-      })
+      const updatedExtension = await $api.extensions.update(extensionId, extension)
 
       if (updatedExtension) {
         extensionToUpdate.deserialize(updatedExtension)
@@ -231,9 +227,7 @@ export const useExtensions = createSharedComposable(() => {
     if (!extensionToDelete) return
 
     try {
-      await $api.extensions.delete(extensionId, {
-        minAccessRole: getExtensionMinAccessRole(extensionToDelete.extensionId),
-      })
+      await $api.extensions.delete(extensionId)
 
       updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, -1)
 
@@ -258,16 +252,12 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
-    const { id: _id, order: _order, minAccessRole: _minAccessRole, ...extensionData } = extension.serialize()
+    const { id: _id, order: _order, ...extensionData } = extension.serialize()
 
-    const newExtension = await $api.extensions.create(
-      base.value.id,
-      {
-        ...extensionData,
-        title: `${extension.title} (Copy)`,
-      },
-      { minAccessRole: getExtensionMinAccessRole(extension.extensionId) },
-    )
+    const newExtension = await $api.extensions.create(base.value.id, {
+      ...extensionData,
+      title: `${extension.title} (Copy)`,
+    })
 
     if (newExtension) {
       const duplicatedExtension = new Extension(newExtension)
@@ -442,6 +432,12 @@ export const useExtensions = createSharedComposable(() => {
     }
 
     setMeta(key: string, value: any): Promise<any> {
+      if (!this._meta) {
+        this._meta = {}
+      }
+
+      this._meta[key] = value
+
       return updateExtensionMeta(this.id, key, value)
     }
 

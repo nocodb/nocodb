@@ -200,7 +200,7 @@ onBeforeUnmount(() => {
     }
   }
 
-  height: calc(100svh - var(--topbar-height) - 30px);
+  height: calc(100svh - var(--topbar-height) - var(--footer-height));
   .monaco-editor {
     @apply !border-0 !rounded-b-lg outline-none;
   }

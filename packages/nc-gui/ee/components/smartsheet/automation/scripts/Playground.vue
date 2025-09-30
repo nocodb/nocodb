@@ -119,7 +119,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
     :class="[
       {
         'border-l-1 border-nc-border-gray-medium': !compact && !scriptStore?.isCreateEditScriptAllowed && isEditorOpen,
-        'p-6 h-[91svh] bg-nc-bg-gray-extralight': !compact,
+        'p-6 non-compat-playground bg-nc-bg-gray-extralight': !compact,
       },
       containerClass,
     ]"
@@ -327,6 +327,10 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
 </template>
 
 <style scoped lang="scss">
+.non-compat-playground {
+  height: calc(100svh - var(--topbar-height) - var(--footer-height));
+}
+
 :deep(.vjs-tree) {
   .vjs-tree-node:hover {
     @apply !bg-nc-bg-gray-light;

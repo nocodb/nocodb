@@ -77,7 +77,6 @@ onUnmounted(() => {
     >
       <GeneralIcon
         :class="{
-          'rotate-180': !isEditorOpen,
           'text-nc-content-brand': isEditorOpen,
         }"
         icon="sidebar"
@@ -85,7 +84,7 @@ onUnmounted(() => {
     </NcButton>
 
     <Transition name="fade" mode="out-in">
-      <div v-if="displayText" class="flex items-center gap-2">
+      <div v-if="displayText" class="flex items-center ml-2 gap-2">
         <Transition name="slide-fade" mode="out-in">
           <div
             v-if="isUpdatingAutomation"

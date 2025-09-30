@@ -92,7 +92,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight h-[91svh] nc-scrollbar-md">
+  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight config-wrapper nc-scrollbar-md">
     <div class="flex mx-auto flex-col max-w-130 gap-6">
       <NcAlert v-if="!isValidConfig" type="warning" class="bg-nc-bg-default">
         <template #message> Setup script settings to run </template>
@@ -222,3 +222,9 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.config-wrapper {
+  height: calc(100svh - var(--topbar-height) - var(--footer-height));
+}
+</style>

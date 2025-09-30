@@ -1436,6 +1436,7 @@ export async function singleQueryRead(
   // const dataAlias = getAlias();
 
   const finalQb = qb.first();
+  knex.applyCte(finalQb);
 
   const { sql, bindings } = finalQb.toSQL();
 

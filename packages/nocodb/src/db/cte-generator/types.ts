@@ -3,7 +3,7 @@ import type { ClientType, NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 
 export interface ICteBlock<T = any> {
-  apply: (
+  applyCte: (
     qb: Knex.QueryInterface,
     param: { context: NcContext; knex: CustomKnex },
   ) => void;

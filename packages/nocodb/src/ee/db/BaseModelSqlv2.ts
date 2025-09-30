@@ -229,6 +229,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       options.skipJsonConversion = true;
     }
 
+    if (typeof qb !== 'string') {
+      this.knex.applyCte(qb);
+    }
+
     if (options.first && typeof qb !== 'string') {
       qb = qb.limit(1);
     }

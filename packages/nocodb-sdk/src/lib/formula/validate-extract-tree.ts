@@ -228,7 +228,8 @@ async function extractColumnIdentifierType({
         id: lookupColumnIdentifierType?.referencedColumn?.id,
         // if array, we present it as lookup column
         uidt: lookupColumnIdentifierType?.referencedColumn?.uidt,
-        // TODO: add referencedUidt = lookup
+        intermediaryUidt: UITypes.Lookup,
+        intermediaryId: col.id,
       };
 
       break;
@@ -270,7 +271,8 @@ async function extractColumnIdentifierType({
       res.referencedColumn = {
         id: relatedColumnIdentifierType?.referencedColumn?.id,
         uidt: relatedColumnIdentifierType?.referencedColumn?.uidt,
-        // TODO: add referencedUidt = ltar
+        intermediaryUidt: UITypes.LinkToAnotherRecord,
+        intermediaryId: col.id,
       };
       break;
     }
@@ -906,6 +908,10 @@ export async function validateFormulaAndExtractTreeWithType({
         res.dataType = formulas[calleeName].returnType as FormulaDataTypes;
       }
 
+      if (calleeName.toUpperCase().startsWith('ARRAY')) {
+        res.inArrayFormat = true;
+      }
+
       Object.assign(
         res,
         extractCallExpressionReferencedInfo({
@@ -982,6 +988,7 @@ export async function validateFormulaAndExtractTreeWithType({
           ));
 
         res.dataType = (formulaRes as ParsedFormulaNode)?.dataType;
+        res.inArrayFormat = formulaRes.inArrayFormat;
       } else {
         if (
           col?.uidt === UITypes.Lookup ||
@@ -1123,7 +1130,6 @@ export async function validateFormulaAndExtractTreeWithType({
     const result = await validateAndExtract(
       parsedFormula as unknown as ParsedFormulaNode
     );
-    result.rootNode = true;
     return result;
   } catch (ex) {
     if (trackPosition) {

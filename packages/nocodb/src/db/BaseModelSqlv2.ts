@@ -5115,6 +5115,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       options.skipJsonConversion = true;
     }
 
+    if (typeof qb !== 'string') {
+      this.knex.applyCte(qb);
+    }
+
     if (options.first && typeof qb !== 'string') {
       qb = qb.limit(1);
     }

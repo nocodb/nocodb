@@ -496,7 +496,6 @@ export default async function formulaQueryBuilderv2({
     });
 
     if (!validateFormula) return qb;
-
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
     await baseModelSqlv2.execAndParse(

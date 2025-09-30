@@ -1650,7 +1650,7 @@ export async function singleQueryList(
 
   let viewFilters: Filter[] = [];
 
-  if (ctx.view && !ctx.ignoreViewFilterAndSort) {
+  if (ctx.view?.id && !ctx.ignoreViewFilterAndSort) {
     viewFilters = await Filter.rootFilterList(context, {
       viewId: ctx.view?.id,
     });

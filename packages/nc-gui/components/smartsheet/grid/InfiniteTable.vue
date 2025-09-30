@@ -70,12 +70,14 @@ const props = defineProps<{
   chunkStates: Array<'loading' | 'loaded' | undefined>
   isBulkOperationInProgress: boolean
   selectedAllRecords?: boolean
+  selectedAllRecordsSkipPks?: Record<string, string>
   getRows: (start: number, end: number) => Promise<Row[]>
 }>()
 
-const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
+const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks'])
 
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
+const vSelectedAllRecordsSkipPks = useVModel(props, 'selectedAllRecordsSkipPks', emits)
 const { withLoading } = useLoadingTrigger()
 
 const {

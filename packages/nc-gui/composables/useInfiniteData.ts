@@ -149,6 +149,12 @@ export function useInfiniteData(args: {
 
   const selectedAllRecords = ref(false)
 
+  /**
+   * will be used to skip the pk records while bulk deleting all records
+   * key: rowIndex, value: pk
+   */
+  const selectedAllRecordsSkipPks = ref<Record<string, string>>({})
+
   const totalRows = ref(0)
 
   const actualTotalRows = ref(0)
@@ -2363,6 +2369,17 @@ export function useInfiniteData(args: {
     { immediate: true },
   )
 
+  // Reset the selectedAllRecordsSkipPks when the selectedAllRecords is false
+  watch(
+    selectedAllRecords,
+    (newValue) => {
+      if (newValue || ncIsEmptyObject(selectedAllRecordsSkipPks.value)) return
+
+      selectedAllRecordsSkipPks.value = {}
+    },
+    { immediate: true },
+  )
+
   return {
     getDataCache,
     insertRow,
@@ -2396,6 +2413,7 @@ export function useInfiniteData(args: {
     navigateToSiblingRow,
     updateRecordOrder,
     selectedAllRecords,
+    selectedAllRecordsSkipPks,
     getRows,
     groupDataCache,
   }

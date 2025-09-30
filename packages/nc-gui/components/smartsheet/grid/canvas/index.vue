@@ -106,6 +106,7 @@ const props = defineProps<{
   chunkStates: Array<'loading' | 'loaded' | undefined>
   isBulkOperationInProgress: boolean
   selectedAllRecords?: boolean
+  selectedAllRecordsSkipPks: Record<string, string>
   getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
   getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
@@ -129,7 +130,7 @@ const props = defineProps<{
   clearGroupCache: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => void
 }>()
 
-const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
+const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks'])
 
 provide(IsCanvasInjectionInj, true)
 
@@ -160,6 +161,8 @@ const {
 
 // VModels
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
+
+const vSelectedAllRecordsSkipPks = useVModel(props, 'selectedAllRecordsSkipPks', emits)
 
 const { eventBus, isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
 
@@ -376,6 +379,7 @@ const {
   scrollTop,
   aggregations,
   vSelectedAllRecords,
+  vSelectedAllRecordsSkipPks,
   selectedRows,
   updateRecordOrder,
   expandRows,
@@ -586,6 +590,7 @@ function resetRowSelection() {
   })
 
   vSelectedAllRecords.value = false
+  vSelectedAllRecordsSkipPks.value = {}
 }
 
 watch(vSelectedAllRecords, (val) => {
@@ -784,8 +789,13 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false, savedColumn?: Colum
 
 function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
   const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
-  const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value || readOnly.value
-  const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
+
+  const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection && !vSelectedAllRecords.value) || readOnly.value
+
+  const isChecked =
+    row.rowMeta?.selected ||
+    (vSelectedAllRecords.value &&
+      (!ncIsNumber(row.rowMeta?.rowIndex) || !!vSelectedAllRecordsSkipPks.value[row.rowMeta?.rowIndex]))
 
   const path = group ? generateGroupPath(group) : []
 
@@ -887,15 +897,25 @@ const handleRowMetaClick = ({
 
   if (!clickedRegion) return
 
+  console.log('checkbox ', isCheckboxDisabled)
+
   if (onlyDrag && clickedRegion.action !== 'reorder' && clickedRegion.action !== 'select') return
 
   switch (clickedRegion.action) {
     case 'select':
-      if (!isCheckboxDisabled && (row.rowMeta?.selected || !isAtMaxSelection)) {
+      if (!isCheckboxDisabled && (row.rowMeta?.selected || (!isAtMaxSelection && vSelectedAllRecords.value))) {
         resetActiveCell()
 
         if (onlyDrag) {
           row.rowMeta.selected = !row.rowMeta?.selected
+
+          if (vSelectedAllRecords.value && row.rowMeta.rowIndex) {
+            if (vSelectedAllRecordsSkipPks.value?.[row.rowMeta.rowIndex]) {
+              delete vSelectedAllRecordsSkipPks.value[row.rowMeta.rowIndex]
+            } else {
+              vSelectedAllRecordsSkipPks.value[row.rowMeta.rowIndex] = extractPkFromRow(row.row, meta.value?.columns ?? [])
+            }
+          }
 
           const path = generateGroupPath(group)
           if (row.rowMeta?.selected && ncIsNumber(row.rowMeta.rowIndex)) {
@@ -1270,7 +1290,11 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       // If the click is not normal single click, return
       if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value || isGroupBy.value) return
       if (isBoxHovered({ x: isRowDraggingEnabled.value ? 4 + 26 : 10, y: 8, height: 16, width: 16 }, mousePosition)) {
-        vSelectedAllRecords.value = !vSelectedAllRecords.value
+        if (vSelectedAllRecords.value && !ncIsEmptyObject(vSelectedAllRecordsSkipPks.value)) {
+          vSelectedAllRecordsSkipPks.value = {}
+        } else {
+          vSelectedAllRecords.value = !vSelectedAllRecords.value
+        }
         resetActiveCell()
       }
 

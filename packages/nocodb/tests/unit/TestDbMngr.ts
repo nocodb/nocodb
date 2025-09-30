@@ -19,6 +19,7 @@ export default class TestDbMngr {
     host: 'localhost',
     port: 3306,
     client: 'mysql2',
+    pool: { min: 0, max: parseInt(process.env.DB_MAX_POOL_SIZE ?? '5', 10) },
   };
 
   public static pgConnection = {
@@ -27,6 +28,7 @@ export default class TestDbMngr {
     host: 'localhost',
     port: 5432,
     client: 'pg',
+    pool: { min: 0, max: parseInt(process.env.DB_MAX_POOL_SIZE ?? '1', 10) },
   };
 
   public static connection: {

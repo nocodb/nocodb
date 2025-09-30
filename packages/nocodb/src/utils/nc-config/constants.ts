@@ -23,7 +23,11 @@ export const defaultConnectionConfig: any = {
 export const defaultConnectionOptions = {
   pool: {
     min: 0,
-    max: +process.env.NC_DB_POOL_MAX || 10,
+    max: (() => {
+      const poolSize = parseInt(process.env.DB_MAX_POOL_SIZE || '10', 10);
+      if (Number.isNaN(poolSize) || poolSize < 1) return 10;
+      return Math.min(poolSize, 100);
+    })(),
   },
 };
 

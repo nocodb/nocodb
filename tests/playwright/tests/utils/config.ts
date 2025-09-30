@@ -10,7 +10,7 @@ const knexConfig = {
       multipleStatements: true,
     },
     searchPath: ['public', 'information_schema'],
-    pool: { min: 0, max: 1 },
+    pool: { min: 0, max: +process.env.DB_MAX_POOL_SIZE || 1 },
   },
   mysql: {
     client: 'mysql2',
@@ -22,7 +22,7 @@ const knexConfig = {
       database: 'sakila',
       multipleStatements: true,
     },
-    pool: { min: 0, max: 5 },
+    pool: { min: 0, max: +process.env.DB_MAX_POOL_SIZE || 5 },
   },
   sqlite: {
     client: 'sqlite3',
@@ -30,7 +30,7 @@ const knexConfig = {
       filename: './mydb.sqlite3',
     },
     useNullAsDefault: true,
-    pool: { min: 0, max: 5 },
+    pool: { min: 0, max: +process.env.DB_MAX_POOL_SIZE || 5 },
   },
 };
 

@@ -120,11 +120,7 @@ export const useExtensions = createSharedComposable(() => {
 
   const extensionList = computed<ExtensionType[]>(() => {
     return (activeBaseExtensions.value ? activeBaseExtensions.value.extensions : [])
-      .filter(
-        (e: ExtensionType) =>
-          availableExtensionIds.value.includes(e.extensionId) &&
-          hasMinimumRoleAccess(user.value, getExtensionMinAccessRole(e.extensionId) as ProjectRoles),
-      )
+      .filter((e: ExtensionType) => availableExtensionIds.value.includes(e.extensionId))
       .sort((a: ExtensionType, b: ExtensionType) => {
         return (a?.order ?? Infinity) - (b?.order ?? Infinity)
       })
@@ -308,11 +304,7 @@ export const useExtensions = createSharedComposable(() => {
     try {
       const { list } = await $api.extensions.list(baseId)
 
-      const extensions = list
-        ?.map((ext: any) => new Extension(ext))
-        .filter((ext: any) => {
-          return hasMinimumRoleAccess(user.value, getExtensionMinAccessRole(ext.extensionId) as ProjectRoles)
-        })
+      const extensions = list?.map((ext: any) => new Extension(ext))
 
       if (baseExtensions.value[baseId]) {
         baseExtensions.value[baseId].extensions = extensions || baseExtensions.value[baseId].extensions

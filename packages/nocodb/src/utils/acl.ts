@@ -244,11 +244,9 @@ const rolePermissions:
       nestedDataList: true,
       baseUserList: true,
 
+      // Extensions
       extensionList: true,
       extensionRead: true,
-      extensionCreate: true,
-      extensionUpdate: true,
-      extensionDelete: true,
 
       jobList: true,
       commentList: true,
@@ -315,6 +313,9 @@ const rolePermissions:
       // AI
       aiUtils: true,
       aiData: true,
+
+      // Extensions
+      extensionUpdate: true,
     },
   },
   [ProjectRoles.CREATOR]: {

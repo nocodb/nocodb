@@ -31,15 +31,8 @@ export class ExtensionsService {
     param: {
       extension: ExtensionReqType;
       req: NcRequest;
-      minAccessRole?: string;
     },
   ) {
-    this.verifyMininumRoleAccess({
-      user: param.req.user,
-      minAccessRole: param.minAccessRole,
-      permissionName: 'extensionCreate',
-    });
-
     validatePayload(
       'swagger.json#/components/schemas/ExtensionReq',
       param.extension,
@@ -65,15 +58,8 @@ export class ExtensionsService {
       extensionId: string;
       extension: ExtensionReqType;
       req: NcRequest;
-      minAccessRole?: string;
     },
   ) {
-    this.verifyMininumRoleAccess({
-      user: param.req.user,
-      minAccessRole: param.minAccessRole,
-      permissionName: 'extensionUpdate',
-    });
-
     validatePayload(
       'swagger.json#/components/schemas/ExtensionReq',
       param.extension,
@@ -99,15 +85,8 @@ export class ExtensionsService {
     param: {
       extensionId: string;
       req: NcRequest;
-      minAccessRole?: string;
     },
   ) {
-    this.verifyMininumRoleAccess({
-      user: param.req.user,
-      minAccessRole: param.minAccessRole,
-      permissionName: 'extensionDelete',
-    });
-
     const res = await Extension.delete(context, param.extensionId);
 
     this.appHooksService.emit(AppEvents.EXTENSION_DELETE, {

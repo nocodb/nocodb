@@ -92,6 +92,10 @@ const rolePermissions = {
       rowColourUpdate: true,
 
       projectOverviewTab: true,
+
+      // Extensions
+      extensionCreate: true,
+      extensionDelete: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -105,6 +109,9 @@ const rolePermissions = {
       csvTableImport: true,
       excelTableImport: true,
       hookTrigger: true,
+
+      // Extensions
+      extensionUpdate: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

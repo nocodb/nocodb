@@ -68,6 +68,7 @@ const {
   applySorting,
   isBulkOperationInProgress,
   selectedAllRecords,
+  selectedAllRecordsSkipPks,
   bulkDeleteAll,
   getRows,
   getDataCache,
@@ -395,6 +396,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
       "
       ref="tableRef"
       v-model:selected-all-records="selectedAllRecords"
+      v-model:selected-all-records-skip-pks="selectedAllRecordsSkipPks"
       :load-data="loadData"
       :call-add-empty-row="_addEmptyRow"
       :delete-row="deleteRow"
@@ -438,6 +440,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
       v-else-if="!isGroupBy"
       ref="tableRef"
       v-model:selected-all-records="selectedAllRecords"
+      v-model:selected-all-records-skip-pks="selectedAllRecordsSkipPks"
       :load-data="loadData"
       :call-add-empty-row="_addEmptyRow"
       :delete-row="deleteRow"

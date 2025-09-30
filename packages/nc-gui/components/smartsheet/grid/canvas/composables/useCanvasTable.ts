@@ -8,6 +8,7 @@ import {
   isReadonlyVirtualColumn,
   isSystemColumn,
   isVirtualCol,
+  ncHasProperties,
 } from 'nocodb-sdk'
 import type { ButtonType, ColumnType, FormulaType, TableType, UserType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
@@ -54,6 +55,7 @@ export function useCanvasTable({
   scrollToCell,
   aggregations,
   vSelectedAllRecords,
+  vSelectedAllRecordsSkipPks,
   selectedRows,
   updateRecordOrder,
   expandRows,
@@ -89,6 +91,7 @@ export function useCanvasTable({
   scrollToCell: CanvasScrollToCellFn
   aggregations: Ref<Record<string, any>>
   vSelectedAllRecords: WritableComputedRef<boolean>
+  vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
   selectedRows: Ref<Row[]>
   mousePosition: { x: number; y: number }
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
@@ -831,6 +834,7 @@ export function useCanvasTable({
     baseRoleLoader,
     partialRowHeight,
     vSelectedAllRecords,
+    vSelectedAllRecordsSkipPks,
     isRowDraggingEnabled,
     selectedRows,
     isDragging,
@@ -863,6 +867,7 @@ export function useCanvasTable({
     upgradeModalInlineState,
     rowMetaColumnWidth,
     rowColouringBorderWidth,
+    isRecordSelected,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -1315,6 +1320,20 @@ export function useCanvasTable({
     makeEditable(row, clickedColumn)
   }
 
+  function isRecordSelectedInSelectedAllRecords(rowIdx?: number) {
+    return vSelectedAllRecords.value && (!ncIsNumber(rowIdx) || !ncHasProperties(vSelectedAllRecordsSkipPks.value, rowIdx))
+  }
+
+  function isRecordSelected(row: Row) {
+    if (!row?.rowMeta) return false
+
+    if (vSelectedAllRecords.value) {
+      return isRecordSelectedInSelectedAllRecords(row.rowMeta.rowIndex)
+    }
+
+    return !!row.rowMeta.selected
+  }
+
   function triggerRefreshCanvas() {
     renderCanvas()
   }
@@ -1391,6 +1410,8 @@ export function useCanvasTable({
     findColumnAtPosition,
     findClickedColumn,
     findColumnPosition,
+    isRecordSelectedInSelectedAllRecords,
+    isRecordSelected,
 
     // GroupBy Related
     syncGroupCount,

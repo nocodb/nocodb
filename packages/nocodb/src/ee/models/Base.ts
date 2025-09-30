@@ -16,6 +16,7 @@ import Noco from '~/Noco';
 import {
   BaseUser,
   CustomUrl,
+  Dashboard,
   DataReflection,
   Extension,
   FileReference,
@@ -332,6 +333,8 @@ export default class Base extends BaseCE {
         base_id: baseId,
       },
     );
+
+    await Dashboard.deleteByBaseId(context, baseId, ncMeta);
 
     const sources = await Source.list(
       context,

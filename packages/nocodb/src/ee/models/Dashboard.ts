@@ -290,4 +290,18 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     );
     return dashboard && new Dashboard(dashboard);
   }
+
+  static async deleteByBaseId(
+    context: NcContext,
+    base_id: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const dashboards = await this.list(context, base_id, ncMeta);
+
+    for (const dashboard of dashboards) {
+      await this.delete(context, dashboard.id, ncMeta);
+    }
+
+    return true;
+  }
 }

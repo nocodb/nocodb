@@ -21,7 +21,7 @@ export class ButtonCellPageObject extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.get({ index, columnHeader }).getByTestId('nc-button-cell').click(),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: /\/hooks/,
+      requestUrlPathToMatch: 'operation=hook',
       responseStatusCodeToMatch: 201,
     });
   }

@@ -12,7 +12,7 @@ import {
 } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
 import { Removable } from '../lib/removable'
-import PlainCell from '../../../components/smartsheet/PlainCell.vue'
+import { SmartsheetPlainCell } from '#components'
 
 const props = defineProps<PageDesignerWidgetComponentProps>()
 defineEmits(['deleteCurrentWidget'])
@@ -182,7 +182,7 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
             class="list-inside m-0 p-0"
             :class="[isNumberedList ? 'list-decimal' : 'list-disc']"
           >
-            <li v-for="relatedRow in relatedRows" :key="relatedRow.Id">
+            <li v-for="(relatedRow, index) of relatedRows" :key="index">
               <span :class="{ 'relative left-[-8px]': !isNumberedList }" :style="{ fontFamily: widget.fontFamily }">
                 {{ relatedRow[relatedTableDisplayValueProp] }}
               </span>
@@ -211,8 +211,8 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
             <thead ref="theadRef">
               <tr>
                 <th
-                  v-for="relatedColumn in tableColumns"
-                  :key="relatedColumn.id"
+                  v-for="(relatedColumn, index) of tableColumns"
+                  :key="index"
                   :style="{
                     ...(widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }),
                     color: widget.tableSettings.header.textColor,
@@ -227,10 +227,10 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
               </tr>
             </thead>
             <tbody>
-              <tr v-for="relatedRow in relatedRows" :key="relatedRow.Id">
+              <tr v-for="(relatedRow, index) of relatedRows" :key="index">
                 <td
-                  v-for="relatedColumn in tableColumns"
-                  :key="relatedColumn.id"
+                  v-for="(relatedColumn, idx) of tableColumns"
+                  :key="idx"
                   :style="{
                     ...(widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }),
                     color: widget.tableSettings.row.textColor,
@@ -246,7 +246,7 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
                     :src="attachmentUrl(relatedRow[relatedColumn?.title ?? ''])"
                     class="h-full w-auto object-contain"
                   />
-                  <PlainCell v-else :column="relatedColumn" :model-value="relatedRow[relatedColumn?.title ?? '']" />
+                  <SmartsheetPlainCell v-else :column="relatedColumn" :model-value="relatedRow[relatedColumn?.title ?? '']" />
                 </td>
               </tr>
             </tbody>

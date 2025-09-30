@@ -30,6 +30,7 @@ export default defineNuxtPlugin(async () => {
     noLib: false,
     strictFunctionTypes: true,
     strict: true,
+    moduleResolution: 'nodenext',
   })
 
   /**

@@ -26,7 +26,7 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { transform } = useEsbuild()
+  const { transformWithImports } = useEsbuild()
 
   const eventBus = useEventBus<SmartsheetScriptActions>(EventBusEnum.SmartsheetActions)
 
@@ -528,7 +528,7 @@ export const useScriptExecutor = createSharedComposable(() => {
           }
 
           const workerCode = createWorkerCode(code ?? '', runCustomCode)
-          const minCode = await transform(workerCode)
+          const minCode = await transformWithImports(workerCode)
 
           if (minCode.error || !minCode.code) {
             activeExecutions.value.set(scriptId, {

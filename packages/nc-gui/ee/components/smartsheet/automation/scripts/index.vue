@@ -21,6 +21,7 @@ const {
   isSettingsOpen,
   shouldShowSettings,
   isCreateEditScriptAllowed,
+  isEditorOpen,
   updateScript,
   debouncedSave,
 } = useScriptStoreOrThrow()
@@ -145,6 +146,13 @@ onMounted(async () => {
   await setupMonacoEditor()
 })
 
+watch(isEditorOpen, async (newVal) => {
+  if (newVal) {
+    await until(() => editorRef.value).toBeTruthy()
+    await setupMonacoEditor()
+  }
+})
+
 watch(activeBaseSchema, (newVal) => {
   if (newVal) {
     updateTypes()
@@ -159,20 +167,25 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex h-full w-full nc-scripts-content-resizable-wrapper">
+  <div
+    class="flex h-full w-full nc-scripts-content-resizable-wrapper"
+    :class="{
+      'is-editor-open': isEditorOpen && isCreateEditScriptAllowed,
+    }"
+  >
     <Splitpanes>
-      <Pane v-show="isCreateEditScriptAllowed" min-size="20" :size="70" class="flex flex-col h-full min-w-0">
-        <div class="w-full flex-1">
+      <Pane v-show="isCreateEditScriptAllowed" min-size="20" :size="isEditorOpen ? 70 : 0" class="flex flex-col h-full min-w-0">
+        <div v-if="isEditorOpen" class="w-full flex-1">
           <div ref="editorRef" class="h-full" />
         </div>
       </Pane>
-      <Pane :min-size="25" :size="isCreateEditScriptAllowed ? 30 : 100">
+      <Pane :min-size="25" :size="isCreateEditScriptAllowed && isEditorOpen ? 30 : 100">
         <SmartsheetAutomationScriptsConfigInput
           v-if="isSettingsOpen && shouldShowSettings"
           v-model:model-value="configValue"
           :config="config"
         />
-        <SmartsheetAutomationScriptsPlayground v-else />
+        <SmartsheetAutomationScriptsPlayground v-else :is-editor-open="isEditorOpen || !isCreateEditScriptAllowed" />
       </Pane>
     </Splitpanes>
   </div>
@@ -181,6 +194,12 @@ onBeforeUnmount(() => {
 
 <style lang="scss">
 .nc-scripts-content-resizable-wrapper {
+  &:not(.is-editor-open) {
+    .splitpanes__splitter {
+      display: none !important;
+    }
+  }
+
   height: calc(100svh - var(--topbar-height) - 30px);
   .monaco-editor {
     @apply !border-0 !rounded-b-lg outline-none;

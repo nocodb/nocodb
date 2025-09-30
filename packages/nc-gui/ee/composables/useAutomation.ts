@@ -9,7 +9,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   const { activeAutomation, isSettingsOpen } = storeToRefs(automationStore)
   const { activeProjectId } = storeToRefs(useBases())
   const { isUIAllowed } = useRoles()
-
+  const isEditorOpen = ref(true)
   const {
     runScript: executeScript,
     stopExecution: _stopExecution,
@@ -188,6 +188,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     updateScript,
     restartScript,
     debouncedSave,
+    isEditorOpen,
   }
 })
 

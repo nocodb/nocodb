@@ -10,6 +10,7 @@ interface Props {
   isFinished?: boolean
   showRunButton?: boolean
   compact?: boolean
+  isEditorOpen?: boolean
   containerClass?: string
 }
 
@@ -19,6 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
   isFinished: false,
   showRunButton: true,
   compact: false,
+  isEditorOpen: true,
   containerClass: '',
 })
 
@@ -116,7 +118,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
     class="overflow-y-auto nc-scrollbar-md"
     :class="[
       {
-        'border-l-1 border-nc-border-gray-medium': !compact && scriptStore?.isCreateEditScriptAllowed,
+        'border-l-1 border-nc-border-gray-medium': !compact && !scriptStore?.isCreateEditScriptAllowed && isEditorOpen,
         'p-6 h-[91svh] bg-nc-bg-gray-extralight': !compact,
       },
       containerClass,

@@ -7,7 +7,7 @@ const props = defineProps<DynamicInputProps>()
 
 const { content } = toRefs(props)
 
-const inputValue = ref(content.value.defaultValue)
+const inputValue = ref(content.value?.defaultValue)
 const isResolved = ref(false)
 
 const resolveInput = (value?: string | File) => {

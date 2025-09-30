@@ -9,6 +9,7 @@ import {
   UITypes,
   type ViewType,
   isVirtualCol,
+  ncHasProperties,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
@@ -363,6 +364,7 @@ const {
   isRowDraggingEnabled,
   rowMetaColumnWidth,
   rowColouringBorderWidth,
+  isRecordSelected,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -790,12 +792,9 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false, savedColumn?: Colum
 function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
   const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
 
-  const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection && !vSelectedAllRecords.value) || readOnly.value
+  const isChecked = isRecordSelected(row)
 
-  const isChecked =
-    row.rowMeta?.selected ||
-    (vSelectedAllRecords.value &&
-      (!ncIsNumber(row.rowMeta?.rowIndex) || !!vSelectedAllRecordsSkipPks.value[row.rowMeta?.rowIndex]))
+  const isCheckboxDisabled = (!vSelectedAllRecords.value && !isChecked && isAtMaxSelection) || readOnly.value
 
   const path = group ? generateGroupPath(group) : []
 
@@ -897,23 +896,21 @@ const handleRowMetaClick = ({
 
   if (!clickedRegion) return
 
-  console.log('checkbox ', isCheckboxDisabled)
-
   if (onlyDrag && clickedRegion.action !== 'reorder' && clickedRegion.action !== 'select') return
 
   switch (clickedRegion.action) {
     case 'select':
-      if (!isCheckboxDisabled && (row.rowMeta?.selected || (!isAtMaxSelection && vSelectedAllRecords.value))) {
+      if (!isCheckboxDisabled) {
         resetActiveCell()
 
         if (onlyDrag) {
           row.rowMeta.selected = !row.rowMeta?.selected
 
-          if (vSelectedAllRecords.value && row.rowMeta.rowIndex) {
-            if (vSelectedAllRecordsSkipPks.value?.[row.rowMeta.rowIndex]) {
-              delete vSelectedAllRecordsSkipPks.value[row.rowMeta.rowIndex]
+          if (vSelectedAllRecords.value && isValidValue(row.rowMeta.rowIndex)) {
+            if (ncHasProperties(vSelectedAllRecordsSkipPks.value, row.rowMeta.rowIndex!)) {
+              delete vSelectedAllRecordsSkipPks.value[row.rowMeta.rowIndex!]
             } else {
-              vSelectedAllRecordsSkipPks.value[row.rowMeta.rowIndex] = extractPkFromRow(row.row, meta.value?.columns ?? [])
+              vSelectedAllRecordsSkipPks.value[row.rowMeta.rowIndex!] = extractPkFromRow(row.row, meta.value?.columns ?? [])
             }
           }
 
@@ -2073,7 +2070,10 @@ const handleMouseMove = (e: MouseEvent) => {
 
       const selectionStart = Math.min(selectedRowInfo.index, row.rowMeta.rowIndex)
 
-      const selectionEnd = Math.min(selectionStart + MAX_SELECTED_ROWS, Math.max(selectedRowInfo.index, row.rowMeta.rowIndex))
+      const selectionEnd = Math.min(
+        selectionStart + (MAX_SELECTED_ROWS - 1),
+        Math.max(selectedRowInfo.index, row.rowMeta.rowIndex),
+      )
 
       /**
        * If selection is started and the selection is not changed, then don't do anything

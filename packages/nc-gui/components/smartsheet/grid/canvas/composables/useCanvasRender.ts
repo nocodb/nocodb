@@ -97,6 +97,7 @@ export function useCanvasRender({
   upgradeModalInlineState,
   rowMetaColumnWidth,
   rowColouringBorderWidth,
+  isRecordSelected,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -177,6 +178,7 @@ export function useCanvasRender({
   }>
   rowMetaColumnWidth: ComputedRef<number>
   rowColouringBorderWidth: ComputedRef<number>
+  isRecordSelected: (row: Row) => boolean
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -193,9 +195,6 @@ export function useCanvasRender({
   const fixedColsWidth = computed(() => fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1))
 
   const isSelectedAllRecords = computed(() => vSelectedAllRecords.value && ncIsEmptyObject(vSelectedAllRecordsSkipPks.value))
-
-  const isRecordSelectedInSelectedAllRecords = (rowIdx?: number) =>
-    vSelectedAllRecords.value && (!ncIsNumber(rowIdx) || !!vSelectedAllRecordsSkipPks.value[rowIdx])
 
   const drawShimmerEffect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, rowIdx: number) => {
     ctx.save()
@@ -886,17 +885,17 @@ export function useCanvasRender({
     rowColor?: string,
   ) => {
     const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
-    const isChecked = row.rowMeta?.selected || isRecordSelectedInSelectedAllRecords(row.rowMeta?.rowIndex)
+    const isChecked = isRecordSelected(row)
     const isRowCellSelected =
       activeCell.value.row === row.rowMeta.rowIndex && comparePath(activeCell.value.path, row?.rowMeta?.path)
-    const isDisabled = !row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS
+    const isDisabled = !vSelectedAllRecords.value && !row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS
 
     if (rowColor) {
       ctx.fillStyle = rowColor
     } else {
       ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : '#ffffff'
 
-      if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
+      if (isChecked) ctx.fillStyle = '#F6F7FE'
     }
 
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
@@ -1274,8 +1273,10 @@ export function useCanvasRender({
     const isRowCellSelected =
       activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path ?? group?.path)
 
+    const recordSelected = isRecordSelected(row)
+
     const rowColor = row?.row
-      ? row.rowMeta?.is_set_as_background && (isHovered || row.rowMeta.selected || isRowCellSelected)
+      ? row.rowMeta?.is_set_as_background && (isHovered || recordSelected || isRowCellSelected)
         ? row.rowMeta.rowHoverColor
         : row.rowMeta.rowBgColor
       : null
@@ -1320,7 +1321,7 @@ export function useCanvasRender({
           isActiveCellInCurrentGroup
 
         if (
-          row.rowMeta.selected ||
+          recordSelected ||
           (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup)
         ) {
           ctx.fillStyle = rowColor ? '#3366ff0d' : '#F6F7FE'
@@ -1336,7 +1337,7 @@ export function useCanvasRender({
 
         // Vertical cell lines
         ctx.strokeStyle =
-          isHovered || row.rowMeta.selected || isColumnInSelection || isRowCellSelected || columnState || prevColumnState
+          isHovered || recordSelected || isColumnInSelection || isRowCellSelected || columnState || prevColumnState
             ? themeV3Colors.gray['200']
             : themeV3Colors.gray['100']
         ctx.beginPath()
@@ -1391,7 +1392,7 @@ export function useCanvasRender({
           path: groupPath,
           skipRender: isCellEditEnabled,
           isRowHovered: isHovered,
-          isRowChecked: row.rowMeta.selected,
+          isRowChecked: recordSelected,
           isCellInSelectionRange:
             selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup,
           isRootCell: true,
@@ -1413,10 +1414,7 @@ export function useCanvasRender({
             activeCell.value.column === colIdx &&
             isActiveCellInCurrentGroup
 
-          if (
-            row.rowMeta.selected ||
-            (selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup)
-          ) {
+          if (recordSelected || (selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup)) {
             ctx.fillStyle = rowColor ? '#3366ff0d' : '#F6F7FE'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
@@ -1476,7 +1474,7 @@ export function useCanvasRender({
               skipRender: isCellEditEnabled,
               path: groupPath,
               isRowHovered: isHovered,
-              isRowChecked: row.rowMeta.selected,
+              isRowChecked: recordSelected,
               isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup,
               isRootCell: true,
             })
@@ -1489,7 +1487,7 @@ export function useCanvasRender({
             isActiveCellInCurrentGroup
 
           ctx.strokeStyle =
-            idx !== 0 && (isHovered || row.rowMeta.selected || isColumnInSelection || isRowCellSelected || rowColor)
+            idx !== 0 && (isHovered || recordSelected || isColumnInSelection || isRowCellSelected || rowColor)
               ? themeV3Colors.gray['200']
               : themeV3Colors.gray['100']
           ctx.lineWidth = 1

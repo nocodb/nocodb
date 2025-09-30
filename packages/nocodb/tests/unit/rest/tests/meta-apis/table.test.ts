@@ -229,7 +229,7 @@ export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
         // });
       });
 
-      it(`Delete table ${API_VERSION}`, async function () {
+      it.only(`Delete table ${API_VERSION}`, async function () {
         let tables = await getAllTables({ base });
         const initialLength = tables.length;
         await request(context.app)

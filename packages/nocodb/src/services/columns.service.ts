@@ -2167,7 +2167,7 @@ export class ColumnsService implements IColumnsService {
       apiVersion?: T;
       columnWebhookManager?: ColumnWebhookManager;
     },
-    ncMeta = Noco.ncMeta,
+    ncMeta?: MetaService,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
     let savedColumn;
     // if column_name is defined and title is not defined, set title to column_name

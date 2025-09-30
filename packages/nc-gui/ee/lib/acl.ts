@@ -194,6 +194,9 @@ const rolePermissions = {
       // Scripts
       scriptExecute: true,
       scriptList: true,
+
+      // Toolbar operations will be restricted to below editor roles
+      toolbarOperations: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

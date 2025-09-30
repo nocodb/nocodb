@@ -68,36 +68,37 @@ provide(IsToolbarIconMode, isToolbarIconMode)
           'min-w-39/100': !isMobileMode && !isLeftSidebarOpen && isCalendar,
           'gap-1': isCalendar,
         }"
-        class="flex items-center gap-3"
+        class="flex items-center gap-3 empty:hidden"
       >
-        <LazySmartsheetToolbarMappedBy v-if="isMap" />
-        <LazySmartsheetToolbarCalendarHeader v-if="isCalendar" />
-        <LazySmartsheetToolbarCalendarToday v-if="isCalendar" />
-        <LazySmartsheetToolbarCalendarNextPrev v-if="isCalendar" />
+        <template v-if="isUIAllowed('toolbarOperations')">
+          <LazySmartsheetToolbarMappedBy v-if="isMap" />
+          <LazySmartsheetToolbarCalendarHeader v-if="isCalendar" />
+          <LazySmartsheetToolbarCalendarToday v-if="isCalendar" />
+          <LazySmartsheetToolbarCalendarNextPrev v-if="isCalendar" />
 
-        <LazySmartsheetToolbarStackedBy v-if="isKanban" />
+          <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
-        <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
+          <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
 
-        <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
+          <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
-        <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
+          <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
 
-        <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+          <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 
-        <LazySmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && (isGrid || isGallery || isKanban || isMap)" />
+          <LazySmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && (isGrid || isGallery || isKanban || isMap)" />
 
-        <LazySmartsheetToolbarBulkAction
-          v-if="(isGrid || isGallery) && !isPublic && !isSharedBase && isUIAllowed('scriptExecute') && isViewActionsEnabled"
-        />
-
+          <LazySmartsheetToolbarBulkAction
+            v-if="(isGrid || isGallery) && !isPublic && !isSharedBase && isUIAllowed('scriptExecute') && isViewActionsEnabled"
+          />
+        </template>
         <LazySmartsheetToolbarOpenedViewAction v-if="isCalendar" />
       </div>
 
       <LazySmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
 
       <template v-if="!isMobileMode">
-        <LazySmartsheetToolbarRowHeight v-if="isGrid" />
+        <LazySmartsheetToolbarRowHeight v-if="isGrid && isUIAllowed('toolbarOperations')" />
 
         <LazySmartsheetToolbarOpenedViewAction v-if="!isCalendar" />
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
@@ -117,14 +118,16 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
       <div v-if="isCalendar && isMobileMode" class="flex-1 pointer-events-none" />
 
-      <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
+      <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab && isUIAllowed('toolbarOperations')" :tab="isTab" />
 
-      <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
+      <LazySmartsheetToolbarCalendarRange v-if="isCalendar && isUIAllowed('toolbarOperations')" />
 
       <template v-if="isCalendar && !isMobileMode">
-        <LazySmartsheetToolbarRowColorFilterDropdown v-if="!isPublic" />
-        <LazySmartsheetToolbarFieldsMenu :show-system-fields="false" />
-        <LazySmartsheetToolbarColumnFilterMenu />
+        <template v-if="isUIAllowed('toolbarOperations')">
+          <LazySmartsheetToolbarRowColorFilterDropdown v-if="!isPublic" />
+          <LazySmartsheetToolbarFieldsMenu :show-system-fields="false" />
+          <LazySmartsheetToolbarColumnFilterMenu />
+        </template>
         <LazySmartsheetToolbarCalendarToggleSideBar />
       </template>
       <LazyNcFullScreenToggleButton v-if="showFullScreenToggle" />

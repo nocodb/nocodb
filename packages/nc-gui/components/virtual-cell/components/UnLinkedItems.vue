@@ -118,25 +118,33 @@ const selectAll = async () => {
   const { list } = childrenExcludedList.value || {}
   if (!list || list.length === 0) return
 
-  if (isNew.value) {
-    // For new rows, add all records to LTAR refs
-    for (let i = 0; i < list.length; i++) {
-      if (!isChildrenExcludedListLinked.value[i]) {
-        await addLTARRef(list[i], injectedColumn?.value as ColumnType)
-        isChildrenExcludedListLinked.value[i] = true
+  try {
+    if (isNew.value) {
+      // For new rows, add all records to LTAR refs
+      const promises = []
+      for (let i = 0; i < list.length; i++) {
+        if (!isChildrenExcludedListLinked.value[i]) {
+          promises.push(addLTARRef(list[i], injectedColumn?.value as ColumnType))
+          isChildrenExcludedListLinked.value[i] = true
+        }
       }
-    }
-    saveRow!()
-  } else {
-    // For existing rows, link all records
-    for (let i = 0; i < list.length; i++) {
-      if (!isChildrenExcludedListLinked.value[i]) {
-        await link(list[i], {}, false, i)
+      await Promise.all(promises)
+      saveRow!()
+    } else {
+      // For existing rows, link all records
+      const promises = []
+      for (let i = 0; i < list.length; i++) {
+        if (!isChildrenExcludedListLinked.value[i]) {
+          promises.push(link(list[i], {}, false, i))
+        }
       }
+      await Promise.all(promises)
     }
+    
+    $e('a:links:select-all')
+  } catch (error) {
+    console.error('Error in selectAll:', error)
   }
-  
-  $e('a:links:select-all')
 }
 
 const clearAll = async () => {
@@ -145,25 +153,33 @@ const clearAll = async () => {
   const { list } = childrenExcludedList.value || {}
   if (!list || list.length === 0) return
 
-  if (isNew.value) {
-    // For new rows, remove all records from LTAR refs
-    for (let i = 0; i < list.length; i++) {
-      if (isChildrenExcludedListLinked.value[i]) {
-        await removeLTARRef(list[i], injectedColumn?.value as ColumnType)
-        isChildrenExcludedListLinked.value[i] = false
+  try {
+    if (isNew.value) {
+      // For new rows, remove all records from LTAR refs
+      const promises = []
+      for (let i = 0; i < list.length; i++) {
+        if (isChildrenExcludedListLinked.value[i]) {
+          promises.push(removeLTARRef(list[i], injectedColumn?.value as ColumnType))
+          isChildrenExcludedListLinked.value[i] = false
+        }
       }
-    }
-    saveRow!()
-  } else {
-    // For existing rows, unlink all records
-    for (let i = 0; i < list.length; i++) {
-      if (isChildrenExcludedListLinked.value[i]) {
-        await unlink(list[i], {}, false, i)
+      await Promise.all(promises)
+      saveRow!()
+    } else {
+      // For existing rows, unlink all records
+      const promises = []
+      for (let i = 0; i < list.length; i++) {
+        if (isChildrenExcludedListLinked.value[i]) {
+          promises.push(unlink(list[i], {}, false, i))
+        }
       }
+      await Promise.all(promises)
     }
+    
+    $e('a:links:clear-all')
+  } catch (error) {
+    console.error('Error in clearAll:', error)
   }
-  
-  $e('a:links:clear-all')
 }
 
 /** reload list on modal open */
@@ -485,7 +501,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
             v-if="anySelected"
             size="xsmall"
             type="secondary"
-            class="!h-6 !text-xs"
+            class="!h-6 !text-xs !min-w-20"
             :disabled="isSharedBase || isDataReadOnly"
             @click="clearAll"
           >
@@ -494,7 +510,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
           <NcButton
             size="xsmall"
             type="secondary"
-            class="!h-6 !text-xs"
+            class="!h-6 !text-xs !min-w-20"
             :disabled="isSharedBase || isDataReadOnly || allSelected"
             @click="selectAll"
           >

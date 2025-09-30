@@ -78,6 +78,10 @@ export type ParsedFormulaNode =
   | UnaryExpressionNode
   | CompoundNode;
 
+export interface FormulaMetaCustomValidation {
+  (args: FormulaDataTypes[], parseTree: CallExpressionNode): void;
+}
+
 export interface FormulaMeta {
   validation?: {
     args?: {
@@ -89,7 +93,7 @@ export interface FormulaMeta {
       // types should be in order of args
       type?: FormulaDataTypes | FormulaDataTypes[];
     };
-    custom?: (args: FormulaDataTypes[], parseTree: any) => void;
+    custom?: FormulaMetaCustomValidation;
   };
   description?: string;
   syntax?: string;

@@ -7,7 +7,7 @@ interface Prop {
 
 const props = defineProps<Prop>()
 
-const { extensionList, extensionsLoaded, availableExtensions } = useExtensions()
+const { extensionList, extensionsLoaded, availableExtensions, userHasAccessToExtension } = useExtensions()
 
 const activeError = toRef(props, 'error')
 
@@ -33,13 +33,17 @@ const extensionManifest = computed<ExtensionManifest | undefined>(() => {
 
 const activeExtensionId = computed(() => extensionManifest.value?.id ?? '')
 
+const hasAccessToExtension = computed(() => {
+  return userHasAccessToExtension(activeExtensionId.value)
+})
+
 provide(ExtensionConfigInj, ref({ activeExtensionId }))
 
 const {
   fullscreen,
   fullscreenModalSize: currentExtensionModalSize,
   collapsed,
-} = useProvideExtensionHelper(extension, extensionManifest, activeError)
+} = useProvideExtensionHelper(extension, extensionManifest, activeError, hasAccessToExtension)
 
 const { height } = useElementSize(extensionRef)
 

@@ -20,7 +20,7 @@ const {
   addExtension,
   getExtensionAssetsUrl,
   isMarketVisible,
-  hasAccessToExtension,
+  userHasAccessToExtension,
   userCurrentBaseRole,
 } = useExtensions()
 
@@ -90,7 +90,7 @@ const detailsBody = computed(() => {
           <div class="text-small leading-[18px] text-gray-500 truncate">{{ activeExtension.subTitle }}</div>
         </div>
         <div class="self-start flex items-center gap-2.5">
-          <NcTooltip v-if="!blockAddNewExtension" :disabled="hasAccessToExtension(activeExtension.id)">
+          <NcTooltip v-if="!blockAddNewExtension" :disabled="userHasAccessToExtension(activeExtension.id)">
             <template #title>
               {{
                 $t('tooltip.extensionAccessRestrictionTooltip', {
@@ -102,7 +102,7 @@ const detailsBody = computed(() => {
             <NcButton
               size="small"
               class="w-full"
-              :disabled="!hasAccessToExtension(activeExtension.id)"
+              :disabled="!userHasAccessToExtension(activeExtension.id)"
               @click="onAddExtension(activeExtension)"
             >
               <div class="flex items-center justify-center gap-1 -ml-3px">

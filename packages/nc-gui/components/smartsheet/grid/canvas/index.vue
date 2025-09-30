@@ -890,7 +890,7 @@ const handleRowMetaClick = ({
   onlyDrag?: boolean
   group?: CanvasGroup
 }) => {
-  const { isAtMaxSelection, isCheckboxDisabled, regions } = extractHoverMetaColRegions(row, group)
+  const { isCheckboxDisabled, regions } = extractHoverMetaColRegions(row, group)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
 

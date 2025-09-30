@@ -67,7 +67,7 @@ const isRowInCurrentDateRange = (
 
     // Check if row's date range intersects with current calendar view
     const rowStartDate = timezoneDayjs.timezonize(fromDate)
-    const rowEndDate = toDate ? timezoneDayjs.timezonize(toDate) : rowStartDate
+    const rowEndDate = toCol ? timezoneDayjs.timezonize(toDate) : rowStartDate
 
     let viewStartDate: dayjs.Dayjs
     let viewEndDate: dayjs.Dayjs
@@ -180,6 +180,12 @@ const isRowMatchingSidebarFilter = (
     default:
       return false
   }
+}
+
+// Add i18n helper for short days if needed in future
+export function getI18nShortDays(t: (key: string) => string, isMondayFirst = true): string[] {
+  const days = isMondayFirst ? ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'] : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+  return days.map((d) => t(`objects.shortDays.${d}`))
 }
 
 export { isRowInDateRange, isRowInCurrentDateRange, isRowMatchingSidebarFilter }

@@ -2151,12 +2151,13 @@ function generateProgressAPIs(): string {
 function generateInputMethods(): string {
   return `
     const input = {
-      textAsync: async (label) => {
+      textAsync: async (label, options) => {
         return new Promise((resolve) => {
           const id = Math.random().toString(36).substr(2, 9);
           self.postMessage({ 
             type: '${ScriptActionType.INPUT}', 
-            payload: { type: '${ScriptInputType.TEXT}', label, id, stepId: __nc_currentStepId } 
+            payload: { type: '${ScriptInputType.TEXT}', label, defaultValue: options?.defaultValue, id }, 
+            stepId: __nc_currentStepId,
           });
           function handler(event) {
             if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
@@ -2167,7 +2168,7 @@ function generateInputMethods(): string {
           self.addEventListener('message', handler);
         });
       },
-      selectAsync: async (label, options) => {
+      selectAsync: async (label, options, defaultValue) => {
         return new Promise((resolve) => {
           const id = Math.random().toString(36).substr(2, 9);
           
@@ -2180,7 +2181,8 @@ function generateInputMethods(): string {
           
           self.postMessage({ 
             type: '${ScriptActionType.INPUT}', 
-            payload: { type: '${ScriptInputType.SELECT}', label, options: processedOptions, id, stepId: __nc_currentStepId } 
+            payload: { type: '${ScriptInputType.SELECT}', label, options: processedOptions, id, defaultValue },
+            stepId: __nc_currentStepId,
           });
           function handler(event) {
             if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
@@ -2197,14 +2199,15 @@ function generateInputMethods(): string {
           
           const processedOptions = options.map(option => {
             if (typeof option === 'string') {
-              return { label: option, value: option, variant: 'default', stepId: __nc_currentStepId };
+              return { label: option, value: option, variant: 'default' };
             }
             return option;
           });
           
           self.postMessage({ 
             type: '${ScriptActionType.INPUT}', 
-            payload: { type: '${ScriptInputType.BUTTONS}', label, options: processedOptions, id } 
+            payload: { type: '${ScriptInputType.BUTTONS}', label, options: processedOptions, id },
+            stepId: __nc_currentStepId
           });
           function handler(event) {
             if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {

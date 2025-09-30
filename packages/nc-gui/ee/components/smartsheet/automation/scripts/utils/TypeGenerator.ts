@@ -4081,7 +4081,7 @@ declare interface ConfigItem {}
 
     // input.config.number
     this.formatJSDoc([
-      `ADefines a setting for a number variable`,
+      `Defines a setting for a number variable`,
       `@param key A unique identifier for the number setting.`,
       `@param options Optional. Options for the number setting.`,
       `@param options.label Optional. Label for the number input.`,
@@ -4122,14 +4122,16 @@ declare interface ConfigItem {}
       `Prompts the user to enter text.`,
       `This is an asynchronous operation that should be used with await.`,
       `@param label Label explaining what the user should enter.`,
+      `@param options Optional. Options for the text prompt.`,
+      `@param options.defaultValue Optional. Default value for the text input.`,
       `@returns The text value entered by the user.`,
       '',
       `@example`,
-      `let name = await input.textAsync('What is your name?');`,
+      `let name = await input.textAsync('What is your name?', {defaultValue: 'Anonymous'});`,
       `output.text(\`Your name is \${name}.\`);`,
     ])
 
-    this.write(`textAsync(label: string): Promise<string>;`)
+    this.write(`textAsync(label: string, options?: {defaultValue?: string}): Promise<string>;`)
     this.write()
 
     // input.buttonAsync
@@ -4231,21 +4233,23 @@ declare interface ConfigItem {}
       `Prompts the user to select an option from a dropdown menu.`,
       `@param label - A label explaining what the user is selecting`,
       `@param options - Array of options to choose from`,
+      `@param defaultValue - Optional. Default selected value`,
       `@returns Promise resolving to the selected option's value`,
     ])
-    this.write(`selectAsync<T extends string>(label: string, options: ReadonlyArray<T>): Promise<T>;`)
+    this.write(`selectAsync<T extends string>(label: string, options: ReadonlyArray<T>, defaultValue?: T): Promise<T>;`)
     this.write()
 
     this.formatJSDoc([
       `Prompts the user to select an option from a dropdown menu with custom labels and values.`,
       `@param label - A label explaining what the user is selecting`,
       `@param options - Array of options with labels and values`,
+      `@param defaultValue - Optional. Default selected value`,
       `@returns Promise resolving to the selected option's value`,
     ])
     this.write(`selectAsync<T>(label: string, options: Array<{
     label: string;
     value: T;
-}>): Promise<T>;`)
+}>, defaultValue?: T): Promise<T>;`)
 
     // input.tableAsync
 

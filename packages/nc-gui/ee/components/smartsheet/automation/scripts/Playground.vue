@@ -25,7 +25,9 @@ const props = withDefaults(defineProps<Props>(), {
 const scriptStore = props.playground ? null : useScriptStoreOrThrow()
 const playgroundData = computed(() => props.playground || scriptStore?.playground.value || [])
 const isRunningState = computed(() => props.isRunning || scriptStore?.isRunning.value || false)
-const isFinishedState = computed(() => props.isFinished || scriptStore?.isFinished.value || false)
+const isFinishedState = computed(
+  () => props.isFinished || (scriptStore?.isFinished.value && playgroundData.value?.length > 0) || false,
+)
 
 const playgroundContainer = ref<HTMLElement | null>(null)
 
@@ -115,14 +117,14 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
     :class="[
       {
         'border-l-1 border-nc-border-gray-medium': !compact && scriptStore?.isCreateEditScriptAllowed,
-        'p-6 h-[91svh] bg-nc-bg-gray-extralight max-w-130': !compact,
+        'p-6 h-[91svh] bg-nc-bg-gray-extralight': !compact,
       },
       containerClass,
     ]"
   >
     <div
       v-if="isRunningState || isFinishedState || playgroundData.length > 0"
-      class="flex mx-auto flex-col gap-6"
+      class="flex mx-auto flex-col max-w-130 gap-6"
       :class="[{ 'pb-40': !compact, 'pb-4': compact }]"
     >
       <div v-for="(item, index) in playgroundData" :key="index" class="playground-item" :data-type="item.type">

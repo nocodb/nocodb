@@ -7,7 +7,7 @@ const props = defineProps<DynamicInputProps>()
 
 const { content } = toRefs(props)
 
-const inputValue = ref('')
+const inputValue = ref(content.value.defaultValue)
 const isResolved = ref(false)
 
 const resolveInput = (value?: string | File) => {
@@ -16,12 +16,6 @@ const resolveInput = (value?: string | File) => {
     props.onResolve(value !== undefined ? value : inputValue.value)
   }
 }
-
-watch(inputValue, (newValue) => {
-  if (content.value.type === ScriptInputType.SELECT && newValue) {
-    resolveInput()
-  }
-})
 
 const onChange = () => {
   if (inputValue.value) {
@@ -133,6 +127,7 @@ watch(
         v-model:value="inputValue"
         type="text"
         :disabled="isResolved"
+        :placeholder="content.defaultValue"
         class="nc-input-sm nc-input-shadow"
         @keydown.enter="onChange"
       />
@@ -161,7 +156,14 @@ watch(
   <template v-else-if="content.type === ScriptInputType.SELECT">
     <div class="flex flex-col gap-2">
       <label class="text-caption text-nc-content-gray-subtle2">{{ content.label }}</label>
-      <a-select v-model:value="inputValue" :disabled="isResolved" class="nc-select-shadow" show-search @change="onChange">
+      <a-select
+        v-model:value="inputValue"
+        :disabled="isResolved"
+        class="nc-select-shadow"
+        show-search
+        @change="onChange"
+        @keydown.enter="onChange"
+      >
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-gray-700" />
         </template>
@@ -178,6 +180,25 @@ watch(
           </div>
         </a-select-option>
       </a-select>
+      <NcButton v-if="!isResolved" type="primary" size="small" :disabled="!inputValue" @click="onChange">
+        <div class="flex gap-2 items-center">
+          Next
+          <div
+            :class="{
+              '!bg-nc-bg-gray-extralight': !inputValue,
+            }"
+            class="px-1 py-0.5 bg-brand-600 transition-all rounded-md"
+          >
+            <GeneralIcon
+              :class="{
+                '!text-gray-300': !inputValue,
+              }"
+              class="transition-all"
+              icon="ncEnter"
+            />
+          </div>
+        </div>
+      </NcButton>
     </div>
   </template>
 

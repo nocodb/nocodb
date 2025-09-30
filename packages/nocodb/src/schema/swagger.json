@@ -19096,6 +19096,13 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "extensionEntry",
+            "in": "query"
           }
         ]
       }
@@ -19168,6 +19175,13 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "extensionEntry",
+            "in": "query"
           }
         ]
       },
@@ -19191,6 +19205,13 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "extensionEntry",
+            "in": "query"
           }
         ]
       }

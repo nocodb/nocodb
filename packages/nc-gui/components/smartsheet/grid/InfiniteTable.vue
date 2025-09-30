@@ -77,7 +77,6 @@ const props = defineProps<{
 const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks'])
 
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
-const vSelectedAllRecordsSkipPks = useVModel(props, 'selectedAllRecordsSkipPks', emits)
 const { withLoading } = useLoadingTrigger()
 
 const {

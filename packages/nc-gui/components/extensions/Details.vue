@@ -14,7 +14,15 @@ const emit = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { availableExtensions, descriptionContent, addExtension, getExtensionAssetsUrl, isMarketVisible } = useExtensions()
+const {
+  availableExtensions,
+  descriptionContent,
+  addExtension,
+  getExtensionAssetsUrl,
+  isMarketVisible,
+  hasAccessToExtension,
+  userCurrentBaseRole,
+} = useExtensions()
 
 const { blockAddNewExtension, navigateToPricing, isWsOwner } = useEeConfig()
 
@@ -82,11 +90,26 @@ const detailsBody = computed(() => {
           <div class="text-small leading-[18px] text-gray-500 truncate">{{ activeExtension.subTitle }}</div>
         </div>
         <div class="self-start flex items-center gap-2.5">
-          <NcButton v-if="!blockAddNewExtension" size="small" class="w-full" @click="onAddExtension(activeExtension)">
-            <div class="flex items-center justify-center gap-1 -ml-3px">
-              <GeneralIcon icon="plus" /> {{ $t('general.add') }} {{ $t('general.extension') }}
-            </div>
-          </NcButton>
+          <NcTooltip v-if="!blockAddNewExtension" :disabled="hasAccessToExtension(activeExtension.id)">
+            <template #title>
+              {{
+                $t('tooltip.extensionAccessRestrictionTooltip', {
+                  minAccessRole: $t(`objects.roleType.${activeExtension.minAccessRole}`),
+                  currentRole: $t(`objects.roleType.${userCurrentBaseRole}`),
+                })
+              }}
+            </template>
+            <NcButton
+              size="small"
+              class="w-full"
+              :disabled="!hasAccessToExtension(activeExtension.id)"
+              @click="onAddExtension(activeExtension)"
+            >
+              <div class="flex items-center justify-center gap-1 -ml-3px">
+                <GeneralIcon icon="plus" /> {{ $t('general.add') }} {{ $t('general.extension') }}
+              </div>
+            </NcButton>
+          </NcTooltip>
           <NcTooltip v-else>
             <template #title>
               {{ $t('upgrade.upgradeToAddMoreExtensions') }}

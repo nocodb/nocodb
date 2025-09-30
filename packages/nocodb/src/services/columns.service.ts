@@ -351,7 +351,7 @@ export class ColumnsService implements IColumnsService {
       forceUpdateSystem?: boolean;
       columnWebhookManager?: ColumnWebhookManager;
     },
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ): Promise<Model | Column<any>> {
     const reuse = param.reuse || {};
 
@@ -2167,7 +2167,7 @@ export class ColumnsService implements IColumnsService {
       apiVersion?: T;
       columnWebhookManager?: ColumnWebhookManager;
     },
-    ncMeta?: MetaService,
+    ncMeta = Noco.ncMeta,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
     let savedColumn;
     // if column_name is defined and title is not defined, set title to column_name
@@ -2919,10 +2919,10 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
-    await columnWebhookManager.addNewColumnById({
-      columnId: newColumn.id,
-      action: WebhookActions.INSERT,
-    });
+    await columnWebhookManager.addNewColumnById(
+      newColumn.id,
+      WebhookActions.INSERT,
+    );
     if (!param.columnWebhookManager) {
       columnWebhookManager.emit();
     }

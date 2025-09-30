@@ -13,7 +13,6 @@ import type {
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ReusableParams } from '~/services/columns.service';
-import type { MetaService } from '~/meta/meta.service';
 import { NcError } from '~/helpers/ncError';
 import {
   type ColumnWebhookManager,
@@ -43,7 +42,7 @@ export class ColumnsV3Service {
       reuse?: ReusableParams;
       columnWebhookManager?: ColumnWebhookManager;
     },
-    ncMeta?: MetaService,
+    ncMeta = Noco.ncMeta,
   ) {
     validatePayload(
       'swagger-v3.json#/components/schemas/FieldUpdate',
@@ -108,13 +107,17 @@ export class ColumnsV3Service {
     // in payload id is required in existing implementation
     column.id = param.columnId;
 
-    await this.columnsService.columnUpdate(context, {
-      ...param,
-      column: processedColumnReq,
-      apiVersion: NcApiVersion.V3,
-      req: param.req,
-      columnWebhookManager: columnWebhookManager,
-    });
+    await this.columnsService.columnUpdate(
+      context,
+      {
+        ...param,
+        column: processedColumnReq,
+        apiVersion: NcApiVersion.V3,
+        req: param.req,
+        columnWebhookManager: columnWebhookManager,
+      },
+      ncMeta,
+    );
 
     column = await Column.get(context, { colId: param.columnId });
 
@@ -145,7 +148,7 @@ export class ColumnsV3Service {
       reuse?: ReusableParams;
       columnWebhookManager?: ColumnWebhookManager;
     },
-    ncMeta?: MetaService,
+    ncMeta = Noco.ncMeta,
   ) {
     validatePayload(
       'swagger-v3.json#/components/schemas/CreateField',

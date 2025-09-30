@@ -2919,10 +2919,10 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
-    await columnWebhookManager.addNewColumnById(
-      newColumn.id,
-      WebhookActions.INSERT,
-    );
+    await columnWebhookManager.addNewColumnById({
+      columnId: newColumn.id,
+      action: WebhookActions.INSERT,
+    });
     if (!param.columnWebhookManager) {
       columnWebhookManager.emit();
     }
@@ -3297,11 +3297,18 @@ export class ColumnsService implements IColumnsService {
                     colOpt.fk_mm_child_column_id ===
                       relationColOpt.fk_mm_parent_column_id
                   ) {
-                    await columnWebhookManager?.addOldColumnById(
-                      c.id,
-                      WebhookActions.DELETE,
+                    await columnWebhookManager?.addOldColumnById({
+                      columnId: c.id,
+                      action: WebhookActions.DELETE,
+                    });
+                    await Column.delete2(
+                      refContext,
+                      {
+                        id: c.id,
+                        ...generateColumnDeleteHandler(columnWebhookManager),
+                      },
+                      ncMeta,
                     );
-                    await Column.delete(refContext, c.id, ncMeta);
                     if (!c.system) {
                       this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
                         table: refTable,
@@ -3316,11 +3323,11 @@ export class ColumnsService implements IColumnsService {
                   }
                 }
 
-                await columnWebhookManager?.addOldColumnById(
-                  relationColOpt.fk_column_id,
-                  WebhookActions.DELETE,
-                );
-                await Column.delete(
+                await columnWebhookManager?.addOldColumnById({
+                  columnId: relationColOpt.fk_column_id,
+                  action: WebhookActions.DELETE,
+                });
+                await Column.delete2(
                   context,
                   {
                     id: relationColOpt.fk_column_id,
@@ -3708,11 +3715,15 @@ export class ColumnsService implements IColumnsService {
           { colId: c.id },
           ncMeta,
         );
-        await columnWebhookManager?.addOldColumnById(
-          c.id,
-          WebhookActions.DELETE,
+        await columnWebhookManager?.addOldColumnById({
+          columnId: c.id,
+          action: WebhookActions.DELETE,
+        });
+        await Column.delete2(
+          refContext,
+          { id: c.id, ...generateColumnDeleteHandler(columnWebhookManager) },
+          ncMeta,
         );
-        await Column.delete(refContext, c.id, ncMeta);
 
         if (!colInRefTable.system) {
           this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
@@ -3729,10 +3740,10 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
-    await columnWebhookManager?.addOldColumnById(
-      relationColOpt.fk_column_id,
-      WebhookActions.DELETE,
-    );
+    await columnWebhookManager?.addOldColumnById({
+      columnId: relationColOpt.fk_column_id,
+      action: WebhookActions.DELETE,
+    });
     // delete virtual columns
     await Column.delete2(
       context,
@@ -3818,10 +3829,10 @@ export class ColumnsService implements IColumnsService {
       };
 
       await sqlMgr.sqlOpPlus(childSource, 'tableUpdate', tableUpdateBody);
-      await columnWebhookManager?.addOldColumnById(
-        childColumn.id,
-        WebhookActions.DELETE,
-      );
+      await columnWebhookManager?.addOldColumnById({
+        columnId: childColumn.id,
+        action: WebhookActions.DELETE,
+      });
       // delete foreign key column
       await Column.delete2(
         childContext,
@@ -3954,11 +3965,15 @@ export class ColumnsService implements IColumnsService {
           ncMeta,
         );
 
-        await columnWebhookManager?.addOldColumnById(
-          c.id,
-          WebhookActions.DELETE,
+        await columnWebhookManager?.addOldColumnById({
+          columnId: c.id,
+          action: WebhookActions.DELETE,
+        });
+        await Column.delete2(
+          refContext,
+          { id: c.id, ...generateColumnDeleteHandler(columnWebhookManager) },
+          ncMeta,
         );
-        await Column.delete(refContext, c.id, ncMeta);
 
         if (!colInRefTable.system) {
           this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
@@ -3974,10 +3989,10 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
-    await columnWebhookManager?.addOldColumnById(
-      relationColOpt.fk_column_id,
-      WebhookActions.DELETE,
-    );
+    await columnWebhookManager?.addOldColumnById({
+      columnId: relationColOpt.fk_column_id,
+      action: WebhookActions.DELETE,
+    });
     // delete virtual columns
     await Column.delete2(
       context,
@@ -4059,10 +4074,10 @@ export class ColumnsService implements IColumnsService {
       };
 
       await sqlMgr.sqlOpPlus(childSource, 'tableUpdate', tableUpdateBody);
-      await columnWebhookManager?.addOldColumnById(
-        childColumn.id,
-        WebhookActions.DELETE,
-      );
+      await columnWebhookManager?.addOldColumnById({
+        columnId: childColumn.id,
+        action: WebhookActions.DELETE,
+      });
       // delete foreign key column
       await Column.delete2(
         childContext,
@@ -4652,14 +4667,14 @@ export class ColumnsService implements IColumnsService {
           sqlMgr,
         });
       }
-      await param.columnWebhookManager?.addNewColumnById(
-        parentRelCol.id,
-        WebhookActions.INSERT,
-      );
-      await param.columnWebhookManager?.addNewColumnById(
-        savedColumn.id,
-        WebhookActions.INSERT,
-      );
+      await param.columnWebhookManager?.addNewColumnById({
+        columnId: parentRelCol.id,
+        action: WebhookActions.INSERT,
+      });
+      await param.columnWebhookManager?.addNewColumnById({
+        columnId: savedColumn.id,
+        action: WebhookActions.INSERT,
+      });
       return savedColumn;
     }
   }

@@ -60,11 +60,11 @@ export class BaseModelDelete {
 
     // If skipPks provided then add it in qb
     if (args.skipPks) {
-      qb.where((qb) => {
+      qb.where((innerQb) => {
         args.skipPks.split(',').forEach((pk) => {
-          qb.andWhereNot(_wherePk(this.baseModel.model.primaryKeys, pk));
+          innerQb.andWhereNot(_wherePk(this.baseModel.model.primaryKeys, pk));
         });
-        return qb;
+        return innerQb;
       });
     }
 

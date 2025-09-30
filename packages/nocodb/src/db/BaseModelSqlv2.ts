@@ -612,11 +612,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (rest.pks) {
       const pks = rest.pks.split(',');
-      qb.where((qb) => {
+      qb.where((innerQb) => {
         pks.forEach((pk) => {
-          qb.orWhere(_wherePk(this.model.primaryKeys, pk));
+          innerQb.orWhere(_wherePk(this.model.primaryKeys, pk));
         });
-        return qb;
+        return innerQb;
       });
     }
 

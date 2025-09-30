@@ -362,7 +362,6 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
       'meta',
       'colOptions',
       'fk_model_id',
-      'system',
     ],
     mappings: {
       uidt: 'type',

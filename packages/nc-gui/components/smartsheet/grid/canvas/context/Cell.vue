@@ -4,6 +4,7 @@ import type { CellRange } from '../../../../../composables/useMultiSelect/cellRa
 import type { ActionManager } from '../loaders/ActionManager'
 const props = defineProps<{
   selectedAllRecords: boolean
+  selectedAllRecordsSkipPks: Record<string, string>
   contextMenuTarget: { row: number; col: number; path: Array<number> | null } | null
   selection: CellRange
   columns: CanvasGridColumn[]
@@ -53,7 +54,7 @@ const props = defineProps<{
 }>()
 
 // Emits
-const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
+const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks'])
 
 const {
   bulkDeleteAll,
@@ -69,7 +70,7 @@ const {
 
 const contextMenuTarget = useVModel(props, 'contextMenuTarget', emits)
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
-
+const vSelectedAllRecordsSkipPks = useVModel(props, 'selectedAllRecordsSkipPks', emits)
 // To Refs
 const isGroupBy = toRef(props, 'isGroupBy')
 const selection = toRef(props, 'selection')
@@ -138,13 +139,17 @@ async function deleteAllRecords() {
 
   const { totalRows } = getDataCache([])
 
+  const allSelectedRecordCount = totalRows.value - Object.keys(vSelectedAllRecordsSkipPks.value).length
+
   const { close } = useDialog(resolveComponent('DlgRecordDeleteAll'), {
     'modelValue': isDeleteAllRecordsModalOpen,
-    'rows': totalRows.value,
+    'rows': allSelectedRecordCount,
+    'isSelectedAll': totalRows.value === allSelectedRecordCount,
     'onUpdate:modelValue': closeDlg,
     'onDeleteAll': async () => {
       await bulkDeleteAll?.([])
       closeDlg()
+      vSelectedAllRecordsSkipPks.value = {}
       vSelectedAllRecords.value = false
     },
   })
@@ -294,7 +299,11 @@ const execBulkAction = async (path: Array<number>) => {
         >
           <div v-e="['a:row:delete-all']" class="flex gap-2 items-center">
             <GeneralIcon icon="delete" />
-            {{ $t('activity.deleteAllRecords') }}
+            {{
+              ncIsEmptyObject(vSelectedAllRecordsSkipPks)
+                ? $t('activity.deleteAllRecords')
+                : $t('activity.deleteAllSelectedRecords')
+            }}
           </div>
         </NcMenuItem>
       </template>

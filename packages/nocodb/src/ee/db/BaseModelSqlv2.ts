@@ -3022,7 +3022,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   async bulkDeleteAll(
-    args: { where?: string; filterArr?: Filter[]; viewId?: string } = {},
+    args: {
+      where?: string;
+      filterArr?: Filter[];
+      viewId?: string;
+      skipPks?: string;
+    } = {},
     { cookie, skip_hooks = false }: { cookie: NcRequest; skip_hooks?: boolean },
   ) {
     return await new BaseModelDelete(this).bulkAll({

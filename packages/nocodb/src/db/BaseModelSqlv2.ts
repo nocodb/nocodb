@@ -612,11 +612,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (rest.pks) {
       const pks = rest.pks.split(',');
-      qb.where((qb) => {
+      qb.where((innerQb) => {
         pks.forEach((pk) => {
-          qb.orWhere(_wherePk(this.model.primaryKeys, pk));
+          innerQb.orWhere(_wherePk(this.model.primaryKeys, pk));
         });
-        return qb;
+        return innerQb;
       });
     }
 
@@ -3608,7 +3608,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async bulkDeleteAll(
-    args: { where?: string; filterArr?: Filter[]; viewId?: string } = {},
+    args: {
+      where?: string;
+      filterArr?: Filter[];
+      viewId?: string;
+      skipPks?: string;
+    } = {},
     { cookie, skip_hooks = false }: { cookie: NcRequest; skip_hooks?: boolean },
   ) {
     return await new BaseModelDelete(this).bulkAll({

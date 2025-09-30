@@ -9,6 +9,7 @@ import {
   UITypes,
   type ViewType,
   isVirtualCol,
+  ncHasProperties,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
@@ -106,6 +107,7 @@ const props = defineProps<{
   chunkStates: Array<'loading' | 'loaded' | undefined>
   isBulkOperationInProgress: boolean
   selectedAllRecords?: boolean
+  selectedAllRecordsSkipPks: Record<string, string>
   getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
   getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
@@ -129,7 +131,7 @@ const props = defineProps<{
   clearGroupCache: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => void
 }>()
 
-const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
+const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks'])
 
 provide(IsCanvasInjectionInj, true)
 
@@ -160,6 +162,8 @@ const {
 
 // VModels
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
+
+const vSelectedAllRecordsSkipPks = useVModel(props, 'selectedAllRecordsSkipPks', emits)
 
 const { eventBus, isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
 
@@ -360,6 +364,7 @@ const {
   isRowDraggingEnabled,
   rowMetaColumnWidth,
   rowColouringBorderWidth,
+  isRecordSelected,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -376,6 +381,7 @@ const {
   scrollTop,
   aggregations,
   vSelectedAllRecords,
+  vSelectedAllRecordsSkipPks,
   selectedRows,
   updateRecordOrder,
   expandRows,
@@ -586,6 +592,7 @@ function resetRowSelection() {
   })
 
   vSelectedAllRecords.value = false
+  vSelectedAllRecordsSkipPks.value = {}
 }
 
 watch(vSelectedAllRecords, (val) => {
@@ -784,8 +791,10 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false, savedColumn?: Colum
 
 function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
   const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
-  const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value || readOnly.value
-  const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
+
+  const isChecked = isRecordSelected(row)
+
+  const isCheckboxDisabled = (!vSelectedAllRecords.value && !isChecked && isAtMaxSelection) || readOnly.value
 
   const path = group ? generateGroupPath(group) : []
 
@@ -881,7 +890,7 @@ const handleRowMetaClick = ({
   onlyDrag?: boolean
   group?: CanvasGroup
 }) => {
-  const { isAtMaxSelection, isCheckboxDisabled, regions } = extractHoverMetaColRegions(row, group)
+  const { isCheckboxDisabled, regions } = extractHoverMetaColRegions(row, group)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
 
@@ -891,11 +900,19 @@ const handleRowMetaClick = ({
 
   switch (clickedRegion.action) {
     case 'select':
-      if (!isCheckboxDisabled && (row.rowMeta?.selected || !isAtMaxSelection)) {
+      if (!isCheckboxDisabled) {
         resetActiveCell()
 
         if (onlyDrag) {
           row.rowMeta.selected = !row.rowMeta?.selected
+
+          if (vSelectedAllRecords.value && isValidValue(row.rowMeta.rowIndex)) {
+            if (ncHasProperties(vSelectedAllRecordsSkipPks.value, row.rowMeta.rowIndex!)) {
+              delete vSelectedAllRecordsSkipPks.value[row.rowMeta.rowIndex!]
+            } else {
+              vSelectedAllRecordsSkipPks.value[row.rowMeta.rowIndex!] = extractPkFromRow(row.row, meta.value?.columns ?? [])
+            }
+          }
 
           const path = generateGroupPath(group)
           if (row.rowMeta?.selected && ncIsNumber(row.rowMeta.rowIndex)) {
@@ -1270,7 +1287,11 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       // If the click is not normal single click, return
       if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value || isGroupBy.value) return
       if (isBoxHovered({ x: isRowDraggingEnabled.value ? 4 + 26 : 10, y: 8, height: 16, width: 16 }, mousePosition)) {
-        vSelectedAllRecords.value = !vSelectedAllRecords.value
+        if (vSelectedAllRecords.value && !ncIsEmptyObject(vSelectedAllRecordsSkipPks.value)) {
+          vSelectedAllRecordsSkipPks.value = {}
+        } else {
+          vSelectedAllRecords.value = !vSelectedAllRecords.value
+        }
         resetActiveCell()
       }
 
@@ -2049,7 +2070,10 @@ const handleMouseMove = (e: MouseEvent) => {
 
       const selectionStart = Math.min(selectedRowInfo.index, row.rowMeta.rowIndex)
 
-      const selectionEnd = Math.min(selectionStart + MAX_SELECTED_ROWS, Math.max(selectedRowInfo.index, row.rowMeta.rowIndex))
+      const selectionEnd = Math.min(
+        selectionStart + (MAX_SELECTED_ROWS - 1),
+        Math.max(selectedRowInfo.index, row.rowMeta.rowIndex),
+      )
 
       /**
        * If selection is started and the selection is not changed, then don't do anything
@@ -2814,6 +2838,7 @@ watch(
               "
               v-model:context-menu-target="contextMenuTarget"
               v-model:selected-all-records="vSelectedAllRecords"
+              v-model:selected-all-records-skip-pks="vSelectedAllRecordsSkipPks"
               :selection="selection"
               :columns="columns"
               :active-cell="activeCell"

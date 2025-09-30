@@ -45,7 +45,7 @@ const configComponent = computed(() => {
 <template>
   <div
     v-if="selectedWidget"
-    class="widget-editor-panel w-88 bg-white border-l border-nc-content-gray-300 h-full overflow-hidden flex flex-col"
+    class="widget-editor-panel w-88 bg-nc-bg-default border-l border-nc-border-gray-dark h-full overflow-hidden flex flex-col"
   >
     <component :is="configComponent" :widget="selectedWidget" />
   </div>

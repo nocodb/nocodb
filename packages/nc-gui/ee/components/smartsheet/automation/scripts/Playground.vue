@@ -141,7 +141,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
               'bg-nc-bg-orange-light border-nc-border-orange': item.content.color === 'orange',
               'bg-nc-bg-pink-light border-nc-border-pink': item.content.color === 'pink',
               'bg-nc-bg-maroon-light border-nc-border-maroon': item.content.color === 'maroon',
-              'bg-white border-nc-border-gray-dark': !item.content.color || item.content.color === 'gray',
+              'bg-nc-bg-default border-nc-border-gray-dark': !item.content.color || item.content.color === 'gray',
             }"
             class="workflow-step-card border-1 rounded-lg overflow-hidden"
           >
@@ -157,7 +157,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
                 'border-nc-border-maroon': item.content.color === 'maroon',
                 'border-nc-border-gray-dark': !item.content.color || item.content.color === 'gray',
               }"
-              class="step-header px-4 py-4 border-b border-gray-200"
+              class="step-header px-4 py-4 border-b border-nc-border-gray-medium"
             >
               <div class="flex items-center gap-4">
                 <div v-if="item.content.icon" class="step-icon">
@@ -193,8 +193,8 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
                   <div
                     class="leading-5 whitespace-pre-wrap text-sm"
                     :class="{
-                      'text-red-500': child.style === 'error',
-                      'text-orange-500': child.style === 'warning',
+                      'text-nc-content-red-medium': child.style === 'error',
+                      'text-nc-content-orange-medium': child.style === 'warning',
                     }"
                   >
                     {{ child.content }}
@@ -253,7 +253,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
         <template v-else-if="item.type === 'text'">
           <div
             class="leading-5 whitespace-pre-wrap"
-            :class="{ 'text-red-500': item.style === 'error', 'text-orange-500': item.style === 'warning' }"
+            :class="{ 'text-nc-content-red-medium': item.style === 'error', 'text-orange-500': item.style === 'warning' }"
           >
             {{ item.content }}
           </div>
@@ -382,7 +382,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
   @apply !max-w-auto;
 
   a {
-    @apply text-gray-900;
+    @apply text-nc-content-gray-emphasis;
   }
 
   h1 {

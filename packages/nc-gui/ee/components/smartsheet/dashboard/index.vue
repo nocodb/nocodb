@@ -48,7 +48,7 @@ watchEffect(async () => {
         transition
         class="!bg-opacity-15 rounded-xl overflow-hidden"
       >
-        <div class="flex flex-col items-center justify-center h-full w-full !bg-white !bg-opacity-80">
+        <div class="flex flex-col items-center justify-center h-full w-full !bg-nc-bg-default !bg-opacity-80">
           <a-spin size="large" />
         </div>
       </general-overlay>

@@ -95,7 +95,7 @@ const onResizeClick = (size: 'small' | 'medium' | 'large') => {
         <NcMenu variant="small">
           <NcMenuItem @click="onDuplicate">
             <GeneralLoader v-if="loadingState.duplicate" />
-            <GeneralIcon v-else class="text-gray-700" icon="duplicate" />
+            <GeneralIcon v-else class="text-nc-content-gray-subtle" icon="duplicate" />
             Duplicate widget
           </NcMenuItem>
           <NcDivider />

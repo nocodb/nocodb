@@ -198,7 +198,7 @@ const handleCancel = () => {
       @keydown.enter.stop
     >
       <div
-        class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 pt-3 border-b-1 border-gray-100 overflow-hidden cursor-move select-none"
+        class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 pt-3 border-b-1 border-nc-border-gray-light overflow-hidden cursor-move select-none"
         @mousedown="dragStart"
       >
         <div class="flex max-w-38">
@@ -212,7 +212,7 @@ const handleCancel = () => {
       <div class="p-3 pb-0 h-full">
         <div
           v-if="isMarkdown"
-          class="nc-text-widget-expanded-textarea overflow-auto border-1 border-gray-200 bg-white !rounded-lg focus-within:border-brand-500"
+          class="nc-text-widget-expanded-textarea overflow-auto border-1 border-nc-border-gray-medium bg-white !rounded-lg focus-within:border-nc-border-brand"
           :style="{
             resize: 'both',
             maxHeight: 'min(795px, 100vh - 170px)',
@@ -234,7 +234,7 @@ const handleCancel = () => {
           v-else
           ref="inputRef"
           v-model:value="localContent"
-          class="nc-text-widget-expanded-textarea !py-3 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 nc-longtext-scrollbar"
+          class="nc-text-widget-expanded-textarea !py-3 !px-3 !text-nc-content-gray-extreme !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-nc-border-brand nc-longtext-scrollbar"
           :placeholder="$t('activity.enterText')"
           :style="{
             resize: 'both',

@@ -8,6 +8,8 @@ const editorRef = ref<HTMLDivElement | null>(null)
 
 let editor: monaco.editor.IStandaloneCodeEditor
 
+const { isDark } = useTheme()
+
 const { activeAutomation, activeBaseSchema } = storeToRefs(useAutomationStore())
 
 const { appInfo } = useGlobal()
@@ -39,6 +41,14 @@ const updateTypes = () => {
 const { completeScript } = useNocoAi()
 
 let dirty = false
+
+const updateTheme = () => {
+  if (isDark.value) {
+    monaco.editor.setTheme('vs-dark')
+  } else {
+    monaco.editor.setTheme('vs-light')
+  }
+}
 
 async function setupMonacoEditor() {
   if (!editorRef.value) return
@@ -89,6 +99,8 @@ async function setupMonacoEditor() {
     wrappingStrategy: 'advanced',
     renderLineHighlight: 'none',
   })
+
+  updateTheme()
 
   if (isAiBetaFeaturesEnabled.value) {
     registerCompletion(monaco, editor, {
@@ -159,6 +171,10 @@ watch(activeBaseSchema, (newVal) => {
   }
 })
 
+watch(isDark, () => {
+  updateTheme()
+})
+
 onBeforeUnmount(() => {
   editor?.getModel()?.dispose()
   editor?.dispose()
@@ -210,8 +226,8 @@ onBeforeUnmount(() => {
   .monaco-editor,
   .monaco-diff-editor,
   .monaco-component {
-    --vscode-editor-background: #ffffff;
-    --vscode-editorGutter-background: #ffffff;
+    --vscode-editor-background: var(--nc-bg-default);
+    --vscode-editorGutter-background: var(--nc-bg-default);
   }
   .line-numbers {
     @apply text-nc-content-gray-subtle2 !pr-1;

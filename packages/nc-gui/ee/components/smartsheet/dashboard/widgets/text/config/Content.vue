@@ -81,15 +81,15 @@ watch([() => selectedWidget.value?.config.content], () => {
   box-shadow: none;
   &:focus,
   &:focus-within {
-    @apply min-h-26 !bg-white border-brand-500;
+    @apply min-h-26 !bg-nc-bg-default border-nc-border-brand;
     box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
   }
   &::placeholder {
-    @apply !text-gray-400;
+    @apply !text-nc-content-gray-disabled;
   }
 }
 
 :deep(.widget-content-input) {
-  @apply bg-white;
+  @apply bg-nc-bg-default;
 }
 </style>

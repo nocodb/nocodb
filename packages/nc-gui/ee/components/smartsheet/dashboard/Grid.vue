@@ -235,7 +235,7 @@ watch(
 
 <template>
   <div
-    class="bg-white w-full overflow-y-scroll h-full rounded-lg p-4"
+    class="bg-nc-bg-default w-full overflow-y-scroll h-full rounded-lg p-4"
     style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.12)"
     :class="{
       'flex flex-col items-center justify-center': !activeDashboardWidgets.length,
@@ -292,16 +292,16 @@ watch(
     </GridLayout>
     <div
       v-if="!activeDashboardWidgets.length && !isEditingDashboard && !isPublic && isUIAllowed('dashboardEdit')"
-      class="empty-state flex flex-col h-full items-center justify-center h-64 text-nc-content-gray-500"
+      class="empty-state flex flex-col h-full items-center justify-center h-64 text-nc-content-gray-muted"
     >
       <img :src="PlaceholderImage" class="w-120 mb-4" alt="Start building your dashboard" />
-      <h3 class="text-lg font-medium mb-2">Get started with Dashboards</h3>
+      <h3 class="text-lg text-nc-content-gray font-medium mb-2">Get started with Dashboards</h3>
       <p class="text-sm text-center">Start building your dashboard by adding widgets from the widget bar.</p>
       <NcButton @click="dashboardStore.isEditingDashboard = true">Edit Dashboard</NcButton>
     </div>
     <div
       v-if="(isPublic || !isUIAllowed('dashboardEdit')) && !activeDashboardWidgets.length"
-      class="empty-state flex flex-col h-full items-center justify-center h-full text-nc-content-gray-500"
+      class="empty-state flex flex-col h-full items-center justify-center h-full text-nc-content-gray-muted"
     >
       <img src="~assets/img/placeholder/no-search-result-found.png" class="w-120 mb-4" alt="Dashboard is empty" />
       <h3 class="text-lg font-medium mb-2">This dashboard is empty</h3>
@@ -336,11 +336,6 @@ watch(
 
 :deep(.vgl-item__resizer) {
   @apply opacity-0;
-}
-.empty-state {
-  border: 2px dashed var(--nc-content-gray-300);
-  border-radius: 12px;
-  margin: 2rem 0;
 }
 </style>
 

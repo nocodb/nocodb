@@ -138,11 +138,11 @@ watch(
             :class="{
               '!bg-nc-bg-gray-extralight': !inputValue,
             }"
-            class="px-1 py-0.5 bg-brand-600 transition-all rounded-md"
+            class="px-1 py-0.5 bg-nc-brand-600 transition-all rounded-md"
           >
             <GeneralIcon
               :class="{
-                '!text-gray-300': !inputValue,
+                '!text-nc-content-brand-hover': !inputValue,
               }"
               class="transition-all"
               icon="ncEnter"
@@ -165,7 +165,7 @@ watch(
         @keydown.enter="onChange"
       >
         <template #suffixIcon>
-          <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
         </template>
 
         <a-select-option v-for="option in content.options" :key="option" :value="option.value">
@@ -187,11 +187,11 @@ watch(
             :class="{
               '!bg-nc-bg-gray-extralight': !inputValue,
             }"
-            class="px-1 py-0.5 bg-brand-600 transition-all rounded-md"
+            class="px-1 py-0.5 bg-nc-brand-600 transition-all rounded-md"
           >
             <GeneralIcon
               :class="{
-                '!text-gray-300': !inputValue,
+                '!text-nc-content-brand-hover': !inputValue,
               }"
               class="transition-all"
               icon="ncEnter"
@@ -228,7 +228,10 @@ watch(
       <a-upload :accept="content.accept" :disabled="isResolved" :multiple="false" :before-upload="handleFileUpload">
         <NcButton v-if="!isResolved" size="small" :disabled="isResolved" type="secondary">Click to Upload</NcButton>
         <template #itemRender="{ file }">
-          <div v-if="file" class="border-1 border-nc-border-gray-medium bg-white flex items-center pl-1 py-2 pr-4 rounded-xl">
+          <div
+            v-if="file"
+            class="border-1 border-nc-border-gray-medium bg-nc-bg-default flex items-center pl-1 py-2 pr-4 rounded-xl"
+          >
             <CellAttachmentIconView class="w-10 h-10" :item="{ title: file.name, mimetype: file.type }" />
             <div class="flex flex-col flex-1">
               <div class="text-caption text-nc-content-gray">

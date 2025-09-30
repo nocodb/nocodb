@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 defineProps<{
-  showOnlyDownload?: boolean
+  showOnlyCopyId?: boolean
 }>()
 
 const { activeTable } = storeToRefs(useTablesStore())
@@ -191,7 +191,7 @@ function openDeleteDialog() {
       <SmartsheetToolbarViewActionMenu
         :table="activeTable"
         :view="activeView"
-        :show-only-download="showOnlyDownload"
+        :show-only-copy-id="showOnlyCopyId"
         @close-modal="isDropdownOpen = false"
         @rename="onRenameMenuClick"
         @delete="openDeleteDialog"

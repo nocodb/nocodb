@@ -14,7 +14,7 @@ export default {
             password: 'password',
             database: 'default_dev',
           },
-          pool: { min: 0, max: +process.env.DB_MAX_POOL_SIZE || 10 },
+          pool: { min: 0, max: +process.env.NC_DB_MAX_POOL_SIZE || 10 },
           meta: {
             tn: 'nc_evolutions',
             dbAlias: 'primary',
@@ -34,7 +34,7 @@ export default {
             password: 'password',
             database: 'default_test',
           },
-          pool: { min: 0, max: +process.env.DB_MAX_POOL_SIZE || 10 },
+          pool: { min: 0, max: +process.env.NC_DB_MAX_POOL_SIZE || 10 },
           meta: {
             tn: 'nc_evolutions',
             dbAlias: 'primary',
